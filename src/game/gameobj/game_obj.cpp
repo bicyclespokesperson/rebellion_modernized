@@ -69,7 +69,7 @@ GameObj::~GameObj() {
     if ((m_flags & kViewSideMask) == 0) DestroyData();
 }
 
-bool GameObj::InstallData() {
+int GameObj::InstallData() {
     m_data = CreateData();
     return m_data != nullptr;
 }

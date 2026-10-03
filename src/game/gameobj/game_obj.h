@@ -272,7 +272,7 @@ public:
     // Creates m_name if absent; 1 if there is a name afterwards.
     int InstallName();  // 0x4fc680
     // Makes `child` a child of this object (it keeps the previous parent's bookkeeping straight).
-    bool AdoptChild(GameObjNotifier* child, NotifyContext* ctx);  // 0x4fc600
+    int AdoptChild(GameObjNotifier* child, NotifyContext* ctx);  // 0x4fc600
     int RefreshParentView(NotifyContext* ctx);        // 0x4fca30
     int ReleaseDestroyedSubtree(NotifyContext* ctx);  // 0x4fc710
     int ReleaseDestroyed(NotifyContext* ctx);         // 0x4fc840
@@ -304,7 +304,7 @@ public:
     int ApplyConstructed(NotifyContext* ctx);  // 0x4fac50
     int ApplyDeployed(NotifyContext* ctx);  // 0x4face0
     // Calls CreateData() and stores the result in m_data; true if it is non-null.
-    bool InstallData();  // 0x4fc5c0
+    int InstallData();  // 0x4fc5c0
     // Deletes m_data, if any. Returns 1.
     int DestroyData();  // 0x4fc5e0
 

@@ -366,7 +366,7 @@ int GameObj::UpdateViewVisibility(NotifyContext* ctx) {
     return result;
 }
 
-bool GameObj::AdoptChild(GameObjNotifier* child, NotifyContext* ctx) {
+int GameObj::AdoptChild(GameObjNotifier* child, NotifyContext* ctx) {
     GameObj* const oldParent = static_cast<GameObj*>(child->m_parent);
     GameObjNotifier* previous = child;
     bool ok = AddChild(child, &previous) != 0;
