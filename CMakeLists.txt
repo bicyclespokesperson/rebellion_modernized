@@ -11,7 +11,7 @@ file(GLOB_RECURSE REB_GAME_SOURCES CONFIGURE_DEPENDS src/game/*.cpp)
 # originals; everything not yet reimplemented (functions, globals, the CRT) is resolved to its original
 # address at link time. See docs/ARCHITECTURE.md.
 set(REB_HYBRID_FLAGS /O2 /Zi /GS- /GR- /EHs-c- /Zl /Zc:sizedDealloc- /arch:IA32 -Wno-microsoft-cast
-    -DREB_HYBRID=1 -DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_NO_CRT_STDIO_INLINE -D_CRT_SECURE_NO_WARNINGS)
+    -DREB_HYBRID=1 -D_ACRTIMP= -D_CRTIMP= -DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_NO_CRT_STDIO_INLINE -D_CRT_SECURE_NO_WARNINGS)
 
 add_library(reb_game OBJECT ${REB_GAME_SOURCES})
 target_include_directories(reb_game PRIVATE src/game src)

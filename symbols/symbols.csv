@@ -1,9 +1,54 @@
 address,kind,name,signature,size
 0x005f2f50,func,String::String,(void),23
+0x005f2f90,func,String::String,(class String const &),
+0x005f2fc0,func,String::String,(int),
 0x005f2ff0,func,String::~String,,19
+0x005f3010,func,String::SetFromResource,,
+0x005f3040,func,String::GetBufferSize,,
+0x005f3070,func,String::Length,,
+0x005f3090,func,String::Assign,,
+0x005f30d0,func,String::operator+=,,
+0x005f3110,func,String::operator+,,
+0x005f31a0,func,String::AppendSigned,,
+0x005f31f0,func,String::AppendUnsigned,,
+0x005f3240,func,String::AppendChar,,
+0x005f32b0,func,String::AppendSpaces,,
+0x005f3390,func,String::Compare,,
+0x005f33f0,func,String::operator==,,
+0x005f3410,func,String::operator<,,
+0x005f3430,func,String::CompareN,,
+0x005f34a0,func,String::StartsWithNonVowel,,
+0x005f34c0,func,String::CompareToZeroString,,
+0x005f3530,func,String::ReadFrom,,
+0x005f3560,func,String::WriteTo,,
+0x005f3580,func,String::Read,,
+0x005f3590,func,String::Write,,
+0x005f35a0,func,SetLocaleFromEnvironment,,
 0x005f35b0,func,String::String,(char const *),35
+0x005f35e0,func,String::operator=,,
+0x005f3610,func,String::CopyText,,
 0x005f3630,func,SafeStrlen,,23
 0x005f3650,func,DuplicateString,,119
+0x005f36d0,func,ConcatenateStrings,,
+0x005f37e0,func,LoadStringResource,,
+0x005f3850,func,ReadLengthPrefixedString,,
+0x005f38f0,func,WriteLengthPrefixedString,,
+0x005f3930,func,String::Insert,,
+0x005f3ad0,func,String::InsertChar,,
+0x005f3c20,func,String::Clear,,
+0x005f3c30,func,String::RemoveRange,,
+0x005f3d80,func,StringCursor::StringCursor,(void),
+0x005f3dc0,func,StringCursor::StringCursor,(class StringCursor const &),
+0x005f3de0,func,StringCursor::StringCursor,(class String const &),
+0x005f3e00,func,StringCursor::~StringCursor,,
+0x005f3e10,func,StringCursor::operator=,,
+0x005f3e30,func,StringCursor::Attach,,
+0x005f3e50,func,StringCursor::operator++,(void),
+0x005f3e70,func,StringCursor::operator++,(int),
+0x005f3ef0,func,StringCursor::operator--,(int),
+0x005f3f80,func,StringCursor::Current,,
+0x005f3f90,func,StringCursor::Rewind,,
+0x005f3fa0,func,StringCursor::HasMore,,
 0x00611330,func,SetPrimaryBufferFormat,,269
 0x006153b0,func,ios_ctor,,103
 0x00615420,func,ios_scalar_deleting_dtor,,30
@@ -168,7 +213,7 @@ address,kind,name,signature,size
 0x0061a35d,func,_CIacos_body,,174
 0x0061a4d1,func,__seh_longjmp_unwind_4,,27
 0x0061a4f0,func,_strncat,,291
-0x0061a620,func,__strnicmp,,257
+0x0061a620,func,_strnicmp,,
 0x0061a740,func,_strchr,,193
 0x0061a800,func,_setlocale,,712
 0x0061aad0,func,__setlocale_set_cat,,341
@@ -417,7 +462,9 @@ address,kind,name,signature,size
 0x00628cf0,func,__mbschr,,194
 0x00628dc0,func,__strdup,,80
 0x0066dca8,data,String::vftable,,4
+0x0066dcac,data,StringCursor::vftable,,
 0x0066e6c4,data,type_info::vftable,,4
+0x006ac1c8,data,g_vowelCharacters,,
 0x006ac978,data,ios::RTTI_Type_Descriptor,,8
 0x006ac990,data,streambuf::RTTI_Type_Descriptor,,8
 0x006ac9a8,data,strstreambuf::RTTI_Type_Descriptor,,8
@@ -431,6 +478,10 @@ address,kind,name,signature,size
 0x006aca80,data,ifstream::RTTI_Type_Descriptor,,8
 0x006aca98,data,filebuf::RTTI_Type_Descriptor,,8
 0x006acc70,data,type_info::RTTI_Type_Descriptor,,8
+0x006bdcd8,data,g_unsignedNumberBuffer,,
+0x006bdce8,data,g_stringResourceBuffer,,
+0x006bddf8,data,g_signedNumberBuffer,,
+0x006bde14,data,g_loadStringCallback,,
 0x006be5e0,data,g_primaryFormat,,1
 0x006be668,data,g_directSound,,4
 0x006be66c,data,g_primaryBuffer,,4

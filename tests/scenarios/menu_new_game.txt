@@ -1,0 +1,33 @@
+# Skip intros, start a new game as the Rebellion, skip the intro cinematic, then open sector/system views
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 470 340
+28 click 470 340
+36 key Escape
+44 key Escape
+50 key Escape
+70 key Escape
+84 move 470 240
+86 click 470 240
+91 shot gm_a
+93 click 470 240
+98 shot gm_b
+100 click 400 200
+105 shot gm_c
+107 click 320 240
+112 shot gm_d
+114 click 320 240
+119 shot gm_e
+121 click 320 240
+126 shot gm_f
+128 key Escape
+131 shot gm_g
+133 click 233 156
+137 click 233 156
+142 shot gm_h
+144 click 233 156
+149 shot gm_i
+151 key Escape
+155 shot gm_j
+160 end
