@@ -5,6 +5,7 @@
   sym.py set 0x6be668 data g_directSound
   sym.py get 0x5f35b0 | String::String                       look up by address or name
   sym.py --no-ghidra set ...                                  skip the Ghidra update (server not running)
+  sym.py normalize                                            sort/dedupe after a merge; report name conflicts
 
 The Ghidra copy is updated through tools/gq and saved; if the server is down, the CSV is still updated and
 `tools/gq -f tools/py/apply_symbols.py` re-syncs later.
@@ -71,6 +72,21 @@ def cmd_get(args) -> int:
     return 0 if hits else 1
 
 
+def cmd_normalize(args) -> int:
+    """Sort and de-duplicate (after a union merge); report addresses with conflicting names."""
+    rows = load()
+    unique = {(r["address"], r["kind"], r["name"], r["signature"]): r for r in rows}
+    by_addr: dict[tuple[str, str], list[str]] = {}
+    for (a, k, n, _sig) in unique:
+        by_addr.setdefault((a, k), []).append(n)
+    conflicts = {k: v for k, v in by_addr.items() if len(set(v)) > 1}
+    save(list(unique.values()))
+    for (a, k), names in sorted(conflicts.items()):
+        print(f"conflict {a} {k}: {sorted(set(names))}")
+    print(f"{len(rows)} rows -> {len(unique)}; {len(conflicts)} conflicting addresses")
+    return 1 if conflicts else 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--no-ghidra", action="store_true")
@@ -82,8 +98,9 @@ def main() -> int:
     s.add_argument("signature", nargs="?")
     g = sub.add_parser("get")
     g.add_argument("query")
+    sub.add_parser("normalize")
     args = ap.parse_args()
-    return cmd_set(args) if args.cmd == "set" else cmd_get(args)
+    return {"set": cmd_set, "get": cmd_get, "normalize": cmd_normalize}[args.cmd](args)
 
 
 if __name__ == "__main__":

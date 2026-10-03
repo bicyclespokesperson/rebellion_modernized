@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# Integrate an agent branch into the main checkout and verify it:
+#   merge -> normalize symbols -> sync Ghidra -> build -> store its captures -> difftest all -> smoke run.
+# Usage: tools/integrate.sh <branch> [worktree path holding the branch's work/run captures]
+set -euo pipefail
+source "$(dirname "$0")/paths.sh"
+cd "$MAIN"
+branch="$1"; worktree="${2:-}"
+git merge --no-ff --no-edit "$branch"
+if ! tools/sym.py normalize; then
+  echo "symbol name conflicts: resolve in symbols/symbols.csv, then re-run from 'tools/gq -f ...apply_symbols.py'"; exit 1
+fi
+git diff --quiet symbols/symbols.csv || git commit -qm "Normalize symbols.csv after merging $branch" symbols/symbols.csv
+tools/gq -f tools/py/apply_symbols.py && tools/gq --save
+tools/build_hybrid.sh | tail -3
+if [[ -n "$worktree" && -d "$worktree/work/run" ]]; then
+  find "$worktree/work/run" -name '*.cap' -printf '%h\n' | sort -u | while read -r d; do
+    tools/capture_store.py add "$d" --origin "$(basename "$(dirname "$d")")"
+  done
+fi
+echo "== difftest (unit)"; tools/difftest.py $(tools/capture_store.py paths) | grep -v '^PASS' || true
+echo "== difftest (integration)"; tools/difftest.py --integration $(tools/capture_store.py paths) | grep -v '^PASS' || true
+echo "== smoke"; tools/run_game.sh tests/scenarios/smoke.txt
+cat work/run/smoke/rebhybrid.log
+tools/progress.py
