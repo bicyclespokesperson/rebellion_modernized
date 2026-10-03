@@ -35,7 +35,7 @@ DatRecord::DatRecord() : m_first(0), m_second(0), m_third(0), m_small(0), m_smal
 
 DatRecord::~DatRecord() { REB_KEEP_VPTR_STORE(); }
 
-void DatRecord::AppendName(String* out, int kind) {
+void DatRecord::WriteName(String* out, int kind) {
     switch (kind) {
         case 1:
         case 2:
@@ -53,9 +53,9 @@ void DatRecord::AppendName(String* out, int kind) {
     }
 }
 
-// The vtable slot at +0x1c is entered with `this` pointing at the NameSource base.
-void __thiscall AppendRecordName(NameSource* source, String* out, int kind) {
-    static_cast<DatRecord*>(source)->AppendName(out, kind);
+// The vtable slot at +0x1c is entered with `this` pointing at the ObjectBase subobject.
+void __thiscall AppendRecordName(ObjectBase* source, String* out, int kind) {
+    static_cast<DatRecord*>(source)->WriteName(out, kind);
 }
 
 int DatRecord::Parse(istream* in) {

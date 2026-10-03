@@ -6,6 +6,7 @@
 #include "core/iostream_lib.h"
 #include "core/layout.h"
 #include "core/stream_io.h"
+#include "core/utility_classes.h"
 
 class Crc32;
 
@@ -16,21 +17,12 @@ struct ResourceStringId {
     int16_t m_group;
 };
 
-// Interface at offset 0x1c of every game object and data record (the second base after IdNode / GameObj):
-// one virtual that appends the object's display name to a String. `kind` selects the form: 1, 2 and 4 append
-// the plain name, 0x20 and 0x21 prefix an indefinite article ("a" / "an" resource strings); other kinds append
-// nothing.
-class NameSource {
-public:
-    virtual void AppendName(String* out, int kind) = 0;
-};
-
 // Base of the records loaded from the GData/*.DAT tables (the "SD" tables). Each record is an IdNode (the key
 // is the node id) with a name and a few common numbers. Records are read from the binary table files with
 // Read(), saved with Write(), summed into the multiplayer-sync checksum with Checksum() and parsed from the
 // comma-separated text form with ParseFields(); the concrete record classes override those four and call these
 // base implementations first.
-class DatRecord : public IdNode, public NameSource {
+class DatRecord : public IdNode, public ObjectBase {
 public:
     DatRecord();
     virtual ~DatRecord();
@@ -41,7 +33,7 @@ public:
     virtual int Parse(istream* in);
     virtual int Checksum(Crc32* crc) = 0;
     virtual int ParseFields(istream* in, int* endOfLine) = 0;
-    virtual void AppendName(String* out, int kind) override;
+    virtual void WriteName(String* out, int kind) override;
 
     int m_hasData;     // +0x20, uninitialised by the constructor; set to 1 by ParseFields
     uint32_t m_first;  // +0x24
