@@ -4,15 +4,15 @@
 #include "core/containers.h"
 #include "core/layout.h"
 #include "platform/win32.h"
-#include "ui_framework/mm_timer.h"
+#include "ui/cool_timer.h"
 
 // Timer object that calls m_callback(m_param) when it fires. Sound buffers embed one but construct it with period 0,
-// so the multimedia timer is never started and Tick() is never reached.
-class SoundCallbackTimer : public MmTimer {
+// so the multimedia timer is never started and OnTick() is never reached.
+class SoundCallbackTimer : public CoolTimer {
 public:
     SoundCallbackTimer(void (*callback)(void*), void* parameter);
     virtual ~SoundCallbackTimer();
-    virtual void Tick() override;
+    virtual void OnTick() override;
 
     void (*m_callback)(void*);  // +0x38
     void* m_parameter;          // +0x3c

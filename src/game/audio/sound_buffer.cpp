@@ -38,7 +38,7 @@ constexpr uint32_t kHalfBufferShift = 1;
 // ---- SoundCallbackTimer -------------------------------------------------------------------------------------
 
 SoundCallbackTimer::SoundCallbackTimer(void (*callback)(void*), void* parameter)
-    : MmTimer(0, 1, 10), m_callback(callback), m_parameter(parameter) {}
+    : CoolTimer(0, 1, 10), m_callback(callback), m_parameter(parameter) {}
 
 SoundCallbackTimer::~SoundCallbackTimer() {
     Stop();
@@ -46,7 +46,7 @@ SoundCallbackTimer::~SoundCallbackTimer() {
     m_parameter = nullptr;
 }
 
-void SoundCallbackTimer::Tick() {
+void SoundCallbackTimer::OnTick() {
     if (m_callback) m_callback(m_parameter);
 }
 
