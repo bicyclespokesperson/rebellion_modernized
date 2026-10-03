@@ -321,8 +321,9 @@ void DestroyObjectDatabase() {
     }
 }
 
-void CheckObjectDatabase() {
-    if (g_objectDatabase) FUN_00585d90(g_objectDatabase);
+int CheckObjectDatabase() {
+    if (!g_objectDatabase) return 0;
+    return FUN_00585d90(g_objectDatabase);
 }
 
 int NoteUnresolvedKeyOf(GameObjNotifier* object) {

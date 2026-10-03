@@ -20,6 +20,7 @@
 // The 8 pure virtuals of GameObjRoot and the 3 more of GameObjNotifier are filled in by GameObj and its subclasses.
 
 class ChildList;
+class NotifyContext;
 class DatRecord;
 class GameObjNotifier;
 class ObjectEntry;
@@ -37,7 +38,8 @@ public:
     virtual int Read(istream* in) = 0;
     virtual int Write(ostream* out) = 0;
     virtual int Checksum(Crc32* crc) = 0;
-    virtual void Virtual08() = 0;
+    // True if the object is internally consistent (GameObj 0x4f9700).
+    virtual int Validate() = 0;
 
     int GetFlag31() const;
     void SetFlag31(int on);
@@ -79,7 +81,8 @@ class GameObjNotifier : public GameObjRoot {
 public:
     GameObjNotifier();
     virtual ~GameObjNotifier();
-    virtual void Virtual09() = 0;
+    // Applies every property of the master to this side view (GameObj 0x4f9540).
+    virtual int ApplyAll(NotifyContext* ctx) = 0;
     virtual void SetRecord(DatRecord* record);
     // Fills `out` with the keys of the objects this one depends on (the default implementation: just itself).
     virtual int CollectDependencies(void* context, int value, ObjectKeyValueSet* out) = 0;
@@ -99,7 +102,8 @@ public:
     int ReadObject(istream* in);
     int WriteObject(ostream* out);
     int ChecksumObject(Crc32* crc);
-    void NotifyIfComplete();
+    // True if the object has a record and all three views.
+    int NotifyIfComplete();
     int ReadTree(istream* in);
     int WriteTree(ostream* out);
     int ChecksumTree(Crc32* crc);
@@ -111,9 +115,9 @@ public:
     DatRecord* m_record;    // +0x2c
 };
 
-// Edits `mask` bits of *flags to `value`'s, writing only if they differ.
-void UpdateFlagBits(uint32_t mask, uint32_t value, uint32_t* flags);
-void UpdateFlagBit(uint32_t mask, int on, uint32_t* flags);
+// Edits `mask` bits of *flags to `value`'s, writing only if they differ. Returns 1 if the bits changed.
+int UpdateFlagBits(uint32_t mask, uint32_t value, uint32_t* flags);
+int UpdateFlagBit(uint32_t mask, int on, uint32_t* flags);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

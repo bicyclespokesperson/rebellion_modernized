@@ -97,7 +97,7 @@ int RegisterObject(GameObjNotifier* object);
 int UnregisterObject(GameObjNotifier* object);
 void CreateObjectDatabase();
 void DestroyObjectDatabase();
-void CheckObjectDatabase();
+int CheckObjectDatabase();
 
 int NoteUnresolvedKeyOf(GameObjNotifier* object);
 void CreateUnresolvedKeySet();
