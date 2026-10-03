@@ -25,6 +25,7 @@ class DisabledHooks {
 public:
     DisabledHooks() {
         DWORD n = GetEnvironmentVariableA("REB_DISABLE_HOOKS", buf_, sizeof buf_);
+        if (n >= sizeof buf_) log("REB_DISABLE_HOOKS is %u bytes; the limit is %u — ignored", n, sizeof buf_);
         has_ = n > 0 && n < sizeof buf_;
         all_ = has_ && lstrcmpiA(buf_, "all") == 0;
     }
@@ -46,10 +47,12 @@ public:
     }
 
 private:
-    char buf_[1024];
+    static char buf_[65536];  // static: a stack array this size would need __chkstk
     bool has_ = false;
     bool all_ = false;
 };
+
+char DisabledHooks::buf_[65536];
 
 static bool write_jump(uint32_t from, const void* to) {
     auto* p = reinterpret_cast<uint8_t*>(from);

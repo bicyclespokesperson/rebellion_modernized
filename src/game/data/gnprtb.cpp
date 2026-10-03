@@ -3,11 +3,10 @@
 #include <cstddef>
 
 #include "data/game_math.h"
+#include "data/param_table_entries.h"
 #include "data/probability_table.h"
 #include "data/random.h"
 
-int __thiscall FUN_00585840(const ParamTableRecord* record, int difficulty);           // value of a GNPRTB record
-int __thiscall FUN_00585ad0(const ParamTableRecord* record, int difficulty, int side);  // value of an SDPRTB record
 
 namespace {
 
@@ -63,7 +62,7 @@ int BindGnprtbParameter(int id, int* value) {
     *value = 0;
     const ParamTableRecord* record = FindTableRecord(kTableGnprtb, id);
     const int found = recordHasId(record, id);
-    if (found) *value = FUN_00585840(record, g_gnprtbDifficulty);
+    if (found) *value = reinterpret_cast<const GeneralParamTableEntry*>(record)->GetValue(g_gnprtbDifficulty);
     return found;
 }
 
@@ -72,7 +71,7 @@ int BindSdprtbParameter(int id, int side, int* value) {
     const ParamTableRecord* record = FindTableRecord(kTableSdprtb, id);
     int usable = recordHasId(record, id);
     if (usable) usable = isSideInRange(side);
-    if (usable) *value = FUN_00585ad0(record, g_gnprtbDifficulty, side);
+    if (usable) *value = reinterpret_cast<const SideParamTableEntry*>(record)->GetValue(g_gnprtbDifficulty, side);
     return usable;
 }
 

@@ -48,7 +48,7 @@ String::String(const char* text) { m_valid = DuplicateString(text, &m_text); }
 
 String::String(const String& other) { m_valid = DuplicateString(other.m_text, &m_text); }
 
-String::String(int resourceId) { m_valid = LoadStringResource(resourceId, &m_text); }
+String::String(const ResourceStringId* resource) { m_valid = LoadStringResource(resource, &m_text); }
 
 String::~String() { operator delete(m_text); }
 
@@ -79,12 +79,12 @@ int ConcatenateStrings(const char* first, const char* second, char** out) {
     return 1;
 }
 
-int LoadStringResource(int resourceId, char** out) {
+int LoadStringResource(const ResourceStringId* resource, char** out) {
     *out = nullptr;
     g_stringResourceBuffer[0] = '\0';
     if (g_loadStringCallback) {
-        using LoadStringCallback = void(__cdecl*)(int resourceId, int bufferSize, char* buffer);
-        reinterpret_cast<LoadStringCallback>(g_loadStringCallback)(resourceId, sizeof(g_stringResourceBuffer),
+        using LoadStringCallback = void(__cdecl*)(const ResourceStringId* resource, int bufferSize, char* buffer);
+        reinterpret_cast<LoadStringCallback>(g_loadStringCallback)(resource, sizeof(g_stringResourceBuffer),
                                                                    g_stringResourceBuffer);
     }
     return DuplicateString(g_stringResourceBuffer, out);
@@ -125,9 +125,9 @@ void String::operator=(const char* text) {
     m_valid = DuplicateString(text, &m_text);
 }
 
-void String::SetFromResource(int resourceId) {
+void String::SetFromResource(const ResourceStringId* resource) {
     operator delete(m_text);
-    m_valid = LoadStringResource(resourceId, &m_text);
+    m_valid = LoadStringResource(resource, &m_text);
 }
 
 void String::Clear() { *this = ""; }

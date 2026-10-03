@@ -1,28 +1,23 @@
 #include "data/probability_table.h"
 
 #include "data/random.h"
+#include "data/table.h"
 
-TableRegistry* __cdecl FUN_0058b360();
-void __cdecl FUN_0058b370();
-void __cdecl FUN_0058b400();
-ParamTableRecord* __thiscall FUN_0058b7e0(TableRegistry* registry, int tableType, int id);  // find record
-int __thiscall FUN_0058b7a0(TableRegistry* registry, int argument);                        // notify tables
+TableRegistry* GetTableRegistry() { return GetGDataTables(); }
 
-TableRegistry* GetTableRegistry() { return FUN_0058b360(); }
+void CreateTableRegistry() { InitGDataTables(); }
 
-void CreateTableRegistry() { FUN_0058b370(); }
-
-void DestroyTableRegistry() { FUN_0058b400(); }
+void DestroyTableRegistry() { DestroyGDataTables(); }
 
 ParamTableRecord* FindTableRecord(int tableType, int id) {
     TableRegistry* registry = GetTableRegistry();
     if (!registry) return nullptr;
-    return FUN_0058b7e0(registry, tableType, id);
+    return reinterpret_cast<ParamTableRecord*>(registry->Lookup(tableType, id));
 }
 
-void NotifyTables(int argument) {
+void ChecksumTables(Crc32* crc) {
     TableRegistry* registry = GetTableRegistry();
-    if (registry) FUN_0058b7a0(registry, argument);
+    if (registry) registry->ChecksumAll(crc);
 }
 
 int LookupTableValue(int tableType, int id, int* value) {

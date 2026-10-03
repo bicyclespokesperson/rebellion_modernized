@@ -11,18 +11,25 @@ class StringCursor;
 // Heap-allocated, NUL-terminated string. Used throughout the game (~1500 destructor call sites).
 // Most operations free the old buffer and replace it, recording in m_valid whether the new allocation
 // succeeded (operator new returns NULL on failure). Lengths are truncated to 16 bits everywhere.
+// Localized string resource id. The string loader receives the *address* of one of these (callers pass
+// pointers to static ids), and hands it on to the loader callback.
+struct ResourceStringId {
+    int16_t m_id;
+    int16_t m_group;
+};
+
 class String {
 public:
     String();
     String(const char* text);
     String(const String& other);
-    String(int resourceId);
+    explicit String(const ResourceStringId* resource);
     virtual ~String();
 
     String& operator=(const String&) = delete;
     int Assign(const String& other);
     void operator=(const char* text);
-    void SetFromResource(int resourceId);
+    void SetFromResource(const ResourceStringId* resource);
     void Clear();
 
     unsigned short Length() const;
@@ -102,8 +109,8 @@ int DuplicateString(const char* text, char** out);
 // if the allocation failed.
 int ConcatenateStrings(const char* first, const char* second, char** out);
 
-// *out = heap copy of string resource `resourceId` (via the registered loader callback; "" if there is none).
-int LoadStringResource(int resourceId, char** out);
+// *out = heap copy of string resource `resource` (via the registered loader callback; "" if there is none).
+int LoadStringResource(const ResourceStringId* resource, char** out);
 
 // Binary stream format: uint16 length followed by that many bytes (no terminator).
 int ReadLengthPrefixedString(istream* in, char** out);
