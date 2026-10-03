@@ -285,6 +285,6 @@ start,end,module,subsystem,confidence,evidence
 0x0060f020,0x00610b20,cool_misc_controls,ui_framework,low,small control classes VT 0x66e290..0x66e340; MoveWindow/PtInRect splitter-like virtuals
 0x00610b20,0x00611e90,SoundManager,sound,high,DirectSoundCreate 0x610d00; primary buffer format 0x611330; play-sound hubs 0x610b20/0x610c30; streaming thread 0x611bf0; Smacker sound 0x611dc0
 0x00611e90,0x00612bd0,cd_music,sound,medium,mciSendCommandA (CD audio/MIDI music); music track classes VT 0x66e398..0x66e3d0
-0x00612bd0,0x00614000,worker_threads,util,low,CreateThread/WaitForMultipleObjects worker loops; VT 0x66e3f8
+0x00612bd0,0x00614000,dsound_streaming,sound,medium,DirectSound buffer + streaming class (refill thread, notification positions); VT 0x66e3f8 (corrected by platform survey)
 0x00614000,0x006153b0,directx_init_errors,gfx,medium,S:"cdderr.dll"; DirectDrawCreate/Enumerate 0x614200; DX error->string 0x614530; import thunks 0x615350..0x6153a4
 0x006153b0,0x00618a70,msvc_iostream,library,high,LIBCI old iostream 0x6153b0-0x61870f (ios/strstream/fstream; ios::ios at 0x6153b0) then LIBCMT EH helpers from 0x618710 (see docs/library_code.md)
