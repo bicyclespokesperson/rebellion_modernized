@@ -1,6 +1,9 @@
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
 
+// The game CRT's 32-bit time() (0x61b120). Not <ctime>: UCRT's time() is an inline wrapper over _time64.
+extern "C" long __cdecl time(long* result);
+
 extern uint32_t g_crcTable[256];
 extern int g_crcTableReady;
 
@@ -8,8 +11,6 @@ extern int g_crcTableReady;
 extern "C" {
 int __cdecl rand(void);
 void __cdecl srand(unsigned int seed);
-// 0x61b120 is the C library's time(NULL) (symbol name as the library table has it).
-long __cdecl __ftime(long* result);
 }
 
 // ---- ObjectBase --------------------------------------------------------------------------------------------
@@ -63,7 +64,7 @@ int RandomGenerator::Next(int limit) {
 }
 
 int RandomGenerator::GenerateSeed() {
-    srand(static_cast<unsigned>(__ftime(nullptr)));
+    srand(static_cast<unsigned>(time(nullptr)));
     int seed;
     do {
         const int a = rand();
