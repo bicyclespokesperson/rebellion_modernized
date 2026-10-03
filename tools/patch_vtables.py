@@ -27,7 +27,7 @@ def load_original_vtables(csv_path: Path) -> dict[str, int]:
     out = {}
     with open(csv_path, newline="") as fh:
         for row in csv.DictReader(fh):
-            if row["kind"] == "data" and row["name"].endswith("::vftable"):
+            if row["kind"] == "data" and "::vftable" in row["name"]:  # also Class::vftable{Base}
                 out[row["name"]] = int(row["address"], 16)
     return out
 

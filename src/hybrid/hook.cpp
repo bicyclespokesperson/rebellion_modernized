@@ -74,7 +74,6 @@ int install_hooks() {
             log("hook %s (%08x) left original: capture target", h->name, h->original);
             ++skipped;
         } else if (disabled.contains(h->original)) {
-            log("hook %s (%08x) disabled", h->name, h->original);
             ++skipped;
         } else if (write_jump(h->original, h->replacement)) {
             ++installed;

@@ -47,4 +47,6 @@ add_custom_command(TARGET rebhybrid POST_BUILD
   COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/patch_vtables.py --dll $<TARGET_FILE:rebhybrid>
           --map ${CMAKE_BINARY_DIR}/smackw32.map --csv ${CMAKE_SOURCE_DIR}/symbols/symbols.csv
   VERBATIM)
-target_link_libraries(rebhybrid PRIVATE kernel32 user32 dxguid)
+# Win32 calls normally bind to REBEXE.EXE's own import table (gen_link_symbols.py); these import libraries only
+# serve the hybrid runtime and any API the original never imported.
+target_link_libraries(rebhybrid PRIVATE kernel32 user32 gdi32 winmm advapi32 dxguid)
