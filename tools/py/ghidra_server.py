@@ -53,6 +53,7 @@ def decomp(x, timeout=120):
 
 ENV = dict(program=program, fapi=fapi, listing=listing, fm=fm, addr=addr, func=func, decomp=decomp,
            monitor=monitor, ROOT=ROOT)
+exec((ROOT / "tools" / "py" / "gq_helpers.py").read_text(), ENV)
 
 
 def handle(req):

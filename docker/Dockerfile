@@ -21,3 +21,7 @@ RUN printf 'pcm.!default { type null }\nctl.!default { type hw card 0 }\n' > /et
 ENV WINEDEBUG=-all WINEARCH=win32 WINEPREFIX=/wine
 RUN wineboot --init 2>/dev/null; wineserver -w; true
 WORKDIR /work
+RUN apt-get update && apt-get install -y --no-install-recommends clang-19 lld-19 llvm-19 \
+    && rm -rf /var/lib/apt/lists/* \
+    && ln -sf /usr/bin/clang-19 /usr/local/bin/clang-cl && ln -sf /usr/bin/lld-link-19 /usr/local/bin/lld-link \
+    && for t in llvm-rc llvm-lib llvm-mt llvm-readobj llvm-objdump; do ln -sf /usr/bin/$t-19 /usr/local/bin/$t; done
