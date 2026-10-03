@@ -101,6 +101,8 @@ def last_identifier(text: str) -> str:
 
 # Hook-table return kinds: bytes of EAX that carry the result, or one of the special values below.
 RETURN_VOID, RETURN_X87, RETURN_EDX_EAX = 0, 0x10, 8
+# OR'ed into the return kind: a __stdcall member function (its `this` is the first stack argument).
+FLAG_STACK_THIS = 0x100
 
 
 def return_kind(demangled: str) -> int:
@@ -241,6 +243,9 @@ def main() -> int:
         elif s.raw in demangled:
             s.key, s.signature_key = keys_from_demangled(demangled[s.raw])
             s.return_kind = return_kind(demangled[s.raw])
+            text = demangled[s.raw]
+            if "__stdcall" in text and "::" in s.key and "static " not in text:
+                s.return_kind |= FLAG_STACK_THIS
         else:
             s.key = s.signature_key = c_symbol_key(s.raw)
 

@@ -738,7 +738,8 @@ def run_capture(path: Path, args, exe_pristine: Image, imports: Imports) -> bool
     bind_dll_imports(dll, imports)  # binds a copy per capture; cheap relative to emulation
     hooks = hook_table(dll)
     target = next((h for h in hooks if h.original == cap.function), None)
-    arg_bytes = stack_arg_bytes(target.name) if target else 0
+    # A __stdcall member (flag 0x100 in the return kind) also has `this` on the stack.
+    arg_bytes = (stack_arg_bytes(target.name) + (4 if target.return_kind & 0x100 else 0)) if target else 0
     label = f"{path.name} [{cap.function:#010x}]"
     try:
         orig = Emulator(cap, pack, fresh(exe_pristine), dll, imports, args.max_insns, arg_bytes).run(cap.function)
@@ -763,7 +764,7 @@ def run_capture(path: Path, args, exe_pristine: Image, imports: Imports) -> bool
     for h in active:
         exe.write(h.original, jump(h.original, h.replacement))
     new = Emulator(cap, pack, exe, dll, imports, args.max_insns, arg_bytes).run(cap.function)
-    problems = compare(orig, new, cap.regs, target.return_kind)
+    problems = compare(orig, new, cap.regs, target.return_kind & 0xff)
     name = target.name
     if problems and path.name in known_failures():
         print(f"XFAIL {label} {name}: {known_failures()[path.name]}")
