@@ -5,5 +5,6 @@
 #include <commctrl.h>
 #include <mmsystem.h>
 #include <mmreg.h>
+#include <vfw.h>
 #include <ddraw.h>
 #include <dsound.h>

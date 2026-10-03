@@ -1,0 +1,16 @@
+# Start a new Rebel game and watch the shuttle movie (Smacker, played while sound is already initialised), skip it.
+# See new_game_rebel.txt / docs/ui_navigation.md. Runtime ~55 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 460 330
+27 move 465 335
+28 click 465 335
+34 shot shuttle_movie_a
+38 shot shuttle_movie_b
+42 shot shuttle_movie_c
+46 shot shuttle_movie_d
+50 shot shuttle_movie_e
+52 key Escape
+56 shot after_shuttle_movie
+58 end
