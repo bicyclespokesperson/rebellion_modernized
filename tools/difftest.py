@@ -155,17 +155,28 @@ class RunResult:
     instructions: int = 0
 
 
-def hook_table(dll: Image) -> list[tuple[int, int, str]]:
+RETURN_VOID, RETURN_X87, RETURN_EDX_EAX = 0, 0x10, 8
+
+
+@dataclass(frozen=True)
+class Hook:
+    original: int
+    replacement: int
+    name: str
+    return_kind: int
+
+
+def hook_table(dll: Image) -> list[Hook]:
     exports = {e.name.decode(): e.address for e in dll.pe.DIRECTORY_ENTRY_EXPORT.symbols if e.name}
     base = dll.pe.OPTIONAL_HEADER.ImageBase
     table = base + exports["reb_hook_table"]
     out = []
     while True:
-        orig, repl, name_ptr = struct.unpack("<3I", dll.read(table, 12))
+        orig, repl, name_ptr, ret = struct.unpack("<4I", dll.read(table, 16))
         if orig == 0:
             return out
-        out.append((orig, repl, dll.read_cstr(name_ptr)))
-        table += 12
+        out.append(Hook(orig, repl, dll.read_cstr(name_ptr), ret))
+        table += 16
 
 
 def bind_dll_imports(dll: Image, imports: Imports) -> None:
@@ -371,20 +382,25 @@ def describe_memory(mem: dict[int, int]) -> list[str]:
     return out
 
 
-def compare(orig: RunResult, new: RunResult, initial: dict[str, int]) -> list[str]:
+def compare(orig: RunResult, new: RunResult, initial: dict[str, int], return_kind: int) -> list[str]:
     problems = []
     if not new.ok:
         problems.append(f"reimplementation did not complete: {new.error}")
         return problems
-    for reg in ("eax", "esp"):
-        if orig.regs[reg] != new.regs[reg]:
-            problems.append(f"{reg}: original {orig.regs[reg]:#x}, reimplementation {new.regs[reg]:#x}")
+    if orig.regs["esp"] != new.regs["esp"]:
+        problems.append(f"esp after return: original {orig.regs['esp']:#x}, reimplementation {new.regs['esp']:#x}")
+    if return_kind in (1, 2, 4, RETURN_EDX_EAX):
+        mask = (1 << (8 * min(return_kind, 4))) - 1
+        if orig.regs["eax"] & mask != new.regs["eax"] & mask:
+            problems.append(f"return value: original {orig.regs['eax'] & mask:#x}, reimplementation {new.regs['eax'] & mask:#x}")
+        if return_kind == RETURN_EDX_EAX and orig.regs["edx"] != new.regs["edx"]:
+            problems.append(f"return value high dword (edx): original {orig.regs['edx']:#x}, reimplementation {new.regs['edx']:#x}")
     for reg in CALLEE_SAVED:
         if new.regs[reg] != initial[reg]:
             problems.append(f"callee-saved {reg} clobbered: {initial[reg]:#x} -> {new.regs[reg]:#x}")
     if orig.fpu_top != new.fpu_top:
         problems.append(f"x87 stack depth differs (TOP {orig.fpu_top} vs {new.fpu_top})")
-    elif orig.fpu_top != 0 and orig.st0 != new.st0:
+    elif return_kind == RETURN_X87 and orig.st0 != new.st0:
         problems.append(f"ST0 differs: {orig.st0.hex()} vs {new.st0.hex()}")
     if orig.memory != new.memory:
         only_o = {a: v for a, v in orig.memory.items() if new.memory.get(a) != v}
@@ -420,15 +436,16 @@ def run_capture(path: Path, args, exe_pristine: Image, imports: Imports) -> bool
             print("    call", c)
         return True
     exe = fresh(exe_pristine)
-    active = [h for h in hooks if args.integration or h[0] == cap.function]
-    if not any(h[0] == cap.function for h in active):
+    active = [h for h in hooks if args.integration or h.original == cap.function]
+    target = next((h for h in hooks if h.original == cap.function), None)
+    if target is None:
         print(f"SKIP {label}: no reimplementation in {args.dll.name}")
         return True
-    for o, r, _ in active:
-        exe.write(o, jump(o, r))
+    for h in active:
+        exe.write(h.original, jump(h.original, h.replacement))
     new = Emulator(cap, pack, exe, dll, imports, args.max_insns).run(cap.function)
-    problems = compare(orig, new, cap.regs)
-    name = next(n for o, _, n in hooks if o == cap.function)
+    problems = compare(orig, new, cap.regs, target.return_kind)
+    name = target.name
     if problems:
         print(f"FAIL {label} {name}")
         for p in problems:

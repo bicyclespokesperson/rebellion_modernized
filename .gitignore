@@ -13,3 +13,4 @@ work/
 extracted/
 __pycache__/
 symbols/*.lock
+.claude/worktrees/
