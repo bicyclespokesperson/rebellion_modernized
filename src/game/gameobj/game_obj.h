@@ -49,6 +49,12 @@ public:
     virtual int GetOwnerKey(ObjectKey* out) override;
     virtual int IsUnderSideRoot() override;
     virtual int CollectDependencies(void* context, int value, ObjectKeyValueSet* out) override;
+    // Slots 5-9 stay pure (leaf classes implement them) but have bodies that those implementations call qualified.
+    virtual int Read(istream* in) override = 0;               // body 0x4f9340
+    virtual int Write(ostream* out) override = 0;             // body 0x4f9450
+    virtual int Checksum(Crc32* crc) override = 0;            // body 0x4f9650
+    virtual int Validate() override = 0;                      // body 0x4f9700
+    virtual int ApplyAll(NotifyContext* ctx) override = 0;    // body 0x4f9540
 
     // ---- slots 12-57: queries and status checks (names provisional unless noted) ----
     virtual uint32_t GetRecordTypeBits();                    // 12: record's +0x30 & 0xfff, 0 without a record
