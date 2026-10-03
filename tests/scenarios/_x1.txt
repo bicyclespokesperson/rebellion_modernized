@@ -1,0 +1,12 @@
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 495 345
+27 move 500 350
+28 shot h1
+29 click 500 350
+30 click 500 350
+32 shot b1
+33 click 500 350
+34 click 500 350
+37 shot b2

@@ -43,6 +43,7 @@ class ObjSymbol:
     defined: bool
     key: str = ""
     signature_key: str = ""
+    return_kind: int = 4
 
 
 def run_nm(objs: list[Path]) -> list[ObjSymbol]:
@@ -95,6 +96,34 @@ def last_identifier(text: str) -> str:
         elif depth == 0 and c in " *&":
             return text[i + 1:]
     return text
+
+
+# Hook-table return kinds: bytes of EAX that carry the result, or one of the special values below.
+RETURN_VOID, RETURN_X87, RETURN_EDX_EAX = 0, 0x10, 8
+
+
+def return_kind(demangled: str) -> int:
+    """How a function returns its value, from the return type in an llvm-undname rendering."""
+    text = re.sub(r"^(public|protected|private): ", "", demangled)
+    text = re.sub(r"^(static|virtual) ", "", text)
+    cc_at = min((text.find(cc) for cc in CALLING_CONVENTIONS if cc in text), default=-1)
+    if cc_at < 0:
+        return 4
+    ret = text[:cc_at].strip()
+    if not ret or ret == "void":  # constructors/destructors render without a return type
+        return 4 if not ret and "~" not in text else RETURN_VOID
+    if ret.endswith(("*", "&")):
+        return 4
+    base = re.sub(r"\b(const|volatile|signed)\b", "", ret).strip()
+    if base in ("bool", "char", "unsigned char"):
+        return 1
+    if base in ("short", "unsigned short", "wchar_t"):
+        return 2
+    if base in ("float", "double", "long double"):
+        return RETURN_X87
+    if base in ("__int64", "unsigned __int64"):
+        return RETURN_EDX_EAX
+    return 4
 
 
 def keys_from_demangled(demangled: str) -> tuple[str, str]:
@@ -188,6 +217,7 @@ def main() -> int:
     for s in symbols:
         if s.raw in demangled:
             s.key, s.signature_key = keys_from_demangled(demangled[s.raw])
+            s.return_kind = return_kind(demangled[s.raw])
         else:
             s.key = s.signature_key = c_symbol_key(s.raw)
 
@@ -212,7 +242,7 @@ def main() -> int:
                 errors.append(f"{orig.address:#x} reimplemented twice: {hooked_by_address[orig.address]} and {s.key}")
             else:
                 hooked_by_address[orig.address] = s.key
-                hooks.append((orig.address, s.raw, s.signature_key))
+                hooks.append((orig.address, s.raw, s.signature_key, s.return_kind))
         elif s.nm_type in DATA_TYPES:
             errors.append(f"{s.key}: original global at {orig.address:#x} must be declared extern in the hybrid build")
     if errors:
@@ -223,15 +253,15 @@ def main() -> int:
     for raw, address in sorted(absolute, key=lambda x: x[1]):
         lines += [f".globl {quote(raw)}", f"{quote(raw)} = {address:#x}"]
     lines += ['.section .rdata,"dr"', ".p2align 2", ".globl _reb_hook_table", "_reb_hook_table:"]
-    for i, (address, raw, _) in enumerate(sorted(hooks)):
-        lines += [f".long {address:#x}", f".long {quote(raw)}", f".long reb_hook_name_{i}"]
-    lines += [".long 0", ".long 0", ".long 0"]
-    for i, (_, _, key) in enumerate(sorted(hooks)):
+    for i, (address, raw, _, ret) in enumerate(sorted(hooks)):
+        lines += [f".long {address:#x}", f".long {quote(raw)}", f".long reb_hook_name_{i}", f".long {ret}"]
+    lines += [".long 0", ".long 0", ".long 0", ".long 0"]
+    for i, (_, _, key, _) in enumerate(sorted(hooks)):
         lines.append(f'reb_hook_name_{i}: .asciz "{key}"')
     args.out_asm.parent.mkdir(parents=True, exist_ok=True)
     args.out_asm.write_text("\n".join(lines) + "\n")
     args.out_report.write_text(json.dumps({
-        "reimplemented": {f"{a:#010x}": k for a, _, k in sorted(hooks)},
+        "reimplemented": {f"{a:#010x}": k for a, _, k, _ in sorted(hooks)},
         "referenced_originals": len(absolute),
     }, indent=1) + "\n")
     print(f"gen_link_symbols: {len(hooks)} hooks, {len(absolute)} original references")
