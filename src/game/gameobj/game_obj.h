@@ -163,8 +163,60 @@ public:
     // ==== SECTION core (0x4f5ea0-0x4f6c00): see game_obj.cpp ====
 
     // ==== SECTION setters (0x4f6c00-0x4f8880): see game_obj_setters.cpp ====
+    int SetName(String* value, NotifyContext* ctx);  // 0x4f6e60
+    int SetControlKind(uint32_t value, NotifyContext* ctx);  // 0x4f6f40
+    int SetParent(GameObjNotifier* value, NotifyContext* ctx);  // 0x4f6fd0
+    int SetBuilderKey(ObjectKey* value, NotifyContext* ctx);  // 0x4f7070
+    int SetDepartureKey(ObjectKey* value, NotifyContext* ctx);  // 0x4f7120
+    int SetDestroyedReason(uint32_t value, NotifyContext* ctx);  // 0x4f71d0
+    int SetDeploymentCount(uint32_t value, NotifyContext* ctx);  // 0x4f7260
+    int SetDestinationCount(uint32_t value, NotifyContext* ctx);  // 0x4f72f0
+    int SetEta(int value, NotifyContext* ctx);  // 0x4f7390
+    int SetUsable(int on, NotifyContext* ctx);  // 0x4f7410
+    int SetCreated(int on, NotifyContext* ctx);  // 0x4f7480
+    int SetCompleted(int on, NotifyContext* ctx);  // 0x4f74f0
+    int SetDestroyed(int on, NotifyContext* ctx);  // 0x4f7560
+    int SetEnroute(int on, NotifyContext* ctx);  // 0x4f75d0
+    int SetEnrouteActive(int on, NotifyContext* ctx);  // 0x4f7640
+    int SetExisting(int on, NotifyContext* ctx);  // 0x4f76b0
+    int SetObservedByAlliance(int on, NotifyContext* ctx);  // 0x4f7720
+    int SetObservedByEmpire(int on, NotifyContext* ctx);  // 0x4f7790
+    int SetDamaged(int on, NotifyContext* ctx);  // 0x4f7800
+    int SetHyperdriveActive(int on, NotifyContext* ctx);  // 0x4f7870
+    int SetAutorouting(int on, NotifyContext* ctx);  // 0x4f78e0
+    int SetAutoscrapRequest(int on, NotifyContext* ctx);  // 0x4f7950
+    int SetLocked(int on, NotifyContext* ctx);  // 0x4f79c0
+    int SetReadyForDelete(int on, NotifyContext* ctx);  // 0x4f7a30
+    int SetConstructed(int on, NotifyContext* ctx);  // 0x4f7aa0
+    int SetDeployed(int on, NotifyContext* ctx);  // 0x4f7b10
 
     // ==== SECTION notif (0x4f8880-0x4fcd90): see game_obj_notif.cpp ====
+    int ApplyName(NotifyContext* ctx);  // 0x4f9ba0
+    int ApplyControlKind(NotifyContext* ctx);  // 0x4f9ca0
+    int ApplyParent(NotifyContext* ctx);  // 0x4f9d40
+    int ApplyBuilderKey(NotifyContext* ctx);  // 0x4f9f10
+    int ApplyDepartureKey(NotifyContext* ctx);  // 0x4fa030
+    int ApplyDestroyedReason(NotifyContext* ctx);  // 0x4fa170
+    int ApplyDeploymentCount(NotifyContext* ctx);  // 0x4fa210
+    int ApplyDestinationCount(NotifyContext* ctx);  // 0x4fa2a0
+    int ApplyEta(NotifyContext* ctx);  // 0x4fa350
+    int ApplyUsable(NotifyContext* ctx);  // 0x4fa3d0
+    int ApplyCreated(NotifyContext* ctx);  // 0x4fa460
+    int ApplyCompleted(NotifyContext* ctx);  // 0x4fa4f0
+    int ApplyDestroyed(NotifyContext* ctx);  // 0x4fa580
+    int ApplyEnroute(NotifyContext* ctx);  // 0x4fa620
+    int ApplyEnrouteActive(NotifyContext* ctx);  // 0x4fa6b0
+    int ApplyExisting(NotifyContext* ctx);  // 0x4fa740
+    int ApplyObservedByAlliance(NotifyContext* ctx);  // 0x4fa7d0
+    int ApplyObservedByEmpire(NotifyContext* ctx);  // 0x4fa860
+    int ApplyDamaged(NotifyContext* ctx);  // 0x4fa8f0
+    int ApplyHyperdriveActive(NotifyContext* ctx);  // 0x4fa980
+    int ApplyAutorouting(NotifyContext* ctx);  // 0x4faa10
+    int ApplyAutoscrapRequest(NotifyContext* ctx);  // 0x4faaa0
+    int ApplyLocked(NotifyContext* ctx);  // 0x4fab30
+    int ApplyReadyForDelete(NotifyContext* ctx);  // 0x4fabc0
+    int ApplyConstructed(NotifyContext* ctx);  // 0x4fac50
+    int ApplyDeployed(NotifyContext* ctx);  // 0x4face0
     // Calls CreateData() and stores the result in m_data; true if it is non-null.
     bool InstallData();  // 0x4fc5c0
     // Deletes m_data, if any. Returns 1.
