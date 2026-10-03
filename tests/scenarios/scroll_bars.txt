@@ -1,0 +1,47 @@
+# Scroll bar workout in a loaded game (RebelsFastStart, Alliance, paused): opens the Galactic Encyclopedia
+# (F7), whose list has a vertical CoolScrollBar at x~442 (up arrow y~190, down arrow y~342), and clicks the
+# arrows, the track below/above the thumb and the thumb itself. Runtime ~85 s. See docs/ui_navigation.md.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot scroll_00_galaxy
+44 key F7
+47 shot scroll_01_encyclopedia
+# Down arrow, three times.
+48 move 440 340
+49 move 442 342
+50 click 442 342
+51 click 442 342
+52 click 442 342
+53 shot scroll_02_down_arrow
+# Track below the thumb (page down), twice.
+54 move 440 300
+55 move 442 300
+56 click 442 300
+57.5 click 442 300
+59 shot scroll_03_page_down
+# Track above the thumb (page up), then the up arrow.
+60 move 440 215
+61 move 442 215
+62 click 442 215
+64 move 440 190
+65 move 442 190
+66 click 442 190
+67 shot scroll_04_up
+# The thumb (top of the track after paging back), then the track near the bottom again.
+68 move 440 200
+69 move 442 200
+70 click 442 200
+71 move 440 330
+72 move 442 330
+73 click 442 330
+75 shot scroll_05_end
+76 key Escape
+78 shot scroll_06_closed
+80 end
