@@ -18,8 +18,8 @@ if [[ -n "$worktree" && -d "$worktree/work/run" ]]; then
     tools/capture_store.py add "$d" --origin "$(basename "$(dirname "$d")")"
   done
 fi
-echo "== difftest (unit)"; tools/difftest.py $(tools/capture_store.py paths) | grep -v '^PASS' || true
-echo "== difftest (integration)"; tools/difftest.py --integration $(tools/capture_store.py paths) | grep -v '^PASS' || true
+echo "== difftest (unit)"; tools/difftest.py -j "$(nproc)" $(tools/capture_store.py paths) | grep -v '^PASS' || true
+echo "== difftest (integration)"; tools/difftest.py -j "$(nproc)" --integration $(tools/capture_store.py paths) | grep -v '^PASS' || true
 echo "== smoke"; tools/run_game.sh tests/scenarios/smoke.txt
 cat work/run/smoke/rebhybrid.log
 tools/progress.py
