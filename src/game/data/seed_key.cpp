@@ -57,6 +57,6 @@ int SeedKey::AddToChecksum(Crc32* crc) const {
     return 1;
 }
 
-void SeedKey::ReadValue(istream* in) { Read(in); }
+int SeedKey::ReadValue(istream* in) { return Read(in); }
 
-void SeedKey::WriteValue(ostream* out) { Write(out); }
+int SeedKey::WriteValue(ostream* out) { return Write(out); }
