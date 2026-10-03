@@ -32,7 +32,7 @@ from pathlib import Path
 
 import capstone
 import pefile
-from unicorn import (UC_ARCH_X86, UC_HOOK_BLOCK, UC_HOOK_CODE, UC_HOOK_MEM_UNMAPPED, UC_HOOK_MEM_WRITE,
+from unicorn import (UC_ARCH_X86, UC_HOOK_BLOCK, UC_HOOK_CODE, UC_HOOK_INTR, UC_HOOK_MEM_UNMAPPED, UC_HOOK_MEM_WRITE,
                      UC_MEM_FETCH_UNMAPPED, UC_MODE_32, UC_PROT_ALL, Uc, UcError)
 from unicorn.x86_const import (UC_X86_REG_EAX, UC_X86_REG_EBP, UC_X86_REG_EBX, UC_X86_REG_ECX,
                                UC_X86_REG_EDI, UC_X86_REG_EDX, UC_X86_REG_EFLAGS, UC_X86_REG_EIP,
@@ -253,6 +253,7 @@ class Emulator:
         # The return-address slot, everything below it, and the incoming argument slots (MSVC reuses them as
         # scratch) belong to the callee.
         self.frame_hi = esp + 4 + arg_bytes
+        self.foreign_pages: set[int] = set()
         self.heap_next = HEAP_BASE
         self.heap_mapped = False
         self.files: dict[int, list] = {}
@@ -297,17 +298,29 @@ class Emulator:
             self.writes.add(address + i)
 
     def foreign_call(self, target: int) -> bool:
-        """A call into code outside the game/DLL (a COM method in a system DLL): stub it like an import.
-        Its stdcall argument size is inferred from the first `ret imm16` reachable in the snapshot's code."""
-        arg_bytes = self.infer_ret_imm(target)
-        if arg_bytes is None:
-            self.error = f"call into foreign code at {target:#010x} (argument size unknown)"
-            return False
-        stub = self.imports.stub_for("<com>", f"{target:#010x}")
-        self.imports.by_stub[stub] = (f"<com>@{target:#010x}", "stdcall", arg_bytes)
-        self.uc.mem_map(target & ~(PAGE - 1), PAGE, UC_PROT_ALL)
-        self.uc.mem_write(target, jump(target, stub))
+        """A fetch from code outside the game/DLL (a COM method in a system DLL). The page is mapped full of
+        int3, so every entry point on it — not just this one — lands in on_interrupt and is stubbed there."""
+        page = target & ~(PAGE - 1)
+        self.uc.mem_map(page, PAGE, UC_PROT_ALL)
+        self.uc.mem_write(page, b"\xCC" * PAGE)
+        self.foreign_pages.add(page)
         return True
+
+    def on_interrupt(self, uc, intno, _):
+        target = uc.reg_read(UC_X86_REG_EIP) - 1  # EIP is past the int3
+        if intno != 3 or target & ~(PAGE - 1) not in self.foreign_pages:
+            self.error = f"unexpected interrupt {intno} at {target:#010x}"
+            uc.emu_stop()
+            return
+        if target not in self.imports.by_stub:
+            # stdcall argument size: the first `ret imm16` reachable in the snapshot's real code
+            arg_bytes = self.infer_ret_imm(target)
+            if arg_bytes is None:
+                self.error = f"call into foreign code at {target:#010x} (argument size unknown)"
+                uc.emu_stop()
+                return
+            self.imports.by_stub[target] = (f"<com>@{target:#010x}", "stdcall", arg_bytes)
+        self.call_stub(target)
 
     def infer_ret_imm(self, address: int, depth: int = 0) -> int | None:
         if depth > 4:
@@ -542,6 +555,7 @@ class Emulator:
         uc.hook_add(UC_HOOK_MEM_WRITE, self.on_write)
         uc.hook_add(UC_HOOK_CODE, self.on_stub, begin=STUB_BASE, end=SENTINEL)
         uc.hook_add(UC_HOOK_BLOCK, self.on_block)
+        uc.hook_add(UC_HOOK_INTR, self.on_interrupt)
         esp = cap.regs["esp"]
         if not self.map_page(esp & ~(PAGE - 1)):
             raise RuntimeError("stack page missing from capture")

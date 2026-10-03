@@ -61,10 +61,11 @@ def run_nm(objs: list[Path]) -> list[ObjSymbol]:
 
 
 def demangle_all(names: list[str]) -> dict[str, str]:
-    mangled = [n for n in names if n.startswith("?")]
+    # Compiler-generated local symbols (SEH funclets like ?fin$0@0@Func@Class@@) never name original code.
+    mangled = [n for n in names if n.startswith("?") and "$" not in n]
     if not mangled:
         return {}
-    out = subprocess.run(["llvm-undname-19"], input="\n".join(mangled) + "\n", check=True, capture_output=True, text=True).stdout
+    out = subprocess.run(["llvm-undname-19"], input="\n".join(mangled) + "\n", capture_output=True, text=True).stdout
     lines = [l for l in out.splitlines() if l.strip()]
     result = {}
     for i in range(0, len(lines) - 1, 2):
