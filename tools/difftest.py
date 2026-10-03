@@ -382,6 +382,12 @@ class Emulator:
         if function in ("_lclose", "CloseHandle") and args and args[0] in self.files:
             del self.files[args[0]]
             return 1 if function == "CloseHandle" else 0
+        if function in ("GetLocalTime", "GetSystemTime"):  # fixed instant: time() must not read garbage
+            self.uc.mem_write(args[0], struct.pack("<8H", 1998, 3, 1, 2, 12, 0, 0, 0))
+            return 0
+        if function == "GetTimeZoneInformation":
+            self.uc.mem_write(args[0], bytes(172))
+            return 0
         if function == "QueryPerformanceCounter" and CFG.qpc is not None:
             self.uc.mem_write(args[0], CFG.qpc.to_bytes(8, "little"))
             return 1
@@ -641,8 +647,12 @@ def run_capture(path: Path, args, exe_pristine: Image, imports: Imports) -> bool
     hooks = hook_table(dll)
     target = next((h for h in hooks if h.original == cap.function), None)
     arg_bytes = stack_arg_bytes(target.name) if target else 0
-    orig = Emulator(cap, pack, fresh(exe_pristine), dll, imports, args.max_insns, arg_bytes).run(cap.function)
     label = f"{path.name} [{cap.function:#010x}]"
+    try:
+        orig = Emulator(cap, pack, fresh(exe_pristine), dll, imports, args.max_insns, arg_bytes).run(cap.function)
+    except RuntimeError as e:  # malformed capture (e.g. the stack page was not snapshotted)
+        print(f"SKIP {label}: unusable capture: {e}")
+        return True
     if not orig.ok:
         print(f"SKIP {label}: original run failed: {orig.error}")
         return True
