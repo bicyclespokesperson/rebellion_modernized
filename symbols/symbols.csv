@@ -2511,7 +2511,6 @@ address,kind,name,signature,size
 0x006b2b04,data,g_gameHook2B04,,
 0x006b2b08,data,g_gameHook2B08,,
 0x006b2bb0,data,g_gameRoot,,
-0x006b2bb0,data,g_gameRoot,,
 0x006b2fd8,data,g_keyedFactories,,
 0x006b6fd8,data,g_keyedFactoryCount,,
 0x006b904c,data,g_gnprtbDifficulty,,
