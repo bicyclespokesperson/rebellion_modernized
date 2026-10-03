@@ -1,0 +1,37 @@
+# Scroll bar clicks in a loaded game (RebelsFastStart, Alliance): opens the System Finder (F2) and clicks the
+# list's vertical scroll bar (x~442, y 188-352): the track below the thumb (page down), the thumb (drag start /
+# end), the down and up arrow buttons. Exercises CoolScrollBar's mouse, timer and capture paths. Runtime ~75 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot scroll_00_galaxy
+42 key F2
+46 shot scroll_01_system_finder
+47 move 440 300
+48 move 442 300
+49 click 442 300
+51 shot scroll_02_paged
+52 move 442 300
+53 click 442 300
+54 move 442 340
+55 click 442 340
+57 move 442 347
+58 move 442 348
+59 click 442 348
+60 click 442 348
+61 move 442 192
+62 move 442 193
+63 click 442 193
+65 shot scroll_03_arrows
+66 move 442 230
+67 click 442 230
+68 move 442 250
+69 click 442 250
+71 shot scroll_04_end
+72 end

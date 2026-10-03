@@ -1,7 +1,8 @@
 // Test-case capture for the differential tester (tools/difftest).
 //
-// REB_CAPTURE="<hex addr>[:count[:skip]],..." arms an INT3 breakpoint at each listed original function.
-// On a hit (after `skip` hits), the full CPU context and a snapshot of all committed readable memory are
+// REB_CAPTURE="<hex addr>[:count[:skip[:every]]],..." arms an INT3 breakpoint at each listed original function.
+// After `skip` hits, every `every`-th hit (default 1) is captured until `count` captures were taken.
+// On a capture, the full CPU context and a snapshot of all committed readable memory are
 // written to REB_CAPTURE_DIR (default "captures"), then execution continues in the original code via a
 // single-step re-arm. Memory pages are deduplicated per session in pages.pack.
 //
@@ -29,6 +30,8 @@ struct Target {
     uint8_t original_byte;
     int remaining;
     int skip;
+    int every;
+    int hits_since_skip;
     int taken;
 };
 
@@ -193,7 +196,7 @@ LONG CALLBACK on_exception(EXCEPTION_POINTERS* info) {
             EnterCriticalSection(&g_lock);
             if (t.skip > 0) {
                 --t.skip;
-            } else if (t.remaining > 0) {
+            } else if (t.remaining > 0 && t.hits_since_skip++ % t.every == 0) {
                 write_capture(t, ctx);
                 ++t.taken;
                 --t.remaining;
@@ -251,6 +254,9 @@ void install_captures() {
         t.remaining = 3;
         if (*p == ':') t.remaining = static_cast<int>(parse_dec(++p));
         if (*p == ':') t.skip = static_cast<int>(parse_dec(++p));
+        t.every = 1;
+        if (*p == ':') t.every = static_cast<int>(parse_dec(++p));
+        if (t.every < 1) t.every = 1;
         while (*p && *p != ',') ++p;
         if (*p == ',') ++p;
         t.original_byte = *reinterpret_cast<uint8_t*>(t.address);
@@ -259,7 +265,8 @@ void install_captures() {
     AddVectoredExceptionHandler(1, on_exception);
     for (int i = 0; i < g_target_count; ++i) {
         set_byte(g_targets[i].address, 0xCC);
-        log("capture armed at %08x (count %d, skip %d)", g_targets[i].address, g_targets[i].remaining, g_targets[i].skip);
+        log("capture armed at %08x (count %d, skip %d, every %d)", g_targets[i].address, g_targets[i].remaining,
+            g_targets[i].skip, g_targets[i].every);
     }
 }
 
