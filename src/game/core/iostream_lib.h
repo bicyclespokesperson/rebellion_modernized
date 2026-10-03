@@ -14,7 +14,6 @@ class ios;
 class streambuf;
 class istream;
 class ostream;
-class ifstream;
 class ofstream;
 class strstream;
 
@@ -46,9 +45,18 @@ public:
     uint8_t m_bytes[kSize];
 };
 
+// ifstream (0x5c bytes): the ios virtual base is at +0x0c.
+class ifstream {
+public:
+    static constexpr int kIosOffset = 0x0c;
+    static constexpr int kSize = 0x5c;
+    uint8_t m_bytes[kSize];
+};
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_SIZE(ios, 0x50);
+REB_ASSERT_SIZE(ifstream, 0x5c);
 REB_ASSERT_OFFSET(ios, m_bp, 0x04);
 REB_ASSERT_OFFSET(ios, m_state, 0x08);
 REB_ASSERT_OFFSET(ios, m_lockCount, 0x34);
@@ -63,6 +71,8 @@ REB_ASSERT_SIZE(strstream, 100);
 strstream* __thiscall strstream_ctor(strstream* self, int isMostDerived);
 void __thiscall strstream_dtor(ios* iosBase);
 void __thiscall ios_dtor(ios* self);
+ifstream* __thiscall ifstream_ctor(ifstream* self, int isMostDerived);
+void __thiscall ifstream_dtor(ios* iosBase);
 
 void __thiscall mtx_lock(void* criticalSection);
 void __thiscall mtx_unlock(void* criticalSection);
@@ -121,6 +131,26 @@ inline unsigned AvailableBytes(const streambuf* buffer) {
 inline streambuf* BufferOf(strstream* stream) { return IosOf(stream)->m_bp; }
 
 }  // namespace iostream_access
+
+// An ifstream on the stack, constructed and destroyed the way the compiler does it for a local object.
+class ScopedIfstream {
+public:
+    ScopedIfstream() { ifstream_ctor(&m_stream, 1); }
+    ~ScopedIfstream() {
+        ios* base = reinterpret_cast<ios*>(m_stream.m_bytes + ifstream::kIosOffset);
+        ifstream_dtor(base);
+        ios_dtor(base);
+    }
+    ScopedIfstream(const ScopedIfstream&) = delete;
+    ScopedIfstream& operator=(const ScopedIfstream&) = delete;
+
+    ifstream* get() { return &m_stream; }
+    // The file descriptor of the stream's filebuf: -1 if no file is open.
+    int FileDescriptor() { return *reinterpret_cast<int*>(reinterpret_cast<char*>(iostream_access::IosOf(&m_stream)->m_bp) + 0x4c); }
+
+private:
+    ifstream m_stream;
+};
 
 // A strstream on the stack, constructed and destroyed the way the compiler does it for a local object.
 class ScopedStrstream {
