@@ -203,7 +203,7 @@ address,kind,name,signature,size
 0x005f2f40,func,StringMap::~StringMap,,
 0x005f2f50,func,String::String,(void),23
 0x005f2f90,func,String::String,(class String const &),
-0x005f2fc0,func,String::String,(int),
+0x005f2fc0,func,String::String,(struct ResourceStringId const *),
 0x005f2ff0,func,String::~String,,19
 0x005f3010,func,String::SetFromResource,,
 0x005f3040,func,String::GetBufferSize,,

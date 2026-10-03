@@ -15,13 +15,11 @@ constexpr int16_t kIndefiniteArticleA = 0x4da1;
 constexpr int16_t kIndefiniteArticleAn = 0x4da2;
 constexpr int16_t kArticleGroup = 2;
 
-int ResourceArgument(const ResourceStringId* id) { return static_cast<int>(reinterpret_cast<uintptr_t>(id)); }
-
 void appendWithArticle(String* out, const String& name) {
     const ResourceStringId article = {name.StartsWithNonVowel() == 0 ? kIndefiniteArticleAn : kIndefiniteArticleA,
                                       kArticleGroup};
     {
-        String articleText(ResourceArgument(&article));
+        String articleText(&article);
         *out += articleText;
     }
     *out += name;

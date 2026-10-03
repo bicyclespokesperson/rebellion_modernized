@@ -10,13 +10,6 @@
 
 class Crc32;
 
-// Localized string resource id as the game passes it to the string loader: the String(int) constructor and
-// LoadStringResource receive the *address* of one of these.
-struct ResourceStringId {
-    int16_t m_id;
-    int16_t m_group;
-};
-
 // Base of the records loaded from the GData/*.DAT tables (the "SD" tables). Each record is an IdNode (the key
 // is the node id) with a name and a few common numbers. Records are read from the binary table files with
 // Read(), saved with Write(), summed into the multiplayer-sync checksum with Checksum() and parsed from the
