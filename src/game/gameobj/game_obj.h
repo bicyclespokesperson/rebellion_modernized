@@ -39,6 +39,14 @@
 class Crc32;
 class EventKindSet;
 
+// The (side, ..., kind) record that CheckActivityRequest inspects.
+struct ActivityRequest {
+    int m_side;     // +0x00
+    int m_unk04;    // +0x04
+    int m_unk08;    // +0x08
+    int m_kind;     // +0x0c
+};
+
 class GameObj : public GameObjNotifier, public ObjectBase {
 public:
     GameObj();
@@ -136,7 +144,7 @@ public:
     virtual int OnDeployedChanged(int newValue, NotifyContext* ctx) { return 1; }                                       // 84
 
     // ---- slots 85-110: OnXNotified events on a side view ----
-    virtual int OnNameNotified(String* name, String* oldName, NotifyContext* ctx);                         // 85
+    virtual int OnNameNotified(String* oldName, String* newName, NotifyContext* ctx);                         // 85
     virtual int OnControlKindNotified(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx);             // 86
     virtual int OnParentNotified(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx);  // 87
     virtual int OnBuilderKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx);            // 88
@@ -145,23 +153,23 @@ public:
     virtual int OnDeploymentCountNotified(uint32_t oldValue, uint32_t newValue, NotifyContext* ctx);       // 91
     virtual int OnDestinationCountNotified(uint32_t oldValue, uint32_t newValue, NotifyContext* ctx);      // 92
     virtual int OnEtaNotified(int oldValue, int newValue, NotifyContext* ctx);                             // 93
-    virtual int OnUsableNotified(int oldValue, NotifyContext* ctx);                                        // 94
-    virtual int OnCreatedNotified(int oldValue, NotifyContext* ctx);                                       // 95
-    virtual int OnCompletedNotified(int oldValue, NotifyContext* ctx);                                     // 96
-    virtual int OnDestroyedNotified(int oldValue, NotifyContext* ctx);                                     // 97
-    virtual int OnEnrouteNotified(int oldValue, NotifyContext* ctx);                                       // 98
-    virtual int OnEnrouteActiveNotified(int oldValue, NotifyContext* ctx);                                 // 99
-    virtual int OnExistingNotified(int oldValue, NotifyContext* ctx);                                      // 100
-    virtual int OnObservedByAllianceNotified(int oldValue, NotifyContext* ctx);                            // 101
-    virtual int OnObservedByEmpireNotified(int oldValue, NotifyContext* ctx);                              // 102
-    virtual int OnDamagedNotified(int oldValue, NotifyContext* ctx);                                       // 103
-    virtual int OnHyperdriveActiveNotified(int oldValue, NotifyContext* ctx);                              // 104
-    virtual int OnAutoroutingNotified(int oldValue, NotifyContext* ctx);                                   // 105
-    virtual int OnAutoscrapRequestNotified(int oldValue, NotifyContext* ctx);                              // 106
-    virtual int OnLockedNotified(int oldValue, NotifyContext* ctx);                                        // 107
-    virtual int OnReadyForDeleteNotified(int oldValue, NotifyContext* ctx);                                // 108
-    virtual int OnConstructedNotified(int oldValue, NotifyContext* ctx);                                   // 109
-    virtual int OnDeployedNotified(int oldValue, NotifyContext* ctx);                                      // 110
+    virtual int OnUsableNotified(int value, NotifyContext* ctx);                                        // 94
+    virtual int OnCreatedNotified(int value, NotifyContext* ctx);                                       // 95
+    virtual int OnCompletedNotified(int value, NotifyContext* ctx);                                     // 96
+    virtual int OnDestroyedNotified(int value, NotifyContext* ctx);                                     // 97
+    virtual int OnEnrouteNotified(int value, NotifyContext* ctx);                                       // 98
+    virtual int OnEnrouteActiveNotified(int value, NotifyContext* ctx);                                 // 99
+    virtual int OnExistingNotified(int value, NotifyContext* ctx);                                      // 100
+    virtual int OnObservedByAllianceNotified(int value, NotifyContext* ctx);                            // 101
+    virtual int OnObservedByEmpireNotified(int value, NotifyContext* ctx);                              // 102
+    virtual int OnDamagedNotified(int value, NotifyContext* ctx);                                       // 103
+    virtual int OnHyperdriveActiveNotified(int value, NotifyContext* ctx);                              // 104
+    virtual int OnAutoroutingNotified(int value, NotifyContext* ctx);                                   // 105
+    virtual int OnAutoscrapRequestNotified(int value, NotifyContext* ctx);                              // 106
+    virtual int OnLockedNotified(int value, NotifyContext* ctx);                                        // 107
+    virtual int OnReadyForDeleteNotified(int value, NotifyContext* ctx);                                // 108
+    virtual int OnConstructedNotified(int value, NotifyContext* ctx);                                   // 109
+    virtual int OnDeployedNotified(int value, NotifyContext* ctx);                                      // 110
 
     // ObjectBase slot 0 (secondary vtable): appends the object's name to *out; `kind` as in DatRecord::WriteName.
     virtual void WriteName(String* out, int kind) override;
@@ -237,6 +245,28 @@ public:
     int SetDeployed(int on, NotifyContext* ctx);  // 0x4f7b10
 
     // ==== SECTION notif (0x4f8880-0x4fcd90): see game_obj_notif.cpp ====
+    // Notification debug log (dead in the shipped game: guarded by a call that always returns 0). All return 1 when
+    // logging is off. `unused` is passed through as the formatter's `extra` text.
+    int LogFlag(const char* tag, const char* property, int value, int unused, NotifyContext* ctx);  // 0x4f8880
+    int LogSide(const char* tag, const char* property, uint32_t newSide, uint32_t oldSide, int unused,
+                NotifyContext* ctx);  // 0x4f88d0
+    int LogInt(const char* tag, const char* property, int newValue, int oldValue, int unused,
+               NotifyContext* ctx);  // 0x4f8980
+    int LogString(const char* tag, const char* property, String* newValue, String* oldValue, int unused,
+                  NotifyContext* ctx);  // 0x4f8a50
+    int LogKey(const char* tag, const char* property, ObjectKey* newKey, ObjectKey* oldKey, int unused,
+               NotifyContext* ctx);  // 0x4f8aa0
+    int LogTypeKey(const char* tag, const char* property, ObjectKey* newKey, ObjectKey* oldKey, int unused,
+                   NotifyContext* ctx);  // 0x4f8b80
+    // The formatter itself (0x4f8c60): not reconstructed, never reached.
+    int LogChange(const char* tag, const char* property, const char* newText, const char* oldText, const char* extra,
+                  NotifyContext* ctx);
+    // Checks whether an activity request (order/event with a side and kind) is allowed; fills *out.
+    int CheckActivityRequest(const ActivityRequest* request, StatusCode* out);  // 0x4f9860
+    // Re-evaluates which sides see this object (side mask of views 1 and 2).
+    int UpdateViewVisibility(NotifyContext* ctx);  // 0x4f9a60
+    ObjectKey* GetBuilderKey(ObjectKey* out);      // 0x48a640
+    ObjectKey* GetDepartureKey(ObjectKey* out);    // 0x4fa150
     // Applies every property of the master to this side view's object `view` of the same key (1 if there is none).
     int ApplyAllToView(int view, NotifyContext* ctx);  // 0x4f9510
     // Creates m_name if absent; 1 if there is a name afterwards.
@@ -294,6 +324,8 @@ public:
 int UpdateAllChildren(GameObj* object, NotifyContext* ctx);
 // Unregisters, detaches and deletes the three views of an object that is ready for deletion (0x4f83b0).
 int DeleteObjectViews(GameObj* object);
+// The default of the leaf classes' static event-kind sets: an empty set (0x4fad70).
+int InitEventKinds(int unused, EventKindSet* out);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

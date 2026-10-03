@@ -6,6 +6,7 @@
 #include "data/dat_record.h"
 #include "data/gnprtb.h"
 #include "gameobj/object_database.h"
+#include "gameobj/object_family.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
 extern "C" void __cdecl LAB_004f6320();
@@ -36,7 +37,7 @@ constexpr int kStatusNotSupported27 = 0x27;
 
 void setStatus(StatusCode* out, int code) { *out = StatusCode(kStatusCategory, code); }
 
-bool isSideRootFamily(uint32_t family) { return family >= family::kSideRoot && family < family::kSide; }
+bool isSideRootFamily(uint32_t value) { return value >= family::kSideRoot && value < family::kSide; }
 
 void appendArticle(String* out, const String& name) {
     const ResourceStringId article = {name.StartsWithNonVowel() == 0 ? kIndefiniteArticleAn : kIndefiniteArticleA,
@@ -283,3 +284,5 @@ uint32_t GameObj::MatchesStateFilter(uint32_t mode) {
             return 0;
     }
 }
+
+GameObjData* GameObj::CreateData() { return new GameObjData(); }

@@ -82,7 +82,7 @@ int GameObj::GetDataKey(ObjectKey* out) {
 }
 
 void* GameObj::GetDataExtra() {
-    if (m_data) return m_data->m_unk10;
+    if (m_data) return &m_data->m_stat;
     return nullptr;
 }
 
@@ -119,7 +119,7 @@ int GameObj::DecrementLock(NotifyContext* ctx) {
 }
 
 int GameObj::NotifyDataEvent387(int a, int b) {
-    return FUN_0053fab0(kAllocationEventId, a, this, reinterpret_cast<char*>(m_data) + 0x10, b);
+    return FUN_0053fab0(kAllocationEventId, a, this, &m_data->m_stat, b);
 }
 
 // ---- creating and updating children -------------------------------------------------------------------------
