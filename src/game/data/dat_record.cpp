@@ -55,7 +55,7 @@ void DatRecord::WriteName(String* out, int kind) {
 
 // The vtable slot at +0x1c is entered with `this` pointing at the ObjectBase subobject.
 void __thiscall AppendRecordName(ObjectBase* source, String* out, int kind) {
-    static_cast<DatRecord*>(source)->WriteName(out, kind);
+    static_cast<DatRecord*>(source)->DatRecord::WriteName(out, kind);
 }
 
 int DatRecord::Parse(istream* in) {

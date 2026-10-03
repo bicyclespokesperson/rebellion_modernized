@@ -74,8 +74,8 @@ void __thiscall ios_dtor(ios* self);
 ifstream* __thiscall ifstream_ctor(ifstream* self, int isMostDerived);
 void __thiscall ifstream_dtor(ios* iosBase);
 
-void __thiscall mtx_lock(void* criticalSection);
-void __thiscall mtx_unlock(void* criticalSection);
+void __cdecl mtx_lock(void* criticalSection);
+void __cdecl mtx_unlock(void* criticalSection);
 
 int __thiscall istream_get(istream* in);
 istream* __thiscall istream_read(istream* in, void* buffer, int count);
