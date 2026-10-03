@@ -1,4 +1,5 @@
 #include "core/utility_classes.h"
+#include "core/vptr_store.h"
 
 extern uint32_t g_crcTable[256];
 extern int g_crcTableReady;
@@ -15,7 +16,7 @@ long __cdecl __ftime(long* result);
 
 ObjectBase::ObjectBase() {}
 
-ObjectBase::~ObjectBase() {}
+ObjectBase::~ObjectBase() { REB_KEEP_VPTR_STORE(); }
 
 // ---- PersistentInt -----------------------------------------------------------------------------------------
 
@@ -43,7 +44,7 @@ RandomGenerator::RandomGenerator() : m_seed(-1) {}
 
 RandomGenerator::RandomGenerator(int seed) { m_seed = Seed(seed); }
 
-RandomGenerator::~RandomGenerator() {}
+RandomGenerator::~RandomGenerator() { REB_KEEP_VPTR_STORE(); }
 
 int RandomGenerator::Seed(int seed) {
     m_seed = -1;
@@ -94,7 +95,7 @@ Crc32::Crc32() { Reset(); }
 
 Crc32::Crc32(const Crc32& other) : m_state(other.m_state) {}
 
-Crc32::~Crc32() {}
+Crc32::~Crc32() { REB_KEEP_VPTR_STORE(); }
 
 Crc32& Crc32::operator=(const Crc32& other) {
     m_state = other.m_state;
@@ -105,7 +106,7 @@ void Crc32::Reset() { m_state = 0xffffffff; }
 
 uint32_t Crc32::Value() const { return ~m_state; }
 
-static void BuildCrcTable() {
+__attribute__((noinline)) void BuildCrcTable() {
     for (uint32_t index = 0; index < 256; ++index) {
         uint32_t value = index << 24;
         for (int bit = 0; bit < 8; ++bit) value = (value & 0x80000000) ? (value * 2) ^ 0x04c11db7 : value << 1;

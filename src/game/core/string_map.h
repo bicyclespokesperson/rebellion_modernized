@@ -2,6 +2,7 @@
 #include <cstdint>
 
 #include "core/containers.h"
+#include "core/layout.h"
 #include "core/game_string.h"
 
 class StringCursor;
@@ -46,8 +47,8 @@ public:
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
-static_assert(sizeof(StringMapNode) == 0x1c);
-static_assert(offsetof(StringMapNode, m_key) == 0x0c);
-static_assert(offsetof(StringMapNode, m_value) == 0x18);
-static_assert(sizeof(StringMap) == 0x0c);
+REB_ASSERT_SIZE(StringMapNode, 0x1c);
+REB_ASSERT_OFFSET(StringMapNode, m_key, 0x0c);
+REB_ASSERT_OFFSET(StringMapNode, m_value, 0x18);
+REB_ASSERT_SIZE(StringMap, 0x0c);
 #pragma clang diagnostic pop

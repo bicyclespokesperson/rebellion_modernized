@@ -1,6 +1,7 @@
 #include "core/string_map.h"
 
 #include "core/checked_new.h"
+#include "core/vptr_store.h"
 
 // StringCursor and the String methods used here belong to the String module; they are called by address until
 // that module's header is merged.
@@ -27,13 +28,13 @@ void Advance(StringCursor* cursor) { FUN_005f3e50(cursor); }
 
 StringMapNode::StringMapNode(const String& key, int value) : LinkNode(), m_key(key.m_text), m_value(value) {}
 
-StringMapNode::~StringMapNode() {}
+StringMapNode::~StringMapNode() { REB_KEEP_VPTR_STORE(); }
 
 StringMap::StringMap() : SortedLinkList() {}
 
 StringMap::StringMap(const StringMap& other) : SortedLinkList() { *this = other; }
 
-StringMap::~StringMap() {}
+StringMap::~StringMap() { REB_KEEP_VPTR_STORE(); }
 
 int StringMap::IsLess(LinkNode*, LinkNode*) { return 1; }
 

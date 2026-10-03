@@ -2,14 +2,17 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "core/layout.h"
 #include "core/stream_io.h"
 
-// Root of the game-object hierarchies (GameObj and the SD record classes): only a virtual destructor, which is
-// pure (so the vtable slot is __purecall) but has a body.
+// Secondary base of GameObj and the SD record classes (at +0x30 / +0x1c in them). Its single pure virtual
+// writes the object's localized name, with a prefix chosen by `kind` (1, 2, 4, 0x20, 0x21 ...); there is no
+// virtual destructor.
 class ObjectBase {
 public:
     ObjectBase();
-    virtual ~ObjectBase() = 0;
+    ~ObjectBase();
+    virtual void WriteName(ostream* out, int kind) = 0;
 };
 
 // A 32-bit value that saves and loads itself.
@@ -73,10 +76,10 @@ public:
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
-static_assert(sizeof(ObjectBase) == 0x04);
-static_assert(sizeof(PersistentInt) == 0x04);
-static_assert(sizeof(RandomGenerator) == 0x08);
-static_assert(offsetof(RandomGenerator, m_seed) == 0x04);
-static_assert(sizeof(Crc32) == 0x08);
-static_assert(offsetof(Crc32, m_state) == 0x04);
+REB_ASSERT_SIZE(ObjectBase, 0x04);
+REB_ASSERT_SIZE(PersistentInt, 0x04);
+REB_ASSERT_SIZE(RandomGenerator, 0x08);
+REB_ASSERT_OFFSET(RandomGenerator, m_seed, 0x04);
+REB_ASSERT_SIZE(Crc32, 0x08);
+REB_ASSERT_OFFSET(Crc32, m_state, 0x04);
 #pragma clang diagnostic pop

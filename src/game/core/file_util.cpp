@@ -1,6 +1,6 @@
 #include "core/file_util.h"
 
-#include <windows.h>
+#include "platform/win32.h"
 
 #include "core/game_string.h"
 
@@ -9,6 +9,7 @@ extern HMODULE g_resourceModule;
 extern char g_resourceString[256];
 extern int g_filebufOpenprot;
 
+#pragma clang diagnostic ignored "-Winconsistent-dllimport"
 extern "C" char* __cdecl strncpy(char* destination, const char* source, size_t count);
 
 void __thiscall ifstream_open(ifstream* stream, const char* fileName, int mode, int protection);

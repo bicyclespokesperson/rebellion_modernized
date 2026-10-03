@@ -1,12 +1,13 @@
 #include "core/containers.h"
 
 #include "core/checked_new.h"
+#include "core/vptr_store.h"
 
 // ---- AvlNode ---------------------------------------------------------------------------------------------
 
 AvlNode::AvlNode() : m_left(nullptr), m_right(nullptr), m_parent(nullptr), m_successor(nullptr), m_height(0) {}
 
-AvlNode::~AvlNode() {}
+AvlNode::~AvlNode() { REB_KEEP_VPTR_STORE(); }
 
 AvlNode* AvlNode::Predecessor() {
     AvlNode* node = m_left;
@@ -52,7 +53,7 @@ int AvlNode::UpdateHeight() {
 
 AvlTree::AvlTree() : m_root(nullptr) {}
 
-AvlTree::~AvlTree() { Clear(); }
+AvlTree::~AvlTree() { Clear(); REB_KEEP_VPTR_STORE(); }
 
 void AvlTree::Clear() {
     while (AvlNode* node = First()) {
@@ -239,7 +240,7 @@ IdNode::IdNode() : m_id(0) {}
 
 IdNode::IdNode(uint32_t id) : m_id(id) {}
 
-IdNode::~IdNode() {}
+IdNode::~IdNode() { REB_KEEP_VPTR_STORE(); }
 
 void IdNode::SetId(uint32_t id) { m_id = id; }
 
@@ -249,7 +250,7 @@ void IdNode::WriteId(ostream* out) { WriteValue32(out, &m_id); }
 
 IdValueNode::IdValueNode(int value) : IdNode(), m_value(value) {}
 
-IdValueNode::~IdValueNode() {}
+IdValueNode::~IdValueNode() { REB_KEEP_VPTR_STORE(); }
 
 void IdValueNode::Read(istream* in) {
     ReadId(in);
@@ -265,7 +266,7 @@ void IdValueNode::Write(ostream* out) {
 
 IdAvlTree::IdAvlTree() : AvlTree(), m_nextId(1) {}
 
-IdAvlTree::~IdAvlTree() { IdAvlTree::Clear(); }
+IdAvlTree::~IdAvlTree() { IdAvlTree::Clear(); REB_KEEP_VPTR_STORE(); }
 
 void IdAvlTree::Clear() {
     AvlTree::Clear();
@@ -338,7 +339,7 @@ IdNode* IdAvlTree::DetachById(uint32_t id) {
 
 IdValueTree::IdValueTree() : IdAvlTree() {}
 
-IdValueTree::~IdValueTree() {}
+IdValueTree::~IdValueTree() { REB_KEEP_VPTR_STORE(); }
 
 void IdValueTree::Read(istream* in) {
     uint16_t count;
@@ -365,13 +366,13 @@ CloneableNode::CloneableNode() : AvlNode() {}
 
 CloneableNode::CloneableNode(const CloneableNode&) : AvlNode() {}
 
-CloneableNode::~CloneableNode() {}
+CloneableNode::~CloneableNode() { REB_KEEP_VPTR_STORE(); }
 
 IntKeyNode::IntKeyNode() : CloneableNode(), m_key(0) {}
 
 IntKeyNode::IntKeyNode(const IntKeyNode& other) : CloneableNode(other), m_key(other.m_key) {}
 
-IntKeyNode::~IntKeyNode() {}
+IntKeyNode::~IntKeyNode() { REB_KEEP_VPTR_STORE(); }
 
 int IntKeyNode::Read(istream* in) {
     ReadValue32(in, &m_key);
@@ -387,7 +388,7 @@ int IntKeyNode::Write(ostream* out) {
 
 AvlSet::AvlSet() : AvlTree() {}
 
-AvlSet::~AvlSet() {}
+AvlSet::~AvlSet() { REB_KEEP_VPTR_STORE(); }
 
 int AvlSet::IsLess(AvlNode* a, AvlNode* b) { return Precedes(a, b); }
 
@@ -442,7 +443,7 @@ AvlSet& AvlSet::Intersect(AvlSet& other) {
 
 IntKeyedSet::IntKeyedSet() : AvlSet() {}
 
-IntKeyedSet::~IntKeyedSet() {}
+IntKeyedSet::~IntKeyedSet() { REB_KEEP_VPTR_STORE(); }
 
 IntKeyedSet& IntKeyedSet::operator=(const IntKeyedSet& other) {
     if (this != &other) CopyFrom(other);
@@ -461,7 +462,7 @@ int IntKeyedSet::Matches(AvlNode* probe, AvlNode* node) {
 
 OrderedTree::OrderedTree() : m_root(nullptr), m_first(nullptr) {}
 
-OrderedTree::~OrderedTree() { OrderedTree::Clear(); }
+OrderedTree::~OrderedTree() { OrderedTree::Clear(); REB_KEEP_VPTR_STORE(); }
 
 void OrderedTree::Clear() {
     while (AvlNode* node = m_first) {
@@ -524,7 +525,7 @@ short OrderedTree::Count() const {
 
 LinkNode::LinkNode() : m_prev(nullptr), m_next(nullptr) {}
 
-LinkNode::~LinkNode() {}
+LinkNode::~LinkNode() { REB_KEEP_VPTR_STORE(); }
 
 void LinkNode::Read(istream*) {}
 
@@ -532,7 +533,7 @@ void LinkNode::Write(ostream*) {}
 
 IdLinkNode::IdLinkNode() : LinkNode(), m_id(0) {}
 
-IdLinkNode::~IdLinkNode() {}
+IdLinkNode::~IdLinkNode() { REB_KEEP_VPTR_STORE(); }
 
 void IdLinkNode::Read(istream* in) { ReadValue32(in, &m_id); }
 
@@ -542,7 +543,7 @@ void IdLinkNode::Write(ostream* out) { WriteValue32(out, &m_id); }
 
 SortedLinkList::SortedLinkList() : m_count(0), m_head(nullptr) {}
 
-SortedLinkList::~SortedLinkList() { Clear(); }
+SortedLinkList::~SortedLinkList() { Clear(); REB_KEEP_VPTR_STORE(); }
 
 int SortedLinkList::Insert(LinkNode* node) {
     if (!m_head) {
@@ -614,7 +615,7 @@ void SortedLinkList::RewindToFirst() {
 
 IdSortedLinkList::IdSortedLinkList() : SortedLinkList(), m_nextId(1) {}
 
-IdSortedLinkList::~IdSortedLinkList() {}
+IdSortedLinkList::~IdSortedLinkList() { REB_KEEP_VPTR_STORE(); }
 
 int IdSortedLinkList::IsLess(LinkNode* a, LinkNode* b) {
     if (a && b && static_cast<IdLinkNode*>(a)->m_id < static_cast<IdLinkNode*>(b)->m_id) return 1;
@@ -667,7 +668,7 @@ void IdSortedLinkList::DeleteById(uint32_t id) {
 
 NodeQueue::NodeQueue() : m_head(nullptr), m_tail(nullptr), m_count(0) {}
 
-NodeQueue::~NodeQueue() { Clear(); }
+NodeQueue::~NodeQueue() { Clear(); REB_KEEP_VPTR_STORE(); }
 
 int NodeQueue::Enqueue(LinkNode* node) {
     if (!node) return 0;
@@ -705,7 +706,7 @@ void NodeQueue::Clear() {
 
 NodeStack::NodeStack() : m_top(nullptr) {}
 
-NodeStack::~NodeStack() { NodeStack::Clear(); }
+NodeStack::~NodeStack() { NodeStack::Clear(); REB_KEEP_VPTR_STORE(); }
 
 void NodeStack::Clear() {
     while (LinkNode* node = Pop()) delete node;

@@ -1,6 +1,6 @@
 #include "core/registry.h"
 
-#include <windows.h>
+#include "platform/win32.h"
 
 #include <cstring>
 #include <new>
@@ -62,6 +62,8 @@ uint32_t ReadRegistryDword(const char* subKey, const char* valueName) {
     return value;
 }
 
+// Differs from the original only in a dead store: it reuses its first argument slot for the key handle, so
+// the caller's pushed argument reads as zero afterwards.
 int WriteRegistryDword(const char* rootName, const char* subKey, const char* valueName, uint32_t value) {
     int success = 0;
     HKEY root = reinterpret_cast<HKEY>(static_cast<uintptr_t>(RegistryRootFromName(rootName)));
