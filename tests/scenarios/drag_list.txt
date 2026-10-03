@@ -1,0 +1,66 @@
+# Drag-list exercise in a loaded game (RebelsFastStart): the Galactic Encyclopedia's list (a CoolDragList with a
+# vertical scroll bar) is clicked, right-clicked, navigated with the keyboard and scrolled with the bar's arrows
+# and track. Then the Fleet Finder list gets the same keys. Runtime ~110 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot dl_00_galaxy
+42 key F7
+45 shot dl_01_encyclopedia
+# Select the second row, then move the selection with the keyboard.
+46 move 130 214
+47 move 133 217
+48 click 133 217
+50 key Down
+51 key Down
+52 key Next
+53 key Next
+54 key Up
+55 key Prior
+56 key End
+57 key Home
+58 key Return
+59 key a
+60 shot dl_02_keys
+61 key Escape
+62 key F7
+65 move 440 335
+66 move 442 340
+67 click 442 340
+68 click 442 340
+69 click 442 340
+70 move 442 300
+71 click 442 300
+72 click 442 300
+73 move 442 205
+74 click 442 205
+75 move 442 192
+76 click 442 192
+77 click 442 192
+78 shot dl_03_scrolled
+# Right-click a row (button down/up; the list forwards the right click to its parent).
+79 move 130 257
+80 move 133 257
+81 rclick 133 257
+83 shot dl_04_rclick
+84 key Escape
+85 key Escape
+86 key Escape
+# Fleet Finder: select, keyboard.
+88 key F3
+91 move 100 197
+92 move 105 200
+93 click 105 200
+94 key Down
+95 key Up
+96 key End
+97 key Home
+99 shot dl_05_fleet_finder
+100 key alt+w
+104 end
