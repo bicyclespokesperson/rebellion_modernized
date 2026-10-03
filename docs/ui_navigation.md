@@ -13,6 +13,7 @@ here was verified against the original game; the screenshots land in `work/run/<
 | `new_game_rebel.txt` | new Alliance game, galaxy screen after the agent-droid intro, ~60 s at Fast | ~310 s |
 | `new_game_empire.txt` | same as Empire | ~310 s |
 | `ui_tour.txt` | loaded game, opens finders / sector / system / fleet / personnel / encyclopedia / objectives / overview / message index / GID menu / options screen with a shot of each | ~175 s |
+| `drag_list.txt` | loaded game; Encyclopedia list (a CoolDragList): click, keys Down/Next/Up/Prior/End/Home/Return, scroll-bar track clicks (PageDown), right click; then Fleet Finder keys. The bar's arrow clicks at 442,340/192 reach no LineUp/LineDown (not investigated) | ~115 s |
 | `save_game_slot.txt` | loads "RebelsFastStart", opens the in-game Saved Games screen (monitor at 15,372) and saves into the first empty row (left icon at 50,258); creates `work/game/SaveGame/SAVEGAME.005` (delete it before re-running: a second save asks to overwrite) | ~65 s |
 | `space_battle_autoresolve.txt` | loaded game; the "Battle at Ando" window pops up; chooses *Simulate Results* (auto-resolve) | ~130 s |
 
