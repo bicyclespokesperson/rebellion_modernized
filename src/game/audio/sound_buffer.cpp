@@ -261,10 +261,11 @@ void SoundBuffer::SetStream(istream* stream, long loopStart) {
 void SoundBuffer::Refill(istream* in, long loopStart) {
     if (!m_buffer || !in || !IsOpen(in) || AtEof(in)) return;
     const uint32_t bytesToFill = BytesToFill();
-    void* first = nullptr;
-    void* second = nullptr;
-    DWORD firstLength = 0;
-    DWORD secondLength = 0;
+    // Left uninitialised as in the original: Lock fills them in on success.
+    void* first;
+    void* second;
+    DWORD firstLength;
+    DWORD secondLength;
     HRESULT result =
         m_buffer->Lock(m_writePosition, bytesToFill, &first, &firstLength, &second, &secondLength, m_lockFlags);
     if (result == kBufferLost) {
@@ -444,15 +445,20 @@ void __cdecl SoundBuffer::RefillThread(SoundBuffer* buffer) {
         }
         if (signalled == WAIT_OBJECT_0 + kStopEvent) ExitThread(0);
         if (InterlockedExchange(&buffer->m_refillBusy, 1) != 0) continue;
-        // The original runs this body in a __try/__finally that, if an exception ever escaped, would clear the busy flag
-        // and call ExitThread(99). Clang's funclet for it breaks the symbol tooling, so the guard is not reconstructed.
-        if (signalled <= WAIT_OBJECT_0 + 1) {
-            if (buffer->m_mode == kBufferStreamed && buffer->m_wrapped != 0) {
-                buffer->m_wrapped = 0;
-                buffer->StopIfPlaying();
-                PostSoundEvent(kSoundBufferFinishedMessage, buffer->m_sourceKey, buffer->m_key);
-            } else {
-                buffer->Refill(buffer->m_stream, buffer->m_loopStart);
+        __try {
+            if (signalled <= WAIT_OBJECT_0 + 1) {
+                if (buffer->m_mode == kBufferStreamed && buffer->m_wrapped != 0) {
+                    buffer->m_wrapped = 0;
+                    buffer->StopIfPlaying();
+                    PostSoundEvent(kSoundBufferFinishedMessage, buffer->m_sourceKey, buffer->m_key);
+                } else {
+                    buffer->Refill(buffer->m_stream, buffer->m_loopStart);
+                }
+            }
+        } __finally {
+            if (AbnormalTermination()) {
+                InterlockedExchange(&buffer->m_refillBusy, 0);
+                ExitThread(99);
             }
         }
         InterlockedExchange(&buffer->m_refillBusy, 0);
