@@ -1,6 +1,8 @@
-#include <ctime>
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
+
+// The game CRT's 32-bit time() (0x61b120). Not <ctime>: UCRT's time() is an inline wrapper over _time64.
+extern "C" long __cdecl time(long* result);
 
 extern uint32_t g_crcTable[256];
 extern int g_crcTableReady;
