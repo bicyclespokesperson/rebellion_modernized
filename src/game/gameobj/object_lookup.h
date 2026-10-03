@@ -1,5 +1,6 @@
 #pragma once
 #include "gameobj/object_database.h"
+#include "gameobj/object_family.h"
 
 // Typed object lookups over the object database (0x4f2d10-0x4f3f10). Each is a thin wrapper that fixes the family
 // range of the lookup; the names carry the half-open range [first, last) in hex. `view` is the object view (1 =

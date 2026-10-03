@@ -40,14 +40,14 @@ int ObjectKey::Checksum(Crc32* crc) {
     return 1;
 }
 
-// ---- SeedKey -----------------------------------------------------------------------------------------------
+// ---- NullableKey -----------------------------------------------------------------------------------------------
 
-SeedKey* SeedKey::OrNull() {
+NullableKey* NullableKey::OrNull() {
     if (m_value == 0) return nullptr;
     return this;
 }
 
-int SeedKey::IsSet() const { return m_value != 0; }
+int NullableKey::IsSet() const { return m_value != 0; }
 
 // ---- ObjectKeyNode -----------------------------------------------------------------------------------------
 

@@ -3,6 +3,7 @@
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/vptr_store.h"
+#include "data/dat_record.h"
 
 // Pieces owned by the data-table module (0x58e5a0-0x58eda0, 0x52d720, 0x53b860), used through their addresses.
 void* __thiscall FUN_0058ec40(void* storage);
@@ -14,7 +15,6 @@ int __thiscall FUN_0058eda0(void* node, DatRecord* record);
 void __thiscall FUN_0052d720(void* storage);
 void __thiscall FUN_0052d760(void* list);
 int __thiscall FUN_0053b860(DatRecord* record);
-ObjectKey* __thiscall FUN_00402e40(DatRecord* record, ObjectKey* out);
 ObjectKey* __thiscall FUN_0042ec10(void* node, ObjectKey* out);
 int __thiscall FUN_004f4270(IdAvlTree* list, void* node);
 uint16_t __thiscall FUN_004f4290(IdAvlTree* list);
@@ -26,13 +26,6 @@ constexpr size_t kEntryLoaderOffset = 0x20;
 constexpr size_t kEntryRecordsOffset = 0x30;
 constexpr size_t kEntrySize = 0x3c;
 constexpr size_t kNameNodeSize = 0x30;
-constexpr size_t kRecordKindRangeOffset = 0x24;
-constexpr size_t kRecordNameIdOffset = 0x30;
-constexpr size_t kRecordNameOffset = 0x34;
-constexpr size_t kRecordViewOneOffset = 0x40;
-constexpr size_t kRecordViewTwoOffset = 0x44;
-constexpr size_t kRecordLevelOffset = 0x50;
-constexpr size_t kRecordExtraOffset = 0x54;
 constexpr uint32_t kFirstLevelKind = 0x28;
 constexpr uint32_t kEndLevelKind = 0x2c;
 constexpr uint32_t kUnitFamilyFirst = 0x10;
@@ -65,7 +58,11 @@ IdAvlTree* RecordsOf(void* entry) { return At<IdAvlTree>(entry, kEntryRecordsOff
 
 AvlNode* NextNode(AvlNode* node) { return node->m_successor; }
 
-DatRecord* AsRecord(AvlNode* node) { return reinterpret_cast<DatRecord*>(node); }
+SdRecord* AsRecord(AvlNode* node) { return static_cast<SdRecord*>(static_cast<DatRecord*>(static_cast<IdNode*>(node))); }
+
+const ResourceStringId* NameResource(const DatRecord* record) {
+    return reinterpret_cast<const ResourceStringId*>(&record->m_small);
+}
 
 // A name list on the stack (0x52d720 constructs it, 0x52d760 destroys it).
 class NameList {
@@ -78,14 +75,8 @@ private:
     alignas(8) char storage[0x10];
 };
 
-// String(int) really takes a pointer to a {resource id, module} pair; the resource loader callback reads it.
-String ResourceString(const uint32_t* packedId) {
-    return String(static_cast<int>(reinterpret_cast<uintptr_t>(packedId)));
-}
-
-bool Available(DatRecord* record, int view) {
-    return (view == 1 && Field<int>(record, kRecordViewOneOffset) != 0) ||
-           (view == 2 && Field<int>(record, kRecordViewTwoOffset) != 0);
+bool Available(const SdRecord* record, int view) {
+    return (view == 1 && record->m_field40 != 0) || (view == 2 && record->m_field44 != 0);
 }
 
 }  // namespace
@@ -144,8 +135,8 @@ int ObjectTypeDb::AddFamily(int a, int b) {
     }
     if (entry) {
         for (AvlNode* record = RecordsOf(entry)->First(); record && ok; record = NextNode(record)) {
-            const uint32_t nameId = Field<uint32_t>(record, kRecordNameIdOffset);
-            At<String>(record, kRecordNameOffset)->Assign(ResourceString(&nameId));
+            DatRecord* datRecord = AsRecord(record);
+            datRecord->m_name.Assign(String(NameResource(datRecord)));
         }
     }
     if (ok) ok = static_cast<int>(m_families->AddWithId(static_cast<IdNode*>(entry)));
@@ -162,8 +153,8 @@ int ObjectTypeDb::ForEachFamily(int arg) {
 
 DatRecord* ObjectTypeDb::FindRecord(const SeedKey* key) {
     DatRecord* record = nullptr;
-    if (void* entry = FUN_0058ec90(m_families, key->m_value >> 24)) {
-        record = AsRecord(RecordsOf(entry)->FindById(key->m_value & 0xffffff));
+    if (void* entry = FUN_0058ec90(m_families, key->m_key >> 24)) {
+        record = AsRecord(RecordsOf(entry)->FindById(key->m_key & 0xffffff));
     }
     return record;
 }
@@ -181,7 +172,7 @@ int ObjectTypeDb::ListAllRecordKeys(ObjectRefList* out) {
     for (AvlNode* entry = m_families->First(); entry && ok; entry = NextNode(entry)) {
         for (AvlNode* record = RecordsOf(entry)->First(); record && ok; record = NextNode(record)) {
             ObjectKey key;
-            FUN_00402e40(AsRecord(record), &key);
+            key = ObjectKey::Make(AsRecord(record)->m_third, AsRecord(record)->m_id);
             ok = out->AddKey(key) != nullptr;
         }
     }
@@ -198,13 +189,13 @@ int ObjectTypeDb::CollectRecords(int view, uint32_t kind, int level, int whenBel
     int ok = m_families != nullptr;
     for (AvlNode* entry = ok ? m_families->First() : nullptr; entry && ok; entry = NextNode(entry)) {
         for (AvlNode* node = RecordsOf(entry)->First(); node && ok; node = NextNode(node)) {
-            DatRecord* record = AsRecord(node);
+            SdRecord* record = AsRecord(node);
             IntPair range;
             GetRecordKindRange(record, &range);
             const bool kindMatches = kind >= range.m_first && kind < range.m_second;
             if (!(kindMatches && FUN_0053b860(record) && Available(record, view))) continue;
 
-            const int recordLevel = Field<int>(record, kRecordLevelOffset);
+            const int recordLevel = static_cast<int>(record->m_field50);
             if (*maxLevel < recordLevel) *maxLevel = recordLevel;
             int wanted = whenBelow;
             if (level <= recordLevel) wanted = recordLevel == level ? whenEqual : whenAbove;
@@ -235,7 +226,7 @@ int ObjectTypeDb::FindRecordAtLevel(int view, uint32_t kind, int level, DatRecor
             ok = 0;
             if (family >= kUnitFamilyFirst && family < kUnitFamilyEnd) {
                 SeedKey seed;
-                seed.m_value = key.m_value;
+                seed.m_key = key.m_value;
                 *out = FindRecord(&seed);
                 ok = *out != nullptr;
             }
@@ -258,7 +249,7 @@ int ObjectTypeDb::FindNextLevel(int view, int kind, int level, int* found, int* 
             *found = record != nullptr;
             if (*found) {
                 *foundLevel = candidate;
-                *extraValue = Field<int>(record, kRecordExtraOffset);
+                *extraValue = static_cast<int>(static_cast<SdRecord*>(record)->m_field54);
             }
         }
     }
@@ -283,21 +274,20 @@ int ObjectTypeDb::AreLevelsUnique(int view, uint32_t kind, int* unique) {
 
 void ObjectTypeDb::DescribeKey(const SeedKey* key, String* out) {
     out->Assign(String(""));
-    if (!key->IsSet()) {
+    if (key->m_key == 0) {
         out->Assign(String("<empty SeedKey>"));
         return;
     }
-    const uint32_t id = key->m_value & 0xffffff;
+    const uint32_t id = key->m_key & 0xffffff;
     if (DatRecord* record = FindRecord(key)) {
-        const uint32_t nameId = Field<uint32_t>(record, kRecordNameIdOffset);
-        *out += ResourceString(&nameId);
+        *out += String(NameResource(record));
         *out += String(" (ID=");
         out->AppendUnsigned(id);
         *out += String(")");
         return;
     }
     *out += String("<can't find name, type = ");
-    out->AppendUnsigned(key->m_value >> 24);
+    out->AppendUnsigned(key->m_key >> 24);
     *out += String("> ");
     *out += String(" (ID=");
     out->AppendUnsigned(id);
@@ -323,6 +313,6 @@ void DestroyObjectTypeDb() {
 }
 
 IntPair* __thiscall GetRecordKindRange(DatRecord* record, IntPair* out) {
-    *out = Field<IntPair>(record, kRecordKindRangeOffset);
+    *out = IntPair(record->m_first, record->m_second);
     return out;
 }

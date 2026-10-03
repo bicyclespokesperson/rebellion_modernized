@@ -1,13 +1,10 @@
 #include "gameobj/child_iterator.h"
 
 #include "core/vptr_store.h"
+#include "gameobj/object_family.h"
 
 // GameObj::MatchesStateFilter (0x4f6b90), declared on the notifier base because children are always GameObjs.
 int __thiscall FUN_004f6b90(GameObjNotifier* object, uint32_t filter);
-
-namespace {
-constexpr FamilyRange kUnitFamilies = {0x10, 0x40};
-}  // namespace
 
 ChildIterator::ChildIterator(GameObjNotifier* parent, const FamilyRange* range, uint32_t stateFilter)
     : m_parent(parent), m_range(*range), m_hasSideFilter(0), m_side(0), m_current(nullptr) {
@@ -73,6 +70,6 @@ int ChildIterator::Accepts() {
 }
 
 UnitIterator::UnitIterator(GameObjNotifier* parent, uint32_t stateFilter)
-    : ChildIterator(parent, &kUnitFamilies, stateFilter) {}
+    : ChildIterator(parent, &family::kUnits, stateFilter) {}
 
 UnitIterator::~UnitIterator() { REB_KEEP_VPTR_STORE(); }

@@ -3,6 +3,7 @@
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/vptr_store.h"
+#include "gameobj/object_family.h"
 
 // Data-table record for a key (0x51cab0).
 DatRecord* FUN_0051cab0(ObjectKey* key);
@@ -17,8 +18,8 @@ ObjectEntry* __thiscall FUN_00585e40(ObjectDatabase* db, const FamilyRange* rang
 
 namespace {
 constexpr uint32_t kGameRootId = 3;
-constexpr FamilyRange kGameRootFamilies = {0xf1, 0xf2};
-constexpr FamilyRange kSideRootFamilies = {0xf2, 0xf3};
+constexpr FamilyRange kGameRootFamilies(family::kGameRoot, family::kGameRoot + 1);
+constexpr FamilyRange kSideRootFamilies(family::kSideRoot, family::kSideRoot + 1);
 
 constexpr uint32_t kStatusOk = 0xffffffff;
 constexpr uint32_t kStatusRefused = 1;

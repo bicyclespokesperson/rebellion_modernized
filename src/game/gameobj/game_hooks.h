@@ -10,7 +10,7 @@
 extern int (*g_gameHook2AD4)(int);
 extern void (*g_gameHook2AD8)(int, int);
 extern void (*g_gameHook2AE0)(int);
-extern int (*g_gameHook2AE8)();
+extern const char* (*g_gameHook2AE8)();
 extern int (*g_gameHook2AEC)();
 extern int (*g_gameHook2AF0)();
 extern int (*g_gameHook2AF4)();
@@ -23,7 +23,8 @@ extern int (*g_gameHook2B08)();
 int CallGameHook2AF4();
 int CallGameHook2AFC();
 void CallGameHook2AE0(int arg);
-int CallGameHook2AE8();
+// Directory of the game's data files (null if no hook is installed).
+const char* GetGameDataDirectory();
 int CallGameHook2B04();
 int CallGameHook2B08();
 void CallGameHook2AD8(int a, int b);

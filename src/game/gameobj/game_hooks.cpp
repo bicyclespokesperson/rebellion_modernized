@@ -34,9 +34,9 @@ void CallGameHook2AE0(int arg) {
     if (g_gameHook2AE0) g_gameHook2AE0(arg);
 }
 
-int CallGameHook2AE8() {
+const char* GetGameDataDirectory() {
     if (g_gameHook2AE8) return g_gameHook2AE8();
-    return 0;
+    return nullptr;
 }
 
 int CallGameHook2B04() {

@@ -13,7 +13,7 @@
 // ObjectDatabase lookups (object_database.h).
 //
 //   ObjectKey            4-byte key value; a default-constructed key is the "unset" value 2
-//   SeedKey              4-byte key into the data-table records; 0 means empty
+//   NullableKey          4-byte key where 0 means empty
 //   ObjectKeyNode        AVL node holding a key (VT 0x65ca50)
 //   ObjectKeyValueNode   ObjectKeyNode + an int payload (VT 0x65d1f0)
 //   ObjectKeySet         tree of ObjectKeyNodes ordered by key (VT 0x65d1c8)
@@ -48,10 +48,11 @@ public:
     uint32_t m_value;  // +0x00
 };
 
-// A key into the data-table records (family = record type, id = record id); 0 when empty.
-class SeedKey {
+// A 4-byte key where 0 means empty (as opposed to ObjectKey, whose empty value is 2); the data-table record keys
+// (SeedKey::m_key) are of this kind.
+class NullableKey {
 public:
-    SeedKey* OrNull();
+    NullableKey* OrNull();
     int IsSet() const;
 
     uint32_t m_value;  // +0x00
@@ -183,7 +184,7 @@ public:
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_SIZE(ObjectKey, 0x04);
-REB_ASSERT_SIZE(SeedKey, 0x04);
+REB_ASSERT_SIZE(NullableKey, 0x04);
 REB_ASSERT_SIZE(ObjectKeyNode, 0x1c);
 REB_ASSERT_OFFSET(ObjectKeyNode, m_key, 0x18);
 REB_ASSERT_SIZE(ObjectKeyValueNode, 0x20);

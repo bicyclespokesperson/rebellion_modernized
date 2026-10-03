@@ -3,6 +3,7 @@
 
 #include "core/containers.h"
 #include "core/layout.h"
+#include "data/seed_key.h"
 #include "gameobj/game_obj_root.h"
 #include "gameobj/object_key.h"
 #include "gameobj/status_code.h"
@@ -15,8 +16,8 @@
 // Layout of the pieces this module touches (all defined by the data-table module):
 //   FamilyTable   IdAvlTree of family entries (0x58ec40), m_ok at +0xc
 //   family entry  0x3c bytes: +0x1c ok flag, +0x20 loader object, +0x28/+0x2c family range, +0x30 IdAvlTree of records
-//   record        +0x24 IntPair kind range, +0x30 name resource id, +0x40/+0x44 per-view availability, +0x50 level,
-//                 +0x54 extra value
+//   record        an SdRecord: kind range (m_first/m_second), name resource id (m_small), per-view availability
+//                 (m_field40/44), level (m_field50), extra value (m_field54)
 
 class DatRecord;
 class String;

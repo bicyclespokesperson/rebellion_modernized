@@ -3,6 +3,7 @@
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
+#include "data/dat_record.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_database.h"
 
@@ -18,13 +19,6 @@ extern GameObjFactoryEntry g_gameObjFactories[];
 DatRecord* FUN_0051cab0(ObjectKey* key);
 
 namespace {
-// DatRecord is owned by the data-table module; the object model only needs two of its fields.
-constexpr size_t kRecordIdOffset = 0x18;
-constexpr size_t kRecordFamilyOffset = 0x2c;
-
-uint32_t RecordField(const DatRecord* record, size_t offset) {
-    return *reinterpret_cast<const uint32_t*>(reinterpret_cast<const char*>(record) + offset);
-}
 
 constexpr uint32_t kGameRootFamily = 0xf1;
 constexpr uint32_t kSideMaskBits = 0xf;
@@ -147,7 +141,7 @@ GameObjNotifier::~GameObjNotifier() {
 }
 
 uint32_t GameObjNotifier::GetRecordId() {
-    if (HasRecord()) return RecordField(m_record, kRecordIdOffset);
+    if (HasRecord()) return m_record->m_id;
     return 0;
 }
 
@@ -215,7 +209,7 @@ int GameObjNotifier::ReadObject(istream* in) {
 int GameObjNotifier::WriteObject(ostream* out) {
     int ok = WriteFields(out);
     if (ok) {
-        uint32_t id = m_record ? RecordField(m_record, kRecordIdOffset) : 0;
+        uint32_t id = m_record ? m_record->m_id : 0;
         WriteValue32(out, &id);
     }
     return ok;
@@ -224,7 +218,7 @@ int GameObjNotifier::WriteObject(ostream* out) {
 int GameObjNotifier::ChecksumObject(Crc32* crc) {
     int ok = ChecksumFields(crc);
     if (ok) {
-        crc->AddInt(m_record ? static_cast<int>(RecordField(m_record, kRecordIdOffset)) : 0);
+        crc->AddInt(m_record ? static_cast<int>(m_record->m_id) : 0);
     }
     return ok;
 }
@@ -308,7 +302,7 @@ void GameObjNotifier::SetRecord(DatRecord* record) { AssignRecord(record); }
 
 void GameObjNotifier::AssignRecord(DatRecord* record) {
     bool matches = true;
-    if (record) matches = RecordField(record, kRecordFamilyOffset) == GetFamily();
+    if (record) matches = record->m_third == GetFamily();
     if (matches) m_record = record;
 }
 
