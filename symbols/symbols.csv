@@ -936,6 +936,7 @@ address,kind,name,signature,size
 0x0061a310,func,_rand,,45
 0x0061a340,func,_CIacos,,20
 0x0061a35d,func,_CIacos_body,,174
+0x0061a414,func,__except_handler3,,
 0x0061a4d1,func,__seh_longjmp_unwind_4,,27
 0x0061a4f0,func,_strncat,,291
 0x0061a620,func,_strnicmp,,
