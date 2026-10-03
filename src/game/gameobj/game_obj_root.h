@@ -102,7 +102,8 @@ public:
     int ReadObject(istream* in);
     int WriteObject(ostream* out);
     int ChecksumObject(Crc32* crc);
-    void NotifyIfComplete();
+    // True if the object has a record and all three views.
+    int NotifyIfComplete();
     int ReadTree(istream* in);
     int WriteTree(ostream* out);
     int ChecksumTree(Crc32* crc);
@@ -114,9 +115,9 @@ public:
     DatRecord* m_record;    // +0x2c
 };
 
-// Edits `mask` bits of *flags to `value`'s, writing only if they differ.
-void UpdateFlagBits(uint32_t mask, uint32_t value, uint32_t* flags);
-void UpdateFlagBit(uint32_t mask, int on, uint32_t* flags);
+// Edits `mask` bits of *flags to `value`'s, writing only if they differ. Returns 1 if the bits changed.
+int UpdateFlagBits(uint32_t mask, uint32_t value, uint32_t* flags);
+int UpdateFlagBit(uint32_t mask, int on, uint32_t* flags);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

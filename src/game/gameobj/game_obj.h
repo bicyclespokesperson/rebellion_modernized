@@ -58,37 +58,37 @@ public:
 
     // ---- slots 12-57: queries and status checks (names provisional unless noted) ----
     virtual uint32_t GetRecordTypeBits();                    // 12: record's +0x30 & 0xfff, 0 without a record
-    virtual int Virtual13(int arg);                          // 13: DAT_006b9050 if state flag 0x40 and arg, else 0
-    virtual int IsConstructedFlag();                         // 14: state flag 0x10000
-    virtual int GetEventKinds(EventKindSet* out);            // 15: assigns the class's static kind set to *out
+    virtual int GetTransitSpeed(int arg);                          // 13: DAT_006b9050 if state flag 0x40 and arg, else 0
+    virtual int IsConstructed();                         // 14: state flag 0x10000
+    virtual int GetEventKinds(int unused, EventKindSet* out);            // 15: assigns the class's static kind set to *out
     virtual int Virtual16() { return 0; }                                 // 16: 0
     virtual int Virtual17();                                 // 17: !Virtual16()
     virtual int Virtual18() { return 0; }                                 // 18: 0
-    virtual int Virtual19() { return 1; }                                 // 19: 1
-    virtual int Virtual20(int arg) { return 1; }                          // 20: 1
-    virtual int Virtual21(GameObj* other, StatusCode* out);  // 21: status {1,-1} if the control kinds agree else {1,0x24}
-    virtual int Virtual22(int a, int b, StatusCode* out);    // 22
-    virtual int Virtual23(int a, StatusCode* out);           // 23
-    virtual int Virtual24(int a, StatusCode* out);           // 24: out = {1,-1}, then Virtual23
-    virtual int Virtual25(int a, StatusCode* out);           // 25
-    virtual int Virtual26(int a, int b, StatusCode* out);    // 26
-    virtual int Virtual27(int a, StatusCode* out);           // 27
-    virtual int Virtual28(int a, StatusCode* out);           // 28
-    virtual int Virtual29(int a, int b, int c, StatusCode* out);               // 29
-    virtual int Virtual30(int a, int b, int* o1, int* o2, int* o3, StatusCode* out);  // 30
-    virtual int Virtual31(int a, int b, int c, StatusCode* out);               // 31
-    virtual int Virtual32(int a, int b, int* o1, int* o2, int* o3, StatusCode* out);  // 32
-    virtual int Virtual33(NotifyContext* ctx);               // 33: derives Usable from Existing/Completed/Enroute
-    virtual int Virtual34(NotifyContext* ctx);               // 34: derives Existing from Created/Destroyed
-    virtual int Virtual35(NotifyContext* ctx);               // 35
-    virtual int Virtual36(NotifyContext* ctx);               // 36
-    virtual int Virtual37(NotifyContext* ctx) = 0;           // 37
-    virtual int Virtual38(int a, NotifyContext* ctx);        // 38
-    virtual int Virtual39(int a, int b, NotifyContext* ctx);  // 39
-    virtual int Virtual40(NotifyContext* ctx);               // 40
-    virtual int Virtual41(String* name, NotifyContext* ctx);  // 41: SetName
-    virtual int Virtual42(ObjectKey* key, NotifyContext* ctx);  // 42
-    virtual int Virtual43(int reason, NotifyContext* ctx);   // 43: SetDestroyedReason
+    virtual int IsObservable() { return 1; }                                 // 19: 1
+    virtual int CanBeControlledBy(int arg) { return 1; }                          // 20: 1
+    virtual int CheckSameControl(GameObj* other, StatusCode* out);  // 21: status {1,-1} if the control kinds agree else {1,0x24}
+    virtual int CheckOrder(int a, int b, StatusCode* out);    // 22
+    virtual int CheckDestroyImpl(int a, StatusCode* out);           // 23
+    virtual int CheckDestroy(int a, StatusCode* out);           // 24: out = {1,-1}, then Virtual23
+    virtual int CheckRenameImpl(int a, StatusCode* out);           // 25
+    virtual int CheckRename(int a, int b, StatusCode* out);    // 26
+    virtual int CheckUnknownImpl(int a, StatusCode* out);           // 27
+    virtual int CheckUnknown(int a, StatusCode* out);           // 28
+    virtual int Virtual29(int a, int b, int c, int d, StatusCode* out);               // 29
+    virtual int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out);  // 30
+    virtual int Virtual31(int a, int b, int c, int d, StatusCode* out);               // 31
+    virtual int Virtual32(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out);  // 32
+    virtual int UpdateUsable(NotifyContext* ctx);               // 33: derives Usable from Existing/Completed/Enroute
+    virtual int UpdateExisting(NotifyContext* ctx);               // 34: derives Existing from Created/Destroyed
+    virtual int UpdateObservedByAlliance(NotifyContext* ctx);               // 35
+    virtual int UpdateObservedByEmpire(NotifyContext* ctx);               // 36
+    virtual int CreateViews(int controlKind, NotifyContext* ctx) = 0;  // body 0x4f9190           // 37
+    virtual int TryDestroy(int a, NotifyContext* ctx);        // 38
+    virtual int TryRename(int a, int b, NotifyContext* ctx);  // 39
+    virtual int Destroy(NotifyContext* ctx);               // 40
+    virtual int Rename(String* name, NotifyContext* ctx);  // 41: SetName
+    virtual int Reparent(ObjectKey* key, NotifyContext* ctx);  // 42
+    virtual int ChangeDestroyedReason(int reason, NotifyContext* ctx);   // 43: SetDestroyedReason
     virtual int Virtual44(NotifyContext* ctx);               // 44
     virtual int Virtual45(int a, NotifyContext* ctx);        // 45
     virtual int Virtual46(NotifyContext* ctx);               // 46
@@ -99,9 +99,9 @@ public:
     virtual int Virtual51(int a, int b, int c) { return 1; }              // 51: 1
     virtual int Virtual52(int a, int b, int c) { return 1; }              // 52: 1
     virtual int Virtual53(int a, int b, int c) { return 1; }              // 53: 1
-    virtual int Virtual54(int a, int b, NotifyContext* ctx);  // 54
+    virtual int ApplyAllToViewOf(int view, int unused, NotifyContext* ctx);  // 54
     virtual int Virtual55(int a) { return 1; }                            // 55: 1
-    virtual int Virtual56(NotifyContext* ctx);               // 56
+    virtual int AutoscrapIfRequested(NotifyContext* ctx);               // 56
     virtual GameObj* CreateViewObject() = 0;                 // 57: allocates an empty object of the leaf class
 
     // ---- slot 58: creates the data extension (m_data); the default allocates the 0x18-byte base class ----
@@ -117,23 +117,23 @@ public:
     virtual int OnDeploymentCountChanged(uint32_t oldValue, uint32_t newValue, NotifyContext* ctx);        // 65
     virtual int OnDestinationCountChanged(uint32_t oldValue, uint32_t newValue, NotifyContext* ctx) { return 1; }       // 66
     virtual int OnEtaChanged(int oldValue, int newValue, NotifyContext* ctx);                              // 67
-    virtual int OnUsableChanged(int oldValue, NotifyContext* ctx);                                         // 68
-    virtual int OnCreatedChanged(int oldValue, NotifyContext* ctx);                                        // 69
-    virtual int OnCompletedChanged(int oldValue, NotifyContext* ctx);                                      // 70
-    virtual int OnDestroyedChanged(int oldValue, NotifyContext* ctx);                                      // 71
-    virtual int OnEnrouteChanged(int oldValue, NotifyContext* ctx);                                        // 72
-    virtual int OnEnrouteActiveChanged(int oldValue, NotifyContext* ctx);                                  // 73
-    virtual int OnExistingChanged(int oldValue, NotifyContext* ctx);                                       // 74
-    virtual int OnObservedByAllianceChanged(int oldValue, NotifyContext* ctx);                             // 75
-    virtual int OnObservedByEmpireChanged(int oldValue, NotifyContext* ctx);                               // 76
-    virtual int OnDamagedChanged(int oldValue, NotifyContext* ctx);                                        // 77
-    virtual int OnHyperdriveActiveChanged(int oldValue, NotifyContext* ctx);                               // 78
-    virtual int OnAutoroutingChanged(int oldValue, NotifyContext* ctx);                                    // 79
-    virtual int OnAutoscrapRequestChanged(int oldValue, NotifyContext* ctx);                               // 80
-    virtual int OnLockedChanged(int oldValue, NotifyContext* ctx);                                         // 81
-    virtual int OnReadyForDeleteChanged(int oldValue, NotifyContext* ctx);                                 // 82
-    virtual int OnConstructedChanged(int oldValue, NotifyContext* ctx);                                    // 83
-    virtual int OnDeployedChanged(int oldValue, NotifyContext* ctx) { return 1; }                                       // 84
+    virtual int OnUsableChanged(int newValue, NotifyContext* ctx);                                         // 68
+    virtual int OnCreatedChanged(int newValue, NotifyContext* ctx);                                        // 69
+    virtual int OnCompletedChanged(int newValue, NotifyContext* ctx);                                      // 70
+    virtual int OnDestroyedChanged(int newValue, NotifyContext* ctx);                                      // 71
+    virtual int OnEnrouteChanged(int newValue, NotifyContext* ctx);                                        // 72
+    virtual int OnEnrouteActiveChanged(int newValue, NotifyContext* ctx);                                  // 73
+    virtual int OnExistingChanged(int newValue, NotifyContext* ctx);                                       // 74
+    virtual int OnObservedByAllianceChanged(int newValue, NotifyContext* ctx);                             // 75
+    virtual int OnObservedByEmpireChanged(int newValue, NotifyContext* ctx);                               // 76
+    virtual int OnDamagedChanged(int newValue, NotifyContext* ctx);                                        // 77
+    virtual int OnHyperdriveActiveChanged(int newValue, NotifyContext* ctx);                               // 78
+    virtual int OnAutoroutingChanged(int newValue, NotifyContext* ctx);                                    // 79
+    virtual int OnAutoscrapRequestChanged(int newValue, NotifyContext* ctx);                               // 80
+    virtual int OnLockedChanged(int newValue, NotifyContext* ctx);                                         // 81
+    virtual int OnReadyForDeleteChanged(int newValue, NotifyContext* ctx);                                 // 82
+    virtual int OnConstructedChanged(int newValue, NotifyContext* ctx);                                    // 83
+    virtual int OnDeployedChanged(int newValue, NotifyContext* ctx) { return 1; }                                       // 84
 
     // ---- slots 85-110: OnXNotified events on a side view ----
     virtual int OnNameNotified(String* name, String* oldName, NotifyContext* ctx);                         // 85
@@ -167,8 +167,48 @@ public:
     virtual void WriteName(String* out, int kind) override;
 
     // ==== SECTION core (0x4f5ea0-0x4f6c00): see game_obj.cpp ====
+    // The object's copy in `view` (0 master, 1 Alliance, 2 Empire); every view of a GameObj is a GameObj.
+    GameObj* ViewAs(int view) { return static_cast<GameObj*>(GetViewObject(view)); }
+    // The next object in key order whose family is in `range` (same view); with `resolve`, hidden ones are skipped.
+    GameObjNotifier* FindNextSibling(const FamilyRange* range, int resolve);  // 0x4f6010
+    // Copy of the object's name: its own, else the record's, else "".
+    String* GetNameCopy(String* out);  // 0x4f6270
+    String* GetName();                 // 0x4f62d0, same lookup, no copy (a static empty String if there is none)
+    // Stores the parent in *out; true if there is one.
+    int GetParent(GameObjNotifier** out);  // 0x4f6b50
+    // Parent key into *out; 1 only if it is set.
+    int GetValidParentKey(ObjectKey* out);  // 0x4f6b70
+    // Child-iteration state filter: 1 usable, 2 en route, 3 existing, 4 always; other values are returned unchanged.
+    uint32_t MatchesStateFilter(uint32_t mode);  // 0x4f6b90
+    int CountChildren(const FamilyRange* range, uint32_t side, uint32_t filter);  // 0x4f6c00
+    // Destroyed in all three views, childless, and attached to a side root.
+    int IsDestructionComplete();  // 0x4f6c70
+    int CanBeDeleted();           // 0x4f6da0
 
     // ==== SECTION setters (0x4f6c00-0x4f8880): see game_obj_setters.cpp ====
+    // Data block accessors (m_data must exist).
+    int GetDataField04(int* out);         // 0x4f6df0
+    int GetLockCount(int* out);           // 0x4f6e10
+    int GetDataKey(ObjectKey* out);       // 0x4f6e30
+    void* GetDataExtra();                 // 0x4f6e50, the data block's +0x10 member or null
+    int SetDataField04(int value);        // 0x4f7f60
+    int SetLockCount(int value);          // 0x4f7f80
+    int SetDataKey(const ObjectKey* key);  // 0x4f7fa0
+    int IncrementLock(NotifyContext* ctx);  // 0x4f8040, sets Locked
+    int DecrementLock(NotifyContext* ctx);  // 0x4f8090, clears Locked at zero
+    int NotifyDataEvent387(int a, int b);   // 0x4f8010
+    // Creates the object for `key` as a child of this one: Initialize, Reparent, SetCreated, SetCompleted.
+    GameObj* CreateChild(const ObjectKey* key, int initArg, NotifyContext* ctx, int created, int completed);  // 0x4f7d50
+    int CreateChildren(int count, const ObjectKey* key, int initArg, NotifyContext* ctx, int created, int completed);  // 0x4f7cf0
+    int UpdateChildren(const FamilyRange* range, NotifyContext* ctx);  // 0x4f7e30
+    int UpdateSelfAndDescendants(NotifyContext* ctx);                  // 0x4f7f20
+    int InheritDestroyedReason(NotifyContext* ctx);                    // 0x4f7ed0
+    int UpdateHyperdriveAndEta(NotifyContext* ctx);                    // 0x4f7fc0
+    int UpdateDepartureKey(NotifyContext* ctx);                        // 0x4f80e0
+    int UpdateEta(NotifyContext* ctx);                                 // 0x4f81c0
+    int UpdateEnroute(NotifyContext* ctx);                             // 0x4f8240
+    int RequestDeleteIfReady(NotifyContext* ctx);                      // 0x4f82d0, always 1
+    int ReleaseIfDestroyed(NotifyContext* ctx);                        // 0x4f8310, always 1
     int SetName(String* value, NotifyContext* ctx);  // 0x4f6e60
     int SetControlKind(uint32_t value, NotifyContext* ctx);  // 0x4f6f40
     int SetParent(GameObjNotifier* value, NotifyContext* ctx);  // 0x4f6fd0
@@ -197,6 +237,16 @@ public:
     int SetDeployed(int on, NotifyContext* ctx);  // 0x4f7b10
 
     // ==== SECTION notif (0x4f8880-0x4fcd90): see game_obj_notif.cpp ====
+    // Applies every property of the master to this side view's object `view` of the same key (1 if there is none).
+    int ApplyAllToView(int view, NotifyContext* ctx);  // 0x4f9510
+    // Creates m_name if absent; 1 if there is a name afterwards.
+    int InstallName();  // 0x4fc680
+    // Makes `child` a child of this object (it keeps the previous parent's bookkeeping straight).
+    bool AdoptChild(GameObjNotifier* child, NotifyContext* ctx);  // 0x4fc600
+    int RefreshParentView(NotifyContext* ctx);        // 0x4fca30
+    int ReleaseDestroyedSubtree(NotifyContext* ctx);  // 0x4fc710
+    int ReleaseDestroyed(NotifyContext* ctx);         // 0x4fc840
+    int MoveToSideRoot(NotifyContext* ctx);           // 0x4fcb50
     int ApplyName(NotifyContext* ctx);  // 0x4f9ba0
     int ApplyControlKind(NotifyContext* ctx);  // 0x4f9ca0
     int ApplyParent(NotifyContext* ctx);  // 0x4f9d40
@@ -239,6 +289,11 @@ public:
     uint32_t m_stateFlags;        // +0x50, the 17 flag bits listed above
     GameObjData* m_data;          // +0x54, created by CreateData() for master views only
 };
+
+// Runs UpdateChildren over every family (0x4f8340).
+int UpdateAllChildren(GameObj* object, NotifyContext* ctx);
+// Unregisters, detaches and deletes the three views of an object that is ready for deletion (0x4f83b0).
+int DeleteObjectViews(GameObj* object);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

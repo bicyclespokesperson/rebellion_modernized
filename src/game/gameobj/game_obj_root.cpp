@@ -223,8 +223,10 @@ int GameObjNotifier::ChecksumObject(Crc32* crc) {
     return ok;
 }
 
-void GameObjNotifier::NotifyIfComplete() {
-    if (HasRecord()) HasAllViews();
+int GameObjNotifier::NotifyIfComplete() {
+    int result = HasRecord();
+    if (result) result = HasAllViews();
+    return result;
 }
 
 int GameObjNotifier::ReadTree(istream* in) {
@@ -331,8 +333,10 @@ int GameObjNotifier::RemoveFromParent(GameObjNotifier* child) {
     return ok;
 }
 
-void UpdateFlagBits(uint32_t mask, uint32_t value, uint32_t* flags) {
-    if ((value & mask) != (mask & *flags)) *flags = (~mask & *flags) | (value & mask);
+int UpdateFlagBits(uint32_t mask, uint32_t value, uint32_t* flags) {
+    const int changed = (value & mask) != (mask & *flags);
+    if (changed) *flags = (~mask & *flags) | (value & mask);
+    return changed;
 }
 
-void UpdateFlagBit(uint32_t mask, int on, uint32_t* flags) { UpdateFlagBits(mask, on ? 0xffffffff : 0, flags); }
+int UpdateFlagBit(uint32_t mask, int on, uint32_t* flags) { return UpdateFlagBits(mask, on ? 0xffffffff : 0, flags); }
