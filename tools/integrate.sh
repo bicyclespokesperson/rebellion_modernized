@@ -13,8 +13,8 @@ fi
 git diff --quiet symbols/symbols.csv || git commit -qm "Normalize symbols.csv after merging $branch" symbols/symbols.csv
 tools/gq -f tools/py/apply_symbols.py && tools/gq --save
 tools/build_hybrid.sh | tail -3
-if [[ -n "$worktree" && -d "$worktree/work/run" ]]; then
-  find "$worktree/work/run" -name '*.cap' -printf '%h\n' | sort -u | while read -r d; do
+if [[ -n "$worktree" && -d "$worktree/work" ]]; then
+  find "$worktree/work" -name '*.cap' -printf '%h\n' | sort -u | while read -r d; do
     tools/capture_store.py add "$d" --origin "$(basename "$(dirname "$d")")"
   done
 fi
