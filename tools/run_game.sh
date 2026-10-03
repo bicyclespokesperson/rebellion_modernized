@@ -23,6 +23,8 @@ done
 scenario="$(realpath "$1")"; shift
 out="${out:-$ROOT/work/run/$(basename "$scenario" .txt)}"
 rm -rf "$out"; mkdir -p "$out"
+# Every run starts from the original saved games, so scenarios that save cannot disturb later or concurrent runs.
+cp -r "$MAIN/orig_game_files/Star Wars - Rebellion/SaveGame" "$out/SaveGame"
 game="$MAIN/work/game"
 [[ -f "$game/smackorig.dll" ]] || cp "$MAIN/orig_game_files/Star Wars - Rebellion/SMACKW32.DLL" "$game/smackorig.dll"
 if [[ $orig == 1 ]]; then
@@ -34,6 +36,6 @@ fi
 if [[ -n "${REB_CAPTURE:-}" ]]; then export REB_DISABLE_HOOKS="${REB_DISABLE_HOOKS:-all}"; fi
 docker run --rm -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -e WINEDEBUG -e REB_CAPTURE -e REB_DISABLE_HOOKS \
   -e 'REB_LOG=Z:\out\rebhybrid.log' -e 'REB_CAPTURE_DIR=Z:\out\captures' \
-  -v "$game:/game" -v "$dll:/game/SMACKW32.DLL:ro" -v "$out:/out" -v "$ROOT/tools/container:/tools:ro" \
+  -v "$game:/game" -v "$dll:/game/SMACKW32.DLL:ro" -v "$out:/out" -v "$out/SaveGame:/game/SaveGame" -v "$ROOT/tools/container:/tools:ro" \
   -v "$scenario:/scenario.txt:ro" "$@" rebellion-dev bash /tools/run_in_container.sh /scenario.txt
 echo "output: $out"

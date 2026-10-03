@@ -14,6 +14,7 @@ here was verified against the original game; the screenshots land in `work/run/<
 | `new_game_empire.txt` | same as Empire | ~310 s |
 | `ui_tour.txt` | loaded game, opens finders / sector / system / fleet / personnel / encyclopedia / objectives / overview / message index / GID menu / options screen with a shot of each | ~175 s |
 | `save_game_slot.txt` | loads "RebelsFastStart", opens the in-game Saved Games screen (monitor at 15,372) and saves into the first empty row (left icon at 50,258); creates `work/game/SaveGame/SAVEGAME.005` (delete it before re-running: a second save asks to overwrite) | ~65 s |
+| `scroll_bar.txt` | loaded game, System Finder (F2), clicks on its vertical scroll bar (track below the thumb, thumb, arrow buttons): CoolScrollBar mouse/timer/capture paths | ~85 s |
 | `space_battle_autoresolve.txt` | loaded game; the "Battle at Ando" window pops up; chooses *Simulate Results* (auto-resolve) | ~130 s |
 
 Each was run at least twice (loads/battle/tour in parallel containers) with identical results. The load-based

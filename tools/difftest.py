@@ -23,7 +23,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
+import contextlib
 import csv
+import io
+import multiprocessing
 import re
 import struct
 import sys
@@ -212,6 +216,8 @@ class Config:
     time_get_time: int | None = None
     lock_hex: str = ""
     entry: int | None = None
+    cursor: tuple[int, int] = (0, 0)
+    move_window_ok: bool = False
 
 
 CFG = Config()
@@ -367,6 +373,12 @@ class Emulator:
         self.uc.reg_write(UC_X86_REG_EIP, ret)
 
     # ---- Win32 API emulation: enough for allocation, game-file reads and (optionally) GDI/timer paths.
+    def write_guest(self, address: int, data: bytes) -> None:
+        """Write into emulated memory, mapping snapshot pages on demand (API out-params may be unmapped yet)."""
+        for page in range(address & ~(PAGE - 1), address + len(data), PAGE):
+            self.ensure_mapped(page)
+        self.uc.mem_write(address, data)
+
     def fake_api(self, name: str, args: tuple) -> int | None:
         dll, _, function = name.partition("!")
         if function == "HeapAlloc":
@@ -386,7 +398,7 @@ class Emulator:
         if function == "ReadFile":
             n = self.host_read(args[0], args[1], args[2])
             if args[3]:
-                self.uc.mem_write(args[3], struct.pack("<I", max(n, 0)))
+                self.write_guest(args[3], struct.pack("<I", max(n, 0)))
             return 1 if n >= 0 else 0
         if function in ("_llseek", "SetFilePointer"):
             return self.host_seek(args[0], args[1], args[3] if function == "SetFilePointer" else args[2])
@@ -395,24 +407,27 @@ class Emulator:
         if function in ("_lclose", "CloseHandle") and args and args[0] in self.files:
             del self.files[args[0]]
             return 1 if function == "CloseHandle" else 0
+        rect = self.rect_api(function, args)
+        if rect is not None:
+            return rect
         # APIs that fill a caller buffer: write an empty string so both runs see the same bytes (not stack garbage).
         empty_string_out = {"LoadStringA": 2, "GetWindowTextA": 1, "GetClassNameA": 1, "GetDlgItemTextA": 2}
         if function in empty_string_out and len(args) > empty_string_out[function]:
             buffer = args[empty_string_out[function]]
             if buffer:
-                self.uc.mem_write(buffer, b"\0")
+                self.write_guest(buffer, b"\0")
             return 0
         if function in ("GetLocalTime", "GetSystemTime"):  # fixed instant: time() must not read garbage
-            self.uc.mem_write(args[0], struct.pack("<8H", 1998, 3, 1, 2, 12, 0, 0, 0))
+            self.write_guest(args[0], struct.pack("<8H", 1998, 3, 1, 2, 12, 0, 0, 0))
             return 0
         if function == "GetTimeZoneInformation":
-            self.uc.mem_write(args[0], bytes(172))
+            self.write_guest(args[0], bytes(172))
             return 0
         if function == "QueryPerformanceCounter" and CFG.qpc is not None:
-            self.uc.mem_write(args[0], CFG.qpc.to_bytes(8, "little"))
+            self.write_guest(args[0], CFG.qpc.to_bytes(8, "little"))
             return 1
         if function == "QueryPerformanceFrequency" and CFG.qpf is not None:
-            self.uc.mem_write(args[0], CFG.qpf.to_bytes(8, "little"))
+            self.write_guest(args[0], CFG.qpf.to_bytes(8, "little"))
             return 1
         if function == "timeGetTime" and CFG.time_get_time is not None:
             return CFG.time_get_time
@@ -421,23 +436,75 @@ class Emulator:
         if CFG.lock_hex and function == "LockResource":
             blob = bytes.fromhex(CFG.lock_hex)
             block = self.heap_alloc(len(blob))
-            self.uc.mem_write(block, blob)
+            self.write_guest(block, blob)
             return block
         if CFG.gdi_handles and dll.upper() == "GDI32.DLL":
             return self.fake_gdi(function, args)
         return None
 
+    def rect_api(self, function: str, args: tuple) -> int | None:
+        """USER32 rectangle/cursor/window-geometry calls. Pure rectangle math is emulated exactly; queries that
+        would read real window state fill their out-params deterministically (zero rects, CFG.cursor)."""
+        def read_rect(address: int) -> list[int]:
+            return list(struct.unpack("<4i", bytes(self.uc.mem_read(address, 16))))
+
+        def write_rect(address: int, rect) -> None:
+            self.write_guest(address, struct.pack("<4i", *[(v + 2**31) % 2**32 - 2**31 for v in rect]))
+
+        signed = lambda v: v - (1 << 32) if v & 0x80000000 else v  # noqa: E731
+        if function == "SetRect":
+            write_rect(args[0], [signed(a) for a in args[1:5]])
+            return 1
+        if function == "SetRectEmpty":
+            write_rect(args[0], [0, 0, 0, 0])
+            return 1
+        if function == "CopyRect":
+            write_rect(args[0], read_rect(args[1]))
+            return 1
+        if function in ("OffsetRect", "InflateRect"):
+            r, dx, dy = read_rect(args[0]), signed(args[1]), signed(args[2])
+            write_rect(args[0], [r[0] + dx, r[1] + dy, r[2] + dx, r[3] + dy] if function == "OffsetRect"
+                       else [r[0] - dx, r[1] - dy, r[2] + dx, r[3] + dy])
+            return 1
+        if function in ("IntersectRect", "UnionRect"):
+            a, b = read_rect(args[1]), read_rect(args[2])
+            if function == "IntersectRect":
+                r = [max(a[0], b[0]), max(a[1], b[1]), min(a[2], b[2]), min(a[3], b[3])]
+                if r[0] >= r[2] or r[1] >= r[3]:
+                    r = [0, 0, 0, 0]
+            else:
+                r = [min(a[0], b[0]), min(a[1], b[1]), max(a[2], b[2]), max(a[3], b[3])]
+            write_rect(args[0], r)
+            return int(r[0] < r[2] and r[1] < r[3])
+        if function == "IsRectEmpty":
+            r = read_rect(args[0])
+            return int(r[2] <= r[0] or r[3] <= r[1])
+        if function == "EqualRect":
+            return int(read_rect(args[0]) == read_rect(args[1]))
+        if function == "PtInRect":
+            r, x, y = read_rect(args[0]), signed(args[1]), signed(args[2])
+            return int(r[0] <= x < r[2] and r[1] <= y < r[3])
+        if function == "GetCursorPos":
+            self.write_guest(args[0], struct.pack("<2i", *CFG.cursor))
+            return 1
+        if function in ("GetClientRect", "GetWindowRect"):
+            write_rect(args[1], [0, 0, 0, 0])
+            return 0
+        if function == "MoveWindow":
+            return int(CFG.move_window_ok)
+        return None
+
     def heap_alloc(self, size: int) -> int:
         """Deterministic bump allocator: both runs get identical blocks for identical request sequences."""
+        if self.heap_next + size > HEAP_BASE + HEAP_SIZE:
+            self.error = f"emulated heap exhausted (request of {size:#x} bytes)"
+            self.uc.emu_stop()
+            return 0
         if not self.heap_mapped:
             self.uc.mem_map(HEAP_BASE, HEAP_SIZE, UC_PROT_ALL)
             self.heap_mapped = True
         block = self.heap_next
         self.heap_next += (size + 15) & ~15
-        if self.heap_next > HEAP_BASE + HEAP_SIZE:
-            self.error = "emulated heap exhausted"
-            self.uc.emu_stop()
-            return 0
         return block
 
     def heap_realloc(self, block: int, size: int) -> int:
@@ -465,7 +532,7 @@ class Emulator:
         data, position = self.files[handle]
         chunk = data[position:position + count]
         self.files[handle][1] = position + len(chunk)
-        self.uc.mem_write(buffer, chunk)
+        self.write_guest(buffer, chunk)
         return len(chunk)
 
     def host_seek(self, handle: int, distance: int, method: int) -> int:
@@ -486,7 +553,7 @@ class Emulator:
             info, bits_out = args[1], args[3]
             width, height, _, bit_count = struct.unpack("<iiHH", bytes(self.uc.mem_read(info + 4, 12)))
             size = (((bit_count * width + 31) >> 3) & ~3) * abs(height)
-            self.uc.mem_write(bits_out, struct.pack("<I", self.heap_alloc(size)))
+            self.write_guest(bits_out, struct.pack("<I", self.heap_alloc(size)))
             return handle
         return 1
 
@@ -721,12 +788,35 @@ def known_failures() -> dict[str, str]:
     return out
 
 
+_WORKER: dict = {}
+
+
+def _worker_init(args: argparse.Namespace, cfg: Config) -> None:
+    CFG.__dict__.update(cfg.__dict__)
+    _WORKER.update(args=args, exe=Image.load(EXE_PATH, sections=(".text", ".rdata")), imports=Imports.load())
+
+
+def _worker_run(path: Path) -> tuple[bool, str]:
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        ok = run_capture(path, _WORKER["args"], _WORKER["exe"], _WORKER["imports"])
+    return ok, out.getvalue()
+
+
 def run_captures(captures: list[Path], dll: Path = DLL_PATH, integration: bool = False, orig_only: bool = False,
-                 max_insns: int = 20_000_000) -> list[bool]:
+                 max_insns: int = 20_000_000, jobs: int = 1) -> list[bool]:
     args = argparse.Namespace(dll=dll, integration=integration, orig_only=orig_only, max_insns=max_insns)
-    exe = Image.load(EXE_PATH, sections=(".text", ".rdata"))
-    imports = Imports.load()
-    return [run_capture(path, args, exe, imports) for path in captures]
+    if jobs <= 1:
+        exe = Image.load(EXE_PATH, sections=(".text", ".rdata"))
+        imports = Imports.load()
+        return [run_capture(path, args, exe, imports) for path in captures]
+    results = []
+    fork = multiprocessing.get_context("fork")  # Python 3.14 defaults to forkserver, which cannot re-import a uv script
+    with concurrent.futures.ProcessPoolExecutor(jobs, mp_context=fork, initializer=_worker_init, initargs=(args, CFG)) as pool:
+        for ok, text in pool.map(_worker_run, captures, chunksize=4):  # in order: output stays deterministic
+            sys.stdout.write(text)
+            results.append(ok)
+    return results
 
 
 def main() -> int:
@@ -736,6 +826,7 @@ def main() -> int:
     ap.add_argument("--integration", action="store_true", help="replace every reimplemented function, not just the captured one")
     ap.add_argument("--orig-only", action="store_true", help="only emulate the original and print its effects")
     ap.add_argument("--max-insns", type=int, default=20_000_000)
+    ap.add_argument("-j", "--jobs", type=int, default=1, help="replay captures in this many processes")
     g = ap.add_argument_group("state/API overrides (for exercising other paths from the same capture)")
     g.add_argument("--poke", default="", help='overwrite memory before both runs: "ecx+0xc=0a000000;[ecx]+0xe=@esp+8" '
                    "(<addr expr>=<hex bytes> or =@<expr> for a dword; expr: registers, numbers, [deref], + -)")
@@ -745,10 +836,14 @@ def main() -> int:
     g.add_argument("--qpf", type=lambda v: int(v, 0), help="QueryPerformanceFrequency value")
     g.add_argument("--time-get-time", type=lambda v: int(v, 0), help="timeGetTime value")
     g.add_argument("--lock-hex", default="", help="FindResource/LoadResource/LockResource yield these bytes")
+    g.add_argument("--cursor", default="0,0", help="GetCursorPos result as x,y")
+    g.add_argument("--move-window-ok", action="store_true", help="MoveWindow returns 1 instead of 0")
     args = ap.parse_args()
     CFG.pokes, CFG.gdi_handles, CFG.qpc, CFG.qpf = args.poke, args.gdi_handles, args.qpc, args.qpf
     CFG.time_get_time, CFG.lock_hex, CFG.entry = args.time_get_time, args.lock_hex, args.entry
-    results = run_captures(args.captures, args.dll, args.integration, args.orig_only, args.max_insns)
+    CFG.cursor = tuple(int(v) for v in args.cursor.split(","))
+    CFG.move_window_ok = args.move_window_ok
+    results = run_captures(args.captures, args.dll, args.integration, args.orig_only, args.max_insns, args.jobs)
     print(f"{sum(results)}/{len(results)} passed or skipped")
     return 0 if all(results) else 1
 

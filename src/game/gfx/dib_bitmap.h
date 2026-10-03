@@ -5,6 +5,11 @@
 #include "platform/win32.h"
 
 struct Rgb24 {
+    Rgb24() = default;
+    Rgb24(uint8_t red, uint8_t green, uint8_t blue);  // 0x60e5e0
+    explicit Rgb24(uint32_t rgbQuad);                 // 0x60e600: from an RGBQUAD read as a dword (0x00RRGGBB)
+    int DiffersFrom(uint32_t rgbQuad);                // 0x60e620: compares with an RGBQUAD/BGR pixel read as a dword
+
     uint8_t r;
     uint8_t g;
     uint8_t b;
@@ -81,6 +86,8 @@ public:
                      int width, int height);
     void BlitKeyedRgb24(DibBitmap* dest, int destX, int destY, Rgb24 colorKey, int srcX, int srcY, int width,
                         int height);
+    // What Blit24 does for an RLE source: nothing, returns 0.
+    int Blit24RleStub(DibBitmap* dest, int destX, int destY, int srcX, int srcY, int width, int height);  // 0x60ed00
 
     BITMAPINFOHEADER* m_info;  // +0x00 header followed by the colour table; null when nothing is loaded
     uint8_t* m_bits;           // +0x04
