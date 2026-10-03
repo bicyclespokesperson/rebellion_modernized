@@ -1,3 +1,4 @@
+#include "core/static_crt.h"
 #include "core/game_string.h"
 
 #include <cstdio>
