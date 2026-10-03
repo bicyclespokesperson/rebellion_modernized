@@ -18,7 +18,9 @@ struct ParamTableRecord {
     int m_firstValue;  // +0x24
 };
 
-class TableRegistry;
+class Crc32;
+class GDataTables;
+using TableRegistry = GDataTables;
 
 // The three 5-byte `jmp` thunks at 0x55bea0-0x55bec0 forward to the registry singleton's accessor, its
 // creator and its destructor.
@@ -28,8 +30,8 @@ void DestroyTableRegistry();
 
 // Record `id` of table `tableType`, or null (also null when there is no registry).
 ParamTableRecord* FindTableRecord(int tableType, int id);
-// Calls the registry's per-table virtual 3 (slot +0xc) on every table until one returns 0.
-void NotifyTables(int argument);
+// Adds every table to the checksum (the registry's per-table virtual 3), stopping at the first that fails.
+void ChecksumTables(Crc32* crc);
 
 // *value = first value of the record (0 if absent). Returns 1 if the record exists.
 int LookupTableValue(int tableType, int id, int* value);
