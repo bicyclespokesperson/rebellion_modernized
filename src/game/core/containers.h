@@ -157,8 +157,8 @@ public:
     virtual ~IntKeyedSet();
     virtual int Precedes(AvlNode* probe, AvlNode* node) override;
     virtual int Matches(AvlNode* probe, AvlNode* node) override;
-    virtual void Virtual05() = 0;
-    virtual void Virtual06() = 0;
+    virtual int Read(istream* in) = 0;
+    virtual int Write(ostream* out) = 0;
 
     IntKeyedSet& operator=(const IntKeyedSet& other);
 };
