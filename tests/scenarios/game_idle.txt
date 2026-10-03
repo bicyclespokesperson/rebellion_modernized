@@ -1,0 +1,13 @@
+# Load the "RebelsFastStart" save and let the strategic game run for a few minutes
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 250
+28 click 425 250
+36 move 305 174
+38 click 305 174
+80 shot gi_a
+140 shot gi_b
+200 shot gi_c
+260 shot gi_d
+300 end
