@@ -382,6 +382,13 @@ class Emulator:
         if function in ("_lclose", "CloseHandle") and args and args[0] in self.files:
             del self.files[args[0]]
             return 1 if function == "CloseHandle" else 0
+        # APIs that fill a caller buffer: write an empty string so both runs see the same bytes (not stack garbage).
+        empty_string_out = {"LoadStringA": 2, "GetWindowTextA": 1, "GetClassNameA": 1, "GetDlgItemTextA": 2}
+        if function in empty_string_out and len(args) > empty_string_out[function]:
+            buffer = args[empty_string_out[function]]
+            if buffer:
+                self.uc.mem_write(buffer, b"\0")
+            return 0
         if function in ("GetLocalTime", "GetSystemTime"):  # fixed instant: time() must not read garbage
             self.uc.mem_write(args[0], struct.pack("<8H", 1998, 3, 1, 2, 12, 0, 0, 0))
             return 0
