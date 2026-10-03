@@ -1,0 +1,39 @@
+# New game (Rebels), open the options screen, save over slot 1 (OVERWRITES work/game/SaveGame/SAVEGAME.001: back it up first).
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+33 move 300 130
+34 move 305 132
+35 click 305 132
+39 shot p39
+40 key F1
+42 move 300 170
+43 move 305 173
+44 click 305 173
+46 move 275 298
+47 move 280 300
+48 click 280 300
+52 shot p52
+53 key F1
+55 move 300 213
+56 move 305 216
+57 click 305 216
+59 move 275 298
+60 move 280 300
+61 click 280 300
+80 shot p80
+82 move 95 210
+83 move 97 212
+84 click 97 212
+88 shot pdev
+90 move 48 88
+91 move 52 90
+92 click 52 90
+95 shot psave1
+96 move 275 298
+97 click 275 298
+101 shot psave2
+104 end

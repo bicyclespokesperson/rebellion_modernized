@@ -11,7 +11,9 @@ memory. Both runs start from that identical state. Compared:
   * return registers (EAX; EDX and ST0 reported when they differ), ESP after return (calling convention)
     and callee-saved registers (EBX/ESI/EDI/EBP)
   * every byte of memory written by the call, outside the callee's own stack frame
-  * the sequence of Win32 API calls made (imports are stubbed: they return 0 and pop their arguments)
+  * the sequence of Win32 API calls made. Imports are stubbed: they pop their arguments and return 0, except
+    heap allocation (a deterministic bump heap whose contents are compared too), reads of game files
+    (_lopen/_lread/CreateFileA/ReadFile... served from the original install) and the opt-in overrides below
 
 Usage:
   difftest.py work/game/captures/00611330_*.cap            # unit mode: only the captured function replaced
@@ -191,6 +193,29 @@ def jump(src: int, dst: int) -> bytes:
     return b"\xE9" + struct.pack("<i", dst - (src + 5))
 
 
+HEAP_BASE = 0x70000000
+HEAP_SIZE = 0x4000000
+FILE_HANDLE_BASE = 0x100
+GDI_HANDLE_BASE = 0x00A10000
+RESOURCE_HANDLES = {"FindResourceA": 0x4D0001, "LoadResource": 0x4D0002}
+REGISTERS = ("eax", "ebx", "ecx", "edx", "esi", "edi", "ebp", "esp")
+GAME_DIR = MAIN / "orig_game_files" / "Star Wars - Rebellion"
+
+
+@dataclass
+class Config:
+    """Optional API behaviour and state overrides (see --help); the defaults suit ordinary captures."""
+    pokes: str = ""
+    gdi_handles: bool = False
+    qpc: int | None = None
+    qpf: int | None = None
+    time_get_time: int | None = None
+    lock_hex: str = ""
+    entry: int | None = None
+
+
+CFG = Config()
+
 EIGHT_BYTE_PARAMS = ("double", "__int64")
 
 
@@ -228,6 +253,10 @@ class Emulator:
         # The return-address slot, everything below it, and the incoming argument slots (MSVC reuses them as
         # scratch) belong to the callee.
         self.frame_hi = esp + 4 + arg_bytes
+        self.heap_next = HEAP_BASE
+        self.heap_mapped = False
+        self.files: dict[int, list] = {}
+        self.gdi_counter = 0
 
     def page_bytes(self, page: int) -> bytes | None:
         if page in self.exe.pages:
@@ -319,9 +348,166 @@ class Emulator:
             self.error = f"call to {name} with unknown calling convention"
             self.uc.emu_stop()
             return
-        self.uc.reg_write(UC_X86_REG_EAX, 0)
+        result = self.fake_api(name, struct.unpack(f"<{n_args}I", self.uc.mem_read(esp + 4, 4 * n_args)) if n_args else ())
+        self.uc.reg_write(UC_X86_REG_EAX, (result or 0) & 0xFFFFFFFF)
         self.uc.reg_write(UC_X86_REG_ESP, esp + 4 + (arg_bytes if conv == "stdcall" else 0))
         self.uc.reg_write(UC_X86_REG_EIP, ret)
+
+    # ---- Win32 API emulation: enough for allocation, game-file reads and (optionally) GDI/timer paths.
+    def fake_api(self, name: str, args: tuple) -> int | None:
+        dll, _, function = name.partition("!")
+        if function == "HeapAlloc":
+            return self.heap_alloc(args[2])
+        if function == "HeapReAlloc":
+            return self.heap_realloc(args[2], args[3])
+        if function == "VirtualAlloc":
+            return self.heap_alloc(args[1])
+        if function in ("HeapFree", "VirtualFree"):
+            return 1
+        if function == "_lopen":
+            return self.host_open(args[0])
+        if function == "CreateFileA":
+            return self.host_open(args[0])
+        if function == "_lread":
+            return self.host_read(args[0], args[1], args[2])
+        if function == "ReadFile":
+            n = self.host_read(args[0], args[1], args[2])
+            if args[3]:
+                self.uc.mem_write(args[3], struct.pack("<I", max(n, 0)))
+            return 1 if n >= 0 else 0
+        if function in ("_llseek", "SetFilePointer"):
+            return self.host_seek(args[0], args[1], args[3] if function == "SetFilePointer" else args[2])
+        if function == "GetFileSize":
+            return len(self.files[args[0]][0]) if args[0] in self.files else 0xFFFFFFFF
+        if function in ("_lclose", "CloseHandle") and args and args[0] in self.files:
+            del self.files[args[0]]
+            return 1 if function == "CloseHandle" else 0
+        if function == "QueryPerformanceCounter" and CFG.qpc is not None:
+            self.uc.mem_write(args[0], CFG.qpc.to_bytes(8, "little"))
+            return 1
+        if function == "QueryPerformanceFrequency" and CFG.qpf is not None:
+            self.uc.mem_write(args[0], CFG.qpf.to_bytes(8, "little"))
+            return 1
+        if function == "timeGetTime" and CFG.time_get_time is not None:
+            return CFG.time_get_time
+        if CFG.lock_hex and function in RESOURCE_HANDLES:
+            return RESOURCE_HANDLES[function]
+        if CFG.lock_hex and function == "LockResource":
+            blob = bytes.fromhex(CFG.lock_hex)
+            block = self.heap_alloc(len(blob))
+            self.uc.mem_write(block, blob)
+            return block
+        if CFG.gdi_handles and dll.upper() == "GDI32.DLL":
+            return self.fake_gdi(function, args)
+        return None
+
+    def heap_alloc(self, size: int) -> int:
+        """Deterministic bump allocator: both runs get identical blocks for identical request sequences."""
+        if not self.heap_mapped:
+            self.uc.mem_map(HEAP_BASE, HEAP_SIZE, UC_PROT_ALL)
+            self.heap_mapped = True
+        block = self.heap_next
+        self.heap_next += (size + 15) & ~15
+        if self.heap_next > HEAP_BASE + HEAP_SIZE:
+            self.error = "emulated heap exhausted"
+            self.uc.emu_stop()
+            return 0
+        return block
+
+    def heap_realloc(self, block: int, size: int) -> int:
+        new = self.heap_alloc(size)
+        if block and HEAP_BASE <= block < self.heap_next:
+            self.uc.mem_write(new, bytes(self.uc.mem_read(block, min(size, self.heap_next - block))))
+        return new
+
+    def host_open(self, path_pointer: int) -> int:
+        """Open a game file by base name (read-only, from the original install)."""
+        raw = bytearray()
+        while (b := self.uc.mem_read(path_pointer + len(raw), 1)[0]) != 0:
+            raw.append(b)
+        base = raw.decode(errors="replace").replace("\\", "/").rsplit("/", 1)[-1].lower()
+        for candidate in GAME_DIR.rglob("*"):
+            if candidate.is_file() and candidate.name.lower() == base:
+                handle = FILE_HANDLE_BASE + 4 * (len(self.files) + 1)
+                self.files[handle] = [candidate.read_bytes(), 0]
+                return handle
+        return 0xFFFFFFFF
+
+    def host_read(self, handle: int, buffer: int, count: int) -> int:
+        if handle not in self.files:
+            return -1
+        data, position = self.files[handle]
+        chunk = data[position:position + count]
+        self.files[handle][1] = position + len(chunk)
+        self.uc.mem_write(buffer, chunk)
+        return len(chunk)
+
+    def host_seek(self, handle: int, distance: int, method: int) -> int:
+        if handle not in self.files:
+            return 0xFFFFFFFF
+        data, position = self.files[handle]
+        distance = distance - (1 << 32) if distance & 0x80000000 else distance
+        base = {0: 0, 1: position, 2: len(data)}.get(method, 0)
+        self.files[handle][1] = max(0, base + distance)
+        return self.files[handle][1]
+
+    def fake_gdi(self, function: str, args: tuple) -> int:
+        self.gdi_counter += 1
+        handle = GDI_HANDLE_BASE + 4 * self.gdi_counter
+        if function in ("CreateCompatibleDC", "CreateDIBitmap", "CreatePalette", "SelectObject", "SelectPalette"):
+            return handle
+        if function == "CreateDIBSection":
+            info, bits_out = args[1], args[3]
+            width, height, _, bit_count = struct.unpack("<iiHH", bytes(self.uc.mem_read(info + 4, 12)))
+            size = (((bit_count * width + 31) >> 3) & ~3) * abs(height)
+            self.uc.mem_write(bits_out, struct.pack("<I", self.heap_alloc(size)))
+            return handle
+        return 1
+
+    # ---- --poke: overwrite state after the snapshot, before both runs
+    def eval_expression(self, text: str) -> int:
+        text = text.strip()
+
+        def term(i: int) -> tuple[int, int]:
+            if text[i] == "[":
+                value, j = total(i + 1)
+                self.ensure_mapped(value)
+                return struct.unpack("<I", bytes(self.uc.mem_read(value, 4)))[0], j + 1
+            j = i
+            while j < len(text) and (text[j].isalnum() or text[j] == "x"):
+                j += 1
+            token = text[i:j]
+            return (self.cap.regs[token] if token in REGISTERS else int(token, 0)), j
+
+        def total(i: int) -> tuple[int, int]:
+            value, i = term(i)
+            while i < len(text) and text[i] in "+-":
+                sign = 1 if text[i] == "+" else -1
+                part, i = term(i + 1)
+                value += sign * part
+            return value & 0xFFFFFFFF, i
+
+        value, end = total(0)
+        if end != len(text):
+            raise ValueError(f"bad --poke expression: {text}")
+        return value
+
+    def ensure_mapped(self, address: int) -> None:
+        page = address & ~(PAGE - 1)
+        if page not in self.original:
+            self.map_page(page)
+
+    def apply_pokes(self) -> None:
+        for item in filter(None, CFG.pokes.split(";")):
+            where, data = item.rsplit("=", 1)
+            address = self.eval_expression(where)
+            value = self.eval_expression(data[1:]).to_bytes(4, "little") if data.startswith("@") else bytes.fromhex(data)
+            for i, byte in enumerate(value):
+                self.ensure_mapped(address + i)
+                page = (address + i) & ~(PAGE - 1)
+                self.uc.mem_write(address + i, bytes([byte]))
+                self.original[page] = bytearray(self.original[page])
+                self.original[page][address + i - page] = byte
 
     def normalize(self, value: int):
         return "<stack>" if self.stack_lo <= value < self.frame_hi + 0x10000 else value
@@ -347,6 +533,7 @@ class Emulator:
         if not self.map_page(esp & ~(PAGE - 1)):
             raise RuntimeError("stack page missing from capture")
         uc.mem_write(esp, struct.pack("<I", SENTINEL))
+        self.apply_pokes()
         self.writes.clear()
 
     def setup_fs(self, teb: int) -> None:
@@ -388,6 +575,9 @@ class Emulator:
             new = self.uc.mem_read(a, 1)[0]
             if new != self.original[page][a - page]:
                 res.memory[a] = new
+        if self.heap_mapped:
+            used = bytes(self.uc.mem_read(HEAP_BASE, self.heap_next - HEAP_BASE))
+            res.memory.update({HEAP_BASE + i: b for i, b in enumerate(used) if b})
         return res
 
 
@@ -439,6 +629,8 @@ def compare(orig: RunResult, new: RunResult, initial: dict[str, int], return_kin
 
 def run_capture(path: Path, args, exe_pristine: Image, imports: Imports) -> bool:
     cap = Capture.load(path)
+    if CFG.entry is not None:  # replay another function with the same signature on this capture's state
+        cap.function = CFG.entry
     pack = next(d / "pages.pack" for d in path.resolve().parents if (d / "pages.pack").exists())
 
     def fresh(image: Image) -> Image:
@@ -481,6 +673,14 @@ def run_capture(path: Path, args, exe_pristine: Image, imports: Imports) -> bool
     return True
 
 
+def run_captures(captures: list[Path], dll: Path = DLL_PATH, integration: bool = False, orig_only: bool = False,
+                 max_insns: int = 20_000_000) -> list[bool]:
+    args = argparse.Namespace(dll=dll, integration=integration, orig_only=orig_only, max_insns=max_insns)
+    exe = Image.load(EXE_PATH, sections=(".text", ".rdata"))
+    imports = Imports.load()
+    return [run_capture(path, args, exe, imports) for path in captures]
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("captures", nargs="+", type=Path)
@@ -488,10 +688,19 @@ def main() -> int:
     ap.add_argument("--integration", action="store_true", help="replace every reimplemented function, not just the captured one")
     ap.add_argument("--orig-only", action="store_true", help="only emulate the original and print its effects")
     ap.add_argument("--max-insns", type=int, default=20_000_000)
+    g = ap.add_argument_group("state/API overrides (for exercising other paths from the same capture)")
+    g.add_argument("--poke", default="", help='overwrite memory before both runs: "ecx+0xc=0a000000;[ecx]+0xe=@esp+8" '
+                   "(<addr expr>=<hex bytes> or =@<expr> for a dword; expr: registers, numbers, [deref], + -)")
+    g.add_argument("--entry", type=lambda v: int(v, 0), help="run this function instead (same signature)")
+    g.add_argument("--gdi-handles", action="store_true", help="GDI32 calls return non-zero handles")
+    g.add_argument("--qpc", type=lambda v: int(v, 0), help="QueryPerformanceCounter value")
+    g.add_argument("--qpf", type=lambda v: int(v, 0), help="QueryPerformanceFrequency value")
+    g.add_argument("--time-get-time", type=lambda v: int(v, 0), help="timeGetTime value")
+    g.add_argument("--lock-hex", default="", help="FindResource/LoadResource/LockResource yield these bytes")
     args = ap.parse_args()
-    exe = Image.load(EXE_PATH, sections=(".text", ".rdata"))
-    imports = Imports.load()
-    results = [run_capture(p, args, exe, imports) for p in args.captures]
+    CFG.pokes, CFG.gdi_handles, CFG.qpc, CFG.qpf = args.poke, args.gdi_handles, args.qpc, args.qpf
+    CFG.time_get_time, CFG.lock_hex, CFG.entry = args.time_get_time, args.lock_hex, args.entry
+    results = run_captures(args.captures, args.dll, args.integration, args.orig_only, args.max_insns)
     print(f"{sum(results)}/{len(results)} passed or skipped")
     return 0 if all(results) else 1
 

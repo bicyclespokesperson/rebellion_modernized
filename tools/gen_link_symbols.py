@@ -189,6 +189,16 @@ def load_csv(path: Path) -> tuple[dict[str, OriginalSymbol], set[str]]:
     return table, ambiguous
 
 
+IMPORT_REF = re.compile(r"^__imp_(?:_?)([A-Za-z0-9_]+?)(?:@\d+)?$")
+
+
+def load_game_imports(path: Path) -> dict[str, int]:
+    """API name -> REBEXE.EXE IAT slot. Reconstructed code calls Win32 through the game's own import table,
+    exactly as the original does (and difftest stubs those slots)."""
+    with open(path, newline="") as fh:
+        return {row["name"]: int(row["iat"], 16) for row in csv.DictReader(fh)}
+
+
 def resolve(sym: ObjSymbol, table: dict[str, OriginalSymbol], ambiguous: set[str]) -> OriginalSymbol | None:
     if sym.signature_key in table:
         return table[sym.signature_key]
@@ -219,6 +229,7 @@ def main() -> int:
     args = ap.parse_args()
 
     table, ambiguous = load_csv(args.csv)
+    game_imports = load_game_imports(args.csv.parent / "imports.csv")
     runtime_defined = {s.raw for s in run_nm(args.runtime) if s.defined}
     symbols = [s for s in run_nm(args.game + args.runtime)
                if s.raw not in RUNTIME_SYMBOLS and not (s.defined and s.raw in runtime_defined)]
@@ -237,6 +248,10 @@ def main() -> int:
     errors: list[str] = []
     hooked_by_address: dict[int, str] = {}
     for s in symbols:
+        m = IMPORT_REF.match(s.raw)
+        if m and not s.defined and m.group(1) in game_imports:
+            absolute.append((s.raw, game_imports[m.group(1)]))
+            continue
         try:
             orig = resolve(s, table, ambiguous)
         except LookupError as e:

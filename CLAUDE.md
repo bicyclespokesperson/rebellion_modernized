@@ -29,7 +29,9 @@ Never kill processes by name pattern (it kills your own shell); use the scripts'
 1. **Understand it.** Read `work/decomp/<addr>.c`, the disassembly (`tools/gq 'for i in listing.getInstructions(func(0x..).getBody(), True): print(i.getAddress(), i)'`),
    its callers and callees. Work class-by-class or module-by-module (`symbols/modules.csv`), not on scattered functions.
 2. **Name it.** `tools/sym.py set 0x005f35b0 func String::String "(char const *)"` for every function you
-   reconstruct or call; globals as `g_camelCase`, vtables as `Class::vftable` (data). A signature is
+   reconstruct or call; globals as `g_camelCase`, vtables as `Class::vftable` (data) — for a class with a
+   polymorphic base, every vtable is `Class::vftable{Base}` (e.g. `DatRecord::vftable{IdNode}` and
+   `DatRecord::vftable{NameSource}`). A signature is
    required only when several original functions share a qualified name (overloads); write it as the C++
    parameter list (`(void)`, `(char const *)`, `(int,int)`), spacing is ignored.
 3. **Write it** in `src/game/<module>/`. The code must be ordinary portable-ish C++:
@@ -41,6 +43,9 @@ Never kill processes by name pattern (it kills your own shell); use the scripts'
      Comment field offsets (`// +0x08`).
    - Declare every virtual method in vtable order, including ones you don't reconstruct (they still need
      `symbols.csv` rows so the vtable resolves; placeholder names like `Virtual05` are fine).
+   - Reconstructed functions that correspond to originals must have external linkage (no `static`, no
+     anonymous namespace) — the hook table references them by name.
+   - Data members stay public (layout asserts use `offsetof`).
    - Functions you call but don't reconstruct: just declare them (`int16_t FUN_00479ac0();` or a named
      declaration with a `symbols.csv` row). Calling conventions follow MSVC defaults: free functions
      `__cdecl`, members `__thiscall`, Win32 callbacks `__stdcall`.
