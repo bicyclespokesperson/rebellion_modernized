@@ -1,0 +1,282 @@
+dll,name,call_sites,modules,porting_note
+ADVAPI32.DLL,RegCloseKey,3,util/registry_file_util:3,config store; no-op
+ADVAPI32.DLL,GetUserNameA,1,multiplayer/MultiPlayerWindow:1,MP lobby default player name; getenv(USER)/getlogin
+ADVAPI32.DLL,RegSetValueExA,1,util/registry_file_util:1,"config store write (Volume, MusicVolume, MusicSwitch, DisplayOpts)"
+ADVAPI32.DLL,RegOpenKeyExA,3,util/registry_file_util:3,replace registry_file_util with a config store (INI/JSON in user dir); keys HKLM\SOFTWARE\LucasArts...\Star Wars Rebellion
+ADVAPI32.DLL,RegQueryValueExA,4,util/registry_file_util:4,config store read (DWORD values Volume/MusicVolume/MusicSwitch/DisplayOpts/MismatchOpts; string paths *Location)
+AVIFIL32.DLL,AVIFileOpenA,1,video/VideoManager:1,AVI path in VideoManager; no .avi in shipped data -> stub returning failure (verify)
+AVIFIL32.DLL,AVIFileInfoA,1,video/VideoManager:1,AVI path; stub
+AVIFIL32.DLL,AVIFileRelease,1,video/VideoManager:1,AVI path; stub
+COMCTL32.DLL,InitCommonControls,1,app/RebellionApplication:1,only for tooltips_class32; no-op in shim (tooltip window implemented natively)
+DDRAW.DLL,DirectDrawEnumerateA,1,gfx/directx_init_errors:1,device enum looking for DDCAPS_3D adapter; strategic code skips it (param 1); drop
+DDRAW.DLL,DirectDrawCreate,2,gfx/directx_init_errors:2,"only to set 640x480x8 fullscreen + coop level; replace with SDL window/fullscreen toggle; IDirectDraw2 also handed to D3DRM (tactical, out of scope)"
+DDRAW.DLL,DirectDrawCreateClipper,1,tactical/tact_d3d_device:1,tactical D3DRM only (out of scope)
+DPLAYX.DLL,DirectPlayLobbyCreateA,1,multiplayer/CommMgr:1,lobby-launch detection at startup; return DPERR_NOTLOBBIED-equivalent
+DPLAYX.DLL,DirectPlayCreate,1,multiplayer/CommMgr:1,CommMgr transport; replace CommMgr internals with sockets (ENet/SDL_net); IDirectPlay3A semantics
+DPLAYX.DLL,DirectPlayEnumerateA,1,multiplayer/CommMgr:1,service-provider list for MP UI; synthesize one TCP/IP provider
+DSOUND.DLL,DirectSoundCreate,1,sound/SoundManager:1,SoundManager; replace with SDL audio mixer behind IDirectSound-like buffer API
+GDI32.DLL,SetSystemPaletteUse,6,app/RebellionApplication:4; ui_framework/cool_window_base:2,no-op (SYSPAL_NOSTATIC dance)
+GDI32.DLL,RealizePalette,9,ui_framework/cool_window_base:4; app/RebellionApplication:1; gfx/dib_bitmap_blit:1; ui_framework/CoolGameWindow:1; ui_framework/cool_buttons:1; ui_framework/ui_misc_controls:1,shim GDI: set SDL palette (8-bit screen -> RGBA on present)
+GDI32.DLL,SelectPalette,79,ui_framework/cool_window_base:11; ui_framework/cool_tab_statusbar:10; ui_framework/cool_slider_stringfield:8; ui_framework/CoolSelectionBox:8; gfx/dib_bitmap_blit:6; ui_strategic/ui_fleet_window:6; ui_framework/CoolGameWindow:4; ui_strategic/sector_window:4; ui_framework/cool_buttons:4; ui_strategic/strategy_window_core:3; ui_framework/ui_misc_controls:3; app/RebellionApplication:2; ui_framework/TextScrollField:2; ui_strategic/system_window:2; ui_framework/CoolDragList:2; ui_strategic/ui_popup_menu:2; ui_framework/cool_display_scrollbar:2,shim GDI: one global display palette in practice
+GDI32.DLL,DeleteObject,24,ui_framework/cool_tab_statusbar:7; gfx/dib_bitmap_blit:3; ui_framework/cool_window_base:3; ui_strategic/ui_cmdcenter_window_17:2; ui_strategic/ui_cmdcenter_window_16:2; ui_framework/cool_app:1; app/RebellionApplication:1; ui_strategic/galaxy_view_panels:1; ui_strategic/ui_fleet_window:1; ui_framework/CoolSelectionBox:1; ui_framework/ui_misc_controls:1; resource/resource_dll_fonts:1,shim GDI
+GDI32.DLL,ResizePalette,3,app/RebellionApplication:1; gfx/dib_bitmap_blit:1; ui_framework/cool_window_base:1,shim GDI
+GDI32.DLL,GetSystemPaletteEntries,4,tactical/tact_main_window:2; app/RebellionApplication:1; ui_framework/cool_window_base:1,shim: return current display palette (game builds identity palette incl. 20 static colors)
+GDI32.DLL,SetPaletteEntries,5,tactical/tact_main_window:2; app/RebellionApplication:1; gfx/dib_bitmap_blit:1; ui_framework/cool_window_base:1,shim GDI
+GDI32.DLL,GetDeviceCaps,10,ui_framework/cool_display_scrollbar:4; app/RebellionApplication:3; ui_framework/cool_window_base:2; tactical/tact_d3d_device:1,"shim: report 640x480, 8 bpp, RC_PALETTE, 256 entries, 20 reserved"
+GDI32.DLL,DeleteDC,31,ui_strategic/ui_cmdcenter_window_16:3; ui_strategic/strategy_window_core:2; ui_strategic/ui_cmdcenter_window_17:2; ui_strategic/ui_fleet_window:2; ui_framework/CoolSelectionBox:2; ui_framework/cool_display_scrollbar:1; gfx/dib_bitmap_blit:1; ui_framework/cool_window_base:1; ui_framework/CoolGameWindow:1; ui_framework/TextScrollField:1; ui_strategic/ui_popup_menu:1; ui_strategic/object_status_window:1; ui_strategic/window_type1c:1; ui_strategic/window_type6_and_panel:1; ui_strategic/system_window:1; ui_strategic/sector_window:1; encyclopedia/ui_encyclopedia_window:1; ui_strategic/ui_cmdcenter_window_14:1; ui_strategic/ui_cmdcenter_window_15:1; ui_strategic/ui_mission_dialog:1; ui_strategic/ui_gokres_window_7:1; ui_strategic/ui_battle_in_progress:1; ui_framework/cool_slider_stringfield:1; ui_framework/cool_tab_statusbar:1; ui_framework/ui_misc_controls:1,shim GDI
+GDI32.DLL,CreatePalette,3,app/RebellionApplication:1; gfx/dib_bitmap_blit:1; ui_framework/cool_window_base:1,shim GDI: logical palette object
+GDI32.DLL,GetTextExtentPoint32A,14,ui_framework/TextScrollField:14,shim text metrics (layout-critical: line wrapping in TextScrollField)
+GDI32.DLL,GetTextMetricsA,5,ui_framework/TextScrollField:4; ui_framework/cool_slider_stringfield:1,shim text metrics
+GDI32.DLL,SelectObject,192,ui_strategic/ui_fleet_window:27; ui_framework/CoolGameWindow:19; ui_strategic/ui_cmdcenter_window_17:14; ui_framework/ui_misc_controls:13; ui_framework/cool_tab_statusbar:12; ui_framework/cool_window_base:10; ui_strategic/strategy_window_core:10; ui_strategic/galaxy_view_panels:10; ui_strategic/ui_cmdcenter_window_16:10; ui_strategic/ui_gokres_window_7:10; ui_strategic/window_type1c:8; ui_framework/CoolSelectionBox:8; ui_strategic/ui_mission_dialog:6; ui_framework/TextScrollField:5; gfx/dib_bitmap_blit:4; ui_strategic/object_status_window:4; ui_strategic/window_type6_and_panel:3; ui_strategic/ui_cmdcenter_window_15:3; ui_strategic/order_confirm_window:2; ui_strategic/system_window:2; ui_strategic/sector_window:2; encyclopedia/ui_encyclopedia_window:2; ui_strategic/ui_cmdcenter_window_14:2; ui_strategic/ui_battle_in_progress:2; ui_framework/cool_slider_stringfield:2; ui_strategic/ui_popup_menu:2,shim GDI: bitmap/pen/brush/font selection
+GDI32.DLL,TextOutA,1,ui_framework/TextScrollField:1,"shim text (1 site, TextScrollField)"
+GDI32.DLL,SetBkMode,14,ui_framework/cool_window_base:3; ui_framework/cool_buttons:3; ui_framework/cool_slider_stringfield:3; ui_framework/CoolGameWindow:1; ui_framework/TextScrollField:1; ui_strategic/ui_fleet_window:1; ui_framework/CoolDragList:1; ui_framework/CoolSelectionBox:1,shim text (TRANSPARENT mostly)
+GDI32.DLL,CreateCompatibleDC,30,ui_strategic/strategy_window_core:2; ui_strategic/ui_cmdcenter_window_17:2; ui_strategic/ui_cmdcenter_window_16:2; ui_strategic/ui_fleet_window:2; ui_framework/CoolSelectionBox:2; gfx/dib_bitmap_blit:1; ui_framework/cool_window_base:1; ui_framework/CoolGameWindow:1; ui_framework/TextScrollField:1; ui_strategic/object_status_window:1; ui_strategic/window_type1c:1; ui_strategic/window_type6_and_panel:1; ui_strategic/ui_popup_menu:1; ui_strategic/galaxy_view_panels:1; ui_strategic/system_window:1; ui_strategic/sector_window:1; encyclopedia/ui_encyclopedia_window:1; ui_strategic/ui_cmdcenter_window_14:1; ui_strategic/ui_cmdcenter_window_15:1; ui_strategic/ui_mission_dialog:1; ui_strategic/ui_gokres_window_7:1; ui_strategic/ui_battle_in_progress:1; ui_framework/cool_slider_stringfield:1; ui_framework/cool_tab_statusbar:1; ui_framework/ui_misc_controls:1,shim GDI: memory DC
+GDI32.DLL,BitBlt,8,gfx/dib_bitmap_blit:2; ui_framework/CoolSelectionBox:2; ui_strategic/strategy_window_core:1; ui_framework/cool_slider_stringfield:1; ui_framework/cool_tab_statusbar:1; ui_framework/ui_misc_controls:1,shim GDI: SRCCOPY (+ rop param) between 8-bit DCs
+GDI32.DLL,Rectangle,16,ui_framework/CoolGameWindow:4; ui_strategic/strategy_window_core:4; ui_strategic/galaxy_view_panels:3; ui_framework/ui_misc_controls:2; ui_framework/cool_tab_statusbar:2; ui_framework/CoolSelectionBox:1,shim GDI (pen outline + brush fill; GDI exclusive right/bottom)
+GDI32.DLL,SetTextColor,23,ui_framework/cool_buttons:8; ui_framework/cool_window_base:5; ui_framework/CoolGameWindow:2; ui_framework/TextScrollField:2; ui_strategic/ui_fleet_window:2; ui_framework/CoolDragList:2; ui_framework/cool_slider_stringfield:1; ui_framework/CoolSelectionBox:1,shim text: RGB/PALETTERGB -> nearest palette index
+GDI32.DLL,DPtoLP,1,ui_strategic/galaxy_view_panels:1,identity (MM_TEXT)
+GDI32.DLL,CreateSolidBrush,10,ui_strategic/ui_cmdcenter_window_17:5; ui_strategic/ui_cmdcenter_window_16:5,shim GDI: COLORREF/PALETTERGB -> palette index
+GDI32.DLL,SetROP2,6,ui_framework/CoolGameWindow:3; ui_strategic/galaxy_view_panels:2; ui_strategic/strategy_window_core:1,shim GDI: R2_XORPEN rubber-band (on palette indices)
+GDI32.DLL,CreatePen,2,ui_framework/cool_tab_statusbar:1; ui_strategic/ui_fleet_window:1,"shim GDI (PS_SOLID, PS_DOT)"
+GDI32.DLL,LineTo,3,ui_framework/ui_misc_controls:2; ui_framework/cool_tab_statusbar:1,"shim GDI line (Bresenham, GDI end-point exclusive)"
+GDI32.DLL,Polyline,9,ui_strategic/ui_fleet_window:9,shim GDI (fleet window graphs)
+GDI32.DLL,CreateCompatibleBitmap,1,ui_framework/ui_misc_controls:1,shim GDI: 8-bit memory bitmap
+GDI32.DLL,CreateDIBSection,1,gfx/dib_bitmap_blit:1,shim GDI: 8-bit DIB = plain byte buffer + BITMAPINFO; the core of all game drawing
+GDI32.DLL,MoveToEx,3,ui_framework/ui_misc_controls:2; ui_framework/cool_tab_statusbar:1,shim GDI line
+GDI32.DLL,GetObjectA,1,gfx/dib_bitmap_blit:1,shim GDI: BITMAP info
+GDI32.DLL,SetDIBitsToDevice,1,gfx/dib_bitmap_blit:1,shim GDI: 8-bit blit to DC
+GDI32.DLL,CreateDIBitmap,1,gfx/dib_bitmap_blit:1,shim GDI: DDB = copy of DIB (CBM_INIT)
+GDI32.DLL,GetPaletteEntries,1,ui_framework/cool_window_base:1,shim GDI
+GDI32.DLL,SetTextAlign,1,ui_framework/cool_buttons:1,shim text
+GDI32.DLL,SetStretchBltMode,1,gfx/dib_bitmap_blit:1,no-op (no stretching used)
+GDI32.DLL,CreateICA,1,ui_framework/cool_display_scrollbar:1,"shim: ""DISPLAY"" info DC for GetDeviceCaps"
+GDI32.DLL,CreateBrushIndirect,2,ui_framework/cool_tab_statusbar:2,shim GDI
+GDI32.DLL,PatBlt,8,app/RebellionApplication:5; ui_strategic/ui_cmdcenter_window_17:1; ui_strategic/ui_cmdcenter_window_16:1; ui_framework/cool_window_base:1,shim GDI: BLACKNESS 0x42 / PATCOPY
+GDI32.DLL,GetStockObject,40,ui_framework/CoolGameWindow:7; ui_framework/cool_tab_statusbar:5; ui_framework/ui_misc_controls:4; ui_strategic/galaxy_view_panels:4; ui_strategic/strategy_window_core:3; ui_framework/CoolSelectionBox:3; ui_framework/cool_window_base:2; ui_framework/cool_slider_stringfield:2; video/VideoManager:2; app/RebellionApplication:1; video/movie_window:1; ui_framework/cool_buttons:1; ui_framework/TextScrollField:1; ui_framework/cool_display_scrollbar:1; ui_framework/CustomDialogBox:1; ui_framework/CoolDragList:1; tactical/tact_d3d_device:1,"shim GDI: stock brushes/pens (NULL_BRUSH, BLACK_PEN, NULL_PEN, ...)"
+GDI32.DLL,SetBkColor,1,ui_framework/cool_slider_stringfield:1,shim text
+GDI32.DLL,CreateFontIndirectA,1,resource/resource_dll_fonts:1,"shim text: 14 font slots, face ""Arial"" (global font table 0x6be4f8, init 0x5ff830) sizes 8-30 px, weights 400/700/900 -> bundled TTF w/ Arial metrics (Liberation Sans) via FreeType/SDL_ttf, rendered without AA into 8-bit"
+KERNEL32.DLL,LoadLibraryA,3,library/crt:1; resource/resource_dll_fonts:1; gfx/directx_init_errors:1,resource DLLs (resource_dll_fonts) + cdderr.dll; replace with portable PE resource-directory reader (HMODULE = parsed DLL)
+KERNEL32.DLL,FreeLibrary,2,resource/resource_dll_fonts:1; gfx/directx_init_errors:1,resource reader close
+KERNEL32.DLL,InterlockedExchange,6,sound/SoundManager:4; util/worker_threads:2,std::atomic exchange
+KERNEL32.DLL,WaitForMultipleObjects,2,util/worker_threads:1; sound/SoundManager:1,sound threads wait on 2-3 events; small event-set primitive
+KERNEL32.DLL,_lopen,1,gfx/dib_bitmap_blit:1,EData BMP loading (dib_bitmap_blit 0x5fc530); fopen with case-insensitive path resolution
+KERNEL32.DLL,DeleteCriticalSection,3,library/msvc_iostream:1; ui_framework/cool_window_base:1; sound/SoundManager:1,destroy
+KERNEL32.DLL,EnterCriticalSection,12,library/crt:6; ui_framework/cool_window_base:3; sound/SoundManager:2; library/msvc_iostream:1,std::recursive_mutex lock
+KERNEL32.DLL,InitializeCriticalSection,11,library/crt:8; ui_framework/cool_window_base:1; library/msvc_iostream:1; sound/SoundManager:1,std::mutex (recursive) - game uses in cool_window_base timers and SoundManager
+KERNEL32.DLL,SetUnhandledExceptionFilter,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,IsBadWritePtr,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,IsBadCodePtr,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetStringTypeA,3,library/crt:3,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetStringTypeW,4,library/crt:4,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,LeaveCriticalSection,12,library/crt:5; ui_framework/cool_window_base:4; sound/SoundManager:2; library/msvc_iostream:1,unlock
+KERNEL32.DLL,_lread,2,gfx/dib_bitmap_blit:2,fread
+KERNEL32.DLL,_lclose,5,gfx/dib_bitmap_blit:5,fclose
+KERNEL32.DLL,WaitForSingleObject,4,util/worker_threads:2; sound/SoundManager:2,thread join / event wait
+KERNEL32.DLL,QueryPerformanceCounter,2,util/timer:2,Stopwatch 0x5fbb20 (game clock); SDL_GetPerformanceCounter
+KERNEL32.DLL,QueryPerformanceFrequency,1,util/timer:1,Stopwatch; SDL_GetPerformanceFrequency (keep float 1/freq quirk)
+KERNEL32.DLL,CreateThread,3,util/worker_threads:1; sound/SoundManager:1; video/VideoManager:1,"sound event thread, DS streaming thread, Smacker playback thread; std::thread/SDL_Thread (see threading risks)"
+KERNEL32.DLL,CreateEventA,3,util/worker_threads:1; sound/SoundManager:1; multiplayer/CommMgr:1,sound/stream/CommMgr events; condition variable or SDL semaphore
+KERNEL32.DLL,TerminateThread,3,video/VideoManager:2; sound/SoundManager:1,VideoManager/SoundManager kill threads; cannot be emulated safely -> cooperative stop flag (deviation)
+KERNEL32.DLL,GetModuleHandleA,3,library/crt:2; util/registry_file_util:1,"game: module handle for resources of the EXE itself (RT_RCDATA strings, cursors, icon) -> resource reader on REBEXE.EXE or embedded copy"
+KERNEL32.DLL,SetThreadPriority,3,util/worker_threads:1; sound/SoundManager:1; video/VideoManager:1,no-op or SDL_SetThreadPriority
+KERNEL32.DLL,DeleteFileA,1,util/registry_file_util:1,save-game delete; remove() + path translation
+KERNEL32.DLL,GetCurrentThreadId,5,library/crt:2; ui_framework/cool_window_base:2; ui_strategic/object_popup_menu:1,thread-local hook install; irrelevant in shim
+KERNEL32.DLL,IsBadReadPtr,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,OutputDebugStringA,1,ui_strategic/advisor_side2:1,debug log to stderr
+KERNEL32.DLL,FindFirstFileA,1,app/RebellionApplication:1,existence check of <InstalledLocation>\MDATA\MDATA.000 on fixed drive; stat()
+KERNEL32.DLL,SleepEx,1,ui_strategic/strategy_window_core:1,zoom-rectangle animation in strategy view (50 ms steps); SDL_Delay
+KERNEL32.DLL,GetDriveTypeA,1,app/RebellionApplication:1,installed-to-HDD check; return DRIVE_FIXED
+KERNEL32.DLL,GetLastError,22,library/crt:14; gfx/dib_bitmap_blit:3; app/RebellionApplication:1; ui_framework/cool_window_base:1; resource/resource_dll_fonts:1; ui_framework/cool_slider_stringfield:1; ui_framework/cool_display_scrollbar:1,diagnostics only (result ignored); return 0
+KERNEL32.DLL,FindClose,1,app/RebellionApplication:1,see FindFirstFileA
+KERNEL32.DLL,CreateSemaphoreA,1,app/RebellionApplication:1,"single-instance guard ""STARWARS_REBELLION""; lock file or drop"
+KERNEL32.DLL,GetTickCount,3,multiplayer/CommMgr:2; ui_strategic/GameOptionsWindow:1,"CommMgr timeouts, options window; SDL_GetTicks"
+KERNEL32.DLL,CloseHandle,9,app/RebellionApplication:2; util/worker_threads:2; library/crt:2; sound/SoundManager:2; multiplayer/CommMgr:1,handle table close
+KERNEL32.DLL,GetComputerNameA,1,multiplayer/MultiPlayerWindow:1,MP session name default; gethostname
+KERNEL32.DLL,FindResourceA,28,gfx/anim_resource_classes:5; ui_framework/cool_display_scrollbar:4; tactical/tact_visual_resources:3; gfx/dib_bitmap_blit:2; gfx/anim_resource_base:2; ui_strategic/strategy_window_routes:2; events/player_messages_1:2; util/registry_file_util:1; sound/SoundManager:1; ui_framework/ui_bitmap_hitmask:1; ui_strategic/object_popup_menu:1; ui_strategic/galaxy_view_panels:1; ui_strategic/event_response_bases:1; tactical/tact_view3d:1; encyclopedia/ui_encyclopedia_window:1,"portable PE resource reader; types RT_BITMAP, RT_RCDATA, 302 (RLE sprites), 303 (tactical textures), ""WAVE"""
+KERNEL32.DLL,VerLanguageNameA,1,app/app_cdcheck_version:1,same; trivial table or constant
+KERNEL32.DLL,Sleep,4,ui_strategic/ui_frontend_window:3; library/crt:1,front-end window animation waits; SDL_Delay
+KERNEL32.DLL,FreeResource,26,gfx/anim_resource_classes:5; ui_framework/cool_display_scrollbar:4; gfx/anim_resource_base:2; ui_strategic/strategy_window_routes:2; events/player_messages_1:2; ui_strategic/event_response_bases:2; gfx/dib_bitmap_blit:1; util/registry_file_util:1; sound/SoundManager:1; ui_framework/ui_bitmap_hitmask:1; ui_strategic/object_popup_menu:1; ui_strategic/galaxy_view_panels:1; tactical/tact_view3d:1; tactical/tact_d3drm_scene:1; encyclopedia/ui_encyclopedia_window:1,no-op
+KERNEL32.DLL,LoadResource,26,gfx/anim_resource_classes:5; ui_framework/cool_display_scrollbar:4; gfx/dib_bitmap_blit:2; gfx/anim_resource_base:2; ui_strategic/strategy_window_routes:2; events/player_messages_1:2; util/registry_file_util:1; sound/SoundManager:1; ui_framework/ui_bitmap_hitmask:1; ui_strategic/object_popup_menu:1; ui_strategic/galaxy_view_panels:1; ui_strategic/event_response_bases:1; tactical/tact_view3d:1; tactical/tact_d3drm_scene:1; encyclopedia/ui_encyclopedia_window:1,resource reader (return pointer into mapped file)
+KERNEL32.DLL,LockResource,26,gfx/anim_resource_classes:5; ui_framework/cool_display_scrollbar:4; gfx/dib_bitmap_blit:2; gfx/anim_resource_base:2; ui_strategic/strategy_window_routes:2; events/player_messages_1:2; util/registry_file_util:1; sound/SoundManager:1; ui_framework/ui_bitmap_hitmask:1; ui_strategic/object_popup_menu:1; ui_strategic/galaxy_view_panels:1; ui_strategic/event_response_bases:1; tactical/tact_view3d:1; tactical/tact_d3drm_scene:1; encyclopedia/ui_encyclopedia_window:1,resource reader (identity)
+KERNEL32.DLL,GetVersionExA,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,SetEndOfFile,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,SetStdHandle,4,library/crt:4,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,ExitThread,6,util/worker_threads:3; sound/SoundManager:3,thread exit; return from thread fn
+KERNEL32.DLL,FlushFileBuffers,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,SetEvent,3,sound/SoundManager:2; util/worker_threads:1,see CreateEventA
+KERNEL32.DLL,RaiseException,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,VirtualFree,3,library/crt:3,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,HeapCreate,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,HeapSize,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,HeapReAlloc,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,HeapDestroy,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,TerminateProcess,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetCurrentProcess,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,SetLastError,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,TlsGetValue,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,TlsSetValue,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,CreateFileA,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,TlsAlloc,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetStdHandle,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,SetHandleCount,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetFileType,3,library/crt:3,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,VirtualAlloc,3,library/crt:3,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,SetFilePointer,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,ReadFile,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,WriteFile,3,library/crt:3,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetLocalTime,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetSystemTime,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetTimeZoneInformation,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,ExitProcess,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetVersion,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetCommandLineA,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetStartupInfoA,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,InterlockedIncrement,4,library/crt:4,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,InterlockedDecrement,4,library/crt:4,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,SetCurrentDirectoryA,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetCurrentDirectoryA,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,SetEnvironmentVariableA,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,HeapAlloc,4,library/crt:4,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetUserDefaultLCID,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,RtlUnwind,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetProcAddress,4,library/crt:4,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,HeapFree,3,library/crt:3,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,WideCharToMultiByte,15,library/crt:15,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,LCMapStringA,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,MultiByteToWideChar,7,library/crt:7,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,UnhandledExceptionFilter,0,,no direct reference (CRT installs it via function pointer); CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetModuleFileNameA,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,LCMapStringW,4,library/crt:4,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,FreeEnvironmentStringsW,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetEnvironmentStrings,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,FreeEnvironmentStringsA,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetCPInfo,4,library/crt:4,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetACP,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetEnvironmentStringsW,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,CompareStringA,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,CompareStringW,2,library/crt:2,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetOEMCP,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetLocaleInfoW,5,library/crt:5,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,IsValidLocale,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,GetLocaleInfoA,7,library/crt:7,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,IsValidCodePage,1,library/crt:1,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+KERNEL32.DLL,EnumSystemLocalesA,3,library/crt:3,CRT/LIBCMT-internal; disappears when the CRT becomes host libc (phase 2)
+USER32.DLL,PostQuitMessage,1,app/RebellionApplication:1,shim message queue: WM_QUIT
+USER32.DLL,HideCaret,5,ui_framework/TextScrollField:3; ui_framework/cool_slider_stringfield:2,shim caret
+USER32.DLL,IsWindowVisible,24,ui_strategic/strategy_window_core:6; ui_strategic/sector_window:4; ui_strategic/strategy_window_routes:1; ui_framework/CoolDragList:1; ui_strategic/window_type1c:1; ui_strategic/ui_gokres_window_7:1; ui_strategic/ui_object_info_window:1; ui_framework/TextScrollField:1; ui_strategic/ui_objwin_type10:1; ui_strategic/ui_message_index_window:1; ui_strategic/ui_cmdcenter_window_16:1; ui_strategic/ui_cmdcenter_window_15:1; ui_strategic/ui_cmdcenter_window_17:1; encyclopedia/ui_encyclopedia_window:1; ui_strategic/ui_cmdcenter_window_14:1; ui_strategic/system_window:1,"shim: mini window manager (child-window tree, z-order, visibility)"
+USER32.DLL,GetCaretPos,1,ui_framework/TextScrollField:1,shim caret
+USER32.DLL,UnhookWindowsHookEx,5,ui_framework/cool_window_base:2; ui_strategic/game_ui_facade:2; ui_strategic/object_popup_menu:1,shim
+USER32.DLL,SetWindowsHookExA,5,ui_framework/cool_window_base:2; ui_strategic/game_ui_facade:2; ui_strategic/object_popup_menu:1,"shim: pre-dispatch filter hooks (WH_KEYBOARD Escape, WH_MOUSE click-outside popups, WH_GETMESSAGE tooltip relay)"
+USER32.DLL,CallNextHookEx,5,ui_strategic/game_ui_facade:2; ui_framework/cool_window_base:2; ui_strategic/object_popup_menu:1,shim
+USER32.DLL,SetWindowPos,42,ui_strategic/strategy_window_core:10; ui_strategic/sector_window:5; ui_framework/CoolGameWindow:4; app/RebellionApplication:3; ui_strategic/ui_message_index_window:3; gfx/directx_init_errors:3; tactical/tact_hud_controls:2; ui_strategic/strategy_window_routes:2; ui_strategic/ui_popup_menu:2; ui_strategic/strategy_window_ext:2; ui_framework/cool_window_base:1; ui_strategic/object_popup_menu:1; ui_strategic/galaxy_view_panels:1; ui_framework/CustomDialogBox:1; video/VideoManager:1; tactical/tact_ui_panels:1,"shim: mini window manager (child-window tree, z-order, visibility); SWP flags"
+USER32.DLL,ShowCaret,5,ui_framework/TextScrollField:4; ui_framework/cool_slider_stringfield:1,shim caret
+USER32.DLL,GetFocus,8,ui_strategic/object_popup_menu:5; ui_framework/TextScrollField:2; ui_framework/cool_slider_stringfield:1,shim
+USER32.DLL,IsChild,5,ui_framework/CoolSelectionBox:4; app/RebellionApplication:1,"shim: mini window manager (child-window tree, z-order, visibility)"
+USER32.DLL,DefWindowProcA,22,ui_framework/cool_window_base:9; ui_framework/cool_slider_stringfield:2; ui_framework/CoolSelectionBox:2; app/RebellionApplication:2; tactical/tact_view3d:2; video/VideoManager:2; video/movie_window:1; ui_framework/cool_buttons:1; ui_framework/cool_tab_statusbar:1,shim: default handling (no non-client area needed: all styles are WS_POPUP/WS_CHILD without caption)
+USER32.DLL,ShowWindow,3,ui_strategic/strategy_window_core:1; app/RebellionApplication:1; ui_framework/cool_window_base:1,"shim: mini window manager (child-window tree, z-order, visibility)"
+USER32.DLL,DestroyWindow,31,app/RebellionApplication:23; video/VideoManager:2; ui_strategic/system_window:2; tactical/tact_main_window:1; ui_framework/cool_window_base:1; ui_strategic/object_popup_menu:1; ui_framework/CustomDialogBox:1,shim: WM_DESTROY recursion
+USER32.DLL,ShowCursor,10,app/RebellionApplication:10,shim: counter semantics (game loops until >=0)
+USER32.DLL,PeekMessageA,6,app/RebellionApplication:2; ui_strategic/strategy_window_core:2; ui_framework/CoolSelectionBox:1; ui_strategic/ui_popup_menu:1,"shim message pump: pull SDL events, translate to MSG, return posted msgs; must be re-entrant (nested modal loops)"
+USER32.DLL,TranslateAcceleratorA,1,app/RebellionApplication:1,shim: accelerator table from TEXTCOMM.DLL RT_ACCELERATOR #11 -> WM_COMMAND 3001..3031
+USER32.DLL,MoveWindow,9,ui_framework/cool_misc_controls:6; ui_strategic/ui_popup_menu:1; ui_framework/ui_misc_controls:1; ui_strategic/galaxy_view_panels:1,"shim: mini window manager (child-window tree, z-order, visibility)"
+USER32.DLL,WinHelpA,2,app/RebellionApplication:2,swhelp.hlp (WinHelp is gone even on Win10+); drop or open converted docs
+USER32.DLL,DestroyCaret,3,ui_framework/cool_slider_stringfield:2; ui_framework/TextScrollField:1,shim caret
+USER32.DLL,LoadIconA,1,app/RebellionApplication:1,window icon; SDL_SetWindowIcon or drop
+USER32.DLL,SetTimer,6,ui_framework/cool_display_scrollbar:3; multiplayer/MultiPlayerWindow:2; ui_strategic/ui_popup_menu:1,shim: WM_TIMER from main pump
+USER32.DLL,SetFocus,99,app/RebellionApplication:10; ui_strategic/ui_message_index_window:10; ui_strategic/system_window:7; encyclopedia/ui_encyclopedia_window:7; ui_strategic/ui_cmdcenter_window_16:5; multiplayer/MultiPlayerWindow:4; ui_strategic/ui_cmdcenter_window_14:4; ui_strategic/ui_cmdcenter_window_15:4; ui_strategic/ui_cmdcenter_window_17:4; ui_strategic/ui_gokres_window_7:4; ui_strategic/ui_mission_dialog:4; ui_strategic/strategy_window_core:4; ui_framework/TextScrollField:3; ui_strategic/ui_object_info_window:3; ui_framework/CustomDialogBox:3; ui_strategic/window_type1c:3; ui_strategic/ui_objwin_type10:3; ui_framework/CoolGameWindow:2; ui_strategic/object_popup_menu:2; ui_framework/cool_slider_stringfield:2; ui_strategic/ui_popup_menu:2; ui_strategic/ui_fleet_window:2; ui_strategic/strategy_window_routes:1; ui_strategic/order_popup_window_437880:1; ui_framework/CoolSelectionBox:1; ui_strategic/object_status_window:1; ui_strategic/order_confirm_window:1; ui_strategic/window_type6_and_panel:1; ui_framework/CoolDragList:1,shim: keyboard focus + WM_SETFOCUS/KILLFOCUS
+USER32.DLL,PtInRect,27,ui_strategic/system_window:6; ui_framework/cool_misc_controls:6; ui_strategic/strategy_window_core:3; ui_strategic/sector_window:3; multiplayer/MultiPlayerWindow:2; ui_strategic/ui_popup_menu:2; ui_strategic/galaxy_view_panels:2; ui_strategic/ui_object_info_window:1; ui_framework/CoolDragList:1; ui_strategic/object_popup_menu:1,pure helper
+USER32.DLL,KillTimer,19,multiplayer/MultiPlayerWindow:15; ui_strategic/ui_popup_menu:3; ui_framework/cool_display_scrollbar:1,shim
+USER32.DLL,LoadCursorA,19,app/RebellionApplication:3; saveload/game_session_saveload:3; multiplayer/MultiPlayerWindow:2; video/VideoManager:2; ui_strategic/strategy_window_core:2; tactical/tact_view3d:2; battle_flow/battle_flow:1; ui_framework/TextScrollField:1; ui_strategic/strategy_window_routes:1; ui_framework/CoolDragList:1; tactical/tact_d3d_device:1,shim: cursors from REBEXE/TACTICAL RT_CURSOR via resource reader -> SDL_CreateColorCursor; IDC_* system cursors
+USER32.DLL,SetCursor,26,saveload/game_session_saveload:6; app/RebellionApplication:4; ui_framework/CoolDragList:4; ui_strategic/strategy_window_core:3; ui_strategic/strategy_window_routes:2; battle_flow/battle_flow:2; multiplayer/MultiPlayerWindow:2; tactical/tact_view3d:2; video/movie_window:1,shim: SDL_SetCursor
+USER32.DLL,wsprintfA,1,app/app_cdcheck_version:1,sprintf (only 1 site)
+USER32.DLL,GetActiveWindow,2,app/app_cdcheck_version:2,shim: main window
+USER32.DLL,MessageBoxA,4,app/app_cdcheck_version:3; ui_framework/cool_display_scrollbar:1,"SDL_ShowSimpleMessageBox (fatal errors: no CD, display, no mouse)"
+USER32.DLL,InvalidateRect,177,ui_framework/cool_slider_stringfield:23; ui_strategic/system_window:16; ui_framework/CoolDragList:14; ui_framework/TextScrollField:14; ui_framework/cool_buttons:13; ui_strategic/strategy_window_core:8; tactical/tact_ui_panels:8; ui_strategic/ui_objwin_type10:7; ui_framework/cool_tab_statusbar:6; ui_strategic/sector_window:6; ui_strategic/ui_fleet_window:6; ui_strategic/ui_message_index_window:5; ui_strategic/ui_popup_menu:5; ui_framework/cool_window_base:4; ui_strategic/strategy_window_routes:4; encyclopedia/ui_encyclopedia_window:4; ui_strategic/ui_object_info_window:4; ui_framework/CoolGameWindow:3; ui_framework/strategy_ui_items:3; app/RebellionApplication:3; ui_strategic/galaxy_view_panels:3; ui_strategic/GameOptionsWindow:2; ui_framework/CoolSelectionBox:2; ui_strategic/ui_frontend_window:2; ui_strategic/window_type1c:2; video/movie_window:1; ui_strategic/ui_cmdcenter_window_14:1; ui_strategic/ui_cmdcenter_window_15:1; ui_strategic/ui_cmdcenter_window_17:1; ui_strategic/ui_cmdcenter_window_16:1; ui_strategic/ui_gokres_window_7:1; ui_framework/cool_display_scrollbar:1; ui_framework/ui_misc_controls:1; video/VideoManager:1; multiplayer/MultiPlayerWindow:1,shim: per-window update region (rect union is enough) -> WM_PAINT generation
+USER32.DLL,SetRect,78,ui_strategic/strategy_window_core:35; ui_strategic/system_window:8; ui_strategic/ui_frontend_window:4; ui_framework/TextScrollField:4; ui_framework/CoolGameWindow:4; ui_framework/cool_misc_controls:4; encyclopedia/ui_encyclopedia_window:3; ui_strategic/ui_object_info_window:3; ui_strategic/ui_message_index_window:2; ui_strategic/strategy_window_ext:1; ui_strategic/strategy_window_routes:1; ui_strategic/ui_popup_menu:1; ui_framework/CustomDialogBox:1; ui_strategic/sector_window:1; ui_strategic/ui_gokres_window_7:1; ui_strategic/ui_objwin_type10:1; ui_framework/cool_display_scrollbar:1; ui_framework/CoolDragList:1; gfx/directx_init_errors:1; tactical/tact_view3d:1,pure helper; header-only
+USER32.DLL,GetDC,88,app/RebellionApplication:12; ui_framework/cool_slider_stringfield:5; ui_framework/cool_window_base:5; ui_strategic/ui_popup_menu:5; ui_strategic/strategy_window_core:4; ui_framework/CoolGameWindow:4; ui_framework/cool_tab_statusbar:3; ui_strategic/system_window:3; ui_strategic/ui_cmdcenter_window_17:3; ui_strategic/ui_cmdcenter_window_16:3; ui_strategic/ui_fleet_window:3; tactical/tact_ui_panels:3; ui_strategic/ui_frontend_window:2; ui_framework/CoolSelectionBox:2; ui_framework/cool_buttons:2; ui_strategic/galaxy_view_panels:2; ui_framework/ui_misc_controls:2; ui_strategic/ui_cmdcenter_window_14:2; ui_strategic/ui_cmdcenter_window_15:2; ui_framework/CoolDragList:2; tactical/tact_main_window:2; ui_framework/TextScrollField:1; ui_framework/strategy_ui_items:1; ui_strategic/object_status_window:1; ui_strategic/window_type1c:1; ui_strategic/order_confirm_window:1; ui_strategic/window_type6_and_panel:1; ui_strategic/sector_window:1; encyclopedia/ui_encyclopedia_window:1; ui_strategic/ui_message_index_window:1; ui_strategic/ui_mission_dialog:1; ui_strategic/ui_gokres_window_7:1; ui_strategic/ui_battle_in_progress:1; tactical/tact_d3d_device:1; ui_strategic/GameOptionsWindow:1; video/VideoManager:1; tactical/tact_view3d:1; multiplayer/MultiPlayerWindow:1,shim: DC onto window area of screen surface (clip children/siblings)
+USER32.DLL,ReleaseDC,93,app/RebellionApplication:12; ui_framework/CoolGameWindow:7; ui_framework/cool_slider_stringfield:5; ui_framework/cool_window_base:5; ui_strategic/ui_popup_menu:5; ui_strategic/strategy_window_core:4; ui_strategic/galaxy_view_panels:4; ui_framework/cool_tab_statusbar:3; ui_strategic/system_window:3; ui_strategic/ui_cmdcenter_window_17:3; ui_strategic/ui_cmdcenter_window_16:3; ui_strategic/ui_fleet_window:3; tactical/tact_ui_panels:3; ui_strategic/ui_frontend_window:2; ui_framework/CoolSelectionBox:2; ui_framework/cool_buttons:2; ui_framework/ui_misc_controls:2; ui_strategic/ui_cmdcenter_window_14:2; ui_strategic/ui_cmdcenter_window_15:2; ui_framework/CoolDragList:2; tactical/tact_main_window:2; ui_framework/TextScrollField:1; ui_framework/strategy_ui_items:1; ui_strategic/object_status_window:1; ui_strategic/window_type1c:1; ui_strategic/order_confirm_window:1; ui_strategic/window_type6_and_panel:1; ui_strategic/sector_window:1; encyclopedia/ui_encyclopedia_window:1; ui_strategic/ui_message_index_window:1; ui_strategic/ui_mission_dialog:1; ui_strategic/ui_gokres_window_7:1; ui_strategic/ui_battle_in_progress:1; tactical/tact_d3d_device:1; ui_strategic/GameOptionsWindow:1; video/VideoManager:1; tactical/tact_view3d:1; multiplayer/MultiPlayerWindow:1,shim
+USER32.DLL,BeginPaint,36,tactical/tact_ui_panels:6; tactical/tact_hud_controls:2; ui_framework/cool_buttons:2; ui_framework/cool_slider_stringfield:2; ui_framework/CoolSelectionBox:2; ui_framework/cool_tab_statusbar:2; ui_strategic/ui_frontend_window:1; ui_framework/cool_window_base:1; ui_framework/CoolGameWindow:1; ui_framework/TextScrollField:1; video/movie_window:1; ui_strategic/strategy_window_core:1; ui_strategic/system_window:1; ui_strategic/sector_window:1; ui_framework/CoolDragList:1; ui_strategic/GameOptionsWindow:1; ui_strategic/ui_popup_menu:1; ui_strategic/ui_fleet_window:1; ui_framework/ui_misc_controls:1; tactical/tact_main_window:1; tactical/tact_view3d:1; tactical/tact_formation_visuals:1; tactical/tact_projectiles:1; tactical/tact_ui_windows2:1; video/VideoManager:1; ui_framework/cool_display_scrollbar:1,"shim: DC on the window's area of the 8-bit screen surface, clipped to update rect + visible region"
+USER32.DLL,EndPaint,34,tactical/tact_ui_panels:6; tactical/tact_hud_controls:2; ui_framework/cool_buttons:2; ui_framework/cool_slider_stringfield:2; ui_framework/CoolSelectionBox:2; ui_strategic/ui_frontend_window:1; ui_framework/cool_window_base:1; ui_framework/CoolGameWindow:1; ui_framework/TextScrollField:1; video/movie_window:1; ui_strategic/strategy_window_core:1; ui_strategic/system_window:1; ui_strategic/sector_window:1; ui_framework/CoolDragList:1; ui_strategic/GameOptionsWindow:1; ui_strategic/ui_popup_menu:1; ui_strategic/ui_fleet_window:1; tactical/tact_main_window:1; tactical/tact_view3d:1; tactical/tact_formation_visuals:1; tactical/tact_projectiles:1; tactical/tact_ui_windows2:1; video/VideoManager:1; ui_framework/cool_display_scrollbar:1; ui_framework/cool_tab_statusbar:1,shim: validate
+USER32.DLL,SendMessageA,49,ui_framework/cool_window_base:10; app/RebellionApplication:6; ui_strategic/strategy_window_core:6; ui_strategic/ui_frontend_window:5; ui_framework/CoolSelectionBox:4; video/VideoManager:3; ui_strategic/ui_objwin_type10:3; ui_strategic/system_window:2; tactical/tact_projectiles:2; tactical/tact_main_window:2; ui_framework/cool_tab_statusbar:1; ui_strategic/sector_window:1; ui_strategic/game_ui_facade:1; ui_strategic/strategy_window_ext:1; tactical/tact_hud_controls:1; ui_strategic/ui_object_info_window:1,shim: synchronous WndProc call; many WM_USER+n custom msgs and synthesized input; tooltip TTM_* to native tooltip
+USER32.DLL,UpdateWindow,19,ui_strategic/ui_frontend_window:5; ui_strategic/system_window:3; ui_strategic/sector_window:3; ui_framework/cool_tab_statusbar:2; ui_framework/TextScrollField:1; ui_strategic/object_popup_menu:1; ui_framework/cool_slider_stringfield:1; ui_framework/CoolDragList:1; tactical/tact_main_window:1; video/VideoManager:1,shim: synchronous WM_PAINT
+USER32.DLL,PostMessageA,126,ui_strategic/strategy_window_routes:19; app/RebellionApplication:11; ui_framework/CoolDragList:11; ui_strategic/strategy_window_core:9; multiplayer/CommMgr:7; ui_framework/cool_slider_stringfield:7; ui_strategic/ui_fleet_window:7; ui_framework/CoolSelectionBox:5; ui_strategic/system_window:5; ui_framework/cool_buttons:5; video/movie_window:4; ui_strategic/object_popup_menu:4; ui_strategic/ui_object_info_window:4; app/rebapp_globals:3; encyclopedia/ui_encyclopedia_window:3; video/VideoManager:2; ui_strategic/ui_objwin_type10:2; ui_strategic/ui_popup_menu:2; ui_strategic/game_ui_facade:1; ui_framework/CustomDialogBox:1; ui_framework/CoolGameWindow:1; ui_strategic/ui_mission_dialog:1; ui_strategic/sector_window:1; ui_strategic/GameOptionsWindow:1; ui_strategic/object_status_window:1; tactical/tact_ui_windows2:1; ui_framework/cool_tab_statusbar:1; ui_strategic/ui_cmdcenter_window_16:1; ui_strategic/ui_cmdcenter_window_15:1; ui_strategic/galaxy_view_panels:1; ui_strategic/ui_cmdcenter_window_17:1; ui_strategic/ui_cmdcenter_window_14:1; ui_framework/cool_display_scrollbar:1; ui_strategic/ui_message_index_window:1,shim: posted queue; lParam carries object pointers (needs pointer-sized LPARAM)
+USER32.DLL,SetCaretPos,22,ui_framework/TextScrollField:16; ui_strategic/ui_cmdcenter_window_15:2; ui_framework/cool_slider_stringfield:1; ui_strategic/ui_cmdcenter_window_14:1; ui_strategic/ui_cmdcenter_window_17:1; ui_strategic/ui_cmdcenter_window_16:1,shim caret
+USER32.DLL,CreateCaret,4,ui_framework/TextScrollField:3; ui_framework/cool_slider_stringfield:1,shim: caret for CoolStringField/TextScrollField edit fields (draw blinking caret in software)
+USER32.DLL,GetWindow,8,ui_framework/cool_window_base:2; ui_strategic/sector_window:2; ui_strategic/strategy_window_core:2; ui_strategic/strategy_window_ext:2,"shim: mini window manager (child-window tree, z-order, visibility) (GW_CHILD/HWNDNEXT)"
+USER32.DLL,DrawTextA,22,ui_framework/cool_slider_stringfield:6; ui_framework/cool_window_base:5; ui_framework/cool_buttons:3; ui_framework/TextScrollField:2; ui_strategic/ui_fleet_window:2; ui_framework/CoolDragList:2; ui_framework/CoolGameWindow:1; ui_framework/CoolSelectionBox:1,shim text: flags incl. DT_CALCRECT|DT_SINGLELINE|DT_VCENTER|DT_NOPREFIX and word-wrap; must reproduce GDI line breaking for identical layout
+USER32.DLL,LoadAcceleratorsA,1,ui_strategic/strategy_window_core:1,shim: parse RT_ACCELERATOR via resource reader
+USER32.DLL,MessageBoxExA,1,gfx/directx_init_errors:1,SDL_ShowSimpleMessageBox (DirectX error text from CDDERR.DLL)
+USER32.DLL,IsWindow,3,ui_strategic/strategy_window_core:2; ui_framework/CoolDragList:1,"shim: mini window manager (child-window tree, z-order, visibility)"
+USER32.DLL,SystemParametersInfoA,1,gfx/directx_init_errors:1,SPI_GETWORKAREA in DD windowed helper; return 640x480
+USER32.DLL,GetMenu,1,gfx/directx_init_errors:1,NULL (no menus)
+USER32.DLL,AdjustWindowRectEx,1,gfx/directx_init_errors:1,only in DD windowed-mode helper; identity (no frame)
+USER32.DLL,GetCursorPos,8,ui_framework/cool_misc_controls:6; ui_framework/cool_slider_stringfield:2,shim: last mouse pos in screen (=640x480 logical) coords
+USER32.DLL,SetParent,2,ui_framework/cool_tab_statusbar:1; ui_framework/CoolSelectionBox:1,"shim: mini window manager (child-window tree, z-order, visibility)"
+USER32.DLL,MessageBeep,1,ui_framework/cool_display_scrollbar:1,no-op
+USER32.DLL,IsIconic,2,ui_framework/cool_window_base:2,shim: always FALSE (no minimize) except app window when deactivated
+USER32.DLL,ReleaseCapture,24,ui_strategic/strategy_window_core:3; ui_framework/cool_buttons:3; ui_framework/cool_window_base:2; ui_strategic/sector_window:2; ui_framework/cool_slider_stringfield:2; ui_framework/CoolDragList:2; app/RebellionApplication:2; ui_framework/cool_display_scrollbar:1; ui_framework/CoolGameWindow:1; ui_framework/TextScrollField:1; ui_strategic/order_popup_window_437880:1; ui_strategic/strategy_window_routes:1; ui_framework/CoolSelectionBox:1; ui_strategic/system_window:1; ui_strategic/galaxy_view_panels:1,shim; 22 of 24 sites go through wrapper 0x601090
+USER32.DLL,LoadStringA,4,gfx/directx_init_errors:2; ui_framework/cool_window_base:1; ui_framework/cool_display_scrollbar:1,resource reader RT_STRING (16-string blocks); game wrapper 0x60aa30 uses (slot<<16|id) ids
+USER32.DLL,SetWindowLongA,4,ui_framework/cool_tab_statusbar:2; ui_framework/cool_window_base:1; gfx/directx_init_errors:1,shim; index 0 = this pointer (64-bit: SetWindowLongPtr); GWL_STYLE in DD helper
+USER32.DLL,IsZoomed,2,ui_framework/cool_window_base:2,shim: FALSE
+USER32.DLL,GetWindowLongA,6,gfx/directx_init_errors:3; ui_framework/cool_window_base:2; ui_framework/cool_tab_statusbar:1,shim; index 0 holds C++ this -> must be GetWindowLongPtr in 64-bit; GWL_STYLE/EXSTYLE
+USER32.DLL,SetWindowTextA,1,ui_framework/cool_window_base:1,shim: store title (main window -> SDL_SetWindowTitle)
+USER32.DLL,IsWindowEnabled,3,ui_framework/cool_window_base:3,"shim: mini window manager (child-window tree, z-order, visibility)"
+USER32.DLL,EnableWindow,2,ui_framework/cool_window_base:2,"shim: mini window manager (child-window tree, z-order, visibility) (WS_DISABLED)"
+USER32.DLL,GetClassInfoA,1,ui_framework/cool_window_base:1,shim: class lookup
+USER32.DLL,CreateWindowExA,2,ui_framework/cool_window_base:2,"shim: window objects (HWND = pointer/handle), WM_CREATE with CREATESTRUCT"
+USER32.DLL,RegisterClassA,1,ui_framework/cool_window_base:1,"shim: class table (name->WndProc, cursor, brush); one WndProc 0x600310 for all Cool classes"
+USER32.DLL,SetCapture,3,ui_framework/cool_window_base:2; ui_framework/CoolSelectionBox:1,shim: mouse capture (SDL_CaptureMouse optional)
+USER32.DLL,GetClientRect,4,ui_framework/CoolGameWindow:1; video/VideoManager:1; tactical/tact_d3d_device:1; tactical/tact_view3d:1,shim geometry
+USER32.DLL,ClientToScreen,5,ui_framework/CoolSelectionBox:3; ui_framework/CoolDragList:1; tactical/tact_view3d:1,shim geometry
+USER32.DLL,GetUpdateRect,2,tactical/tact_view3d:1; video/VideoManager:1,shim
+USER32.DLL,GetCursor,2,tactical/tact_view3d:2,shim
+USER32.DLL,IntersectRect,1,ui_strategic/system_window:1,pure helper
+USER32.DLL,WindowFromPoint,3,ui_framework/CoolSelectionBox:2; ui_strategic/system_window:1,shim hit-test over window tree
+USER32.DLL,GetWindowDC,5,ui_framework/CoolGameWindow:3; ui_strategic/galaxy_view_panels:2,shim: same as GetDC (no non-client area)
+USER32.DLL,GetSystemMetrics,13,ui_framework/cool_window_base:7; app/RebellionApplication:3; ui_framework/CoolSelectionBox:2; ui_framework/cool_display_scrollbar:1,"SM_MOUSEPRESENT, SM_CXSCREEN/CYSCREEN, drag/dblclick metrics; constants"
+USER32.DLL,GetTopWindow,1,ui_strategic/strategy_window_ext:1,"shim: mini window manager (child-window tree, z-order, visibility)"
+USER32.DLL,GetClassNameA,2,ui_strategic/object_popup_menu:1; ui_framework/cool_app:1,"shim: class name of HWND (popup-menu mouse hook, cool_app)"
+USER32.DLL,GetWindowRect,4,gfx/directx_init_errors:2; ui_framework/CoolGameWindow:1; ui_strategic/object_popup_menu:1,shim geometry
+USER32.DLL,IsRectEmpty,2,ui_framework/CoolGameWindow:1; ui_strategic/strategy_window_routes:1,pure helper
+USER32.DLL,SetRectEmpty,6,ui_framework/CoolGameWindow:3; ui_framework/cool_window_base:2; ui_strategic/strategy_window_routes:1,pure helper
+USER32.DLL,UnionRect,2,ui_strategic/strategy_window_routes:1; ui_strategic/sector_window:1,pure helper
+USER32.DLL,GetCapture,34,ui_strategic/sector_window:6; ui_framework/CoolSelectionBox:6; ui_framework/cool_buttons:4; ui_framework/CoolDragList:4; ui_framework/cool_window_base:3; ui_framework/cool_slider_stringfield:3; ui_framework/CoolGameWindow:2; ui_strategic/strategy_window_core:2; ui_strategic/strategy_window_routes:1; ui_framework/CustomDialogBox:1; ui_framework/cool_display_scrollbar:1; ui_strategic/system_window:1,shim
+USER32.DLL,CopyRect,7,ui_strategic/strategy_window_core:4; ui_framework/cool_window_base:1; ui_framework/CoolGameWindow:1; ui_framework/cool_display_scrollbar:1,pure helper
+USER32.DLL,GetKeyState,8,ui_framework/cool_slider_stringfield:4; tactical/tact_ui_panels:2; ui_strategic/strategy_window_core:1; tactical/tact_ui_windows2:1,shim: modifier/key state at last message
+USER32.DLL,ChildWindowFromPointEx,6,ui_strategic/strategy_window_core:6,shim hit-test (CWP_SKIPINVISIBLE etc.)
+USER32.DLL,BringWindowToTop,2,ui_strategic/strategy_window_core:2,"shim: mini window manager (child-window tree, z-order, visibility)"
+USER32.DLL,ScreenToClient,8,ui_strategic/strategy_window_core:2; ui_framework/CoolSelectionBox:2; ui_framework/cool_slider_stringfield:2; ui_framework/CoolGameWindow:1; ui_framework/CoolDragList:1,shim geometry
+USER32.DLL,GetParent,2,ui_strategic/strategy_window_core:1; ui_framework/cool_app:1,"shim: mini window manager (child-window tree, z-order, visibility)"
+USER32.DLL,GetAsyncKeyState,5,video/VideoManager:2; ui_strategic/strategy_window_core:1; ui_framework/cool_buttons:1; ui_framework/CoolSelectionBox:1,"shim: SDL keyboard/mouse state (VK_ESCAPE, VK_LBUTTON; movie skip, drag loops)"
+USER32.DLL,MapWindowPoints,18,ui_framework/cool_misc_controls:6; ui_strategic/sector_window:3; ui_strategic/strategy_window_core:2; ui_strategic/system_window:2; ui_framework/CoolGameWindow:1; ui_framework/cool_display_scrollbar:1; ui_framework/CustomDialogBox:1; ui_framework/CoolDragList:1; ui_strategic/object_popup_menu:1,shim geometry
+USER32.DLL,TranslateMessage,3,app/RebellionApplication:1; ui_framework/CoolSelectionBox:1; ui_strategic/strategy_window_core:1,shim: WM_KEYDOWN -> WM_CHAR (SDL text input)
+USER32.DLL,GetMessageA,2,ui_framework/CoolSelectionBox:1; ui_strategic/strategy_window_core:1,shim: blocking variant (used in nested modal loops)
+USER32.DLL,DispatchMessageA,3,app/RebellionApplication:1; ui_framework/CoolSelectionBox:1; ui_strategic/strategy_window_core:1,shim: call target window WndProc
+USER32.DLL,GetMessagePos,3,ui_strategic/system_window:1; ui_strategic/sector_window:1; ui_framework/CoolDragList:1,shim: pos of last retrieved msg
+VERSION.DLL,GetFileVersionInfoSizeA,1,app/app_cdcheck_version:1,version check of textstra.dll (MP compatibility); read VS_VERSIONINFO from DLL via resource reader
+VERSION.DLL,GetFileVersionInfoA,1,app/app_cdcheck_version:1,same as above
+VERSION.DLL,VerQueryValueA,2,app/app_cdcheck_version:2,same as above
+WINMM.DLL,mciSendCommandA,15,video/VideoManager:10; sound/cd_music:5,"VideoManager avivideo MCI (dead with shipped data) + cd_music CD-audio (open/status/stop, never plays; unreachable: SoundManager flag 0x10000 never passed); stub"
+WINMM.DLL,timeGetDevCaps,1,ui_framework/cool_window_base:1,return 1 ms min period
+WINMM.DLL,timeKillEvent,1,ui_framework/cool_window_base:1,see timeSetEvent
+WINMM.DLL,timeBeginPeriod,1,ui_framework/cool_window_base:1,timer resolution; no-op
+WINMM.DLL,mciGetDeviceIDA,2,video/VideoManager:2,VideoManager avivideo; stub
+WINMM.DLL,timeEndPeriod,1,ui_framework/cool_window_base:1,no-op
+WINMM.DLL,timeGetTime,41,multiplayer/CommMgr:10; multiplayer/MultiPlayerWindow:10; tactical/tact_turn_sync:9; ui_framework/strategy_ui_items:4; tactical/tact_deathstar:2; util/timer:2; tactical/tact_object_manager:2; multiplayer/comm_packets:1; tactical/tact_event_dispatch:1,"ms clock (MP, tactical, UI animation, Stopwatch fallback); SDL_GetTicks"
+WINMM.DLL,timeSetEvent,2,ui_framework/cool_window_base:2,"periodic callback on MM timer thread (strobe buttons, sound stream); emulate as main-loop-polled timers"
+D3DRM.DLL,Direct3DRMCreate,1,tactical/tact_d3d_device:1,tactical 3D presentation only (out of scope)
+SMACKW32.DLL,SmackOpen,2,video/VideoManager:2,Smacker decoder (libsmacker or own) over MDATA.0xx/1xx/2xx; flags 0xfe000 = all audio tracks
+SMACKW32.DLL,SmackSoundUseDirectSound,2,sound/SoundManager:1; video/VideoManager:1,VideoManager passes 0 (Smacker owns its own DirectSound); route Smacker audio into the SDL mixer
+SMACKW32.DLL,SmackClose,3,video/VideoManager:2; sound/SoundManager:1,decoder
+SMACKW32.DLL,SmackBufferClose,2,video/VideoManager:1; sound/SoundManager:1,emulate
+SMACKW32.DLL,SmackBufferOpen,1,video/VideoManager:1,"emulate SmackBuf (8-bit surface bound to ""Smacker Window"")"
+SMACKW32.DLL,SmackNextFrame,1,video/VideoManager:1,decoder
+SMACKW32.DLL,SmackToBuffer,1,video/VideoManager:1,decoder target = 8-bit buffer (game reads Smack/SmackBuf struct fields directly: width/height/+0x448)
+SMACKW32.DLL,SmackGoto,1,video/VideoManager:1,decoder (loop)
+SMACKW32.DLL,SmackToBufferRect,2,video/VideoManager:2,dirty-rect iteration
+SMACKW32.DLL,SmackDoFrame,1,video/VideoManager:1,decoder
+SMACKW32.DLL,SmackBufferNewPalette,1,video/VideoManager:1,emulate: palette change -> display palette
+SMACKW32.DLL,SmackWait,1,video/VideoManager:1,decoder frame pacing
+SMACKW32.DLL,SmackVolumePan,1,video/VideoManager:1,mixer volume
+SMACKW32.DLL,SmackBufferBlit,2,video/VideoManager:2,emulate: blit 8-bit frame into window area
+SMACKW32.DLL,SmackBufferSetPalette,2,video/VideoManager:2,emulate
