@@ -27,4 +27,4 @@ while read -r at action a1 a2; do
   esac
 done < "$scenario"
 wineserver -k
-chown -R "${HOST_UID:-0}:${HOST_GID:-0}" /shots /game/SaveGame 2>/dev/null
+chown -R "${HOST_UID:-0}:${HOST_GID:-0}" /shots /game 2>/dev/null

@@ -69,6 +69,9 @@ int install_hooks() {
         if (h->original < kTextBegin || h->original + 5 > kTextEnd) {
             log("hook %s: address %08x outside .text", h->name, h->original);
             ++failed;
+        } else if (is_capture_target(h->original)) {
+            log("hook %s (%08x) left original: capture target", h->name, h->original);
+            ++skipped;
         } else if (disabled.contains(h->original)) {
             log("hook %s (%08x) disabled", h->name, h->original);
             ++skipped;

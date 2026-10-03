@@ -32,6 +32,7 @@ void log(const char* fmt, ...) {
 extern "C" BOOL WINAPI DllMain(HINSTANCE, DWORD reason, LPVOID) {
     if (reason == DLL_PROCESS_ATTACH) {
         reb::log("rebhybrid loaded");
+        reb::install_captures();
         reb::install_hooks();
     }
     return TRUE;

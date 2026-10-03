@@ -56,9 +56,14 @@ ENV = dict(program=program, fapi=fapi, listing=listing, fm=fm, addr=addr, func=f
 exec((ROOT / "tools" / "py" / "gq_helpers.py").read_text(), ENV)
 
 
+def save():
+    # GhidraProject keeps its own transaction open on programs it opens; only project.save() can save.
+    project.save(program)
+
+
 def handle(req):
     if req.get("cmd") == "save":
-        program.save("server save", monitor)
+        save()
         return "saved"
     out = io.StringIO()
     tx = program.startTransaction("gq")
@@ -90,12 +95,16 @@ def serve():
                 if not chunk:
                     break
                 data += chunk
-            req = json.loads(data[:-2].decode())
-            if req.get("cmd") == "quit":
-                program.save("server quit", monitor)
-                conn.sendall(b"bye")
-                return
-            conn.sendall(handle(req).encode())
+            try:
+                req = json.loads(data[:-2].decode())
+                if req.get("cmd") == "quit":
+                    save()
+                    conn.sendall(b"bye")
+                    return
+                reply = handle(req)
+            except Exception:
+                reply = "server error:\n" + traceback.format_exc()
+            conn.sendall(reply.encode())
 
 
 serve()

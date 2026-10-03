@@ -38,3 +38,4 @@ EXPORTS
     _SetDirectSoundHWND@4 = smackorig._SetDirectSoundHWND@4 @36
     _SmackSoundUseDirectSound@4 = smackorig._SmackSoundUseDirectSound@4 @37
     _SmackSoundUseWin@0 = smackorig._SmackSoundUseWin@0 @38
+    reb_hook_table DATA

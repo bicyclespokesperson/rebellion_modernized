@@ -109,7 +109,7 @@ def keys_from_demangled(demangled: str) -> tuple[str, str]:
         cc = max(CALLING_CONVENTIONS, key=head.rfind)
         # Everything after the calling convention is the (possibly qualified/operator) name.
         name = head[head.rindex(cc) + len(cc):].strip() if head.rfind(cc) >= 0 else last_identifier(head)
-        return name, f"{name}{params.replace(' ', '')}"
+        return name, name + normalize_signature(params)
     name = last_identifier(stripped)
     return name, name
 
@@ -121,18 +121,42 @@ def c_symbol_key(raw: str) -> str:
     return re.sub(r"@\d+$", "", base)
 
 
-def load_csv(path: Path) -> dict[str, OriginalSymbol]:
+def normalize_signature(sig: str) -> str:
+    return re.sub(r"\s+", "", sig)
+
+
+def csv_keys(name: str) -> list[str]:
+    keys = [name]
+    if name.startswith("operator_"):  # Ghidra-friendly spelling of operator names
+        keys.append("operator " + name[len("operator_"):])
+    if name.startswith("_") and not name.startswith("__"):  # C names as Ghidra writes them (_malloc)
+        keys.append(name[1:])
+    return keys
+
+
+def load_csv(path: Path) -> tuple[dict[str, OriginalSymbol], set[str]]:
+    """Index symbols.csv by name and by name+signature. Returns (table, ambiguous names)."""
     table: dict[str, OriginalSymbol] = {}
+    ambiguous: set[str] = set()
     with open(path, newline="") as fh:
         for row in csv.DictReader(fh):
             sym = OriginalSymbol(int(row["address"], 16), row["kind"], row["name"])
-            for key in {sym.name, sym.name.replace(" ", ""), sym.name.lstrip("_") if row["kind"] == "func" else sym.name}:
+            sig = normalize_signature(row.get("signature") or "")
+            for key in csv_keys(row["name"]):
+                if sig:
+                    table[key + sig] = sym
+                if key in table and table[key].address != sym.address:
+                    ambiguous.add(key)
                 table.setdefault(key, sym)
-    return table
+    return table, ambiguous
 
 
-def resolve(sym: ObjSymbol, table: dict[str, OriginalSymbol]) -> OriginalSymbol | None:
-    for key in (sym.signature_key, sym.key, sym.key.lstrip("_")):
+def resolve(sym: ObjSymbol, table: dict[str, OriginalSymbol], ambiguous: set[str]) -> OriginalSymbol | None:
+    if sym.signature_key in table:
+        return table[sym.signature_key]
+    for key in (sym.key, sym.key.lstrip("_")):
+        if key in ambiguous:
+            raise LookupError(f"{sym.key}: several original functions share this name; add a signature in symbols.csv")
         if key in table:
             return table[key]
         m = DEFAULT_NAME.match(key)
@@ -151,11 +175,15 @@ def main() -> int:
     ap.add_argument("--csv", type=Path, required=True)
     ap.add_argument("--out-asm", type=Path, required=True)
     ap.add_argument("--out-report", type=Path, required=True)
-    ap.add_argument("objects", nargs="+", type=Path)
+    ap.add_argument("--game", nargs="+", type=Path, required=True, help="reconstructed game objects")
+    ap.add_argument("--runtime", nargs="+", type=Path, required=True,
+                    help="hybrid runtime objects: their definitions never become hooks")
     args = ap.parse_args()
 
-    table = load_csv(args.csv)
-    symbols = [s for s in run_nm(args.objects) if s.raw not in RUNTIME_SYMBOLS]
+    table, ambiguous = load_csv(args.csv)
+    runtime_defined = {s.raw for s in run_nm(args.runtime) if s.defined}
+    symbols = [s for s in run_nm(args.game + args.runtime)
+               if s.raw not in RUNTIME_SYMBOLS and not (s.defined and s.raw in runtime_defined)]
     demangled = demangle_all([s.raw for s in symbols])
     for s in symbols:
         if s.raw in demangled:
@@ -168,7 +196,11 @@ def main() -> int:
     errors: list[str] = []
     hooked_by_address: dict[int, str] = {}
     for s in symbols:
-        orig = resolve(s, table)
+        try:
+            orig = resolve(s, table, ambiguous)
+        except LookupError as e:
+            errors.append(str(e))
+            continue
         if orig is None:
             continue
         if not s.defined:
