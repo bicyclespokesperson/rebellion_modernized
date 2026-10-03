@@ -37,9 +37,11 @@ from unicorn.x86_const import (UC_X86_REG_EAX, UC_X86_REG_EBP, UC_X86_REG_EBX, U
                                UC_X86_REG_FP0, UC_X86_REG_FS, UC_X86_REG_GDTR,
                                UC_X86_REG_SS, UC_X86_REG_DS, UC_X86_REG_ES)
 
-ROOT = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from paths import MAIN, ROOT  # noqa: E402
+
 PAGE = 0x1000
-EXE_PATH = ROOT / "orig_game_files" / "Star Wars - Rebellion" / "REBEXE.EXE"
+EXE_PATH = MAIN / "orig_game_files" / "Star Wars - Rebellion" / "REBEXE.EXE"
 DLL_PATH = ROOT / "build" / "hybrid" / "smackw32.dll"
 IMPORTS_CSV = ROOT / "symbols" / "imports.csv"
 STUB_BASE = 0xF0000000

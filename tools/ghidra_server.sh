@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # start|stop|restart|status the long-lived Ghidra query server (used by tools/gq).
 set -uo pipefail
-root="$(cd "$(dirname "$0")/.." && pwd)"
+source "$(dirname "$0")/paths.sh"
+root="$MAIN"
 pidfile="$root/work/ghidra_server.pid"
 sock="$root/work/ghidra.sock"
 running() { [[ -f "$pidfile" ]] && kill -0 "$(cat "$pidfile")" 2>/dev/null; }

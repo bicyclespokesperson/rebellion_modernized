@@ -1,10 +1,36 @@
 #!/usr/bin/env bash
-# Run REBEXE.EXE (from work/game) under Wine+Xvfb in the rebellion-dev container, driven by a scenario file.
-# Usage: run_game.sh <scenario.txt> [extra docker args...]   Output: work/shots/
+# Run REBEXE.EXE under Wine+Xvfb in the rebellion-dev container, driven by a scenario file
+# (see tools/container/run_in_container.sh for the scenario syntax).
+#
+# Usage: run_game.sh [--orig] [--out DIR] <scenario.txt> [extra docker args...]
+#   default: the game uses this checkout's hybrid DLL (build/hybrid/smackw32.dll)
+#   --orig:  the unmodified original game (no hybrid DLL)
+#   --out:   output directory (default work/run/<scenario name>); receives screenshots, wine.log,
+#            rebhybrid.log and captures/ (when REB_CAPTURE is set)
+# Environment passed through: REB_CAPTURE, REB_DISABLE_HOOKS, WINEDEBUG.
 set -euo pipefail
-root="$(cd "$(dirname "$0")/.." && pwd)"
+source "$(dirname "$0")/paths.sh"
+orig=0; out=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --orig) orig=1; shift ;;
+    --out) out="$2"; shift 2 ;;
+    *) break ;;
+  esac
+done
 scenario="$(realpath "$1")"; shift
-mkdir -p "$root/work/shots"
-docker run --rm -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -e WINEDEBUG -e REB_CAPTURE -e REB_CAPTURE_DIR -e REB_DISABLE_HOOKS \
-  -v "$root/work/game:/game" -v "$root/work/shots:/shots" -v "$root/tools/container:/tools:ro" \
+out="${out:-$ROOT/work/run/$(basename "$scenario" .txt)}"
+rm -rf "$out"; mkdir -p "$out"
+game="$MAIN/work/game"
+[[ -f "$game/smackorig.dll" ]] || cp "$MAIN/orig_game_files/Star Wars - Rebellion/SMACKW32.DLL" "$game/smackorig.dll"
+if [[ $orig == 1 ]]; then
+  dll="$MAIN/orig_game_files/Star Wars - Rebellion/SMACKW32.DLL"
+else
+  dll="$ROOT/build/hybrid/smackw32.dll"
+  [[ -f "$dll" ]] || { echo "no hybrid build at $dll; run tools/build_hybrid.sh" >&2; exit 1; }
+fi
+docker run --rm -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -e WINEDEBUG -e REB_CAPTURE -e REB_DISABLE_HOOKS \
+  -e 'REB_LOG=Z:\out\rebhybrid.log' -e 'REB_CAPTURE_DIR=Z:\out\captures' \
+  -v "$game:/game" -v "$dll:/game/SMACKW32.DLL:ro" -v "$out:/out" -v "$ROOT/tools/container:/tools:ro" \
   -v "$scenario:/scenario.txt:ro" "$@" rebellion-dev bash /tools/run_in_container.sh /scenario.txt
+echo "output: $out"

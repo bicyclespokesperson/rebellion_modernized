@@ -12,7 +12,9 @@ static HANDLE g_log = INVALID_HANDLE_VALUE;
 
 void log(const char* fmt, ...) {
     if (g_log == INVALID_HANDLE_VALUE) {
-        g_log = CreateFileA("rebhybrid.log", GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS,
+        char path[MAX_PATH] = "rebhybrid.log";
+        GetEnvironmentVariableA("REB_LOG", path, sizeof path);
+        g_log = CreateFileA(path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS,
                             FILE_ATTRIBUTE_NORMAL, nullptr);
         if (g_log == INVALID_HANDLE_VALUE) return;
     }

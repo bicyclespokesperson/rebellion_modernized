@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import fcntl
 import json
 import subprocess
 import sys
@@ -42,10 +43,12 @@ def ghidra(code: str) -> str:
 
 def cmd_set(args) -> int:
     address = int(args.address, 16)
-    rows = [r for r in load() if not (int(r["address"], 16) == address and r["kind"] == args.kind)]
-    rows.append({"address": f"0x{address:08x}", "kind": args.kind, "name": args.name,
-                 "signature": args.signature or "", "size": ""})
-    save(rows)
+    with open(CSV.with_suffix(".lock"), "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        rows = [r for r in load() if not (int(r["address"], 16) == address and r["kind"] == args.kind)]
+        rows.append({"address": f"0x{address:08x}", "kind": args.kind, "name": args.name,
+                     "signature": args.signature or "", "size": ""})
+        save(rows)
     if not args.no_ghidra:
         fn = "name_func" if args.kind == "func" else "name_data"
         out = ghidra(f"{fn}({address}, {json.dumps(args.name)})")

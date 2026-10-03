@@ -7,7 +7,10 @@
 import json, socket, sys
 from pathlib import Path
 
-sock_path = Path(__file__).resolve().parent.parent / "work" / "ghidra.sock"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from paths import MAIN  # noqa: E402
+
+sock_path = MAIN / "work" / "ghidra.sock"
 args = sys.argv[1:]
 if args and args[0] == "--save":
     req = {"cmd": "save"}

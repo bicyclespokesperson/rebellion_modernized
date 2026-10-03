@@ -12,3 +12,4 @@ logs/
 work/
 extracted/
 __pycache__/
+symbols/*.lock

@@ -12,13 +12,13 @@ wine reg add "$key" /v EncyLocation /d 'C:\game\EDATA' /f >/dev/null 2>&1
 wine reg add "$key" /v EXEPath /d 'C:\game\REBEXE.EXE' /f >/dev/null 2>&1
 ln -sfn /game "$WINEPREFIX/drive_c/game"
 cd /game
-WINEDEBUG="${WINEDEBUG:-err+all}" wine explorer /desktop=reb,640x480 REBEXE.EXE > /shots/wine.log 2>&1 &
+WINEDEBUG="${WINEDEBUG:-err+all}" wine explorer /desktop=reb,640x480 REBEXE.EXE > /out/wine.log 2>&1 &
 start=$(date +%s.%N)
 while read -r at action a1 a2; do
   [[ -z "${at:-}" || "$at" == \#* ]] && continue
   python3 -c "import time,sys; d=$start+$at-time.time(); d>0 and time.sleep(d)"
   case "$action" in
-    shot) import -window root "/shots/$a1.png" 2>/dev/null ;;
+    shot) import -window root "/out/$a1.png" 2>/dev/null ;;
     key) xdotool key "$a1" ;;
     click) xdotool mousemove "$a1" "$a2" click 1 ;;
     rclick) xdotool mousemove "$a1" "$a2" click 3 ;;
@@ -27,4 +27,4 @@ while read -r at action a1 a2; do
   esac
 done < "$scenario"
 wineserver -k
-chown -R "${HOST_UID:-0}:${HOST_GID:-0}" /shots /game 2>/dev/null
+chown -R "${HOST_UID:-0}:${HOST_GID:-0}" /out /game/SaveGame 2>/dev/null
