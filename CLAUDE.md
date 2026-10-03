@@ -31,7 +31,8 @@ Never kill processes by name pattern (it kills your own shell); use the scripts'
 2. **Name it.** `tools/sym.py set 0x005f35b0 func String::String "(char const *)"` for every function you
    reconstruct or call; globals as `g_camelCase`, vtables as `Class::vftable` (data) — for a class with a
    polymorphic base, every vtable is `Class::vftable{Base}` (e.g. `DatRecord::vftable{IdNode}` and
-   `DatRecord::vftable{NameSource}`). A signature is
+   `DatRecord::vftable{NameSource}`). Compiler-generated scalar deleting destructors, if you name them, are
+   `Class::scalar_deleting_destructor` (Ghidra rejects backticks); they are never hooked. A signature is
    required only when several original functions share a qualified name (overloads); write it as the C++
    parameter list (`(void)`, `(char const *)`, `(int,int)`), spacing is ignored.
 3. **Write it** in `src/game/<module>/`. The code must be ordinary portable-ish C++:
