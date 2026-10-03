@@ -509,7 +509,7 @@ address,kind,name,signature,size
 0x0061af50,func,__strcats,,68
 0x0061afa0,func,__lc_strtolc,,263
 0x0061b0b0,func,__lc_lctostr,,106
-0x0061b120,func,__ftime,,300
+0x0061b120,func,_time,,
 0x0061b250,func,type_info_dtor,,47
 0x0061b280,func,type_info_scalar_deleting_dtor,,30
 0x0061b2a0,func,_fflush,,55
