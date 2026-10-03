@@ -1,5 +1,7 @@
 #include "ui/cool_scrollable.h"
 
+#include "ui/cool_scroll_bars.h"
+
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 

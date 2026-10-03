@@ -179,7 +179,7 @@ HWND CurrentPopupHwnd();                                                   // 0x
 int DismissPopup();                                                       // 0x601340
 PopupEntry* __stdcall FindPopupEntry(HWND hwnd);                           // 0x6012f0
 int ReleaseAllCaptures();                                                  // 0x6010a0
-HWND __stdcall SetCaptureWindow(HWND hwnd);                                // 0x601080 // returns the previous capture window
+HWND __stdcall SetCaptureWindow(HWND hwnd);  // 0x601080: returns the previous capture window
 
 // Drawing helpers.
 void LoadResourceString(UINT id, LPSTR buffer, int size);                  // 0x601060 (LoadStringA on g_stringModule)

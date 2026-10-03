@@ -4,7 +4,9 @@
 #include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_window.h"
-#include "ui/cool_drag_list_decl.h"
+#include "ui/cool_drag_image.h"
+#include "ui/cool_list_item.h"
+#include "ui/cool_scroll_bar.h"
 
 class DibBitmap;
 

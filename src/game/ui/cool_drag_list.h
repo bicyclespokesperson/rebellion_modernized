@@ -6,7 +6,9 @@
 #include "core/layout.h"
 #include "core/utility_classes.h"
 #include "platform/win32.h"
-#include "ui/cool_drag_list_decl.h"
+#include "ui/cool_drag_image.h"
+#include "ui/cool_list_item.h"
+#include "ui/cool_scroll_bar.h"
 #include "ui/cool_scrollable.h"
 #include "ui/cool_window.h"
 
