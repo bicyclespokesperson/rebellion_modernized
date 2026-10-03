@@ -34,7 +34,10 @@ HMODULE __stdcall CoolGetResourceModule(uint32_t slot);                         
 HMODULE __stdcall CoolRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot);  // 0x5fba30
 void __stdcall CoolUnloadResourceSlot(uint32_t slot);                                            // 0x5fba50
 
-int GetDefaultFontSlot();                  // 0x603850: g_app's default font slot, 0 without an application
+HMODULE CoolAppGetResourceModule(uint32_t slot);   // 0x6037f0: 0 without an application
+void CoolAppRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot);  // 0x603810
+void CoolAppUnloadResourceSlot(uint32_t slot);   // 0x603830
+int GetDefaultFontSlot();                  // 0x603850: g_app default font slot, 0 without an application
 
 extern CoolApp* g_app;                  // 0x6be3b8
 extern char g_classNameBuffer[0x100];   // 0x6be3c0 scratch for GetClassNameA
