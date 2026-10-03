@@ -1,7 +1,5 @@
 // DirectSound device / primary buffer setup.
-#include <windows.h>
-#include <mmreg.h>
-#include <dsound.h>
+#include "platform/win32.h"
 
 #include <cstdint>
 

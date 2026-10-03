@@ -35,8 +35,9 @@ Never kill processes by name pattern (it kills your own shell); use the scripts'
 3. **Write it** in `src/game/<module>/`. The code must be ordinary portable-ish C++:
    - Same behaviour as the original, including quirks (truncation to 16 bits, unchecked indices, odd
      return values). Mark original bugs with `// BUG(original): ...`, do not fix them in game code.
-   - Classes mirror the original memory layout exactly: `static_assert(sizeof(X) == 0x..)`, and
-     `offsetof` asserts for fields other code depends on. Unknown fields: `uint8_t m_unk10[0x20]; // +0x10`.
+   - Classes mirror the original memory layout exactly: `REB_ASSERT_SIZE(X, 0x..)` and
+     `REB_ASSERT_OFFSET(X, m_field, 0x..)` from `core/layout.h` (enforced only on 32-bit builds — never
+     write code that relies on layout beyond what the original did). Unknown fields: `uint8_t m_unk10[0x20]; // +0x10`.
      Comment field offsets (`// +0x08`).
    - Declare every virtual method in vtable order, including ones you don't reconstruct (they still need
      `symbols.csv` rows so the vtable resolves; placeholder names like `Virtual05` are fine).
@@ -44,6 +45,10 @@ Never kill processes by name pattern (it kills your own shell); use the scripts'
      declaration with a `symbols.csv` row). Calling conventions follow MSVC defaults: free functions
      `__cdecl`, members `__thiscall`, Win32 callbacks `__stdcall`.
    - Globals: `extern` declarations only (they live in the original image during the hybrid phase).
+   - Win32/DirectX: include `platform/win32.h` only (never `<windows.h>` directly) and call the APIs by
+     their real names, as the original does. Use pointer-sized types where Win32 does (`LONG_PTR`,
+     `WPARAM`/`LPARAM`, `GetWindowLongPtr`/`SetWindowLongPtr`, `DWORD_PTR`) even though the original is
+     32-bit — the port is 64-bit (see docs/platform_layer.md).
    - No STL, no exceptions, no RTTI, no `dynamic_cast`. `operator new` returns NULL on failure, as in the
      original — keep the original's null checks. Use the CRT the original uses (`malloc`, `sprintf`,
      `strcpy`...); they resolve to the game's own CRT.
