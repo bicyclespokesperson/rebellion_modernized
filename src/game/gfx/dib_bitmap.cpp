@@ -112,7 +112,7 @@ DibBitmap::~DibBitmap() {
     if (m_palette) DeleteObject(m_palette);
 }
 
-bool DibBitmap::IsLoaded() const { return m_info != nullptr; }
+int DibBitmap::IsLoaded() const { return m_info != nullptr; }
 
 int DibBitmap::Width() const { return m_info ? m_info->biWidth : 0; }
 
@@ -211,7 +211,7 @@ bool DibBitmap::LoadResourceByName(const char* name) {
     return true;
 }
 
-bool DibBitmap::LoadBmpFile(const char* path) {
+int DibBitmap::LoadBmpFile(const char* path) {
     if (m_info) {
         operator delete(m_info);
         m_info = nullptr;

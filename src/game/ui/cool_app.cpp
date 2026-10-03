@@ -62,3 +62,23 @@ HMODULE __stdcall CoolRegisterResourceDll(const char* basePath, const char* file
 }
 
 void __stdcall CoolUnloadResourceSlot(uint32_t slot) { g_resourceDlls.UnloadSlot(slot); }
+
+HMODULE CoolAppGetResourceModule(uint32_t slot) {
+    HMODULE module = nullptr;
+    if (g_app) module = CoolGetResourceModule(slot);
+    return module;
+}
+
+void CoolAppRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot) {
+    if (g_app) CoolRegisterResourceDll(basePath, fileName, slot);
+}
+
+void CoolAppUnloadResourceSlot(uint32_t slot) {
+    if (g_app) CoolUnloadResourceSlot(slot);
+}
+
+int GetDefaultFontSlot() {
+    int slot = 0;
+    if (g_app) slot = g_app->m_defaultFontSlot;
+    return slot;
+}

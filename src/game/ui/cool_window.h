@@ -122,7 +122,7 @@ public:
     void RemoveTool(CoolWindow* tool);                                        // 0x600d30
     void RemoveRectTool(UINT toolId);                                         // 0x600db0
 
-    bool DestroyChildById(uint32_t childId);    // 0x600f90: removes the child from m_children and deletes it
+    int DestroyChildById(uint32_t childId);    // 0x600f90: removes the child from m_children and deletes it
 
     // Popup mode: while a popup is open a mouse hook swallows clicks on windows that are not part of it.
     bool BeginPopup();                          // 0x6010e0
@@ -165,9 +165,9 @@ public:
 LRESULT CALLBACK CoolWindowProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);  // 0x600310
 
 // Window objects that currently exist; the dispatcher ignores messages for objects that are gone.
-bool RegisterWindowObject(CoolWindow* window);        // 0x601420
-bool IsWindowObjectRegistered(CoolWindow* window);    // 0x6014b0
-bool UnregisterWindowObject(CoolWindow* window);      // 0x6014d0
+int RegisterWindowObject(CoolWindow* window);        // 0x601420
+int IsWindowObjectRegistered(CoolWindow* window);    // 0x6014b0
+int UnregisterWindowObject(CoolWindow* window);      // 0x6014d0
 // The CoolWindow behind `hwnd`, or null.
 CoolWindow* GetCoolWindow(HWND hwnd);                 // 0x600f60
 
@@ -179,7 +179,7 @@ HWND CurrentPopupHwnd();                                                   // 0x
 bool DismissPopup();                                                       // 0x601340
 PopupEntry* __stdcall FindPopupEntry(HWND hwnd);                           // 0x6012f0
 int ReleaseAllCaptures();                                                  // 0x6010a0
-void __stdcall SetCaptureWindow(HWND hwnd);                                // 0x601080
+HWND __stdcall SetCaptureWindow(HWND hwnd);                                // 0x601080 // returns the previous capture window
 
 // Drawing helpers.
 void LoadResourceString(UINT id, LPSTR buffer, int size);                  // 0x601060 (LoadStringA on g_stringModule)

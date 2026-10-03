@@ -53,7 +53,7 @@ int ChildIterator::Count() {
     return count;
 }
 
-bool ChildIterator::HasCurrent() {
+int ChildIterator::HasCurrent() {
     Begin();
     return m_current != nullptr;
 }

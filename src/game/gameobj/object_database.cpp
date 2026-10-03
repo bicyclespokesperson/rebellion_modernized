@@ -376,7 +376,7 @@ GameObjNotifier* FindParentFor(GameObjNotifier* object, int view) {
 
 }  // namespace
 
-bool AttachMasterObject(GameObjNotifier* object) {
+int AttachMasterObject(GameObjNotifier* object) {
     const bool valid = object != nullptr;
     if (!valid) return false;
     object->ApplyDefaultId();
@@ -389,7 +389,7 @@ bool AttachMasterObject(GameObjNotifier* object) {
     return valid;
 }
 
-bool AttachSideObject(GameObjNotifier* object, GameObjNotifier* master, int view) {
+int AttachSideObject(GameObjNotifier* object, GameObjNotifier* master, int view) {
     const bool valid = object != nullptr;
     if (valid) {
         object->SetId(master->m_id);
