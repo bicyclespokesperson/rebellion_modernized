@@ -12,6 +12,11 @@ constexpr char kBitBltMode = '@';
 constexpr int kPressedState = 1;
 constexpr int kSelectedState = 4;
 
+// The id comes back zero-extended in EAX and is passed on as a dword.
+uint32_t PressedResourceId(CoolStrobeButton* tab) {
+    return static_cast<uint16_t>(tab->GetStateResourceId(kPressedState));
+}
+
 WPARAM TabCommand(const CoolStrobeButton* tab, uint32_t controlId) {
     return static_cast<WPARAM>(tab->m_childId << 16 | (controlId & 0xffff));
 }
@@ -38,9 +43,9 @@ CoolStrobeButton* CoolTabControl::AddTab(CoolStrobeButton* tab, int select, int 
     HWND hwnd = m_hwnd;
     // The tab's m_parent is left as it was.
     if (tab->m_parent->m_hwnd != hwnd) SetParent(tab->m_hwnd, hwnd);
-    tab->SetStateFlags(kStrobeTab);
+    tab->SetStateFlags(kButtonToggle);
     if (!tab->GetStateBitmap(kSelectedState))
-        tab->LoadStateBitmap(kSelectedState, tab->GetStateResourceId(kPressedState));
+        tab->LoadStateBitmap(kSelectedState, PressedResourceId(tab));
     if (hwnd) tab->Show(SW_SHOW);
     m_children.Insert(tab);
     if (select || !m_selected) SelectTab(tab->m_childId, notify);
@@ -50,15 +55,15 @@ CoolStrobeButton* CoolTabControl::AddTab(CoolStrobeButton* tab, int select, int 
 void CoolTabControl::ReloadSelectedBitmaps() {
     for (AvlNode* node = m_children.First(); node; node = node->m_successor) {
         CoolStrobeButton* tab = static_cast<CoolStrobeButton*>(node);
-        tab->LoadStateBitmap(kSelectedState, tab->GetStateResourceId(kPressedState));
+        tab->LoadStateBitmap(kSelectedState, PressedResourceId(tab));
     }
 }
 
 void CoolTabControl::SelectTab(uint32_t tabId, int notify) {
     CoolStrobeButton* tab = static_cast<CoolStrobeButton*>(m_children.FindById(tabId));
     if (!tab) return;
-    if (m_selected) m_selected->ClearStateFlags(kStrobeSelected);
-    if (!tab->HasStateFlags(kStrobeSelected)) tab->SetStateFlags(kStrobeSelected);
+    if (m_selected) m_selected->ClearStateFlags(kButtonChecked);
+    if (!tab->HasStateFlags(kButtonChecked)) tab->SetStateFlags(kButtonChecked);
     m_selected = tab;
     if (notify) SendMessageA(m_parent->m_hwnd, WM_COMMAND, TabCommand(tab, m_childId), 0);
 }
@@ -81,14 +86,14 @@ LRESULT __stdcall CoolTabControl::WindowProc(UINT message, WPARAM wParam, LPARAM
         if (!tab) return 0;
         if (m_selected != tab) {
             // BUG(original): crashes if no tab is selected yet (AddTab always selects the first one).
-            if (m_selected->HasStateFlags(kStrobeSelected)) {
-                m_selected->ClearStateFlags(kStrobeSelected);
+            if (m_selected->HasStateFlags(kButtonChecked)) {
+                m_selected->ClearStateFlags(kButtonChecked);
                 UpdateWindow(m_selected->m_hwnd);
             }
             m_selected = tab;
         }
-        if (!m_selected->HasStateFlags(kStrobeSelected)) {
-            m_selected->SetStateFlags(kStrobeSelected);
+        if (!m_selected->HasStateFlags(kButtonChecked)) {
+            m_selected->SetStateFlags(kButtonChecked);
             UpdateWindow(m_selected->m_hwnd);
         }
         PostMessageA(parentHwnd, WM_COMMAND, TabCommand(m_selected, m_childId), 0);
@@ -104,9 +109,9 @@ void CoolTabControl::SetBackground(DibBitmap* source, int x, int y) {
     source->Blit(m_background, 0, 0, x, y, 0, 0);
     for (AvlNode* node = m_children.First(); node; node = node->m_successor) {
         CoolStrobeButton* tab = static_cast<CoolStrobeButton*>(node);
-        tab->m_backgroundX = 0;
-        tab->m_parentBackground = m_background;
-        tab->m_backgroundY = 0;
+        tab->m_backdropX = 0;
+        tab->m_backdrop = m_background;
+        tab->m_backdropY = 0;
     }
     InvalidateRect(m_hwnd, nullptr, FALSE);
 }
