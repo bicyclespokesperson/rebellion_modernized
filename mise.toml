@@ -1,0 +1,5 @@
+[tools]
+java = "temurin-21"
+
+[env]
+GHIDRA_INSTALL_DIR = "{{config_root}}/tools/ghidra"

@@ -1,0 +1,8 @@
+# Skip intro videos and capture the main menu
+12 key Escape
+16 key Escape
+20 key Escape
+26 shot menu_a
+30 click 320 240
+34 shot menu_b
+36 end

@@ -1,0 +1,14 @@
+# Copyrighted game data never goes in git
+orig_game_files/
+*.EXE
+*.DLL
+# Large / regenerable local state
+ghidra_proj/
+tools/ghidra/
+tools/.venv/
+refs/
+build/
+logs/
+work/
+extracted/
+__pycache__/
