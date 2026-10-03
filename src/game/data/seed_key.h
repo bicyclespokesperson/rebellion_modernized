@@ -22,8 +22,8 @@ public:
     int Write(ostream* out) const;
     int AddToChecksum(Crc32* crc) const;
     // Thin forwarding wrappers the original instantiates for the table entry classes.
-    void ReadValue(istream* in);
-    void WriteValue(ostream* out);
+    int ReadValue(istream* in);
+    int WriteValue(ostream* out);
 
     uint32_t m_key;     // +0x00
     uint32_t m_second;  // +0x04
