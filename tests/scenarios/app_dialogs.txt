@@ -1,0 +1,71 @@
+# Load "RebelsFastStart", open the Saved Games screen and drive the application's small modal dialogs
+# (AppDialog "Load without saving?" / "Save anyway?", AppNoticeDialog "Selected Game Saved Successfully").
+# Creates/overwrites work/game/SaveGame/SAVEGAME.005. Runtime ~155 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot galaxy
+44 move 12 370
+45 move 15 372
+46 click 15 372
+50 shot options
+# Load icon of a row while a game is running: Yes/No question "Load without saving?"; Escape rejects it.
+52 move 300 170
+53 move 305 173
+54 click 305 173
+57 shot question_load
+58 key Escape
+61 shot question_escape
+# Same question, answered with the No button.
+62 move 305 173
+63 click 305 173
+66 move 365 296
+67 move 370 300
+68 click 370 300
+71 shot question_no
+# Save icon of an occupied row: "Save anyway?"; Escape rejects it.
+72 move 48 170
+73 move 50 173
+74 click 50 173
+77 shot question_save
+78 key Escape
+81 shot question_save_escape
+# Save into the first empty row: notice dialog; Return acknowledges it.
+82 move 48 256
+83 move 50 258
+84 click 50 258
+87 shot notice
+88 key Return
+91 shot notice_return
+# Second empty row: notice dialog acknowledged with its button.
+92 move 48 298
+93 move 50 300
+94 click 50 300
+97 shot notice2
+98 move 305 303
+99 move 310 306
+100 click 310 306
+103 shot notice2_button
+# Load question confirmed with Return (loads the game), then again with the Yes button.
+105 move 300 170
+106 move 305 173
+107 click 305 173
+110 key Return
+122 shot loaded_return
+124 move 12 370
+125 move 15 372
+126 click 15 372
+130 move 300 170
+131 move 305 173
+132 click 305 173
+135 move 275 296
+136 move 280 300
+137 click 280 300
+148 shot loaded_yes
+150 end
