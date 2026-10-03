@@ -16,6 +16,11 @@ enum CoolButtonState : uint32_t {
 
 class CoolStrobeButton : public CoolWindow {
 public:
+    // Used by CoolSelectionBox.
+    CoolStrobeButton(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t childId,
+                     uint32_t normalBitmapId, uint32_t pressedBitmapId, DibBitmap* backdrop, int repeatRate,
+                     int pixelHit);  // 0x602150
+
     void SetStateFlags(uint32_t bits);                     // 0x6030c0
     void ClearStateFlags(uint32_t bits);                   // 0x6030f0
     bool HasStateFlags(uint32_t bits);                     // 0x603120

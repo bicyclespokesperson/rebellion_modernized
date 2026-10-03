@@ -1,4 +1,10 @@
 #pragma once
+#include <cstdint>
+
+#include "platform/win32.h"
+
+class CoolWindow;
+class DibBitmap;
 
 // Stand-in for the drag-list module's ui/cool_scrollable.h (that version is canonical and replaces this file at
 // merge): the interface a scrolled control gives its scroll bars (vtable 0x66e118). CoolScrollBar only calls
@@ -17,4 +23,9 @@ public:
     virtual int LineLeft();                    // slot 9
     virtual int ScrollHorizontal(int delta);   // slot 10
     virtual void OnScrollEnd();                // slot 11: the mouse button was released over a bar
+
+    // Used by CoolSelectionDropDown.
+    void CreateVerticalScrollBar(HINSTANCE instance, CoolWindow* parent, uint16_t resourceSlot, uint16_t resourceId,
+                                 int total, int first, int last, uint32_t unknownEc,
+                                 DibBitmap* background);  // 0x60a490
 };
