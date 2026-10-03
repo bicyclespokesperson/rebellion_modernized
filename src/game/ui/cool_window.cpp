@@ -664,7 +664,7 @@ int ReleaseAllCaptures() {
     return hadCaptures;
 }
 
-void __stdcall SetCaptureWindow(HWND hwnd) { SetCapture(hwnd); }
+HWND __stdcall SetCaptureWindow(HWND hwnd) { return SetCapture(hwnd); }
 
 // ---- Drawing helpers and palette -----------------------------------------------------------------------------------
 
