@@ -5,14 +5,16 @@
 #include "core/layout.h"
 #include "core/stream_io.h"
 
+class String;
+
 // Secondary base of GameObj and the SD record classes (at +0x30 / +0x1c in them). Its single pure virtual
-// writes the object's localized name, with a prefix chosen by `kind` (1, 2, 4, 0x20, 0x21 ...); there is no
-// virtual destructor.
+// appends the object's localized name to a String, with a prefix chosen by `kind` (1, 2, 4, 0x20, 0x21 ...);
+// there is no virtual destructor.
 class ObjectBase {
 public:
     ObjectBase();
     ~ObjectBase();
-    virtual void WriteName(ostream* out, int kind) = 0;
+    virtual void WriteName(String* out, int kind) = 0;
 };
 
 // A 32-bit value that saves and loads itself.
