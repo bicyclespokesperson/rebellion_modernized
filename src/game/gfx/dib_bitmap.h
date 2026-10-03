@@ -34,7 +34,7 @@ public:
     DibBitmap(LONG width, LONG height, DibBitmap* format, HDC dc);  // 0x5fbea0: DIB section in `format`'s layout
     ~DibBitmap();
 
-    bool IsLoaded() const;
+    int IsLoaded() const;
     int Width() const;
     int Height() const;  // negative for top-down bitmaps
     uint16_t BitCount() const;
@@ -51,7 +51,7 @@ public:
     void CacheTransparentColor();
     bool LoadResourceById(uint32_t resourceId);
     bool LoadResourceByName(const char* name);
-    bool LoadBmpFile(const char* path);
+    int LoadBmpFile(const char* path);
     HPALETTE CreatePaletteFromColorTable();
 
     // Copies to a screen/memory DC. mode '@' selects BitBlt (rop in `rop`), 0x10 does nothing, others use

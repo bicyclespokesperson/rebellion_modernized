@@ -71,7 +71,7 @@ void ObjectKeyNode::Write(ostream* out) { m_key.Write(out); }
 
 int ObjectKeyNode::Checksum(Crc32* crc) { return m_key.Checksum(crc); }
 
-bool ObjectKeyNode::HasSameKey(const ObjectKeyNode& other) const { return m_key.m_value == other.m_key.m_value; }
+int ObjectKeyNode::HasSameKey(const ObjectKeyNode& other) const { return m_key.m_value == other.m_key.m_value; }
 
 // ---- ObjectKeyValueNode ------------------------------------------------------------------------------------
 

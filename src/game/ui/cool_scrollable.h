@@ -1,17 +1,23 @@
 #pragma once
 #include <cstdint>
 
+#include "core/layout.h"
 #include "platform/win32.h"
+#include "ui/cool_window.h"
+#include "ui/cool_drag_list_decl.h"
 
-class CoolWindow;
 class DibBitmap;
 
-// Stand-in for the drag-list module's ui/cool_scrollable.h (that version is canonical and replaces this file at
-// merge): the interface a scrolled control gives its scroll bars (vtable 0x66e118). CoolScrollBar only calls
-// OnScrollEnd; the other slots are declared so the vtable index matches.
+// ---- CoolScrollable ------------------------------------------------------------------------------------------
+
+// Secondary base of windows that own scroll bars (CoolDragList at +0x94, the game window 0x41ecf0). The bars call
+// the virtual scroll requests back; each returns non-zero (LineUp/LineDown: the distance) when it moved.
 class CoolScrollable {
 public:
-    virtual ~CoolScrollable();                 // slot 0, 0x60a440 (scalar deleting destructor)
+    CoolScrollable();           // 0x60a420
+    virtual ~CoolScrollable();  // 0x60a460 (scalar deleting destructor 0x60a440): deletes the bars
+
+    // The base implementations do nothing and return 0 (linker-folded with other such functions).
     virtual int PageUp();                      // slot 1
     virtual int PageDown();                    // slot 2
     virtual int LineUp();                      // slot 3
@@ -24,8 +30,29 @@ public:
     virtual int ScrollHorizontal(int delta);   // slot 10
     virtual void OnScrollEnd();                // slot 11: the mouse button was released over a bar
 
-    // Used by CoolSelectionDropDown.
-    void CreateVerticalScrollBar(HINSTANCE instance, CoolWindow* parent, uint16_t resourceSlot, uint16_t resourceId,
-                                 int total, int first, int last, uint32_t unknownEc,
-                                 DibBitmap* background);  // 0x60a490
+    // Create a bar (child of `parent`, owned by this object), then refresh both bars. Returns the refresh result.
+    int CreateVerticalScrollBar(HINSTANCE instance, CoolWindow* parent, uint16_t resourceSlot, uint16_t resourceId,
+                                int total, int first, int last, uint32_t unknownEc, DibBitmap* background);  // 0x60a490
+    int CreateHorizontalScrollBar(HINSTANCE instance, CoolWindow* parent, uint16_t resourceSlot,
+                                  uint16_t resourceId, int total, int first, int last, uint32_t unknownEc,
+                                  DibBitmap* background);  // 0x60a560
+
+    bool ShowVerticalScrollBar();                              // 0x60a630
+    bool HideVerticalScrollBar();                              // 0x60a650
+    int SetVerticalRange(int total);                           // 0x60a670
+    int SetVerticalVisibleRange(int start, int end);           // 0x60a690
+    int ScrollVerticalBar(int delta);                          // 0x60a6c0
+    int GetVerticalVisibleRange(int* start, int* end);         // 0x60a6f0: 0 unless both are non-zero
+    int SetHorizontalRange(int total);                         // 0x60a730
+    int GetHorizontalVisibleRange(int* start, int* end);       // 0x60a750
+
+    CoolScrollBar* m_verticalBar;    // +0x04 owned
+    CoolScrollBar* m_horizontalBar;  // +0x08 owned
 };
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winvalid-offsetof"
+REB_ASSERT_SIZE(CoolScrollable, 0x0c);
+REB_ASSERT_OFFSET(CoolScrollable, m_verticalBar, 0x04);
+REB_ASSERT_OFFSET(CoolScrollable, m_horizontalBar, 0x08);
+#pragma clang diagnostic pop

@@ -72,7 +72,7 @@ public:
     virtual void Write(ostream* out);
     virtual int Checksum(Crc32* crc);
 
-    bool HasSameKey(const ObjectKeyNode& other) const;
+    int HasSameKey(const ObjectKeyNode& other) const;
     ObjectKey* GetKey(ObjectKey* out) const {
         out->m_value = m_key.m_value;
         return out;

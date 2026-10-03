@@ -5,6 +5,8 @@
 #include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/cool_app.h"
+#include "ui/cool_button.h"
+#include "ui/cool_list_item.h"
 
 namespace {
 
@@ -16,16 +18,12 @@ constexpr COLORREF kWhite = 0xffffff;
 constexpr uint32_t kButtonId = 1000;
 constexpr uint32_t kDropDownId = 0x3e9;
 constexpr WPARAM kOpenCommand = 0x3ea;
-constexpr WPARAM kSelectionChanged = 0x29b;
+constexpr WPARAM kSelectionChanged = kDragListSelectionChanged;
 constexpr uint32_t kListId = 0xbba;
 constexpr UINT kCaptureLost = 0x405;
 constexpr int kDropDownFrame = 4;
 constexpr int kListInset = 2;
 constexpr int kDropDownListOptions = kDragListSingleSelect | kDragListNoDrag | kDragListHoverTracking;
-
-// The original reaches First() only through the vtable (its body is folded into CoolListItem::Next and has no
-// symbol of its own); laundering keeps clang from devirtualizing the call on the embedded list.
-CoolListItem* FirstItemOf(CoolListItemList* items) { return __builtin_launder(items)->First(); }
 
 const char* ItemText(CoolListItem* item) { return item->m_text.m_text; }
 
@@ -103,7 +101,7 @@ CoolSelectionBox::CoolSelectionBox(HINSTANCE instance, CoolWindow* parent, int x
     m_sortMode = sortMode;
     if (items) {
         CopyItems(&m_items, items);
-        m_current = FirstItemOf(&m_items);
+        m_current = m_items.First();
     }
 }
 
@@ -125,7 +123,7 @@ CoolListItem* CoolSelectionBox::GetSelection() { return m_current; }
 
 CoolListItem* CoolSelectionBox::Select(uint32_t id) {
     if (m_current && id != 0 && m_current->m_id != id) {
-        m_current = FirstItemOf(&m_items);
+        m_current = m_items.First();
         while (m_current && m_current->m_id != id) m_current = m_current->Next();
         InvalidateRect(m_hwnd, nullptr, FALSE);
         if (m_parent) PostMessageA(m_parent->m_hwnd, WM_COMMAND, kSelectionChanged, 0);
@@ -138,7 +136,7 @@ void CoolSelectionBox::SetItems(CoolListItemList* items) {
     m_items.Clear();
     if (m_dropDown) CloseDropDown();
     CopyItems(&m_items, items);
-    m_current = FirstItemOf(&m_items);
+    m_current = m_items.First();
 }
 
 void CoolSelectionBox::OpenDropDown() {
@@ -188,7 +186,7 @@ int CoolSelectionBox::HandleKeyUp(WPARAM key, LPARAM) {
             if (m_current && m_current->Previous())
                 m_current = m_current->Previous();
             else
-                m_current = FirstItemOf(&m_items);
+                m_current = m_items.First();
             break;
         case VK_DOWN:
             if (!m_dropDown) {

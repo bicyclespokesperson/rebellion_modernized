@@ -104,7 +104,7 @@ public:
     int WriteTree(ostream* out);
     int ChecksumTree(Crc32* crc);
     void AssignRecord(DatRecord* record);
-    bool AddChild(GameObjNotifier* child, GameObjNotifier** previousParent);
+    int AddChild(GameObjNotifier* child, GameObjNotifier** previousParent);
     static int __stdcall RemoveFromParent(GameObjNotifier* child);
 
     ChildList* m_children;  // +0x28

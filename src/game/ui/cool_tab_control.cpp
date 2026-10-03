@@ -3,7 +3,7 @@
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
-#include "ui/cool_button_decl.h"
+#include "ui/cool_button.h"
 
 namespace {
 

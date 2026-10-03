@@ -4,8 +4,8 @@
 #include "core/containers.h"
 #include "core/layout.h"
 #include "platform/win32.h"
+#include "ui/cool_drag_list.h"
 #include "ui/cool_window.h"
-#include "ui/cool_selection_box_decl.h"
 #include "ui/game_window_object.h"
 
 class CoolSelectionDropDown;
