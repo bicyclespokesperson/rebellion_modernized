@@ -21,6 +21,14 @@ extern const char g_vowelCharacters[];
 
 namespace {
 
+// operator new returns NULL on failure here, but the compiler assumes the standard non-null contract and
+// would delete the null checks; the empty asm hides the value from it.
+char* allocateChars(size_t size) {
+    void* memory = operator new(size);
+    asm volatile("" : "+r"(memory));
+    return static_cast<char*>(memory);
+}
+
 int terminatorBytes() { return static_cast<uint16_t>(FUN_00479ac0()); }
 
 int length16(const char* text) { return static_cast<uint16_t>(SafeStrlen(text)); }
@@ -53,7 +61,7 @@ int DuplicateString(const char* text, char** out) {
     // The original truncates both terms to 16 bits.
     const uint16_t length = static_cast<uint16_t>(SafeStrlen(text));
     const uint16_t terminator = static_cast<uint16_t>(FUN_00479ac0());
-    char* copy = static_cast<char*>(operator new(length + terminator));
+    char* copy = allocateChars(length + terminator);
     *out = copy;
     if (!copy) return 0;
     std::memcpy(copy, text, std::strlen(text) + 1);
@@ -63,7 +71,7 @@ int DuplicateString(const char* text, char** out) {
 int ConcatenateStrings(const char* first, const char* second, char** out) {
     *out = nullptr;
     if (!first && !second) return 1;
-    char* result = static_cast<char*>(operator new(length16(first) + length16(second) + terminatorBytes()));
+    char* result = allocateChars(length16(first) + length16(second) + terminatorBytes());
     *out = result;
     if (!result) return 0;
     *result = '\0';
@@ -85,9 +93,10 @@ int LoadStringResource(int resourceId, char** out) {
 
 int ReadLengthPrefixedString(istream* in, char** out) {
     *out = nullptr;
-    uint16_t length;
+    // The original reads into the low half of its own stream-pointer argument, so a failed read leaves that as the length.
+    uint16_t length = static_cast<uint16_t>(reinterpret_cast<uintptr_t>(in));
     FUN_005f4c40(in, &length);
-    char* buffer = static_cast<char*>(operator new(terminatorBytes() + length));
+    char* buffer = allocateChars(terminatorBytes() + length);
     if (!buffer) return 0;
     istream_read(in, buffer, length);
     buffer[length] = '\0';
@@ -175,7 +184,7 @@ String& String::AppendUnsigned(unsigned long value) {
 
 String& String::AppendChar(const char& c) {
     // BUG(original): the allocation is not checked, and m_valid is not updated.
-    char* grown = static_cast<char*>(operator new((GetBufferSize() & 0xffff) + 4));
+    char* grown = allocateChars((GetBufferSize() & 0xffff) + 4);
     *grown = '\0';
     if (m_text) {
         std::memcpy(grown, m_text, std::strlen(m_text) + 1);
@@ -188,7 +197,7 @@ String& String::AppendChar(const char& c) {
 
 int String::AppendSpaces(int count) {
     // BUG(original): the allocation is not checked.
-    char* spaces = static_cast<char*>(operator new(terminatorBytes() + 1 * count));
+    char* spaces = allocateChars(terminatorBytes() + 1 * count);
     *spaces = '\0';
     for (; count > 0; --count) appendRaw(spaces, " ");
     char* combined;
@@ -203,7 +212,7 @@ void String::Insert(const String& other, int position) {
     StringCursor tail(*this);
     if (position > Length()) position = Length();
     if (other.Length() == 0) return;
-    char* result = static_cast<char*>(operator new(length16(other.m_text) + length16(m_text) + terminatorBytes()));
+    char* result = allocateChars(length16(other.m_text) + length16(m_text) + terminatorBytes());
     if (!result) return;
     *result = '\0';
     if (m_text) std::strncat(result, m_text, position);
@@ -219,7 +228,7 @@ void String::Insert(const String& other, int position) {
 void String::InsertChar(const char& c, int position) {
     StringCursor tail(*this);
     if (position > Length()) position = Length();
-    char* result = static_cast<char*>(operator new(length16(m_text) + terminatorBytes() + 2));
+    char* result = allocateChars(length16(m_text) + terminatorBytes() + 2);
     if (!result) return;
     *result = '\0';
     if (m_text) std::strncat(result, m_text, position);
@@ -237,7 +246,7 @@ void String::RemoveRange(int start, int end) {
     StringCursor tail(*this);
     if (start < 0 || start >= length || end <= start || end > length) return;
     // BUG(original): the allocation is not checked.
-    char* result = static_cast<char*>(operator new(length16(m_text) + terminatorBytes()));
+    char* result = allocateChars(length16(m_text) + terminatorBytes());
     *result = '\0';
     if (start > 0) std::strncat(result, m_text, start);
     advance(tail, end);

@@ -1,0 +1,49 @@
+# Load the "RebelsFastStart" save from the main menu, open the in-game controls dialog, edit a new save name (cursor keys, delete, paste) and save it
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 250
+28 click 425 250
+36 move 305 174
+38 click 305 174
+75 move 15 373
+77 click 15 373
+84 move 200 258
+85 click 200 258
+87 key a
+88 key b
+89 key c
+90 key d
+91 key Left
+92 key Left
+93 key x
+94 key BackSpace
+95 key BackSpace
+96 key Delete
+97 key Home
+98 key y
+99 key End
+100 key z
+101 key Right
+102 key Left
+103 key Up
+104 key Down
+105 key Insert
+106 key space
+107 key ctrl+v
+108 key shift+Left
+109 key ctrl+Left
+110 key Tab
+111 key e
+112 key Left
+113 key Right
+114 key Right
+115 key Delete
+116 key BackSpace
+118 shot gc_a
+120 move 50 258
+121 click 50 258
+126 shot gc_b
+130 key Return
+134 shot gc_c
+140 end

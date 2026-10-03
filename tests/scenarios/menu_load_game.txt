@@ -1,0 +1,31 @@
+# Skip intros, open "Load a Saved Game", edit a save name, then load the "RebelsFastStart" save
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 250
+28 click 425 250
+36 move 200 130
+37 click 200 130
+38 click 200 130
+40 key a
+41 key b
+42 key c
+43 key Left
+44 key Left
+45 key x
+46 key BackSpace
+47 key BackSpace
+48 key Delete
+49 key Home
+50 key y
+51 key End
+52 key z
+54 shot ld_a
+56 key Return
+58 shot ld_b
+62 move 305 174
+64 click 305 174
+80 shot ld_c
+100 shot ld_d
+120 shot ld_e
+130 end

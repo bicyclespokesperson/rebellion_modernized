@@ -2,6 +2,8 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "core/layout.h"
+
 class istream;
 class ostream;
 class StringCursor;
@@ -58,9 +60,9 @@ public:
 };
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
-static_assert(sizeof(String) == 0x0c);
-static_assert(offsetof(String, m_text) == 0x04);
-static_assert(offsetof(String, m_valid) == 0x08);
+REB_ASSERT_SIZE(String, 0x0c);
+REB_ASSERT_OFFSET(String, m_text, 0x04);
+REB_ASSERT_OFFSET(String, m_valid, 0x08);
 #pragma clang diagnostic pop
 
 // Read position inside a String's text (a char* plus the start, to allow rewinding). Does not own the text.
@@ -85,9 +87,9 @@ public:
 };
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
-static_assert(sizeof(StringCursor) == 0x0c);
-static_assert(offsetof(StringCursor, m_current) == 0x04);
-static_assert(offsetof(StringCursor, m_begin) == 0x08);
+REB_ASSERT_SIZE(StringCursor, 0x0c);
+REB_ASSERT_OFFSET(StringCursor, m_current, 0x04);
+REB_ASSERT_OFFSET(StringCursor, m_begin, 0x08);
 #pragma clang diagnostic pop
 
 // Length of `text`, or 0 for null.
