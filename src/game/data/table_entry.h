@@ -8,12 +8,11 @@
 class Crc32;
 
 // Base of the entries of the parameter / lookup tables (GNPRTB, the *MSTB tables, the seed tables). Entries are
-// created by class name through the table-entry class registry (see param_table_entries.h and
-// RegisterTableEntryClasses) when a Table is loaded, then Read() from the table file.
+// created by class name through the table-entry class registry (see RegisterTableEntryClass) when a Table is
+// loaded, then Read() from the table file. Each entry is an IdNode keyed by the id stored in the file.
 //
-// Owned by the SD record classes module (0x58e570-0x5923a0); declared here with the members the entry classes in
-// this module need. Read/Write/Checksum below are pure virtual with bodies (0x58f970, 0x58f9b0, 0x58f9f0) that
-// the concrete entries call first; ParseHeader (0x58fa30) is the text-format counterpart.
+// Write/Read/Checksum below are pure virtual with bodies that the concrete entries call first; ParseHeader is the
+// text-format counterpart of the common part.
 class TableEntry : public IdNode {
 public:
     TableEntry();
@@ -23,12 +22,21 @@ public:
     virtual int ParseText(istream* in) = 0;
     virtual int Checksum(Crc32* crc) = 0;
 
-    // Reads the entry's leading text fields (id and +0x20); false if the line is empty or the stream failed.
+    // Reads the next text field into +0x20; false if the stream has failed, the field is empty or reading it
+    // failed. (The entry's id is not part of the text form.)
     bool ParseHeader(istream* in, int* endOfLine);
 
     int m_field1c;  // +0x1c, 1 after construction
     int m_field20;  // +0x20
 };
+
+// The registry of entry classes by name (at most 9; names are truncated to 39 characters). Registering a name that
+// is already registered, or beyond the limit, does nothing. Both lookups compare names case-sensitively.
+// CreateTableEntryByClassName returns a new entry of the class, or null if the class is unknown or its factory
+// failed.
+void* CreateTableEntryByClassName(const char* className);
+int RegisterTableEntryClass(const char* className, void* (*factory)());
+int IsTableEntryClassRegistered(const char* className);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

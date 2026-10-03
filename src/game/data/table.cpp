@@ -8,10 +8,7 @@
 #include "core/vptr_store.h"
 #include "data/dat_record.h"
 
-// Table-entry class registry (0x58f800 creates an entry from a class name, 0x58f900 asks whether a class is
-// registered) and the directory callback that locates the game data on the CD (0x4fd320).
-void* CreateTableEntryByClassName(const char* className);
-int IsTableEntryClassRegistered(const char* className);
+// The directory callback that locates the game data on the CD (0x4fd320).
 const char* GetGameDataDirectory();
 
 extern GDataTables* g_gdataTables;
@@ -171,7 +168,7 @@ int Table::ParseText(istream* in) {
     return ok;
 }
 
-int Table::Open(uint16_t firstId, uint16_t secondId, const char* directory) {
+int TableBase::Open(uint16_t firstId, uint16_t secondId, const char* directory) {
     ScopedIfstream file;
     ScopedStrstream prefixedName;
     ScopedStrstream plainName;
@@ -301,7 +298,4 @@ int RegisterTableClass(const char* className, void* (*factory)()) {
 
 void* CreateTable() { return NewOrNull<Table>(); }
 
-// Registered by its original address so the stored function pointer is the original's while hooked.
-void* FUN_005950e0();  // CreateTable
-
-void InitTableClassRegistration() { g_tableClassRegistered = RegisterTableClass("Table", FUN_005950e0); }
+void InitTableClassRegistration() { g_tableClassRegistered = RegisterTableClass("Table", CreateTable); }

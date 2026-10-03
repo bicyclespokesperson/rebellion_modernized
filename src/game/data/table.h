@@ -23,6 +23,9 @@ public:
     int ReadVersion(istream* in);
     int WriteVersion(ostream* out);
     int ChecksumVersion(Crc32* crc);
+    // Reads the table from the file `<resource string firstId><resource string secondId>`, trying it relative to
+    // the current directory first and then under `directory`. Returns 1 even if no file could be opened.
+    int Open(uint16_t firstId, uint16_t secondId, const char* directory);
 
     int m_version;  // +0x04
 };
@@ -40,9 +43,6 @@ public:
     virtual int ParseText(istream* in) override;
     virtual int Checksum(Crc32* crc);
 
-    // Reads the table from the file `<resource string firstId><resource string secondId>`, trying it relative to
-    // the current directory first and then under `directory`. Returns 1 even if no file could be opened.
-    int Open(uint16_t firstId, uint16_t secondId, const char* directory);
     void Add(TableEntry* entry);
     // The entry with the largest threshold (TableEntry::m_field20) not above `value`; the first entry if every
     // threshold is above it, the last entry if none is.
