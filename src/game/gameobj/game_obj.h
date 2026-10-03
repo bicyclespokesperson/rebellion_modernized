@@ -76,8 +76,8 @@ public:
     virtual int CanBeControlledBy(int arg) { return 1; }                          // 20: 1
     virtual int CheckSameControl(GameObj* other, StatusCode* out);  // 21: status {1,-1} if the control kinds agree else {1,0x24}
     virtual int CheckOrder(int a, int b, StatusCode* out);    // 22
-    virtual int CheckDestroyImpl(int a, StatusCode* out);           // 23
-    virtual int CheckDestroy(int a, StatusCode* out);           // 24: out = {1,-1}, then Virtual23
+    virtual int CheckRequestImpl(const ActivityRequest* request, StatusCode* out);           // 23
+    virtual int CheckRequest(const ActivityRequest* request, StatusCode* out);           // 24: out = {1,-1}, then Virtual23
     virtual int CheckRenameImpl(int a, StatusCode* out);           // 25
     virtual int CheckRename(int a, int b, StatusCode* out);    // 26
     virtual int CheckUnknownImpl(int a, StatusCode* out);           // 27
@@ -91,7 +91,7 @@ public:
     virtual int UpdateObservedByAlliance(NotifyContext* ctx);               // 35
     virtual int UpdateObservedByEmpire(NotifyContext* ctx);               // 36
     virtual int CreateViews(int controlKind, NotifyContext* ctx) = 0;  // body 0x4f9190           // 37
-    virtual int TryDestroy(int a, NotifyContext* ctx);        // 38
+    virtual int DestroyIfAllowed(const ActivityRequest* request, NotifyContext* ctx);        // 38
     virtual int TryRename(int a, int b, NotifyContext* ctx);  // 39
     virtual int Destroy(NotifyContext* ctx);               // 40
     virtual int Rename(String* name, NotifyContext* ctx);  // 41: SetName

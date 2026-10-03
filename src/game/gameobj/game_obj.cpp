@@ -186,14 +186,14 @@ int GameObj::CheckOrder(int a, int orderKind, StatusCode* out) {
     return 1;
 }
 
-int GameObj::CheckDestroyImpl(int a, StatusCode* out) {
+int GameObj::CheckRequestImpl(const ActivityRequest* request, StatusCode* out) {
     setStatus(out, kStatusNotSupported);
     return 1;
 }
 
-int GameObj::CheckDestroy(int a, StatusCode* out) {
+int GameObj::CheckRequest(const ActivityRequest* request, StatusCode* out) {
     setStatus(out, kStatusOk);
-    return CheckDestroyImpl(a, out);
+    return CheckRequestImpl(request, out);
 }
 
 int GameObj::CheckRenameImpl(int a, StatusCode* out) {

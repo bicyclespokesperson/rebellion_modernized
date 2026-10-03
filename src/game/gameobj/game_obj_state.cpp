@@ -279,9 +279,9 @@ int DeleteObjectViews(GameObj* object) {
 
 // ---- virtual defaults ---------------------------------------------------------------------------------------
 
-int GameObj::TryDestroy(int a, NotifyContext* ctx) {
+int GameObj::DestroyIfAllowed(const ActivityRequest* request, NotifyContext* ctx) {
     StatusCode status(1, -1);
-    int result = CheckDestroy(a, &status);
+    int result = CheckRequest(request, &status);
     if (result && status.m_second == static_cast<uint32_t>(-1)) result = Destroy(ctx);
     return result;
 }
