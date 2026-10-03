@@ -68,7 +68,7 @@ public:
     virtual void Write(ostream* out) override;
     virtual int Checksum(Crc32* crc) override;
 
-    bool AddPair(const ObjectKey* key, const ObjectKey* second);
+    int AddPair(const ObjectKey* key, const ObjectKey* second);
 };
 
 #pragma clang diagnostic push

@@ -221,7 +221,7 @@ ATOM CoolWindow::RegisterWindowClass(UINT classStyle) {
     return RegisterClassA(&windowClass);
 }
 
-bool CoolWindow::Create(int useExStyle) {
+int CoolWindow::Create(int useExStyle) {
     WNDCLASSA existingClass;
     if (!GetClassInfoA(m_instance, m_className, &existingClass)) RegisterWindowClass(kClassStyle);
     HWND parentWindow = m_parent ? m_parent->m_hwnd : nullptr;
@@ -578,7 +578,7 @@ LRESULT CALLBACK MouseHookProc(int code, WPARAM wParam, LPARAM lParam) {
     return 1;
 }
 
-bool CoolWindow::BeginPopup() {
+int CoolWindow::BeginPopup() {
     if (!g_popupStack.m_top) g_mouseHook = SetWindowsHookExA(WH_MOUSE, MouseHookProc, m_instance, GetCurrentThreadId());
     HwndNode* node = NewOrNull<HwndNode>(m_hwnd);
     // BUG(original): a failed allocation is dereferenced here.
@@ -601,7 +601,7 @@ PopupEntry* __stdcall FindPopupEntry(HWND hwnd) {
     return entry;
 }
 
-bool CoolWindow::EndPopup() {
+int CoolWindow::EndPopup() {
     PopupEntry* entry = FindPopupEntry(m_hwnd);
     if (!entry) return false;
     if (entry->m_node && entry->m_node->m_window) entry->m_node->m_window->m_popupMembers.RemoveAndDelete(m_hwnd);
@@ -627,7 +627,7 @@ HWND CurrentPopupHwnd() {
     return nullptr;
 }
 
-bool DismissPopup() {
+int DismissPopup() {
     HWND target = GetCapture();
     if (!target) {
         target = CurrentPopupHwnd();

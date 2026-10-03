@@ -123,7 +123,7 @@ int ChildList::Write(ostream* out) {
     return 1;
 }
 
-bool ChildList::RemoveChild(GameObjNotifier* child) {
+int ChildList::RemoveChild(GameObjNotifier* child) {
     AvlNode* found = Find(child->GetFamily(), child->m_id);
     if (found) AvlTree::Remove(found);
     return found != nullptr;
@@ -295,13 +295,13 @@ int CollectKeyDependencies(void* context, ObjectKeyValueSet* keys, ObjectKeyValu
 
 // ---- database and unresolved-key set lifetime --------------------------------------------------------------
 
-bool RegisterObject(GameObjNotifier* object) {
+int RegisterObject(GameObjNotifier* object) {
     const bool haveDatabase = g_objectDatabase != nullptr;
     if (haveDatabase) FUN_00585b70(g_objectDatabase, object);
     return haveDatabase;
 }
 
-bool UnregisterObject(GameObjNotifier* object) {
+int UnregisterObject(GameObjNotifier* object) {
     const bool haveDatabase = g_objectDatabase != nullptr;
     if (haveDatabase) FUN_00585c70(g_objectDatabase, object);
     return haveDatabase;
@@ -325,7 +325,7 @@ void CheckObjectDatabase() {
     if (g_objectDatabase) FUN_00585d90(g_objectDatabase);
 }
 
-bool NoteUnresolvedKeyOf(GameObjNotifier* object) {
+int NoteUnresolvedKeyOf(GameObjNotifier* object) {
     const bool haveSet = g_unresolvedKeys != nullptr;
     if (haveSet && g_unresolvedKeys->m_root) {
         ObjectKey key;
@@ -348,7 +348,7 @@ void DestroyUnresolvedKeySet() {
     }
 }
 
-bool LoadUnresolvedKeySet(istream* in) {
+int LoadUnresolvedKeySet(istream* in) {
     DestroyUnresolvedKeySet();
     g_unresolvedKeys = NewOrNull<ObjectKeySet>();
     if (!g_unresolvedKeys) DestroyUnresolvedKeySet();
@@ -357,7 +357,7 @@ bool LoadUnresolvedKeySet(istream* in) {
     return haveSet;
 }
 
-bool SaveUnresolvedKeySet(ostream* out) {
+int SaveUnresolvedKeySet(ostream* out) {
     const bool haveSet = g_unresolvedKeys != nullptr;
     if (haveSet) g_unresolvedKeys->Save(out);
     return haveSet;
@@ -404,7 +404,7 @@ int AttachSideObject(GameObjNotifier* object, GameObjNotifier* master, int view)
     return valid;
 }
 
-bool DetachObject(GameObjNotifier* object) {
+int DetachObject(GameObjNotifier* object) {
     if (!object) return false;
     if (FindParentFor(object, static_cast<int>(object->ViewSide()))) GameObjNotifier::RemoveFromParent(object);
     return object != nullptr;

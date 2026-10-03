@@ -95,7 +95,7 @@ LRESULT __stdcall VideoWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lP
     }
 }
 
-bool VideoWindow::OpenMovie(HWND window, const char* path, MCIDEVICEID* device) {
+int VideoWindow::OpenMovie(HWND window, const char* path, MCIDEVICEID* device) {
     MciOpenParams open = {};
     open.element = path;
     open.style = WS_CHILD;
@@ -116,7 +116,7 @@ bool VideoWindow::OpenMovie(HWND window, const char* path, MCIDEVICEID* device) 
     return error == 0;
 }
 
-bool VideoWindow::Play(int fullScreen) {
+int VideoWindow::Play(int fullScreen) {
     MCI_PLAY_PARMS play;
     play.dwCallback = reinterpret_cast<DWORD_PTR>(m_hwnd) & 0xffff;
     play.dwFrom = 0;
@@ -126,7 +126,7 @@ bool VideoWindow::Play(int fullScreen) {
     return error == 0;
 }
 
-bool VideoWindow::CloseMovie(HWND window, MCIDEVICEID device) {
+int VideoWindow::CloseMovie(HWND window, MCIDEVICEID device) {
     // BUG(original): the parameter block passed to MCI_CLOSE is the address of this function's own `device`
     // argument slot.
     MCI_GENERIC_PARMS close = {device};
@@ -138,7 +138,7 @@ bool VideoWindow::CloseMovie(HWND window, MCIDEVICEID device) {
     return error == 0;
 }
 
-bool VideoWindow::OpenDriver(const char* path) {
+int VideoWindow::OpenDriver(const char* path) {
     CloseDevices(path);
     MciOpenParams open = {};
     open.deviceType = g_aviDeviceType;
@@ -146,7 +146,7 @@ bool VideoWindow::OpenDriver(const char* path) {
     return error == 0;
 }
 
-bool VideoWindow::CloseDevices(const char* path) {
+int VideoWindow::CloseDevices(const char* path) {
     // BUG(original): both MCI_CLOSE calls pass the address of this function's own `path` argument slot as the
     // parameter block.
     MCI_GENERIC_PARMS close = {reinterpret_cast<DWORD_PTR>(path)};

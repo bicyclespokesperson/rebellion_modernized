@@ -55,7 +55,7 @@ public:
     // An object still carrying the default id 1 asks the game for a real one.
     void ApplyDefaultId();
     // True unless the object is the game root (family 0xf1).
-    bool IsNotGameRoot();
+    int IsNotGameRoot();
 
     uint32_t ViewSide() const { return (m_flags >> 4) & 3; }
     uint32_t ControlSide() const { return (m_flags >> 6) & 3; }

@@ -229,7 +229,7 @@ int DibBitmap::BlitRemappedRle(DibBitmap* dest, int destX, int destY, uint8_t co
     return BlitRleLines(this, decoder, dest, destX, destY, srcX, srcY, width, height, false);
 }
 
-bool DibBitmap::IsPixelOpaqueRle(int x, uint32_t y) {
+int DibBitmap::IsPixelOpaqueRle(int x, uint32_t y) {
     int opaque = 0;
     const int signedHeight = Height();
     const int direction = signedHeight > 0 ? -1 : 1;

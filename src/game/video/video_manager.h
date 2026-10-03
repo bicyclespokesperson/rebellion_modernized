@@ -65,11 +65,11 @@ public:
     virtual ~VideoWindow();
     virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
 
-    bool OpenMovie(HWND window, const char* path, MCIDEVICEID* device);
-    bool Play(int fullScreen);
-    bool CloseMovie(HWND window, MCIDEVICEID device);
-    bool OpenDriver(const char* path);
-    bool CloseDevices(const char* path);
+    int OpenMovie(HWND window, const char* path, MCIDEVICEID* device);
+    int Play(int fullScreen);
+    int CloseMovie(HWND window, MCIDEVICEID device);
+    int OpenDriver(const char* path);
+    int CloseDevices(const char* path);
 
     static int GetMovieSize(int* width, int* height, HWND unusedWindow, const char* path);
 
@@ -93,7 +93,7 @@ public:
     void NotifyPaletteChanged(HWND window);
     void SetVolume(int volume);
     void AdvanceMovieFrame();
-    bool IsDefaultPlacement(int x, int y);
+    int IsDefaultPlacement(int x, int y);
 
     static VideoManager* GetInstance();
     static int GetMovieSize(const char* path, int* width, int* height, int type);

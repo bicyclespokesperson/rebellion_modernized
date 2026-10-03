@@ -49,8 +49,8 @@ public:
     void ComputeColorCount();
     void LocateBits();
     void CacheTransparentColor();
-    bool LoadResourceById(uint32_t resourceId);
-    bool LoadResourceByName(const char* name);
+    int LoadResourceById(uint32_t resourceId);
+    int LoadResourceByName(const char* name);
     int LoadBmpFile(const char* path);
     HPALETTE CreatePaletteFromColorTable();
 
@@ -74,7 +74,7 @@ public:
     int FillRect(int x, int y, int width, int height, uint8_t value);
 
     int IsPixelOpaque(int x, int y);
-    bool IsPixelOpaqueRle(int x, uint32_t y);
+    int IsPixelOpaqueRle(int x, uint32_t y);
 
     uint8_t* BuildRemapTable(uint32_t (*transform)(uint32_t));
     void SetRemapTable(uint8_t* table);

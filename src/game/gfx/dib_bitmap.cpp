@@ -183,7 +183,7 @@ void DibBitmap::CacheTransparentColor() {
     }
 }
 
-bool DibBitmap::LoadResourceById(uint32_t resourceId) {
+int DibBitmap::LoadResourceById(uint32_t resourceId) {
     if (!m_module) return false;
     if (m_resource) m_resource = nullptr;
     HRSRC resourceInfo = FindResourceA(m_module, MAKEINTRESOURCEA(resourceId & 0xffff),
@@ -199,7 +199,7 @@ bool DibBitmap::LoadResourceById(uint32_t resourceId) {
     return true;
 }
 
-bool DibBitmap::LoadResourceByName(const char* name) {
+int DibBitmap::LoadResourceByName(const char* name) {
     if (!m_module || !name) return false;
     if (m_resource) m_resource = nullptr;
     HRSRC resourceInfo = FindResourceA(m_module, name, MAKEINTRESOURCEA(kBitmapResourceType));

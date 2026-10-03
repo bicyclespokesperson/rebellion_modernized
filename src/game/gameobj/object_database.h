@@ -51,7 +51,7 @@ public:
     int Read(istream* in);
     int Write(ostream* out);
     // Unlinks `child` (matched by family and id); it is not deleted.
-    bool RemoveChild(GameObjNotifier* child);
+    int RemoveChild(GameObjNotifier* child);
     GameObjNotifier* Find(uint32_t family, uint32_t id) const;
     // Lowest child whose family is inside `range`.
     GameObjNotifier* FindFirstInRange(const FamilyRange* range) const;
@@ -93,17 +93,17 @@ int CollectKeyDependencies(void* context, ObjectKeyValueSet* keys, ObjectKeyValu
 
 // ---- database and unresolved-key set lifetime ----------------------------------------------------------------
 
-bool RegisterObject(GameObjNotifier* object);
-bool UnregisterObject(GameObjNotifier* object);
+int RegisterObject(GameObjNotifier* object);
+int UnregisterObject(GameObjNotifier* object);
 void CreateObjectDatabase();
 void DestroyObjectDatabase();
 void CheckObjectDatabase();
 
-bool NoteUnresolvedKeyOf(GameObjNotifier* object);
+int NoteUnresolvedKeyOf(GameObjNotifier* object);
 void CreateUnresolvedKeySet();
 void DestroyUnresolvedKeySet();
-bool LoadUnresolvedKeySet(istream* in);
-bool SaveUnresolvedKeySet(ostream* out);
+int LoadUnresolvedKeySet(istream* in);
+int SaveUnresolvedKeySet(ostream* out);
 
 // ---- placing objects in the tree ---------------------------------------------------------------------------
 
@@ -111,7 +111,7 @@ bool SaveUnresolvedKeySet(ostream* out);
 int AttachMasterObject(GameObjNotifier* object);
 // Like AttachMasterObject for a side view: copies id and record from `master` and uses `view`'s tree.
 int AttachSideObject(GameObjNotifier* object, GameObjNotifier* master, int view);
-bool DetachObject(GameObjNotifier* object);
+int DetachObject(GameObjNotifier* object);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

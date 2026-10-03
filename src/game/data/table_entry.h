@@ -24,7 +24,7 @@ public:
 
     // Reads the next text field into +0x20; false if the stream has failed, the field is empty or reading it
     // failed. (The entry's id is not part of the text form.)
-    bool ParseHeader(istream* in, int* endOfLine);
+    int ParseHeader(istream* in, int* endOfLine);
 
     int m_field1c;  // +0x1c, 1 after construction
     int m_field20;  // +0x20

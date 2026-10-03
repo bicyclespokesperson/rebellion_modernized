@@ -98,7 +98,7 @@ public:
     ATOM RegisterWindowClass(UINT classStyle);  // 0x5ffc80: RegisterClassA with CoolWindowProc
     // Registers the class if needed and creates the window; true if m_hwnd is non-null. BUG(original):
     // useExStyle has no effect, m_exStyle is always the extended style.
-    bool Create(int useExStyle);                // 0x5ffce0
+    int Create(int useExStyle);                // 0x5ffce0
     BOOL IsEnabled();                           // 0x5ffea0
     void CenterInParent();                      // 0x5ffeb0
     void SetWindowTitle(const char* title);     // 0x5fff30
@@ -125,8 +125,8 @@ public:
     int DestroyChildById(uint32_t childId);    // 0x600f90: removes the child from m_children and deletes it
 
     // Popup mode: while a popup is open a mouse hook swallows clicks on windows that are not part of it.
-    bool BeginPopup();                          // 0x6010e0
-    bool EndPopup();                            // 0x6011f0
+    int BeginPopup();                          // 0x6010e0
+    int EndPopup();                            // 0x6011f0
     void RegisterWithActivePopup();             // 0x601260
     void AddLinkedWindow(CoolWindow* window);   // 0x601380
     void RemoveLinkedWindow(CoolWindow* window);  // 0x601400
@@ -176,7 +176,7 @@ LRESULT CALLBACK TooltipHookProc(int code, WPARAM wParam, LPARAM lParam);  // 0x
 LRESULT CALLBACK MouseHookProc(int code, WPARAM wParam, LPARAM lParam);    // 0x600ef0: popup click filter
 void ShutdownTooltips();                                                   // 0x600e20
 HWND CurrentPopupHwnd();                                                   // 0x601320
-bool DismissPopup();                                                       // 0x601340
+int DismissPopup();                                                       // 0x601340
 PopupEntry* __stdcall FindPopupEntry(HWND hwnd);                           // 0x6012f0
 int ReleaseAllCaptures();                                                  // 0x6010a0
 HWND __stdcall SetCaptureWindow(HWND hwnd);                                // 0x601080 // returns the previous capture window

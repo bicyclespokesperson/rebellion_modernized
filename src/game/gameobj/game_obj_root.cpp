@@ -124,7 +124,7 @@ void GameObjRoot::ApplyDefaultId() {
     if (m_id == 1) SetId(static_cast<uint32_t>(CallIdHook()));
 }
 
-bool GameObjRoot::IsNotGameRoot() { return GetFamily() != kGameRootFamily; }
+int GameObjRoot::IsNotGameRoot() { return GetFamily() != kGameRootFamily; }
 
 // ---- GameObjNotifier ---------------------------------------------------------------------------------------
 

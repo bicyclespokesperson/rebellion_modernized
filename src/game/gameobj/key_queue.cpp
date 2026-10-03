@@ -110,7 +110,7 @@ void ObjectKeyPairSet::Write(ostream* out) { ObjectKeySet::Write(out); }
 
 int ObjectKeyPairSet::Checksum(Crc32* crc) { return ObjectKeySet::Checksum(crc); }
 
-bool ObjectKeyPairSet::AddPair(const ObjectKey* key, const ObjectKey* second) {
+int ObjectKeyPairSet::AddPair(const ObjectKey* key, const ObjectKey* second) {
     ObjectKeyPairNode* node = NewOrNull<ObjectKeyPairNode>(*key, *second);
     return node && Add(node) != 0;
 }

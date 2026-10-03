@@ -92,7 +92,7 @@ public:
     virtual void Write(ostream* out) override;
     virtual int Checksum(Crc32* crc) override;
 
-    bool HasSameKeyAndValue(const ObjectKeyValueNode& other) const;
+    int HasSameKeyAndValue(const ObjectKeyValueNode& other) const;
 
     int m_value;  // +0x1c
 };
@@ -116,7 +116,7 @@ public:
     // Inserts the node unless its key is incomplete (then the node is leaked). Returns the id part of the node's key
     // (of the unset key, 2, for a null node), so a non-zero result does not mean the node was inserted.
     uint32_t Add(ObjectKeyNode* node);
-    bool AddKey(const ObjectKey* key);
+    int AddKey(const ObjectKey* key);
     void RemoveKey(const ObjectKey* key);
     ObjectKeyNode* Detach(const ObjectKey* key);
     ObjectKeyNode* Find(const ObjectKey* key);
@@ -135,9 +135,9 @@ public:
     virtual int Checksum(Crc32* crc) override;
 
     ObjectKeyValueSet& operator=(const ObjectKeyValueSet& other);
-    bool operator==(const ObjectKeyValueSet& other) const;
-    bool operator!=(const ObjectKeyValueSet& other) const;
-    bool AddKeyValue(const ObjectKey* key, int value);
+    int operator==(const ObjectKeyValueSet& other) const;
+    int operator!=(const ObjectKeyValueSet& other) const;
+    int AddKeyValue(const ObjectKey* key, int value);
 };
 
 // {id, int, int, key} record: m_flag defaults to 1, m_count to 0.
@@ -173,7 +173,7 @@ public:
     int Read(istream* in);
     int Write(ostream* out);
     int Checksum(Crc32* crc);
-    bool Add(ObjectRefNode* node);
+    int Add(ObjectRefNode* node);
     uint16_t Size() const;
     // Appends a new node for `key`; returns it, or null if allocation or insertion failed.
     ObjectRefNode* AddKey(ObjectKey key);

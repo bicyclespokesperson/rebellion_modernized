@@ -31,7 +31,7 @@ public:
     void SetBackground(DibBitmap* image, int srcX, int srcY);  // 0x5ff2d0
     DibBitmap* GetBackground();                                 // 0x5ff440
     // Draws the text of string resource `stringId` into the background bitmap (not onto the screen).
-    bool DrawStringResource(UINT stringId, RECT area, int fontSlot, COLORREF color, UINT format);  // 0x5ff6b0
+    int DrawStringResource(UINT stringId, RECT area, int fontSlot, COLORREF color, UINT format);  // 0x5ff6b0
 
     DibBitmap* m_background;  // +0x94 what Draw paints; owned
     DibBitmap* m_source;      // +0x98 optional picture the background is cut from; owned

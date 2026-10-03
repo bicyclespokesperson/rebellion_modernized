@@ -56,7 +56,7 @@ int TableEntry::Checksum(Crc32* crc) {
     return 1;
 }
 
-bool TableEntry::ParseHeader(istream* in, int* endOfLine) {
+int TableEntry::ParseHeader(istream* in, int* endOfLine) {
     ScopedStrstream token;
     bool ok = false;
     if (iostream_access::State(in) == 0) {

@@ -101,7 +101,7 @@ int ObjectKeyValueNode::Checksum(Crc32* crc) {
     return ok;
 }
 
-bool ObjectKeyValueNode::HasSameKeyAndValue(const ObjectKeyValueNode& other) const {
+int ObjectKeyValueNode::HasSameKeyAndValue(const ObjectKeyValueNode& other) const {
     return HasSameKey(other) && m_value == other.m_value;
 }
 
@@ -182,7 +182,7 @@ uint32_t ObjectKeySet::Add(ObjectKeyNode* node) {
     return key.Id();
 }
 
-bool ObjectKeySet::AddKey(const ObjectKey* key) {
+int ObjectKeySet::AddKey(const ObjectKey* key) {
     ObjectKeyNode* node = NewOrNull<ObjectKeyNode>(*key);
     return node && Add(node) != 0;
 }
@@ -233,7 +233,7 @@ ObjectKeyValueSet& ObjectKeyValueSet::operator=(const ObjectKeyValueSet& other) 
     return *this;
 }
 
-bool ObjectKeyValueSet::operator==(const ObjectKeyValueSet& other) const {
+int ObjectKeyValueSet::operator==(const ObjectKeyValueSet& other) const {
     bool same = true;
     const ObjectKeyValueNode* a = static_cast<const ObjectKeyValueNode*>(AvlTree::First());
     const ObjectKeyValueNode* b = static_cast<const ObjectKeyValueNode*>(other.AvlTree::First());
@@ -246,9 +246,9 @@ bool ObjectKeyValueSet::operator==(const ObjectKeyValueSet& other) const {
     return same && !a && !b;
 }
 
-bool ObjectKeyValueSet::operator!=(const ObjectKeyValueSet& other) const { return !(*this == other); }
+int ObjectKeyValueSet::operator!=(const ObjectKeyValueSet& other) const { return !(*this == other); }
 
-bool ObjectKeyValueSet::AddKeyValue(const ObjectKey* key, int value) {
+int ObjectKeyValueSet::AddKeyValue(const ObjectKey* key, int value) {
     ObjectKeyValueNode* node = NewOrNull<ObjectKeyValueNode>(*key, value);
     return node && Add(node) != 0;
 }
@@ -312,7 +312,7 @@ int ObjectRefList::Checksum(Crc32* crc) {
     return ok;
 }
 
-bool ObjectRefList::Add(ObjectRefNode* node) {
+int ObjectRefList::Add(ObjectRefNode* node) {
     if (node) AddWithId(node);
     return node != nullptr;
 }

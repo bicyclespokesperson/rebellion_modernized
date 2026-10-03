@@ -118,7 +118,7 @@ LRESULT __stdcall GameWindowObject::WindowProc(UINT message, WPARAM wParam, LPAR
     return CoolWindow::WindowProc(message, wParam, lParam);
 }
 
-bool GameWindowObject::DrawStringResource(UINT stringId, RECT area, int fontSlot, COLORREF color, UINT format) {
+int GameWindowObject::DrawStringResource(UINT stringId, RECT area, int fontSlot, COLORREF color, UINT format) {
     char text[0x100];
     std::memset(text, 0, 0xff);
     bool drawn = false;

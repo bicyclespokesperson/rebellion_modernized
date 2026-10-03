@@ -72,13 +72,13 @@ int CoolScrollable::CreateHorizontalScrollBar(HINSTANCE instance, CoolWindow* pa
     return result;
 }
 
-bool CoolScrollable::ShowVerticalScrollBar() {
+int CoolScrollable::ShowVerticalScrollBar() {
     CoolScrollBar* bar = m_verticalBar;
     if (bar) bar->Show(SW_SHOW);
     return bar != nullptr;
 }
 
-bool CoolScrollable::HideVerticalScrollBar() {
+int CoolScrollable::HideVerticalScrollBar() {
     CoolScrollBar* bar = m_verticalBar;
     if (bar) bar->Hide();
     return bar != nullptr;

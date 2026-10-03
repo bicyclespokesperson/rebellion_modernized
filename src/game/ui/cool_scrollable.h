@@ -37,8 +37,8 @@ public:
                                   uint16_t resourceId, int total, int first, int last, uint32_t unknownEc,
                                   DibBitmap* background);  // 0x60a560
 
-    bool ShowVerticalScrollBar();                              // 0x60a630
-    bool HideVerticalScrollBar();                              // 0x60a650
+    int ShowVerticalScrollBar();                              // 0x60a630
+    int HideVerticalScrollBar();                              // 0x60a650
     int SetVerticalRange(int total);                           // 0x60a670
     int SetVerticalVisibleRange(int start, int end);           // 0x60a690
     int ScrollVerticalBar(int delta);                          // 0x60a6c0

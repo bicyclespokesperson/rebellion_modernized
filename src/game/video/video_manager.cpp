@@ -33,7 +33,7 @@ VideoManager::~VideoManager() {
 
 VideoManager* VideoManager::GetInstance() { return g_videoManager; }
 
-bool VideoManager::IsDefaultPlacement(int x, int y) { return x == 0 && y == 0; }
+int VideoManager::IsDefaultPlacement(int x, int y) { return x == 0 && y == 0; }
 
 int VideoManager::GetMovieSize(const char* path, int* width, int* height, int type) {
     if (!g_videoParentWindow) return 0;
