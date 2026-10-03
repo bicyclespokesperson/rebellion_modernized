@@ -13,7 +13,8 @@ The game files are the user's licensed copy. Never commit them, or raw Ghidra ou
 |---|---|
 | `tools/ghidra_server.sh start\|stop\|status` | Long-lived Ghidra session over the analyzed EXE (main checkout only) |
 | `tools/gq '<python>'` / `tools/gq -f file.py` | Query Ghidra. Globals: `program fapi listing fm addr() func() decomp()`, `name_func() name_data()`. `tools/gq --save` persists. Never `--quit` while others work. |
-| `work/decomp/<addr>.c` (main checkout) | Pre-exported raw decompilation of every function — grep it, cheaper than `decomp()` |
+| `work/decomp/<addr>.c` (main checkout) | Snapshot of the decompilation of every function — grep it, cheaper than `decomp()`. Regenerated periodically; `decomp()` is always current |
+| `tools/sync_types.py` | Push the layouts of classes declared under `src/game` into Ghidra as structures (decompiler then shows field names) |
 | `tools/sym.py set <addr> func\|data <Name> ["(sig)"]` | Name a function/global: updates `symbols/symbols.csv` (source of truth) and Ghidra |
 | `tools/build_hybrid.sh` | Build `build/hybrid/smackw32.dll` (in the dev container) |
 | `tools/run_game.sh [--orig] <scenario>` | Run the game headless with this checkout's DLL; output in `work/run/<scenario>/` |
@@ -57,7 +58,9 @@ Never kill processes by name pattern (it kills your own shell); use the scripts'
    - A difftest SKIP is not a pass: it means the original could not be emulated (usually DirectX/COM
      behaviour) — such functions are checked with smoke runs only. Say so in your report.
    - Always finish with `tools/run_game.sh tests/scenarios/smoke.txt` and look at the screenshot.
-6. **Commit** on your branch with a message listing the functions reconstructed and the difftest results.
+6. **Feed Ghidra:** run `tools/sync_types.py` after adding or changing class layouts, so callers you
+   read next decompile with field names.
+7. **Commit** on your branch with a message listing the functions reconstructed and the difftest results.
 
 ## Conventions
 

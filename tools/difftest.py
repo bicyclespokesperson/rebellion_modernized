@@ -415,7 +415,7 @@ def compare(orig: RunResult, new: RunResult, initial: dict[str, int], return_kin
 
 def run_capture(path: Path, args, exe_pristine: Image, imports: Imports) -> bool:
     cap = Capture.load(path)
-    pack = path.parent / "pages.pack"
+    pack = next(d / "pages.pack" for d in path.resolve().parents if (d / "pages.pack").exists())
 
     def fresh(image: Image) -> Image:
         return Image({k: bytearray(v) for k, v in image.pages.items()}, image.pe)
