@@ -107,6 +107,10 @@ ChildWindowTree::ChildWindowTree() {}
 
 ChildWindowTree::~ChildWindowTree() { REB_KEEP_VPTR_STORE(); }
 
+int ChildWindowTree::IsLess(AvlNode* a, AvlNode* b) {
+    return static_cast<CoolWindow*>(a)->m_childId < static_cast<CoolWindow*>(b)->m_childId;
+}
+
 CoolWindow* ChildWindowTree::FindById(uint32_t id) {
     CoolWindow* node = static_cast<CoolWindow*>(m_root);
     while (node) {

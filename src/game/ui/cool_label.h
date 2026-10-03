@@ -20,7 +20,7 @@ enum CoolLabelLayout : uint32_t {
 class CoolLabel {
 public:
     // Text from a string resource of the string DLL (g_stringModule); 0 means no text.
-    CoolLabel(short stringId, int left, int top, int width, int height, COLORREF color, int fontSlot, UINT drawFlags,
+    CoolLabel(uint16_t stringId, int left, int top, int width, int height, COLORREF color, int fontSlot, UINT drawFlags,
               UINT layoutFlags);  // 0x601620
     // Text from the game's String resource loader.
     CoolLabel(int stringId, int left, int top, int width, int height, UINT drawFlags, UINT layoutFlags);  // 0x601700

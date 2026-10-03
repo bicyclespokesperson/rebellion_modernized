@@ -22,18 +22,18 @@ public:
     virtual ~ResourceDllList();  // 0x604450 (scalar deleting destructor 0x604430)
 
     // Unloads every DLL registered under `slot`.
-    void __stdcall UnloadSlot(uint32_t slot);  // 0x604460
+    void UnloadSlot(uint32_t slot);  // 0x604460
 };
 
 // Number of font slots a FontTable hands out.
 constexpr int kFontSlotCount = 14;
 
-// The game's fonts: one face ("Arial"), slot -> size/weight table (see CreateFont), created on first use.
+// The game's fonts: one face ("Arial"), slot -> size/weight table (see CreateSlotFont), created on first use.
 class FontTable {
 public:
     explicit FontTable(const char* faceName);  // 0x60ee20
     HFONT GetFont(uint32_t slot);              // 0x60eea0: null for slot >= kFontSlotCount
-    void CreateFont(int slot);                 // 0x60eed0
+    void CreateSlotFont(int slot);             // 0x60eed0 (not CreateFont: windows.h defines that name as a macro)
 
     HFONT m_fonts[kFontSlotCount];  // +0x00
     char m_faceName[100];           // +0x38

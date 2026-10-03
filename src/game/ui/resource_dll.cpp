@@ -18,7 +18,7 @@ ResourceDllList::ResourceDllList() {}
 
 ResourceDllList::~ResourceDllList() { REB_KEEP_VPTR_STORE(); }
 
-void __stdcall ResourceDllList::UnloadSlot(uint32_t slot) {
+void ResourceDllList::UnloadSlot(uint32_t slot) {
     for (IdLinkNode* node = DetachById(slot); node; node = DetachById(slot)) delete node;
 }
 
@@ -30,11 +30,11 @@ FontTable::FontTable(const char* faceName) {
 
 HFONT FontTable::GetFont(uint32_t slot) {
     if (slot >= kFontSlotCount) return nullptr;
-    if (!m_fonts[slot]) CreateFont(static_cast<int>(slot));
+    if (!m_fonts[slot]) CreateSlotFont(static_cast<int>(slot));
     return m_fonts[slot];
 }
 
-void FontTable::CreateFont(int slot) {
+void FontTable::CreateSlotFont(int slot) {
     LOGFONTA font;
     std::memset(&font, 0, sizeof(font));
     font.lfQuality = PROOF_QUALITY;

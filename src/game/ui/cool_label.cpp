@@ -31,7 +31,7 @@ void CoolLabel::InitializeRect(int left, int top, int width, int height, UINT dr
     m_hidden = 0;
 }
 
-CoolLabel::CoolLabel(short stringId, int left, int top, int width, int height, COLORREF color, int fontSlot,
+CoolLabel::CoolLabel(uint16_t stringId, int left, int top, int width, int height, COLORREF color, int fontSlot,
                      UINT drawFlags, UINT layoutFlags) {
     InitializeRect(left, top, width, height, drawFlags, layoutFlags);
     SetColor(color, nullptr);
