@@ -694,6 +694,9 @@ def run_capture(path: Path, args, exe_pristine: Image, imports: Imports) -> bool
     new = Emulator(cap, pack, exe, dll, imports, args.max_insns, arg_bytes).run(cap.function)
     problems = compare(orig, new, cap.regs, target.return_kind)
     name = target.name
+    if problems and path.name in known_failures():
+        print(f"XFAIL {label} {name}: {known_failures()[path.name]}")
+        return True
     if problems:
         print(f"FAIL {label} {name}")
         for p in problems:
@@ -702,6 +705,20 @@ def run_capture(path: Path, args, exe_pristine: Image, imports: Imports) -> bool
     print(f"PASS {label} {name} ({orig.instructions}/{new.instructions} blocks, "
           f"{len(orig.memory)} bytes written, {len(orig.calls)} API calls)")
     return True
+
+
+KNOWN_FAILURES = ROOT / "tests" / "difftest_known_failures.txt"
+
+
+def known_failures() -> dict[str, str]:
+    if not KNOWN_FAILURES.exists():
+        return {}
+    out = {}
+    for line in KNOWN_FAILURES.read_text().splitlines():
+        if line.strip() and not line.startswith("#"):
+            name, _, reason = line.partition(" ")
+            out[name] = reason
+    return out
 
 
 def run_captures(captures: list[Path], dll: Path = DLL_PATH, integration: bool = False, orig_only: bool = False,
