@@ -187,11 +187,6 @@ void SeedKeyCountNode::Write(ostream* out) {
     if (m_key.WriteValue(out)) StreamWrite32(out, &m_count);
 }
 
-// The original linker folded these two with SeedKeyCountNode's identical Load and Save (0x58f0c0, 0x58f0d0).
-void IntNode::Load(istream* in) { Read(in); }
-
-void IntNode::Save(ostream* out) { Write(out); }
-
 int SeedKeyCountNode::Checksum(Crc32* crc) {
     const int ok = m_key.AddToChecksum(crc);
     if (ok) crc->AddInt(m_count);
