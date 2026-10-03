@@ -27,7 +27,7 @@ public:
     // BUG(original): WM_CREATE is answered without calling CoolWindow::WindowProc.
     virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x604b80
 
-    bool IsCursorOverTrack();  // 0x6048f0
+    int IsCursorOverTrack();  // 0x6048f0
     void TrackCursor();        // 0x604950: moves the knob to the cursor if the cursor is inside the track
     void Draw(HDC dc);         // 0x604a50: also derives m_value from the knob position
 

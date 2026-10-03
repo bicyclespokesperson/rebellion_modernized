@@ -73,7 +73,7 @@ CoolSlider::~CoolSlider() {
     REB_KEEP_VPTR_STORE();
 }
 
-bool CoolSlider::IsCursorOverTrack() {
+int CoolSlider::IsCursorOverTrack() {
     bool over = false;
     HWND hwnd = m_hwnd;
     POINT cursor;

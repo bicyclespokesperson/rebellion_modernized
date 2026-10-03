@@ -65,7 +65,7 @@ public:
     void SetStateColor(int state, COLORREF color);              // 0x603010
     void SetStateFlags(uint32_t bits);                           // 0x6030c0: set bits and invalidate
     void ClearStateFlags(uint32_t bits);                         // 0x6030f0: clear bits and invalidate
-    bool HasStateFlags(uint32_t bits);                           // 0x603120
+    int HasStateFlags(uint32_t bits);                           // 0x603120
     uint32_t GetState();                                        // 0x603140
     void LoadStateBitmap(int state, uint32_t resourceId);  // 0x603150
     void ReplaceBitmap(int state, DibBitmap* bitmap);           // 0x603350: takes ownership

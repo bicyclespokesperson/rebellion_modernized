@@ -13,7 +13,6 @@ void __thiscall FUN_0060f320(void* list, void* node);                // append a
 void* __thiscall FUN_0060f3c0(void* memory, DibBitmap* bitmap);      // frame node constructor (0x10 bytes)
 void* __thiscall FUN_0060f1e0(void* memory, int rate, void* target);  // CoolRepeatTimer constructor (0x3c bytes)
 
-HWND g_previousCapture;  // 0x6be5bc window that had the mouse capture before a pressed button took it
 
 namespace {
 
@@ -244,7 +243,7 @@ void CoolStrobeButton::ClearStateFlags(uint32_t bits) {
     if (m_hwnd) InvalidateRect(m_hwnd, nullptr, FALSE);
 }
 
-bool CoolStrobeButton::HasStateFlags(uint32_t bits) { return (m_state & bits) != 0; }
+int CoolStrobeButton::HasStateFlags(uint32_t bits) { return (m_state & bits) != 0; }
 
 uint32_t CoolStrobeButton::GetState() { return m_state; }
 
