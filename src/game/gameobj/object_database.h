@@ -108,9 +108,9 @@ bool SaveUnresolvedKeySet(ostream* out);
 // ---- placing objects in the tree ---------------------------------------------------------------------------
 
 // Resets the object's flags, finds its parent (the game root for id 3, else the master side root) and attaches it.
-bool AttachMasterObject(GameObjNotifier* object);
+int AttachMasterObject(GameObjNotifier* object);
 // Like AttachMasterObject for a side view: copies id and record from `master` and uses `view`'s tree.
-bool AttachSideObject(GameObjNotifier* object, GameObjNotifier* master, int view);
+int AttachSideObject(GameObjNotifier* object, GameObjNotifier* master, int view);
 bool DetachObject(GameObjNotifier* object);
 
 #pragma clang diagnostic push

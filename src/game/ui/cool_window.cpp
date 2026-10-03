@@ -38,7 +38,7 @@ TTTOOLINFOA MakeToolInfo(HWND owner, HINSTANCE instance, UINT flags, UINT_PTR to
 
 }  // namespace
 
-bool RegisterWindowObject(CoolWindow* window) {
+int RegisterWindowObject(CoolWindow* window) {
     const uint32_t id = WindowObjectId(window);
     if (g_windowRegistry.FindById(id)) return false;
     IdNode* node = NewOrNull<IdNode>(id);
@@ -46,9 +46,9 @@ bool RegisterWindowObject(CoolWindow* window) {
     return g_windowRegistry.AddWithId(node) == id;
 }
 
-bool IsWindowObjectRegistered(CoolWindow* window) { return g_windowRegistry.FindById(WindowObjectId(window)) != nullptr; }
+int IsWindowObjectRegistered(CoolWindow* window) { return g_windowRegistry.FindById(WindowObjectId(window)) != nullptr; }
 
-bool UnregisterWindowObject(CoolWindow* window) {
+int UnregisterWindowObject(CoolWindow* window) {
     IdNode* node = g_windowRegistry.DetachById(WindowObjectId(window));
     if (node) delete node;
     return node != nullptr;
@@ -326,7 +326,7 @@ LRESULT __stdcall CoolWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lPa
     return DefWindowProcA(m_hwnd, message, wParam, lParam);
 }
 
-bool CoolWindow::DestroyChildById(uint32_t childId) {
+int CoolWindow::DestroyChildById(uint32_t childId) {
     CoolWindow* child = m_children.FindById(childId);
     if (child) {
         m_children.Remove(child);

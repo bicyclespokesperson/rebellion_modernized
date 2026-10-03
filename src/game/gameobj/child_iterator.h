@@ -25,7 +25,7 @@ public:
     void Reset();
     // Number of accepted children.
     int Count();
-    bool HasCurrent();
+    int HasCurrent();
     // True if the current child passes the range, state and side filters.
     int Accepts();
     GameObjNotifier* Current() const { return m_current; }

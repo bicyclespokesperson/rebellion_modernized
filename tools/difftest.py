@@ -701,6 +701,10 @@ def compare(orig: RunResult, new: RunResult, initial: dict[str, int], return_kin
         mask = (1 << (8 * min(return_kind, 4))) - 1
         if orig.regs["eax"] & mask != new.regs["eax"] & mask:
             problems.append(f"return value: original {orig.regs['eax'] & mask:#x}, reimplementation {new.regs['eax'] & mask:#x}")
+        elif return_kind in (1, 2) and orig.regs["eax"] & ~mask == 0 and new.regs["eax"] & ~mask != 0:
+            # The original zero-extends into all of EAX (it returns an int/BOOL) and its callers may test all of EAX.
+            problems.append(f"return value: original returns the full EAX {orig.regs['eax']:#x}, reimplementation sets only "
+                            f"{'AL' if return_kind == 1 else 'AX'} (EAX {new.regs['eax']:#x}) — declare the return type int")
         if return_kind == RETURN_EDX_EAX and orig.regs["edx"] != new.regs["edx"]:
             problems.append(f"return value high dword (edx): original {orig.regs['edx']:#x}, reimplementation {new.regs['edx']:#x}")
     for reg in CALLEE_SAVED:

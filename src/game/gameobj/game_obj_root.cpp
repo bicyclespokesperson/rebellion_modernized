@@ -306,7 +306,7 @@ void GameObjNotifier::AssignRecord(DatRecord* record) {
     if (matches) m_record = record;
 }
 
-bool GameObjNotifier::AddChild(GameObjNotifier* child, GameObjNotifier** previousParent) {
+int GameObjNotifier::AddChild(GameObjNotifier* child, GameObjNotifier** previousParent) {
     int ok = 1;
     if (!m_children) {
         m_children = NewOrNull<ChildList>();
