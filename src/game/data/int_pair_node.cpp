@@ -6,28 +6,26 @@
 
 IntPairNode::IntPairNode() : m_value(0) {}
 
-IntPairNode::IntPairNode(const int& key, const int& value) : IntNode(key), m_value(value) {}
+IntPairNode::IntPairNode(const ObjectKey& key, const int& value) : ObjectKeyNode(key), m_value(value) {}
 
-IntPairNode::IntPairNode(const IntPairNode& other) : IntNode(other), m_value(other.m_value) {}
+IntPairNode::IntPairNode(const IntPairNode& other) : ObjectKeyNode(other), m_value(other.m_value) {}
 
 IntPairNode::~IntPairNode() { REB_KEEP_VPTR_STORE(); }
 
-IntNode* IntPairNode::Clone() { return NewOrNull<IntPairNode>(*this); }
+ObjectKeyNode* IntPairNode::Clone() { return NewOrNull<IntPairNode>(*this); }
 
-int IntPairNode::Read(istream* in) {
-    IntNode::Read(in);
+void IntPairNode::Read(istream* in) {
+    ObjectKeyNode::Read(in);
     StreamRead32(in, &m_value);
-    return 1;
 }
 
-int IntPairNode::Write(ostream* out) {
-    IntNode::Write(out);
+void IntPairNode::Write(ostream* out) {
+    ObjectKeyNode::Write(out);
     StreamWrite32(out, &m_value);
-    return 1;
 }
 
 int IntPairNode::Checksum(Crc32* crc) {
-    int ok = IntNode::Checksum(crc);
+    int ok = ObjectKeyNode::Checksum(crc);
     if (ok) {
         crc->AddInt(m_value);
         ok = 1;
