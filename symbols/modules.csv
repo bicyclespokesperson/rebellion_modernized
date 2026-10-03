@@ -1,0 +1,290 @@
+start,end,module,subsystem,confidence,evidence
+0x00401000,0x00401c70,rebapp_globals,app,medium,registry path getters (S:DllLocation/DataLocation/TooBigLocation/InstalledLocation); tiny accessors to app singletons used everywhere
+0x00401c70,0x00403dd0,ai_object_records,ai,medium,AI candidate records VT 0x6584a0 built by 0x401d20; capability bits 0x402720; pool queries 0x403460/0x4035d0/0x403750 (notes:ai-mission-planning)
+0x00403dd0,0x00404c30,anim_resource_base,gfx,low,RCDATA/FindResource sprite-sequence classes VT 0x6584e8/0x658520 (sound hooks 0x610b20); INIT 0x4040a0/0x4047e0
+0x00404c30,0x00406600,ui_frontend_window,ui_strategic,low,main front-end window loaded from common.dll VT 0x658580 (global 0x6b06f4); created from DoMainChildWindow 0x414a80
+0x00406600,0x00406950,app_cdcheck_version,app,high,S:"data0.reb" "Error: CD Not Found" "Versions Incompatible"; GetFileVersionInfo on textstra.dll
+0x00406950,0x00409230,GameOptionsWindow,ui_strategic,high,S:"GameOptionsWindow::GameOptionsRequestLoad()" "1.01.00"; textcomm.dll (notes:game-options)
+0x00409230,0x0040a050,game_session_saveload,saveload,medium,session save/load driver: save 0x409690 / load 0x409700 / restore 0x409480 via ofstream/ifstream (0x5f4a60/0x5f4b10); game root 0x41dd60/0x41de70; also restores mid-tactical saves (0x409a50/0x59a4f0)
+0x0040a050,0x0040d7a0,battle_flow,battle_flow,high,battle state machine 0x40a050 + names 0x40a700 (STRAT_*/TACT_*); strat->tact converters 0x40b0e0..0x40c5f0; tact->strat 0x40c780..0x40d510
+0x0040d7a0,0x004119e0,MultiPlayerWindow,multiplayer,high,S:"MultiPlayerWindow::DoCancelMultiPlayer()" "MP_BCKGND_GAME_SETUP"; GetUserNameA/GetComputerNameA; calls comm2 0x597xxx
+0x004119e0,0x00412fc0,anim_resource_classes,gfx,low,five INIT-pair TUs each loading RCDATA (FindResource type 0xa) sprite lists via 0x5fbd20
+0x00412fc0,0x004173a0,RebellionApplication,app,high,S:"STARWARS_REBELLION" "RebellionApplication::QuitRebellion()" "Application SoundManager." "Autosave" "swhelp.hlp"; WinMain 0x4165b0; message loop 0x413560
+0x004173a0,0x004178f0,music_settings,sound,medium,S:"MDATA\\" "MusicVolume" "MusicSwitch" registry; music on/off/volume
+0x004178f0,0x0041be00,ai_side_controller,ai,medium,ctor 4178f0 (from player 4856f0/4857a0) builds members 42dc10..430d50; pool query 419a00; notes:ai-mission-planning
+0x0041be00,0x0041c590,ai_ranked_list,ai,medium,VT 0x658a68 (41be80 ranked list ctor; 41c250 comparator; 41c230 numbering) + VT 0x658a78; notes:ai-mission-planning
+0x0041c590,0x0041cca0,ui_bitmap_hitmask,ui_framework,low,FindResource type 0x12e; VT 0x658a90 ctor 41ca70; pixel hit-test 41cb30; callers app shell 404/412
+0x0041cca0,0x0041dce0,game_ui_facade,ui_strategic,medium,~110 global thunks -> session 435a40/436xxx and galaxy view 422ca0/42a; random 41cd80; WH hooks 41d9d0; notes:move-order
+0x0041dce0,0x0041ecf0,game_step_driver,events,high,VT 0x658a9c; setup 41df80 / frame step 41dff0 (from 40a050); factories 41e580/41ec50; notes:timer-scheduler
+0x0041ecf0,0x00420bd0,TextScrollField,ui_framework,high,S:"TextScrollField"; caret/edit (CreateCaret/SetCaretPos); line node VT 0x658af8
+0x00420bd0,0x00421300,app_control_cmds,app,low,51f8a0-based cmd classes kinds 0x10-0x12/0x14 (factories 41ec50); VT 0x658b18..0x658ba0; INIT 420d40/421090
+0x00421300,0x00421c70,movie_window,video,high,VideoManager wrappers (5f6c30/5f6920); S:"MOVIE_WINDOW"; MusicVolume; MDATA\MDATA.0xx map 421ba0
+0x00421c70,0x00429320,strategy_window_core,ui_strategic,high,galaxy view VT 0x658bf8 ctor 421c70 S:strategy.dll/textcomm.dll; WndProc 422ce0 (10.6KB) opens child windows by type
+0x00429320,0x0042dc10,strategy_window_routes,ui_strategic,medium,galaxy view entry points via facade; 429ce0 sector; 429f30 ency; 42a240 msgidx; S:alsprite.dll; S:"Current Latency:"
+0x0042dc10,0x00431270,ai_controller_members,ai,medium,member classes built by 4178f0: VT 0x658c40..0x658d08; planner factory 42f830; notes:ai-mission-planning
+0x00431270,0x004359f0,ai_eval_records_selectors,ai,medium,VT 0x658d30/0x658d50/0x658d70; 433e40 eval; sorted list VT 0x658d90; selectors 435790/4357b0; notes:ai-mission-planning
+0x004359f0,0x00436a40,game_session,app,medium,INIT 4359f0; singleton DAT_006b14e4 builds human/AI/remote players 4861b0/4857a0/484e70; 4362b0 battle-type dialog
+0x00436a40,0x00437880,ui_handler_table,ui_strategic,low,VT 0x658da0 ctor 436a40 fills DAT_006b1f40[0x2e] with 0x499-0x49c globals; 437780 dispatch slot+0x28; 3 INIT globals
+0x00437880,0x004392b0,order_popup_window_437880,ui_strategic,low,VT 0x658db8 ctor 437880 S:gokres.dll; opened by 437df0 via 41d640 for orders 0x210-0x212 (486fb0)
+0x004392b0,0x0043a2d0,advisor_base,ui_strategic,medium,INIT 4392b0; VT 0x658e10 base 439320 of advisor droids 4c27f0/4c0710; notes:mission-dialog
+0x0043a2d0,0x0043b910,ui_notif_handlers_system,events,medium,539290-based UI notif handlers (factories in 41e580) ids 0x340 + 0x140-0x156 (system/uprising/blockade); VT 0x658e38+
+0x0043b910,0x0043c650,ui_notif_handlers_12x,events,medium,UI notif handler classes ids 0x120-0x12a and 0x600 (factories in 41e580)
+0x0043c650,0x0043d880,ui_notif_handlers_mission_story,events,medium,UI notif handlers ids 0x200/0x380/0x1f0/0x1f1/0x370/0x220-0x221/0x160-0x163/0x321/0x520/0x400/0x360-0x362
+0x0043d880,0x0043e4f0,ui_notif_handlers_character,events,medium,UI notif handlers ids 0x1e0-0x1e5 (Character Force) + 0x210-0x212 (story) + 0x230/0x231
+0x0043e4f0,0x0043f670,ui_notif_handlers_gameobj,events,medium,UI notif handlers ids 0x300-0x306 / 0x100-0x107 / 0x500
+0x0043f670,0x00440ea0,ui_notif_handlers_ships,events,medium,UI notif handlers ids 0x180-0x183/0x1a0 FightSquad/0x1c0-0x1c6 CapShip; 4f5c70 observers VT 0x659a58+; cmds 0x13/0x15
+0x00440ea0,0x00441a60,strategy_window_ext,ui_strategic,medium,more galaxy view VT 0x658bf8 slots (440ea0/440f80/4414a0); 441190 opens system/sector windows; 441520 (IN:422)
+0x00441a60,0x004422a0,strategy_ui_items,ui_framework,medium,VT 0x659b60 animated item 441a60 (timeGetTime); item ctors 442130/4421d0 used by windows; notes:sector-window-hit-test
+0x004422a0,0x00442d70,object_popup_menu,ui_strategic,high,INIT 4422a0; VT 0x659bb8 4422f0; 442590/442790 STRATEGY RCDATA; S:"Game Menu Window" + hook; notes:object-popup-menu
+0x00442d70,0x0044c410,object_status_window,ui_strategic,medium,window type 0x1a VT 0x659c18 S:gokres.dll; per-kind pages 4444c0..44bb70; S:"Attached:"/"Status:"
+0x0044c410,0x0044f060,window_type1c,ui_strategic,low,window type 0x1c (from 422ce0) VT 0x659c78 ctor 44c410 S:gokres.dll; 44c630 layout (6.5KB)
+0x0044f060,0x0044f670,order_confirm_window,ui_strategic,high,window type 0x10 confirmation VT 0x659cd0 44f060/44f180; notes:move-order
+0x0044f670,0x00452090,window_type6_and_panel,ui_strategic,low,window type 6 44f670 S:gokres.dll + galaxy side panel 451130/4511e0 (VT 0x659c78 tail)
+0x00452090,0x00452fc0,galaxy_view_panels,ui_strategic,low,VT 0x659de0 452090 (from 426d00) + 452ab0 control (from 427270); 452630 bitmap resource
+0x00452fc0,0x004591d0,system_window,ui_strategic,high,window type 9 VT 0x659e68 ctor 452fc0 S:gokres.dll; hit tests 458b80/4aa470; notes:move-order
+0x004591d0,0x0045d400,sector_window,ui_strategic,high,window type 1 VT 0x659f18 ctor 4591d0; init 459e30; hit tests 45c660/45c6b0/45c830; notes:sector-window-hit-test
+0x0045d400,0x00460090,ui_encyclopedia_window,encyclopedia,high,ctor 0x45d400 S:encytext.dll|encybmap.dll; 0x45f7b0 S:EncyLocation; layout 0x45ddc0; notes:encyclopedia-window
+0x00460090,0x00461750,ui_cmdcenter_window_14,ui_strategic,medium,ctor 0x460090 from 0x42a000 (window id 0x14 470x330); dtor/layout 0x460270/handler 0x461590
+0x00461750,0x00463500,ui_cmdcenter_window_15,ui_strategic,medium,ctor 0x461750 from 0x42a0c0 (window id 0x15 470x330); layout 0x461960; handler 0x463360
+0x00463500,0x00466300,ui_cmdcenter_window_17,ui_strategic,medium,ctor 0x463500 VT 0x65a130 from 0x42a180 (window id 0x17); layout 0x4637a0; handler 0x466160
+0x00466300,0x0046a750,ui_message_index_window,ui_strategic,high,ctor 0x466350 S:encybmap.dll from 0x42a240; layout 0x4665f0; 0x468fb0/0x4697b0 modes; notes:message-index-window
+0x0046a750,0x0046cbc0,ui_mission_dialog,ui_strategic,high,ctor 0x46a750 S:gokres.dll from 0x42a320; layout 0x46a9c0; handler 0x46c3c0 team/decoy; notes:mission-dialog
+0x0046cbc0,0x0046f140,ui_cmdcenter_window_16,ui_strategic,medium,ctor 0x46cbc0 S:gokres.dll from 0x42a4d0 (window id 0x16 470x330); layout 0x46ce40; handler 0x46efc0
+0x0046f140,0x004727e0,ui_gokres_window_7,ui_strategic,medium,ctor 0x46f140 S:gokres.dll from 0x42a640 (window id 7); layout 0x46f360 (6.9KB); 0x4714e0/0x472010 lists
+0x004727e0,0x00472bc0,ui_list_model_65a358,ui_strategic,low,ctor 0x4727e0 VT 0x65a358 base 0x4ad770 built by 0x42adb0; 0x472b20 IN:42a; 0x472b50/0x472ba0 IN:442
+0x00472bc0,0x00473fd0,ai_class_records,ai,medium,6 record classes (VT 0x65a370..) built by 0x42dd00 per DatId class family (AI side ctl 0x417cf0); checks SF classes 0x3c00000x
+0x00473fd0,0x00476140,ai_record_473fd0,ai,medium,0x50-byte AI record (VT 0x65a3a0 base 0x4355d0) loaded by 0x42ec90; task state machine 0x474390 (IN:4cf3b0) + tasks
+0x00476140,0x00479a40,ai_system_record,ai,high,per-system AI record ctor 0x476140/0x4762b0 VT 0x65a3b0; posture factory 0x477630 (0x4b1..0x4ba); 0x478000; notes:ai-mission-planning
+0x00479a40,0x0047aa90,ai_planners_misc,ai,medium,5 planner classes VT 0x65a3c0/0x65a400/0x65a430/0x65a460/0x65a490 over 0x4bba10/0x4bc290; ctors from 0x42efe0
+0x0047aa90,0x0047bb80,ai_mission_planner_base,ai,high,MissionPlanner base VT 0x65a4d0 (0x47aae0); state helpers 0x47aff0/0x47b110/0x47b250; order emit 0x47b360; notes:ai-mission-planning
+0x0047bb80,0x0047fe30,ai_mission_planners_a,ai,high,planners Research x3/Subdue/Sabotage/Recruit/Rescue/Recon (sel 0x47bcd0 0x47cee0 0x47d520 0x47db40 0x47e270 0x47f320); notes:ai-mission-planning
+0x0047fe30,0x00484180,ai_mission_planners_b,ai,high,planners Incite/Espionage/Diplomacy/DSSabotage/Assassinate/Abduct (sel 0x47ff90 0x4808c0 0x4815a0 0x482180 0x482ce0 0x483290)
+0x00484180,0x00484df0,ai_record_484180,ai,low,AI record VT 0x65aa50 built by 0x4302b0/0x4304d0; 0x484630 IN:433620 (AI side ctl 0x418500) uses class-record accessors
+0x00484df0,0x004856f0,remote_player,multiplayer,medium,0x60-byte player ctl VT 0x65aa70 (0x484df0/0x484e70) made by 0x435bc0 when opponent not AI; 0x485460/0x4855b0 call 0x51c/0x597
+0x004856f0,0x00486120,ai_player,ai,medium,computer player 0x42c-byte VT 0x65abf0 ctor 0x4856f0/0x4857a0 (embeds AI side ctl 0x4178f0); virtuals forward to 0x417..0x419
+0x00486120,0x00486fb0,human_player,ui_strategic,medium,local player 0xc4-byte VT 0x65ad70 ctor 0x486120/0x4861b0 (advisor droid 0x4c27f0/0x4c0710); virtuals -> 0x49c/0x41d
+0x00486fb0,0x00488460,player_order_dispatch,ui_strategic,high,order dispatch 0x486fb0/0x487740 validate/confirm 0x487cc0/refusal 0x487c90/ack 0x488030; notes:move-order;mission-dialog
+0x00488460,0x0048aac0,player_base_msg_routing,events,medium,player base ctor 0x488460/0x4884f0; notif->message 0x488b50/0x488de0; type factory 0x489740; confirm 0x48a340; submit 0x48aa90
+0x0048aac0,0x0048e490,player_messages_1,events,medium,message type classes VT 0x65b0b0..0x65b408 over 0x4c4ab0; prototypes in 0x436a40 table 0x6b1f40; clones by 0x489740
+0x0048e490,0x00494ef0,player_messages_2,events,medium,message types VT 0x65b450..0x65b710; 0x4927c0 (9KB) handles notif 0x1f0 strings 0x412/0x47c; notes:timer-scheduler
+0x00494ef0,0x0049a120,player_messages_3,events,medium,message types VT 0x65b758..0x65bb88 over 0x4c4ab0/0x4c5040; text via 0x60b (TEXTSTRA)
+0x0049a120,0x0049c6a0,player_dialog_messages,events,medium,dialog-message types over 0x4c4ce0: move confirmation 0x49a1b0 VT 0x65bbd0 (fill 0x49a350/0x49a8b0); 0x49aad0; 0x49bda0 VT 0x65bc40
+0x0049c6a0,0x0049ecb0,advisor_ai_helpers,ai,low,helpers for advisor 0x439320 (VT 0x65bc78/0x65bc88); 0x49cdb0 (c14 from human player); AI record VT 0x65bc98; order builders 0x49e6b0
+0x0049ecb0,0x0049f130,ui_battle_in_progress,ui_strategic,high,small classes IN:441; overlay window 0x49ee20 (VT 0x65bcb8); 0x49eea0 S:Battle in Progress...; notes:object-popup-menu
+0x0049f130,0x004a2630,ui_object_info_window,ui_strategic,medium,ctor 0x49f130 S:gokres.dll 235x304 VT 0x65bd10 (popup type 11); continues past 0x4a0000 (hit-test 0x4a09a0)
+0x004a2630,0x004a7790,ui_fleet_window,ui_strategic,medium,S:gokres.dll; VT 0x65bda0 ctor 4a2630 (from 441190/45aac0); Polyline drawing 4a37c0/4a3d40; notes:move-order type 4 (hyp fleet)
+0x004a7790,0x004aa7f0,ui_objwin_type10,ui_strategic,medium,S:gokres.dll; VT 0x65be30 ctor 4a7790 (from 441190/45aac0); 4aa380/4aa470 hit tests; notes:move-order type 10
+0x004aa7f0,0x004ac120,ui_popup_menu,ui_strategic,medium,VT 65bec0/65bed0/65bee0/65bef0/65bf50/65bf68 built from 441/442/451; 4aab50 menu paint; notes:object-popup-menu
+0x004ac120,0x004acec0,CustomDialogBox,ui_framework,high,S:"CustomDialogBox"; VT 0x65bf80 base of object windows (9 ctor callers); 4ac5c0 right-click menu; 4acba0 obj-key list c16
+0x004acec0,0x004ad770,ui_misc_controls,ui_framework,low,VT 65c058 (BitBlt/MoveWindow control); 65c080 (from 466); 65c090 (from 468) over Cool GUI 60a/60b
+0x004ad770,0x004b1700,ai_posture_base,ai,medium,VT 65c0a4/65c0a8 bases for 472-473; VT 0x65c0b0 base + 4adb70 posture state machine; 10-int budgets; called from 4774c0/478140
+0x004b1700,0x004bb9f0,ai_posture_classes,ai,medium,6 posture subclasses (ctors 4b1720 4b37f0 4b4d50 4b6fb0 4b91a0 4ba580 from 477630) vt 65c108..; 4b7150; notes:ai-mission-planning
+0x004bb9f0,0x004bce50,ai_agent_bases,ai,medium,bases of 479/47a AI classes: ctor 4bba10; VT 65c358; VT 65c380 (ctor from 479f70/47a000/47a3c0); slots 4bc410/4bc6d0 in vt 65a400..
+0x004bce50,0x004be580,ai_mission_planner_base,ai,high,VT 0x65c3b0 ctor from 12 selectors 47b-483; 4bced0 planner state machine; 4bd0a0/4bd570; VT 65c408; notes:ai-mission-planning
+0x004be580,0x004bf0b0,ai_task_manager,ai,medium,VT 65c450 (from side AI 484df0); 65c460/65c470 (485/486); 4bea20 factory of 14 AI task types; 4be840 load loop
+0x004bf0b0,0x004c06f0,ai_task_t13_evaluated,ai,medium,VT 0x65c480 task type 13 (ctor via 4bea20); 4bf7c0 picks 1 of 7 evaluators (0x4e60e0..); 4bfe30
+0x004c06f0,0x004c27d0,advisor_side2,ui_strategic,medium,VT 0x65c4a0 (0x194 obj from 4861b0 side 2); S:"Processing Invalid Command"; voice via 615/616; notes:mission-dialog
+0x004c27d0,0x004c4990,advisor_side1,ui_strategic,medium,VT 0x65c4c8 near-copy of side2 (ctor 4c27f0 side 1); 88 reaction due-times; notes:mission-dialog
+0x004c4990,0x004c5450,event_response_bases,ui_strategic,low,4c4990 random id from RCDATA; VT 65c4f0 base of 36 classes 48a-499; VT 65c538/65c570/65c5b0; notes:move-order
+0x004c5450,0x004c7e10,ai_galaxy_analysis,ai,low,VT 65c5c0..65c670 built from 49c-49e (439 family); 4c5fc0 iterates systems; 4c6830 per-system force tallies
+0x004c7e10,0x004c8000,ui_misc_helpers,ui_strategic,low,VT 65c690 (from fleet-window draw 4a37c0/4a3d40); VT 65c6a8 (from popup 4aa910/4aa960)
+0x004c8000,0x004c8800,ai_task_t12,ai,medium,helper class 4c8000 (from 4be610/4be700); task type 12 VT 65c6a8.. state machine 4c84d0 over side+0x354/0x358
+0x004c8800,0x004cc690,ai_task_t11,ai,medium,task type 11 VT 0x65c6d8 ctor 4c8820 via factory 4bea20; base 4e4fb0
+0x004cc690,0x004cf080,ai_task_t10,ai,medium,task type 10 VT 0x65c6f8 ctor 4cc6b0 via factory 4bea20
+0x004cf080,0x004d2200,ai_task_t9_t8_t5,ai,medium,task types 9/8/5 VT 65c718/65c738/65c758 ctors 4cf0a0/4cf410/4cfb20; t8 calls posture 477190/4774c0
+0x004d2200,0x004d2ed0,ai_task_t4_t14,ai,medium,t4 VT 65c778 mission request 4d2490 (side+0x314..0x31c; notes:ai-mission-planning); t14 VT 65c798
+0x004d2ed0,0x004d6b00,ai_task_t7,ai,medium,task type 7 VT 0x65c7b8 ctor 4d2ef0 via factory 4bea20
+0x004d6b00,0x004da930,ai_task_t3,ai,medium,task type 3 VT 0x65c7d8 ctor 4d6b20 via factory 4bea20
+0x004da930,0x004dd440,ai_task_t1,ai,medium,task type 1 VT 0x65c7f8 ctor 4da950 via factory 4bea20
+0x004dd440,0x004e1e30,ai_task_t6,ai,medium,task type 6 VT 0x65c818 ctor 4dd460 via factory 4bea20
+0x004e1e30,0x004e4d40,ai_task_t2,ai,medium,task type 2 VT 0x65c838 ctor 4e1e50 via factory 4bea20
+0x004e4d40,0x004e60c0,ai_task_base,ai,medium,VT 0x65c868 base ctor 4e4fb0 called by all 14 task ctors; 65c858; 65c888; evaluator base 65c898
+0x004e60c0,0x004ebae0,ai_evaluators,ai,medium,7 evaluator classes VT 65c8c0..65c9e0 (ctors from 4bf7c0); 404B+2-3KB virtuals return float scores; no GDI
+0x004ebae0,0x004ecc00,ai_system_scan,ai,low,VT 65ca10 (from 4c5d50) + 4ebe40 per-system contents scan; VT 65ca30 (4c7/4e4); VT 65ca40 (evaluators)
+0x004ecc00,0x004eceb0,objref_key_ca50,gameobj,medium,VT 0x65ca50 ctors 4ecc00/4ecc70(c64); key null-check hubs 4ece30(c483)/4ece60; base methods shared by 10 UI vtables
+0x004eceb0,0x004efdc0,charac_core,character,high,Character ctor 4eceb0 (VT 0x65ca70; base 5336b0); S:"charac.cpp: Invalid EnhancedLoyalty"; field setters 4edcb0-4eebf0
+0x004efdc0,0x004f26d0,charac_keys_notif,character,high,key setters 4efdc0-4f1120; Character*Notif 4f1c00-4f23c0 inVT7; INIT 4f2550; iterator 4f25c0/4f2640 fam 0x30-0x3c
+0x004f26d0,0x004f2c80,unit_obj_base,gameobj,low,hub 4f26d0 key copy(c712); abstract class vtable 0x65ce70-cf50 (slots 4f2770-4f2c60 shared by fleet/capship/etc)
+0x004f2c80,0x004f3f70,objlookup_typed,gameobj,medium,iterator fam 0x10-0x40 (VT 0x65d028); ~40 GetObj-by-key-with-family-range wrappers via 53ef00/53ef50
+0x004f3f70,0x004f4560,objkey_list_a,gameobj,medium,VT 0x65d030/0x65d040 key-list classes (4f4340 c159; 4f4380 c171); 4f44b0 add-key
+0x004f4560,0x004f5510,mission_orders,mission,medium,order classes VT 0x65d068/d0c0/d0d0/d118 over base 51fa20; 4f4a00 submit/4f4b60 validator (notes:ai-mission-planning)
+0x004f5510,0x004f5c70,objkey_list_b,gameobj,medium,key list base VT 0x65d1c8 (4f5510 c58; 4f57b0 add c187; 4f5940 find c223); VT 0x65d1f0 keyed entry
+0x004f5c70,0x004f5ea0,message_obj_d210,events,low,VT 0x65d210/0x65d234 over msg base 51f8a0; 4f5cd0 order-by-id factory (c106; notes:object-popup-menu)
+0x004f5ea0,0x004f6c00,gameobj_core,gameobj,high,GameObj ctor 4f5ea0/dtor 4f5f60 (VT 0x65d260/0x65d258); base virtuals inVT55 4f6330-4f6a80; 4f6b90 state flags
+0x004f6c00,0x004f8880,gameobj_setters_flags,gameobj,high,S:"Invalid DestroyedReason/ETA"; S:"capshp.cpp: Invalid DeploymentCount"; flag setters 4f7410-4f7b10 (notes:object-state-flags)
+0x004f8880,0x004f9190,notif_log_format,gameobj,medium,S:"TRUE |FALSE" "Neutral |Empire" "Alliance"; 4f8880(c98) notif debug-log helpers called by every *Notif fn
+0x004f9190,0x004fadd0,gameobj_keys_checks,gameobj,medium,c10 hubs 4f9190-4f9700 (validity checks); 4f9860 move check (notes:move-order); key setters 4f9a60-4fad70
+0x004fadd0,0x004fcd90,gameobj_virtual_notif,gameobj,high,GameObj virtuals VT 0x65d348 (4fadd0); GameObj*Notif 4fbb80-4fc570 inVT55; iterator 4fcd00 fam 1-0xff
+0x004fcd90,0x004fd280,game_clock_hooks,events,medium,4fcde0 installs scheduler hooks; 4fcee0-4fd260 wrappers into 51c/51d game manager (notes:timer-scheduler)
+0x004fd280,0x004fd650,objkey_utils,gameobj,medium,key class VT 0x65d42c (4fd400/4fd450 c108); key hubs 4fd3d0/4fd600 (c218); clock getter 4fd340
+0x004fd650,0x004fffc0,fleet,fleet,high,Fleet ctor 4fd650 VT 0x65d438; Fleet*Notif 4ff7a0-4ff890; INIT 4ffd80; iterators 4ffdd0/4ffe70 fam 0x08-0x10
+0x004fffc0,0x005004e0,capship_subclasses,fleet,medium,iterators 5001b0 fam 0x14-0x18 and 5003d0 fam 0x18-0x1c; ctor 500240 VT 0x65d930; factory 5002a0 (fam 0x18)
+0x005004e0,0x00502ec0,capshp,fleet,high,CapShip base ctor 5004e0 (VT 0x65dc10); S:"Invalid HullValueDamage"; CapShip*Notif 5029a0-502b80; INIT 502cc0; iter fam 0x14-0x1c
+0x00502ec0,0x00503ae0,fightsqd,fleet,high,FightSquad ctor 502ec0 VT 0x65def0; S:"Invalid SquadSizeDamage"; FightSquad*Notif 5038e0; INIT 503960; iter fam 0x1c-0x20
+0x00503ae0,0x00504150,special_forces,character,medium,ctor 503ae0 on person base 5336b0 (VT 0x65e160); INIT 503fd0; iterator 504040 fam 0x3c-0x40 (notes:mission-lifecycle)
+0x00504150,0x00504d50,troopreg,fleet,high,TroopReg ctor 504150 VT 0x65e438; S:"TroopReg.cpp: Invalid WithdrawPercent"; TroopReg*Notif; INIT 504bd0; iter fam 0x10-0x14
+0x00504d50,0x00507130,gameobj_queries,gameobj,medium,~60 resolve-key/find-parent-of-type fns (504dc0 c56; 505190 notes:annotated-functions); game globals 506e10 DAT_006b2bb0
+0x00507130,0x00509cc0,system_core,galaxy,high,System ctor 507130 (VT 0x65e640); virtuals 507290-508f90; 508250 setup pass (notes:timer-scheduler); system accessors
+0x00509cc0,0x0050ac80,system_setters,galaxy,high,S:"Invalid SystemEnergy/RawMaterial/SmugglingPercent/ProductionModifier value!"; setters 509cc0-50ac10
+0x0050ac80,0x0050e820,system_rules,galaxy,medium,adjust_* system rules 50ad80-50c350 (notes:community-address-remap); uprising/incident 50d030-50d5a0 (notes:uprising-incident)
+0x0050e820,0x00510800,system_check_keysetters,galaxy,medium,50e820 consistency check S:"Invalid SystemEnergyAllocated"; key setters 50f390-510760 (OUT 4fd;539;53a;540)
+0x00510800,0x00513040,system_virtual_notif,galaxy,high,System virtuals VT 0x65e728/e810; System*Notif 511b90-5126c0; 4 INITs 512db0-512ea0; iterators fam 0x90-0x98
+0x00513040,0x00513240,objiter_base,gameobj,high,child iterator base 513050/513090 + walk 513120(c226)/5130d0(c208); filter 5131d0 (notes:object-state-flags)
+0x00513240,0x00513f70,game_root,gameobj,medium,root game object ctor 513240 VT 0x65e938 (GameObj-derived); setup stage machine 5136d0 (notes:timer-scheduler)
+0x00513f70,0x00518b20,game_rules_battle,combat_strat,medium,event handlers 5140c0-516360; pending-battle queue 516d50/516710; post-battle 516ef0/517270; 514a60 = event 0x31a handler (NOT a combat resolver)
+0x00518b20,0x0051c040,game_setup_seed,galaxy,medium,setup-stage helpers called from 5136d0: galaxy seeding 518f00/519d00 (notes:ai-behavior-analysis); 51b7f0 stage 0x17
+0x0051c040,0x0051c300,obj_family25,economy,low,small class fam 0x25-0x26: ctor 51c060 (base 526xxx); factory 51c140 registered as fam 0x25 in 51ebf0; iter 51c270
+0x0051c300,0x0051c740,order_stream_reader,multiplayer,low,VT 0x65ecd8; iostream reads of order ids -> 51f8f0 factory; called from battle-flow 40e-415/485
+0x0051c740,0x0051cd00,misc_ece0_utils,util,low,VT 0x65ece0 small serializable record (51c740 c8); point/rect helpers; wrappers to 567xxx (51cab0 c23)
+0x0051cd00,0x0051ebf0,game_manager_scheduler,events,high,game manager ctor 51cd00 VT 0x65ecf4 (global DAT_006b2fcc); day tick 51dea0; scheduler 51df30 (notes:timer-scheduler)
+0x0051ebf0,0x0051f8a0,factory_registries,gameobj,medium,51ebf0 object factories by family; 51ef80 event factories 0x380-0x396; 51f4b0 order factories; tables 51f730/51f770
+0x0051f8a0,0x00520570,order_msg_base,events,medium,msg base 51f8a0 VT 0x65ed18; order base 51fa20 VT 0x65ed28 (c17); 51f8f0 create order by id; continues past 0x520000
+0x00520570,0x005208b0,status_code_and_kind_list,gameobj,medium,520570/520580 {cat;code} status ctor/copy (476 callers); 5205a0 kind-list VT 0x65edd8 used by every class INIT
+0x005208b0,0x00523d70,mission_core,mission,high,5208b0 Mission base ctor (VT 0x65edf8; subclassed 0x5923a0); S:"Invalid TaskStatus/Phase value!"; notes:mission
+0x00523d70,0x00525750,mission_setters_notifs,mission,high,key setters; S:"MissionUserIDNotif".."MissionMandatoryNotif"; factory 525690; INIT 525700
+0x00525750,0x005264b0,mission_iterators,mission,high,iterator types 0x40-0x80 (525750); member iterators team/decoy/captured 525870-526400 (notes:decoy-roll)
+0x005264b0,0x00526730,sector,galaxy,medium,type 0x80 (SECTORSD 0x80-0x8f) ctor 5264b0 VT 0x65f0b0; factory 526590 reg in 0x51ebf0; iterator 0x80-0x90
+0x00526730,0x005279d0,facility_allfac_defense,economy,medium,type 0x20 ctor 5267c0 + INIT 526c80; DefFac base 526e00; types 0x23/0x22/0x24 VT 0x65f640/828/a10 + iterators
+0x005279d0,0x0052c200,ManuMgr,economy,high,ctor 5279d0 (notes:build-delivery); S:"ManuMgr*Notif" 52baa0-52bd90; INIT 52c080; iterator 0xa0-0xb0
+0x0052c200,0x0052d720,facility_manuf_prod,economy,high,types 0x2a/0x29/0x28 (MANFACSD) VT 0x65fe60 + 0x2d/0x2c (PROFACSD) VT 0x6608c8; per-type iterators
+0x0052d720,0x005315e0,Side_core,economy,high,type 0xf3 ctor 52d7b0 (factories 5309b0/531570 reg 0xf3); maint timers 530350/530460 (notes:timer-scheduler)
+0x005315e0,0x005336b0,Side_setters_notifs,economy,high,S:"SideMaintStateNotif" "Side*RdOrderNotif" "SideRecruitmentDoneNotif" "SideVictoryConditionsNotif"
+0x005336b0,0x00536eb0,Role,character,high,person base 5336b0; S:"Invalid BaseLoyalty value!"; S:"Role*Notif"; INIT 536d30; iterator 0x30-0x40
+0x00536eb0,0x00539290,orders_210_216,fleet,medium,order kinds 0x210-0x216 (0x214 drag-move dest ctor 537040 VT 0x661040); notes:move-order
+0x00539290,0x00539980,notif_event_payloads,events,low,small payload classes over base 0x583fe0 (VT 0x661300-0x661380); subclassed by UI handlers 0x43a-0x440
+0x00539980,0x00539e80,Facility,economy,medium,Facility base ctor 539980 VT 0x6613a8 (base of 0x20/DefFac/ProcFacil); INIT 539d00; iterator 0x20-0x30
+0x00539e80,0x0053a670,gameobj_notifier,gameobj,high,539e80 ctor over root 540360; hubs 539fd0/53a000/53a010 (466/224/472 callers); 53a610/53a640 flag setters
+0x0053a670,0x0053b7f0,ProcFacil,economy,high,ctor 53a670 over Facility; S:"Invalid ProcFacilState value!"; S:"ProcFacil*Notif"; iterator 0x28-0x30
+0x0053b7f0,0x0053c040,dat_table_entries,data,low,entry classes over 0x584750/0x5851d0 (GNPRTB-style parsers); field getters 53b860/53b870; callers 0x585-0x595
+0x0053c040,0x0053e0a0,move_orders_201_205,fleet,high,move base 53c040 VT 0x6617f8; kinds 0x201/0x202/0x203/0x204/0x205; notes:move-order
+0x0053e0a0,0x0053ed20,gnprtb_params_rng,data,medium,GNPRTB binders 53e390/53e3e0/53e450 (ids 0xa00+); rng 53e290; clamps 53e0d0/53e0f0; notes:INDEX
+0x0053ed20,0x0053f950,gameobj_database,gameobj,medium,S:"(IDs=" "<none>" dump 53ed20; key lookup 53efa0/53efd0; object DB init 53f3d0 (DAT_006b90e4)
+0x0053f950,0x00540360,event_post_timers,events,medium,events 0x300-0x37f post 53f950/53fbd0; timers 0x380-0x396 53fa60/53fb00; register 53fcf0/53fdd0/53fe40
+0x00540360,0x00540750,gameobj_root,gameobj,medium,root ctor 540360 VT 0x661a98 (+0x24 side/flag bits); 5404d0 side check (217 callers); 540540 type->factory registry
+0x00540750,0x00541fc0,commands_timer_events,events,medium,command/event classes kinds 0x230 0x30b 0x30e 0x312 0x314 0x321 (VT 0x661ac0-0x661bd8); 541180 shared slot
+0x00541fc0,0x00545180,MissionMgr_story_checks,story,medium,type 0xf8 ctor 541fc0 (factory 549cf0); 5438a0 named-char ids; 5442f0 Dagobah 0x98000481; flag setters 543af0-543fc0
+0x00545180,0x00549af0,MissionMgr_mission_exec,mission,medium,mission run/phase handlers 547f60/548120/548370/5484d0 (notes:decoy-roll); 549910 story pipeline
+0x00549af0,0x0054cd80,MissionMgr_notifs_creation,story,high,S:"MissionMgr*Notif" (LukeDagobah..BountyHunters); 54bb90/54c200/54cb70 mission creation; INIT 54cd30
+0x0054cd80,0x0054ea70,mission_cmd_timer_events,mission,medium,command 0x250 (54cd80/54d360); timer events 0x38b/0x38c/0x30c/0x30d/0x392/0x393 (notes:timer-scheduler)
+0x0054ea70,0x0054eee0,event_queue,events,medium,queue VT 0x661fb8/0x661fd8; 54ec90 pop+run slot +0x20 / 54ece0 reinsert (notes:timer-scheduler)
+0x0054eee0,0x0054f830,command_base_registry,events,medium,command base 54eee0; 54f2c0 order base; 54f100 id->factory table DAT_006b92f0; 54f5b0 type-range table + INIT 54f7c0
+0x0054f830,0x00554020,move_route_validation,fleet,medium,result ctx VT 0x6620dc; route legs 550620-552d10; order checks 553410-553b80; S:"<empty GameObjKey>" 553c80
+0x00554020,0x00557410,ObjF9_combat_rules_mgr,combat_strat,low,type 0xf9 ctor 554020 (factory 556f30); bombardment 555b30/556430; fleet strength 555540; disaster timer 556b50
+0x00557410,0x00557e60,CombatUnit,fleet,high,ctor 557410 over Detector 557e60; S:"CombatUnitUnderRepairNotif" "CombatUnitFastRepairNotif"; INIT 557e10
+0x00557e60,0x00558460,Detector,fleet,medium,ctor 557e60 VT 0x662558; continues to ~0x558460 (S:"DetectorIsDecoyedNotif" 558310; INIT 558410)
+0x00558460,0x005587e0,rules_gnprtb_08,fleet,low,GNPRTB 0x800-0x805 loader 0x558510 (bss 0x6bb378); ObjSet<0x10..0x20>; class VT 0x662738; callers IN:501/502
+0x005587e0,0x00558bb0,side_bits_rules_12,gameobj,medium,GNPRTB 0x1200 loader 0x5587e0; 2-bit side-mask value class (c17); S:"Alliance/Empire/Neutral/UNKNOWN!"
+0x00558bb0,0x0055a100,system_rules_1e,galaxy,high,GNPRTB 0x1e00-0x1e57 loader 0x558bb0 + uprising/support/informant formulas; notes:uprising-incident
+0x0055a100,0x0055a600,class_662760,gameobj,low,ctor 0x55a100 VT 0x662760 base 0x553e90; only caller 0x512c90; serialize methods
+0x0055a600,0x0055b2f0,ProcFacil,economy,high,S:"ProcFacilProductionModifierNotif"; S:"Invalid ProductionModifier value"; VT 0x662778; ObjSet<0x2c..0x30> 0x55b260
+0x0055b2f0,0x0055bea0,resource_facilities,economy,medium,3 TUs (INIT 0x55b640/0x55b9c0/0x55be50) types 0xa4/0xa0/0xa2 VT 0x6629a0/0x662c00/0x662e60; notes:economy-systems
+0x0055bea0,0x0055bfd0,rules_gnprtb_1c,data,low,prob-table lookup helpers 0x55bed0 (c9); GNPRTB 0x1c00 loader 0x55bf10; RLEVADTB 0x55bfa0
+0x0055bfd0,0x0055cb60,mission_rules_18,mission,high,GNPRTB 0x1800-0x182e loader 0x55bfd0; *MSTB mission-table formulas called by each mission class; notes:mission-lifecycle
+0x0055cb60,0x0055e290,combat_rules_14,combat_strat,high,GNPRTB 0x1400-0x1420 loader 0x55cb60; power ratio 0x55d860; transit/damage 0x55d8c0; notes:bombardment
+0x0055e290,0x0055e5b0,rules_gnprtb_10_0e,mission,medium,GNPRTB 0x1000 + 0xe00 loaders; TDECOYTB/FDECOYTB 0x55e410 FOILTB 0x55e470 (callers 0x588xxx); notes:INDEX
+0x0055e5b0,0x0055ec90,rules_gnprtb_0c_06_02,mission,low,GNPRTB 0xc00/0x600/0x200 loaders; ESCAPETB 0x55e7e0; callers 0x58b-0x58d and 0x561xxx
+0x0055ec90,0x00562a50,CharacterMgr,character,medium,VT 0x6630c0 type 0xfa; S:"CharacterMgrSeatOfPowerNotif"; has ground combat 0x560d50 + DeathStar 0x5617b0; INIT 0x562a00
+0x00562a50,0x005638e0,command_classes,events,low,command base 0x54f2c0/0x54f4e0 (notes:move-order); VT 0x6632a8/0x6632d8/0x663300; plus system-key value class 0x562ae0
+0x005638e0,0x005651d0,system_event_classes,events,low,9 classes on base 0x5863b0 VT 0x663328-0x6634a8; act on systems via 0x515xxx; blockade cmd 0x564e40 (notes:blockade-bit)
+0x005651d0,0x00566b90,incident_timers,events,high,timer base 0x585fe0; ids 0x383-0x390 VT 0x6634d8-0x663660 (uprising/informant/disaster/resource); notes:timer-scheduler
+0x00566b90,0x005673d0,system_type90,galaxy,medium,System subclass (base 0x507130) VT 0x663698 type 0x90; ObjSet<0x90..0x92> 0x567340; notes:timer-scheduler (0x663758)
+0x005673d0,0x00568160,objtype_db,gameobj,low,singleton class VT 0x663984 (0x6bb7a4); S:"<can't find name; type = "; family>>24 lookups via 0x58ec90; IN:51c
+0x00568160,0x00568fe0,saveload_state,saveload,low,INITs 0x5685e0/0x568630/0x568ad0; read/write pairs called from 0x51c/0x51d/0x51e; VT 0x663988-0x663990
+0x00568fe0,0x005698c0,table_entry_registry,data,medium,S:"IntTableEntry/SeedTableEntry/GeneralParamTableEntry.."; SD factories 0x569300; class type 0xf2 VT 0x6639b8
+0x005698c0,0x00569e10,MissionSubdue,mission,high,VT 0x663b78 type 0x57; SUBDMSTB 0x55c780; INIT 0x569dc0; notes:mission-lifecycle
+0x00569e10,0x0056a430,MissionSabotage,mission,high,VT 0x663e08 type 0x69 base 0x5933a0; ObjSet VT 0x663e00; SBTGMSTB; INIT 0x56a3e0; notes:mission-lifecycle
+0x0056a430,0x0056ab50,system_type92_obj42,galaxy,medium,System subclass VT 0x664098 type 0x92 (base 0x507130) + class VT 0x664388 type 0x42 (base 0x593730); INIT 0x56ab00
+0x0056ab50,0x0056afc0,MissionRescue,mission,high,VT 0x664600 type 0x61 base 0x586c20; RESCMSTB 0x55c7e0; INIT 0x56af70; notes:mission-lifecycle
+0x0056afc0,0x0056bbd0,MissionRecruit,mission,high,VT 0x664890 type 0x55; S:"MissionRecruitRecruitedCharacterNotif"; RCRTMSTB; INIT 0x56bb80
+0x0056bbd0,0x0056c070,MissionRecon,mission,high,VT 0x664b28 type 0x54 (Reconnaissance); INIT 0x56c020; notes:mission-lifecycle
+0x0056c070,0x0056d1b0,MissionResearch,mission,high,VT 0x664db8 type 0x53; S:"RdPointsNotif/RdOrdersNotif"; INIT 0x56d160
+0x0056d1b0,0x0056dcf0,MissionPickup,story,medium,VT 0x665058 type 0x73 base 0x5941c0; ObjSet VT 0x665050; INIT 0x56dca0; notes:mission-lifecycle
+0x0056dcf0,0x0056ea00,MissionPalace,story,medium,VT 0x6652e8 type 0x64 base 0x586c20; INIT 0x56e9b0; notes:mission-lifecycle
+0x0056ea00,0x0056ece0,obj_type41,unknown,low,class VT 0x665578 type 0x41 base 0x593730 (sibling of 0x42); INIT 0x56ec90
+0x0056ece0,0x0056f020,MajorChar30,character,low,major-character class VT 0x6657f0 type 0x30 base 0x594520 (likely Mon Mothma); INIT 0x56efd0
+0x0056f020,0x0056f3b0,Character38,character,low,Character subclass VT 0x665be0 type 0x38 base 0x4eceb0; INIT 0x56f360
+0x0056f3b0,0x0056fd40,Luke,story,high,VT 0x665fd8 type 0x32; S:"LukeKnowsHeritage/FinalBattleReady/DagobahCompletedNotif"; INIT 0x56fcf0
+0x0056fd40,0x005701d0,Leia,story,high,VT 0x6663e0 type 0x31; S:"LeiaKnowsHeritageNotif"; INIT 0x570180
+0x005701d0,0x00571650,MissionJediTraining,mission,high,VT 0x6667d8 type 0x58; S:"MissionJediTrainingTeacherKeyNotif"; INIT 0x571600
+0x00571650,0x00571c20,MissionIncite,mission,high,VT 0x666a70 type 0x56; INCTMSTB 0x55c740; ObjSet VT 0x666a68; INIT 0x571bd0
+0x00571c20,0x00572530,MissionVacation,story,medium,VT 0x666d00 type 0x72 base 0x5941c0; ObjSet VT 0x666cf8; INIT 0x5724e0; notes:mission-lifecycle
+0x00572530,0x00572c50,Han,story,high,VT 0x666f90 type 0x33; S:"HanBountyAttackNotif/HanCapturedByBountyHuntersNotif"; INIT 0x572c00
+0x00572c50,0x005739c0,MissionEspionage,mission,high,VT 0x667390 type 0x52; S:"MissionEspionageExtraSystemKeyNotif"; ESPIMSTB; INIT 0x573970
+0x005739c0,0x00573c90,MajorChar34,character,low,major-character VT 0x667628 type 0x34 base 0x594520 (likely Vader; calls Luke 0x56f950); INIT 0x573c40
+0x00573c90,0x00574250,MissionDiplomacy,mission,high,VT 0x667a18 type 0x51; DIPLMSTB 0x55c680; INIT 0x574200; notes:mission-lifecycle
+0x00574250,0x005747f0,MissionDSSabotage,mission,high,VT 0x667ca8 type 0x6a base 0x5933a0; DSSBMSTB 0x55c8d0; INIT 0x5747a0
+0x005747f0,0x005753e0,DagobahMission,story,high,VT 0x667f38 type 0x71 base 0x5941c0; S:"DagobahMissionFirstTrainingDayNotif"; INIT 0x575390
+0x005753e0,0x005756b0,MajorChar35,character,low,major-character VT 0x6681d0 type 0x35 base 0x594520 (likely Emperor); INIT 0x575660
+0x005756b0,0x00576000,MissionBounty,story,medium,VT 0x6685c0 type 0x65 base 0x586c20; +0x27c 0x575de0; INIT 0x575fb0 ends TU exactly at hi
+0x00576000,0x00577050,mission_classes_autoroute_assassin_adrift_abduct,mission,high,obj factories 51ebf0 fam 0x43/0x63/0x44/0x62; VT 0x668850 0x668d58; 4 INIT file ends; notes:mission-lifecycle
+0x00577050,0x005777c0,sector_gameobj,galaxy,medium,VT 0x669260 on gameobj base 4f5ea0; factory 577530 = family 0x98 (sector) in 51ebf0; INIT 577770
+0x005777c0,0x00578ab0,events_timers_370_38x,events,medium,51ef80 ids: ev 0x370/0x371 (base 54f4e0); timers 0x382/0x381/0x394 (base 585fe0); ev 0x315; notes:timer-scheduler
+0x00578ab0,0x00579fa0,commands_200_205,events,medium,cmd classes 0x201 (move; VT 0x669558) 0x202 0x200 0x205 on base 54f2c0 + ev 0x372; notes:move-order
+0x00579fa0,0x0057c3c0,events_300_320,events,medium,ev 0x300-0x320 on base 5863b0 (VT 0x669628..0x669808); 0x31a fires 514a60; timers 0x387/0x380; notes:build-delivery
+0x0057c3c0,0x0057ddc0,events_char_timers_388,events,medium,cmd 0x240/0x242 (VT 0x6698a8 0x669a08); ev 0x30a 0x317 0x313; timers 0x388-0x38a char injury; notes:timer-scheduler
+0x0057ddc0,0x00580530,commands_210_221,events,medium,cmd 0x214 (fleet move VT 0x669a30) 0x215 0x213 0x216 0x210 0x221 0x220 on base 54f2c0; ev 0x3f0; notes:move-order
+0x00580530,0x00582a00,player_request_classes,events,medium,factories registered by 51f4b0 (51f930 table): req 0x250 3 0x270 0x260-0x268 0x234 0x220-0x223; base 51fa20
+0x00582a00,0x00583950,mission_member_checks_helpers,mission,low,helpers for 520-52c users; status obj VT 0x66a080; checker 582b90; member mask 5830a0/583320; notes:ai-mission-planning
+0x00583950,0x00584750,gameobj_helper_classes,gameobj,low,small serializable list/value classes for 52e-53b users; 583c40 list head getter (193 callers); VT 0x66a0dc..0x66a168
+0x00584750,0x00585b20,dat_record_base_param_entries,data,medium,S:"<not set>" record base 584750; tokenizer 584e60; GeneralParamTableEntry 5855f0; SideParamTableEntry 585870
+0x00585b20,0x005866c0,timer_event_base,events,high,timer base 585fe0 (VT 0x66a230; fire 5862a0; delay 586130); event base 5863b0; 53f helpers; notes:timer-scheduler
+0x005866c0,0x00587100,mission_target_bases,mission,medium,mission bases: system-target 5866c0/5868c0; char-target 586c20/586e20; 2 INIT guards; notes:mission-lifecycle
+0x00587100,0x0058adb0,mission_resolution_phases,mission,high,decoy/foil/betrayal phase mgr 5897c0->589970; S:decoy S:foil S:"identify traitor" S:force-detect; notes:decoy-roll
+0x0058adb0,0x0058b960,data_table_registry,data,medium,table id registry 58b420 (58b810 GDATA ids); lookup 58b7e0; table base VT 0x66a8b0 for 557/558; notes:uprising-incident
+0x0058b960,0x0058c960,cmd_225_resolver,combat_strat,low,multi-step resolver 58c120 driven by cmd 0x225 fire (563390); functors VT 0x66a8d8
+0x0058c960,0x0058e570,planet_assault_resolver,combat_strat,low,resolver 58d770 for cmd 0x224 fire (5637c0); switch on 0x220-0x223; troop sums 58df60; control change 58e320
+0x0058e570,0x0058fd50,seedlist_table_entries,data,medium,INIT S:SeedList (5954a0 class reg); SeedTableEntry 58f0e0 SeedFamilyTableEntry 58f3a0 IntTableEntry 58fb40 (569280)
+0x0058fd50,0x005923a0,sd_record_classes,data,medium,~13 *SD record classes registered by family range in 569300; Read/Write (5f4d90/5f4db0) + text parse (615/617)
+0x005923a0,0x00593b90,mission_base_classes_a,mission,medium,base 5923a0 rules 592600; end 592c80; agent 592f50; obj rules 593500 INITs 593350/5936e0/593b40; notes:mission-lifecycle
+0x00593b90,0x005941c0,sd_record_base_b,data,low,record base 593b90 (VT 0x66b1c8) used by 590450/5956e0; Read/Write/parse triple
+0x005941c0,0x005947a0,mission_base_classes_b,mission,medium,mission bases 5941c0/594320 & 594520 used by 56d-575 missions; INIT 5944d0 594750
+0x005947a0,0x00594c60,misc_outlined_helpers,events,low,helpers for 58a7e0 (5947c0) 583f50 (594850) and event base 5863b0 (594a30-594c20)
+0x00594c60,0x00595550,data_table_class,data,medium,INIT S:Table (5954a0 named class reg); Table VT 0x66ba48; step lookup 595090; GDATA path 5952a0; notes:uprising-incident
+0x00595550,0x00595b10,sd_record_base_c,data,low,record bases VT 0x66ba7c (595550) & 5956e0 used by SD records 5909f0-592330
+0x00595b10,0x00596fa0,tact_facade,tactical,high,strategic-facing API called only from battle_flow 0x40b0e0..0x40d320; fighter/ship registration (notes:tactical-fighter-combat)
+0x00596fa0,0x00597530,comm2,multiplayer,high,S:"2Comm.cpp line 394"; thin wrappers over CommMgr used by MP lobby (0x40d-0x416) and tactical sync
+0x00597530,0x0059ab40,tact_game,tactical,high,TacticalGame singleton DAT_006bc248 (alloc 0x6b8; ctor 0x597610 ship-type names); per-frame 0x59a530; 0x59a8d0 loads tactical.dll/texttact.dll/VoiceFx*.dll
+0x0059ab40,0x0059cd60,tact_main_window,tactical,medium,tactical shell window: palette (GetSystemPaletteEntries); Cool controls; movie wrappers 0x59cc60/0x59cc80 (notes:tactical-death-star-path)
+0x0059cd60,0x005a7500,tact_shipgroups_orders,tactical,medium,132-entry INIT cluster (shared ID header) at TU start; ship-group/nav/target classes VT 0x66bd38..0x66be80
+0x005a7500,0x005a9de0,tact_event_dispatch,tactical,high,S:SHIP_ADD..SYSTEM_ABORT event names; 4856-byte dispatcher 0x5a7500 (notes:tactical-impact-effect-path)
+0x005a9de0,0x005af4e0,tact_object_manager,tactical,medium,manager accessor 0x5aaf90 (144 callers); collision envelope 0x5ab0e0; fighter groups 0x5ae460 (notes:tactical-collision-formation)
+0x005af4e0,0x005b8540,tact_capital_ship,tactical,high,capital ctor 0x5b05c0; weapon arcs 0x5b3a40/0x5b3f10; damage 0x5b5100..0x5b5f50; repair 0x5b0330 (notes:tactical-weapon-loop; tactical-subsystem-*)
+0x005b8540,0x005ba3a0,tact_fighter,tactical,high,INIT 0x5b8540; fighter movement 0x5b8f70; fighter ctor 0x5b9c60 (notes:tactical-fighter-combat)
+0x005ba3a0,0x005bbf10,tact_deathstar,tactical,medium,Death Star predicate/fire 0x5ba420..0x5ba7f0 (notes:tactical-death-star-path); 0x5ba980 timed effect hub (52 callers)
+0x005bbf10,0x005c14d0,tact_turn_sync,tactical,medium,132-INIT TU; S:"Turn Number:%f Reported Count"; timeGetTime game loop 0x5bea30/0x5c0500; DS target list 0x5c0b60
+0x005c14d0,0x005c3560,tact_view3d,tactical,high,3D view controller VT 0x66c960; S:"Failed to handle WM_PAINT" "Blt of back to front buffer failed" "SetPalette failed"
+0x005c3560,0x005c5b30,tact_hud_controls,tactical,medium,132-INIT TU; laser gauge/control 0x5c4ed0 (notes:tactical-death-star-path); BeginPaint panels
+0x005c5b30,0x005d2360,tact_ai_formations,tactical,medium,formations 0x5c81d0..0x5c83c0; TACTICALRESULT_UPDATE 0x5caf20; trench run 0x5cfec0; DS attack 0x5d04e0 (notes:tactical-*)
+0x005d2360,0x005d6700,tact_visual_resources,tactical,medium,weapon-strength record 0x5d2360; sprite/sequence surfaces 0x5d26c0..0x5d6520 (FindResource); 5030 sequence 0x5d4d10
+0x005d6700,0x005d7040,tact_d3d_device,tactical,high,S:"3D_WINDOW" "Failed to create Direct3DRM."; Direct3DRMCreate 0x5d6930; DirectDrawCreateClipper; front/back/Z surfaces
+0x005d7040,0x005da950,tact_d3drm_scene,tactical,high,132-INIT TU; S:"Failed to create the camera's frame" "D3DRM viewport" "Rendering scene failed."; meshes/frames VT 0x66d310..0x66d500
+0x005da950,0x005e9b60,tact_ui_panels,tactical,medium,six window TUs each starting with the 132-entry INIT cluster; window classes VT 0x66d538/0x66d5a0/0x66d608/0x66d670/0x66d6e0/0x66d750
+0x005e9b60,0x005ee590,tact_formation_visuals,tactical,medium,follower footprint/offsets 0x5ea250/0x5eb040/0x5ec400 (notes:tactical-collision-formation); 0x5ee3f0..0x5ee480 COMDAT helpers also used by libs
+0x005ee590,0x005ef360,tact_projectiles,tactical,medium,retained projectile geometry 0x5ee590/0x5eeb90 (notes:tactical-projectile-field-path); small windows VT 0x66db80..0x66dbc8
+0x005ef360,0x005f2f00,tact_ui_windows2,tactical,low,two 132-INIT TUs; window class VT 0x66dc30; misc VT 0x66d938..0x66d968
+0x005f2f00,0x005f3fc0,string_class,util,high,hub ctor/dtor 0x5f2f50/0x5f2ff0 (135/207 callers); assign-from-char* 0x5f35b0; formatting helpers
+0x005f3fc0,0x005f4ce0,registry_file_util,util,medium,S:HKEY_LOCAL_MACHINE..HKEY_USERS; RegOpenKeyEx/RegQueryValueEx/RegSetValueEx; resource lookup 0x5f49e0; DeleteFileA 0x5f4bd0
+0x005f4ce0,0x005f66c0,containers,util,medium,generic list/array/map templates (0x5f4d90/0x5f4db0 220+ callers; 0x5f50e0; 0x5f58b0); VT 0x66dcc0..0x66dd90
+0x005f66c0,0x005f6920,misc_small_classes,util,low,small classes used by D3D window and Cool buttons (VT 0x66dd90)
+0x005f6920,0x005f79b0,VideoManager,video,high,S:"PathName unknown to VideoManager" "Smacker Window" "Video Window" "avivideo"; Smack* imports; AVIFile*; mciSendCommand
+0x005f79b0,0x005f7cc0,mp_session_info,multiplayer,medium,small record classes used by MultiPlayerWindow (0x40f350..0x40f790)
+0x005f7cc0,0x005fa720,CommMgr,multiplayer,high,S:"CommMgr::Flush()" "CommMgr::HostNewSession()" "DPlay Error Code"; DPLAYX ordinals 1/2/4
+0x005fa720,0x005fb850,comm_packets,multiplayer,medium,INIT cluster 0x5fa7b0..0x5fa8b0; packet/message classes VT 0x66de28..0x66de60; S:"Long Message %u"
+0x005fb850,0x005fbb20,cool_app,ui_framework,low,app-level window helper VT 0x66de78 used by RebellionApplication 0x413000; GetClassNameA
+0x005fbb20,0x005fbd20,timer,util,medium,QueryPerformanceFrequency/Counter + timeGetTime timing used by app and tactical
+0x005fbd20,0x005fef50,dib_bitmap_blit,gfx,high,bitmap load 0x5fbd20 (94 callers); CreateDIBSection/CreateDIBitmap/BitBlt; palette 0x5fc3f0; blitter 0x5fcc30 (83 callers); _lopen file bitmaps
+0x005fef50,0x00602150,cool_window_base,ui_framework,high,S:"GAME_WINDOW_OBJECT" "Arial" "tooltips_class32"; RegisterClassA/CreateWindowExA 0x5ffce0 (71 callers); window hooks
+0x00602150,0x00604570,cool_buttons,ui_framework,high,S:"CoolStrobeButton"; timeSetEvent strobe timer; button classes VT 0x66df58..0x66dfc8
+0x00604570,0x00606380,cool_slider_stringfield,ui_framework,high,S:"slider" "CoolStringField"; caret/edit handling
+0x00606380,0x00607ea0,CoolGameWindow,ui_framework,high,S:"CoolGameWindow" VT 0x66e060
+0x00607ea0,0x0060a910,CoolDragList,ui_framework,high,S:"CoolDragList" VT 0x66e0c0; list box drawing
+0x0060a910,0x0060bed0,cool_display_scrollbar,ui_framework,medium,S:"Display resolution must be a minimum of 640 x 480" "No mouse was detected... StarTrader" "Scroll Bar"
+0x0060bed0,0x0060d590,CoolSelectionBox,ui_framework,high,S:"CoolSelectionBoxClass" VT 0x66e1b0/0x66e1c8
+0x0060d590,0x0060ed60,cool_tab_statusbar,ui_framework,high,S:"CoolTabControl" "CoolwinStatusBar" VT 0x66e230/0x66e258
+0x0060ed60,0x0060f020,resource_dll_fonts,resource,medium,LoadLibraryA/FreeLibrary resource-DLL holder VT 0x66e280; CreateFontIndirectA
+0x0060f020,0x00610b20,cool_misc_controls,ui_framework,low,small control classes VT 0x66e290..0x66e340; MoveWindow/PtInRect splitter-like virtuals
+0x00610b20,0x00611e90,SoundManager,sound,high,DirectSoundCreate 0x610d00; primary buffer format 0x611330; play-sound hubs 0x610b20/0x610c30; streaming thread 0x611bf0; Smacker sound 0x611dc0
+0x00611e90,0x00612bd0,cd_music,sound,medium,mciSendCommandA (CD audio/MIDI music); music track classes VT 0x66e398..0x66e3d0
+0x00612bd0,0x00614000,worker_threads,util,low,CreateThread/WaitForMultipleObjects worker loops; VT 0x66e3f8
+0x00614000,0x006153b0,directx_init_errors,gfx,medium,S:"cdderr.dll"; DirectDrawCreate/Enumerate 0x614200; DX error->string 0x614530; import thunks 0x615350..0x6153a4
+0x006153b0,0x00618a70,msvc_iostream,library,high,LIBCI old iostream 0x6153b0-0x61870f (ios/strstream/fstream; ios::ios at 0x6153b0) then LIBCMT EH helpers from 0x618710 (see docs/library_code.md)

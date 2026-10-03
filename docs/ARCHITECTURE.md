@@ -9,7 +9,7 @@ platform layer (Win32 windowing, DirectDraw, DirectSound, Smacker video, DirectP
 | | |
 |---|---|
 | Code | All game code is in `REBEXE.EXE` (MSVC 5.0, linker 5.10, `/GX`, no RTTI on game classes, identical-function folding on). Image base 0x400000, no relocations. |
-| Game functions | ~10,665 at 0x401000–0x615345, plus a few compiler-generated helpers at 0x628e10–0x62908f |
+| Game functions | ~14,080 (2.0 MB) at 0x401000–0x615345, plus compiler-generated helpers at 0x628e10–0x62908f. ~3,560 of them (virtual methods reached only via vtables, static initializers) were not found by Ghidra's auto-analysis and were created from `symbols/missed_functions.csv` |
 | Library code | 0x6153b0–0x628e0f: old iostream library (LIBCI) then LIBCMT + EH runtime — see [library_code.md](library_code.md) |
 | Not code | ~11,350 `Unwind@` EH funclets (0x629090+) — compiler-generated, never decompiled |
 | Other DLLs | Resource-only (bitmaps, waves, strings, dialogs) except `SMACKW32.DLL` (RAD Smacker) and `d3drm.dll` (Microsoft Direct3D Retained Mode) |
@@ -50,10 +50,17 @@ files and `.DAT` loading, no layout punning). Targets: Linux x86-64, macOS arm64
 
 ## Scope decision: 3D tactical combat
 
-The 3D tactical space battle mode (Direct3D Retained Mode) is **out of scope** for faithful decompilation
-(user decision). Its code is identified and fenced off (see [code_map.md](code_map.md)); the port resolves
-battles with the game's own auto-resolve path, and a fresh tactical mode may be written later on top of the
-same battle data. This also removes the hardest porting dependency (D3DRM).
+The 3D tactical space battle mode is **not** decompiled faithfully (user decision: it is the weakest part
+of the game; a fresh tactical mode may be written later). Nuance found by the code map: the game's
+auto-resolve is the tactical engine's own battle simulation run headless (`TACT_ABSTRACT`), so the tactical
+module splits into
+
+- the **battle simulation core** (~207 KB: ships, fighters, weapons, damage) — decompiled faithfully,
+  because auto-resolve results drive the strategic game's balance;
+- the **3D presentation** (~143 KB: Direct3D Retained Mode rendering, camera, effects, tactical UI) —
+  fenced off, never decompiled; this also removes the hardest porting dependency (D3DRM).
+
+Details and the strategic↔tactical handoff are in [code_map.md](code_map.md#tactical-combat-out-of-scope).
 
 ## Verification
 
