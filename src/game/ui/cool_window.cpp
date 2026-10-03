@@ -489,7 +489,7 @@ void CoolWindow::AddToolFromResource(CoolWindow* tool, UINT stringId) {
     AddTool(tool, text);
 }
 
-void CoolWindow::AddToolFromString(CoolWindow* tool, int stringId) {
+void CoolWindow::AddToolFromString(CoolWindow* tool, const ResourceStringId* stringId) {
     String text(stringId);
     if (text.m_text) AddTool(tool, text.m_text);
 }
@@ -506,12 +506,12 @@ void CoolWindow::AddRectToolFromResource(RECT area, UINT toolId, UINT stringId) 
     AddRectTool(area, toolId, text);
 }
 
-void CoolWindow::AddRectToolFromString(RECT area, UINT toolId, int stringId) {
+void CoolWindow::AddRectToolFromString(RECT area, UINT toolId, const ResourceStringId* stringId) {
     String text(stringId);
     if (text.m_text) AddRectTool(area, toolId, text.m_text);
 }
 
-void CoolWindow::UpdateToolFromString(CoolWindow* tool, int stringId) {
+void CoolWindow::UpdateToolFromString(CoolWindow* tool, const ResourceStringId* stringId) {
     String text(stringId);
     if (text.m_text) UpdateToolText(tool, text.m_text);
 }

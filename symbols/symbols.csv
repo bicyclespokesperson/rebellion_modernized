@@ -553,7 +553,7 @@ address,kind,name,signature,size
 0x00601550,func,RectTree::FindContaining,,
 0x006015a0,func,RectTree::IsLess,,
 0x00601620,func,CoolLabel::CoolLabel,"(unsigned short,int,int,int,int,unsigned long,int,unsigned int,unsigned int)",
-0x00601700,func,CoolLabel::CoolLabel,"(int,int,int,int,int,unsigned int,unsigned int)",
+0x00601700,func,CoolLabel::CoolLabel,"(struct ResourceStringId const *,int,int,int,int,unsigned int,unsigned int)",
 0x006017a0,func,CoolLabel::CoolLabel,"(unsigned short,int,int,int,int,unsigned int,unsigned int)",
 0x00601880,func,CoolLabel::CoolLabel,"(char const *,int,int,int,int,unsigned int,unsigned int)",
 0x00601930,func,CoolLabel::InitializeRect,,

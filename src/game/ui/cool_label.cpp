@@ -43,7 +43,7 @@ CoolLabel::CoolLabel(uint16_t stringId, int left, int top, int width, int height
     }
 }
 
-CoolLabel::CoolLabel(int stringId, int left, int top, int width, int height, UINT drawFlags, UINT layoutFlags) {
+CoolLabel::CoolLabel(const ResourceStringId* stringId, int left, int top, int width, int height, UINT drawFlags, UINT layoutFlags) {
     InitializeRect(left, top, width, height, drawFlags, layoutFlags);
     m_text = NewOrNull<String>(stringId);
     SetFont(GetDefaultFontSlot());
@@ -67,7 +67,7 @@ CoolLabel::~CoolLabel() {
     if (m_text) delete m_text;
 }
 
-void CoolLabel::SetTextFromResource(int stringId) {
+void CoolLabel::SetTextFromResource(const ResourceStringId* stringId) {
     if (m_text) delete m_text;
     m_text = NewOrNull<String>(stringId);
     if ((m_layoutFlags & kLabelFixedWidth) == 0) m_rect.right = 0;
@@ -169,7 +169,7 @@ void CoolLabel::Draw(HDC dc) {
 
 void CoolLabel::Invalidate(HWND hwnd, BOOL erase) { InvalidateRect(hwnd, &m_rect, erase); }
 
-void CoolLabel::ReplaceTextFromResource(HWND hwnd, HDC dc, int stringId) {
+void CoolLabel::ReplaceTextFromResource(HWND hwnd, HDC dc, const ResourceStringId* stringId) {
     SetTextFromResource(stringId);
     Invalidate(hwnd, TRUE);
     Measure(dc);

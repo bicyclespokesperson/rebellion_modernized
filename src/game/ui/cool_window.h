@@ -14,6 +14,7 @@ class CoolWindow;
 class DibBitmap;
 class FontTable;
 class String;
+struct ResourceStringId;
 
 // ---- Small helper containers used by the window base -----------------------------------------------------
 
@@ -112,11 +113,11 @@ public:
     void CreateTooltipControl(LPARAM delayMs);                                // 0x6008e0
     void AddTool(CoolWindow* tool, const char* text);                         // 0x600970
     void AddToolFromResource(CoolWindow* tool, UINT stringId);                // 0x6009f0
-    void AddToolFromString(CoolWindow* tool, int stringId);                   // 0x600a40
+    void AddToolFromString(CoolWindow* tool, const ResourceStringId* stringId);                   // 0x600a40
     void AddRectTool(RECT area, UINT toolId, const char* text);               // 0x600bd0
     void AddRectToolFromResource(RECT area, UINT toolId, UINT stringId);      // 0x600ac0
-    void AddRectToolFromString(RECT area, UINT toolId, int stringId);         // 0x600b30
-    void UpdateToolFromString(CoolWindow* tool, int stringId);                // 0x600c40
+    void AddRectToolFromString(RECT area, UINT toolId, const ResourceStringId* stringId);         // 0x600b30
+    void UpdateToolFromString(CoolWindow* tool, const ResourceStringId* stringId);                // 0x600c40
     void UpdateToolText(CoolWindow* tool, const char* text);                  // 0x600cc0
     void RemoveTool(CoolWindow* tool);                                        // 0x600d30
     void RemoveRectTool(UINT toolId);                                         // 0x600db0

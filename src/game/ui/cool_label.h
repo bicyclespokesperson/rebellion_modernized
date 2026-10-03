@@ -7,6 +7,7 @@
 #include "platform/win32.h"
 
 class String;
+struct ResourceStringId;
 
 // Bits of CoolLabel::m_layoutFlags.
 enum CoolLabelLayout : uint32_t {
@@ -23,14 +24,14 @@ public:
     CoolLabel(uint16_t stringId, int left, int top, int width, int height, COLORREF color, int fontSlot, UINT drawFlags,
               UINT layoutFlags);  // 0x601620
     // Text from the game's String resource loader.
-    CoolLabel(int stringId, int left, int top, int width, int height, UINT drawFlags, UINT layoutFlags);  // 0x601700
+    CoolLabel(const ResourceStringId* stringId, int left, int top, int width, int height, UINT drawFlags, UINT layoutFlags);  // 0x601700
     CoolLabel(uint16_t stringId, int left, int top, int width, int height, UINT drawFlags,
               UINT layoutFlags);  // 0x6017a0: LoadStringA
     CoolLabel(const char* text, int left, int top, int width, int height, UINT drawFlags,
               UINT layoutFlags);  // 0x601880
     ~CoolLabel();                 // 0x601990
 
-    void SetTextFromResource(int stringId);        // 0x6019a0 (String resource loader)
+    void SetTextFromResource(const ResourceStringId* stringId);        // 0x6019a0 (String resource loader)
     void SetTextFromStream(StrStream* stream);     // 0x601a20: takes the text a strstream collected
     void SetText(const char* text);                // 0x601aa0
     const char* GetText() const;                   // 0x601b20: null without text
@@ -42,7 +43,7 @@ public:
     void Invalidate(HWND hwnd, BOOL erase);        // 0x601dc0: InvalidateRect on the rectangle
 
     // SetText... followed by invalidate / measure / invalidate.
-    void ReplaceTextFromResource(HWND hwnd, HDC dc, int stringId);   // 0x601de0
+    void ReplaceTextFromResource(HWND hwnd, HDC dc, const ResourceStringId* stringId);   // 0x601de0
     void ReplaceText(HWND hwnd, HDC dc, const char* text);           // 0x601e20
     void ReplaceTextFromStream(HWND hwnd, HDC dc, StrStream* stream);  // 0x601e60
 
