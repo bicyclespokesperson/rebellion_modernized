@@ -23,7 +23,11 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import concurrent.futures
+import contextlib
 import csv
+import io
+import multiprocessing
 import re
 import struct
 import sys
@@ -367,6 +371,12 @@ class Emulator:
         self.uc.reg_write(UC_X86_REG_EIP, ret)
 
     # ---- Win32 API emulation: enough for allocation, game-file reads and (optionally) GDI/timer paths.
+    def write_guest(self, address: int, data: bytes) -> None:
+        """Write into emulated memory, mapping snapshot pages on demand (API out-params may be unmapped yet)."""
+        for page in range(address & ~(PAGE - 1), address + len(data), PAGE):
+            self.ensure_mapped(page)
+        self.uc.mem_write(address, data)
+
     def fake_api(self, name: str, args: tuple) -> int | None:
         dll, _, function = name.partition("!")
         if function == "HeapAlloc":
@@ -386,7 +396,7 @@ class Emulator:
         if function == "ReadFile":
             n = self.host_read(args[0], args[1], args[2])
             if args[3]:
-                self.uc.mem_write(args[3], struct.pack("<I", max(n, 0)))
+                self.write_guest(args[3], struct.pack("<I", max(n, 0)))
             return 1 if n >= 0 else 0
         if function in ("_llseek", "SetFilePointer"):
             return self.host_seek(args[0], args[1], args[3] if function == "SetFilePointer" else args[2])
@@ -400,19 +410,19 @@ class Emulator:
         if function in empty_string_out and len(args) > empty_string_out[function]:
             buffer = args[empty_string_out[function]]
             if buffer:
-                self.uc.mem_write(buffer, b"\0")
+                self.write_guest(buffer, b"\0")
             return 0
         if function in ("GetLocalTime", "GetSystemTime"):  # fixed instant: time() must not read garbage
-            self.uc.mem_write(args[0], struct.pack("<8H", 1998, 3, 1, 2, 12, 0, 0, 0))
+            self.write_guest(args[0], struct.pack("<8H", 1998, 3, 1, 2, 12, 0, 0, 0))
             return 0
         if function == "GetTimeZoneInformation":
-            self.uc.mem_write(args[0], bytes(172))
+            self.write_guest(args[0], bytes(172))
             return 0
         if function == "QueryPerformanceCounter" and CFG.qpc is not None:
-            self.uc.mem_write(args[0], CFG.qpc.to_bytes(8, "little"))
+            self.write_guest(args[0], CFG.qpc.to_bytes(8, "little"))
             return 1
         if function == "QueryPerformanceFrequency" and CFG.qpf is not None:
-            self.uc.mem_write(args[0], CFG.qpf.to_bytes(8, "little"))
+            self.write_guest(args[0], CFG.qpf.to_bytes(8, "little"))
             return 1
         if function == "timeGetTime" and CFG.time_get_time is not None:
             return CFG.time_get_time
@@ -421,7 +431,7 @@ class Emulator:
         if CFG.lock_hex and function == "LockResource":
             blob = bytes.fromhex(CFG.lock_hex)
             block = self.heap_alloc(len(blob))
-            self.uc.mem_write(block, blob)
+            self.write_guest(block, blob)
             return block
         if CFG.gdi_handles and dll.upper() == "GDI32.DLL":
             return self.fake_gdi(function, args)
@@ -465,7 +475,7 @@ class Emulator:
         data, position = self.files[handle]
         chunk = data[position:position + count]
         self.files[handle][1] = position + len(chunk)
-        self.uc.mem_write(buffer, chunk)
+        self.write_guest(buffer, chunk)
         return len(chunk)
 
     def host_seek(self, handle: int, distance: int, method: int) -> int:
@@ -486,7 +496,7 @@ class Emulator:
             info, bits_out = args[1], args[3]
             width, height, _, bit_count = struct.unpack("<iiHH", bytes(self.uc.mem_read(info + 4, 12)))
             size = (((bit_count * width + 31) >> 3) & ~3) * abs(height)
-            self.uc.mem_write(bits_out, struct.pack("<I", self.heap_alloc(size)))
+            self.write_guest(bits_out, struct.pack("<I", self.heap_alloc(size)))
             return handle
         return 1
 
@@ -721,12 +731,35 @@ def known_failures() -> dict[str, str]:
     return out
 
 
+_WORKER: dict = {}
+
+
+def _worker_init(args: argparse.Namespace, cfg: Config) -> None:
+    CFG.__dict__.update(cfg.__dict__)
+    _WORKER.update(args=args, exe=Image.load(EXE_PATH, sections=(".text", ".rdata")), imports=Imports.load())
+
+
+def _worker_run(path: Path) -> tuple[bool, str]:
+    out = io.StringIO()
+    with contextlib.redirect_stdout(out):
+        ok = run_capture(path, _WORKER["args"], _WORKER["exe"], _WORKER["imports"])
+    return ok, out.getvalue()
+
+
 def run_captures(captures: list[Path], dll: Path = DLL_PATH, integration: bool = False, orig_only: bool = False,
-                 max_insns: int = 20_000_000) -> list[bool]:
+                 max_insns: int = 20_000_000, jobs: int = 1) -> list[bool]:
     args = argparse.Namespace(dll=dll, integration=integration, orig_only=orig_only, max_insns=max_insns)
-    exe = Image.load(EXE_PATH, sections=(".text", ".rdata"))
-    imports = Imports.load()
-    return [run_capture(path, args, exe, imports) for path in captures]
+    if jobs <= 1:
+        exe = Image.load(EXE_PATH, sections=(".text", ".rdata"))
+        imports = Imports.load()
+        return [run_capture(path, args, exe, imports) for path in captures]
+    results = []
+    fork = multiprocessing.get_context("fork")  # Python 3.14 defaults to forkserver, which cannot re-import a uv script
+    with concurrent.futures.ProcessPoolExecutor(jobs, mp_context=fork, initializer=_worker_init, initargs=(args, CFG)) as pool:
+        for ok, text in pool.map(_worker_run, captures, chunksize=4):  # in order: output stays deterministic
+            sys.stdout.write(text)
+            results.append(ok)
+    return results
 
 
 def main() -> int:
@@ -736,6 +769,7 @@ def main() -> int:
     ap.add_argument("--integration", action="store_true", help="replace every reimplemented function, not just the captured one")
     ap.add_argument("--orig-only", action="store_true", help="only emulate the original and print its effects")
     ap.add_argument("--max-insns", type=int, default=20_000_000)
+    ap.add_argument("-j", "--jobs", type=int, default=1, help="replay captures in this many processes")
     g = ap.add_argument_group("state/API overrides (for exercising other paths from the same capture)")
     g.add_argument("--poke", default="", help='overwrite memory before both runs: "ecx+0xc=0a000000;[ecx]+0xe=@esp+8" '
                    "(<addr expr>=<hex bytes> or =@<expr> for a dword; expr: registers, numbers, [deref], + -)")
@@ -748,7 +782,7 @@ def main() -> int:
     args = ap.parse_args()
     CFG.pokes, CFG.gdi_handles, CFG.qpc, CFG.qpf = args.poke, args.gdi_handles, args.qpc, args.qpf
     CFG.time_get_time, CFG.lock_hex, CFG.entry = args.time_get_time, args.lock_hex, args.entry
-    results = run_captures(args.captures, args.dll, args.integration, args.orig_only, args.max_insns)
+    results = run_captures(args.captures, args.dll, args.integration, args.orig_only, args.max_insns, args.jobs)
     print(f"{sum(results)}/{len(results)} passed or skipped")
     return 0 if all(results) else 1
 
