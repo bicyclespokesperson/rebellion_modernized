@@ -22,6 +22,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import re
 import struct
 import sys
 from dataclasses import dataclass, field
@@ -190,8 +191,29 @@ def jump(src: int, dst: int) -> bytes:
     return b"\xE9" + struct.pack("<i", dst - (src + 5))
 
 
+EIGHT_BYTE_PARAMS = ("double", "__int64")
+
+
+def stack_arg_bytes(signature_key: str) -> int:
+    """Bytes of stack arguments from a hook name like 'Foo::Bar(int,double)' ('this' travels in ECX)."""
+    m = re.search(r"\((.*)\)$", signature_key)
+    if not m or m.group(1) in ("", "void"):
+        return 0
+    depth, params, cur = 0, [], ""
+    for c in m.group(1):
+        depth += c in "<(" ; depth -= c in ">)"
+        if c == "," and depth == 0:
+            params.append(cur); cur = ""
+        else:
+            cur += c
+    params.append(cur)
+    # Varargs ("...") have no static size; only the named parameters are counted.
+    return sum(8 if p.endswith(EIGHT_BYTE_PARAMS) else 4 for p in params if p != "...")
+
+
 class Emulator:
-    def __init__(self, cap: Capture, pack: Path, exe: Image, dll: Image, imports: Imports, max_insns: int):
+    def __init__(self, cap: Capture, pack: Path, exe: Image, dll: Image, imports: Imports, max_insns: int,
+                 arg_bytes: int = 0):
         self.cap, self.exe, self.dll, self.imports, self.max_insns = cap, exe, dll, imports, max_insns
         self.pack = open(pack, "rb")
         self.uc = Uc(UC_ARCH_X86, UC_MODE_32)
@@ -203,7 +225,9 @@ class Emulator:
         self.count = 0
         esp = cap.regs["esp"]
         self.stack_lo = (esp - 0x100000) & ~(PAGE - 1)
-        self.frame_hi = esp + 4  # return-address slot and everything below belong to the callee
+        # The return-address slot, everything below it, and the incoming argument slots (MSVC reuses them as
+        # scratch) belong to the callee.
+        self.frame_hi = esp + 4 + arg_bytes
 
     def page_bytes(self, page: int) -> bytes | None:
         if page in self.exe.pages:
@@ -423,7 +447,9 @@ def run_capture(path: Path, args, exe_pristine: Image, imports: Imports) -> bool
     dll = Image.load(args.dll)
     bind_dll_imports(dll, imports)  # binds a copy per capture; cheap relative to emulation
     hooks = hook_table(dll)
-    orig = Emulator(cap, pack, fresh(exe_pristine), dll, imports, args.max_insns).run(cap.function)
+    target = next((h for h in hooks if h.original == cap.function), None)
+    arg_bytes = stack_arg_bytes(target.name) if target else 0
+    orig = Emulator(cap, pack, fresh(exe_pristine), dll, imports, args.max_insns, arg_bytes).run(cap.function)
     label = f"{path.name} [{cap.function:#010x}]"
     if not orig.ok:
         print(f"SKIP {label}: original run failed: {orig.error}")
@@ -437,13 +463,12 @@ def run_capture(path: Path, args, exe_pristine: Image, imports: Imports) -> bool
         return True
     exe = fresh(exe_pristine)
     active = [h for h in hooks if args.integration or h.original == cap.function]
-    target = next((h for h in hooks if h.original == cap.function), None)
     if target is None:
         print(f"SKIP {label}: no reimplementation in {args.dll.name}")
         return True
     for h in active:
         exe.write(h.original, jump(h.original, h.replacement))
-    new = Emulator(cap, pack, exe, dll, imports, args.max_insns).run(cap.function)
+    new = Emulator(cap, pack, exe, dll, imports, args.max_insns, arg_bytes).run(cap.function)
     problems = compare(orig, new, cap.regs, target.return_kind)
     name = target.name
     if problems:

@@ -10,7 +10,10 @@ file(GLOB_RECURSE REB_GAME_SOURCES CONFIGURE_DEPENDS src/game/*.cpp)
 # A proxy SMACKW32.DLL loaded by the original REBEXE.EXE. Reimplemented functions are patched over the
 # originals; everything not yet reimplemented (functions, globals, the CRT) is resolved to its original
 # address at link time. See docs/ARCHITECTURE.md.
-set(REB_HYBRID_FLAGS /O2 /Zi /GS- /GR- /EHs-c- /Zl /Zc:sizedDealloc- /arch:IA32 -Wno-microsoft-cast
+# /clang:-fcheck-new: the game's operator new returns NULL and callers check it; clang would delete those checks.
+# _ACRTIMP/_CRTIMP empty: CRT functions are the game's statically linked ones, not DLL imports.
+set(REB_HYBRID_FLAGS /O2 /Zi /GS- /GR- /EHs-c- /Zl /Zc:sizedDealloc- /arch:IA32 /clang:-fcheck-new -Wno-microsoft-cast
+    -D_ACRTIMP= -D_CRTIMP= -D_DCRTIMP=
     -DREB_HYBRID=1 -DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_NO_CRT_STDIO_INLINE -D_CRT_SECURE_NO_WARNINGS)
 
 add_library(reb_game OBJECT ${REB_GAME_SOURCES})

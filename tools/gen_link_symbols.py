@@ -126,6 +126,15 @@ def return_kind(demangled: str) -> int:
     return 4
 
 
+MANGLED_DATA = re.compile(r"^\?([^?@][^@]*(?:@[^@]+)*)@@[23]")
+
+
+def data_key_from_mangled(raw: str) -> str | None:
+    """'?g_cb@@3P6AXH@ZA' -> 'g_cb', '?s_x@Foo@@2HA' -> 'Foo::s_x' (MSVC global/static-member variables)."""
+    m = MANGLED_DATA.match(raw)
+    return "::".join(reversed(m.group(1).split("@"))) if m else None
+
+
 def keys_from_demangled(demangled: str) -> tuple[str, str]:
     """('Qualified::name', 'Qualified::name(params)') from an llvm-undname rendering."""
     text = re.sub(r"^(public|protected|private): ", "", demangled)
@@ -158,7 +167,7 @@ def csv_keys(name: str) -> list[str]:
     keys = [name]
     if name.startswith("operator_"):  # Ghidra-friendly spelling of operator names
         keys.append("operator " + name[len("operator_"):])
-    if name.startswith("_") and not name.startswith("__"):  # C names as Ghidra writes them (_malloc)
+    if name.startswith("_"):  # C names as Ghidra writes them (_malloc, __strnicmp)
         keys.append(name[1:])
     return keys
 
@@ -215,7 +224,9 @@ def main() -> int:
                if s.raw not in RUNTIME_SYMBOLS and not (s.defined and s.raw in runtime_defined)]
     demangled = demangle_all([s.raw for s in symbols])
     for s in symbols:
-        if s.raw in demangled:
+        if (data_key := data_key_from_mangled(s.raw)) is not None:
+            s.key = s.signature_key = data_key
+        elif s.raw in demangled:
             s.key, s.signature_key = keys_from_demangled(demangled[s.raw])
             s.return_kind = return_kind(demangled[s.raw])
         else:

@@ -50,7 +50,7 @@ Never kill processes by name pattern (it kills your own shell); use the scripts'
      `WPARAM`/`LPARAM`, `GetWindowLongPtr`/`SetWindowLongPtr`, `DWORD_PTR`) even though the original is
      32-bit — the port is 64-bit (see docs/platform_layer.md).
    - No STL, no exceptions, no RTTI, no `dynamic_cast`. `operator new` returns NULL on failure, as in the
-     original — keep the original's null checks. Use the CRT the original uses (`malloc`, `sprintf`,
+     original — keep the original's null checks (the build uses `-fcheck-new` so clang keeps them). Use the CRT the original uses (`malloc`, `sprintf`,
      `strcpy`...); they resolve to the game's own CRT.
    - Prefer clear names and small helpers over comments; comment only the non-obvious *why*.
    - Do not reconstruct 3D tactical combat code (out of scope — see docs/code_map.md).
@@ -60,6 +60,9 @@ Never kill processes by name pattern (it kills your own shell); use the scripts'
    - Capture real calls with a scenario that exercises the code (`tests/scenarios/`), then
      `tools/difftest.py work/run/<scenario>/captures/*.cap` must print PASS for every capture. Capture
      several calls with different `skip` values to cover different paths.
+   - Captures run the fully original game by default (`REB_DISABLE_HOOKS=all` is implied), so every call
+     reaches the original address. Writes to a function's own incoming argument slots are ignored
+     (MSVC uses them as scratch); the slot count comes from your declared signature, so declare it exactly.
    - A difftest SKIP is not a pass: it means the original could not be emulated (usually DirectX/COM
      behaviour) — such functions are checked with smoke runs only. Say so in your report.
    - Always finish with `tools/run_game.sh tests/scenarios/smoke.txt` and look at the screenshot.

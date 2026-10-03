@@ -8,13 +8,15 @@
 #   --out:   output directory (default work/run/<scenario name>); receives screenshots, wine.log,
 #            rebhybrid.log and captures/ (when REB_CAPTURE is set)
 # Environment passed through: REB_CAPTURE, REB_DISABLE_HOOKS, WINEDEBUG.
+# When REB_CAPTURE is set, REB_DISABLE_HOOKS defaults to "all": captures then record original-code state,
+# and functions that reconstructed code calls directly (bypassing the original address) are still hit.
 set -euo pipefail
 source "$(dirname "$0")/paths.sh"
 orig=0; out=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --orig) orig=1; shift ;;
-    --out) out="$2"; shift 2 ;;
+    --out) out="$(realpath -m "$2")"; shift 2 ;;
     *) break ;;
   esac
 done
@@ -29,6 +31,7 @@ else
   dll="$ROOT/build/hybrid/smackw32.dll"
   [[ -f "$dll" ]] || { echo "no hybrid build at $dll; run tools/build_hybrid.sh" >&2; exit 1; }
 fi
+if [[ -n "${REB_CAPTURE:-}" ]]; then export REB_DISABLE_HOOKS="${REB_DISABLE_HOOKS:-all}"; fi
 docker run --rm -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -e WINEDEBUG -e REB_CAPTURE -e REB_DISABLE_HOOKS \
   -e 'REB_LOG=Z:\out\rebhybrid.log' -e 'REB_CAPTURE_DIR=Z:\out\captures' \
   -v "$game:/game" -v "$dll:/game/SMACKW32.DLL:ro" -v "$out:/out" -v "$ROOT/tools/container:/tools:ro" \
