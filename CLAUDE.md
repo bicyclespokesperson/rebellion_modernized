@@ -46,6 +46,8 @@ Never kill processes by name pattern (it kills your own shell); use the scripts'
    - Reconstructed functions that correspond to originals must have external linkage (no `static`, no
      anonymous namespace) — the hook table references them by name.
    - Data members stay public (layout asserts use `offsetof`).
+   - Taking the address of a reconstructed function (callbacks, factory registries) is fine: the post-link
+     step rewrites such pointers to the original address, so pointer identity matches the original.
    - Functions you call but don't reconstruct: just declare them (`int16_t FUN_00479ac0();` or a named
      declaration with a `symbols.csv` row). Calling conventions follow MSVC defaults: free functions
      `__cdecl`, members `__thiscall`, Win32 callbacks `__stdcall`.
