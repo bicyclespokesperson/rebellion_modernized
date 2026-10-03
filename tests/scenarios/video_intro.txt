@@ -1,0 +1,10 @@
+# Intro movies: screenshots while the first movies play, then skip all three with Escape.
+# Exercises VideoManager / SmackerWindow (movie window, playback thread, palette, skip message).
+6 shot intro_movie_a
+9 shot intro_movie_b
+12 key Escape
+14 shot intro_movie_c
+16 key Escape
+20 key Escape
+26 shot intro_menu
+27 end
