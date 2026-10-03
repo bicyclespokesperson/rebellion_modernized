@@ -18,7 +18,7 @@ The game files are the user's licensed copy. Never commit them, or raw Ghidra ou
 | `tools/sym.py set <addr> func\|data <Name> ["(sig)"]` | Name a function/global: updates `symbols/symbols.csv` (source of truth) and Ghidra |
 | `tools/build_hybrid.sh` | Build `build/hybrid/smackw32.dll` (in the dev container) |
 | `tools/run_game.sh [--orig] <scenario>` | Run the game headless with this checkout's DLL; output in `work/run/<scenario>/` |
-| `REB_CAPTURE=0x5f35b0:3:10 tools/run_game.sh <scenario>` | Capture 3 calls (after skipping 10) of an original function into `work/run/<scenario>/captures/` |
+| `REB_CAPTURE=0x5f35b0:3:10:50 tools/run_game.sh <scenario>` | Capture 3 calls of an original function — after skipping 10, every 50th — into `work/run/<scenario>/captures/` (fields after the address are optional) |
 | `tools/difftest.py [-j N] <captures>/*.cap` | Replay captures: original vs reconstruction (`-j` in parallel). `--orig-only` shows what the original does; `--help` lists --poke/--entry/... overrides |
 | `REB_DISABLE_HOOKS=all\|0x..,0x..` | Run with some reconstructions disabled (bisecting) |
 

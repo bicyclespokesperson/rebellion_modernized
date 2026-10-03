@@ -216,6 +216,8 @@ class Config:
     time_get_time: int | None = None
     lock_hex: str = ""
     entry: int | None = None
+    cursor: tuple[int, int] = (0, 0)
+    move_window_ok: bool = False
 
 
 CFG = Config()
@@ -405,6 +407,9 @@ class Emulator:
         if function in ("_lclose", "CloseHandle") and args and args[0] in self.files:
             del self.files[args[0]]
             return 1 if function == "CloseHandle" else 0
+        rect = self.rect_api(function, args)
+        if rect is not None:
+            return rect
         # APIs that fill a caller buffer: write an empty string so both runs see the same bytes (not stack garbage).
         empty_string_out = {"LoadStringA": 2, "GetWindowTextA": 1, "GetClassNameA": 1, "GetDlgItemTextA": 2}
         if function in empty_string_out and len(args) > empty_string_out[function]:
@@ -437,17 +442,69 @@ class Emulator:
             return self.fake_gdi(function, args)
         return None
 
+    def rect_api(self, function: str, args: tuple) -> int | None:
+        """USER32 rectangle/cursor/window-geometry calls. Pure rectangle math is emulated exactly; queries that
+        would read real window state fill their out-params deterministically (zero rects, CFG.cursor)."""
+        def read_rect(address: int) -> list[int]:
+            return list(struct.unpack("<4i", bytes(self.uc.mem_read(address, 16))))
+
+        def write_rect(address: int, rect) -> None:
+            self.write_guest(address, struct.pack("<4i", *[(v + 2**31) % 2**32 - 2**31 for v in rect]))
+
+        signed = lambda v: v - (1 << 32) if v & 0x80000000 else v  # noqa: E731
+        if function == "SetRect":
+            write_rect(args[0], [signed(a) for a in args[1:5]])
+            return 1
+        if function == "SetRectEmpty":
+            write_rect(args[0], [0, 0, 0, 0])
+            return 1
+        if function == "CopyRect":
+            write_rect(args[0], read_rect(args[1]))
+            return 1
+        if function in ("OffsetRect", "InflateRect"):
+            r, dx, dy = read_rect(args[0]), signed(args[1]), signed(args[2])
+            write_rect(args[0], [r[0] + dx, r[1] + dy, r[2] + dx, r[3] + dy] if function == "OffsetRect"
+                       else [r[0] - dx, r[1] - dy, r[2] + dx, r[3] + dy])
+            return 1
+        if function in ("IntersectRect", "UnionRect"):
+            a, b = read_rect(args[1]), read_rect(args[2])
+            if function == "IntersectRect":
+                r = [max(a[0], b[0]), max(a[1], b[1]), min(a[2], b[2]), min(a[3], b[3])]
+                if r[0] >= r[2] or r[1] >= r[3]:
+                    r = [0, 0, 0, 0]
+            else:
+                r = [min(a[0], b[0]), min(a[1], b[1]), max(a[2], b[2]), max(a[3], b[3])]
+            write_rect(args[0], r)
+            return int(r[0] < r[2] and r[1] < r[3])
+        if function == "IsRectEmpty":
+            r = read_rect(args[0])
+            return int(r[2] <= r[0] or r[3] <= r[1])
+        if function == "EqualRect":
+            return int(read_rect(args[0]) == read_rect(args[1]))
+        if function == "PtInRect":
+            r, x, y = read_rect(args[0]), signed(args[1]), signed(args[2])
+            return int(r[0] <= x < r[2] and r[1] <= y < r[3])
+        if function == "GetCursorPos":
+            self.write_guest(args[0], struct.pack("<2i", *CFG.cursor))
+            return 1
+        if function in ("GetClientRect", "GetWindowRect"):
+            write_rect(args[1], [0, 0, 0, 0])
+            return 0
+        if function == "MoveWindow":
+            return int(CFG.move_window_ok)
+        return None
+
     def heap_alloc(self, size: int) -> int:
         """Deterministic bump allocator: both runs get identical blocks for identical request sequences."""
+        if self.heap_next + size > HEAP_BASE + HEAP_SIZE:
+            self.error = f"emulated heap exhausted (request of {size:#x} bytes)"
+            self.uc.emu_stop()
+            return 0
         if not self.heap_mapped:
             self.uc.mem_map(HEAP_BASE, HEAP_SIZE, UC_PROT_ALL)
             self.heap_mapped = True
         block = self.heap_next
         self.heap_next += (size + 15) & ~15
-        if self.heap_next > HEAP_BASE + HEAP_SIZE:
-            self.error = "emulated heap exhausted"
-            self.uc.emu_stop()
-            return 0
         return block
 
     def heap_realloc(self, block: int, size: int) -> int:
@@ -779,9 +836,13 @@ def main() -> int:
     g.add_argument("--qpf", type=lambda v: int(v, 0), help="QueryPerformanceFrequency value")
     g.add_argument("--time-get-time", type=lambda v: int(v, 0), help="timeGetTime value")
     g.add_argument("--lock-hex", default="", help="FindResource/LoadResource/LockResource yield these bytes")
+    g.add_argument("--cursor", default="0,0", help="GetCursorPos result as x,y")
+    g.add_argument("--move-window-ok", action="store_true", help="MoveWindow returns 1 instead of 0")
     args = ap.parse_args()
     CFG.pokes, CFG.gdi_handles, CFG.qpc, CFG.qpf = args.poke, args.gdi_handles, args.qpc, args.qpf
     CFG.time_get_time, CFG.lock_hex, CFG.entry = args.time_get_time, args.lock_hex, args.entry
+    CFG.cursor = tuple(int(v) for v in args.cursor.split(","))
+    CFG.move_window_ok = args.move_window_ok
     results = run_captures(args.captures, args.dll, args.integration, args.orig_only, args.max_insns, args.jobs)
     print(f"{sum(results)}/{len(results)} passed or skipped")
     return 0 if all(results) else 1
