@@ -13,6 +13,7 @@ here was verified against the original game; the screenshots land in `work/run/<
 | `new_game_rebel.txt` | new Alliance game, galaxy screen after the agent-droid intro, ~60 s at Fast | ~310 s |
 | `new_game_empire.txt` | same as Empire | ~310 s |
 | `ui_tour.txt` | loaded game, opens finders / sector / system / fleet / personnel / encyclopedia / objectives / overview / message index / GID menu / options screen with a shot of each | ~175 s |
+| `save_game_slot.txt` | loads "RebelsFastStart", opens the in-game Saved Games screen (monitor at 15,372) and saves into the first empty row (left icon at 50,258); creates `work/game/SaveGame/SAVEGAME.005` (delete it before re-running: a second save asks to overwrite) | ~65 s |
 | `space_battle_autoresolve.txt` | loaded game; the "Battle at Ando" window pops up; chooses *Simulate Results* (auto-resolve) | ~130 s |
 
 Each was run at least twice (loads/battle/tour in parallel containers) with identical results. The load-based
@@ -122,7 +123,7 @@ Reached from the main menu (Load Game monitor, 430,248) or in-game via the lower
 
 When loading from the main menu there is no confirm dialog and the galaxy screen appears ~3 s later.
 **Escape does not leave this screen in game; click the middle icon (183,400).**
-Saving would create `work/game/SaveGame/SAVEGAME.00x` files; none of these scenarios save.
+Saving creates `work/game/SaveGame/SAVEGAME.00x` files; only `save_game_slot.txt` saves (the left icon of an empty row, then a "Selected Game Saved Successfully" dialog).
 
 ## Space battle (auto-resolve)
 
