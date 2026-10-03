@@ -2,6 +2,7 @@
 // Hybrid build: the real Windows SDK. Port: a native subset implemented on SDL (docs/platform_layer.md).
 #pragma once
 #include <windows.h>
+#include <commctrl.h>
 #include <mmsystem.h>
 #include <mmreg.h>
 #include <ddraw.h>
