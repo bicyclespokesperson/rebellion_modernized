@@ -62,7 +62,9 @@ Never kill processes by name pattern (it kills your own shell); use the scripts'
 4. **Build:** `tools/build_hybrid.sh`. The generator reports `N hooks`; link errors name any symbol that has
    no definition and no address.
 5. **Verify:**
-   - Capture real calls with a scenario that exercises the code (`tests/scenarios/`), then
+   - Capture real calls with a scenario that exercises the code (`tests/scenarios/`; docs/ui_navigation.md
+     lists what each reaches — e.g. `load_game` for a game in progress, `ui_tour` for the main windows,
+     `space_battle_autoresolve` for a battle; new games take ~5 min because of an unskippable intro), then
      `tools/difftest.py work/run/<scenario>/captures/*.cap` must print PASS for every capture. Capture
      several calls with different `skip` values to cover different paths.
    - Captures run the fully original game by default (`REB_DISABLE_HOOKS=all` is implied), so every call
