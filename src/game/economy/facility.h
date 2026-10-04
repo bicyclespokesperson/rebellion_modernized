@@ -7,7 +7,7 @@
 
 // Facility (ctor 0x539980, VT 0x6613a8, secondary ObjectBase VT 0x6613a0): abstract base of the facility families 0x20-0x2f
 // (ALLFAC/DEFFAC/MANFAC/PROFAC records), 0x58 bytes, no fields of its own. Vtable: 115 slots, 0-111 are UnitObjBase's,
-// 112-114 are new (the first two read the SD record's words +0x58/+0x5c, the shared bodies Detector uses too).
+// 112-114 are new (112 reads the SD record's word +0x58, the shared body Detector uses too).
 //
 // Hierarchy:
 //   Facility
@@ -28,9 +28,12 @@ public:
     virtual int OnUsableChanged(int newValue, NotifyContext* ctx) override;                             // 68, 0x558290 (shared jump)
     virtual int OnExistingChanged(int newValue, NotifyContext* ctx) override;                           // 74, 0x5582d0 (shared jump)
 
-    virtual uint32_t GetRecordField58();    // 112, 0x558050 (shared with Detector): record +0x58, 0 without a record
-    virtual uint32_t GetRecordField5c();    // 113, 0x558060 (shared with Detector): record +0x5c, 0 without a record
+    virtual uint32_t GetRecordField58();    // 112, 0x558050 (shared with Detector; a jump to 0x520b60): record +0x58, 0 without a record
+    virtual int Virtual113() { return 0; }  // 113, shared "return 0" stub
     virtual int Virtual114() { return 0; }  // 114, shared "return 0" stub
+
+    // Record word +0x5c (the production facilities' processing rate), 0 without a record. Not virtual here: 0x520b70.
+    uint32_t GetRecordField5c();
 
     // Body of the leaf classes' ApplyAll (slot 9): a side view applies everything; returns IsSideView().
     int ApplyAllImpl(NotifyContext* ctx);  // 0x539b30
