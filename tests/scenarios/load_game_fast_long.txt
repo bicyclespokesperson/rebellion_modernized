@@ -1,0 +1,36 @@
+# Load "RebelsFastStart" and let game time run ~8 minutes at Fast, so missions resolve and persons move/are captured.
+# See docs/ui_navigation.md. Runtime ~9 min. Loaded games start PAUSED (no agent-droid intro).
+12 key Escape
+16 key Escape
+20 key Escape
+# Main menu: Load Game monitor (right-centre of the cockpit, ~430,248). Hover first, then click.
+26 move 425 245
+27 move 430 248
+29 click 430 248
+33 shot load_list
+# Saved Games screen: slot rows at y=90,132,173,216,... (JAS1, Rebels, RebelsFastStart, JAS2, empty, empty).
+# The "Load Game" icon is the right-hand end of a row (x~305). Row 3 = RebelsFastStart.
+# (Clicking a row's load icon immediately loads when no game is in progress; otherwise a confirm
+# dialog appears: check mark at ~280,300.)
+34 move 300 170
+35 move 305 173
+36 click 305 173
+# Loading takes ~2-3 s; we land on the galaxy screen, paused (clock frozen).
+41 shot load_galaxy
+# Game speed control: top-left box in the Alliance skin. Right-click -> menu
+# (Pause / Very Slow / Slow / Medium / Fast); Fast is the bottom entry at ~(170,116).
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 112
+46 move 170 116
+47 click 170 116
+100 shot load_long_100
+160 shot load_long_160
+220 shot load_long_220
+280 shot load_long_280
+340 shot load_long_340
+400 shot load_long_400
+460 shot load_long_460
+520 shot load_long_520
+560 end

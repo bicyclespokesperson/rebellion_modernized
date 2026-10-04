@@ -6,6 +6,7 @@
 
 #include "core/containers.h"
 #include "core/layout.h"
+#include "core/stream_io.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_key.h"
@@ -13,13 +14,17 @@
 
 // Base 0x54eee0 (VT 0x662038) plus the request holder 0x54f2c0 (VT 0x662088). Slots 1-4 and 10 onwards are filled by
 // the concrete commands (move command 0x578ab0, VT 0x669558, ...).
+class Crc32;
+
 class Command : public AvlNode {
 public:
-    virtual ~Command();
+    Command();                                         // 0x54f2c0
+    Command(const Command& other);                     // 0x54f380
+    virtual ~Command();                                // 0x54f330 (VT 0x662088 slot 0 is the deleting form 0x54f310)
     virtual Command* Clone() = 0;                      // 1: a fresh copy, 0x50 bytes
-    virtual int Virtual02() = 0;                       // 2
-    virtual int Virtual03() = 0;                       // 3
-    virtual int Virtual04() = 0;                       // 4
+    virtual void Read(istream* in) = 0;                // 2: body 0x54f470 (base part: the context and the request)
+    virtual void Write(ostream* out) = 0;               // 3: body 0x54f490
+    virtual int Checksum(Crc32* crc) = 0;              // 4: body 0x54f4b0
     virtual int IsChecked() { return 0; }              // 5
     virtual int CheckEnabled(StatusCode* status) = 0;  // 6: the object may take part (the move command's 0x578c00)
     virtual int CheckValid(StatusCode* status) = 0;    // 7: the command is allowed (0x578d00)
