@@ -30,6 +30,12 @@ int __cdecl FUN_005868c0(MissionOrderCheck* check, StatusCode* status, int* out)
 int __thiscall FUN_00586720(Mission* self, System** out);
 int __cdecl FUN_00586b00(int unused, EventKindSet* out);
 
+// MissionCharacterTargetBase: the target as a character (0 if it is not one), its order check and event kind builder.
+class Character;
+int __thiscall FUN_00586c80(Mission* self, Character** out);
+int __cdecl FUN_00586e20(MissionOrderCheck* check, StatusCode* status, int* out);
+int __cdecl FUN_00587090(int unused, EventKindSet* out);
+
 // Bodies of the persistence slots of the rule bases (what the shared first-level forwarders end up calling).
 int __thiscall FUN_00592c50(Mission* self, istream* in);
 int __thiscall FUN_00593ad0(Mission* self, Crc32* crc);
