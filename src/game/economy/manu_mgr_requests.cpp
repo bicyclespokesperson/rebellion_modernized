@@ -26,7 +26,7 @@ void setOk(StatusCode* out) { setStatus(out, kStatusCategory, kStatusOk); }
 void setRefused(StatusCode* out) { setStatus(out, kStatusCategory, kStatusRefused); }
 
 const ObjectKey* requestKey(const ActivityRequest* request) {
-    return reinterpret_cast<const ObjectKey*>(&request->m_unk08);
+    return &request->m_target;
 }
 
 }  // namespace
@@ -144,7 +144,7 @@ int ManuMgr::CheckProductEvent215(int unused, int side, StatusCode* out) {
     ActivityRequest request;
     request.m_side = side;
     request.m_unk04 = 0;
-    request.m_unk08 = static_cast<int>(ObjectKey().m_value);
+    request.m_target = ObjectKey();
     request.m_kind = kEvent215Kind;
     return CheckProductActionImpl(&request, out);
 }
