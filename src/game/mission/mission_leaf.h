@@ -5,6 +5,7 @@
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "galaxy/system.h"
+#include "gameobj/object_family.h"
 #include "mission/mission_bases.h"
 
 // Declarations shared by the concrete mission types (MissionSubdue, MissionSabotage, ...): the functions of the mission
@@ -19,7 +20,14 @@ constexpr int kNotSupported = 0x17;
 }  // namespace mission_status
 
 // The record the order-check callbacks of slot 111 receive (fields +0x04, +0x0c, +0x14, +0x38 are read by the bases).
-struct MissionOrderCheck;
+struct MissionOrderCheck {
+    uint8_t m_unk00[4];
+    void* m_unk04;           // +0x04
+    uint8_t m_unk08[4];
+    void* m_unk0c;           // +0x0c
+    uint8_t m_unk10[0x28];
+    GameObjRoot* m_target;   // +0x38, tested for its family
+};
 
 // Slot-111 callbacks of the bases: (kind, person-ish object, out, status) for the member check, (check, status, out) for
 // the target checks of each base.
@@ -30,11 +38,22 @@ int __cdecl FUN_005868c0(MissionOrderCheck* check, StatusCode* status, int* out)
 int __thiscall FUN_00586720(Mission* self, System** out);
 int __cdecl FUN_00586b00(int unused, EventKindSet* out);
 
+// MissionCharacterTargetBase (the target is a character; Rescue) and MissionObjectTargetBase (Sabotage, DS Sabotage).
+int __cdecl FUN_00586e20(MissionOrderCheck* check, StatusCode* status, int* out);
+int __thiscall FUN_00586c80(Mission* self, Role** out);
+int __cdecl FUN_00587090(int unused, EventKindSet* out);
+int __cdecl FUN_00593500(MissionOrderCheck* check, StatusCode* status, int* out);
+int __cdecl FUN_005936c0(int unused, EventKindSet* out);
+
 // Bodies of the persistence slots of the rule bases (what the shared first-level forwarders end up calling).
 int __thiscall FUN_00592c50(Mission* self, istream* in);
 int __thiscall FUN_00593ad0(Mission* self, Crc32* crc);
 int __thiscall FUN_00523c60(Mission* self);
 int __thiscall FUN_005236e0(Mission* self, int controlKind, NotifyContext* ctx);
+
+inline int FamilyInRange(uint32_t familyValue, const FamilyRange& range) {
+    return familyValue >= range.m_first && familyValue < range.m_second;
+}
 
 inline StatusCode MakeStatus(int code) { return StatusCode(mission_status::kCategory, code); }
 
@@ -75,3 +94,7 @@ inline int CheckOrderAgainstKinds(BuildFn build, EventKindSet* kinds, int orderK
 // Slot 160 body shared by Subdue, Rescue, Recruit, Pickup, Jedi Training and Incite (0x576700): a mission that is
 // still in TaskStatus 0 starts (TaskStatus 2).
 int MissionStartIfIdle(Mission* mission, NotifyContext* ctx);
+
+// Slot 160 body shared by Sabotage and DS Sabotage (0x5746e0): start when idle; once the task has succeeded the object the
+// mission started from is destroyed (reason 6).
+int __thiscall MissionDestroyOriginOnSuccess(Mission* mission, NotifyContext* ctx);
