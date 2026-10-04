@@ -4,6 +4,7 @@
 #include "core/containers.h"
 #include "core/game_string.h"
 #include "core/layout.h"
+#include "economy/production_facility.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/key_queue.h"
 #include "gameobj/object_key.h"
@@ -22,7 +23,6 @@ public:
 
 class System;
 class ManuMgrDecl;
-class ProcFacilDecl;
 class SideTimedEvent;
 
 // Notification event ids the Side raises (FUN_0053fa60 / 0x53fcf0 / 0x53fd60 / 0x53fdd0).
@@ -262,11 +262,11 @@ public:
     // 0x28-0x2b); *out is null if there is none. Does not use `this`.
     int FindFacilityManuMgr(GameObj* facility, ManuMgrDecl** out);  // 0x52eb60
     // Clears a releasable facility's waiting flag and lets its manager continue.
-    void ReleaseFacilityToManager(ProcFacilDecl* facility, NotifyContext* ctx);  // 0x530950
-    int ReleaseRawMaterial(ProcFacilDecl* facility, NotifyContext* ctx);       // 0x530670
-    int AcquireRawMaterial(ProcFacilDecl* facility, NotifyContext* ctx);        // 0x5306b0
-    int ReleaseRefinedMaterial(ProcFacilDecl* facility, NotifyContext* ctx);   // 0x5307e0
-    int AcquireRefinedMaterial(ProcFacilDecl* facility, NotifyContext* ctx);    // 0x530820
+    void ReleaseFacilityToManager(ProductionFacility* facility, NotifyContext* ctx);  // 0x530950
+    int ReleaseRawMaterial(ProductionFacility* facility, NotifyContext* ctx);       // 0x530670
+    int AcquireRawMaterial(ProductionFacility* facility, NotifyContext* ctx);        // 0x5306b0
+    int ReleaseRefinedMaterial(ProductionFacility* facility, NotifyContext* ctx);   // 0x5307e0
+    int AcquireRefinedMaterial(ProductionFacility* facility, NotifyContext* ctx);    // 0x530820
     // Pushes a queue entry (key and the facility's request number) / pops the oldest.
     KeyQueueNode* PopRefineryQueue(NotifyContext* ctx);      // 0x5335c0
     KeyQueueNode* PopManufacturerQueue(NotifyContext* ctx);  // 0x533660
@@ -314,9 +314,8 @@ int FormatVictoryConditions(uint32_t conditions, String* out);
 // The secondary vtable's WriteName for the Side (0x52d920; `base` is the ObjectBase subobject).
 void __thiscall AppendSideName(ObjectBase* base, String* out, int kind);
 // Helpers of the process facilities that live in this range (0x52e740, 0x52e8b0, 0x530650).
-IntPair* __thiscall GetFacilityStatePair(ProcFacilDecl* facility, IntPair* out);
 GameObjNotifier* __thiscall FindNextUnit(GameObjNotifier* unit);
-int __stdcall MarkFacilityWaiting(ProcFacilDecl* facility, NotifyContext* ctx);
+int __stdcall MarkFacilityWaiting(ProductionFacility* facility, NotifyContext* ctx);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

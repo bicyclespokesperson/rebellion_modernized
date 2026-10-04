@@ -24,13 +24,13 @@ bool sameControlSide(const GameObjRoot* a, const GameObjRoot* b) {
     return ((a->m_flags ^ b->m_flags) & kControlSideMask) == 0;
 }
 
-ProcFacilDecl* asFacility(GameObjNotifier* object) { return static_cast<ProcFacilDecl*>(static_cast<GameObj*>(object)); }
+ProductionFacility* asFacility(GameObjNotifier* object) { return static_cast<ProductionFacility*>(static_cast<GameObj*>(object)); }
 
 GameObjNotifier* nextInRange(GameObjNotifier* object, const FamilyRange& range) {
     return static_cast<GameObj*>(object)->FindNextSibling(&range, 1);
 }
 
-bool isReleasable(const ProcFacilDecl* facility) { return ((facility->m_procFlags >> kProcFacilReleasableBit) & 1) != 0; }
+bool isReleasable(const ProductionFacility* facility) { return ((facility->m_procFlags >> kProcFacilReleasableBit) & 1) != 0; }
 
 void addPair(IntPair* sum, const IntPair& other) {
     sum->m_first += other.m_first;
@@ -46,9 +46,9 @@ void subtractPair(IntPair* from, const IntPair& other) {
 
 // ---- facility helpers ---------------------------------------------------------------------------------------
 
-int __stdcall MarkFacilityWaiting(ProcFacilDecl* facility, NotifyContext* ctx) {
+int __stdcall MarkFacilityWaiting(ProductionFacility* facility, NotifyContext* ctx) {
     int result = 1;
-    if ((facility->m_procFlags & kProcFacilWaitingFlag) == 0) result = FUN_0053a860(facility, 1, ctx);
+    if ((facility->m_procFlags & kProcFacilWaitingFlag) == 0) result = facility->SetPointPresent(1, ctx);
     return result;
 }
 
@@ -78,9 +78,9 @@ int Side::FindFacilityManuMgr(GameObj* facility, ManuMgrDecl** out) {
     return result;
 }
 
-void Side::ReleaseFacilityToManager(ProcFacilDecl* facility, NotifyContext* ctx) {
+void Side::ReleaseFacilityToManager(ProductionFacility* facility, NotifyContext* ctx) {
     int result = 0;
-    if (isReleasable(facility)) result = FUN_0053a860(facility, 0, ctx);
+    if (isReleasable(facility)) result = facility->SetPointPresent(0, ctx);
     if (result) {
         ManuMgrDecl* manager = nullptr;
         if (FindFacilityManuMgr(facility, &manager) && manager != nullptr) FUN_0052a430(manager, ctx);
@@ -176,25 +176,25 @@ int allocateFacilities(Side* side, const IntPair* state, int required, FirstFaci
                 spent = true;
                 break;
             }
-            ProcFacilDecl* facility = asFacility(object);
+            ProductionFacility* facility = asFacility(object);
             if ((facility->m_stateFlags & kUsableFlag) && !(facility->m_procFlags & kProcFacilExcludedFlag) &&
                 sameControlSide(facility, side)) {
                 int used = 0;
                 IntPair pair;
                 if (reducing) {
-                    result = FUN_0055a960(facility, delta, &working, &used, ctx);
+                    result = facility->RewindWork(delta, reinterpret_cast<const int*>(&working), &used, ctx);
                     if (result) {
                         delta -= used;
                         subtractPair(&working, IntPair(0, used));
-                        GetFacilityStatePair(facility, &pair);
+                        facility->GetWork(&pair);
                         if (pair.m_second != 0) again = true;
                     }
                 } else {
-                    result = FUN_0055a820(facility, delta, &working, &used, ctx);
+                    result = facility->AdvanceWork(delta, reinterpret_cast<const int*>(&working), &used, ctx);
                     if (result) {
                         delta -= used;
                         addPair(&working, IntPair(0, used));
-                        GetFacilityStatePair(facility, &pair);
+                        facility->GetWork(&pair);
                         if (pair.m_first != pair.m_second) again = true;
                     }
                 }
@@ -230,14 +230,14 @@ int Side::RecomputeMaintenance(NotifyContext* ctx) {
         total += static_cast<UnitObjBase*>(unit)->GetRecordField4c();
         const uint32_t unitFamily = unit->GetFamily();
         if (unitFamily < 0x2c || unitFamily > 0x2f) continue;
-        ProcFacilDecl* facility = static_cast<ProcFacilDecl*>(unit);
+        ProductionFacility* facility = static_cast<ProductionFacility*>(unit);
         if (!(facility->m_stateFlags & kUsableFlag) || (facility->m_procFlags & kProcFacilExcludedFlag)) continue;
         IntPair pair;
         if (unitFamily == 0x2c) {
-            GetFacilityStatePair(facility, &pair);
+            facility->GetWork(&pair);
             addPair(&mines, pair);
         } else if (unitFamily == 0x2d) {
-            GetFacilityStatePair(facility, &pair);
+            facility->GetWork(&pair);
             addPair(&refineries, pair);
         }
     }
@@ -410,7 +410,7 @@ int Side::EnqueueManufacturer(KeyQueueNode* node, NotifyContext* ctx) {
 namespace {
 
 // Queue entry for a waiting facility: its key and its current request number.
-KeyQueueNode* newWaitingEntry(ProcFacilDecl* facility) {
+KeyQueueNode* newWaitingEntry(ProductionFacility* facility) {
     KeyQueueNode* node = new KeyQueueNode();
     if (!node) return nullptr;
     if (node->m_flag == 0) {
@@ -420,13 +420,13 @@ KeyQueueNode* newWaitingEntry(ProcFacilDecl* facility) {
     ObjectKey key;
     facility->GetKey(&key);
     node->m_key = key;
-    node->m_value = static_cast<int>(FUN_0053a6e0(facility));
+    node->m_value = static_cast<int>(facility->GetCycleCount());
     return node;
 }
 
 }  // namespace
 
-int Side::AcquireRawMaterial(ProcFacilDecl* facility, NotifyContext* ctx) {
+int Side::AcquireRawMaterial(ProductionFacility* facility, NotifyContext* ctx) {
     int result = 1;
     if ((facility->m_procFlags & kProcFacilWaitingFlag) == 0 && facility->m_state == 1) {
         int took = 0;
@@ -436,14 +436,14 @@ int Side::AcquireRawMaterial(ProcFacilDecl* facility, NotifyContext* ctx) {
                 result = 0;
                 if (KeyQueueNode* node = newWaitingEntry(facility)) result = EnqueueRefinery(node, ctx);
             } else {
-                result = FUN_0053a860(facility, 1, ctx);
+                result = facility->SetPointPresent(1, ctx);
             }
         }
     }
     return result;
 }
 
-int Side::AcquireRefinedMaterial(ProcFacilDecl* facility, NotifyContext* ctx) {
+int Side::AcquireRefinedMaterial(ProductionFacility* facility, NotifyContext* ctx) {
     int result = 1;
     if ((facility->m_procFlags & kProcFacilWaitingFlag) == 0 && facility->m_state == 1) {
         int took = 0;
@@ -453,23 +453,23 @@ int Side::AcquireRefinedMaterial(ProcFacilDecl* facility, NotifyContext* ctx) {
                 result = 0;
                 if (KeyQueueNode* node = newWaitingEntry(facility)) result = EnqueueManufacturer(node, ctx);
             } else {
-                result = FUN_0053a860(facility, 1, ctx);
+                result = facility->SetPointPresent(1, ctx);
             }
         }
     }
     return result;
 }
 
-int Side::ReleaseRawMaterial(ProcFacilDecl* facility, NotifyContext* ctx) {
+int Side::ReleaseRawMaterial(ProductionFacility* facility, NotifyContext* ctx) {
     int result = isReleasable(facility) ? 1 : 0;
-    if (result) result = FUN_0053a860(facility, 0, ctx);
+    if (result) result = facility->SetPointPresent(0, ctx);
     if (result) result = SetRawMaterials(m_rawMaterials + 1, ctx);
     return result;
 }
 
-int Side::ReleaseRefinedMaterial(ProcFacilDecl* facility, NotifyContext* ctx) {
+int Side::ReleaseRefinedMaterial(ProductionFacility* facility, NotifyContext* ctx) {
     int result = isReleasable(facility) ? 1 : 0;
-    if (result) result = FUN_0053a860(facility, 0, ctx);
+    if (result) result = facility->SetPointPresent(0, ctx);
     if (result) result = SetRefinedMaterials(m_refinedMaterials + 1, ctx);
     return result;
 }
@@ -483,11 +483,11 @@ int Side::ServeRefineryQueue(int* more, NotifyContext* ctx) {
         node->GetKey(&key);
         GameObjNotifier* object = GetMasterInFamilies_28_30(&key);
         if (object != nullptr && asFacility(object)->m_state == 1) {
-            ProcFacilDecl* facility = asFacility(object);
-            if (static_cast<uint32_t>(node->m_value) == FUN_0053a6e0(facility)) {
+            ProductionFacility* facility = asFacility(object);
+            if (static_cast<uint32_t>(node->m_value) == facility->GetCycleCount()) {
                 int took = 0;
                 result = TakeRawMaterial(&took, ctx);
-                if (result != 0 && took != 0) result = FUN_0053a860(facility, 1, ctx);
+                if (result != 0 && took != 0) result = facility->SetPointPresent(1, ctx);
             }
         }
         delete node;
@@ -505,11 +505,11 @@ int Side::ServeManufacturerQueue(int* more, NotifyContext* ctx) {
         node->GetKey(&key);
         GameObjNotifier* object = GetMasterInFamilies_28_30(&key);
         if (object != nullptr && asFacility(object)->m_state == 1) {
-            ProcFacilDecl* facility = asFacility(object);
-            if (static_cast<uint32_t>(node->m_value) == FUN_0053a6e0(facility)) {
+            ProductionFacility* facility = asFacility(object);
+            if (static_cast<uint32_t>(node->m_value) == facility->GetCycleCount()) {
                 int took = 0;
                 result = TakeRefinedMaterial(&took, ctx);
-                if (result != 0 && took != 0) result = FUN_0053a860(facility, 1, ctx);
+                if (result != 0 && took != 0) result = facility->SetPointPresent(1, ctx);
             }
         }
         delete node;

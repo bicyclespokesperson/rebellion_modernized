@@ -46,7 +46,7 @@ int checksumPair(Crc32* crc, const IntPair* pair) {
     return 1;
 }
 
-ProcFacilDecl* asFacility(GameObjNotifier* object) { return static_cast<ProcFacilDecl*>(static_cast<GameObj*>(object)); }
+ProductionFacility* asFacility(GameObjNotifier* object) { return static_cast<ProductionFacility*>(static_cast<GameObj*>(object)); }
 
 }  // namespace
 
@@ -321,22 +321,17 @@ int Side::CountQueuedB(KeyQueueNode* probe) {
     return m_manufacturerQueue ? m_manufacturerQueue->CountMatching(probe) : 0;
 }
 
-IntPair* __thiscall GetFacilityStatePair(ProcFacilDecl* facility, IntPair* out) {
-    *out = facility->m_statePair;
-    return out;
-}
-
 namespace {
 
 int stateMatchesSum(Side* side, GameObjNotifier* first, const FamilyRange& range, const IntPair& state) {
     IntPair sum;
     for (GameObjNotifier* object = first; object;
          object = static_cast<GameObj*>(object)->FindNextSibling(&range, 1)) {
-        ProcFacilDecl* facility = asFacility(object);
+        ProductionFacility* facility = asFacility(object);
         if ((facility->m_stateFlags & kUsableFlag) && !(facility->m_procFlags & kProcFacilExcludedFlag) &&
             sameControlSide(facility, side)) {
             IntPair pair;
-            GetFacilityStatePair(facility, &pair);
+            facility->GetWork(&pair);
             addPair(&sum, pair);
         }
     }
@@ -382,13 +377,13 @@ int Side::QueuesMatchFacilities() {
     const FamilyRange refineries(0x2d, 0x2e);
     for (GameObjNotifier* object = GetFirstMasterInFamilies_2d_2e(); object && ok;
          object = static_cast<GameObj*>(object)->FindNextSibling(&refineries, 1)) {
-        ProcFacilDecl* facility = asFacility(object);
+        ProductionFacility* facility = asFacility(object);
         int queued;
         int waiting;
         {
             KeyQueueNode node;
             facility->GetKey(&node.m_key);
-            node.m_value = FUN_0053a6e0(facility);
+            node.m_value = facility->GetCycleCount();
             queued = CountQueuedA(&node);
             waiting = facility->m_state == 1 && sameControlSide(facility, this) ? 1 : 0;
         }
@@ -397,13 +392,13 @@ int Side::QueuesMatchFacilities() {
     const FamilyRange manufacturers(0x28, 0x2c);
     for (GameObjNotifier* object = GetFirstMasterInFamilies_28_2c(); object && ok;
          object = static_cast<GameObj*>(object)->FindNextSibling(&manufacturers, 1)) {
-        ProcFacilDecl* facility = asFacility(object);
+        ProductionFacility* facility = asFacility(object);
         int queued;
         int waiting;
         {
             KeyQueueNode node;
             facility->GetKey(&node.m_key);
-            node.m_value = FUN_0053a6e0(facility);
+            node.m_value = facility->GetCycleCount();
             queued = CountQueuedB(&node);
             waiting = facility->m_state == 1 && sameControlSide(facility, this) ? 1 : 0;
         }

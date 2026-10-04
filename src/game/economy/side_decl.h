@@ -11,20 +11,6 @@
 #include "gameobj/status_code.h"
 #include "gameobj/unit_obj_base.h"
 
-// A process facility (families 0x28-0x2d: shipyards, training facilities, construction yards, mines, refineries).
-class ProcFacilDecl : public UnitObjBase {
-public:
-    int m_state;           // +0x58, 1 while the facility waits for materials
-    int m_unk5c;           // +0x5c
-    uint32_t m_procFlags;  // +0x60, bit 0 = excluded from allocation, bit 1 = waiting flag, bit 2 = may be released
-    IntPair m_statePair;   // +0x64, {capacity, allocated} of a mine or refinery
-};
-
-// ProcFacil virtuals/helpers used by the Side code (0x53a6e0, 0x53a860, 0x55a820, 0x55a960, 0x555540).
-uint32_t __thiscall FUN_0053a6e0(ProcFacilDecl* facility);
-int __thiscall FUN_0053a860(ProcFacilDecl* facility, int on, NotifyContext* ctx);
-int __thiscall FUN_0055a820(ProcFacilDecl* facility, int amount, IntPair* state, int* used, NotifyContext* ctx);
-int __thiscall FUN_0055a960(ProcFacilDecl* facility, int amount, IntPair* state, int* used, NotifyContext* ctx);
 // Member of the game root's object at +0xbc: finds the master that owns `object`.
 int __thiscall FUN_00555540(GameObjNotifier* self, GameObj* object, GameObjNotifier** owner);
 
