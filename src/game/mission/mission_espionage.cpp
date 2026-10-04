@@ -102,7 +102,7 @@ int MissionEspionage::Virtual159(GameObj* person, int roll, int* out, NotifyCont
     *out = 1;
     int result = SetTaskStatus(kTaskSucceeded, ctx) != 0;
     GameObj* leader = nullptr;
-    result = GetLeaderObject(&leader) && result;
+    result = GetTargetLocationSystem(&leader) && result;
     if (!leader || ControlSide() == leader->ControlSide()) return result;
     Role* role = static_cast<Role*>(person);
     if (!role->Virtual118()) return result;
@@ -116,7 +116,7 @@ int MissionEspionage::Virtual160(NotifyContext* ctx) {
     if (m_taskStatus != kTaskSucceeded) return result;
 
     GameObj* leader = nullptr;
-    result = GetLeaderObject(&leader) && result;
+    result = GetTargetLocationSystem(&leader) && result;
     GameObj* target = nullptr;
     if (leader) {
         const FamilyRange systems(0x90, 0x98);

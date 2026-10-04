@@ -205,20 +205,20 @@ int MissionJediTraining::OnExtraKeyNotified(ObjectKey* oldKey, ObjectKey* newKey
 
 int MissionJediTraining::RequestPhase9(NotifyContext* ctx) {
     int result = 1;
-    if (IsDataField1cAbove6() && !HasCompletionStatus()) result = Virtual119(kRequestPhase9, ctx) != 0;
+    if (IsDataField1cAbove6() && !HasCompletionStatus()) result = CompleteWith(kRequestPhase9, ctx) != 0;
     return result;
 }
 
 int MissionJediTraining::RequestPhase10(NotifyContext* ctx) {
     int result = 1;
-    if (IsDataField1cAbove6() && !HasCompletionStatus()) result = Virtual119(kRequestPhase10, ctx) != 0;
+    if (IsDataField1cAbove6() && !HasCompletionStatus()) result = CompleteWith(kRequestPhase10, ctx) != 0;
     return result;
 }
 
 int MissionJediTraining::RemoveMember(ObjectKey* member, int decoy, NotifyContext* ctx) {
     int result = Mission::RemoveMember(member, decoy, ctx) != 0;
     if (!HasCompletionStatus() && m_extraKey.m_value == member->m_value) {
-        if (!Virtual119(kRequestPhase11, ctx) || !result) return 0;
+        if (!CompleteWith(kRequestPhase11, ctx) || !result) return 0;
         return 1;
     }
     return result;
