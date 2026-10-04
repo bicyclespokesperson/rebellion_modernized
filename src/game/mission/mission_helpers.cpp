@@ -4,6 +4,8 @@
 #include "character/special_forces.h"
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
+#include "economy/manu_mgr.h"
+#include "gameobj/status_code.h"
 #include "data/dat_record.h"
 #include "gameobj/object_queries.h"
 #include "mission/mission.h"
@@ -29,6 +31,71 @@ ObjectKey recordKey(DatRecord* record) {
 }
 
 }  // namespace
+
+void MissionMemberSummary::CopyAllButFirst(const MissionMemberSummary& other) {
+    if (this != &other) {
+        m_characterAbilityMask = other.m_characterAbilityMask;
+        m_hasAlliance = other.m_hasAlliance;
+        m_hasEmpire = other.m_hasEmpire;
+        m_kind = other.m_kind;
+    }
+}
+
+// ---- EventKindNode ----------------------------------------------------------------------------------------
+
+EventKindNode::EventKindNode() : m_value(1), m_unknown(0) {}
+
+EventKindNode::EventKindNode(const EventKindNode& other)
+    : IntKeyNode(other), m_value(other.m_value), m_unknown(other.m_unknown) {}
+
+EventKindNode::~EventKindNode() { REB_KEEP_VPTR_STORE(); }
+
+CloneableNode* EventKindNode::Clone() {
+    void* memory = ::operator new(sizeof(EventKindNode));
+    return memory ? new (memory) EventKindNode(*this) : nullptr;
+}
+
+int EventKindNode::Read(istream* in) {
+    const int result = IntKeyNode::Read(in);
+    if (result) {
+        ReadValue32(in, &m_value);
+        ReadValue32(in, &m_unknown);
+    }
+    return result;
+}
+
+int EventKindNode::Write(ostream* out) {
+    const int result = IntKeyNode::Write(out);
+    if (result) {
+        WriteValue32(out, &m_value);
+        WriteValue32(out, &m_unknown);
+    }
+    return result;
+}
+
+// ---- ManuMgrData (the class belongs to the economy module, its methods sit in this address range) ---------
+
+ManuMgrData::ManuMgrData() {}
+
+ManuMgrData::~ManuMgrData() { REB_KEEP_VPTR_STORE(); }
+
+int ManuMgrData::Read(istream* in) {
+    const int result = GameObjData::Read(in);
+    if (result) m_queue.Read(in);
+    return result;
+}
+
+int ManuMgrData::Write(ostream* out) {
+    const int result = GameObjData::Write(out);
+    if (result) m_queue.Write(out);
+    return result;
+}
+
+int ManuMgrData::Checksum(Crc32* crc) {
+    int result = GameObjData::Checksum(crc);
+    if (result) result = m_queue.Checksum(crc);
+    return result;
+}
 
 // ---- MissionPhaseLevels -----------------------------------------------------------------------------------
 
@@ -235,10 +302,7 @@ int addKeysToSummary(ObjectKeyValueSet* set, int a, MissionMemberSummary* summar
 
 int __cdecl FillMemberSummaryForMission(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, ObjectKeyValueSet* captured,
                                         MissionMemberSummary* summary, StatusCode* status) {
-    summary->m_characterAbilityMask = 0;
-    summary->m_hasAlliance = 0;
-    summary->m_hasEmpire = 0;
-    summary->m_kind = 0;
+    summary->CopyAllButFirst(MissionMemberSummary{});
     *status = StatusCode(kStatusCategory, kStatusOk);
     int ok = addKeysToSummary(team, 0, summary, status, 1);
     ok = addKeysToSummary(decoys, 1, summary, status, ok);

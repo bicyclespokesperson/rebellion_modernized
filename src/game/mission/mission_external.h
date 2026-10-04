@@ -33,6 +33,9 @@ struct MissionMemberSummary {
     uint32_t m_hasAlliance;              // +0x08 a team member is controlled by the Alliance
     uint32_t m_hasEmpire;                // +0x0c a team member is controlled by the Empire
     uint32_t m_kind;                     // +0x10 1 = Alliance, 2 = Empire (set by FillMemberSummary)
+
+    // Copies fields +0x04..+0x10 but not +0x00 (0x582b60).
+    void CopyAllButFirst(const MissionMemberSummary& other);
 };
 
 // The record handed to the checker callbacks (VT 0x66a090, 0x3c bytes, ctor 0x582b90, deleting dtor 0x582c00, dtor

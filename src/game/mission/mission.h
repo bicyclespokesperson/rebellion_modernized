@@ -120,7 +120,7 @@ public:
     virtual int TryComplete(const ActivityRequest* request, NotifyContext* ctx);                             // 117, 0x523310
     virtual int CompleteIfOutcomePhase(NotifyContext* ctx);                                      // 118, 0x5233a0: if Phase 8, SetPhase(2)... see body
     virtual int CompleteWith(int a, NotifyContext* ctx);                               // 119, 0x5233d0
-    virtual int Virtual120() = 0;                                                    // 120, pure
+    virtual int AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, NotifyContext* ctx) = 0;  // 120, pure
 
     // ---- OnXChanged events on the master (slots 121-138) ----
     virtual int OnUserIdChanged(int oldValue, int newValue, NotifyContext* ctx) { return 1; }               // 121
@@ -317,6 +317,8 @@ public:
 //
 // Usage: `Iter it(mission); it.Begin(); while (it.Current()) { ...; it.Advance(); }` (Begin = 0x525930, Advance = 0x5258f0;
 // the constructors do NOT position the iterator).
+void NextMemberKey(ObjectKeyValueSet* set, ObjectKey* key);  // 0x525b00
+
 class MissionMemberIterator {
 public:
     MissionMemberIterator(Mission* mission, const FamilyRange* range, int team, int decoys, int captured);  // 0x525870

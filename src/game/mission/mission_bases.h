@@ -1,6 +1,8 @@
 #pragma once
 #include "mission/mission.h"
 
+class MissionCheckArgs;
+
 // The mission base classes between Mission and the concrete mission types. None of them has fields of its own (all are
 // 0xa8 bytes); they differ in the event kinds they report (slot 15), the order check (22), the "check functions" pair of
 // slot 111 and a few more overrides. Each class's constructor stores its own vtable (primary at +0x00, secondary
@@ -27,17 +29,29 @@ public:
     virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                   // 22, 0x592420
     virtual int GetCheckFunctions(MissionCheckFunctions* out) override;                       // 111, 0x5924e0
     virtual int IsFinalPhase() override { return m_phase == 9; }                                         // 114, 0x592500
-    virtual int Virtual120() override;                                                        // 120, 0x592510
+    virtual int AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, NotifyContext* ctx) override;  // 120, 0x592510
     virtual int OnPhaseChanged(int oldValue, int newValue, NotifyContext* ctx) override;      // 125, 0x592f50
 
     // ---- slots 157-161: per-type callbacks (the rule-base branch has 162 slots; MissionTypeBase's branch differs) ----
     // Signatures provisional, taken from MissionSubdue (157 0x569b90, 158 stub 0x51ebb0, 159 0x569c20, 160 0x576700).
-    virtual int Virtual157(GameObj* person, int a) = 0;                                       // 157
-    virtual int Virtual158(int a) = 0;                                                        // 158
-    virtual int Virtual159(GameObj* person, int a, int* out, NotifyContext* ctx) = 0;         // 159
-    virtual int Virtual160(int a) = 0;                                                        // 160
+    // Called when the mission reaches phase 10 (OnPhaseChanged): 157 scores one person, 159 applies a score.
+    virtual int Virtual157(GameObj* person, int* out) = 0;                                    // 157
+    virtual int Virtual158(NotifyContext* ctx) = 0;                                           // 158
+    virtual int Virtual159(GameObj* person, int value, int* out, NotifyContext* ctx) = 0;     // 159
+    virtual int Virtual160(NotifyContext* ctx) = 0;                                           // 160
+    // Re-applies the objective's views when the team can act (called at phases 10 and 11).
     virtual int Virtual161(NotifyContext* ctx);                                               // 161, 0x592c80
 
+    int QueryPersonResult(GameObj* person, int* out);  // 0x593320: *out = 0, then slot 157
+    int ReadBody(istream* in);                         // 0x592c50 (forwarder to Mission::ReadImpl)
+    int WriteBody(ostream* out);                       // 0x592c60
+    int ApplyAllBody(NotifyContext* ctx);              // 0x592c70
+
+    // The pair of callbacks GetCheckFunctions reports: locate the person's location object, and the target check.
+    static int __cdecl CheckMember(int side, GameObj* person, GameObj** out, StatusCode* status);  // 0x592aa0
+    static int __cdecl CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);          // 0x592600
+    static int InitEventKinds(int unused, EventKindSet* out);                                      // 0x593300
+    static void InitStatics();                                                                     // 0x593350
     static int BuildEventKinds();  // 0x5932d0
 };
 
@@ -51,6 +65,10 @@ public:
     virtual int GetCheckFunctions(MissionCheckFunctions* out) override;                       // 111, 0x5868a0
 
     static int BuildEventKinds();  // 0x586ad0
+    static int InitEventKinds(int unused, EventKindSet* out);  // 0x586b00
+    static void InitStatics();                                  // 0x586b20
+    static int __cdecl CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x5868c0
+    int GetObjectiveSystem(GameObj** out);  // 0x586720
 };
 
 class MissionCharacterTargetBase : public MissionRuleBase {
@@ -63,6 +81,10 @@ public:
     virtual int GetCheckFunctions(MissionCheckFunctions* out) override;                       // 111, 0x586e00
 
     static int BuildEventKinds();  // 0x587060
+    static int InitEventKinds(int unused, EventKindSet* out);  // 0x587090
+    static void InitStatics();                                  // 0x5870b0
+    static int __cdecl CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x586e20
+    int GetObjectiveCharacter(GameObj** out);  // 0x586c80
 };
 
 class MissionObjectTargetBase : public MissionRuleBase {
@@ -75,6 +97,9 @@ public:
     virtual int GetCheckFunctions(MissionCheckFunctions* out) override;                       // 111, 0x5934e0
 
     static int BuildEventKinds();  // 0x593690
+    static int InitEventKinds(int unused, EventKindSet* out);  // 0x5936c0
+    static void InitStatics();                                  // 0x5936e0
+    static int __cdecl CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x593500
 };
 
 class MissionStoryBase : public MissionRuleBase {
@@ -88,6 +113,16 @@ public:
     virtual int OnPhaseChanged(int oldValue, int newValue, NotifyContext* ctx) override;      // 125, 0x594460
 
     static int BuildEventKinds();  // 0x594480
+    static int InitEventKinds(int unused, EventKindSet* out);  // 0x5944b0
+    static void InitStatics();                                  // 0x5944d0
+    static int __cdecl CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x594320
+};
+
+// Iterator over the mission families 0x50-0x60 of a parent (VT 0x66a550, ctor 0x586b70, destructor 0x586c10, deleting 0x586bf0).
+class MissionTargetKindIterator : public ChildIterator {
+public:
+    explicit MissionTargetKindIterator(GameObjNotifier* parent);  // 0x586b70
+    virtual ~MissionTargetKindIterator();                          // 0x586c10
 };
 
 #pragma clang diagnostic push

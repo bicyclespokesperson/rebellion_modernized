@@ -4,7 +4,10 @@
 
 namespace {
 
-void nextKeyAfter(ObjectKeyValueSet* set, ObjectKey* key) {
+}  // namespace
+
+// Advances *key to the key after it in `set` (the first if unset); unset at the end (0x525b00).
+void NextMemberKey(ObjectKeyValueSet* set, ObjectKey* key) {
     const ObjectKey previous = *key;
     key->Reset();
     AvlNode* node = nullptr;
@@ -17,8 +20,6 @@ void nextKeyAfter(ObjectKeyValueSet* set, ObjectKey* key) {
     }
     if (node) static_cast<ObjectKeyNode*>(node)->GetKey(key);
 }
-
-}  // namespace
 
 MissionMemberIterator::MissionMemberIterator(Mission* mission, const FamilyRange* range, int team, int decoys, int captured)
     : m_mission(mission),
@@ -35,17 +36,17 @@ MissionMemberIterator::~MissionMemberIterator() { REB_KEEP_VPTR_STORE(); }
 
 void MissionMemberIterator::StepKey() {
     if (m_inTeam) {
-        if (m_wantTeam) nextKeyAfter(&m_mission->m_team, &m_currentKey);
+        if (m_wantTeam) NextMemberKey(&m_mission->m_team, &m_currentKey);
         m_inTeam = m_currentKey.IsSet();
         m_inDecoys = m_inTeam == 0;
     }
     if (m_inDecoys) {
-        if (m_wantDecoys) nextKeyAfter(&m_mission->m_decoys, &m_currentKey);
+        if (m_wantDecoys) NextMemberKey(&m_mission->m_decoys, &m_currentKey);
         m_inDecoys = m_currentKey.IsSet();
         m_inCaptured = m_inDecoys == 0;
     }
     if (m_inCaptured) {
-        if (m_wantCaptured) nextKeyAfter(&m_mission->m_captured, &m_currentKey);
+        if (m_wantCaptured) NextMemberKey(&m_mission->m_captured, &m_currentKey);
         m_inCaptured = m_currentKey.IsSet();
     }
 }
