@@ -73,9 +73,25 @@ public:
     void TrackSelection(POINT* point);  // 0x5ae1e0 (linker-folded empty function): selection was never written
 
     // Points `last` at the last character of the word at `start` (stopping at ' ', '\t', '\n' or the end) and
-    // returns its length (0 if `start` is on a separator).
-    static int ScanWord(const StringCursor& start, StringCursor& last);  // 0x420930
+    // returns its length (0 if `start` is on a separator). Does not use `this`.
+    int ScanWord(const StringCursor& start, StringCursor& last);  // 0x420930
 
+private:
+    // Helpers of the functions above (no original counterparts).
+    void CreateCaretForFont();
+    void RestoreCaret(HWND hwnd);
+    void RewindToTop();
+    int FitWordToLine(HDC dc, int length, SIZE* extent);
+    void InvalidateFromCaretLine(HWND hwnd);
+    void SetCaretToPosition();
+    void MoveCaretVertically();
+    void ForwardKey(WPARAM key, LPARAM lParam);
+    void OnKeyDown(HWND hwnd, WPARAM key, LPARAM lParam);
+    void OnChar(HWND hwnd, WPARAM wParam);
+    void OnLeftButtonDown(HWND hwnd, LPARAM lParam);
+    void OnMouseMove(HWND hwnd, LPARAM lParam);
+
+public:
     String m_text;                   // +0xa0
     DibBitmap* m_background;         // +0xac owned: the backdrop under the window
     HFONT m_textFont;                // +0xb0
