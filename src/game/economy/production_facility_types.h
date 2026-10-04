@@ -10,6 +10,13 @@
 // and 134 are identical code in both classes, so the linker folded them: the 0x2d class's (0x52d450-0x52d180,
 // 0x52d5e0, 0x52d1a0) serve both vtables.
 
+// Bodies of slots 5-7 and 9 that the wrappers above call (thiscall, `this` passed through; identical code for both
+// classes, so these serve them both).
+int __thiscall ProductionFacilityReadBody(ProductionFacility* self, istream* in);       // 0x52d480 (-> ReadImpl)
+int __thiscall ProductionFacilityWriteBody(ProductionFacility* self, ostream* out);     // 0x52d490 (-> WriteImpl)
+int __thiscall ProductionFacilityApplyAllBody(ProductionFacility* self, NotifyContext* ctx);  // 0x52d4a0 (-> ApplyAllImpl)
+int __thiscall ProductionFacilityChecksumBody(ProductionFacility* self, Crc32* crc);    // 0x52d4b0 (-> ChecksumImpl)
+
 // Family 0x2d (VT 0x6606a0, secondary ObjectBase VT 0x66069c, 0x70 bytes).
 class ProductionFacilityType2D : public ProductionFacility {
 public:

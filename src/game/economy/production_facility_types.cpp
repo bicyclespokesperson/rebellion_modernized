@@ -28,11 +28,19 @@ int computeDuration(ProductionFacility* facility, const IntPair* work, int modif
 
 int applyAll(ProductionFacility* facility, NotifyContext* ctx) {
     int result = facility->IsSideView();
-    if (result) result = facility->ApplyAllImpl(ctx);
+    if (result) result = ProductionFacilityApplyAllBody(facility, ctx);
     return result;
 }
 
 }  // namespace
+
+int __thiscall ProductionFacilityReadBody(ProductionFacility* self, istream* in) { return self->ReadImpl(in); }
+
+int __thiscall ProductionFacilityWriteBody(ProductionFacility* self, ostream* out) { return self->WriteImpl(out); }
+
+int __thiscall ProductionFacilityApplyAllBody(ProductionFacility* self, NotifyContext* ctx) { return self->ApplyAllImpl(ctx); }
+
+int __thiscall ProductionFacilityChecksumBody(ProductionFacility* self, Crc32* crc) { return self->ChecksumImpl(crc); }
 
 // ---- family 0x2d ---------------------------------------------------------------------------------------------
 
@@ -40,11 +48,11 @@ ProductionFacilityType2D::ProductionFacilityType2D() {}
 
 ProductionFacilityType2D::~ProductionFacilityType2D() { REB_KEEP_VPTR_STORE(); }
 
-int ProductionFacilityType2D::Read(istream* in) { return ReadImpl(in); }
+int ProductionFacilityType2D::Read(istream* in) { return ProductionFacilityReadBody(this, in); }
 
-int ProductionFacilityType2D::Write(ostream* out) { return WriteImpl(out); }
+int ProductionFacilityType2D::Write(ostream* out) { return ProductionFacilityWriteBody(this, out); }
 
-int ProductionFacilityType2D::Checksum(Crc32* crc) { return ChecksumImpl(crc); }
+int ProductionFacilityType2D::Checksum(Crc32* crc) { return ProductionFacilityChecksumBody(this, crc); }
 
 int ProductionFacilityType2D::Validate() { return ValidateImpl(); }
 
@@ -90,11 +98,11 @@ ProductionFacilityType2C::ProductionFacilityType2C() {}
 
 ProductionFacilityType2C::~ProductionFacilityType2C() { REB_KEEP_VPTR_STORE(); }
 
-int ProductionFacilityType2C::Read(istream* in) { return ReadImpl(in); }
+int ProductionFacilityType2C::Read(istream* in) { return ProductionFacilityReadBody(this, in); }
 
-int ProductionFacilityType2C::Write(ostream* out) { return WriteImpl(out); }
+int ProductionFacilityType2C::Write(ostream* out) { return ProductionFacilityWriteBody(this, out); }
 
-int ProductionFacilityType2C::Checksum(Crc32* crc) { return ChecksumImpl(crc); }
+int ProductionFacilityType2C::Checksum(Crc32* crc) { return ProductionFacilityChecksumBody(this, crc); }
 
 int ProductionFacilityType2C::Validate() { return ValidateImpl(); }
 

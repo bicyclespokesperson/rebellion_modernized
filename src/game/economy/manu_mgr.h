@@ -12,7 +12,7 @@
 // system with this manager as their builder (GameObj::m_builderKey). The queue is the ObjectKeyValueSet in its data
 // block (ManuMgrData). Its parent is the system; the facilities that do the work are the manufacturing facilities
 // (families 0x28-0x2b) below that same system. Vtable: 151 slots, 0-110 are GameObj's, 111-150 new. Leaf classes
-// (constructed by 0x55b2f0 and others, not in this module) implement slots 1, 5-9, 37, 57, 122 and 123.
+// (economy/manu_mgr_leaves.h: ShipyardManuMgr, ConstructionYardManuMgr, TrainingFacilManuMgr) implement slots 1, 5-9, 15, 22, 37, 57, 122 and 123.
 //
 // Eleven properties follow GameObj's SetX -> ApplyX -> OnXChanged / OnXNotified scheme (see game_obj.h):
 //
