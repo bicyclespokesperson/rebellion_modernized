@@ -3917,6 +3917,8 @@ address,kind,name,signature,size
 0x006bb388,data,g_gnprtb0800,,
 0x006bb38c,data,g_gnprtb1200,,
 0x006bb390,data,g_gnprtb1201,,
+0x006bb3d8,data,g_systemBlockadeStatLevelFleetSide,,
+0x006bb3fc,data,g_systemBlockadeStatLevelOther,,
 0x006bb508,data,g_gnprtb1C02,,
 0x006bb50c,data,g_gnprtb1C00,,
 0x006bb510,data,g_gnprtb1C01,,

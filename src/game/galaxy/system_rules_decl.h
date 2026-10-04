@@ -58,4 +58,3 @@ int __thiscall FUN_0050cfd0(System* self, int value);
 int __thiscall FUN_0050d000(System* self, int value);
 int __thiscall FUN_0050d030(System* self, NotifyContext* ctx);
 int __thiscall FUN_0050d510(System* self, NotifyContext* ctx);
-
