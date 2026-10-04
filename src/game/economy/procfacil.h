@@ -73,11 +73,11 @@ public:
 
     // ---- state machine helpers ----
     // PROCESSING -> point processed.
-    void MarkPointProcessedIfProcessing(NotifyContext* ctx);  // 0x53aa20
+    int MarkPointProcessedIfProcessing(NotifyContext* ctx);   // 0x53aa20
     // Re-derives the state from the flags (see above); 0 if the state is out of range.
     int UpdateState(NotifyContext* ctx);                      // 0x53aa40
-    // IDLE -> WAITING for a usable facility that is not suspended, else IDLE.
-    void Restart(NotifyContext* ctx);                         // 0x53aac0
+    // IDLE -> WAITING for a usable facility that is not suspended, else IDLE. Returns the setter's result.
+    int Restart(NotifyContext* ctx);                          // 0x53aac0
     // Sets the state to IDLE; always 1.
     int ResetToIdle(NotifyContext* ctx);                      // 0x53ab10
 

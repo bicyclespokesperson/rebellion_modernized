@@ -234,8 +234,8 @@ int ProcFacil::SetOnStartupCycle(int on, NotifyContext* ctx) {
 
 // ---- state machine ---------------------------------------------------------------------------------------------
 
-void ProcFacil::MarkPointProcessedIfProcessing(NotifyContext* ctx) {
-    if (m_state == kStateProcessing) SetPointProcessed(1, ctx);
+int ProcFacil::MarkPointProcessedIfProcessing(NotifyContext* ctx) {
+    return m_state == kStateProcessing ? SetPointProcessed(1, ctx) : 0;
 }
 
 int ProcFacil::UpdateState(NotifyContext* ctx) {
@@ -257,12 +257,11 @@ int ProcFacil::UpdateState(NotifyContext* ctx) {
     return result;
 }
 
-void ProcFacil::Restart(NotifyContext* ctx) {
+int ProcFacil::Restart(NotifyContext* ctx) {
     if (m_state == kStateIdle && (m_stateFlags & kUsable) && !(m_procFlags & kSuspended)) {
-        SetState(kStateWaiting, ctx);
-        return;
+        return SetState(kStateWaiting, ctx);
     }
-    ResetToIdle(ctx);
+    return ResetToIdle(ctx);
 }
 
 int ProcFacil::ResetToIdle(NotifyContext* ctx) {
