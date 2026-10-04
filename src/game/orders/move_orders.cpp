@@ -8,6 +8,8 @@
 #include "gameobj/object_database.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
+#include "orders/order_checks.h"
+#include "orders/route_context.h"
 
 namespace {
 
@@ -48,9 +50,9 @@ bool isTroopRegiment(const ObjectKey& key) {
 
 bool isSystem(const ObjectKey& key) { return inFamilies(key, family::kSystems.m_first, family::kSystems.m_second); }
 
-ObjectCommand* firstCommand(CommandQueue* commands) { return static_cast<ObjectCommand*>(static_cast<Command*>(commands->m_first)); }
+Command* firstCommand(CommandQueue* commands) { return commands->FirstCommand(); }
 
-ObjectCommand* nextCommand(ObjectCommand* command) { return static_cast<ObjectCommand*>(static_cast<Command*>(command->m_successor)); }
+Command* nextCommand(Command* command) { return static_cast<Command*>(command->m_successor); }
 
 OrderBase* firstSubOrder(MessageTree* orders) { return static_cast<OrderBase*>(orders->First()); }
 
@@ -343,7 +345,7 @@ int ObjectMoveOrder::CheckValid(StatusCode* status) {
     BuildRequest(&request);
     OrderBase::CheckValid(status);
     if (ownsQueue != 0) {
-        if (!isOk(status)) ownsQueue = FUN_00553aa0(&request, GetTeam(), status);
+        if (!isOk(status)) ownsQueue = RefuseDestinationInTeam(&request, GetTeam(), status);
         if (ownsQueue != 0) return isOk(status);
     }
     setStatus(status, kStatusRefused);
@@ -384,7 +386,7 @@ int ObjectMoveOrder::CheckDestination(StatusCode* status) {
     BuildRequest(&request);
     int result = OrderBase::CheckDestination(status);
     uint32_t side = 0;
-    if (result != 0 && isOk(status)) result = FUN_00553b80(m_commands, &side);
+    if (result != 0 && isOk(status)) result = GetCommandSide(m_commands, &side);
 
     GameObjNotifier* destination = nullptr;
     StatusCode resolveStatus(kStatusCategory, kStatusOk);
@@ -397,10 +399,10 @@ int ObjectMoveOrder::CheckDestination(StatusCode* status) {
         if (result != 0 && isOk(status)) {
             int onlyFleetsAndCapitalShips = 1;
             int onlyRegiments = 1;
-            for (ObjectCommand* command = firstCommand(m_commands);
+            for (Command* command = firstCommand(m_commands);
                  command != nullptr && isOk(status) && onlyFleetsAndCapitalShips != 0; command = nextCommand(command)) {
-                if (!isFleetOrCapitalShip(command->m_object)) onlyFleetsAndCapitalShips = 0;
-                if (!isTroopRegiment(command->m_object)) onlyRegiments = 0;
+                if (!isFleetOrCapitalShip(command->m_key)) onlyFleetsAndCapitalShips = 0;
+                if (!isTroopRegiment(command->m_key)) onlyRegiments = 0;
             }
             bool unpopulatedSystem = false;
             ObjectKey destinationKey;
@@ -416,27 +418,24 @@ int ObjectMoveOrder::CheckDestination(StatusCode* status) {
         }
     }
 
-    alignas(8) unsigned char contextStorage[0x24];
-    RouteContext* context = FUN_00551060(contextStorage);
+    RouteContext context;
     if (result != 0) {
         if (isOk(status)) {
             int mode = kRouteMode;
-            int planned = FUN_00551190(context, &request, side, &mode);
+            int planned = context.InitFromRequest(&request, static_cast<int>(side), &mode);
             result = 0;
             if (planned == 0) goto failed;
-            result = FUN_005513a0(context, &request.m_target);
+            result = context.AddContainerLegs(&request.m_target);
         }
         if (result != 0) {
             if (isOk(status)) {
-                for (ObjectCommand* command = firstCommand(m_commands);
+                for (Command* command = firstCommand(m_commands);
                      command != nullptr && result != 0 && isOk(status); command = nextCommand(command)) {
                     ObjectKey leg;
-                    alignas(8) unsigned char planStorage[0x1c];
-                    RouteLegPlan* plan = FUN_0054fa40(planStorage);
-                    ObjectKey object = command->m_object;
-                    result = FUN_00551630(context, &object, &request.m_target, status, plan, &leg);
+                    CapacityScratch plan;
+                    ObjectKey object = command->m_key;
+                    result = context.CheckMove(&object, &request.m_target, status, &plan, &leg);
                     if (result != 0 && isOk(status)) command->m_request.m_target = leg;
-                    FUN_0054fa90(plan);
                 }
             }
             if (result != 0) goto done;
@@ -445,7 +444,6 @@ int ObjectMoveOrder::CheckDestination(StatusCode* status) {
 failed:
     setStatus(status, kStatusRefused);
 done:
-    FUN_005510b0(context);
     return result;
 }
 
@@ -480,7 +478,7 @@ int RenameOrder::CheckDestination(StatusCode* status) {
     int result = OrderBase::CheckDestination(status);
     if (result != 0) {
         if (isOk(status)) {
-            for (ObjectCommand* command = firstCommand(m_commands); command != nullptr && isOk(status);
+            for (Command* command = firstCommand(m_commands); command != nullptr && isOk(status);
                  command = nextCommand(command)) {
                 static_cast<RenameCommand*>(command)->m_name.Assign(m_text);
             }

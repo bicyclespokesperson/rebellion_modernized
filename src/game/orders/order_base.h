@@ -36,8 +36,8 @@ class SidedMessage : public MessageBase {
 public:
     SidedMessage();  // 0x4f5c70
     virtual ~SidedMessage();
-    virtual int Read(istream* in) = 0;
-    virtual int Write(ostream* out) = 0;
+    virtual int Read(istream* in) override = 0;
+    virtual int Write(ostream* out) override = 0;
 
     virtual int IsListed() { return 1; }               // 4: 0x40f340
     virtual int IsChecked() { return 0; }              // 5: 0x6158b0
@@ -55,8 +55,8 @@ class OrderBase : public SidedMessage {
 public:
     OrderBase();  // 0x51fa20
     virtual ~OrderBase();
-    virtual int Read(istream* in) = 0;   // body 0x520120
-    virtual int Write(ostream* out) = 0;  // body 0x520170
+    virtual int Read(istream* in) override = 0;    // body 0x520120
+    virtual int Write(ostream* out) override = 0;  // body 0x520170
 
     virtual int IsChecked() override;                       // 5: 0x51fd30
     virtual int CheckEnabled(StatusCode* status) override;  // 6: 0x51fe20
@@ -92,8 +92,8 @@ class TextMessage : public OrderBase {
 public:
     TextMessage();  // 0x5203a0
     virtual ~TextMessage();
-    virtual int Read(istream* in) = 0;   // body 0x5204f0
-    virtual int Write(ostream* out) = 0;  // body 0x520520
+    virtual int Read(istream* in) override = 0;    // body 0x5204f0
+    virtual int Write(ostream* out) override = 0;  // body 0x520520
 
     virtual int CheckEnabled(StatusCode* status) override;      // 0x520460
     virtual int CheckValid(StatusCode* status) override;        // 0x520470
