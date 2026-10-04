@@ -235,8 +235,9 @@ bool is_capture_target(uint32_t address) {
 }
 
 void install_captures() {
-    char spec[1024];
+    static char spec[16384];  // static: avoids a stack probe
     DWORD n = GetEnvironmentVariableA("REB_CAPTURE", spec, sizeof spec);
+    if (n >= sizeof spec) log("REB_CAPTURE is %u bytes; the limit is %u — ignored", n, sizeof spec);
     if (n == 0 || n >= sizeof spec) return;
     GetEnvironmentVariableA("REB_CAPTURE_DIR", g_dir, sizeof g_dir);
     CreateDirectoryA(g_dir, nullptr);

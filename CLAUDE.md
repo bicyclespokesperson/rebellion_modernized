@@ -29,9 +29,9 @@ Never kill processes by name pattern (it kills your own shell); use the scripts'
 1. **Understand it.** Read `work/decomp/<addr>.c`, the disassembly (`tools/gq 'for i in listing.getInstructions(func(0x..).getBody(), True): print(i.getAddress(), i)'`),
    its callers and callees. Work class-by-class or module-by-module (`symbols/modules.csv`), not on scattered functions.
 2. **Name it.** `tools/sym.py set 0x005f35b0 func String::String "(char const *)"` for every function you
-   reconstruct or call; globals as `g_camelCase`, vtables as `Class::vftable` (data) — for a class with a
-   polymorphic base, every vtable is `Class::vftable{Base}` (e.g. `DatRecord::vftable{IdNode}` and
-   `DatRecord::vftable{NameSource}`). Compiler-generated scalar deleting destructors, if you name them, are
+   reconstruct or call; globals as `g_camelCase`, vtables as `Class::vftable` (data). Only a class with
+   *multiple* polymorphic bases has several vtables, named `Class::vftable{Base}` (e.g. `DatRecord::vftable{IdNode}`
+   and `DatRecord::vftable{NameSource}`); single inheritance always uses plain `Class::vftable`. Compiler-generated scalar deleting destructors, if you name them, are
    `Class::scalar_deleting_destructor` (Ghidra rejects backticks); they are never hooked. A signature is
    required only when several original functions share a qualified name (overloads); write it as the C++
    parameter list (`(void)`, `(char const *)`, `(int,int)`), spacing is ignored.
