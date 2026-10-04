@@ -1,0 +1,29 @@
+# Load "RebelsFastStart" (Alliance) and run ~300 s of game time at Fast so that AI/player missions start, run and resolve.
+# Variant of load_game.txt for the mission classes (captures of MissionResearch/Recruit/... virtuals).
+12 key Escape
+16 key Escape
+20 key Escape
+# Main menu: Load Game monitor (right-centre of the cockpit, ~430,248). Hover first, then click.
+26 move 425 245
+27 move 430 248
+29 click 430 248
+33 shot load_list
+# Saved Games screen: slot rows at y=90,132,173,216,... (JAS1, Rebels, RebelsFastStart, JAS2, empty, empty).
+# The "Load Game" icon is the right-hand end of a row (x~305). Row 3 = RebelsFastStart.
+# (Clicking a row's load icon immediately loads when no game is in progress; otherwise a confirm
+# dialog appears: check mark at ~280,300.)
+34 move 300 170
+35 move 305 173
+36 click 305 173
+# Loading takes ~2-3 s; we land on the galaxy screen, paused (clock frozen).
+41 shot load_galaxy
+# Game speed control: top-left box in the Alliance skin. Right-click -> menu
+# (Pause / Very Slow / Slow / Medium / Fast); Fast is the bottom entry at ~(170,116).
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 112
+46 move 170 116
+47 click 170 116
+
+900 end
