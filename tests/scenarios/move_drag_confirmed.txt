@@ -1,0 +1,48 @@
+# Issue a Confirmed Move (Ctrl held at the drop) and accept the confirmation window (Enter); like move_drag.txt otherwise.
+# Issue a Move in a loaded game (RebelsFastStart, Alliance): open the fleet window from the Fleet Finder and drag the fleet
+# icon onto a planet of the sector window (a drag is a move, see refs/open-rebellion/ghidra/notes/move-order.md).
+# Runtime ~120 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot md_00_galaxy
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 52
+46 move 170 56
+47 click 170 56
+50 move 275 265
+51 move 281 268
+52 click 281 268
+55 shot md_01_sector
+56 key F3
+59 move 100 197
+60 move 105 200
+61 click 105 200
+62.0 click 105 200
+62.15 click 105 200
+66 shot md_02_fleet_window
+67 move 330 124
+68 move 335 128
+69 mousedown 335 128
+70 move 300 140
+71 move 250 150
+72 move 215 158
+73 move 210 157
+74 keydown ctrl
+75 mouseup 210 157
+76 keyup ctrl
+78 shot md_03_confirm_window
+80 key Return
+84 shot md_03_after_drag
+86 move 400 300
+87 move 405 305
+88 shot md_04_after
+90 end
