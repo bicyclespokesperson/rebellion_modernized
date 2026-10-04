@@ -1,0 +1,387 @@
+#include "mission/mission_research.h"
+
+#include "core/stream_io.h"
+#include "core/utility_classes.h"
+#include "data/sd_record_bases.h"
+#include "economy/manu_mgr.h"
+#include "economy/side.h"
+#include "gameobj/game_hooks.h"
+#include "gameobj/object_queries.h"
+
+extern "C" void __cdecl LAB_0056d180();
+
+extern int DAT_006bb568;  // g_gnprtb1816
+extern int g_missionResearchEventKindsReady;      // 0x6bb984
+extern EventKindSet g_missionResearchEventKinds;  // 0x6bb988
+
+int __cdecl FUN_0055c6f0(int base, int* out);  // research mission table: the chance (percent) equals the input
+int __cdecl FUN_0055c9f0(int* out);            // RollResearchBonus
+int FUN_0053e2f0(int threshold);
+class DatRecord;
+ObjectKey* __thiscall FUN_00402e40(DatRecord* self, ObjectKey* out);  // DatRecord::GetKey
+ObjectKey* __thiscall FUN_00402d80(GameObj* self, ObjectKey* out);    // key of the object's record, 0 if it has none
+int __cdecl FUN_00582c30(ObjectKey* key, GameObjNotifier** out);      // the character master of a key
+int __cdecl FUN_00582dd0(ObjectKey* key, SdRecordExt16** out);        // the character record of a key
+
+namespace {
+constexpr uint32_t kFamilyMissionResearch = 0x53;
+constexpr uint32_t kKeyShipyardResearch = 0x53000020;
+constexpr uint32_t kKeyTrainingFacilResearch = 0x53000021;
+constexpr uint32_t kKeyConstructionYardResearch = 0x53000022;
+constexpr int kTaskStarted = 2;
+constexpr int kStatusCategoryBlocked = 0x40;
+constexpr int kStatusNoResearchSkill = 4;
+constexpr int kStatusNoHostFacility = 0x2c;
+constexpr int kStatusResearchDone = 0x32;
+constexpr int kOutNoHostFacility = 0xc;
+constexpr int kOutResearchDone = 0xe;
+
+constexpr int kRefSetOffsets[] = {0x18, 0x1c, 0x20};
+constexpr int kKeySetOffsets[] = {0x24, 0x28, 0x2c};
+
+template <class T>
+T& FieldAt(MissionOrderCheck* check, int offset) {
+    return *reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(check) + offset);
+}
+
+bool StatusIsOk(const StatusCode* status) { return status->m_second == static_cast<uint32_t>(mission_status::kOk); }
+
+int ControlSideAsSideIndex(uint32_t controlSide) {
+    if (controlSide == 1) return 1;
+    return controlSide == 2 ? 2 : 0;
+}
+
+int ResearchKindOfCheck(MissionOrderCheck* check, int* kind) {
+    ObjectKey key;
+    return MissionResearch::ResearchKindFromKey(FUN_00402e40(FieldAt<DatRecord*>(check, 0x14), &key), kind);
+}
+
+template <class Set, int (*Check)(Set*, MissionOrderCheck*, StatusCode*, int*)>
+int CheckThreeSets(MissionOrderCheck* check, StatusCode* status, int* out, const int (&offsets)[3], int result) {
+    if (!result) return result;
+    if (StatusIsOk(status)) result = Check(FieldAt<Set*>(check, offsets[0]), check, status, out);
+    if (!result) return result;
+    if (StatusIsOk(status)) result = Check(FieldAt<Set*>(check, offsets[1]), check, status, out);
+    if (result && StatusIsOk(status)) result = Check(FieldAt<Set*>(check, offsets[2]), check, status, out);
+    return result;
+}
+
+void RejectMissingSkill(StatusCode* status, int* out) {
+    *status = StatusCode(kStatusCategoryBlocked, kStatusNoResearchSkill);
+    *out = -1;
+}
+}  // namespace
+
+MissionResearch::MissionResearch() {
+    m_rdPoints = 0;
+    m_rdOrders = 0;
+}
+
+MissionResearch::~MissionResearch() { REB_KEEP_VPTR_STORE(); }
+
+int MissionResearch::Read(istream* in) {
+    const int result = FUN_00592c50(this, in);
+    if (result) {
+        ReadValue32(in, &m_rdPoints);
+        ReadValue32(in, &m_rdOrders);
+    }
+    return result;
+}
+
+int MissionResearch::Write(ostream* out) {
+    const int result = WriteImpl(out);
+    if (result) {
+        WriteValue32(out, &m_rdPoints);
+        WriteValue32(out, &m_rdOrders);
+    }
+    return result;
+}
+
+int MissionResearch::Checksum(Crc32* crc) {
+    const int result = FUN_00593ad0(this, crc);
+    if (result) {
+        crc->AddInt(m_rdPoints);
+        crc->AddInt(m_rdOrders);
+    }
+    return result;
+}
+
+int MissionResearch::Validate() { return FUN_00523c60(this); }
+
+int MissionResearch::ApplyAll(NotifyContext* ctx) { return IsSideView() ? ApplyAllBody(ctx) : 0; }
+
+int MissionResearch::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_005236e0(this, controlKind, ctx); }
+
+int MissionResearch::ApplyAllBody(NotifyContext* ctx) {
+    const int result = ApplyAllImpl(ctx);
+    if (result && ctx->m_flag04 == 1) {
+        ApplyRdPoints(ctx);
+        ApplyRdOrders(ctx);
+    }
+    return result;
+}
+
+uint32_t MissionResearch::GetFamily() { return kFamilyMissionResearch; }
+
+int MissionResearch::GetEventKinds(int unused, EventKindSet* out) {
+    return CopyEventKinds(BuildEventKinds, &g_missionResearchEventKinds, out);
+}
+
+int MissionResearch::CheckOrder(int a, int orderKind, StatusCode* out) {
+    *out = MakeStatus(mission_status::kNotSupported);
+    const int built = BuildEventKinds();
+    if (g_missionResearchEventKinds.Contains(orderKind)) *out = MakeStatus(mission_status::kOk);
+    return built != 0;
+}
+
+int MissionResearch::GetCheckFunctions(MissionCheckFunctions* out) {
+    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
+    return 1;
+}
+
+GameObj* MissionResearch::CreateViewObject() { return NewOrNull<MissionResearch>(); }
+
+GameObjNotifier* MissionResearch::Create() { return NewOrNull<MissionResearch>(); }
+
+int MissionResearch::SetRdPoints(int value, NotifyContext* ctx) {
+    const int result = IsMasterView();
+    if (result) {
+        const int oldValue = m_rdPoints;
+        if (oldValue != value) {
+            m_rdPoints = value;
+            static_cast<MissionResearch*>(ViewAs(1))->ApplyRdPoints(ctx);
+            static_cast<MissionResearch*>(ViewAs(2))->ApplyRdPoints(ctx);
+            OnRdPointsChanged(oldValue, m_rdPoints, ctx);
+        }
+    }
+    return result;
+}
+
+int MissionResearch::SetRdOrders(int value, NotifyContext* ctx) {
+    const int result = IsMasterView();
+    if (result) {
+        const int oldValue = m_rdOrders;
+        if (oldValue != value) {
+            m_rdOrders = value;
+            static_cast<MissionResearch*>(ViewAs(1))->ApplyRdOrders(ctx);
+            static_cast<MissionResearch*>(ViewAs(2))->ApplyRdOrders(ctx);
+            OnRdOrdersChanged(oldValue, m_rdOrders, ctx);
+        }
+    }
+    return result;
+}
+
+int MissionResearch::ApplyRdPoints(NotifyContext* ctx) {
+    int result = IsSideView();
+    if (!result) return result;
+    MissionResearch* master = static_cast<MissionResearch*>(GetViewObject(0));
+    if (!MatchesSideMask(ctx->m_flag08)) return result;
+    const int oldValue = m_rdPoints;
+    if (oldValue == master->m_rdPoints) return result;
+    m_rdPoints = master->m_rdPoints;
+    if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide())))
+        result = OnRdPointsNotified(oldValue, m_rdPoints, ctx);
+    return result;
+}
+
+int MissionResearch::ApplyRdOrders(NotifyContext* ctx) {
+    int result = IsSideView();
+    if (!result) return result;
+    MissionResearch* master = static_cast<MissionResearch*>(GetViewObject(0));
+    if (!MatchesSideMask(ctx->m_flag08)) return result;
+    const int oldValue = m_rdOrders;
+    if (oldValue == master->m_rdOrders) return result;
+    m_rdOrders = master->m_rdOrders;
+    if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide())))
+        result = OnRdOrdersNotified(oldValue, m_rdOrders, ctx);
+    return result;
+}
+
+int MissionResearch::OnRdPointsNotified(int oldValue, int newValue, NotifyContext* ctx) {
+    const int result = IsSideView();
+    if (result) LogInt("(RdPointsNotif)", "RdPoints", newValue, oldValue, 0, ctx);
+    return result;
+}
+
+int MissionResearch::OnRdOrdersNotified(int oldValue, int newValue, NotifyContext* ctx) {
+    const int result = IsSideView();
+    if (result) LogInt("(RdOrdersNotif)", "RdOrders", newValue, oldValue, 0, ctx);
+    return result;
+}
+
+int MissionResearch::ResearchKindFromKey(ObjectKey* key, int* out) {
+    *out = 0;
+    if (key->m_value == kKeyShipyardResearch) {
+        *out = 0;
+        return 1;
+    }
+    if (key->m_value == kKeyTrainingFacilResearch) {
+        *out = 1;
+        return 1;
+    }
+    if (key->m_value == kKeyConstructionYardResearch) {
+        *out = 2;
+        return 1;
+    }
+    return 0;
+}
+
+int MissionResearch::GetResearchKind(int* out) {
+    ObjectKey key;
+    return ResearchKindFromKey(FUN_00402d80(this, &key), out);
+}
+
+int MissionResearch::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out) {
+    *status = MakeStatus(mission_status::kOk);
+    *out = 0;
+    int kind = 0;
+    int result = 1;
+    if (StatusIsOk(status)) result = ResearchKindOfCheck(check, &kind);
+    for (ObjectKeyNode* node = keys->First(); node && result && StatusIsOk(status);
+         node = static_cast<ObjectKeyNode*>(node->m_successor)) {
+        ObjectKey key;
+        node->GetKey(&key);
+        GameObjNotifier* character = nullptr;
+        result = 0;
+        if (FUN_00582c30(&key, &character)) {
+            int skill = 0;
+            result = static_cast<Role*>(character)->GetEffectiveRdForKind(kind, &skill);
+            if (result && skill == 0) RejectMissingSkill(status, out);
+        }
+    }
+    return result;
+}
+
+int MissionResearch::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out) {
+    *status = MakeStatus(mission_status::kOk);
+    *out = 0;
+    int kind = 0;
+    int result = 1;
+    if (StatusIsOk(status)) result = ResearchKindOfCheck(check, &kind);
+    for (AvlNode* node = refs->First(); node && result && StatusIsOk(status); node = node->m_successor) {
+        ObjectKey key;
+        static_cast<ObjectRefNode*>(node)->GetKey(&key);
+        SdRecordExt16* record = nullptr;
+        result = 0;
+        if (FUN_00582dd0(&key, &record)) {
+            uint32_t first = 0;
+            uint32_t second = 0;
+            if (record->GetPairFirst(kind, &first)) {
+                result = record->GetPairSecond(kind, &second);
+                if (result && first == 0 && second == 0) RejectMissingSkill(status, out);
+            }
+        }
+    }
+    return result;
+}
+
+int MissionResearch::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+    *status = MakeStatus(mission_status::kOk);
+    *out = 0;
+    int result = FUN_005868c0(check, status, out);
+    if (FieldAt<int>(check, 4) != 0) {
+        if (FieldAt<int>(check, 8) == 0)
+            result = CheckThreeSets<ObjectRefList, CheckCandidateRefs>(check, status, out, kRefSetOffsets, result);
+        else
+            result = CheckThreeSets<ObjectKeySet, CheckCandidateKeys>(check, status, out, kKeySetOffsets, result);
+    }
+    if (FieldAt<int>(check, 0xc) == 0 || !result) return result;
+    if (StatusIsOk(status)) {
+        int kind = 0;
+        result = ResearchKindOfCheck(check, &kind);
+        GameObjNotifier* manager = nullptr;
+        if (result) manager = FieldAt<System*>(check, 0x38)->FindManufacturingManagerBySlot123(kind);
+        if (!manager || !static_cast<ManuMgr*>(manager)->HasHostFacility(0)) {
+            *status = StatusCode(kStatusCategoryBlocked, kStatusNoHostFacility);
+            *out = kOutNoHostFacility;
+        }
+    }
+    if (result && StatusIsOk(status)) {
+        int kind = 0;
+        result = ResearchKindOfCheck(check, &kind);
+        const int sideIndex = result ? ControlSideAsSideIndex(FieldAt<int>(check, 0x10)) : 0;
+        Side* sideObject = sideIndex ? static_cast<Side*>(GetGameRootSideMemberThunk(sideIndex)) : nullptr;
+        result = sideObject != nullptr;
+        int done = 0;
+        if (result) {
+            result = sideObject->GetRdDone(kind, &done);
+            if (result && done != 0) {
+                *status = StatusCode(kStatusCategoryBlocked, kStatusResearchDone);
+                *out = kOutResearchDone;
+            }
+        }
+    }
+    return result;
+}
+
+int MissionResearch::Virtual157(GameObj* person, int* out) {
+    *out = 0;
+    return 1;
+}
+
+int MissionResearch::Virtual158(NotifyContext* ctx) {
+    const int pointsCleared = SetRdPoints(0, ctx);
+    const int ordersCleared = SetRdOrders(0, ctx);
+    return ordersCleared != 0 && pointsCleared != 0 ? 1 : 0;
+}
+
+int MissionResearch::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
+    *out = 0;
+    System* system = nullptr;
+    const int found = FUN_00586720(this, &system);
+    int kind = 0;
+    int ok = GetResearchKind(&kind) != 0 && found != 0;
+    if (!system) return ok;
+    Role* role = static_cast<Role*>(person);
+    int skill = 0;
+    ok = role->GetEffectiveRdForKind(kind, &skill) != 0 && ok;
+    int chance = 0;
+    ok = FUN_0055c6f0(skill, &chance) != 0 && ok;
+    if (!FUN_0053e2f0(chance)) return ok;
+    int bonus = 0;
+    ok = FUN_0055c9f0(&bonus) != 0 && ok;
+    if (bonus == 0) return ok;
+    ok = SetRdPoints(m_rdPoints + bonus, ctx) != 0 && ok;
+    if (!role->Virtual118()) return ok;
+    int baseSkill = 0;
+    ok = role->GetBaseRdForKind(kind, &baseSkill) != 0 && ok;
+    ok = role->SetBaseRdForKind(kind, baseSkill + DAT_006bb568, ctx) != 0 && ok;
+    return ok;
+}
+
+int MissionResearch::Virtual160(NotifyContext* ctx) {
+    const int sideIndex = ControlSideAsSideIndex(ControlSide());
+    Side* sideObject = sideIndex ? static_cast<Side*>(GetGameRootSideMemberThunk(sideIndex)) : nullptr;
+    int ok = sideObject != nullptr;
+    if (!sideObject) return ok;
+    int kind = 0;
+    ok = GetResearchKind(&kind) != 0 && ok;
+    int ordersBefore = 0;
+    ok = sideObject->GetRdOrder(kind, &ordersBefore) != 0 && ok;
+    int progress = 0;
+    ok = sideObject->GetRdProgress(kind, &progress) != 0 && ok;
+    ok = sideObject->SetRdProgress(kind, progress + m_rdPoints, ctx) != 0 && ok;
+    int ordersAfter = 0;
+    ok = sideObject->GetRdOrder(kind, &ordersAfter) != 0 && ok;
+    ok = SetRdOrders(ordersAfter - ordersBefore, ctx) != 0 && ok;
+    ok = SetTaskStatus((m_rdPoints != 0) + kTaskStarted, ctx) != 0 && ok;
+    return ok;
+}
+
+int MissionResearch::BuildEventKinds() {
+    if (!g_missionResearchEventKindsReady) {
+        g_missionResearchEventKindsReady = 1;
+        return FUN_00586b00(0, &g_missionResearchEventKinds);
+    }
+    return 1;
+}
+
+void ConstructMissionResearchEventKinds() { new (&g_missionResearchEventKinds) EventKindSet(); }
+
+void RegisterMissionResearchEventKindsAtExit() { atexit(LAB_0056d180); }
+
+void MissionResearch::InitStatics() {
+    ConstructMissionResearchEventKinds();
+    RegisterMissionResearchEventKindsAtExit();
+}
