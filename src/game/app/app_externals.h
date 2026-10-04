@@ -62,7 +62,7 @@ void FUN_00597340(const char* text);
 void FUN_00597360();
 void FUN_00597030();
 void FUN_005975a0();
-void FUN_005970d0(int a, int b, int c, int d);
+void FUN_005970d0(void* buffer, int size, int c, int d);
 void FUN_00597170();
 void FUN_00596a00();
 
@@ -139,3 +139,8 @@ public:
     int m_unknown34;        // +0x34
 };
 void* __thiscall FUN_004210c0(void* memory);
+
+// ---- Appended by the save/load slice -------------------------------------------------------------------------
+void FUN_00401b50();       // thunk to FUN_00409280: create the battle-flow object
+void FUN_004173a0();       // sound module: the click sound handler (RebellionApplication::PlayClickSound jumps to it)
+extern const char* g_autosaveName;  // 0x6a81d8: pointer to the "Autosave" text
