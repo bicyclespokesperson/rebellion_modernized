@@ -139,3 +139,9 @@ public:
     int m_unknown34;        // +0x34
 };
 void* __thiscall FUN_004210c0(void* memory);
+
+// ---- Added by the screens slice (app_screens.cpp) --------------------------------------------------------------
+void FUN_00614290();   // DirectDraw host teardown wrapper (acts on the global host, no arguments)
+void __thiscall FUN_00422620(CoolWindow* window);  // strategic window: handler of the modal child it is showing
+extern uint8_t g_directDrawHost[];   // 0x6b1460 the DirectDrawHost passed to the tactical window
+int DestroyAppDialog();   // 0x416d90 (app_dialogs.h declares it too)

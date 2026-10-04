@@ -72,7 +72,7 @@ public:
     WPARAM Run(int showCommand, int unused);  // 0x413560
 
     // Records how the game that is about to start was configured (WinMain path of a new / loaded / network game).
-    void SetGameParams(int side, int gameType, int param8, int param10, int connectionKind, int networkMode);  // 0x4142d0
+    void SetGameParams(int side, int gameType, int param8, int paramF0, int connectionKind, int networkMode);  // 0x4142d0
     // Leaves the current state and enters `state` (an AppState).
     void SetState(int state);  // 0x414330
     // Plays the movie `movieId` (0x65..0x6d) in the movie window; `a`/`b` go to the movie window.
