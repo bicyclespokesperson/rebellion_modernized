@@ -59,7 +59,3 @@ int __thiscall FUN_0050d000(System* self, int value);
 int __thiscall FUN_0050d030(System* self, NotifyContext* ctx);
 int __thiscall FUN_0050d510(System* self, NotifyContext* ctx);
 
-// Per-side accessors of the accessor slice (0x509ae0, 0x5099c0, 0x5099f0): replace by their System:: names after the merge.
-int __thiscall FUN_00509ae0(System* self, uint32_t side);
-int __thiscall FUN_005099c0(System* self, uint32_t side);
-int __thiscall FUN_005099f0(System* self, uint32_t side);

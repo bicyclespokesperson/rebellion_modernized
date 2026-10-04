@@ -436,11 +436,11 @@ int System::Virtual52(int childArg, int added, int ctxArg) {
             const uint32_t side = child->ControlSide();
             int applied;
             if (reason == kDestroyedByCapture) {
-                applied = FUN_0050cee0(this, FUN_00509ae0(this, side) + strength, side);
+                applied = FUN_0050cee0(this, GetDataWord68(static_cast<int>(side)) + strength, side);
             } else if (reason == kDestroyedByRetreat) {
-                applied = FUN_0050ce20(this, FUN_005099c0(this, side) + strength, side);
+                applied = FUN_0050ce20(this, GetDataWord48(static_cast<int>(side)) + strength, side);
             } else if (reason == kDestroyedByLoss) {
-                applied = FUN_0050ce50(this, FUN_005099f0(this, side) + strength, side);
+                applied = FUN_0050ce50(this, GetDataWord54(static_cast<int>(side)) + strength, side);
             } else {
                 return ok;
             }
