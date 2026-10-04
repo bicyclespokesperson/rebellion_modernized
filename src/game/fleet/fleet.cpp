@@ -3,7 +3,8 @@
 #include <cstdint>
 
 #include "core/vptr_store.h"
-#include "fleet/capship_decl.h"
+#include "fleet/capship.h"
+#include "fleet/fight_squad.h"
 #include "gameobj/child_iterator.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/object_family.h"
@@ -54,27 +55,13 @@ bool isOk(const StatusCode* status) { return status->m_second == static_cast<uin
 bool isShipFamily(uint32_t family) { return family >= 0x14 && family < 0x1c; }
 bool isFleetFamily(uint32_t family) { return family >= family::kFleet && family < family::kTroopRegiment; }
 
-class ShipIterator : public ChildIterator {
-public:
-    ShipIterator(GameObjNotifier* parent, uint32_t stateFilter)
-        : ChildIterator(parent, &family::kCapitalShips, stateFilter) {}
-    ShipIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
-        : ChildIterator(parent, side, &family::kCapitalShips, stateFilter) {}
-};
-
-class SquadronIterator : public ChildIterator {
-public:
-    SquadronIterator(GameObjNotifier* parent, uint32_t stateFilter)
-        : ChildIterator(parent, &family::kFighterSquadrons, stateFilter) {}
-};
-
 GameObj* currentObject(const ChildIterator& iterator) { return static_cast<GameObj*>(iterator.Current()); }
 
 bool isReady(const GameObj* ship) { return (ship->m_stateFlags & kCompleted) && !(ship->m_stateFlags & kEnrouteActive); }
 
 int hasReadyShip(Fleet* fleet) {
     int ready = 0;
-    ShipIterator ships(fleet, kExistingFilter, fleet->ControlSide());
+    CapShipIterator ships(fleet, kExistingFilter, fleet->ControlSide());
     ships.Begin();
     while (ships.Current() && ready == 0) {
         ready = isReady(currentObject(ships)) ? 1 : 0;
@@ -196,14 +183,14 @@ int Fleet::ApplyAllImpl(NotifyContext* ctx) {
 
 int Fleet::SumUnitStat119() {
     int total = 0;
-    ShipIterator ships(this, kUsableFilter);
+    CapShipIterator ships(this, kUsableFilter);
     ships.Begin();
     while (ships.Current()) {
-        total += CallUnitSlot119(ships.Current());
-        SquadronIterator squadrons(ships.Current(), kUsableFilter);
+        total += static_cast<CombatUnit*>(ships.Current())->GetDefenseLeft();
+        FightSquadIterator squadrons(ships.Current(), kUsableFilter);
         squadrons.Begin();
         while (squadrons.Current()) {
-            total += CallUnitSlot119(squadrons.Current());
+            total += static_cast<CombatUnit*>(squadrons.Current())->GetDefenseLeft();
             squadrons.Advance();
         }
         ships.Advance();
@@ -214,11 +201,11 @@ int Fleet::SumUnitStat119() {
 int Fleet::FindShipByNumber(int number, GameObjNotifier** out) {
     int result = 1;
     *out = nullptr;
-    ShipIterator ships(this, kExistingFilter, ControlSide());
+    CapShipIterator ships(this, kExistingFilter, ControlSide());
     ships.Begin();
     do {
         if (!ships.Current() || *out != nullptr) break;
-        result = FUN_005006f0(ships.Current(), number, out);
+        result = static_cast<CapShip*>(ships.Current())->FindCharacterById(number, out);
         ships.Advance();
     } while (result != 0);
     return result;
@@ -228,11 +215,11 @@ int Fleet::SumShipCounts(int* out, int unused1, int unused2) {
     int result = 1;
     *out = 0;
     int count = 0;
-    ShipIterator ships(this, kExistingFilter);
+    CapShipIterator ships(this, kExistingFilter);
     ships.Begin();
     do {
         if (!ships.Current()) break;
-        result = FUN_005007a0(ships.Current(), &count, 0, 0);
+        result = static_cast<CapShip*>(ships.Current())->CountCharacters(&count, 0, 0);
         if (result) *out += count;
         ships.Advance();
     } while (result != 0);
@@ -242,7 +229,7 @@ int Fleet::SumShipCounts(int* out, int unused1, int unused2) {
 int Fleet::GetTransitSpeed(int arg) {
     int speed = 0;
     bool first = true;
-    ShipIterator ships(this, kExistingFilter);
+    CapShipIterator ships(this, kExistingFilter);
     ships.Begin();
     while (ships.Current()) {
         if (isReady(currentObject(ships))) {
@@ -274,7 +261,7 @@ int Fleet::UpdateUsable(NotifyContext* ctx) {
 
 int Fleet::UpdateDamaged(NotifyContext* ctx) {
     uint32_t damaged = 0;
-    ShipIterator ships(this, kExistingFilter);
+    CapShipIterator ships(this, kExistingFilter);
     ships.Begin();
     while (ships.Current() && damaged == 0) {
         damaged = currentObject(ships)->m_stateFlags;
@@ -286,7 +273,7 @@ int Fleet::UpdateDamaged(NotifyContext* ctx) {
 
 int Fleet::RefreshFromShips(NotifyContext* ctx) {
     bool ok = true;
-    ShipIterator ships(this, kExistingFilter, ControlSide());
+    CapShipIterator ships(this, kExistingFilter, ControlSide());
     const int hasShips = ships.HasCurrent();
     if (!hasShips) {
         if (m_fleetFlags & kFlag01) ok = ChangeDestroyedReason(kDestroyedReasonNoShips, ctx) != 0;
@@ -321,7 +308,7 @@ int Fleet::CheckFleetRequest(const ActivityRequest* request, StatusCode* out) {
     if (result) {
         if (isOk(out)) {
             StatusCode verdict(kFleetStatusCategory, kFleetStatusNoShips);
-            ShipIterator ships(this, kExistingFilter);
+            CapShipIterator ships(this, kExistingFilter);
             ships.Begin();
             while (ships.Current()) {
                 if (isOk(&verdict)) break;
@@ -350,16 +337,16 @@ int Fleet::CheckRequestImpl(const ActivityRequest* request, StatusCode* out) {
     return result;
 }
 
-int Fleet::CheckRenameImpl(int request, StatusCode* out) {
+int Fleet::CheckRenameImpl(const ActivityRequest* request, StatusCode* out) {
     setStatus(out, kStatusOk);
-    const int result = CheckActivityRequest(asPointer<const ActivityRequest>(request), out);
+    const int result = CheckActivityRequest(request, out);
     if (!result) setStatus(out, kStatusNoSuchOrder);
     return result;
 }
 
-int Fleet::CheckUnknownImpl(int request, StatusCode* out) {
+int Fleet::CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) {
     setStatus(out, kStatusOk);
-    const int result = CheckActivityRequest(asPointer<const ActivityRequest>(request), out);
+    const int result = CheckActivityRequest(request, out);
     if (!result) setStatus(out, kStatusNoSuchOrder);
     return result;
 }
@@ -519,7 +506,7 @@ int Fleet::OnDestroyedChanged(int newValue, NotifyContext* ctx) {
 
 int Fleet::OnAutoroutingChanged(int newValue, NotifyContext* ctx) {
     int result = GameObj::OnAutoroutingChanged(newValue, ctx);
-    ShipIterator ships(this, kExistingFilter);
+    CapShipIterator ships(this, kExistingFilter);
     ships.Begin();
     while (ships.Current()) {
         if (isReady(currentObject(ships))) {

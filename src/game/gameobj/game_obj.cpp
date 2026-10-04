@@ -196,14 +196,14 @@ int GameObj::CheckRequest(const ActivityRequest* request, StatusCode* out) {
     return CheckRequestImpl(request, out);
 }
 
-int GameObj::CheckRenameImpl(int a, StatusCode* out) {
+int GameObj::CheckRenameImpl(const ActivityRequest* request, StatusCode* out) {
     setStatus(out, kStatusNotSupported);
     return 1;
 }
 
-int GameObj::CheckRename(int a, int name, StatusCode* out) {
+int GameObj::CheckRename(const ActivityRequest* request, int name, StatusCode* out) {
     setStatus(out, kStatusOk);
-    return CheckRenameImpl(a, out);
+    return CheckRenameImpl(request, out);
 }
 
 int GameObj::CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) {

@@ -69,11 +69,6 @@ bool rangeWithin(const FamilyRange* range, uint32_t first, uint32_t last) {
 
 GameObj* asObject(GameObjNotifier* notifier) { return static_cast<GameObj*>(notifier); }
 
-// Slot 25 of GameObj is declared with an int argument; the capital ship treats it as the request pointer.
-const ActivityRequest* requestFromSlotArgument(int a) {
-    return reinterpret_cast<const ActivityRequest*>(static_cast<uintptr_t>(static_cast<uint32_t>(a)));
-}
-
 int16_t characterId(GameObjNotifier* character) {
     return *reinterpret_cast<const int16_t*>(reinterpret_cast<const char*>(character) + kCharacterIdOffset);
 }
@@ -179,8 +174,8 @@ int CapShip::CheckOrder(int a, int orderKind, StatusCode* out) {
     return ready;
 }
 
-int CapShip::CheckRenameImpl(int a, StatusCode* out) {
-    return setStatusAndCheckRequest(this, requestFromSlotArgument(a), out);
+int CapShip::CheckRenameImpl(const ActivityRequest* request, StatusCode* out) {
+    return setStatusAndCheckRequest(this, request, out);
 }
 
 int CapShip::CheckRequestImpl2(const ActivityRequest* request, StatusCode* out) {

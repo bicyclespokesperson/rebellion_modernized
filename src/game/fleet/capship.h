@@ -30,7 +30,7 @@ public:
     virtual int GetEventKinds(int unused, EventKindSet* out) override;                          // 15, 0x500880
     virtual int Virtual18() override { return 1; }                                              // 18, shared "return 1" stub
     virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                     // 22, 0x5008a0
-    virtual int CheckRenameImpl(int a, StatusCode* out) override;                              // 25, 0x500960
+    virtual int CheckRenameImpl(const ActivityRequest* request, StatusCode* out) override;                              // 25, 0x500960
     virtual int Virtual29(int a, int b, int c, int d, StatusCode* out) override;                // 29, 0x500ac0
     virtual int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 30, 0x500b40
     virtual int CreateViews(int controlKind, NotifyContext* ctx) override = 0;                  // 37, body 0x500140

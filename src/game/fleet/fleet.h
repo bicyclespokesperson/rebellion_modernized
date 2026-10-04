@@ -26,9 +26,6 @@
 // creates fleets (0x512d00); their meaning is not known. Several of the old virtual slots take a different argument
 // type than GameObj declares: Virtual48..51 receive (NotifyContext*) or (GameObj* other, int, NotifyContext*) in
 // the arguments typed int there.
-//
-// Events and checks the fleet needs from the capital ship class go through the capital ship's own vtable; its
-// declarations are in capship_decl.h until that module's header is merged.
 
 class FleetIterator;
 
@@ -50,8 +47,8 @@ public:
     virtual int CanBeControlledBy(int arg) override;                 // 20, 0x4fdaf0: true until the fleet is created
     virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;  // 22, 0x4fdb00
     virtual int CheckRequestImpl(const ActivityRequest* request, StatusCode* out) override;  // 23, 0x4fdbc0
-    virtual int CheckRenameImpl(int request, StatusCode* out) override;   // 25, 0x4fdd20
-    virtual int CheckUnknownImpl(int request, StatusCode* out) override;  // 27, 0x4fdc70
+    virtual int CheckRenameImpl(const ActivityRequest* request, StatusCode* out) override;   // 25, 0x4fdd20
+    virtual int CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) override;  // 27, 0x4fdc70
     virtual int Virtual29(int a, int b, int c, int d, StatusCode* out) override;  // 29, 0x4fe0d0
     virtual int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 30, 0x4fe160
     virtual int UpdateUsable(NotifyContext* ctx) override;           // 33, 0x4fe540
