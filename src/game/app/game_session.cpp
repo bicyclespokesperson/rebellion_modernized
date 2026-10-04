@@ -252,7 +252,7 @@ void GameSession::RouteMessage(PlayerMessage* message) {
         delete message;
         return;
     }
-    m_messages.Requeue(message);
+    m_messages.Adopt(message);
 }
 
 void GameSession::RouteNotice(PlayerNotice* notice) {
