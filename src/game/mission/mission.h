@@ -28,7 +28,7 @@
 //   5 ints          UserId +0x58, UserId2 +0x5c, TaskStatus +0x60 (0..3), CompletionStatus +0x64 (-1..16), Phase +0x68 (0..11)
 //   6 keys          OriginLocationKey +0x6c, ObjectiveKey +0x70, TargetKey +0x74, TargetLocationKey +0x78, LeaderKey +0x7c,
 //                   LeaderSeedKey +0x80 (NullableKey)
-//   4 key sets      Team +0x84, Decoys +0x8c, Captured +0x94, Set4 +0x9c (unnamed, never iterated)
+//   4 key sets      Team +0x84, Decoys +0x8c, Captured +0x94, FinishedMembers +0x9c ("Members")
 //   3 flag bits     m_flagsA4: ReadyForNextPhase 0x1, ImpliedTeam 0x2, Mandatory 0x4
 // Property pattern as in GameObj: SetX (master only, validates, stores, view1->ApplyX, view2->ApplyX, OnXChanged),
 // ApplyX (copies master -> side view, raises OnXNotified).
@@ -117,10 +117,10 @@ public:
     // Adds a person to the team (decoy false), decoys (decoy true) or captured list, after the membership checks.
     virtual int AddMember(ObjectKey* member, int decoy, NotifyContext* ctx);         // 115, 0x522b30
     virtual int RemoveMember(ObjectKey* member, int decoy, NotifyContext* ctx);      // 116, 0x522fc0
-    virtual int Virtual117(int a, NotifyContext* ctx);                               // 117, 0x523310
-    virtual int Virtual118(NotifyContext* ctx);                                      // 118, 0x5233a0: if Phase 8, SetPhase(2)... see body
-    virtual int Virtual119(int a, NotifyContext* ctx);                               // 119, 0x5233d0
-    virtual int Virtual120() = 0;                                                    // 120, pure
+    virtual int TryComplete(const ActivityRequest* request, NotifyContext* ctx);                             // 117, 0x523310
+    virtual int CompleteIfOutcomePhase(NotifyContext* ctx);                                      // 118, 0x5233a0: if Phase 8, SetPhase(2)... see body
+    virtual int CompleteWith(int a, NotifyContext* ctx);                               // 119, 0x5233d0
+    virtual int AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, NotifyContext* ctx) = 0;  // 120, pure
 
     // ---- OnXChanged events on the master (slots 121-138) ----
     virtual int OnUserIdChanged(int oldValue, int newValue, NotifyContext* ctx) { return 1; }               // 121
@@ -137,7 +137,7 @@ public:
     virtual int OnTeamChanged(ObjectKeyValueSet* oldSet, ObjectKeyValueSet* newSet, NotifyContext* ctx) { return 1; }  // 132
     virtual int OnDecoysChanged(ObjectKeyValueSet* oldSet, ObjectKeyValueSet* newSet, NotifyContext* ctx) { return 1; }  // 133
     virtual int OnCapturedChanged(ObjectKeyValueSet* oldSet, ObjectKeyValueSet* newSet, NotifyContext* ctx) { return 1; }  // 134
-    virtual int OnSet4Changed(ObjectKeyValueSet* oldSet, ObjectKeyValueSet* newSet, NotifyContext* ctx) { return 1; }  // 135
+    virtual int OnFinishedMembersChanged(ObjectKeyValueSet* oldSet, ObjectKeyValueSet* newSet, NotifyContext* ctx) { return 1; }  // 135
     virtual int OnReadyForNextPhaseChanged(int newValue, NotifyContext* ctx);                               // 136, 0x524f80
     virtual int OnImpliedTeamChanged(int newValue, NotifyContext* ctx) { return 1; }                        // 137
     virtual int OnMandatoryChanged(int newValue, NotifyContext* ctx) { return 1; }                          // 138
@@ -157,7 +157,7 @@ public:
     virtual int OnTeamNotified(ObjectKeyValueSet* oldSet, ObjectKeyValueSet* newSet, NotifyContext* ctx);   // 150, 0x525220
     virtual int OnDecoysNotified(ObjectKeyValueSet* oldSet, ObjectKeyValueSet* newSet, NotifyContext* ctx); // 151, 0x5252f0
     virtual int OnCapturedNotified(ObjectKeyValueSet* oldSet, ObjectKeyValueSet* newSet, NotifyContext* ctx);  // 152, 0x5253c0
-    virtual int OnSet4Notified(ObjectKeyValueSet* oldSet, ObjectKeyValueSet* newSet, NotifyContext* ctx);   // 153, 0x525490
+    virtual int OnFinishedMembersNotified(ObjectKeyValueSet* oldSet, ObjectKeyValueSet* newSet, NotifyContext* ctx);   // 153, 0x525490
     virtual int OnReadyForNextPhaseNotified(int newValue, NotifyContext* ctx);                              // 154, 0x525560
     virtual int OnImpliedTeamNotified(int newValue, NotifyContext* ctx);                                    // 155, 0x5255a0
     virtual int OnMandatoryNotified(int newValue, NotifyContext* ctx);                                      // 156, 0x5255e0
@@ -195,14 +195,14 @@ public:
     int CountMembers();                  // 0x520dd0
     int HasCompletionStatus();           // 0x520e40: m_completionStatus != 0
     uint32_t GetPhaseLevel();            // 0x520e50
-    int FillStatusFlags(IntPair* out);   // 0x520ec0
-    int GetObjectivePerson(GameObj** out);          // 0x520f40
-    int GetOriginLocationObject(GameObj** out);     // 0x521030
-    int GetTargetLocationObject(GameObj** out);     // 0x521050
-    int GetLeaderObject(GameObj** out);             // 0x521070
-    int GetOriginInOwnerSide(GameObj** out);        // 0x521160
-    int GetTargetInOwnerSide(GameObj** out);        // 0x5211c0
-    int GetTransitionFlags(int* a, int* b, int* c);  // 0x521220
+    int ComputePhaseLevels(MissionPhaseLevels* out);   // 0x520ec0
+    int GetOriginSystem(GameObj** out);          // 0x520f40
+    int GetObjectiveObject(GameObj** out);     // 0x521030
+    int GetTargetObject(GameObj** out);     // 0x521050
+    int GetTargetLocationSystem(GameObj** out);             // 0x521070
+    int GetObjectiveInOwnerView(GameObj** out);        // 0x521160
+    int GetTargetInOwnerView(GameObj** out);        // 0x5211c0
+    int GetMemberTransitFlags(class Role* person, int* a, int* b, int* c);  // 0x521220
 
     // ==== SECTION setters (0x521780-0x522210): see mission_setters.cpp ====
     int SetUserId(int value, NotifyContext* ctx);                 // 0x521780
@@ -219,7 +219,7 @@ public:
     int SetTeam(ObjectKeyValueSet* set, NotifyContext* ctx);      // 0x521e30
     int SetDecoys(ObjectKeyValueSet* set, NotifyContext* ctx);    // 0x521ef0
     int SetCaptured(ObjectKeyValueSet* set, NotifyContext* ctx);  // 0x521fb0
-    int SetSet4(ObjectKeyValueSet* set, NotifyContext* ctx);      // 0x522070
+    int SetFinishedMembers(ObjectKeyValueSet* set, NotifyContext* ctx);      // 0x522070
     int SetReadyForNextPhase(int value, NotifyContext* ctx);      // 0x522130
     int SetImpliedTeam(int value, NotifyContext* ctx);            // 0x5221a0
     int SetMandatory(int value, NotifyContext* ctx);              // 0x522210
@@ -229,11 +229,11 @@ public:
     int UpdatePhaseForTeam(NotifyContext* ctx);      // 0x522480
     int AdvancePhase(NotifyContext* ctx);            // 0x5227d0
     int UpdateLeaderAndTeamKeys(NotifyContext* ctx); // 0x522870
-    int ClearImpliedTeamIfPhase4Or8(NotifyContext* ctx);  // 0x522980
+    int ReadyUnlessPhase4Or8(NotifyContext* ctx);  // 0x522980
     int ScheduleTimerEvent(NotifyContext* ctx);      // 0x5229c0
-    void ResetImpliedTeamIfPhase8();                 // 0x522a10
-    int ResumeFromPhase11(NotifyContext* ctx);       // 0x522a30
-    int AssignPhaseLevels(IntPair* levels);          // 0x522a60
+    int ReadyIfPhase8(NotifyContext* ctx);                 // 0x522a10
+    int DestroyIfPhase11(NotifyContext* ctx);       // 0x522a30
+    int AssignPhaseLevels(const MissionPhaseLevels* levels);          // 0x522a60
     int ComputeAllTeamCanAct(uint32_t* out);         // 0x522a90
 
     // ==== SECTION apply (0x523d70-0x5249d0): see mission_apply.cpp ====
@@ -251,7 +251,7 @@ public:
     int ApplyTeam(NotifyContext* ctx);                // 0x524530
     int ApplyDecoys(NotifyContext* ctx);              // 0x524610
     int ApplyCaptured(NotifyContext* ctx);            // 0x5246f0
-    int ApplySet4(NotifyContext* ctx);                // 0x5247d0
+    int ApplyFinishedMembers(NotifyContext* ctx);                // 0x5247d0
     int ApplyReadyForNextPhase(NotifyContext* ctx);   // 0x5248b0
     int ApplyImpliedTeam(NotifyContext* ctx);         // 0x524940
     int ApplyMandatory(NotifyContext* ctx);           // 0x5249d0
@@ -262,8 +262,11 @@ public:
     int ChecksumImpl(Crc32* crc);         // 0x523b20
     int ValidateImpl();                   // 0x523c60
     int ApplyAllImpl(NotifyContext* ctx); // 0x523a60
+    int CreateViewsImpl(int controlKind, NotifyContext* ctx);  // 0x5236e0 (body of slot 37)
 
     // The static event kind set of the mission base: kind 0x250 (0x525620 builds it, 0x525670 copies it).
+    static int __cdecl CheckMemberDefault(int unused, int value, int* out, StatusCode* status);  // 0x523670
+    static int __cdecl CheckTargetDefault(class MissionCheckArgs* args, StatusCode* status, int* code);  // 0x523450
     static int BuildEventKinds();                                 // 0x525620
     static int GetBaseEventKinds(int unused, EventKindSet* out);  // 0x525670
     static void InitStatics();                                    // 0x525700
@@ -282,7 +285,7 @@ public:
     ObjectKeyValueSet m_team;       // +0x84
     ObjectKeyValueSet m_decoys;     // +0x8c
     ObjectKeyValueSet m_captured;   // +0x94
-    ObjectKeyValueSet m_set4;       // +0x9c
+    ObjectKeyValueSet m_finishedMembers;       // +0x9c
     uint32_t m_flagsA4;             // +0xa4
 };
 
@@ -314,6 +317,8 @@ public:
 //
 // Usage: `Iter it(mission); it.Begin(); while (it.Current()) { ...; it.Advance(); }` (Begin = 0x525930, Advance = 0x5258f0;
 // the constructors do NOT position the iterator).
+void __stdcall NextMemberKey(ObjectKeyValueSet* set, ObjectKey* key);  // 0x525b00
+
 class MissionMemberIterator {
 public:
     MissionMemberIterator(Mission* mission, const FamilyRange* range, int team, int decoys, int captured);  // 0x525870
@@ -324,6 +329,8 @@ public:
     int Count();                       // 0x5259d0
     int HasAny();                      // 0x525a00
     int Accepts();                     // 0x525a20: current object's family is inside the range
+    void StepKey();                    // 0x525a50
+    void ResolveCurrent();             // 0x5259a0
     GameObj* Current() const { return m_current; }
 
     Mission* m_mission;       // +0x04
@@ -368,7 +375,7 @@ REB_ASSERT_OFFSET(Mission, m_userId, 0x58);
 REB_ASSERT_OFFSET(Mission, m_phase, 0x68);
 REB_ASSERT_OFFSET(Mission, m_leaderSeedKey, 0x80);
 REB_ASSERT_OFFSET(Mission, m_team, 0x84);
-REB_ASSERT_OFFSET(Mission, m_set4, 0x9c);
+REB_ASSERT_OFFSET(Mission, m_finishedMembers, 0x9c);
 REB_ASSERT_OFFSET(Mission, m_flagsA4, 0xa4);
 REB_ASSERT_SIZE(MissionIterator, 0x20);
 REB_ASSERT_SIZE(MissionMemberIterator, 0x30);
