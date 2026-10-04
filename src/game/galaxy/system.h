@@ -30,6 +30,10 @@
 
 class Crc32;
 class EventKindSet;
+class System;
+
+// 0x5037f0: ApplyEnergyAllocated, identical to a function of the fleet code and folded with it (not reconstructed here).
+int __thiscall FUN_005037f0(System* system, NotifyContext* ctx);
 
 namespace system_flag {
 constexpr uint32_t kPopulated = 0x1;
@@ -54,6 +58,12 @@ constexpr uint32_t kResourceIncident = 0x80000;
 constexpr uint32_t kBlockadeAndBattlePendingManagementRequired = 0x100000;
 }  // namespace system_flag
 
+// One of the four 2-bit fields of System::m_controlBits (shift 0, 2, 4 or 6).
+inline uint32_t ControlBitsField(uint32_t bits, int shift) { return (bits >> shift) & 3; }
+inline uint32_t WithControlBitsField(uint32_t bits, int shift, uint32_t value) {
+    return (bits & ~(3u << shift)) | ((value & 3) << shift);
+}
+
 class System : public GameObj {
 public:
     System();                    // 0x507130
@@ -61,7 +71,7 @@ public:
 
     // ---- overrides of GameObj slots ----
     virtual int GetOwnerKey(ObjectKey* out) override;                                       // 3, 0x508070
-    virtual void SetRecord(DatRecord* record) override;                                     // 10, 0x50e1c0 (shared with Character; returns an int)
+    // Slot 10 is 0x50e1c0, shared (ICF) with Character::SetRecord: not declared here so that it is defined only once.
     virtual int CollectDependencies(void* context, int value, ObjectKeyValueSet* out) override;  // 11, 0x512700
     virtual int GetEventKinds(int unused, EventKindSet* out) override;                      // 15, 0x507290
     virtual int Virtual16() override { return 1; }                                          // 16
@@ -203,7 +213,7 @@ public:
     int SetBlockadeAndBattlePendingManagementRequired(int on, NotifyContext* ctx);  // 0x50ac10
     int ApplyLoyalty(NotifyContext* ctx);  // 0x50f390
     int ApplyEnergy(NotifyContext* ctx);  // 0x50f410
-    int ApplyEnergyAllocated(NotifyContext* ctx);  // 0x5037f0
+    int ApplyEnergyAllocated(NotifyContext* ctx) { return FUN_005037f0(this, ctx); }  // 0x5037f0, folded with an unrelated class's function
     int ApplyRawMaterial(NotifyContext* ctx);  // 0x50f490
     int ApplyRawMaterialAllocated(NotifyContext* ctx);  // 0x50f510
     int ApplySmugglingPercent(NotifyContext* ctx);  // 0x50f590
@@ -248,7 +258,15 @@ public:
     virtual int Validate() override = 0;                      // 8
     virtual int ApplyAll(NotifyContext* ctx) override = 0;    // 9
 
+    System* ViewAsSystem(int view) { return static_cast<System*>(ViewAs(view)); }
+
+    SystemData* GetData() { return static_cast<SystemData*>(m_data); }
+
     // ==== SECTION core (0x507130-0x509cc0): non-virtual helpers; see system_core.cpp ====
+    SideBits* GetControlData(SideBits* out);  // 0x50fbc0, a copy of m_controlData
+
+    // ---- core accessors (0x507270, 0x508fb0-0x509c30; system_accessors.cpp) ----
+    // ---- end of core accessors ----
 
     // ==== SECTION rules (0x50ac80-0x50e820 and 0x558bb0-0x55a100): see system_rules*.cpp ====
 
