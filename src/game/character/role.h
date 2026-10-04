@@ -2,6 +2,7 @@
 #include <cstdint>
 
 #include "core/layout.h"
+#include "data/dat_record.h"
 #include "gameobj/child_iterator.h"
 #include "gameobj/unit_obj_base.h"
 
@@ -29,6 +30,32 @@
 class Crc32;
 class EventKindSet;
 
+// Bits of Role::m_flags78.
+namespace role_flag {
+constexpr uint32_t kDecoy = 0x1;
+constexpr uint32_t kMovingBetweenMissions = 0x2;
+constexpr uint32_t kMissionRemoveRequest = 0x4;
+constexpr uint32_t kMissionResignRequest = 0x8;
+constexpr uint32_t kCanResignFromMission = 0x10;
+constexpr uint32_t kIsDecoying = 0x20;
+constexpr uint32_t kAdrift = 0x40;
+constexpr uint32_t kOnMission = 0x80;
+constexpr uint32_t kOnHiddenMission = 0x100;
+constexpr uint32_t kOnMandatoryMission = 0x200;
+}  // namespace role_flag
+
+// The SD record of a person: {base, random spread} for each of the 8 skills; Role::OnCreatedChanged rolls the base
+// skills from them. Abstract here (the concrete record classes belong to the data module).
+struct RoleSkillRange {
+    int m_base;    // +0x00
+    int m_spread;  // +0x04
+};
+
+class RoleRecord : public SdRecord {
+public:
+    RoleSkillRange m_skills[8];  // +0x58: Diplomacy, Espionage, ShipyardRD, TrainingFacilRD, ConstructionYardRD, Combat, Leadership, Loyalty
+};
+
 class Role : public UnitObjBase {
 public:
     Role();                                                           // 0x5336b0
@@ -45,6 +72,7 @@ public:
     virtual int CheckUnknown(int a, StatusCode* out) override;                                     // 28, 0x533ae0
     virtual int Virtual47(int a) override;                                                         // 47, 0x534a50
     virtual int Virtual48(int a) override;                                                         // 48, 0x534a50
+    // `a` is really the NotifyContext*: clears the master's MissionKey, then re-applies it to both side views.
     virtual int Virtual55(int a) override;                                                         // 55, 0x534a60
     virtual GameObjData* CreateData() override;                                                    // 58, 0x536cc0
     virtual int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x536070
@@ -67,9 +95,9 @@ public:
     // Both activity checks run GameObj::CheckActivityRequest and add the status {0x30, 1} (busy on a mission) when the
     // OnMission flag is set.
     virtual int CheckActivity(const ActivityRequest* request, StatusCode* out);           // 112, 0x533ba0
-    virtual void CheckActivityStatus(const ActivityRequest* request, StatusCode* out);    // 113, 0x533c60: out = {1,-1}, CheckActivity
+    virtual int CheckActivityStatus(const ActivityRequest* request, StatusCode* out);     // 113, 0x533c60: out = {1,-1}, CheckActivity
     virtual int CheckActivity2(const ActivityRequest* request, StatusCode* out);          // 114, 0x533ce0, same body as 112
-    virtual void CheckActivityStatus2(const ActivityRequest* request, int unused, StatusCode* out);  // 115, 0x533da0: calls 114
+    virtual int CheckActivityStatus2(const ActivityRequest* request, int unused, StatusCode* out);  // 115, 0x533da0: out = {1,-1}, CheckActivity2
     virtual int Virtual116() { return 1; }                                                // 116
     virtual int Virtual117() { return 0; }                                                // 117
     virtual int Virtual118() { return 0; }                                                // 118
@@ -83,8 +111,10 @@ public:
     virtual int GetLeadership() = 0;                                                      // 125
     virtual int GetLoyalty() = 0;                                                         // 126
     virtual int Virtual127() = 0;                                                         // 127
+    // `a` is an ActivityRequest*: CheckActivityStatus, then Virtual129 if it left the status at {1,-1}.
     virtual int Virtual128(int a, NotifyContext* ctx);                                    // 128, 0x534b70
     virtual int Virtual129(NotifyContext* ctx);                                           // 129, 0x534c00 (same body as Destroy: reason 0x14)
+    // Requests the resignation from the mission (SetMissionResignRequest(1)) if CanResignFromMission is set and there is a mission.
     virtual int Virtual130(NotifyContext* ctx);                                           // 130, 0x534c20
     virtual int Virtual131(int a, NotifyContext* ctx) { return 1; }                       // 131
     virtual int Virtual132(int a, NotifyContext* ctx) { return 1; }                       // 132
@@ -194,15 +224,36 @@ public:
     int SetBaseRdForKind(int kind, int value, NotifyContext* ctx);  // 0x534990
     // Sets OnMission to (MissionKey is set || MovingBetweenMissions).
     int UpdateOnMission(NotifyContext* ctx);  // 0x534950
-    int Unknown5349e0(int a, int b, NotifyContext* ctx);  // 0x5349e0
-    // The ParentAtMissionCompletionKey getter (copies +0x70).
+    // Rolls GetCombat() against `difficulty` (RollRlevadChance with the control side); on success Virtual130(ctx),
+    // otherwise Virtual131(failArg, ctx). Returns 0 when the roll fails the table lookup.
+    int RollCombatCheck(int failArg, int difficulty, NotifyContext* ctx);  // 0x5349e0
+    // The key getters (copies of +0x68 / +0x6c / +0x70 / +0x74). Only the +0x70 one has an address of its own; the
+    // others are identical functions folded into getters of other classes (0x42d170, 0x4a25f0, 0x40d760).
+    ObjectKey* GetMissionKey(ObjectKey* out) {
+        out->m_value = m_missionKey.m_value;
+        return out;
+    }
+    ObjectKey* GetMissionSeedKey(ObjectKey* out) {
+        out->m_value = m_missionSeedKey.m_value;
+        return out;
+    }
     ObjectKey* GetParentAtMissionCompletionKey(ObjectKey* out);  // 0x535760
+    ObjectKey* GetLocationAtMissionCompletionKey(ObjectKey* out) {
+        out->m_value = m_locationAtMissionCompletionKey.m_value;
+        return out;
+    }
+    // The seed key is a NullableKey but every function handles it as an ObjectKey (4 bytes, same code).
+    ObjectKey* MissionSeedKeyAsObjectKey() { return reinterpret_cast<ObjectKey*>(&m_missionSeedKey); }
+    Role* ViewAsRole(int view) { return static_cast<Role*>(ViewAs(view)); }
+    int HasMissionFlag(uint32_t mask) const { return (m_flags78 & mask) != 0; }
     // The event-kind set of Role (g_roleEventKinds, 0x6b9028): built on first use by 0x536bc0, which returns whether
     // it succeeded. Derived classes' static sets start from a copy of it (0x536ca0).
     static int BuildEventKinds();                                      // 0x536bc0
     static int InitEventKinds(int unused, EventKindSet* out);          // 0x536ca0
     // Static initializer of g_roleEventKinds: constructs it (0x536d40) and registers the atexit destructor (0x536d50).
-    static void InitStatics();  // 0x536d30
+    static void InitStatics();               // 0x536d30
+    static void ConstructEventKinds();       // 0x536d40
+    static void RegisterEventKindsAtExit();  // 0x536d50
 
     // ---- fields ----
     int16_t m_baseDiplomacy;                // +0x58
@@ -230,6 +281,8 @@ public:
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
+REB_ASSERT_SIZE(RoleSkillRange, 0x08);
+REB_ASSERT_OFFSET(RoleRecord, m_skills, 0x58);
 REB_ASSERT_SIZE(Role, 0x7c);
 REB_ASSERT_OFFSET(Role, m_baseDiplomacy, 0x58);
 REB_ASSERT_OFFSET(Role, m_baseLoyalty, 0x66);
