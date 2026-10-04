@@ -21,7 +21,6 @@
 
 class MissionMgr;
 class MissionPhaseLevels;
-class MissionSystemCheck;
 
 namespace mission_exec {
 
@@ -55,16 +54,6 @@ inline int ViewOfSide(uint32_t side) { return side == 1 ? 1 : (side == 2 ? 2 : 0
 
 }  // namespace mission_exec
 
-// Local state of the system mission check (VT 0x66a888, 0x70 bytes, ctor 0x5897c0, dtor 0x589870, check 0x5898f0),
-// owned by the mission leaf classes (0x587100-0x58adb0). Only the two pointers this slice sets are named.
-class MissionSystemCheck {
-public:
-    uint8_t m_head[0x10];    // +0x00
-    GameObj* m_system;       // +0x10
-    Mission* m_mission;      // +0x14
-    uint8_t m_tail[0x58];    // +0x18
-};
-static_assert(sizeof(MissionSystemCheck) == 0x70, "MissionSystemCheck layout");
 
 // ---- mission leaf iterators whose class is owned by the leaf-class slices: constructed and destroyed by address ----
 // Each is a ChildIterator (0x20 bytes) over one family range of the children of the parent.
@@ -88,7 +77,6 @@ REB_EXTERNAL_MISSION_ITERATOR(MissionIteratorFam58, 00571650, 005716f0);  // fam
 REB_EXTERNAL_MISSION_ITERATOR(MissionIteratorFam50to60, 00586b70, 00586c10);  // families 0x50-0x5f
 REB_EXTERNAL_MISSION_ITERATOR(MissionIteratorFam56, 00571c20, 00571cc0);  // family 0x56
 REB_EXTERNAL_MISSION_ITERATOR(MissionIteratorFam57, 00569e10, 00569eb0);  // family 0x57
-REB_EXTERNAL_MISSION_ITERATOR(MissionIteratorFam60to68, 00587100, 005871a0);  // families 0x60-0x67
 #undef REB_EXTERNAL_MISSION_ITERATOR
 
 class MissionMgr : public GameObj {
@@ -200,17 +188,6 @@ int __thiscall FUN_0054bf00(MissionMgr* mgr, ObjectKeyValueSet* team, ObjectKey*
 int __thiscall FUN_0054c7d0(MissionMgr* mgr, GameObj* object, int* a, uint32_t* side, uint32_t* flag, ObjectKey* key,
                             ObjectKeyValueSet* set, NotifyContext* ctx);
 MissionMgr* __thiscall FUN_00541fc0(void* memory);  // the MissionMgr constructor
-
-// ---- the mission rules (GNPRTB 0x1800 loader 0x55bfd0) ----
-int FUN_0055c620(int value);  // DivideByMissionDivisor
-int FUN_0055c630(int value);  // NegatedDivideByMissionDivisor
-int FUN_0055c640();  // GetMissionRuleValue1801
-int FUN_0055c650(int* out);  // RollMissionRuleBonus1809
-
-// ---- the mission system check ----
-MissionSystemCheck* __thiscall FUN_005897c0(MissionSystemCheck* check);
-int __thiscall FUN_005898f0(MissionSystemCheck* check, NotifyContext* ctx);
-void __thiscall FUN_00589870(MissionSystemCheck* check);
 
 // ---- per-class checks of the 0x58 mission family ----
 int __thiscall FUN_00570470(Mission* mission, NotifyContext* ctx);

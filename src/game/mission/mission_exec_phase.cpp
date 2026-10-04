@@ -1,5 +1,7 @@
 #include "data/gnprtb.h"
+#include "mission/mission_encounter.h"
 #include "mission/mission_exec_decl.h"
+#include "mission/mission_rules.h"
 
 using namespace mission_exec;
 
@@ -31,11 +33,10 @@ int MissionMgr::ReleaseObjectiveSystem(Mission* mission, NotifyContext* ctx) {
     if (!objective) return ok;
     if (!InFamilies(objective->GetFamily(), kFamilySystemBegin, kFamilySystemEnd)) return ok;
 
-    MissionSystemCheck check;
-    FUN_005897c0(&check);
-    check.m_system = objective;
-    check.m_mission = mission;
-    ok = FUN_005898f0(&check, ctx) && ok;
+    EncounterRunner check;
+    check.m_context.m_location = objective;
+    check.m_context.m_mission = mission;
+    ok = check.Run(ctx) && ok;
     if (mission->HasCompletionStatus()) {
         int otherSide = -1;
         const uint32_t side = mission->ControlSide();
@@ -52,7 +53,6 @@ int MissionMgr::ReleaseObjectiveSystem(Mission* mission, NotifyContext* ctx) {
             mission->ApplyAllToView(otherSide, &viewContext);
         }
     }
-    FUN_00589870(&check);
     return ok;
 }
 
@@ -132,7 +132,7 @@ int MissionMgr::UpdateSystemMissionScores(Mission* mission, int fromPhase, int t
         ObjectKey leaderKey;
         if (other->IsPhase8() && leader->GetKey(&leaderKey)->m_value == other->m_targetLocationKey.m_value) {
             found = true;
-            firstScore += FUN_0055c620(other->AverageMemberSkill());
+            firstScore += DivideByMissionDivisor(other->AverageMemberSkill());
         }
     }
     MissionIteratorFam57 secondGroup(this);
@@ -140,9 +140,9 @@ int MissionMgr::UpdateSystemMissionScores(Mission* mission, int fromPhase, int t
         Mission* other = secondGroup.Current();
         ObjectKey leaderKey;
         if (other->IsPhase8() && leader->GetKey(&leaderKey)->m_value == other->m_targetLocationKey.m_value)
-            secondScore += FUN_0055c630(other->AverageMemberSkill());
+            secondScore += NegatedDivideByMissionDivisor(other->AverageMemberSkill());
     }
-    if (found) bonus = FUN_0055c640();
+    if (found) bonus = GetMissionRuleValue1801();
     System* system = static_cast<System*>(leader);
     ok = system->SetData74(firstScore) && ok;
     const int second = system->SetData78(secondScore) && ok;

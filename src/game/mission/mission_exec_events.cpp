@@ -1,3 +1,4 @@
+#include "mission/mission_encounter.h"
 #include "mission/mission_exec_decl.h"
 
 using namespace mission_exec;
@@ -415,9 +416,9 @@ int MissionMgr::OnPersonArrived(ObjectKey* key, int unused, int expectedState, N
     }
 
     ok = person->Virtual44(ctx) && ok;
-    MissionIteratorFam60to68 missions(this);
-    for (missions.get()->Begin(); missions.get()->Current(); missions.get()->Advance()) {
-        Mission* mission = missions.Current();
+    CharacterTargetMissionIterator missions(this);
+    for (missions.Begin(); missions.Current(); missions.Advance()) {
+        Mission* mission = static_cast<Mission*>(missions.Current());
         if (mission->ObjectiveKeyIs(key)) ok = mission->UpdatePhaseForTeam(ctx) && ok;
     }
     return ok;

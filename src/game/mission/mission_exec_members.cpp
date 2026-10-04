@@ -1,6 +1,7 @@
 #include <new>
 
 #include "mission/mission_exec_decl.h"
+#include "mission/mission_rules.h"
 
 using namespace mission_exec;
 
@@ -265,7 +266,7 @@ int MissionMgr::InjureStoryCharacter(NotifyContext* ctx) {
     GameObjNotifier* parent = nullptr;
     int ok = FUN_005434b0(this, &story, &parent, &parentKey);
     int amount = 0;
-    ok = FUN_0055c650(&amount) && ok;
+    ok = RollMissionRuleBonus1809(&amount) && ok;
     if (story) ok = static_cast<Character*>(story)->Virtual188(amount, kInjuryReasonMission, ctx) && ok;
     return ok;
 }
