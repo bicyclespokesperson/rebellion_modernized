@@ -1,3 +1,4 @@
+#include "data/dat_record.h"
 #include "core/utility_classes.h"
 #include "galaxy/system_rules.h"
 #include "galaxy/system_rules_1e.h"
@@ -153,4 +154,12 @@ int System::CreateViews(int controlKind, NotifyContext* ctx) {
     NotifyContext context(*ctx);
     context.m_reserved14 = CallGameHook2AFC();
     return CheckHyperspaceBlocked(3, controlKind, &context);
+}
+
+// Slot 10: the same body as Character::SetRecord (0x50e1c0 is shared; the address is hooked through Character).
+void System::SetRecord(DatRecord* record) {
+    if (!record) return;
+    const bool familyMatches = record->m_third == GetFamily();
+    AssignRecord(record);
+    if (familyMatches) SetId(record->m_id);
 }

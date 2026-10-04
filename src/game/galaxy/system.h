@@ -89,7 +89,7 @@ public:
     virtual int Virtual112();                                                               // 112, 0x507e60
     virtual int Virtual113();                                                               // 113, 0x507f10
     virtual int Virtual114();                                                               // 114, 0x507fc0
-    virtual int Virtual115(NotifyContext* ctx) = 0;                                                          // 115, pure
+    virtual int Virtual115(NotifyContext* ctx) = 0;  // 115, pure
 
     // ---- OnXChanged events on the master (slots 116-150; the empty ones are the shared return-1 stubs) ----
     virtual int OnLoyaltyChanged(int oldValue, int newValue, NotifyContext* ctx);  // 116, 0x5109f0
@@ -237,9 +237,7 @@ public:
     int ApplyResourceIncident(NotifyContext* ctx);  // 0x5106c0
     int ApplyBlockadeAndBattlePendingManagementRequired(NotifyContext* ctx);  // 0x510760
 
-    // ---- two more new virtuals (slots 186-187; names provisional) ----
-    virtual int Virtual186();                                                               // 186, 0x512f70
-    virtual int Virtual187();                                                               // 187, 0x513020
+    // (slots 186-187 do not exist: those addresses already belong to the next vtable, ChildIterator's)
 
     // ---- persistence/validation: bodies the leaf classes may call qualified (slots 5-9 stay pure) ----
     virtual int Read(istream* in) override = 0;               // 5, body 0x50e410
