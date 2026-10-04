@@ -1,0 +1,93 @@
+# TextScrollField exercise in a loaded game (RebelsFastStart): an encyclopedia article's text (a read-only
+# TextScrollField with a vertical scroll bar) is scrolled with the bar's arrows and track, clicked and given keys;
+# the article arrows switch to other articles (new text). Then the Message Index buttons on the right are tried.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot tsf_00_galaxy
+# F7 Galactic Encyclopedia; double-click "A-wing" -> article.
+42 key F7
+45 move 125 195
+46 move 130 197
+47 click 130 197
+48.0 click 130 197
+48.15 click 130 197
+51 shot tsf_01_article
+# Scroll bar of the article text: down arrow, track below the thumb, up arrow, track above the thumb.
+52 move 466 352
+53 move 467 355
+54 click 467 355
+55 click 467 355
+56 click 467 355
+57 shot tsf_02_line_down
+58 move 467 335
+59 click 467 335
+60 click 467 335
+61 shot tsf_03_page_down
+62 move 467 288
+63 move 467 286
+64 click 467 286
+65 click 467 286
+66 shot tsf_04_line_up
+67 move 467 300
+68 click 467 300
+69 shot tsf_05_page_up
+# Click into the text, then keys (the field is read-only: they go to the parent).
+70 move 200 310
+71 move 200 312
+72 click 200 312
+73 key Down
+74 key Next
+75 key Prior
+76 key Up
+77 key End
+78 key Home
+79 key Left
+80 key Right
+81 key x
+82 shot tsf_06_keys
+# Next / previous article arrows.
+83 move 448 70
+84 move 450 72
+85 click 450 72
+87 shot tsf_07_next_article
+88 click 450 72
+90 shot tsf_08_next_article2
+91 move 97 70
+92 move 97 72
+93 click 97 72
+95 shot tsf_09_prev_article
+96 key Escape
+97 key Escape
+# F6 Message Index; open the first message, then try the buttons on the right.
+99 key F6
+102 shot tsf_10_message_index
+103 move 130 163
+104 move 133 166
+105 click 133 166
+106.0 click 133 166
+106.15 click 133 166
+109 shot tsf_11_message
+110 move 498 155
+111 move 500 157
+112 click 500 157
+114 shot tsf_12_button2
+115 move 498 210
+116 move 500 212
+117 click 500 212
+119 shot tsf_13_button3
+120 move 498 266
+121 move 500 268
+122 click 500 268
+124 shot tsf_14_button4
+125 move 498 318
+126 move 500 320
+127 click 500 320
+129 shot tsf_15_button5
+130 end

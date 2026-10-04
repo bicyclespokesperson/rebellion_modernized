@@ -294,11 +294,15 @@ literal `0x5ff020` calls.
 
 **Custom resource types:**
 
-- **302** (`0x12e`, parsed by `0x41c6c0`):
-  - Header: `u16 width, u16 height (=row count), u32 data_size, u8 flag, u16 ×4` (hotspot or bounding box?).
-  - Then `height` × `u32` row offsets, then the pixel data.
-  - This looks like a per-row RLE 8-bit sprite. It also serves pixel hit-tests (`0x41cb30`). The exact encoding has
-    not been decoded yet.
+- **302** (`0x12e`, `DeltaFrame`, src/game/ui/sprite.cpp; parsed by `0x41c6c0`): one animation frame stored as a
+  difference to the previous frame.
+  - Header: `u16 width, u16 height (=row count), u32 data_size, u8 flag, i16 left, top, right, bottom` (17 bytes,
+    so the 16-bit fields are unaligned; the bounds are recomputed from the data on load).
+  - Then `height` × `u32` row offsets into the data, then `data_size` bytes of row data.
+  - Each row alternates a skip count with a literal count followed by that many bytes, starting with a skip; applying
+    the frame (`0x41c7a0`) *adds* the literal bytes to the 8-bit pixels of the previous frame's bitmap.
+  - The animation resource classes (`0x404440`, `0x412c40`) load a base `RT_BITMAP` plus one 302 frame per later
+    frame; the result is drawn as a `Sprite` on a `SpriteStage` (galaxy-view advisor animations).
 - **301:** DirectX retained-mode `.x` files (tactical).
 - **303** (`0x12f`): tactical textures, `u32 w, u32 h` + RLE data.
 - **WAVE** (string type, `0x6ac954`): RIFF PCM, e.g. 11025 Hz mono 16-bit, played through DirectSound (`0x611890`).
