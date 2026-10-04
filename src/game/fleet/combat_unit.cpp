@@ -127,15 +127,15 @@ int CombatUnit::ApplyAll(NotifyContext* ctx) {
     return result;
 }
 
-uint32_t CombatUnit::GetRecordField60() { return m_record ? gridRecordOf(this)->m_field60 : 0; }
+uint32_t CombatUnit::GetField60() { return m_record ? gridRecordOf(this)->m_field60 : 0; }
 
-uint32_t CombatUnit::GetRecordField64() { return m_record ? gridRecordOf(this)->m_field64 : 0; }
+uint32_t CombatUnit::GetField64() { return m_record ? gridRecordOf(this)->m_field64 : 0; }
 
-uint32_t CombatUnit::GetRecordField68() { return m_record ? gridRecordOf(this)->m_field68 : 0; }
+uint32_t CombatUnit::GetField68() { return m_record ? gridRecordOf(this)->m_field68 : 0; }
 
-uint32_t CombatUnit::GetRecordField6c() { return m_record ? gridRecordOf(this)->m_field6c : 0; }
+uint32_t CombatUnit::GetField6c() { return m_record ? gridRecordOf(this)->m_field6c : 0; }
 
-uint32_t CombatUnit::GetRecordField70() { return m_record ? gridRecordOf(this)->m_field70 : 0; }
+uint32_t CombatUnit::GetField70() { return m_record ? gridRecordOf(this)->m_field70 : 0; }
 
 uint32_t CombatUnit::GetGridTotal() { return GetRecordTotal(); }
 
@@ -168,13 +168,13 @@ int CombatUnit::OnFastRepairChanged(int newValue, NotifyContext* ctx) {
 
 int CombatUnit::OnUnderRepairNotified(int value, NotifyContext* ctx) {
     const int result = IsSideView();
-    if (result) LogFlag("CombatUnitUnderRepairNotif", "UnderRepair", value, 0, ctx);
+    if (result) LogFlag("(CombatUnitUnderRepairNotif)", "UnderRepair", value, 0, ctx);
     return result;
 }
 
 int CombatUnit::OnFastRepairNotified(int value, NotifyContext* ctx) {
     const int result = IsSideView();
-    if (result) LogFlag("CombatUnitFastRepairNotif", "FastRepair", value, 0, ctx);
+    if (result) LogFlag("(CombatUnitFastRepairNotif)", "FastRepair", value, 0, ctx);
     return result;
 }
 

@@ -104,7 +104,7 @@ uint32_t Detector::GetRecordField5c() { return m_record ? recordOf(this)->m_fiel
 
 int Detector::OnIsDecoyedNotified(int value, NotifyContext* ctx) {
     const int result = IsSideView();
-    if (result) LogFlag("DetectorIsDecoyedNotif", "IsDecoyed", value, 0, ctx);
+    if (result) LogFlag("(DetectorIsDecoyedNotif)", "IsDecoyed", value, 0, ctx);
     return result;
 }
 
