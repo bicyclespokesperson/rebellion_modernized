@@ -131,7 +131,7 @@ int EncounterRunner::Prepare(NotifyContext* ctx) {
                 bool sameOwner = false;
                 GameObj* origin = nullptr;
                 GameObjNotifier* parent = nullptr;
-                ok = mission->GetOriginInOwnerSide(&origin) && ok;
+                ok = mission->GetObjectiveInOwnerView(&origin) && ok;
                 if (origin != nullptr) {
                     ok = origin->GetParent(&parent) && ok;
                     if (origin != nullptr && parent != nullptr) {
@@ -233,7 +233,7 @@ int EncounterRunner::RunFinalMembers(NotifyContext* ctx) {
     if (m_unk4c != 0) {
         Mission* mission = missionOf(m_context);
         if (mission->GetRecordCanResign() != 0)
-            ok = mission->Virtual119(3 + (mission->IsDataField1cAbove4() != 0), ctx) != 0;
+            ok = mission->CompleteWith(3 + (mission->IsDataField1cAbove4() != 0), ctx) != 0;
         EncounterDispatchVisitor dispatch(&m_context);
         ok = m_context.VisitTeamMajorMinor(&dispatch, ctx) && ok;
         UnitAgainstMemberVisitor unitsMeetMembers(&m_context);
