@@ -296,7 +296,7 @@ class Emulator:
         if ok and (address + size - 1) & ~(PAGE - 1) != page:
             ok = self.map_page((address + size - 1) & ~(PAGE - 1))
         if not ok:
-            self.error = f"access to unmapped memory {address:#010x} (size {size})"
+            self.error = f"access to unmapped memory {address:#010x} (size {size}) at eip {uc.reg_read(UC_X86_REG_EIP):#x} after {self.calls[-2:]}"
         return ok
 
     def on_write(self, uc, access, address, size, value, _):
@@ -438,6 +438,12 @@ class Emulator:
             block = self.heap_alloc(len(blob))
             self.write_guest(block, blob)
             return block
+        if function == "GetTextExtentPoint32A":
+            self.ensure_mapped(args[1])
+            self.ensure_mapped(args[1] + max(args[2], 1) - 1)
+            text = bytes(self.uc.mem_read(args[1], args[2])) if args[2] else b""
+            self.write_guest(args[3], struct.pack("<ii", sum(6 + b % 5 for b in text), 14))
+            return 1
         if CFG.gdi_handles and dll.upper() == "GDI32.DLL":
             return self.fake_gdi(function, args)
         return None
@@ -650,7 +656,7 @@ class Emulator:
         except UcError as e:
             if not self.error:
                 eip = self.uc.reg_read(UC_X86_REG_EIP)
-                self.error = f"emulation fault at {eip:#010x}: {e}"
+                self.error = f"emulation fault at {eip:#010x}: {e} after {self.calls[-3:]}"
         if not self.done and not self.error:
             self.error = f"stopped without returning (instruction limit {self.max_insns}?)"
         res = RunResult(ok=self.done and not self.error, error=self.error, calls=self.calls, instructions=self.count)
@@ -721,7 +727,8 @@ def compare(orig: RunResult, new: RunResult, initial: dict[str, int], return_kin
                         "\n                      ".join(describe_memory(only_o)[:20]) +
                         "\n      reimplemented:  " + "\n                      ".join(describe_memory(only_n)[:20]))
     if orig.calls != new.calls:
-        problems.append(f"API calls differ:\n      original:      {orig.calls[:12]}\n      reimplemented: {new.calls[:12]}")
+        first = next((i for i, (a, b) in enumerate(zip(orig.calls, new.calls)) if a != b), min(len(orig.calls), len(new.calls)))
+        problems.append(f"API calls differ at call {first} of {len(orig.calls)}/{len(new.calls)}:\n      original:      {orig.calls[first:first + 6]}\n      reimplemented: {new.calls[first:first + 6]}")
     return problems
 
 
