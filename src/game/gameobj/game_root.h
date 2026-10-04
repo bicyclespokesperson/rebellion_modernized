@@ -16,6 +16,7 @@
 // The setup stage number lives in a global (0x6b2bb4); the stages and what each one calls are listed in StepSetup.
 
 class Crc32;
+class RandomGenerator;
 
 class GameRoot : public GameObj {
 public:
@@ -42,6 +43,57 @@ public:
     int StepSetup(int* status);  // 0x5136d0
     int IsSetupComplete();       // 0x513960
 
+    // ---- bodies behind the Read/Write/Checksum/Validate thunks, the random generator and the consistency checks
+    //      (0x518dc0-0x519800), see galaxy/game_root_body.cpp ----
+    int BindDifficultyTables();         // 0x518dc0, loads the rule tables for the settings' difficulty
+    int ReadBody(istream* in);          // 0x518dd0
+    int WriteBody(ostream* out);        // 0x518ef0
+    int ChecksumBody(Crc32* crc);       // 0x519060
+    int ValidateBody();                 // 0x519130
+    int ValidateBuilders();             // 0x519350, every created unit is known to its builder manager
+    int ValidateLocks();                // 0x519470, every object's lock count equals the number of references to it
+    int CreateRandomGenerator();        // 0x519740, seeded from the settings; registers it with SetGameRandom
+    int DestroyRandomGenerator();       // 0x5197c0, returns 1
+    int HasRandomGenerator();           // 0x5197f0
+
+    // ---- setup stage bodies (0x519800-0x51bf30), see galaxy/game_setup_stages.cpp and game_setup_seed.cpp ----
+    int SetupRootObject(NotifyContext* ctx);                       // 0x519800, stage 8
+    int CreateRootChildren(NotifyContext* ctx);                    // 0x519910, stage 9
+    int CreateSectors(int galaxySize, NotifyContext* ctx);         // 0x519c20, stage 0xa
+    int DistributeSystems(NotifyContext* ctx);                     // 0x519d00, stage 0xb
+    int PlaceNextPooledSystem(int* done, NotifyContext* ctx);      // 0x51a280, stage 0xc
+    int BuildRulesObject(NotifyContext* ctx);                      // 0x51a530, stage 0xd
+    int BeginSystemWalk(NotifyContext* ctx);                       // 0x51a550, stage 0xe
+    int InitializeNextSystem(int* done, NotifyContext* ctx);       // 0x51a570, stage 0xf
+    int PlaceHeadquarters(NotifyContext* ctx);                     // 0x51a640, stage 0x10
+    int PlaceCoreSystem(NotifyContext* ctx);                       // 0x51a680
+    int PlaceYavinSystem(NotifyContext* ctx);                      // 0x51a870
+    int SeedInitialForces(NotifyContext* ctx);                     // 0x51aa50, stage 0x12
+    int SeedSystemTroops(NotifyContext* ctx);                      // 0x51ab20
+    int SeedCoruscantForces(NotifyContext* ctx);                   // 0x51acb0
+    int SeedKey154Forces(NotifyContext* ctx);                      // 0x51ad90
+    int SeedYavinForces(NotifyContext* ctx);                       // 0x51ae20
+    int SeedStartingFleet(NotifyContext* ctx);                     // 0x51af00
+    int SeedYavinFleet(NotifyContext* ctx);                        // 0x51b080
+    int SeedAllianceReserves(NotifyContext* ctx);                  // 0x51b1b0
+    int SeedEmpireReserves(NotifyContext* ctx);                    // 0x51b1d0
+    int SeedSideReserves(int side, NotifyContext* ctx);            // 0x51b1f0
+    int SetupCharacterManagerA(NotifyContext* ctx);                // 0x51b6d0, stage 0x14
+    int SetupCharacterManagerB(NotifyContext* ctx);                // 0x51b710, stage 0x15
+    int SetupSideObjects(NotifyContext* ctx);                      // 0x51b750, stages 0x11 and 0x13
+    int InitializeAllObjects(NotifyContext* ctx);                  // 0x51b7f0, stage 0x17
+    int FinishSideViews(NotifyContext* ctx);                       // 0x51b940, stage 0x18 (runs FinishSideView on both side views)
+    int FinishSideView(NotifyContext* ctx);                        // 0x51b990
+    // Creates the system `systemKey` under the sector of its record with the given control side, applies `level` and
+    // remembers the key of the headquarters system (m_key154). `unusedA` is ignored by the original.
+    int PlaceSystem(ObjectKey* systemKey, int unusedA, int initArg, int level, NotifyContext* ctx);  // 0x51bc70
+    // Sums the seed value (SdRecord field 0x4c) of every record named in `list` into *total, times `factor`.
+    int SumSeedValues(int factor, ObjectRefList* list, int* total);  // 0x51be20
+    // Creates the units of rows `first`..`last` of table `tableType` under `parent`.
+    int SeedFromTableRows(GameObjNotifier* parent, int tableType, int first, int last, NotifyContext* ctx);  // 0x51be90
+    // The first `count` rounds create the first listed object as a child of `parent` and the others under it.
+    int CreateChildrenFromList(GameObjNotifier* parent, int count, ObjectRefList* list, NotifyContext* ctx);  // 0x51bf30
+
     // Loads a whole game: the unresolved-key set, then the root and its tree once per view. *out receives the master
     // root (null if none could be built). Returns 1 on success.
     static int LoadGame(istream* in, GameRoot** out);  // 0x513a50
@@ -57,7 +109,7 @@ public:
     int m_unk78[5];               // +0x78
     ObjectKey m_key8c;            // +0x8c
     NotifyContext m_ctx90;        // +0x90
-    int m_unkac;                  // +0xac
+    RandomGenerator* m_random;    // +0xac, the gameplay random generator (registered with SetGameRandom)
     // Master objects of singletons, looked up by key once the tree is loaded (0x513a50), cleared by the destructor.
     GameObjNotifier* m_master_f2000003;  // +0xb0
     GameObjNotifier* m_master_20000005;  // +0xb4
@@ -72,9 +124,9 @@ public:
     GameObjNotifier* m_master_98000480;  // +0xd8
     GameObjNotifier* m_master_98000481;  // +0xdc
     ObjectRefList m_refLists[7];  // +0xe0
-    int m_unk150;                 // +0x150
-    ObjectKey m_key154;           // +0x154
-    uint8_t m_unk158[4];          // +0x158, written by setup stage 0xe
+    ObjectKey m_key150;           // +0x150, the system picked as the second headquarters by setup stage 0xb
+    ObjectKey m_key154;           // +0x154, the key of that system once it was created (stage 0xc)
+    GameObjNotifier* m_nextSystem;  // +0x158, the next system setup stage 0xf initializes
     NotifyContext m_ctx15c;       // +0x15c, the context the setup stages run with
     NotifyContext m_ctx178;       // +0x178
     NotifyContext m_ctx194;       // +0x194
@@ -94,7 +146,7 @@ REB_ASSERT_OFFSET(GameRoot, m_unk6c, 0x6c);
 REB_ASSERT_OFFSET(GameRoot, m_unk78, 0x78);
 REB_ASSERT_OFFSET(GameRoot, m_key8c, 0x8c);
 REB_ASSERT_OFFSET(GameRoot, m_ctx90, 0x90);
-REB_ASSERT_OFFSET(GameRoot, m_unkac, 0xac);
+REB_ASSERT_OFFSET(GameRoot, m_random, 0xac);
 REB_ASSERT_OFFSET(GameRoot, m_master_f2000003, 0xb0);
 REB_ASSERT_OFFSET(GameRoot, m_master_20000005, 0xb4);
 REB_ASSERT_OFFSET(GameRoot, m_master_f8000006, 0xb8);
@@ -108,9 +160,9 @@ REB_ASSERT_OFFSET(GameRoot, m_master_98000442, 0xd4);
 REB_ASSERT_OFFSET(GameRoot, m_master_98000480, 0xd8);
 REB_ASSERT_OFFSET(GameRoot, m_master_98000481, 0xdc);
 REB_ASSERT_OFFSET(GameRoot, m_refLists, 0xe0);
-REB_ASSERT_OFFSET(GameRoot, m_unk150, 0x150);
+REB_ASSERT_OFFSET(GameRoot, m_key150, 0x150);
 REB_ASSERT_OFFSET(GameRoot, m_key154, 0x154);
-REB_ASSERT_OFFSET(GameRoot, m_unk158, 0x158);
+REB_ASSERT_OFFSET(GameRoot, m_nextSystem, 0x158);
 REB_ASSERT_OFFSET(GameRoot, m_ctx15c, 0x15c);
 REB_ASSERT_OFFSET(GameRoot, m_ctx178, 0x178);
 REB_ASSERT_OFFSET(GameRoot, m_ctx194, 0x194);

@@ -1,0 +1,164 @@
+#include "galaxy/system_type90.h"
+
+#include "core/checked_new.h"
+#include "core/vptr_store.h"
+#include "gameobj/game_hooks.h"
+#include "gameobj/object_family.h"
+#include "gameobj/object_key.h"
+
+// GNPRTB rules that roll the starting values of a populated system.
+int FUN_005596f0();                       // is the system populated
+int FUN_00559700(int side, int dataFlag);  // starting loyalty
+int FUN_00559670();                       // starting energy
+int FUN_005596a0(int energy);             // starting raw material
+int FUN_00559850(int rawMaterial, int a, int* created, ObjectKey* key);
+
+namespace {
+
+constexpr FamilyRange kType90Families(0x90, 0x92);
+constexpr uint32_t kFamilySystemType90 = 0x90;
+constexpr int kSystemIdWithoutLoyaltyRoll = 0x109;
+constexpr int kAllSides = 3;
+
+void MakeAllViewsContext(NotifyContext* context) {
+    context->m_flag04 = 1;
+    context->m_flag08 = kAllSides;
+}
+
+}  // namespace
+
+SystemType90::SystemType90() {}
+
+SystemType90::~SystemType90() { REB_KEEP_VPTR_STORE(); }
+
+uint32_t SystemType90::GetFamily() { return kFamilySystemType90; }
+
+int SystemType90::Read(istream* in) { return ReadImpl(in); }
+
+int SystemType90::Write(ostream* out) { return WriteImpl(out); }
+
+int SystemType90::Checksum(Crc32* crc) { return ChecksumImpl(crc); }
+
+int SystemType90::Validate() { return ValidateImpl(); }
+
+int SystemType90::ApplyAll(NotifyContext* ctx) {
+    const int isSideView = IsSideView();
+    if (isSideView) return ApplyAllImpl(ctx);
+    return isSideView;
+}
+
+int SystemType90::ReadImpl(istream* in) { return FUN_0050e410(this, in); }
+
+int SystemType90::WriteImpl(ostream* out) { return FUN_0050e4e0(this, out); }
+
+int SystemType90::ApplyAllImpl(NotifyContext* ctx) {
+    const int isSideView = IsSideView();
+    if (isSideView) FUN_0050e5b0(this, ctx);
+    return isSideView;
+}
+
+int SystemType90::ChecksumImpl(Crc32* crc) { return FUN_0050e730(this, crc); }
+
+int SystemType90::ValidateImpl() { return FUN_0050e820(this); }
+
+int SystemType90::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_0050e200(this, controlKind, ctx); }
+
+GameObj* SystemType90::CreateViewObject() { return NewOrNull<SystemType90>(); }
+
+GameObjNotifier* SystemType90::Create() { return NewOrNull<SystemType90>(); }
+
+int SystemType90::Virtual47(int a) {
+    NotifyContext* ctx = reinterpret_cast<NotifyContext*>(a);
+    const int result = System::Virtual47(a);
+    if (result) {
+        const int populated = FUN_005596f0();
+        int loyalty = 0;
+        if (populated && m_id != kSystemIdWithoutLoyaltyRoll) {
+            const uint32_t side = ControlSide();
+            loyalty = FUN_00559700(side, FUN_005092f0(this));
+        }
+        SetPopulated(populated, ctx);
+        if (populated) SetLoyalty(loyalty, ctx);
+        SetEnergy(FUN_00559670(), ctx);
+        SetRawMaterial(FUN_005596a0(m_energy), ctx);
+        SetNeverBeenControlled(0, ctx);
+    }
+    return result;
+}
+
+int SystemType90::ApplyAllToViewOf(int view, int unused, NotifyContext* ctx) {
+    int ok = System::ApplyAllToViewOf(view, unused, ctx) != 0;
+    ok = FUN_0050d5a0(this, 0xc, 1, ctx) && ok;
+    ok = FUN_0050d5a0(this, 0xc, 2, ctx) && ok;
+    ok = FUN_0050d5a0(this, 4, 1, ctx) && ok;
+    return FUN_0050d5a0(this, 4, 2, ctx) && ok ? 1 : 0;
+}
+
+int SystemType90::Virtual115(NotifyContext* ctx) {
+    int result = 1;
+    const int count = m_energy;
+    ObjectKey key;
+    const int rawMaterial = m_rawMaterial;
+    for (int i = 0; i < count; ++i) {
+        int created;
+        result = FUN_00559850(rawMaterial, FUN_0052d370(this, ControlSide(), 1), &created, &key);
+        if (result && created) result = CreateChild(&key, ControlSide(), ctx, 1, 1) != 0;
+        if (!result) break;
+    }
+    return result;
+}
+
+int SystemType90::OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) {
+    const int result = System::OnControlKindChanged(oldKind, newKind, ctx);
+    if (result) {
+        NotifyContext allViews(*ctx);
+        MakeAllViewsContext(&allViews);
+        System* first = SystemView(this, 1);
+        first->ApplyControlKind(&allViews);
+        first->ApplyLoyaltyCausedCurrentControlKind(&allViews);
+        System* second = SystemView(this, 2);
+        second->ApplyControlKind(&allViews);
+        second->ApplyLoyaltyCausedCurrentControlKind(&allViews);
+    }
+    return result;
+}
+
+int SystemType90::OnLoyaltyChanged(int oldValue, int newValue, NotifyContext* ctx) {
+    const int result = System::OnLoyaltyChanged(oldValue, newValue, ctx);
+    if (result) {
+        NotifyContext allViews(*ctx);
+        MakeAllViewsContext(&allViews);
+        SystemView(this, 1)->ApplyLoyalty(&allViews);
+        SystemView(this, 2)->ApplyLoyalty(&allViews);
+    }
+    return result;
+}
+
+int SystemType90::OnPopulatedChanged(int newValue, NotifyContext* ctx) {
+    const int result = System::OnPopulatedChanged(newValue, ctx);
+    if (result) {
+        NotifyContext allViews(*ctx);
+        MakeAllViewsContext(&allViews);
+        SystemView(this, 1)->ApplyPopulated(&allViews);
+        SystemView(this, 2)->ApplyPopulated(&allViews);
+    }
+    return result;
+}
+
+int SystemType90::OnUprisingChanged(int newValue, NotifyContext* ctx) {
+    const int result = System::OnUprisingChanged(newValue, ctx);
+    if (result) {
+        NotifyContext allViews(*ctx);
+        MakeAllViewsContext(&allViews);
+        SystemView(this, 1)->ApplyUprising(&allViews);
+        SystemView(this, 2)->ApplyUprising(&allViews);
+    }
+    return result;
+}
+
+int UpdateSystemType90Children(GameObj* parent, NotifyContext* ctx) { return parent->UpdateChildren(&kType90Families, ctx); }
+
+SystemType90Iterator::SystemType90Iterator(GameObjNotifier* parent, uint32_t stateFilter)
+    : ChildIterator(parent, &kType90Families, stateFilter) {}
+
+SystemType90Iterator::~SystemType90Iterator() { REB_KEEP_VPTR_STORE(); }
