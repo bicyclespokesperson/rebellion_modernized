@@ -1,6 +1,7 @@
 #include <cstddef>
 #include <new>
 
+#include "app/app_strings.h"
 #include "app/app_externals.h"
 #include "app/rebapp_globals.h"
 #include "app/rebellion_application.h"
@@ -239,7 +240,7 @@ void RebellionApplication::BeginMovieState() {
         m_unknown130 = 1;
         m_unknown134 = 0;
         char* dllLocation = GetDllLocation();
-        CoolRegisterResourceDll(dllLocation, "textstra.dll", kTextStraSlot);
+        CoolRegisterResourceDll(dllLocation, g_textstraDllName, kTextStraSlot);
         DeleteHeapString(dllLocation);
         FUN_00409280();
         GameSetup setup;
@@ -286,8 +287,8 @@ void RebellionApplication::DoMainChildWindow(int previousState) {
     FillWindowBlack();
 
     char* dllLocation = GetDllLocation();
-    if (!FindResourceModule(kTextCommSlot)) LoadResourceModule(dllLocation, "textcomm.dll", kTextCommSlot);
-    if (!FindResourceModule(kCommonSlot)) LoadResourceModule(dllLocation, "common.dll", kCommonSlot);
+    if (!FindResourceModule(kTextCommSlot)) LoadResourceModule(dllLocation, g_textcommDllName, kTextCommSlot);
+    if (!FindResourceModule(kCommonSlot)) LoadResourceModule(dllLocation, g_commonDllName, kCommonSlot);
     HMODULE commonModule = FindResourceModule(kCommonSlot);
     DeleteHeapString(dllLocation);
 
