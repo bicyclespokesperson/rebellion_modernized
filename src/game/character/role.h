@@ -67,9 +67,9 @@ public:
     virtual int IsObservable() override { return 0; }                                              // 19
     virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                        // 22, 0x5338d0
     virtual int CheckRequestImpl(const ActivityRequest* request, StatusCode* out) override;        // 23, 0x533990
-    virtual int CheckRenameImpl(int a, StatusCode* out) override;                                  // 25, 0x533a00
-    virtual int CheckUnknownImpl(int a, StatusCode* out) override;                                 // 27, 0x533a70
-    virtual int CheckUnknown(int a, StatusCode* out) override;                                     // 28, 0x533ae0
+    virtual int CheckRenameImpl(const ActivityRequest* request, StatusCode* out) override;                                  // 25, 0x533a00
+    virtual int CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) override;                                 // 27, 0x533a70
+    virtual int CheckUnknown(const ActivityRequest* request, StatusCode* out) override;                                     // 28, 0x533ae0
     virtual int Virtual47(int a) override;                                                         // 47, 0x534a50
     virtual int Virtual48(int a) override;                                                         // 48, 0x534a50
     // `a` is really the NotifyContext*: clears the master's MissionKey, then re-applies it to both side views.

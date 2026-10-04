@@ -78,10 +78,10 @@ public:
     virtual int CheckOrder(int a, int b, StatusCode* out);    // 22
     virtual int CheckRequestImpl(const ActivityRequest* request, StatusCode* out);           // 23
     virtual int CheckRequest(const ActivityRequest* request, StatusCode* out);           // 24: out = {1,-1}, then Virtual23
-    virtual int CheckRenameImpl(int a, StatusCode* out);           // 25
-    virtual int CheckRename(int a, int b, StatusCode* out);    // 26
-    virtual int CheckUnknownImpl(int a, StatusCode* out);           // 27
-    virtual int CheckUnknown(int a, StatusCode* out);           // 28
+    virtual int CheckRenameImpl(const ActivityRequest* request, StatusCode* out);           // 25
+    virtual int CheckRename(const ActivityRequest* request, int name, StatusCode* out);    // 26
+    virtual int CheckUnknownImpl(const ActivityRequest* request, StatusCode* out);           // 27
+    virtual int CheckUnknown(const ActivityRequest* request, StatusCode* out);           // 28
     virtual int Virtual29(int a, int b, int c, int d, StatusCode* out);               // 29
     virtual int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out);  // 30
     virtual int Virtual31(int a, int b, int c, int d, StatusCode* out);               // 31
@@ -92,7 +92,7 @@ public:
     virtual int UpdateObservedByEmpire(NotifyContext* ctx);               // 36
     virtual int CreateViews(int controlKind, NotifyContext* ctx) = 0;  // body 0x4f9190           // 37
     virtual int DestroyIfAllowed(const ActivityRequest* request, NotifyContext* ctx);        // 38
-    virtual int TryRename(int a, int b, NotifyContext* ctx);  // 39
+    virtual int TryRename(const ActivityRequest* request, int name, NotifyContext* ctx);  // 39
     virtual int Destroy(NotifyContext* ctx);               // 40
     virtual int Rename(String* name, NotifyContext* ctx);  // 41: SetName
     virtual int Reparent(ObjectKey* key, NotifyContext* ctx);  // 42

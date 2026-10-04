@@ -152,20 +152,20 @@ int Role::CheckRequestImpl(const ActivityRequest* request, StatusCode* out) {
     return 1;
 }
 
-int Role::CheckRenameImpl(int a, StatusCode* out) {
+int Role::CheckRenameImpl(const ActivityRequest* request, StatusCode* out) {
     setStatus(out, kStatusNotSupported);
     return 1;
 }
 
-int Role::CheckUnknownImpl(int a, StatusCode* out) {
+int Role::CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) {
     setStatus(out, kStatusOk);
     return 1;
 }
 
-int Role::CheckUnknown(int a, StatusCode* out) {
+int Role::CheckUnknown(const ActivityRequest* request, StatusCode* out) {
     setStatus(out, kStatusOk);
-    int result = CheckUnknownImpl(a, out);
-    if (result) result = CheckActivityRequest(reinterpret_cast<const ActivityRequest*>(a), out);
+    int result = CheckUnknownImpl(request, out);
+    if (result) result = CheckActivityRequest(request, out);
     if (!result) setStatus(out, kStatusNoSuchOrder);
     return result;
 }
