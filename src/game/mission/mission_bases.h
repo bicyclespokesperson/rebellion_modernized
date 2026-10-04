@@ -30,6 +30,14 @@ public:
     virtual int Virtual120() override;                                                        // 120, 0x592510
     virtual int OnPhaseChanged(int oldValue, int newValue, NotifyContext* ctx) override;      // 125, 0x592f50
 
+    // ---- slots 157-161: per-type callbacks (the rule-base branch has 162 slots; MissionTypeBase's branch differs) ----
+    // Signatures provisional, taken from MissionSubdue (157 0x569b90, 158 stub 0x51ebb0, 159 0x569c20, 160 0x576700).
+    virtual int Virtual157(GameObj* person, int a) = 0;                                       // 157
+    virtual int Virtual158(int a) = 0;                                                        // 158
+    virtual int Virtual159(GameObj* person, int a, int* out, NotifyContext* ctx) = 0;         // 159
+    virtual int Virtual160(int a) = 0;                                                        // 160
+    virtual int Virtual161(NotifyContext* ctx);                                               // 161, 0x592c80
+
     static int BuildEventKinds();  // 0x5932d0
 };
 
