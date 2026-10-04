@@ -2,12 +2,15 @@
 #include <cstdint>
 
 #include "core/containers.h"
+#include "core/game_string.h"
 #include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
 
 class CoolLabel;
+class EventKindSet;
+class GameObj;
 class CoolStringField;
 class DibBitmap;
 
@@ -36,6 +39,26 @@ public:
     void Remove(ObjectKeyIdNode* node);             // 0x4acca0
 };
 
+// Stand-in (class not identified): what a rename is applied to. The game session hands it the new name
+// (m_name, +0x44) through game_ui_facade 0x41ce20. Slot 10 yields the set of keys of the objects it concerns.
+class RenameRequest {
+public:
+    virtual ~RenameRequest() = 0;
+    virtual void Virtual01() = 0;
+    virtual void Virtual02() = 0;
+    virtual void Virtual03() = 0;
+    virtual void Virtual04() = 0;
+    virtual void Virtual05() = 0;
+    virtual void Virtual06() = 0;
+    virtual void Virtual07() = 0;
+    virtual void Virtual08() = 0;
+    virtual void Virtual09() = 0;
+    virtual ObjectKeyValueSet* GetKeys() = 0;  // slot 10
+
+    uint8_t m_unk04[0x40];  // +0x04
+    String m_name;          // +0x44
+};
+
 // "CustomDialogBox": the base class of the strategy object windows (sector, system, fleet, object status, mission
 // windows...). A CoolGameWindow with a title label, the set of objects it shows, the selection, and in-place
 // renaming of an object through a CoolStringField. Right-clicking an object opens the object pop-up menu.
@@ -62,8 +85,8 @@ public:
     virtual void Virtual27(int a);                                          // slot 27, 0x45d3f0 (shared): nothing
     virtual ObjectKey GetDropKeyAt(int x, int y);                          // slot 28, 0x4ac520: GetKeyAt
     virtual int Virtual29();                                                // slot 29, 0x5a5b60 (shared): returns 0
-    // Opens an edit field over the object's name.
-    virtual void BeginRename(IdNode* target);                               // slot 30, 0x4ac7a0
+    // Opens an edit field over the name of the object `target` refers to (nothing if the object is unknown).
+    virtual void BeginRename(RenameRequest* target);                               // slot 30, 0x4ac7a0
     virtual void CommitRename();                                            // slot 31, 0x4ac950
     virtual void CancelRename();                                            // slot 32, 0x4aca40
     // The first selected object's key; 0 if nothing is selected.
@@ -76,7 +99,7 @@ public:
     CoolLabel* m_titleLabel;           // +0x124 owned
     RECT m_titleRect;                  // +0x128
     CoolStringField* m_renameField;    // +0x138 owned, while renaming
-    IdNode* m_renameTarget;            // +0x13c deleted by the destructor
+    RenameRequest* m_renameTarget;   // +0x13c deleted by the destructor
 };
 
 #pragma clang diagnostic push

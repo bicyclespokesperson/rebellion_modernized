@@ -3,11 +3,32 @@
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
+#include "gameobj/game_obj.h"
+#include "gameobj/object_lookup.h"
+#include "gameobj/status_code.h"
+#include "ui/cool_app.h"
 #include "ui/cool_label.h"
 #include "ui/cool_string_field.h"
 
 // game_ui_facade: hands a command and the selected objects to the game session.
 void FUN_0041cdf0(int command, ObjectKeyValueSet* selection, ObjectKey* key, int unknown);
+
+// game_ui_facade 0x41ce20: tells the game session that `request` (a rename) was made.
+void FUN_0041ce20(RenameRequest* request, int unknown);
+// 0x401060: the local player's side (0 without an application).
+int FUN_00401060();
+// 0x41dcc0: the menu commands that apply to `selection` for `player`.
+void FUN_0041dcc0(int player, ObjectKeyValueSet* selection, EventKindSet* commands);
+// object_popup_menu 0x442590 / 0x442380: add one entry / show the menu at (x, y) over `window`.
+void* FUN_00442590(uint32_t command, uint32_t kind, uint32_t flags, int x, int y, CoolWindow* window, uint32_t color,
+                   uint32_t shadowColor, uint32_t disabledColor);
+void* FUN_00442380(int x, int y, HMODULE resources, CoolWindow* window, CoolWindow* owner);
+// 0x422ca0: the galaxy view (0x6b14cc), 0 outside the game; only its side (+0x9c) is read here.
+struct GalaxyWindowView {
+    uint8_t m_unknown00[0x9c];
+    int m_side;
+};
+GalaxyWindowView* FUN_00422ca0();
 
 extern const char g_customDialogBoxClassName[];  // 0x6a8828 "CustomDialogBox"
 
@@ -20,6 +41,21 @@ constexpr uint32_t kDialogStyle = 0x52000000;  // WS_CHILD | WS_CLIPSIBLINGS | W
 constexpr uint32_t kChildStyle = 0x56000000;   // ... | WS_VISIBLE
 constexpr UINT kTitleDrawFlags = 0x25;         // DT_CENTER | DT_VCENTER | DT_SINGLELINE
 constexpr uint32_t kTitleLayout = 3;
+constexpr uint32_t kMenuKind = 7;
+constexpr uint32_t kMenuBaseColor = 0x20000ff;
+constexpr uint32_t kMenuAlternateColorBits = 0xfe01;
+constexpr uint32_t kMenuShadowColor = 0x2ffffff;
+constexpr uint32_t kMenuDisabledColor = 0x2808080;
+constexpr uint32_t kMenuEntryDisabled = 1;
+constexpr uint32_t kMenuEntryChecked = 2;
+constexpr int kRenameFieldFontSlot = 10;
+constexpr int kAlliancePlayer = 1;
+constexpr size_t kMainWindowOffset = 0xc0;
+
+// RebellionApplication (0x413000) keeps the main strategy window at +0xc0.
+CoolWindow* AppMainWindow() {
+    return *reinterpret_cast<CoolWindow**>(reinterpret_cast<char*>(g_app) + kMainWindowOffset);
+}
 
 }  // namespace
 
@@ -123,6 +159,26 @@ LRESULT __stdcall CustomDialogBox::WindowProc(UINT message, WPARAM wParam, LPARA
     }
 }
 
+int CustomDialogBox::OnRightButtonUp(int x, int y, CoolWindow* sender) {
+    if (!g_app || !sender || GetCapture()) return 0;
+    CoolWindow* mainWindow = AppMainWindow();
+    uint32_t color = kMenuBaseColor + (FUN_00401060() != kAlliancePlayer ? kMenuAlternateColorBits : 0);
+    m_selection.Clear();
+    GetSelection(&m_selection, sender);
+    POINT point = {x, y};
+    if (mainWindow) MapWindowPoints(sender->m_hwnd, mainWindow->m_hwnd, &point, 1);
+    EventKindSet commands;
+    FUN_0041dcc0(FUN_00401060(), &m_selection, &commands);
+    for (EventKindNode* command = static_cast<EventKindNode*>(commands.First()); command;
+         command = static_cast<EventKindNode*>(command->m_successor)) {
+        uint32_t flags = (command->m_value == 0 ? kMenuEntryDisabled : 0) | (command->m_unknown != 0 ? kMenuEntryChecked : 0);
+        FUN_00442590(command->m_key, kMenuKind, flags, point.x, point.y, mainWindow, color, kMenuShadowColor,
+                     kMenuDisabledColor);
+    }
+    FUN_00442380(point.x, point.y, CoolAppGetResourceModule(kMenuKind), mainWindow, this);
+    return 0;
+}
+
 void CustomDialogBox::Virtual08(int a, int, int) {
     ObjectKey none;
     FUN_0041cdf0(a, &m_selection, &none, 0);
@@ -146,6 +202,48 @@ void CustomDialogBox::Virtual27(int) {}
 ObjectKey CustomDialogBox::GetDropKeyAt(int x, int y) { return GetKeyAt(x, y); }
 
 int CustomDialogBox::Virtual29() { return 0; }
+
+void CustomDialogBox::BeginRename(RenameRequest* target) {
+    GalaxyWindowView* galaxy = FUN_00422ca0();
+    ObjectKeyNode* firstKey = static_cast<ObjectKeyNode*>(target->GetKeys()->First());
+    ObjectKey key;
+    firstKey->GetKey(&key);
+    int view = galaxy ? galaxy->m_side : static_cast<int>(reinterpret_cast<intptr_t>(target));
+    GameObj* object = static_cast<GameObj*>(GetObjectInFamilies_01_ff(view, &key));
+    if (!object) return;
+    m_renameTarget = target;
+    CancelRename();
+    RECT rect;
+    GetRenameRect(&rect);
+    m_renameField = NewOrNull<CoolStringField>(m_instance, rect.left, rect.top, rect.right - rect.left,
+                                               rect.bottom - rect.top, this, GetPaintBackgroundIfOwned(), 0u);
+    if (!m_renameField) return;
+    m_renameField->SetFont(kRenameFieldFontSlot);
+    {
+        String name;
+        object->GetNameCopy(&name);
+        m_renameField->SetText(name.m_text);
+    }
+    m_renameField->Create(0);
+    m_renameField->SetSelection(0, -1);
+    SetWindowPos(m_renameField->m_hwnd, nullptr, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+    SetFocus(m_renameField->m_hwnd);
+}
+
+void CustomDialogBox::CommitRename() {
+    SetFocus(m_hwnd);
+    if (!m_renameField || !m_renameTarget) return;
+    if (m_renameField->m_text.Length() == 0) return;
+    {
+        String name(m_renameField->m_text.m_text);
+        m_renameTarget->m_name.Assign(name);
+    }
+    FUN_0041ce20(m_renameTarget, 0);
+    m_renameTarget = nullptr;
+    m_renameField->DestroyNativeWindow();
+    if (m_renameField) delete m_renameField;
+    m_renameField = nullptr;
+}
 
 void CustomDialogBox::CancelRename() {
     SetFocus(m_hwnd);
