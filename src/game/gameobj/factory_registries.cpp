@@ -2,6 +2,7 @@
 
 #include "gameobj/game_obj_root.h"
 #include "orders/order_base.h"
+#include "orders/orders_210_216.h"
 
 // The factories themselves live in the modules of the classes they build; only their addresses are needed here.
 // Taking the address of a function declared by its original name yields the original address.
@@ -143,13 +144,6 @@ void* FUN_00582980();
 void* FUN_00582710();
 void* FUN_005828b0();
 void* FUN_005827e0();
-void* FUN_00537090();
-void* FUN_00537bf0();
-void* FUN_00539090();
-void* FUN_00538d90();
-void* FUN_00538e60();
-void* FUN_00538cc0();
-void* FUN_00538f50();
 void* FUN_00580f30();
 void* FUN_00581010();
 void* FUN_005810d0();
@@ -325,13 +319,13 @@ void RegisterOrderFactories() {
     RegisterOrderFactory(0x221, FUN_00582710);
     RegisterOrderFactory(0x222, FUN_005828b0);
     RegisterOrderFactory(0x223, FUN_005827e0);
-    RegisterOrderFactory(0x214, FUN_00537090);
-    RegisterOrderFactory(0x215, FUN_00537bf0);
-    RegisterOrderFactory(0x216, FUN_00539090);
-    RegisterOrderFactory(0x211, FUN_00538d90);
-    RegisterOrderFactory(0x212, FUN_00538e60);
-    RegisterOrderFactory(0x210, FUN_00538cc0);
-    RegisterOrderFactory(0x213, FUN_00538f50);
+    RegisterOrderFactory(0x214, CreateDestinationOrder);
+    RegisterOrderFactory(0x215, CreateRenameOrder);
+    RegisterOrderFactory(0x216, CreateOrder216);
+    RegisterOrderFactory(0x211, CreateManufactureOrder211);
+    RegisterOrderFactory(0x212, CreateManufactureOrder212);
+    RegisterOrderFactory(0x210, CreateManufactureOrder210);
+    RegisterOrderFactory(0x213, CreateOrder213);
     RegisterOrderFactory(0x260, FUN_00580f30);
     RegisterOrderFactory(0x261, FUN_00581010);
     RegisterOrderFactory(0x262, FUN_005810d0);

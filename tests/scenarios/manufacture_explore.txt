@@ -1,0 +1,58 @@
+# Explore the system window's manufacturing tabs in a loaded game (RebelsFastStart, Alliance): open Berchest's system
+# window and click each tab with a screenshot. Used to find the build dialog (orders 0x210-0x212) and the destination
+# drag (0x214). Runtime ~140 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot mf_00_galaxy
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 52
+46 move 170 56
+47 click 170 56
+50 move 275 265
+51 move 281 268
+52 click 281 268
+55 move 86 97
+56 move 91 101
+57.0 click 91 101
+57.15 click 91 101
+60 shot mf_01_sum
+61 move 145 122
+62 move 147 123
+63 click 147 123
+65 shot mf_02_shipyards
+66 move 190 200
+67 move 192 202
+68 click 192 202
+70 shot mf_03_select
+71 move 190 200
+72 move 192 202
+73.0 click 192 202
+73.15 click 192 202
+76 shot mf_04_dbl
+77 rclick 192 202
+79 shot mf_05_right
+80 key Escape
+81 move 108 123
+82 move 108 124
+83 click 108 124
+85 move 230 175
+86 move 232 177
+87 click 232 177
+89 shot mf_06_ship_panel
+90 move 230 175
+91 move 232 177
+92.0 click 232 177
+92.15 click 232 177
+95 shot mf_07_ship_panel_dbl
+96 rclick 232 177
+98 shot mf_08_ship_panel_right
+99 end
