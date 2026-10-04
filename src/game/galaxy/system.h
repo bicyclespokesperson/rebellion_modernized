@@ -11,9 +11,9 @@
 // classes are the type-0x90 class (0x566b90) and the type-0x92 class (0x56a430). Strings: "System*Notif" (OnXNotified),
 // "Invalid SystemEnergy value!" etc.
 //
-// Vtable: 188 slots. 0-110 are GameObj's, 111-115 are new non-property virtuals (names provisional), 116-150 are the
+// Vtable: 186 slots (0x65e640-0x65e928; the words after it are the SystemIterator and ChildIterator vtables). 0-110 are GameObj's, 111-115 are new non-property virtuals (names provisional), 116-150 are the
 // OnXChanged events of the 35 System properties, 151-185 the OnXNotified events (the same order as the fields and the
-// Set/Apply functions), 186-187 are two more new virtuals. The properties:
+// Set/Apply functions). The properties:
 //   Loyalty +0x58 (0..100 when flag Populated is set, constructed as 50), Energy +0x5c, EnergyAllocated +0x60,
 //   RawMaterial +0x64, RawMaterialAllocated +0x68, SmugglingPercent +0x6c (-100..100), ProductionModifier +0x70,
 //   TroopRegWithdrawPercent +0x74
@@ -95,11 +95,11 @@ public:
     virtual int OnExistingChanged(int newValue, NotifyContext* ctx) override;               // 74, 0x5109a0
 
     // ---- new non-property virtuals (slots 111-115; names provisional) ----
-    virtual int Virtual111();                                                               // 111, 0x507d00
-    virtual int Virtual112();                                                               // 112, 0x507e60
-    virtual int Virtual113();                                                               // 113, 0x507f10
-    virtual int Virtual114();                                                               // 114, 0x507fc0
-    virtual int Virtual115() = 0;                                                           // 115, pure
+    virtual int Virtual111(int a, StatusCode* out);                                                               // 111, 0x507d00
+    virtual int Virtual112(int a, StatusCode* out);                                                               // 112, 0x507e60
+    virtual int Virtual113(int a, StatusCode* out);                                                               // 113, 0x507f10
+    virtual int Virtual114(int a, StatusCode* out);                                                               // 114, 0x507fc0
+    virtual int Virtual115(NotifyContext* ctx) = 0;                                                           // 115, pure
 
     // ---- OnXChanged events on the master (slots 116-150; the empty ones are the shared return-1 stubs) ----
     virtual int OnLoyaltyChanged(int oldValue, int newValue, NotifyContext* ctx);  // 116, 0x5109f0
@@ -247,10 +247,6 @@ public:
     int ApplyResourceIncident(NotifyContext* ctx);  // 0x5106c0
     int ApplyBlockadeAndBattlePendingManagementRequired(NotifyContext* ctx);  // 0x510760
 
-    // ---- two more new virtuals (slots 186-187; names provisional) ----
-    virtual int Virtual186();                                                               // 186, 0x512f70
-    virtual int Virtual187();                                                               // 187, 0x513020
-
     // ---- persistence/validation: bodies the leaf classes may call qualified (slots 5-9 stay pure) ----
     virtual int Read(istream* in) override = 0;               // 5
     virtual int Write(ostream* out) override = 0;             // 6
@@ -271,6 +267,17 @@ public:
     // ==== SECTION rules (0x50ac80-0x50e820 and 0x558bb0-0x55a100): see system_rules*.cpp ====
 
     // ==== SECTION keysetters (0x50e820-0x510800): see system_keysetters.cpp ====
+    // The four static event-kind sets (by the type bits the callers pass: 4/5, 8/9, 0x10/0x11, 0x40/0x41) are built on
+    // first use. True if they are built.
+    // Creates the fleet 0x08000004 under this system, flagged as arrived (SetFlag02) or not (SetFlag04); the fleet's result.
+    int CreateDefaultFleet(int initArg, int arrived, NotifyContext* ctx);  // 0x512d00
+    static int BuildEventKinds();  // 0x50f0b0
+    // Points *out at the set for `type` (its bit 0 is ignored); 0 (and *out null) for an unknown type.
+    static int SelectEventKinds(uint32_t type, EventKindSet** out);  // 0x50f2e0
+    static void InitStatics4();   // 0x512db0, constructs g_systemEventKinds4 and registers its destructor
+    static void InitStatics8();   // 0x512e00
+    static void InitStatics10();  // 0x512e50
+    static void InitStatics40();  // 0x512ea0
 
     // ---- fields ----
     int m_loyalty;                  // +0x58, constructed as 50
@@ -288,9 +295,22 @@ public:
     uint32_t m_flags;               // +0x88, the 20 flags of system_flag
 };
 
+// Re-sends the commanding characters of the system's master (and the stale ones of the side's view) to the view (a
+// plain stdcall function in the original).
+int __stdcall ReapplySystemCharacterViews(System* system, NotifyContext* ctx);  // 0x50eea0
+
+// Iterator over the systems (families 0x90-0x97) under a parent, vtable 0x65e928 (only the destructor is virtual).
+class SystemIterator : public ChildIterator {
+public:
+    SystemIterator(GameObjNotifier* parent);                         // 0x512ef0, state filter 1
+    SystemIterator(GameObjNotifier* parent, uint32_t stateFilter);   // 0x512f90
+    virtual ~SystemIterator();                                       // 0x512f70 (deleting), 0x513010
+};
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_SIZE(System, 0x8c);
+REB_ASSERT_SIZE(SystemIterator, 0x20);
 REB_ASSERT_OFFSET(System, m_loyalty, 0x58);
 REB_ASSERT_OFFSET(System, m_troopRegWithdrawPercent, 0x74);
 REB_ASSERT_OFFSET(System, m_controlBits, 0x78);
