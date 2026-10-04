@@ -262,6 +262,43 @@ public:
     SideBits* GetControlData(SideBits* out);  // 0x50fbc0, a copy of m_controlData
 
     // ---- core accessors (0x507270, 0x508fb0-0x509c30; system_accessors.cpp) ----
+    int GetLoyaltyFor(int side);  // 0x507270, side 1 -> m_loyalty, else 100 - m_loyalty
+    int CountFighterSquadrons(uint32_t side, uint32_t stateFilter);  // 0x508fb0
+    int CountTroopRegiments(uint32_t side, uint32_t stateFilter);  // 0x509020
+    int CountCapitalShips(uint32_t side, uint32_t stateFilter);  // 0x509090, over the fleets there
+    int CountDeathStars(uint32_t side, uint32_t stateFilter);  // 0x509140, over the fleets there
+    int CountEmpireRegimentsOfKey6();  // 0x5091f0, usable Empire regiments whose record key is 0x10000006
+    TrackedStat* GetStat0();  // 0x5092b0, m_data->m_stats[0] or null
+    TrackedStat* GetStat3();  // 0x5092c0
+    TrackedStat* GetStat4();  // 0x5092d0
+    TrackedStat* GetStat5();  // 0x5092e0
+    uint32_t GetDataFlagBit0();  // 0x5092f0, m_data->m_flags80 & 1 (0 without data)
+    uint32_t GetDataFlagBit3();  // 0x509310, m_data->m_flags80 & 8 (1 without data)
+    int FindCharacterByCommandKind(int kind, GameObjNotifier** out);  // 0x509330, always 1
+    int FindCharacterUnused(GameObjNotifier** out, int unused1, int unused2);  // 0x5093e0, clears *out and walks the characters for nothing (RET 0xc)
+    int FindBestShipOfCommandKind2(uint32_t side, GameObjNotifier** out);  // 0x509460
+    int FindBestShipOfCommandKind1(uint32_t side, GameObjNotifier** out);  // 0x509530
+    uint32_t GetRecordField44();  // 0x509610
+    void GetRecordField4c(uint32_t* out);  // 0x509620
+    int GetEnergy();  // 0x509650
+    int GetRawMaterial();  // 0x509660
+    GameObjNotifier* FindManufacturingManagerBySlot123(int value);  // 0x509670
+    int HasFleetsOrFighterSquadrons(uint32_t side);  // 0x509710
+    int FindFleetWithFlag02(uint32_t side, GameObjNotifier** out);  // 0x5097d0, always 1
+    int GetBlockadingSide(uint32_t* out);  // 0x509890, side of the first fleet while blockaded
+    int GetMoreLoyalSide();  // 0x509930, 1 Alliance, 2 Empire, 3 equal
+    int IsBlockaderMoreLoyal(uint32_t* out);  // 0x509980
+    int GetDataWord48(int side);  // 0x5099c0
+    int GetDataWord54(int side);  // 0x5099f0
+    int SumWords48And54(int side);  // 0x509a20
+    int GetDataWord60();  // 0x509ac0
+    int GetDataWord64();  // 0x509ad0
+    int GetDataWord68(int side);  // 0x509ae0
+    int GetDataWord74();  // 0x509b10
+    int GetDataWord78();  // 0x509b20
+    int GetDataWord7c();  // 0x509b30
+    int FindFleetWithFlag04(uint32_t side, GameObjNotifier** out);  // 0x509b40, always 1
+    int SetLoyaltyFor(int value, int side, NotifyContext* ctx);  // 0x509c00
     // ---- end of core accessors ----
 
     // ==== SECTION rules (0x50ac80-0x50e820 and 0x558bb0-0x55a100): see system_rules*.cpp ====
