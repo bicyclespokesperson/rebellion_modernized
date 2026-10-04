@@ -31,7 +31,7 @@ public:
     int RunFirst();  // 0x54ec90
     void Add(EventBase* event);  // 0x54ece0
     // Number of nodes in the subtree below `node`, itself included.
-    static int CountSubtree(AvlNode* node);  // 0x54ed00
+    static int __stdcall CountSubtree(AvlNode* node);  // 0x54ed00
 
     int m_flag0c;  // +0x0c, 1
 };

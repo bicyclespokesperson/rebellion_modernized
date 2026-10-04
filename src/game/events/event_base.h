@@ -29,9 +29,9 @@ public:
     virtual ~EventBase();                // 0x54efe0
 
     virtual EventBase* Clone() = 0;                    // 1
-    virtual int Read(istream* in) = 0;                 // 2: body ReadBase (0x54f040)
-    virtual int Write(ostream* out) = 0;               // 3: body WriteBase (0x54f080)
-    virtual int Checksum(Crc32* crc) = 0;              // 4: body ChecksumBase (0x54f0c0)
+    virtual void Read(istream* in) = 0;                 // 2: body ReadBase (0x54f040)
+    virtual void Write(ostream* out) = 0;               // 3: body WriteBase (0x54f080)
+    virtual void Checksum(Crc32* crc) = 0;              // 4: body ChecksumBase (0x54f0c0)
     virtual int IsChecked() { return 0; }              // 5: 0x6158b0
     virtual int CheckEnabled(StatusCode* status) = 0;  // 6
     virtual int CheckValid(StatusCode* status) = 0;    // 7
@@ -55,9 +55,9 @@ public:
     TimedEvent(const TimedEvent& other);   // 0x54f200
     virtual ~TimedEvent();                 // 0x54f1f0
 
-    virtual int Read(istream* in) override = 0;         // body 0x54f230
-    virtual int Write(ostream* out) override = 0;       // body 0x54f260
-    virtual int Checksum(Crc32* crc) override = 0;      // body 0x54f290
+    virtual void Read(istream* in) override = 0;         // body 0x54f230
+    virtual void Write(ostream* out) override = 0;       // body 0x54f260
+    virtual void Checksum(Crc32* crc) override = 0;      // body 0x54f290
 
     int ReadTimed(istream* in);      // 0x54f230
     int WriteTimed(ostream* out);    // 0x54f260
@@ -76,9 +76,9 @@ public:
 
     virtual Command* Clone() override = 0;              // 1: a fresh copy, 0x50 bytes
 
-    virtual int Read(istream* in) override = 0;         // body 0x54f470
-    virtual int Write(ostream* out) override = 0;       // body 0x54f490
-    virtual int Checksum(Crc32* crc) override = 0;      // body 0x54f4b0
+    virtual void Read(istream* in) override = 0;         // body 0x54f470
+    virtual void Write(ostream* out) override = 0;       // body 0x54f490
+    virtual void Checksum(Crc32* crc) override = 0;      // body 0x54f4b0
 
     void ReadCommand(istream* in);      // 0x54f470
     void WriteCommand(ostream* out);    // 0x54f490
@@ -98,9 +98,13 @@ public:
     PlainEvent(const PlainEvent& other);   // 0x54f530
     virtual ~PlainEvent();                 // 0x54f520
 
-    virtual int Read(istream* in) override = 0;         // body 0x54f550
-    virtual int Write(ostream* out) override = 0;       // body 0x54f570
-    virtual int Checksum(Crc32* crc) override = 0;      // body 0x54f590
+    virtual void Read(istream* in) override = 0;         // body 0x54f550
+    virtual void Write(ostream* out) override = 0;       // body 0x54f570
+    virtual void Checksum(Crc32* crc) override = 0;      // body 0x54f590
+
+    // Slot 10, introduced by the concrete classes (PlainEvent's own vtable stops at slot 9): the sort key of the
+    // TypeQueue. 0x48af30 returns 0x10 (KeyedEvent and its subclasses), 0x48bc60 returns 0x100.
+    virtual int GetPriority() { return 0x10; }
 
     int ReadPlain(istream* in);      // 0x54f550
     int WritePlain(ostream* out);    // 0x54f570
@@ -114,12 +118,9 @@ public:
     KeyedEvent(const KeyedEvent& other);   // 0x594b10
     virtual ~KeyedEvent();                 // 0x594ab0
 
-    virtual int Read(istream* in) override = 0;         // body 0x594b80
-    virtual int Write(ostream* out) override = 0;       // body 0x594bd0
-    virtual int Checksum(Crc32* crc) override = 0;      // body 0x594c20
-
-    // Slot 10: the sort key of the TypeQueue (queue 0x662018); 0x48af30 returns 0x10 for every class found so far.
-    virtual int GetPriority() { return 0x10; }
+    virtual void Read(istream* in) override = 0;         // body 0x594b80
+    virtual void Write(ostream* out) override = 0;       // body 0x594bd0
+    virtual void Checksum(Crc32* crc) override = 0;      // body 0x594c20
 
     int ReadKeyed(istream* in);      // 0x594b80
     int WriteKeyed(ostream* out);    // 0x594bd0
@@ -137,9 +138,9 @@ public:
     SourceEvent(const SourceEvent& other);   // 0x586400
     virtual ~SourceEvent();                  // 0x5863f0
 
-    virtual int Read(istream* in) override = 0;         // body 0x586430
-    virtual int Write(ostream* out) override = 0;       // body 0x586470
-    virtual int Checksum(Crc32* crc) override = 0;      // body 0x5864b0
+    virtual void Read(istream* in) override = 0;         // body 0x586430
+    virtual void Write(ostream* out) override = 0;       // body 0x586470
+    virtual void Checksum(Crc32* crc) override = 0;      // body 0x5864b0
 
     int ReadSource(istream* in);      // 0x586430
     int WriteSource(ostream* out);    // 0x586470
@@ -156,9 +157,9 @@ public:
     TwoKeyEvent(const TwoKeyEvent& other);   // 0x5865c0
     virtual ~TwoKeyEvent();                  // 0x586560
 
-    virtual int Read(istream* in) override = 0;         // body 0x586630
-    virtual int Write(ostream* out) override = 0;       // body 0x586660
-    virtual int Checksum(Crc32* crc) override = 0;      // body 0x586690
+    virtual void Read(istream* in) override = 0;         // body 0x586630
+    virtual void Write(ostream* out) override = 0;       // body 0x586660
+    virtual void Checksum(Crc32* crc) override = 0;      // body 0x586690
 
     void ReadTwoKey(istream* in);      // 0x586630
     void WriteTwoKey(ostream* out);    // 0x586660

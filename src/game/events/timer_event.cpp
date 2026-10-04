@@ -20,11 +20,11 @@ TimerEvent::TimerEvent(const TimerEvent& other) : TimedEvent(other), m_spec(othe
 
 TimerEvent::~TimerEvent() { REB_KEEP_VPTR_STORE(); }
 
-int TimerEvent::Read(istream* in) { return ReadTimer(in); }
+void TimerEvent::Read(istream* in) { ReadTimer(in); }
 
-int TimerEvent::Write(ostream* out) { return WriteTimer(out); }
+void TimerEvent::Write(ostream* out) { WriteTimer(out); }
 
-int TimerEvent::Checksum(Crc32* crc) { return ChecksumTimer(crc); }
+void TimerEvent::Checksum(Crc32* crc) { ChecksumTimer(crc); }
 
 int TimerEvent::ReadTimer(istream* in) {
     ReadTimed(in);

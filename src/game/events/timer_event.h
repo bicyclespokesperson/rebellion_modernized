@@ -18,9 +18,9 @@ public:
     TimerEvent(const TimerEvent& other);   // 0x5860a0
     virtual ~TimerEvent();                 // 0x586050
 
-    virtual int Read(istream* in) override;                 // 2: 0x586100 -> ReadTimer
-    virtual int Write(ostream* out) override;               // 3: 0x586110 -> WriteTimer
-    virtual int Checksum(Crc32* crc) override;              // 4: 0x586120 -> ChecksumTimer
+    virtual void Read(istream* in) override;                 // 2: 0x586100 -> ReadTimer
+    virtual void Write(ostream* out) override;               // 3: 0x586110 -> WriteTimer
+    virtual void Checksum(Crc32* crc) override;              // 4: 0x586120 -> ChecksumTimer
     virtual int CheckEnabled(StatusCode* status) override;  // 6: 0x586150 (target and range checks)
     virtual int CheckValid(StatusCode* status) override;    // 7: 0x586290 (calls CheckEnabled)
     virtual int Execute() override;                         // 8: 0x5862a0, true if the timer must be rescheduled

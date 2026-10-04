@@ -83,7 +83,7 @@ void EventQueue::Add(EventBase* event) {
     if (event) Insert(event);
 }
 
-int EventQueue::CountSubtree(AvlNode* node) {
+int __stdcall EventQueue::CountSubtree(AvlNode* node) {
     int count = 1;
     if (node->m_left) count = CountSubtree(node->m_left) + 1;
     if (node->m_right) count += CountSubtree(node->m_right);
@@ -131,7 +131,7 @@ TypeQueue::~TypeQueue() { REB_KEEP_VPTR_STORE(); }
 
 int TypeQueue::IsLess(AvlNode* a, AvlNode* b) {
     if (a == nullptr || b == nullptr) return 1;
-    return static_cast<KeyedEvent*>(a)->GetPriority() < static_cast<KeyedEvent*>(b)->GetPriority();
+    return static_cast<PlainEvent*>(a)->GetPriority() < static_cast<PlainEvent*>(b)->GetPriority();
 }
 
 EventBase* TypeQueue::GetNext() { return static_cast<EventBase*>(m_first); }
