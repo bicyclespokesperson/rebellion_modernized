@@ -113,7 +113,7 @@ public:
     virtual int GetCheckFunctions(MissionCheckFunctions* out);                       // 111, 0x5215e0
     virtual int CheckActivity(const ActivityRequest* request, StatusCode* out);      // 112, 0x521600
     virtual int CheckActivityStatus(const ActivityRequest* request, StatusCode* out);  // 113, 0x521700: out = {1,-1}, then slot 112
-    virtual int Virtual114() { return 0; }                                           // 114
+    virtual int IsFinalPhase() { return 0; }                                        // 114
     // Adds a person to the team (decoy false), decoys (decoy true) or captured list, after the membership checks.
     virtual int AddMember(ObjectKey* member, int decoy, NotifyContext* ctx);         // 115, 0x522b30
     virtual int RemoveMember(ObjectKey* member, int decoy, NotifyContext* ctx);      // 116, 0x522fc0
