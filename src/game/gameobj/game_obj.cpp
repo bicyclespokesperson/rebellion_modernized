@@ -206,14 +206,14 @@ int GameObj::CheckRename(int a, int name, StatusCode* out) {
     return CheckRenameImpl(a, out);
 }
 
-int GameObj::CheckUnknownImpl(int a, StatusCode* out) {
+int GameObj::CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) {
     setStatus(out, kStatusNotSupported);
     return 1;
 }
 
-int GameObj::CheckUnknown(int a, StatusCode* out) {
+int GameObj::CheckUnknown(const ActivityRequest* request, StatusCode* out) {
     setStatus(out, kStatusOk);
-    return CheckUnknownImpl(a, out);
+    return CheckUnknownImpl(request, out);
 }
 
 int GameObj::Virtual29(int a, int b, int c, int d, StatusCode* out) {

@@ -80,8 +80,8 @@ public:
     virtual int CheckRequest(const ActivityRequest* request, StatusCode* out);           // 24: out = {1,-1}, then Virtual23
     virtual int CheckRenameImpl(int a, StatusCode* out);           // 25
     virtual int CheckRename(int a, int b, StatusCode* out);    // 26
-    virtual int CheckUnknownImpl(int a, StatusCode* out);           // 27
-    virtual int CheckUnknown(int a, StatusCode* out);           // 28
+    virtual int CheckUnknownImpl(const ActivityRequest* request, StatusCode* out);           // 27
+    virtual int CheckUnknown(const ActivityRequest* request, StatusCode* out);           // 28
     virtual int Virtual29(int a, int b, int c, int d, StatusCode* out);               // 29
     virtual int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out);  // 30
     virtual int Virtual31(int a, int b, int c, int d, StatusCode* out);               // 31
