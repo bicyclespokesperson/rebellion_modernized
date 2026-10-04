@@ -70,7 +70,7 @@ void AppRequestSave(int slot, String name);      // 0x401320
 void AppRequestLoad(int slot);                   // 0x401380
 void AppSendSaveCommand(int a, int b, String name, int d);   // 0x4013a0
 SavedGameInfo AppReadSaveHeader(int slot, int isNetworkGame);  // 0x401860
-int AppGetSavedGameType(int slot, int fallback); // 0x401910
+int AppGetSavedGameType(int slot, int isNetworkGame);  // 0x401910: without an app returns its second argument
 
 // ---- Battle-flow object (the game session driver, 0x409230-0x40a050) ----------------------------------------
 void AppRestoreGame(void* stream);               // 0x401b70

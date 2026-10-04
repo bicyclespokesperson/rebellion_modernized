@@ -3,6 +3,7 @@
 #include <new>
 
 #include "app/app_externals.h"
+#include "app/app_save_strings.h"
 #include "app/rebellion_application.h"
 #include "core/iostream_lib.h"
 #include "core/registry.h"
@@ -47,13 +48,13 @@ char* ReadGameRegistryValue(const char* valueName) {
 
 }  // namespace
 
-char* GetDllLocation() { return ReadGameRegistryValue("DllLocation"); }
+char* GetDllLocation() { return ReadGameRegistryValue(g_dllLocationName); }
 
-char* GetDataLocation() { return ReadGameRegistryValue("DataLocation"); }
+char* GetDataLocation() { return ReadGameRegistryValue(g_dataLocationName); }
 
-char* GetTooBigLocation() { return ReadGameRegistryValue("TooBigLocation"); }
+char* GetTooBigLocation() { return ReadGameRegistryValue(g_tooBigLocationName); }
 
-char* GetInstalledLocation() { return ReadGameRegistryValue("InstalledLocation"); }
+char* GetInstalledLocation() { return ReadGameRegistryValue(g_installedLocationName); }
 
 StringMap* GetNetworkSettings(StringMap* out) {
     if (g_app) return App()->CopyNetworkSettings(out);
@@ -183,12 +184,12 @@ SavedGameInfo AppReadSaveHeader(int slot, int isNetworkGame) {
     if (g_app) {
         info = App()->ReadSaveHeader(slot, isNetworkGame);
     }
-    return info;
+    return SavedGameInfo(info);
 }
 
-int AppGetSavedGameType(int slot, int fallback) {
-    if (g_app) return App()->GetSavedGameType(slot, fallback);
-    return fallback;
+int AppGetSavedGameType(int slot, int isNetworkGame) {
+    if (g_app) return App()->GetSavedGameType(slot, isNetworkGame);
+    return isNetworkGame;
 }
 
 void AppPromptPause() {

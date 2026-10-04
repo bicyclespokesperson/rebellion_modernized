@@ -14,7 +14,6 @@ class ios;
 class streambuf;
 class istream;
 class ostream;
-class ofstream;
 class strstream;
 
 // ios (0x50 bytes).
@@ -53,9 +52,18 @@ public:
     uint8_t m_bytes[kSize];
 };
 
+// ofstream (0x58 bytes): ostream at +0, the ios virtual base at +8.
+class ofstream {
+public:
+    static constexpr int kIosOffset = 0x08;
+    static constexpr int kSize = 0x58;
+    uint8_t m_bytes[kSize];
+};
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_SIZE(ios, 0x50);
+REB_ASSERT_SIZE(ofstream, 0x58);
 REB_ASSERT_SIZE(ifstream, 0x5c);
 REB_ASSERT_OFFSET(ios, m_bp, 0x04);
 REB_ASSERT_OFFSET(ios, m_state, 0x08);
@@ -71,6 +79,8 @@ REB_ASSERT_SIZE(strstream, 100);
 strstream* __thiscall strstream_ctor(strstream* self, int isMostDerived);
 void __thiscall strstream_dtor(ios* iosBase);
 void __thiscall ios_dtor(ios* self);
+ofstream* __thiscall ofstream_ctor(ofstream* self, int isMostDerived);
+void __thiscall ofstream_dtor(ios* iosBase);
 ifstream* __thiscall ifstream_ctor(ifstream* self, int isMostDerived);
 void __thiscall ifstream_dtor(ios* iosBase);
 
@@ -88,6 +98,7 @@ istream* __thiscall istream_operator_rs_charptr(istream* in, char* value);
 void __thiscall istream_seekg_pos(istream* in, long position);
 
 ostream* __thiscall ostream_operator_ls_char(ostream* out, char value);
+ostream* __thiscall ostream_operator_ls_long(ostream* out, long value);
 ostream* __thiscall ostream_operator_ls_cstr(ostream* out, const char* text);
 ostream* __thiscall ostream_write(ostream* out, const void* buffer, int count);
 void __thiscall ostream_seekp_pos(ostream* out, long position);
@@ -168,4 +179,22 @@ public:
 
 private:
     strstream m_stream;
+};
+
+// An ofstream on the stack, constructed and destroyed the way the compiler does it for a local object.
+class ScopedOfstream {
+public:
+    ScopedOfstream() { ofstream_ctor(&m_stream, 1); }
+    ~ScopedOfstream() {
+        ios* base = reinterpret_cast<ios*>(m_stream.m_bytes + ofstream::kIosOffset);
+        ofstream_dtor(base);
+        ios_dtor(base);
+    }
+    ScopedOfstream(const ScopedOfstream&) = delete;
+    ScopedOfstream& operator=(const ScopedOfstream&) = delete;
+
+    ofstream* get() { return &m_stream; }
+
+private:
+    ofstream m_stream;
 };
