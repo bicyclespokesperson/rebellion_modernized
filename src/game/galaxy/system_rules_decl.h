@@ -10,35 +10,6 @@ class ChildIterator;
 // formulas) that the System rules call. They are declared by their original addresses until their owners name them;
 // drop this header when they do.
 
-// ---- GNPRTB 0x1e parameters (0x558bb0) ----
-extern int DAT_006bb3a0;
-extern int DAT_006bb3a4;
-extern int DAT_006bb3c4;
-extern int DAT_006bb470;
-extern int DAT_006bb3d8;
-extern int DAT_006bb420;
-extern int DAT_006bb49c;
-extern int DAT_006bb3d0;
-extern int DAT_006bb484;
-extern int DAT_006bb4c8;
-extern int DAT_006bb430;
-extern int DAT_006bb48c;
-extern int DAT_006bb494;
-
-// ---- 0x559xxx: rule formulas (cdecl) ----
-int FUN_00559b80(ChildIterator* it);
-int FUN_00559be0(int a, int side, int deathStar);
-int FUN_00559c10(int share);
-int FUN_00559c40(int side, int share, int deathStar, int a, int b, int c, int d);
-int FUN_00559ce0(int side, int share, int deathStar, int troops, int a, int b, int c, int* firstEvent, int* secondEvent);
-int FUN_00559db0(int* event);
-int FUN_00559ee0(int* rawMaterial, int* energy, int sites, int facilities);
-int FUN_00559f90(int share, int* occurs);
-int FUN_00559fb0(int side, int share, int deathStar, int a, int b, int troops);
-int FUN_00559fe0(int side, int share, int deathStar, int uprising, int a);
-int FUN_0055a020(int ships, int units);
-int FUN_0055a080(int loyalty);
-
 // ---- 0x509xxx: System helpers (core) ----
 int __thiscall FUN_00508fb0(System* self, int side, int filter);
 int __thiscall FUN_00509020(System* self, int side, int filter);

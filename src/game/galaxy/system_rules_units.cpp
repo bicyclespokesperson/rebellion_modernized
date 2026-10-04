@@ -2,6 +2,7 @@
 #include "galaxy/system_rules.h"
 
 #include "data/game_math.h"
+#include "galaxy/system_rules_1e.h"
 #include "galaxy/system_rules_decl.h"
 #include "gameobj/object_key.h"
 

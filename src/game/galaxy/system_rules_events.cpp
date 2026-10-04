@@ -2,6 +2,7 @@
 #include "data/game_math.h"
 #include "data/random.h"
 #include "galaxy/system_rules.h"
+#include "galaxy/system_rules_1e.h"
 #include "galaxy/system_rules_decl.h"
 
 using namespace system_rules;
@@ -19,7 +20,7 @@ int System::EndUprisingIfQuelled(NotifyContext* ctx) {
             const uint32_t flags = GameObjRoot::m_flags;
             const int deathStar = (m_flags >> 11) & 1;
             const int share = FUN_00507270(this, player);
-            const int strength = FUN_00559fb0((flags >> 6) & 3, share, deathStar, 1, 0, troopCount);
+            const int strength = ComputeRemainingSupport((flags >> 6) & 3, share, deathStar, 1, 0, troopCount);
             if (strength >= 0) result = SetUprising(0, ctx);
         }
     }
@@ -32,7 +33,7 @@ int System::AdjustLoyalty(int delta, int side, NotifyContext* ctx) {
         const int player = PlayerSide(side);
         result = 0;
         if (player != 0) {
-            const int shift = FUN_00559be0(delta, player, (m_flags >> 11) & 1);
+            const int shift = DampenFavourableShift(delta, player, (m_flags >> 11) & 1);
             const int target = ClampPercent(FUN_00507270(this, player) + shift);
             result = FUN_00509c00(this, target, player, ctx) != 0;
         }
@@ -46,13 +47,13 @@ int System::EndUprising(NotifyContext* ctx) {
 }
 
 int System::AdjustLoyaltyForUprising(NotifyContext* ctx) {
-    if ((m_flags >> 2) & 1) return AdjustLoyalty(DAT_006bb4c8, ControlSide(), ctx);
+    if ((m_flags >> 2) & 1) return AdjustLoyalty(g_gnprtb1E11, ControlSide(), ctx);
     return 0;
 }
 
 void System::AdjustLoyaltyForAssault(NotifyContext* ctx) {
     if (((m_flags >> 8) & 1) && ControlSide() == 2 && !(m_flags & system_flag::kUprising))
-        AdjustLoyalty(DAT_006bb430, ControlSide(), ctx);
+        AdjustLoyalty(g_gnprtb1E0B, ControlSide(), ctx);
 }
 
 void System::AdjustLoyaltyForBlockade(NotifyContext* ctx) {
@@ -61,7 +62,7 @@ void System::AdjustLoyaltyForBlockade(NotifyContext* ctx) {
     if ((m_flags >> 5) & 1) blockaded = FUN_00509980(this, &flag);
     if (blockaded) {
         uint32_t blockaderSide;
-        if (FUN_00509890(this, &blockaderSide)) AdjustLoyalty(flag ? DAT_006bb48c : DAT_006bb494, blockaderSide, ctx);
+        if (FUN_00509890(this, &blockaderSide)) AdjustLoyalty(flag ? g_gnprtb1E0D : g_gnprtb1E0F, blockaderSide, ctx);
     }
 }
 
@@ -76,7 +77,7 @@ int System::RollInformantIncident(NotifyContext* ctx) {
     int result = 0;
     if (ControlSide() != 3) {
         int occurs = 0;
-        result = FUN_00559f90(FUN_00507270(this, ControlSide()), &occurs);
+        result = RollFailure(FUN_00507270(this, ControlSide()), &occurs);
         if (result && occurs) {
             const int raised = SetInformantIncident(1, ctx);
             const int cleared = SetInformantIncident(0, ctx);
@@ -94,7 +95,7 @@ int System::RollResourceIncident(NotifyContext* ctx) {
     const int siteCount = sites.HasCurrent();
     ChildIterator facilities(this, ControlSide(), &family::kFacilities, kStateUsable);
     const int facilityCount = facilities.HasCurrent();
-    int result = FUN_00559ee0(&rawMaterial, &energy, siteCount, facilityCount);
+    int result = ApplyRandomCounterShift(&rawMaterial, &energy, siteCount, facilityCount);
     if (result && (m_rawMaterial != rawMaterial || m_energy != energy)) {
         SetResourceIncident(1, ctx);
         const int rawResult = SetRawMaterial(rawMaterial, ctx);
@@ -198,7 +199,7 @@ void System::ResolveUprisingTurn(NotifyContext* ctx) {
     const int v5 = FUN_005091f0(this);
     const int troops = FUN_00509020(this, side, 1);
     const int share = FUN_00507270(this, player);
-    FUN_00559ce0(side, share, deathStar, troops, v5, v6, v7, &firstEvent, &secondEvent);
+    RollUprisingIncident(side, share, deathStar, troops, v5, v6, v7, &firstEvent, &secondEvent);
     ApplyUprisingEvent(firstEvent, side, ctx);
     ApplyUprisingEvent(secondEvent, side, ctx);
     AdjustLoyalty(FUN_00509b30(this), side, ctx);
@@ -211,14 +212,14 @@ int System::ApplyUprisingEvent(int event, int side, NotifyContext* ctx) {
             break;
         case 1: {
             ChildIterator facilities(this, side, &family::kFacilities, kStateUsable);
-            result = FUN_00559b80(&facilities);
+            result = SelectRandomChild(&facilities);
             if (result && facilities.Current())
                 result = static_cast<GameObj*>(facilities.Current())->ChangeDestroyedReason(8, ctx);
             break;
         }
         case 2: {
             ChildIterator troops(this, side, &family::kTroopRegiments, kStateUsable);
-            result = FUN_00559b80(&troops);
+            result = SelectRandomChild(&troops);
             if (result && troops.Current())
                 result = static_cast<GameObj*>(troops.Current())->ChangeDestroyedReason(8, ctx);
             break;
@@ -268,9 +269,9 @@ int System::ApplyUprisingEvent(int event, int side, NotifyContext* ctx) {
 int System::RollAndSyncEvent(NotifyContext* ctx) {
     if (IsMasterView() && ControlSide() != 3) {
         int event = 0;
-        const int rolled = FUN_00559db0(&event);
+        const int rolled = ::RollInformantIncident(&event);
         const uint32_t side = ControlSide();
-        const int view = side == 1 ? 1 : 2;
+        const int view = side == 1 ? 2 : 1;
         const int synced = SyncViewForEvent(event, view, ctx);
         if (synced && rolled) return 1;
     }

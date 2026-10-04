@@ -2,6 +2,7 @@
 
 #include "data/game_math.h"
 #include "data/random.h"
+#include "galaxy/system_rules_1e.h"
 #include "galaxy/system_rules_decl.h"
 #include "gameobj/object_queries.h"
 
@@ -110,7 +111,7 @@ int System::RecomputeSmugglingPercent(NotifyContext* ctx) {
         const int c = FUN_00508fb0(this, side, 1);
         const int d = FUN_00509090(this, side, 1);
         const int share = FUN_00507270(this, player);
-        percent = FUN_00559c40(side, share, deathStar, d, c, b, a);
+        percent = ComputeUprisingPercent(side, share, deathStar, d, c, b, a);
     }
     return SetSmugglingPercent(percent, ctx);
 }
@@ -118,7 +119,7 @@ int System::RecomputeSmugglingPercent(NotifyContext* ctx) {
 int System::RecomputeProductionModifier(NotifyContext* ctx) {
     int modifier = 100;
     const int player = PlayerSide(ControlSide());
-    if (player != 0) modifier = FUN_00559c10(FUN_00507270(this, player));
+    if (player != 0) modifier = ScaleByRatio1E53(FUN_00507270(this, player));
     return SetProductionModifier(modifier, ctx);
 }
 
@@ -139,7 +140,7 @@ int System::RecomputeTroopRegWithdrawPercent(NotifyContext* ctx) {
             }
         }
         ChildIterator ownSquadrons(this, &family::kFighterSquadrons, kStateUsable);
-        percent = FUN_0055a020(shipCount, units + ownSquadrons.Count());
+        percent = ComputeResidualPercent(shipCount, units + ownSquadrons.Count());
     }
     return SetTroopRegWithdrawPercent(percent, ctx);
 }
@@ -165,14 +166,14 @@ int System::RecomputeTroopRegRequired(NotifyContext* ctx) {
     if (player != 0 && (m_flags & system_flag::kPopulated)) {
         const int uprising = (m_flags >> 2) & 1;
         const int deathStar = (m_flags >> 11) & 1;
-        required = FUN_00559fe0(side, FUN_00507270(this, player), deathStar, uprising, 1);
+        required = ComputeSupportCost(side, FUN_00507270(this, player), deathStar, uprising, 1);
     }
     return SetTroopRegRequired(required, ctx);
 }
 
 int System::RecomputeControlData(NotifyContext* ctx) {
     SideBits bits(m_controlData);
-    bits.SetLoyalty((m_flags & system_flag::kPopulated) ? FUN_0055a080(m_loyalty) : 3);
+    bits.SetLoyalty((m_flags & system_flag::kPopulated) ? ClassifyPercent(m_loyalty) : 3);
     ChildIterator allianceTroops(this, 1, &family::kTroopRegiments, kStateUsable);
     const int alliancePresent = allianceTroops.HasCurrent();
     ChildIterator empireTroops(this, 2, &family::kTroopRegiments, kStateUsable);

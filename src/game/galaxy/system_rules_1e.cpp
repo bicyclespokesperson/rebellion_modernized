@@ -235,11 +235,13 @@ void RollUprisingIncident(int side, int shortfallBase, int scaleFlag, int a, int
     }
 }
 
-void RollInformantIncident(int* outValue) {
+int RollInformantIncident(int* outValue) {
     *outValue = 0;
     const int roll = GameRandom(g_gnprtb1E1E) + g_gnprtb1E1D;
     int value;
-    if (LookupTableValue(0x2a, roll, &value)) *outValue = value;
+    const int found = LookupTableValue(0x2a, roll, &value);
+    if (found) *outValue = value;
+    return found;
 }
 
 int RollSupportChance(int* success) {
@@ -272,9 +274,10 @@ int ResolveMutualLosses(int* a, int* b) {
     return 1;
 }
 
-void ApplyRandomCounterShift(int* a, int* b, int flagA, int flagB) {
+int ApplyRandomCounterShift(int* a, int* b, int flagA, int flagB) {
     int outcome;
-    if (!LookupTableValue(0x2b, RollPercent(), &outcome)) return;
+    const int found = LookupTableValue(0x2b, RollPercent(), &outcome);
+    if (!found) return found;
     switch (outcome) {
         case 1:
             if (flagA != 0 && g_gnprtb1E1F < *a) --*a;
@@ -289,6 +292,7 @@ void ApplyRandomCounterShift(int* a, int* b, int flagA, int flagB) {
             if (*b < g_gnprtb1E22) ++*b;
             break;
     }
+    return found;
 }
 
 int RollFailure(int percent, int* result) {

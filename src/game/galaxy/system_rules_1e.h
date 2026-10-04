@@ -130,13 +130,13 @@ int ComputeUprisingPercent(int side, int loyalty, int scaleFlag, int a, int b, i
 // Two-table (0x28/0x29) incident roll; *outA / *outB = table values or 0. ?
 void RollUprisingIncident(int side, int shortfallBase, int scaleFlag, int a, int b, int c, int d, int* outA, int* outB);  // 0x559ce0
 // Informant incident: table 0x2a at rand(1E1E) + 1E1D. ?
-void RollInformantIncident(int* outValue);          // 0x559db0
+int RollInformantIncident(int* outValue);           // 0x559db0
 // *success = PercentChance(1E24). Returns 1.
 int RollSupportChance(int* success);                // 0x559df0
 // Plays out simultaneous losses between two troop counts; both are reduced, *b ends at most *a... Returns 1. ?
 int ResolveMutualLosses(int* a, int* b);            // 0x559e10
 // Random shift of the counters via table 0x2b. ?
-void ApplyRandomCounterShift(int* a, int* b, int flagA, int flagB);  // 0x559ee0
+int ApplyRandomCounterShift(int* a, int* b, int flagA, int flagB);  // 0x559ee0
 // *result = !PercentChance(percent). Returns 1.
 int RollFailure(int percent, int* result);          // 0x559f90
 // valueTotal - ComputeSupportCost(...)

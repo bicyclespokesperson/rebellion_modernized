@@ -1,5 +1,6 @@
 #include "core/utility_classes.h"
 #include "galaxy/system_rules.h"
+#include "galaxy/system_rules_1e.h"
 #include "galaxy/system_rules_decl.h"
 #include "gameobj/game_hooks.h"
 
@@ -140,15 +141,15 @@ int System::CreateViews(int controlKind, NotifyContext* ctx) {
     if (!createStartingChild(this, 0xa0000005, ctx)) return 0;
 
     SystemData* data = static_cast<SystemData*>(m_data);
-    data->m_stats[0].SetLevel(DAT_006bb3a0);
-    data->m_stats[0].SetProgress(DAT_006bb3a4);
-    data->m_stats[1].SetLevel(DAT_006bb3c4);
-    data->m_stats[2].SetLevel(DAT_006bb470);
-    data->m_stats[3].SetLevel(DAT_006bb3d8);
-    data->m_stats[4].SetLevel(DAT_006bb420);
-    data->m_stats[4].SetProgress(DAT_006bb49c);
-    data->m_stats[5].SetLevel(DAT_006bb3d0);
-    data->m_stats[5].SetProgress(DAT_006bb484);
+    data->m_stats[0].SetLevel(g_gnprtb1E13);
+    data->m_stats[0].SetProgress(g_gnprtb1E14);
+    data->m_stats[1].SetLevel(g_gnprtb1E12);
+    data->m_stats[2].SetLevel(g_gnprtb1E0C);
+    data->m_stats[3].SetLevel(g_gnprtb1E0E);
+    data->m_stats[4].SetLevel(g_gnprtb1E15);
+    data->m_stats[4].SetProgress(g_gnprtb1E16);
+    data->m_stats[5].SetLevel(g_gnprtb1E17);
+    data->m_stats[5].SetProgress(g_gnprtb1E18);
     NotifyContext context(*ctx);
     context.m_reserved14 = CallGameHook2AFC();
     return CheckHyperspaceBlocked(3, controlKind, &context);

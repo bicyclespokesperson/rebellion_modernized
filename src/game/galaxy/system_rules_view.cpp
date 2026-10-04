@@ -1,4 +1,5 @@
 #include "galaxy/system_rules.h"
+#include "galaxy/system_rules_1e.h"
 #include "galaxy/system_rules_decl.h"
 
 using namespace system_rules;
