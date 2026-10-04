@@ -4,6 +4,8 @@
 #include "character/role.h"
 #include "core/layout.h"
 #include "gameobj/child_iterator.h"
+#include "gameobj/game_obj_data.h"
+#include "gameobj/unit_obj_base.h"
 
 // Character (VT 0x65ca70, secondary ObjectBase VT 0x65ca6c, 0xb0 bytes) is the base of every individual character
 // (family 0x30-0x3b): the leaf classes are the minor characters, the named story characters (Luke, Leia, Han, ...) and
@@ -19,14 +21,29 @@
 //              ForceExperience, ForceTraining, LeadershipAdjustment, Injury (+0x94), CommandKind (+0x96), State
 //              (+0x98, constructed as 4), MissionHyperdriveModifier (+0x9a, constructed as the global at 0x6b9050)
 //   4 keys     Encounter +0x9c, TraitorDiscovered +0xa0, ForceUserDiscovered +0xa4, Commanding +0xa8
-//   10 flags   m_flagsAc bit i (mask 1 << i): Captured, CanHeal, FastHeal, ForceAware, ForcePotential, Healing,
-//              DiscoveringForceUser, CanEscape, EscapeRequest, EscapeAttempt
+//   10 flags   m_flagsAc masks Captured 0x1, CanHeal 0x2, FastHeal 0x4, ForceAware 0x10, ForcePotential 0x20, Healing 0x40,
+//              DiscoveringForceUser 0x80, CanEscape 0x100, EscapeRequest 0x200, EscapeAttempt 0x400 (0x8 is unused)
 // The Set/Apply/OnChanged/OnNotified pattern is the one of GameObj (see role.h).
 // The secondary vtable's slot (ObjectBase::WriteName) is the free function AppendCharacterName (0x4ed060), like
 // GameObj's AppendGameObjName: it takes the ObjectBase subobject (this + 0x30).
 
 class Crc32;
 class EventKindSet;
+class MajorCharacterSD;
+
+// The data block of Character master views (VT 0x661ac0, 0x38 bytes, ctor 0x540750 -- outside the Character ranges and
+// not reconstructed here; it derives from the pass-through unit data block through the class at 0x583df0). The three
+// stats are raised as events 0x388-0x38a by OnHealingChanged and friends.
+class CharacterData : public UnitObjData {
+public:
+    CharacterData();                  // 0x540750
+
+    TrackedStat m_healingStat;        // +0x18, event 0x388
+    TrackedStat m_forceDiscoveryStat;  // +0x20, event 0x389
+    TrackedStat m_escapeStat;         // +0x28, event 0x38a
+    ObjectKey m_holderKey;            // +0x30, reset whenever the State changes
+    int m_field34;                    // +0x34
+};
 
 class Character : public Role {
 public:
@@ -87,16 +104,16 @@ public:
     // ---- new non-property virtuals (slots 179-190; names provisional) ----
     virtual int Virtual179(int a, int* out);                                              // 179, 0x4ed680
     virtual int CheckActivity3(const ActivityRequest* request, StatusCode* out);          // 180, 0x4ed750
-    virtual void CheckActivityStatus3(const ActivityRequest* request, StatusCode* out);   // 181, 0x4ed950: out = {1,-1}, calls 180
+    virtual int CheckActivityStatus3(const ActivityRequest* request, StatusCode* out);    // 181, 0x4ed950: out = {1,-1}, returns 180's result
     virtual int CheckActivity4(const ActivityRequest* request, StatusCode* out);          // 182, 0x4ed9d0
-    virtual void CheckActivityStatus4(const ActivityRequest* request, StatusCode* out);   // 183, 0x4edb70: out = {1,-1}, calls 182
+    virtual int CheckActivityStatus4(const ActivityRequest* request, StatusCode* out);    // 183, 0x4edb70: out = {1,-1}, returns 182's result
     virtual int Virtual184() { return 0; }                                                // 184
-    virtual void Virtual185(NotifyContext* ctx);                                          // 185, 0x4ef5f0
-    virtual void Virtual186(NotifyContext* ctx);                                          // 186, 0x4ef640
-    virtual void Virtual187(NotifyContext* ctx);                                          // 187, 0x4ef690
+    virtual int Virtual185(NotifyContext* ctx);                                          // 185, 0x4ef5f0
+    virtual int Virtual186(NotifyContext* ctx);                                          // 186, 0x4ef640
+    virtual int Virtual187(NotifyContext* ctx);                                          // 187, 0x4ef690
     virtual int Virtual188(int a, int b, NotifyContext* ctx);                             // 188, 0x4ef6d0
     virtual int Virtual189(int a, int b, int c);                                          // 189, 0x4ef340
-    virtual void Virtual190(int a, int b, NotifyContext* ctx);                            // 190, 0x4ef400
+    virtual int Virtual190(int a, int b, NotifyContext* ctx);                            // 190, 0x4ef400
 
     // ---- OnXChanged events on the master (slots 191-220) ----
     virtual int OnEnhancedDiplomacyChanged(int oldValue, int newValue, NotifyContext* ctx) { return 1; }  // 191
@@ -231,8 +248,9 @@ public:
     virtual int Checksum(Crc32* crc) override = 0;            // 7, body 0x4efbc0
     virtual int Validate() override = 0;                      // 8, body 0x4efd30
     virtual int ApplyAll(NotifyContext* ctx) override = 0;    // 9, body 0x4efaa0
-    // Called by the leaf classes after loading the record (0x4ef750).
-    void InitializeFromRecord(int a, int b);  // 0x4ef750
+    // The body of slot 37 (CreateViews) that the leaf classes call: runs 0x5774f0 and then initializes the data block's
+    // stats and the DiscoveringForceUser flag.
+    int CreateViewsImpl(int controlKind, NotifyContext* ctx);  // 0x4ef750
     // The event-kind set of Character (g_characterEventKinds, 0x6b2940); 0x4f2400 builds it on first use, 0x4f24c0 is the
     // static initializer's entry used by the leaf classes, 0x4f2550 registers the destructor (static init).
     static int BuildEventKinds();                                  // 0x4f2400
@@ -240,6 +258,54 @@ public:
     static void InitStatics();                                     // 0x4f2550
 
     // ---- other non-virtual members: added by the implementer of 0x4eceb0-0x4f26d0 (keep this marker) ----
+    // The object's copy in `view` (0 master, 1 Alliance, 2 Empire).
+    Character* ViewAsCharacter(int view) { return static_cast<Character*>(ViewAs(view)); }
+    // The SD record (MJCHARSD/MNCHARSD share one layout) or null.
+    MajorCharacterSD* GetCharacterRecord() const;
+    // Record flags: whether the character may take the Admiral / Commander / General command (0 without a record).
+    int RecordCanBeAdmiral();        // 0x4ed1c0, record +0xa8
+    int RecordCanBeCommander();      // 0x4ed1e0, record +0xac
+    int RecordCanBeGeneral();        // 0x4ed200, record +0xb0
+    int RecordIsJediTrainer();       // 0x4ed220, record +0xb8
+    int RecordIsUnableToBetray();    // 0x4ed240, record +0xb4
+    // The side that may control the character: 1 Alliance only, 2 Empire only, 0 for neither, both or no record.
+    int GetRecordSide();             // 0x4edc80
+    // *out = RecordIsJediTrainer() && HasForcePotentialA15(Force). Returns 1.
+    int CanTrainForce(int* out);     // 0x4ed310
+    // The data block's holder key (a fresh unset key without a data block) and its setter/getter pair.
+    ObjectKey* GetHolderKey(ObjectKey* out);  // 0x4ed270
+    int GetDataField34();                     // 0x4ed300
+    int SetHolderKey(const ObjectKey* key);   // 0x4ef190, master only (the key is stored regardless)
+    void SetDataField34(int value);           // 0x4ef1c0
+    // Getters of the four keys (copy into *out).
+    ObjectKey* GetEncounterKey(ObjectKey* out);            // 0x4f07c0
+    ObjectKey* GetTraitorDiscoveredKey(ObjectKey* out);    // 0x4f0910
+    ObjectKey* GetForceUserDiscoveredKey(ObjectKey* out);  // 0x4f0a60
+    ObjectKey* GetCommandingKey(ObjectKey* out);           // 0x4f0bb0
+    // Derived values: each recomputes the property from the others and calls its validated setter. Most return the
+    // setter's result (the failure of an intermediate step ends the chain).
+    int UpdateControlKind(NotifyContext* ctx);              // 0x4eec60, the record side, swapped while Captured
+    int UpdateEnhancedDiplomacy(NotifyContext* ctx);        // 0x4eecb0, base skill + Force
+    int UpdateEnhancedEspionage(NotifyContext* ctx);        // 0x4eecf0
+    int UpdateEnhancedShipyardRD(NotifyContext* ctx);       // 0x4eed30, copies the base value
+    int UpdateEnhancedTrainingFacilRD(NotifyContext* ctx);  // 0x4eed50
+    int UpdateEnhancedConstructionYardRD(NotifyContext* ctx);  // 0x4eed70
+    int UpdateEnhancedCombat(NotifyContext* ctx);           // 0x4eed90, base skill + Force - Injury
+    int UpdateEnhancedLeadership(NotifyContext* ctx);       // 0x4eede0, base skill + LeadershipAdjustment
+    int UpdateEnhancedLoyalty(NotifyContext* ctx);          // 0x4eee20, copies the base value
+    int UpdateForce(NotifyContext* ctx);                    // 0x4eee40, ForceExperience + ForceTraining
+    int UpdateForceExperience(NotifyContext* ctx);          // 0x4eee60, rolls the initial value once for a new Force user
+    int UpdateCommandKind(NotifyContext* ctx);              // 0x4eeed0, clears the command when it can no longer be held
+    int UpdateCaptured(NotifyContext* ctx);                 // 0x4eef70, Captured = (State == 0)
+    int UpdateCanHeal(NotifyContext* ctx);                  // 0x4eef90
+    int UpdateFastHeal(NotifyContext* ctx);                 // 0x4eeff0
+    int UpdateHealing(NotifyContext* ctx);                  // 0x4ef030
+    int UpdateDiscoveringForceUser(NotifyContext* ctx);     // 0x4ef070
+    int RaiseEscapeRequest(NotifyContext* ctx);             // 0x4ef0c0, runs slot 133 for a captured, usable, idle character
+    int RecoverFromInjury(NotifyContext* ctx);              // 0x4ef100, Injury -= the per-tick recovery
+    int PulseEscapeAttempt(NotifyContext* ctx);             // 0x4ef150, EscapeAttempt on, then off again
+    // Loyalty += amount for `side` == the record side, -= amount otherwise (never for side 3 or unable-to-betray ones).
+    int AdjustLoyaltyForSide(int amount, int side, NotifyContext* ctx);  // 0x4ef1e0
 
     // ---- fields ----
     int16_t m_enhancedDiplomacy;            // +0x7c
@@ -265,6 +331,12 @@ public:
     uint32_t m_flagsAc;                     // +0xac, ten flags (Captured = 1, CanHeal = 2, FastHeal = 4, ...)
 };
 
+// Mission-member bit of a character (0x10000) used by the mission member-mask builder (0x582fb0).
+int GetCharacterMemberMask();  // 0x4ed260
+// Static initializer pieces of the event-kind set (see Character::InitStatics).
+void ConstructCharacterEventKinds();        // 0x4f2560
+void RegisterCharacterEventKindsAtExit();   // 0x4f2570
+
 // The AppendCharacterName free function (secondary vtable slot, takes the ObjectBase subobject).
 void __thiscall AppendCharacterName(ObjectBase* base, String* out, int kind);  // 0x4ed060
 
@@ -278,6 +350,7 @@ public:
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
+REB_ASSERT_SIZE(CharacterData, 0x38);
 REB_ASSERT_SIZE(Character, 0xb0);
 REB_ASSERT_OFFSET(Character, m_enhancedDiplomacy, 0x7c);
 REB_ASSERT_OFFSET(Character, m_force, 0x8c);
