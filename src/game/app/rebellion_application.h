@@ -110,6 +110,21 @@ public:
     void SetIdentityPaletteForDisplay();        // 0x4163d0
     StringMap* CopyNetworkSettings(StringMap* out);  // 0x401b20
 
+    // Pieces of Run and WindowProc (the original has them inline).
+    void PumpMessages(MSG* message, int* quit);
+    void PollMultiplayerSync(int quit);
+    void ReportOpponentTrouble();
+    LRESULT OnCreate();
+    LRESULT OnActivateApp(WPARAM wParam, LPARAM lParam);
+    void OnDeactivated();
+    void OnActivated();
+    void EnterFrontEndAfterFirstActivation();
+    LRESULT OnQueryNewPalette(WPARAM wParam, LPARAM lParam);
+    LRESULT OnChildDone(UINT message, WPARAM wParam, LPARAM lParam);
+    void ReturnToActiveWindowAfterChild(LPARAM childId);
+    LRESULT OnDialogAnswer(WPARAM wParam);
+    LRESULT OnSaveAnswer();
+
     // Blocks the original repeated inline: destroy the overlay, detach the active window, blank the window.
     void ReleaseOverlayWindow();
     void DetachActiveWindow();

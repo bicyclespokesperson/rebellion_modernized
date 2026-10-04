@@ -82,6 +82,6 @@ int AppGetBattleFlowState();                     // 0x401c10
 int AppIsGameRunning();                          // 0x401c30
 void AppSetAutosaveFlag(int value);              // 0x401c50
 
-extern int g_appDialogMessage;                   // 0x6b1470
+extern uint32_t g_appDialogMessage;                // 0x6b1470
 extern int g_isNetworkGame;                      // 0x6b1208
 extern int g_musicVolume;                        // 0x6b14a8 (sound module)

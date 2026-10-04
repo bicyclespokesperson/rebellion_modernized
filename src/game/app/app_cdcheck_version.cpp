@@ -1,4 +1,5 @@
 #include "app/app_cdcheck_version.h"
+#include "app/app_strings.h"
 
 #include <cstdint>
 #include <cstdio>
@@ -10,6 +11,7 @@
 extern "C" {
 __declspec(dllimport) DWORD __stdcall GetFileVersionInfoSizeA(LPCSTR fileName, LPDWORD handle);
 __declspec(dllimport) BOOL __stdcall GetFileVersionInfoA(LPCSTR fileName, DWORD handle, DWORD length, LPVOID data);
+__declspec(dllimport) DWORD __stdcall VerLanguageNameA(DWORD language, LPSTR buffer, DWORD size);
 __declspec(dllimport) BOOL __stdcall VerQueryValueA(LPCVOID block, LPCSTR subBlock, LPVOID* buffer, PUINT length);
 }
 
@@ -25,8 +27,6 @@ namespace {
 
 constexpr UINT kErrorBoxStyle = MB_ICONHAND | MB_SETFOREGROUND | MB_TOPMOST;
 constexpr unsigned char kTextXorKey = 0xdd;
-constexpr char kTextsFileName[] = "data0.reb";
-constexpr char kTextDllName[] = "textstra.dll";
 
 struct ErrorTexts {
     char* cdErrorTitle;
@@ -87,7 +87,7 @@ void DecodeTexts(char* text, int size, ErrorTexts* out) {
 }  // namespace
 
 void InitCdAndVersionCheck() {
-    FILE* file = fopen(kTextsFileName, "rb");
+    FILE* file = fopen(g_textsFileName, "rb");
     if (!file) {
         UseBuiltInTexts();
         g_versionCheckResult = 1;
@@ -127,16 +127,16 @@ const char* GetLanguageName() { return g_languageName; }
 int CheckTextstraVersion() {
     bool compatible = true;
     DWORD handle;
-    const DWORD size = GetFileVersionInfoSizeA(kTextDllName, &handle);
+    const DWORD size = GetFileVersionInfoSizeA(g_textstraDllName, &handle);
     if (size != 0) {
         void* data = operator new(size);
-        if (GetFileVersionInfoA(kTextDllName, 0, size, data)) {
+        if (GetFileVersionInfoA(g_textstraDllName, 0, size, data)) {
             WORD* translation;
             UINT length;
-            if (VerQueryValueA(data, "\\VarFileInfo\\Translation", reinterpret_cast<LPVOID*>(&translation), &length)) {
+            if (VerQueryValueA(data, g_translationQuery, reinterpret_cast<LPVOID*>(&translation), &length)) {
                 VerLanguageNameA(translation[0], g_languageName, 0xff);
                 char subBlock[256];
-                wsprintfA(subBlock, "\\StringFileInfo\\%04X%04X\\FileVersion", translation[0], translation[1]);
+                wsprintfA(subBlock, g_fileVersionQueryFormat, translation[0], translation[1]);
                 char* version;
                 if (VerQueryValueA(data, subBlock, reinterpret_cast<LPVOID*>(&version), &length)) {
                     version[1] = '\0';
