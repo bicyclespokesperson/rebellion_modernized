@@ -1,134 +1,219 @@
 #pragma once
-// STAND-IN declarations for the event/timer bases (events subsystem, 0x54eee0-0x54f830 and 0x585fe0-0x5864c0) and for
-// the mission manager (family 0xf8, 0x541fc0-0x54cd80) that the mission commands, timers and events call. Drop each
-// part when its owner reconstructs it; the leaf classes in mission_events.h only need the bases for the layout, the
-// vtable slots and the constructors.
 #include <cstdint>
 
-#include "core/containers.h"
-#include "core/layout.h"
-#include "core/stream_io.h"
-#include "gameobj/game_hooks.h"
+#include "character/character.h"
+#include "character/role.h"
+#include "data/random.h"
+#include "fleet/capship.h"
+#include "fleet/fleet_iterator.h"
+#include "galaxy/system.h"
 #include "gameobj/game_obj.h"
-#include "gameobj/object_key.h"
-#include "gameobj/status_code.h"
-#include "gameobj/tracked_stat.h"
+#include "gameobj/object_lookup.h"
+#include "gameobj/object_queries.h"
+#include "mission/mission.h"
 
-class Crc32;
-class TimerBase;
-class NotifEventBase;
-
-// Shared slot bodies of the timer base (the leaves inherit them unchanged).
-void __thiscall FUN_00586100(TimerBase* self, istream* in);
-void __thiscall FUN_00586110(TimerBase* self, ostream* out);
-int __thiscall FUN_00586120(TimerBase* self, Crc32* crc);
-int __thiscall FUN_00586150(TimerBase* self, StatusCode* status);
-int __thiscall FUN_00586290(TimerBase* self, StatusCode* status);
-int __thiscall FUN_005862a0(TimerBase* self);
-
-// Slot bodies the two notification events share.
-void __thiscall FUN_00541180(NotifEventBase* self, istream* in);
-void __thiscall FUN_00564d50(NotifEventBase* self, ostream* out);
-int __thiscall FUN_00541700(NotifEventBase* self, Crc32* crc);
-
-// The common head of the scheduled items (0x54eee0 through 0x54f1b0): a tree node with the context the item runs with
-// and the object it acts on. Commands (orders/command_decl.h) share the head but sit on the request holder 0x54f2c0.
-class ScheduledItem : public AvlNode {
-public:
-    int m_flag;               // +0x18, 1
-    int m_unk1c;              // +0x1c
-    NotifyContext m_context;  // +0x20
-    ObjectKey m_key;          // +0x3c, the object the item acts on
-    int m_unk40;              // +0x40
-};
-
-// Timer base (0x585fe0, VT 0x66a230, 0x4c bytes): slot 8 runs the checks of slots 6 and 7, then fires when the change
-// count of the stat returned by GetStat equals m_expectedChange.
-class TimerBase : public ScheduledItem {
-public:
-    TimerBase();                        // 0x585fe0
-    TimerBase(const TimerBase& other);  // 0x5860a0
-    virtual ~TimerBase();               // 0x586050 (deleting 0x586030)
-    virtual TimerBase* Clone() = 0;     // 1
-    virtual void Read(istream* in) { FUN_00586100(this, in); }            // 2
-    virtual void Write(ostream* out) { FUN_00586110(this, out); }         // 3
-    virtual int Checksum(Crc32* crc) { return FUN_00586120(this, crc); }        // 4
-    virtual int IsChecked() { return 0; }                                       // 5
-    virtual int CheckEnabled(StatusCode* status) { return FUN_00586150(this, status); }  // 6
-    virtual int CheckValid(StatusCode* status) { return FUN_00586290(this, status); }    // 7
-    virtual int Execute() { return FUN_005862a0(this); }                        // 8
-    virtual int GetKind() = 0;                                                  // 9
-    virtual FamilyRange* GetFamilyRange(FamilyRange* out) = 0;                  // 10: families the stat's owner is in
-    virtual TrackedStat* GetStat() = 0;                                         // 11
-    virtual int Fire() = 0;                                                     // 12
-
-    int m_expectedChange;  // +0x44
-    uint32_t m_schedule;   // +0x48
-};
-
-// Base of the notification events (0x5863b0, VT 0x66a268, 0x54 bytes), over the keyed event base 0x594a30.
-class NotifEventBase : public AvlNode {
-public:
-    NotifEventBase();                             // 0x5863b0
-    NotifEventBase(const NotifEventBase& other);  // 0x586400
-    virtual ~NotifEventBase();                    // 0x5863f0 (deleting 0x5863d0)
-    virtual NotifEventBase* Clone() = 0;          // 1
-    virtual void Read(istream* in) = 0;           // 2
-    virtual void Write(ostream* out) = 0;         // 3
-    virtual int Checksum(Crc32* crc) = 0;         // 4
-    virtual int IsChecked() { return 0; }         // 5
-    virtual int CheckEnabled(StatusCode* status) = 0;  // 6
-    virtual int CheckValid(StatusCode* status) = 0;    // 7
-    virtual int Execute() = 0;                         // 8
-    virtual int GetKind() = 0;                         // 9
-    virtual int GetSecondaryKind() { return 0; }       // 10, 0x48af30
-
-    int m_flag;               // +0x18, 1
-    int m_unk1c;              // +0x1c
-    NotifyContext m_context;  // +0x20
-    ObjectKey m_key;          // +0x3c, the object the event is about
-    ObjectKey m_key40;        // +0x40
-    ObjectKey m_key44;        // +0x44
-    int m_unk48;              // +0x48
-    int m_unk4c;              // +0x4c
-    int m_unk50;              // +0x50
-};
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ScheduledItem, 0x44);
-REB_ASSERT_OFFSET(ScheduledItem, m_context, 0x20);
-REB_ASSERT_OFFSET(ScheduledItem, m_key, 0x3c);
-REB_ASSERT_SIZE(TimerBase, 0x4c);
-REB_ASSERT_OFFSET(TimerBase, m_expectedChange, 0x44);
-REB_ASSERT_SIZE(NotifEventBase, 0x54);
-REB_ASSERT_OFFSET(NotifEventBase, m_unk4c, 0x4c);
-#pragma clang diagnostic pop
-
-// Calls virtual slot `slot` of an object whose class is not declared here (thiscall, `this` passed first).
-template <typename Ret, typename... Args>
-Ret CallVirtualSlot(void* object, int slot, Args... args) {
-    using Function = Ret(__thiscall*)(void*, Args...);
-    void** table = *reinterpret_cast<void***>(object);
-    return reinterpret_cast<Function>(table[slot])(object, args...);
-}
-
-// ---- the mission manager (family 0xf8, key 0xf8000006), reached through the game root's cached master --------------
+// The mission-execution part of the mission manager (family 0xf8, ctor 0x541fc0, 0x74 bytes), range 0x545180-0x549af0.
+// The class itself belongs to the story module: this header declares only what this slice needs and can be dropped
+// once that declaration exists. Everything declared as a MissionMgr member here is reconstructed in
+// mission_exec_*.cpp; every other original function this slice calls is declared below by its Ghidra default name
+// (FUN_xxxxxxxx resolves to the original address at link time) and carries the exact stack signature of the original.
+// Names of the MissionMgr members are provisional.
 
 class MissionMgr;
-// Slot 111 of the mission manager creates a mission; 0x5429e0 / 0x542b60 are the two checks that precede it.
-constexpr int kMissionMgrCreateMissionSlot = 111;
-int __thiscall FUN_005429e0(MissionMgr* self, const ActivityRequest* request, int a, int b, ObjectKeyValueSet* team,
-                            ObjectKeyValueSet* characters, StatusCode* status);
-int __thiscall FUN_00542b60(MissionMgr* self, const ActivityRequest* request, int a, int b, ObjectKey* missionKey,
-                            ObjectKey* secondKey, ObjectKeyValueSet* team, ObjectKeyValueSet* characters,
-                            StatusCode* status);
-int __thiscall FUN_00546e70(MissionMgr* self, ObjectKey* key, int value, NotifyContext* ctx);
-int __thiscall FUN_00546ea0(MissionMgr* self, ObjectKey* key, int a, int b, NotifyContext* ctx);
-int __thiscall FUN_00546f80(MissionMgr* self, NotifyContext* ctx);
-int __thiscall FUN_00546fa0(MissionMgr* self, NotifyContext* ctx);
+class MissionPhaseLevels;
+class MissionSystemCheck;
 
-class Mission;
-// Mission::ResetImpliedTeamIfPhase8 / ResumeFromPhase11 take the notify context (mission.h declares the first without).
-int __thiscall FUN_00522a10(Mission* self, NotifyContext* ctx);
-int __thiscall FUN_00522a30(Mission* self, NotifyContext* ctx);
+namespace mission_exec {
+
+constexpr uint32_t kStateDestroyed = 0x8;
+constexpr uint32_t kStateEnrouteActive = 0x20;
+constexpr uint32_t kStateExisting = 0x40;
+constexpr uint32_t kStateAutorouting = 0x1000;
+
+constexpr uint32_t kPersonFlagAdrift = role_flag::kAdrift;
+constexpr uint32_t kCharacterCaptured = 0x1;
+
+constexpr uint32_t kFamilyPersonBegin = 0x30;
+constexpr uint32_t kFamilyPersonEnd = 0x40;
+constexpr uint32_t kFamilyUnitBegin = 0x10;
+constexpr uint32_t kFamilySystemBegin = 0x90;
+constexpr uint32_t kFamilySystemEnd = 0x98;
+constexpr uint32_t kFamilySystemOrNextEnd = 0xa0;
+
+constexpr int kSideAlliance = 1;
+constexpr int kSideEmpire = 2;
+
+inline bool InFamilies(const ObjectKey* key, uint32_t first, uint32_t last) {
+    const uint32_t family = key->Family();
+    return family >= first && family < last;
+}
+
+inline bool InFamilies(uint32_t family, uint32_t first, uint32_t last) { return family >= first && family < last; }
+
+// 0 -> 0, side 1 -> view 1, side 2 -> view 2 (the "which view to look through" mapping of a control side).
+inline int ViewOfSide(uint32_t side) { return side == 1 ? 1 : (side == 2 ? 2 : 0); }
+
+}  // namespace mission_exec
+
+// Local state of the system mission check (VT 0x66a888, 0x70 bytes, ctor 0x5897c0, dtor 0x589870, check 0x5898f0),
+// owned by the mission leaf classes (0x587100-0x58adb0). Only the two pointers this slice sets are named.
+class MissionSystemCheck {
+public:
+    uint8_t m_head[0x10];    // +0x00
+    GameObj* m_system;       // +0x10
+    Mission* m_mission;      // +0x14
+    uint8_t m_tail[0x58];    // +0x18
+};
+static_assert(sizeof(MissionSystemCheck) == 0x70, "MissionSystemCheck layout");
+
+// ---- mission leaf iterators whose class is owned by the leaf-class slices: constructed and destroyed by address ----
+// Each is a ChildIterator (0x20 bytes) over one family range of the children of the parent.
+#define REB_EXTERNAL_MISSION_ITERATOR(NAME, CTOR, DTOR)                                  \
+    void* __thiscall FUN_##CTOR(void* iterator, GameObjNotifier* parent);                \
+    void __thiscall FUN_##DTOR(void* iterator);                                           \
+    class NAME {                                                                          \
+    public:                                                                               \
+        explicit NAME(GameObjNotifier* parent) { FUN_##CTOR(m_storage, parent); }         \
+        ~NAME() { FUN_##DTOR(m_storage); }                                                \
+        NAME(const NAME&) = delete;                                                       \
+        NAME& operator=(const NAME&) = delete;                                            \
+        ChildIterator* get() { return reinterpret_cast<ChildIterator*>(m_storage); }      \
+        Mission* Current() { return static_cast<Mission*>(get()->Current()); }            \
+                                                                                          \
+    private:                                                                              \
+        alignas(8) unsigned char m_storage[sizeof(ChildIterator)];                        \
+    }
+REB_EXTERNAL_MISSION_ITERATOR(MissionIteratorFam53, 0056d1b0, 0056d250);  // family 0x53
+REB_EXTERNAL_MISSION_ITERATOR(MissionIteratorFam58, 00571650, 005716f0);  // family 0x58
+REB_EXTERNAL_MISSION_ITERATOR(MissionIteratorFam50to60, 00586b70, 00586c10);  // families 0x50-0x5f
+REB_EXTERNAL_MISSION_ITERATOR(MissionIteratorFam56, 00571c20, 00571cc0);  // family 0x56
+REB_EXTERNAL_MISSION_ITERATOR(MissionIteratorFam57, 00569e10, 00569eb0);  // family 0x57
+REB_EXTERNAL_MISSION_ITERATOR(MissionIteratorFam60to68, 00587100, 005871a0);  // families 0x60-0x67
+#undef REB_EXTERNAL_MISSION_ITERATOR
+
+class MissionMgr : public GameObj {
+public:
+    // ==== SECTION events (0x545180-0x546f80): reactions of the missions to object events ====
+    int OnCharacterEvent(ObjectKey* key, int unused, NotifyContext* ctx);                                     // 0x545180
+    int UpdateMissionsForObject(ObjectKey* key, int unused, ObjectKey* location, int skipMissions, NotifyContext* ctx);  // 0x545240
+    int UpdateMissionsForObjective(ObjectKey* key, int unused, int unused2, int skipMissions, NotifyContext* ctx);  // 0x545540
+    int UpdateMissionsForTargetOrObjective(ObjectKey* key, int unused, int unused2, NotifyContext* ctx);      // 0x545670
+    int RunStoryPipelineForStoryKey(ObjectKey* key, int unused, int unused2, NotifyContext* ctx);             // 0x5457f0
+    int UpdatePersonMission(ObjectKey* key, int unused, NotifyContext* ctx);                                    // 0x545820
+    int OnSystemEvent(ObjectKey* key, int unused, NotifyContext* ctx);                                          // 0x545950
+    int OnSystemEventNoop(int a, int b, int c);                                                                // 0x5459d0
+    int UpdateMissionsAtSystemA(ObjectKey* key, int enabled, NotifyContext* ctx);                               // 0x545a10
+    int UpdateMissionsAtSystemB(ObjectKey* key, int enabled, NotifyContext* ctx);                               // 0x545b20
+    int UpdateMissionsAtLocation53(ObjectKey* key, int unused, NotifyContext* ctx);                             // 0x545c30
+    int UpdateMissionsAtLocation50to60(ObjectKey* key, int unused, NotifyContext* ctx);                         // 0x545d30
+    int OnPersonStateChanged(ObjectKey* key, int released, NotifyContext* ctx);                                 // 0x545df0
+    int OnPersonRemoved(ObjectKey* key, int unused, NotifyContext* ctx);                                        // 0x545e90
+    int ProcessResignRequest(ObjectKey* key, int enabled, NotifyContext* ctx);                                  // 0x546000
+    int ProcessRemoveRequest(ObjectKey* key, int enabled, NotifyContext* ctx);                                  // 0x546240
+    int OnPersonArrived(ObjectKey* key, int unused, int expectedState, NotifyContext* ctx);                     // 0x546370
+    int RunStoryPipelineForStoryKey2(ObjectKey* key, int unused, NotifyContext* ctx);                           // 0x546e30
+    int AdvanceMissionPhase(ObjectKey* missionKey, int enabled, NotifyContext* ctx);                            // 0x546e70
+    int RunMissionPhase(ObjectKey* missionKey, int fromPhase, int toPhase, NotifyContext* ctx);                    // 0x546ea0
+    int UpdateStoryFlags(NotifyContext* ctx);                                                                  // 0x546f80
+
+    // ==== SECTION creation (0x546fa0-0x547ba0): missions created for characters ====
+    int CreateStoryMissionAtRandom(NotifyContext* ctx);                                                        // 0x546fa0
+    int CreateMissionType41ForCharacter(Character* person, NotifyContext* ctx);                                // 0x547180
+    int CreateMissionType41(int side, ObjectKey* targetKey, ObjectKeyValueSet* team, NotifyContext* ctx);       // 0x547340
+    int CreateMissionType41WithLevels(int side, ObjectKey* targetKey, ObjectKeyValueSet* team, NotifyContext* ctx);  // 0x547480
+    int CreateMissionType42(int side, MissionPhaseLevels* levels, ObjectKey* targetKey, ObjectKeyValueSet* team,
+                            int mandatory, NotifyContext* ctx);                                                // 0x5475f0
+    int CreateMissionType43(int side, ObjectKey* targetKey, ObjectKeyValueSet* team, int impliedTeam,
+                            NotifyContext* ctx);                                                               // 0x547740
+    int CreateMissionType44(int side, ObjectKey* targetKey, ObjectKeyValueSet* team, NotifyContext* ctx);       // 0x547880
+    int CreateMissionForCharacter(ObjectKey* objectiveKey, ObjectKey* typeKey, ObjectKey* personKey,
+                                  NotifyContext* ctx);                                                         // 0x5479c0
+    int CreateMission(int userId, int userId2, int side, ObjectKey* objectiveKey, ObjectKey* typeKey, ObjectKey* targetKey,
+                      ObjectKey* originKey, ObjectKeyValueSet* team, ObjectKeyValueSet* decoys,
+                      MissionPhaseLevels* levels, int impliedTeam, int mandatory, NotifyContext* ctx);          // 0x547ba0
+
+    // ==== SECTION phase (0x547f60-0x548840): bookkeeping when a mission changes phase ====
+    int ReleaseObjectiveSystem(Mission* mission, NotifyContext* ctx);                                           // 0x547f60
+    int DetachMissionMembers(Mission* mission, NotifyContext* ctx);                                             // 0x548120
+    int ApplyMissionOutcomeModifiers(Mission* mission, NotifyContext* ctx);                                     // 0x548370
+    int UpdateSystemMissionScores(Mission* mission, int fromPhase, int toPhase, NotifyContext* ctx);            // 0x5484d0
+    int OnMissionPhaseStory(Mission* mission, int fromPhase, int toPhase, NotifyContext* ctx);                       // 0x548840
+
+    // ==== SECTION members (0x548910-0x549850): moving persons whose mission ended ====
+    int ReassignMissionMembers(Mission* mission, int* moved, NotifyContext* ctx);                               // 0x548910
+    int ReleasePersonsOfKey(ObjectKey* key, NotifyContext* ctx);                                                // 0x548da0
+    int ReleaseAdriftPersonsOfSystem(ObjectKey* systemKey, NotifyContext* ctx);                                 // 0x548e90
+    int ReleaseSystemPersons(GameObj* system, int* moved, NotifyContext* ctx);                                  // 0x549230
+    int ReleasePersons(ObjectKeyValueSet* persons, NotifyContext* ctx);                                         // 0x549580
+    int ReleaseFreePersons(ObjectKeyValueSet* persons, NotifyContext* ctx);                                     // 0x549850
+
+    // ==== SECTION story (0x549910-0x549a20) ====
+    int RunStoryPipeline(NotifyContext* ctx);                                                                  // 0x549910
+    int InjureStoryCharacter(NotifyContext* ctx);                                                              // 0x549a20
+};
+
+// Factory registered for family 0xf8 (see the registry at 0x51ebf0).
+GameObj* CreateMissionMgr();  // 0x549af0
+
+// ---- slot 120 of Mission is a pure virtual that takes (team, decoys, ctx); mission.h declares it without arguments ----
+inline int CallMissionSlot120(Mission* mission, ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, NotifyContext* ctx) {
+    using Slot = int(__thiscall*)(Mission*, ObjectKeyValueSet*, ObjectKeyValueSet*, NotifyContext*);
+    return reinterpret_cast<Slot*>(*reinterpret_cast<void***>(mission))[120](mission, team, decoys, ctx) ? 1 : 0;
+}
+
+// ---- Mission members whose declaration in mission.h differs from the original signature ----
+// Mission::GetTransitionFlags: (person, &a, &b, &c); it reads the person's flags and the mission's completion status.
+int __thiscall FUN_00521220(Mission* mission, Role* person, int* a, int* b, int* c);  // 0x521220
+// Mission::FillStatusFlags: fills the four phase levels.
+int __thiscall FUN_00520ec0(Mission* mission, MissionPhaseLevels* levels);  // 0x520ec0
+// Mission::AssignPhaseLevels with its real argument type.
+int __thiscall FUN_00522a60(Mission* mission, MissionPhaseLevels* levels);  // 0x522a60
+// Record key of the object ((record family << 24) | record id), 0x402d80; returns `out`.
+ObjectKey* __thiscall FUN_00402d80(GameObjNotifier* object, ObjectKey* out);
+// Owner key of an object: GameObjRoot::GetOwnerKey into `out`, returns `out` (0x50c640).
+ObjectKey* __thiscall FUN_0050c640(GameObjNotifier* object, ObjectKey* out);
+
+// ---- the rules object (game root member +0xbc, type 0xf9, 0x554020-0x557410) ----
+int __thiscall FUN_00556710(GameObjNotifier* rules, GameObj* person, NotifyContext* ctx);
+int __thiscall FUN_00556390(GameObjNotifier* rules, ObjectKey* personKey, ObjectKey* locationKey, NotifyContext* ctx);
+int __thiscall FUN_00556c70(GameObjNotifier* rules, ObjectKey* key, int a, NotifyContext* ctx);
+
+// ---- MissionMgr story checks (0x541fc0-0x545180) and the mission creation helpers (0x549af0-0x54cd80) ----
+int __stdcall FUN_005438a0(const ObjectKey* key);   // key is one of the six named story characters
+int __stdcall FUN_005442f0(NotifyContext* ctx);
+int __thiscall FUN_00544da0(MissionMgr* mgr, NotifyContext* ctx);
+int __thiscall FUN_00544030(MissionMgr* mgr, NotifyContext* ctx);
+int __thiscall FUN_00544130(MissionMgr* mgr, NotifyContext* ctx);
+int __thiscall FUN_005443f0(MissionMgr* mgr, NotifyContext* ctx);
+int __thiscall FUN_005444e0(MissionMgr* mgr, NotifyContext* ctx);
+int __thiscall FUN_005445d0(MissionMgr* mgr, NotifyContext* ctx);
+int __thiscall FUN_00544a20(MissionMgr* mgr, NotifyContext* ctx);
+int __thiscall FUN_00544be0(MissionMgr* mgr, NotifyContext* ctx);
+int __thiscall FUN_00544fc0(MissionMgr* mgr, NotifyContext* ctx);
+int __thiscall FUN_00543af0(MissionMgr* mgr, int on, NotifyContext* ctx);
+int __thiscall FUN_00543040(MissionMgr* mgr, GameObj* person, int unused, ObjectKey* out);
+int __thiscall FUN_00542990(MissionMgr* mgr, int a, int b, int* out);
+int __thiscall FUN_00542ee0(MissionMgr* mgr, Role* person, Mission* mission, int c, ObjectKey* out);
+int __thiscall FUN_005435f0(MissionMgr* mgr, GameObjNotifier** first, GameObjNotifier** parent, ObjectKey* parentKey);
+int __thiscall FUN_005434b0(MissionMgr* mgr, GameObjNotifier** first, GameObjNotifier** parent, ObjectKey* parentKey);
+int __thiscall FUN_0054bf00(MissionMgr* mgr, ObjectKeyValueSet* team, ObjectKey* out, StatusCode* status);
+int __thiscall FUN_0054c7d0(MissionMgr* mgr, GameObj* object, int* a, uint32_t* side, uint32_t* flag, ObjectKey* key,
+                            ObjectKeyValueSet* set, NotifyContext* ctx);
+MissionMgr* __thiscall FUN_00541fc0(void* memory);  // the MissionMgr constructor
+
+// ---- the mission rules (GNPRTB 0x1800 loader 0x55bfd0) ----
+int FUN_0055c620(int value);  // DivideByMissionDivisor
+int FUN_0055c630(int value);  // NegatedDivideByMissionDivisor
+int FUN_0055c640();  // GetMissionRuleValue1801
+int FUN_0055c650(int* out);  // RollMissionRuleBonus1809
+
+// ---- the mission system check ----
+MissionSystemCheck* __thiscall FUN_005897c0(MissionSystemCheck* check);
+int __thiscall FUN_005898f0(MissionSystemCheck* check, NotifyContext* ctx);
+void __thiscall FUN_00589870(MissionSystemCheck* check);
+
+// ---- per-class checks of the 0x58 mission family ----
+int __thiscall FUN_00570470(Mission* mission, NotifyContext* ctx);
+int __thiscall FUN_005704b0(Mission* mission, NotifyContext* ctx);
+
+extern int DAT_006bb5b8;  // GNPRTB 0x1806, a percentage

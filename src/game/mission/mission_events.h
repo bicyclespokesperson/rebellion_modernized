@@ -15,7 +15,7 @@
 
 #include "core/layout.h"
 #include "gameobj/object_key.h"
-#include "mission/mission_exec_decl.h"
+#include "mission/mission_timers_decl.h"
 #include "orders/command_decl.h"
 
 // Kind 0x250: the command a mission order (orders/mission_orders.h) queues. Its checks resolve the mission manager
