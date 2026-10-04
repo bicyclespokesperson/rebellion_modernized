@@ -5,6 +5,14 @@
 #include <cstdlib>
 #include <new>
 
+#include <winver.h>
+
+extern "C" {
+__declspec(dllimport) DWORD __stdcall GetFileVersionInfoSizeA(LPCSTR fileName, LPDWORD handle);
+__declspec(dllimport) BOOL __stdcall GetFileVersionInfoA(LPCSTR fileName, DWORD handle, DWORD length, LPVOID data);
+__declspec(dllimport) BOOL __stdcall VerQueryValueA(LPCVOID block, LPCSTR subBlock, LPVOID* buffer, PUINT length);
+}
+
 extern char g_languageName[0x100];       // 0x6b06f8
 extern char g_versionOlderText[0x200];   // 0x6b07f8
 extern char g_versionNewerText[0x200];   // 0x6b09f8
