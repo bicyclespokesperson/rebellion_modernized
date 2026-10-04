@@ -25,3 +25,19 @@ int NotifPayload::WriteFields(ostream* out) {
     WriteValue32(out, &m_value1c);
     return 1;
 }
+
+KeyedNotifPayload::KeyedNotifPayload() : NotifPayload(), m_key() {}
+
+KeyedNotifPayload::~KeyedNotifPayload() { REB_KEEP_VPTR_STORE(); }
+
+int KeyedNotifPayload::ReadKeyed(istream* in) {
+    int result = NotifPayload::ReadFields(in);
+    if (result) m_key.Read(in);
+    return result;
+}
+
+int KeyedNotifPayload::WriteKeyed(ostream* out) {
+    int result = NotifPayload::WriteFields(out);
+    if (result) m_key.Write(out);
+    return result;
+}
