@@ -32,7 +32,7 @@ int MissionAdrift::CreateViewsImpl(int controlKind, NotifyContext* ctx) {
     const int created = FUN_005236e0(this, controlKind, ctx);
     MissionPhaseLevels levels;
     levels.m_levels = kInitialPhaseLevels;
-    AssignPhaseLevels(reinterpret_cast<IntPair*>(&levels));
+    AssignPhaseLevels(&levels);
     return created != 0;
 }
 
