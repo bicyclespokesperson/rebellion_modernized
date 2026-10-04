@@ -170,8 +170,6 @@ public:
     virtual ~OrderedTree();
     virtual void Clear();
     virtual int IsLess(AvlNode* a, AvlNode* b) = 0;
-    virtual void Virtual03() = 0;
-
     void Insert(AvlNode* node);
     void Remove(AvlNode* node);
     short Count() const;
