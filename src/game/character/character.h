@@ -231,8 +231,8 @@ public:
     virtual int Checksum(Crc32* crc) override = 0;            // 7, body 0x4efbc0
     virtual int Validate() override = 0;                      // 8, body 0x4efd30
     virtual int ApplyAll(NotifyContext* ctx) override = 0;    // 9, body 0x4efaa0
-    // Called by the leaf classes after loading the record (0x4ef750).
-    void InitializeFromRecord(int a, int b);  // 0x4ef750
+    // Called by the leaf classes' CreateViews.
+    int CreateViewsImpl(int controlKind, NotifyContext* ctx);  // 0x4ef750 (the body of the leaf classes' CreateViews)
     // The event-kind set of Character (g_characterEventKinds, 0x6b2940); 0x4f2400 builds it on first use, 0x4f24c0 is the
     // static initializer's entry used by the leaf classes, 0x4f2550 registers the destructor (static init).
     static int BuildEventKinds();                                  // 0x4f2400
