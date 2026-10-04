@@ -117,10 +117,10 @@ public:
     // Adds a person to the team (decoy false), decoys (decoy true) or captured list, after the membership checks.
     virtual int AddMember(ObjectKey* member, int decoy, NotifyContext* ctx);         // 115, 0x522b30
     virtual int RemoveMember(ObjectKey* member, int decoy, NotifyContext* ctx);      // 116, 0x522fc0
-    virtual int Virtual117(int a, NotifyContext* ctx);                               // 117, 0x523310
-    virtual int Virtual118(NotifyContext* ctx);                                      // 118, 0x5233a0: if Phase 8, SetPhase(2)... see body
-    virtual int Virtual119(int a, NotifyContext* ctx);                               // 119, 0x5233d0
-    virtual int Virtual120() = 0;                                                    // 120, pure
+    virtual int TryComplete(const ActivityRequest* request, NotifyContext* ctx);                             // 117, 0x523310
+    virtual int CompleteIfOutcomePhase(NotifyContext* ctx);                                      // 118, 0x5233a0: if Phase 8, SetPhase(2)... see body
+    virtual int CompleteWith(int a, NotifyContext* ctx);                               // 119, 0x5233d0
+    virtual int AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, NotifyContext* ctx) = 0;  // 120, pure
 
     // ---- OnXChanged events on the master (slots 121-138) ----
     virtual int OnUserIdChanged(int oldValue, int newValue, NotifyContext* ctx) { return 1; }               // 121
@@ -195,14 +195,14 @@ public:
     int CountMembers();                  // 0x520dd0
     int HasCompletionStatus();           // 0x520e40: m_completionStatus != 0
     uint32_t GetPhaseLevel();            // 0x520e50
-    int FillStatusFlags(IntPair* out);   // 0x520ec0
-    int GetObjectivePerson(GameObj** out);          // 0x520f40
-    int GetOriginLocationObject(GameObj** out);     // 0x521030
-    int GetTargetLocationObject(GameObj** out);     // 0x521050
-    int GetLeaderObject(GameObj** out);             // 0x521070
-    int GetOriginInOwnerSide(GameObj** out);        // 0x521160
-    int GetTargetInOwnerSide(GameObj** out);        // 0x5211c0
-    int GetTransitionFlags(int* a, int* b, int* c);  // 0x521220
+    int ComputePhaseLevels(MissionPhaseLevels* out);   // 0x520ec0
+    int GetOriginSystem(GameObj** out);          // 0x520f40
+    int GetObjectiveObject(GameObj** out);     // 0x521030
+    int GetTargetObject(GameObj** out);     // 0x521050
+    int GetTargetLocationSystem(GameObj** out);             // 0x521070
+    int GetObjectiveInOwnerView(GameObj** out);        // 0x521160
+    int GetTargetInOwnerView(GameObj** out);        // 0x5211c0
+    int GetMemberTransitFlags(class Role* person, int* a, int* b, int* c);  // 0x521220
 
     // ==== SECTION setters (0x521780-0x522210): see mission_setters.cpp ====
     int SetUserId(int value, NotifyContext* ctx);                 // 0x521780
@@ -229,11 +229,11 @@ public:
     int UpdatePhaseForTeam(NotifyContext* ctx);      // 0x522480
     int AdvancePhase(NotifyContext* ctx);            // 0x5227d0
     int UpdateLeaderAndTeamKeys(NotifyContext* ctx); // 0x522870
-    int ClearImpliedTeamIfPhase4Or8(NotifyContext* ctx);  // 0x522980
+    int ReadyUnlessPhase4Or8(NotifyContext* ctx);  // 0x522980
     int ScheduleTimerEvent(NotifyContext* ctx);      // 0x5229c0
-    void ResetImpliedTeamIfPhase8();                 // 0x522a10
-    int ResumeFromPhase11(NotifyContext* ctx);       // 0x522a30
-    int AssignPhaseLevels(IntPair* levels);          // 0x522a60
+    int ReadyIfPhase8(NotifyContext* ctx);                 // 0x522a10
+    int DestroyIfPhase11(NotifyContext* ctx);       // 0x522a30
+    int AssignPhaseLevels(const MissionPhaseLevels* levels);          // 0x522a60
     int ComputeAllTeamCanAct(uint32_t* out);         // 0x522a90
 
     // ==== SECTION apply (0x523d70-0x5249d0): see mission_apply.cpp ====
@@ -262,8 +262,11 @@ public:
     int ChecksumImpl(Crc32* crc);         // 0x523b20
     int ValidateImpl();                   // 0x523c60
     int ApplyAllImpl(NotifyContext* ctx); // 0x523a60
+    int CreateViewsImpl(int controlKind, NotifyContext* ctx);  // 0x5236e0 (body of slot 37)
 
     // The static event kind set of the mission base: kind 0x250 (0x525620 builds it, 0x525670 copies it).
+    static int __cdecl CheckMemberDefault(int unused, int value, int* out, StatusCode* status);  // 0x523670
+    static int __cdecl CheckTargetDefault(class MissionCheckArgs* args, StatusCode* status, int* code);  // 0x523450
     static int BuildEventKinds();                                 // 0x525620
     static int GetBaseEventKinds(int unused, EventKindSet* out);  // 0x525670
     static void InitStatics();                                    // 0x525700
@@ -314,6 +317,8 @@ public:
 //
 // Usage: `Iter it(mission); it.Begin(); while (it.Current()) { ...; it.Advance(); }` (Begin = 0x525930, Advance = 0x5258f0;
 // the constructors do NOT position the iterator).
+void NextMemberKey(ObjectKeyValueSet* set, ObjectKey* key);  // 0x525b00
+
 class MissionMemberIterator {
 public:
     MissionMemberIterator(Mission* mission, const FamilyRange* range, int team, int decoys, int captured);  // 0x525870
@@ -324,6 +329,8 @@ public:
     int Count();                       // 0x5259d0
     int HasAny();                      // 0x525a00
     int Accepts();                     // 0x525a20: current object's family is inside the range
+    void StepKey();                    // 0x525a50
+    void ResolveCurrent();             // 0x5259a0
     GameObj* Current() const { return m_current; }
 
     Mission* m_mission;       // +0x04

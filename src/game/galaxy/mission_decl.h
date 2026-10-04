@@ -16,7 +16,17 @@ public:
     // Fills *out with the mission base's event kinds (the starting point of every type's static set).
     static int InitEventKinds(int unused, EventKindSet* out);  // 0x593b20
 
-    virtual int Virtual120() override;  // 120, 0x593870
+    virtual int GetEventKinds(int unused, EventKindSet* out) override;                        // 15, 0x593790
+    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                   // 22, 0x5937b0
+    virtual int AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, NotifyContext* ctx) override;  // 120, 0x593870
+
+    // Second-level forwarders of the leaf types' slot 37 / 9 / 7 bodies.
+    int CreateViewsBody(int controlKind, NotifyContext* ctx);  // 0x593a80
+    int ApplyAllBody(NotifyContext* ctx);                      // 0x593aa0
+    int ChecksumBody(Crc32* crc);                              // 0x593ad0
+
+    static int BuildEventKinds();  // 0x593af0
+    static void InitStatics();     // 0x593b40
 };
 
 #pragma clang diagnostic push

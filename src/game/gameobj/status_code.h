@@ -43,6 +43,13 @@ public:
 // Set node: IntKeyNode (key = kind) plus the value and a field that is only ever 0.
 class EventKindNode : public IntKeyNode {
 public:
+    EventKindNode();                                  // 0x582a00, value 1
+    EventKindNode(const EventKindNode& other);        // 0x582a40
+    virtual ~EventKindNode();                         // 0x582a70 (scalar deleting destructor 0x582a20)
+    virtual CloneableNode* Clone() override;          // 0x582a80
+    virtual int Read(istream* in) override;           // 0x582ae0
+    virtual int Write(ostream* out) override;         // 0x582b20
+
     int m_value;    // +0x1c
     int m_unknown;  // +0x20
 };

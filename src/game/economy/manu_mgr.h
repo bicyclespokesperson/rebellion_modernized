@@ -36,6 +36,12 @@ class ManuMgr;
 // The data block (VT 0x66a0c8, 0x20 bytes, ctor 0x583800): GameObjData plus the queue (keys of the product objects).
 class ManuMgrData : public GameObjData {
 public:
+    ManuMgrData();                                // 0x583800
+    virtual ~ManuMgrData();                       // 0x583870 (scalar deleting destructor 0x583850)
+    virtual int Read(istream* in) override;       // 0x5838c0
+    virtual int Write(ostream* out) override;     // 0x5838f0
+    virtual int Checksum(Crc32* crc) override;    // 0x583920
+
     ObjectKeyValueSet m_queue;  // +0x18
 };
 
