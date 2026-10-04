@@ -20,10 +20,7 @@ public:
     // Calls the virtual Write (a no-op in LinkNode), then writes flag, key and value.
     void WriteFields(ostream* out);
     void Checksum(Crc32* crc);
-    ObjectKey* GetKey(ObjectKey* out) const {
-        out->m_value = m_key.m_value;
-        return out;
-    }
+    ObjectKey* GetKey(ObjectKey* out) const;  // 0x52fd10
 
     int m_flag;       // +0x0c
     ObjectKey m_key;  // +0x10

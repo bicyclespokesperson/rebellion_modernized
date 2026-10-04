@@ -10,6 +10,11 @@ KeyQueueNode::KeyQueueNode() : LinkNode(), m_flag(1), m_value(0) {}
 
 KeyQueueNode::~KeyQueueNode() { REB_KEEP_VPTR_STORE(); }
 
+ObjectKey* KeyQueueNode::GetKey(ObjectKey* out) const {
+    out->m_value = m_key.m_value;
+    return out;
+}
+
 void KeyQueueNode::Read(istream* in) {
     LinkNode::Read(in);
     ReadValue32(in, &m_flag);
