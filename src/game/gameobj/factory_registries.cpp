@@ -157,6 +157,7 @@ void* CreateConfirmedMoveOrder();
 void* CreateObjectMoveOrder();
 void* CreateReadyForDeleteOrder();
 void* CreateRenameOrder();
+void* CreateRenameOrder215();
 void* FUN_004f5250();
 void* FUN_004f5490();
 void* FUN_004f45b0();
@@ -320,7 +321,7 @@ void RegisterOrderFactories() {
     RegisterOrderFactory(0x222, FUN_005828b0);
     RegisterOrderFactory(0x223, FUN_005827e0);
     RegisterOrderFactory(0x214, CreateDestinationOrder);
-    RegisterOrderFactory(0x215, CreateRenameOrder);
+    RegisterOrderFactory(0x215, CreateRenameOrder215);
     RegisterOrderFactory(0x216, CreateOrder216);
     RegisterOrderFactory(0x211, CreateManufactureOrder211);
     RegisterOrderFactory(0x212, CreateManufactureOrder212);

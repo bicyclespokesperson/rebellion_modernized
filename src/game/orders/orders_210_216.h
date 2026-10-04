@@ -4,7 +4,7 @@
 //
 //   0x214  DestinationOrder   where the units built by manufacturing managers go; issued by dragging a facility list
 //                             item onto a system window. Extends OrderBase directly.
-//   0x215  RenameOrder        a text message that names the team's single object.
+//   0x215  RenameOrder215        a text message that names the team's single object.
 //   0x210-0x212  ManufactureOrder*   an item type (+0x44) and a count (+0x48) that the team's managers produce and
 //                             deliver to the order's target. Three kinds share one base class (0x6610f0, abstract).
 //   0x213  Order213, 0x216  Order216   orders with no data of their own; 0x216 hands every command the negation of
@@ -34,10 +34,10 @@ public:
 void* CreateDestinationOrder();  // 0x537090
 
 // 0x215: vtable 0x661098, size 0x50.
-class RenameOrder : public TextMessage {
+class RenameOrder215 : public TextMessage {
 public:
-    RenameOrder();  // 0x537ba0
-    virtual ~RenameOrder();  // 0x537be0 (scalar deleting destructor 0x537bc0)
+    RenameOrder215();  // 0x537ba0
+    virtual ~RenameOrder215();  // 0x537be0 (scalar deleting destructor 0x537bc0)
     virtual int Read(istream* in) override { return TextMessage::Read(in); }    // 0x53da80
     virtual int Write(ostream* out) override { return TextMessage::Write(out); }  // 0x53da90
     virtual int GetKind() override;                                             // 0x537c60
@@ -48,7 +48,7 @@ public:
     virtual int CheckDestination(StatusCode* status) override;  // 0x537da0
 };
 
-void* CreateRenameOrder();  // 0x537bf0
+void* CreateRenameOrder215();  // 0x537bf0
 
 // 0x6610f0, size 0x4c: the common part of the manufacture orders. +0x44 names the item type, +0x48 is how many.
 class ManufactureOrderBase : public OrderBase {
@@ -141,7 +141,7 @@ void* CreateOrder216();  // 0x539090
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_SIZE(DestinationOrder, 0x44);
-REB_ASSERT_SIZE(RenameOrder, 0x50);
+REB_ASSERT_SIZE(RenameOrder215, 0x50);
 REB_ASSERT_SIZE(ManufactureOrderBase, 0x4c);
 REB_ASSERT_OFFSET(ManufactureOrderBase, m_item, 0x44);
 REB_ASSERT_OFFSET(ManufactureOrderBase, m_count, 0x48);

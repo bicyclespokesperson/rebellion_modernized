@@ -9,7 +9,9 @@
 #include "gameobj/key_queue.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_queries.h"
+#include "orders/order_checks.h"
 #include "orders/order_route_decl.h"
+#include "orders/route_context.h"
 
 DatRecord* FUN_0051cab0(const ObjectKey* key);  // the data record of a key (via the object-type database)
 
@@ -27,7 +29,6 @@ constexpr int kStatusBusy = 0x21;
 
 constexpr size_t kManagerStateOffset = 0x58;
 constexpr size_t kUnitFlagsOffset = 0x50;
-constexpr size_t kCommandDestinationOffset = 0x48;
 constexpr size_t kCommandPayloadOffset = 0x50;
 constexpr size_t kManagerChoicesSlotOffset = 0x1ec;
 
@@ -108,7 +109,7 @@ int DestinationOrder::CheckDestination(StatusCode* status) {
     BuildRequest(&request);
     int ok = OrderBase::CheckDestination(status);
     uint32_t side = 0;
-    if (ok != 0 && isOk(status)) ok = FUN_00553b80(m_commands, &side);
+    if (ok != 0 && isOk(status)) ok = GetCommandSide(m_commands, &side);
 
     GameObjNotifier* destination = nullptr;
     if (ok != 0) {
@@ -138,10 +139,10 @@ int DestinationOrder::CheckDestination(StatusCode* status) {
     if (ok != 0) {
         if (isOk(status)) {
             int mode = 3;
-            ok = FUN_00551190(&route, &request, side, &mode);
+            ok = route.InitFromRequest(&request, static_cast<int>(side), &mode);
         }
         if (ok != 0) {
-            if (isOk(status)) ok = FUN_005513a0(&route, &request.m_target);
+            if (isOk(status)) ok = route.AddContainerLegs(&request.m_target);
             if (ok != 0 && isOk(status)) {
                 for (Command* command = firstCommand(m_commands); command && ok != 0 && isOk(status);
                      command = nextCommand(command)) {
@@ -154,7 +155,7 @@ int DestinationOrder::CheckDestination(StatusCode* status) {
                         if (ok != 0 && isOk(status)) {
                             if (inFamilies(manager->GetFamily(), 0xa0, 0xa2)) {
                                 int mode = request.m_side == 1 ? 1 : (request.m_side == 2 ? 2 : 0);
-                                if (isOk(status)) ok = FUN_00553410(target, mode, side, 1, 1, status);
+                                if (isOk(status)) ok = CheckControlAndState(static_cast<GameObj*>(target), static_cast<uint32_t>(mode), side, 1, 1, status);
                                 if (ok == 0) continue;
                                 if (isOk(status) && !isSystem(target)) setStatus(status, kStatusBadDestinationKind);
                             } else {
@@ -174,19 +175,19 @@ int DestinationOrder::CheckDestination(StatusCode* status) {
                             if (ok != 0 && isOk(status)) {
                                 ObjectKey targetKey;
                                 target->GetKey(&targetKey);
-                                fieldAt<ObjectKey>(command, kCommandDestinationOffset) = targetKey;
+                                command->m_request.m_target = targetKey;
                             }
                         }
                     } else {
-                        ok = FUN_00552210(&route, manager, status);
+                        ok = route.FreeCarriedParents(static_cast<GameObj*>(manager), status);
                         ObjectKeyValueSet* children = FUN_00528820(manager);
                         for (AvlNode* node = children->First(); ok != 0 && isOk(status) && node;
                              node = node->m_successor) {
                             ObjectKey legKey;
-                            RouteLeg leg;
+                            CapacityScratch leg;
                             if (ok != 0 && isOk(status)) {
                                 ObjectKey unitKey = keyOfNode(node);
-                                ok = FUN_00551900(&route, &unitKey, &request.m_target, status, &leg, &legKey);
+                                ok = route.CheckArrival(&unitKey, &request.m_target, status, &leg, &legKey);
                             }
                             if (ok != 0 && isOk(status)) {
                                 ObjectKey unitKey = keyOfNode(node);
@@ -202,17 +203,17 @@ int DestinationOrder::CheckDestination(StatusCode* status) {
     return ok;
 }
 
-// ---- RenameOrder (0x215) --------------------------------------------------------------------------------------
+// ---- RenameOrder215 (0x215) --------------------------------------------------------------------------------------
 
-RenameOrder::RenameOrder() : TextMessage() {}
+RenameOrder215::RenameOrder215() : TextMessage() {}
 
-RenameOrder::~RenameOrder() { REB_KEEP_VPTR_STORE(); }
+RenameOrder215::~RenameOrder215() { REB_KEEP_VPTR_STORE(); }
 
-int RenameOrder::GetKind() { return 0x215; }
+int RenameOrder215::GetKind() { return 0x215; }
 
-void* CreateRenameOrder() { return NewOrNull<RenameOrder>(); }
+void* CreateRenameOrder215() { return NewOrNull<RenameOrder215>(); }
 
-int RenameOrder::CheckEnabled(StatusCode* status) {
+int RenameOrder215::CheckEnabled(StatusCode* status) {
     int ownsQueue = static_cast<int>(m_unk1c);
     *status = StatusCode(kStatusCategory, kStatusOk);
     TextMessage::CheckEnabled(status);
@@ -222,12 +223,12 @@ int RenameOrder::CheckEnabled(StatusCode* status) {
     return isOk(status);
 }
 
-Command* RenameOrder::CreateCommand() {
+Command* RenameOrder215::CreateCommand() {
     void* memory = ::operator new(0x5c);
     return memory ? FUN_0057e460(memory) : nullptr;
 }
 
-int RenameOrder::CheckDestination(StatusCode* status) {
+int RenameOrder215::CheckDestination(StatusCode* status) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     ActivityRequest request;
     BuildRequest(&request);
@@ -377,7 +378,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
     BuildRequest(&request);
     int ok = OrderBase::CheckDestination(status);
     uint32_t side = 0;
-    if (ok != 0 && isOk(status)) ok = FUN_00553b80(m_commands, &side);
+    if (ok != 0 && isOk(status)) ok = GetCommandSide(m_commands, &side);
 
     if (ok != 0 && isOk(status)) {
         for (Command* command = firstCommand(m_commands); command; command = nextCommand(command)) {
@@ -405,7 +406,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
     if (ok != 0) {
         if (isOk(status)) {
             int mode = 3;
-            ok = FUN_00551190(&route, &request, side, &mode);
+            ok = route.InitFromRequest(&request, static_cast<int>(side), &mode);
         }
         if (ok != 0 && isOk(status)) {
             GameObjNotifier* sideObject = GetGameRootSideMember(sideIndexOf(side));
@@ -420,7 +421,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
             GameObjNotifier* manager = managerOfCommand(command);
             capacity += FUN_00528040(manager, 1);
             ObjectKey locationKey;
-            ok = FUN_005513a0(&route, FUN_004c27b0(manager, &locationKey));
+            ok = route.AddContainerLegs(FUN_004c27b0(manager, &locationKey));
         }
     }
 
@@ -435,7 +436,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
         for (Command* command = firstCommand(m_commands); command && ok != 0 && isOk(status);
              command = nextCommand(command)) {
             GameObjNotifier* manager = managerOfCommand(command);
-            ok = FUN_00552210(&route, manager, status);
+            ok = route.FreeCarriedParents(static_cast<GameObj*>(manager), status);
             int toBuild = 0;
             if (ok != 0) {
                 int managerCapacity = FUN_00528040(manager, 1);
@@ -445,13 +446,13 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
             }
             for (int built = 0; ok != 0 && isOk(status) && built < toBuild; ++built) {
                 ObjectKey legKey;
-                RouteLeg leg;
+                CapacityScratch leg;
                 if (isOk(status)) {
                     ObjectKey originKey;
                     FUN_004c27b0(manager, &originKey);
                     ObjectKey itemKey;
                     GetItemKey(&itemKey);
-                    ok = FUN_00551a20(&route, &itemKey, &originKey, status, &leg, &legKey);
+                    ok = route.CheckArrivalOfFamily(&itemKey, &originKey, status, &leg, &legKey);
                 }
                 if (ok != 0 && isOk(status)) {
                     ObjectKey itemKey;
