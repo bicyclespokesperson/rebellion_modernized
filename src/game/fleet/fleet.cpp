@@ -138,7 +138,7 @@ int Fleet::ValidateImpl() {
 }
 
 int Fleet::CollectDependencies(void* context, int value, ObjectKeyValueSet* out) {
-    const uint32_t targetFamily = static_cast<uint32_t>(static_cast<const ActivityRequest*>(context)->m_unk08) >> 24;
+    const uint32_t targetFamily = static_cast<uint32_t>(static_cast<const ActivityRequest*>(context)->m_target.m_value) >> 24;
     if (isFleetFamily(targetFamily)) {
         GameObjIterator children(this, kExistingFilter);
         return FUN_00553350(&children, out, 1, ControlSide());

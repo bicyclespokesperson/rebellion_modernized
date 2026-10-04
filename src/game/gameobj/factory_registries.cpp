@@ -1,6 +1,7 @@
 #include "gameobj/factory_registries.h"
 
 #include "gameobj/game_obj_root.h"
+#include "orders/order_base.h"
 
 // The factories themselves live in the modules of the classes they build; only their addresses are needed here.
 // Taking the address of a function declared by its original name yields the original address.
@@ -170,8 +171,6 @@ void* FUN_00628e60();
 
 // Registers `kind`'s event factory in the table at 0x6b92f8 (0x54f140).
 int FUN_0054f140(int kind, void* (*factory)());
-// Registers `kind`'s order factory in the table at 0x6b6fe0 (0x51f930).
-int FUN_0051f930(int kind, void* (*factory)());
 
 constexpr int kMaxKeyedFactories = 0x800;
 
@@ -321,36 +320,36 @@ void RegisterEventFactories() {
 }
 
 void RegisterOrderFactories() {
-    FUN_0051f930(0x234, FUN_00581450);
-    FUN_0051f930(0x220, FUN_00582980);
-    FUN_0051f930(0x221, FUN_00582710);
-    FUN_0051f930(0x222, FUN_005828b0);
-    FUN_0051f930(0x223, FUN_005827e0);
-    FUN_0051f930(0x214, FUN_00537090);
-    FUN_0051f930(0x215, FUN_00537bf0);
-    FUN_0051f930(0x216, FUN_00539090);
-    FUN_0051f930(0x211, FUN_00538d90);
-    FUN_0051f930(0x212, FUN_00538e60);
-    FUN_0051f930(0x210, FUN_00538cc0);
-    FUN_0051f930(0x213, FUN_00538f50);
-    FUN_0051f930(0x260, FUN_00580f30);
-    FUN_0051f930(0x261, FUN_00581010);
-    FUN_0051f930(0x262, FUN_005810d0);
-    FUN_0051f930(0x263, FUN_00581190);
-    FUN_0051f930(0x268, FUN_00581250);
-    FUN_0051f930(0x270, FUN_00580a10);
-    FUN_0051f930(0x3, FUN_00580950);
-    FUN_0051f930(0x250, FUN_00580580);
-    FUN_0051f930(0x201, FUN_0053cec0);
-    FUN_0051f930(0x202, FUN_0053cf90);
-    FUN_0051f930(0x204, FUN_0053d070);
-    FUN_0051f930(0x205, FUN_0053de60);
-    FUN_0051f930(0x203, FUN_0053da00);
-    FUN_0051f930(0x240, FUN_004f5250);
-    FUN_0051f930(0x241, FUN_004f5490);
-    FUN_0051f930(0x242, FUN_004f45b0);
-    FUN_0051f930(0x200, FUN_0053dd20);
-    FUN_0051f930(0x280, FUN_00628e60);
+    RegisterOrderFactory(0x234, FUN_00581450);
+    RegisterOrderFactory(0x220, FUN_00582980);
+    RegisterOrderFactory(0x221, FUN_00582710);
+    RegisterOrderFactory(0x222, FUN_005828b0);
+    RegisterOrderFactory(0x223, FUN_005827e0);
+    RegisterOrderFactory(0x214, FUN_00537090);
+    RegisterOrderFactory(0x215, FUN_00537bf0);
+    RegisterOrderFactory(0x216, FUN_00539090);
+    RegisterOrderFactory(0x211, FUN_00538d90);
+    RegisterOrderFactory(0x212, FUN_00538e60);
+    RegisterOrderFactory(0x210, FUN_00538cc0);
+    RegisterOrderFactory(0x213, FUN_00538f50);
+    RegisterOrderFactory(0x260, FUN_00580f30);
+    RegisterOrderFactory(0x261, FUN_00581010);
+    RegisterOrderFactory(0x262, FUN_005810d0);
+    RegisterOrderFactory(0x263, FUN_00581190);
+    RegisterOrderFactory(0x268, FUN_00581250);
+    RegisterOrderFactory(0x270, FUN_00580a10);
+    RegisterOrderFactory(0x3, FUN_00580950);
+    RegisterOrderFactory(0x250, FUN_00580580);
+    RegisterOrderFactory(0x201, FUN_0053cec0);
+    RegisterOrderFactory(0x202, FUN_0053cf90);
+    RegisterOrderFactory(0x204, FUN_0053d070);
+    RegisterOrderFactory(0x205, FUN_0053de60);
+    RegisterOrderFactory(0x203, FUN_0053da00);
+    RegisterOrderFactory(0x240, FUN_004f5250);
+    RegisterOrderFactory(0x241, FUN_004f5490);
+    RegisterOrderFactory(0x242, FUN_004f45b0);
+    RegisterOrderFactory(0x200, FUN_0053dd20);
+    RegisterOrderFactory(0x280, FUN_00628e60);
 }
 
 void* CreateKeyedObject(int key) {
