@@ -146,7 +146,7 @@ int System::CreateViews(int controlKind, NotifyContext* ctx) {
     data->m_stats[0].SetProgress(g_gnprtb1E14);
     data->m_stats[1].SetLevel(g_gnprtb1E12);
     data->m_stats[2].SetLevel(g_gnprtb1E0C);
-    data->m_stats[3].SetLevel(g_gnprtb1E0E);
+    data->m_stats[3].SetLevel(g_systemBlockadeStatLevelFleetSide);
     data->m_stats[4].SetLevel(g_gnprtb1E15);
     data->m_stats[4].SetProgress(g_gnprtb1E16);
     data->m_stats[5].SetLevel(g_gnprtb1E17);

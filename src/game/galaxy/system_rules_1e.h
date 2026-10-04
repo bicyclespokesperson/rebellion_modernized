@@ -23,9 +23,9 @@ extern int g_gnprtb1E0A;  // 0x6bb490
 extern int g_gnprtb1E0B;  // 0x6bb430
 extern int g_gnprtb1E0C;  // 0x6bb470
 extern int g_gnprtb1E0D;  // 0x6bb48c
-extern int g_gnprtb1E0E;  // 0x6bb3d8
+extern int g_systemBlockadeStatLevelFleetSide;  // 0x6bb3d8
 extern int g_gnprtb1E0F;  // 0x6bb494
-extern int g_gnprtb1E10;  // 0x6bb3fc
+extern int g_systemBlockadeStatLevelOther;  // 0x6bb3fc
 extern int g_gnprtb1E11;  // 0x6bb4c8
 extern int g_gnprtb1E12;  // 0x6bb3c4
 extern int g_gnprtb1E13;  // 0x6bb3a0

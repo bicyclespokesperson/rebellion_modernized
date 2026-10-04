@@ -49,9 +49,9 @@ int BindGnprtb1E() {
     ok = BindGnprtbParameter(0x1e0b, &g_gnprtb1E0B) && ok;
     ok = BindGnprtbParameter(0x1e0c, &g_gnprtb1E0C) && ok;
     ok = BindGnprtbParameter(0x1e0d, &g_gnprtb1E0D) && ok;
-    ok = BindGnprtbParameter(0x1e0e, &g_gnprtb1E0E) && ok;
+    ok = BindGnprtbParameter(0x1e0e, &g_systemBlockadeStatLevelFleetSide) && ok;
     ok = BindGnprtbParameter(0x1e0f, &g_gnprtb1E0F) && ok;
-    ok = BindGnprtbParameter(0x1e10, &g_gnprtb1E10) && ok;
+    ok = BindGnprtbParameter(0x1e10, &g_systemBlockadeStatLevelOther) && ok;
     ok = BindGnprtbParameter(0x1e11, &g_gnprtb1E11) && ok;
     ok = BindGnprtbParameter(0x1e12, &g_gnprtb1E12) && ok;
     ok = BindGnprtbParameter(0x1e13, &g_gnprtb1E13) && ok;
