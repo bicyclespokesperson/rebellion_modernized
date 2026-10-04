@@ -13,6 +13,12 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
 - `ObjectKeyNode`/`ObjectKeyValueNode`/`IntPairNode` Read/Write are declared `void`; the originals return their
   last callee's EAX (stream helper result). Check whether any caller uses the value; if so make them `int`.
 
+- `character/role.h`: Role slots 131–134 probably take `ObjectKey*`/`NotifyContext*`, not `int` (Character code
+  uses reinterpret_cast as a workaround) — verify from the callee `ret n` and fix.
+- `Character::SetRecord` (0x50e1c0) returns int in the original but the base declares `void`.
+- `CharacterData` (ctor 0x540750, in character.h) and `RoleRecord` are provisional; the owner of 0x540750–0x5409d0
+  should adopt or replace them.
+
 ## Unassigned functions (code map gaps / mis-assignments)
 - 0x58adb0–0x58b2e0: object-name node (0x58adb0), system-distance tables and neighbour-list builder
   (0x58af30–0x58b060), serialization wrappers (0x58b1a0, 0x58b2c0) → galaxy / gameobj.
