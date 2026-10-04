@@ -9,6 +9,7 @@
 #include "platform/win32.h"
 #include "ui/cool_window.h"
 #include "ui/game_window_object.h"
+#include "gfx/directdraw_host.h"
 
 class SaveHeader;
 class AppCommand;
@@ -144,3 +145,9 @@ void* __thiscall FUN_004210c0(void* memory);
 void FUN_00401b50();       // thunk to FUN_00409280: create the battle-flow object
 void FUN_004173a0();       // sound module: the click sound handler (RebellionApplication::PlayClickSound jumps to it)
 extern const char* g_autosaveName;  // 0x6a81d8: pointer to the "Autosave" text
+
+// ---- Added by the screens slice (app_screens.cpp) --------------------------------------------------------------
+void FUN_00614290();   // DirectDraw host teardown wrapper (acts on the global host, no arguments)
+void __thiscall FUN_00422620(CoolWindow* window);  // strategic window: handler of the modal child it is showing
+int DestroyAppDialog();   // 0x416d90 (app_dialogs.h declares it too)
+extern DirectDrawHost g_directDrawHost;   // 0x6b1460 the DirectDrawHost passed to the tactical window

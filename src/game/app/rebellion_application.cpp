@@ -51,7 +51,6 @@
 #include "ui/game_window_object.h"
 #include "video/video_manager.h"
 
-extern DirectDrawHost g_directDrawHost;      // 0x6b1460
 extern int g_directDrawHostDestroyedGuard;   // 0x6b1458
 extern int g_firstActivationPending;         // 0x6b1468
 extern const int16_t g_resourceStringGroup;  // 0x65d420
