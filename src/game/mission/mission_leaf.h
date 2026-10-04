@@ -80,4 +80,4 @@ inline int CheckOrderAgainstKinds(BuildFn build, EventKindSet* kinds, int orderK
 
 // Slot 160 body shared by Subdue, Rescue, Recruit, Pickup, Jedi Training and Incite (0x576700): a mission that is
 // still in TaskStatus 0 starts (TaskStatus 2).
-int MissionStartIfIdle(Mission* mission, NotifyContext* ctx);
+int __thiscall MissionStartIfIdle(Mission* mission, NotifyContext* ctx);
