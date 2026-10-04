@@ -85,12 +85,12 @@ istream* __thiscall istream_operator_rs_ulong(istream* in, unsigned int* value);
 istream* __thiscall istream_operator_rs_short(istream* in, short* value);
 istream* __thiscall istream_operator_rs_ushort(istream* in, unsigned short* value);
 istream* __thiscall istream_operator_rs_charptr(istream* in, char* value);
-void __thiscall istream_seekg_pos(istream* in, long position);
+istream* __thiscall istream_seekg_pos(istream* in, long position);
 
 ostream* __thiscall ostream_operator_ls_char(ostream* out, char value);
 ostream* __thiscall ostream_operator_ls_cstr(ostream* out, const char* text);
 ostream* __thiscall ostream_write(ostream* out, const void* buffer, int count);
-void __thiscall ostream_seekp_pos(ostream* out, long position);
+ostream* __thiscall ostream_seekp_pos(ostream* out, long position);
 
 char* __thiscall strstreambuf_str(streambuf* buffer);
 void __thiscall strstreambuf_freeze(streambuf* buffer, int frozen);
