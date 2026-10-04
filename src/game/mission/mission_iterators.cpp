@@ -7,7 +7,7 @@ namespace {
 }  // namespace
 
 // Advances *key to the key after it in `set` (the first if unset); unset at the end (0x525b00).
-void NextMemberKey(ObjectKeyValueSet* set, ObjectKey* key) {
+void __stdcall NextMemberKey(ObjectKeyValueSet* set, ObjectKey* key) {
     const ObjectKey previous = *key;
     key->Reset();
     AvlNode* node = nullptr;

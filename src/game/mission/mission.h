@@ -317,7 +317,7 @@ public:
 //
 // Usage: `Iter it(mission); it.Begin(); while (it.Current()) { ...; it.Advance(); }` (Begin = 0x525930, Advance = 0x5258f0;
 // the constructors do NOT position the iterator).
-void NextMemberKey(ObjectKeyValueSet* set, ObjectKey* key);  // 0x525b00
+void __stdcall NextMemberKey(ObjectKeyValueSet* set, ObjectKey* key);  // 0x525b00
 
 class MissionMemberIterator {
 public:
