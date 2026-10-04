@@ -150,7 +150,7 @@ int ComputeShortfallUnits(int x);                   // 0x55a050
 // 1 if x >= 1E50, else 2 + (100 - x < 1E50) (a classification 1-3).
 int ClassifyPercent(int x);                         // 0x55a080
 int GetParameter1E03();                             // 0x55a0b0
-// 1E09 if x >= 1E0A, else 0.
+// 0 if x >= 1E0A, else 1E09.
 int ThresholdBonus(int x);                          // 0x55a0c0
 int GetParameter1E19();                             // 0x55a0e0
 // 1E1A, negated when x == 0.
