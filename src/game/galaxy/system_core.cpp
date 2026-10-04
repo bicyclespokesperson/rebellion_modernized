@@ -2,9 +2,9 @@
 #include "galaxy/system.h"
 #include "galaxy/system_rules_fun_decl.h"
 #include "gameobj/object_family.h"
+#include "orders/order_checks.h"
 
 // The shared permission check of the object tree (0x553410); fills *out and returns 0 only if it could not run.
-int FUN_00553410(GameObj* object, uint32_t sideA, uint32_t sideB, int requireCompleted, int requireSide, StatusCode* out);
 // The game-rules constants read by the checks below (GNPRTB values).
 int FUN_0055a0b0();
 int FUN_0055a0f0(int value);
@@ -132,7 +132,7 @@ int System::Virtual29(int sideA, int sideB, int kind, int rangeArg, StatusCode* 
         setStatus(out, kStatusCategory, kStatusDestroyed);
     int result = 1;
     if (statusIsOk(out)) {
-        result = FUN_00553410(this, static_cast<uint32_t>(sideA), static_cast<uint32_t>(sideB), 1, 1, out);
+        result = CheckControlAndState(this, static_cast<uint32_t>(sideA), static_cast<uint32_t>(sideB), 1, 1, out);
         if (result != 0 && !statusIsOk(out)) {
             if (fleetMove || characterOrder) setStatus(out, kStatusCategory, kStatusOk);
             if (troopMove && (m_flags & system_flag::kExplored) && ControlSide() == kControlSideNeutral &&

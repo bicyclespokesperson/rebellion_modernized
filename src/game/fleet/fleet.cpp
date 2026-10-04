@@ -8,10 +8,9 @@
 #include "gameobj/child_iterator.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/object_family.h"
+#include "orders/order_checks.h"
 
 // Shared helpers of the movement/validity checks (0x553350, 0x553410; cdecl).
-int FUN_00553350(ChildIterator* children, ObjectKeyValueSet* out, int onlyOwnSide, uint32_t side);
-int FUN_00553410(GameObj* object, uint32_t side1, uint32_t side2, int needCompleted, int checkSide2, StatusCode* out);
 
 extern EventKindSet g_fleetEventKinds;  // 0x6b2b10
 
@@ -141,7 +140,7 @@ int Fleet::CollectDependencies(void* context, int value, ObjectKeyValueSet* out)
     const uint32_t targetFamily = static_cast<uint32_t>(static_cast<const ActivityRequest*>(context)->m_target.m_value) >> 24;
     if (isFleetFamily(targetFamily)) {
         GameObjIterator children(this, kExistingFilter);
-        return FUN_00553350(&children, out, 1, ControlSide());
+        return AddChildKeys(&children, out, 1, ControlSide());
     }
     return GameObj::CollectDependencies(context, value, out);
 }
@@ -354,7 +353,7 @@ int Fleet::CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) {
 int Fleet::Virtual29(int a, int b, int c, int d, StatusCode* out) {
     setStatus(out, kStatusOk);
     const int needCompleted = (m_fleetFlags & kFlag02Or04) ? 0 : 1;
-    return FUN_00553410(this, a, b, needCompleted, 1, out);
+    return CheckControlAndState(this, a, b, needCompleted, 1, out);
 }
 
 int Fleet::Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) {

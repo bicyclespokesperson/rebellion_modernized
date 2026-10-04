@@ -1,11 +1,11 @@
 #include "gameobj/game_obj.h"
+#include "orders/order_checks.h"
 
 // Notification debug log. The original guards every entry with a "logging enabled?" call that the linker folded into
 // the shared `return 0` stub, so none of the formatting ever runs. The wrappers below keep that structure (and their
 // argument conventions); the formatter itself, LogChange (0x4f8c60), is not reconstructed.
 
 int icf_return_zero();
-String* FUN_00553c80(ObjectKey* key, String* out);
 void FUN_0051ccc0(ObjectKey* key, String* out);
 
 namespace {
@@ -69,8 +69,8 @@ int GameObj::LogKey(const char* tag, const char* property, ObjectKey* newKey, Ob
     if (icf_return_zero()) {
         String newText;
         String oldText;
-        FUN_00553c80(newKey, &newText);
-        FUN_00553c80(oldKey, &oldText);
+        AppendObjectDescription(newKey, &newText);
+        AppendObjectDescription(oldKey, &oldText);
         result = LogChange(tag, property, newText.m_text, oldText.m_text, reinterpret_cast<const char*>(unused), ctx);
     }
     return result;

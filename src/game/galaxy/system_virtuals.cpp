@@ -2,9 +2,9 @@
 #include "core/vptr_store.h"
 #include "galaxy/system.h"
 #include "gameobj/object_family.h"
+#include "orders/order_checks.h"
 
 // Adds the (side-matching) children an iterator yields to the key set (0x553350); 0 if an insertion failed.
-int FUN_00553350(ChildIterator* iterator, ObjectKeyValueSet* out, int bySide, uint32_t side);
 // Fleet::SetFlag01/02/04 (0x4fe230, 0x4fe2a0, 0x4fe310): the fleet code is reconstructed elsewhere.
 int __thiscall FUN_004fe230(GameObj* fleet, int on, NotifyContext* ctx);
 int __thiscall FUN_004fe2a0(GameObj* fleet, int on, NotifyContext* ctx);
@@ -24,7 +24,7 @@ constexpr FamilyRange kRoleRange(0x30, 0x40);
 constexpr uint32_t kDefaultFleetKey = 0x08000004;
 constexpr uint32_t kOnHiddenMission = role_flag::kOnHiddenMission;
 
-int addFrom(ChildIterator& iterator, ObjectKeyValueSet* out, int side) { return FUN_00553350(&iterator, out, 1, static_cast<uint32_t>(side)); }
+int addFrom(ChildIterator& iterator, ObjectKeyValueSet* out, int side) { return AddChildKeys(&iterator, out, 1, static_cast<uint32_t>(side)); }
 
 }  // namespace
 
