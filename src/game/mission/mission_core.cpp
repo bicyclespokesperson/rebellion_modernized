@@ -120,20 +120,7 @@ int Mission::ObjectiveKeyIs(ObjectKey* key) { return m_objectiveKey.m_value == k
 
 int Mission::HasCompletionStatus() { return m_completionStatus != 0; }
 
-// ---- member iterators -------------------------------------------------------------------------------------
-
-MissionMemberIterator::MissionMemberIterator(Mission* mission, const FamilyRange* range, int team, int decoys, int captured)
-    : m_mission(mission),
-      m_range(*range),
-      m_wantTeam(team),
-      m_wantDecoys(decoys),
-      m_wantCaptured(captured),
-      m_inTeam(0),
-      m_inDecoys(0),
-      m_inCaptured(0),
-      m_current(nullptr) {}
-
-MissionMemberIterator::~MissionMemberIterator() { REB_KEEP_VPTR_STORE(); }
+// ---- mission iterator -------------------------------------------------------------------------------------
 
 MissionIterator::MissionIterator(GameObjNotifier* parent)
     : ChildIterator(parent, &family::kMissions, 1) {}
