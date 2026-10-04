@@ -39,12 +39,16 @@
 class Crc32;
 class EventKindSet;
 
-// The (side, ..., kind) record that CheckActivityRequest inspects.
+// The (side, ..., kind) record that CheckActivityRequest inspects. Orders build one from themselves (the order's
+// side, its +0x38 argument, its target and its kind); commands keep a copy.
 struct ActivityRequest {
-    int m_side;     // +0x00
-    int m_unk04;    // +0x04
-    int m_unk08;    // +0x08
-    int m_kind;     // +0x0c
+    ActivityRequest();                             // 0x541e70
+    ActivityRequest(const ActivityRequest& other);  // 0x541eb0
+
+    int m_side;          // +0x00
+    int m_unk04;         // +0x04
+    ObjectKey m_target;  // +0x08
+    int m_kind;          // +0x0c
 };
 
 class GameObj : public GameObjNotifier, public ObjectBase {

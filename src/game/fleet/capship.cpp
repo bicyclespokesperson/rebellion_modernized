@@ -11,6 +11,7 @@
 #include "fleet/capship_data.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/object_family.h"
+#include "orders/order_checks.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
 extern "C" void __cdecl LAB_00502cf0();
@@ -19,7 +20,6 @@ extern int g_capShipEventKindsReady;      // 0x6b2b20
 extern EventKindSet g_capShipEventKinds;  // 0x6b2b28
 
 int FUN_0053fc90(int value, int low, int high, const char* message);
-int FUN_00553410(GameObj* object, int a, int b, int c, int d, StatusCode* out);
 int FUN_0053fcf0(uint32_t eventId, GameObj* object, int oldValue, int newValue, NotifyContext* ctx);
 
 namespace {
@@ -184,7 +184,7 @@ int CapShip::CheckRequestImpl2(const ActivityRequest* request, StatusCode* out) 
 
 int CapShip::Virtual29(int a, int b, int c, int d, StatusCode* out) {
     *out = StatusCode(kStatusCategory, kStatusNotSupported);
-    return FUN_00553410(this, a, b, 1, 1, out);
+    return CheckControlAndState(this, a, b, 1, 1, out);
 }
 
 int CapShip::Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) {

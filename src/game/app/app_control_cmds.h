@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-#include "app/message_base_decl.h"
+#include "orders/order_base.h"
 #include "core/game_string.h"
 #include "core/layout.h"
 #include "core/stream_io.h"
@@ -52,7 +52,7 @@ public:
     virtual int Write(ostream* out) override;
     virtual int GetKind() override;
     // Always reports success: {1, -1}.
-    virtual int Virtual08(StatusCode* status) override;
+    virtual int Execute(StatusCode* status) override;
 };
 
 // Kind 0x12: a player's identity. m_action 1 sets the local player's id, name and a flag in the multiplayer

@@ -121,7 +121,7 @@ int MpChatMsg::Write(ostream* out) {
 
 int MpChatMsg::GetKind() { return 0x11; }
 
-int MpChatMsg::Virtual08(StatusCode* status) {
+int MpChatMsg::Execute(StatusCode* status) {
     StatusCode success(1, 0xffffffff);
     new (status) StatusCode(success);
     return 1;

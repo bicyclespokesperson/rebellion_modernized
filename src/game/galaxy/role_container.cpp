@@ -8,6 +8,7 @@
 #include "core/vptr_store.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/object_family.h"
+#include "orders/order_checks.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
 extern "C" void __cdecl LAB_005777a0();
@@ -16,7 +17,6 @@ extern int g_roleContainerEventKindsReady;      // 0x6bbb38
 extern EventKindSet g_roleContainerEventKinds;  // 0x6bbb40
 
 // GameObj's side/state check shared by several classes' Virtual29 (always returns 1).
-int __cdecl FUN_00553410(GameObj* object, int a, int b, int c, int d, StatusCode* out);
 
 namespace {
 
@@ -97,7 +97,7 @@ int RoleContainer::Virtual29(int a, int b, int c, int d, StatusCode* out) {
     const bool rangeIsRoles =
         c == kOrderCheckKind && coversOnlyRoleFamilies(reinterpret_cast<const FamilyRange*>(static_cast<intptr_t>(d)));
     if (out->m_second == static_cast<uint32_t>(kStatusOk)) {
-        result = FUN_00553410(this, a, b, 1, 1, out);
+        result = CheckControlAndState(this, a, b, 1, 1, out);
         if (result && out->m_second != static_cast<uint32_t>(kStatusOk) && rangeIsRoles) {
             *out = StatusCode(kStatusCategory, kStatusOk);
         }

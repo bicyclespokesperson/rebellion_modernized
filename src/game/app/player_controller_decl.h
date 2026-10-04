@@ -7,6 +7,7 @@
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
+#include "orders/order_list.h"
 
 // Minimal declarations of the player-controller classes (0x472-0x4a0, owned by other agents) that GameSession
 // drives. Everything here is a stand-in meant to be dropped, or merged into the real headers, once the owners
@@ -51,16 +52,8 @@ public:
     int m_side;             // +0x18
 };
 
-// Messages that have been sent but not yet delivered (VT 0x661030: IdAvlTree with its own destructor).
-class PlayerMessageTree : public IdAvlTree {
-public:
-    PlayerMessageTree();  // 0x536eb0
-    virtual ~PlayerMessageTree();  // 0x536ef0
-    // Puts a message that could not be delivered yet back into the tree (deletes it if its id is already queued).
-    void Requeue(PlayerMessage* message);  // 0x536fe0
-
-    int m_unk0c;  // +0x0c, 1
-};
+// Messages that have been sent but not yet delivered (the order module's MessageTree, VT 0x661030).
+using PlayerMessageTree = MessageTree;
 
 // The per-player message/state bookkeeping embedded in a human player at +0x6c (ctor 0x4888f0).
 class PlayerDispatch {
