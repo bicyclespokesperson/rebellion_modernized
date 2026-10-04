@@ -1,60 +1,45 @@
 #pragma once
 #include <cstdint>
 
-#include "galaxy/system.h"
+#include "gameobj/game_obj.h"
 
-// The "rules" functions of System (0x50ac80-0x50e820, reconstructed by the sibling sub-agent), declared here by their
-// original addresses so that the event/virtual code of this slice can call them before the two branches are merged.
-// Ghidra default names resolve to the original addresses at link time. After the merge, replace each FUN_ call by the
-// sibling's System:: member and delete this header. All are __thiscall on a System; the unlabelled int arguments are
-// plain values (sides, counts), `ctx` is the NotifyContext.
+class System;
+class ChildIterator;
 
-int __thiscall FUN_0050ac80(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050ad60(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050ad80(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050b0b0(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050b230(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050b2c0(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050b310(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050b4d0(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050b500(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050b5a0(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050b610(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050b760(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050b800(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050b890(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050b8e0(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050ba90(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050bb00(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050bb70(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050bbb0(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050bc60(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050be00(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050bfe0(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050c0b0(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050c180(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050c1b0(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050c1e0(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050c210(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050c2b0(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050c350(System* self, NotifyContext* ctx);
-// (system, child object, ctx)
-int __thiscall FUN_0050c540(System* self, GameObj* child, NotifyContext* ctx);
-int __thiscall FUN_0050c560(System* self, GameObj* child, NotifyContext* ctx);
-int __thiscall FUN_0050c580(System* self, GameObj* child, NotifyContext* ctx);
-// (system, child object, added/removed flag, ctx)
-int __thiscall FUN_0050c6c0(System* self, GameObj* child, int flag, NotifyContext* ctx);
-// (system, old control kind, new control kind, ctx)
-int __thiscall FUN_0050c820(System* self, uint32_t oldKind, uint32_t newKind, NotifyContext* ctx);
-// (system, value, side, ctx)
-int __thiscall FUN_0050c9f0(System* self, int value, uint32_t side, NotifyContext* ctx);
-// (system, value, side): the three per-side adjustments at 0x50ce20/0x50ce50/0x50cee0 take (0, side) or (n, side)
-int __thiscall FUN_0050ce20(System* self, int value, uint32_t side);
-int __thiscall FUN_0050ce50(System* self, int value, uint32_t side);
-int __thiscall FUN_0050cee0(System* self, int value, uint32_t side);
-int __thiscall FUN_0050ce80(System* self, uint32_t side);
-int __thiscall FUN_0050ceb0(System* self, int value);
-int __thiscall FUN_0050cfd0(System* self, int value);
-int __thiscall FUN_0050d000(System* self, int value);
-int __thiscall FUN_0050d030(System* self, NotifyContext* ctx);
-int __thiscall FUN_0050d510(System* self, NotifyContext* ctx);
+// Functions and globals of other modules (facilities, fleets, troops, the 0x509xxx System helpers, the 0x559xxx rule
+// formulas) that the System rules call. They are declared by their original addresses until their owners name them;
+// drop this header when they do.
+
+// ---- 0x509xxx: System helpers (core) ----
+int __thiscall FUN_00508fb0(System* self, int side, int filter);
+int __thiscall FUN_00509020(System* self, int side, int filter);
+int __thiscall FUN_00509090(System* self, int side, int filter);
+int __thiscall FUN_00509140(System* self, int side, int filter);
+int __thiscall FUN_005091f0(System* self);
+GameObjNotifier* __thiscall FUN_00509670(System* self, int kind);
+int __thiscall FUN_00509710(System* self, int side);
+int __thiscall FUN_00509890(System* self, uint32_t* side);
+int __thiscall FUN_00509980(System* self, uint32_t* flag);
+int __thiscall FUN_00509ad0(System* self);
+int __thiscall FUN_00509b10(System* self);
+int __thiscall FUN_00509b20(System* self);
+int __thiscall FUN_00509b30(System* self);
+int __thiscall FUN_00509c00(System* self, int value, int side, NotifyContext* ctx);
+int __thiscall FUN_00507270(System* self, int side);
+int __thiscall FUN_00512d00(System* self, int side, int flag, NotifyContext* ctx);
+int __thiscall FUN_0050eea0(System* self, GameObjNotifier* target, NotifyContext* ctx);
+
+// ---- units of other modules ----
+int __thiscall FUN_0040f340(GameObjNotifier* self);
+int __thiscall FUN_004fe2a0(GameObjNotifier* fleet, int value, NotifyContext* ctx);
+int __thiscall FUN_004fe310(GameObjNotifier* fleet, int value, NotifyContext* ctx);
+int __thiscall FUN_004fe380(GameObjNotifier* fleet, int value, NotifyContext* ctx);
+int __thiscall FUN_004fe3f0(GameObjNotifier* fleet, int value, NotifyContext* ctx);
+int __thiscall FUN_00504470(GameObjNotifier* troops, int percent, NotifyContext* ctx);
+int __thiscall FUN_0055a7a0(GameObjNotifier* facility, int value, NotifyContext* ctx);
+int __thiscall FUN_00557860(GameObjNotifier* unit, int on, NotifyContext* ctx);
+int __thiscall FUN_00529dd0(GameObjNotifier* facility, NotifyContext* ctx);
+int __thiscall FUN_00528040(GameObjNotifier* facility, int a);
+int __thiscall FUN_0053a7f0(GameObjNotifier* facility, int on, NotifyContext* ctx);
+int FUN_0053fa60(int kind, int flag, System* owner, TrackedStat* stat, NotifyContext* ctx);
+int __thiscall FUN_005037f0(System* self, NotifyContext* ctx);  // System::ApplyEnergyAllocated (folded)

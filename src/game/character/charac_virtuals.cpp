@@ -3,8 +3,6 @@
 #include "core/utility_classes.h"
 #include "data/gnprtb.h"
 
-// Shared helper at 0x5774f0 (stdcall, two arguments): the character manager's part of CreateViews.
-int __stdcall FUN_005774f0(int controlKind, NotifyContext* ctx);
 // Shared stubs that return 1.
 int __stdcall FUN_00524fb0(int a, NotifyContext* ctx);
 int __stdcall FUN_0051ebb0(int ctx);
@@ -154,7 +152,7 @@ int Character::Virtual190(int a, int b, NotifyContext* ctx) {
 // ---- creation and persistence --------------------------------------------------------------------------------
 
 int Character::CreateViewsImpl(int controlKind, NotifyContext* ctx) {
-    int result = FUN_005774f0(controlKind, ctx);
+    int result = GameObj::CreateViews(controlKind, ctx);
     if (result) {
         CharacterData* data = static_cast<CharacterData*>(m_data);
         data->m_healingStat.SetLevel((m_flagsAc & kFastHealFlag) ? g_gnprtbA01 : g_gnprtbA02);

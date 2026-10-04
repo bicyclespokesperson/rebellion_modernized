@@ -248,11 +248,11 @@ public:
     int ApplyBlockadeAndBattlePendingManagementRequired(NotifyContext* ctx);  // 0x510760
 
     // ---- persistence/validation: bodies the leaf classes may call qualified (slots 5-9 stay pure) ----
-    virtual int Read(istream* in) override = 0;               // 5
-    virtual int Write(ostream* out) override = 0;             // 6
-    virtual int Checksum(Crc32* crc) override = 0;            // 7
+    virtual int Read(istream* in) override = 0;               // 5, body 0x50e410
+    virtual int Write(ostream* out) override = 0;             // 6, body 0x50e4e0
+    virtual int Checksum(Crc32* crc) override = 0;            // 7, body 0x50e730
     virtual int Validate() override = 0;                      // 8
-    virtual int ApplyAll(NotifyContext* ctx) override = 0;    // 9
+    virtual int ApplyAll(NotifyContext* ctx) override = 0;    // 9, body 0x50e5b0
 
     System* ViewAsSystem(int view) { return static_cast<System*>(ViewAs(view)); }
 
@@ -302,6 +302,71 @@ public:
     // ---- end of core accessors ----
 
     // ==== SECTION rules (0x50ac80-0x50e820 and 0x558bb0-0x55a100): see system_rules*.cpp ====
+    // Recompute*: derive a property (or the state of the units in the system) from the current situation and run the
+    // validated setter / the unit's setter; they return the setters' result (1 = ok). Names are provisional.
+    int RecomputeObservation(NotifyContext* ctx);                // 0x50ac80, who observes the system
+    int RecomputeRawMaterial(NotifyContext* ctx);                // 0x50ad60, raw material capped to energy
+    int RecomputeEnergyAllocated(NotifyContext* ctx);            // 0x50ad80, scraps facilities beyond the energy
+    int RecomputeRawMaterialAllocated(NotifyContext* ctx);       // 0x50b0b0
+    int RecomputeSmugglingPercent(NotifyContext* ctx);           // 0x50b230
+    int RecomputeProductionModifier(NotifyContext* ctx);         // 0x50b2c0
+    int RecomputeTroopRegWithdrawPercent(NotifyContext* ctx);    // 0x50b310
+    int RecomputeControlKindUprising(NotifyContext* ctx);        // 0x50b4d0
+    int RecomputeTroopRegSurplus(NotifyContext* ctx);            // 0x50b500
+    int RecomputeTroopRegRequired(NotifyContext* ctx);           // 0x50b5a0
+    int RecomputeControlData(NotifyContext* ctx);                // 0x50b610
+    int RecomputePopulated(NotifyContext* ctx);                  // 0x50b760
+    int RecomputeUprising(NotifyContext* ctx);                   // 0x50b800
+    int RecomputeNeverBeenControlled(NotifyContext* ctx);        // 0x50b890
+    int RecomputeBlockadeAndBattlePending(NotifyContext* ctx);   // 0x50b8e0
+    int RecomputeGarrisoned(NotifyContext* ctx);                 // 0x50ba90
+    int RecomputeSuppressing(NotifyContext* ctx);                // 0x50bb00
+    int RecomputeCombatUnitFastRepair(NotifyContext* ctx);       // 0x50bb70
+    int RecomputeFacilityBattleFlags(NotifyContext* ctx);        // 0x50bbb0
+    int RecomputeFleetExploredFlags(NotifyContext* ctx);         // 0x50bc60
+    int RecomputeFleetEmptyFlags(NotifyContext* ctx);            // 0x50be00
+    int RecomputeFleetBattleFlags(NotifyContext* ctx);           // 0x50bfe0
+    int RecomputeFleetBlockadeFlags(NotifyContext* ctx);         // 0x50c0b0
+    int RefreshSiteKind0(NotifyContext* ctx);                    // 0x50c180
+    int RefreshSiteKind2(NotifyContext* ctx);                    // 0x50c1b0
+    int RefreshSiteKind1(NotifyContext* ctx);                    // 0x50c1e0
+    int RecomputeTroopWithdrawPercents(NotifyContext* ctx);      // 0x50c210
+    int RecomputeProductionModifiers(NotifyContext* ctx);        // 0x50c2b0
+    int RecomputeFastRepair(NotifyContext* ctx);                 // 0x50c350
+    int PushTroopWithdrawPercent(GameObjNotifier* troops, NotifyContext* ctx);   // 0x50c540
+    int PushProductionModifier(GameObjNotifier* facility, NotifyContext* ctx);   // 0x50c560
+    int PushFastRepair(GameObjNotifier* unit, NotifyContext* ctx);               // 0x50c580
+    int NoteWithdrawingUnit(GameObjNotifier* unit, int mustBeIdle, NotifyContext* ctx);  // 0x50c6c0
+    int CheckHyperspaceBlocked(int sideA, int sideB, NotifyContext* ctx);        // 0x50c820
+    int EndUprisingIfQuelled(NotifyContext* ctx);                // 0x50c910
+    int AdjustLoyalty(int delta, int side, NotifyContext* ctx);  // 0x50c9f0, shifts the loyalty toward `side`
+    int EndUprising(NotifyContext* ctx);                         // 0x50ca80
+    int AdjustLoyaltyForUprising(NotifyContext* ctx);            // 0x50caa0
+    void AdjustLoyaltyForAssault(NotifyContext* ctx);            // 0x50cad0
+    void AdjustLoyaltyForBlockade(NotifyContext* ctx);           // 0x50cb20
+    int PulseUprisingIncident(NotifyContext* ctx);               // 0x50cb80
+    int RollInformantIncident(NotifyContext* ctx);               // 0x50cbe0
+    int RollResourceIncident(NotifyContext* ctx);                // 0x50cc70
+    int PulseDisasterIncident(NotifyContext* ctx);               // 0x50cdc0
+    // Stores into the SystemData block (m_data).
+    void SetData48(int value, int side);  // 0x50ce20, m_word48[side - 1] for sides 1-3
+    void SetData54(int value, int side);  // 0x50ce50
+    void SetData60(int side);             // 0x50ce80, sides 1 and 2 only
+    int SetData64(int side);              // 0x50ceb0, 0-3
+    void SetData68(int value, int side);  // 0x50cee0
+    int SetData74(int value);             // 0x50cf10
+    int SetData78(int value);             // 0x50cf30
+    int SetData7c(int value);             // 0x50cf50
+    int SetDataFlag1(int on);             // 0x50cf70, bits of the data block's m_flags80
+    int SetDataFlag2(int on);             // 0x50cfa0
+    int SetDataFlag4(int on);             // 0x50cfd0
+    int SetDataFlag8(int on);             // 0x50d000
+    void ResolveUprisingTurn(NotifyContext* ctx);                // 0x50d030
+    int ApplyUprisingEvent(int event, int side, NotifyContext* ctx);  // 0x50d150
+    int RollAndSyncEvent(NotifyContext* ctx);                    // 0x50d510
+    int SyncViewForEvent(int mode, int view, NotifyContext* ctx);  // 0x50d5a0
+    // The bodies of the persistence and view-creation slots (the leaf classes' slot functions call them qualified).
+    virtual int CreateViews(int controlKind, NotifyContext* ctx) override = 0;  // 37, body 0x50e200
 
     // ==== SECTION keysetters (0x50e820-0x510800): see system_keysetters.cpp ====
     // The four static event-kind sets (by the type bits the callers pass: 4/5, 8/9, 0x10/0x11, 0x40/0x41) are built on

@@ -1,6 +1,6 @@
 #include "core/vptr_store.h"
 #include "galaxy/system.h"
-#include "galaxy/system_rules_decl.h"
+#include "galaxy/system_rules_fun_decl.h"
 #include "gameobj/object_family.h"
 
 // The shared permission check of the object tree (0x553410); fills *out and returns 0 only if it could not run.

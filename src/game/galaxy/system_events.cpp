@@ -1,6 +1,6 @@
 #include "character/role.h"
 #include "galaxy/system.h"
-#include "galaxy/system_rules_decl.h"
+#include "galaxy/system_rules_fun_decl.h"
 #include "gameobj/game_obj_data.h"
 
 // Event hubs of the strategic notification layer (all cdecl).
