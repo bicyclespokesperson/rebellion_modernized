@@ -40,7 +40,7 @@ public:
 
     // The value the repair level is set to (GNPRTB, depending on FastRepair).
     virtual int GetRepairLevel() = 0;                            // 118
-    virtual int Virtual119() { return 0; }                       // 119, shared "return 0" stub
+    virtual int GetDefenseLeft() { return 0; }                  // 119, shared "return 0" stub
     // Record fields +0x60..+0x70 (0 without a record).
     virtual uint32_t GetRecordField60();                         // 120, 0x557750 (jumps to the shared body 0x520b80)
     virtual uint32_t GetRecordField64();                         // 121, 0x557760 (jumps to 0x520b90)
@@ -51,16 +51,16 @@ public:
     virtual uint32_t GetGridColumnTotal(int column);             // 126, 0x5577d0
     virtual uint32_t GetGridValue(int row, int column);          // 127, 0x5577a0
     virtual uint32_t GetGridFieldA4(int column);                 // 128, 0x5577c0
-    virtual int Virtual129() { return 0; }                       // 129..134: shared "return 0" stubs (the leaf classes override some)
-    virtual int Virtual130() { return 0; }                       // 130
-    virtual int Virtual131() { return 0; }                       // 131
-    virtual int Virtual132() { return 0; }                       // 132
-    virtual int Virtual133() { return 0; }                       // 133
-    virtual int Virtual134() { return 0; }                       // 134
-    virtual int Virtual135(int a) { return 0; }                  // 135, shared "return 0" stub (1 argument)
-    virtual int Virtual136(int a, int b) { return 0; }           // 136, shared "return 0" stub (2 arguments)
-    virtual int Virtual137(int a) { return 0; }                  // 137, shared "return 0" stub (1 argument)
-    virtual int Virtual138() = 0;                                // 138
+    virtual int GetDamageField60() { return 0; }                 // 129..137: the "lost share" counterparts of 120-128; shared "return 0" stubs
+    virtual int GetDamageField64() { return 0; }                 // 130
+    virtual int GetDamageField68() { return 0; }                 // 131
+    virtual int GetDamageField6c() { return 0; }                 // 132
+    virtual int GetDamageField70() { return 0; }                 // 133
+    virtual int GetDamageTotal() { return 0; }                   // 134
+    virtual int GetDamageColumnTotal(int column) { return 0; }   // 135
+    virtual int GetDamageGridValue(int row, int column) { return 0; }  // 136
+    virtual int GetDamageFieldA4(int column) { return 0; }       // 137
+    virtual int RepairStep(NotifyContext* ctx) = 0;              // 138
     virtual int OnUnderRepairChanged(int newValue, NotifyContext* ctx);   // 139, 0x557c00: sets the repair stat's flag
     virtual int OnFastRepairChanged(int newValue, NotifyContext* ctx);    // 140, 0x557c30: sets the repair stat's level
     virtual int OnUnderRepairNotified(int value, NotifyContext* ctx);     // 141, 0x557c60
