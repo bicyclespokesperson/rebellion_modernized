@@ -158,15 +158,15 @@ void* FUN_00581250();
 void* FUN_00580a10();
 void* FUN_00580950();
 void* FUN_00580580();
-void* FUN_0053cec0();
-void* FUN_0053cf90();
-void* FUN_0053d070();
-void* FUN_0053de60();
-void* FUN_0053da00();
+void* CreateMoveOrder();
+void* CreateConfirmedMoveOrder();
+void* CreateObjectMoveOrder();
+void* CreateReadyForDeleteOrder();
+void* CreateRenameOrder();
 void* FUN_004f5250();
 void* FUN_004f5490();
 void* FUN_004f45b0();
-void* FUN_0053dd20();
+void* CreateScrapOrder();
 void* FUN_00628e60();
 
 // Registers `kind`'s event factory in the table at 0x6b92f8 (0x54f140).
@@ -340,15 +340,15 @@ void RegisterOrderFactories() {
     RegisterOrderFactory(0x270, FUN_00580a10);
     RegisterOrderFactory(0x3, FUN_00580950);
     RegisterOrderFactory(0x250, FUN_00580580);
-    RegisterOrderFactory(0x201, FUN_0053cec0);
-    RegisterOrderFactory(0x202, FUN_0053cf90);
-    RegisterOrderFactory(0x204, FUN_0053d070);
-    RegisterOrderFactory(0x205, FUN_0053de60);
-    RegisterOrderFactory(0x203, FUN_0053da00);
+    RegisterOrderFactory(0x201, CreateMoveOrder);
+    RegisterOrderFactory(0x202, CreateConfirmedMoveOrder);
+    RegisterOrderFactory(0x204, CreateObjectMoveOrder);
+    RegisterOrderFactory(0x205, CreateReadyForDeleteOrder);
+    RegisterOrderFactory(0x203, CreateRenameOrder);
     RegisterOrderFactory(0x240, FUN_004f5250);
     RegisterOrderFactory(0x241, FUN_004f5490);
     RegisterOrderFactory(0x242, FUN_004f45b0);
-    RegisterOrderFactory(0x200, FUN_0053dd20);
+    RegisterOrderFactory(0x200, CreateScrapOrder);
     RegisterOrderFactory(0x280, FUN_00628e60);
 }
 
