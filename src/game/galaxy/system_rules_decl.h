@@ -58,3 +58,12 @@ int __thiscall FUN_0050cfd0(System* self, int value);
 int __thiscall FUN_0050d000(System* self, int value);
 int __thiscall FUN_0050d030(System* self, NotifyContext* ctx);
 int __thiscall FUN_0050d510(System* self, NotifyContext* ctx);
+
+// Core accessors used by the OnXChanged events (0x507270-0x509c00).
+// (system, side): the loyalty of `side` (100 - loyalty for any side but 1)
+int __thiscall FUN_00507270(System* self, int side);
+// (system, out side): the side of the first fleet when the system is blockaded; returns whether there is one
+int __thiscall FUN_00509890(System* self, uint32_t* outSide);
+int __thiscall FUN_00509980(System* self, uint32_t* outFlag);
+// (system, loyalty, side, ctx): tail-calls SetLoyalty (returns its result) with 100 - loyalty for any side but 1
+int __thiscall FUN_00509c00(System* self, int loyalty, int side, NotifyContext* ctx);
