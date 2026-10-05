@@ -62,3 +62,27 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   hook setter 0x472b20 are called as `FUN_` functions from `GalaxyWindow::CreateDroidAnimations`).
 - `MenuWindowBase::AddTextEntry` (0x4ab1f0) and `SetEntryColors` (0x4ab1b0) are called as `FUN_` functions from
   `GidMenuWindow`; the owner of the menu base classes should name them.
+
+## AI foundation (src/game/ai, part 1)
+- Part 2 (planners, postures, the 14 task types, agents, evaluators) is not reconstructed. Its base classes are complete
+  here, but three of them are still stand-ins that part 2 should replace: `ai_planner_decl.h` (`AiMissionPlanner`, VT 0x65c3b0),
+  `ai_posture_decl.h` (`AiPosture`, VT 0x65c0b0, with its non-virtual methods 0x4adaf0/0x4adb70/0x4add40 and the six
+  constructors) and `AiNotice` in `ai_task_base.h` (a `PlayerNotice` of the player module). The constructors of the planners,
+  postures, agents and the 14 task types are called as `FUN_` functions from `AiPlannerSet`, `AiSystemRecord::CreatePosture`,
+  `AiAgentSet::CreateAgent` and `AiTaskManager::MakeTask`.
+- Classes that sit outside the module's ranges because the module needs them: `AiTaskNode` and `AiTaskObject`
+  (0x4ec920-0x4ecbc0, generic id nodes next to `ObjectKeyNode`), `AiMissionHistoryEntry` (0x4c8000, declared only; its
+  constructor, Read, Write and Fill are called at the original addresses) and `AiTaskManager::Save` (0x49de40).
+  `AiSideController::GetFleetRecord` (0x476110) lies between the task and system records.
+- Original quirks that are reproduced and marked `BUG(original)`: `AiNoticeQueue::Load` never adds the groups it reads (a loaded
+  queue is empty and leaks); `AiSystemRecord::Step` falls through from state 6 into the restart case;
+  `AiSystemRecord::CheckShortfall` drops the order `ReleaseSurplus` builds; `AiTaskRecord::Step` and `AiSystemRecord::Step`
+  reuse the incoming `done` slot as a flag that starts non-zero.
+- `PlayerController` virtual slots 59-61, 74-79 and 92 got their real signatures in `app/player_controller_decl.h` (the AI's
+  overrides need them). `AiPlayer::Virtual25/83` still pass pointers through `int` parameters, and `Virtual87` destroys the
+  by-value `String` argument through a pointer to its first word; both rely on 32-bit stack layout.
+- Not reached by any scenario (verified by reading only): `AiTaskRecord::Release/ReleaseShips/IsFinished/Write/
+  ReinforceBySize`, `AiSystemRecord::Reset/RemovePlanner/Write/PlannerClassOf/AgentClassOf`, `AiTaskEvaluator::ChooseSector/
+  ClearRecordFlags/Write`, `AiMissionHistory::*`, `AiNoticeQueue::Save`, `AiAgentBase::Write`. Every `Read` function is a
+  difftest SKIP (the emulated heap is exhausted by the stream reads); `AiSideController::Load` was compared through the
+  loaded-game scenarios instead.
