@@ -1,0 +1,41 @@
+# The system windows (forces, missions, fleets) open at the same time while the game runs at Fast: they receive the object
+# notifications (children added/moved, objects updated). Loaded game RebelsFastStart. The Ando battle pops up ~45 s after
+# Fast is set, so the scenario ends before. Runtime ~100 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot swe_00_galaxy
+49 key F5
+52 move 130 205
+53 move 135 210
+54 click 135 210
+55.0 click 135 210
+55.15 click 135 210
+58 key F5
+61 move 130 238
+62 move 135 242
+63 click 135 242
+64.0 click 135 242
+64.15 click 135 242
+67 key F3
+70 move 100 197
+71 move 105 200
+72 click 105 200
+73.0 click 105 200
+73.15 click 105 200
+76 shot swe_01_windows
+77 move 130 24
+78 move 135 24
+79 rclick 135 24
+80 move 170 112
+81 move 170 116
+82 click 170 116
+100 shot swe_02_running
+104 shot swe_03_running_later
+106 end
