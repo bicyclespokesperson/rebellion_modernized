@@ -71,7 +71,7 @@ int IsStoryKeyOf6(uint32_t key) {
            key == 0x35000281;
 }
 
-int IsStoryKeyOf2(uint32_t key) { return key == 0x32000242 || key == 0x35000281; }
+int __stdcall IsStoryKeyOf2(uint32_t key) { return key == 0x32000242 || key == 0x35000281; }
 
 // ---- AiCharacterRecord ----------------------------------------------------------------------------------------------
 
@@ -171,7 +171,7 @@ void AiCharacterRecord::Save(ostream* out) {
 void AiCharacterRecord::MarkChanged() {
     m_flags.m_value |= ai_character_flag::kDirty;
     const uint32_t family = m_location.Family();
-    if (family != 0 && family <= 0xfe) m_owner->NotifyObjectKey(&m_location);
+    if (family != 0 && family <= 0xfe) m_owner->NoteObject(&m_location);
     m_owner->MarkDirty();
 }
 
@@ -259,7 +259,7 @@ void AiCharacterRecord::FindMissionCapabilities() {
     if (node) {
         team.Add(node);
         order->SetTeam(&team);
-        if (order->CollectCandidatesA(&candidates)) {
+        if (order->CollectCandidatesA(reinterpret_cast<ObjectKeyValueSet*>(&candidates))) {
             for (ObjectRefNode* entry = static_cast<ObjectRefNode*>(candidates.First()); entry;
                  entry = static_cast<ObjectRefNode*>(entry->m_successor)) {
                 ObjectKey missionKey;
@@ -412,7 +412,7 @@ AiRankedList* AiCharacterRecordSet::RankByDistance(const ObjectKey* target, uint
     ObjectKey targetSystem;
     FindContainingSystem(&targetSystem, target);
     if (ai::KeyInFamilies(targetSystem, 0x90, 0x98)) {
-        AiSystemEntry* system = m_owner->m_systems.FindEntry(targetSystem.m_value);
+        AiSystemEval* system = m_owner->m_systems.FindEval(targetSystem);
         if (system) {
             const int32_t targetPosition = system->m_position;
             list = NewOrNull<AiRankedList>(descending);
@@ -425,9 +425,9 @@ AiRankedList* AiCharacterRecordSet::RankByDistance(const ObjectKey* target, uint
                     ObjectKey recordSystem;
                     FindContainingSystem(&recordSystem, record->GetRecordKey(&recordKey));
                     if (!ai::KeyInFamilies(recordSystem, 0x90, 0x98)) continue;
-                    AiSystemEntry* other = m_owner->m_systems.FindEntry(recordSystem.m_value);
+                    AiSystemEval* other = m_owner->m_systems.FindEval(recordSystem);
                     if (!other) continue;
-                    const int distance = AiSideController::DistanceSquared(
+                    const int distance = m_owner->DistanceSquared(
                         static_cast<int16_t>(targetPosition), static_cast<int16_t>(targetPosition >> 16),
                         static_cast<int16_t>(other->m_position), static_cast<int16_t>(other->m_position >> 16));
                     list->AddItem(NewOrNull<AiRankedItem>(*record->GetRecordKey(&recordKey), distance));
