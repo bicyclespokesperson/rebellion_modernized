@@ -17,11 +17,7 @@ the relevant parts of docs/code_map.md for your module.
 - Names of classes outside your range: the agent owning that address range names them. Ask the owner directly
   (SendMessage) with the exact addresses and your proposed names; meanwhile declare such classes minimally in a
   clearly named `*_decl.h` header that can be dropped at merge.
-- If you split your module across sub-agents: create them with the Agent tool and `isolation: "worktree"` (an agent
-  cannot run git in a worktree you made with `git worktree add`), at most 2–3 at a time; use Sonnet unless a slice
-  is unusually subtle; give each sub-agent
-  the IDs of its siblings and of the owners of neighbouring ranges, and merge their branches yourself before
-  reporting.
+- Do the work yourself: do NOT spawn sub-agents (the account's usage budget allows only 2–3 agents in total).
 - Behaviour must match the original exactly, including quirks; mark original bugs `// BUG(original):`.
 - Verification: every reconstructed function must PASS difftest on at least one capture, or be listed in your
   report as SKIP (not emulatable) / not captured (not reached by any scenario) with the reason. Use the
