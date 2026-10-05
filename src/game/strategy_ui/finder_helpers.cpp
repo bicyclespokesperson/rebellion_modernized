@@ -1,6 +1,9 @@
 #include "strategy_ui/finder_helpers.h"
 
+#include "core/game_string.h"
+#include "gameobj/game_obj.h"
 #include "ui/cool_button.h"
+#include "ui/cool_label.h"
 #include "ui/cool_drag_list.h"
 #include "ui/cool_string_field.h"
 #include "ui/cool_tab_control.h"
@@ -30,12 +33,12 @@ void SelectNeighbourTab(CoolTabControl* tabs, WPARAM key) {
 }  // namespace
 
 void FinderOnKeyDown(CustomDialogBox* window, CoolTabControl* tabs, CoolStringField* nameField, CoolDragList* list,
-                     WPARAM key, LPARAM lParam) {
+                     WPARAM key, LPARAM lParam, bool forwardOtherKeys) {
     switch (key) {
     case VK_TAB:
         break;
     default:
-        window->m_parent->WindowProc(WM_KEYDOWN, key, lParam);
+        if (forwardOtherKeys) window->m_parent->WindowProc(WM_KEYDOWN, key, lParam);
         break;
     case VK_ESCAPE:
         window->PostCloseRequest();
@@ -53,5 +56,75 @@ void FinderOnKeyDown(CustomDialogBox* window, CoolTabControl* tabs, CoolStringFi
             PostMessageA(list->m_hwnd, WM_KEYDOWN, key, lParam);
             return;
         }
+    }
+}
+
+// The record key of an object (its type), 0 if it has none (0x402d80).
+ObjectKey* __thiscall FUN_00402d80(GameObjNotifier* object, ObjectKey* out);
+
+extern const char g_noForcesText[];  // 0x6a8788 "-"
+
+void CountIntoCell(ForceCell* cells, int cellCount, GameObj* force) {
+    ObjectKey recordKey;
+    FUN_00402d80(force, &recordKey);
+    for (int i = 0; i < cellCount; ++i) {
+        if (recordKey.m_value != cells[i].m_key.m_value) continue;
+        ++cells[i].m_count;
+        cells[i].m_flags |= kCellFlagPresent;
+        if (!(force->m_stateFlags & 1)) cells[i].m_flags |= kCellFlagUnusable;
+        return;
+    }
+}
+
+namespace {
+
+constexpr int kNoBrush = 5;
+constexpr int kEmpire = 2;
+
+void ShowCount(CoolLabel* label, String* text, uint16_t count, int x) {
+    text->Clear();
+    text->AppendUnsigned(static_cast<int16_t>(count));
+    label->MoveTo(x, 2);
+    label->SetText(text->m_text);
+}
+
+}  // namespace
+
+void DrawForceCells(const ForceCell* cells, int cellCount, CoolLabel* label, String* text, int firstX, int side,
+                    const HBRUSH* brushes, HDC dc) {
+    label->SetFont(10);
+    label->m_drawFlags = 1;
+    label->m_layoutFlags = kLabelFixedWidth;
+    label->m_width = 0x1c;
+    int x = firstX;
+    int brush = kNoBrush;
+    COLORREF color = ObjectKey().m_value;
+    for (int i = 0; i < cellCount; ++i) {
+        const ForceCell& cell = cells[i];
+        ShowCount(label, text, cell.m_count, x);
+        if (cell.m_count == 0) {
+            label->SetText(g_noForcesText);
+            color = 0xffffff;
+            brush = kNoBrush;
+        } else if (!(cell.m_flags & kCellFlagPresent)) {
+            if (cell.m_flags & kCellFlagUnusable) {
+                color = 0xffffff;
+                brush = 2;
+            }
+        } else if (!(cell.m_flags & kCellFlagUnusable)) {
+            color = side == kEmpire ? 0 : 0xffffff;
+            brush = side == kEmpire ? 1 : 0;
+        } else {
+            color = side == kEmpire ? 0 : 0xffffff;
+            brush = side == kEmpire ? 4 : 3;
+        }
+        if (brush < kNoBrush) {
+            HGDIOBJ saved = SelectObject(dc, brushes[brush]);
+            PatBlt(dc, x, 2, 0x15, 0x10, PATCOPY);
+            SelectObject(dc, saved);
+        }
+        label->SetColor(color, nullptr);
+        label->Draw(dc);
+        x += 0x1c;
     }
 }
