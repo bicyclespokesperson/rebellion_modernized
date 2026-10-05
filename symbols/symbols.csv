@@ -1484,6 +1484,8 @@ address,kind,name,signature,size
 0x004e4e20,func,AiNoticeGroup::Load,,
 0x004e4eb0,func,AiNoticeGroup::Save,,
 0x004e4f20,func,AiNoticeGroup::Add,,
+0x004e4f70,func,AiNoticeGroup::IdNodeDestructorThunk,,
+0x004e4f80,func,AiNoticeGroup::IsLess,,
 0x004e4f90,func,AiTaskBase::scalar_deleting_destructor,,
 0x004e4fb0,func,AiTaskBase::AiTaskBase,,
 0x004e5020,func,AiTaskBase::~AiTaskBase,,

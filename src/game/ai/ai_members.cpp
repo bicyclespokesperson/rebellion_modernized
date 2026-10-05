@@ -1,5 +1,7 @@
 #include "ai/ai_members.h"
 
+#include <new>
+
 #include "ai/ai_agent_bases.h"
 #include "ai/ai_character_records.h"
 #include "ai/ai_common.h"
@@ -1059,4 +1061,8 @@ void AiSystemEvalSet::ReadOne(istream* in) {
         eval->m_classes = m_classes;
         Add(eval);
     }
+}
+
+ObjectKey* __thiscall GetObjectNameNodeKey(ObjectNameNode* node, ObjectKey* out) {
+    return new (out) ObjectKey(*reinterpret_cast<const ObjectKey*>(&node->m_key));
 }

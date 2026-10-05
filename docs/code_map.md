@@ -134,7 +134,7 @@ The link order (= address order) is roughly:
 
 The computer player is the second-largest subsystem, and it is scattered.
 
-- **Side controllers:** `0x4857a0`, the computer player, embeds the AI side controller `0x4178f0`. Its members are at 0x42dc10–0x4359f0.
+- **Computer player:** `AiPlayer` (0x4856f0–0x486120, `src/game/ai/ai_player.h`) embeds the AI side controller `AiSideController` (0x4178f0–0x41be00). Its member sets are at 0x42dc10–0x4359f0.
 - **Records and selectors:**
   - candidate records 0x401c70 and 0x472bc0–0x476140;
   - per-system record 0x476140;
