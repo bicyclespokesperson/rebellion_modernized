@@ -107,9 +107,9 @@ void CoolGameWindow::Hide() {
     Show(0);
 }
 
-void CoolGameWindow::Virtual09() {}
+void CoolGameWindow::SaveState(ostream* out) {}
 
-void CoolGameWindow::Virtual0A() {}
+void CoolGameWindow::LoadState(istream* in) {}
 
 void CoolGameWindow::ShowAndTrack(int command) {
     if (command == 5) {

@@ -6,6 +6,8 @@
 #include "ui/cool_window.h"
 
 class DibBitmap;
+class istream;
+class ostream;
 
 // Bits of CoolGameWindow::m_flags.
 enum CoolGameWindowFlags : uint32_t {
@@ -37,8 +39,8 @@ public:
 
     virtual void Hide() override;                                                       // slot 2, 0x607d30
     virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x606650
-    virtual void Virtual09();                          // slot 9, 0x5ae1e0 (shared): does nothing
-    virtual void Virtual0A();                          // slot 10, 0x5ae1e0
+    virtual void SaveState(ostream* out);              // slot 9, 0x5ae1e0 (shared): does nothing; the strategy windows write their state
+    virtual void LoadState(istream* in);               // slot 10, 0x5ae1e0
     virtual void ShowAndTrack(int command);            // slot 11, 0x607d00: Show that keeps m_shown
     virtual void PostCloseRequest();                   // slot 12, 0x606960: asks the parent to destroy this window
     virtual void OnCreate();                           // slot 13, 0x6068f0: WM_CREATE
