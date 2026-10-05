@@ -19,20 +19,6 @@ extern HHOOK g_menuHook;               // 0x6b28f8
 extern HWND g_menuPreviousFocus;       // 0x6b28fc
 extern HWND g_menuClickFocus;          // 0x6b2900
 
-// The menu items (0x4abb80-0x4ac000) as the layout code uses them.
-MenuItem* __thiscall FUN_004abfb0(MenuItem* self, uint32_t command, uint32_t flags, HMODULE module, const uint16_t* pair,
-                                  uint32_t zeroA, uint32_t zeroB, uint32_t zeroC, uint32_t zeroD, uint32_t wordsE,
-                                  uint32_t wordsF, uint32_t wordsG, uint32_t wordsH, uint32_t entryId,
-                                  CoolWindow* window, uint32_t enabled, uint32_t checked);
-void __thiscall FUN_004abe10(MenuItem* item, uint32_t color, uint32_t shadowColor, uint32_t disabledColor);
-int __thiscall FUN_004abf60(MenuItem* item);
-void __thiscall FUN_004abfa0(MenuItem* item, int width);
-uint32_t __thiscall FUN_004abb80(MenuItem* item);
-uint32_t __thiscall FUN_004abbf0(MenuItem* item);
-int __thiscall FUN_004abc70(MenuItem* item, int y, uint32_t width, uint32_t height);
-void __thiscall FUN_004abd30(MenuItem* item);
-int __thiscall FUN_004ab550(void* command);
-void* __thiscall FUN_004aa910(MenuItemList* list);
 void FUN_004422d0();
 
 namespace {
@@ -43,7 +29,6 @@ constexpr uint32_t kSubMenuParentFlag = 8;
 constexpr uint32_t kSiblingFlag = 4;
 constexpr UINT kClosePopupsMessage = 0x409;
 constexpr UINT kDialogClickedMessage = 0x467;
-constexpr size_t kMenuItemSize = 0x90;
 constexpr size_t kMenuWindowSize = 0x154;
 constexpr int kMenuLayoutStart = 2;
 constexpr int kHookNoRemove = 3;
@@ -51,7 +36,6 @@ constexpr uint32_t kSwapFlags = SWP_NOSIZE | SWP_NOMOVE;
 constexpr uint32_t kFrameBitmaps[8] = {0x2779, 0x277a, 0x277b, 0x2778, 0x2775, 0x2774, 0x2777, 0x2776};
 constexpr uint32_t kArrowAlliance = 0x2785;
 constexpr uint32_t kArrowEmpireDelta = 0xb;
-constexpr size_t kCommandOffset = 0x78;
 constexpr int kMenuClassNameLength = 0xff;
 
 uint32_t DwordAt(const MenuRecord& record, int byteOffset) {
@@ -104,14 +88,12 @@ IdSortedLinkList* AddMenuEntry(uint32_t command, uint32_t kind, uint32_t flags, 
         const uint16_t pair[2] = {record.m_words[5], record.m_words[11]};
         const uint32_t enabled = (flags & 1) == 0 ? ((static_cast<uint8_t>(~flags) >> 2) & 1) : 0;
         const uint32_t checked = (flags & 2) == 2;
-        void* memory = ::operator new(kMenuItemSize);
-        if (memory) {
-            item = FUN_004abfb0(static_cast<MenuItem*>(memory), command, flags,
-                                CoolAppGetResourceModule(record.m_words[12]), pair, 0, 0, 0, 0, DwordAt(record, 0x0e),
-                                DwordAt(record, 0x10), DwordAt(record, 0x12), DwordAt(record, 0x14), record.m_words[2],
-                                window, enabled, checked);
-        }
-        if (item) FUN_004abe10(item, color, shadowColor, disabledColor);
+        item = NewOrNull<MenuItem>(command, flags, CoolAppGetResourceModule(record.m_words[12]),
+                                   reinterpret_cast<const ResourceStringId*>(pair), 0, 0, 0, 0, DwordAt(record, 0x0e),
+                                   DwordAt(record, 0x10), DwordAt(record, 0x12), DwordAt(record, 0x14),
+                                   static_cast<uint32_t>(record.m_words[2]), window, static_cast<int>(enabled),
+                                   static_cast<int>(checked));
+        if (item) item->SetColors(color, shadowColor, disabledColor);
         if (list) list->AddWithId(item);
         if (!item) return list;
     }
@@ -126,20 +108,20 @@ void LayoutMenu(int x, int y, IdSortedLinkList* list, int* outX, int* outY, uint
     *outHeight = 0;
     int widestText = 0;
     for (MenuItem* item = FirstItem(list); item; item = NextItem(item)) {
-        const int width = FUN_004abf60(item);
+        const int width = item->GetPictureWidth();
         if (widestText < width) widestText = width;
     }
-    for (MenuItem* item = FirstItem(list); item; item = NextItem(item)) FUN_004abfa0(item, widestText);
+    for (MenuItem* item = FirstItem(list); item; item = NextItem(item)) item->SetIndent(widestText);
     for (MenuItem* item = FirstItem(list); item; item = NextItem(item)) {
-        const uint32_t width = FUN_004abb80(item);
+        const uint32_t width = item->GetWidth();
         if (maxWidth < width) maxWidth = width;
-        const uint32_t height = FUN_004abbf0(item);
+        const uint32_t height = item->GetHeight();
         if (maxHeight < height) maxHeight = height;
     }
     int nextY = kMenuLayoutStart;
     for (MenuItem* item = FirstItem(list); item; item = NextItem(item)) {
-        nextY = FUN_004abc70(item, nextY, maxWidth, maxHeight);
-        if (item->Virtual04()) FUN_004abd30(item);
+        nextY = item->Layout(nextY, maxWidth, maxHeight);
+        if (item->Virtual04()) item->TileNormalPicture();
         *outHeight += maxHeight;
     }
     *outWidth = maxWidth;
@@ -206,9 +188,9 @@ int CleanupMenuTree(MenuItem* item) {
     int result = 0;
     if (item) {
         MenuItem* firstSub = static_cast<MenuItem*>(GetSubItemsHead(item));
-        if (firstSub) item->m_cleanup58 = CleanupMenuTree(firstSub);
+        if (firstSub) item->m_enabled = CleanupMenuTree(firstSub);
         result = CleanupMenuTree(NextItem(item));
-        if (result == 0) result = item->m_cleanup58;
+        if (result == 0) result = item->m_enabled;
     }
     return result;
 }
@@ -322,7 +304,7 @@ int PopupMenuWindow::HandleMouse(MenuItem* item, LONG x, LONG y, int message) {
         }
         if (item && message == WM_LBUTTONUP) {
             g_menuClickFocus = GetFocus();
-            const int command = FUN_004ab550(reinterpret_cast<uint8_t*>(item) + kCommandOffset);
+            const int command = item->m_command.GetAvailable();
             if (command) {
                 if (m_owner) m_owner->Virtual08(command, 0, 0);
                 PostMessageA(parent->m_hwnd, kClosePopupsMessage, 0, 0);
@@ -344,6 +326,6 @@ void StaticInitMenuList() {
     RegisterMenuListDestructor();
 }
 
-void InitMenuList() { FUN_004aa910(&g_menuRoot); }
+void InitMenuList() { new (&g_menuRoot) MenuItemList(); }
 
 void RegisterMenuListDestructor() { atexit(FUN_004422d0); }

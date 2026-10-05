@@ -10,6 +10,7 @@
 #include "gameobj/child_iterator.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
+#include "strategy_ui/battle_in_progress_window.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "ui/cool_game_window.h"
@@ -25,7 +26,6 @@ extern const int16_t g_stringGroup65d424;  // 0x65d424 group of the localised se
 void* __thiscall FUN_004591d0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                               DibBitmap* backdrop, uint32_t childId, GameObjNotifier* sector);
 void* __thiscall FUN_004a2630(void* memory, HINSTANCE instance, int x, int y, CoolWindow* parent, int a, int b);
-void* __thiscall FUN_0049ee20(void* memory, HINSTANCE instance, CoolWindow* parent, int a);
 void* __thiscall FUN_00452fc0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                               int a, int b);
 void* __thiscall FUN_004a7790(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
@@ -162,7 +162,7 @@ CoolWindow* GalaxyWindow::OpenChildWindow(istream* in, ChildWindowState* state) 
         }
         case kTypeSide: {
             void* memory = ::operator new(0x118);
-            window = memory ? static_cast<CoolWindow*>(FUN_0049ee20(memory, m_instance, this, 0)) : nullptr;
+            window = memory ? static_cast<CoolWindow*>(new (memory) BattleInProgressWindow(m_instance, this, 0)) : nullptr;
             minimizable = false;
             break;
         }

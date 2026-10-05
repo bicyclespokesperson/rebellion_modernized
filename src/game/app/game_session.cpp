@@ -28,7 +28,7 @@ PlayerController* newOpponent(int opponentType, int side) {
 
 HumanPlayer* newHuman(int side) {
     void* memory = ::operator new(sizeof(HumanPlayer));
-    return memory ? FUN_004861b0(memory, side) : nullptr;
+    return memory ? new (memory) HumanPlayer(side) : nullptr;
 }
 
 }  // namespace
@@ -151,7 +151,7 @@ int GameSession::Write(ostream* out) {
 int GameSession::CreateController(int kind, int slot) {
     if (kind == kPlayerHuman) {
         HumanPlayer* human = nullptr;
-        if (void* memory = ::operator new(sizeof(HumanPlayer))) human = FUN_00486120(memory);
+        if (void* memory = ::operator new(sizeof(HumanPlayer))) human = new (memory) HumanPlayer();
         m_controllers[slot] = human;
         if (m_human) return 0;
         m_human = human;
@@ -303,7 +303,7 @@ void GameSession::AckSync(int side) {
 }
 
 void GameSession::FinishSync(PlayerMessage* message) {
-    if (m_human) FUN_00488ca0(&m_human->m_dispatch, message);
+    if (m_human) FUN_00488ca0(m_human->Dispatch(), message);
     m_controllers[0]->Virtual95();
     m_controllers[1]->Virtual95();
 }
@@ -379,91 +379,91 @@ int GameSession::IsOpponentAI() {
 // ---- forwarders to the human controller ---------------------------------------------------------------------
 
 void GameSession::HumanCommand(int command, void* a, void* b, const void* c) {
-    if (m_human) FUN_00486fb0(m_human, command, a, b, c);
+    if (m_human) m_human->ExecuteCommand(command, static_cast<ObjectKeyValueSet*>(a), static_cast<ObjectKey*>(b), static_cast<String*>(const_cast<void*>(c)));
 }
 
 void GameSession::HumanReceiveMessage(PlayerMessage* message, int flag) {
-    if (m_human) FUN_00487740(m_human, message, flag);
+    if (m_human) m_human->SubmitOrder(message, flag);
 }
 
 void GameSession::HumanAdvisorNotify(int value) {
-    if (m_human) FUN_00487810(m_human, value);
+    if (m_human) m_human->NotifyAdvisor(value);
 }
 
 void GameSession::HumanSetVote(int choice, int timed, PlayerMessage* reply) {
-    if (m_human) FUN_00487830(m_human, choice, timed, reply);
+    if (m_human) m_human->SetVote(choice, timed, reply);
 }
 
 void GameSession::HumanConfirmVote(PlayerMessage* reply) {
-    if (m_human) FUN_00487890(m_human, reply);
+    if (m_human) m_human->ConfirmVote(reply);
 }
 
 void GameSession::SetHumanUiTarget(int a, int b) {
-    if (m_human) FUN_004878d0(a, b);
+    if (m_human) HumanSetUiTarget(a, b);
 }
 
 void GameSession::HumanRequestUpdate() {
-    if (m_human) FUN_00487c10(m_human);
+    if (m_human) m_human->AdvisorReset();
 }
 
 void GameSession::HumanRefreshMenus(int value) {
-    if (m_human) FUN_00487900(m_human, value);
+    if (m_human) m_human->FillCommandMenu(reinterpret_cast<EventKindSet*>(static_cast<uintptr_t>(static_cast<uint32_t>(value))));
 }
 
 void GameSession::HumanRefreshOrderMenus(int value) {
-    if (m_human) FUN_00487a60(m_human, value);
+    if (m_human) m_human->FillOrderMenu(reinterpret_cast<EventKindSet*>(static_cast<uintptr_t>(static_cast<uint32_t>(value))));
 }
 
-int GameSession::HumanHasPending() { return m_human ? FUN_00487f30(m_human) : 0; }
+int GameSession::HumanHasPending() { return m_human ? m_human->HasPendingMessages() : 0; }
 
-int GameSession::HumanNextAdvice() { return m_human ? FUN_00487fb0(m_human) : 0; }
+int GameSession::HumanNextAdvice() { return m_human ? m_human->NextAdvice() : 0; }
 
 void GameSession::HumanSetAdvisorMask(unsigned mask) {
-    if (m_human) FUN_00487fd0(m_human, mask);
+    if (m_human) m_human->ClearAlerts(mask);
 }
 
 void GameSession::HumanBeginHold() {
-    if (m_human) FUN_00487ff0(m_human, 1);
+    if (m_human) m_human->SetPaused(1);
 }
 
 void GameSession::HumanEndHold() {
-    if (m_human) FUN_00487ff0(m_human, 0);
+    if (m_human) m_human->SetPaused(0);
 }
 
 void GameSession::SetHumanUiFlag4000(int on) {
-    if (m_human) FUN_00487f80(m_human, on);
+    if (m_human) m_human->SetAdvisorFlag4000(on);
 }
 
-IdAvlTree* GameSession::GetHumanOrderTree() { return m_human ? &m_human->m_dispatch.m_trees[0] : nullptr; }
+IdAvlTree* GameSession::GetHumanOrderTree() { return m_human ? &m_human->Dispatch()->m_trees[0] : nullptr; }
 
 void GameSession::DeleteHumanMessage(int id) {
-    if (m_human) FUN_0048a190(&m_human->m_dispatch, id);
+    if (m_human) FUN_0048a190(m_human->Dispatch(), id);
 }
 
 void GameSession::SetHumanDispatchFlag(int on) {
-    if (m_human) FUN_0048a610(&m_human->m_dispatch, on);
+    if (m_human) FUN_0048a610(m_human->Dispatch(), on);
 }
 
 void GameSession::SetHumanStateValue(int key, int value) {
-    if (m_human) FUN_0048a210(&m_human->m_dispatch, key, value);
+    if (m_human) FUN_0048a210(m_human->Dispatch(), key, value);
 }
 
-unsigned GameSession::GetHumanStateValue(int key) { return m_human ? FUN_0048a1c0(&m_human->m_dispatch, key) : 0; }
+unsigned GameSession::GetHumanStateValue(int key) { return m_human ? FUN_0048a1c0(m_human->Dispatch(), key) : 0; }
 
-int GameSession::GetHumanDefaultState() { return m_human ? m_human->m_dispatch.m_defaultState.Get() : 0; }
+int GameSession::GetHumanDefaultState() { return m_human ? m_human->Dispatch()->m_defaultState.Get() : 0; }
 
 void GameSession::SetHumanDefaultState(int state) {
-    if (m_human) FUN_0048a1f0(&m_human->m_dispatch, state);
+    if (m_human) FUN_0048a1f0(m_human->Dispatch(), state);
 }
 
 void GameSession::QueueHumanPopup(int a, int b) {
-    if (m_human) FUN_0048a470(&m_human->m_dispatch, a, b);
+    if (m_human) FUN_0048a470(m_human->Dispatch(), a, b);
 }
 
-int GameSession::HumanDispatchIdle() { return m_human ? FUN_0048a500(&m_human->m_dispatch) : 1; }
+int GameSession::HumanDispatchIdle() { return m_human ? FUN_0048a500(m_human->Dispatch()) : 1; }
 
 void GameSession::ClearHumanAlerts(unsigned mask) {
-    if (m_human) FUN_0048a530(&m_human->m_dispatch, mask);
+    if (m_human) FUN_0048a530(m_human->Dispatch(), mask);
 }
 
 void GameSession::RequestRedraw(int value) { FUN_004878b0(value); }

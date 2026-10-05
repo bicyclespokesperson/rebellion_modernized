@@ -10,13 +10,6 @@
 #include "ui/cool_app.h"
 #include "ui/cool_window.h"
 
-// MenuWindowBase members of the menu module (0x4ab1b0-0x4ab2b0, not reconstructed here): AddTextEntry adds a clickable
-// entry (its text from the string id, pictures and spacing) and SetEntryColors colours every entry.
-void __thiscall FUN_004ab1f0(MenuWindowBase* menu, HMODULE module, const ResourceStringId* text, uint32_t command,
-                             int height, int y, int width, int spacing, uint32_t picture, uint32_t pressedPicture,
-                             int unused1, int unused2);
-void __thiscall FUN_004ab1b0(MenuWindowBase* menu, uint32_t color, uint32_t shadowColor, uint32_t disabledColor);
-
 namespace {
 
 constexpr uint32_t kSpriteSlot = 7;
@@ -100,8 +93,7 @@ uint32_t BaseColor(int side) { return side != 1 ? kEmpireColor : kAllianceColor;
 void AddEntry(MenuWindowBase* menu, HMODULE module, const MenuEntry& entry, int width, int side) {
     const ResourceStringId text{static_cast<int16_t>(entry.m_text), static_cast<int16_t>(kStringGroup)};
     const uint32_t picture = Picture(entry, side);
-    FUN_004ab1f0(menu, module, &text, entry.m_command, kEntryHeight, entry.m_y, width, entry.m_spacing, picture, picture,
-                 0, 0);
+    menu->AddTextEntry(module, &text, entry.m_command, kEntryHeight, entry.m_y, width, entry.m_spacing, picture, picture, 0, 0);
 }
 
 void BuildFrameOf(CoolGameWindow* window, HMODULE module) {
@@ -142,9 +134,9 @@ void GidMenuWindow::OnCreate1() {
         ::operator delete(categoryPicture);
     }
     const ResourceStringId lastText{static_cast<int16_t>(kLastEntryText), static_cast<int16_t>(kStringGroup)};
-    FUN_004ab1f0(this, spriteModule, &lastText, kLastEntryCommand, pictureWidth + kEntryHeight, kLastEntryY, m_width,
+    AddTextEntry(spriteModule, &lastText, kLastEntryCommand, pictureWidth + kEntryHeight, kLastEntryY, m_width,
                  kLastEntrySpacing, 0, 0, 0, 0);
-    FUN_004ab1b0(this, BaseColor(m_side), kShadowColor, 0);
+    SetEntryColors(BaseColor(m_side), kShadowColor, 0);
 
     for (int i = 0; i < 6; ++i) {
         const SubMenuSpec& spec = kSubMenus[i];
@@ -164,11 +156,11 @@ void GidMenuWindow::OnCreate1() {
             AddEntry(sub, spriteModule, spec.m_entries[entry], width, pictureSide);
         }
         if (spec.m_colorsBeforeFrame) {
-            FUN_004ab1b0(sub, BaseColor(m_side), kShadowColor, 0);
+            sub->SetEntryColors(BaseColor(m_side), kShadowColor, 0);
             BuildFrameOf(sub, spriteModule);
         } else {
             BuildFrameOf(sub, spriteModule);
-            FUN_004ab1b0(sub, BaseColor(m_side), kShadowColor, 0);
+            sub->SetEntryColors(BaseColor(m_side), kShadowColor, 0);
         }
         const int arrowOffset = m_side != 1 ? kArrowEmpireOffset : 0;
         AttachSubMenu(spriteModule, spec.m_categoryCommand, sub, kArrowAlliance + arrowOffset,

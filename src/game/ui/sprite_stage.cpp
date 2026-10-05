@@ -5,7 +5,7 @@
 #include "gfx/dib_bitmap.h"
 #include "ui/cool_window.h"
 #include "ui/sprite.h"
-#include "ui/sprite_animator_decl.h"
+#include "ui/sprite_animator.h"
 
 SpriteTree::SpriteTree() { m_nextId = 0; }
 
@@ -190,7 +190,7 @@ void SpriteStage::Scroll(int dx, int dy) {
 
 void SpriteStage::StartAnimator(uint32_t id, void* sequence, int a, int b, int c) {
     SpriteAnimator* animator = static_cast<SpriteAnimator*>(m_animators.FindById(id));
-    if (animator) animator->Start(a, sequence, this, b, c, 0);
+    if (animator) animator->Start(a, static_cast<const uint32_t*>(sequence), this, b, c, 0);
 }
 
 void SpriteStage::StopAnimator(uint32_t id) {

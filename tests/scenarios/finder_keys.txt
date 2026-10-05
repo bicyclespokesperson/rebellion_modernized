@@ -1,0 +1,82 @@
+# Finder windows (F2-F5) in a loaded game (RebelsFastStart, Alliance): page and filter tabs, arrow keys, Return.
+# Same start as ui_tour.txt (Very Slow so the Ando battle does not interrupt). Runtime ~120 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot keys_00_galaxy
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 52
+46 move 170 56
+47 click 170 56
+# System Finder: Empire tab, arrow keys, typing, Return.
+49 key F2
+52 shot keys_01_system_finder
+53 move 160 130
+54 move 165 133
+55 click 165 133
+57 key Left
+58 key Right
+59 key Down
+60 key Up
+61 key Tab
+62 key a
+64 key Return
+66 key alt+w
+# Fleet Finder: capital ships page, filter tabs, arrow keys.
+68 key F3
+71 shot keys_02_fleet_finder
+72 move 495 262
+73 move 500 266
+74 click 500 266
+76 shot keys_03_fleet_finder_ships
+77 move 160 130
+78 move 165 133
+79 click 165 133
+81 key Left
+82 key Right
+83 key Down
+84 key Up
+85 key Tab
+86 move 495 207
+87 move 500 210
+88 click 500 210
+90 key alt+w
+# Troop Finder: Empire tab, arrow keys, Return.
+92 key F4
+95 shot keys_04_troop_finder
+96 move 160 130
+97 move 165 133
+98 click 165 133
+100 key Left
+101 key Right
+102 key Down
+103 key Up
+104 key a
+105 key Return
+107 key alt+w
+# Personnel Finder: systems page (second page tab), Empire tab, arrow keys.
+109 key F5
+112 shot keys_05_personnel_finder
+113 move 495 262
+114 move 500 266
+115 click 500 266
+117 shot keys_06_personnel_forces
+118 move 160 130
+119 move 165 133
+120 click 165 133
+122 key Left
+123 key Right
+124 key Down
+125 key Up
+126 key a
+127 key Return
+129 key alt+w
+130 end
