@@ -9,6 +9,7 @@
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
 #include "gfx/dib_bitmap.h"
+#include "strategy_ui/finder_helpers.h"
 #include "strategy_ui/galaxy_window.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
@@ -336,42 +337,5 @@ void SystemFinderWindow::SetFilter(int filter, int) {
 }
 
 void SystemFinderWindow::OnKeyDown(WPARAM key, LPARAM lParam) {
-    switch (key) {
-    case VK_TAB:
-        break;
-    default:
-        m_parent->WindowProc(WM_KEYDOWN, key, lParam);
-        break;
-    case VK_ESCAPE:
-        PostCloseRequest();
-        return;
-    case VK_LEFT:
-    case VK_RIGHT: {
-        const uint32_t selectedId = m_tabs->m_selected ? m_tabs->m_selected->m_childId : 0;
-        AvlNode* node = m_tabs->m_children.FindById(selectedId);
-        node = key == VK_LEFT ? node->Predecessor() : node->m_successor;
-        if (node) {
-            do {
-                CoolWindow* tab = static_cast<CoolWindow*>(node);
-                if (IsWindowVisible(tab->m_hwnd)) {
-                    m_tabs->SelectTab(tab->m_childId, 1);
-                    return;
-                }
-                node = key == VK_LEFT ? node->Predecessor() : node->m_successor;
-            } while (node);
-            return;
-        }
-        if (AvlNode* first = m_tabs->m_children.First()) m_tabs->SelectTab(static_cast<CoolWindow*>(first)->m_childId, 1);
-        break;
-    }
-    case VK_UP:
-        SetFocus(m_nameField->m_hwnd);
-        return;
-    case VK_DOWN:
-        if (m_list->m_items->First()) {
-            SetFocus(m_list->m_hwnd);
-            PostMessageA(m_list->m_hwnd, WM_KEYDOWN, key, lParam);
-            return;
-        }
-    }
+    FinderOnKeyDown(this, m_tabs, m_nameField, m_list, key, lParam);
 }
