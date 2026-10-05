@@ -49,3 +49,16 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
 - 0x4f5d10-0x4f5de0 (events/key_property_helpers.h) are callbacks of the table at 0x65d234; its owner is not identified.
 - Event vtable slot 10 is `GetPriority` (TypeQueue ordering) on PlainEvent-derived classes; slot 11 of KeyedEvent-family
   vtables is 0 or an unrelated function (0x4f6030) and is not declared.
+
+## Strategic UI (src/game/strategy_ui)
+- The multiplayer vote window (window type 6, 0x44f670-0x451110 except the GID menu 0x451130-0x4511e0) is not
+  reconstructed; `GalaxyWindow::CreateModalWindow` calls its constructor (`FUN_0044f670`) at the original address.
+  It is not reachable from any scenario.
+- Compiler-generated helpers are not hooked: the `SystemSlot` array element constructor/destructor (0x453200,
+  0x453260), `MinimizedWindowSlot::MinimizedWindowSlot` (0x42dbe0) and the shared empty `ShowObjectPage` slot (0x45d3f0).
+- `GalaxyWindow::WindowProc` WM_PAINT cannot be compared by difftest (uninitialised PAINTSTRUCT in the emulator); the
+  hybrid scenario screenshots are the check.
+- `SpriteAnimator` is still the stand-in `ui/sprite_animator_decl.h` (its constructor 0x4727e0 and the completion
+  hook setter 0x472b20 are called as `FUN_` functions from `GalaxyWindow::CreateDroidAnimations`).
+- `MenuWindowBase::AddTextEntry` (0x4ab1f0) and `SetEntryColors` (0x4ab1b0) are called as `FUN_` functions from
+  `GidMenuWindow`; the owner of the menu base classes should name them.
