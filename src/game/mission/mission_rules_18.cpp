@@ -7,10 +7,13 @@
 
 namespace {
 
-void lookupMissionTable(int tableType, int key, int* out) {
+// The originals leave LookupTableValue's found flag in EAX, and the mission slot-157 callbacks return it.
+int lookupMissionTable(int tableType, int key, int* out) {
     *out = 0;
     int value = 0;
-    if (LookupTableValue(tableType, key, &value)) *out = value;
+    const int found = LookupTableValue(tableType, key, &value);
+    if (found) *out = value;
+    return found;
 }
 
 }  // namespace
@@ -26,25 +29,25 @@ int RollMissionRuleBonus1809(int* result) {
     return 1;
 }
 
-void LookupDiplomacyMissionTable(int a, int b, int c, int* out) {
-    lookupMissionTable(mission_table::kDiplomacy, (c - b) + a, out);
+int LookupDiplomacyMissionTable(int a, int b, int c, int* out) {
+    return lookupMissionTable(mission_table::kDiplomacy, (c - b) + a, out);
 }
 
-void LookupEspionageMissionTable(int key, int* out) { lookupMissionTable(mission_table::kEspionage, key, out); }
+int LookupEspionageMissionTable(int key, int* out) { return lookupMissionTable(mission_table::kEspionage, key, out); }
 
 int CopyMissionValue(int value, int* out) {
     *out = value;
     return 1;
 }
 
-void LookupRecruitMissionTable(int a, int b, int* out) { lookupMissionTable(mission_table::kRecruit, a - b, out); }
+int LookupRecruitMissionTable(int a, int b, int* out) { return lookupMissionTable(mission_table::kRecruit, a - b, out); }
 
-void LookupInciteMissionTable(int a, int b, int c, int* out) {
-    lookupMissionTable(mission_table::kIncite, (a - b) - c, out);
+int LookupInciteMissionTable(int a, int b, int c, int* out) {
+    return lookupMissionTable(mission_table::kIncite, (a - b) - c, out);
 }
 
-void LookupSubdueMissionTable(int a, int b, int c, int* out) {
-    lookupMissionTable(mission_table::kSubdue, (c - b) + a, out);
+int LookupSubdueMissionTable(int a, int b, int c, int* out) {
+    return lookupMissionTable(mission_table::kSubdue, (c - b) + a, out);
 }
 
 int ComputeJediTrainingDifference(int a, int b, int* out) {
@@ -52,18 +55,18 @@ int ComputeJediTrainingDifference(int a, int b, int* out) {
     return 1;
 }
 
-void LookupRescueMissionTable(int key, int* out) { lookupMissionTable(mission_table::kRescue, key, out); }
+int LookupRescueMissionTable(int key, int* out) { return lookupMissionTable(mission_table::kRescue, key, out); }
 
-void LookupMissionTable19(int a, int b, int* out) { lookupMissionTable(mission_table::kTable19, a - b, out); }
+int LookupMissionTable19(int a, int b, int* out) { return lookupMissionTable(mission_table::kTable19, a - b, out); }
 
-void LookupMissionTable1D(int a, int b, int* out) { lookupMissionTable(mission_table::kTable1D, a - b, out); }
+int LookupMissionTable1D(int a, int b, int* out) { return lookupMissionTable(mission_table::kTable1D, a - b, out); }
 
-void LookupSabotageMissionTable(int a, int b, int* out) {
-    lookupMissionTable(mission_table::kSabotage, (b + a) / 2, out);
+int LookupSabotageMissionTable(int a, int b, int* out) {
+    return lookupMissionTable(mission_table::kSabotage, (b + a) / 2, out);
 }
 
-void LookupDSSabotageMissionTable(int a, int b, int* out) {
-    lookupMissionTable(mission_table::kDSSabotage, (b + a) / 2, out);
+int LookupDSSabotageMissionTable(int a, int b, int* out) {
+    return lookupMissionTable(mission_table::kDSSabotage, (b + a) / 2, out);
 }
 
 int ComputePalaceMissionValue(int a, int b, int* out) {

@@ -128,18 +128,18 @@ int DivideByMissionDivisor(int value);          // value / g_gnprtb1800
 int NegatedDivideByMissionDivisor(int value);   // -(value / g_gnprtb1800)
 int GetMissionRuleValue1801();
 int RollMissionRuleBonus1809(int* result);
-void LookupDiplomacyMissionTable(int a, int b, int c, int* out);
-void LookupEspionageMissionTable(int key, int* out);
+int LookupDiplomacyMissionTable(int a, int b, int c, int* out);
+int LookupEspionageMissionTable(int key, int* out);
 int CopyMissionValue(int value, int* out);
-void LookupRecruitMissionTable(int a, int b, int* out);
-void LookupInciteMissionTable(int a, int b, int c, int* out);
-void LookupSubdueMissionTable(int a, int b, int c, int* out);
+int LookupRecruitMissionTable(int a, int b, int* out);
+int LookupInciteMissionTable(int a, int b, int c, int* out);
+int LookupSubdueMissionTable(int a, int b, int c, int* out);
 int ComputeJediTrainingDifference(int a, int b, int* out);
-void LookupRescueMissionTable(int key, int* out);
-void LookupMissionTable19(int a, int b, int* out);
-void LookupMissionTable1D(int a, int b, int* out);
-void LookupSabotageMissionTable(int a, int b, int* out);
-void LookupDSSabotageMissionTable(int a, int b, int* out);
+int LookupRescueMissionTable(int key, int* out);
+int LookupMissionTable19(int a, int b, int* out);
+int LookupMissionTable1D(int a, int b, int* out);
+int LookupSabotageMissionTable(int a, int b, int* out);
+int LookupDSSabotageMissionTable(int a, int b, int* out);
 int ComputePalaceMissionValue(int a, int b, int* out);
 int ComputeEspionageOutcome(int a, int b, int c, int* amount, int* flagA, int* flagB);
 int RollResearchBonus(int* out);

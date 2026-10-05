@@ -1,3 +1,4 @@
+#include "mission/mission_rules.h"
 #include "mission/mission_sabotage.h"
 
 extern "C" void __cdecl LAB_0056a410();
@@ -5,7 +6,6 @@ extern "C" void __cdecl LAB_0056a410();
 extern int g_missionSabotageEventKindsReady;      // 0x6bb920
 extern EventKindSet g_missionSabotageEventKinds;  // 0x6bb928
 
-int __cdecl FUN_0055c890(int espionage, int combat, int* out);  // LookupSabotageMissionTable
 int FUN_0053e2f0(int threshold);
 extern int DAT_006bb58c;
 extern int DAT_006bb518;
@@ -70,7 +70,7 @@ int MissionSabotage::Virtual157(GameObj* person, int* out) {
     Role* role = static_cast<Role*>(person);
     const int combat = role->GetCombat();
     const int espionage = role->GetEspionage();
-    return FUN_0055c890(espionage, combat, out);
+    return LookupSabotageMissionTable(espionage, combat, out);
 }
 
 int MissionSabotage::Virtual158(NotifyContext* ctx) { return 1; }

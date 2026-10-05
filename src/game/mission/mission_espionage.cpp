@@ -1,3 +1,4 @@
+#include "mission/mission_rules.h"
 #include "mission/mission_espionage.h"
 
 #include "data/random.h"
@@ -10,7 +11,6 @@ extern "C" void __cdecl LAB_005739a0();
 extern int g_missionEspionageEventKindsReady;      // 0x6bba64
 extern EventKindSet g_missionEspionageEventKinds;  // 0x6bba68
 
-int __cdecl FUN_0055c6c0(int espionage, int* out);  // LookupEspionageMissionTable
 int __cdecl FUN_0055c940(int isCoreSystem, int isHomeSystem, int hasFacility, int* count, int* includeType90,
                          int* includeType92);  // ComputeEspionageOutcome, always 1
 int FUN_0053e2f0(int threshold);
@@ -91,7 +91,7 @@ int MissionEspionage::OnExtraKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, N
 }
 
 int MissionEspionage::Virtual157(GameObj* person, int* out) {
-    return FUN_0055c6c0(static_cast<Role*>(person)->GetEspionage(), out);
+    return LookupEspionageMissionTable(static_cast<Role*>(person)->GetEspionage(), out);
 }
 
 int MissionEspionage::Virtual158(NotifyContext* ctx) { return 1; }
