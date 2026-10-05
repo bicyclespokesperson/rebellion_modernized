@@ -4,6 +4,7 @@
 #include "core/vptr_store.h"
 #include "events/event_post.h"
 #include "gameobj/object_family.h"
+#include "mission/mission_rules.h"
 #include "story/story_common.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
@@ -17,13 +18,6 @@ extern int g_leiaEventKindsReady;      // 0x6bba08
 extern EventKindSet g_leiaEventKinds;  // 0x6bba00
 extern int g_hanEventKindsReady;       // 0x6bba58
 extern EventKindSet g_hanEventKinds;   // 0x6bba50
-
-// GNPRTB values of the story characters: the Force at which Luke is ready for the final battle, and the Force experience
-// Leia and Luke gain per day.
-extern int DAT_006bb740;
-extern int DAT_006bb744;
-extern int DAT_006bb748;
-extern int DAT_006bb758;
 
 namespace {
 
@@ -124,7 +118,7 @@ GameObjNotifier* Luke::Create() { return NewOrNull<Luke>(); }
 int Luke::Virtual130(NotifyContext* ctx) {
     const int result = MajorCharacter::Virtual130(ctx);
     if (!result) return result;
-    return SetForceExperience(m_forceExperience + DAT_006bb758, ctx);
+    return SetForceExperience(m_forceExperience + g_gnprtb0C09, ctx);
 }
 
 int Luke::OnForceChanged(int oldValue, int newValue, NotifyContext* ctx) {
@@ -134,7 +128,7 @@ int Luke::OnForceChanged(int oldValue, int newValue, NotifyContext* ctx) {
 }
 
 int Luke::UpdateFinalBattleReady(NotifyContext* ctx) {
-    const int ready = (m_storyFlags & kKnowsHeritage) && m_force >= DAT_006bb740;
+    const int ready = (m_storyFlags & kKnowsHeritage) && m_force >= g_gnprtb0C06;
     return SetFinalBattleReady(ready ? 1 : 0, ctx);
 }
 
@@ -257,7 +251,7 @@ GameObjNotifier* Leia::Create() { return NewOrNull<Leia>(); }
 
 int Leia::Virtual130(NotifyContext* ctx) {
     const int result = MajorCharacter::Virtual130(ctx);
-    if (result && (m_flagsAc & kForceAwareFlag)) return SetForceExperience(m_forceExperience + DAT_006bb744, ctx);
+    if (result && (m_flagsAc & kForceAwareFlag)) return SetForceExperience(m_forceExperience + g_gnprtb0C0A, ctx);
     return result;
 }
 
@@ -401,7 +395,7 @@ void Han::InitStatics() {
     RegisterHanEventKindsAtExit();
 }
 
-int GetHanHyperdriveModifier() { return DAT_006bb748; }
+int GetHanHyperdriveModifier() { return g_gnprtb0C0B; }
 
 // ---- MinorCharacterIterator ---------------------------------------------------------------------------------------
 

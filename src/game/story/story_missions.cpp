@@ -4,6 +4,7 @@
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "gameobj/object_family.h"
+#include "mission/mission_rules.h"
 #include "gameobj/object_key.h"
 #include "story/story_common.h"
 
@@ -23,10 +24,6 @@ extern int g_dagobahMissionEventKindsReady;     // 0x6bbab4
 extern EventKindSet g_dagobahMissionEventKinds;  // 0x6bbab8
 extern int g_missionBountyEventKindsReady;      // 0x6bbad4
 extern EventKindSet g_missionBountyEventKinds;  // 0x6bbad8
-
-// GNPRTB values: the base Combat and Espionage points the Palace mission awards.
-extern int DAT_006bb5a8;
-extern int DAT_006bb570;
 
 int FUN_0053e2f0(int threshold);
 int __cdecl FUN_00582cd0(ObjectKey* key, void** any, void** specialForces, void** character);
@@ -385,8 +382,8 @@ int MissionPalace::Virtual159(GameObj* person, int roll, int* out, NotifyContext
     int ok = SetTaskStatus(kTaskSucceeded, ctx) ? 1 : 0;
     Role* role = static_cast<Role*>(person);
     if (role->Virtual118()) {
-        ok = role->SetBaseCombat(role->m_baseCombat + DAT_006bb5a8, ctx) && ok ? 1 : 0;
-        ok = role->SetBaseEspionage(role->m_baseEspionage + DAT_006bb570, ctx) && ok ? 1 : 0;
+        ok = role->SetBaseCombat(role->m_baseCombat + g_gnprtb181A, ctx) && ok ? 1 : 0;
+        ok = role->SetBaseEspionage(role->m_baseEspionage + g_gnprtb1819, ctx) && ok ? 1 : 0;
     }
     GameObj* objectiveCharacter = nullptr;
     ok = GetObjectiveCharacter(&objectiveCharacter) && ok ? 1 : 0;

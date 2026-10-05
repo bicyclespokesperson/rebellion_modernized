@@ -60,7 +60,7 @@ int MissionMgr::ReassignMissionMembers(Mission* mission, int* moved, NotifyConte
             ok = FUN_00521220(mission, person, &resigning, &stays, &flagC) && ok;
             if (!(resigning != 0 && stays != 0 && !(person->m_flags78 & role_flag::kMissionRemoveRequest))) continue;
 
-            ok = FUN_00542ee0(this, person, mission, flagC, &currentKey) && ok;
+            ok = FindPersonMissionPoint(person, mission, flagC, &currentKey) && ok;
             if (!haveFirstKey) {
                 haveFirstKey = true;
                 firstKey = currentKey;
@@ -156,13 +156,13 @@ int MissionMgr::ReleaseSystemPersons(GameObj* system, int* moved, NotifyContext*
     uint32_t flag = 0;
     ObjectKey key;
     ObjectKeyValueSet persons;
-    int ok = FUN_0054c7d0(this, system, &unusedA, &side, &flag, &key, &persons, ctx) != 0;
+    int ok = CollectStrandedPersons(system, &unusedA, &side, &flag, &key, &persons, ctx) != 0;
     {
         FleetIterator fleets(system, 4);
         for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
             CapShipIterator ships(fleets.Current(), 4);
             for (ships.Begin(); ships.Current(); ships.Advance())
-                ok = FUN_0054c7d0(this, static_cast<GameObj*>(ships.Current()), &unusedA, &side, &flag, &key, &persons, ctx) && ok;
+                ok = CollectStrandedPersons(static_cast<GameObj*>(ships.Current()), &unusedA, &side, &flag, &key, &persons, ctx) && ok;
         }
     }
     *moved = persons.Count() != 0;
@@ -216,7 +216,7 @@ int MissionMgr::ReleasePersons(ObjectKeyValueSet* persons, NotifyContext* ctx) {
         }
         ObjectKey location;
         if (!(person->m_stateFlags & kStateDestroyed)) {
-            ok = FUN_00543040(this, person, 0, &location) && ok;
+            ok = FindPersonDestination(person, 0, &location) && ok;
             if (!location.OrNull()) {
                 if (!(person->m_stateFlags & kStateDestroyed) && person->Virtual117() == 0) {
                     ObjectKey noHolder;
@@ -247,16 +247,16 @@ int MissionMgr::ReleaseFreePersons(ObjectKeyValueSet* persons, NotifyContext* ct
 }
 
 int MissionMgr::RunStoryPipeline(NotifyContext* ctx) {
-    int ok = FUN_005442f0(ctx) != 0;
-    ok = FUN_00544da0(this, ctx) && ok;
-    ok = FUN_00544030(this, ctx) && ok;
-    ok = FUN_00544130(this, ctx) && ok;
-    ok = FUN_005443f0(this, ctx) && ok;
-    ok = FUN_005444e0(this, ctx) && ok;
-    ok = FUN_005445d0(this, ctx) && ok;
-    ok = FUN_00544a20(this, ctx) && ok;
-    ok = FUN_00544be0(this, ctx) && ok;
-    ok = FUN_00544fc0(this, ctx) && ok;
+    int ok = UpdateHanCapturedAtPalace(ctx) != 0;
+    ok = UpdateFinalBattleReadyStep(ctx) && ok;
+    ok = UpdateLukeDagobahStep(ctx) && ok;
+    ok = UpdateLukePalaceStep(ctx) && ok;
+    ok = UpdateLeiaPalaceStep(ctx) && ok;
+    ok = UpdateChewbaccaPalaceStep(ctx) && ok;
+    ok = UpdateDarthPickupStep(ctx) && ok;
+    ok = UpdateDarthToLukeStep(ctx) && ok;
+    ok = UpdateDarthToEmperorStep(ctx) && ok;
+    ok = UpdateFinalBattleStep(ctx) && ok;
     return ok;
 }
 
@@ -264,15 +264,10 @@ int MissionMgr::InjureStoryCharacter(NotifyContext* ctx) {
     ObjectKey parentKey;
     GameObjNotifier* story = nullptr;
     GameObjNotifier* parent = nullptr;
-    int ok = FUN_005434b0(this, &story, &parent, &parentKey);
+    int ok = FindLuke(&story, &parent, &parentKey);
     int amount = 0;
     ok = RollMissionRuleBonus1809(&amount) && ok;
     if (story) ok = static_cast<Character*>(story)->Virtual188(amount, kInjuryReasonMission, ctx) && ok;
     return ok;
 }
 
-GameObj* CreateMissionMgr() {
-    void* memory = ::operator new(0x74);
-    if (!memory) return nullptr;
-    return FUN_00541fc0(memory);
-}
