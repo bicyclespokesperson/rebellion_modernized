@@ -14,6 +14,7 @@
 
 class AiSideController;
 class AiSystemRecord;
+class OrderBase;
 
 class AiPosture {
 public:
@@ -22,11 +23,11 @@ public:
     virtual void Read(istream* in);            // 1: 0x4ada10
     virtual void Write(ostream* out);          // 2: 0x4ada80
     virtual int Virtual03();                   // 3: 0x6158b0 returns 0
-    virtual void Virtual04(const ObjectKey* key);  // 4: 0x4adde0
+    virtual void Virtual04(ObjectKey* reserveFleet);  // 4: 0x4adde0
     virtual int Virtual05() = 0;               // 5: the posture's kind id
-    virtual int Virtual06(int* a, int* b, ObjectKey* c, ObjectKey* d) = 0;  // 6
-    virtual int Virtual07(int* out) = 0;       // 7
-    virtual int Virtual08(void* a, void* b) = 0;  // 8
+    virtual int Virtual06(int* wanted, int* assigned, int* plannerKind, int* plannerSubtype) = 0;  // 6: the planner the posture asks for
+    virtual int Virtual07(int* agentsWanted) = 0;  // 7
+    virtual int Virtual08(PersistentInt* flagsA, PersistentInt* flagsB) = 0;  // 8
     virtual int Virtual09(ObjectKey* a, ObjectKey* b) = 0;  // 9
     virtual int Virtual10(ObjectKey* a, ObjectKey* b) = 0;  // 10
     virtual int Virtual11(ObjectKey* a, ObjectKey* b) = 0;  // 11
@@ -57,3 +58,15 @@ public:
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_SIZE(AiPosture, 0x5c);
 #pragma clang diagnostic pop
+
+// Non-virtual posture methods of the base (0x4ad8c0-0x4adb70) that AiSystemRecord calls.
+void __thiscall FUN_004adaf0(AiPosture* posture, const int* committedStats);  // 0x4adaf0
+OrderBase* __thiscall FUN_004adb70(AiPosture* posture, int* done);            // 0x4adb70
+int __thiscall FUN_004add40(AiPosture* posture, uint32_t agentId);            // 0x4add40
+// The posture constructors (called with the memory from operator new): (view, owner, record).
+AiPosture* __thiscall FUN_004ba580(void* memory, int view, AiSideController* owner, AiSystemRecord* record);  // kind 1 (0x5c)
+AiPosture* __thiscall FUN_004b91a0(void* memory, int view, AiSideController* owner, AiSystemRecord* record);  // kind 2 (0x64)
+AiPosture* __thiscall FUN_004b37f0(void* memory, int view, AiSideController* owner, AiSystemRecord* record);  // kind 3 (0x5c)
+AiPosture* __thiscall FUN_004b6fb0(void* memory, int view, AiSideController* owner, AiSystemRecord* record);  // kind 4 (0x60)
+AiPosture* __thiscall FUN_004b1720(void* memory, int view, AiSideController* owner, AiSystemRecord* record);  // kind 5 (0x5c)
+AiPosture* __thiscall FUN_004b4d50(void* memory, int view, AiSideController* owner, AiSystemRecord* record);  // kind 6 (0x5c)

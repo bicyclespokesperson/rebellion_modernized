@@ -33,8 +33,8 @@ public:
     virtual int Step(int* done) = 0;              // 5: one step of the agent's state machine
     virtual int GetKind() = 0;                    // 6
     virtual int GetOrderKind() = 0;               // 7
-    virtual void Virtual08() = 0;                 // 8
-    virtual int Virtual09() = 0;                  // 9
+    virtual void SetTier(int tier) = 0;           // 8
+    virtual int GetTier() = 0;                    // 9
 
     // Orders the character of the agent to do something: creates the message `kind` for the character (null when the
     // key is no character), the caller fills it in and sends it.
@@ -61,8 +61,8 @@ public:
     virtual int GetAgentClass() override;         // 3: 0x43c1f0 returns 2
     virtual int IsAvailable() override;           // 4: 0x4bba90
     virtual int Step(int* done) override;         // 5: 0x4bbb00
-    virtual void Virtual08() override;            // 8: 0x5ae1e0 (empty)
-    virtual int Virtual09() override;             // 9: 0x6158b0 returns 0
+    virtual void SetTier(int tier) override;      // 8: 0x5ae1e0 (empty)
+    virtual int GetTier() override;               // 9: 0x6158b0 returns 0
     virtual int GetCountSlot() = 0;               // 10: 0 or 1, the index AiSideController::CountAgent counts the agent under
     virtual void ReleaseHook() = 0;               // 11: called when the agent releases its character
     virtual void Virtual12() = 0;                 // 12
@@ -86,8 +86,8 @@ public:
     virtual int Step(int* done) override;         // 5: 0x4bc480
     virtual int GetKind() override = 0;           // 6
     virtual int GetOrderKind() override = 0;      // 7
-    virtual void SetAssignment(int value);        // 8: 0x4bc410
-    virtual int GetAssignment();                  // 9: 0x53b870 (returns m_assignment)
+    virtual void SetTier(int tier) override;      // 8: 0x4bc410 (m_assignment = tier)
+    virtual int GetTier() override;               // 9: 0x53b870 (returns m_assignment)
     virtual int Evaluate();                       // 10: 0x4bc6d0
 
     int ReleaseCharacter();    // 0x4bc520

@@ -574,3 +574,5 @@ int AiSideController::Analyze() {
     }
     return finishedPass;
 }
+
+AiFleetEval* AiSideController::GetFleetRecord(const ObjectKey* key) { return m_fleets.FindEval(*key); }

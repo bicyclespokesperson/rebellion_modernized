@@ -97,6 +97,7 @@ public:
     AiRankedList* RankCharacters(uint32_t requireFlags, uint32_t requireCaps, uint32_t forbidFlags, uint32_t forbidCaps,
                                  uint32_t valueIndex, int minValue, int maxValue, int descending);  // 0x41b0d0
     void MarkFleetSystemChanged(const ObjectKey* fleetKey);  // 0x41b110
+    AiFleetEval* GetFleetRecord(const ObjectKey* key);        // 0x476110 (located between the task and system records)
     int ChooseClass(ObjectKey* out, int recordType, uint32_t requiredFlags, int mode, int descending);  // 0x41b230
     AiRankedList* RankClasses(int recordType, uint32_t requiredFlags, uint32_t valueMask, int descending);  // 0x41b270
     // The system (key in *out, unset if none) that RankSystemsOfSectorRandomly picks in the sector nearest to `fromSector`

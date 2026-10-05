@@ -31,6 +31,7 @@ class GameObjNotifier;
 class Sector;
 class System;
 class ChildIterator;
+class OrderBase;
 
 namespace ai_flag {
 // AiSystemEval::m_flagsC8 / AiSectorEval m_flags (selected bits used by the selectors; see the code for the rest)
@@ -212,24 +213,25 @@ public:
     virtual void Write(ostream* out);         // 2: 0x4741f0
 
     int IsFinished();             // 0x474260: a system is assigned
-    void Release();               // 0x4742b0
-    int Step(int* done);          // 0x474390: the state machine
-    int PickTarget();             // 0x4744b0
+    void Release();               // 0x4742b0: gives back the ships, the fleet and the system
+    // One step of the task's state machine (m_state 1-8). Returns the order to submit for this step (or null); *done is set
+    // to 1 when the task has finished its pass.
+    OrderBase* Step(int* done);   // 0x474390
+    int PickTarget();             // 0x4744b0: assigns a system of the side that needs forces; 1 if one is assigned
     void ReleaseShips();          // 0x4747b0
-    void* SendIdleMessage();      // 0x4749b0
-    void ComputeBudget();         // 0x474b90
-    int ChooseAction(int* done);  // 0x474c00
-    void* MoveToSystem();         // 0x474ce0
-    void* MoveCharacters();       // 0x474ff0
-    void* RecallFleet();          // 0x475330
-    void* ReinforceFleet();       // 0x475490
-    void* ReinforceBySize();      // 0x475890
-    void* Reinforce();            // 0x475c70
+    OrderBase* SendIdleMessage();     // 0x4749b0: order 0x270: the fleet's idle ships
+    void ComputeBudget();             // 0x474b90
+    OrderBase* ChooseAction(int* done);  // 0x474c00
+    OrderBase* MoveToSystem();        // 0x474ce0: order 0x201
+    OrderBase* MoveCharacters();      // 0x474ff0
+    OrderBase* RecallFleet();         // 0x475330
+    OrderBase* ReinforceFleet();      // 0x475490
+    OrderBase* ReinforceBySize();     // 0x475890
+    OrderBase* Reinforce();           // 0x475c70
     int AddShip(const ObjectKey* key);   // 0x475e70
-    int RemoveShip(uint32_t key);        // 0x475f60
+    int RemoveShip(const ObjectKey* key);  // 0x475f60
     int SetFleet(const ObjectKey* key);  // 0x475fe0
     int ClearFleet();            // 0x476080
-    void* GetFleetRecord(ObjectKey key);  // 0x476110
 
     int m_state;                   // +0x1c
     int m_view;                    // +0x20

@@ -18,6 +18,8 @@
 class AiSideController;
 class AiMissionPlanner;
 class AiAgentBase;
+class AiAgentTargeted;
+class OrderBase;
 
 class AiSystemRecord : public IdNode {
 public:
@@ -34,30 +36,32 @@ public:
     void AddPlanner(AiMissionPlanner* planner);             // 0x476ba0
     void RemovePlanner(AiMissionPlanner* planner);          // 0x476c80
     int HasAgents();                                        // 0x476cf0
-    void AddAgent(AiAgentBase* agent);                      // 0x476d10
-    void RemoveAgent(AiAgentBase* agent);                   // 0x476de0
+    void AddAgent(AiAgentTargeted* agent);                  // 0x476d10
+    void RemoveAgent(AiAgentTargeted* agent);               // 0x476de0
     int HasAgent(uint32_t id);                              // 0x476e50
+    // The two keys the posture wants an order of kind `orderKind` (0x12, 0x13, 0x15, 0x17, 0x81) to use; both unset for other kinds.
     void GetOrderTargets(int orderKind, ObjectKey* first, ObjectKey* second);  // 0x476e80
+    // The system fleets are sent from when the posture is short of strength (unset if none is available).
     ObjectKey* ChooseReinforcementSource(ObjectKey* out);   // 0x476f90
-    void Reset();                                           // 0x477190 (also 0x477620)
-    int UpdatePosture();                                    // 0x4773f0
-    int Step(int* done);                                    // 0x4774c0
+    void Reset();                                           // 0x477190 (0x477620 jumps here)
+    int UpdatePosture();                                    // 0x4773f0: 1 if the record has the posture its sector asks for
+    OrderBase* Step(int* done);                             // 0x4774c0: the state machine (m_state 1-6)
     AiPosture* CreatePosture(int kind);                     // 0x477630: kinds 1-6
     void ReleaseLostShips();                                // 0x477810
     void ReleaseLostFleets();                               // 0x477950
-    void* RequestReinforcements();                          // 0x477a40
+    OrderBase* RequestReinforcements();                     // 0x477a40: order 0x270 for the idle ships of the fleets
     void SumCommittedStats();                               // 0x477cb0
-    void CheckShortfall(int* done);                         // 0x477e80
+    OrderBase* CheckShortfall(int* done);                   // 0x477e80
     void CountPlanners();                                   // 0x478000
     void CountAgents();                                     // 0x478140
-    void* FillShortfallByDemand();                          // 0x4782a0
-    void* FillShortfallByClass();                           // 0x478690
-    void* ReleaseSurplus();                                 // 0x478aa0
+    OrderBase* FillShortfallByDemand();                     // 0x4782a0
+    OrderBase* FillShortfallByClass();                      // 0x478690
+    OrderBase* ReleaseSurplus();                            // 0x478aa0
     int AddShip(const ObjectKey* ship);                     // 0x478e00
     int AddFleet(const ObjectKey* fleet);                   // 0x478fd0
-    int RemoveShip(uint32_t ship);                          // 0x4790d0
-    int RemoveFleet(uint32_t fleet);                        // 0x4791d0
-    ObjectKey* ChooseSource(ObjectKey* out, const ObjectKey* hint);  // 0x479220
+    int RemoveShip(const ObjectKey* ship);                  // 0x4790d0
+    int RemoveFleet(const ObjectKey* fleet);                // 0x4791d0
+    ObjectKey* ChooseSource(ObjectKey* out, const ObjectKey* hint);  // 0x479220: a system to send ships to or from
     void UpdateReserve();                                   // 0x479560
     void UpdateReserveFleet();                              // 0x4799d0
     void UpdateShortage();                                  // 0x479a00
@@ -77,28 +81,23 @@ public:
     PersistentInt m_flagsA;        // +0x60
     PersistentInt m_flagsB;        // +0x64
     int m_dirty;                   // +0x68
-    int m_sum[10];                 // +0x6c totals of the committed ships' statistics
+    int m_sum[10];                 // +0x6c strength still lacking (negative) or in surplus (positive), see SumCommittedStats
     int m_x94;                     // +0x94
     int m_x98;                     // +0x98
     int m_x9c;                     // +0x9c
-    int m_xa0;                     // +0xa0 planners per class (CountPlanners)
-    int m_xa4;                     // +0xa4
-    int m_xa8;                     // +0xa8
-    int m_xac;                     // +0xac
+    int m_plannerCount[4];         // +0xa0 planners per class (PlannerClassOf)
     IdAvlTree m_planners;          // +0xb0
     int m_xbc;                     // +0xbc
     int m_xc0;                     // +0xc0
     int m_xc4;                     // +0xc4
-    int m_xc8;                     // +0xc8 agents per class
-    int m_xcc;                     // +0xcc
-    int m_xd0;                     // +0xd0
+    int m_agentCount[3];           // +0xc8 agents per class (AgentClassOf)
     IdAvlTree m_agents;            // +0xd4
     int m_xe0;                     // +0xe0
     int m_xe4;                     // +0xe4
 };
 
-int PlannerClassOf(AiMissionPlanner* planner);   // 0x4794b0
-int AgentClassOf(AiAgentBase* agent);            // 0x479520
+int __stdcall PlannerClassOf(AiMissionPlanner* planner);   // 0x4794b0
+int __stdcall AgentClassOf(AiAgentTargeted* agent);       // 0x479520
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

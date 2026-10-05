@@ -1096,7 +1096,7 @@ address,kind,name,signature,size
 0x00475f60,func,AiTaskRecord::RemoveShip,,
 0x00475fe0,func,AiTaskRecord::SetFleet,,
 0x00476080,func,AiTaskRecord::ClearFleet,,
-0x00476110,func,AiTaskRecord::GetFleetRecord,,
+0x00476110,func,AiSideController::GetFleetRecord,,
 0x00476140,func,AiSystemRecord::AiSystemRecord,(void),
 0x00476290,func,AiSystemRecord::scalar_deleting_destructor,,
 0x004762b0,func,AiSystemRecord::AiSystemRecord,"(int,class AiSideController *)",

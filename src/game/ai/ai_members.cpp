@@ -369,9 +369,9 @@ void AiAgentSet::ReleaseAgent(uint32_t id) {
     AiAgentBase* agent = static_cast<AiAgentBase*>(FindById(id));
     if (!agent) return;
     if (agent->GetAgentClass() == 1) {
-        AiSystemRecord* record = static_cast<AiSystemRecord*>(
-            m_owner->m_systemRecords.FindById(static_cast<AiAgentTargeted*>(agent)->m_systemRecordId));
-        if (record) record->RemoveAgent(agent);
+        AiAgentTargeted* targeted = static_cast<AiAgentTargeted*>(agent);
+        AiSystemRecord* record = static_cast<AiSystemRecord*>(m_owner->m_systemRecords.FindById(targeted->m_systemRecordId));
+        if (record) record->RemoveAgent(targeted);
     }
     agent->m_flags.m_value |= kDirty;
 }

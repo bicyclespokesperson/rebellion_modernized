@@ -25,7 +25,7 @@ public:
     virtual int Virtual04();                      // 4: 0x4e8740: the planner's role (1 = works for an AiSystemRecord)
     virtual int GetSubtype();                     // 5: the mission subtype
     virtual int Virtual06();                      // 6
-    virtual int Virtual07();                      // 7
+    virtual void SetTier(int tier);               // 7: the tier of the AiSystemRecord the planner works for
     virtual int Virtual08();                      // 8
     virtual int Virtual09();                      // 9
     virtual int Virtual10();                      // 10
