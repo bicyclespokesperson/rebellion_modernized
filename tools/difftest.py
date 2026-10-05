@@ -490,6 +490,9 @@ class Emulator:
         if function == "PtInRect":
             r, x, y = read_rect(args[0]), signed(args[1]), signed(args[2])
             return int(r[0] <= x < r[2] and r[1] <= y < r[3])
+        if function == "BeginPaint":  # PAINTSTRUCT: hdc, fErase, rcPaint (whole 640x480 screen), reserved
+            self.write_guest(args[1], struct.pack("<II4i", 0, 0, 0, 0, 640, 480) + bytes(40))
+            return 0
         if function == "GetCursorPos":
             self.write_guest(args[0], struct.pack("<2i", *CFG.cursor))
             return 1
