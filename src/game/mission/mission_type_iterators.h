@@ -10,7 +10,23 @@ public:
     virtual ~MissionSubdueIterator();                         // 0x569e90 (deleting), 0x569eb0
 };
 
+// Family 0x53 (MissionResearch), VT 0x665050 (the code sits after MissionResearch's, at the start of the story range).
+class MissionResearchIterator : public ChildIterator {
+public:
+    explicit MissionResearchIterator(GameObjNotifier* parent);  // 0x56d1b0
+    virtual ~MissionResearchIterator();                         // 0x56d230 (deleting), 0x56d250
+};
+
+// Family 0x56 (MissionIncite), VT 0x666cf8.
+class MissionInciteIterator : public ChildIterator {
+public:
+    explicit MissionInciteIterator(GameObjNotifier* parent);  // 0x571c20
+    virtual ~MissionInciteIterator();                         // 0x571ca0 (deleting), 0x571cc0
+};
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_SIZE(MissionSubdueIterator, 0x20);
+REB_ASSERT_SIZE(MissionResearchIterator, 0x20);
+REB_ASSERT_SIZE(MissionInciteIterator, 0x20);
 #pragma clang diagnostic pop
