@@ -23,7 +23,7 @@ public:
 
     ObjectKey m_key;  // +0x68
     int m_visible;    // +0x6c 1
-    int m_unk70;      // +0x70 0
+    DibBitmap* m_markerImage;  // +0x70 0; the GID marker picture of a system icon (not owned)
 };
 
 #pragma clang diagnostic push

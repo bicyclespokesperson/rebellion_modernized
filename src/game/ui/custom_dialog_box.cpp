@@ -186,11 +186,11 @@ void CustomDialogBox::Virtual08(int a, int, int) {
 
 void CustomDialogBox::GetSelection(ObjectKeyValueSet*, CoolWindow*) {}
 
-void CustomDialogBox::Virtual23(int, int) {}
+void CustomDialogBox::OnChildAdded(const ObjectKey*, GameObjNotifier*) {}
 
-void CustomDialogBox::Virtual24(int, int, int, int) {}
+void CustomDialogBox::OnChildMoved(const ObjectKey*, GameObjNotifier*, const ObjectKey*, GameObjNotifier*) {}
 
-void CustomDialogBox::Virtual25(int, int) {}
+void CustomDialogBox::OnObjectUpdated(const ObjectKey*, GameObjNotifier*) {}
 
 ObjectKey CustomDialogBox::GetKeyAt(int, int) {
     ObjectKey none;

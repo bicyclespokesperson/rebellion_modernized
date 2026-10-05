@@ -5,12 +5,12 @@
 ObjectListItem::ObjectListItem(uint32_t id, const ObjectKey* key) : CoolListItem(id) {
     m_key = *key;
     m_visible = 1;
-    m_unk70 = 0;
+    m_markerImage = nullptr;
 }
 
 ObjectListItem::ObjectListItem(const ObjectKey* key) : CoolListItem(key->m_value & 0xffffff) {
     m_key = *key;
-    m_unk70 = 0;
+    m_markerImage = nullptr;
     m_visible = 1;
 }
 

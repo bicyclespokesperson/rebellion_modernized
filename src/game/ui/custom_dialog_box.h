@@ -11,6 +11,7 @@
 class CoolLabel;
 class EventKindSet;
 class GameObj;
+class GameObjNotifier;
 class CoolStringField;
 class DibBitmap;
 
@@ -77,9 +78,13 @@ public:
     virtual void Virtual08(int a, int b, int c) override;  // slot 8, 0x4ac730
 
     virtual void GetSelection(ObjectKeyValueSet* out, CoolWindow* source);  // slot 22, 0x461740 (shared): nothing
-    virtual void Virtual23(int a, int b);                                   // slot 23, 0x461740
-    virtual void Virtual24(int a, int b, int c, int d);                     // slot 24, 0x461730 (shared): nothing
-    virtual void Virtual25(int a, int b);                                   // slot 25, 0x461740
+    // `object` was added to a shown object (an object of the window's keys): slot 23, 0x461740 (shared): nothing.
+    virtual void OnChildAdded(const ObjectKey* key, GameObjNotifier* object);
+    // `object` moved to `otherObject` (slot 24, 0x461730, shared: nothing).
+    virtual void OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
+                              GameObjNotifier* otherObject);
+    // `object` changed (slot 25, 0x461740, shared: nothing).
+    virtual void OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object);
     // The object at (x, y): none (the unset key) here.
     virtual ObjectKey GetKeyAt(int x, int y);                              // slot 26, 0x4ac4b0
     virtual void Virtual27(int a);                                          // slot 27, 0x45d3f0 (shared): nothing

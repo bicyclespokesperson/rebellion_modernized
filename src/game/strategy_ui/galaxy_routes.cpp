@@ -388,7 +388,7 @@ void GalaxyWindow::BroadcastObjectChanged(const ObjectKey* key, GameObjNotifier*
         CustomDialogBox* window = static_cast<CustomDialogBox*>(
             m_children.FindById(static_cast<IdNode*>(openWindow)->m_id));
         if (window && window->m_objects.Find(&parentKey)) {
-            window->Virtual23(reinterpret_cast<int>(key), reinterpret_cast<int>(object));
+            window->OnChildAdded(key, object);
             if (FindMinimizedSlot(window->m_childId)) UpdateMinimizedIcon(window);
         }
     }
@@ -404,8 +404,7 @@ void GalaxyWindow::BroadcastObjectMoved(const ObjectKey* key, GameObjNotifier* o
             m_children.FindById(static_cast<IdNode*>(openWindow)->m_id));
         if (!window) continue;
         if (window->m_objects.Find(key) || (otherKey && window->m_objects.Find(otherKey))) {
-            window->Virtual24(reinterpret_cast<int>(key), reinterpret_cast<int>(object),
-                              reinterpret_cast<int>(otherKey), reinterpret_cast<int>(otherObject));
+            window->OnChildMoved(key, object, otherKey, otherObject);
             if (FindMinimizedSlot(window->m_childId)) UpdateMinimizedIcon(window);
         }
     }
@@ -419,7 +418,7 @@ void GalaxyWindow::BroadcastObjectUpdated(const ObjectKey* key, GameObjNotifier*
         CustomDialogBox* window = static_cast<CustomDialogBox*>(
             m_children.FindById(static_cast<IdNode*>(openWindow)->m_id));
         if (window && window->m_objects.Find(key)) {
-            window->Virtual25(reinterpret_cast<int>(key), reinterpret_cast<int>(object));
+            window->OnObjectUpdated(key, object);
             if (FindMinimizedSlot(window->m_childId)) UpdateMinimizedIcon(window);
         }
     }
