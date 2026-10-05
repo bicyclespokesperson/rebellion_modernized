@@ -9,6 +9,7 @@
 
 #include "core/layout.h"
 #include "data/int_pair_node.h"
+#include "gameobj/key_int_set.h"
 #include "gameobj/object_key.h"
 #include "orders/command_decl.h"
 #include "orders/move_orders_decl.h"
@@ -114,16 +115,6 @@ public:
     virtual int Write(ostream* out) override { return OrderBase::Write(out); }  // 0x53dd90
     virtual int GetKind() override;                                             // 0x53ded0
     virtual Command* CreateCommand() override;                                  // 18: 0x53dee0
-};
-
-// 0x53df50, VT 0x661a60: a set of key -> int (IntPairNode) entries.
-class ObjectKeyIntSet : public ObjectKeySet {
-public:
-    ObjectKeyIntSet();                              // 0x53df50
-    ObjectKeyIntSet(const ObjectKeyIntSet& other);  // 0x53dfa0
-    virtual ~ObjectKeyIntSet();                     // 0x53df90, scalar deleting 0x53df70
-    virtual ObjectKeyNode* NewNode() override;      // 0x53dfc0
-    int AddPair(const ObjectKey& key, const int& value);  // 0x53e020
 };
 
 void* CreateMoveOrder();            // 0x53cec0, factory of kind 0x201
