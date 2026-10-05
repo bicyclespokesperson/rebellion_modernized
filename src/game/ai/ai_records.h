@@ -46,10 +46,11 @@ public:
     AiSystemEval();                                     // 0x433a60
     AiSystemEval(int view, System* system);             // 0x433b10
     virtual ~AiSystemEval();                            // 0: 0x433af0 (deleting), 0x433be0
-    virtual ObjectKeyNode* Clone() override;            // 1: 0x4ecda0 (shared with ObjectKeyNode)
+    // slot 1 Clone is ObjectKeyNode::Clone (0x4ecda0)
+    virtual void Load(istream* in) override;            // 2: 0x433c60
     virtual void Save(ostream* out) override;           // 4: 0x433d10
 
-    void MarkChanged();                  // 0x433e30: m_dirty = 1 and the sector's eval is dirty too
+    void MarkChanged();             // 0x433e30: m_dirty = 1 and the sector's eval is dirty too
     void MarkDirty();                    // 0x433e00: m_dirty = 1 only
     void NoteCombat();                   // 0x433e10: m_combatDay = today, then MarkChanged
     void NoteTouched();                  // 0x433dc0: m_touchedDay = today, then MarkChanged
@@ -67,6 +68,8 @@ public:
     class AiSectorEval* m_sector;  // +0x3c the sector's record
     AiClassTable* m_classes;   // +0x40
     int m_touchedDay;          // +0x44
+    int& Stat(int offset) { return m_stat[(offset - 0x48) / 4]; }
+
     int m_stat[kStatCount];    // +0x48
 };
 
@@ -80,7 +83,7 @@ public:
     AiSectorEval();                          // 0x431270
     explicit AiSectorEval(int view);         // 0x431330
     virtual ~AiSectorEval();                 // 0: 0x431310 (deleting), 0x4313c0
-    virtual ObjectKeyNode* Clone() override;  // 1: 0x4ecda0
+    // slot 1 Clone is ObjectKeyNode::Clone (0x4ecda0)
     virtual void Save(ostream* out) override; // 4: 0x431680
 
     void Attach(Sector* sector, AiSystemEvalSet* systems);  // 0x431450: key, position and the system evals of the sector
@@ -93,7 +96,17 @@ public:
     void MarkDirty();                   // 0x4321d0
     void Refresh();                     // 0x4321e0
     void SetSystem(uint16_t index, const ObjectKey* key, AiSystemEvalSet* systems);  // 0x432310
-    void Accumulate(int* stats, uint32_t* flags28, uint32_t* flags30, uint32_t* flags2c);  // 0x432350
+    // The systems of the sector whose flags contain all the require masks and none of the forbid masks (flags28, flags2c,
+    // flags30 order), as a ranked list of their keys.
+    AiRankedList* RankSystemsByStat(uint32_t requireA, uint32_t requireB, uint32_t requireC, uint32_t forbidA,
+                                    uint32_t forbidB, uint32_t forbidC, uint32_t statIndex, int descending);  // 0x431830
+    AiRankedList* RankSystemsByAge(uint32_t requireA, uint32_t requireB, uint32_t requireC, uint32_t forbidA,
+                                   uint32_t forbidB, uint32_t forbidC, int descending);  // 0x431a20
+    AiRankedList* RankSystemsByDistance(const ObjectKey* target, uint32_t requireA, uint32_t requireB, uint32_t requireC,
+                                        uint32_t forbidA, uint32_t forbidB, uint32_t forbidC, int descending);  // 0x431c00
+    AiRankedList* RankSystemsRandomly(uint32_t requireA, uint32_t requireB, uint32_t requireC, uint32_t forbidA,
+                                      uint32_t forbidB, uint32_t forbidC, int descending);  // 0x431f40
+    void Accumulate(const int* systemStats, const int* flags28, const int* flags30, const int* flags2c);  // 0x432350
 
     int& Stat(int offset) { return m_stat[(offset - 0x70) / 4]; }
 
@@ -123,7 +136,7 @@ public:
     AiShipRecord(GameObjNotifier* ship, int view, AiFleetEvalSet* fleets, AiClassTable* classes,
                  AiSideController* owner);                      // 0x484230
     virtual ~AiShipRecord();                                    // 0: 0x484210 (deleting), 0x484370
-    virtual ObjectKeyNode* Clone() override;                    // 1: 0x4ecda0
+    // slot 1 Clone is ObjectKeyNode::Clone (0x4ecda0)
     virtual void Save(ostream* out) override;                   // 4: 0x484490
 
     void ReadRecord(istream* in, AiFleetEvalSet* fleets, AiClassTable* classes, AiSideController* owner);  // 0x4843f0
@@ -143,6 +156,8 @@ public:
     AiFleetEvalSet* m_fleets;    // +0x38
     AiClassTable* m_classes;     // +0x3c
     AiSideController* m_owner;   // +0x40
+    int& Stat(int offset) { return m_stat[(offset - 0x44) / 4]; }
+
     int m_stat[kStatCount];      // +0x44
 };
 
@@ -155,7 +170,7 @@ public:
     AiFleetEval();                                                       // 0x432d80
     AiFleetEval(const int* view, GameObjNotifier* fleet, AiShipRecordSet* ships, AiSideController* owner);  // 0x432e40
     virtual ~AiFleetEval();                                              // 0: 0x432e20 (deleting), 0x432f40
-    virtual ObjectKeyNode* Clone() override;                             // 1: 0x4ecda0
+    // slot 1 Clone is ObjectKeyNode::Clone (0x4ecda0)
     virtual void Save(ostream* out) override;                            // 4: 0x433150
 
     void ReadRecord(istream* in, AiShipRecordSet* ships, AiSideController* owner);  // 0x432fd0
@@ -166,7 +181,7 @@ public:
     void NoteCombat();                      // 0x4335e0
     void MarkDirty();                       // 0x433600
     int Refresh();                          // 0x433620
-    void AddShipStats(int* stats, uint32_t* flags);  // 0x433780
+    void AddShipStats(const int* stats, const int* flags);  // 0x433780
 
     int m_dirty;                 // +0x1c
     int m_view;                  // +0x20
@@ -178,8 +193,10 @@ public:
     PersistentInt m_flags;       // +0x38
     int m_combatDay;             // +0x3c
     AiShipRecordSet* m_ships;    // +0x40
-    AiShipRecord* m_cursor;      // +0x44
+    ObjectKeyNode* m_cursor;     // +0x44 the ship key being refreshed
     ObjectKeySet m_shipKeys;     // +0x48
+    int& Stat(int offset) { return m_stat[(offset - 0x50) / 4]; }
+
     int m_stat[kStatCount];      // +0x50
     AiSideController* m_owner;   // +0xc8
 };
