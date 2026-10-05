@@ -2,6 +2,7 @@
 
 #include <new>
 
+#include "ai/ai_player.h"
 #include "core/checked_new.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
@@ -20,7 +21,7 @@ constexpr int kAiKind = 3;
 PlayerController* newOpponent(int opponentType, int side) {
     if (opponentType == 1) {
         void* memory = ::operator new(sizeof(AiPlayer));
-        return memory ? FUN_004857a0(memory, side) : nullptr;
+        return memory ? new (memory) AiPlayer(side) : nullptr;
     }
     void* memory = ::operator new(sizeof(RemotePlayer));
     return memory ? FUN_00484e70(memory, side) : nullptr;
@@ -165,7 +166,7 @@ int GameSession::CreateController(int kind, int slot) {
     }
     if (kind == kAiKind) {
         AiPlayer* ai = nullptr;
-        if (void* memory = ::operator new(sizeof(AiPlayer))) ai = FUN_004856f0(memory);
+        if (void* memory = ::operator new(sizeof(AiPlayer))) ai = new (memory) AiPlayer();
         m_controllers[slot] = ai;
         return 1;
     }

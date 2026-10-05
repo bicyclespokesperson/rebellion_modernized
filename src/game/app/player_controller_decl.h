@@ -15,7 +15,7 @@
 //
 //   PlayerController   abstract base, VT 0x65aef0 (0x50 bytes, 96 virtual slots)
 //     HumanPlayer      0xc4 bytes, VT 0x65ad70, ctor 0x486120 / 0x4861b0(side)
-//     AiPlayer         0x42c bytes, VT 0x65abf0, ctor 0x4856f0 / 0x4857a0(side)
+//     AiPlayer         0x42c bytes, VT 0x65abf0, see ai/ai_player.h
 //     RemotePlayer     0x60 bytes, VT 0x65aa70, ctor 0x484df0 / 0x484e70(side)
 //
 // A GameSession has two controllers, one per side (side 1 = Alliance, 2 = Empire); the "vote" fields are the
@@ -134,9 +134,9 @@ public:
     virtual void Virtual56() {}
     virtual void Virtual57() {}
     virtual void Virtual58(const ObjectKey* key, int arg) {}
-    virtual void Virtual59() {}
-    virtual void Virtual60() {}
-    virtual void Virtual61() {}
+    virtual void Virtual59(int a, int b) {}
+    virtual void Virtual60(int a, int b) {}
+    virtual void Virtual61(int a, int b) {}
     virtual void Virtual62(const ObjectKey* key, int redraw) {}
     virtual void Virtual63(const ObjectKey* key, int redraw) {}
     virtual void Virtual64() {}
@@ -149,12 +149,12 @@ public:
     virtual void Virtual71(const ObjectKey* key, int arg) {}
     virtual void Virtual72(const ObjectKey* key, int arg) {}
     virtual void Virtual73(const ObjectKey* key, int arg) {}
-    virtual void Virtual74() {}
-    virtual void Virtual75() {}
-    virtual void Virtual76() {}
-    virtual void Virtual77() {}
-    virtual void Virtual78() {}
-    virtual void Virtual79() {}
+    virtual void Virtual74(const ObjectKey* key, int arg) {}
+    virtual void Virtual75(const ObjectKey* key, int arg) {}
+    virtual void Virtual76(const ObjectKey* key, int arg, const ObjectKey* system) {}
+    virtual void Virtual77(const ObjectKey* key, int arg) {}
+    virtual void Virtual78(const ObjectKey* key, int arg) {}
+    virtual void Virtual79(const ObjectKey* key, int arg) {}
     virtual void Virtual80(const ObjectKey* key, int arg) {}
     virtual void Virtual81(const ObjectKey* key, const ObjectKey* oldKey, const ObjectKey* newKey) {}
     virtual void Virtual82(const ObjectKey* key) {}
@@ -167,7 +167,7 @@ public:
     virtual void Virtual89(const ObjectKey* key, int arg) {}
     virtual void Virtual90(const ObjectKey* key) {}
     virtual void Virtual91(const ObjectKey* key, const ObjectKey* newParent) {}
-    virtual void Virtual92() {}
+    virtual void Virtual92(int a, const ObjectKey* key) {}
     virtual void Virtual93(unsigned target) {}
     virtual void Virtual94(int side) {}
     virtual void Virtual95();
@@ -182,11 +182,6 @@ public:
     int m_voteId;            // +0x44
     unsigned m_syncTarget;   // +0x48 non-zero while waiting for the other side to reach this sync point
     int m_unk4c;             // +0x4c
-};
-
-class AiPlayer : public PlayerController {
-public:
-    uint8_t m_unk50[0x42c - 0x50];  // +0x50
 };
 
 class RemotePlayer : public PlayerController {
@@ -212,13 +207,10 @@ REB_ASSERT_OFFSET(PlayerController, m_voteTime, 0x3c);
 REB_ASSERT_OFFSET(PlayerController, m_voteKey, 0x40);
 REB_ASSERT_OFFSET(PlayerController, m_syncTarget, 0x48);
 REB_ASSERT_OFFSET(PlayerController, m_unk4c, 0x4c);
-REB_ASSERT_SIZE(AiPlayer, 0x42c);
 REB_ASSERT_SIZE(RemotePlayer, 0x60);
 #pragma clang diagnostic pop
 
 // ---- constructors (the original allocates with operator new first; one variant takes the side) ----------------
-AiPlayer* __thiscall FUN_004856f0(void* memory);
-AiPlayer* __thiscall FUN_004857a0(void* memory, int side);
 RemotePlayer* __thiscall FUN_00484df0(void* memory);
 RemotePlayer* __thiscall FUN_00484e70(void* memory, int side);
 
