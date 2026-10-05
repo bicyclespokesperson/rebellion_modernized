@@ -8,6 +8,7 @@
 #include "platform/win32.h"
 #include "ui/cool_drag_list.h"
 #include "ui/cool_label.h"
+#include "strategy_ui/panel_drag_button.h"
 #include "ui/cool_timer.h"
 #include "ui/game_window_object.h"
 
@@ -126,9 +127,9 @@ public:
     void SetAlternateDisplayMode(uint32_t flags);      // 0x425c90
     // Remembers the movie record and posts kGalaxyPlayMovie for it.
     void SetPendingMovie(LPARAM movie);                 // 0x425ce0
-    // Switches the Galactic Information Display to `mode` (0x80: off); `keepSelection` (modes 0x92/0x93 only) keeps
-    // the selected ids.
-    void SetDisplayMode(int mode, int keepSelection);  // 0x425d00
+    // Switches the Galactic Information Display to `mode` (0x80: off); `selection` (modes 0x92/0x93 only; the ids the
+    // display was showing) becomes the selected ids.
+    void SetDisplayMode(int mode, IdAvlTree* selection);  // 0x425d00
     // Opens (or, for mode 0x80, hides) the GID legend panel for `mode`.
     void ShowDisplayLegend(int mode);                   // 0x426d00
     // Icon id for a value against thresholds: m_gidIconIds[kind - 1][...].
@@ -148,6 +149,27 @@ public:
     int FindMinimizedSlot(uint32_t childId);            // 0x4291d0
     // Shows `value` in resource counter `counter` (kGalaxyRawMaterials...); `unused` is ignored.
     void SetResourceCounter(int counter, int value, int unused);  // 0x429200
+
+    // ---- window message handlers (parts of WindowProc, 0x422ce0) ----
+    LRESULT OnCreate();                                  // WM_CREATE
+    LRESULT OnPaint();                                   // WM_PAINT
+    LRESULT OnKeyDown(WPARAM key, LPARAM lParam);        // WM_KEYDOWN: F1-F7 shortcuts
+    LRESULT OnShowWindow(WPARAM shown, LPARAM lParam);   // WM_SHOWWINDOW
+    LRESULT OnMouseMove(WPARAM keys, LPARAM position);   // WM_MOUSEMOVE: sector hover
+    LRESULT OnCommandMessage(WPARAM wParam, LPARAM lParam);  // WM_COMMAND: console buttons and child notifications
+    void OnChildDropped(CoolWindow* source, LPARAM cursor);  // a child's selection was dropped at the cursor
+    LRESULT OnMovieDone();                               // kGalaxyMovieDone
+    LRESULT OnLeftButtonUp(WPARAM keys, LPARAM position);   // WM_LBUTTONUP
+    void CompleteTargeting(WPARAM keys, LPARAM position);   // ... in targeting mode
+    LRESULT OnLeftDoubleClick(WPARAM keys, LPARAM position);  // WM_LBUTTONDBLCLK
+    LRESULT OnRightButtonUp(WPARAM keys, LPARAM position);  // WM_RBUTTONUP
+    void OnCloseChild(WPARAM childId);                   // kGalaxyCloseChild
+    void OnActivateChild(WPARAM window);                 // kGalaxyActivateChild
+    LRESULT OnModalRequest(UINT message, WPARAM wParam, LPARAM lParam);  // kGalaxyOpenModal / kGalaxyPlayMovie
+    CoolWindow* CreateModalWindow(WPARAM wParam, LPARAM lParam);
+    void OnAccelerator(WPARAM command);                  // kGalaxyAccelerator
+    void ToggleGidMenu();                                // the GID button
+    void ActivateNextOpenWindow(int backwards);          // accelerators 0xbd3 / 0xbd4
 
     // ---- strategy_window_ext (0x440ea0-0x441a60) ----
     HWND LastChildWindow();                             // 0x440f20: the bottom of the z-order
@@ -252,7 +274,7 @@ public:
     CoolFrameButton* m_messageButtons[9];   // +0x154 message-category buttons (commands 0x13d, 0x13e, 0x13c, 0x13b, 0x137, 0x136, 0x13a, 0x138, 0x139)
     CoolLabel m_resourceLabels[3];       // +0x178 kGalaxyRawMaterials, kGalaxyRefinedMaterials, kGalaxyMaintenance
     CoolLabel m_latencyLabel;            // +0x214 multiplayer only (command-line flag 0x100)
-    CoolGameWindow* m_gidLegendIcon;     // +0x248 owned, the minimised GID legend (0x452ab0, command 0x134)
+    PanelDragButton* m_gidLegendIcon;    // +0x248 owned, the minimised GID legend (0x452ab0, command 0x134)
     CoolListItemList m_sectorItems;      // +0x24c ObjectListItems of the sectors (hover rectangles at +0x40)
     ObjectListItem* m_hoveredSector;     // +0x25c
     CoolLabel m_sectorLabel;             // +0x260 name of m_hoveredSector, drawn in WM_PAINT
