@@ -5,6 +5,9 @@
 #include "events/game_clock_hooks.h"
 #include "events/game_step_driver.h"
 #include "orders/order_list.h"
+#include "app/rebapp_globals.h"
+#include "strategy_ui/galaxy_window.h"
+#include "strategy_ui/manufacture_order_window.h"
 
 // 0x4fd220: queues a notice for the player's manager.
 void AddManagerNotice(void* notice);
@@ -198,17 +201,17 @@ void UiSetHumanUiTarget(int a, int b) {
     if (session) session->SetHumanUiTarget(a, b);
 }
 
-void UiHumanRefreshMenus(int value, int requestUpdate) {
+void UiHumanRefreshMenus(EventKindSet* commands, int requestUpdate) {
     GameSession* session = GetGameSession();
     if (session) {
-        session->HumanRefreshMenus(value);
+        session->HumanRefreshMenus(reinterpret_cast<int>(commands));
         if (requestUpdate) session->HumanRequestUpdate();
     }
 }
 
-void UiHumanRefreshOrderMenus(int value) {
+void UiHumanRefreshOrderMenus(EventKindSet* commands) {
     GameSession* session = GetGameSession();
-    if (session) session->HumanRefreshOrderMenus(value);
+    if (session) session->HumanRefreshOrderMenus(reinterpret_cast<int>(commands));
 }
 
 IdAvlTree* UiGetHumanOrderTree() {
@@ -374,3 +377,248 @@ void UiSetSetupDone() {
 void UiBuildAvailableOrders(int player, ObjectKeyValueSet* selection, EventKindSet* commands) {
     BuildAvailableOrdersViaManager(player, selection, commands);
 }
+
+// ---- Galaxy view ---------------------------------------------------------------------------------------------
+
+namespace {
+constexpr UINT kOpenModalMessage = 0x468;
+constexpr UINT kCommandMessage = WM_COMMAND;
+constexpr uint32_t kSetDisplayModeCommand = 0x140;
+constexpr uint32_t kRefinedMaterialsCounter = 0x14d;
+constexpr uint32_t kRawMaterialsCounter = 0x14c;
+constexpr uint32_t kMaintenanceCounter = 0x14e;
+}  // namespace
+
+void UiOnManagerCharacterChanged(const ObjectKey* manager, const ObjectKey* character) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->OnManagerCharacterChanged(manager, character);
+}
+
+void UiOnManagerStatusTextChanged(const ObjectKey* manager, String* text) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->OnManagerStatusTextChanged(manager, text);
+}
+
+void UiOnManagerProductionChanged(const ObjectKey* manager, int unused) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->OnManagerProductionChanged(manager, unused);
+}
+
+void UiOnManagerProgressChanged(const ObjectKey* manager, int position) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->OnManagerProgressChanged(manager, position);
+}
+
+void UiBroadcastObjectChanged(const ObjectKey* key, GameObjNotifier* object) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->BroadcastObjectChanged(key, object);
+}
+
+void UiBroadcastObjectMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
+                            GameObjNotifier* otherObject) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->BroadcastObjectMoved(key, object, otherKey, otherObject);
+}
+
+void UiBroadcastObjectUpdated(const ObjectKey* key, GameObjNotifier* object) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->BroadcastObjectUpdated(key, object);
+}
+
+void UiSetRefinedMaterials(int value, int unused) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->SetResourceCounter(kRefinedMaterialsCounter, value, unused);
+}
+
+void UiSetRawMaterials(int value, int unused) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->SetResourceCounter(kRawMaterialsCounter, value, unused);
+}
+
+void UiSetMaintenance(int value, int unused) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->SetResourceCounter(kMaintenanceCounter, value, unused);
+}
+
+void UiOnSystemChangedKind1(const ObjectKey* system, int a, int b) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->OnSystemChanged(system, 1, a, b);
+}
+
+void UiOnSystemChangedKind2(const ObjectKey* system, int a, int b) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->OnSystemChanged(system, 2, a, b);
+}
+
+void UiBeginTargeting(void* command) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->BeginTargeting(command);
+}
+
+void UiBeginRename(RenameRequest* request) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->BeginRename(request);
+}
+
+void UiSetDateAndSpeed(int day, int speed) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->SetDateAndSpeed(day, speed, 0);
+}
+
+void UiOpenManufactureWindow(ManufactureOrderBase* order, uint32_t unused) {
+    ManufactureOrderWindow::Open(order, unused);
+}
+
+void UiPlayDroidScript(uint32_t resourceId, uint32_t x, uint32_t y, int alternateSet) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->PlayDroidScript(resourceId, x, y, alternateSet);
+}
+
+void UiPlaySecondDroidScript(uint32_t resourceId, uint32_t x, uint32_t y) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->PlaySecondDroidScript(resourceId, x, y);
+}
+
+void UiOpenEncyclopedia(const ObjectKey* object, const NullableKey* type) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->OpenEncyclopedia(object, type);
+}
+
+int UiIsGalaxyViewShown() {
+    int result = 0;
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) result = galaxy->IsShownAndIdle();
+    return result;
+}
+
+void UiRefreshChildWindows() {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->RefreshChildWindows();
+}
+
+void UiOpenType6Window(LPARAM argument) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->OpenType6Window(argument);
+}
+
+void UiOpenType8Window(LPARAM argument) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->OpenType8Window(argument);
+}
+
+void UiForwardToType6Window(int a, int b) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->ForwardToType6Window(a, b);
+}
+
+void UiPostOpenType0dWindow(uint32_t x, int y) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow())
+        PostMessageA(galaxy->m_hwnd, kOpenModalMessage, 0xd, (y << 16) | (x & 0xffff));
+}
+
+void UiOpenOrderConfirm(LPARAM argument) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->OpenOrderConfirm(argument);
+}
+
+void UiOpenType1cWindow(LPARAM argument) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->OpenType1cWindow(argument);
+}
+
+void UiOpenObjectStatus(const ObjectKey* key) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->OpenObjectStatus(key);
+}
+
+void UiMarkGalaxyViewUnknownAc() {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->m_unknownAc = 1;
+}
+
+void UiSetAlternateDisplayMode(uint32_t flags) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->SetAlternateDisplayMode(flags);
+}
+
+void UiSetPendingMovie(LPARAM movie) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->SetPendingMovie(movie);
+}
+
+void UiRefreshMessageIndex() {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->RefreshMessageIndex();
+}
+
+void UiSetDisplayModeTitled(int mode, LPARAM argument, const ResourceStringId* titleStringId) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->m_titleStringId = *titleStringId;
+    UiSetDisplayMode(mode, argument);
+}
+
+void UiSetDisplayMode(int mode, LPARAM argument) {
+    GalaxyWindow* galaxy = GetGalaxyWindow();
+    SendMessageA(galaxy->m_hwnd, kCommandMessage, (mode << 16) | kSetDisplayModeCommand, argument);
+}
+
+void UiClearButtonHighlights(uint32_t mask) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->ClearButtonHighlights(mask);
+}
+
+void UiSetButtonHighlights(uint32_t mask) {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->SetButtonHighlights(mask);
+}
+
+void UiResumePendingRequest() {
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->ResumePendingRequest();
+}
+
+// ---- Input hooks ---------------------------------------------------------------------------------------------
+
+// 0x43a200: flags the request that Escape (or a click outside the game's windows) was pressed.
+void FUN_0043a200();
+
+extern HHOOK g_uiKeyboardHook;       // 0x6b14ac
+extern HHOOK g_uiMouseHook;          // 0x6b14b0
+extern int g_uiGameInputStarted;     // 0x6b14b4
+extern int g_uiPausePending;         // 0x6b14b8
+extern int g_uiInputActive;          // 0x6b14bc
+
+LRESULT CALLBACK UiKeyboardHook(int code, WPARAM wParam, LPARAM lParam) {
+    const int notStarted = g_uiGameInputStarted == 0;
+    if (code >= 0 && g_uiGameInputStarted == 0 && wParam == VK_ESCAPE && (lParam & 0x80000000)) FUN_0043a200();
+    CallNextHookEx(g_uiKeyboardHook, code, wParam, lParam);
+    return notStarted;
+}
+
+LRESULT CALLBACK UiMouseHook(int code, WPARAM wParam, LPARAM lParam) {
+    bool handled = false;
+    if (code == 0) {
+        switch (wParam) {
+        case WM_LBUTTONDOWN:
+        case WM_RBUTTONDOWN:
+            FUN_0043a200();
+            handled = true;
+            break;
+        case WM_LBUTTONUP:
+        case WM_RBUTTONUP:
+            handled = true;
+            break;
+        default:
+            handled = false;
+        }
+    }
+    if (!handled && CallNextHookEx(g_uiMouseHook, code, wParam, lParam) == 0) return 0;
+    return 1;
+}
+
+void UiInstallInputHooks() {
+    g_uiKeyboardHook = SetWindowsHookExA(WH_KEYBOARD, UiKeyboardHook, nullptr, 0);
+    g_uiMouseHook = SetWindowsHookExA(WH_MOUSE, UiMouseHook, nullptr, 0);
+    g_uiGameInputStarted = 0;
+    g_uiInputActive = 1;
+    if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->m_optionsRequested = 0;
+}
+
+void UiBeginGameInput() {
+    GalaxyWindow* galaxy = GetGalaxyWindow();
+    if (galaxy && g_uiGameInputStarted == 0) {
+        galaxy->StopDroidScripts();
+        g_uiGameInputStarted = 1;
+    }
+    g_uiInputActive = 0;
+    if (g_uiPausePending != 0) {
+        g_uiPausePending = 0;
+        AppPromptPause();
+    }
+}
+
+void UiRemoveInputHooks() {
+    if (g_uiKeyboardHook) {
+        UnhookWindowsHookEx(g_uiKeyboardHook);
+        g_uiKeyboardHook = nullptr;
+    }
+    if (g_uiMouseHook) {
+        UnhookWindowsHookEx(g_uiMouseHook);
+        g_uiMouseHook = nullptr;
+    }
+    g_uiInputActive = 0;
+    if (g_uiPausePending != 0) {
+        g_uiPausePending = 0;
+        AppPromptPause();
+    }
+}
+
+int UiGetInputActive() { return g_uiInputActive; }
+
+void UiSetPausePending(int pending) { g_uiPausePending = pending; }

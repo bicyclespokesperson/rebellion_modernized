@@ -18,6 +18,9 @@ public:
     virtual CoolListItem* Next() override;              // slot 3
     virtual CoolListItem* Previous() override;          // slot 4
 
+    // *out = m_key (0x42d170, shared with every class that keeps a key at +0x68).
+    ObjectKey* GetKey(ObjectKey* out);  // 0x42d170
+
     ObjectKey m_key;  // +0x68
     int m_visible;    // +0x6c 1
     int m_unk70;      // +0x70 0

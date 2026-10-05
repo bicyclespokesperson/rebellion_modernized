@@ -20,6 +20,9 @@ class ObjectListItem;
 class SpriteStage;
 class istream;
 class ostream;
+class GameObjNotifier;
+class RenameRequest;
+class NullableKey;
 
 // Child-window ids of the galaxy view's controls and the WM_COMMAND ids they send.
 enum GalaxyCommand : uint32_t {
@@ -105,7 +108,7 @@ public:
     virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x422ce0
     // Issues command `a` with no selection (game_ui_facade 0x41cdf0).
     virtual void Virtual08(int a, int b, int c) override;  // slot 8, 0x4414a0
-    // Re-synchronises the droid animations' clocks.
+    // Advances the droid animations (the idle slot).
     virtual void Virtual0B() override;                     // slot 11, 0x42d020
     // Saves the display modes and the state of every child window.
     virtual void SaveState(ostream* out);                  // slot 15, 0x440ea0
@@ -156,23 +159,68 @@ public:
     // Builds the sector hot spots (m_sectorItems) of the galaxy map.
     void BuildSectorItems(HMODULE module);              // 0x441520
 
-    // ---- strategy_window_routes (0x429320-0x42dc10, reconstructed by ui-strat-A2) ----
-    // Only the members the core calls are declared so far; A2 adds the rest.
-    void OpenSectorWindow(const ObjectKey* sector);     // 0x429ce0
+    // ---- strategy_window_routes (0x429320-0x42dc10) ----
+    // Starts picking a target for `command` (mode 2, the target cursor, mouse captured).
+    void BeginTargeting(void* command);                  // 0x429320
+    // Starts renaming the first object of `request` in the window (system window or the active child) showing it.
+    void BeginRename(RenameRequest* request);            // 0x429350
+    // Opens the sector or system window that shows `object` and selects it; 1 if a window was found.
+    int OpenWindowForObject(const ObjectKey* object);    // 0x429440
+    // Opens (or returns the open) sector window of the sector `sector`: at most two stand side by side.
+    CoolWindow* OpenSectorWindow(const ObjectKey* sector);  // 0x429ce0
     void OpenEncyclopedia(const ObjectKey* object, const NullableKey* type);  // 0x429f30
     void OpenSystemFinder();                            // 0x42a000
     void OpenFleetFinder();                             // 0x42a0c0
     void OpenPersonnelFinder();                         // 0x42a180
     void OpenMessageIndex(int tab, int kind);           // 0x42a240
+    // Closes the popups, shows the message index (child 0xd) tab refresh of the window's tab control (0x469d20).
+    void RefreshMessageIndex();                         // 0x42a300
+    // Asks for the characters that can take the mission command; opens the selection window (type 0xc) if there are some.
     void IssueTargetedCommand(void* command);           // 0x42a320
     void OpenTroopFinder();                             // 0x42a4d0
+    // Posts kGalaxyOpenModal for window type 0x1c / 0x1a (object status of `key`) / 0x10 (order confirmation) /
+    // 6 (after leaving targeting mode); every one closes the popups first.
+    void OpenType1cWindow(LPARAM argument);             // 0x42a410
+    void OpenObjectStatus(const ObjectKey* key);        // 0x42a440
+    void OpenOrderConfirm(LPARAM argument);             // 0x42a590
+    void OpenType6Window(LPARAM argument);              // 0x42a5c0
+    // Opens the type 8 window (replacing a type 7 one) and focuses it.
+    void OpenType8Window(LPARAM argument);              // 0x42a640
+    void ForwardToType6Window(int a, int b);            // 0x42a700
+    // The next four update the panel of the manufacturing manager's slot in the system window of its system.
+    void OnManagerCharacterChanged(const ObjectKey* manager, const ObjectKey* character);  // 0x42a730
+    void OnManagerStatusTextChanged(const ObjectKey* manager, String* text);              // 0x42a7a0
+    void OnManagerProductionChanged(const ObjectKey* manager, int unused);                // 0x42a810
+    void OnManagerProgressChanged(const ObjectKey* manager, int position);                // 0x42a890
+    // Tell every open window that shows the parent of `object` (key `key`) about a change.
+    void BroadcastObjectChanged(const ObjectKey* key, GameObjNotifier* object);                          // 0x42a900
+    void BroadcastObjectMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey, GameObjNotifier* otherObject);  // 0x42aaf0
+    void BroadcastObjectUpdated(const ObjectKey* key, GameObjNotifier* object);                          // 0x42abd0
     int TrackChildWindow(CoolWindow* window);           // 0x42ac70: adds its id to m_openWindowIds
+    // The system `system` changed (kind 1 or 2): updates its marker and its sector window.
+    void OnSystemChanged(const ObjectKey* system, int kind, int a, int b);  // 0x42ad10
     void CreateDroidAnimations();                       // 0x42adb0
+    void PlayDroidScript(uint32_t resourceId, uint32_t x, uint32_t y, int alternateSet);  // 0x42b1d0
+    void PlaySecondDroidScript(uint32_t resourceId, uint32_t x, uint32_t y);              // 0x42b290
+    // Brings the GID marker of the system `key` (family 0x90) up to date; with `redraw` also its sector's markers.
+    void UpdateSystemMarker(const ObjectKey* key, GameObjNotifier* object, int redraw);  // 0x42b330
+    void RedrawSectorMarkers(GameObjNotifier* sector);  // 0x42cde0
     void ShowSpeedMenu(int x, int y);                   // 0x42d190
     // Shows day `day` (0: unchanged) and speed `speed` (redrawn if changed or `force`).
     void SetDateAndSpeed(int day, int speed, int force);  // 0x42d230
     void EnableControls();                              // 0x42d4d0
     void DisableControls();                             // 0x42d570
+    // Stops the scripts of both droid animations.
+    void StopDroidScripts();                            // 0x42d620
+    // Shows the object menu of kind `kind` (0xdead: the object commands, 0xbeef: the order commands) at (x, y).
+    void ShowObjectMenu(int x, int y, uint32_t kind);   // 0x42d050
+    void ShowLatency();                                 // 0x42d780
+    // The GID marker image of the system `system`, null if it has no marker.
+    DibBitmap* GetMarkerImage(GameObjNotifier* system); // 0x42d860
+    void ClearButtonHighlights(uint32_t mask);          // 0x42d8d0
+    void SetButtonHighlights(uint32_t mask);            // 0x42da10
+    void ResumePendingRequest();                        // 0x42db70
+    int IsShownAndIdle();                               // 0x42d490
 
     // ---- data ----
     int m_side;                          // +0x9c 1 = Alliance, 2 = Empire (the object view of the player)

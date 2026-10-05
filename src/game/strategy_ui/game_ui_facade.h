@@ -10,6 +10,14 @@ class CoolWindow;
 struct GameTime;
 class PlayerMessage;
 class PlayerNotice;
+class ObjectKeyValueSet;
+class EventKindSet;
+class GameObjNotifier;
+class RenameRequest;
+class String;
+class ManufactureOrderBase;
+struct ResourceStringId;
+class NullableKey;
 
 // The game UI facade (0x41cca0-0x41dce0): the global entry points the rest of the game uses to reach the game
 // session (0x435a40: GetGameSession) and the galaxy view (0x422ca0: GetGalaxyWindow). Almost every one of them is
@@ -48,8 +56,8 @@ AvlNode* UiGetFirstMessage();                                // 0x41d0c0
 int UiHumanHasPending();                                     // 0x41d0e0
 int UiNextId();                                              // 0x41d120
 void UiSetHumanUiTarget(int a, int b);                       // 0x41d140
-void UiHumanRefreshMenus(int value, int requestUpdate);      // 0x41d160
-void UiHumanRefreshOrderMenus(int value);                    // 0x41d190
+void UiHumanRefreshMenus(EventKindSet* commands, int requestUpdate);  // 0x41d160 fills `commands`
+void UiHumanRefreshOrderMenus(EventKindSet* commands);       // 0x41d190
 IdAvlTree* UiGetHumanOrderTree();                            // 0x41d1b0
 void UiDeleteHumanMessage(int id);                           // 0x41d1d0
 void UiSetHumanDispatchFlag(int on);                         // 0x41d1f0
@@ -81,8 +89,6 @@ int UiEndPause();                                            // 0x41dbf0
 int UiIsPauseTick();                                         // 0x41dc10 1 without a driver
 int UiGetHold();                                             // 0x41dc30 1 without a driver
 void UiSetSetupDone();                                       // 0x41dc50
-class ObjectKeyValueSet;
-class EventKindSet;
 void UiBuildAvailableOrders(int player, ObjectKeyValueSet* selection, EventKindSet* commands);  // 0x41dcc0
 
 // Loads the sprite DLL of `side` (ALSPRITE.DLL / EMSPRITE.DLL, slot 9) and, with `loadBriefing`, the briefing DLL
@@ -91,3 +97,53 @@ void UiLoadSideSpriteDlls(int side, int loadBriefing);       // 0x41daf0
 void LoadSideSpriteDlls(int side, int loadBriefing);         // 0x42d650
 void UnloadSpriteDll();                                      // 0x42d740
 void UnloadBriefingDll();                                    // 0x42d760
+
+// ---- Galaxy view (GetGalaxyWindow, null outside the strategic game) ---------------------------------------------
+void UiOnManagerCharacterChanged(const ObjectKey* manager, const ObjectKey* character);  // 0x41d430
+void UiOnManagerStatusTextChanged(const ObjectKey* manager, String* text);              // 0x41d450
+void UiOnManagerProductionChanged(const ObjectKey* manager, int unused);                // 0x41d470
+void UiOnManagerProgressChanged(const ObjectKey* manager, int position);                // 0x41d490
+void UiBroadcastObjectChanged(const ObjectKey* key, GameObjNotifier* object);           // 0x41d4b0
+void UiBroadcastObjectMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
+                            GameObjNotifier* otherObject);                              // 0x41d4d0
+void UiBroadcastObjectUpdated(const ObjectKey* key, GameObjNotifier* object);           // 0x41d500
+void UiSetRefinedMaterials(int value, int unused);                                       // 0x41d520
+void UiSetRawMaterials(int value, int unused);                                           // 0x41d540
+void UiSetMaintenance(int value, int unused);                                            // 0x41d560
+void UiOnSystemChangedKind1(const ObjectKey* system, int a, int b);                      // 0x41d580
+void UiOnSystemChangedKind2(const ObjectKey* system, int a, int b);                      // 0x41d5b0
+void UiBeginTargeting(void* command);                                                    // 0x41d5e0
+void UiBeginRename(RenameRequest* request);                                              // 0x41d600
+void UiSetDateAndSpeed(int day, int speed);                                              // 0x41d620
+void UiOpenManufactureWindow(ManufactureOrderBase* order, uint32_t unused);              // 0x41d640
+void UiPlayDroidScript(uint32_t resourceId, uint32_t x, uint32_t y, int alternateSet);   // 0x41d660
+void UiPlaySecondDroidScript(uint32_t resourceId, uint32_t x, uint32_t y);               // 0x41d690
+void UiOpenEncyclopedia(const ObjectKey* object, const NullableKey* type);               // 0x41d6b0
+int UiIsGalaxyViewShown();                                                               // 0x41d6d0
+void UiRefreshChildWindows();                                                            // 0x41d6f0
+void UiOpenType6Window(LPARAM argument);                                                 // 0x41d710
+void UiOpenType8Window(LPARAM argument);                                                 // 0x41d730
+void UiForwardToType6Window(int a, int b);                                               // 0x41d750
+void UiPostOpenType0dWindow(uint32_t x, int y);                                          // 0x41d770
+void UiOpenOrderConfirm(LPARAM argument);                                                // 0x41d7b0
+void UiOpenType1cWindow(LPARAM argument);                                                // 0x41d7d0
+void UiOpenObjectStatus(const ObjectKey* key);                                           // 0x41d7f0
+void UiMarkGalaxyViewUnknownAc();                                                        // 0x41d810
+void UiSetAlternateDisplayMode(uint32_t flags);                                          // 0x41d830
+void UiSetPendingMovie(LPARAM movie);                                                    // 0x41d850
+void UiRefreshMessageIndex();                                                            // 0x41d870
+// Switches the GID to `mode` (the title string of the switch is *titleStringId); BUG(original): crashes without a view.
+void UiSetDisplayModeTitled(int mode, LPARAM argument, const ResourceStringId* titleStringId);  // 0x41d890
+void UiSetDisplayMode(int mode, LPARAM argument);                                        // 0x41d8c0
+void UiClearButtonHighlights(uint32_t mask);                                             // 0x41db20
+void UiSetButtonHighlights(uint32_t mask);                                               // 0x41db40
+void UiResumePendingRequest();                                                           // 0x41db60
+
+// Input hooks of the strategic game (keyboard: Escape release; mouse: swallows clicks).
+LRESULT CALLBACK UiKeyboardHook(int code, WPARAM wParam, LPARAM lParam);  // 0x41d8f0
+LRESULT CALLBACK UiMouseHook(int code, WPARAM wParam, LPARAM lParam);     // 0x41d950
+void UiInstallInputHooks();                                               // 0x41d9d0
+void UiBeginGameInput();                                                  // 0x41da30
+void UiRemoveInputHooks();                                                // 0x41da80
+int UiGetInputActive();                                                   // 0x41dad0
+void UiSetPausePending(int pending);                                      // 0x41dae0
