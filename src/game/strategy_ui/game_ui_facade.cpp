@@ -96,6 +96,11 @@ void UiRequestRedraw(int value) {
     if (session) session->RequestRedraw(value);
 }
 
+void UiRequestRedrawAlt(int value) {
+    GameSession* session = GetGameSession();
+    if (session) session->RequestRedrawAlt(value);
+}
+
 void UiRouteMessage(PlayerMessage* message) {
     GameSession* session = GetGameSession();
     if (session) session->RouteMessage(message);

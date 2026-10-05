@@ -169,7 +169,9 @@ public:
     CoolWindow* CreateModalWindow(WPARAM wParam, LPARAM lParam);
     void OnAccelerator(WPARAM command);                  // kGalaxyAccelerator
     void ToggleGidMenu();                                // the GID button
-    void ActivateNextOpenWindow(int backwards);          // accelerators 0xbd3 / 0xbd4
+    // Accelerators 0xbd3 / 0xbd4: brings the next (previous) open non-sector window of m_openWindowIds after `current`
+    // to the front.
+    void ActivateNextOpenWindow(IdNode* current, bool backwards);
 
     // ---- strategy_window_ext (0x440ea0-0x441a60) ----
     HWND LastChildWindow();                             // 0x440f20: the bottom of the z-order
@@ -297,6 +299,15 @@ public:
     ResourceStringId m_titleStringId;    // +0x494 title of the next GID mode switch (id 0: by mode), then reset
     LPARAM m_pendingMovie;               // +0x498 owned (game_ui_facade 0x41d330 deletes it)
 };
+
+// Stores `value` at +0x30 of `object` (linker-folded setter shared by several classes).
+void SetDword30(void* object, int value);  // 0x441a50
+
+// The picture of an object (key `key`, `object` if already known) for the lists and windows of the strategic game: its
+// bitmap from `module` over a frame, with the badges of its state (enroute, has orders, not completed, captured) when
+// `decorate`; `alternate` selects the highlighted set. Null if the object or its bitmap is missing.
+DibBitmap* CreateObjectPicture(HMODULE module, const ObjectKey* key, GameObjNotifier* object, int alternate,
+                               int decorate);  // 0x42c3b0
 
 // The galaxy view, null outside the strategic game.
 GalaxyWindow* GetGalaxyWindow();  // 0x422ca0

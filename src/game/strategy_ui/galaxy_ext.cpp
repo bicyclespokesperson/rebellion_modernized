@@ -282,3 +282,5 @@ void GalaxyWindow::BuildSectorItems(HMODULE module) {
         sector = static_cast<GameObj*>(sector)->FindNextSibling(&sectors, 1);
     }
 }
+
+void SetDword30(void* object, int value) { *reinterpret_cast<int*>(static_cast<uint8_t*>(object) + 0x30) = value; }

@@ -1,0 +1,22 @@
+# Galactic Information Display in a loaded game (RebelsFastStart, Alliance): opens the menu, a category sub-menu and a
+# display mode, then switches modes through the menu. Runtime ~100 s.
+12 key Escape
+16 key Escape
+20 key Escape
+# Main menu -> Load Game monitor -> row 3 (RebelsFastStart) -> galaxy screen (paused).
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot gid_00_galaxy
+# GID control on the right console -> overlay menu, then the Loyalty category.
+43 move 455 408
+44 move 460 411
+45 click 460 411
+47 shot gid_01_menu
+48 move 430 252
+49 move 435 252
+50 click 435 252
+52 shot gid_02_loyalty_submenu

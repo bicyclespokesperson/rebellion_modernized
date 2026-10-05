@@ -38,6 +38,7 @@ void UiHumanAdvisorNotify(int value);                        // 0x41ce40
 void UiHumanSetVote(int choice, int timed, PlayerMessage* reply);  // 0x41ce60
 void UiHumanConfirmVote(PlayerMessage* reply);               // 0x41ce80
 void UiRequestRedraw(int value);                             // 0x41cea0
+void UiRequestRedrawAlt(int value);                          // 0x41cec0
 void UiRouteMessage(PlayerMessage* message);                 // 0x41cee0
 void UiDeliverQueuedMessage(int id);                         // 0x41cf00
 int UiAdvancePhase();                                        // 0x41cf20

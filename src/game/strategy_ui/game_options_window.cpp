@@ -721,3 +721,5 @@ void GameOptionsWindow::UpdateSlotButtons() {
         }
     }
 }
+
+String SavedGameInfo::GetName() const { return m_name; }
