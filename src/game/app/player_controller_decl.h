@@ -239,7 +239,7 @@ void __thiscall FUN_004888d0(PlayerController* player, unsigned syncTarget);
 void __thiscall FUN_0048aa00(PlayerController* player, int argument);
 
 // ---- non-virtual HumanPlayer methods -------------------------------------------------------------------------
-void __thiscall FUN_00486fb0(HumanPlayer* human, int command, void* a, void* b, int c);
+void __thiscall FUN_00486fb0(HumanPlayer* human, int command, void* a, void* b, const void* c);
 void __thiscall FUN_00487740(HumanPlayer* human, PlayerMessage* message, int flag);
 void __thiscall FUN_00487810(HumanPlayer* human, int value);
 void __thiscall FUN_00487830(HumanPlayer* human, int choice, int timed, PlayerMessage* reply);

@@ -16,6 +16,8 @@ public:
     // Takes the key (record type byte + record id) and the name (the record's resource string id) from `record`.
     // Returns whether the name could be allocated.
     int Load(DatRecord* record);  // 0x58ae90
+    // Constructs a copy of the name in *out (0x439290).
+    String* GetName(String* out);  // 0x439290
 
     int m_nameValid;     // +0x1c, m_name.m_valid at construction time
     NullableKey m_key;   // +0x20

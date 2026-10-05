@@ -11,7 +11,7 @@
 #include "gameobj/game_obj_root.h"
 #include "gameobj/object_lookup.h"
 #include "gfx/dib_bitmap.h"
-#include "strategy_ui/galaxy_window_decl.h"
+#include "strategy_ui/galaxy_window.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
 #include "ui/cool_drag_list.h"

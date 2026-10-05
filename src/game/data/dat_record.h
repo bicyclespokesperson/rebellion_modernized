@@ -27,6 +27,7 @@ public:
     virtual int Checksum(Crc32* crc) = 0;
     virtual int ParseFields(istream* in, int* endOfLine) = 0;
     virtual void WriteName(String* out, int kind) override;
+    String* GetNameCopy(String* out);  // 0x4486d0, constructs a copy of m_name into out
 
     int m_hasData;     // +0x20, uninitialised by the constructor; set to 1 by ParseFields
     uint32_t m_first;  // +0x24

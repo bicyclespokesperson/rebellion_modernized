@@ -64,7 +64,7 @@ public:
     int IsOpponentAI();
 
     // Forwarders to the human controller (no-ops, or 0, when there is none).
-    void HumanCommand(int command, void* a, void* b, int c);
+    void HumanCommand(int command, void* a, void* b, const void* c);
     void HumanReceiveMessage(PlayerMessage* message, int flag);
     void HumanAdvisorNotify(int value);
     void HumanSetVote(int choice, int timed, PlayerMessage* reply);

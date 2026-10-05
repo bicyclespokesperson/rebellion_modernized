@@ -180,6 +180,10 @@ public:
     int GetRdOrder(int kind, int* out);     // 0x52eac0
     int GetRdDone(int kind, int* out);      // 0x52eb10
 
+    // Copies of the pair properties (the galaxy view's top bar reads them).
+    IntPair* GetMineStateCopy(IntPair* out);      // 0x4292e0
+    IntPair* GetRefineryStateCopy(IntPair* out);  // 0x429300
+
     // ---- setters (master view only) ----
     int SetMaintState(const IntPair* value, NotifyContext* ctx);  // 0x52ec90
     int SetMineState(const IntPair* value, NotifyContext* ctx);   // 0x52ed50
