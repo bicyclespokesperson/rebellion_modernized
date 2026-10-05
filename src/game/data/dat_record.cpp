@@ -1,6 +1,7 @@
 #include "data/dat_record.h"
 
 #include <cstring>
+#include <new>
 
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
@@ -54,6 +55,11 @@ void DatRecord::WriteName(String* out, int kind) {
 // The vtable slot at +0x1c is entered with `this` pointing at the ObjectBase subobject.
 void __thiscall AppendRecordName(ObjectBase* source, String* out, int kind) {
     static_cast<DatRecord*>(source)->DatRecord::WriteName(out, kind);
+}
+
+String* DatRecord::GetNameCopy(String* out) {
+    new (out) String(m_name);
+    return out;
 }
 
 int DatRecord::Parse(istream* in) {

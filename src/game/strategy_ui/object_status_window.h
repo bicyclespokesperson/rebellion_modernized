@@ -5,6 +5,7 @@
 #include "core/game_string.h"
 #include "core/layout.h"
 #include "gameobj/object_key.h"
+#include "gameobj/status_code.h"
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
 #include "ui/cool_label.h"
@@ -34,10 +35,15 @@ public:
     virtual void DrawOverlay(HDC dc) override;              // slot 17, 0x444370: the title and the name
     virtual void OnCommand(int a, int b, int c) override;   // slot 18, 0x4443a0
 
+    // Replaces m_items by a new, empty list sorted by id and gives it to m_list.
+    void ReplaceItemList();                                                                  // part of 0x443130
+    // The window of a side without an object: its backdrop's page (FillAlliancePage / FillEmpirePage).
+    void ShowSidePage(HMODULE module, DibBitmap** picture);                                  // part of 0x443130
+
     // Name label (m_nameLabel) of the object, or "" / the side's name strings without one. The three arguments
     // are ignored by the original.
     void AddNameRow(int unusedRow, CoolListItemList* labels, CoolListItemList* values);       // 0x44a210
-    // "Attached:" and the name of the parent object on rows `row` and row + 1 (the resource strings without the
+    // "Attached:" and the name of the parent object, each as row `row` of its list (the resource strings without the
     // version-check result).
     void AddAttachedRows(int row, CoolListItemList* labels, CoolListItemList* values);        // 0x44a2e0
     // "Status:" and the object's state (strings 0x28744 busy, 0x28763, 0x28757).
