@@ -253,8 +253,8 @@ void AiSectorEval::MarkDirty() {
     m_owner->MarkDirty();
 }
 
-void AiSectorEval::Refresh() {
-    if (m_dirty == 0) return;
+int AiSectorEval::Refresh() {
+    if (m_dirty == 0) return 0;
     m_dirty = 0;
     m_flags24.m_value = 0;
     m_flags28.m_value &= 0x30000000;
@@ -278,9 +278,9 @@ void AiSectorEval::Refresh() {
         if (m_x38 == 0) {
             Stat(0x18c) = -1;
             m_flags2c.m_value |= 0x10000;
-            return;
         }
     }
+    return 1;
 }
 
 void AiSectorEval::SetSystem(uint16_t index, const ObjectKey* key, AiSystemEvalSet* systems) {

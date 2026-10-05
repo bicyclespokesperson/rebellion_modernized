@@ -11,6 +11,8 @@
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
 
+class AiAgentSimple;
+
 // The strategic model of the computer player of one side (0x4178f0-0x41be00, 0x394 bytes, no vtable). An AiPlayer embeds it
 // at +0x84. It owns one set of records per kind of game object (systems, sectors, ships, fleets, characters), the planners
 // and agents that carry out missions, and the statistics derived from them; the AI's planning code queries the sets through
@@ -90,25 +92,30 @@ public:
                                    int descending);  // 0x41ac80
     AiRankedList* RankFleetsByTarget(int x30, uint32_t requireFlags, uint32_t forbidFlags, uint32_t statIndex,
                                      int descending);  // 0x41acd0
-    AiRankedList* RankFleetsByTargetAndSectorDistance(const ObjectKey* sector, int x30, uint32_t requireFlags,
+    AiRankedList* RankFleetsByTargetAndSystemDistance(const ObjectKey* system, int x30, uint32_t requireFlags,
                                                       uint32_t forbidFlags, int descending);  // 0x41ae20
     AiRankedList* RankCharacters(uint32_t requireFlags, uint32_t requireCaps, uint32_t forbidFlags, uint32_t forbidCaps,
                                  uint32_t valueIndex, int minValue, int maxValue, int descending);  // 0x41b0d0
     void MarkFleetSystemChanged(const ObjectKey* fleetKey);  // 0x41b110
     int ChooseClass(ObjectKey* out, int recordType, uint32_t requiredFlags, int mode, int descending);  // 0x41b230
     AiRankedList* RankClasses(int recordType, uint32_t requiredFlags, uint32_t valueMask, int descending);  // 0x41b270
-    ObjectKey* FindNearestSystemWithFleets(ObjectKey* out, const ObjectKey* from, uint32_t a, uint32_t b, uint32_t c,
-                                           uint32_t d, uint32_t e, uint32_t f);  // 0x41b2b0
+    // The system (key in *out, unset if none) that RankSystemsOfSectorRandomly picks in the sector nearest to `fromSector`
+    // that has a system matching the masks.
+    ObjectKey* FindNearestSystemWithFleets(ObjectKey* out, const ObjectKey* fromSector, uint32_t requireA, uint32_t requireB,
+                                           uint32_t requireC, uint32_t forbidA, uint32_t forbidB, uint32_t forbidC);  // 0x41b2b0
     void RetirePlanner(uint32_t id);        // 0x41b530
     void CountPlanner(AiMissionPlanner* planner);    // 0x41b570
     void UncountPlanner(AiMissionPlanner* planner);  // 0x41b5a0
-    void CountAgent(AiAgentBase* agent);        // 0x41b5d0
+    void CountAgent(AiAgentSimple* agent);      // 0x41b5d0
     void RetireAgent(uint32_t id);          // 0x41b600
-    void GetPositionOf(int* out, const ObjectKey* key);   // 0x41b640: map position of the system the object is in
+    int* GetPositionOf(int* out, const ObjectKey* key);   // 0x41b640: map position of the system the object is in (0 if none)
     int DistanceSquared(int16_t x1, int16_t y1, int16_t x2, int16_t y2);  // 0x41b7b0
-    void AccumulateSystem(AiSystemEval* eval, uint32_t* flags24, uint32_t* flags28, uint32_t* flags2c);  // 0x41b7e0
-    void AccumulateCharacter(const ObjectKey* key, AiCharacterRecord* record, uint32_t* flags);  // 0x41ba80
-    void AccumulateFleet(const ObjectKey* key, AiFleetEval* fleet, uint32_t* flags28, uint32_t* flags30);  // 0x41bc10
+    // Add one record's statistics to the totals (Analyze). The key is unused; the stats are the record's m_stat array.
+    void AccumulateSector(const int* stats, const int* flags24, const int* flags2c, const int* flags28,
+                          int x30);  // 0x41b7e0 (x30 unused)
+    void AccumulateFleet(const ObjectKey* key, const int* stats, const int* flags);  // 0x41ba80
+    void AccumulateCharacter(const ObjectKey* key, const int* values, const int* flags,
+                             const int* capabilities);  // 0x41bc10
     void ResetBudget();                     // 0x41bd20
 
     int& Stat(int offset) { return m_stat[(offset - 0x184) / 4]; }

@@ -63,7 +63,7 @@ public:
     virtual int Step(int* done) override;         // 5: 0x4bbb00
     virtual void Virtual08() override;            // 8: 0x5ae1e0 (empty)
     virtual int Virtual09() override;             // 9: 0x6158b0 returns 0
-    virtual void Virtual10() = 0;                 // 10
+    virtual int GetCountSlot() = 0;               // 10: 0 or 1, the index AiSideController::CountAgent counts the agent under
     virtual void ReleaseHook() = 0;               // 11: called when the agent releases its character
     virtual void Virtual12() = 0;                 // 12
     virtual void Prepare() = 0;                   // 13: state 3

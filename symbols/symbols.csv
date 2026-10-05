@@ -245,7 +245,7 @@ address,kind,name,signature,size
 0x0041ab40,func,AiSideController::RankFleetsByX34,,
 0x0041ac80,func,AiSideController::RankShipsOfFleet,,
 0x0041acd0,func,AiSideController::RankFleetsByTarget,,
-0x0041ae20,func,AiSideController::RankFleetsByTargetAndSectorDistance,,
+0x0041ae20,func,AiSideController::RankFleetsByTargetAndSystemDistance,,
 0x0041b0d0,func,AiSideController::RankCharacters,,
 0x0041b110,func,AiSideController::MarkFleetSystemChanged,,
 0x0041b230,func,AiSideController::ChooseClass,,

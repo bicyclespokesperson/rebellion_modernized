@@ -52,3 +52,8 @@ ObjectKey* __thiscall GetAiRecordKey(DatRecord* record, ObjectKey* out);
 ObjectKey* __thiscall GetObjectRecordKey(GameObjNotifier* object, ObjectKey* out);
 // The key of a game object (family from its class, id from the node): 0x4025b0.
 ObjectKey* __thiscall GetObjectKey(GameObjNotifier* object, ObjectKey* out);
+
+class Side;
+class IntPair;
+// A copy of the side's maintenance state pair (+0x58): 0x41bde0.
+IntPair* __thiscall GetSidePairAt58(Side* side, IntPair* out);

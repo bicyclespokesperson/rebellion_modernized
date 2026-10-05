@@ -94,7 +94,7 @@ public:
     int ScoreByAge();                   // 0x4317e0
     ObjectKey* GetSystemKey(ObjectKey* out, uint32_t index);  // 0x432120
     void MarkDirty();                   // 0x4321d0
-    void Refresh();                     // 0x4321e0
+    int Refresh();                      // 0x4321e0: 1 if it was dirty
     void SetSystem(uint16_t index, const ObjectKey* key, AiSystemEvalSet* systems);  // 0x432310
     // The systems of the sector whose flags contain all the require masks and none of the forbid masks (flags28, flags2c,
     // flags30 order), as a ranked list of their keys.

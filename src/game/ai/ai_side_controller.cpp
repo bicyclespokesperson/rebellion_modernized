@@ -1,11 +1,17 @@
 #include "ai/ai_side_controller.h"
 
+#include <algorithm>
+
 #include "ai/ai_common.h"
 #include "core/checked_new.h"
+#include "economy/side.h"
+#include "events/game_clock_hooks.h"
 #include "gameobj/game_obj.h"
+#include "gameobj/game_settings.h"
 #include "gameobj/object_lookup.h"
 
 using ai::InFamilies;
+using ai::KeyInFamilies;
 
 namespace {
 
@@ -400,3 +406,171 @@ void AiSideController::AdvanceBitCursor() {
     m_bitsA = ~m_bitB & m_bitsA;
 }
 
+
+int AiSideController::Step() {
+    switch (m_step) {
+    case 1: {
+        GameSettings settings;
+        m_classes.Build(m_side);
+        m_characters.m_usableCount = m_classes.m_majorCharacters;
+        GetGameSettings(&settings);
+        if (settings.m_field08 == 1) m_flags.m_value |= 1;
+        ResetBudget();
+        Side* side = static_cast<Side*>(GetSideObject(m_side, m_side));
+        if (side) {
+            IntPair maintState;
+            GetSidePairAt58(side, &maintState);
+            NoteValueA(reinterpret_cast<const int*>(&maintState.m_first));
+            NoteValueB(side->m_maintRequired);
+            Stat(0x18c) = 0;
+        }
+        m_step = 2;
+        return 0;
+    }
+    case 2:
+        if (m_systems.BuildStep()) {
+            m_step = 3;
+            return 0;
+        }
+        break;
+    case 3:
+        if (m_sectors.BuildStep(&m_systems, this)) {
+            for (AvlNode* sector = m_sectors.First(); sector; sector = sector->m_successor) Stat(0x18c) += 10;
+            m_step = 4;
+            return 0;
+        }
+        break;
+    case 4:
+        if (m_ships.BuildStep()) {
+            m_step = 5;
+            return 0;
+        }
+        break;
+    case 5:
+        if (m_characters.BuildStep()) {
+            m_step = 6;
+            m_flags.m_value |= kDirty;
+            return 0;
+        }
+        break;
+    case 6:
+        if (Analyze()) return 1;
+        break;
+    default:
+        m_step = 1;
+    }
+    return 0;
+}
+
+int AiSideController::Analyze() {
+    int finishedPass = 0;
+    switch (m_subStep) {
+    case 1: {
+        if (!m_cursor) m_cursor = static_cast<AiSectorEval*>(m_sectors.First());
+        if (m_cursor) {
+            int refreshed = 0;
+            do {
+                if (refreshed) break;
+                refreshed = m_cursor->Refresh();
+                if (refreshed) m_flags.m_value |= 0xa0000000;
+                m_cursor = static_cast<AiSectorEval*>(m_cursor->m_successor);
+            } while (m_cursor);
+            if (m_cursor) return 0;
+        }
+        m_subStep = 5;
+        break;
+    }
+    case 2: {
+        AiFleetEval* fleet = nullptr;
+        if (KeyInFamilies(m_cursorFleetKey, 8, 0x10)) fleet = m_fleets.FindEval(m_cursorFleetKey);
+        if (!fleet) fleet = static_cast<AiFleetEval*>(m_fleets.First());
+        if (fleet) {
+            int refreshed = 0;
+            while (!refreshed) {
+                refreshed = fleet->Refresh();
+                if (refreshed) m_flags.m_value |= 0xc0000000;
+                fleet = static_cast<AiFleetEval*>(fleet->m_successor);
+                if (!fleet) {
+                    m_cursorFleetKey.Reset();
+                    break;
+                }
+                ObjectKey key;
+                m_cursorFleetKey = *fleet->GetKey(&key);
+            }
+            if (fleet) return 0;
+        }
+        m_subStep = 1;
+        break;
+    }
+    default:
+        m_subStep = 4;
+        break;
+    case 4: {
+        AiCharacterRecord* character = nullptr;
+        if (KeyInFamilies(m_cursorCharacterKey, 0x30, 0x40))
+            character = static_cast<AiCharacterRecord*>(m_characters.Find(&m_cursorCharacterKey));
+        if (!character) character = static_cast<AiCharacterRecord*>(m_characters.First());
+        if (character) {
+            int refreshed = 0;
+            while (!refreshed) {
+                refreshed = character->Refresh();
+                if (refreshed) m_flags.m_value |= 0x90000000;
+                character = static_cast<AiCharacterRecord*>(character->m_successor);
+                if (!character) {
+                    m_cursorCharacterKey.Reset();
+                    break;
+                }
+                ObjectKey key;
+                m_cursorCharacterKey = *character->GetKey(&key);
+            }
+            if (character) return 0;
+        }
+        m_subStep = 2;
+        break;
+    }
+    case 5:
+        if (static_cast<uint32_t>(m_flags.m_value) & kDirty) {
+            m_idlePlanners.Clear();
+            m_idleAgents.Clear();
+            if (m_flags.m_value & 0x20000000) {
+                std::fill_n(&Stat(0x1ac), 0x28, 0);
+                m_flags.m_value &= 0xfffffa6f;
+                m_cursor = static_cast<AiSectorEval*>(m_sectors.First());
+                while (m_cursor) {
+                    AiSectorEval* sector = m_cursor;
+                    AccumulateSector(sector->m_stat, &sector->m_flags24.m_value, &sector->m_flags2c.m_value,
+                                     &sector->m_flags28.m_value, sector->m_x30);
+                    m_cursor = static_cast<AiSectorEval*>(m_cursor->m_successor);
+                }
+                if (0 < Stat(0x214)) Stat(0x214) = Stat(0x214) / 5 + 1;
+                if (0 < Stat(0x218)) Stat(0x218) = Stat(0x218) / 6 + 1;
+            }
+            if (m_flags.m_value & 0x40000000) {
+                std::fill_n(&Stat(0x24c), 0x1e, 0);
+                m_flags.m_value &= 0xfffffff3;
+                for (AiFleetEval* fleet = static_cast<AiFleetEval*>(m_fleets.First()); fleet;
+                     fleet = static_cast<AiFleetEval*>(fleet->m_successor)) {
+                    ObjectKey key;
+                    fleet->GetKey(&key);
+                    AccumulateFleet(&key, fleet->m_stat, &fleet->m_flags.m_value);
+                }
+            }
+            if (m_flags.m_value & 0x10000000) {
+                std::fill_n(&Stat(0x2c4), 0x14, 0);
+                m_flags.m_value &= 0xfffffdff;
+                for (AiCharacterRecord* character = static_cast<AiCharacterRecord*>(m_characters.First()); character;
+                     character = static_cast<AiCharacterRecord*>(character->m_successor)) {
+                    ObjectKey key;
+                    character->GetKey(&key);
+                    AccumulateCharacter(&key, character->m_values, &character->m_flags.m_value,
+                                        &character->m_capabilities.m_value);
+                }
+            }
+            m_flags.m_value &= 0xfffffff;
+        }
+        m_subStep = 4;
+        finishedPass = 1;
+        break;
+    }
+    return finishedPass;
+}
