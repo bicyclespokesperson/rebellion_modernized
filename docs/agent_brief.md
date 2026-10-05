@@ -17,6 +17,8 @@ the relevant parts of docs/code_map.md for your module.
 - Names of classes outside your range: the agent owning that address range names them. Ask the owner directly
   (SendMessage) with the exact addresses and your proposed names; meanwhile declare such classes minimally in a
   clearly named `*_decl.h` header that can be dropped at merge.
+- Scratch files: the session scratchpad is shared by all agents — keep yours in a private subdirectory named
+  after your module (e.g. `<scratchpad>/events2/`), never at its root.
 - Do the work yourself: do NOT spawn sub-agents (the account's usage budget allows only 2–3 agents in total).
 - Behaviour must match the original exactly, including quirks; mark original bugs `// BUG(original):`.
 - Verification: every reconstructed function must PASS difftest on at least one capture, or be listed in your
