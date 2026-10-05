@@ -52,7 +52,7 @@ MissionOrderCommand::~MissionOrderCommand() { REB_KEEP_VPTR_STORE(); }
 Command* MissionOrderCommand::Clone() { return NewOrNull<MissionOrderCommand>(*this); }
 
 void MissionOrderCommand::Read(istream* in) {
-    Command::Read(in);
+    ReadCommand(in);
     ReadValue32(in, &m_unk50);
     ReadValue32(in, &m_unk54);
     ReadValue32(in, &m_side);
@@ -63,7 +63,7 @@ void MissionOrderCommand::Read(istream* in) {
 }
 
 void MissionOrderCommand::Write(ostream* out) {
-    Command::Write(out);
+    WriteCommand(out);
     WriteValue32(out, &m_unk50);
     WriteValue32(out, &m_unk54);
     WriteValue32(out, &m_side);
@@ -73,8 +73,8 @@ void MissionOrderCommand::Write(ostream* out) {
     m_characters.Save(out);
 }
 
-int MissionOrderCommand::Checksum(Crc32* crc) {
-    int ok = Command::Checksum(crc);
+void MissionOrderCommand::Checksum(Crc32* crc) {
+    int ok = ChecksumCommand(crc);
     crc->AddInt(m_unk50);
     crc->AddInt(m_unk54);
     crc->AddInt(m_side);
@@ -82,7 +82,7 @@ int MissionOrderCommand::Checksum(Crc32* crc) {
     ok = m_resultKey.Checksum(crc) && ok;
     ok = m_team.Checksum(crc) && ok;
     ok = m_characters.Checksum(crc) && ok;
-    return ok;
+    (void)ok;  // the slot is void in Command; the original's EAX result is not part of the interface
 }
 
 int MissionOrderCommand::CheckEnabled(StatusCode* status) {

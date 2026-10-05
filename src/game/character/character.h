@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 
+#include "character/character_data.h"
 #include "character/role.h"
 #include "core/layout.h"
 #include "gameobj/child_iterator.h"
@@ -30,20 +31,6 @@
 class Crc32;
 class EventKindSet;
 class MajorCharacterSD;
-
-// The data block of Character master views (VT 0x661ac0, 0x38 bytes, ctor 0x540750 -- outside the Character ranges and
-// not reconstructed here; it derives from the pass-through unit data block through the class at 0x583df0). The three
-// stats are raised as events 0x388-0x38a by OnHealingChanged and friends.
-class CharacterData : public UnitObjData {
-public:
-    CharacterData();                  // 0x540750
-
-    TrackedStat m_healingStat;        // +0x18, event 0x388
-    TrackedStat m_forceDiscoveryStat;  // +0x20, event 0x389
-    TrackedStat m_escapeStat;         // +0x28, event 0x38a
-    ObjectKey m_holderKey;            // +0x30, reset whenever the State changes
-    int m_field34;                    // +0x34
-};
 
 class Character : public Role {
 public:
@@ -350,7 +337,6 @@ public:
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CharacterData, 0x38);
 REB_ASSERT_SIZE(Character, 0xb0);
 REB_ASSERT_OFFSET(Character, m_enhancedDiplomacy, 0x7c);
 REB_ASSERT_OFFSET(Character, m_force, 0x8c);

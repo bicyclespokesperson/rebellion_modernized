@@ -200,7 +200,7 @@ int System::Virtual32(const FamilyRange* range, int stateFilter, int* allowed, i
     return 1;
 }
 
-int System::Virtual111(int a, StatusCode* out) {
+int System::Virtual111(const ActivityRequest* request, StatusCode* out) {
     setStatus(out, kStatusCategory, kStatusOk);
     if (statusIsOk(out)) {
         if (m_stateFlags & kDestroyedState) setStatus(out, kStatusCategory, kStatusDestroyed);
@@ -215,22 +215,22 @@ int System::Virtual111(int a, StatusCode* out) {
     return 1;
 }
 
-int System::Virtual112(int a, StatusCode* out) {
+int System::Virtual112(const ActivityRequest* request, StatusCode* out) {
     setStatus(out, kStatusCategory, kStatusOk);
-    const int result = Virtual111(a, out);
+    const int result = Virtual111(request, out);
     if (!result) setStatus(out, kStatusCategory, kStatusOk);
     return result;
 }
 
-int System::Virtual113(int a, StatusCode* out) {
+int System::Virtual113(const ActivityRequest* request, StatusCode* out) {
     setStatus(out, kStatusCategory, kStatusOk);
     if (statusIsOk(out) && (m_stateFlags & kDestroyedState)) setStatus(out, kStatusCategory, kStatusDestroyed);
     return 1;
 }
 
-int System::Virtual114(int a, StatusCode* out) {
+int System::Virtual114(const ActivityRequest* request, StatusCode* out) {
     setStatus(out, kStatusCategory, kStatusOk);
-    const int result = Virtual113(a, out);
+    const int result = Virtual113(request, out);
     if (!result) setStatus(out, kStatusCategory, kStatusOk);
     return result;
 }

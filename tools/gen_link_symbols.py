@@ -232,6 +232,10 @@ def main() -> int:
     args = ap.parse_args()
 
     table, ambiguous = load_csv(args.csv)
+    # aliases.csv: extra names for original addresses (stand-in declarations); they resolve references only and
+    # never produce hooks, so symbols.csv can keep one canonical name per address.
+    alias_path = args.csv.parent / "aliases.csv"
+    aliases, _ = load_csv(alias_path) if alias_path.exists() else ({}, set())
     game_imports = load_game_imports(args.csv.parent / "imports.csv")
     runtime_defined = {s.raw for s in run_nm(args.runtime) if s.defined}
     symbols = [s for s in run_nm(args.game + args.runtime)
@@ -263,6 +267,8 @@ def main() -> int:
         except LookupError as e:
             errors.append(str(e))
             continue
+        if orig is None and not s.defined:
+            orig = resolve(s, aliases, set())
         if orig is None:
             continue
         if not s.defined:

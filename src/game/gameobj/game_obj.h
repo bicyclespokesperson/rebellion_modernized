@@ -45,6 +45,11 @@ struct ActivityRequest {
     ActivityRequest();                             // 0x541e70
     ActivityRequest(const ActivityRequest& other);  // 0x541eb0
 
+    ObjectKey* GetTarget(ObjectKey* out) const;  // 0x562ac0
+    int Read(istream* in);      // 0x541ee0
+    int Write(ostream* out);    // 0x541f20
+    int Checksum(Crc32* crc);   // 0x541f60
+
     int m_side;          // +0x00
     int m_unk04;         // +0x04
     ObjectKey m_target;  // +0x08

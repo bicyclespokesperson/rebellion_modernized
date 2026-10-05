@@ -95,10 +95,10 @@ public:
     virtual int OnExistingChanged(int newValue, NotifyContext* ctx) override;               // 74, 0x5109a0
 
     // ---- new non-property virtuals (slots 111-115; names provisional) ----
-    virtual int Virtual111(int a, StatusCode* out);                                                               // 111, 0x507d00
-    virtual int Virtual112(int a, StatusCode* out);                                                               // 112, 0x507e60
-    virtual int Virtual113(int a, StatusCode* out);                                                               // 113, 0x507f10
-    virtual int Virtual114(int a, StatusCode* out);                                                               // 114, 0x507fc0
+    virtual int Virtual111(const ActivityRequest* request, StatusCode* out);                                                               // 111, 0x507d00
+    virtual int Virtual112(const ActivityRequest* request, StatusCode* out);                                                               // 112, 0x507e60
+    virtual int Virtual113(const ActivityRequest* request, StatusCode* out);                                                               // 113, 0x507f10
+    virtual int Virtual114(const ActivityRequest* request, StatusCode* out);                                                               // 114, 0x507fc0
     virtual int Virtual115(NotifyContext* ctx) = 0;                                                           // 115, pure
 
     // ---- OnXChanged events on the master (slots 116-150; the empty ones are the shared return-1 stubs) ----

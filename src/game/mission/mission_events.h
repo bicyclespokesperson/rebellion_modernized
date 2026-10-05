@@ -29,7 +29,7 @@ public:
     virtual Command* Clone() override;                           // 1, 0x54cf40
     virtual void Read(istream* in) override;                     // 2, 0x54d030
     virtual void Write(ostream* out) override;                   // 3, 0x54d090
-    virtual int Checksum(Crc32* crc) override;                   // 4, 0x54d0f0
+    virtual void Checksum(Crc32* crc) override;                  // 4, 0x54d0f0 (slot is void in Command: callee EAX leaks)
     virtual int CheckEnabled(StatusCode* status) override;       // 6, 0x54d1a0
     virtual int CheckValid(StatusCode* status) override;         // 7, 0x54d280
     virtual int Execute() override;                              // 8, 0x54d360
@@ -53,9 +53,9 @@ public:
     virtual ~MissionActivityCommand();                           // 0x54e0d0 (deleting 0x54e0b0)
 
     virtual Command* Clone() override;                           // 1, 0x54e100
-    virtual void Read(istream* in) override { Command::Read(in); }              // 2, shared 0x5635f0
-    virtual void Write(ostream* out) override { Command::Write(out); }          // 3, shared 0x563600
-    virtual int Checksum(Crc32* crc) override { return Command::Checksum(crc); }  // 4, shared 0x563610
+    virtual void Read(istream* in) override { ReadCommand(in); }                // 2, shared 0x5635f0
+    virtual void Write(ostream* out) override { WriteCommand(out); }            // 3, shared 0x563600
+    virtual void Checksum(Crc32* crc) override { ChecksumCommand(crc); }        // 4, shared 0x563610
     virtual int CheckEnabled(StatusCode* status) override;       // 6, 0x54e170
     virtual int CheckValid(StatusCode* status) override;         // 7, 0x54e240
     virtual int Execute() override;                              // 8, 0x54e310

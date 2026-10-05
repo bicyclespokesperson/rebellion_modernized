@@ -34,7 +34,7 @@ add_custom_command(
           --runtime $<TARGET_OBJECTS:reb_runtime> --game $<TARGET_OBJECTS:reb_game>
   COMMAND llvm-mc-19 -triple=i686-pc-windows-msvc -filetype=obj -o ${REB_GEN}/link_symbols.obj ${REB_GEN}/link_symbols.s
   DEPENDS $<TARGET_OBJECTS:reb_game> $<TARGET_OBJECTS:reb_runtime>
-          ${CMAKE_SOURCE_DIR}/symbols/symbols.csv ${CMAKE_SOURCE_DIR}/tools/gen_link_symbols.py
+          ${CMAKE_SOURCE_DIR}/symbols/symbols.csv ${CMAKE_SOURCE_DIR}/symbols/aliases.csv ${CMAKE_SOURCE_DIR}/tools/gen_link_symbols.py
   COMMAND_EXPAND_LISTS VERBATIM)
 
 add_library(rebhybrid SHARED

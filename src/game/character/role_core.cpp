@@ -1,5 +1,6 @@
 #include <new>
 
+#include "character/character_data.h"
 #include "character/role.h"
 #include "core/vptr_store.h"
 #include "data/probability_table.h"
@@ -10,9 +11,6 @@ extern "C" void __cdecl LAB_00536d60();
 
 extern EventKindSet g_roleEventKinds;  // 0x6b9028
 extern int g_roleEventKindsBuilt;      // 0x6b9030, set by the first BuildEventKinds
-
-// The data block constructor (0x583df0): a UnitObjData subclass without fields of its own.
-GameObjData* __thiscall FUN_00583df0(void* memory);
 
 namespace {
 
@@ -51,9 +49,9 @@ Role::Role()
 Role::~Role() { REB_KEEP_VPTR_STORE(); }
 
 GameObjData* Role::CreateData() {
-    void* memory = operator new(0x18);
+    void* memory = operator new(sizeof(RoleData));
     if (!memory) return nullptr;
-    return FUN_00583df0(memory);
+    return new (memory) RoleData();
 }
 
 // ---- event kinds ---------------------------------------------------------------------------------------------
