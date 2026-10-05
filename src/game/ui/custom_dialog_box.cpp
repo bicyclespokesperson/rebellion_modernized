@@ -197,7 +197,7 @@ ObjectKey CustomDialogBox::GetKeyAt(int, int) {
     return none;
 }
 
-void CustomDialogBox::Virtual27(int) {}
+void CustomDialogBox::ShowObjectPage(const ObjectKey*) {}
 
 ObjectKey CustomDialogBox::GetDropKeyAt(int x, int y) { return GetKeyAt(x, y); }
 

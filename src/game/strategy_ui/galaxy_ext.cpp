@@ -212,7 +212,7 @@ CoolWindow* GalaxyWindow::OpenChildWindow(istream* in, ChildWindowState* state) 
 void GalaxyWindow::Virtual08(int command, int unused1, int unused2) {
     ObjectKey none;
     ObjectKeyValueSet selection;
-    UiHumanCommand(command, &selection, &none, 0);
+    UiHumanCommand(command, &selection, &none, nullptr);
 }
 
 void GalaxyWindow::BuildSectorItems(HMODULE module) {

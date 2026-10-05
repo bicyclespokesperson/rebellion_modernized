@@ -66,9 +66,9 @@ int UiIsOpponentAI() {
     return result;
 }
 
-void UiHumanCommand(int command, void* selection, void* key, int unknown) {
+void UiHumanCommand(int command, void* selection, void* key, const void* argument) {
     GameSession* session = GetGameSession();
-    if (session) session->HumanCommand(command, selection, key, unknown);
+    if (session) session->HumanCommand(command, selection, key, argument);
 }
 
 void UiHumanReceiveMessage(PlayerMessage* message, int flag) {

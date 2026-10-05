@@ -87,7 +87,8 @@ public:
     virtual void OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object);
     // The object at (x, y): none (the unset key) here.
     virtual ObjectKey GetKeyAt(int x, int y);                              // slot 26, 0x4ac4b0
-    virtual void Virtual27(int a);                                          // slot 27, 0x45d3f0 (shared): nothing
+    // Brings the page of the window that shows `key` to the front (slot 27, 0x45d3f0, shared): nothing.
+    virtual void ShowObjectPage(const ObjectKey* key);
     virtual ObjectKey GetDropKeyAt(int x, int y);                          // slot 28, 0x4ac520: GetKeyAt
     virtual int Virtual29();                                                // slot 29, 0x5a5b60 (shared): returns 0
     // Opens an edit field over the name of the object `target` refers to (nothing if the object is unknown).

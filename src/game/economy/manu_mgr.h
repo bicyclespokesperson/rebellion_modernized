@@ -128,6 +128,7 @@ public:
     ObjectKey* GetSeedKey(ObjectKey* out);  // 0x527c00
     // The system this manager works in (the parent), null if detached.
     GameObjNotifier* GetHostSystem();  // 0x52bed0
+    ObjectKey* GetDeploymentKey(ObjectKey* out);  // 0x4591b0, copies m_deploymentKey
     // The product being built (looked up from ProductKey), null if none.
     GameObjNotifier* GetProduct();  // 0x52be30 (0x52bec0 is a jump to it)
     // A facility serves this manager if it builds the same kind of product, is usable and is on the same side.

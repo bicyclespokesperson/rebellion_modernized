@@ -378,7 +378,7 @@ int GameSession::IsOpponentAI() {
 
 // ---- forwarders to the human controller ---------------------------------------------------------------------
 
-void GameSession::HumanCommand(int command, void* a, void* b, int c) {
+void GameSession::HumanCommand(int command, void* a, void* b, const void* c) {
     if (m_human) FUN_00486fb0(m_human, command, a, b, c);
 }
 
