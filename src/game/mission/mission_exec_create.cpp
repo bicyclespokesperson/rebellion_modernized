@@ -31,7 +31,7 @@ int MissionMgr::CreateStoryMissionAtRandom(NotifyContext* ctx) {
     ObjectKey parentKey;
     GameObjNotifier* first = nullptr;
     GameObjNotifier* parent = nullptr;
-    result = FUN_005435f0(this, &first, &parent, &parentKey);
+    result = FindHan(&first, &parent, &parentKey);
     if (!first || !parent) return result;
     Character* story = static_cast<Character*>(first);
     if (parentKey.OrNull() && !(story->m_flagsAc & kCharacterCaptured) && (story->m_stateFlags & 1)) {
@@ -89,7 +89,7 @@ int MissionMgr::CreateMissionType41(int side, ObjectKey* targetKey, ObjectKeyVal
     ObjectKey target(*targetKey);
     StatusCode status(1, -1);
     int result = 0;
-    const int found = FUN_0054bf00(this, team, &origin, &status);
+    const int found = FindCommonOrigin(team, &origin, &status);
     if (status.m_second == static_cast<uint32_t>(-1)) {
         ObjectKeyValueSet decoys;
         ObjectKey missionType = keyOf(kMissionType41);
@@ -107,7 +107,7 @@ int MissionMgr::CreateMissionType41WithLevels(int side, ObjectKey* targetKey, Ob
     levels.m_levels &= 0xffff0000u;
     StatusCode status(1, -1);
     int result = 0;
-    const int found = FUN_0054bf00(this, team, &origin, &status);
+    const int found = FindCommonOrigin(team, &origin, &status);
     if (status.m_second == static_cast<uint32_t>(-1)) {
         ObjectKeyValueSet decoys;
         ObjectKey missionType = keyOf(kMissionType41);
@@ -123,7 +123,7 @@ int MissionMgr::CreateMissionType42(int side, MissionPhaseLevels* levels, Object
     ObjectKey target(*targetKey);
     StatusCode status(1, -1);
     int result = 0;
-    const int found = FUN_0054bf00(this, team, &origin, &status);
+    const int found = FindCommonOrigin(team, &origin, &status);
     if (status.m_second == static_cast<uint32_t>(-1)) {
         ObjectKeyValueSet decoys;
         ObjectKey missionType = keyOf(kMissionType42);
@@ -139,7 +139,7 @@ int MissionMgr::CreateMissionType43(int side, ObjectKey* targetKey, ObjectKeyVal
     ObjectKey target(*targetKey);
     StatusCode status(1, -1);
     int result = 0;
-    const int found = FUN_0054bf00(this, team, &origin, &status);
+    const int found = FindCommonOrigin(team, &origin, &status);
     if (status.m_second == static_cast<uint32_t>(-1)) {
         ObjectKeyValueSet decoys;
         ObjectKey missionType = keyOf(kMissionType43);
@@ -154,7 +154,7 @@ int MissionMgr::CreateMissionType44(int side, ObjectKey* targetKey, ObjectKeyVal
     ObjectKey target(*targetKey);
     StatusCode status(1, -1);
     int result = 0;
-    const int found = FUN_0054bf00(this, team, &origin, &status);
+    const int found = FindCommonOrigin(team, &origin, &status);
     if (status.m_second == static_cast<uint32_t>(-1)) {
         ObjectKeyValueSet decoys;
         ObjectKey missionType = keyOf(kMissionType44);

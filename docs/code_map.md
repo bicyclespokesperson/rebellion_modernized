@@ -125,7 +125,8 @@ The link order (= address order) is roughly:
 - **Mission base:** 0x5208b0, with setters, `Mission*Notif` and member iterators (team/decoy/captured).
 - **Per-type missions:** one .cpp each, from 0x5698c0 to 0x577050 (Subdue, Sabotage, Rescue, Recruit, Recon, Research, Incite, Espionage, Diplomacy, DS Sabotage, Jedi Training, Autorouting/Assassination/Abduction…).
 - **Story characters and missions:** Luke, Leia, Han, Dagobah, Palace, Pickup, Vacation, Bounty.
-- **`MissionMgr` (story manager, type 0xf8):** 0x541fc0–0x54cd80.
+- **`MissionMgr` (story manager, type 0xf8):** 0x541fc0–0x54cd80 (`src/game/story/`). It owns twelve story flags (word at +0x58: Luke Dagobah/Palace, Han captured at the palace, Leia/Chewbacca Palace, Darth pickup, Darth to Luke/Emperor, final battle ready/battle, bounty hunters) and derives them from where the named characters are: Luke 0x32000242, Leia 0x31000241, Han 0x33000243, Chewbacca 0x38000343 (`Character38`), Darth Vader 0x35000281 (`MajorChar35`) and the Emperor 0x34000280 (`MajorChar34`). Pulsing a flag (set then clear) makes its `OnXChanged` create the story mission (Dagobah 0x71, Palace 0x64, Pickup 0x73). It also holds the mission-type check table (+0x6c/+0x70) and the checks and candidate lists of the mission orders 0x240/0x241.
+- **Story missions and characters:** `Luke`/`Leia`/`Han` (0x56f3b0–0x5701d0, 0x572530–0x572c50) are MajorCharacters with a word of story flags at +0xb0. The ranges also hold the family iterators of Research (0x56d1b0) and Incite (0x571c20), which belong to those classes.
 - **Resolution phases:** decoy/foil/traitor/force-detect at 0x587100–0x58adb0.
 - **Mission formulas:** `*MSTB` at 0x55bfd0.
 

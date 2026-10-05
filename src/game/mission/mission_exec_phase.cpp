@@ -104,7 +104,7 @@ int MissionMgr::ApplyMissionOutcomeModifiers(Mission* mission, NotifyContext* ct
         hasForces = forces.HasAny();
     }
     int modifier = g_gnprtbDefault;
-    int result = FUN_00542990(this, linked, hasForces, &modifier) && ok;
+    int result = GetMissionHyperdriveModifier(linked, hasForces, &modifier) && ok;
     MissionCharacterIterator persons(mission);
     for (persons.Begin(); persons.Current(); persons.Advance())
         result = static_cast<Character*>(persons.Current())->SetMissionHyperdriveModifier(modifier, ctx);
@@ -156,7 +156,7 @@ int MissionMgr::OnMissionPhaseStory(Mission* mission, int fromPhase, int toPhase
     FUN_00402d80(mission, &recordKey);
     if (recordKey.m_value == kRecordKeyStoryMission) {
         if (toPhase == kPhaseResolved) {
-            if (mission->GetDataField1c() >= kLevelThreshold) ok = FUN_00543af0(this, 0, ctx) != 0;
+            if (mission->GetDataField1c() >= kLevelThreshold) ok = SetLukeDagobahRequired(0, ctx) != 0;
         } else if (toPhase == kPhaseOutcome) {
             ok = RunStoryPipeline(ctx) != 0;
         }

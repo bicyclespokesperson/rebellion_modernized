@@ -36,7 +36,7 @@ int MissionMgr::OnCharacterEvent(ObjectKey* key, int unused, NotifyContext* ctx)
 int MissionMgr::UpdateMissionsForObject(ObjectKey* key, int unused, ObjectKey* location, int skipMissions,
                                         NotifyContext* ctx) {
     int ok = 1;
-    if (FUN_005438a0(key)) ok = RunStoryPipeline(ctx) != 0;
+    if (IsStoryCharacterKey(key)) ok = RunStoryPipeline(ctx) != 0;
     if (skipMissions != 0) return ok;
     if (isUnitOrSystemFamily(key)) {
         MissionIterator missions(this);
@@ -62,7 +62,7 @@ int MissionMgr::UpdateMissionsForObject(ObjectKey* key, int unused, ObjectKey* l
 int MissionMgr::UpdateMissionsForObjective(ObjectKey* key, int unused, int unused2, int skipMissions,
                                            NotifyContext* ctx) {
     int ok = 1;
-    if (FUN_005438a0(key)) ok = RunStoryPipeline(ctx) != 0;
+    if (IsStoryCharacterKey(key)) ok = RunStoryPipeline(ctx) != 0;
     if (skipMissions == 0 && InFamilies(key, 0x10, 0x40)) {
         MissionIterator missions(this);
         for (missions.Begin(); missions.Current(); missions.Advance()) {
@@ -87,7 +87,7 @@ int MissionMgr::UpdateMissionsForTargetOrObjective(ObjectKey* key, int unused, i
 
 int MissionMgr::RunStoryPipelineForStoryKey(ObjectKey* key, int unused, int unused2, NotifyContext* ctx) {
     int result = 1;
-    if (FUN_005438a0(key)) result = RunStoryPipeline(ctx);
+    if (IsStoryCharacterKey(key)) result = RunStoryPipeline(ctx);
     return result;
 }
 
@@ -171,7 +171,7 @@ int MissionMgr::OnPersonStateChanged(ObjectKey* key, int released, NotifyContext
     int ok = 1;
     if (InFamilies(key, kFamilyPersonBegin, kFamilyPersonEnd)) {
         if (released != 0) ok = ReleasePersonsOfKey(key, ctx) != 0;
-        if (FUN_005438a0(key)) ok = RunStoryPipeline(ctx) && ok;
+        if (IsStoryCharacterKey(key)) ok = RunStoryPipeline(ctx) && ok;
     }
     return ok;
 }
@@ -193,7 +193,7 @@ int MissionMgr::OnPersonRemoved(ObjectKey* key, int unused, NotifyContext* ctx) 
                 }
             }
         }
-        if (FUN_005438a0(key)) ok = RunStoryPipeline(ctx) && ok;
+        if (IsStoryCharacterKey(key)) ok = RunStoryPipeline(ctx) && ok;
     }
     return ok;
 }
@@ -257,7 +257,7 @@ int MissionMgr::ProcessRemoveRequest(ObjectKey* key, int enabled, NotifyContext*
 
 int MissionMgr::RunStoryPipelineForStoryKey2(ObjectKey* key, int unused, NotifyContext* ctx) {
     int ok = 1;
-    if (FUN_005438a0(key)) ok = RunStoryPipeline(ctx) != 0;
+    if (IsStoryCharacterKey(key)) ok = RunStoryPipeline(ctx) != 0;
     return ok;
 }
 
@@ -282,7 +282,7 @@ int MissionMgr::RunMissionPhase(ObjectKey* missionKey, int fromPhase, int toPhas
     return ok;
 }
 
-int MissionMgr::UpdateStoryFlags(NotifyContext* ctx) { return FUN_00543af0(this, 1, ctx) != 0; }
+int MissionMgr::UpdateStoryFlags(NotifyContext* ctx) { return SetLukeDagobahRequired(1, ctx) != 0; }
 
 // ---- OnPersonArrived -------------------------------------------------------------------------------------------
 
@@ -320,7 +320,7 @@ int MissionMgr::OnPersonArrived(ObjectKey* key, int unused, int expectedState, N
         rules = GetGameRootMember_bc();
         ok = rules != nullptr;
     }
-    if (FUN_005438a0(key)) ok = RunStoryPipeline(ctx) && ok;
+    if (IsStoryCharacterKey(key)) ok = RunStoryPipeline(ctx) && ok;
     if (!person || !rules) return ok;
 
     const bool arrived = !(person->m_stateFlags & kStateDestroyed) && person->m_state == expectedState &&

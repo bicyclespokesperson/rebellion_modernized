@@ -1,0 +1,830 @@
+#include "story/story_missions.h"
+
+#include "character/character.h"
+#include "core/checked_new.h"
+#include "core/vptr_store.h"
+#include "gameobj/object_family.h"
+#include "mission/mission_rules.h"
+#include "gameobj/object_key.h"
+#include "story/story_common.h"
+
+extern "C" void __cdecl LAB_0056dcd0();
+extern "C" void __cdecl LAB_0056e9e0();
+extern "C" void __cdecl LAB_00572510();
+extern "C" void __cdecl LAB_005753c0();
+extern "C" void __cdecl LAB_00575fe0();
+
+extern int g_missionPickupEventKindsReady;      // 0x6bb994
+extern EventKindSet g_missionPickupEventKinds;  // 0x6bb998
+extern int g_missionPalaceEventKindsReady;      // 0x6bb9a4
+extern EventKindSet g_missionPalaceEventKinds;  // 0x6bb9a8
+extern int g_missionVacationEventKindsReady;    // 0x6bba48
+extern EventKindSet g_missionVacationEventKinds;  // 0x6bba40
+extern int g_dagobahMissionEventKindsReady;     // 0x6bbab4
+extern EventKindSet g_dagobahMissionEventKinds;  // 0x6bbab8
+extern int g_missionBountyEventKindsReady;      // 0x6bbad4
+extern EventKindSet g_missionBountyEventKinds;  // 0x6bbad8
+
+int FUN_0053e2f0(int threshold);
+int __cdecl FUN_00582cd0(ObjectKey* key, void** any, void** specialForces, void** character);
+ObjectKey* __thiscall FUN_00402e40(DatRecord* self, ObjectKey* out);
+int __thiscall FUN_0055f6c0(GameObjNotifier* manager, int flag, NotifyContext* ctx);
+GameObjNotifier* GetGameRootMember_c0();
+GameObjNotifier* GetMaster_32000242();
+int __cdecl ComputePalaceMissionValue(int espionage, int combat, int* out);
+int __cdecl ComputeDagobahBonusA(int force, int* out);
+int __cdecl ComputeDagobahBonusB(int force, int days, int* out);
+int __thiscall FUN_005349e0(Role* role, ObjectKey* opponent, int skill, NotifyContext* ctx);
+
+namespace {
+
+constexpr uint32_t kFamilyPickup = 0x73;
+constexpr uint32_t kFamilyPalace = 0x64;
+constexpr uint32_t kFamilyVacation = 0x72;
+constexpr uint32_t kFamilyDagobah = 0x71;
+constexpr uint32_t kFamilyBounty = 0x65;
+constexpr uint32_t kFamilyPickupPassenger = 0x35;
+constexpr uint32_t kFamilyVacationTraveller = 0x32;
+constexpr uint32_t kFamilyHan = 0x33;
+constexpr uint32_t kKeyPickupSystem = 0x98000481;
+constexpr uint32_t kKeyVacationSystem = 0x98000442;
+constexpr uint32_t kKeyDagobahSystem = 0x98000441;
+constexpr uint32_t kKeyHan = 0x33000243;
+constexpr uint32_t kKeyLuke = 0x32000242;
+constexpr uint32_t kKeyLeia = 0x31000241;
+constexpr uint32_t kKeyCharacter38 = 0x38000343;
+constexpr uint32_t kKeyBountyHunters = 0x3c000009;
+constexpr uint32_t kIdLuke = 0x242;
+constexpr uint32_t kIdLeia = 0x241;
+constexpr uint32_t kIdCharacter38 = 0x343;
+
+constexpr int kStatusSourceOrder = 0x40;
+constexpr int kReasonDecoy = 8;
+constexpr int kReasonCaptured = 9;
+constexpr int kReasonWrongTraveller = 7;
+constexpr int kReasonWrongPassenger = 0xc;
+constexpr int kReasonWrongStoryCharacter = 10;
+constexpr int kReasonWrongBountyUnit = 0xb;
+constexpr int kReasonPalaceOrigin = 0x15;
+constexpr int kReasonPalaceHan = 0x30;
+constexpr int kReasonPickupTarget = 0x31;
+constexpr int kReasonVacationTarget = 0x2e;
+constexpr int kReasonDagobahTarget = 0x2f;
+constexpr int kReasonBountyHan = 0x30;
+
+constexpr int kTaskStarted = 2;
+constexpr int kTaskSucceeded = 3;
+constexpr int kPhaseTrainingStarted = 8;
+constexpr int kPhaseTrainingEnded = 0xb;
+constexpr int kTrainingLevelNeeded = 8;
+constexpr int kConstantMissionValue = 100;
+
+// The record the order-check callbacks of slot 111 receive, as the story missions read it.
+struct StoryOrderCheck {
+    int m_unk00;                       // +0x00
+    int m_hasTeam;                     // +0x04
+    int m_useKeySets;                  // +0x08: 0 = the three object-reference lists, else the three key sets
+    int m_hasTarget;                   // +0x0c
+    int m_side;                        // +0x10
+    int m_unk14;                       // +0x14
+    ObjectRefList* m_refLists[3];      // +0x18, +0x1c, +0x20
+    ObjectKeySet* m_keySets[3];        // +0x24, +0x28, +0x2c
+    GameObjRoot* m_unk30;              // +0x30
+    GameObjRoot* m_palaceOrigin;       // +0x34, read by the Palace check only
+    GameObjRoot* m_target;             // +0x38
+};
+
+StoryOrderCheck* asStory(MissionOrderCheck* check) { return reinterpret_cast<StoryOrderCheck*>(check); }
+
+bool statusOk(const StatusCode* status) { return status->m_second == static_cast<uint32_t>(story::kStatusOk); }
+
+void reject(StatusCode* status, int* out, int reason) {
+    *status = StatusCode(kStatusSourceOrder, reason);
+    *out = -1;
+}
+
+uint32_t keyOf(GameObjRoot* object) {
+    ObjectKey key;
+    return object->GetKey(&key)->m_value;
+}
+
+void rejectCapturedOrDecoy(Character* member, StatusCode* status, int* out) {
+    if (statusOk(status) && (member->m_flagsAc & 1)) reject(status, out, kReasonCaptured);
+    if (statusOk(status) && (member->m_flags78 & role_flag::kDecoy)) reject(status, out, kReasonDecoy);
+}
+
+// Walks the candidate keys of one team set: every key must satisfy `isAllowed`, name a character that is neither captured
+// nor a decoy.
+template <bool (*IsAllowed)(const ObjectKey&), int Reason>
+int checkMemberKeys(ObjectKeySet* keys, StatusCode* status, int* out) {
+    int result = 1;
+    *status = StatusCode(story::kStatusCategory, story::kStatusOk);
+    *out = 0;
+    for (AvlNode* node = keys->First(); node && result && statusOk(status); node = node->m_successor) {
+        ObjectKey key;
+        static_cast<ObjectKeyNode*>(node)->GetKey(&key);
+        if (!IsAllowed(key)) reject(status, out, Reason);
+        if (statusOk(status)) {
+            ObjectKey lookupKey;
+            static_cast<ObjectKeyNode*>(node)->GetKey(&lookupKey);
+            void* any;
+            void* specialForces;
+            void* character;
+            result = FUN_00582cd0(&lookupKey, &any, &specialForces, &character);
+            if (!result) continue;
+            result = character != nullptr;
+            if (result) rejectCapturedOrDecoy(static_cast<Character*>(character), status, out);
+        }
+    }
+    return result;
+}
+
+template <bool (*IsAllowed)(const ObjectKey&), int Reason>
+int checkMemberRefs(ObjectRefList* refs, StatusCode* status, int* out) {
+    *status = StatusCode(story::kStatusCategory, story::kStatusOk);
+    *out = 0;
+    for (AvlNode* node = refs->First(); node && statusOk(status); node = node->m_successor) {
+        ObjectKey key;
+        static_cast<ObjectRefNode*>(node)->GetKey(&key);
+        if (!IsAllowed(key)) reject(status, out, Reason);
+    }
+    return 1;
+}
+
+// The three candidate sets of a check run in order, each only while the status is still ok.
+template <class Set, int (*Check)(Set*, MissionOrderCheck*, StatusCode*, int*)>
+int checkThreeSets(MissionOrderCheck* check, Set* const (&sets)[3], StatusCode* status, int* out, int result) {
+    if (!result) return result;
+    if (statusOk(status)) result = Check(sets[0], check, status, out);
+    if (!result) return result;
+    if (statusOk(status)) result = Check(sets[1], check, status, out);
+    if (result && statusOk(status)) result = Check(sets[2], check, status, out);
+    return result;
+}
+
+template <int (*CheckRefs)(ObjectRefList*, MissionOrderCheck*, StatusCode*, int*),
+          int (*CheckKeys)(ObjectKeySet*, MissionOrderCheck*, StatusCode*, int*)>
+int checkCandidates(MissionOrderCheck* check, StatusCode* status, int* out, int result) {
+    StoryOrderCheck* fields = asStory(check);
+    if (fields->m_useKeySets == 0) return checkThreeSets<ObjectRefList, CheckRefs>(check, fields->m_refLists, status, out, result);
+    return checkThreeSets<ObjectKeySet, CheckKeys>(check, fields->m_keySets, status, out, result);
+}
+
+bool isPassengerKey(const ObjectKey& key) { return key.Family() == kFamilyPickupPassenger; }
+bool isTravellerKey(const ObjectKey& key) { return key.Family() == kFamilyVacationTraveller; }
+bool isPalaceCharacterKey(const ObjectKey& key) {
+    return key.m_value == kKeyLuke || key.m_value == kKeyLeia || key.m_value == kKeyCharacter38;
+}
+bool isPalaceCharacterId(const ObjectKey& key) {
+    const uint32_t id = key.Id();
+    return id == kIdLuke || id == kIdLeia || id == kIdCharacter38;
+}
+
+// The status record of a target check starts as success.
+void beginCheck(StatusCode* status, int* out) {
+    *status = StatusCode(story::kStatusCategory, story::kStatusOk);
+    *out = 0;
+}
+
+// Slot 159 of Vacation and Dagobah: the mission succeeds as soon as it is told to resolve.
+int succeedMission(Mission* mission, int* out, NotifyContext* ctx) {
+    *out = 1;
+    return mission->SetTaskStatus(kTaskSucceeded, ctx) != 0;
+}
+
+// Slot 160 of Vacation and Dagobah: a mission that has not started yet starts.
+int startMissionIfIdle(Mission* mission, NotifyContext* ctx) {
+    int result = 1;
+    if (mission->m_taskStatus == 0) result = mission->SetTaskStatus(kTaskStarted, ctx);
+    return result;
+}
+
+int constantMissionValue(int* out) {
+    *out = kConstantMissionValue;
+    return 1;
+}
+
+void* asRef(ObjectKey* key) { return key; }
+
+int keyAsArgument(ObjectKey* key) { return static_cast<int>(reinterpret_cast<intptr_t>(asRef(key))); }
+
+}  // namespace
+
+// ---- shared second-level forwarders of the story missions -----------------------------------------------------------
+
+int __thiscall MissionStoryReadForward(Mission* self, istream* in) { return static_cast<MissionRuleBase*>(self)->ReadBody(in); }
+
+int __thiscall MissionStoryWriteForward(Mission* self, ostream* out) {
+    return static_cast<MissionRuleBase*>(self)->WriteBody(out);
+}
+
+int __thiscall MissionStoryApplyAllForward(Mission* self, NotifyContext* ctx) {
+    return static_cast<MissionRuleBase*>(self)->ApplyAllBody(ctx);
+}
+
+int __thiscall MissionStoryChecksumForward(Mission* self, Crc32* crc) { return FUN_00593ad0(self, crc); }
+
+// ---- MissionPickup ----------------------------------------------------------------------------------------------
+
+MissionPickup::MissionPickup() {}
+
+MissionPickup::~MissionPickup() { REB_KEEP_VPTR_STORE(); }
+
+uint32_t MissionPickup::GetFamily() { return kFamilyPickup; }
+
+int MissionPickup::Read(istream* in) { return MissionStoryReadForward(this, in); }
+
+int MissionPickup::Write(ostream* out) { return MissionStoryWriteForward(this, out); }
+
+int MissionPickup::Checksum(Crc32* crc) { return MissionStoryChecksumForward(this, crc); }
+
+int MissionPickup::Validate() { return FUN_00523c60(this); }
+
+int MissionPickup::ApplyAll(NotifyContext* ctx) { return IsSideView() ? MissionStoryApplyAllForward(this, ctx) : 0; }
+
+int MissionPickup::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_005236e0(this, controlKind, ctx); }
+
+int MissionPickup::GetEventKinds(int unused, EventKindSet* out) {
+    return CopyEventKinds(BuildEventKinds, &g_missionPickupEventKinds, out);
+}
+
+int MissionPickup::CheckOrder(int a, int orderKind, StatusCode* out) {
+    return CheckOrderAgainstKinds(BuildEventKinds, &g_missionPickupEventKinds, orderKind, out);
+}
+
+int MissionPickup::GetCheckFunctions(MissionCheckFunctions* out) {
+    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
+    return 1;
+}
+
+GameObj* MissionPickup::CreateViewObject() { return NewOrNull<MissionPickup>(); }
+
+GameObjNotifier* MissionPickup::Create() { return NewOrNull<MissionPickup>(); }
+
+int MissionPickup::Virtual157(GameObj* person, int* out) { return constantMissionValue(out); }
+
+int MissionPickup::Virtual158(NotifyContext* ctx) { return 1; }
+
+int MissionPickup::Virtual160(NotifyContext* ctx) { return MissionStartIfIdle(this, ctx); }
+
+int MissionPickup::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
+    GameObj* objective = nullptr;
+    const int found = GetTargetLocationSystem(&objective);
+    GameObjNotifier* manager = GetGameRootMember_c0();
+    int result = (manager && found) ? 1 : 0;
+    if (!manager || !objective) return result;
+
+    bool ok = FUN_0055f6c0(manager, 1, ctx) && result;
+    CharacterIterator members(objective, 1, ControlSide());
+    for (members.Begin(); members.Current(); members.Advance()) {
+        Character* member = static_cast<Character*>(members.Current());
+        if ((member->m_flags78 & role_flag::kOnMission) || !(member->m_flagsAc & 1)) continue;
+        *out = 1;
+        ObjectKey memberKey;
+        member->GetKey(&memberKey);
+        ok = AddMember(&memberKey, 0, ctx) && ok;
+        ObjectKey homeKey;
+        ObjectKey* home = static_cast<Role*>(person)->GetParentAtMissionCompletionKey(&homeKey);
+        ok = member->SetParentAtMissionCompletionKey(home, ctx) && ok;
+        ok = SetTaskStatus(kTaskSucceeded, ctx) && ok;
+    }
+    return FUN_0055f6c0(manager, 0, ctx) && ok ? 1 : 0;
+}
+
+int MissionPickup::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out) {
+    return checkMemberKeys<isPassengerKey, kReasonWrongPassenger>(keys, status, out);
+}
+
+int MissionPickup::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out) {
+    return checkMemberRefs<isPassengerKey, kReasonWrongPassenger>(refs, status, out);
+}
+
+int MissionPickup::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+    beginCheck(status, out);
+    int result = MissionStoryBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
+    StoryOrderCheck* fields = asStory(check);
+    if (fields->m_hasTeam != 0) {
+        if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) != kKeyPickupSystem)
+            reject(status, out, kReasonPickupTarget);
+        result = checkCandidates<CheckCandidateRefs, CheckCandidateKeys>(check, status, out, result);
+    }
+    return result;
+}
+
+int MissionPickup::BuildEventKinds() {
+    return story::buildKindsOnce(&g_missionPickupEventKindsReady, [] {
+        return MissionStoryBase::InitEventKinds(0, &g_missionPickupEventKinds);
+    });
+}
+
+void ConstructMissionPickupEventKinds() { new (&g_missionPickupEventKinds) EventKindSet(); }
+
+void RegisterMissionPickupEventKindsAtExit() { atexit(LAB_0056dcd0); }
+
+void MissionPickup::InitStatics() {
+    ConstructMissionPickupEventKinds();
+    RegisterMissionPickupEventKindsAtExit();
+}
+
+// ---- MissionPalace ----------------------------------------------------------------------------------------------
+
+MissionPalace::MissionPalace() {}
+
+MissionPalace::~MissionPalace() { REB_KEEP_VPTR_STORE(); }
+
+uint32_t MissionPalace::GetFamily() { return kFamilyPalace; }
+
+int MissionPalace::Read(istream* in) { return MissionStoryReadForward(this, in); }
+
+int MissionPalace::Write(ostream* out) { return MissionStoryWriteForward(this, out); }
+
+int MissionPalace::Checksum(Crc32* crc) { return MissionStoryChecksumForward(this, crc); }
+
+int MissionPalace::Validate() { return FUN_00523c60(this); }
+
+int MissionPalace::ApplyAll(NotifyContext* ctx) { return IsSideView() ? MissionStoryApplyAllForward(this, ctx) : 0; }
+
+int MissionPalace::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_005236e0(this, controlKind, ctx); }
+
+int MissionPalace::GetEventKinds(int unused, EventKindSet* out) {
+    return CopyEventKinds(BuildEventKinds, &g_missionPalaceEventKinds, out);
+}
+
+int MissionPalace::CheckOrder(int a, int orderKind, StatusCode* out) {
+    return CheckOrderAgainstKinds(BuildEventKinds, &g_missionPalaceEventKinds, orderKind, out);
+}
+
+int MissionPalace::GetCheckFunctions(MissionCheckFunctions* out) {
+    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
+    return 1;
+}
+
+GameObj* MissionPalace::CreateViewObject() { return NewOrNull<MissionPalace>(); }
+
+GameObjNotifier* MissionPalace::Create() { return NewOrNull<MissionPalace>(); }
+
+int MissionPalace::Virtual158(NotifyContext* ctx) { return 1; }
+
+int MissionPalace::Virtual157(GameObj* person, int* out) {
+    Role* role = static_cast<Role*>(person);
+    const int combat = role->GetCombat();
+    const int espionage = role->GetEspionage();
+    return ComputePalaceMissionValue(espionage, combat, out);
+}
+
+int MissionPalace::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
+    int result = 1;
+    *out = 0;
+    if (!FUN_0053e2f0(roll)) return result;
+    *out = 1;
+    int ok = SetTaskStatus(kTaskSucceeded, ctx) ? 1 : 0;
+    Role* role = static_cast<Role*>(person);
+    if (role->Virtual118()) {
+        ok = role->SetBaseCombat(role->m_baseCombat + g_gnprtb181A, ctx) && ok ? 1 : 0;
+        ok = role->SetBaseEspionage(role->m_baseEspionage + g_gnprtb1819, ctx) && ok ? 1 : 0;
+    }
+    GameObj* objectiveCharacter = nullptr;
+    ok = GetObjectiveCharacter(&objectiveCharacter) && ok ? 1 : 0;
+    if (objectiveCharacter) {
+        ObjectKey personKey;
+        ok = static_cast<Character*>(objectiveCharacter)->Virtual132(keyAsArgument(person->GetKey(&personKey)), ctx) && ok ? 1 : 0;
+    }
+    GameObj* objective = nullptr;
+    result = GetTargetObject(&objective) && ok ? 1 : 0;
+    if (!objective) return result;
+    CharacterIterator members(objective, 1);
+    for (members.Begin(); members.Current(); members.Advance()) {
+        Character* member = static_cast<Character*>(members.Current());
+        if (!(member->m_flagsAc & 1)) continue;
+        ObjectKey personKey;
+        result = member->Virtual132(keyAsArgument(person->GetKey(&personKey)), ctx) && result ? 1 : 0;
+    }
+    return result;
+}
+
+int MissionPalace::Virtual160(NotifyContext* ctx) {
+    int result = 1;
+    if (m_taskStatus != 0) return result;
+    result = SetTaskStatus(kTaskStarted, ctx) ? 1 : 0;
+    MissionCharacterIterator members(this);
+    ObjectKey noHolder;
+    for (members.Begin(); members.Current(); members.Advance()) {
+        Character* member = static_cast<Character*>(members.Current());
+        result = member->Virtual131(keyAsArgument(&noHolder), ctx) && result ? 1 : 0;
+        result = member->SetCanEscape(0, ctx) && result ? 1 : 0;
+    }
+    return result;
+}
+
+int MissionPalace::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out) {
+    return checkMemberKeys<isPalaceCharacterKey, kReasonWrongStoryCharacter>(keys, status, out);
+}
+
+int MissionPalace::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out) {
+    return checkMemberRefs<isPalaceCharacterId, kReasonWrongStoryCharacter>(refs, status, out);
+}
+
+int MissionPalace::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+    beginCheck(status, out);
+    int result = MissionCharacterTargetBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
+    StoryOrderCheck* fields = asStory(check);
+    if (fields->m_hasTeam != 0) {
+        if (fields->m_hasTarget != 0 && result) {
+            if (statusOk(status) && keyOf(fields->m_palaceOrigin) != kKeyPickupSystem) reject(status, out, kReasonPalaceOrigin);
+            if (result && statusOk(status) && keyOf(fields->m_target) == kKeyHan) reject(status, out, kReasonPalaceHan);
+        }
+        result = checkCandidates<CheckCandidateRefs, CheckCandidateKeys>(check, status, out, result);
+    }
+    return result;
+}
+
+int MissionPalace::BuildEventKinds() {
+    return story::buildKindsOnce(&g_missionPalaceEventKindsReady, [] {
+        return MissionCharacterTargetBase::InitEventKinds(0, &g_missionPalaceEventKinds);
+    });
+}
+
+void ConstructMissionPalaceEventKinds() { new (&g_missionPalaceEventKinds) EventKindSet(); }
+
+void RegisterMissionPalaceEventKindsAtExit() { atexit(LAB_0056e9e0); }
+
+void MissionPalace::InitStatics() {
+    ConstructMissionPalaceEventKinds();
+    RegisterMissionPalaceEventKindsAtExit();
+}
+
+// ---- MissionVacation --------------------------------------------------------------------------------------------
+
+MissionVacation::MissionVacation() {}
+
+MissionVacation::~MissionVacation() { REB_KEEP_VPTR_STORE(); }
+
+uint32_t MissionVacation::GetFamily() { return kFamilyVacation; }
+
+int MissionVacation::Read(istream* in) { return MissionStoryReadForward(this, in); }
+
+int MissionVacation::Write(ostream* out) { return MissionStoryWriteForward(this, out); }
+
+int MissionVacation::Checksum(Crc32* crc) { return MissionStoryChecksumForward(this, crc); }
+
+int MissionVacation::Validate() { return FUN_00523c60(this); }
+
+int MissionVacation::ApplyAll(NotifyContext* ctx) { return IsSideView() ? MissionStoryApplyAllForward(this, ctx) : 0; }
+
+int MissionVacation::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_005236e0(this, controlKind, ctx); }
+
+int MissionVacation::GetEventKinds(int unused, EventKindSet* out) {
+    return CopyEventKinds(BuildEventKinds, &g_missionVacationEventKinds, out);
+}
+
+int MissionVacation::CheckOrder(int a, int orderKind, StatusCode* out) {
+    return CheckOrderAgainstKinds(BuildEventKinds, &g_missionVacationEventKinds, orderKind, out);
+}
+
+int MissionVacation::GetCheckFunctions(MissionCheckFunctions* out) {
+    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
+    return 1;
+}
+
+GameObj* MissionVacation::CreateViewObject() { return NewOrNull<MissionVacation>(); }
+
+GameObjNotifier* MissionVacation::Create() { return NewOrNull<MissionVacation>(); }
+
+int MissionVacation::Virtual157(GameObj* person, int* out) { return constantMissionValue(out); }
+
+int MissionVacation::Virtual158(NotifyContext* ctx) { return 1; }
+
+int MissionVacation::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
+    return succeedMission(this, out, ctx);
+}
+
+int MissionVacation::Virtual160(NotifyContext* ctx) { return startMissionIfIdle(this, ctx); }
+
+int MissionVacation::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out) {
+    return checkMemberKeys<isTravellerKey, kReasonWrongTraveller>(keys, status, out);
+}
+
+int MissionVacation::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out) {
+    return checkMemberRefs<isTravellerKey, kReasonWrongTraveller>(refs, status, out);
+}
+
+int MissionVacation::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+    beginCheck(status, out);
+    int result = MissionStoryBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
+    StoryOrderCheck* fields = asStory(check);
+    if (fields->m_hasTeam != 0) {
+        if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) != kKeyVacationSystem)
+            reject(status, out, kReasonVacationTarget);
+        result = checkCandidates<CheckCandidateRefs, CheckCandidateKeys>(check, status, out, result);
+    }
+    return result;
+}
+
+int MissionVacation::BuildEventKinds() {
+    return story::buildKindsOnce(&g_missionVacationEventKindsReady, [] {
+        return MissionStoryBase::InitEventKinds(0, &g_missionVacationEventKinds);
+    });
+}
+
+void ConstructMissionVacationEventKinds() { new (&g_missionVacationEventKinds) EventKindSet(); }
+
+void RegisterMissionVacationEventKindsAtExit() { atexit(LAB_00572510); }
+
+void MissionVacation::InitStatics() {
+    ConstructMissionVacationEventKinds();
+    RegisterMissionVacationEventKindsAtExit();
+}
+
+// ---- DagobahMission ---------------------------------------------------------------------------------------------
+
+DagobahMission::DagobahMission() : m_firstTrainingDay(0) {}
+
+DagobahMission::~DagobahMission() { REB_KEEP_VPTR_STORE(); }
+
+uint32_t DagobahMission::GetFamily() { return kFamilyDagobah; }
+
+int DagobahMission::Read(istream* in) { return ReadBody(in); }
+
+int DagobahMission::Write(ostream* out) { return WriteBody(out); }
+
+int DagobahMission::Checksum(Crc32* crc) { return ChecksumBody(crc); }
+
+int DagobahMission::Validate() { return FUN_00523c60(this); }
+
+int DagobahMission::ApplyAll(NotifyContext* ctx) { return IsSideView() ? ApplyAllBody(ctx) : 0; }
+
+int DagobahMission::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_005236e0(this, controlKind, ctx); }
+
+int DagobahMission::ReadBody(istream* in) {
+    const int result = MissionStoryReadForward(this, in);
+    if (result) ReadValue32(in, &m_firstTrainingDay);
+    return result;
+}
+
+int DagobahMission::WriteBody(ostream* out) {
+    const int result = MissionStoryWriteForward(this, out);
+    if (result) WriteValue32(out, &m_firstTrainingDay);
+    return result;
+}
+
+int DagobahMission::ChecksumBody(Crc32* crc) {
+    const int result = MissionStoryChecksumForward(this, crc);
+    if (result) crc->AddInt(m_firstTrainingDay);
+    return result;
+}
+
+int DagobahMission::ApplyAllBody(NotifyContext* ctx) {
+    const int result = MissionStoryApplyAllForward(this, ctx);
+    if (result && ctx->m_flag04 == 1) ApplyFirstTrainingDay(ctx);
+    return result;
+}
+
+int DagobahMission::GetEventKinds(int unused, EventKindSet* out) {
+    return CopyEventKinds(BuildEventKinds, &g_dagobahMissionEventKinds, out);
+}
+
+int DagobahMission::CheckOrder(int a, int orderKind, StatusCode* out) {
+    return CheckOrderAgainstKinds(BuildEventKinds, &g_dagobahMissionEventKinds, orderKind, out);
+}
+
+int DagobahMission::GetCheckFunctions(MissionCheckFunctions* out) {
+    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
+    return 1;
+}
+
+GameObj* DagobahMission::CreateViewObject() { return NewOrNull<DagobahMission>(); }
+
+GameObjNotifier* DagobahMission::Create() { return NewOrNull<DagobahMission>(); }
+
+int DagobahMission::Virtual157(GameObj* person, int* out) { return constantMissionValue(out); }
+
+int DagobahMission::Virtual158(NotifyContext* ctx) { return 1; }
+
+int DagobahMission::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
+    return succeedMission(this, out, ctx);
+}
+
+int DagobahMission::Virtual160(NotifyContext* ctx) { return startMissionIfIdle(this, ctx); }
+
+int DagobahMission::SetFirstTrainingDay(int value, NotifyContext* ctx) {
+    const int result = IsMasterView();
+    if (result) {
+        const int oldValue = m_firstTrainingDay;
+        if (oldValue != value) {
+            m_firstTrainingDay = value;
+            static_cast<DagobahMission*>(ViewAs(story::kViewAlliance))->ApplyFirstTrainingDay(ctx);
+            static_cast<DagobahMission*>(ViewAs(story::kViewEmpire))->ApplyFirstTrainingDay(ctx);
+            OnFirstTrainingDayChanged(oldValue, m_firstTrainingDay, ctx);
+        }
+    }
+    return result;
+}
+
+int DagobahMission::ApplyFirstTrainingDay(NotifyContext* ctx) {
+    int result = IsSideView();
+    if (result) {
+        DagobahMission* master = static_cast<DagobahMission*>(GetViewObject(0));
+        if (MatchesSideMask(ctx->m_flag08)) {
+            const int oldValue = m_firstTrainingDay;
+            if (oldValue != master->m_firstTrainingDay) {
+                m_firstTrainingDay = master->m_firstTrainingDay;
+                if (CallGameHook2AF0() && ctx->GetViewFlag(static_cast<int>(ViewSide())))
+                    result = OnFirstTrainingDayNotified(oldValue, m_firstTrainingDay, ctx);
+            }
+        }
+    }
+    return result;
+}
+
+int DagobahMission::OnFirstTrainingDayNotified(int oldValue, int newValue, NotifyContext* ctx) {
+    const int result = IsSideView();
+    if (result) LogInt("(DagobahMissionFirstTrainingDayNotif)", "FirstTrainingDay", newValue, oldValue, 0, ctx);
+    return result;
+}
+
+int DagobahMission::OnPhaseChanged(int oldValue, int newValue, NotifyContext* ctx) {
+    int ok = MissionStoryBase::OnPhaseChanged(oldValue, newValue, ctx) ? 1 : 0;
+    if (newValue == kPhaseTrainingStarted) ok = SetFirstTrainingDay(CallGameHook2B08(), ctx) && ok ? 1 : 0;
+    if (newValue != kPhaseTrainingEnded) return ok;
+    if (GetDataField1c() < kTrainingLevelNeeded) return ok;
+    const int firstDay = m_firstTrainingDay;
+    if (firstDay == 0) return ok;
+    const int days = CallGameHook2B08() - firstDay;
+    int gain = 0;
+    Luke* luke = static_cast<Luke*>(GetMaster_32000242());
+    ok = luke && ok ? 1 : 0;
+    if (!luke) return ok;
+    const int computed = m_taskStatus == kTaskSucceeded ? ComputeDagobahBonusA(luke->m_force, &gain)
+                                                        : ComputeDagobahBonusB(luke->m_force, days, &gain);
+    ok = computed && ok ? 1 : 0;
+    ok = luke->SetForceExperience(luke->m_forceExperience + gain - luke->m_force, ctx) && ok ? 1 : 0;
+    return luke->SetDagobahCompleted(1, ctx) && ok ? 1 : 0;
+}
+
+int DagobahMission::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out) {
+    return checkMemberKeys<isTravellerKey, kReasonWrongTraveller>(keys, status, out);
+}
+
+int DagobahMission::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out) {
+    return checkMemberRefs<isTravellerKey, kReasonWrongTraveller>(refs, status, out);
+}
+
+int DagobahMission::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+    beginCheck(status, out);
+    int result = MissionStoryBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
+    StoryOrderCheck* fields = asStory(check);
+    if (fields->m_hasTeam != 0) {
+        if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) != kKeyDagobahSystem)
+            reject(status, out, kReasonDagobahTarget);
+        result = checkCandidates<CheckCandidateRefs, CheckCandidateKeys>(check, status, out, result);
+    }
+    return result;
+}
+
+int DagobahMission::BuildEventKinds() {
+    return story::buildKindsOnce(&g_dagobahMissionEventKindsReady, [] {
+        return MissionStoryBase::InitEventKinds(0, &g_dagobahMissionEventKinds);
+    });
+}
+
+void ConstructDagobahMissionEventKinds() { new (&g_dagobahMissionEventKinds) EventKindSet(); }
+
+void RegisterDagobahMissionEventKindsAtExit() { atexit(LAB_005753c0); }
+
+void DagobahMission::InitStatics() {
+    ConstructDagobahMissionEventKinds();
+    RegisterDagobahMissionEventKindsAtExit();
+}
+
+// ---- MissionBounty ----------------------------------------------------------------------------------------------
+
+MissionBounty::MissionBounty() {}
+
+MissionBounty::~MissionBounty() { REB_KEEP_VPTR_STORE(); }
+
+uint32_t MissionBounty::GetFamily() { return kFamilyBounty; }
+
+int MissionBounty::Read(istream* in) { return MissionStoryReadForward(this, in); }
+
+int MissionBounty::Write(ostream* out) { return MissionStoryWriteForward(this, out); }
+
+int MissionBounty::Checksum(Crc32* crc) { return MissionStoryChecksumForward(this, crc); }
+
+int MissionBounty::Validate() { return FUN_00523c60(this); }
+
+int MissionBounty::ApplyAll(NotifyContext* ctx) { return IsSideView() ? MissionStoryApplyAllForward(this, ctx) : 0; }
+
+int MissionBounty::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_005236e0(this, controlKind, ctx); }
+
+int MissionBounty::GetEventKinds(int unused, EventKindSet* out) {
+    return CopyEventKinds(BuildEventKinds, &g_missionBountyEventKinds, out);
+}
+
+int MissionBounty::CheckOrder(int a, int orderKind, StatusCode* out) {
+    return CheckOrderAgainstKinds(BuildEventKinds, &g_missionBountyEventKinds, orderKind, out);
+}
+
+int MissionBounty::GetCheckFunctions(MissionCheckFunctions* out) {
+    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
+    return 1;
+}
+
+GameObj* MissionBounty::CreateViewObject() { return NewOrNull<MissionBounty>(); }
+
+GameObjNotifier* MissionBounty::Create() { return NewOrNull<MissionBounty>(); }
+
+int MissionBounty::Virtual157(GameObj* person, int* out) { return constantMissionValue(out); }
+
+int MissionBounty::Virtual158(NotifyContext* ctx) { return 1; }
+
+int MissionBounty::Virtual160(NotifyContext* ctx) { return 1; }
+
+int MissionBounty::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
+    *out = 1;
+    GameObj* target = nullptr;
+    int ok = GetObjectiveCharacter(&target) ? 1 : 0;
+    Han* han = nullptr;
+    if (target) {
+        ok = target->GetFamily() == kFamilyHan && ok ? 1 : 0;
+        if (ok) han = static_cast<Han*>(target);
+    }
+    if (!han) return ok;
+    ok = han->SetBountyAttack(1, ctx) && ok ? 1 : 0;
+    ObjectKey personKey;
+    ok = FUN_005349e0(han, person->GetKey(&personKey), 0, ctx) && ok ? 1 : 0;
+    int newStatus = kTaskStarted;
+    if (han->m_flagsAc & 1) {
+        newStatus = kTaskSucceeded;
+        ok = han->SetCanEscape(0, ctx) && ok ? 1 : 0;
+        ok = han->SetCapturedByBountyHunters(1, ctx) && ok ? 1 : 0;
+    }
+    ok = SetTaskStatus(newStatus, ctx) && ok ? 1 : 0;
+    return han->SetBountyAttack(0, ctx) && ok ? 1 : 0;
+}
+
+namespace {
+
+bool isBountyUnitKey(const ObjectKey& key) { return key.m_value == kKeyBountyHunters; }
+
+}  // namespace
+
+int MissionBounty::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out) {
+    int result = 1;
+    beginCheck(status, out);
+    for (AvlNode* node = keys->First(); node && result && statusOk(status); node = node->m_successor) {
+        ObjectKey key;
+        static_cast<ObjectKeyNode*>(node)->GetKey(&key);
+        void* any;
+        void* specialForces;
+        void* character;
+        const int found = FUN_00582cd0(&key, &any, &specialForces, &character);
+        result = found && specialForces ? 1 : 0;
+        if (!result) continue;
+        if (statusOk(status)) {
+            DatRecord* record = static_cast<GameObjNotifier*>(specialForces)->m_record;
+            result = record != nullptr;
+            if (!result) continue;
+            ObjectKey recordKey;
+            if (!isBountyUnitKey(*FUN_00402e40(record, &recordKey))) reject(status, out, kReasonWrongBountyUnit);
+        }
+        if (statusOk(status) && (static_cast<Role*>(specialForces)->m_flags78 & role_flag::kDecoy))
+            reject(status, out, kReasonDecoy);
+    }
+    return result;
+}
+
+int MissionBounty::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out) {
+    return checkMemberRefs<isBountyUnitKey, kReasonWrongBountyUnit>(refs, status, out);
+}
+
+int MissionBounty::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+    beginCheck(status, out);
+    int result = MissionCharacterTargetBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
+    StoryOrderCheck* fields = asStory(check);
+    if (fields->m_hasTeam != 0) {
+        if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) == kKeyHan)
+            reject(status, out, kReasonBountyHan);
+        result = checkCandidates<CheckCandidateRefs, CheckCandidateKeys>(check, status, out, result);
+    }
+    return result;
+}
+
+int MissionBounty::BuildEventKinds() {
+    return story::buildKindsOnce(&g_missionBountyEventKindsReady, [] {
+        return MissionCharacterTargetBase::InitEventKinds(0, &g_missionBountyEventKinds);
+    });
+}
+
+void ConstructMissionBountyEventKinds() { new (&g_missionBountyEventKinds) EventKindSet(); }
+
+void RegisterMissionBountyEventKindsAtExit() { atexit(LAB_00575fe0); }
+
+void MissionBounty::InitStatics() {
+    ConstructMissionBountyEventKinds();
+    RegisterMissionBountyEventKindsAtExit();
+}
