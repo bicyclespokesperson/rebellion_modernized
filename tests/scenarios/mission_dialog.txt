@@ -1,0 +1,73 @@
+# Create Mission dialog, team page: the character lists and the arrows that move a character between them, then OK
+# (starts the mission). Same set-up as selection_box.txt (Alliance, Bren Derlin at Ghorman). Runtime ~150 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 112
+46 move 170 116
+47 click 170 116
+70 move 130 24
+71 move 135 24
+72 rclick 135 24
+73 move 170 52
+74 move 170 56
+75 click 170 56
+77 key F5
+81 move 130 205
+82 move 135 210
+83 click 135 210
+84.0 click 135 210
+84.15 click 135 210
+88 move 252 178
+89 move 255 180
+90 rclick 255 180
+93 move 288 229
+94 move 290 231
+95 click 290 231
+98 move 160 210
+99 move 165 215
+100 click 165 215
+103 shot md_00_mission_page
+# Second tab: the team page.
+104 move 358 72
+105 move 360 74
+106 click 360 74
+109 shot md_01_team_page
+# Select the first character of the left list and move him right; then back left.
+110 move 230 160
+111 move 232 162
+112 click 232 162
+114 move 290 175
+115 move 292 176
+116 click 292 176
+119 shot md_02_moved_right
+120 move 392 160
+121 move 394 162
+122 click 394 162
+124 move 290 260
+125 move 292 261
+126 click 292 261
+129 shot md_03_moved_back
+# Move him right again, back to the mission page with the arrow keys, and send the order with OK.
+130 move 230 160
+131 move 232 162
+132 click 232 162
+134 move 290 175
+135 move 292 176
+136 click 292 176
+139 key Left
+141 shot md_04_mission_page
+142 move 302 372
+143 move 304 373
+144 click 304 373
+147 shot md_05_sent
+149 end
