@@ -21,7 +21,7 @@ namespace reb {
 namespace {
 
 constexpr uint32_t kPage = 4096;
-constexpr int kMaxTargets = 64;
+constexpr int kMaxTargets = 1024;
 constexpr uint32_t kCaptureMagic = 0x50414352;  // "RCAP"
 constexpr uint32_t kCaptureVersion = 1;
 
@@ -249,7 +249,8 @@ void install_captures() {
         return;
     }
     InitializeCriticalSection(&g_lock);
-    for (const char* p = spec; *p && g_target_count < kMaxTargets;) {
+    const char* p = spec;
+    while (*p && g_target_count < kMaxTargets) {
         Target t = {};
         t.address = parse_hex(p);
         t.remaining = 3;
@@ -263,6 +264,7 @@ void install_captures() {
         t.original_byte = *reinterpret_cast<uint8_t*>(t.address);
         g_targets[g_target_count++] = t;
     }
+    if (*p) log("capture: more than %d targets in REB_CAPTURE — the rest are ignored (from \"%.40s\")", kMaxTargets, p);
     AddVectoredExceptionHandler(1, on_exception);
     for (int i = 0; i < g_target_count; ++i) {
         set_byte(g_targets[i].address, 0xCC);
