@@ -1,0 +1,59 @@
+#pragma once
+// Shared building blocks of the concrete event, command and timer classes (system_events.h, incident_timers.h, ...).
+#include <cstdint>
+
+#include "core/checked_new.h"
+#include "core/vptr_store.h"
+#include "events/event_base.h"
+#include "events/timer_event.h"
+#include "gameobj/object_queries.h"
+
+namespace events {
+
+constexpr int kStatusCategory = 1;
+constexpr int kStatusOk = -1;
+constexpr int kStatusMissingTarget = 0x12;
+
+inline bool succeeded(const StatusCode& status) { return status.m_second == static_cast<uint32_t>(kStatusOk); }
+
+// The checks of events that need none: report success.
+inline int succeedWithoutChecks(StatusCode* status) {
+    *status = StatusCode(kStatusCategory, kStatusOk);
+    return 1;
+}
+
+// The prologue of slots 11 and 12 of the timers: the timer's own validity check (slot 7), then the lookup of the object
+// the timer acts on, which both must find alive. Returns the object, or null with *ok cleared.
+template <typename Resolve>
+GameObjNotifier* findTimerOwner(TimerEvent* timer, Resolve resolve, int* ok) {
+    StatusCode status(kStatusCategory, kStatusOk);
+    GameObjNotifier* owner = nullptr;
+    *ok = timer->CheckValid(&status);
+    if (*ok) {
+        if (succeeded(status)) {
+            const StatusCode missing(kStatusCategory, kStatusMissingTarget);
+            *ok = resolve(&timer->m_key, &owner, &missing, &status);
+        }
+        if (!*ok || !succeeded(status)) return nullptr;
+    }
+    return owner;
+}
+
+template <typename Owner, typename Resolve, typename Method>
+TrackedStat* timerStatOfOwner(TimerEvent* timer, Resolve resolve, Method method) {
+    int ok = 0;
+    Owner* owner = static_cast<Owner*>(findTimerOwner(timer, resolve, &ok));
+    return ok && owner ? method(owner) : nullptr;
+}
+
+template <typename Owner, typename Resolve, typename Method>
+void fireOnTimerOwner(TimerEvent* timer, Resolve resolve, Method method) {
+    int ok = 0;
+    Owner* owner = static_cast<Owner*>(findTimerOwner(timer, resolve, &ok));
+    if (ok && owner) {
+        NotifyContext ctx(timer->m_context);
+        method(owner, &ctx);
+    }
+}
+
+}  // namespace events
