@@ -56,4 +56,12 @@ void fireOnTimerOwner(TimerEvent* timer, Resolve resolve, Method method) {
     }
 }
 
+// Calls the virtual in `slot` of an object whose class is not reconstructed.
+template <typename Result, typename... Args>
+Result callVirtualSlot(void* object, int slot, Args... args) {
+    using Method = Result(__thiscall*)(void*, Args...);
+    Method* vtable = *reinterpret_cast<Method**>(object);
+    return vtable[slot](object, args...);
+}
+
 }  // namespace events
