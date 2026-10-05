@@ -213,6 +213,16 @@ RootCommand240::~RootCommand240() { REB_KEEP_VPTR_STORE(); }
 
 RootCommand240* RootCommand240::Clone() { return NewOrNull<RootCommand240>(*this); }
 
+int RootCommand240::IsChecked() {
+    int result = 0;
+    void* manager = GetGameRootMember_c0();
+    if (manager) {
+        ObjectKey key = m_key;
+        callVirtualSlot<int>(manager, 111, &key, &m_request, &result);
+    }
+    return result;
+}
+
 int RootCommand240::CheckEnabled(StatusCode* status) {
     *status = StatusCode(kStatusCategory, kStatusRefused);
     void* manager = GetGameRootMember_c0();
@@ -447,6 +457,16 @@ void ManagerCommand216::Checksum(Crc32* crc) {
     crc->AddInt(m_value);
 }
 
+int ManagerCommand216::IsChecked() {
+    int result = 0;
+    GameObjNotifier* manager = nullptr;
+    StatusCode status(kStatusCategory, kStatusOk);
+    const StatusCode missing(kStatusCategory, kStatusMissingTarget);
+    const int ok = ResolveMasterInFamilies_a0_b0(&m_key, &manager, &missing, &status);
+    if (ok && succeeded(status)) callVirtualSlot<int>(manager, 117, &m_request, &result);
+    return result;
+}
+
 int ManagerCommand216::CheckEnabled(StatusCode* status) {
     return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return callVirtualSlot<int>(object, 118, &m_request, m_value, status); });
 }
@@ -646,5 +666,8 @@ int PayloadEvent3f0::Execute() {
     }
     return 0;
 }
+
+PayloadEvent3f0::PayloadEvent3f0(int valueA, int valueB, int valueC)
+    : TimedEvent(), m_valueA(valueA), m_valueB(valueB), m_valueC(valueC) {}
 
 PayloadEvent3f0* CreatePayloadEvent3f0() { return NewOrNull<PayloadEvent3f0>(); }

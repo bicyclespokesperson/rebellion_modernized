@@ -88,6 +88,7 @@ public:
     virtual void Read(istream* in) override { ReadCommand(in); }  // 2: 0x5635f0
     virtual void Write(ostream* out) override { WriteCommand(out); }  // 3: 0x563600
     virtual void Checksum(Crc32* crc) override { ChecksumCommand(crc); }  // 4: 0x563610
+    virtual int IsChecked() override;  // 5: 0x57c520
     virtual int CheckEnabled(StatusCode* status) override;  // 6: 0x57c5a0
     virtual int CheckValid(StatusCode* status) override;  // 7: 0x57c660
     virtual int Execute() override;  // 8: 0x57c720
@@ -175,6 +176,7 @@ public:
     virtual void Read(istream* in) override;  // 2: 0x57ee80
     virtual void Write(ostream* out) override;  // 3: 0x57eea0
     virtual void Checksum(Crc32* crc) override;  // 4: 0x57eec0
+    virtual int IsChecked() override;  // 5: 0x57eef0
     virtual int CheckEnabled(StatusCode* status) override;  // 6: 0x57efb0
     virtual int CheckValid(StatusCode* status) override;  // 7: 0x57f080
     virtual int Execute() override;  // 8: 0x57f150
@@ -249,6 +251,7 @@ public:
     virtual int CheckValid(StatusCode* status) override;  // 7: 0x5803e0
     virtual int Execute() override;  // 8: 0x580450
     virtual int GetKind() override { return 0x3f0; }  // 9: 0x580230
+    PayloadEvent3f0(int valueA, int valueB, int valueC);  // 0x580150
     int m_valueA;  // +0x44
     int m_valueB;  // +0x48
     int m_valueC;  // +0x4c
