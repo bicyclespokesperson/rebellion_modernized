@@ -30,11 +30,7 @@ public:
     virtual ~MajorCharacterIterator();                                        // 0x594840
 };
 
-class MinorCharacterIterator : public ChildIterator {
-public:
-    MinorCharacterIterator(GameObjNotifier* parent, uint32_t stateFilter);  // 0x56f3d0
-    virtual ~MinorCharacterIterator();                                        // 0x56f4d0
-};
+#include "story/story_characters.h"
 
 namespace mission_encounter {
 
