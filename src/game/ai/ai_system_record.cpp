@@ -176,7 +176,7 @@ void AiSystemRecord::Write(ostream* out) {
     m_reserveSystem.Write(out);
     m_sectorKey.Write(out);
     if (m_posture) {
-        int postureKind = m_posture->Virtual05();
+        int postureKind = m_posture->GetKind();
         WriteValue32(out, &postureKind);
         m_posture->Write(out);
         return;
@@ -412,7 +412,7 @@ int AiSystemRecord::UpdatePosture() {
     if (sector) {
         if (m_posture) {
             const int wanted = sector->m_x30;
-            if (m_posture->Virtual05() == wanted) {
+            if (m_posture->GetKind() == wanted) {
                 ok = 1;
             } else {
                 delete m_posture;
@@ -428,7 +428,7 @@ int AiSystemRecord::UpdatePosture() {
                 m_posture = CreatePosture(sector->m_x30);
                 if (m_posture) {
                     const int wanted = sector->m_x30;
-                    if (m_posture->Virtual05() == wanted) ok = 1;
+                    if (m_posture->GetKind() == wanted) ok = 1;
                 }
             }
         }
@@ -459,7 +459,7 @@ OrderBase* AiSystemRecord::Step(int* done) {
             break;
         case 2:
             SumCommittedStats();
-            FUN_004adaf0(m_posture, m_sum);
+            m_posture->SubtractBudget(m_sum);
             m_state = 3;
             break;
         case 3:
@@ -472,7 +472,7 @@ OrderBase* AiSystemRecord::Step(int* done) {
             m_state = 5;
             break;
         case 5:
-            order = FUN_004adb70(m_posture, &stepDone);
+            order = m_posture->Step(&stepDone);
             if (stepDone != 0) m_state = 6;
             break;
         case 6:
@@ -657,7 +657,7 @@ void AiSystemRecord::CountPlanners() {
     m_xc4 = 0;
     int wantedKind;
     int wantedSubtype;
-    m_posture->Virtual06(&m_xbc, &m_xc0, &wantedKind, &wantedSubtype);
+    m_posture->GetPlannerRequest(&m_xbc, &m_xc0, &wantedKind, &wantedSubtype);
     if (m_xbc != 0) m_flagsB.m_value |= 0x100;
     int bestPriority = 2000000000;
     for (AvlNode* node = m_planners.First(); node; node = node->m_successor) {
@@ -697,12 +697,12 @@ void AiSystemRecord::CountAgents() {
         else
             m_flagsB.m_value |= 0x80000000;
     }
-    m_posture->Virtual07(&m_xe0);
+    m_posture->GetAgentRequest(&m_xe0);
     if (m_xe0 != 0) m_flagsB.m_value |= 0x200;
     AvlNode* node = m_agents.First();
     while (node && m_xe4 == 0) {
         const uint32_t id = static_cast<IdNode*>(node)->m_id;
-        if (FUN_004add40(m_posture, id) != 0) m_xe4 = id;
+        if (m_posture->AgentIsNeeded(id) != 0) m_xe4 = id;
         node = node->m_successor;
     }
 }
@@ -1078,7 +1078,7 @@ void AiSystemRecord::UpdateReserve() {
 
 void AiSystemRecord::UpdateReserveFleet() {
     if ((m_flagsA.m_value & kHasReserve) != 0) {
-        if (m_posture) m_posture->Virtual04(&m_reserveSystem);
+        if (m_posture) m_posture->ChooseReserveSystem(&m_reserveSystem);
         return;
     }
     m_reserveSystem.Reset();
