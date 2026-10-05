@@ -11,10 +11,14 @@
 #include "gameobj/object_lookup.h"
 #include "orders/mission_orders.h"
 #include "strategy_ui/encyclopedia_window.h"
+#include "strategy_ui/fleet_finder_window.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "strategy_ui/object_menu.h"
+#include "strategy_ui/personnel_finder_window.h"
+#include "strategy_ui/system_finder_window.h"
 #include "strategy_ui/system_window.h"
+#include "strategy_ui/troop_finder_window.h"
 #include "galaxy/system.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/cool_list_item.h"
@@ -38,14 +42,6 @@ extern int g_briefingDllSide;  // 0x6b14d4 the side whose briefing DLL (slot 0xd
 
 // The other strategy windows' constructors (the finders, message index, mission selection, side windows) and helpers
 // of the modules that own them.
-void* __thiscall FUN_00460090(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
-                              uint32_t childId);
-void* __thiscall FUN_00461750(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
-                              uint32_t childId);
-void* __thiscall FUN_00463500(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
-                              uint32_t childId);
-void* __thiscall FUN_0046cbc0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
-                              uint32_t childId);
 void* __thiscall FUN_00466350(void* memory, HINSTANCE instance, CoolWindow* parent, uint32_t childId, int tab, int kind);
 void* __thiscall FUN_0046a750(void* memory, HINSTANCE instance, CoolWindow* parent, uint32_t childId, void* command);
 void* __thiscall FUN_0046f140(void* memory, HINSTANCE instance, CoolWindow* parent, uint32_t childId, int argument);
@@ -101,16 +97,15 @@ void OpenAndShow(GalaxyWindow* parent, size_t size, Ctor construct, bool hidden)
 
 void PostClosePopups(GalaxyWindow* galaxy) { PostMessageA(galaxy->m_hwnd, kGalaxyClosePopups, 0, 0); }
 
-using FinderConstructor = void*(__thiscall*)(void*, HINSTANCE, int, int, int, int, CoolWindow*, uint32_t);
-
-void OpenFinder(GalaxyWindow* galaxy, uint32_t childId, size_t size, FinderConstructor construct) {
+template <class Finder>
+void OpenFinder(GalaxyWindow* galaxy, uint32_t childId) {
     PostClosePopups(galaxy);
     if (galaxy->m_children.FindById(childId)) return;
     OpenAndShow(
-        galaxy, size,
+        galaxy, sizeof(Finder),
         [&](void* memory) {
             return static_cast<CoolWindow*>(
-                construct(memory, galaxy->m_instance, 0, 0, kFinderWidth, kFinderHeight, galaxy, childId));
+                new (memory) Finder(galaxy->m_instance, 0, 0, kFinderWidth, kFinderHeight, galaxy, childId));
         },
         true);
 }
@@ -228,13 +223,13 @@ void GalaxyWindow::OpenEncyclopedia(const ObjectKey* object, const NullableKey* 
     window->ShowAndTrack(5);
 }
 
-void GalaxyWindow::OpenSystemFinder() { OpenFinder(this, kSystemFinderId, 0x164, FUN_00460090); }
+void GalaxyWindow::OpenSystemFinder() { OpenFinder<SystemFinderWindow>(this, kSystemFinderId); }
 
-void GalaxyWindow::OpenFleetFinder() { OpenFinder(this, kFleetFinderId, 0x170, FUN_00461750); }
+void GalaxyWindow::OpenFleetFinder() { OpenFinder<FleetFinderWindow>(this, kFleetFinderId); }
 
-void GalaxyWindow::OpenPersonnelFinder() { OpenFinder(this, kPersonnelFinderId, 0x17c, FUN_00463500); }
+void GalaxyWindow::OpenPersonnelFinder() { OpenFinder<PersonnelFinderWindow>(this, kPersonnelFinderId); }
 
-void GalaxyWindow::OpenTroopFinder() { OpenFinder(this, kTroopFinderId, 0x180, FUN_0046cbc0); }
+void GalaxyWindow::OpenTroopFinder() { OpenFinder<TroopFinderWindow>(this, kTroopFinderId); }
 
 void GalaxyWindow::OpenMessageIndex(int tab, int kind) {
     PostClosePopups(this);

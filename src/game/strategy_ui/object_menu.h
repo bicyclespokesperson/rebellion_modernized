@@ -4,50 +4,11 @@
 #include "core/containers.h"
 #include "core/layout.h"
 #include "platform/win32.h"
+#include "strategy_ui/menu_window.h"
 #include "ui/cool_game_window.h"
 
 class CoolWindow;
 class DibBitmap;
-
-// ---- The menu classes owned by other modules (0x4aa910-0x4ac000), declared as far as this module needs ---------
-
-// One entry of a menu (0x90 bytes, ctor 0x4abfb0): a node of the menu's list; its sub-menu entries hang in m_subItems.
-class MenuItem : public IdLinkNode {
-public:
-    virtual int Virtual03();     // slot 3
-    virtual int Virtual04();     // slot 4: true for entries LayoutMenu has to draw a separator for
-    uint8_t m_unknown10[0x48];   // +0x10
-    int m_cleanup58;             // +0x58
-    uint8_t m_unknown5c[4];      // +0x5c
-    RECT m_area;                 // +0x60 laid out by LayoutMenu: (0, y) - (width, y + height)
-    uint8_t m_unknown70[0x10];   // +0x70 (+0x74: the width of the widest entry's text)
-    IdSortedLinkList m_subItems; // +0x80
-};
-
-// The menu list of the pop-up being built (static object 0x6b28e0, VT 0x65bee0): the entries of the top level.
-class MenuItemList : public IdSortedLinkList {
-public:
-    MenuItemList();           // 0x4aa910
-    virtual ~MenuItemList();  // 0x4aa950
-};
-
-// The window of one menu level (0x4aa960-0x4ac000: slot 14 builds its entries, slot 22 handles mouse clicks).
-class MenuWindowBase : public CoolGameWindow {
-public:
-    MenuWindowBase(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t entryId,
-                   DibBitmap* backdrop);  // 0x4aa960
-    virtual ~MenuWindowBase();            // 0x4aaa50
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4aab50
-    virtual void OnCreate1() override;  // slot 14, 0x4ab2b0
-    // A mouse message went to the menu item `item` (null: to the menu itself) at screen point (x, y).
-    virtual int HandleMouse(MenuItem* item, LONG x, LONG y, int message);  // slot 22
-
-    void AddItem(MenuItem* item);  // 0x4ab370: remaps its pictures to the menu's palette and appends it
-    // Attaches the sub-menu window `sub` to the item `itemId` with the two arrow pictures.
-    void AttachSubMenu(HMODULE resources, uint32_t itemId, MenuWindowBase* sub, uint32_t arrowId, uint32_t pressedArrowId);  // 0x4ab3a0
-
-    uint8_t m_baseFields[0x38];  // +0x114
-};
 
 // ---- The object pop-up menu (the "Game Menu Window", 0x4422a0-0x442d70) ----------------------------------------
 
@@ -111,9 +72,5 @@ extern PopupMenuWindow* g_menuWindow;    // 0x6b28f4 the open menu, or null
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MenuItem, 0x90);
-REB_ASSERT_OFFSET(MenuItem, m_area, 0x60);
-REB_ASSERT_OFFSET(MenuItem, m_subItems, 0x80);
-REB_ASSERT_SIZE(MenuWindowBase, 0x14c);
 REB_ASSERT_SIZE(PopupMenuWindow, 0x154);
 #pragma clang diagnostic pop

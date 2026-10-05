@@ -2,17 +2,12 @@
 #include <new>
 
 #include "audio/sound_manager.h"
+#include "core/checked_new.h"
 #include "events/game_clock_hooks.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
-#include "ui/sprite_animator_decl.h"
+#include "ui/sprite_animator.h"
 #include "ui/sprite_stage.h"
-
-// The animator constructor and its completion-hook setter (0x4727e0 / 0x472b20, the sprite animator module): the hook
-// is called with `callbackArgument` when the script of `sequence` (a {resource id, resource slot} pair) ends.
-SpriteAnimator* __thiscall FUN_004727e0(void* memory, int spriteCount);
-void __thiscall FUN_00472b20(SpriteAnimator* animator, int callbackArgument, const uint32_t* sequence,
-                             SpriteStage* stage, int frames, void (*callback)(int));
 
 namespace {
 
@@ -44,8 +39,7 @@ SpriteStage* NewStage(GalaxyWindow* galaxy, const StageArea& area) {
 }
 
 SpriteAnimator* NewAnimator(SpriteStage* stage, uint32_t droidId) {
-    void* memory = ::operator new(0x58);
-    SpriteAnimator* animator = memory ? FUN_004727e0(memory, kAnimatorSpriteCount) : nullptr;
+    SpriteAnimator* animator = NewOrNull<SpriteAnimator>(kAnimatorSpriteCount);
     animator->SetId(droidId);
     stage->AddAnimator(animator);
     return animator;
@@ -56,7 +50,7 @@ void StartIdleScript(SpriteStage* stage, SpriteAnimator* animator, uint32_t droi
     uint32_t sequence = (kDroidSlot << 16) | scriptId;
     stage->StartAnimator(droidId, &sequence, kScriptStartX, kScriptStartY, 0);
     sequence = (kDroidSlot << 16) | scriptId;
-    FUN_00472b20(animator, hookArgument, &sequence, stage, kHookFrames, hook);
+    animator->SetEndAction(hookArgument, &sequence, stage, kHookFrames, hook);
 }
 
 }  // namespace

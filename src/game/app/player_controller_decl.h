@@ -22,8 +22,10 @@
 // negotiation state of a battle-type vote that is exchanged between the two controllers.
 
 class PlayerController;
+class HumanPlayer;
 class PlayerMessage;
 class PlayerNotice;
+class String;
 
 // A 4-byte time value (0x4fcd90 assigns, 0x4fcdd0 / 0x42dbe0 zero it; 0x461c4000 = 10000.0f is stored in it).
 struct GameTime {
@@ -71,101 +73,103 @@ public:
 // Abstract controller of one side of a game session. A virtual slot is vtable offset / 4.
 class PlayerController {
 public:
-    virtual ~PlayerController();
+    PlayerController();                   // 0x488460
+    explicit PlayerController(int side);  // 0x4884f0
+    virtual ~PlayerController();          // 0x488580
     virtual void Read(istream* in);
     virtual void Write(ostream* out);
-    virtual int GetKind();  // PlayerKind: 1 human, 2 remote, 3 AI
-    virtual int Virtual04();
+    virtual int GetKind() { return 0; }  // PlayerKind: 1 human, 2 remote, 3 AI (the original's slots 3, 4, 9, 10, 14 and 17-94 are pure)
+    virtual int Virtual04() { return 0; }
     virtual void Virtual05();
     virtual void Virtual06();
     virtual void Virtual07(PlayerMessage* message);
     virtual int Virtual08(PlayerMessage* message);
-    virtual int Virtual09();
-    virtual void Virtual10();
+    virtual int Virtual09() { return 0; }
+    virtual void Virtual10() {}
     virtual int Virtual11();
     virtual int Virtual12(unsigned syncId);
     virtual int Virtual13();
-    virtual void Virtual14();
+    virtual void Virtual14() {}
     virtual int Virtual15(int* outId, ObjectKey* outKey, GameTime* outTime);  // returns the vote state
     virtual int Virtual16(int* outId, ObjectKey* outKey);  // returns the vote state
-    virtual void Virtual17(int id, ObjectKey* key);
-    virtual void Virtual18(int id, ObjectKey* key, int state, GameTime* time);
-    virtual void Virtual19(int id, ObjectKey* key);
-    virtual void Virtual20(PlayerNotice* notice);
-    virtual void Virtual21();
-    virtual void Virtual22();
-    virtual void Virtual23();
-    virtual void Virtual24();
-    virtual void Virtual25();
-    virtual void Virtual26();
-    virtual void Virtual27();
-    virtual void Virtual28();
-    virtual void Virtual29();
-    virtual void Virtual30();
-    virtual void Virtual31();
-    virtual void Virtual32();
-    virtual void Virtual33();
-    virtual void Virtual34();
-    virtual void Virtual35();
-    virtual void Virtual36();
-    virtual void Virtual37();
-    virtual void Virtual38();
-    virtual void Virtual39();
-    virtual void Virtual40();
-    virtual void Virtual41();
-    virtual void Virtual42();
-    virtual void Virtual43();
-    virtual void Virtual44();
-    virtual void Virtual45();
-    virtual void Virtual46();
-    virtual void Virtual47();
-    virtual void Virtual48();
-    virtual void Virtual49();
-    virtual void Virtual50();
-    virtual void Virtual51();
-    virtual void Virtual52();
-    virtual void Virtual53();
-    virtual void Virtual54();
-    virtual void Virtual55();
-    virtual void Virtual56();
-    virtual void Virtual57();
-    virtual void Virtual58();
-    virtual void Virtual59();
-    virtual void Virtual60();
-    virtual void Virtual61();
-    virtual void Virtual62();
-    virtual void Virtual63();
-    virtual void Virtual64();
-    virtual void Virtual65();
-    virtual void Virtual66();
-    virtual void Virtual67();
-    virtual void Virtual68();
-    virtual void Virtual69();
-    virtual void Virtual70();
-    virtual void Virtual71();
-    virtual void Virtual72();
-    virtual void Virtual73();
-    virtual void Virtual74();
-    virtual void Virtual75();
-    virtual void Virtual76();
-    virtual void Virtual77();
-    virtual void Virtual78();
-    virtual void Virtual79();
-    virtual void Virtual80();
-    virtual void Virtual81();
-    virtual void Virtual82();
-    virtual void Virtual83();
-    virtual void Virtual84();
-    virtual void Virtual85();
-    virtual void Virtual86();
-    virtual void Virtual87();
-    virtual void Virtual88();
-    virtual void Virtual89();
-    virtual void Virtual90();
-    virtual void Virtual91();
-    virtual void Virtual92();
-    virtual void Virtual93(unsigned target);
-    virtual void Virtual94(int side);
+    virtual void Virtual17(int id, ObjectKey* key) {}
+    virtual void Virtual18(int id, ObjectKey* key, int state, GameTime* time) {}
+    virtual void Virtual19(int id, ObjectKey* key) {}
+    virtual void Virtual20(PlayerNotice* notice) {}
+    virtual void Virtual21() {}
+    virtual void Virtual22(int a, int b) {}
+    virtual void Virtual23(int value) {}
+    virtual void Virtual24(int value) {}
+    virtual void Virtual25(int value) {}
+    virtual void Virtual26(int value) {}
+    virtual void Virtual27(int value) {}
+    virtual void Virtual28(int value) {}
+    virtual void Virtual29(unsigned flags) {}
+    virtual void Virtual30(const ObjectKey* key, int arg) {}
+    virtual void Virtual31(const ObjectKey* key, int arg) {}
+    virtual void Virtual32(const ObjectKey* key, int arg) {}
+    virtual void Virtual33(const ObjectKey* key, int arg) {}
+    virtual void Virtual34(const ObjectKey* key, int arg) {}
+    virtual void Virtual35() {}
+    virtual void Virtual36() {}
+    virtual void Virtual37(const ObjectKey* key, int arg) {}
+    virtual void Virtual38(const ObjectKey* key, int arg) {}
+    virtual void Virtual39(const ObjectKey* key, int arg) {}
+    virtual void Virtual40(const ObjectKey* key, int arg) {}
+    virtual void Virtual41(const ObjectKey* key, int arg) {}
+    virtual void Virtual42(const ObjectKey* key, int arg) {}
+    virtual void Virtual43(const ObjectKey* key, int sound) {}
+    virtual void Virtual44(const ObjectKey* key, int sound) {}
+    virtual void Virtual45(const ObjectKey* key, int arg) {}
+    virtual void Virtual46(const ObjectKey* key, int arg) {}
+    virtual void Virtual47(const ObjectKey* key, int arg) {}
+    virtual void Virtual48(const ObjectKey* key, int arg) {}
+    virtual void Virtual49(const ObjectKey* key, int arg) {}
+    virtual void Virtual50(const ObjectKey* key, int arg) {}
+    virtual void Virtual51(const ObjectKey* manager, int unused) {}
+    virtual void Virtual52(const ObjectKey* manager, int position) {}
+    virtual void Virtual53(const ObjectKey* manager, const ObjectKey* character) {}
+    virtual void Virtual54(const ObjectKey* manager, String* text) {}
+    virtual void Virtual55() {}
+    virtual void Virtual56() {}
+    virtual void Virtual57() {}
+    virtual void Virtual58(const ObjectKey* key, int arg) {}
+    virtual void Virtual59() {}
+    virtual void Virtual60() {}
+    virtual void Virtual61() {}
+    virtual void Virtual62(const ObjectKey* key, int redraw) {}
+    virtual void Virtual63(const ObjectKey* key, int redraw) {}
+    virtual void Virtual64() {}
+    virtual void Virtual65(const ObjectKey* key, int redraw) {}
+    virtual void Virtual66(const ObjectKey* key, int arg) {}
+    virtual void Virtual67(const ObjectKey* key, int arg) {}
+    virtual void Virtual68(const ObjectKey* key, int arg) {}
+    virtual void Virtual69(const ObjectKey* key, int arg) {}
+    virtual void Virtual70(const ObjectKey* key, int arg) {}
+    virtual void Virtual71(const ObjectKey* key, int arg) {}
+    virtual void Virtual72(const ObjectKey* key, int arg) {}
+    virtual void Virtual73(const ObjectKey* key, int arg) {}
+    virtual void Virtual74() {}
+    virtual void Virtual75() {}
+    virtual void Virtual76() {}
+    virtual void Virtual77() {}
+    virtual void Virtual78() {}
+    virtual void Virtual79() {}
+    virtual void Virtual80(const ObjectKey* key, int arg) {}
+    virtual void Virtual81(const ObjectKey* key, const ObjectKey* oldKey, const ObjectKey* newKey) {}
+    virtual void Virtual82(const ObjectKey* key) {}
+    virtual void Virtual83(const ObjectKey* key, const ObjectKey* newParent, int arg) {}
+    virtual void Virtual84(const ObjectKey* key, int arg) {}
+    virtual void Virtual85() {}
+    virtual void Virtual86(const ObjectKey* key, int arg) {}
+    virtual void Virtual87(const ObjectKey* key, int name0, int name1, int name2) {}
+    virtual void Virtual88(const ObjectKey* key, int arg) {}
+    virtual void Virtual89(const ObjectKey* key, int arg) {}
+    virtual void Virtual90(const ObjectKey* key) {}
+    virtual void Virtual91(const ObjectKey* key, const ObjectKey* newParent) {}
+    virtual void Virtual92() {}
+    virtual void Virtual93(unsigned target) {}
+    virtual void Virtual94(int side) {}
     virtual void Virtual95();
 
     uint8_t m_unk04[0x20];   // +0x04
@@ -178,16 +182,6 @@ public:
     int m_voteId;            // +0x44
     unsigned m_syncTarget;   // +0x48 non-zero while waiting for the other side to reach this sync point
     int m_unk4c;             // +0x4c
-};
-
-class HumanPlayer : public PlayerController {
-public:
-    int m_unk50;             // +0x50
-    int m_unk54;             // +0x54
-    int m_unk58;             // +0x58
-    uint8_t m_unk5c[0x10];   // +0x5c list built by 0x4bee50
-    PlayerDispatch m_dispatch;  // +0x6c
-    void* m_advisor;         // +0xc0 advisor droid (0x4c27f0 / 0x4c0710)
 };
 
 class AiPlayer : public PlayerController {
@@ -218,16 +212,11 @@ REB_ASSERT_OFFSET(PlayerController, m_voteTime, 0x3c);
 REB_ASSERT_OFFSET(PlayerController, m_voteKey, 0x40);
 REB_ASSERT_OFFSET(PlayerController, m_syncTarget, 0x48);
 REB_ASSERT_OFFSET(PlayerController, m_unk4c, 0x4c);
-REB_ASSERT_SIZE(HumanPlayer, 0xc4);
-REB_ASSERT_OFFSET(HumanPlayer, m_dispatch, 0x6c);
-REB_ASSERT_OFFSET(HumanPlayer, m_advisor, 0xc0);
 REB_ASSERT_SIZE(AiPlayer, 0x42c);
 REB_ASSERT_SIZE(RemotePlayer, 0x60);
 #pragma clang diagnostic pop
 
 // ---- constructors (the original allocates with operator new first; one variant takes the side) ----------------
-HumanPlayer* __thiscall FUN_00486120(void* memory);
-HumanPlayer* __thiscall FUN_004861b0(void* memory, int side);
 AiPlayer* __thiscall FUN_004856f0(void* memory);
 AiPlayer* __thiscall FUN_004857a0(void* memory, int side);
 RemotePlayer* __thiscall FUN_00484df0(void* memory);
@@ -237,25 +226,6 @@ RemotePlayer* __thiscall FUN_00484e70(void* memory, int side);
 int __thiscall FUN_004888c0(PlayerController* player);  // m_syncTarget == 0
 void __thiscall FUN_004888d0(PlayerController* player, unsigned syncTarget);
 void __thiscall FUN_0048aa00(PlayerController* player, int argument);
-
-// ---- non-virtual HumanPlayer methods -------------------------------------------------------------------------
-void __thiscall FUN_00486fb0(HumanPlayer* human, int command, void* a, void* b, const void* c);
-void __thiscall FUN_00487740(HumanPlayer* human, PlayerMessage* message, int flag);
-void __thiscall FUN_00487810(HumanPlayer* human, int value);
-void __thiscall FUN_00487830(HumanPlayer* human, int choice, int timed, PlayerMessage* reply);
-void __thiscall FUN_00487890(HumanPlayer* human, PlayerMessage* reply);
-void __thiscall FUN_00487900(HumanPlayer* human, int value);
-void __thiscall FUN_00487a60(HumanPlayer* human, int value);
-int __thiscall FUN_00487f30(HumanPlayer* human);
-void __thiscall FUN_00487f80(HumanPlayer* human, int on);
-int __thiscall FUN_00487fb0(HumanPlayer* human);
-void __thiscall FUN_00487fd0(HumanPlayer* human, unsigned mask);
-void __thiscall FUN_00487ff0(HumanPlayer* human, int on);
-void __thiscall FUN_00487c10(HumanPlayer* human);
-// Static helpers of the human player (they only set UI globals).
-void __cdecl FUN_004878b0(int value);
-void __cdecl FUN_004878c0(int value);
-void __cdecl FUN_004878d0(int a, int b);
 
 // ---- PlayerDispatch (the +0x6c sub-object of HumanPlayer) ----------------------------------------------------
 void __thiscall FUN_0048a190(PlayerDispatch* dispatch, int id);
@@ -267,3 +237,5 @@ void __thiscall FUN_0048a470(PlayerDispatch* dispatch, int a, int b);
 void __thiscall FUN_00488ca0(PlayerDispatch* dispatch, PlayerMessage* message);
 int __thiscall FUN_0048a500(PlayerDispatch* dispatch);
 void __thiscall FUN_0048a530(PlayerDispatch* dispatch, unsigned mask);
+
+#include "strategy_ui/human_player.h"
