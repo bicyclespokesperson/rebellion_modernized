@@ -20,6 +20,9 @@ if [[ -n "$worktree" && -d "$worktree/work" ]]; then
 fi
 echo "== difftest (unit)"; tools/difftest.py -j "$(nproc)" $(tools/capture_store.py paths) | grep -v '^PASS' || true
 echo "== difftest (integration)"; tools/difftest.py -j "$(nproc)" --integration $(tools/capture_store.py paths) | grep -v '^PASS' || true
+echo "== soak (crashes that only show in long runs; bisect with tools/bisect_crash.py)"
+tools/run_game.sh --out work/run/soak tests/scenarios/soak_fast.txt >/dev/null
+if grep -q Unhandled work/run/soak/wine.log; then echo "SOAK CRASH: $(grep -m1 Unhandled work/run/soak/wine.log)"; else echo "soak ok"; fi
 echo "== smoke"; tools/run_game.sh tests/scenarios/smoke.txt
 cat work/run/smoke/rebhybrid.log
 tools/progress.py

@@ -13,4 +13,5 @@ class Character;
 TrackedStat* __thiscall FUN_005092b0(void* self);
 TrackedStat* __thiscall FUN_00520aa0(void* self);
 TrackedStat* __thiscall FUN_00520ab0(void* self);
-int __thiscall FUN_00560a30(Character* self, NotifyContext* ctx);
+// CharacterMgr method (0x560a30, ret 8): called on the game root's member +0xc0 with the timer's character.
+int __thiscall FUN_00560a30(GameObjNotifier* characterManager, Character* person, NotifyContext* ctx);
