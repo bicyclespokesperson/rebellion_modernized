@@ -17,9 +17,9 @@ public:
     virtual ~RoleActivityCommand();                         // 0x540c60 (deleting), 0x540c80
 
     virtual Command* Clone() override;                      // 1: 0x540cb0
-    virtual int Read(istream* in) override { ReadCommand(in); return 1; }          // 0x5635f0 (shared)
-    virtual int Write(ostream* out) override { WriteCommand(out); return 1; }      // 0x563600 (shared)
-    virtual int Checksum(Crc32* crc) override { return ChecksumCommand(crc); }     // 0x563610 (shared)
+    virtual void Read(istream* in) override { ReadCommand(in); }          // 0x5635f0 (shared)
+    virtual void Write(ostream* out) override { WriteCommand(out); }      // 0x563600 (shared)
+    virtual void Checksum(Crc32* crc) override { ChecksumCommand(crc); }     // 0x563610 (shared)
     virtual int CheckEnabled(StatusCode* status) override;  // 6: 0x540da0
     virtual int CheckValid(StatusCode* status) override;    // 7: 0x540e70
     virtual int Execute() override;                         // 8: 0x540f40
@@ -35,9 +35,9 @@ public:
     virtual ~RemoveRequestEvent();                      // 0x541880 (deleting), 0x5418a0
 
     virtual EventBase* Clone() override;                // 1: 0x5418d0
-    virtual int Read(istream* in) override { return ReadSource(in); }        // 0x541180 (shared)
-    virtual int Write(ostream* out) override { return WriteSource(out); }    // 0x564d50 (shared)
-    virtual int Checksum(Crc32* crc) override { return ChecksumSource(crc); }  // 0x541700 (shared)
+    virtual void Read(istream* in) override { ReadSource(in); }        // 0x541180 (shared)
+    virtual void Write(ostream* out) override { WriteSource(out); }    // 0x564d50 (shared)
+    virtual void Checksum(Crc32* crc) override { ChecksumSource(crc); }  // 0x541700 (shared)
     virtual int CheckEnabled(StatusCode* status) override;  // 6: 0x5419d0
     virtual int CheckValid(StatusCode* status) override;    // 7: 0x541a40
     virtual int Execute() override;                         // 8: 0x541ab0
@@ -53,9 +53,9 @@ public:
     virtual ~RoleStateEvent();                      // 0x541040 (deleting), 0x541060
 
     virtual EventBase* Clone() override;            // 1: 0x541090
-    virtual int Read(istream* in) override { return ReadSource(in); }
-    virtual int Write(ostream* out) override { return WriteSource(out); }
-    virtual int Checksum(Crc32* crc) override { return ChecksumSource(crc); }
+    virtual void Read(istream* in) override { ReadSource(in); }
+    virtual void Write(ostream* out) override { WriteSource(out); }
+    virtual void Checksum(Crc32* crc) override { ChecksumSource(crc); }
     virtual int CheckEnabled(StatusCode* status) override;  // 6: 0x541190
     virtual int CheckValid(StatusCode* status) override;    // 7: 0x541200
     virtual int Execute() override;                         // 8: 0x541270
@@ -72,9 +72,9 @@ public:
     virtual ~PersonRemovedEvent();                          // 0x541300 (deleting), 0x541320
 
     virtual EventBase* Clone() override;                    // 1: 0x541350
-    virtual int Read(istream* in) override { return ReadSource(in); }
-    virtual int Write(ostream* out) override { return WriteSource(out); }
-    virtual int Checksum(Crc32* crc) override { return ChecksumSource(crc); }
+    virtual void Read(istream* in) override { ReadSource(in); }
+    virtual void Write(ostream* out) override { WriteSource(out); }
+    virtual void Checksum(Crc32* crc) override { ChecksumSource(crc); }
     virtual int CheckEnabled(StatusCode* status) override;  // 6: 0x541440
     virtual int CheckValid(StatusCode* status) override;    // 7: 0x5414b0
     virtual int Execute() override;                         // 8: 0x541520
@@ -89,9 +89,9 @@ public:
     virtual ~ResignRequestEvent();                          // 0x5415b0 (deleting), 0x5415d0
 
     virtual EventBase* Clone() override;                    // 1: 0x541600
-    virtual int Read(istream* in) override { return ReadSource(in); }
-    virtual int Write(ostream* out) override { return WriteSource(out); }
-    virtual int Checksum(Crc32* crc) override { return ChecksumSource(crc); }
+    virtual void Read(istream* in) override { ReadSource(in); }
+    virtual void Write(ostream* out) override { WriteSource(out); }
+    virtual void Checksum(Crc32* crc) override { ChecksumSource(crc); }
     virtual int CheckEnabled(StatusCode* status) override;  // 6: 0x541710
     virtual int CheckValid(StatusCode* status) override;    // 7: 0x541780
     virtual int Execute() override;                         // 8: 0x5417f0
@@ -108,9 +108,9 @@ public:
     virtual ~LockTransferEvent();                         // 0x541b40 (deleting), 0x541b60
 
     virtual EventBase* Clone() override;                  // 1: 0x541b90
-    virtual int Read(istream* in) override { ReadTwoKey(in); return 1; }          // 0x57b940 (shared)
-    virtual int Write(ostream* out) override { WriteTwoKey(out); return 1; }      // 0x57b950 (shared)
-    virtual int Checksum(Crc32* crc) override { return ChecksumTwoKey(crc); }     // 0x57b960 (shared)
+    virtual void Read(istream* in) override { ReadTwoKey(in); }          // 0x57b940 (shared)
+    virtual void Write(ostream* out) override { WriteTwoKey(out); }      // 0x57b950 (shared)
+    virtual void Checksum(Crc32* crc) override { ChecksumTwoKey(crc); }     // 0x57b960 (shared)
     virtual int CheckEnabled(StatusCode* status) override;  // 6: 0x541c80
     virtual int CheckValid(StatusCode* status) override;    // 7: 0x541cf0
     virtual int Execute() override;                         // 8: 0x541d60
