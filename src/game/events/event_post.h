@@ -34,7 +34,7 @@ int CreateKeyedEvent(int kind, GameObjNotifier* object, NotifyContext* ctx, Keye
 // Events 0x300-0x31f (SourceEvent): sets the two values and queues the event.
 int PostSourceEvent(int kind, GameObjNotifier* object, int valueA, int valueB, NotifyContext* ctx);  // 0x53f950
 // PostSourceEvent(kind, object, flag == 0, flag, ctx).
-void PostSourceEventFlag(int kind, GameObjNotifier* object, int flag, NotifyContext* ctx);  // 0x53f9c0
+int PostSourceEventFlag(int kind, GameObjNotifier* object, int flag, NotifyContext* ctx);  // 0x53f9c0
 // Events 0x320-0x323 (TwoKeyEvent): sets the two keys and queues the event.
 int PostTwoKeyEvent(int kind, GameObjNotifier* object, const ObjectKey* keyC, const ObjectKey* keyD,
                     NotifyContext* ctx);  // 0x53f9f0

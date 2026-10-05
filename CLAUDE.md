@@ -51,6 +51,9 @@ Never kill processes by name pattern (it kills your own shell); use the scripts'
      step rewrites such pointers to the original address, so pointer identity matches the original.
    - Return types: flags and predicates in this codebase almost always return a full int (0/1 in EAX) and
      callers test all of EAX — declare them `int`, not `bool`, unless the original visibly sets only AL.
+     A function that ends by calling another (tail call / forwarder, `call X; ret`) returns X's EAX: if any caller
+     uses it, declare it with X's return type and `return X(...)` — a `void` declaration passes difftest on its own
+     but breaks callers (only `--integration` catches it).
    - Functions you call but don't reconstruct: just declare them (`int16_t FUN_00479ac0();` or a named
      declaration with a `symbols.csv` row). Calling conventions follow MSVC defaults: free functions
      `__cdecl`, members `__thiscall`, Win32 callbacks `__stdcall`.

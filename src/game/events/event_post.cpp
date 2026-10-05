@@ -90,8 +90,8 @@ int PostSourceEvent(int kind, GameObjNotifier* object, int valueA, int valueB, N
     return result;
 }
 
-void PostSourceEventFlag(int kind, GameObjNotifier* object, int flag, NotifyContext* ctx) {
-    PostSourceEvent(kind, object, flag == 0, flag, ctx);
+int PostSourceEventFlag(int kind, GameObjNotifier* object, int flag, NotifyContext* ctx) {
+    return PostSourceEvent(kind, object, flag == 0, flag, ctx);
 }
 
 int PostTwoKeyEvent(int kind, GameObjNotifier* object, const ObjectKey* keyC, const ObjectKey* keyD,
