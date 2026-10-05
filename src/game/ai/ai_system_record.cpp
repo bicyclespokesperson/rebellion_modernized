@@ -3,6 +3,7 @@
 #include "ai/ai_agent_bases.h"
 #include "ai/ai_common.h"
 #include "ai/ai_planner_decl.h"
+#include "ai/ai_postures.h"
 #include "ai/ai_side_controller.h"
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
@@ -493,32 +494,19 @@ OrderBase* AiSystemRecord::Step(int* done) {
 }
 
 AiPosture* AiSystemRecord::CreatePosture(int kind) {
-    void* memory;
     switch (kind) {
     case 1:
-        memory = ::operator new(0x5c);
-        if (memory) return FUN_004ba580(memory, m_view, m_owner, this);
-        break;
+        return NewOrNull<AiPostureKind1>(m_view, m_owner, this);
     case 2:
-        memory = ::operator new(100);
-        if (memory) return FUN_004b91a0(memory, m_view, m_owner, this);
-        break;
+        return NewOrNull<AiPostureKind2>(m_view, m_owner, this);
     case 3:
-        memory = ::operator new(0x5c);
-        if (memory) return FUN_004b37f0(memory, m_view, m_owner, this);
-        break;
+        return NewOrNull<AiPostureKind3>(m_view, m_owner, this);
     case 4:
-        memory = ::operator new(0x60);
-        if (memory) return FUN_004b6fb0(memory, m_view, m_owner, this);
-        break;
+        return NewOrNull<AiPostureKind4>(m_view, m_owner, this);
     case 5:
-        memory = ::operator new(0x5c);
-        if (memory) return FUN_004b1720(memory, m_view, m_owner, this);
-        break;
+        return NewOrNull<AiPostureKind5>(m_view, m_owner, this);
     case 6:
-        memory = ::operator new(0x5c);
-        if (memory) return FUN_004b4d50(memory, m_view, m_owner, this);
-        break;
+        return NewOrNull<AiPostureKind6>(m_view, m_owner, this);
     }
     return nullptr;
 }

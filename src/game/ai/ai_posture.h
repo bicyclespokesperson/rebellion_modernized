@@ -34,13 +34,13 @@ public:
     virtual int GetKind() = 0;                 // 5: the posture's kind id (1-6)
     // The planner the record should start (kind createKind with createSubtype, 0 for none) and the kind it can do without
     // (releaseKind, releaseSubtype).
-    virtual int GetPlannerRequest(int* createKind, int* createSubtype, int* releaseKind, int* releaseSubtype) = 0;  // 6
-    virtual int GetAgentRequest(int* agentKind) = 0;  // 7: the agent kind (3, 4, 5) the record is missing
-    virtual int Virtual08(PersistentInt* flagsA, PersistentInt* flagsB) = 0;  // 8
-    virtual int Virtual09(ObjectKey* a, ObjectKey* b) = 0;  // 9
-    virtual int Virtual10(ObjectKey* a, ObjectKey* b) = 0;  // 10
-    virtual int Virtual11(ObjectKey* a, ObjectKey* b) = 0;  // 11
-    virtual int Virtual12(ObjectKey* a, ObjectKey* b) = 0;  // 12
+    virtual void GetPlannerRequest(int* createKind, int* createSubtype, int* releaseKind, int* releaseSubtype) = 0;  // 6
+    virtual void GetAgentRequest(int* agentKind) = 0;  // 7: the agent kind (3, 4, 5) the record is missing
+    virtual void Virtual08(PersistentInt* flagsA, PersistentInt* flagsB) = 0;  // 8
+    virtual void Virtual09(ObjectKey* a, ObjectKey* b) = 0;  // 9
+    virtual void Virtual10(ObjectKey* a, ObjectKey* b) = 0;  // 10
+    virtual void Virtual11(ObjectKey* a, ObjectKey* b) = 0;  // 11
+    virtual void Virtual12(ObjectKey* a, ObjectKey* b) = 0;  // 12
     virtual int Virtual13();                   // 13: 0x4af8a0 (state 2 of Step)
     virtual OrderBase* Virtual14();            // 14: 0x4afce0 (state 3)
     virtual int Virtual15();                   // 15: state 7
@@ -48,7 +48,7 @@ public:
     virtual int Virtual17();                   // 17: state 9
     virtual int Virtual18();                   // 18: state 10
     virtual int Virtual19();                   // 19: 0x4b1690
-    virtual int Virtual20() = 0;               // 20
+    virtual void Virtual20() = 0;               // 20
     virtual ObjectKey* Virtual21(ObjectKey* out) = 0;  // 21: a system fleets can be sent to
 
     // Subtracts the strength the posture asks for (m_budget, filled by virtual 20) from the ten committed statistics.
@@ -69,6 +69,12 @@ public:
     OrderBase* OrderAssignedFleets(int* done);          // 0x4b1070
     OrderBase* MakeFleetOrder(AiFleetEval* fleet, int orderKind);  // 0x4b1330
     OrderBase* MakeTroopOrder(AiFleetEval* fleet);      // 0x4b1440
+    // The planner and agent requests the postures share (their GetPlannerRequest / GetAgentRequest overrides forward to these).
+    void DefaultPlannerRequest(int* createKind, int* createSubtype, int* releaseKind, int* releaseSubtype);  // 0x4b7150
+    void AgentRequestA(int* agentKind);                 // 0x4b1800 (kinds 5 and 3)
+    void AgentRequestB(int* agentKind);                 // 0x4b72d0 (kinds 6 and 4)
+    void AgentRequestC(int* agentKind);                 // 0x4b9290 (kinds 2 and 1)
+    int HasSeveralAgentsOfClass1();                     // 0x4b8b30 (slot 19 of kinds 6 and 4)
     int HasMultipleAgents();                            // 0x4b1650
     int HasEscort();                                    // 0x4b16d0
     int CanUseFleet(AiFleetEval* fleet, AiSystemEval* system);              // 0x4ae240
@@ -95,11 +101,3 @@ REB_ASSERT_OFFSET(AiPosture, m_owner, 0x0c);
 REB_ASSERT_OFFSET(AiPosture, m_selector, 0x18);
 REB_ASSERT_OFFSET(AiPosture, m_budget, 0x34);
 #pragma clang diagnostic pop
-
-// Constructors of the posture subclasses that are not reconstructed yet (called with the memory from operator new).
-AiPosture* __thiscall FUN_004ba580(void* memory, int view, AiSideController* owner, AiSystemRecord* record);  // kind 1 (0x5c)
-AiPosture* __thiscall FUN_004b91a0(void* memory, int view, AiSideController* owner, AiSystemRecord* record);  // kind 2 (0x64)
-AiPosture* __thiscall FUN_004b37f0(void* memory, int view, AiSideController* owner, AiSystemRecord* record);  // kind 3 (0x5c)
-AiPosture* __thiscall FUN_004b6fb0(void* memory, int view, AiSideController* owner, AiSystemRecord* record);  // kind 4 (0x60)
-AiPosture* __thiscall FUN_004b1720(void* memory, int view, AiSideController* owner, AiSystemRecord* record);  // kind 5 (0x5c)
-AiPosture* __thiscall FUN_004b4d50(void* memory, int view, AiSideController* owner, AiSystemRecord* record);  // kind 6 (0x5c)
