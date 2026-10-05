@@ -130,23 +130,21 @@ class Pe:
         struct.pack_into("<H", self.data, self.pe + 22, characteristics | 0x0001)  # RELOCS_STRIPPED
 
 
-def is_store_immediate(data: bytes, off: int) -> bool:
-    """True if the dword at file offset `off` is the imm32 of `mov r/m32, imm32` (C7 /0) or `mov r32, imm32`."""
-    if off >= 1 and 0xB8 <= data[off - 1] <= 0xBF:
-        return True
-    for k in range(2, 8):
-        if off < k or data[off - k] != 0xC7:
-            continue
-        modrm = data[off - k + 1]
-        mod, reg, rm = modrm >> 6, (modrm >> 3) & 7, modrm & 7
-        if reg != 0 or mod == 3:
-            continue
-        length = 1 + (rm == 4)  # modrm [+ sib]
-        base = data[off - k + 2] & 7 if rm == 4 else rm
-        length += 1 if mod == 1 else 4 if mod == 2 or (mod == 0 and base == 5) else 0
-        if 1 + length == k:
-            return True
-    return False
+INSTRUCTION = re.compile(r"^[ \t]*([0-9a-f]+):[ \t]+(\S+)[ \t]*(\S*)", re.M)
+
+
+def mov_immediate_rvas(dll: Path, base: int) -> set[int]:
+    """RVAs of the imm32 operand of every `mov r/m32, imm32` / `mov r32, imm32` in the code (the immediate is the
+    last 4 bytes of both forms). Decoded with llvm-objdump: guessing from the bytes alone mistook the ModRM byte of
+    `mov edi, [ebx+disp32]` (8B BB) for the opcode of `mov ebx, imm32` and rewrote a displacement."""
+    listing = subprocess.run(["llvm-objdump-19", "-d", "--no-show-raw-insn", "--print-imm-hex", "-j", ".text",
+                              str(dll)], capture_output=True, text=True, check=True).stdout
+    starts = [(int(m[1], 16), m[2], m[3]) for m in INSTRUCTION.finditer(listing)]
+    out = set()
+    for (address, mnemonic, operands), (following, _, _) in zip(starts, starts[1:]):
+        if mnemonic == "movl" and operands.startswith("$"):
+            out.add(following - 4 - base)
+    return out
 
 
 def main() -> int:
@@ -161,13 +159,14 @@ def main() -> int:
     redirect = {ours[n]: originals[n] for n in ours if n in originals}
     pe = Pe(bytearray(args.dll.read_bytes()))
     functions, table_rvas = pe.hook_table()
+    mov_immediates = mov_immediate_rvas(args.dll, pe.base)
     patched_vtables = patched_functions = 0
     for rva in pe.relocated_rvas():
         off = pe.file_offset(rva)
         if off is None:
             continue
         value = struct.unpack_from("<I", pe.data, off)[0]
-        if value in redirect and pe.is_code(rva) and is_store_immediate(pe.data, off):
+        if value in redirect and rva in mov_immediates:
             struct.pack_into("<I", pe.data, off, redirect[value])
             patched_vtables += 1
         elif value in functions and rva not in table_rvas:
