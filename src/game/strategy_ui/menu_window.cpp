@@ -44,6 +44,10 @@ OwningIdList::~OwningIdList() {
     REB_KEEP_VPTR_STORE();
 }
 
+int OwningIdList::IsLessById(LinkNode* a, LinkNode* b) {
+    return static_cast<IdLinkNode*>(a)->m_id < static_cast<IdLinkNode*>(b)->m_id;
+}
+
 MenuItemList::MenuItemList() {}
 
 MenuItemList::~MenuItemList() { REB_KEEP_VPTR_STORE(); }
