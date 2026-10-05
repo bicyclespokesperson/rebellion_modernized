@@ -20,7 +20,7 @@
 
 class AiSideController;
 class AiCharacterRecordSet;
-class AiMessageObject;
+class OrderBase;
 
 class AiAgentBase : public IdNode {
 public:
@@ -30,7 +30,7 @@ public:
     virtual void Write(ostream* out);             // 2: 0x4bbef0
     virtual int GetAgentClass() = 0;              // 3: 1 for the targeted agents, 2 for the simple ones
     virtual int IsAvailable() = 0;                // 4: no assigned character, or the character is neither captured nor busy
-    virtual int Step(int* done) = 0;              // 5: one step of the agent's state machine
+    virtual OrderBase* Step(int* done) = 0;       // 5: one step of the agent's state machine; the order to submit, if any
     virtual int GetKind() = 0;                    // 6
     virtual int GetOrderKind() = 0;               // 7
     virtual void SetTier(int tier) = 0;           // 8
@@ -38,9 +38,9 @@ public:
 
     // Orders the character of the agent to do something: creates the message `kind` for the character (null when the
     // key is no character), the caller fills it in and sends it.
-    void* CreateCharacterMessage(int kind);                     // 0x4bbf50
-    void* CreateMoveMessage(const ObjectKey* target);           // 0x4bc040: character order 0x201 to a system
-    int CanReach(uint32_t characterKey);                        // 0x4bc180
+    OrderBase* CreateCharacterMessage(int kind);                // 0x4bbf50
+    OrderBase* CreateMoveMessage(const ObjectKey* target);      // 0x4bc040: character order 0x201 to `target`
+    int CanReach(const ObjectKey* characterKey);                // 0x4bc180: 0 if the character is where a system is closed to it
 
     int m_state;                   // +0x1c
     PersistentInt m_flags;         // +0x20
@@ -60,7 +60,7 @@ public:
     virtual void Write(ostream* out) override;    // 2: 0x4bba70
     virtual int GetAgentClass() override;         // 3: 0x43c1f0 returns 2
     virtual int IsAvailable() override;           // 4: 0x4bba90
-    virtual int Step(int* done) override;         // 5: 0x4bbb00
+    virtual OrderBase* Step(int* done) override;  // 5: 0x4bbb00
     virtual void SetTier(int tier) override;      // 8: 0x5ae1e0 (empty)
     virtual int GetTier() override;               // 9: 0x6158b0 returns 0
     virtual int GetCountSlot() = 0;               // 10: 0 or 1, the index AiSideController::CountAgent counts the agent under
@@ -69,8 +69,8 @@ public:
     virtual void Prepare() = 0;                   // 13: state 3
     virtual int Evaluate() = 0;                   // 14: state 2, non-zero when ready
 
-    int ReleaseCharacter();   // 0x4bbba0
-    int Execute();            // 0x4bbc50
+    OrderBase* ReleaseCharacter();   // 0x4bbba0
+    OrderBase* Execute();            // 0x4bbc50
 
     int m_x48;                // +0x48
 };
@@ -83,16 +83,16 @@ public:
     virtual void Write(ostream* out) override;    // 2: 0x4bc3c0
     virtual int GetAgentClass() override;         // 3: 0x40f340 returns 1
     virtual int IsAvailable() override;           // 4: 0x4bba90
-    virtual int Step(int* done) override;         // 5: 0x4bc480
+    virtual OrderBase* Step(int* done) override;  // 5: 0x4bc480
     virtual int GetKind() override = 0;           // 6
     virtual int GetOrderKind() override = 0;      // 7
     virtual void SetTier(int tier) override;      // 8: 0x4bc410 (m_assignment = tier)
     virtual int GetTier() override;               // 9: 0x53b870 (returns m_assignment)
-    virtual int Evaluate();                       // 10: 0x4bc6d0
+    virtual int Evaluate();                       // 10: 0x4bc6d0: 1 when the agent has its character
 
-    int ReleaseCharacter();    // 0x4bc520
+    OrderBase* ReleaseCharacter();    // 0x4bc520
     void FindTarget();         // 0x4bc5d0
-    int Execute();             // 0x4bca20
+    OrderBase* Execute();      // 0x4bca20
 
     ObjectKey m_homeKey;       // +0x48
     int m_assignment;          // +0x4c

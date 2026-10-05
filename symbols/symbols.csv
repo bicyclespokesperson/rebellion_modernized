@@ -1240,7 +1240,7 @@ address,kind,name,signature,size
 0x004bc310,func,AiAgentTargeted::~AiAgentTargeted,,
 0x004bc370,func,AiAgentTargeted::Read,,
 0x004bc3c0,func,AiAgentTargeted::Write,,
-0x004bc410,func,AiAgentTargeted::SetAssignment,,
+0x004bc410,func,AiAgentTargeted::SetTier,,
 0x004bc480,func,AiAgentTargeted::Step,,
 0x004bc520,func,AiAgentTargeted::ReleaseCharacter,,
 0x004bc5d0,func,AiAgentTargeted::FindTarget,,

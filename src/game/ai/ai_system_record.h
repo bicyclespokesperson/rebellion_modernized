@@ -72,7 +72,7 @@ public:
     ObjectKeySet m_fleets;         // +0x2c
     ObjectKey m_sectorKey;         // +0x34
     ObjectKey m_reserveShip;       // +0x38
-    ObjectKey m_reserveFleet;      // +0x3c
+    ObjectKey m_reserveSystem;      // +0x3c
     ObjectKey m_systemKey;         // +0x40
     uint32_t m_tier;               // +0x44
     AiRankedSelector m_selector;   // +0x48

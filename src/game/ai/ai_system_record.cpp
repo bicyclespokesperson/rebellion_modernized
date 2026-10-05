@@ -85,7 +85,7 @@ void ClearFields(AiSystemRecord* record) {
 }  // namespace
 
 AiSystemRecord::AiSystemRecord()
-    : IdNode(), m_ships(), m_fleets(), m_sectorKey(), m_reserveShip(), m_reserveFleet(), m_systemKey(), m_selector(),
+    : IdNode(), m_ships(), m_fleets(), m_sectorKey(), m_reserveShip(), m_reserveSystem(), m_systemKey(), m_selector(),
       m_flagsA(0), m_flagsB(0), m_planners(), m_agents() {
     m_view = 0;
     m_owner = nullptr;
@@ -94,7 +94,7 @@ AiSystemRecord::AiSystemRecord()
 }
 
 AiSystemRecord::AiSystemRecord(int view, AiSideController* owner)
-    : IdNode(), m_ships(), m_fleets(), m_sectorKey(), m_reserveShip(), m_reserveFleet(), m_systemKey(), m_selector(),
+    : IdNode(), m_ships(), m_fleets(), m_sectorKey(), m_reserveShip(), m_reserveSystem(), m_systemKey(), m_selector(),
       m_flagsA(0), m_flagsB(0), m_planners(), m_agents() {
     m_view = view;
     m_owner = owner;
@@ -137,7 +137,7 @@ void AiSystemRecord::Read(istream* in) {
     m_fleets.Load(in);
     m_selector.Read(in);
     m_reserveShip.Read(in);
-    m_reserveFleet.Read(in);
+    m_reserveSystem.Read(in);
     m_sectorKey.Read(in);
     int postureKind;
     ReadValue32(in, &postureKind);
@@ -173,7 +173,7 @@ void AiSystemRecord::Write(ostream* out) {
     m_fleets.Save(out);
     m_selector.Write(out);
     m_reserveShip.Write(out);
-    m_reserveFleet.Write(out);
+    m_reserveSystem.Write(out);
     m_sectorKey.Write(out);
     if (m_posture) {
         int postureKind = m_posture->Virtual05();
@@ -1078,10 +1078,10 @@ void AiSystemRecord::UpdateReserve() {
 
 void AiSystemRecord::UpdateReserveFleet() {
     if ((m_flagsA.m_value & kHasReserve) != 0) {
-        if (m_posture) m_posture->Virtual04(&m_reserveFleet);
+        if (m_posture) m_posture->Virtual04(&m_reserveSystem);
         return;
     }
-    m_reserveFleet.Reset();
+    m_reserveSystem.Reset();
 }
 
 void AiSystemRecord::UpdateShortage() {

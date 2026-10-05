@@ -65,8 +65,8 @@ public:
 
     int m_side;                // +0x1c the side whose view this is (1 or 2)
     uint32_t m_controlSide;    // +0x20 the character's own control side
-    int m_unk24;               // +0x24
-    int m_unk28;               // +0x28
+    int m_x24;                 // +0x24 zeroed whenever an agent takes or gives up the character
+    int m_agentId;             // +0x28 id of the AiAgent the character is assigned to (0: none)
     int m_eligibilityRank;     // +0x2c compared by AiCharacterRecordSet::RankEligible; saved
     PersistentInt m_flags;     // +0x30
     PersistentInt m_capabilities;  // +0x34

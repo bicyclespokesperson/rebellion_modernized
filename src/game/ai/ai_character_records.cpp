@@ -76,11 +76,11 @@ int __stdcall IsStoryKeyOf2(uint32_t key) { return key == 0x32000242 || key == 0
 // ---- AiCharacterRecord ----------------------------------------------------------------------------------------------
 
 AiCharacterRecord::AiCharacterRecord()
-    : ObjectKeyNode(), m_side(0), m_unk24(0), m_unk28(0), m_eligibilityRank(0), m_flags(0), m_capabilities(0),
+    : ObjectKeyNode(), m_side(0), m_x24(0), m_agentId(0), m_eligibilityRank(0), m_flags(0), m_capabilities(0),
       m_location(), m_owner(nullptr), m_values() {}
 
 AiCharacterRecord::AiCharacterRecord(GameObjNotifier* character, int side, AiSideController* owner)
-    : ObjectKeyNode(KeyOf(character)), m_side(side), m_unk24(0), m_unk28(0),
+    : ObjectKeyNode(KeyOf(character)), m_side(side), m_x24(0), m_agentId(0),
       m_eligibilityRank(0), m_flags(0), m_capabilities(0), m_location(), m_owner(owner), m_values() {
     m_controlSide = character->ControlSide();
     const uint32_t expectedSide = ai::ViewOfSide(m_side);
@@ -144,8 +144,8 @@ void AiCharacterRecord::ReadRecord(istream* in, AiSideController* owner) {
     ObjectKeyNode::Load(in);
     ReadValue32(in, &m_side);
     ReadValue32(in, &m_controlSide);
-    ReadValue32(in, &m_unk24);
-    ReadValue32(in, &m_unk28);
+    ReadValue32(in, &m_x24);
+    ReadValue32(in, &m_agentId);
     ReadValue32(in, &m_eligibilityRank);
     m_flags.Read(in);
     m_capabilities.Read(in);
@@ -159,8 +159,8 @@ void AiCharacterRecord::Save(ostream* out) {
     ObjectKeyNode::Save(out);
     WriteValue32(out, &m_side);
     WriteValue32(out, &m_controlSide);
-    WriteValue32(out, &m_unk24);
-    WriteValue32(out, &m_unk28);
+    WriteValue32(out, &m_x24);
+    WriteValue32(out, &m_agentId);
     WriteValue32(out, &m_eligibilityRank);
     m_flags.Write(out);
     m_capabilities.Write(out);
