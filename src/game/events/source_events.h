@@ -194,23 +194,6 @@ public:
     virtual int GetKind() override { return 0x30a; }  // 9: 0x57c8a0
 };
 
-// calls FUN_00546e30(ObjectKey*, int, NotifyContext*)
-class Event313 : public SourceEvent {
-public:
-    Event313();  // 0x57d790
-    Event313(const Event313& other);  // 0x57d7e0
-    virtual ~Event313();  // 0x57d7d0 (deleting 0x57d7b0)
-
-    virtual Event313* Clone() override;  // 1: 0x57d800
-    virtual void Read(istream* in) override { ReadSource(in); }  // 2: 0x541180
-    virtual void Write(ostream* out) override { WriteSource(out); }  // 3: 0x564d50
-    virtual void Checksum(Crc32* crc) override { ChecksumSource(crc); }  // 4: 0x541700
-    virtual int CheckEnabled(StatusCode* status) override;  // 6: 0x57d8f0
-    virtual int CheckValid(StatusCode* status) override;  // 7: 0x57d960
-    virtual int Execute() override;  // 8: 0x57d9d0
-    virtual int GetKind() override { return 0x313; }  // 9: 0x57d870
-};
-
 // two-key event: calls FUN_00514a60(ObjectKey*, ObjectKey*, ObjectKey*, NotifyContext*)
 class Event320 : public TwoKeyEvent {
 public:
@@ -226,6 +209,23 @@ public:
     virtual int CheckValid(StatusCode* status) override;  // 7: 0x57b9e0
     virtual int Execute() override;  // 8: 0x57ba50
     virtual int GetKind() override { return 0x320; }  // 9: 0x57b8c0
+};
+
+// mission manager event: hands the key and the value at +0x50 to the manager at root member +0xb8 (0x546e30)
+class Event313 : public SourceEvent {
+public:
+    Event313();  // 0x57d790
+    Event313(const Event313& other);  // 0x57d7e0
+    virtual ~Event313();  // 0x57d7d0 (deleting 0x57d7b0)
+
+    virtual Event313* Clone() override;  // 1: 0x57d800
+    virtual void Read(istream* in) override { ReadSource(in); }  // 2: 0x541180
+    virtual void Write(ostream* out) override { WriteSource(out); }  // 3: 0x564d50
+    virtual void Checksum(Crc32* crc) override { ChecksumSource(crc); }  // 4: 0x541700
+    virtual int CheckEnabled(StatusCode* status) override;  // 6: 0x57d8f0
+    virtual int CheckValid(StatusCode* status) override;  // 7: 0x57d960
+    virtual int Execute() override;  // 8: 0x57d9d0
+    virtual int GetKind() override { return 0x313; }  // 9: 0x57d870
 };
 
 // deletes the views of the object it names (DeleteObjectViews); priority 0x999
@@ -275,8 +275,8 @@ Event302* CreateEvent302();  // 0x57b360
 Event318* CreateEvent318();  // 0x57b610
 Event315* CreateEvent315();  // 0x5788f0
 Event30a* CreateEvent30a();  // 0x57c8b0
-Event313* CreateEvent313();  // 0x57d880
 Event320* CreateEvent320();  // 0x57b8d0
+Event313* CreateEvent313();  // 0x57d880
 Event31a* CreateEvent31a();  // 0x57bbb0
 Event317* CreateEvent317();  // 0x57d520
 
@@ -293,8 +293,8 @@ REB_ASSERT_SIZE(Event302, 0x54);
 REB_ASSERT_SIZE(Event318, 0x54);
 REB_ASSERT_SIZE(Event315, 0x54);
 REB_ASSERT_SIZE(Event30a, 0x54);
-REB_ASSERT_SIZE(Event313, 0x54);
 REB_ASSERT_SIZE(Event320, 0x54);
+REB_ASSERT_SIZE(Event313, 0x54);
 REB_ASSERT_SIZE(Event31a, 0x54);
 REB_ASSERT_SIZE(Event317, 0x54);
 #pragma clang diagnostic pop

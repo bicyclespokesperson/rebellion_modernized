@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "core/game_string.h"
+#include "events/command_classes2.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_key.h"
 #include "gameobj/status_code.h"
@@ -20,12 +21,6 @@ public:
     int m_unk50;                     // +0x50
     int m_unk54;                     // +0x54
     ObjectKeyValueSet m_characters;  // +0x58
-};
-
-// The rename command (ctor 0x5790f0, VT 0x669580, 0x5c bytes): a command plus the new name.
-class RenameCommand : public Command {
-public:
-    String m_name;  // +0x50
 };
 
 // Order checks (0x555d30).

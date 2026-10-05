@@ -6,6 +6,7 @@
 #include "core/vptr_store.h"
 #include "events/event_base.h"
 #include "events/timer_event.h"
+#include "gameobj/game_obj.h"
 #include "gameobj/object_queries.h"
 
 namespace events {
@@ -13,6 +14,9 @@ namespace events {
 constexpr int kStatusCategory = 1;
 constexpr int kStatusOk = -1;
 constexpr int kStatusMissingTarget = 0x12;
+constexpr int kStatusRefused = 1;
+constexpr int kStatusNoDestination = 0x22;
+constexpr int kStatusNoRoom = 0xf3;
 
 inline bool succeeded(const StatusCode& status) { return status.m_second == static_cast<uint32_t>(kStatusOk); }
 
@@ -54,6 +58,37 @@ void fireOnTimerOwner(TimerEvent* timer, Resolve resolve, Method method) {
         NotifyContext ctx(timer->m_context);
         method(owner, &ctx);
     }
+}
+
+// The int-typed argument slots of the object virtuals that really carry a pointer (TryRename's name).
+inline int asIntArg(const void* pointer) { return static_cast<int>(reinterpret_cast<intptr_t>(pointer)); }
+
+// The checks of commands: set *status to success, look the command's target up, and ask it. `ask` gets the target and
+// returns the check's result; it only runs for a found, live target.
+template <typename Resolve, typename Ask>
+int checkOnTarget(Command* command, Resolve resolve, StatusCode* status, Ask ask) {
+    GameObjNotifier* target = nullptr;
+    int ok = 1;
+    *status = StatusCode(kStatusCategory, kStatusOk);
+    if (succeeded(*status)) {
+        const StatusCode missing(kStatusCategory, kStatusMissingTarget);
+        ok = resolve(&command->m_key, &target, &missing, status);
+    }
+    if (ok && succeeded(*status)) ok = ask(static_cast<GameObj*>(target));
+    return ok;
+}
+
+// The execution of commands: look the target up and run `act(target, ctx)` for a found, live one. Returns 0 (the
+// command is not queued again).
+template <typename Resolve, typename Act>
+int executeOnTarget(Command* command, Resolve resolve, Act act) {
+    NotifyContext ctx(command->m_context);
+    GameObjNotifier* target = nullptr;
+    StatusCode status(kStatusCategory, kStatusOk);
+    const StatusCode missing(kStatusCategory, kStatusMissingTarget);
+    const int ok = resolve(&command->m_key, &target, &missing, &status);
+    if (ok && succeeded(status)) act(static_cast<GameObj*>(target), &ctx);
+    return 0;
 }
 
 // Calls the virtual in `slot` of an object whose class is not reconstructed.

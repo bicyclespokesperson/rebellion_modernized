@@ -275,30 +275,6 @@ int Event30a::Execute() {
 
 Event30a* CreateEvent30a() { return NewOrNull<Event30a>(); }
 
-Event313::Event313() : SourceEvent() {}
-
-Event313::Event313(const Event313& other) : SourceEvent(other) {}
-
-Event313::~Event313() { REB_KEEP_VPTR_STORE(); }
-
-Event313* Event313::Clone() { return NewOrNull<Event313>(*this); }
-
-int Event313::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
-}
-
-int Event313::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
-}
-
-int Event313::Execute() {
-    NotifyContext ctx(m_context);
-    FUN_00546e30(&m_key, m_valueB, &ctx);
-    return 0;
-}
-
-Event313* CreateEvent313() { return NewOrNull<Event313>(); }
-
 Event320::Event320() : TwoKeyEvent() {}
 
 Event320::Event320(const Event320& other) : TwoKeyEvent(other) {}
@@ -322,6 +298,31 @@ int Event320::Execute() {
 }
 
 Event320* CreateEvent320() { return NewOrNull<Event320>(); }
+
+Event313::Event313() : SourceEvent() {}
+
+Event313::Event313(const Event313& other) : SourceEvent(other) {}
+
+Event313::~Event313() { REB_KEEP_VPTR_STORE(); }
+
+Event313* Event313::Clone() { return NewOrNull<Event313>(*this); }
+
+int Event313::CheckEnabled(StatusCode* status) {
+    return succeedWithoutChecks(status);
+}
+
+int Event313::CheckValid(StatusCode* status) {
+    return succeedWithoutChecks(status);
+}
+
+int Event313::Execute() {
+    NotifyContext ctx(m_context);
+    GameObjNotifier* manager = GetGameRootMember_b8();
+    if (manager) FUN_00546e30(manager, &m_key, m_valueB, &ctx);
+    return 0;
+}
+
+Event313* CreateEvent313() { return NewOrNull<Event313>(); }
 
 Event31a::Event31a() : SourceEvent() {}
 
