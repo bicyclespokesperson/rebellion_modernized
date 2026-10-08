@@ -31,7 +31,7 @@ constexpr uint32_t kSystemDropped = 0x10000000;
 
 constexpr FamilyParams kParams = {
     0x46, 0x2c4, 0x1e, 0xd4, 0xd4, 0x5c, 0x40, 0x13, 0x400003, 5, 0x400000, 0xbc, 0x8000, 4, 10, 8,
-    FacilityKind::kManufacturing28, 0x200000, FacilityKind::kManufacturing2A, 0x3800000, true, false, false};
+    FacilityKind::kManufacturing28, 0x200000, FacilityKind::kManufacturing2A, 0x3800000, true, false, false, false};
 
 }  // namespace
 

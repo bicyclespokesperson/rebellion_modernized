@@ -58,6 +58,7 @@ struct FamilyParams {
     bool targetCountGuard;       // AddTargetSystem does nothing when the list already has two systems
     bool supplyResetsCap;        // PickSupplySystemNear clears *cap first
     bool supplyClaims;           // PickSupplySystemNear adds the target system to the list and claims it
+    bool supplyByDistance;       // PickSupplySystemNear ranks the supply systems by their distance to the target
 };
 
 int Need(const FamilyFields& f, const FamilyParams& p);

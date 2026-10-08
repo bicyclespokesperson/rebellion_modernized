@@ -153,6 +153,41 @@ public:
     ObjectKeySet m_dropped;       // +0x74
 };
 
+// Type 3: defense facilities (VT 0x65c7d8, 0x7c bytes, 0x4d6b00-0x4da930). Stage 0x3ed picks defense targets, 0x3ee builds and
+// scraps defenses, 0x3ec handles the target systems.
+class AiTask3 : public AiFacilityTaskBase {
+public:
+    explicit AiTask3(int view);                     // 0x4d6b20
+    virtual ~AiTask3();                             // 0: 0x4d6b00 (deleting), 0x4d6c00
+    virtual OrderBase* Step() override;             // 5: 0x4d6d30
+
+    OrderBase* StepA();                             // 0x4d6da0 (stage 0x3ed)
+    OrderBase* StepB();                             // 0x4d6e70 (stage 0x3ee)
+    OrderBase* StepTargets();                       // 0x4d7060 (stage 0x3ec)
+    int PickDefenseTarget();                        // 0x4d71e0
+    OrderBase* BuildDefenseScrapOrder();            // 0x4d7330
+    int IsOverQuota();                              // 0x4d76a0
+    int PickFleetSystem();                          // 0x4d76f0
+    int ChooseManager();                            // 0x4d7ac0
+    OrderBase* BuildSurplusScrapOrder();            // 0x4d7cf0
+    int ComputeClassCount();                        // 0x4d8460
+    OrderBase* BuildDefenseOrder();                 // 0x4d8520
+    int SelectTarget();                             // 0x4d8ad0
+    int PickSupplySystem();                         // 0x4d8db0
+    OrderBase* BuildScrapOrder();                   // 0x4d8fe0
+    int ComputeFacilityCount();                     // 0x4d9520
+    OrderBase* BuildCapitalOrder();                 // 0x4d95c0
+    int PickShieldTarget();                         // 0x4d98a0
+    int PickIonTarget();                            // 0x4d99d0
+    OrderBase* BuildAllScrapOrder();                // 0x4d9b00
+    OrderBase* BuildDestinationOrder(ObjectKey* target);  // 0x4d9e70
+    OrderBase* BuildManufactureOrder210();          // 0x4d9fb0
+    void AddTargetSystem();                         // 0x4da0d0
+    int Need();                                     // 0x4da4d0
+    int NeedForTargets();                           // 0x4da530
+    void RefreshTargets();                          // 0x4da610
+};
+
 // Type 7: fighters again, for the ships of the side's systems (VT 0x65c7b8, 0x7c bytes, 0x4d2ed0-0x4d6b00). Three stages: 0x3f1 moves
 // and scraps fighter squadrons between systems, 0x3f2 builds ships, 0x3ec handles the target systems.
 class AiTask7 : public AiFacilityTaskBase {
@@ -300,6 +335,46 @@ public:
     int m_round;                  // +0x78 which of the four orders ChooseKind uses next
     ObjectKeySet m_targets;       // +0x7c
     ObjectKeySet m_dropped;       // +0x84
+};
+
+// ---- type 1: shields and ion cannons ------------------------------------------------------------------------------------------
+
+// A facility-family task (ai_task_family.h) that picks one system at a time for the side's defense facilities (VT 0x65c7f8,
+// 0x78 bytes, 0x4da930-0x4dd440). Stage 0 chooses the target, stage 0x3ec builds and scraps.
+class AiTask1 : public AiStagedTask {
+public:
+    explicit AiTask1(int view);                     // 0x4da950
+    virtual ~AiTask1();                             // 0: 0x4da930 (deleting), 0x4daa20
+    virtual void Read(istream* in) override;        // 1: 0x4daac0
+    virtual void Write(ostream* out) override;      // 2: 0x4dab50
+    virtual OrderBase* Step() override;             // 5: 0x4dabe0
+
+    int ChooseTarget();                             // 0x4daca0
+    int PickSystem();                               // 0x4daf10
+    OrderBase* StepBuild();                         // 0x4db2f0 (stage 0x3ec)
+    int SelectTarget();                             // 0x4db510
+    OrderBase* BuildScrapOrder();                   // 0x4db820
+    int ComputeFacilityCount();                     // 0x4dbd60
+    OrderBase* BuildCapitalOrder();                 // 0x4dbe70
+    int PickShieldTarget();                         // 0x4dc150
+    int PickIonTarget();                            // 0x4dc3f0
+    OrderBase* BuildAllScrapOrder();                // 0x4dc650
+    OrderBase* BuildDestinationOrder();             // 0x4dc9f0
+    OrderBase* BuildManufactureOrder210();          // 0x4dcb30
+    void AddTargetSystem();                         // 0x4dcc40
+    int NeedForTargets();                           // 0x4dd050
+    void RefreshTargets();                          // 0x4dd120
+    aitask::FamilyFields Fields();
+
+    ObjectKey m_system;           // +0x40
+    ObjectKey m_manager;          // +0x44
+    ObjectKey m_classKey;         // +0x48 starts as 0
+    int m_count;                  // +0x4c
+    int m_limit;                  // +0x50
+    int m_cap;                    // +0x54
+    ObjectKeySet m_targets;       // +0x58
+    ObjectKeySet m_dropped;       // +0x60
+    AiRankedSelector m_selector;  // +0x68
 };
 
 // ---- type 8: system records ----------------------------------------------------------------------------------------------
@@ -469,6 +544,9 @@ REB_ASSERT_SIZE(AiTask10, 0x84);
 REB_ASSERT_OFFSET(AiTask10, m_targets, 0x74);
 REB_ASSERT_SIZE(AiFacilityTaskBase, 0x7c);
 REB_ASSERT_SIZE(AiTask7, 0x7c);
+REB_ASSERT_SIZE(AiTask1, 0x78);
+REB_ASSERT_OFFSET(AiTask1, m_selector, 0x68);
+REB_ASSERT_SIZE(AiTask3, 0x7c);
 REB_ASSERT_OFFSET(AiFacilityTaskBase, m_targets, 0x6c);
 REB_ASSERT_SIZE(AiTask11, 0x88);
 REB_ASSERT_OFFSET(AiTask11, m_targets, 0x78);

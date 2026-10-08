@@ -17,7 +17,7 @@ namespace {
 
 constexpr FamilyParams kParams = {
     0, 0, 0x14, 0xd4, 0xd4, 0x5c, 0x40, 0x13, 0x400003, 5, 0x400000, 0xbc, 0x8000, 0x20, 0xc, 10,
-    FacilityKind::kManufacturing28, 0x200000, FacilityKind::kManufacturing2A, 0x3800000, false, true, false};
+    FacilityKind::kManufacturing28, 0x200000, FacilityKind::kManufacturing2A, 0x3800000, false, true, false, false};
 
 constexpr int kScrapOrder = 0x200;
 constexpr int kMoveOrder = 0x201;

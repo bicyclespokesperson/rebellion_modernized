@@ -357,7 +357,10 @@ int PickSupplySystemNear(const FamilyFields& f, const FamilyParams& p) {
     f.selector->Add(owner->RankSectorsByDistance(f.system, 0x1000, 0, 0, 0, 0, 0, 2));
     *f.manager = *f.selector->PickBest(&scratch);
     f.selector->Reset();
-    f.selector->Add(owner->RankSystemsOfSector(f.manager, 0x800800, 0, 1, 3, 0, 0, 6, 1));
+    if (p.supplyByDistance)
+        f.selector->Add(owner->RankSystemsOfSectorByDistance(f.manager, f.system, 0x800800, 0, 1, 3, 0, 0, 2));
+    else
+        f.selector->Add(owner->RankSystemsOfSector(f.manager, 0x800800, 0, 1, 3, 0, 0, 6, 1));
     *f.manager = *f.selector->PickBest(&scratch);
     f.selector->Reset();
     if (IsSystemKey(*f.manager)) {
