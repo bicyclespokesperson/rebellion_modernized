@@ -74,7 +74,7 @@ int MissionAbduction::Virtual159(GameObj* personObject, int roll, int* out, Noti
     if (target) {
         ObjectKey key;
         person->GetKey(&key);
-        ok = target->Virtual131(reinterpret_cast<int>(&key), ctx) && ok;
+        ok = target->Virtual131(&key, ctx) && ok;
     }
     return ok;
 }

@@ -1,3 +1,4 @@
+#include "character/character_mgr.h"
 #include "core/utility_classes.h"
 #include "data/game_math.h"
 #include "data/random.h"
@@ -27,8 +28,6 @@ int FUN_005187a0(int side, GameObjNotifier** out);
 int __thiscall FUN_0052fff0(GameObjNotifier* object, NotifyContext* ctx);
 int FUN_00517760(GameObjNotifier* object, NotifyContext* ctx);
 int FUN_00516360(ObjectKey* key, int kind, int value, NotifyContext* ctx);
-int __thiscall FUN_0055f730(GameObjNotifier* manager, NotifyContext* ctx);
-int __thiscall FUN_0055f7b0(GameObjNotifier* manager, NotifyContext* ctx);
 int FUN_0040f340();
 int __thiscall FUN_00526550(GameObjNotifier* sector);
 int __thiscall FUN_005092f0(System* system);
@@ -629,20 +628,20 @@ int GameRoot::SetupSideObjects(NotifyContext* ctx) {
 }
 
 int GameRoot::SetupCharacterManagerA(NotifyContext* ctx) {
-    GameObjNotifier* manager = GetGameRootMember_c0();
+    CharacterMgr* manager = GetCharacterManager();
     int ok = manager != nullptr;
     if (manager != nullptr) {
-        if (FUN_0055f730(manager, ctx) == 0 || !ok) return 0;
+        if (manager->CreateRecordCharacters(ctx) == 0 || !ok) return 0;
         return 1;
     }
     return ok;
 }
 
 int GameRoot::SetupCharacterManagerB(NotifyContext* ctx) {
-    GameObjNotifier* manager = GetGameRootMember_c0();
+    CharacterMgr* manager = GetCharacterManager();
     int ok = manager != nullptr;
     if (manager != nullptr) {
-        if (FUN_0055f7b0(manager, ctx) == 0 || !ok) return 0;
+        if (manager->PlaceStartingCharacters(ctx) == 0 || !ok) return 0;
         return 1;
     }
     return ok;

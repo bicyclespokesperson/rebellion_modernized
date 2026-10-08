@@ -1,5 +1,6 @@
 #include "gameobj/game_settings.h"
 
+#include "core/utility_classes.h"
 #include "core/vptr_store.h"
 
 namespace {
@@ -35,6 +36,14 @@ int GameSettings::Read(istream* in) {
     ReadValue32(in, &value);
     m_field0c = value;
     ReadValue32(in, &m_field10);
+    return 1;
+}
+
+int GameSettings::Checksum(Crc32* crc) {
+    crc->AddInt(m_field04);
+    crc->AddInt(m_field08);
+    crc->AddInt(m_field0c);
+    crc->AddInt(m_field10);
     return 1;
 }
 

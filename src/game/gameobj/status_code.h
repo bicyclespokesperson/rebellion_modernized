@@ -15,6 +15,16 @@ public:
     IntPair(const IntPair& other);
     constexpr IntPair(uint32_t first, uint32_t second) : m_first(first), m_second(second) {}
 
+    void Set(uint32_t first, uint32_t second);            // 0x51c900
+    void SetSecond(uint32_t second);                      // 0x51c9b0
+    // Both values as raw words (the Read/Write of the pairs the economy classes keep).
+    int Write(ostream* out);                              // 0x51c920
+    int Read(istream* in);                                // 0x51c950
+    // out = {first + other.first, second + other.second}; returns out.
+    IntPair* Add(IntPair* out, const IntPair& other);     // 0x51ca00
+    int Equals(const IntPair& other);                     // 0x51ca30
+    int NotEquals(const IntPair& other);                  // 0x51ca60
+
     uint32_t m_first;   // +0x00
     uint32_t m_second;  // +0x04
 };

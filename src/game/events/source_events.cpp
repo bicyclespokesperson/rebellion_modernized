@@ -1,3 +1,4 @@
+#include "character/character_mgr.h"
 #include "events/source_events.h"
 #include "events/source_events_decl.h"
 
@@ -372,14 +373,14 @@ int Event317::Execute() {
         const StatusCode missing(kStatusCategory, kStatusMissingTarget);
         ok = ResolveMasterInFamilies_30_3c(&m_key, &owner, &missing, &status);
     }
-    void* manager = nullptr;
+    CharacterMgr* manager = nullptr;
     if (ok && succeeded(status)) {
-        manager = GetGameRootMember_c0();
+        manager = GetCharacterManager();
         ok = manager != nullptr;
     }
     if (ok && succeeded(status)) {
         NotifyContext ctx(m_context);
-        FUN_00561990(manager, owner, m_valueB, &ctx);
+        manager->RollCaptiveEscape(static_cast<Character*>(owner), m_valueB, &ctx);
     }
     return 0;
 }

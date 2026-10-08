@@ -225,17 +225,17 @@ int Role::UpdateOnMission(NotifyContext* ctx) {
     return SetOnMission(onMission ? 1 : 0, ctx);
 }
 
-int Role::RollCombatCheck(int failArg, int difficulty, NotifyContext* ctx) {
+int Role::RollCombatCheck(const ObjectKey* opponent, int difficulty, NotifyContext* ctx) {
     int succeeded = 0;
     const int combat = GetCombat();
     if (!RollRlevadChance(static_cast<int>(ControlSide()), combat, difficulty, &succeeded)) return 0;
     if (succeeded) return Virtual130(ctx);
-    return Virtual131(failArg, ctx);
+    return Virtual131(opponent, ctx);
 }
 
-int Role::Virtual128(int a, NotifyContext* ctx) {
+int Role::Virtual128(const ActivityRequest* request, NotifyContext* ctx) {
     StatusCode status(kStatusCategory, kStatusOk);
-    int result = CheckActivityStatus(reinterpret_cast<const ActivityRequest*>(a), &status);
+    int result = CheckActivityStatus(request, &status);
     if (result && status.m_second == static_cast<uint32_t>(kStatusOk)) result = Virtual129(ctx);
     return result;
 }

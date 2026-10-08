@@ -1,3 +1,4 @@
+#include "character/character_mgr.h"
 #include "character/character.h"
 #include "character/role.h"
 #include "core/vptr_store.h"
@@ -275,9 +276,9 @@ int EncounterRunner::ForceDetect(ObjectKey* picked, ObjectKey* chosen, NotifyCon
     }
     if (detected != 0 && chosenPerson != nullptr && pickedPerson != nullptr) {
         if ((pickedPerson->m_flags78 & role_flag::kDecoy) == 0) m_unk4c = 1;
-        GameObjNotifier* manager = GetGameRootMember_c0();
+        CharacterMgr* manager = GetCharacterManager();
         ok = (manager != nullptr) && ok;
-        if (manager) ok = FUN_0055ff60(manager, pickedPerson, chosenPerson, ctx) && ok;
+        if (manager) ok = manager->BeginEncounter(pickedPerson, chosenPerson, ctx) && ok;
         if (MarkSelected(picked, chosen) && ok) return 1;
         return 0;
     }

@@ -112,14 +112,14 @@ public:
     virtual int GetLoyalty() = 0;                                                         // 126
     virtual int Virtual127() = 0;                                                         // 127
     // `a` is an ActivityRequest*: CheckActivityStatus, then Virtual129 if it left the status at {1,-1}.
-    virtual int Virtual128(int a, NotifyContext* ctx);                                    // 128, 0x534b70
+    virtual int Virtual128(const ActivityRequest* request, NotifyContext* ctx);                                    // 128, 0x534b70
     virtual int Virtual129(NotifyContext* ctx);                                           // 129, 0x534c00 (same body as Destroy: reason 0x14)
     // Requests the resignation from the mission (SetMissionResignRequest(1)) if CanResignFromMission is set and there is a mission.
     virtual int Virtual130(NotifyContext* ctx);                                           // 130, 0x534c20
-    virtual int Virtual131(int a, NotifyContext* ctx) { return 1; }                       // 131
-    virtual int Virtual132(int a, NotifyContext* ctx) { return 1; }                       // 132
-    virtual int Virtual133(int a) { return 1; }                                           // 133
-    virtual int Virtual134(int a) { return 1; }                                           // 134
+    virtual int Virtual131(const ObjectKey* opponent, NotifyContext* ctx) { return 1; }                       // 131
+    virtual int Virtual132(const ObjectKey* holder, NotifyContext* ctx) { return 1; }                       // 132
+    virtual int Virtual133(NotifyContext* ctx) { return 1; }                                           // 133
+    virtual int Virtual134(NotifyContext* ctx) { return 1; }                                           // 134
 
     // ---- OnXChanged events on the master (slots 135-156) ----
     virtual int OnBaseDiplomacyChanged(int oldValue, int newValue, NotifyContext* ctx) { return 1; }  // 135
@@ -225,8 +225,8 @@ public:
     // Sets OnMission to (MissionKey is set || MovingBetweenMissions).
     int UpdateOnMission(NotifyContext* ctx);  // 0x534950
     // Rolls GetCombat() against `difficulty` (RollRlevadChance with the control side); on success Virtual130(ctx),
-    // otherwise Virtual131(failArg, ctx). Returns 0 when the roll fails the table lookup.
-    int RollCombatCheck(int failArg, int difficulty, NotifyContext* ctx);  // 0x5349e0
+    // otherwise Virtual131(opponent, ctx). Returns 0 when the roll fails the table lookup.
+    int RollCombatCheck(const ObjectKey* opponent, int difficulty, NotifyContext* ctx);  // 0x5349e0
     // The key getters (copies of +0x68 / +0x6c / +0x70 / +0x74). Only the +0x70 one has an address of its own; the
     // others are identical functions folded into getters of other classes (0x42d170, 0x4a25f0, 0x40d760).
     ObjectKey* GetMissionKey(ObjectKey* out) {

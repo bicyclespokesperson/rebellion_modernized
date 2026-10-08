@@ -69,10 +69,10 @@ public:
     virtual int GetLeadership() override;                              // 125, 0x4edc50
     virtual int GetLoyalty() override;                                 // 126, 0x4edc60
     virtual int Virtual130(NotifyContext* ctx) override;               // 130, 0x4ef450
-    virtual int Virtual131(int a, NotifyContext* ctx) override;        // 131, 0x4ef480
-    virtual int Virtual132(int a, NotifyContext* ctx) override;        // 132, 0x4ef510
-    virtual int Virtual133(int a) override;                            // 133, 0x4ef570
-    virtual int Virtual134(int a) override;                            // 134, 0x4ef5b0
+    virtual int Virtual131(const ObjectKey* opponent, NotifyContext* ctx) override;        // 131, 0x4ef480
+    virtual int Virtual132(const ObjectKey* holder, NotifyContext* ctx) override;        // 132, 0x4ef510
+    virtual int Virtual133(NotifyContext* ctx) override;                            // 133, 0x4ef570
+    virtual int Virtual134(NotifyContext* ctx) override;                            // 134, 0x4ef5b0
 
     // ---- overrides of Role's OnXChanged events ----
     virtual int OnBaseDiplomacyChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 135, 0x4f1520
@@ -99,8 +99,8 @@ public:
     virtual int Virtual186(NotifyContext* ctx);                                          // 186, 0x4ef640
     virtual int Virtual187(NotifyContext* ctx);                                          // 187, 0x4ef690
     virtual int Virtual188(int a, int b, NotifyContext* ctx);                             // 188, 0x4ef6d0
-    virtual int Virtual189(int a, int b, int c);                                          // 189, 0x4ef340
-    virtual int Virtual190(int a, int b, NotifyContext* ctx);                            // 190, 0x4ef400
+    virtual int Virtual189(const ActivityRequest* request, const ObjectKey* holder, NotifyContext* ctx);                                          // 189, 0x4ef340
+    virtual int Virtual190(int commandKind, const ObjectKey* holder, NotifyContext* ctx);                            // 190, 0x4ef400
 
     // ---- OnXChanged events on the master (slots 191-220) ----
     virtual int OnEnhancedDiplomacyChanged(int oldValue, int newValue, NotifyContext* ctx) { return 1; }  // 191

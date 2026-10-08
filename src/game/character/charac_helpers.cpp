@@ -170,7 +170,7 @@ int Character::RaiseEscapeRequest(NotifyContext* ctx) {
     int result = 1;
     const bool ready = (m_flagsAc & kCapturedFlag) && (m_stateFlags & kUsableState) && !(m_flags78 & kOnMissionFlag) &&
                        (m_flagsAc & kEscapeRequestFlag);
-    if (ready) result = Virtual133(reinterpret_cast<int>(ctx));
+    if (ready) result = Virtual133(ctx);
     return result;
 }
 

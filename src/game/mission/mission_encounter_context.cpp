@@ -1,3 +1,4 @@
+#include "character/character_mgr.h"
 #include "character/character.h"
 #include "character/role.h"
 #include "core/vptr_store.h"
@@ -426,7 +427,7 @@ int EncounterContext::ResolveFailedDecoy(Detector* unit, Fleet* container, Role*
         unit->GetKey(&key);
     }
     opponent = key;
-    ok = FUN_005349e0(member, &opponent, combat, ctx) && ok;
+    ok = member->RollCombatCheck(&opponent, combat, ctx) && ok;
     if ((member->m_flags78 & role_flag::kMissionRemoveRequest) == 0 &&
         (member->m_flags78 & role_flag::kCanResignFromMission) != 0) {
         ObjectKey missionKey;
@@ -442,9 +443,9 @@ int EncounterContext::ResolveFailedDecoy(Detector* unit, Fleet* container, Role*
 }
 
 int EncounterContext::ResolveEncounterFight(Role* member, Role* other, NotifyContext* ctx) {
-    GameObjNotifier* manager = GetGameRootMember_c0();
+    CharacterMgr* manager = GetCharacterManager();
     int ok = manager != nullptr;
-    if (manager) ok = FUN_00560200(manager, member, other, ctx) && ok;
+    if (manager) ok = manager->ResolveEncounterFight(static_cast<Character*>(member), static_cast<Character*>(other), ctx) && ok;
     if ((member->m_flags78 & (role_flag::kMissionRemoveRequest | role_flag::kMissionResignRequest)) != 0) {
         if ((member->m_flags78 & role_flag::kDecoy) != 0)
             --m_decoyCount;

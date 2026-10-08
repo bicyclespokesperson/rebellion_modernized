@@ -24,8 +24,6 @@ constexpr int kStateFree = 1;
 constexpr int kStateSecond = 2;
 constexpr int kStateThird = 3;
 
-NotifyContext* asContext(int value) { return reinterpret_cast<NotifyContext*>(value); }
-
 }  // namespace
 
 // ---- slots 44-48, 117 ----------------------------------------------------------------------------------------
@@ -40,7 +38,7 @@ int Character::Virtual44(NotifyContext* ctx) {
         GameObjNotifier* parent = nullptr;
         result = GetParent(&parent) != 0;
         if (parent && ((parent->m_flags ^ m_flags) & kControlKindMask) != 0) {
-            if (m_flagsAc & kCapturedFlag) result = Virtual134(reinterpret_cast<int>(ctx));
+            if (m_flagsAc & kCapturedFlag) result = Virtual134(ctx);
             if (((parent->m_flags ^ m_flags) & kControlKindMask) != 0) result = SetAutorouting(1, ctx);
         }
     }
@@ -67,33 +65,33 @@ int Character::Virtual130(NotifyContext* ctx) {
     return result;
 }
 
-int Character::Virtual131(int a, NotifyContext* ctx) {
-    int ok = FUN_00524fb0(a, ctx) != 0;
+int Character::Virtual131(const ObjectKey* opponent, NotifyContext* ctx) {
+    int ok = FUN_00524fb0(static_cast<int>(reinterpret_cast<intptr_t>(opponent)), ctx) != 0;
     if (!(m_stateFlags & kDestroyedState)) {
         ok = Virtual185(ctx) && ok;
         if (!(m_stateFlags & kDestroyedState)) {
             ok = SetState(kStateCaptive, ctx) && ok;
-            ok = SetHolderKey(reinterpret_cast<const ObjectKey*>(a)) && ok;
+            ok = SetHolderKey(opponent) && ok;
         }
     }
     return ok;
 }
 
-int Character::Virtual132(int a, NotifyContext* ctx) {
-    const int stub = FUN_00524fb0(a, ctx);
+int Character::Virtual132(const ObjectKey* holder, NotifyContext* ctx) {
+    const int stub = FUN_00524fb0(static_cast<int>(reinterpret_cast<intptr_t>(holder)), ctx);
     int ok = SetState(kStateThird, ctx) && stub;
-    ok = SetHolderKey(reinterpret_cast<const ObjectKey*>(a)) && ok;
+    ok = SetHolderKey(holder) && ok;
     return ok;
 }
 
-int Character::Virtual133(int a) {
-    const int stub = FUN_0051ebb0(a);
-    return SetState(kStateFree, asContext(a)) && stub ? 1 : 0;
+int Character::Virtual133(NotifyContext* ctx) {
+    const int stub = FUN_0051ebb0(static_cast<int>(reinterpret_cast<intptr_t>(ctx)));
+    return SetState(kStateFree, ctx) && stub ? 1 : 0;
 }
 
-int Character::Virtual134(int a) {
-    const int stub = FUN_0051ebb0(a);
-    return SetState(kStateSecond, asContext(a)) && stub ? 1 : 0;
+int Character::Virtual134(NotifyContext* ctx) {
+    const int stub = FUN_0051ebb0(static_cast<int>(reinterpret_cast<intptr_t>(ctx)));
+    return SetState(kStateSecond, ctx) && stub ? 1 : 0;
 }
 
 // ---- slots 185-190: injuries and commands ------------------------------------------------------------------
@@ -128,24 +126,22 @@ int Character::Virtual188(int a, int b, NotifyContext* ctx) {
     return result;
 }
 
-int Character::Virtual189(int a, int b, int c) {
-    const ActivityRequest* request = reinterpret_cast<const ActivityRequest*>(a);
-    NotifyContext* ctx = asContext(c);
+int Character::Virtual189(const ActivityRequest* request, const ObjectKey* holder, NotifyContext* ctx) {
     StatusCode status(kStatusCategory, kStatusOk);
     int result = CheckActivityStatus3(request, &status);
     if (result && status.m_second == static_cast<uint32_t>(kStatusOk)) {
         int index = 0;
         const int mapped = MapTypeCodeToIndex(request->m_kind, &index);
         result = 0;
-        if (mapped) result = Virtual190(index, b, ctx);
+        if (mapped) result = Virtual190(index, holder, ctx);
     }
     return result;
 }
 
-int Character::Virtual190(int a, int b, NotifyContext* ctx) {
+int Character::Virtual190(int a, const ObjectKey* holder, NotifyContext* ctx) {
     if (m_commandKind == a) return SetCommandKind(0, ctx);
     int result = SetCommandKind(a, ctx);
-    if (m_commandKind != 0) result = SetCommandingKey(reinterpret_cast<ObjectKey*>(b), ctx);
+    if (m_commandKind != 0) result = SetCommandingKey(const_cast<ObjectKey*>(holder), ctx);
     return result;
 }
 

@@ -248,7 +248,7 @@ int System::ApplyUprisingEvent(int event, int side, NotifyContext* ctx) {
             }
             if (result && characters.Current()) {
                 Character* chosen = static_cast<Character*>(characters.Current());
-                result = event == 3 ? chosen->Virtual185(ctx) : chosen->Virtual133(reinterpret_cast<int>(ctx));
+                result = event == 3 ? chosen->Virtual185(ctx) : chosen->Virtual133(ctx);
             }
             break;
         }
@@ -256,7 +256,7 @@ int System::ApplyUprisingEvent(int event, int side, NotifyContext* ctx) {
             ChildIterator characters(this, side, &family::kCharacters, kStateUsable);
             for (characters.Begin(); characters.Current(); characters.Advance()) {
                 Character* character = static_cast<Character*>(characters.Current());
-                if (character->m_flagsAc & 1) result = character->Virtual133(reinterpret_cast<int>(ctx));
+                if (character->m_flagsAc & 1) result = character->Virtual133(ctx);
             }
             break;
         }

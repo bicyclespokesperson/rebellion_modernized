@@ -1,3 +1,4 @@
+#include "character/character_mgr.h"
 #include "story/story_missions.h"
 
 #include "character/character.h"
@@ -28,13 +29,11 @@ extern EventKindSet g_missionBountyEventKinds;  // 0x6bbad8
 int FUN_0053e2f0(int threshold);
 int __cdecl FUN_00582cd0(ObjectKey* key, void** any, void** specialForces, void** character);
 ObjectKey* __thiscall FUN_00402e40(DatRecord* self, ObjectKey* out);
-int __thiscall FUN_0055f6c0(GameObjNotifier* manager, int flag, NotifyContext* ctx);
 GameObjNotifier* GetGameRootMember_c0();
 GameObjNotifier* GetMaster_32000242();
 int __cdecl ComputePalaceMissionValue(int espionage, int combat, int* out);
 int __cdecl ComputeDagobahBonusA(int force, int* out);
 int __cdecl ComputeDagobahBonusB(int force, int days, int* out);
-int __thiscall FUN_005349e0(Role* role, ObjectKey* opponent, int skill, NotifyContext* ctx);
 
 namespace {
 
@@ -271,11 +270,11 @@ int MissionPickup::Virtual160(NotifyContext* ctx) { return MissionStartIfIdle(th
 int MissionPickup::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     GameObj* objective = nullptr;
     const int found = GetTargetLocationSystem(&objective);
-    GameObjNotifier* manager = GetGameRootMember_c0();
+    CharacterMgr* manager = GetCharacterManager();
     int result = (manager && found) ? 1 : 0;
     if (!manager || !objective) return result;
 
-    bool ok = FUN_0055f6c0(manager, 1, ctx) && result;
+    bool ok = manager->SetPickupInProgress(1, ctx) && result;
     CharacterIterator members(objective, 1, ControlSide());
     for (members.Begin(); members.Current(); members.Advance()) {
         Character* member = static_cast<Character*>(members.Current());
@@ -289,7 +288,7 @@ int MissionPickup::Virtual159(GameObj* person, int roll, int* out, NotifyContext
         ok = member->SetParentAtMissionCompletionKey(home, ctx) && ok;
         ok = SetTaskStatus(kTaskSucceeded, ctx) && ok;
     }
-    return FUN_0055f6c0(manager, 0, ctx) && ok ? 1 : 0;
+    return manager->SetPickupInProgress(0, ctx) && ok ? 1 : 0;
 }
 
 int MissionPickup::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out) {
@@ -389,7 +388,7 @@ int MissionPalace::Virtual159(GameObj* person, int roll, int* out, NotifyContext
     ok = GetObjectiveCharacter(&objectiveCharacter) && ok ? 1 : 0;
     if (objectiveCharacter) {
         ObjectKey personKey;
-        ok = static_cast<Character*>(objectiveCharacter)->Virtual132(keyAsArgument(person->GetKey(&personKey)), ctx) && ok ? 1 : 0;
+        ok = static_cast<Character*>(objectiveCharacter)->Virtual132(person->GetKey(&personKey), ctx) && ok ? 1 : 0;
     }
     GameObj* objective = nullptr;
     result = GetTargetObject(&objective) && ok ? 1 : 0;
@@ -399,7 +398,7 @@ int MissionPalace::Virtual159(GameObj* person, int roll, int* out, NotifyContext
         Character* member = static_cast<Character*>(members.Current());
         if (!(member->m_flagsAc & 1)) continue;
         ObjectKey personKey;
-        result = member->Virtual132(keyAsArgument(person->GetKey(&personKey)), ctx) && result ? 1 : 0;
+        result = member->Virtual132(person->GetKey(&personKey), ctx) && result ? 1 : 0;
     }
     return result;
 }
@@ -412,7 +411,7 @@ int MissionPalace::Virtual160(NotifyContext* ctx) {
     ObjectKey noHolder;
     for (members.Begin(); members.Current(); members.Advance()) {
         Character* member = static_cast<Character*>(members.Current());
-        result = member->Virtual131(keyAsArgument(&noHolder), ctx) && result ? 1 : 0;
+        result = member->Virtual131(&noHolder, ctx) && result ? 1 : 0;
         result = member->SetCanEscape(0, ctx) && result ? 1 : 0;
     }
     return result;
@@ -756,7 +755,7 @@ int MissionBounty::Virtual159(GameObj* person, int roll, int* out, NotifyContext
     if (!han) return ok;
     ok = han->SetBountyAttack(1, ctx) && ok ? 1 : 0;
     ObjectKey personKey;
-    ok = FUN_005349e0(han, person->GetKey(&personKey), 0, ctx) && ok ? 1 : 0;
+    ok = han->RollCombatCheck(person->GetKey(&personKey), 0, ctx) && ok ? 1 : 0;
     int newStatus = kTaskStarted;
     if (han->m_flagsAc & 1) {
         newStatus = kTaskSucceeded;

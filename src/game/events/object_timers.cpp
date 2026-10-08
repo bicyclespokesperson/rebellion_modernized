@@ -1,3 +1,4 @@
+#include "character/character_mgr.h"
 #include "gameobj/object_queries.h"
 #include "events/object_timers.h"
 #include "events/object_timers_decl.h"
@@ -160,8 +161,8 @@ TrackedStat* CharacterTimer389::GetTargetSpec() {
 void CharacterTimer389::Fire() {
     fireOnTimerOwner<Character>(this, ResolveMasterInFamilies_30_3c, [](Character* c, NotifyContext* ctx) {
         // The original calls the character manager (game root +0xc0) with the character as an argument.
-        GameObjNotifier* characterManager = GetGameRootMember_c0();
-        return characterManager ? FUN_00560a30(characterManager, c, ctx) : 0;
+        CharacterMgr* characterManager = GetCharacterManager();
+        return characterManager ? characterManager->DiscoverForceUser(c, ctx) : 0;
     });
 }
 

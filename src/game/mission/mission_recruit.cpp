@@ -1,3 +1,4 @@
+#include "character/character_mgr.h"
 #include "mission/mission_recruit.h"
 
 #include "economy/side.h"
@@ -11,7 +12,6 @@ extern EventKindSet g_missionRecruitEventKinds;  // 0x6bb960
 
 int __cdecl FUN_0055c700(int leadership, int loyalty, int* out);  // LookupRecruitMissionTable
 int FUN_0053e2f0(int threshold);
-int __thiscall FUN_0055fc80(GameObjNotifier* self, System* system, int side, ObjectKey* out, NotifyContext* ctx);
 int __thiscall FUN_005589b0(ObjectKey* self, Crc32* crc);
 extern int DAT_006bb5b0;  // g_gnprtb1824
 
@@ -214,11 +214,11 @@ int MissionRecruit::Virtual159(GameObj* person, int roll, int* out, NotifyContex
     *out = 1;
     System* system = nullptr;
     const int found = FUN_00586720(this, &system);
-    GameObjNotifier* root = GetGameRootMember_c0();
+    CharacterMgr* root = GetCharacterManager();
     int ok = root != nullptr && found != 0;
     if (!system || !root) return ok;
     ObjectKey recruit;
-    ok = FUN_0055fc80(root, system, ControlSide(), &recruit, ctx) != 0 && ok;
+    ok = root->RecruitRandomMinor(system, ControlSide(), &recruit, ctx) != 0 && ok;
     if (!recruit.OrNull()) return ok;
     ok = SetRecruitedCharacter(&recruit, ctx) != 0 && ok;
     ok = SetTaskStatus(kTaskSucceeded, ctx) != 0 && ok;

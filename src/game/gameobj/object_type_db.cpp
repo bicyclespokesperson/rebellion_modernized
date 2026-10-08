@@ -316,3 +316,65 @@ IntPair* __thiscall GetRecordKindRange(DatRecord* record, IntPair* out) {
     *out = IntPair(record->m_first, record->m_second);
     return out;
 }
+
+// ---- wrappers (0x51cab0-0x51cce0) -----------------------------------------------------------------------------------
+
+DatRecord* FindDataRecord(const SeedKey* key) {
+    ObjectTypeDb* db = GetObjectTypeDb();
+    return db ? db->FindRecord(key) : nullptr;
+}
+
+DatRecord* GetFirstRecordOfType(int family) {
+    ObjectTypeDb* db = GetObjectTypeDb();
+    return db ? db->FirstRecordOfFamily(family) : nullptr;
+}
+
+int ListAllDataRecordKeys(ObjectRefList* out) {
+    out->Clear();
+    ObjectTypeDb* db = GetObjectTypeDb();
+    return db ? db->ListAllRecordKeys(out) : 0;
+}
+
+int CollectDataRecords(int view, uint32_t kind, int level, int whenBelow, int whenEqual, int whenAbove, IdAvlTree* out,
+                       int* maxLevel) {
+    ObjectTypeDb* db = GetObjectTypeDb();
+    return db ? db->CollectRecords(view, kind, level, whenBelow, whenEqual, whenAbove, out, maxLevel) : 0;
+}
+
+int FindDataRecordAtLevel(int view, uint32_t kind, int level, DatRecord** out) {
+    ObjectTypeDb* db = GetObjectTypeDb();
+    return db ? db->FindRecordAtLevel(view, kind, level, out) : 0;
+}
+
+int FindNextDataLevel(int view, int kind, int level, int* found, int* foundLevel, int* extraValue) {
+    ObjectTypeDb* db = GetObjectTypeDb();
+    return db ? db->FindNextLevel(view, kind, level, found, foundLevel, extraValue) : 0;
+}
+
+int GetTierRecord28(int view, int level, DatRecord** out) { return FindDataRecordAtLevel(view, 0x28, level, out); }
+
+int GetTierRecord29(int view, int level, DatRecord** out) { return FindDataRecordAtLevel(view, 0x29, level, out); }
+
+int GetTierRecord2a(int view, int level, DatRecord** out) { return FindDataRecordAtLevel(view, 0x2a, level, out); }
+
+int FindNextTier28(int view, int level, int* found, int* foundLevel, int* extraValue) {
+    return FindNextDataLevel(view, 0x28, level, found, foundLevel, extraValue);
+}
+
+int FindNextTier29(int view, int level, int* found, int* foundLevel, int* extraValue) {
+    return FindNextDataLevel(view, 0x29, level, found, foundLevel, extraValue);
+}
+
+int FindNextTier2a(int view, int level, int* found, int* foundLevel, int* extraValue) {
+    return FindNextDataLevel(view, 0x2a, level, found, foundLevel, extraValue);
+}
+
+void DescribeDataKey(const SeedKey* key, String* out) {
+    ObjectTypeDb* db = GetObjectTypeDb();
+    if (db) db->DescribeKey(key, out);
+}
+
+int ForEachDataFamily(int arg) {
+    ObjectTypeDb* db = GetObjectTypeDb();
+    return db ? db->ForEachFamily(arg) : 0;
+}

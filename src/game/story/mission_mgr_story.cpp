@@ -477,11 +477,11 @@ int MissionMgr::OnFinalBattleChanged(int on, NotifyContext* ctx) {
 
         if (lukeCharacter->m_force >= g_gnprtb1807) {
             winningSide = kSideAlliance;
-            ok = lukeCharacter->Virtual134(contextAsArgument(ctx)) && ok ? 1 : 0;
+            ok = lukeCharacter->Virtual134(ctx) && ok ? 1 : 0;
             ObjectKey lukeKeyForDarth;
-            ok = darth.character()->Virtual131(keyAsArgument(lukeCharacter->GetKey(&lukeKeyForDarth)), ctx) && ok ? 1 : 0;
+            ok = darth.character()->Virtual131(lukeCharacter->GetKey(&lukeKeyForDarth), ctx) && ok ? 1 : 0;
             ObjectKey lukeKeyForEmperor;
-            ok = emperor.character()->Virtual131(keyAsArgument(lukeCharacter->GetKey(&lukeKeyForEmperor)), ctx) && ok ? 1 : 0;
+            ok = emperor.character()->Virtual131(lukeCharacter->GetKey(&lukeKeyForEmperor), ctx) && ok ? 1 : 0;
             ok = darth.character()->SetCanEscape(0, ctx) && ok ? 1 : 0;
             ok = emperor.character()->SetCanEscape(0, ctx) && ok ? 1 : 0;
         } else {

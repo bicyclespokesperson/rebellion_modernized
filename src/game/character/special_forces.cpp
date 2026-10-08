@@ -136,8 +136,8 @@ int SpecialForces::GetLoyalty() { return m_baseLoyalty; }
 
 int SpecialForces::Virtual130(NotifyContext* ctx) { return Role::Virtual130(ctx); }
 
-int SpecialForces::Virtual131(int a, NotifyContext* ctx) {
-    if (Role::Virtual131(a, ctx)) return ChangeDestroyedReason(kDestroyedReasonSpecial, ctx);
+int SpecialForces::Virtual131(const ObjectKey* opponent, NotifyContext* ctx) {
+    if (Role::Virtual131(opponent, ctx)) return ChangeDestroyedReason(kDestroyedReasonSpecial, ctx);
     return 0;
 }
 

@@ -73,6 +73,24 @@ ObjectTypeDb* GetObjectTypeDb();
 void CreateObjectTypeDb();
 void DestroyObjectTypeDb();
 
+// Wrappers over the object-type database (0x51cab0-0x51cce0): all do nothing and return 0 while there is no database.
+DatRecord* FindDataRecord(const SeedKey* key);                // 0x51cab0
+DatRecord* GetFirstRecordOfType(int family);                  // 0x51cad0
+int ListAllDataRecordKeys(ObjectRefList* out);                // 0x51caf0: clears `out` first
+int CollectDataRecords(int view, uint32_t kind, int level, int whenBelow, int whenEqual, int whenAbove, IdAvlTree* out,
+                       int* maxLevel);                        // 0x51cb20
+int FindDataRecordAtLevel(int view, uint32_t kind, int level, DatRecord** out);   // 0x51cb60
+int FindNextDataLevel(int view, int kind, int level, int* found, int* foundLevel, int* extraValue);   // 0x51cb90
+// The same for the facility kinds 0x28, 0x29 and 0x2a.
+int GetTierRecord28(int view, int level, DatRecord** out);    // 0x51cbd0
+int GetTierRecord29(int view, int level, DatRecord** out);    // 0x51cbf0
+int GetTierRecord2a(int view, int level, DatRecord** out);    // 0x51cc10
+int FindNextTier28(int view, int level, int* found, int* foundLevel, int* extraValue);   // 0x51cc30
+int FindNextTier29(int view, int level, int* found, int* foundLevel, int* extraValue);   // 0x51cc60
+int FindNextTier2a(int view, int level, int* found, int* foundLevel, int* extraValue);   // 0x51cc90
+void DescribeDataKey(const SeedKey* key, String* out);        // 0x51ccc0
+int ForEachDataFamily(int arg);                               // 0x51cce0
+
 // The kind range of a record (copies record+0x24).
 IntPair* __thiscall GetRecordKindRange(DatRecord* record, IntPair* out);
 
