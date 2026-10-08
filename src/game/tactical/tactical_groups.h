@@ -207,6 +207,10 @@ public:
 // The group an id-tree node of the registry stands for (a group starts with its TacticalUnit, which is the node).
 inline ShipGroup* ShipGroupOf(IdNode* node) { return static_cast<ShipGroup*>(static_cast<TacticalUnit*>(node)); }
 
+// Gives a new group a handle for its side and registers it (0x5afde0 a fighter group, 0x5afe10 a capital-ship group).
+void __stdcall RegisterFighterGroup(ShipGroup* group);
+void __stdcall RegisterCapitalShipGroup(ShipGroup* group);
+
 // Removes a unit from its group (a null group is ignored); 0x5caed0.
 void __stdcall RemoveMemberFromGroup(ShipGroup* group, int handle);
 

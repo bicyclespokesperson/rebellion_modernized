@@ -291,6 +291,24 @@ Code lives in `src/game/app/battle_flow*.cpp|battle_handoff.cpp|battle_results.c
   fake object manager poke (`0x6bc4a0=@[0x6bc4a8]-0x924;[0x6bc4a8]-0x924=@esp+0x300;esp+0x328=@0x461730`, stub `ret 0x10`).
   Functions that copy an uninitialised stack result (`BuildResult` 0x5b0280, 0x5b8e00, 0x5ba620, 0x5ba670) cannot match the
   original's stack garbage: XFAIL entries in `tests/difftest_known_failures.txt`.
+- **Class unification and the "turn sync" range (part 3)**: `TacticalUnitTree`/`SimUnitList` are `UnitRefTree`, `SimUnit` is `TacticalShipBase`,
+  `TacticalShipObject` is `MovingObject`, `TacticalVec4` is `TacticalVector`; the offset helpers are real member accesses.
+  Still duplicated: `SimulatorSide` (simulator.h) and `TacticalSideData` (objmgr.h) are views of `TacticalSideBase`/`TacticalAiSide`
+  (`SimulatorSide::m_retired` +0x70 is really the `GroupRefTree` `m_groups`; the setup writes the vote time into +0x24, which the AI also
+  uses as its 0.33 retreat threshold).
+  **0x5bbf10-0x5c14d0 is not turn-by-turn simulation.** It holds (a) ~330 static initializers (0x5bbf10-0x5bd7d0), (b) the streaming of the
+  3D battle's character and special-force records (0x5bd7d0-0x5be080, reconstructed in `tactical_units.cpp`, with the character status
+  event 0x5bdc30), (c) the two concrete 3D object managers: the multiplayer lockstep manager (VT 0x66c7c8, ctor 0x5be160, update 0x5bea30,
+  end-of-turn 0x5bef90, turn-count reports 0x5be8f0/0x5be940, packet replay 0x5bff30, timeGetTime pacing) and the single-player one
+  (VT 0x66c880, ctor 0x5bf830, update 0x5c0500, 0x5c0b60), both created by 0x5be0f0/0x5bf320 and filling the 40 slots of the abstract
+  base (0x66c2d0); and (d) the window/view forwarders 0x5c0dc0-0x5c14d0 (they forward to the tactical window `DAT_006bc45c`).
+  (c) and (d) are 3D/multiplayer glue and no scenario reaches them; they are not reconstructed. The records are verified with
+  `tests/difftest_ext/tactical_record_variants.py` (entry-poke cases over borrowed strategic Read/Write/Checksum captures).
+  Measured with count-1 captures of all ~1200 unhooked non-initializer tactical functions over `space_battle_autoresolve` and `_retry`:
+  the headless battle runs only 74, almost all compiler/ICF/static code (scalar deleting destructors, ICF stubs, global-float
+  initializers, sound-manager teardown 0x5ba920/0x5bbee0). The real logic among them is reconstructed: the weapon-profile classes
+  (0x5d2360-0x5d2570, `tactical_weapon_profile.cpp`), group registration 0x5afde0/0x5afe10, the hub teardown 0x59ede0 and the leaf-side
+  destructors 0x5d14a0/0x5d14b0.
 - Calling-convention traps found: 0x5ae1e0 (shared empty stub) and 0x5bbd90 pop one argument; several stubs the decompiler shows
   as `void f(void)` take arguments. `tools/check_callee_pop.py` catches these.
 

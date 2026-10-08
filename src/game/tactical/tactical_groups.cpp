@@ -2,6 +2,7 @@
 
 #include <new>
 
+#include "tactical/tactical_externals.h"
 #include "tactical/tactical_externals_2b.h"
 #include "tactical/tactical_facade.h"
 #include "tactical/tactical_objmgr.h"
@@ -314,4 +315,23 @@ FighterGroup::~FighterGroup() {}
 
 void __stdcall RemoveMemberFromGroup(ShipGroup* group, int handle) {
     if (group) group->RemoveMember(handle);
+}
+
+void __stdcall RegisterFighterGroup(ShipGroup* group) {
+    group->AssignHandle(group->m_side);
+    GetTacticalRegistry()->AddFighterGroup(group);
+}
+
+void __stdcall RegisterCapitalShipGroup(ShipGroup* group) {
+    group->AssignHandle(group->m_side);
+    GetTacticalRegistry()->AddCapitalShipGroup(group);
+}
+
+void DestroyTacticalHub() {
+    TacticalHub* hub = g_tacticalHub;
+    if (hub != nullptr) {
+        FUN_0059ee10(hub);
+        ::operator delete(static_cast<void*>(hub));
+    }
+    g_tacticalHub = nullptr;
 }

@@ -128,9 +128,9 @@ void TacticalWeaponArc::Read(istream* in) {
     m_damageA = 0;
     m_damageB = 0;
     m_damageC = 0;
-    FUN_005d23b0(&m_profileA, in);
-    FUN_005d23b0(&m_profileB, in);
-    FUN_005d23b0(&m_profileC, in);
+    m_profileA.Read(in);
+    m_profileB.Read(in);
+    m_profileC.Read(in);
     m_unk54 = 0;
     m_unk58 = 0;
     m_unk5c = 0;
@@ -145,9 +145,9 @@ void TacticalWeaponArc::Write(ostream* out) {
     WriteValue32(out, &m_countA);
     WriteValue32(out, &m_countB);
     WriteValue32(out, &m_countC);
-    FUN_005d2400(&m_profileA, out);
-    FUN_005d2400(&m_profileB, out);
-    FUN_005d2400(&m_profileC, out);
+    m_profileA.Write(out);
+    m_profileB.Write(out);
+    m_profileC.Write(out);
     WriteValue32(out, &m_unk60);
     WriteValue32(out, &m_chargeState);
     WriteValue32(out, &m_charge);
@@ -159,9 +159,9 @@ void TacticalWeaponArc::Checksum(Crc32* crc) {
     crc->AddInt(m_countA);
     crc->AddInt(m_countB);
     crc->AddInt(m_countC);
-    FUN_005d2450(&m_profileA, crc);
-    FUN_005d2450(&m_profileB, crc);
-    FUN_005d2450(&m_profileC, crc);
+    m_profileA.Checksum(crc);
+    m_profileB.Checksum(crc);
+    m_profileC.Checksum(crc);
     crc->AddInt(m_unk60);
     crc->AddInt(m_chargeState);
     crc->AddInt(bitsOf(m_charge));

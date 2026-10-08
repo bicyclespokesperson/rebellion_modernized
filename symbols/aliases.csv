@@ -57,6 +57,7 @@ address,kind,name,signature,size
 0x005b7750,func,TacticalShipBase::ChecksumExtra,,
 0x005ba480,func,TacticalDeathStar::GetLaunchPoint,,
 0x005bd880,func,TacticalSpecialForceUnit::Virtual01,,
+0x005bdf20,func,TacticalSpecialForceTree::CountItems,,
 0x005c7a90,func,SimulatorSide::~SimulatorSide,,
 0x005c7cb0,func,SimulatorSide::SimulatorSide,,
 0x005cd6b0,func,MovingObject::Virtual03,,

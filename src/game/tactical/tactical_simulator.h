@@ -64,6 +64,7 @@ public:
 // The two concrete sides (VT 0x66c428 / 0x66c3f8); their vtables differ only in a few slots of the AI module.
 class SimulatorSideA : public SimulatorSide {
 public:
+    virtual ~SimulatorSideA();  // 0x5d14a0 (scalar deleting destructor 0x5affd0)
     SimulatorSideA() {
         m_unkB0 = 0;
         m_unk48 = 0;
@@ -75,6 +76,7 @@ public:
 
 class SimulatorSideB : public SimulatorSide {
 public:
+    virtual ~SimulatorSideB();  // 0x5d14b0 (scalar deleting destructor 0x5afff0)
     SimulatorSideB() {
         m_unkB0 = 0;
         m_unk48 = 0;

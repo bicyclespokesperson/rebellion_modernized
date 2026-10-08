@@ -21,13 +21,14 @@ class TacticalCapitalShip;
 class TacticalShipBase;
 class TacticalFighter;
 class TacticalShipBase;
+class TacticalCharacterUnit;
 class ShipGroup;
 class TacticalSoundManager;
-struct TacticalWeaponProfile;
 
 // ---- Ship-group module: the hub (DAT_006bc468, 0x188 bytes) and the registry (DAT_006bc470, 0x48 bytes) ----
 TacticalHub* FUN_0059ed70();                                    // creates the hub on first use
-void FUN_0059ede0();                                            // destroys the hub
+void DestroyTacticalHub();                                      // 0x59ede0 destroys the hub
+void __thiscall FUN_0059ee10(TacticalHub* hub);                 // the hub's destructor body
 void __thiscall FUN_0059eec0(TacticalHub* hub, int a);
 void __thiscall FUN_0059eef0(TacticalHub* hub, int a);
 int __thiscall FUN_0059f6e0(TacticalHub* hub);
@@ -46,7 +47,6 @@ TacticalUnit* __thiscall FUN_005a6480(TacticalRegistry* registry, int handle);
 void FUN_005ba920();
 
 // ---- Headless simulator (DAT_006bc4a8, 0x274 bytes) ----
-void __thiscall FUN_005ae460(HeadlessSimulator* simulator, int a);
 
 // ---- Turn sync / 3D view ----
 void FUN_005be0f0();
@@ -75,17 +75,6 @@ extern TacticalHub* g_tacticalHub;                      // 0x6bc468
 extern TacticalRegistry* g_tacticalRegistry;            // 0x6bc470
 extern HeadlessSimulator* g_headlessSimulator;          // 0x6bc4a8
 
-// ---- Visual-resources module (0x5d2360): the weapon profile objects inside a weapon arc (0x14 bytes each) ----
-void __thiscall FUN_005d2530(TacticalWeaponProfile* profile);
-void __thiscall FUN_005d24e0(TacticalWeaponProfile* profile);
-void __thiscall FUN_005d2490(TacticalWeaponProfile* profile);
-void __thiscall FUN_005d24d0(TacticalWeaponProfile* profile);
-void __thiscall FUN_005d2520(TacticalWeaponProfile* profile);
-void __thiscall FUN_005d2570(TacticalWeaponProfile* profile);
-void __thiscall FUN_005d23b0(TacticalWeaponProfile* profile, istream* in);
-void __thiscall FUN_005d2400(TacticalWeaponProfile* profile, ostream* out);
-void __thiscall FUN_005d2450(TacticalWeaponProfile* profile, Crc32* crc);
-
 // ---- Object manager (3D battle): commander skill, random numbers, control and registration of units ----
 double __thiscall FUN_005ad750(TacticalObjectManager* manager, int side);
 double __thiscall FUN_005ad7e0(TacticalObjectManager* manager, int side);
@@ -99,6 +88,8 @@ void __thiscall FUN_005a9070(TacticalObjectManager* manager, TacticalShipBase* s
 void __thiscall FUN_005a9170(TacticalObjectManager* manager, TacticalShipBase* ship);
 // The Death Star the 3D battle knows (the registry's); `manager` is only passed through.
 TacticalUnit* __thiscall FUN_005a9330(TacticalObjectManager* manager);
+// The character with this handle in the object manager's tree (RET 4).
+TacticalCharacterUnit* __thiscall FUN_005a9430(TacticalObjectManager* manager, int handle);
 TacticalVector* __thiscall FUN_005a7490(TacticalObjectManager* manager, TacticalVector* out, int side);
 // Builds a queued event object (0x220 bytes) in `memory`: time, kind and three arguments.
 void* __thiscall FUN_005ce500(void* memory, float time, int kind, int a, int b, int c);

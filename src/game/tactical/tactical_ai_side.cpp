@@ -218,7 +218,7 @@ int TacticalAiSide::SplitIntoGroups(TargetPriorityTree* targets, int least, int 
             void* memory = ::operator new(sizeof(FighterGroup));
             group = memory ? new (memory) FighterGroup(static_cast<int>(unit->m_id)) : nullptr;
             GetHeadlessSimulator();
-            FUN_005afde0(group);
+            RegisterFighterGroup(group);
             m_groups.AddGroup(group);
             group->SetSeedHandle(static_cast<int>(unit->m_id));
             unit->m_groupHandle = group->m_id;

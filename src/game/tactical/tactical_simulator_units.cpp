@@ -1,3 +1,4 @@
+#include "core/vptr_store.h"
 #include "tactical/tactical_groups.h"
 #include "tactical/tactical_objmgr.h"
 #include "tactical/tactical_registry.h"
@@ -149,6 +150,10 @@ void HeadlessSimulator::AssignCharacterHandle(TacticalUnit* unit) {
 }
 
 // ---- construction ---------------------------------------------------------------------------------------------------
+
+SimulatorSideA::~SimulatorSideA() { REB_KEEP_VPTR_STORE(); }
+
+SimulatorSideB::~SimulatorSideB() { REB_KEEP_VPTR_STORE(); }
 
 HeadlessSimulator::HeadlessSimulator() {
     m_elapsed = 0;

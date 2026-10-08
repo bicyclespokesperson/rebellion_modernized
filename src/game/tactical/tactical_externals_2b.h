@@ -35,8 +35,6 @@ int __thiscall FUN_005afcc0(HeadlessSimulator* simulator);
 float __thiscall FUN_005afa30(HeadlessSimulator* simulator, int side);
 void __thiscall FUN_005aefc0(HeadlessSimulator* simulator, ShipGroup* group);
 void __thiscall FUN_005afa00(HeadlessSimulator* simulator, TacticalShipBase* target, ShipGroup* group);  // the group's target becomes `target`
-void __stdcall FUN_005afde0(ShipGroup* group);  // registers a fighter group
-void __stdcall FUN_005afe10(ShipGroup* group);  // registers a capital-ship group
 
 void __thiscall FUN_005cb1a0(ShipGroup* group, int a);
 void __thiscall FUN_005a0320(TacticalHub* hub, int groupId);

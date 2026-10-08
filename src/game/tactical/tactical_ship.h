@@ -11,6 +11,7 @@
 #include "tactical/tactical_moving_object.h"
 #include "tactical/tactical_types.h"
 #include "tactical/tactical_units.h"
+#include "tactical/tactical_weapon_profile.h"
 
 // The battle units of the tactical engine: capital ships and fighter squadrons share the abstract base class
 // TacticalShipBase (0x5b0f70, VT 0x66c560, 0x418 bytes); a capital ship adds the carrier interface TacticalHangar
@@ -88,16 +89,6 @@ struct TacticalShipStatusRecord {
 
 // One of the four weapon arcs of a ship (0x74 bytes). The three weapon kinds each have a profile object (damage and
 // accuracy factors); `ComputeFirepower` of the owning ship fills m_firepower for a given target kind.
-// The 0x14-byte object describing how well one weapon kind hurts a target class (classes of the visual-resources
-// module, 0x5d2360); only the factors the damage computation reads are named.
-struct TacticalWeaponProfile {
-    void* m_vptr;
-    float m_f04;
-    float m_f08;
-    float m_f0c;
-    float m_f10;
-};
-
 class TacticalWeaponArc {
 public:
     TacticalWeaponArc();   // 0x5b0e50
@@ -112,9 +103,9 @@ public:
     float m_damageA;                // +0x0c
     float m_damageB;                // +0x10
     float m_damageC;                // +0x14
-    TacticalWeaponProfile m_profileA;  // +0x18 object built by 0x5d2530
-    TacticalWeaponProfile m_profileB;  // +0x2c object built by 0x5d24e0
-    TacticalWeaponProfile m_profileC;  // +0x40 object built by 0x5d2490
+    WeaponProfileA m_profileA;      // +0x18
+    WeaponProfileB m_profileB;      // +0x2c
+    WeaponProfileC m_profileC;      // +0x40
     float m_unk54;                  // +0x54
     float m_unk58;                  // +0x58
     float m_unk5c;                  // +0x5c
@@ -401,12 +392,6 @@ public:
     void ApplyStatus(const FightSquadResult* record);         // 0x5ba150
     uint32_t SquadsAlive();                                   // 0x5ba330
     uint32_t SquadsMax();                                     // 0x5ba380
-};
-
-// What the object manager hands an event handler: the payload is an array of 32-bit words.
-struct TacticalEvent {
-    void* m_unk00;
-    int* m_args;  // +0x04
 };
 
 // Event handlers of the 3D battle (cdecl; registered in the object manager's event table).

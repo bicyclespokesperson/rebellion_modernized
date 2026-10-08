@@ -15,9 +15,6 @@
 // ---- weapon arc ---------------------------------------------------------------------------------------------------
 
 TacticalWeaponArc::TacticalWeaponArc() {
-    FUN_005d2530(&m_profileA);
-    FUN_005d24e0(&m_profileB);
-    FUN_005d2490(&m_profileC);
     m_unk54 = 0;
     m_unk5c = 0;
     m_unk58 = 0;
@@ -34,11 +31,7 @@ TacticalWeaponArc::TacticalWeaponArc() {
     m_chargeState = 1;
 }
 
-TacticalWeaponArc::~TacticalWeaponArc() {
-    FUN_005d24d0(&m_profileC);
-    FUN_005d2520(&m_profileB);
-    FUN_005d2570(&m_profileA);
-}
+TacticalWeaponArc::~TacticalWeaponArc() {}
 
 // ---- construction -------------------------------------------------------------------------------------------------
 

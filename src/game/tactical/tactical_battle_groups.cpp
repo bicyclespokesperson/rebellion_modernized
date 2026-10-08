@@ -89,7 +89,7 @@ CapitalShipGroup* HeadlessSimulator::FormCapitalGroup(UnitRefTree* units, int un
             first = false;
             void* memory = ::operator new(sizeof(CapitalShipGroup));
             group = memory ? new (memory) CapitalShipGroup(static_cast<int>(unit->m_id)) : nullptr;
-            FUN_005afe10(group);
+            RegisterCapitalShipGroup(group);
             unit->m_groupHandle = group->m_id;
             group->SetRole(role);
             group->SetSeedHandle(static_cast<int>(unit->m_id));
