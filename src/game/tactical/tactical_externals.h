@@ -6,16 +6,13 @@
 #include <cstdint>
 
 #include "core/game_string.h"
+#include "tactical/tactical_registry.h"
 #include "tactical/tactical_types.h"
 #include "tactical/tactical_units.h"
 
 class TacticalObjectManager;
 class TacticalSideData;
 class TacticalHub;
-class TacticalRegistry {
-public:
-    virtual ~TacticalRegistry();
-};
 struct HeadlessSimulator;
 class TacticalCapitalShip;
 class SimUnit;
