@@ -2299,6 +2299,7 @@ address,kind,name,signature,size
 0x00496f50,func,Notice15::Virtual09,,
 0x00497380,func,Notice15::OnMessage,,
 0x00497490,func,Notice15::Virtual10,,
+0x004974f0,func,UiTextNotice::Virtual16,,
 0x00497530,func,Notice15::GetClass,,
 0x00497560,func,Notice16::Notice16,(void),
 0x004975c0,func,Notice16::scalar_deleting_destructor,,

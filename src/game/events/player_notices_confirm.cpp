@@ -107,26 +107,30 @@ void Notice8::BuildText() {
 void Notice8::AppendOrderLines() {
     StrStream stream;
     strstream_ctor(&stream, 1);
-    ObjectKeyValueSet transitDays;
-    StatusCode status;
-    static_cast<MoveOrderBase*>(m_subject)->CollectTransitDays(&status, &transitDays);
-    for (ObjectKeyNode* node = transitDays.First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor)) {
-        ObjectKey key(node->m_key);
-        GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, &key);
-        if (!object) continue;
-        const int days = static_cast<ObjectKeyValueNode*>(node)->m_value;
-        String name;
-        static_cast<GameObj*>(object)->GetNameCopy(&name);
-        ostream* out = ostream_operator_ls_char(stream.Out(), '\n');
-        out = ostream_operator_ls_cstr(out, name.m_text);
-        out = ostream_operator_ls_cstr(out, DAT_006a8798);
-        ostream_operator_ls_long(out, days);
+    {
+        ObjectKeyValueSet transitDays;
+        StatusCode status;
+        static_cast<MoveOrderBase*>(m_subject)->CollectTransitDays(&status, &transitDays);
+        for (ObjectKeyNode* node = transitDays.First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor)) {
+            ObjectKey key(node->m_key);
+            GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, &key);
+            if (!object) continue;
+            const int days = static_cast<ObjectKeyValueNode*>(node)->m_value;
+            String name;
+            static_cast<GameObj*>(object)->GetNameCopy(&name);
+            ostream* out = ostream_operator_ls_char(stream.Out(), '\n');
+            out = ostream_operator_ls_cstr(out, name.m_text);
+            out = ostream_operator_ls_cstr(out, DAT_006a8798);
+            ostream_operator_ls_long(out, days);
+        }
+        ostream_operator_ls_char(stream.Out(), 0);
+        {
+            String text(strstreambuf_str(StreambufOf(&stream)));
+            m_text1 += text;
+        }
+        strstreambuf_freeze(StreambufOf(&stream), 0);
+        ClearIosState(&stream);
     }
-    ostream_operator_ls_char(stream.Out(), 0);
-    String text(strstreambuf_str(StreambufOf(&stream)));
-    m_text1 += text;
-    strstreambuf_freeze(StreambufOf(&stream), 0);
-    ClearIosState(&stream);
     strstream_dtor(stream.Ios());
     ios_dtor(stream.Ios());
 }
