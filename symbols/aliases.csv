@@ -11,3 +11,4 @@ address,kind,name,signature,size
 0x005863f0,func,NotifEventBase::~NotifEventBase,,
 0x005947c0,func,MajorCharacterIterator::MajorCharacterIterator,,
 0x00594840,func,MajorCharacterIterator::~MajorCharacterIterator,,
+0x005bd880,func,TacticalSpecialForceUnit::Virtual01,,
