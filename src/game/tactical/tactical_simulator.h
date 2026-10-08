@@ -10,6 +10,7 @@
 #include "tactical/tactical_units.h"
 
 class TacticalShipBase;
+class TacticalDeathStar;
 
 // The headless battle simulator (DAT_006bc4a8, 0x274 bytes): the auto-resolve engine. It runs the same capital-ship and
 // fighter unit objects as the 3D battle, one fixed step per frame, without any rendering (TacticalGame::Update with the
@@ -54,17 +55,11 @@ public:
     virtual SimUnit* Value();     // slot 4 (+0x10)
 };
 
-class SimUnitList {
+class SimUnitList : public TacticalUnitTree {
 public:
-    virtual void Slot00();
-    virtual void Clear();           // slot 1 (+0x04): removes all nodes
-    virtual void Slot02();
-    virtual void Slot03();
-    virtual SimUnitNode* First();   // slot 4 (+0x10)
+    SimUnitNode* First() { return reinterpret_cast<SimUnitNode*>(FirstNode()); }
 
-    uint8_t m_pad04[8];
-
-    TacticalUnitTree* AsTree() { return reinterpret_cast<TacticalUnitTree*>(this); }
+    TacticalUnitTree* AsTree() { return this; }
 };
 
 // One side's state inside the simulator (the object at +0x24c / +0x250; class and vtable live in the capital-ship module).
@@ -137,6 +132,11 @@ struct HeadlessSimulator {
     void RegisterFighter(TacticalShipBase* unit);             // 0x5afd40
     void RegisterCapitalShip(TacticalShipBase* unit);         // 0x5afd70
     void AssignCharacterHandle(TacticalUnit* unit);           // 0x5afdb0
+    int AddDeathStar(int family, int id, int notCompleted, int hasFacility, float hull, float hullNow,
+                     int hangarFree);                         // 0x5af4e0
+    void RegisterDeathStar(TacticalDeathStar* deathStar);     // 0x5afdc0
+    int SideZeroHasMoreFighters();                            // 0x5afcc0
+    int DockInHangar(TacticalShipBase* unit);                 // 0x5afe40
 };
 
 #pragma clang diagnostic push

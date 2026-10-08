@@ -49,7 +49,7 @@ struct FightSquadResult {
 struct DeathStarResult {
     int m_unk00;
     int m_unk04;
-    int m_destroyed;  // +0x08 zero when the Death Star survived
+    int m_alive;      // +0x08 zero when the Death Star has no hull left
     float m_hull;     // +0x0c hull points left
     int m_unk10;
 };
@@ -72,5 +72,5 @@ REB_ASSERT_OFFSET(CapitalShipResult, m_hull, 0x10);
 REB_ASSERT_OFFSET(CapitalShipResult, m_hyperdriveDamage, 0x1c);
 REB_ASSERT_OFFSET(FightSquadResult, m_squadSize, 0x18);
 REB_ASSERT_OFFSET(DeathStarResult, m_hull, 0x0c);
-REB_ASSERT_OFFSET(DeathStarResult, m_destroyed, 0x08);
+REB_ASSERT_OFFSET(DeathStarResult, m_alive, 0x08);
 #pragma clang diagnostic pop

@@ -194,3 +194,9 @@ void TacticalCapitalShip::ApplyStatus(const void* record) {
     m_tractorCH = fields[0x20 / 4];
     m_weaponCH = fields[0x24 / 4];
 }
+
+int TacticalCapitalShip::GetSoundId() {
+    if (m_hullMax < 1100.0f) return 0x19;
+    if (m_hullMax < 2000.0f) return 0x18;
+    return 0x17;
+}

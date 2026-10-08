@@ -76,6 +76,8 @@ public:
     int Dock(TacticalShipBase* fighter);        // 0x5b84a0
     int Launch(TacticalShipBase* fighter);      // 0x5b8570
     double GetLaunchInterval();                 // 0x5b8b00
+    void ReleaseDocked();                       // 0x5b8d10 sends every docked squadron into battle
+    void Disband();                             // 0x5b8d80 destroys the squadrons the carrier has aboard or in flight
 };
 
 class TacticalShipBase : public TacticalShipObject,
@@ -115,7 +117,7 @@ public:
     virtual double GetWeaponRecharge();                 // 24
     virtual double GetShieldRecharge();                 // 25
     virtual void Virtual26();
-    virtual int Virtual27();
+    virtual int GetSoundId();
     virtual int Virtual28();
     virtual void Virtual29();
     virtual int Virtual30();
@@ -125,8 +127,8 @@ public:
     virtual void Virtual34(TacticalVector* out);           // 0x5b3a40
     virtual double GetRadius();                             // 35: 0x5b6900
     virtual double GetSpeed();                              // 36: capital 0x5b17f0, fighter 0x5ba190
-    virtual TacticalShipBase* GetCarrierShip();            // 37: 0x5b6960
-    virtual TacticalShipBase* GetCarrierShip2();           // 38: 0x5b6960
+    virtual TacticalShipBase* GetNextShip();               // 37: 0x5b6960 the next ship in the registry order
+    virtual TacticalShipBase* GetNextShip2();              // 38: 0x5b6960
     virtual void Virtual39(float step);
     virtual void ApplyCriticalHit(int kind);               // 40: 0x5b1970
     virtual void RepairCriticalHit(int kind);              // 41: 0x5b1ab0
@@ -165,6 +167,7 @@ public:
     void ClearArcCharge(unsigned arc);         // 0x5b6980
     void QueueArcCharge(unsigned arc);         // 0x5b64e0
     void SetState1();                          // 0x5b69d0
+    void SetState2();                          // 0x5b69b0
     int IsState1();                            // 0x5b69f0
     double AttackRating(TacticalShipBase* target, int unused);   // 0x5b7780
     double AttackRatingVsClass(int targetClass, int unused);     // 0x5b7a80
@@ -256,7 +259,8 @@ public:
     virtual double GetWeaponRecharge() override;        // 0x5b0400
     virtual double GetShieldRecharge() override;        // 0x5b0460
     virtual double GetTurnRate() override;              // 0x5b0be0
-    virtual void GetLaunchPoint(TacticalVector* out) override;  // 0x5b0b80
+    virtual void GetLaunchPoint(TacticalVector* out) override;  // 0x5b0b80 (see TacticalCapitalShipLaunchPoint)
+    virtual int GetSoundId() override;                 // 0x5b0100
 
     CapitalShipResult* BuildResult(CapitalShipResult* out);   // 0x5b0280
     void ApplyStatus(const void* record);              // 0x5b0230
@@ -279,12 +283,51 @@ public:
     virtual double GetShieldRecharge() override;        // 0x5b9c30
     virtual double GetSpeed() override;                 // 0x5ba190
     virtual double GetTurnRate() override;              // 0x5ba270
+    virtual int GetSoundId() override;                  // 0x5b8df0
 
     FightSquadResult* BuildResult(FightSquadResult* out);     // 0x5b8e00
 };
 
+// 0x5b8ce0: whether the unit with this handle is a ship in state 3.
+int __stdcall TacticalShipIsInState3(int handle);
+
+// The Death Star (0x5ba3a0-0x5ba8b0, 0x7c bytes): a unit that is not a ship: TacticalUnit at +0, its carrier interface at
+// +0x1c. Built by the simulator / object manager when the battle has one (HeadlessSimulator::AddDeathStar).
+class TacticalDeathStar : public TacticalUnit, public TacticalHangar {
+public:
+    TacticalDeathStar(uint32_t family, uint32_t id, int notCompleted, int hasFacility, float hull, float hullNow,
+                      int hangarFree);       // inlined into 0x5af4e0 / 0x5a9220
+    virtual ~TacticalDeathStar();            // 0x5ba3a0 (scalar deleting destructor 0x5add90)
+    virtual void Virtual01() override;       // 0x404c20 (shared stub: returns 1)
+    virtual void GetLaunchPoint(TacticalVector* out) override;  // 0x5ba480 (3D battle; see TacticalDeathStarLaunchPoint)
+
+    int IsOperational();                     // 0x5ba420: has hull left, is not under repair and has not fired
+    int IsReady();                           // 0x5ba450: IsOperational and completed
+    DeathStarResult* BuildResult(DeathStarResult* out);          // 0x5ba620
+    CapitalShipResult* BuildCapitalShipResult(CapitalShipResult* out);  // 0x5ba670
+    void ResetCharge(int unused);            // 0x5ba710
+    void Charge(float milliseconds);         // 0x5ba7f0
+    void Destroy();                          // 0x5ba890: no hull, no charge, takes the hangar down
+    void ResetCharged();                     // 0x5ba8a0
+
+    TurnSyncChannelA m_channelA;  // +0x4c
+    TurnSyncChannelB m_channelB;  // +0x54
+    uint32_t m_objectFamily;      // +0x5c
+    uint32_t m_objectId;          // +0x60
+    float m_hullMax;              // +0x64
+    float m_hull;                 // +0x68
+    float m_charge;               // +0x6c superlaser charge, 100 when ready
+    int m_notCompleted;           // +0x70
+    int m_hasFacility;            // +0x74
+    int m_fired;                  // +0x78
+};
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
+REB_ASSERT_SIZE(TacticalDeathStar, 0x7c);
+REB_ASSERT_OFFSET(TacticalDeathStar, m_channelA, 0x4c);
+REB_ASSERT_OFFSET(TacticalDeathStar, m_hull, 0x68);
+REB_ASSERT_OFFSET(TacticalDeathStar, m_fired, 0x78);
 REB_ASSERT_SIZE(TacticalWeaponArc, 0x74);
 REB_ASSERT_OFFSET(TacticalWeaponArc, m_firepower, 0x70);
 REB_ASSERT_SIZE(TacticalHangar, 0x30);

@@ -453,3 +453,41 @@ double TacticalShipBase::GetSpeed() {
     }
     return 0.0f;
 }
+
+// ---- carrier helpers --------------------------------------------------------------------------------------------
+
+int __stdcall TacticalShipIsInState3(int handle) {
+    TacticalShipBase* ship = reinterpret_cast<TacticalShipBase*>(FUN_005a6340(GetTacticalRegistry(), handle));
+    return ship != nullptr && ship->m_state == 3;
+}
+
+void TacticalHangar::ReleaseDocked() {
+    for (TacticalUnitNode* node = m_docked->FirstNode(); node;) {
+        TacticalUnitNode* next = node->Next();
+        if (TacticalShipIsInState3(node->GetHandle()) == 0) {
+            m_launched->Add(node->Value());
+            node->Value()->m_state = 5;
+            m_docked->RemoveById(node->GetHandle());
+        }
+        node = next;
+    }
+}
+
+void TacticalHangar::Disband() {
+    for (TacticalUnitNode* node = m_docked->FirstNode(); node; node = node->Next()) node->Value()->Destroy();
+    for (TacticalUnitNode* node = m_launched->FirstNode(); node; node = node->Next()) node->Value()->Destroy();
+    m_docked->Clear();
+    m_launched->Clear();
+}
+
+int TacticalFighter::GetSoundId() { return 0x16 - (m_side != 0 ? 1 : 0); }
+
+void TacticalShipBase::SetState2() {
+    m_fC_04 = 0;
+    m_state = 2;
+}
+
+TacticalShipBase* TacticalShipBase::GetNextShip() {
+    AvlNode* next = TacticalUnit::m_successor;
+    return next != nullptr ? static_cast<TacticalShipBase*>(static_cast<TacticalUnit*>(next)) : nullptr;
+}

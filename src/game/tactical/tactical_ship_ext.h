@@ -44,3 +44,14 @@ void __thiscall FUN_005a6660(TacticalUnit* unit, int side);
 
 // Adds a battle unit (the object, not its TacticalUnit subobject) to the registry.
 uint32_t __thiscall FUN_005a64e0(TacticalRegistry* registry, TacticalShipBase* ship);
+
+// The registry object (DAT_006bc470): only the Death Star pointer.
+struct TacticalRegistryView {
+    uint8_t m_pad00[0x44];
+    TacticalUnit* m_deathStar;  // +0x44
+};
+
+// The tactical sound manager (presentation): created on first use.
+class TacticalSoundManager;
+TacticalSoundManager* FUN_005ba8b0();
+void __thiscall FUN_005ba980(TacticalSoundManager* manager, int sound, int flag);

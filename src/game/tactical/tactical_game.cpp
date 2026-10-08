@@ -192,10 +192,10 @@ int __thiscall TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAllianc
         GetObjectManager()->SetControlFlags(controlIsEmpire, controlIsAlliance);
         GetObjectManager()->m_cameraDistance = kInitialCameraDistance;
     } else {
-        FUN_005afb50(GetHeadlessSimulator(), 0, sideAValue);
-        FUN_005afb50(GetHeadlessSimulator(), 1, sideBValue);
-        FUN_005afb30(GetHeadlessSimulator(), 0, sideAC);
-        FUN_005afb30(GetHeadlessSimulator(), 1, sideBC);
+        GetHeadlessSimulator()->SetSideValue(0, sideAValue);
+        GetHeadlessSimulator()->SetSideValue(1, sideBValue);
+        GetHeadlessSimulator()->SetSideFlag(0, sideAC);
+        GetHeadlessSimulator()->SetSideFlag(1, sideBC);
         GetHeadlessSimulator()->m_sides[0]->m_unkB0 = 0;
         GetHeadlessSimulator()->m_sides[1]->m_unkB0 = 0;
         GetHeadlessSimulator()->m_sides[0]->m_battleTime = timeA;
@@ -223,10 +223,10 @@ int __thiscall TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAl
         GetObjectManager()->SetControlFlags(controlIsEmpire, controlIsAlliance);
         GetObjectManager()->m_battleKindNotAlliance = battleKindNotAlliance;
     } else {
-        FUN_005afb50(GetHeadlessSimulator(), 0, sideAValue);
-        FUN_005afb50(GetHeadlessSimulator(), 1, sideBValue);
-        FUN_005afb30(GetHeadlessSimulator(), 0, sideAC);
-        FUN_005afb30(GetHeadlessSimulator(), 1, sideBC);
+        GetHeadlessSimulator()->SetSideValue(0, sideAValue);
+        GetHeadlessSimulator()->SetSideValue(1, sideBValue);
+        GetHeadlessSimulator()->SetSideFlag(0, sideAC);
+        GetHeadlessSimulator()->SetSideFlag(1, sideBC);
         GetHeadlessSimulator()->m_sides[0]->m_unkB0 = 0;
         GetHeadlessSimulator()->m_sides[1]->m_unkB0 = 0;
         GetHeadlessSimulator()->m_battleKind = battleKindNotAlliance;
@@ -322,7 +322,7 @@ void TacticalGame::GetOutcome(BattleOutcome* out) { *out = m_outcome; }
 int TacticalGame::AddDeathStar(int family, int id, int notCompleted, int hasFacility, float hull, float hullNow,
                                int hangarFree) {
     if (m_abstract) {
-        return FUN_005af4e0(GetHeadlessSimulator(), family, id, notCompleted, hasFacility, hull, hullNow, hangarFree);
+        return GetHeadlessSimulator()->AddDeathStar(family, id, notCompleted, hasFacility, hull, hullNow, hangarFree);
     }
     return GetObjectManager()->AddDeathStar(family, id, notCompleted, hasFacility, hull, hullNow, hangarFree);
 }

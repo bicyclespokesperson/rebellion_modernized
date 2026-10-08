@@ -2,6 +2,7 @@
 
 #include "tactical/tactical_externals.h"
 #include "tactical/tactical_facade.h"
+#include "tactical/tactical_ship.h"
 
 namespace {
 
@@ -10,20 +11,17 @@ __attribute__((noinline)) SimUnitNode* firstNode(SimUnitList* list) { return lis
 
 constexpr float kStalemateSeconds = 1200.0f;
 constexpr float kDeathStarWins = -1.0f;
-constexpr int kDeathStarFlagOffset = 0x78;
 
-int unitIsInState(SimUnit* unit, int state) { return unit->m_state == state; }
+TacticalDeathStar* asDeathStar(TacticalUnit* unit) { return static_cast<TacticalDeathStar*>(unit); }
 
-int deathStarHasFlag(TacticalUnit* deathStar) {
-    return *reinterpret_cast<int*>(reinterpret_cast<char*>(deathStar) + kDeathStarFlagOffset);
-}
+int deathStarHasFlag(TacticalUnit* deathStar) { return asDeathStar(deathStar)->m_fired; }
 
-// Destroys every unit in the list (FUN_005af7a0 retires one unit; the successor is read first because the list changes).
+// Destroys every unit in the list (RetireUnit retires one unit; the successor is read first because the list changes).
 void retireAll(HeadlessSimulator* simulator, SimUnitList* list) {
     SimUnitNode* node = firstNode(list);
     while (node) {
         SimUnitNode* next = node->Next();
-        FUN_005af7a0(simulator, node->Value());
+        simulator->RetireUnit(reinterpret_cast<TacticalShipBase*>(node->Value()));
         node = next;
     }
 }
@@ -79,7 +77,7 @@ int HeadlessSimulator::Step(float step) {
         float scoreA = m_sides[0]->m_strength;
         const float scoreB = m_sides[1]->m_strength;
         TacticalUnit* deathStar = FUN_005a66a0(GetTacticalRegistry());
-        if (deathStar && FUN_005ba420(deathStar)) scoreA = kDeathStarWins;
+        if (deathStar && asDeathStar(deathStar)->IsOperational()) scoreA = kDeathStarWins;
         if (!(scoreA < scoreB)) {
             if (m_sides[1]->HasNoShipsAtAll()) {
                 m_sides[1]->m_unkB0 = 1;
@@ -113,7 +111,7 @@ int HeadlessSimulator::Step(float step) {
     m_outcome.m_sideBFinal &= sideHasDeathStar[1];
 
     deathStar = FUN_005a66a0(GetTacticalRegistry());
-    const bool deathStarDecides = deathStar && FUN_005ba420(FUN_005a66a0(GetTacticalRegistry()));
+    const bool deathStarDecides = deathStar && asDeathStar(FUN_005a66a0(GetTacticalRegistry()))->IsOperational();
     if (!deathStarDecides) {
         if (!sideHasActiveUnit(m_sides[1]) && m_outcome.m_sideAFinal == 0) m_outcome.m_sideAAlive = 1;
     }
@@ -142,21 +140,18 @@ void HeadlessSimulator::RecordSurvivors() {
             if (candidate->GetUnitClass() != 0) continue;
             if (candidate->m_side != unit->m_side) continue;
             if (candidate->m_state != kUnitActive && candidate->m_state != kUnitDeathStarPresent) continue;
-            if (FUN_005b84a0(reinterpret_cast<char*>(candidate) + 0x418, unit) == 1) covered = true;
+            if (static_cast<TacticalCapitalShip*>(reinterpret_cast<TacticalShipBase*>(candidate))->Dock(reinterpret_cast<TacticalShipBase*>(unit)) == 1) covered = true;
         }
         if (covered) continue;
         TacticalUnit* deathStar = FUN_005a66a0(GetTacticalRegistry());
         if (!deathStar) continue;
-        if (!FUN_005ba420(deathStar) && deathStarHasFlag(deathStar) == 0) continue;
+        if (!asDeathStar(deathStar)->IsOperational() && deathStarHasFlag(deathStar) == 0) continue;
         if (unit->m_side != 1) continue;
-        FUN_005b84a0(reinterpret_cast<char*>(deathStar) + 0x1c, unit);
+        static_cast<TacticalHangar*>(asDeathStar(deathStar))->Dock(reinterpret_cast<TacticalShipBase*>(unit));
     }
 }
 
 // ---- units registered with the simulator ---------------------------------------------------------------------------
-
-// Adds the unit to the list unless it is in there already (turn-sync module).
-void __thiscall FUN_005c5f20(SimUnitList* list, SimUnit* unit);
 
 int HeadlessSimulator::RandomBetween(int low, int high) { return m_random.Next(high - low) + low; }
 
@@ -178,7 +173,7 @@ int HeadlessSimulator::AddSpecialForce(TacticalUnit* force) {
 
 int HeadlessSimulator::AddLaunchedFighter(TacticalUnit* fighter) {
     SimUnit* unit = reinterpret_cast<SimUnit*>(fighter);
-    FUN_005c5f20(&m_units, unit);
-    FUN_005c5f20(&m_launched, unit);
+    m_units.Add(reinterpret_cast<TacticalShipBase*>(unit));
+    m_launched.Add(reinterpret_cast<TacticalShipBase*>(unit));
     return *reinterpret_cast<int*>(reinterpret_cast<char*>(fighter) + 0xec);
 }
