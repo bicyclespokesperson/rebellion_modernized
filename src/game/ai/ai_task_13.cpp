@@ -1,4 +1,5 @@
 #include "ai/ai_common.h"
+#include "ai/ai_evaluators.h"
 #include "ai/ai_side_controller.h"
 #include "ai/ai_task_types.h"
 #include "core/checked_new.h"
@@ -272,20 +273,15 @@ void AiTask13::ChoosePlan() {
 }
 
 void AiTask13::CreateEvaluator() {
-    void* memory;
-    AiTaskEvaluator* (__thiscall* construct)(void*, int, AiSideController*);
     switch (m_plan) {
-    case 1: construct = FUN_004e60e0; break;
-    case 2: construct = FUN_004e77c0; break;
-    case 3: construct = FUN_004e8770; break;
-    case 4: construct = FUN_004e94a0; break;
-    case 5: construct = FUN_004e9e90; break;
-    case 6: construct = FUN_004eab80; break;
-    case 7: construct = FUN_004e6a30; break;
-    default: return;
+    case 1: m_evaluator = NewOrNull<AiEvaluatorPlan1>(m_view, m_owner); break;
+    case 2: m_evaluator = NewOrNull<AiEvaluatorPlan2>(m_view, m_owner); break;
+    case 3: m_evaluator = NewOrNull<AiEvaluatorPlan3>(m_view, m_owner); break;
+    case 4: m_evaluator = NewOrNull<AiEvaluatorPlan4>(m_view, m_owner); break;
+    case 5: m_evaluator = NewOrNull<AiEvaluatorPlan5>(m_view, m_owner); break;
+    case 6: m_evaluator = NewOrNull<AiEvaluatorPlan6>(m_view, m_owner); break;
+    case 7: m_evaluator = NewOrNull<AiEvaluatorPlan7>(m_view, m_owner); break;
     }
-    memory = ::operator new(0x30);
-    m_evaluator = memory ? construct(memory, m_view, m_owner) : nullptr;
 }
 
 int AiTask13::ChooseTargets() {

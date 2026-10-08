@@ -606,12 +606,3 @@ REB_ASSERT_SIZE(AiTask12, 0x60);
 REB_ASSERT_SIZE(AiTask14, 0x4c);
 REB_ASSERT_OFFSET(AiTask14, m_enrouteTexts, 0x44);
 #pragma clang diagnostic pop
-
-// The constructors of the evaluators (0x4e60c0-0x4ebae0): (view, owner) on memory from operator new.
-AiTaskEvaluator* __thiscall FUN_004e60e0(void* memory, int view, AiSideController* owner);  // plan 1
-AiTaskEvaluator* __thiscall FUN_004e77c0(void* memory, int view, AiSideController* owner);  // plan 2
-AiTaskEvaluator* __thiscall FUN_004e8770(void* memory, int view, AiSideController* owner);  // plan 3
-AiTaskEvaluator* __thiscall FUN_004e94a0(void* memory, int view, AiSideController* owner);  // plan 4
-AiTaskEvaluator* __thiscall FUN_004e9e90(void* memory, int view, AiSideController* owner);  // plan 5
-AiTaskEvaluator* __thiscall FUN_004eab80(void* memory, int view, AiSideController* owner);  // plan 6
-AiTaskEvaluator* __thiscall FUN_004e6a30(void* memory, int view, AiSideController* owner);  // plan 7
