@@ -5,7 +5,7 @@
 #include "events/event_base.h"
 
 
-// calls FUN_00514510(ObjectKey*, ObjectKey*, ObjectKey*, int, NotifyContext*)
+// calls ApplyEvent301(ObjectKey*, ObjectKey*, ObjectKey*, int, NotifyContext*)
 class Event301 : public SourceEvent {
 public:
     Event301();  // 0x579fa0
@@ -22,7 +22,7 @@ public:
     virtual int GetKind() override { return 0x301; }  // 9: 0x57a080
 };
 
-// calls FUN_00514820(ObjectKey*, ObjectKey*, ObjectKey*, int, NotifyContext*)
+// calls ApplyEvent31d(ObjectKey*, ObjectKey*, ObjectKey*, int, NotifyContext*)
 class Event31d : public SourceEvent {
 public:
     Event31d();  // 0x57a250
@@ -39,7 +39,7 @@ public:
     virtual int GetKind() override { return 0x31d; }  // 9: 0x57a330
 };
 
-// calls FUN_005140c0(ObjectKey*, ObjectKey*, ObjectKey*, int, NotifyContext*)
+// calls ApplyEvent300(ObjectKey*, ObjectKey*, ObjectKey*, int, NotifyContext*)
 class Event300 : public SourceEvent {
 public:
     Event300();  // 0x57a500
@@ -56,7 +56,7 @@ public:
     virtual int GetKind() override { return 0x300; }  // 9: 0x57b260
 };
 
-// calls FUN_005150c0(ObjectKey*, int, NotifyContext*)
+// calls ApplyEvent308(ObjectKey*, int, NotifyContext*)
 class Event308 : public SourceEvent {
 public:
     Event308();  // 0x57a7a0
@@ -73,7 +73,7 @@ public:
     virtual int GetKind() override { return 0x308; }  // 9: 0x57a880
 };
 
-// calls FUN_00515a50(ObjectKey*, int, NotifyContext*)
+// calls ApplyEvent306(ObjectKey*, int, NotifyContext*)
 class Event306 : public SourceEvent {
 public:
     Event306();  // 0x57aa50
@@ -90,7 +90,7 @@ public:
     virtual int GetKind() override { return 0x306; }  // 9: 0x57ab30
 };
 
-// calls FUN_00515bb0(ObjectKey*, int, NotifyContext*)
+// calls ApplyEvent316(ObjectKey*, int, NotifyContext*)
 class Event316 : public SourceEvent {
 public:
     Event316();  // 0x57ad00
@@ -107,7 +107,7 @@ public:
     virtual int GetKind() override { return 0x316; }  // 9: 0x57ade0
 };
 
-// calls FUN_00515480(ObjectKey*, int, NotifyContext*)
+// calls ApplyEvent307(ObjectKey*, int, NotifyContext*)
 class Event307 : public SourceEvent {
 public:
     Event307();  // 0x57afb0
@@ -125,7 +125,7 @@ public:
     virtual int GetPriority() override { return 0x300; }  // 10: 0x57b260
 };
 
-// calls FUN_00514890(ObjectKey*, int, int, NotifyContext*)
+// calls ApplyEvent302(ObjectKey*, int, int, NotifyContext*)
 class Event302 : public SourceEvent {
 public:
     Event302();  // 0x57b270
@@ -142,7 +142,7 @@ public:
     virtual int GetKind() override { return 0x302; }  // 9: 0x57b350
 };
 
-// calls FUN_00514a20(ObjectKey*, int, int, NotifyContext*)
+// calls ApplyEvent318(ObjectKey*, int, int, NotifyContext*)
 class Event318 : public SourceEvent {
 public:
     Event318();  // 0x57b520
@@ -160,7 +160,7 @@ public:
     virtual int GetPriority() override { return 0x800; }  // 10: 0x57b7d0
 };
 
-// calls FUN_00516360(ObjectKey*, int, int, NotifyContext*)
+// calls ApplyEvent315(ObjectKey*, int, int, NotifyContext*)
 class Event315 : public SourceEvent {
 public:
     Event315();  // 0x578800
@@ -177,7 +177,7 @@ public:
     virtual int GetKind() override { return 0x315; }  // 9: 0x5788e0
 };
 
-// calls FUN_00516220(ObjectKey*, int, int, NotifyContext*)
+// calls ApplyEvent30a(ObjectKey*, int, int, NotifyContext*)
 class Event30a : public SourceEvent {
 public:
     Event30a();  // 0x57c7c0
@@ -194,7 +194,7 @@ public:
     virtual int GetKind() override { return 0x30a; }  // 9: 0x57c8a0
 };
 
-// two-key event: calls FUN_00514a60(ObjectKey*, ObjectKey*, ObjectKey*, NotifyContext*)
+// two-key event: calls ApplyEvent320(ObjectKey*, ObjectKey*, ObjectKey*, NotifyContext*)
 class Event320 : public TwoKeyEvent {
 public:
     Event320();  // 0x57b7e0

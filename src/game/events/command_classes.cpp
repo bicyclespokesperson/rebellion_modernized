@@ -38,7 +38,7 @@ int resolveSystem(const ObjectKey* key, GameObjNotifier** system, StatusCode* st
 
 }  // namespace
 
-// ---- ActivityRequest / SearchSpec ------------------------------------------------------------------------------
+// ---- ActivityRequest ------------------------------------------------------------------------------
 
 ObjectKey* ActivityRequest::GetTarget(ObjectKey* out) const {
     *out = m_target;
@@ -48,33 +48,6 @@ ObjectKey* ActivityRequest::GetTarget(ObjectKey* out) const {
 GameObjNotifier* __thiscall NextCharacterSibling(GameObj* object) {
     const FamilyRange characters(0x30, 0x3c);
     return object->FindNextSibling(&characters, 1);
-}
-
-SearchSpec::SearchSpec() : m_range() { Reset(); }
-
-SearchSpec::~SearchSpec() {}
-
-SearchSpec& SearchSpec::operator=(const SearchSpec& other) {
-    if (this != &other) CopyFrom(other);
-    return *this;
-}
-
-void SearchSpec::Reset() {
-    m_kind = 0;
-    m_range = FamilyRange(0x90, 0x98);
-    m_value0c = 1;
-    m_value10 = 100;
-    m_value14 = 1;
-    m_value18 = 0;
-}
-
-void SearchSpec::CopyFrom(const SearchSpec& other) {
-    m_kind = other.m_kind;
-    m_range = other.m_range;
-    m_value0c = other.m_value0c;
-    m_value10 = other.m_value10;
-    m_value14 = other.m_value14;
-    m_value18 = other.m_value18;
 }
 
 // ---- LoyaltyEvent373 -------------------------------------------------------------------------------------------

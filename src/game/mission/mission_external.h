@@ -6,22 +6,11 @@
 #include "gameobj/object_key.h"
 #include "gameobj/object_queries.h"
 #include "mission/mission.h"
+#include "rules/rules_mgr.h"
 
 // Things mission code uses that belong to other modules, and the small records the mission checks pass around.
 
-// The combat/strategy rules manager (type 0xf9, the object at g_gameState+0xbc, GetGameRootMember_bc() 0x506e60). Its
-// class belongs to the combat_strat module; only the members the missions call are declared, by address.
-class CombatRulesMgr {
-public:
-    // Moves/validates a person's travel between two locations for a mission (0x556430).
-    int Method556430(GameObj* person, ObjectKey* from, ObjectKey* to, NotifyContext* ctx);
-    // 0x556390: the same for one target key, given the person's key.
-    int Method556390(ObjectKey* personKey, ObjectKey* target, NotifyContext* ctx);
-    // 0x556620: computes whether a person is at its destination (*out) and updates its travel state.
-    int Method556620(GameObj* person, uint32_t* out, NotifyContext* ctx);
-};
-
-inline CombatRulesMgr* GetCombatRulesMgr() { return reinterpret_cast<CombatRulesMgr*>(GetGameRootMember_bc()); }
+inline RulesMgr* GetRulesMgr() { return static_cast<RulesMgr*>(GetGameRootMember_bc()); }
 
 // Hub event with two values and a context (0x53f950).
 int FUN_0053f950(int eventId, GameObj* object, int a, int b, NotifyContext* ctx);

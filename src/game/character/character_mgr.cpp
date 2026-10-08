@@ -25,7 +25,6 @@ extern EventKindSet g_characterMgrEventKinds;  // 0x6bb798
 DatRecord* GetFirstRecordOfType(int type);  // 0x51cad0
 ObjectKey* __thiscall GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
 // The starting number of minor characters of `side` for a galaxy of `size` (1-3); kind 1 is the Alliance's, 2 the Empire's.
-int FUN_0055d7d0(int kind, int size, int* count);
 
 namespace {
 

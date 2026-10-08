@@ -411,10 +411,10 @@ int GameManager::BuildAvailableOrders(int side, ObjectKeyValueSet* team, EventKi
 
 int GameManager::GetRootField70() { return m_root ? m_root->m_unk70 : 0; }
 
-int GameManager::GetRootKey(ObjectKey* out) { return m_root ? FUN_00516710(m_root, out) : 0; }
+int GameManager::GetRootKey(ObjectKey* out) { return m_root ? m_root->GetRootKey(out) : 0; }
 
 int GameManager::QueryRootBattle(int side, uint32_t* a, uint32_t* b, int* c, uint32_t* d) {
-    return m_root ? FUN_00516730(m_root, side, a, b, c, d) : 0;
+    return m_root ? m_root->QueryRetreat(side, a, b, c, d) : 0;
 }
 
 int GameManager::ExecuteNotice(SidedMessage* notice) {
@@ -429,16 +429,16 @@ int GameManager::ExecuteNotice(SidedMessage* notice) {
 
 int GameManager::StartPendingBattle() {
     int result = 0;
-    if (m_root) result = FUN_00516d50(m_root);
+    if (m_root) result = m_root->StartPendingBattle();
     m_lastBattleTick = m_tickCount;
     return result;
 }
 
 int GameManager::RunFollowUps() {
     if (!m_root) return 0;
-    int ok = FUN_00516ef0(m_root) != 0;
+    int ok = m_root->PrepareBattle() != 0;
     ok = RunUntilIdle() && ok;
-    ok = FUN_00517270(m_root) && ok;
+    ok = m_root->ResolveBattle() && ok;
     ok = RunUntilIdle() && ok;
     return EndOfStep() && ok;
 }
@@ -533,7 +533,7 @@ int GameManager::EndOfStep() {
             m_unk40 = tableValueA != tableValueB;
         m_haveSideSnapshots = 1;
     }
-    if (FUN_00518460() && FlushFirstQueue() && m_tickTable) {
+    if (PublishVictoryState() && FlushFirstQueue() && m_tickTable) {
         m_tickTable->Clear();
         FlushSecondQueue();
     }

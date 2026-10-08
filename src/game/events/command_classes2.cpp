@@ -59,7 +59,7 @@ int MoveCommand::CheckEnabled(StatusCode* status) {
         int ok = object->CheckUnknownImpl(&m_request, status);
         if (ok && succeeded(*status)) {
             ObjectKey key;
-            ok = FUN_005152e0(object->GetKey(&key), status);
+            ok = CheckMoveEnabled(object->GetKey(&key), status);
         }
         return ok;
     });
@@ -90,7 +90,7 @@ int MoveCommand::CheckValid(StatusCode* status) {
             if (ok && succeeded(*status)) {
                 ObjectKey objectKey;
                 ObjectKey target;
-                ok = FUN_00515390(object->GetKey(&objectKey), destination->GetKey(&target), status);
+                ok = CheckMoveValid(object->GetKey(&objectKey), destination->GetKey(&target), status);
             }
         }
     }
@@ -117,7 +117,7 @@ int MoveCommand::Execute() {
             if (ok && succeeded(status)) {
                 ObjectKey destinationKey;
                 ObjectKey objectKey;
-                FUN_00515440(object->GetKey(&objectKey), destination->GetKey(&destinationKey), &ctx);
+                ExecuteMove(object->GetKey(&objectKey), destination->GetKey(&destinationKey), &ctx);
             }
         }
     }

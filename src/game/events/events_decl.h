@@ -40,9 +40,4 @@ public:
 void FUN_0051cce0(Crc32* crc);
 
 // Battle / follow-up code run on the game root (0x516710-0x518460).
-int __thiscall FUN_00516710(GameRoot* root, ObjectKey* out);
-int __thiscall FUN_00516730(GameRoot* root, int side, uint32_t* a, uint32_t* b, int* c, uint32_t* d);
-int __thiscall FUN_00516d50(GameRoot* root);
-int __thiscall FUN_00516ef0(GameRoot* root);
-int __thiscall FUN_00517270(GameRoot* root);
-int FUN_00518460();
+int PublishVictoryState();

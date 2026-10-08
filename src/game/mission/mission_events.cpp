@@ -91,7 +91,7 @@ int Mission::OnPhaseChanged(int oldPhase, int newPhase, NotifyContext* ctx) {
             step = UpdatePhaseForTeam(ctx);
             ok = (step && ok) ? 1 : 0;
             if (!HasCompletionStatus()) {
-                CombatRulesMgr* rules = GetCombatRulesMgr();
+                RulesMgr* rules = GetRulesMgr();
                 ok = rules != nullptr;
                 if (rules) {
                     MissionPersonIterator members(this);
@@ -99,11 +99,11 @@ int Mission::OnPhaseChanged(int oldPhase, int newPhase, NotifyContext* ctx) {
                     if (members.Current()) {
                         do {
                             GameObj* person = members.Current();
-                            const int moved = rules->Method556430(person, &m_originLocationKey, &m_targetLocationKey, ctx);
+                            const int moved = rules->BeginTravel(person, &m_originLocationKey, &m_targetLocationKey, ctx);
                             const bool first = moved && ok;
                             ObjectKey personKey;
                             person->GetKey(&personKey);
-                            const int checked = rules->Method556390(&personKey, &m_targetKey, ctx);
+                            const int checked = rules->MoveUnitTo(&personKey, &m_targetKey, ctx);
                             ok = (checked && first) ? 1 : 0;
                             if (ok && TargetLocationDiffersFromOrigin()) ok = (person->m_stateFlags & 0xff) >> 5 & 1;
                             members.Advance();

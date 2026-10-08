@@ -3,32 +3,13 @@
 //   LoyaltyEvent373 (VT 0x6632a8)  shifts a system's loyalty by a stored delta toward side 1 (System::AdjustLoyalty)
 //   SystemCommand225 (0x6632d8)    command on a system: checks are System slots 111/112, execution is the helper 0x58c1e0
 //   SystemCommand224 (0x663300)    same with slots 113/114 and the helper 0x58d800
-// plus the SearchSpec struct (0x562ae0) that the economy's placement queries fill in.
+// plus the helper objects they build (rules/loyalty_rule.h, 0x58b960-0x58e570).
 #include <cstdint>
 
 #include "core/layout.h"
 #include "events/event_base.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/status_code.h"
-
-// Which objects a placement/capacity query looks at: a family range (+0x04, default the systems 0x90-0x98) and four
-// numbers. Reset (0x562ba0) gives {0, systems, 1, 100, 1, 0}.
-class SearchSpec {
-public:
-    SearchSpec();                                  // 0x562ae0
-    ~SearchSpec();                                 // 0x562b30 (empty)
-    SearchSpec& operator=(const SearchSpec& other);  // 0x562b80
-
-    void Reset();                                  // 0x562ba0
-    void CopyFrom(const SearchSpec& other);        // 0x562c30
-
-    int m_kind;           // +0x00
-    FamilyRange m_range;  // +0x04
-    int m_value0c;        // +0x0c
-    int m_value10;        // +0x10
-    int m_value14;        // +0x14
-    int m_value18;        // +0x18
-};
 
 class LoyaltyEvent373 : public PlainEvent {
 public:
@@ -91,7 +72,6 @@ GameObjNotifier* __thiscall NextCharacterSibling(GameObj* object);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SearchSpec, 0x1c);
 REB_ASSERT_SIZE(LoyaltyEvent373, 0x44);
 REB_ASSERT_OFFSET(LoyaltyEvent373, m_delta, 0x40);
 REB_ASSERT_SIZE(SystemCommand225, 0x50);

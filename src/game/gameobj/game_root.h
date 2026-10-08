@@ -7,6 +7,7 @@
 #include "gameobj/game_obj.h"
 #include "gameobj/game_settings.h"
 #include "gameobj/object_key.h"
+#include "gameobj/side_bits.h"
 
 // The game root (family 0xf1, VT 0x65e938, secondary 0x65e930): the single top object of the game-object tree. It
 // owns the one-time setup of a new game (an object-type database, table registry, object database and unresolved-key
@@ -51,6 +52,23 @@ public:
     int ChecksumBody(Crc32* crc);       // 0x519060
     int ValidateBody();                 // 0x519130
     int ValidateBuilders();             // 0x519350, every created unit is known to its builder manager
+    int NoteSideControlChange(SideBits* from, SideBits* to);  // 0x518040
+
+    // ---- the pending battle (rules/game_root_battle.cpp, 0x516710-0x517510) ----
+    int GetRootKey(ObjectKey* out);                // 0x516710, copies the key of the system whose battle is pending
+    // Whether `side` can retreat from the pending battle: *gravityWell = the opponent still has a working gravity well
+    // projector, *hasMobileUnit = a fleet or squadron of the side can move, *canRetreat = it found a system to go to
+    // and *retreatDays the trip's length. Returns whether the battle system exists and the side is 1 or 2.
+    int QueryRetreat(int side, uint32_t* gravityWell, uint32_t* hasMobileUnit, int* canRetreat,
+                     uint32_t* retreatDays);       // 0x516730
+    int ClearBattle();                             // 0x516cd0, forgets the pending battle's key and context
+    // Picks the first system with a pending battle, forgets the previous one and starts it. Returns whether all steps worked.
+    int StartPendingBattle();                      // 0x516d50
+    NotifyContext* GetBattleContext();             // 0x516ee0, +0x90
+    // Before the fight: removes the battle flag, the attacker's squadrons leave and the defender's units are auto-routed.
+    int PrepareBattle();                           // 0x516ef0
+    // After the fight: the winner takes the battle-won control kind, the loyalties shift, and the battle is cleared.
+    int ResolveBattle();                           // 0x517270
     int ValidateLocks();                // 0x519470, every object's lock count equals the number of references to it
     int CreateRandomGenerator();        // 0x519740, seeded from the settings; registers it with SetGameRandom
     int DestroyRandomGenerator();       // 0x5197c0, returns 1
