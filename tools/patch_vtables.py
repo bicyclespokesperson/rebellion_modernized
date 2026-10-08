@@ -31,11 +31,15 @@ VFTABLE = re.compile(r"^\s*\S+\s+(\?\?_7\S+)\s+([0-9a-f]{8,16})\s", re.M)
 
 
 def load_original_vtables(csv_path: Path) -> dict[str, int]:
+    """Vtable rows of symbols.csv plus aliases.csv (a stand-in class that duplicates a real one shares its vtable)."""
     out = {}
-    with open(csv_path, newline="") as fh:
-        for row in csv.DictReader(fh):
-            if row["kind"] == "data" and "::vftable" in row["name"]:  # also Class::vftable{Base}
-                out[row["name"]] = int(row["address"], 16)
+    for path in (csv_path, csv_path.parent / "aliases.csv"):
+        if not path.exists():
+            continue
+        with open(path, newline="") as fh:
+            for row in csv.DictReader(fh):
+                if row["kind"] == "data" and "::vftable" in row["name"]:  # also Class::vftable{Base}
+                    out[row["name"]] = int(row["address"], 16)
     return out
 
 

@@ -92,3 +92,5 @@ address,kind,name,signature,size
 0x006158b0,func,TacticalCapitalShip::GetUnitClass,,
 0x006158b0,func,TacticalShipBase::GetUnitClass,,
 0x006158b0,func,TacticalShipBase::Virtual45,,
+0x0066bdd0,data,TacticalUnitTree::vftable,,
+0x0066c648,data,TacticalShipObject::vftable,,
