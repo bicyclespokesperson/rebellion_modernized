@@ -119,6 +119,8 @@ public:
     }
 };
 
+class CapitalShipGroup;
+
 struct HeadlessSimulator {
     HeadlessSimulator();        // 0x5af5f0
     ~HeadlessSimulator();       // 0x5afa50 (called as a body: the object is freed by the caller)
@@ -168,6 +170,10 @@ struct HeadlessSimulator {
     void RegisterDeathStar(TacticalDeathStar* deathStar);     // 0x5afdc0
     int SideZeroHasMoreFighters();                            // 0x5afcc0
     int DockInHangar(TacticalShipBase* unit);                 // 0x5afe40
+    // Battle-start grouping (tactical_battle_groups.cpp): sorts the units into the sides' lists and forms capital-ship
+    // groups by type, then splits the fighters into groups.
+    CapitalShipGroup* FormCapitalGroup(SimUnitList* units, int unitType, int role);  // 0x5ae330
+    void FormBattleGroups(int unused);                                               // 0x5ae460
 };
 
 #pragma clang diagnostic push

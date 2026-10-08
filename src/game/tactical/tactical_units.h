@@ -19,6 +19,9 @@ public:
     TacticalUnit();           // 0x5a6210
     virtual ~TacticalUnit();  // 0x5a6280 (scalar deleting destructor 0x5a6260)
     virtual void Virtual01() = 0;  // pure
+
+    void AssignHandle(int side);    // 0x5a6660 takes the next unit handle of the side
+    void AssignGroupId(int side);   // 0x5a6680 takes the next group id of the side
 };
 
 // The two 8-byte members of a character / special-force record. Classes of the turn-sync module (destructors 0x5bdd00 /
