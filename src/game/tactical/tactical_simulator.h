@@ -3,6 +3,7 @@
 
 #include "app/player_controller_decl.h"
 #include "core/containers.h"
+#include "core/game_string.h"
 #include "core/layout.h"
 #include "core/utility_classes.h"
 #include "tactical/tactical_ship_decl.h"
@@ -55,17 +56,15 @@ public:
     virtual SimUnit* Value();     // slot 4 (+0x10)
 };
 
-class SimUnitList : public TacticalUnitTree {
-public:
-    SimUnitNode* First() { return reinterpret_cast<SimUnitNode*>(FirstNode()); }
+using SimUnitList = TacticalUnitTree;
 
-    TacticalUnitTree* AsTree() { return this; }
-};
+inline SimUnitNode* FirstNodeOf(SimUnitList& list) { return reinterpret_cast<SimUnitNode*>(list.FirstNode()); }
 
 // One side's state inside the simulator (the object at +0x24c / +0x250; class and vtable live in the capital-ship module).
 class SimulatorSide {
 public:
-    virtual void Slot00();
+    SimulatorSide();                 // 0x5c7cb0 (AI module)
+    virtual ~SimulatorSide();        // slot 0: 0x5c7a90
     virtual void Slot01();
     virtual void Slot02();
     virtual int HasNoShipsAtAll();   // slot 3 (+0x0c)
@@ -76,12 +75,17 @@ public:
     virtual void Slot08();
     virtual void Slot09();
     virtual int StepSide(float step);  // slot 10 (+0x28)
+    virtual void Slot11();
 
     uint8_t m_pad04[0x20];
     GameTime m_battleTime;           // +0x24 vote time of this side's controller
     uint8_t m_pad28[0x3c - 0x28];
     float m_strength;                // +0x3c
-    uint8_t m_pad40[0x58 - 0x40];
+    uint8_t m_pad40[8];
+    int m_unk48;                     // +0x48
+    int m_unk4c;                     // +0x4c
+    float m_sign50;                  // +0x50 1.0 for the first side, -1.0 for the second
+    float m_unk54;                   // +0x54 -1.0
     SimUnitList m_fleet;             // +0x58 the side's units on the field
     SimUnitList m_hangars;           // +0x64 the side's units still in hangars
     SimUnitList m_retired;           // +0x70 the side's units that are out of the battle
@@ -92,20 +96,47 @@ public:
     int m_unkB0;                     // +0xb0
 };
 
+// The two concrete sides (VT 0x66c428 / 0x66c3f8); their vtables differ only in a few slots of the AI module.
+class SimulatorSideA : public SimulatorSide {
+public:
+    SimulatorSideA() {
+        m_unkB0 = 0;
+        m_unk48 = 0;
+        m_unk4c = 0;
+        m_sign50 = 1.0f;
+        m_unk54 = -1.0f;
+    }
+};
+
+class SimulatorSideB : public SimulatorSide {
+public:
+    SimulatorSideB() {
+        m_unkB0 = 0;
+        m_unk48 = 0;
+        m_unk4c = 0;
+        m_sign50 = -1.0f;
+        m_unk54 = -1.0f;
+    }
+};
+
 struct HeadlessSimulator {
+    HeadlessSimulator();        // 0x5af5f0
+    ~HeadlessSimulator();       // 0x5afa50 (called as a body: the object is freed by the caller)
+
     float m_elapsed;            // +0x00 simulated time
     RandomGenerator m_random;   // +0x04
-    uint8_t m_padc[4];
+    int m_unk0c;                // +0x0c 1
     BattleOutcome m_outcome;    // +0x10
-    IdAvlTree m_characters;     // +0x2c characters by handle
-    IdAvlTree m_specialForces;  // +0x38 special forces and troops by handle
+    TacticalCharacterTree m_characters;        // +0x2c characters by handle
+    TacticalSpecialForceTree m_specialForces;  // +0x38 special forces and troops by handle
     int m_battleKind;           // +0x44
     uint8_t m_pad48[4];
     SimUnitList m_units;        // +0x4c every unit in the battle
     SimUnitList m_launched;     // +0x58 units whose carrier was found (launched fighters)
     SimUnitList m_active;       // +0x64 units in state 2
     SimUnitList m_retired;      // +0x70 units that left the battle (state 0xb)
-    uint8_t m_pad7c[0x24c - 0x7c];
+    String m_strings[0x26];     // +0x7c
+    uint8_t m_pad244[8];
     SimulatorSide* m_sides[2];  // +0x24c
     int m_secondCommander[2];   // +0x254 handle of each side's second-best commander
     int m_firstCommander[2];    // +0x25c handle of each side's best commander
@@ -141,6 +172,9 @@ struct HeadlessSimulator {
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
+REB_ASSERT_SIZE(SimulatorSide, 0xb4);
+REB_ASSERT_SIZE(HeadlessSimulator, 0x274);
+REB_ASSERT_OFFSET(HeadlessSimulator, m_strings, 0x7c);
 REB_ASSERT_OFFSET(HeadlessSimulator, m_outcome, 0x10);
 REB_ASSERT_OFFSET(HeadlessSimulator, m_battleKind, 0x44);
 REB_ASSERT_OFFSET(HeadlessSimulator, m_characters, 0x2c);

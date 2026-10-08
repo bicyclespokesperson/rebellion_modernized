@@ -26,21 +26,21 @@ void leaveGroup(HeadlessSimulator* simulator, TacticalShipBase* unit) {
     TacticalGroupView* group = findGroup(unit->m_groupHandle);
     if (group == nullptr) return;
     FUN_005caed0(group, unit->m_id);
-    if (group->m_memberCount == 0) simulator->m_sides[group->m_side]->m_retired.AsTree()->RemoveById(group->m_id);
+    if (group->m_memberCount == 0) simulator->m_sides[group->m_side]->m_retired.RemoveById(group->m_id);
 }
 
 void removeFromStateList(HeadlessSimulator* simulator, TacticalShipBase* unit) {
     if (unit->m_state == 2) {
-        simulator->m_active.AsTree()->RemoveById(unit->m_id);
+        simulator->m_active.RemoveById(unit->m_id);
     } else if (unit->m_state == 1) {
-        simulator->m_launched.AsTree()->RemoveById(unit->m_id);
+        simulator->m_launched.RemoveById(unit->m_id);
     }
 }
 
 }  // namespace
 
 int HeadlessSimulator::ActivateUnit(TacticalShipBase* ship) {
-    m_units.AsTree()->Add(ship);
+    m_units.Add(ship);
     ship->m_state = 2;
     return ship->m_id;
 }
@@ -50,13 +50,13 @@ void HeadlessSimulator::RetireUnit(TacticalShipBase* unit) {
     removeFromStateList(this, unit);
     unit->m_state = 0xb;
     unit->TakeDamage(100000.0f);
-    m_retired.AsTree()->Add(unit);
+    m_retired.Add(unit);
     leaveGroup(this, unit);
     if (unit->GetUnitClass() != 0) {
-        m_sides[unit->m_side]->m_hangars.AsTree()->RemoveById(unit->m_id);
+        m_sides[unit->m_side]->m_hangars.RemoveById(unit->m_id);
         return;
     }
-    m_sides[unit->m_side]->m_fleet.AsTree()->RemoveById(unit->m_id);
+    m_sides[unit->m_side]->m_fleet.RemoveById(unit->m_id);
     TacticalCapitalShip* ship = static_cast<TacticalCapitalShip*>(unit);
     for (TacticalUnitNode* node = ship->m_docked->FirstNode(); node;) {
         TacticalUnitNode* next = node->Next();
@@ -79,10 +79,10 @@ void HeadlessSimulator::DockAtDeathStar(TacticalShipBase* unit) {
     unit->m_state = 9;
     leaveGroup(this, unit);
     if (unit->GetUnitClass() == 0) {
-        m_sides[unit->m_side]->m_fleet.AsTree()->RemoveById(unit->m_id);
+        m_sides[unit->m_side]->m_fleet.RemoveById(unit->m_id);
         return;
     }
-    m_sides[unit->m_side]->m_hangars.AsTree()->RemoveById(unit->m_id);
+    m_sides[unit->m_side]->m_hangars.RemoveById(unit->m_id);
 }
 
 double HeadlessSimulator::OpponentStrength(int side) {
@@ -129,7 +129,7 @@ double HeadlessSimulator::CommanderSkillB(int side) {
 }
 
 int HeadlessSimulator::IsActiveUnit(TacticalShipBase* ship) {
-    if (ship != nullptr && m_active.AsTree()->Find(ship->m_id) != nullptr && ship->m_state == 2) return 1;
+    if (ship != nullptr && m_active.Find(ship->m_id) != nullptr && ship->m_state == 2) return 1;
     return 0;
 }
 
@@ -146,4 +146,27 @@ void HeadlessSimulator::RegisterCapitalShip(TacticalShipBase* unit) {
 
 void HeadlessSimulator::AssignCharacterHandle(TacticalUnit* unit) {
     FUN_005a6660(unit, static_cast<TacticalCharacterUnit*>(unit)->m_notAlliance);
+}
+
+// ---- construction ---------------------------------------------------------------------------------------------------
+
+HeadlessSimulator::HeadlessSimulator() {
+    m_elapsed = 0;
+    m_random.Seed(0xbc614e);
+    m_unk0c = 1;
+    m_sides[0] = new SimulatorSideA();
+    m_sides[1] = new SimulatorSideB();
+    for (int side = 0; side < 2; ++side) {
+        m_secondCommander[side] = 0;
+        m_firstCommander[side] = 0;
+        m_bestStrength[side] = 0;
+        m_stagnantTime[side] = 0;
+    }
+}
+
+HeadlessSimulator::~HeadlessSimulator() {
+    delete m_sides[0];
+    m_sides[0] = nullptr;
+    delete m_sides[1];
+    m_sides[1] = nullptr;
 }

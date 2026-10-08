@@ -561,3 +561,161 @@ void __cdecl TacticalShipImpactEventE(TacticalEvent* event) {
     }
     FUN_005c12d0(args[1], args[0], 3, 0.2f, 1);
 }
+
+// ---- carrier launches ----------------------------------------------------------------------------------------------
+
+void TacticalHangar::OnFighterLaunched(TacticalShipBase* fighter) {
+    m_launched->Add(fighter);
+    m_unk28->RemoveById(static_cast<int>(fighter->m_id));
+    ++m_inFlight;
+    const int groupHandle = fighter->m_groupHandle;
+    fighter->m_unk35c = 4;
+    TacticalGroupView* group = reinterpret_cast<TacticalGroupView*>(FUN_005a6480(GetTacticalRegistry(), groupHandle));
+    int kind = 4;
+    if (group != nullptr) {
+        kind = FUN_005c7150(group);
+        group->ForgetMember(static_cast<int>(fighter->m_id));
+        FUN_005caef0(group, static_cast<int>(fighter->m_id));
+    }
+    FUN_005a9070(GetObjectManager(), fighter);
+    const int side = fighter->m_side;
+    fighter->m_state = 5;
+    if (side != GetObjectManager()->m_playerSide || groupHandle == 0) return;
+    if (FUN_005a6480(GetTacticalRegistry(), groupHandle) != nullptr) return;
+    if (fighter->m_side == 0) {
+        if (kind == 0) {
+            FUN_005ba980(FUN_005ba8b0(), 0x87, 1);
+        } else if (kind == 1) {
+            FUN_005ba980(FUN_005ba8b0(), 0x88, kind);
+        } else if (kind == 2) {
+            FUN_005ba980(FUN_005ba8b0(), 0x89, 1);
+        } else if (kind == 3) {
+            FUN_005ba980(FUN_005ba8b0(), 0x8a, 1);
+        }
+        return;
+    }
+    if (kind == 0) {
+        FUN_005ba980(FUN_005ba8b0(), 0x105, 1);
+    } else if (kind == 1) {
+        FUN_005ba980(FUN_005ba8b0(), 0x106, kind);
+    } else if (kind == 2) {
+        FUN_005ba980(FUN_005ba8b0(), 0x107, 1);
+    } else if (kind == 3) {
+        FUN_005ba980(FUN_005ba8b0(), 0x108, 1);
+    }
+}
+
+void TacticalHangar::UpdateLaunches() {
+    if (m_docked->FirstNode() == nullptr) return;
+    if (m_launchTime == 0.0f) {
+        const float clock = static_cast<float>(GetObjectManager()->m_clock);
+        const float roll = static_cast<float>(static_cast<uint32_t>(FUN_005a8a70(GetObjectManager(), 0, 8)));
+        m_launchTime = static_cast<float>(GetLaunchInterval() + roll + clock);
+        return;
+    }
+    if (static_cast<double>(GetObjectManager()->m_clock) < m_launchTime) return;
+    TacticalShipBase* unit = m_docked->FirstUnit();
+    void* memory = ::operator new(0x220);
+    void* event = nullptr;
+    if (memory != nullptr) {
+        const int id = static_cast<int>(unit->m_id);
+        const float clock = static_cast<float>(GetObjectManager()->m_clock);
+        event = FUN_005ce500(memory, clock, 0x19, m_ownerHandle, id, 0);
+    }
+    GetObjectManager()->QueueEvent(event, 1);
+    if (m_inFlight == 0) return;
+    const float clock = static_cast<float>(GetObjectManager()->m_clock);
+    const float roll = static_cast<float>(static_cast<uint32_t>(FUN_005a8a70(GetObjectManager(), 0, 8)));
+    m_launchTime = static_cast<float>(GetLaunchInterval() + roll + clock);
+}
+
+void TacticalHangar::LaunchNow(TacticalShipBase* fighter) {
+    m_docked->RemoveUnit(fighter);
+    TacticalVector point;
+    GetLaunchPoint(&point);
+    fighter->m_position.m_x = point.m_x;
+    fighter->m_position.m_y = point.m_y;
+    fighter->m_position.m_z = point.m_z;
+    fighter->m_position.m_cachedLength = point.m_cachedLength;
+    fighter->m_carrierHandle = m_ownerHandle;
+    fighter->SetState2();
+    --m_inFlight;
+    --m_aboard;
+    FUN_005a9170(GetObjectManager(), fighter);
+}
+
+void __cdecl TacticalCarrierLaunchEvent(TacticalEvent* event) {
+    int* args = event->m_args;
+    TacticalShipBase* fighter = findShip(args[1]);
+    TacticalHangar* hangar = reinterpret_cast<TacticalHangar*>(FUN_005a6360(GetTacticalRegistry(), args[0]));
+    if (fighter == nullptr || hangar == nullptr) return;
+    TacticalGroupView* group = reinterpret_cast<TacticalGroupView*>(FUN_005a6480(GetTacticalRegistry(), fighter->m_groupHandle));
+    if (group != nullptr && *reinterpret_cast<int*>(reinterpret_cast<char*>(group) + 0x64) == 2) return;
+    TacticalUnit* deathStar = FUN_005a9330(GetObjectManager());
+    if (deathStar != nullptr && args[0] == static_cast<int>(deathStar->m_id)) {
+        if (static_cast<TacticalDeathStar*>(deathStar)->IsOperational()) hangar->LaunchNow(fighter);
+        return;
+    }
+    TacticalShipBase* carrier = findShip(args[0]);
+    if (carrier != nullptr && controlledHere(carrier) != 0) hangar->LaunchNow(fighter);
+}
+
+void __cdecl TacticalCarrierLaunchedEvent(TacticalEvent* event) {
+    int* args = event->m_args;
+    TacticalShipBase* fighter = findShip(args[1]);
+    TacticalHangar* hangar = reinterpret_cast<TacticalHangar*>(FUN_005a6360(GetTacticalRegistry(), args[0]));
+    if (hangar == nullptr) return;
+    TacticalUnit* deathStar = FUN_005a9330(GetObjectManager());
+    if (deathStar != nullptr && args[0] == static_cast<int>(deathStar->m_id)) {
+        if (static_cast<TacticalDeathStar*>(deathStar)->IsOperational()) hangar->OnFighterLaunched(fighter);
+        return;
+    }
+    TacticalShipBase* carrier = findShip(args[0]);
+    if (carrier != nullptr && controlledHere(carrier) != 0) hangar->OnFighterLaunched(fighter);
+}
+
+// ---- Death Star events ---------------------------------------------------------------------------------------------
+
+void TacticalDeathStar::FireAt(int target) {
+    const int id = static_cast<int>(m_id);
+    m_charge = 0;
+    GetObjectManager()->PostEvent(0x44, target, id, 1);
+    void* memory = ::operator new(0x220);
+    void* event = nullptr;
+    if (memory != nullptr) {
+        const float time = static_cast<float>(static_cast<double>(GetObjectManager()->m_clock) + 1.0f);
+        event = FUN_005ce500(memory, time, 3, target, id, 0);
+    }
+    GetObjectManager()->QueueEvent(event, 1);
+}
+
+void __cdecl TacticalDeathStarImpactEvent(TacticalEvent* event) {
+    int* args = event->m_args;
+    TacticalShipBase* ship = findShip(args[0]);
+    if (ship != nullptr && controlledHere(ship) != 0) {
+        GetObjectManager()->m_unk894 = 1;
+        FUN_005ba980(FUN_005ba8b0(), 0x14, 1);
+        if (GetObjectManager()->m_playerSide == 0) FUN_005ba980(FUN_005ba8b0(), 0x91, 1);
+    }
+    FUN_005c12d0(args[1], args[0], 0, 1.0f, 1);
+}
+
+void __cdecl TacticalDeathStarStatusEvent(TacticalEvent* event) {
+    TacticalUnit* deathStar = FUN_005a9330(GetObjectManager());
+    if (event == nullptr || deathStar == nullptr) return;
+    DeathStarResult* record = reinterpret_cast<DeathStarResult*>(reinterpret_cast<char*>(event->m_args) + 8);
+    if (reinterpret_cast<intptr_t>(event->m_args) == -8) return;
+    TacticalDeathStar* ds = static_cast<TacticalDeathStar*>(deathStar);
+    ds->m_hull = record->m_hull;
+    ds->m_fired = record->m_unk10;
+}
+
+void __cdecl TacticalDeathStarFiredEvent(TacticalEvent*) {
+    TacticalUnit* deathStar = FUN_005a9330(GetObjectManager());
+    if (deathStar == nullptr) return;
+    TacticalDeathStar* ds = static_cast<TacticalDeathStar*>(deathStar);
+    if (!ds->IsOperational()) return;
+    ds->m_fired = 1;
+    static_cast<TacticalHangar*>(ds)->ReleaseDocked();
+    FUN_005c1200(static_cast<int>(ds->m_id));
+}

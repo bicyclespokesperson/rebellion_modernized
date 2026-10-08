@@ -43,7 +43,7 @@ void copyOutcome(BattleOutcome* to, const BattleOutcome* from) { *to = *from; }
 int destroysSimulatorIfAny() {
     HeadlessSimulator* simulator = g_headlessSimulator;
     if (simulator) {
-        FUN_005afa50(simulator);
+        simulator->~HeadlessSimulator();
         operator delete(simulator);
     }
     g_headlessSimulator = nullptr;
@@ -87,7 +87,7 @@ void DestroyTacticalGame() {
 HeadlessSimulator* GetHeadlessSimulator() {
     if (!g_headlessSimulator) {
         void* memory = ::operator new(0x274);
-        g_headlessSimulator = memory ? FUN_005af5f0(memory) : nullptr;
+        g_headlessSimulator = memory ? new (memory) HeadlessSimulator() : nullptr;
     }
     return g_headlessSimulator;
 }

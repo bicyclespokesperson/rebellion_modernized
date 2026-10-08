@@ -117,3 +117,10 @@ void FUN_005c13d0(int unit, int kind, int sound);
 void FUN_005c1320(int unit, int on);
 void FUN_005c1360(int unit, int on);
 void FUN_005c1200(int unit);
+
+// Group helpers and the 3D event queue.
+int __thiscall FUN_005c7150(TacticalGroupView* group);
+void __thiscall FUN_005a9070(TacticalObjectManager* manager, TacticalShipBase* ship);
+void __thiscall FUN_005a9170(TacticalObjectManager* manager, TacticalShipBase* ship);
+// Builds a queued event object (0x220 bytes) in `memory`: time, kind and three arguments.
+void* __thiscall FUN_005ce500(void* memory, float time, int kind, int a, int b, int c);

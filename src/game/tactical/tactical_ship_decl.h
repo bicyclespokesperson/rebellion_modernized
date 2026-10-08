@@ -114,6 +114,22 @@ public:
 
 class TacticalShipBase;
 
+// The simulator's trees of characters (VT 0x66c380) and of special forces and troops (VT 0x66c370) by handle: an IdAvlTree
+// with an accessor for the first node.
+class TacticalCharacterTree : public IdAvlTree {
+public:
+    TacticalCharacterTree() {}
+    virtual ~TacticalCharacterTree() { REB_KEEP_VPTR_STORE(); }  // 0x5bdaa0 (scalar deleting destructor 0x5a8860)
+    virtual IdNode* FirstItem();                                 // 0x5f6590
+};
+
+class TacticalSpecialForceTree : public IdAvlTree {
+public:
+    TacticalSpecialForceTree() {}
+    virtual ~TacticalSpecialForceTree() { REB_KEEP_VPTR_STORE(); }  // 0x5bdf10 (scalar deleting destructor 0x5a8880)
+    virtual IdNode* FirstItem();                                    // 0x5f6590
+};
+
 // A node of a TacticalUnitTree: a small wrapper (0x20 bytes) holding a battle unit and its handle.
 class TacticalUnitNode {
 public:
@@ -137,6 +153,7 @@ public:
     void Read(istream* in);                      // 0x5c5de0
     void Write(ostream* out);                    // 0x5c5e50
     void Checksum(Crc32* crc);                   // 0x5c5ed0
+    TacticalShipBase* FirstUnit();               // 0x5c6070
     int Add(TacticalShipBase* unit);             // 0x5c5f20 wraps the unit unless its handle is in the tree already
     int RemoveById(int handle);                  // 0x5c60d0
     int RemoveUnit(TacticalShipBase* unit);      // 0x5c5fb0

@@ -115,6 +115,9 @@ public:
     void ReleaseSlot(TacticalShipBase* fighter);  // 0x5b8400
     int AllLaunched();                          // 0x5b8480
     int ReserveSlot(TacticalShipBase* fighter); // 0x5b84e0
+    void OnFighterLaunched(TacticalShipBase* fighter);    // 0x5b8630
+    void UpdateLaunches();                      // 0x5b8800 schedules the next launch from the hangar
+    void LaunchNow(TacticalShipBase* fighter);  // 0x5b8c70 puts the squadron into space at the launch point
     void ReleaseDocked();                       // 0x5b8d10 sends every docked squadron into battle
     void Disband();                             // 0x5b8d80 destroys the squadrons the carrier has aboard or in flight
 };
@@ -399,6 +402,11 @@ void __cdecl TacticalShipHitEvent53(TacticalEvent* event);            // 0x5b2b1
 void __cdecl TacticalShipCollisionEvent(TacticalEvent* event);        // 0x5b2b60
 void __cdecl TacticalShipImpactEventE(TacticalEvent* event);          // 0x5b2c70
 void __cdecl TacticalFighterStatusEvent(TacticalEvent* event);        // 0x5ba120
+void __cdecl TacticalCarrierLaunchEvent(TacticalEvent* event);        // 0x5b8b10
+void __cdecl TacticalCarrierLaunchedEvent(TacticalEvent* event);      // 0x5b8bd0
+void __cdecl TacticalDeathStarImpactEvent(TacticalEvent* event);      // 0x5ba520
+void __cdecl TacticalDeathStarStatusEvent(TacticalEvent* event);      // 0x5ba5b0
+void __cdecl TacticalDeathStarFiredEvent(TacticalEvent* event);       // 0x5ba5e0
 
 // 0x5b8ce0: whether the unit with this handle is a ship in state 3.
 int __stdcall TacticalShipIsInState3(int handle);
@@ -419,6 +427,7 @@ public:
     CapitalShipResult* BuildCapitalShipResult(CapitalShipResult* out);  // 0x5ba670
     void ResetCharge(int unused);            // 0x5ba710
     void Charge(float milliseconds);         // 0x5ba7f0
+    void FireAt(int target);                 // 0x5ba720: starts the superlaser shot
     void Destroy();                          // 0x5ba890: no hull, no charge, takes the hangar down
     void ResetCharged();                     // 0x5ba8a0
 

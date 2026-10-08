@@ -7,7 +7,7 @@
 namespace {
 
 // The lists are objects with their own vtable; the call must stay virtual even though the list is a member.
-__attribute__((noinline)) SimUnitNode* firstNode(SimUnitList* list) { return list->First(); }
+__attribute__((noinline)) SimUnitNode* firstNode(SimUnitList* list) { return reinterpret_cast<SimUnitNode*>(list->FirstNode()); }
 
 constexpr float kStalemateSeconds = 1200.0f;
 constexpr float kDeathStarWins = -1.0f;

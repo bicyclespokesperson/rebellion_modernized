@@ -47,7 +47,7 @@ public:
     virtual void Virtual08() = 0;
     virtual void Virtual09();               // 0x5ad430
     virtual void PostEvent(int kind, int unit, int arg, int flag);  // 10 (+0x28), 0x5ad4a0: queues an event (RET 0x10)
-    virtual void Virtual11() = 0;
+    virtual void QueueEvent(void* event, int flag) = 0;  // 11 (+0x2c): queues an event built with 0x5ce500
     virtual void SetPlayerSide(int side) = 0;           // 12
     virtual void Virtual13();               // 0x5a9010
     virtual int Virtual14(void* unit);      // 0x5aada0

@@ -106,7 +106,7 @@ int HeadlessSimulator::SideZeroHasMoreFighters() {
     if (deathStarUnit == nullptr) return 0;
     TacticalDeathStar* deathStar = static_cast<TacticalDeathStar*>(deathStarUnit);
     if (!deathStar->IsReady()) return 0;
-    for (SimUnitNode* node = m_active.First(); node; node = node->Next()) {
+    for (SimUnitNode* node = FirstNodeOf(m_active); node; node = node->Next()) {
         SimUnit* unit = node->Value();
         if (unit->GetUnitClass() != 1) continue;
         if (node->Value()->m_side == 0) {
@@ -137,7 +137,7 @@ int HeadlessSimulator::DockInHangar(TacticalShipBase* unit) {
         }
     }
     if (placed == 0) {
-        for (SimUnitNode* node = m_sides[unit->m_side]->m_fleet.First(); node; node = node->Next()) {
+        for (SimUnitNode* node = FirstNodeOf(m_sides[unit->m_side]->m_fleet); node; node = node->Next()) {
             TacticalShipBase* carrier = reinterpret_cast<TacticalShipBase*>(node->Value());
             if (IsActiveUnit(carrier) == 1 && static_cast<TacticalCapitalShip*>(carrier)->Dock(unit) == 1) {
                 placed = 1;
@@ -155,7 +155,7 @@ int HeadlessSimulator::DockInHangar(TacticalShipBase* unit) {
     }
     if (placed == 1) {
         unit->m_state = 5;
-        m_sides[unit->m_side]->m_hangars.AsTree()->RemoveById(unit->m_id);
+        m_sides[unit->m_side]->m_hangars.RemoveById(unit->m_id);
     }
     return placed;
 }

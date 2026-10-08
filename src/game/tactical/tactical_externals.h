@@ -45,8 +45,6 @@ TacticalUnit* __thiscall FUN_005a66a0(TacticalRegistry* registry);              
 void FUN_005ba920();
 
 // ---- Headless simulator (DAT_006bc4a8, 0x274 bytes) ----
-HeadlessSimulator* __thiscall FUN_005af5f0(void* memory);                     // constructor
-void __thiscall FUN_005afa50(HeadlessSimulator* simulator);                    // destructor body
 void __thiscall FUN_005ae460(HeadlessSimulator* simulator, int a);
 int __thiscall FUN_005af440(HeadlessSimulator* simulator, TacticalUnit* unit);
 int __thiscall FUN_005af490(HeadlessSimulator* simulator, TacticalUnit* unit);
