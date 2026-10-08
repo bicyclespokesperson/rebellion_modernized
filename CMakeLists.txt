@@ -20,7 +20,7 @@ add_library(reb_game OBJECT ${REB_GAME_SOURCES})
 target_include_directories(reb_game PRIVATE src/game src)
 target_compile_options(reb_game PRIVATE ${REB_HYBRID_FLAGS})
 
-add_library(reb_runtime OBJECT src/hybrid/dllmain.cpp src/hybrid/hook.cpp src/hybrid/capture.cpp src/hybrid/runtime_mem.cpp)
+add_library(reb_runtime OBJECT src/hybrid/dllmain.cpp src/hybrid/hook.cpp src/hybrid/capture.cpp src/hybrid/runtime_mem.cpp src/hybrid/determinism.cpp)
 set_source_files_properties(src/hybrid/runtime_mem.cpp PROPERTIES COMPILE_OPTIONS "-fno-builtin;/Oi-")
 target_include_directories(reb_runtime PRIVATE src)
 target_compile_options(reb_runtime PRIVATE ${REB_HYBRID_FLAGS})

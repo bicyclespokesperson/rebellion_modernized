@@ -54,7 +54,7 @@ private:
 
 char DisabledHooks::buf_[65536];
 
-static bool write_jump(uint32_t from, const void* to) {
+bool patch_jump(uint32_t from, const void* to) {
     auto* p = reinterpret_cast<uint8_t*>(from);
     DWORD old;
     if (!VirtualProtect(p, 5, PAGE_EXECUTE_READWRITE, &old)) return false;
@@ -78,7 +78,7 @@ int install_hooks() {
             ++skipped;
         } else if (disabled.contains(h->original)) {
             ++skipped;
-        } else if (write_jump(h->original, h->replacement)) {
+        } else if (patch_jump(h->original, h->replacement)) {
             ++installed;
         } else {
             log("hook %s: VirtualProtect failed at %08x", h->name, h->original);
