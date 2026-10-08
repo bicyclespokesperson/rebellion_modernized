@@ -8,3 +8,6 @@
 #include <vfw.h>
 #include <ddraw.h>
 #include <dsound.h>
+
+// rpcndr.h defines `small` as char, which breaks parameters of that name.
+#undef small
