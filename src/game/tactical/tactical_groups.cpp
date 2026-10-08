@@ -319,3 +319,7 @@ FighterGroup::FighterGroup(int seedHandle) : ShipGroup(seedHandle) {
 }
 
 FighterGroup::~FighterGroup() {}
+
+void __stdcall RemoveMemberFromGroup(ShipGroup* group, int handle) {
+    if (group) group->RemoveMember(handle);
+}

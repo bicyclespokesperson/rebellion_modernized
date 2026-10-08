@@ -9464,6 +9464,7 @@ address,kind,name,signature,size
 0x005ca4c0,func,GroupRefTree::AddGroup,,
 0x005ca530,func,ShipGroup::Virtual25,,
 0x005ca6d0,func,ShipGroup::SetMode,,
+0x005caed0,func,RemoveMemberFromGroup,,
 0x005cafa0,func,ShipGroup::Virtual16,,
 0x005cb050,func,ShipGroup::Virtual06,,
 0x005cb3e0,func,ShipGroup::AddMember,,

@@ -14,6 +14,9 @@ constexpr float kQuarterTurn = 0.5f;
 constexpr float kPi = 3.1415927f;
 constexpr float kRadiusScale = 1.2f;
 constexpr float kBaseRadius = 3.0f * 4.0f;
+constexpr float kSlotStepScale = -1.5f;
+constexpr float kTurnA = 0.6666667f;
+constexpr float kTurnC = 0.4f;
 constexpr float kDefaultDepth = 4.0f;
 constexpr int kShipPositionOffset = 0x30;
 constexpr int kShipRadiusOffset = 0x0c;
@@ -148,7 +151,40 @@ CapitalShipFormation::~CapitalShipFormation() {}
 
 void CapitalShipFormation::Virtual06() {}
 
-void CapitalShipFormation::MoveVirtual03() {}
+// The offset of the Nth unit of a capital-ship formation: units alternate to either side of the leader in a column of
+// rotated slots. The original evaluates the trigonometry on the x87 stack (cosines from the extended product, sines from
+// the argument rounded to float); doubles stand in for the extended values here.
+TacticalVec4* CapitalShipFormation::SlotOffset(TacticalVec4* out, SimUnit* unit) {
+    if (m_count == 1) {
+        *out = g_formationOrigin;
+        return out;
+    }
+    const int side = (m_count & 1) ? 1 : -1;
+    const int step = static_cast<int>(side * 3.0f * kSlotStepScale);
+    const int slot = 1 - step * (static_cast<int>(m_count) >> 1);
+    const double turn = static_cast<double>(slot) * static_cast<double>(kPi);
+    const double angleA = turn * static_cast<double>(kTurnA);
+    const double angleB = turn * static_cast<double>(kQuarterTurn);
+    const double angleC = turn * static_cast<double>(kTurnC);
+    const double cosA = x87Cos(angleA);
+    const double sinA = x87Sin(static_cast<double>(static_cast<float>(angleA)));
+    const double cosB = x87Cos(angleB);
+    const double sinB = x87Sin(static_cast<double>(static_cast<float>(angleB)));
+    const double cosC = x87Cos(angleC);
+    const double sinC = x87Sin(static_cast<double>(static_cast<float>(angleC)));
+    const float headingX = m_heading.m_x;
+    const float headingY = m_heading.m_y;
+    const float headingZ = m_heading.m_z;
+
+    const float rotatedZ = static_cast<float>(static_cast<double>(static_cast<float>(sinA)) * headingX + cosA * headingZ);
+    const float rotatedX = static_cast<float>(cosA) * headingX - static_cast<float>(sinA) * headingZ;
+    const float rotatedY = static_cast<float>(sinB * static_cast<double>(rotatedZ) + cosB * headingY);
+    out->m_z = static_cast<float>(cosB) * rotatedZ - static_cast<float>(sinB) * headingY;
+    out->m_w = -1.0f;
+    out->m_y = static_cast<float>(cosC) * rotatedX - static_cast<float>(sinC) * rotatedY;
+    out->m_x = static_cast<float>(sinC) * rotatedX + static_cast<float>(cosC) * rotatedY;
+    return out;
+}
 
 FighterFormation::FighterFormation(int groupHandle, TacticalVec4 position) : FormationBase(groupHandle, position) {
     m_v9c = TacticalVec4(2 * kPi, 2 * kPi, 2 * kPi);
@@ -158,8 +194,6 @@ FighterFormation::FighterFormation(int groupHandle, TacticalVec4 position) : For
 FighterFormation::~FighterFormation() {}
 
 void FighterFormation::Virtual06() {}
-
-void FighterFormation::MoveVirtual03() {}
 
 TacticalVec4* FighterFormation::SlotOffset(TacticalVec4* out, SimUnit* unit) {
     if (m_count == 1) {

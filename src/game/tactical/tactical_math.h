@@ -18,3 +18,14 @@ struct TacticalVec4 {
 };
 
 REB_ASSERT_SIZE(TacticalVec4, 0x10);
+
+// The x87 instructions the engine uses for its trigonometry (the original has no library call).
+inline double x87Cos(double angle) {
+    __asm__("fcos" : "+t"(angle));
+    return angle;
+}
+
+inline double x87Sin(double angle) {
+    __asm__("fsin" : "+t"(angle));
+    return angle;
+}

@@ -204,6 +204,9 @@ public:
     virtual void Virtual05() override;      // 0x5cc300
 };
 
+// Removes a unit from its group (a null group is ignored); 0x5caed0.
+void __stdcall RemoveMemberFromGroup(ShipGroup* group, int handle);
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_SIZE(BehaviorLink, 0x18);
