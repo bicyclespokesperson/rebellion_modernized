@@ -107,7 +107,6 @@ struct HeadlessSimulator {
     int m_firstCommander[2];    // +0x25c handle of each side's best commander
     float m_bestStrength[2];    // +0x264 the lowest strength each side has reached
     float m_stagnantTime[2];    // +0x26c time since each side's strength last dropped
-    uint8_t m_pad274[0];
 
     int Step(float step);                     // 0x5ae9c0
     int RandomBetween(int low, int high);     // 0x5af420

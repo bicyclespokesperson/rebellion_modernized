@@ -236,6 +236,34 @@ These are ICF-folded functions that happen to live inside it:
 - `0x5cf920`
 - `0x5ee3f0`/`0x5ee410`/`0x5ee440` (list-node helpers called from the container library 0x5f4f10/0x5f4fa0/0x5f6250 and from 0x6123b0)
 
+### Reconstruction status (battle flow, facade, TacticalGame, simulator step)
+
+Code lives in `src/game/app/battle_flow*.cpp|battle_handoff.cpp|battle_results.cpp` and `src/game/tactical/`.
+
+- **Battle flow (0x40a050-0x40d780): done.** `BattleFlow::Step` (the state machine), `BattleSetup` (strategic -> tactical,
+  0x40afa0-0x40c5f0) and `BattleResults` (tactical -> strategic, 0x40c730-0x40d510). The 0x409230-0x40a050 part of the same
+  object (constructor, save/restore, file names) is not reconstructed. State 7 (3D) writes a pre-battle save and deletes the game
+  step driver; state 0x16 re-creates the driver, restores that save, applies the results and deletes the file. The abstract
+  path (8 / 0x17) keeps the live strategic game. `QueryBattle` of each side gives the fleet values/counts the engine is set up
+  with; floats are scaled by 0.4 in the facade.
+- **Facade (0x595b10-0x596f30): done.** The `Register*` functions are one-to-one forwards of the strategic objects' figures
+  (42 words for a capital ship); the capital-ship constructor 0x5b05c0 receives all of them except `gridTotal`, plus a constant 100.
+  Characters and special forces/troops are small record classes (`tactical_units.h`, 0x596c40 / 0x596df0). Results are
+  struct-returning cdecl functions with a hidden out pointer (`TacticalGet*Result`).
+- **comm2 (0x596fa0-0x597530): done**, thin null-checked wrappers over the library CommMgr (not exercised by single-player scenarios).
+- **TacticalGame (0x597530-0x59a8d0): done** except the tactical window (0x59a8d0, presentation). The constructor builds the
+  ship/sprite-state name tables and the type map (an AVL tree, `tactical_game_tables.inc`). The facade's by-value `String` is copied
+  *before* the singleton is created: `SetupBattle*` are therefore free thiscall functions, otherwise heap allocation order differs.
+- **Headless simulator**: step `0x5ae9c0` (strengths, stalemate after 1200 s, outcome flags) and `0x5aee90` (survivor
+  bookkeeping), unit registration 0x5af420-0x5af4b0 are reconstructed and difftested. Not reconstructed: 0x5ae330/0x5ae460 (formation
+  groups at battle start), 0x5aefc0 (Death Star attack/trench run), 0x5af7a0.
+- **Object manager / event dispatcher (3D only)**: the base class is abstract (VT 0x66c2d0, 40 slots, concrete class in the 3D
+  view; never created for auto-resolve). Only the leaf accessors, pause counter and setters are done (`tactical_objmgr.cpp`).
+  0x5a7500 is the object manager's *constructor* (128 event-name strings), not a dispatcher; the rest of 0x5a7500-0x5af420 is
+  unreconstructed 3D-mode code with no scenario that reaches it.
+- Calling-convention traps found: 0x5ae1e0 (shared empty stub) and 0x5bbd90 pop one argument; several stubs the decompiler shows
+  as `void f(void)` take arguments. `tools/check_callee_pop.py` catches these.
+
 ### Battle lifecycle: strategic → tactical → strategic
 
 Driven by `FUN_0040a050`; the state is at `this+8`.
