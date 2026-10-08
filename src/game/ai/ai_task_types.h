@@ -2,6 +2,7 @@
 #include <cstdint>
 
 #include "ai/ai_task_base.h"
+#include "ai/ai_task_family.h"
 #include "app/player_controller_decl.h"
 #include "core/layout.h"
 #include "core/stream_io.h"
@@ -61,6 +62,7 @@ public:
     OrderBase* BuildDestinationOrder(ObjectKey* target);  // 0x4d1710: order 0x214
     OrderBase* BuildManufactureOrder210();          // 0x4d1850
     void AddTargetSystem();                         // 0x4d1970
+    aitask::FamilyFields Fields();
     int Need();                                     // 0x4d1d90
     int NeedForTargets();                           // 0x4d1df0
     void RefreshTargets();                          // 0x4d1ed0
@@ -78,6 +80,112 @@ public:
     AiRankedSelector m_selector;     // +0x68
     ObjectKeySet m_targets;          // +0x78
     ObjectKeySet m_dropped;          // +0x80
+};
+
+// ---- type 10: fighters ----------------------------------------------------------------------------------------------------
+
+// A task of the facility family (ai_task_family.h) that also sends the side's fleets to where fighters are needed and scraps
+// the weakest fighter squadron of a fleet (VT 0x65c6f8, 0x84 bytes, 0x4cc690-0x4cf080). Stage 0x3f2 handles the fleets, 0x3ec the
+// systems.
+class AiTask10 : public AiStagedTask {
+public:
+    explicit AiTask10(int view);                    // 0x4cc6b0
+    virtual ~AiTask10();                            // 0: 0x4cc690 (deleting), 0x4cc790
+    virtual void Read(istream* in) override;        // 1: 0x4cc830
+    virtual void Write(ostream* out) override;      // 2: 0x4cc8e0
+    virtual OrderBase* Step() override;             // 5: 0x4cc9c0
+
+    OrderBase* StepFleets();                        // 0x4cca20
+    OrderBase* StepTargets();                       // 0x4ccb50
+    int ChooseManager();                            // 0x4cccc0
+    int NextRecord();                               // 0x4cd040
+    int ComputeSquadronCount();                     // 0x4cd230
+    int IsOverQuota();                              // 0x4cd2f0
+    OrderBase* BuildSquadronScrapOrder();           // 0x4cd310
+    int SelectTarget();                             // 0x4cd580
+    int PickSupplySystem();                         // 0x4cd860
+    OrderBase* BuildScrapOrder();                   // 0x4cda90
+    int ComputeFacilityCount();                     // 0x4cdfd0
+    OrderBase* BuildCapitalOrder();                 // 0x4ce070
+    OrderBase* BuildFleetDestinationOrder(ObjectKey* target);  // 0x4ce350
+    OrderBase* BuildManufactureOrder211();          // 0x4ce490
+    OrderBase* BuildDestinationOrder(ObjectKey* target);  // 0x4ce5b0
+    OrderBase* BuildManufactureOrder210();          // 0x4ce6f0
+    void AddTargetSystem();                         // 0x4ce810
+    int Need();                                     // 0x4cec20
+    int NeedForTargets();                           // 0x4cec80
+    void RefreshTargets();                          // 0x4ced60
+    aitask::FamilyFields Fields();
+
+    int m_recordId;       // +0x40 the AiSystemRecord being handled
+    int m_recordCursor;   // +0x44
+    AiRankedSelector m_selector;  // +0x48
+    ObjectKey m_manager;  // +0x58
+    ObjectKey m_unit;     // +0x5c the fleet or ship being handled
+    ObjectKey m_system;   // +0x60
+    ObjectKey m_classKey; // +0x64 starts as 0
+    int m_count;          // +0x68
+    int m_cap;            // +0x6c
+    int m_limit;          // +0x70
+    ObjectKeySet m_targets;  // +0x74
+    ObjectKeySet m_dropped;  // +0x7c
+};
+
+// ---- types 3 and 7: facility tasks with a short list of target systems ---------------------------------------------------------
+
+// The fields and the serialization the original shares between task types 3 and 7 (0x7c bytes; Read is 0x4d3070, Write 0x4d6ca0).
+class AiFacilityTaskBase : public AiStagedTask {
+public:
+    AiFacilityTaskBase(int id, int view);
+    virtual void Read(istream* in) override;        // 1: 0x4d3070
+    virtual void Write(ostream* out) override;      // 2: 0x4d6ca0
+    aitask::FamilyFields Fields();
+
+    AiRankedSelector m_selector;  // +0x40
+    ObjectKey m_manager;          // +0x50
+    ObjectKey m_unit;             // +0x54
+    ObjectKey m_system;           // +0x58
+    ObjectKey m_classKey;         // +0x5c starts as 0
+    int m_count;                  // +0x60
+    int m_cap;                    // +0x64
+    int m_limit;                  // +0x68
+    ObjectKeySet m_targets;       // +0x6c
+    ObjectKeySet m_dropped;       // +0x74
+};
+
+// Type 7: fighters again, for the ships of the side's systems (VT 0x65c7b8, 0x7c bytes, 0x4d2ed0-0x4d6b00). Three stages: 0x3f1 moves
+// and scraps fighter squadrons between systems, 0x3f2 builds ships, 0x3ec handles the target systems.
+class AiTask7 : public AiFacilityTaskBase {
+public:
+    explicit AiTask7(int view);                     // 0x4d2ef0
+    virtual ~AiTask7();                             // 0: 0x4d2ed0 (deleting), 0x4d2fd0
+    virtual OrderBase* Step() override;             // 5: 0x4d3100
+
+    OrderBase* StepSquadrons();                     // 0x4d3170 (stage 0x3f1)
+    OrderBase* StepShips();                         // 0x4d3220 (stage 0x3f2)
+    OrderBase* StepTargets();                       // 0x4d3350 (stage 0x3ec)
+    int PickFleetSystem();                          // 0x4d34c0
+    int PickFleetTarget();                          // 0x4d3610
+    OrderBase* BuildMoveOrder();                    // 0x4d3a90
+    OrderBase* BuildSquadronScrapOrder();           // 0x4d3db0
+    int ChooseManager();                            // 0x4d3ff0
+    int PickShipSystem();                           // 0x4d4370
+    int ComputeShipCount();                         // 0x4d46e0
+    int IsShipQuotaExceeded();                      // 0x4d47b0
+    OrderBase* BuildShipOrder();                    // 0x4d4800
+    int SelectTarget();                             // 0x4d5000
+    int PickSupplySystem();                         // 0x4d52e0
+    OrderBase* BuildScrapOrder();                   // 0x4d5510
+    int ComputeFacilityCount();                     // 0x4d5a50
+    OrderBase* BuildCapitalOrder();                 // 0x4d5af0
+    OrderBase* BuildFleetDestinationOrder(ObjectKey* target);  // 0x4d5dd0
+    OrderBase* BuildManufactureOrder211();          // 0x4d5f10
+    OrderBase* BuildDestinationOrder(ObjectKey* target);  // 0x4d6030
+    OrderBase* BuildManufactureOrder210();          // 0x4d6170
+    void AddTargetSystem();                         // 0x4d6290
+    int Need();                                     // 0x4d66a0
+    int NeedForTargets();                           // 0x4d6700
+    void RefreshTargets();                          // 0x4d67e0
 };
 
 // ---- type 8: system records ----------------------------------------------------------------------------------------------
@@ -243,6 +351,11 @@ REB_ASSERT_OFFSET(AiTask13, m_objects, 0x64);
 REB_ASSERT_SIZE(AiTask5, 0x88);
 REB_ASSERT_OFFSET(AiTask5, m_selector, 0x68);
 REB_ASSERT_OFFSET(AiTask5, m_dropped, 0x80);
+REB_ASSERT_SIZE(AiTask10, 0x84);
+REB_ASSERT_OFFSET(AiTask10, m_targets, 0x74);
+REB_ASSERT_SIZE(AiFacilityTaskBase, 0x7c);
+REB_ASSERT_SIZE(AiTask7, 0x7c);
+REB_ASSERT_OFFSET(AiFacilityTaskBase, m_targets, 0x6c);
 REB_ASSERT_SIZE(AiTask8, 0x58);
 REB_ASSERT_SIZE(AiTask9, 0x58);
 REB_ASSERT_SIZE(AiTask4, 0x60);

@@ -1,6 +1,7 @@
 #include "ai/ai_records.h"
 #include "ai/ai_side_controller.h"
 #include "ai/ai_task_types.h"
+#include "ai/ai_task_family.h"
 #include "ai/ai_task_util.h"
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
@@ -28,10 +29,9 @@ constexpr int kStageTargets = 0x3ec;
 constexpr uint32_t kSystemClaimed = 0x400000;
 constexpr uint32_t kSystemDropped = 0x10000000;
 
-ObjectKeyValueNode* FirstNodeOfKind(ObjectKeyValueSet* team, ChildIterator* it) {
-    it->Begin();
-    return AddCurrentToTeam(team, it);
-}
+constexpr FamilyParams kParams = {
+    0x46, 0x2c4, 0x1e, 0xd4, 0x5c, 0x40, 0x13, 0x400003, 5, 0x400000, 0xbc, 0x8000, 4, 10, 8,
+    FacilityKind::kManufacturing28, 0x200000, FacilityKind::kManufacturing2A, 0x3800000, true};
 
 }  // namespace
 
@@ -50,6 +50,10 @@ AiTask5::AiTask5(int view) : AiStagedTask(5, view), m_key58(), m_system(), m_man
 }
 
 AiTask5::~AiTask5() { REB_KEEP_VPTR_STORE(); }
+
+FamilyFields AiTask5::Fields() {
+    return {m_owner, m_view, m_x24, &m_selector, &m_targets, &m_dropped, &m_system, &m_manager, &m_classKey, &m_x48, &m_x4c, &m_x44};
+}
 
 void AiTask5::Read(istream* in) {
     AiTaskBase::Read(in);
@@ -337,45 +341,7 @@ OrderBase* AiTask5::BuildSpecialForceOrder() {
 }
 
 int AiTask5::SelectTarget() {
-    int result = 0;
-    int best = 1000;
-    ObjectKey scratch;
-    m_system.Reset();
-    m_x44 = 0;
-    for (ObjectKeyNode* node = m_targets.First(); node; node = NextNode(node)) {
-        AiSystemEval* eval = m_owner->m_systems.FindEval(KeyOfNode(node));
-        if (eval && (eval->m_flags30.m_value & 1) != 0 && (eval->m_flags28.m_value & 3) == 0 && 0 < eval->Stat(0x114) &&
-            eval->Stat(0x5c) < best) {
-            m_x44 = eval->Stat(0x114);
-            best = eval->Stat(0x5c);
-            m_system = KeyOfNode(eval);
-            result = 1;
-        }
-    }
-    if (result == 0) {
-        m_selector.Add(m_owner->RankSectors(0x40, 0, 0, 0, 0, 0, 0x13, 1));
-        if (m_targets.Count() != 0) m_selector.Add(m_owner->RankSectors(0x40, 0, 0, 0, 0, 0, 4, 2));
-        m_system = *m_selector.PickBest(&scratch);
-        m_selector.Reset();
-        m_selector.Add(m_owner->RankSystemsOfSector(&m_system, 0, 0, 1, 0x400003, 0, 0x40000000, 5, 1));
-        if (m_targets.Count() != 0)
-            m_selector.Add(m_owner->RankSystemsOfSector(&m_system, 0, 0, 1, 0x400003, 0, 0x40000000, 0x33, 1));
-        m_system = *m_selector.PickBest(&scratch);
-        m_selector.Reset();
-        if (IsSystemKey(m_system)) {
-            result = 1;
-            AiSystemEval* eval = m_owner->m_systems.FindEval(m_system);
-            if (eval) {
-                ObjectKeyNode* node = NewOrNull<ObjectKeyNode>(m_system);
-                if (node) {
-                    m_targets.Add(node);
-                    eval->m_flags28.m_value |= kSystemClaimed;
-                    eval->MarkChanged();
-                }
-            }
-        }
-    }
-    return result;
+    return aitask::SelectTarget(Fields(), kParams);
 }
 
 int AiTask5::PickSupplySystem() {
@@ -409,292 +375,41 @@ int AiTask5::PickSupplySystem() {
 int AiTask5::IsOverQuotaForFacilities() { return NeedForTargets() < 0; }
 
 OrderBase* AiTask5::BuildScrapOrder() {
-    ObjectKeyValueSet team;
-    OrderBase* order = nullptr;
-    ObjectKeyValueNode* last = nullptr;
-    if (!IsSystemKey(m_system)) return order;
-    AiSystemEval* eval = m_owner->m_systems.FindEval(m_system);
-    if (!eval) return order;
-    GameObjNotifier* system = GetObjectInFamilies_90_98(m_view, &m_system);
-    if (system) {
-        if ((eval->m_flags28.m_value & 0x200000) == 0) last = AddAllOfKind<ManufacturingFacility28Iterator>(&team, system, last);
-        if ((eval->m_flags28.m_value & 0x3800000) == 0) last = AddAllOfKind<ManufacturingFacility2AIterator>(&team, system, last);
-        last = AddAllOfKind<DefenseFacility25Iterator>(&team, system, last);
-        if (eval->Stat(0x84) == 0 && last == nullptr) {
-            AiSideController* owner = m_owner;
-            if (owner->Stat(0x1d0) < owner->Stat(0x1d4) || eval->Stat(0x50) == 0) {
-                ProductionFacilityType2DIterator it(system, 1);
-                last = FirstNodeOfKind(&team, &it);
-            }
-            if (last == nullptr && (owner->Stat(0x1d4) <= owner->Stat(0x1d0) || eval->Stat(0x54) == 0)) {
-                ProductionFacilityType2CIterator it(system, 1);
-                last = FirstNodeOfKind(&team, &it);
-            }
-        }
-    }
-    if (team.First()) order = NewTeamOrder(kScrapOrder, m_view, &team);
-    return order;
+    return aitask::BuildScrapOrder(Fields(), kParams);
 }
 
 int AiTask5::ComputeFacilityCount() {
-    int result = 0;
-    m_x48 = 0;
-    const int need = NeedForTargets();
-    if (need < 1) {
-        if (need < 0) result = 8;
-        return result;
-    }
-    const int count = m_owner->ChooseClass(&m_classKey, 0x2a, 0x8000, 0x4000, 2);
-    if ((m_classKey.m_value & 0xff000000) != 0 && count != 0) m_x48 = need / count;
-    if (0 < m_x48) {
-        if (m_x4c < m_x48) m_x48 = m_x4c;
-        AiSystemEval* eval = m_owner->m_systems.FindEval(m_system);
-        if (eval) {
-            int limit = eval->Stat(0x84);
-            if (m_x44 < eval->Stat(0x84)) limit = m_x44;
-            if (limit < m_x48) m_x48 = limit;
-            return 10;
-        }
-    }
-    return result;
+    return aitask::ComputeCount(Fields(), kParams);
 }
 
 OrderBase* AiTask5::BuildCapitalOrder() {
-    OrderBase* order = nullptr;
-    bool found = false;
-    ObjectKeyNode* node = m_targets.First();
-    while (node) {
-        if (found) break;
-        AiSystemEval* eval = m_owner->m_systems.FindEval(KeyOfNode(node));
-        found = false;
-        if (eval) {
-            const bool several = 1 < m_targets.Count();
-            if (eval->Stat(0x5c) < 1) {
-                ObjectKeyNode* next = NextNode(node);
-                ObjectKey key = KeyOfNode(node);
-                m_targets.RemoveKey(&key);
-                eval->m_flags28.m_value &= ~kSystemClaimed;
-                node = next;
-            } else if ((eval->m_flags28.m_value & 0x1000) == 0) {
-                node = NextNode(node);
-            } else if (eval->Stat(0x5c) < 2) {
-                found = several;
-                if (found) {
-                    m_system = KeyOfNode(node);
-                    ObjectKey key = KeyOfNode(node);
-                    m_targets.RemoveKey(&key);
-                    eval->m_flags28.m_value &= ~kSystemClaimed;
-                }
-                node = nullptr;
-            } else {
-                m_system = KeyOfNode(node);
-                found = true;
-            }
-        }
-    }
-    if (!found) return order;
-    ObjectKeyValueSet team;
-    GameObjNotifier* system = GetObjectInFamilies_90_98(m_view, &m_system);
-    if (system) {
-        ManufacturingFacility29Iterator it(system, 1);
-        it.Begin();
-        if (it.Current()) {
-            ObjectKey key;
-            GetObjectKey(it.Current(), &key);
-            ObjectKeyValueNode* made = NewOrNull<ObjectKeyValueNode>(key, 0);
-            if (made) {
-                team.Add(made);
-                order = NewTeamOrder(kScrapOrder, m_view, &team);
-            }
-        }
-    }
-    return order;
+    return aitask::BuildCapitalOrder(Fields(), kParams, aitask::FacilityKind::kManufacturing29);
 }
 
 OrderBase* AiTask5::BuildManufactureOrder212() {
-    ObjectKeyValueSet team;
-    OrderBase* order = nullptr;
-    if (ai::KeyInFamilies(m_manager, 0xa4, 0xa6)) {
-        order = static_cast<OrderBase*>(CreateMessageByKind(kManufactureOrder212));
-        if (order) {
-            ObjectKeyValueNode* node = NewOrNull<ObjectKeyValueNode>(m_manager, 0);
-            if (node) {
-                team.Add(node);
-                order->m_side = m_view;
-                order->SetTeam(&team);
-                ManufactureOrderBase* manufacture = static_cast<ManufactureOrderBase*>(order);
-                manufacture->m_item.m_value = m_classKey.m_value;
-                manufacture->m_count = m_x48;
-            }
-        }
-    }
-    return order;
+    return aitask::BuildManufactureOrder(Fields(), kManufactureOrder212, 0xa4);
 }
 
 OrderBase* AiTask5::BuildDestinationOrder(ObjectKey* target) {
-    ObjectKeyValueSet team;
-    OrderBase* order = nullptr;
-    if (IsSystemKey(*target) && ai::KeyInFamilies(m_manager, 0xa0, 0xa2)) {
-        order = static_cast<OrderBase*>(CreateMessageByKind(kDestinationOrder));
-        if (order) {
-            ObjectKeyValueNode* node = NewOrNull<ObjectKeyValueNode>(m_manager, 0);
-            if (node) {
-                team.Add(node);
-                order->m_side = m_view;
-                order->SetTeam(&team);
-                order->SetTarget(target);
-            }
-        }
-    }
-    return order;
+    return aitask::BuildDestinationOrder(Fields(), target, 0xa0);
 }
 
 OrderBase* AiTask5::BuildManufactureOrder210() {
-    ObjectKeyValueSet team;
-    OrderBase* order = nullptr;
-    if (ai::KeyInFamilies(m_manager, 0xa0, 0xa2)) {
-        order = static_cast<OrderBase*>(CreateMessageByKind(kManufactureOrder210));
-        if (order) {
-            ObjectKeyValueNode* node = NewOrNull<ObjectKeyValueNode>(m_manager, 0);
-            if (node) {
-                team.Add(node);
-                order->m_side = m_view;
-                order->SetTeam(&team);
-                ManufactureOrderBase* manufacture = static_cast<ManufactureOrderBase*>(order);
-                manufacture->m_item.m_value = m_classKey.m_value;
-                manufacture->m_count = m_x48;
-            }
-        }
-    }
-    return order;
+    return aitask::BuildManufactureOrder(Fields(), kManufactureOrder210, 0xa0);
 }
 
 void AiTask5::AddTargetSystem() {
-    AiRankedSelector sectorSelector;
-    ObjectKey sector;
-    ObjectKey system;
-    ObjectKey scratch;
-    bool found = false;
-    m_system.Reset();
-    if (!(m_targets.Count() < 2)) return;
-    const int need = NeedForTargets();
-    if (0 < need) {
-        sectorSelector.Add(m_owner->RankSectors(0x40, 0, 0, 0, 0, 0, 0x13, 1));
-        sector = *sectorSelector.PickBest(&scratch);
-        for (;;) {
-            if (!IsSectorKey(sector) || found) {
-                sectorSelector.Reset();
-                break;
-            }
-            AiSectorEval* sectorEval = m_owner->m_sectors.FindEval(sector);
-            if (!sectorEval || sectorEval->Stat(0xbc) <= 0) {
-                sector.Reset();
-                continue;
-            }
-            m_selector.Add(m_owner->RankSystemsOfSector(&sector, 0, 0, 1, 0x400003, 0, 0x40000000, 5, 1));
-            system = *m_selector.PickBest(&scratch);
-            while (IsSystemKey(system) && !found) {
-                AiSystemEval* eval = m_owner->m_systems.FindEval(system);
-                if (eval && 0 < eval->Stat(0x5c) && eval->Stat(0xd4) <= need) {
-                    m_system = system;
-                    found = true;
-                }
-                system = *m_selector.PickBest(&scratch);
-            }
-            m_selector.Reset();
-            sector = *sectorSelector.PickBest(&scratch);
-        }
-    }
-    if (IsSystemKey(m_system)) {
-        AiSystemEval* eval = m_owner->m_systems.FindEval(m_system);
-        if (eval) {
-            ObjectKeyNode* node = NewOrNull<ObjectKeyNode>(m_system);
-            if (node) {
-                m_targets.Add(node);
-                eval->m_flags28.m_value |= kSystemClaimed;
-                eval->MarkChanged();
-            }
-        }
-    } else {
-        bool anyTargetNeedsFacilities = false;
-        if (m_targets.Count() < 2) {
-            ObjectKeyNode* first = m_targets.First();
-            if (first) {
-                AiSystemEval* eval = m_owner->m_systems.FindEval(KeyOfNode(first));
-                if (eval && 0 < eval->Stat(0x5c)) anyTargetNeedsFacilities = true;
-            }
-            if (!anyTargetNeedsFacilities) {
-                const int count = m_owner->ChooseClass(&m_classKey, 0x2a, 0x8000, 0x4000, 2);
-                if (count <= need) m_owner->m_bitsA |= 4;
-            }
-        }
-    }
+    aitask::AddTargetSystem(Fields(), kParams);
 }
 
 int AiTask5::Need() {
-    AiSideController* owner = m_owner;
-    int need = (((m_x24 * owner->Stat(0x184)) / 100) * 0x46) / 100 - owner->Stat(0x2c4);
-    if (owner->Stat(0x184) - owner->Stat(0x188) < need) need = 0;
-    return need;
+    return aitask::Need(Fields(), kParams);
 }
 
 int AiTask5::NeedForTargets() {
-    int used = 0;
-    for (ObjectKeyNode* node = m_targets.First(); node; node = NextNode(node)) {
-        AiSystemEval* eval = m_owner->m_systems.FindEval(KeyOfNode(node));
-        if (eval) used += eval->Stat(0xd4);
-    }
-    const int total = m_owner->Stat(0x184);
-    int need = (((m_x24 * total) / 100) * 0x1e) / 100 - used;
-    if (total - m_owner->Stat(0x188) < need) need = 0;
-    return need;
+    return aitask::NeedForTargets(Fields(), kParams);
 }
 
 void AiTask5::RefreshTargets() {
-    ObjectKeySet pending;
-    ObjectKey best;
-    int bestStat = 0;
-    int budget = 1;
-    for (;;) {
-        best.Reset();
-        for (ObjectKeyNode* node = m_targets.First(); node; node = NextNode(node)) {
-            AiSystemEval* eval = m_owner->m_systems.FindEval(KeyOfNode(node));
-            if (eval && bestStat < eval->Stat(0x5c)) {
-                ObjectKey key = KeyOfNode(node);
-                if ((eval->m_flags30.m_value & kSystemDropped) != 0 && m_dropped.Find(&key) == nullptr) break;
-                key = KeyOfNode(node);
-                if (pending.Find(&key) == nullptr && 0 < eval->Stat(0x90)) {
-                    bestStat = eval->Stat(0x5c);
-                    best = KeyOfNode(eval);
-                }
-            }
-        }
-        if (IsSystemKey(best)) {
-            ObjectKeyNode* node = NewOrNull<ObjectKeyNode>(best);
-            if (node) {
-                pending.Add(node);
-                --budget;
-            }
-        } else {
-            budget = 0;
-        }
-        if (budget < 1) {
-            for (ObjectKeyNode* node = m_dropped.First(); node; node = NextNode(node)) {
-                AiSystemEval* eval = m_owner->m_systems.FindEval(KeyOfNode(node));
-                if (eval) eval->m_flags30.m_value &= ~kSystemDropped;
-            }
-            m_dropped.Clear();
-            ObjectKeyNode* node = pending.First();
-            while (node) {
-                AiSystemEval* eval = m_owner->m_systems.FindEval(KeyOfNode(node));
-                if (eval) eval->m_flags30.m_value |= kSystemDropped;
-                ObjectKeyNode* next = NextNode(node);
-                ObjectKey key = KeyOfNode(node);
-                pending.Detach(&key);
-                m_dropped.Add(node);
-                node = next;
-            }
-            return;
-        }
-    }
+    aitask::RefreshTargets(Fields(), kParams);
 }

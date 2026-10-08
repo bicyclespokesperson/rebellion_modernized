@@ -38,6 +38,14 @@ inline ObjectKeyValueNode* AddCurrentToTeam(ObjectKeyValueSet* team, ChildIterat
     return node;
 }
 
+// Adds the first object of the iterator's family to the team; the node that was made.
+template <class Iterator>
+ObjectKeyValueNode* AddFirstNode(ObjectKeyValueSet* team, GameObjNotifier* parent) {
+    Iterator it(parent, 1);
+    it.Begin();
+    return AddCurrentToTeam(team, &it);
+}
+
 // Adds the first object of the iterator's family to the team; true if a node was made.
 template <class Iterator>
 bool AddFirstOfKind(ObjectKeyValueSet* team, GameObjNotifier* parent) {
