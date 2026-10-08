@@ -1,7 +1,5 @@
 #pragma once
-// DROP AT MERGE if the owner of 0x58adb0-0x58b960 declares these: the data blocks of Detector and CombatUnit live
-// outside the fleet module's ranges, so only their layout and the members the fleet code calls are declared here.
-// None of them is reconstructed by the fleet module; the calls go to the original code.
+// The data blocks of Detector and CombatUnit (0x58b1a0-0x58b300); the bodies are in fleet/unit_data.cpp.
 #include "core/layout.h"
 #include "gameobj/tracked_stat.h"
 #include "gameobj/unit_obj_base.h"

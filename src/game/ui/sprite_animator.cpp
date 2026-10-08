@@ -11,7 +11,6 @@
 // the script steps (0x403ed0).
 void* __thiscall FUN_004ad770(void* queue);
 void __thiscall FUN_004ad7b0(void* queue);
-AnimationStep* FUN_00403ed0(int kind);
 
 namespace {
 
@@ -52,7 +51,7 @@ void SpriteAnimator::SetOrigin(int x, int y) {
 }
 
 int SpriteAnimator::Start(int kind, const uint32_t* sequence, SpriteStage* stage, int b, int c, int noStep) {
-    AnimationStep* step = FUN_00403ed0(kind);
+    AnimationStep* step = CreateAnimationStep(kind);
     if (step) {
         step->Attach(this);
         step->m_stage = stage;

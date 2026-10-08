@@ -1,4 +1,5 @@
 #include "audio/sound_manager.h"
+#include "core/vptr_store.h"
 
 #include <cstdlib>
 #include <new>
@@ -80,7 +81,7 @@ SoundRequest::SoundRequest(const SoundRequest& other) {
     m_playing = other.m_playing;
 }
 
-SoundRequest::~SoundRequest() {}
+SoundRequest::~SoundRequest() { REB_KEEP_VPTR_STORE(); }
 
 // ---- statics ------------------------------------------------------------------------------------------------
 
