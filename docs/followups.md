@@ -86,3 +86,21 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   ClearRecordFlags/Write`, `AiMissionHistory::*`, `AiNoticeQueue::Save`, `AiAgentBase::Write`. Every `Read` function is a
   difftest SKIP (the emulated heap is exhausted by the stream reads); `AiSideController::Load` was compared through the
   loaded-game scenarios instead.
+
+## AI part 2b (task types, evaluators, advisor analysis)
+- The 14 task types, the seven evaluators (`ai_evaluators.cpp`), the galaxy analysis (`ai_galaxy_scan.cpp`,
+  `ai_galaxy_analysis.cpp`) and the advisor tasks (`ai_advisor_tasks.cpp`) are reconstructed. The eight facility-building task
+  types share one library (`ai_task_family.cpp`, parameter tables per type); the evaluators share `SectorPass` (Prepare),
+  `ScoreVoteOf` and the planner/agent request functions of `AiPlanEvaluator`.
+- Stand-ins other modules should replace: `AdvisorSink` (ai_advisor_tasks.h) is the base of the advisor droid (0x439320,
+  VT 0x658e10) with its unnamed slots 0-2 and `Notify` in slot 3; `AdvisorEntry` (VT 0x65c5b0, ctor 0x4c5230) is only a
+  node declaration. `AiTaskManager::Save` (0x49de40) is also the advisor task manager's Save (identical code folded).
+- Shared one-address functions that cannot get a second symbol row: `AdvisorTask21::Refused` is `AdvisorTask20::Refused`
+  (0x4c7550), the evaluators' kind getters of plans 1, 3, 4, 5 and 6 are the shared constants 0x5a66f0, 0x5a6730, 0x5a6700,
+  0x499cd0 and 0x48d640 (defined inline, not hooked), `AdvisorTaskBase::Evaluate` is `AiStagedTask::Evaluate` (0x4cc990).
+- Original quirks: `AiSectorScan::Save` writes its three halfwords in a different order than `ReadRecord` reads them;
+  `AiSectorScan::SetSystem`/`AiSystemScanSet` dereference a missing system record.
+- Not verified by difftest: every `Read`/`Load` that streams from a save (the emulated heap or file state cannot reproduce
+  it: `AiGalaxyAnalysis::Load`, `AiSectorScanSet::LoadAll` SKIP), the plan 1-5, 7 `Prepare` functions run only through
+  `--entry` on plan 6's capture, `AdvisorTask23` phases 2-3 (they need the advisor droid), and the facility task types'
+  `Write` functions.
