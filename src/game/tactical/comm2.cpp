@@ -1,241 +1,203 @@
 #include "tactical/comm2.h"
 
-#include "tactical/tactical_externals.h"
+#include <cstring>
 
-// The communication manager is a library class; only the entry points and fields this glue uses are named here.
-CommMgr* FUN_005f7cc0();  // GetCommMgr
-int FUN_005f7d30();
-struct CommTraceSink;
-void __thiscall FUN_005f4490(CommTraceSink* sink, int value);
-int __thiscall FUN_005f8b80(CommMgr* comm, int flags, CommGuid target, int sessionFlags);
+#include "multiplayer/comm_mgr.h"
+
+// The shared empty function that stands where the debug build traced (it pops one argument).
+void __thiscall FUN_005ae1e0(void* self, const char* text);
+// The alternative transport of CommInit: GameWindowObject slot 13's shared "return 0" body.
 int __thiscall FUN_005ff810(CommMgr* comm, int a, int b, int c, int d, int e);
-int __thiscall FUN_005f8600(CommMgr* comm);
-int FUN_005fa7a0();
-int __thiscall FUN_005f88c0(CommMgr* comm);
-int __thiscall FUN_005fa720(CommMgr* comm, int category);
-int __thiscall FUN_005f7d90(CommMgr* comm, int a, int b, int c, int d);
-int __thiscall FUN_005f9550(CommMgr* comm, int a);
-int __thiscall FUN_005f92e0(CommMgr* comm);
-int __thiscall FUN_005f9030(CommMgr* comm);
-void __thiscall FUN_005f94a0(CommMgr* comm);
-int __thiscall FUN_005f8400(CommMgr* comm);
-int __thiscall FUN_005f9eb0(CommMgr* comm);
-int __thiscall FUN_005f9f70(CommMgr* comm, int a);
-int __thiscall FUN_005fa050(CommMgr* comm, int a, int* status);
-int __thiscall FUN_005fa180(CommMgr* comm, int a);
-int __thiscall FUN_005f9ee0(CommMgr* comm, int a);
-void* __thiscall FUN_005fa540(CommMgr* comm);
-int FUN_005fa5e0();
-
-struct CommMessage;
-CommMessage* __thiscall FUN_005faa80(void* memory, int kind, int id, int a, int b, int c);
-void* __thiscall FUN_005faaf0(CommMessage* message);
-void __thiscall FUN_005faad0(CommMessage* message);
-
-extern int g_commFlag354;     // 0x6be354
-extern int g_commFlag358;     // 0x6be358
-extern int g_commGlobal3b4;   // 0x6be3b4
-extern CommTraceSink g_commTraceSink;  // 0x6be370
 
 namespace {
 
 constexpr int kNoConnection = 0x11;
-constexpr int kStateOffset = 0x108;
-constexpr int kPlayerCountOffset = 0x94;
-constexpr int kField2cOffset = 0x2c;
-constexpr int kField194Offset = 0x194;
-constexpr int kHostStateWanted = 0xe;
 constexpr int kPlayerQuitMessageKind = 4;
 constexpr int kPlayerQuitSize = 0x74;
 constexpr char kClearCategoryCalled[] = "ClearCategory Called\n";
 constexpr char kClearCategoryReturned[] = "ClearCategory Returned\n";
 constexpr char kPlayerQuitTrace[] = "2Comm.cpp line 394 CM_PLAYER_QUIT_SESSION\n";
 
-template <class T>
-T& fieldOf(CommMgr* comm, int offset) {
-    return *reinterpret_cast<T*>(reinterpret_cast<char*>(comm) + offset);
-}
-
 }  // namespace
 
-int __cdecl CommSend(uint32_t guid0, uint32_t guid1, uint32_t guid2, uint32_t guid3, int sendMode, int flags,
-                     int sessionFlags, int toSession, int player0, int player1, int player2, int player3) {
+int __cdecl CommInit(uint32_t guid0, uint32_t guid1, uint32_t guid2, uint32_t guid3, StringMap* settings, HWND window,
+                     int maxPlayers, int connect, int unused9, int unused10, int unused11, int unused12) {
     int result = kNoConnection;
-    FUN_005f7d30();
-    CommMgr* comm = FUN_005f7cc0();
-    FUN_005f4490(&g_commTraceSink, sendMode);
+    DestroyCommMgr();
+    CommMgr* comm = GetCommMgr();
+    g_commSettings = *settings;
     if (comm) {
-        if (toSession != 0) {
-            CommGuid target = {{guid0, guid1, guid2, guid3}};
-            result = FUN_005f8b80(comm, flags, target, sessionFlags);
-            return result;
+        if (connect != 0) {
+            const uint32_t words[4] = {guid0, guid1, guid2, guid3};
+            GUID application;
+            memcpy(&application, words, sizeof(application));
+            return comm->Init(window, application, maxPlayers);
         }
-        result = FUN_005ff810(comm, player0, player1, player2, flags, player3);
+        result = FUN_005ff810(comm, unused9, unused10, unused11, reinterpret_cast<int>(window), unused12);
     }
     return result;
 }
 
-int CommShutdown() {
-    CommPoll();
-    return FUN_005f7d30();
+void CommShutdown() {
+    CommCleanUp();
+    DestroyCommMgr();
 }
 
-int CommReceiveAll() {
-    FUN_005f7cc0();
-    return FUN_005fa7a0();
+int CommIsEnumerating() {
+    GetCommMgr();
+    return IsEnumeratingSessions();
 }
 
-int CommPoll() { return FUN_005f8600(FUN_005f7cc0()); }
+int CommCleanUp() { return GetCommMgr()->CleanUp(); }
 
-int CommIsConnected() { return fieldOf<int>(FUN_005f7cc0(), kStateOffset) != 0; }
+int CommIsConnected() { return GetCommMgr()->m_dplay != nullptr; }
 
-int CommFlush() { return FUN_005f88c0(FUN_005f7cc0()); }
+int CommGetLocalIndex() { return GetCommMgr()->GetLocalIndex(); }
 
-int CommGetPlayerCount() { return fieldOf<int>(FUN_005f7cc0(), kPlayerCountOffset); }
+int CommGetPlayerCount() { return GetCommMgr()->m_playerCount; }
 
 void __cdecl CommClearCategory(int category) {
     CommTrace(kClearCategoryCalled);
-    FUN_005fa720(FUN_005f7cc0(), category);
+    GetCommMgr()->ClearCategory(static_cast<char>(category));
     CommTrace(kClearCategoryReturned);
 }
 
-int __cdecl CommSendMessage(int a, int b, int c, int unused) {
-    int result = 0;
-    CommMgr* comm = FUN_005f7cc0();
-    if (CommIsConnected() != 0) result = FUN_005f7d90(comm, a, b, c, 1);
+uint32_t __cdecl CommSendMessage(const void* data, uint32_t size, int category, int reliable) {
+    uint32_t result = 0;
+    CommMgr* comm = GetCommMgr();
+    if (CommIsConnected() != 0) result = comm->QueueMessage(data, size, category, 1);
     return result;
 }
 
-int __cdecl CommQueryPlayer(int a) {
-    int result = 0;
-    CommMgr* comm = FUN_005f7cc0();
-    if (CommIsConnected() != 0) result = FUN_005f9550(comm, a);
+CommBuffer* __cdecl CommTakeMessage(int category) {
+    CommBuffer* result = nullptr;
+    CommMgr* comm = GetCommMgr();
+    if (CommIsConnected() != 0) result = comm->TakeMessage(static_cast<char>(category));
     return result;
 }
 
-int CommIsSessionHost() {
-    bool host = true;
-    CommMgr* comm = FUN_005f7cc0();
-    if (comm && fieldOf<int>(comm, kStateOffset) != 0) host = FUN_005f92e0(comm) == kHostStateWanted;
-    return host;
+int CommAllPacketsAcknowledged() {
+    bool acknowledged = true;
+    CommMgr* comm = GetCommMgr();
+    if (comm && comm->m_dplay) acknowledged = comm->ResendUnacked() == kCommWaitingForAcks;
+    return acknowledged;
 }
 
-int CommGetSessionState() {
-    CommMgr* comm = FUN_005f7cc0();
+int CommFlushAll() {
+    CommMgr* comm = GetCommMgr();
     int result = 1;
-    if (comm && fieldOf<int>(comm, kStateOffset) != 0) result = FUN_005f9030(comm);
+    if (comm && comm->m_dplay) result = comm->FlushAll();
     return result;
 }
 
-void __cdecl CommSetField194(int value) { fieldOf<int>(FUN_005f7cc0(), kField194Offset) = value; }
+void __cdecl CommSetResendInterval(int milliseconds) { GetCommMgr()->m_resendInterval = milliseconds; }
 
-int CommGetLocalId() {
-    CommMgr* comm = FUN_005f7cc0();
-    if (comm) return FUN_005f8400(comm);
+int CommGetLastLatency() {
+    CommMgr* comm = GetCommMgr();
+    if (comm) return comm->GetLastLatency();
     return 0;
 }
 
-int CommGetSessionCount() {
-    int result = 0;
-    CommMgr* comm = FUN_005f7cc0();
-    if (comm) result = FUN_005f9eb0(comm);
+ServiceProviderList* CommEnumerateServiceProviders() {
+    ServiceProviderList* result = nullptr;
+    CommMgr* comm = GetCommMgr();
+    if (comm) result = comm->EnumerateServiceProviders();
     return result;
 }
 
-int __cdecl CommSetSessionOption(int option) {
+int __cdecl CommHostNewSession(const char* sessionName) {
     int result = kNoConnection;
-    CommMgr* comm = FUN_005f7cc0();
-    if (comm) result = FUN_005f9f70(comm, option);
+    CommMgr* comm = GetCommMgr();
+    if (comm) result = comm->HostNewSession(sessionName);
     return result;
 }
 
-int __cdecl CommGetPlayerName(int player, int* status) {
-    int result = 0;
+SessionList* __cdecl CommGetSessionList(uint32_t timeoutMs, int* status) {
+    SessionList* result = nullptr;
     *status = kNoConnection;
-    CommMgr* comm = FUN_005f7cc0();
-    if (comm) result = FUN_005fa050(comm, player, status);
+    CommMgr* comm = GetCommMgr();
+    if (comm) result = comm->GetSessionList(timeoutMs, status);
     return result;
 }
 
-int __cdecl CommJoinSession(int session) {
+int __cdecl CommJoinSession(SessionInfo* session) {
     int result = kNoConnection;
-    CommMgr* comm = FUN_005f7cc0();
-    if (comm) result = FUN_005fa180(comm, session);
+    CommMgr* comm = GetCommMgr();
+    if (comm) result = comm->JoinSession(session);
     return result;
 }
 
-int __cdecl CommLeaveSession(int session) {
+int __cdecl CommOpenProvider(ServiceProviderInfo* provider) {
     int result = kNoConnection;
-    CommMgr* comm = FUN_005f7cc0();
-    if (comm) result = FUN_005f9ee0(comm, session);
+    CommMgr* comm = GetCommMgr();
+    if (comm) result = comm->OpenProvider(provider);
     return result;
 }
 
 void __cdecl CommSetPlayerName(String name) {
-    CommMgr* comm = FUN_005f7cc0();
-    if (comm) CommAssignName(comm, name);
+    CommMgr* comm = GetCommMgr();
+    if (comm) comm->SetPlayerName(name);
 }
 
+void CommMgr::SetPlayerName(String name) { m_playerName.Assign(name); }
+
 void CommSyncState() {
-    CommMgr* comm = FUN_005f7cc0();
-    if (comm && fieldOf<int>(comm, kStateOffset) != 0) {
-        FUN_005f94a0(comm);
-        FUN_005f92e0(comm);
-        FUN_005f9030(comm);
+    CommMgr* comm = GetCommMgr();
+    if (comm && comm->m_dplay) {
+        comm->RegroupReceived();
+        comm->ResendUnacked();
+        comm->FlushAll();
     }
 }
 
 void __cdecl CommTrace(const char* text) {
-    if (CommMgr* comm = FUN_005f7cc0()) FUN_005ae1e0(comm, reinterpret_cast<int>(text));
+    if (CommMgr* comm = GetCommMgr()) FUN_005ae1e0(comm, text);
 }
 
 void CommSendPlayerQuit() {
     CommTrace(kPlayerQuitTrace);
-    const int flushed = CommFlush();
-    alignas(8) char storage[kPlayerQuitSize];
-    CommMessage* message = FUN_005faa80(storage, kPlayerQuitMessageKind, flushed, 0, 0, 0);
-    void* buffer = FUN_005faaf0(message);
-    CommSendMessage(reinterpret_cast<int>(buffer), kPlayerQuitSize, 0, 1);
-    CommGetSessionState();
+    const int localIndex = CommGetLocalIndex();
+    CommMessage message(kPlayerQuitMessageKind, localIndex, 0, 0, 0);
+    char* buffer = message.Serialize();
+    CommSendMessage(buffer, kPlayerQuitSize, 0, 1);
+    CommFlushAll();
     operator delete(buffer);
-    FUN_005faad0(message);
 }
 
-void __cdecl CommSetField2c(int value) {
-    CommMgr* comm = FUN_005f7cc0();
-    if (comm) fieldOf<int>(comm, kField2cOffset) = value;
+void __cdecl CommSetNotifyWindow(HWND window) {
+    CommMgr* comm = GetCommMgr();
+    if (comm) comm->m_notifyWindow = window;
 }
 
-void __cdecl CommSetGlobal6be3b4(int value) {
-    if (FUN_005f7cc0()) g_commGlobal3b4 = value;
+void __cdecl CommSetSessionFlags(int flags) {
+    if (GetCommMgr()) g_commSessionFlags = flags;
 }
 
-void* __thiscall CommGetSelf(void* self) {
-    CommMgr* comm = FUN_005f7cc0();
-    if (comm) return FUN_005fa540(comm);
+void* __thiscall CommCloseSessionToNewPlayers(void* self) {
+    CommMgr* comm = GetCommMgr();
+    if (comm) return reinterpret_cast<void*>(comm->CloseSessionToNewPlayers());
     return self;
 }
 
-int CommGetCounter() {
+int CommQueryLobbyConnection() {
     int result = 0;
-    if (FUN_005f7cc0()) result = FUN_005fa5e0();
+    if (GetCommMgr()) result = QueryLobbyConnection();
     return result;
 }
 
-int CommGetFlag354() {
+int CommLaunchedFromLobby() {
+    GetCommMgr();
     int result = 0;
-    if (FUN_005f7cc0()) result = g_commFlag354;
+    if (GetCommMgr()) result = g_lobbyConnection.m_launched;
     return result;
 }
 
-int CommGetFlag358() {
+int CommLobbyIsHost() {
     int result = 0;
-    if (FUN_005f7cc0()) result = g_commFlag358;
+    if (GetCommMgr()) result = g_lobbyConnection.m_host;
     return result;
 }
 
-void CommClearFlag354() {
-    if (FUN_005f7cc0()) g_commFlag354 = 0;
+void CommClearLobbyLaunch() {
+    if (GetCommMgr()) g_lobbyConnection.m_launched = 0;
 }
-
-void __thiscall CommAssignName(CommMgr* comm, String name) { fieldOf<String>(comm, 0x98).Assign(name); }

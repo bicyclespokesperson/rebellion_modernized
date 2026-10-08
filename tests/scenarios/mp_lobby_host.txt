@@ -1,0 +1,29 @@
+# Main menu -> multiplayer lobby -> pick "Setup Game" (host) -> next: player name page, then the game setup page
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 75 415
+27 move 77 417
+28 click 77 417
+34 shot host_a
+35 move 420 328
+36 move 422 330
+37 click 422 330
+39 shot host_b
+40 move 336 455
+41 move 338 457
+42 click 338 457
+48 shot host_c
+50 key a
+51 key b
+52 key c
+54 move 336 455
+55 move 338 457
+56 click 338 457
+62 shot host_d
+66 shot host_e
+70 move 475 455
+71 move 477 457
+72 click 477 457
+78 shot host_f
+80 end

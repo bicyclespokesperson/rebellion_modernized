@@ -4,6 +4,8 @@
 // Drop a declaration when the owning module's header provides it.
 #include <cstdint>
 
+#include "multiplayer/message_codec.h"
+
 #include "core/game_string.h"
 #include "core/iostream_lib.h"
 #include "platform/win32.h"
@@ -113,17 +115,8 @@ struct GameSetup {
 GameSetup* __thiscall FUN_0051c740(GameSetup* setup);
 void __thiscall FUN_0051c780(GameSetup* setup);
 
-// Serialises a command into a buffer for the other players (0x1c bytes, ctor 0x51c300, owner: the commands module).
-class CommandExecutor {
-public:
-    virtual ~CommandExecutor();
-    int m_valid;       // +0x04
-    int m_unknown08;   // +0x08
-    void* m_stream;    // +0x0c
-    int m_capacity;    // +0x10
-    int m_size;        // +0x14 bytes written
-    void* m_buffer;    // +0x18
-};
+// Serialises a command into a buffer for the other players (the multiplayer module's MessageCodec, 0x51c300).
+using CommandExecutor = MessageCodec;
 void* __thiscall FUN_0051c300(void* memory);
 int __thiscall FUN_0051c410(CommandExecutor* executor, AppCommand* command);
 

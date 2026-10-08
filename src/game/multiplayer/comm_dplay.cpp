@@ -1,0 +1,634 @@
+// The part of CommMgr that talks to DirectPlay: sessions, players, the datagram send and receive and the lobby
+// hand-over. The protocol on top of it is in comm_mgr.cpp.
+#include <cstdio>
+#include <cstring>
+#include <new>
+
+#include "core/checked_new.h"
+#include "core/game_string.h"
+#include "multiplayer/comm_mgr.h"
+
+// The shared empty function that stands where the debug build traced; every call keeps its argument.
+void __thiscall FUN_005ae1e0(void* self, const char* text);
+
+namespace {
+
+constexpr char kTraceCleanUp[] = "CommMgr.cpp line 337 CleanUp() Call\n";
+constexpr char kTraceDestroyPlayer[] = "CommMgr::CleanUp():369 About to call DestroyPlayer.\n";
+constexpr char kTraceQuitSession[] = "CommMgr::ResetPlayerList():644 CM_PLAYER_QUIT_SESSION\n";
+constexpr char kTraceHostCleanUp[] = "CommMgr::HostNewSession():1850 Just called CleanUp()\n";
+constexpr char kTraceListInvalid[] = "CommMgr::GetSessionList():1850 DPERR_INVALIDPARAMS\n";
+constexpr char kTraceJoinCleanUp[] = "CommMgr::JoinSession():1959 Just Called CleanUp()\n";
+constexpr char kTraceBusy[] = "CommMgr::Flush():234 Error Sending Packet! Dplay BUSY - Dplay Error Code : %u ";
+constexpr char kTracePlayerInvalid[] = "CommMgr::Flush():245 CM_PLAYER_QUIT_SESSION\n";
+constexpr char kTraceReceiveQuit[] = "CommMgr::ReceiveIncomingCommPacket():1590 CM_PLAYER_QUIT_SESSION\n";
+constexpr char kTraceReceiveLost[] = "CommMgr::ReceiveIncomingCommPacket()1434 CM_PLAYER_LEFT_UNEXCUSED\n";
+constexpr char kTraceAddPlayer[] = "CommMgr::ReceiveIncomingCommPacket() DPSYS_ADDPLAYER\n";
+constexpr char kTraceDeletePlayer[] = "CommMgr::ReceiveIncomingCommPacket() DPSYS_DELETEPLAYER\n";
+constexpr char kTraceAckId[] = "AckID %u, Category %u\n";
+constexpr char kNewline[] = "\n";
+constexpr char kTextFlushing[] = " Error Flushing Packet!";
+constexpr char kTextDPlayError[] = "DPlay Error Code : ";
+constexpr char kTextFrom[] = "From    : ";
+constexpr char kTextTo[] = "To      : ";
+constexpr char kTextSize[] = "Size    : ";
+constexpr char kTextMessage[] = "Message : ";
+constexpr char kTextAddress[] = "Address : ";
+constexpr char kTextReceiveError[] = "\nDirect Player Receive Error :";
+constexpr char kTextReceiveFrom[] = "From     :";
+constexpr char kTextReceiveTo[] = "To       :";
+constexpr char kTextReceiveBuffer[] = "BufferSize :";
+
+constexpr char kMinimumSendLatency[] = "MinimumSendLatency";
+constexpr char kMaximumSendLatency[] = "MaximumSendLatency";
+constexpr char kMinimumReceiveLatency[] = "MinimumReceiveLatency";
+constexpr char kMaximumReceiveLatency[] = "MaximumReceiveLatency";
+constexpr char kDropSendPercent[] = "DropSendPercent";
+constexpr char kDropReceivePercent[] = "DropReceivePercent";
+constexpr char kDupeSendPercent[] = "DupeSendPercent";
+constexpr char kDupeReceivePercent[] = "DupeReceivePercent";
+
+constexpr uint32_t kBroadcastIndex = 0xf;
+constexpr uint32_t kNoPlayer = 0xffffffff;
+constexpr uint32_t kSystemMessageAddPlayer = 3;
+constexpr uint32_t kSystemMessageDeletePlayer = 5;
+constexpr DWORD kPingAfterMs = 30000;
+constexpr DWORD kGiveUpAfterMs = 90000;
+constexpr DWORD kReceiveFlags = DPRECEIVE_ALL;
+constexpr DWORD kEnumSessionsAvailable = 1;
+constexpr DWORD kPlayerCreateFlags = 0;
+constexpr DWORD kSessionClosedFlags = DPSESSION_NEWPLAYERSDISABLED | DPSESSION_JOINDISABLED;
+constexpr int kIdTextBuffer = 100;
+constexpr uint32_t kPingIdLowBits = 0xffffff;
+
+void Trace(CommMgr* comm, const char* text) { FUN_005ae1e0(comm, text); }
+
+void NotifyOwner(CommMgr* comm, int code, uint32_t player) {
+    PostMessageA(comm->m_notifyWindow, kCommNotifyMessage, code, player);
+}
+
+// The error report the original builds around the trace call: "<tick> Error Flushing Packet!\n", the DirectPlay error
+// code, the sender and receiver ids, the size, the message text and its address, each followed by a newline.
+class FlushReport {
+public:
+    FlushReport(CommMgr* comm, HRESULT error, int player, const SendBuffer& buffer) {
+        {
+            const String newline(kNewline);
+            const String label(kTextFlushing);
+            m_text.AppendUnsigned(timeGetTime());
+            m_text += label;
+            m_text += newline;
+        }
+        append(String(kNewline), String(kTextDPlayError), error);
+        append(String(kNewline), String(kTextFrom), comm->GetPlayerId(comm->GetLocalIndex()));
+        append(String(kNewline), String(kTextTo), comm->GetPlayerId(player));
+        append(String(kNewline), String(kTextSize), buffer.m_used);
+        const String newline(kNewline);
+        const String text(reinterpret_cast<const char*>(&buffer.m_count));
+        const String label(kTextMessage);
+        m_text += label;
+        m_text += text;
+        m_text += newline;
+        const String addressNewline(kNewline);
+        const String addressLabel(kTextAddress);
+        m_text += addressLabel;
+        m_text.AppendUnsigned(reinterpret_cast<uint32_t>(&buffer.m_count));
+        m_text += addressNewline;
+    }
+
+    const char* text() const { return m_text.m_text; }
+
+private:
+    void append(const String& newline, const String& label, uint32_t value) {
+        m_text += label;
+        m_text.AppendUnsigned(value);
+        m_text += newline;
+    }
+
+    String m_text;
+};
+
+}  // namespace
+
+// ---- the DPLAYX callbacks --------------------------------------------------------------------------------------
+
+BOOL __stdcall CommEnumServiceProviderCallback(GUID* guid, LPSTR name, DWORD majorVersion, DWORD minorVersion,
+                                               LPVOID context) {  // 0x5f88d0
+    auto* info = NewOrNull<ServiceProviderInfo>(guid, name, majorVersion, minorVersion, reinterpret_cast<DWORD>(context));
+    g_serviceProviderList.AddWithId(info);
+    return TRUE;
+}
+
+BOOL __stdcall CommEnumSessionsCallback(const DPSESSIONDESC2* description, LPDWORD timeout, DWORD flags,
+                                        LPVOID context) {  // 0x5f8950
+    if (!description) return FALSE;
+    auto* info = NewOrNull<SessionInfo>(description);
+    g_sessionList.AddWithId(info);
+    return TRUE;
+}
+
+BOOL __stdcall CommEnumPlayersCallback(DPID id, DWORD playerType, const DPNAME* name, DWORD flags,
+                                       LPVOID context) {  // 0x5f89c0
+    CommMgr* comm = GetCommMgr();
+    if (comm->GetEnumeratedCount() >= g_commMaxPlayers) return FALSE;
+    if (id == 0) return TRUE;
+    comm->m_playerIds[comm->GetEnumeratedCount()] = id;
+    ++comm->m_enumeratedCount;
+    ++comm->m_playerCount;
+    return TRUE;
+}
+
+// ---- session ---------------------------------------------------------------------------------------------------
+
+int CommMgr::Init(HWND window, GUID application, uint32_t maxPlayers) {
+    int result = 0;
+    g_commEnumerating = 0;
+    m_lastReceiveTime = timeGetTime();
+    m_pingSent = 0;
+    m_unknownF8[0] = 0;
+    m_unknownF8[1] = 0;
+    m_unknownF8[2] = 0;
+    m_unknownF8[3] = 0;
+    {
+        const String key(kMinimumSendLatency);
+        g_commSettings.FindInText(&key, &m_minSendLatency);
+    }
+    {
+        const String key(kMaximumSendLatency);
+        g_commSettings.FindInText(&key, &m_maxSendLatency);
+    }
+    {
+        const String key(kMinimumReceiveLatency);
+        g_commSettings.FindInText(&key, &m_minReceiveLatency);
+    }
+    {
+        const String key(kMaximumReceiveLatency);
+        g_commSettings.FindInText(&key, &m_maxReceiveLatency);
+    }
+    {
+        const String key(kDropSendPercent);
+        g_commSettings.FindFloat(&key, &m_dropSendPercent);
+    }
+    {
+        const String key(kDropReceivePercent);
+        g_commSettings.FindFloat(&key, &m_dropReceivePercent);
+    }
+    {
+        const String key(kDupeSendPercent);
+        g_commSettings.FindFloat(&key, &m_dupeSendPercent);
+    }
+    {
+        const String key(kDupeReceivePercent);
+        g_commSettings.FindFloat(&key, &m_dupeReceivePercent);
+    }
+    m_notifyWindow = window;
+    m_isHost = 0;
+    m_application = application;
+    m_clientMode = 1;
+    m_receiveBuffer.Reset();
+    g_commProviderGuid = nullptr;
+    m_dplay = nullptr;
+    m_localIndex = -1;
+    m_playerCount = 0;
+    m_enumeratedCount = 0;
+    m_unknownA4 = 0;
+    m_unknownA8 = 0x3000;
+    m_unknownAC = GetTickCount() + m_unknownA8;
+    g_commMaxPlayers = maxPlayers;
+    m_resendInterval = 1000;
+    for (uint32_t player = 0; player < g_commMaxPlayers; ++player) m_playerIds[player] = kNoPlayer;
+    if (g_lobbyConnection.m_launched != 0) {
+        m_dplay = g_lobbyConnection.m_dplay;
+        g_commSessionGuid = g_lobbySessionGuid;
+        m_isHost = g_lobbyConnection.m_host;
+        result = StartPlayerCreation();
+    }
+    return result;
+}
+
+int CommMgr::CleanUp() {
+    g_commEnumerating = 0;
+    g_lobbyConnection.m_launched = 0;
+    Trace(this, kTraceCleanUp);
+    m_lastReceiveTime = timeGetTime();
+    m_pingSent = 0;
+    m_isHost = 0;
+    g_commPacketCounter = 0;
+    m_seen.Clear();
+    m_unknown198.Clear();
+    m_unknown1a4.Clear();
+    m_playerCount = 0;
+    m_enumeratedCount = 0;
+    g_serviceProviderList.Clear();
+    g_sessionList.Clear();
+    m_pending.Clear();
+    m_received.Clear();
+    m_assembling.Clear();
+    m_outgoing.Clear();
+    if (!m_dplay) return 1;
+    if (m_localIndex != -1) {
+        Trace(this, kTraceDestroyPlayer);
+        m_dplay->DestroyPlayer(m_playerIds[m_localIndex]);
+        m_localIndex = -1;
+    }
+    if (m_receiveEvent) {
+        CloseHandle(m_receiveEvent);
+        m_receiveEvent = nullptr;
+    }
+    m_receiveBuffer.Reset();
+    const HRESULT closeResult = m_dplay->Close();
+    const ULONG references = m_dplay->Release();
+    m_dplay = nullptr;
+    g_commProviderGuid = nullptr;
+    if (closeResult != 0 && references == 0) return 0;
+    return 1;
+}
+
+int CommMgr::CreateLocalPlayer() {
+    m_receiveEvent = CreateEventA(nullptr, FALSE, FALSE, nullptr);
+    if (!m_receiveEvent) return 0;
+    if (!m_dplay) return 0;
+    if (m_dplay->CreatePlayer(&m_localId, nullptr, m_receiveEvent, nullptr, 0, kPlayerCreateFlags) != 0) return 0;
+    m_enumeratedCount = 1;
+    m_playerCount = 1;
+    m_playerIds[0] = m_localId;
+    return 1;
+}
+
+uint32_t CommMgr::ResetPlayerList() {
+    if (m_dplay) {
+        for (int slot = 0; slot < 15; ++slot) m_playerIds[slot] = kNoPlayer;
+        const uint32_t previousCount = m_playerCount;
+        m_enumeratedCount = 0;
+        m_playerCount = 0;
+        m_dplay->EnumPlayers(&g_commSessionGuid, CommEnumPlayersCallback, nullptr, 0);
+        for (uint32_t first = 0; first < m_enumeratedCount; ++first) {
+            for (uint32_t other = first + 1; other < m_enumeratedCount; ++other) {
+                if (m_playerIds[other] < m_playerIds[first]) {
+                    const uint32_t swapped = m_playerIds[first];
+                    m_playerIds[first] = m_playerIds[other];
+                    m_playerIds[other] = swapped;
+                }
+            }
+        }
+        m_localIndex = -1;
+        for (uint32_t player = 0; player < g_commMaxPlayers; ++player) {
+            if (m_playerIds[player] == m_localId) {
+                m_localIndex = static_cast<int>(player);
+                break;
+            }
+        }
+        m_playerIds[15] = 0;
+        m_playerCount = m_enumeratedCount;
+        FlushAll();
+        if (m_playerCount != previousCount) {
+            g_commPacketCounter = static_cast<uint32_t>(GetLocalIndex()) << 28;
+            m_seen.Clear();
+            if (m_playerCount < previousCount && m_playerCount == 1) {
+                CleanUp();
+                Trace(this, kTraceQuitSession);
+                NotifyOwner(this, kCommSessionEnded, 0);
+            }
+        }
+    }
+    return m_enumeratedCount;
+}
+
+ServiceProviderList* CommMgr::EnumerateServiceProviders() {
+    g_serviceProviderList.Clear();
+    if (DirectPlayEnumerateA(CommEnumServiceProviderCallback, nullptr) != 0) g_serviceProviderList.Clear();
+    return &g_serviceProviderList;
+}
+
+int CommMgr::OpenProvider(ServiceProviderInfo* provider) {
+    if (!provider) return kCommBadParameter;
+    g_commProviderGuid = provider->m_guid;
+    IUnknown* created = nullptr;
+    HRESULT result = DirectPlayCreate(const_cast<GUID*>(provider->m_guid), &created, nullptr);
+    if (created) {
+        result = created->QueryInterface(g_iidDirectPlay2A, reinterpret_cast<void**>(&m_dplay));
+        created->Release();
+    }
+    if (result == 0 && m_dplay) return kCommOk;
+    g_commProviderGuid = nullptr;
+    m_dplay = nullptr;
+    return kCommProviderFailed;
+}
+
+int CommMgr::FillSessionDesc(DPSESSIONDESC2* description, GUID instance, uint32_t flags, const char* sessionName) {
+    int result = 0;
+    if (description) {
+        memset(description, 0, sizeof(*description));
+        description->dwSize = sizeof(*description);
+        description->dwMaxPlayers = g_commMaxPlayers;
+        description->dwFlags = flags;
+        description->guidApplication = m_application;
+        description->lpszSessionNameA = const_cast<char*>(sessionName);
+        description->guidInstance = instance;
+    }
+    if (flags == 2 && !sessionName) result = kCommNameRequired;
+    return result;
+}
+
+int CommMgr::StartPlayerCreation() {
+    if (!CreateLocalPlayer()) {
+        m_dplay->Release();
+        m_dplay = nullptr;
+        g_commProviderGuid = nullptr;
+        return kCommPlayerCreateFailed;
+    }
+    ResetPlayerList();
+    return 0;
+}
+
+int CommMgr::HostNewSession(const char* sessionName) {
+    int result = kCommBadParameter;
+    if (!m_dplay) return result;
+    DPSESSIONDESC2 description;
+    // BUG(original): the instance GUID passed to FillSessionDesc is uninitialised stack; Open ignores it when creating.
+    GUID unused = {};
+    result = FillSessionDesc(&description, unused, g_commSessionFlags, sessionName);
+    if (result != 0) return result;
+    const HRESULT opened = m_dplay->Open(&description, DPOPEN_CREATE);
+    if (opened != 0) {
+        CleanUp();
+        Trace(this, kTraceHostCleanUp);
+        return (opened == DPERR_USERCANCEL) + kCommSessionFull;
+    }
+    g_commSessionGuid = description.guidInstance;
+    result = StartPlayerCreation();
+    if (result == 0) m_isHost = 1;
+    return result;
+}
+
+SessionList* CommMgr::GetSessionList(uint32_t timeoutMs, int* status) {
+    *status = kCommBadParameter;
+    if (m_dplay && IsEnumeratingSessions() == 0) {
+        g_sessionList.Clear();
+        DPSESSIONDESC2 description;
+        // BUG(original): the instance GUID passed to FillSessionDesc is uninitialised stack.
+        GUID unused = {};
+        *status = FillSessionDesc(&description, unused, 0, nullptr);
+        if (*status == 0) {
+            g_commEnumerating = 1;
+            const int listed = static_cast<int>(
+                m_dplay->EnumSessions(&description, timeoutMs, CommEnumSessionsCallback, nullptr, kEnumSessionsAvailable));
+            if (listed == 0) {
+                *status = 0;
+            } else if (listed > static_cast<int>(DPERR_ALREADYINITIALIZED)) {
+                if (listed == static_cast<int>(DPERR_INVALIDOBJECT)) {
+                    CleanUp();
+                    Trace(this, kTraceListInvalid);
+                    *status = kCommSessionListFailed;
+                } else if (listed == static_cast<int>(DPERR_USERCANCEL) || listed == static_cast<int>(DPERR_CONNECTING)) {
+                    *status = kCommSessionNotAllowed;
+                }
+            } else if (listed == static_cast<int>(DPERR_ALREADYINITIALIZED)) {
+                *status = kCommSessionListFailed;
+            } else if (listed == static_cast<int>(DPERR_INVALIDPARAMS)) {
+                CleanUp();
+                Trace(this, kTraceListInvalid);
+                *status = kCommSessionListFailed;
+            }
+        }
+    }
+    if (*status == 0) {
+        g_commEnumerating = 0;
+        return &g_sessionList;
+    }
+    g_commEnumerating = 1;
+    g_sessionList.Clear();
+    return &g_sessionList;
+}
+
+int CommMgr::JoinSession(SessionInfo* session) {
+    if (!m_dplay || !session) return kCommBadParameter;
+    DPSESSIONDESC2 description;
+    FillSessionDesc(&description, session->m_instance, g_commSessionFlags, session->m_name.m_text);
+    const HRESULT opened = m_dplay->Open(&description, DPOPEN_JOIN);
+    if (opened != 0) {
+        CleanUp();
+        Trace(this, kTraceJoinCleanUp);
+        return (opened == DPERR_USERCANCEL) + kCommSessionFull;
+    }
+    g_commSessionGuid = session->m_instance;
+    return StartPlayerCreation();
+}
+
+int CommMgr::CloseSessionToNewPlayers() {
+    if (m_dplay && m_isHost) {
+        DWORD size = 0;
+        m_dplay->GetSessionDesc(nullptr, &size);
+        auto* description = static_cast<DPSESSIONDESC2*>(::operator new(size));
+        memset(description, 0, size);
+        if (m_dplay->GetSessionDesc(description, &size) == 0) {
+            description->dwMaxPlayers = g_commMaxPlayers;
+            description->dwFlags |= kSessionClosedFlags;
+            m_dplay->SetSessionDesc(description, 0);
+        }
+        ::operator delete(description);
+    }
+    return 0;
+}
+
+int QueryLobbyConnection() {
+    int found = 0;
+    IDirectPlayLobbyA* lobby = nullptr;
+    DPLCONNECTION* settings = nullptr;
+    DWORD size = 0;
+    g_lobbyConnection.m_launched = 0;
+    if (DirectPlayLobbyCreateA(nullptr, &lobby, nullptr, nullptr, 0) != 0) return found;
+    if (lobby->GetConnectionSettings(0, nullptr, &size) != DPERR_BUFFERTOOSMALL || size == 0) return found;
+    settings = static_cast<DPLCONNECTION*>(::operator new(size));
+    if (!settings) return found;
+    if (lobby->GetConnectionSettings(0, settings, &size) != 0) return found;
+    settings->lpSessionDesc->dwFlags = g_commSessionFlags;
+    settings->lpSessionDesc->dwMaxPlayers = g_commMaxPlayers;
+    if (lobby->SetConnectionSettings(0, 0, settings) != 0) return found;
+    IUnknown* connected = nullptr;
+    if (lobby->Connect(0, &connected, nullptr) != 0) return found;
+    IDirectPlay2A* dplay = nullptr;
+    if (connected->QueryInterface(g_iidDirectPlay2A, reinterpret_cast<void**>(&dplay)) != 0) return found;
+    found = 1;
+    g_lobbyConnection.m_launched = 1;
+    g_lobbyConnection.m_dplay = dplay;
+    g_lobbySessionGuid = settings->lpSessionDesc->guidInstance;
+    g_lobbyConnection.m_host = (settings->dwFlags & DPOPEN_CREATE) != 0;
+    return found;
+}
+
+// ---- the datagram pump -----------------------------------------------------------------------------------------
+
+int CommMgr::FlushPlayer(int player) {
+    int result = 0;
+    if (!m_dplay) return kCommNotConnected;
+    if (m_playerCount < 2) return kCommNoOtherPlayers;
+    if (player == GetLocalIndex()) return kCommSendToSelf;
+    SendBuffer& buffer = m_sendBuffers[player];
+    if (buffer.GetCount() == 0) return kCommBufferEmpty;
+    if (!m_dplay) return kCommNotConnected;
+    const HRESULT sent = m_dplay->Send(GetPlayerId(GetLocalIndex()), GetPlayerId(player), 0, &buffer.m_count, buffer.m_used);
+    if (sent == 0) {
+        buffer.Reset();
+        return 0;
+    }
+    if (sent == DPERR_BUSY) {
+        char text[kIdTextBuffer];
+        sprintf(text, kTraceBusy, sent);
+        Trace(this, text);
+        buffer.Reset();
+        return 0;
+    }
+    {
+        const FlushReport report(this, sent, player, buffer);
+        Trace(this, report.text());
+    }
+    if (sent == DPERR_INVALIDPLAYER && player != static_cast<int>(kBroadcastIndex)) {
+        Trace(this, kTracePlayerInvalid);
+        NotifyOwner(this, kCommSessionEnded, player);
+        result = kCommNoOtherPlayers;
+    } else {
+        result = kCommSendFailed;
+    }
+    NotifyOwner(this, kCommSessionEnded, player);
+    CleanUp();
+    return result;
+}
+
+ReceivedPacket* CommMgr::ReceiveIncoming() {
+    const DWORD now = timeGetTime();
+    if (m_playerCount < 2) {
+        m_lastReceiveTime = now;
+        m_pingSent = 0;
+    } else {
+        const DWORD silent = now - m_lastReceiveTime;
+        if (silent > kPingAfterMs - 1) {
+            if (m_pingSent == 0) {
+                PingOpponents();
+            } else if (silent > kGiveUpAfterMs - 1) {
+                CleanUp();
+                Trace(this, kTraceReceiveLost);
+                NotifyOwner(this, kCommPlayerLost, 0);
+                return nullptr;
+            }
+        }
+    }
+    if (!m_dplay) return nullptr;
+    for (;;) {
+        ReceivedPacket* packet = nullptr;
+        while (m_receiveBuffer.GetCount() != 0) {
+            packet = m_receiveBuffer.PopPacket();
+            const uint32_t id = packet->m_wire.m_id;
+            if ((id >> 28) == static_cast<uint32_t>(GetLocalIndex())) {
+                HandleAck(packet, m_receiveBuffer.m_fromPlayer);
+            } else {
+                if (packet->m_wire.m_reliable != 0 && id != 0) {
+                    SendAck(packet);
+                    FlushAll();
+                }
+                const uint32_t packetId = packet->m_wire.m_id;
+                if ((packetId & kPingIdLowBits) != kPingIdLowBits) {
+                    if (!m_seen.FindById(packetId)) {
+                        IdNode* seen = NewOrNull<IdNode>();
+                        seen->SetId(packetId);
+                        m_seen.AddWithId(seen);
+                        char text[kIdTextBuffer];
+                        sprintf(text, kTraceAckId, packetId & 0xffffff, (packetId >> 24) & 0xf);
+                        return packet;
+                    }
+                }
+            }
+            if (packet) delete packet;
+        }
+        m_receiveBuffer.Reset();
+        if (!m_dplay) return nullptr;
+        DPID from = 0;
+        DPID to = 0;
+        DWORD size = kCommPacketBufferSize;
+        uint8_t* writePointer = m_receiveBuffer.GetWritePointer();
+        const HRESULT received = m_dplay->Receive(&from, &to, kReceiveFlags, writePointer, &size);
+        if (received != 0) {
+            if (received != DPERR_NOMESSAGES) {
+                String report;
+                {
+                    const String newline1(kNewline);
+                    const String bufferLabel(kTextReceiveBuffer);
+                    const String newline2(kNewline);
+                    const String toLabel(kTextReceiveTo);
+                    const String newline3(kNewline);
+                    const String fromLabel(kTextReceiveFrom);
+                    const String newline4(kNewline);
+                    const String errorLabel(kTextReceiveError);
+                    report += errorLabel;
+                    report.AppendUnsigned(received);
+                    report += newline4;
+                    report += fromLabel;
+                    report.AppendUnsigned(from);
+                    report += newline3;
+                    report += toLabel;
+                    report.AppendUnsigned(to);
+                    report += newline2;
+                    report += bufferLabel;
+                    report.AppendUnsigned(size);
+                    report += newline1;
+                }
+                Trace(this, report.m_text);
+                return nullptr;
+            }
+            GetTickCount();
+            return nullptr;
+        }
+        m_lastReceiveTime = timeGetTime();
+        m_pingSent = 0;
+        if (from == 0) {
+            const uint32_t* message = reinterpret_cast<const uint32_t*>(writePointer);
+            if (message[0] == kSystemMessageAddPlayer) {
+                Trace(this, kTraceAddPlayer);
+                ResetPlayerList();
+            } else if (message[0] == kSystemMessageDeletePlayer) {
+                Trace(this, kTraceDeletePlayer);
+                DeactivatePlayer(FindPlayerIndex(message[1]));
+                if (ResetPlayerList() < 2) {
+                    CleanUp();
+                    Trace(this, kTraceReceiveQuit);
+                    NotifyOwner(this, kCommSessionEnded, 0);
+                    return nullptr;
+                }
+            }
+            m_receiveBuffer.Reset();
+            continue;
+        }
+        if (from == m_localId) {
+            m_receiveBuffer.Reset();
+            continue;
+        }
+        uint32_t sender = FindPlayerIndex(from);
+        if (m_clientMode == 1 && sender == kNoPlayer) {
+            ResetPlayerList();
+            sender = FindPlayerIndex(from);
+        }
+        m_receiveBuffer.m_fromPlayer = static_cast<int>(sender);
+        packet = m_receiveBuffer.PopPacket();
+        const uint32_t firstId = packet->m_wire.m_id;
+        if ((firstId >> 28) == static_cast<uint32_t>(GetLocalIndex())) {
+            HandleAck(packet, m_receiveBuffer.m_fromPlayer);
+        } else if (sender == (packet->m_wire.m_id >> 28)) {
+            if (packet->m_wire.m_reliable != 0 && packet->m_wire.m_id != 0) {
+                SendAck(packet);
+                FlushAll();
+            }
+            const uint32_t packetId = packet->m_wire.m_id;
+            if ((packetId & kPingIdLowBits) != kPingIdLowBits) {
+                if (!m_seen.FindById(packetId)) {
+                    IdNode* seen = NewOrNull<IdNode>();
+                    seen->SetId(packetId);
+                    m_seen.AddWithId(seen);
+                    char text[kIdTextBuffer];
+                    sprintf(text, kTraceAckId, packet->m_wire.m_id & 0xffffff, (packet->m_wire.m_id >> 24) & 0xf);
+                    return packet;
+                }
+            }
+        }
+        if (packet) delete packet;
+    }
+}
