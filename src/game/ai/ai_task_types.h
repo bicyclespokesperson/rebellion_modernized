@@ -377,6 +377,51 @@ public:
     AiRankedSelector m_selector;  // +0x68
 };
 
+// ---- type 2: shields, ion cannons and their facilities ------------------------------------------------------------------------
+
+// The last task of the facility family (VT 0x65c838, 0x80 bytes, 0x4e1e30-0x4e4d40). Stage 0 decides which of the three stages to
+// run (0x3ea: shields, 0x3eb: ion cannons, 0x3ec: the facilities).
+class AiTask2 : public AiStagedTask {
+public:
+    explicit AiTask2(int view);                     // 0x4e1e50
+    virtual ~AiTask2();                             // 0: 0x4e1e30 (deleting), 0x4e1f30
+    virtual void Read(istream* in) override;        // 1: 0x4e1fe0
+    virtual void Write(ostream* out) override;      // 2: 0x4e2080
+    virtual OrderBase* Step() override;             // 5: 0x4e2120
+
+    int ChooseManager();                            // 0x4e21d0
+    OrderBase* StepFacilities();                    // 0x4e2400 (stage 0x3ec)
+    OrderBase* StepDefenses();                      // 0x4e25c0 (stages 0x3ea, 0x3eb)
+    int PickSystem();                               // 0x4e2760
+    OrderBase* BuildFirstScrapOrder();              // 0x4e2940
+    int PickShieldTarget();                         // 0x4e2c70
+    int PickIonTarget();                            // 0x4e2f10
+    OrderBase* BuildAllScrapOrder(ObjectKey* system);  // 0x4e31b0
+    int SelectTarget();                             // 0x4e3530
+    int PickSupplySystem();                         // 0x4e3810
+    OrderBase* BuildScrapOrder();                   // 0x4e3a40
+    int ComputeFacilityCount();                     // 0x4e3f80
+    OrderBase* BuildCapitalOrder();                 // 0x4e4020
+    OrderBase* BuildDestinationOrder(ObjectKey* target);  // 0x4e4300
+    OrderBase* BuildManufactureOrder210();          // 0x4e4440
+    void AddTargetSystem();                         // 0x4e4540
+    int NeedForTargets();                           // 0x4e4950
+    void RefreshTargets();                          // 0x4e4a20
+    aitask::FamilyFields Fields();
+
+    ObjectKey m_shieldSystem;     // +0x40
+    ObjectKey m_ionSystem;        // +0x44
+    ObjectKey m_system;           // +0x48
+    ObjectKey m_manager;          // +0x4c
+    ObjectKey m_classKey;         // +0x50 starts as 0
+    int m_count;                  // +0x54
+    int m_cap;                    // +0x58
+    int m_limit;                  // +0x5c
+    ObjectKeySet m_targets;       // +0x60
+    ObjectKeySet m_dropped;       // +0x68
+    AiRankedSelector m_selector;  // +0x70
+};
+
 // ---- type 8: system records ----------------------------------------------------------------------------------------------
 
 // Runs the AiSystemRecords of the side one at a time: moves each record to a sector that suits it and lets it step through its
@@ -544,6 +589,8 @@ REB_ASSERT_SIZE(AiTask10, 0x84);
 REB_ASSERT_OFFSET(AiTask10, m_targets, 0x74);
 REB_ASSERT_SIZE(AiFacilityTaskBase, 0x7c);
 REB_ASSERT_SIZE(AiTask7, 0x7c);
+REB_ASSERT_SIZE(AiTask2, 0x80);
+REB_ASSERT_OFFSET(AiTask2, m_selector, 0x70);
 REB_ASSERT_SIZE(AiTask1, 0x78);
 REB_ASSERT_OFFSET(AiTask1, m_selector, 0x68);
 REB_ASSERT_SIZE(AiTask3, 0x7c);
