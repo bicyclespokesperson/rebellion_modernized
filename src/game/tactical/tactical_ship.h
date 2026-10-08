@@ -17,6 +17,36 @@
 
 class TacticalShipBase;
 
+// The ship state the 3D battle synchronises between machines and the group's view of it (0x68 bytes, 0x5b1c00).
+struct TacticalShipStatusRecord {
+    int m_state;               // +0x00
+    int m_id;                  // +0x04
+    int m_groupHandle;         // +0x08
+    int m_unk178;              // +0x0c
+    uint32_t m_speedCH;        // +0x10
+    uint32_t m_shieldCH;       // +0x14
+    uint32_t m_hyperdriveCH;   // +0x18
+    uint32_t m_tractorCH;      // +0x1c
+    uint32_t m_weaponCH;       // +0x20
+    float m_tractorPower;      // +0x24
+    float m_shieldMax;         // +0x28
+    float m_shield;            // +0x2c
+    float m_hullMax;           // +0x30
+    float m_hull;              // +0x34
+    float m_weaponRecharge;    // +0x38
+    float m_shieldRecharge;    // +0x3c
+    float m_hyperdriveCount;   // +0x40
+    float m_speed;             // +0x44
+    float m_commanderBonus;    // +0x48
+    int m_groupField5c;        // +0x4c
+    int m_hubValue;            // +0x50
+    int m_groupMode;           // +0x54
+    int m_groupField68;        // +0x58
+    int m_firstMember;         // +0x5c
+    int m_secondGroupItem;     // +0x60
+    int m_groupField38;        // +0x64
+};
+
 // One of the four weapon arcs of a ship (0x74 bytes). The three weapon kinds each have a profile object (damage and
 // accuracy factors); `ComputeFirepower` of the owning ship fills m_firepower for a given target kind.
 // The 0x14-byte object describing how well one weapon kind hurts a target class (classes of the visual-resources
@@ -168,6 +198,10 @@ public:
     void ConsiderTractoring(int target);       // 0x5b2140
     float DistanceTo(TacticalShipBase* other);
     void RepairOneHit();                       // 0x5b1490
+    int HubQuery();                            // 0x5b1480
+    String* GetName(String* out);              // 0x5b1610
+    void BuildStatusRecord(TacticalShipStatusRecord* out);   // 0x5b1c00
+    void GetGroupPosition(TacticalVector* out);              // 0x5b5ad0
     double ScaleByHull(float value);            // 0x5b1770: value * hull / hullMax
     double ScaleByHullFull();                   // 0x5b1640
     double ShieldFraction();                    // 0x5b1650
@@ -280,6 +314,7 @@ public:
     virtual int Virtual29() override;                  // 0x5b04e0
     virtual int Virtual30() override;                  // 0x5b0500
     virtual void Virtual39(float step) override;       // 0x5b0330
+    virtual double Virtual43() override;               // 0x5b05b0
     virtual void ReadState(istream* in) override;      // 0x5b0040
     virtual void ReadExtra(istream* in) override;      // 0x5b0050
     virtual void WriteState(ostream* out) override;    // 0x5b0010
@@ -313,6 +348,7 @@ public:
     virtual int Virtual28() override;                  // 0x5b8f00
     virtual int Virtual29() override;                  // 0x5b8f20
     virtual int Virtual30() override;                  // 0x5b8f50
+    virtual double Virtual43() override;               // 0x5b7770
     virtual double GetWeaponRecharge() override;        // 0x5b9c00
     virtual double GetShieldRecharge() override;        // 0x5b9c30
     virtual double GetSpeed() override;                 // 0x5ba190
@@ -320,6 +356,9 @@ public:
     virtual int GetSoundId() override;                  // 0x5b8df0
 
     FightSquadResult* BuildResult(FightSquadResult* out);     // 0x5b8e00
+    void ApplyStatus(const FightSquadResult* record);         // 0x5ba150
+    uint32_t SquadsAlive();                                   // 0x5ba330
+    uint32_t SquadsMax();                                     // 0x5ba380
 };
 
 // What the object manager hands an event handler: the payload is an array of 32-bit words.
@@ -359,6 +398,7 @@ void __cdecl TacticalShipHitEvent56(TacticalEvent* event);            // 0x5b2ac
 void __cdecl TacticalShipHitEvent53(TacticalEvent* event);            // 0x5b2b10
 void __cdecl TacticalShipCollisionEvent(TacticalEvent* event);        // 0x5b2b60
 void __cdecl TacticalShipImpactEventE(TacticalEvent* event);          // 0x5b2c70
+void __cdecl TacticalFighterStatusEvent(TacticalEvent* event);        // 0x5ba120
 
 // 0x5b8ce0: whether the unit with this handle is a ship in state 3.
 int __stdcall TacticalShipIsInState3(int handle);

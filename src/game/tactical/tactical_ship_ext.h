@@ -37,7 +37,7 @@ int __thiscall FUN_005a8a70(TacticalObjectManager* manager, int low, int high);
 class TacticalGroupView {
 public:
     virtual void Slot00();
-    virtual void Slot01();
+    virtual int Kind();                       // slot 1 (+0x04): 3 for a formation group
     virtual void Slot02();
     virtual void Slot03();
     virtual void Slot04();
@@ -52,7 +52,7 @@ public:
     virtual void Slot13();
     virtual void Slot14();
     virtual void Slot15();
-    virtual void Slot16();
+    virtual TacticalVector* GetPosition(TacticalVector* out);   // slot 16 (+0x40)
     virtual void Slot17();
     virtual void Slot18();
     virtual void Slot19();
@@ -100,6 +100,15 @@ int __thiscall FUN_005cb980(TacticalGroupView* group);
 // Removes a member from its group and unregisters the group when it is empty (cdecl).
 void FUN_005caef0(TacticalGroupView* group, int handle);
 void __thiscall FUN_0059f4d0(TacticalHub* hub, TacticalShipBase* ship);
+int __thiscall FUN_0059f640(TacticalHub* hub, TacticalShipBase* ship);
+TacticalVector* __thiscall FUN_005a7490(TacticalObjectManager* manager, TacticalVector* out, int side);
+
+// The extremely thin tree classes inside a ship group: an id tree with a first-node accessor in slot 3.
+class TacticalGroupIdTree : public IdAvlTree {
+public:
+    virtual IdNode* FirstItem();   // slot 3 (+0x0c)
+};
+extern float g_shipMinTurnStep;  // 0x6bc4b0
 void __thiscall FUN_005a5cf0(TacticalHub* hub, int attacker, int target);
 
 // 3D presentation hooks (effects, camera, sound): called as the original does.

@@ -36,6 +36,11 @@ struct TacticalVector {
 
     TacticalVector() : m_x(0), m_y(0), m_z(0), m_cachedLength(-1.0f) {}
     TacticalVector(float x, float y, float z) : m_x(x), m_y(y), m_z(z), m_cachedLength(-1.0f) {}
+
+    double Length();                          // 0x5b50b0 (caches the length in m_cachedLength)
+    void Set(float x, float y, float z);      // 0x5b5090
+    int MatchesXYZ(const TacticalVector* other);  // 0x5b39e0
+    void Scale(float factor);                 // 0x5ba080
 };
 
 // First base of every battle unit: its orientation and position frame (VT 0x66c648, 0xd4 bytes). The unit classes
