@@ -5,7 +5,9 @@
 #include "core/vptr_store.h"
 #include "events/game_clock_hooks.h"
 #include "events/game_manager.h"
+#include "events/net_messages.h"
 #include "events/ui_notifs.h"
+#include "events/ui_notifs_ext.h"
 #include "gameobj/factory_registries.h"
 #include "orders/order_base.h"
 
@@ -345,8 +347,6 @@ void RegisterStrategicFactoriesOnce() {
     }
 }
 
-void* FUN_0043c720();
-void* FUN_0043dc30();
 
 void RegisterKeyedFactories() {
     RegisterKeyedFactory(1, CreateUiNotif1);
@@ -364,7 +364,7 @@ void RegisterKeyedFactories() {
     RegisterKeyedFactory(0x1e4, CreateUiNotif1e4);
     RegisterKeyedFactory(0x362, CreateUiNotif362);
     RegisterKeyedFactory(0x1e3, CreateUiNotif1e3);
-    RegisterKeyedFactory(0x1e0, FUN_0043dc30);
+    RegisterKeyedFactory(0x1e0, CreateUiNotif1e0);
     RegisterKeyedFactory(0x361, CreateUiNotif361);
     RegisterKeyedFactory(0x230, CreateUiNotif230);
     RegisterKeyedFactory(0x231, CreateUiNotif231);
@@ -406,7 +406,7 @@ void RegisterKeyedFactories() {
     RegisterKeyedFactory(0x370, CreateUiNotif370);
     RegisterKeyedFactory(0x221, CreateUiNotif221);
     RegisterKeyedFactory(0x220, CreateUiNotif220);
-    RegisterKeyedFactory(0x200, FUN_0043c720);
+    RegisterKeyedFactory(0x200, CreateUiNotif200);
     RegisterKeyedFactory(0x380, CreateUiNotif380);
     RegisterKeyedFactory(0x12b, CreateUiNotif12b);
     RegisterKeyedFactory(0x127, CreateUiNotif127);
@@ -452,22 +452,16 @@ void* FUN_00420c20();
 void* FUN_00420de0();
 void* FUN_00420f60();
 void* FUN_00421190();
-void* FUN_00440410();
-void* FUN_00440540();
-void* FUN_00440720();
-void* FUN_00440880();
-void* FUN_00440a30();
-void* FUN_00440cb0();
 
 void RegisterMultiplayerOrderFactories() {
-    RegisterOrderFactory(0x2, FUN_00440cb0);
-    RegisterOrderFactory(0x1, FUN_00440a30);
+    RegisterOrderFactory(0x2, CreateNetMsg2);
+    RegisterOrderFactory(0x1, CreateNetMsg1);
     RegisterOrderFactory(0x10, FUN_00420de0);
     RegisterOrderFactory(0x12, FUN_00421190);
     RegisterOrderFactory(0x11, FUN_00420f60);
-    RegisterOrderFactory(0x13, FUN_00440880);
-    RegisterOrderFactory(0x4, FUN_00440720);
-    RegisterOrderFactory(0x15, FUN_00440540);
+    RegisterOrderFactory(0x13, CreateNetMsg13);
+    RegisterOrderFactory(0x4, CreateNetMsg4);
+    RegisterOrderFactory(0x15, CreateNetMsg15);
     RegisterOrderFactory(0x14, FUN_00420c20);
-    RegisterOrderFactory(0x5, FUN_00440410);
+    RegisterOrderFactory(0x5, CreateNetMsg5);
 }
