@@ -13,7 +13,10 @@
 #include "strategy_ui/encyclopedia_window.h"
 #include "strategy_ui/fleet_finder_window.h"
 #include "strategy_ui/galaxy_window.h"
+#include "strategy_ui/battle_window.h"
 #include "strategy_ui/game_ui_facade.h"
+#include "strategy_ui/message_index_window.h"
+#include "strategy_ui/mission_selection_window.h"
 #include "strategy_ui/object_menu.h"
 #include "strategy_ui/personnel_finder_window.h"
 #include "strategy_ui/system_finder_window.h"
@@ -42,12 +45,8 @@ extern int g_briefingDllSide;  // 0x6b14d4 the side whose briefing DLL (slot 0xd
 
 // The other strategy windows' constructors (the finders, message index, mission selection, side windows) and helpers
 // of the modules that own them.
-void* __thiscall FUN_00466350(void* memory, HINSTANCE instance, CoolWindow* parent, uint32_t childId, int tab, int kind);
-void* __thiscall FUN_0046a750(void* memory, HINSTANCE instance, CoolWindow* parent, uint32_t childId, void* command);
-void* __thiscall FUN_0046f140(void* memory, HINSTANCE instance, CoolWindow* parent, uint32_t childId, int argument);
 void* __thiscall FUN_004591d0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                               DibBitmap* backdrop, uint32_t childId, GameObjNotifier* sector);
-void __thiscall FUN_00469d20(CoolWindow* messageIndex);
 void __thiscall FUN_00450ff0(CoolWindow* window, int a, int b);
 int FUN_005971a0();
 void __thiscall FUN_00457f30(SystemWindow* window, int slot, GameObjNotifier* manager, const ObjectKey* character);
@@ -231,21 +230,21 @@ void GalaxyWindow::OpenPersonnelFinder() { OpenFinder<PersonnelFinderWindow>(thi
 
 void GalaxyWindow::OpenTroopFinder() { OpenFinder<TroopFinderWindow>(this, kTroopFinderId); }
 
-void GalaxyWindow::OpenMessageIndex(int tab, int kind) {
+void GalaxyWindow::OpenMessageIndex(int mode, int tab) {
     PostClosePopups(this);
     if (m_children.FindById(kMessageIndexId)) return;
     if (GameHookTickCount() <= 1) return;
     OpenAndShow(
-        this, 0x1e0,
+        this, sizeof(MessageIndexWindow),
         [&](void* memory) {
-            return static_cast<CoolWindow*>(FUN_00466350(memory, m_instance, this, kMessageIndexId, tab, kind));
+            return static_cast<CoolWindow*>(new (memory) MessageIndexWindow(m_instance, this, kMessageIndexId, mode, tab));
         },
         false);
 }
 
 void GalaxyWindow::RefreshMessageIndex() {
     CoolWindow* messageIndex = m_children.FindById(kMessageIndexId);
-    if (messageIndex) FUN_00469d20(messageIndex);
+    if (messageIndex) static_cast<MessageIndexWindow*>(messageIndex)->Refresh();
 }
 
 void GalaxyWindow::IssueTargetedCommand(void* command) {
@@ -257,9 +256,10 @@ void GalaxyWindow::IssueTargetedCommand(void* command) {
         return;
     }
     OpenAndShow(
-        this, 0x174,
+        this, sizeof(MissionSelectionWindow),
         [&](void* memory) {
-            return static_cast<CoolWindow*>(FUN_0046a750(memory, m_instance, this, kMissionSelectionId, command));
+            return static_cast<CoolWindow*>(new (memory) MissionSelectionWindow(m_instance, this, kMissionSelectionId,
+                                                                                 static_cast<MissionOrder240*>(command)));
         },
         false);
 }
@@ -297,9 +297,9 @@ void GalaxyWindow::OpenType6Window(LPARAM argument) {
 void GalaxyWindow::OpenType8Window(LPARAM argument) {
     PostClosePopups(this);
     if (CoolWindow* previous = m_children.FindById(kTypeSevenId)) DestroyChildById(previous->m_childId);
-    void* memory = ::operator new(400);
-    CoolWindow* window = memory ? static_cast<CoolWindow*>(FUN_0046f140(memory, m_instance, this, kTypeEightId,
-                                                                        static_cast<int>(argument)))
+    void* memory = ::operator new(sizeof(BattleWindow));
+    CoolWindow* window = memory ? static_cast<CoolWindow*>(new (memory) BattleWindow(m_instance, this, kTypeEightId,
+                                                                                      reinterpret_cast<BattleMessage*>(argument)))
                                 : nullptr;
     window->Create(0);
     static_cast<CoolGameWindow*>(window)->ShowAndTrack(5);

@@ -72,8 +72,9 @@ public:
     void ClearAiHelperFlag(int value);      // 0x43a220
     void ResetTasks();                      // 0x43a230
     int PickAdvice();                       // 0x43a250
-    void SetRefusedOrderKind(int kind);     // 0x43a290
-    void OnOrderSubmitted(int kind);        // 0x43a2a0
+    // Remembers the order the AI helper is about to submit; OnOrderSubmitted notes when the human submits that same order.
+    void SetRefusedOrder(const void* order);    // 0x43a290
+    void OnOrderSubmitted(const void* order);   // 0x43a2a0
 
     uint32_t& CueDue(unsigned byteOffset) { return *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(m_cueDue) + byteOffset); }
 
@@ -103,7 +104,7 @@ public:
     uint8_t m_mood;                 // +0x170
     IntPair m_lastStatus;           // +0x174 the last refusal reason that was reacted to
     int m_statusRepeat;             // +0x17c
-    int m_refusedKind;              // +0x180
+    const void* m_refusedOrder;     // +0x180 the order that was last refused (compared by identity)
     AdvisorTask* m_primaryTask;     // +0x184 the task with id 0x17
     int m_unk188;                   // +0x188
     int m_unk18c;                   // +0x18c

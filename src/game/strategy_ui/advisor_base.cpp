@@ -461,9 +461,9 @@ int AdvisorBase::PickAdvice() {
     return PickMoodCue();
 }
 
-void AdvisorBase::SetRefusedOrderKind(int kind) { m_refusedKind = kind; }
+void AdvisorBase::SetRefusedOrder(const void* order) { m_refusedOrder = order; }
 
-void AdvisorBase::OnOrderSubmitted(int kind) {
-    if ((g_humanUiFlags.m_value & kFlagNoticesCollected) != 0 && kind == m_refusedKind) g_humanUiFlags.m_value |= 1;
+void AdvisorBase::OnOrderSubmitted(const void* order) {
+    if ((g_humanUiFlags.m_value & kFlagNoticesCollected) != 0 && order == m_refusedOrder) g_humanUiFlags.m_value |= 1;
     g_humanUiFlags.m_value &= ~kFlagNoticesCollected;
 }

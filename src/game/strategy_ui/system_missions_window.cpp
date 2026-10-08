@@ -889,3 +889,14 @@ int DominantMissionSide(GameObjNotifier* system, int viewSide) {
     }
     return static_cast<int>(result);
 }
+
+// Key getters that the linker folded across classes (the Role and list-node ones among them): copy the key at +0x6c / +0x1c.
+ObjectKey* __thiscall ObjectKeyAtOffset6c(const void* object, ObjectKey* out) {
+    out->m_value = *reinterpret_cast<const uint32_t*>(static_cast<const char*>(object) + 0x6c);
+    return out;
+}
+
+ObjectKey* __thiscall ObjectKeyAtOffset1c(const void* object, ObjectKey* out) {
+    out->m_value = *reinterpret_cast<const uint32_t*>(static_cast<const char*>(object) + 0x1c);
+    return out;
+}

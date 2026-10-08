@@ -11,8 +11,11 @@
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
 #include "strategy_ui/battle_in_progress_window.h"
+#include "strategy_ui/fleet_window.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
+#include "strategy_ui/system_forces_window.h"
+#include "strategy_ui/system_missions_window.h"
 #include "ui/cool_game_window.h"
 #include "ui/cool_label.h"
 #include "ui/object_list_item.h"
@@ -25,12 +28,8 @@ extern const int16_t g_stringGroup65d424;  // 0x65d424 group of the localised se
 // Windows of the other strategy modules, built from a saved ChildWindowState.
 void* __thiscall FUN_004591d0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                               DibBitmap* backdrop, uint32_t childId, GameObjNotifier* sector);
-void* __thiscall FUN_004a2630(void* memory, HINSTANCE instance, int x, int y, CoolWindow* parent, int a, int b);
 void* __thiscall FUN_00452fc0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                               int a, int b);
-void* __thiscall FUN_004a7790(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
-                              int a, int b);
-void* __thiscall FUN_0049f130(void* memory, HINSTANCE instance, int x, int y, CoolWindow* parent, int a, int b);
 ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
 
 namespace {
@@ -155,8 +154,8 @@ CoolWindow* GalaxyWindow::OpenChildWindow(istream* in, ChildWindowState* state) 
             break;
         }
         case kTypeFleetFinderAlt: {
-            void* memory = ::operator new(0x1b4);
-            if (memory) window = static_cast<CoolWindow*>(FUN_004a2630(memory, m_instance, state->m_x, state->m_y, this, 0, 0));
+            void* memory = ::operator new(sizeof(FleetWindow));
+            if (memory) window = static_cast<CoolWindow*>(new (memory) FleetWindow(m_instance, state->m_x, state->m_y, this, 0, nullptr));
             tracked = true;
             break;
         }
@@ -175,17 +174,17 @@ CoolWindow* GalaxyWindow::OpenChildWindow(istream* in, ChildWindowState* state) 
             break;
         }
         case kTypeTen: {
-            void* memory = ::operator new(0x184);
+            void* memory = ::operator new(sizeof(SystemForcesWindow));
             if (memory) {
-                window = static_cast<CoolWindow*>(FUN_004a7790(memory, m_instance, state->m_x, state->m_y,
-                                                               state->m_width, state->m_height, this, 0, 0));
+                window = static_cast<CoolWindow*>(new (memory) SystemForcesWindow(
+                    m_instance, state->m_x, state->m_y, state->m_width, state->m_height, this, 0, nullptr));
             }
             tracked = true;
             break;
         }
         case kTypeEleven: {
-            void* memory = ::operator new(0x1cc);
-            if (memory) window = static_cast<CoolWindow*>(FUN_0049f130(memory, m_instance, state->m_x, state->m_y, this, 0, 0));
+            void* memory = ::operator new(sizeof(SystemMissionsWindow));
+            if (memory) window = static_cast<CoolWindow*>(new (memory) SystemMissionsWindow(m_instance, state->m_x, state->m_y, this, 0, nullptr));
             tracked = true;
             break;
         }
