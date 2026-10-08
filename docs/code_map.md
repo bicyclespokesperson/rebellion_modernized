@@ -257,6 +257,21 @@ Code lives in `src/game/app/battle_flow*.cpp|battle_handoff.cpp|battle_results.c
 - **Headless simulator**: step `0x5ae9c0` (strengths, stalemate after 1200 s, outcome flags) and `0x5aee90` (survivor
   bookkeeping), unit registration 0x5af420-0x5af4b0 are reconstructed and difftested. Not reconstructed: 0x5ae330/0x5ae460 (formation
   groups at battle start), 0x5aefc0 (Death Star attack/trench run), 0x5af7a0.
+- **Ship groups, sides, AI and formations (part 2b)**: `src/game/tactical/tactical_{registry,lists,groups,side,ai_side,
+  battle_groups,formation,evaluators}.cpp`. What the headless auto-resolve really runs (measured with count-1 captures over
+  `space_battle_autoresolve`): of ~900 functions in 0x59cd60-0x5a7500 / 0x5c5b30-0x5d2360 about 170 are startup static
+  initializers (global ids; not reconstructed) and ~85 run in the battle. Reconstructed: `TacticalRegistry` (0x5a6290; its trees
+  at +0x2c/+0x38 are the fighter/capital *group* trees, kinds 3/4), the id trees/nodes (`UnitRefTree`, `GroupRefTree`, priority
+  nodes), `ShipGroup`/`CapitalShipGroup`/`FighterGroup` (ctors, add/remove member, `SetMode` with its ten order classes),
+  `TacticalSideBase` (0x5c7cb0) and the headless `TacticalAiSide` (strength 0x5d0ce0, target list 0x5d1a70, group splitting
+  0x5d1240, step 0x5d14d0), battle-start grouping 0x5ae330/0x5ae460, and the evaluators/formations. **Correction:** the
+  "formation visuals" range 0x5e9b60-0x5ee590 contains simulation logic that the headless battle runs (formation add/remove,
+  intercept-time estimate 0x5ed170, group assignment 0x5ecb90); those hit functions are reconstructed too
+  (`tactical_formation.cpp`, `tactical_evaluators.cpp`). Not reconstructed: ICF-shared stubs (0x5a5b60, 0x5a66c0-0x5a66f0,
+  0x5a6700, 0x5a6730, 0x5a6760, 0x5c7530, 0x5cf920, 0x5ee410/0x5ee440), scalar deleting destructors, the leaf side dtor
+  0x5d14a0, and the large 3D-only logic (group virtuals 0x5c6610/0x5cc300/..., order classes 0x5cf*/0x5d0*, 3D side
+  0x5c7e80-0x5c8e10, formation 0x5ea740...). The capital formation's trig path (0x5ebee0, doubles for x87 extended values) is
+  not exercised by any capture.
 - **Object manager / event dispatcher (3D only)**: the base class is abstract (VT 0x66c2d0, 40 slots, concrete class in the 3D
   view; never created for auto-resolve). Only the leaf accessors, pause counter and setters are done (`tactical_objmgr.cpp`).
   0x5a7500 is the object manager's *constructor* (128 event-name strings), not a dispatcher; the rest of 0x5a7500-0x5af420 is
