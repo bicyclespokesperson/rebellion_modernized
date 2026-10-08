@@ -60,16 +60,6 @@ public:
     int GetPlayerSide();   // 0x599c70, the object manager's player side
     void CallClientSlot1();  // 0x599c80
 
-    // Sets up the battle of a human-vs-AI game (the opponent is the AI): both sides' fleet figures, the vote times
-    // and the mode, either in the simulator (abstract) or in the object manager (3D).
-    int SetupBattle(int humanIsNotAlliance, int systemField44, String name, float sideAValue, float sideBValue,
-                    int sideAC, int sideBC, GameTime timeA, GameTime timeB, int battleKindNotAlliance,
-                    int systemFlag8, int controlIsEmpire, int controlIsAlliance, int abstractFlag);  // 0x599c90
-    // The variant for a human-vs-human game (no vote times).
-    int SetupBattleLocal(int humanIsNotAlliance, int systemField44, String name, float sideAValue, float sideBValue,
-                         int sideAC, int sideBC, int battleKindNotAlliance, int systemFlag8, int controlIsEmpire,
-                         int controlIsAlliance, int abstractFlag);  // 0x59a0b0
-
     void PostHubMessage0(int arg);  // 0x59a3f0
     void PostHubMessage3(int arg);  // 0x59a410
     void PostHubMessage2(int arg);  // 0x59a430
@@ -99,7 +89,7 @@ public:
     int m_abstract;                 // +0x668
     BattleOutcome m_outcome;        // +0x66c
     TypeMapTree m_typeMap;          // +0x688
-    int m_busy;                     // +0x690 non-zero while the engine is being set up or torn down: Update does nothing
+    int m_busy = 0;                 // +0x690 non-zero while the engine is being set up or torn down: Update does nothing
     int m_unk694;                   // +0x694, 1
     Stopwatch m_clock;              // +0x698 times the 3D frames
     int m_firstFrame;               // +0x6b0, 1 until the first 3D frame has been timed
@@ -107,6 +97,18 @@ public:
 };
 
 extern TacticalGame* g_tacticalGame;  // 0x6bc248
+
+// Sets up the battle (a human-vs-AI game; the variant without vote times is for human-vs-human): both sides' fleet figures
+// and the mode, either in the simulator (abstract) or in the object manager (3D). Free functions so that the facade's
+// by-value copy of the name is made before the singleton is fetched, as in the original.
+int __thiscall TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name,
+                                       float sideAValue, float sideBValue, int sideAC, int sideBC, GameTime timeA,
+                                       GameTime timeB, int battleKindNotAlliance, int systemFlag8, int controlIsEmpire,
+                                       int controlIsAlliance, int abstractFlag);  // 0x599c90
+int __thiscall TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name,
+                                            float sideAValue, float sideBValue, int sideAC, int sideBC,
+                                            int battleKindNotAlliance, int systemFlag8, int controlIsEmpire,
+                                            int controlIsAlliance, int abstractFlag);  // 0x59a0b0
 
 // The singleton, created on first use (null if the allocation fails).
 TacticalGame* GetTacticalGame();  // 0x597530

@@ -33,12 +33,12 @@ void __cdecl TacticalBeginBattle(int humanIsNotAlliance, int opponentIsAi, uint3
                                  GameTime timeB, int battleKindNotAlliance, int systemFlag8, int controlIsEmpire,
                                  int controlIsAlliance, int abstractFlag) {
     if (opponentIsAi == 1) {
-        GetTacticalGame()->SetupBattle(humanIsNotAlliance, systemField44, systemName, sideAValue * kStrengthScale,
+        TacticalGameSetupBattle(GetTacticalGame(), humanIsNotAlliance, systemField44, systemName, sideAValue * kStrengthScale,
                                        sideBValue * kStrengthScale, sideAC, sideBC, timeA, timeB,
                                        battleKindNotAlliance, systemFlag8, controlIsEmpire, controlIsAlliance,
                                        abstractFlag);
     } else {
-        GetTacticalGame()->SetupBattleLocal(humanIsNotAlliance, systemField44, systemName,
+        TacticalGameSetupBattleLocal(GetTacticalGame(), humanIsNotAlliance, systemField44, systemName,
                                             sideAValue * kStrengthScale, sideBValue * kStrengthScale, sideAC, sideBC,
                                             battleKindNotAlliance, systemFlag8, controlIsEmpire, controlIsAlliance,
                                             abstractFlag);

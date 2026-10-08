@@ -102,8 +102,8 @@ TacticalGame::TacticalGame() {
     m_firstFrame = 1;
     m_outcome = BattleOutcome();
     m_abstract = 0;
-    for (int i = 0; i < 12; ++i) m_stateNames[i].Assign(String(kStateNames[i]));
     for (int i = 0; i < 38; ++i) m_shipTypeNames[i].Assign(String(kShipTypeNames[i]));
+    for (int i = 0; i < 12; ++i) m_stateNames[i].Assign(String(kStateNames[i]));
     for (const TypeMapEntry& entry : kTypeMapEntries) insertTypeMapEntry(&m_typeMap, entry);
     String unusedLongList[0x80];
     String unusedShortList[0x26];
@@ -170,13 +170,13 @@ void TacticalGame::CallClientSlot1() {
     g_tacticalClient->Virtual01();
 }
 
-int TacticalGame::SetupBattle(int humanIsNotAlliance, int systemField44, String name, float sideAValue,
+int __thiscall TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name, float sideAValue,
                               float sideBValue, int sideAC, int sideBC, GameTime timeA, GameTime timeB,
                               int battleKindNotAlliance, int systemFlag8, int controlIsEmpire, int controlIsAlliance,
                               int abstractFlag) {
     destroysSimulatorIfAny();
     DestroyObjectManager();
-    m_abstract = abstractFlag;
+    self->m_abstract = abstractFlag;
     if (abstractFlag == 0) {
         FUN_005be0f0();
         GetObjectManager()->m_playerSide = humanIsNotAlliance;
@@ -205,12 +205,12 @@ int TacticalGame::SetupBattle(int humanIsNotAlliance, int systemField44, String 
     return 1;
 }
 
-int TacticalGame::SetupBattleLocal(int humanIsNotAlliance, int systemField44, String name, float sideAValue,
+int __thiscall TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name, float sideAValue,
                                    float sideBValue, int sideAC, int sideBC, int battleKindNotAlliance,
                                    int systemFlag8, int controlIsEmpire, int controlIsAlliance, int abstractFlag) {
     destroysSimulatorIfAny();
     DestroyObjectManager();
-    m_abstract = abstractFlag;
+    self->m_abstract = abstractFlag;
     if (abstractFlag == 0) {
         FUN_005bf320();
         GetObjectManager()->m_playerSide = humanIsNotAlliance;
