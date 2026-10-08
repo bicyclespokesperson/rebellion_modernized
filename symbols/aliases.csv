@@ -94,3 +94,4 @@ address,kind,name,signature,size
 0x006158b0,func,TacticalShipBase::Virtual45,,
 0x0066bdd0,data,TacticalUnitTree::vftable,,
 0x0066c648,data,TacticalShipObject::vftable,,
+0x00658778,data,g_rectSessionList,,
