@@ -225,7 +225,7 @@ void AddTargetSystem(const FamilyFields& f, const FamilyParams& p) {
             system = *f.selector->PickBest(&scratch);
             while (IsSystemKey(system) && !found) {
                 AiSystemEval* eval = EvalOf(f, system);
-                if (eval && 0 < eval->Stat(p.shortStat) && eval->Stat(p.supplyStat) <= need) {
+                if (eval && 0 < eval->Stat(p.shortStat) && eval->Stat(p.fitStat) <= need) {
                     *f.system = system;
                     found = true;
                 }
@@ -353,6 +353,7 @@ int PickSupplySystemNear(const FamilyFields& f, const FamilyParams& p) {
     int result = 0;
     ObjectKey scratch;
     AiSideController* owner = f.owner;
+    if (p.supplyResetsCap) *f.cap = 0;
     f.selector->Add(owner->RankSectorsByDistance(f.system, 0x1000, 0, 0, 0, 0, 0, 2));
     *f.manager = *f.selector->PickBest(&scratch);
     f.selector->Reset();

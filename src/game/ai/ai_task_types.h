@@ -188,6 +188,59 @@ public:
     void RefreshTargets();                          // 0x4d67e0
 };
 
+// ---- type 11: fleets ------------------------------------------------------------------------------------------------------------
+
+// A facility-family task (ai_task_family.h) for the side's capital ships: it keeps fleets moving to the systems that need them,
+// sends troops to systems with warships, and picks the class of ship the side lacks (VT 0x65c6d8, 0x88 bytes,
+// 0x4c8800-0x4cc690). Stage 0x3f8 handles the fleets, 0x3f9 the ship classes, 0x3ec the systems.
+class AiTask11 : public AiStagedTask {
+public:
+    explicit AiTask11(int view);                    // 0x4c8820
+    virtual ~AiTask11();                            // 0: 0x4c8800 (deleting), 0x4c8900
+    virtual void Read(istream* in) override;        // 1: 0x4c89b0
+    virtual void Write(ostream* out) override;      // 2: 0x4c8a70
+    virtual OrderBase* Step() override;             // 5: 0x4c8b30
+
+    OrderBase* StepFleets();                        // 0x4c8ba0 (stage 0x3f8)
+    OrderBase* StepClasses();                       // 0x4c8c20 (stage 0x3f9)
+    OrderBase* StepTargets();                       // 0x4c8d20 (stage 0x3ec)
+    OrderBase* BuildFleetMoveOrder();               // 0x4c8e90
+    OrderBase* BuildFleetOrder();                   // 0x4c94c0
+    OrderBase* BuildTroopOrder();                   // 0x4c9cb0
+    int ChooseManager();                            // 0x4ca300
+    void ChooseClassMask();                         // 0x4ca5e0
+    int ChooseClass();                              // 0x4ca910
+    int IsOverQuota();                              // 0x4caad0
+    OrderBase* BuildShipScrapOrder();               // 0x4cab20
+    int SelectTarget();                             // 0x4cacc0
+    int PickSupplySystem();                         // 0x4cafa0
+    OrderBase* BuildScrapOrder();                   // 0x4cb1d0
+    int ComputeFacilityCount();                     // 0x4cb710
+    OrderBase* BuildCapitalOrder();                 // 0x4cb7b0
+    OrderBase* BuildManufactureOrder211();          // 0x4cba90
+    OrderBase* BuildDestinationOrder(ObjectKey* target);  // 0x4cbbb0
+    OrderBase* BuildManufactureOrder210();          // 0x4cbcf0
+    void AddTargetSystem();                         // 0x4cbe10
+    int Need();                                     // 0x4cc220
+    int NeedForTargets();                           // 0x4cc280
+    void RefreshTargets();                          // 0x4cc360
+    aitask::FamilyFields Fields();
+
+    AiRankedSelector m_selector;  // +0x40
+    ObjectKey m_manager;          // +0x50
+    ObjectKey m_unit;             // +0x54
+    ObjectKey m_system;           // +0x58
+    ObjectKey m_classKey;         // +0x5c starts as 0
+    int m_classFlags;             // +0x60 the flags of the class to build (ChooseClassMask)
+    int m_classMask;              // +0x64
+    int m_claimBit;               // +0x68 the m_flags28 bit that records the choice
+    int m_count;                  // +0x6c
+    int m_cap;                    // +0x70
+    int m_limit;                  // +0x74
+    ObjectKeySet m_targets;       // +0x78
+    ObjectKeySet m_dropped;       // +0x80
+};
+
 // ---- type 8: system records ----------------------------------------------------------------------------------------------
 
 // Runs the AiSystemRecords of the side one at a time: moves each record to a sector that suits it and lets it step through its
@@ -356,6 +409,8 @@ REB_ASSERT_OFFSET(AiTask10, m_targets, 0x74);
 REB_ASSERT_SIZE(AiFacilityTaskBase, 0x7c);
 REB_ASSERT_SIZE(AiTask7, 0x7c);
 REB_ASSERT_OFFSET(AiFacilityTaskBase, m_targets, 0x6c);
+REB_ASSERT_SIZE(AiTask11, 0x88);
+REB_ASSERT_OFFSET(AiTask11, m_targets, 0x78);
 REB_ASSERT_SIZE(AiTask8, 0x58);
 REB_ASSERT_SIZE(AiTask9, 0x58);
 REB_ASSERT_SIZE(AiTask4, 0x60);

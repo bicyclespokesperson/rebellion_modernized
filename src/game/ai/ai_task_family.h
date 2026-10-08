@@ -38,7 +38,8 @@ struct FamilyParams {
     int needPercent;             // Need: percent of the budget the task may use
     int usedStat;                // Need: the side figure that is subtracted
     int targetPercent;           // NeedForTargets
-    int supplyStat;              // AiSystemEval stat summed over the targets / compared with the need
+    int supplyStat;              // AiSystemEval stat summed over the targets
+    int fitStat;                 // AiSystemEval stat AddTargetSystem compares with the need
     int shortStat;               // AiSystemEval stat: how many facilities the system lacks
     uint32_t sectorRequire;      // SelectTarget / AddTargetSystem: required sector flags
     int sectorStat;              // ... and the figure sectors are ranked by
@@ -55,6 +56,7 @@ struct FamilyParams {
     FacilityKind scrapSecond;
     uint32_t scrapSecondMask;
     bool targetCountGuard;       // AddTargetSystem does nothing when the list already has two systems
+    bool supplyResetsCap;        // PickSupplySystemNear clears *cap first
 };
 
 int Need(const FamilyFields& f, const FamilyParams& p);
