@@ -17,6 +17,7 @@ public:
 };
 struct HeadlessSimulator;
 class TacticalCapitalShip;
+class SimUnit;
 class TacticalFighter;
 
 // ---- Ship-group module: the hub (DAT_006bc468, 0x188 bytes) and the registry (DAT_006bc470, 0x48 bytes) ----
@@ -64,11 +65,13 @@ void __thiscall FUN_005b69b0(TacticalUnit* unit);
 void __thiscall FUN_005b69d0(TacticalUnit* unit);
 int __thiscall FUN_005b8570(TacticalUnit* carrier, TacticalUnit* fighter);
 void FUN_005ba920();
+int __thiscall FUN_005ba420(TacticalUnit* deathStar);
+int __thiscall FUN_005b84a0(void* roster, SimUnit* unit);
+void __thiscall FUN_005af7a0(HeadlessSimulator* simulator, SimUnit* unit);
 
 // ---- Headless simulator (DAT_006bc4a8, 0x274 bytes) ----
 HeadlessSimulator* __thiscall FUN_005af5f0(void* memory);                     // constructor
 void __thiscall FUN_005afa50(HeadlessSimulator* simulator);                    // destructor body
-int __thiscall FUN_005ae9c0(HeadlessSimulator* simulator, float step);         // one step, 1 when the battle is over
 void __thiscall FUN_005ae460(HeadlessSimulator* simulator, int a);
 void __thiscall FUN_005afb30(HeadlessSimulator* simulator, int side, int value);
 void __thiscall FUN_005afb50(HeadlessSimulator* simulator, int side, float value);

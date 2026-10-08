@@ -8052,6 +8052,8 @@ address,kind,name,signature,size
 0x005ae120,func,TacticalObjectManager::CanPlayerCommandShip,,
 0x005ae170,func,TacticalObjectManager::CanPlayerCommandFighter,,
 0x005ae1b0,func,TacticalObjectManager::SetControlFlags,,
+0x005ae9c0,func,HeadlessSimulator::Step,,
+0x005aee90,func,HeadlessSimulator::RecordSurvivors,,
 0x005bd880,func,TacticalCharacterUnit::Virtual01,,
 0x005bdcc0,func,TurnSyncChannelB::~TurnSyncChannelB,,
 0x005bdd00,func,TurnSyncChannelA::~TurnSyncChannelA,,

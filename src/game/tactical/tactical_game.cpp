@@ -266,7 +266,7 @@ int TacticalGame::HubIsRunning() { return FUN_0059f6e0(FUN_0059ed70()); }
 int TacticalGame::Update(float unused) {
     if (m_busy != 0) return 0;
     if (m_abstract == 1) {
-        if (!FUN_005ae9c0(GetHeadlessSimulator(), kSimulatorStep)) return 0;
+        if (!GetHeadlessSimulator()->Step(kSimulatorStep)) return 0;
         copyOutcome(&m_outcome, &GetHeadlessSimulator()->m_outcome);
         return 1;
     }
