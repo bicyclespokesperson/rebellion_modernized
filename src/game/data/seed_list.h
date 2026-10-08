@@ -89,6 +89,9 @@ public:
     virtual void Write(ostream* out);
     virtual int Checksum(Crc32* crc);
 
+    // Copies the key into *out and returns it.
+    SeedKey* GetKey(SeedKey* out) const;  // 0x568ec0
+
     SeedKey m_key;   // +0x18
     int m_count;     // +0x2c
 };

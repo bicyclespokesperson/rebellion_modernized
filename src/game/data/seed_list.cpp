@@ -173,6 +173,11 @@ SeedKeyCountNode::SeedKeyCountNode(const SeedKeyCountNode& other) : m_key(other.
 
 SeedKeyCountNode::~SeedKeyCountNode() { REB_KEEP_VPTR_STORE(); }
 
+SeedKey* SeedKeyCountNode::GetKey(SeedKey* out) const {
+    new (out) SeedKey(m_key);
+    return out;
+}
+
 SeedKeyCountNode* SeedKeyCountNode::Clone() { return NewOrNull<SeedKeyCountNode>(*this); }
 
 void SeedKeyCountNode::Load(istream* in) { Read(in); }
