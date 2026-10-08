@@ -59,7 +59,7 @@ uint32_t ControlBits(GameObjNotifier* object) { return static_cast<GameObjRoot*>
 
 // ---- Pictures --------------------------------------------------------------------------------------------
 
-DibBitmap* SystemObjectPicture(GameObjNotifier* object) {
+DibBitmap* __stdcall SystemObjectPicture(GameObjNotifier* object) {
     uint16_t base = 0;
     uint16_t id = 0;
     DibBitmap* result = nullptr;

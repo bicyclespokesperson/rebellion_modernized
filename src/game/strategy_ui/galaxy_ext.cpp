@@ -123,7 +123,7 @@ void GalaxyWindow::LoadState(istream* in) {
     UiSetHumanDispatchFlag(0);
 }
 
-void GalaxyWindow::SaveChildWindow(ostream* out, CoolWindow* window) {
+void __stdcall GalaxyWindow::SaveChildWindow(ostream* out, CoolWindow* window) {
     ChildWindowState state(window);
     if (state.m_valid) {
         state.Write(out);

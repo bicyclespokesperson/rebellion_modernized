@@ -326,7 +326,7 @@ int AdvisorBase::IsTaskReady(int command) {
     return 0;
 }
 
-void AdvisorToggleUiFlag(int command) {  // 0x439e80
+void __stdcall AdvisorToggleUiFlag(int command) {  // 0x439e80
     if (command == 0x119) return;
     if (command == 0x11b) {
         g_humanUiFlags.m_value ^= 0x1000;

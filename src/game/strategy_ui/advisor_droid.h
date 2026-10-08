@@ -172,7 +172,7 @@ public:
 void AdvisorInitStatics();                    // 0x4392b0
 void AdvisorInitFlags();                      // 0x4392c0
 void AdvisorRegisterFlagsAtExit();            // 0x4392d0
-void AdvisorToggleUiFlag(int command);        // 0x439e80
+void __stdcall AdvisorToggleUiFlag(int command);        // 0x439e80
 void AdvisorSetPendingCommand(int mode, int argument);  // 0x439eb0
 void AdvisorNoteNag();                        // 0x439ed0
 void AdvisorAllowSpeech();                    // 0x439ef0
