@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-#include "ai/ai_posture_decl.h"
+#include "ai/ai_posture.h"
 #include "ai/ai_selector.h"
 #include "core/containers.h"
 #include "core/layout.h"

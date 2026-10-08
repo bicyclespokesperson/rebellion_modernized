@@ -118,8 +118,9 @@ public:
     virtual ~AiTaskEvaluator();                // 0: 0x4e52a0 (deleting), 0x4e5330
     virtual void Read(istream* in);            // 1: 0x4e5380
     virtual void Write(ostream* out);          // 2: 0x4e53e0
-    virtual void Virtual03() = 0;              // 3
-    virtual void Virtual04() = 0;              // 4
+    virtual int GetKind() = 0;                 // 3: the plan kind (1-7) the evaluator belongs to
+    // 4: the chance (0-0.9) that the side accepts the vote `key` of the other side, put into *chance
+    virtual void ScoreVote(const ObjectKey* key, float* chance) = 0;
     virtual void Prepare() = 0;                // 5: when the side's capabilities changed (owner flag 2)
     // 6: the mission the evaluator wants started (kind and subtype) and the planner that does it (family and subtype)
     virtual void GetPlannerRequest(int* missionKind, int* missionSubtype, int* plannerKind, int* plannerSubtype) = 0;

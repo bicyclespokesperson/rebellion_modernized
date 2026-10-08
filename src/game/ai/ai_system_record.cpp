@@ -3,6 +3,7 @@
 #include "ai/ai_agent_bases.h"
 #include "ai/ai_common.h"
 #include "ai/ai_planner_decl.h"
+#include "ai/ai_postures.h"
 #include "ai/ai_side_controller.h"
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
@@ -176,7 +177,7 @@ void AiSystemRecord::Write(ostream* out) {
     m_reserveSystem.Write(out);
     m_sectorKey.Write(out);
     if (m_posture) {
-        int postureKind = m_posture->Virtual05();
+        int postureKind = m_posture->GetKind();
         WriteValue32(out, &postureKind);
         m_posture->Write(out);
         return;
@@ -265,8 +266,10 @@ void AiSystemRecord::AddPlanner(AiMissionPlanner* planner) {
     if (!node) return;
     m_planners.AddWithId(node);
     ++m_plannerCount[static_cast<uint16_t>(PlannerClassOf(planner))];
-    planner->m_systemRecordId = m_id;
-    planner->m_sectorKey = m_sectorKey;
+    // BUG(original): planners that do not work for a system record are shorter than this, the writes go past their end.
+    AiSystemPlanner* systemPlanner = static_cast<AiSystemPlanner*>(planner);
+    systemPlanner->m_systemRecordId = m_id;
+    systemPlanner->m_sectorKey = m_sectorKey;
     planner->SetTier(m_tier);
 }
 
@@ -277,8 +280,9 @@ void AiSystemRecord::RemovePlanner(AiMissionPlanner* planner) {
     delete node;
     --m_plannerCount[static_cast<uint16_t>(PlannerClassOf(planner))];
     planner->SetTier(0);
-    planner->m_systemRecordId = 0;
-    planner->m_sectorKey.Reset();
+    AiSystemPlanner* systemPlanner = static_cast<AiSystemPlanner*>(planner);
+    systemPlanner->m_systemRecordId = 0;
+    systemPlanner->m_sectorKey.Reset();
     planner->SetTier(0);
 }
 
@@ -412,7 +416,7 @@ int AiSystemRecord::UpdatePosture() {
     if (sector) {
         if (m_posture) {
             const int wanted = sector->m_x30;
-            if (m_posture->Virtual05() == wanted) {
+            if (m_posture->GetKind() == wanted) {
                 ok = 1;
             } else {
                 delete m_posture;
@@ -428,7 +432,7 @@ int AiSystemRecord::UpdatePosture() {
                 m_posture = CreatePosture(sector->m_x30);
                 if (m_posture) {
                     const int wanted = sector->m_x30;
-                    if (m_posture->Virtual05() == wanted) ok = 1;
+                    if (m_posture->GetKind() == wanted) ok = 1;
                 }
             }
         }
@@ -459,7 +463,7 @@ OrderBase* AiSystemRecord::Step(int* done) {
             break;
         case 2:
             SumCommittedStats();
-            FUN_004adaf0(m_posture, m_sum);
+            m_posture->SubtractBudget(m_sum);
             m_state = 3;
             break;
         case 3:
@@ -472,7 +476,7 @@ OrderBase* AiSystemRecord::Step(int* done) {
             m_state = 5;
             break;
         case 5:
-            order = FUN_004adb70(m_posture, &stepDone);
+            order = m_posture->Step(&stepDone);
             if (stepDone != 0) m_state = 6;
             break;
         case 6:
@@ -493,32 +497,19 @@ OrderBase* AiSystemRecord::Step(int* done) {
 }
 
 AiPosture* AiSystemRecord::CreatePosture(int kind) {
-    void* memory;
     switch (kind) {
     case 1:
-        memory = ::operator new(0x5c);
-        if (memory) return FUN_004ba580(memory, m_view, m_owner, this);
-        break;
+        return NewOrNull<AiPostureKind1>(m_view, m_owner, this);
     case 2:
-        memory = ::operator new(100);
-        if (memory) return FUN_004b91a0(memory, m_view, m_owner, this);
-        break;
+        return NewOrNull<AiPostureKind2>(m_view, m_owner, this);
     case 3:
-        memory = ::operator new(0x5c);
-        if (memory) return FUN_004b37f0(memory, m_view, m_owner, this);
-        break;
+        return NewOrNull<AiPostureKind3>(m_view, m_owner, this);
     case 4:
-        memory = ::operator new(0x60);
-        if (memory) return FUN_004b6fb0(memory, m_view, m_owner, this);
-        break;
+        return NewOrNull<AiPostureKind4>(m_view, m_owner, this);
     case 5:
-        memory = ::operator new(0x5c);
-        if (memory) return FUN_004b1720(memory, m_view, m_owner, this);
-        break;
+        return NewOrNull<AiPostureKind5>(m_view, m_owner, this);
     case 6:
-        memory = ::operator new(0x5c);
-        if (memory) return FUN_004b4d50(memory, m_view, m_owner, this);
-        break;
+        return NewOrNull<AiPostureKind6>(m_view, m_owner, this);
     }
     return nullptr;
 }
@@ -657,7 +648,7 @@ void AiSystemRecord::CountPlanners() {
     m_xc4 = 0;
     int wantedKind;
     int wantedSubtype;
-    m_posture->Virtual06(&m_xbc, &m_xc0, &wantedKind, &wantedSubtype);
+    m_posture->GetPlannerRequest(&m_xbc, &m_xc0, &wantedKind, &wantedSubtype);
     if (m_xbc != 0) m_flagsB.m_value |= 0x100;
     int bestPriority = 2000000000;
     for (AvlNode* node = m_planners.First(); node; node = node->m_successor) {
@@ -697,12 +688,12 @@ void AiSystemRecord::CountAgents() {
         else
             m_flagsB.m_value |= 0x80000000;
     }
-    m_posture->Virtual07(&m_xe0);
+    m_posture->GetAgentRequest(&m_xe0);
     if (m_xe0 != 0) m_flagsB.m_value |= 0x200;
     AvlNode* node = m_agents.First();
     while (node && m_xe4 == 0) {
         const uint32_t id = static_cast<IdNode*>(node)->m_id;
-        if (FUN_004add40(m_posture, id) != 0) m_xe4 = id;
+        if (m_posture->AgentIsNeeded(id) != 0) m_xe4 = id;
         node = node->m_successor;
     }
 }
@@ -1078,7 +1069,7 @@ void AiSystemRecord::UpdateReserve() {
 
 void AiSystemRecord::UpdateReserveFleet() {
     if ((m_flagsA.m_value & kHasReserve) != 0) {
-        if (m_posture) m_posture->Virtual04(&m_reserveSystem);
+        if (m_posture) m_posture->ChooseReserveSystem(&m_reserveSystem);
         return;
     }
     m_reserveSystem.Reset();

@@ -1,15 +1,13 @@
 #include "ai/ai_player.h"
 
+#include "ai/ai_task_types.h"
+
 #include "core/game_string.h"
 #include "core/vptr_store.h"
 #include "events/game_clock_hooks.h"
 #include "gameobj/status_code.h"
 #include "orders/order_base.h"
 #include "strategy_ui/game_ui_facade.h"
-
-// PlayerController (0x488460-0x48aa90): sends a message of the side to the game and the other side.
-// The task of type 13 (the vote) is told of the vote the other side proposed.
-void __thiscall FUN_004bf300(AiTaskBase* task, const ObjectKey* key, GameTime* time);
 
 namespace {
 
@@ -150,7 +148,7 @@ void AiPlayer::Virtual17(int id, ObjectKey* key) {
     ClearGameTime(&m_voteTime);
     if (m_tasksOff == 0) {
         AiTaskBase* task = static_cast<AiTaskBase*>(m_tasks.FindById(kVoteTaskType));
-        if (task) FUN_004bf300(task, key, &m_voteTime);
+        if (task) static_cast<AiTask13*>(task)->ForwardVote(key, &m_voteTime);
     }
     m_voteId = id;
     m_voteKey = *key;

@@ -72,20 +72,24 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   It is not reachable from any scenario.
 - Compiler-generated helpers are not hooked: the `SystemSlot` array element constructor/destructor (0x453200,
   0x453260), `MinimizedWindowSlot::MinimizedWindowSlot` (0x42dbe0) and the shared empty `ShowObjectPage` slot (0x45d3f0).
-- `GalaxyWindow::WindowProc` WM_PAINT cannot be compared by difftest (uninitialised PAINTSTRUCT in the emulator); the
-  hybrid scenario screenshots are the check.
-- `SpriteAnimator` is still the stand-in `ui/sprite_animator_decl.h` (its constructor 0x4727e0 and the completion
-  hook setter 0x472b20 are called as `FUN_` functions from `GalaxyWindow::CreateDroidAnimations`).
+- The advisor task classes have two views: `AdvisorTask` in `strategy_ui/advisor_droid.h` (what the droid calls: slots
+  4-6, `m_done` +0x20, `m_advisor` +0x54) and the real hierarchy `AdvisorTaskBase`/`AdvisorTask20/21/23` in
+  `ai/ai_advisor_tasks.h`. Make the droid use the AI classes and delete the UI stand-in.
 - `MenuWindowBase::AddTextEntry` (0x4ab1f0) and `SetEntryColors` (0x4ab1b0) are called as `FUN_` functions from
   `GidMenuWindow`; the owner of the menu base classes should name them.
 
 ## AI foundation (src/game/ai, part 1)
-- Part 2 (planners, postures, the 14 task types, agents, evaluators) is not reconstructed. Its base classes are complete
-  here, but three of them are still stand-ins that part 2 should replace: `ai_planner_decl.h` (`AiMissionPlanner`, VT 0x65c3b0),
-  `ai_posture_decl.h` (`AiPosture`, VT 0x65c0b0, with its non-virtual methods 0x4adaf0/0x4adb70/0x4add40 and the six
-  constructors) and `AiNotice` in `ai_task_base.h` (a `PlayerNotice` of the player module). The constructors of the planners,
-  postures, agents and the 14 task types are called as `FUN_` functions from `AiPlannerSet`, `AiSystemRecord::CreatePosture`,
-  `AiAgentSet::CreateAgent` and `AiTaskManager::MakeTask`.
+- Part 2a (postures 0x4ad770-0x4bb9f0, agents 0x479a40-0x47aa90, mission planners 0x47aae0-0x484180 and 0x4bce50-0x4be580) is
+  reconstructed except for five planner classes that are still created through `FUN_` constructors declared in
+  `ai_planner_decl.h`: Rescue (0x61, ctor 0x47e130), Diplomacy (0x51, 0x481460), the 0x54 variant for state 5 (0x47f550), the
+  0x52 variant for state 6 (0x480d10) and the free 0x62 planner (0x483140). Part 2b (the 14 task types, evaluators) still
+  calls its constructors as `FUN_` functions from `AiTaskManager::MakeTask`; `AiNotice` in `ai_task_base.h` is a stand-in.
+- Original quirks in the planners: `AiSystemRecord::AddPlanner/RemovePlanner` write +0x70/+0x74 even for the 0x70-byte free
+  planners (heap overwrite masked by allocator slack); the Step slots 16/17 of the system planners leave EAX undefined, so the
+  reconstructions are `PickLeaders`/`PickMembers` (void) behind the virtual overrides; `AiDsSabotagePlanner::ChooseTarget`
+  resets the target before testing it, so its keep-target branch is dead.
+- Planner functions that no scenario reached (read only): sabotage 0x69, DS sabotage 0x6a, recruit 0x55, incite 0x56,
+  research/subdue 0x53/0x57 steps, `AiAbductionPlanner::Read/Write`.
 - Classes that sit outside the module's ranges because the module needs them: `AiTaskNode` and `AiTaskObject`
   (0x4ec920-0x4ecbc0, generic id nodes next to `ObjectKeyNode`), `AiMissionHistoryEntry` (0x4c8000, declared only; its
   constructor, Read, Write and Fill are called at the original addresses) and `AiTaskManager::Save` (0x49de40).
@@ -102,3 +106,21 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   ClearRecordFlags/Write`, `AiMissionHistory::*`, `AiNoticeQueue::Save`, `AiAgentBase::Write`. Every `Read` function is a
   difftest SKIP (the emulated heap is exhausted by the stream reads); `AiSideController::Load` was compared through the
   loaded-game scenarios instead.
+
+## AI part 2b (task types, evaluators, advisor analysis)
+- The 14 task types, the seven evaluators (`ai_evaluators.cpp`), the galaxy analysis (`ai_galaxy_scan.cpp`,
+  `ai_galaxy_analysis.cpp`) and the advisor tasks (`ai_advisor_tasks.cpp`) are reconstructed. The eight facility-building task
+  types share one library (`ai_task_family.cpp`, parameter tables per type); the evaluators share `SectorPass` (Prepare),
+  `ScoreVoteOf` and the planner/agent request functions of `AiPlanEvaluator`.
+- Stand-ins other modules should replace: `AdvisorSink` (ai_advisor_tasks.h) is the base of the advisor droid (0x439320,
+  VT 0x658e10) with its unnamed slots 0-2 and `Notify` in slot 3; `AdvisorEntry` (VT 0x65c5b0, ctor 0x4c5230) is only a
+  node declaration. `AiTaskManager::Save` (0x49de40) is also the advisor task manager's Save (identical code folded).
+- Shared one-address functions that cannot get a second symbol row: `AdvisorTask21::Refused` is `AdvisorTask20::Refused`
+  (0x4c7550), the evaluators' kind getters of plans 1, 3, 4, 5 and 6 are the shared constants 0x5a66f0, 0x5a6730, 0x5a6700,
+  0x499cd0 and 0x48d640 (defined inline, not hooked), `AdvisorTaskBase::Evaluate` is `AiStagedTask::Evaluate` (0x4cc990).
+- Original quirks: `AiSectorScan::Save` writes its three halfwords in a different order than `ReadRecord` reads them;
+  `AiSectorScan::SetSystem`/`AiSystemScanSet` dereference a missing system record.
+- Not verified by difftest: every `Read`/`Load` that streams from a save (the emulated heap or file state cannot reproduce
+  it: `AiGalaxyAnalysis::Load`, `AiSectorScanSet::LoadAll` SKIP), the plan 1-5, 7 `Prepare` functions run only through
+  `--entry` on plan 6's capture, `AdvisorTask23` phases 2-3 (they need the advisor droid), and the facility task types'
+  `Write` functions.

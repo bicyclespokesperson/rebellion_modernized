@@ -57,6 +57,7 @@ public:
     void NoteTouched();                  // 0x433dc0: m_touchedDay = today, then MarkChanged
     int DaysSinceTouched();              // 0x433de0: 0 if the usable flag is set, else today - m_touchedDay
     void Refresh();                      // 0x433e40: re-reads the system if dirty
+    ObjectKey* GetSectorKey(ObjectKey* out);  // 0x4bd7d0: the key of the sector's record
 
     int m_view;                // +0x1c the view (side) this record is for
     int m_x20;                 // +0x20 control side of the system (0 neutral, 1/2 the sides)
