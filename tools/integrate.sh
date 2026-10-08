@@ -21,6 +21,7 @@ if [[ -n "$worktree" && -d "$worktree/work" ]]; then
     tools/capture_store.py add "$d" --origin "$(basename "$(dirname "$d")")"
   done
 fi
+echo "== calling conventions"; tools/check_callee_pop.py | tail -20 || true
 echo "== difftest (unit)"; tools/difftest.py -j "$(nproc)" $(tools/capture_store.py paths) | grep -v '^PASS' || true
 echo "== difftest (integration)"; tools/difftest.py -j "$(nproc)" --integration $(tools/capture_store.py paths) | grep -v '^PASS' || true
 echo "== soak (crashes that only show in long runs; bisect with tools/bisect_crash.py)"

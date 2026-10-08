@@ -125,7 +125,7 @@ public:
 };
 
 // The picture of a facility or manufacturing manager (0x458fe0): null if none; the caller owns it.
-DibBitmap* SystemObjectPicture(GameObjNotifier* object);
+DibBitmap* __stdcall SystemObjectPicture(GameObjNotifier* object);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

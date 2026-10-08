@@ -219,7 +219,7 @@ SoundRequest* __cdecl AdvisorPlayAdvice(SoundRequest* result, uint32_t adviceId)
     return new (result) SoundRequest(request);
 }
 
-uint16_t AdvisorRecordTypeResource(GameObj* object) {
+uint16_t __stdcall AdvisorRecordTypeResource(GameObj* object) {
     if (!object) return 0;
     return static_cast<uint16_t>((object->GetRecordTypeBits() & kRecordTypeMask) + kRecordTypeResourceBase);
 }

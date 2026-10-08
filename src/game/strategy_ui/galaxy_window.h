@@ -176,7 +176,7 @@ public:
     // ---- strategy_window_ext (0x440ea0-0x441a60) ----
     HWND LastChildWindow();                             // 0x440f20: the bottom of the z-order
     CoolWindow* FindChildByHwnd(HWND hwnd);             // 0x440f50
-    static void SaveChildWindow(ostream* out, CoolWindow* window);  // 0x4410a0
+    static void __stdcall SaveChildWindow(ostream* out, CoolWindow* window);  // 0x4410a0
     CoolWindow* LoadChildWindow(istream* in);           // 0x441120
     // Creates the child window `state` describes (sector/system/fleet... windows).
     CoolWindow* OpenChildWindow(istream* in, ChildWindowState* state);  // 0x441190
