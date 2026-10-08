@@ -34,7 +34,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--report", type=Path, default=ROOT / "build" / "hybrid" / "gen" / "report.json")
     ap.add_argument("--by", choices=["module", "subsystem"], default="subsystem")
-    ap.add_argument("--all", action="store_true", help="also list modules with no progress")
+    ap.add_argument("--hide-empty", action="store_true", help="omit groups with no progress")
     ap.add_argument("--missing", metavar="GROUP", help="list the functions of this module/subsystem (per --by) that "
                     "are not reconstructed yet: address, size, symbol name")
     args = ap.parse_args()
@@ -67,7 +67,7 @@ def main() -> int:
     print(f"{'':32} {'functions':>16} {'bytes':>22}")
     for key in sorted(totals, key=lambda k: (k == "TOTAL", -totals[k][1])):
         f, b, df, db = totals[key]
-        if not args.all and df == 0 and key != "TOTAL":
+        if args.hide_empty and df == 0 and key != "TOTAL":
             continue
         print(f"{key[:32]:32} {df:6}/{f:<6} {100*df/f:5.1f}% {db:9}/{b:<9} {100*db/b:5.1f}%")
     return 0
