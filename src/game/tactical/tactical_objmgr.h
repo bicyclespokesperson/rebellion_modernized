@@ -46,8 +46,8 @@ public:
     virtual void Virtual07() = 0;
     virtual void Virtual08() = 0;
     virtual void Virtual09();               // 0x5ad430
-    virtual void Virtual10();               // 0x5ad4a0
-    virtual void Virtual11() = 0;
+    virtual void PostEvent(int kind, int unit, int arg, int flag);  // 10 (+0x28), 0x5ad4a0: queues an event (RET 0x10)
+    virtual void QueueEvent(void* event, int flag) = 0;  // 11 (+0x2c): queues an event built with 0x5ce500
     virtual void SetPlayerSide(int side) = 0;           // 12
     virtual void Virtual13();               // 0x5a9010
     virtual int Virtual14(void* unit);      // 0x5aada0
@@ -102,7 +102,12 @@ public:
 
     int m_unk04;                        // +0x04
     TacticalSideData* m_sides[2];       // +0x08
-    uint8_t m_pad10[0x898 - 0x10];
+    uint8_t m_pad10[0x87c - 0x10];
+    uint32_t m_clock;                   // +0x87c the battle clock in milliseconds
+    uint8_t m_pad880[0x88c - 0x880];
+    int m_impactFlag;                   // +0x88c set when a unit was hit
+    int m_unitsChanged;                 // +0x890 set when a unit left the world
+    int m_unk894;                       // +0x894
     float m_cameraDistance;             // +0x898
     uint8_t m_pad89c[0x8b0 - 0x89c];
     int m_unk8b0;                       // +0x8b0

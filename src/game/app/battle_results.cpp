@@ -261,7 +261,7 @@ int BattleResults::ApplyDeathStar(CapShip* deathStar, NotifyContext* context) {
             ok = deathStar->DamageHull(-difference, kDestroyedByBattle, context);
         }
     }
-    if (ok && result.m_destroyed == 0 && (deathStar->m_stateFlags & kExistingFlag)) {
+    if (ok && result.m_alive == 0 && (deathStar->m_stateFlags & kExistingFlag)) {
         ok = deathStar->ChangeDestroyedReason(kDestroyedByBattle, context);
     }
     return ok;

@@ -42,49 +42,13 @@ TacticalUnit* __thiscall FUN_005a6480(TacticalRegistry* registry, int handle);
 TacticalUnit* __thiscall FUN_005a66a0(TacticalRegistry* registry);               // the Death Star, if any
 
 // ---- Capital ship / fighter / Death Star modules ----
-TacticalCapitalShip* __thiscall FUN_005b05c0(void* memory, unsigned family, unsigned id, int notAlliance, uint32_t typeIndex,
-                                             String name, float hull, float currentHull, float damageControl,
-                                             int freeHangar, float tractorPower, float tractorRange, int gravityWell,
-                                             float interdiction, float field64, float field68, float field60,
-                                             float hyperdriveCount, float weaponRecharge,
-                                             float shieldRecharge, int grid02, int grid12, int grid22, int grid32,
-                                             int grid01, int grid11, int grid21, int grid31, int grid00, int grid10,
-                                             int grid20, int grid30, int speedCH, int shieldCH, int weaponCH,
-                                             int hyperdriveCH, int tractorCH, float a42, float a41, float a40, int hundred);
-TacticalFighter* __thiscall FUN_005b9c60(void* memory, unsigned family, unsigned id, int notAlliance, uint32_t typeIndex,
-                                         String name, int carrierHandle, float field64, float field68, float field60,
-                                         int squadSize, int currentSize, int zero, float hyperdriveCount, int grid02,
-                                         int grid12, int grid22, int grid32, int grid01, int grid11, int grid21,
-                                         int grid31, int grid00, int grid10, int grid20, int grid30, float a42,
-                                         float a41, float a40, int totalTorpedoes, float torpedoRange);
-CapitalShipResult* __thiscall FUN_005b0280(TacticalUnit* ship, CapitalShipResult* out);
-FightSquadResult* __thiscall FUN_005b8e00(TacticalUnit* fighter, FightSquadResult* out);
-DeathStarResult* __thiscall FUN_005ba620(TacticalUnit* deathStar, DeathStarResult* out);
-CapitalShipResult* __thiscall FUN_005ba670(TacticalUnit* deathStar, CapitalShipResult* out);
-int __thiscall FUN_005b1b70(TacticalUnit* unit);
-void __thiscall FUN_005b69b0(TacticalUnit* unit);
-void __thiscall FUN_005b69d0(TacticalUnit* unit);
-int __thiscall FUN_005b8570(TacticalUnit* carrier, TacticalUnit* fighter);
 void FUN_005ba920();
-int __thiscall FUN_005ba420(TacticalUnit* deathStar);
-int __thiscall FUN_005b84a0(void* roster, SimUnit* unit);
-void __thiscall FUN_005af7a0(HeadlessSimulator* simulator, SimUnit* unit);
 
 // ---- Headless simulator (DAT_006bc4a8, 0x274 bytes) ----
-HeadlessSimulator* __thiscall FUN_005af5f0(void* memory);                     // constructor
-void __thiscall FUN_005afa50(HeadlessSimulator* simulator);                    // destructor body
 void __thiscall FUN_005ae460(HeadlessSimulator* simulator, int a);
-void __thiscall FUN_005afb30(HeadlessSimulator* simulator, int side, int value);
-void __thiscall FUN_005afb50(HeadlessSimulator* simulator, int side, float value);
-void __thiscall FUN_005afd40(HeadlessSimulator* simulator, TacticalUnit* unit);
-void __thiscall FUN_005afd70(HeadlessSimulator* simulator, TacticalUnit* unit);
-void __thiscall FUN_005afdb0(HeadlessSimulator* simulator, TacticalUnit* unit);
-int __thiscall FUN_005af5c0(HeadlessSimulator* simulator, TacticalUnit* ship);
 int __thiscall FUN_005af440(HeadlessSimulator* simulator, TacticalUnit* unit);
 int __thiscall FUN_005af490(HeadlessSimulator* simulator, TacticalUnit* unit);
 int __thiscall FUN_005af4b0(HeadlessSimulator* simulator, TacticalUnit* fighter);
-int __thiscall FUN_005af4e0(HeadlessSimulator* simulator, int family, int id, int notCompleted, int hasFacility, float hull,
-                            float hullNow, int hangarFree);
 
 // ---- Turn sync / 3D view ----
 void FUN_005be0f0();

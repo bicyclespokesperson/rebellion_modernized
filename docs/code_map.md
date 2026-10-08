@@ -261,6 +261,20 @@ Code lives in `src/game/app/battle_flow*.cpp|battle_handoff.cpp|battle_results.c
   view; never created for auto-resolve). Only the leaf accessors, pause counter and setters are done (`tactical_objmgr.cpp`).
   0x5a7500 is the object manager's *constructor* (128 event-name strings), not a dispatcher; the rest of 0x5a7500-0x5af420 is
   unreconstructed 3D-mode code with no scenario that reaches it.
+- **Unit classes (0x5af4e0-0x5bbf10, `src/game/tactical/tactical_ship*.cpp`, `tactical_capital_ship.cpp`, `tactical_fighter.cpp`,
+  `tactical_death_star.cpp`, `tactical_simulator_units.cpp`): ~175 functions done.** `TacticalShipBase` (0x418, multiple
+  inheritance: `TacticalShipObject` + `TacticalUnit` at +0xd4 + facets; vtable `TacticalShipObject`-primary, 57 slots),
+  `TacticalCapitalShip` (0x448, + `TacticalHangar` at +0x418), `TacticalFighter` (0x418), `TacticalDeathStar` (0x7c), the
+  headless simulator constructor/destructor (0x5af5f0/0x5afa50) and its unit/skill/registration functions. The registry and
+  simulator pass the ship *start* pointer. Hangar-subobject virtuals are free `__thiscall` functions (`this` = hangar).
+  `tactical_ship_decl.h`/`tactical_ship_ext.h` hold stand-ins for classes owned by other tactical modules (drop when merged).
+  Not reconstructed: compiler thunks and static initializers; sound/presentation (0x5b00a0-0x5b0170, 0x5ba0b0-0x5ba0f0, sound
+  manager 0x5ba8b0-0x5bbee0); the 3D movement/steering/hit code (0x5b2f30-0x5b8f70 big functions, incl. the weapon-hit virtuals
+  0x5b5100/0x5b5750/0x5b5b60/0x5b5f50, 0x5b97a0, 0x5b9a20); small leftovers 0x5afde0, 0x5afe10, 0x5b1dc0, 0x5b2e60, 0x5ba480.
+  Most unit functions are not reached by any scenario; they were verified with `difftest --entry <addr> --poke ...`, using a
+  fake object manager poke (`0x6bc4a0=@[0x6bc4a8]-0x924;[0x6bc4a8]-0x924=@esp+0x300;esp+0x328=@0x461730`, stub `ret 0x10`).
+  Functions that copy an uninitialised stack result (`BuildResult` 0x5b0280, 0x5b8e00, 0x5ba620, 0x5ba670) cannot match the
+  original's stack garbage: XFAIL entries in `tests/difftest_known_failures.txt`.
 - Calling-convention traps found: 0x5ae1e0 (shared empty stub) and 0x5bbd90 pop one argument; several stubs the decompiler shows
   as `void f(void)` take arguments. `tools/check_callee_pop.py` catches these.
 
