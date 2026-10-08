@@ -76,3 +76,4 @@ address,kind,name,signature,size
 0x006158b0,func,TacticalCapitalShip::GetUnitClass,,
 0x006158b0,func,TacticalShipBase::GetUnitClass,,
 0x006158b0,func,TacticalShipBase::Virtual45,,
+0x00658778,data,g_rectSessionList,,

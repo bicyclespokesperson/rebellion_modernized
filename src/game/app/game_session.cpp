@@ -4,6 +4,7 @@
 
 #include "ai/ai_player.h"
 #include "core/checked_new.h"
+#include "multiplayer/remote_player.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
 
@@ -24,7 +25,7 @@ PlayerController* newOpponent(int opponentType, int side) {
         return memory ? new (memory) AiPlayer(side) : nullptr;
     }
     void* memory = ::operator new(sizeof(RemotePlayer));
-    return memory ? FUN_00484e70(memory, side) : nullptr;
+    return memory ? new (memory) RemotePlayer(side) : nullptr;
 }
 
 HumanPlayer* newHuman(int side) {
@@ -160,7 +161,7 @@ int GameSession::CreateController(int kind, int slot) {
     }
     if (kind == kRemoteKind) {
         RemotePlayer* remote = nullptr;
-        if (void* memory = ::operator new(sizeof(RemotePlayer))) remote = FUN_00484df0(memory);
+        if (void* memory = ::operator new(sizeof(RemotePlayer))) remote = new (memory) RemotePlayer();
         m_controllers[slot] = remote;
         return 1;
     }

@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 
+class istream;
 class ostream;
 
 // A strstream living on the caller's stack, as the original game code builds them: the object holds the istream
@@ -40,3 +41,27 @@ inline void ClearIosState(void* stream) {
     *reinterpret_cast<int*>(ios + 8) = 0;
     if (lockCount < 0) mtx_unlock(ios + 0x38);
 }
+
+// The two library string streams that the multiplayer code embeds by value in its objects, constructed and destroyed
+// through the library by address: an ostrstream with a dynamic buffer (0x58 bytes: ostream at +0x00, the virtual-base
+// ios at +0x08) and an istrstream over a caller's buffer (0x5c bytes: istream at +0x00, ios at +0x0c).
+struct OStrStream {
+    alignas(4) uint8_t bytes[0x58];
+
+    ostream* Out() { return reinterpret_cast<ostream*>(bytes); }
+    void* Ios() { return bytes + 0x08; }
+};
+
+struct IStrStream {
+    alignas(4) uint8_t bytes[0x5c];
+
+    istream* In() { return reinterpret_cast<istream*>(bytes); }
+    void* Ios() { return bytes + 0x0c; }
+};
+
+OStrStream* __thiscall ostrstream_ctor(OStrStream* stream, int constructVirtualBase);
+void __thiscall ostrstream_dtor(void* ios);
+IStrStream* __thiscall istrstream_ctor_str(IStrStream* stream, char* text, int constructVirtualBase);
+IStrStream* __thiscall istrstream_ctor_str_len(IStrStream* stream, char* text, int length, int constructVirtualBase);
+void __thiscall istrstream_dtor(void* ios);
+OStrStream* __thiscall ostrstream_ctor_buf(OStrStream* stream, char* buffer, int length, int mode, int constructVirtualBase);

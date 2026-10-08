@@ -1,1 +1,2 @@
 symbols/symbols.csv merge=union
+symbols/aliases.csv merge=union

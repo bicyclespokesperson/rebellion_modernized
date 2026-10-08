@@ -9,5 +9,7 @@
 #include <ddraw.h>
 #include <dsound.h>
 
+#include "platform/dplay.h"
+
 // rpcndr.h defines `small` as char, which breaks parameters of that name.
 #undef small

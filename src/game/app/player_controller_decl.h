@@ -17,7 +17,7 @@
 //   PlayerController   abstract base, VT 0x65aef0 (0x50 bytes, 96 virtual slots)
 //     HumanPlayer      0xc4 bytes, VT 0x65ad70, ctor 0x486120 / 0x4861b0(side)
 //     AiPlayer         0x42c bytes, VT 0x65abf0, see ai/ai_player.h
-//     RemotePlayer     0x60 bytes, VT 0x65aa70, ctor 0x484df0 / 0x484e70(side)
+//     RemotePlayer     0x60 bytes, VT 0x65aa70, see multiplayer/remote_player.h
 //
 // A GameSession has two controllers, one per side (side 1 = Alliance, 2 = Empire); the "vote" fields are the
 // negotiation state of a battle-type vote that is exchanged between the two controllers.
@@ -249,10 +249,6 @@ public:
     int m_unk4c;             // +0x4c
 };
 
-class RemotePlayer : public PlayerController {
-public:
-    uint8_t m_unk50[0x60 - 0x50];  // +0x50
-};
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
@@ -275,11 +271,7 @@ REB_ASSERT_OFFSET(PlayerController, m_voteTime, 0x3c);
 REB_ASSERT_OFFSET(PlayerController, m_voteKey, 0x40);
 REB_ASSERT_OFFSET(PlayerController, m_syncTarget, 0x48);
 REB_ASSERT_OFFSET(PlayerController, m_unk4c, 0x4c);
-REB_ASSERT_SIZE(RemotePlayer, 0x60);
 #pragma clang diagnostic pop
 
-// ---- constructors (the original allocates with operator new first; one variant takes the side) ----------------
-RemotePlayer* __thiscall FUN_00484df0(void* memory);
-RemotePlayer* __thiscall FUN_00484e70(void* memory, int side);
 
 #include "strategy_ui/human_player.h"

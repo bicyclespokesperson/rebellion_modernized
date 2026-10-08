@@ -54,9 +54,9 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   keys of real objects found by scanning the capture's memory for object vtables.
 
 ## Strategic UI (src/game/strategy_ui)
-- The multiplayer vote window (window type 6, 0x44f670-0x451110 except the GID menu 0x451130-0x4511e0) is not
-  reconstructed; `GalaxyWindow::CreateModalWindow` calls its constructor (`FUN_0044f670`) at the original address.
-  It is not reachable from any scenario.
+- The multiplayer vote window (window type 6, `VoteWindow`, 0x44f670-0x451050 plus `VoteFamilyRange` 0x4510f0) is
+  reconstructed but read-only verified: no scenario reaches it (it needs a multiplayer game with an arriving fleet). The
+  shared `ObjectKey` copy helper 0x451110 is not hooked.
 - Compiler-generated helpers are not hooked: the `SystemSlot` array element constructor/destructor (0x453200,
   0x453260), `MinimizedWindowSlot::MinimizedWindowSlot` (0x42dbe0) and the shared empty `ShowObjectPage` slot (0x45d3f0).
 
