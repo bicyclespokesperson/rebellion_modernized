@@ -660,8 +660,8 @@ void HumanPlayer::SubmitOrder(PlayerMessage* order, int flag) {
     }
 }
 
-void HumanPlayer::NotifyAdvisor(int value) {
-    if (m_advisor) m_advisor->SetTaskState(value);
+void HumanPlayer::NotifyAdvisor(const ObjectKey* key) {
+    if (m_advisor) m_advisor->SetTaskState(key);
 }
 
 void HumanPlayer::SetVote(int choice, int timed, PlayerMessage* reply) {

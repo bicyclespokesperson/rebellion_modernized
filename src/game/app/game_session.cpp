@@ -387,8 +387,8 @@ void GameSession::HumanReceiveMessage(PlayerMessage* message, int flag) {
     if (m_human) m_human->SubmitOrder(message, flag);
 }
 
-void GameSession::HumanAdvisorNotify(int value) {
-    if (m_human) m_human->NotifyAdvisor(value);
+void GameSession::HumanAdvisorNotify(const ObjectKey* key) {
+    if (m_human) m_human->NotifyAdvisor(key);
 }
 
 void GameSession::HumanSetVote(int choice, int timed, PlayerMessage* reply) {

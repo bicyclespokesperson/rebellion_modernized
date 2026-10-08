@@ -1,6 +1,6 @@
 #pragma once
 // The commands, timers and notification events of the mission system (0x54cd80-0x54ea70). Each class is a leaf of one
-// of the bases in mission_exec_decl.h / orders/command_decl.h and is created by kind through the factory table
+// of the bases in events/event_base.h, events/timer_event.h and orders/command_decl.h and is created by kind through the factory table
 // (0x51ef80); every class has a factory function next to it. The kinds:
 //
 //   0x250  MissionOrderCommand       command: create a mission from a mission order's team (VT 0x661e28, 0x74 bytes)
@@ -15,7 +15,9 @@
 
 #include "core/layout.h"
 #include "gameobj/object_key.h"
-#include "mission/mission_timers_decl.h"
+#include "events/event_base.h"
+#include "events/timer_event.h"
+#include "mission/mission_mgr_decl.h"
 #include "orders/command_decl.h"
 
 // Kind 0x250: the command a mission order (orders/mission_orders.h) queues. Its checks resolve the mission manager
@@ -62,99 +64,99 @@ public:
     virtual int GetKind() override { return 0x261; }             // 9, shared 0x479fd0
 };
 
+// Shared slot 10 of the mission timers / of the manager timers.
+FamilyRange* __stdcall GetMissionFamilyRange(FamilyRange* out);     // 0x54d920: {0x40, 0x80}
+FamilyRange* __stdcall GetMissionMgrFamilyRange(FamilyRange* out);  // 0x54e880: {0xf8, 0xf9}
+
 // The timers over the stat of a mission (0x38b, 0x38c) or of the mission manager (0x392, 0x393). All four live in the
 // mission-manager family ranges: slot 10 of the mission timers returns {0x40, 0x80}, of the manager timers {0xf8, 0xf9}.
-class MissionStatATimer : public TimerBase {
+class MissionStatATimer : public TimerEvent {
 public:
     MissionStatATimer();                              // 0x54d490
     MissionStatATimer(const MissionStatATimer& other);  // 0x54d4e0
     virtual ~MissionStatATimer();                     // 0x54d4d0 (deleting 0x54d4b0)
 
-    virtual TimerBase* Clone() override;                          // 1, 0x54d500
+    virtual MissionStatATimer* Clone() override;                          // 1, 0x54d500
     virtual int GetKind() override { return 0x38b; }              // 9, 0x54d570
-    virtual FamilyRange* GetFamilyRange(FamilyRange* out) override;  // 10, shared 0x54d920
-    virtual TrackedStat* GetStat() override;                      // 11, 0x54d5f0
-    virtual int Fire() override;                                  // 12, 0x54d6c0
+    virtual FamilyRange* GetTargetRange(FamilyRange* out) override { return GetMissionFamilyRange(out); }  // 10, shared 0x54d920
+    virtual TrackedStat* GetTargetSpec() override;                      // 11, 0x54d5f0
+    virtual void Fire() override;                                  // 12, 0x54d6c0
 };
 
-class MissionStatBTimer : public TimerBase {
+class MissionStatBTimer : public TimerEvent {
 public:
     MissionStatBTimer();                              // 0x54d7c0
     MissionStatBTimer(const MissionStatBTimer& other);  // 0x54d810
     virtual ~MissionStatBTimer();                     // 0x54d800 (deleting 0x54d7e0)
 
-    virtual TimerBase* Clone() override;                          // 1, 0x54d830
+    virtual MissionStatBTimer* Clone() override;                          // 1, 0x54d830
     virtual int GetKind() override { return 0x38c; }              // 9, 0x54d8a0
-    virtual FamilyRange* GetFamilyRange(FamilyRange* out) override;  // 10, shared 0x54d920
-    virtual TrackedStat* GetStat() override;                      // 11, 0x54d940
-    virtual int Fire() override;                                  // 12, 0x54da10
+    virtual FamilyRange* GetTargetRange(FamilyRange* out) override { return GetMissionFamilyRange(out); }  // 10, shared 0x54d920
+    virtual TrackedStat* GetTargetSpec() override;                      // 11, 0x54d940
+    virtual void Fire() override;                                  // 12, 0x54da10
 };
 
-class MissionMgrStatATimer : public TimerBase {
+class MissionMgrStatATimer : public TimerEvent {
 public:
     MissionMgrStatATimer();                                     // 0x54e3f0
     MissionMgrStatATimer(const MissionMgrStatATimer& other);    // 0x54e440
     virtual ~MissionMgrStatATimer();                            // 0x54e430 (deleting 0x54e410)
 
-    virtual TimerBase* Clone() override;                          // 1, 0x54e460
+    virtual MissionMgrStatATimer* Clone() override;                          // 1, 0x54e460
     virtual int GetKind() override { return 0x392; }              // 9, 0x54e4d0
-    virtual FamilyRange* GetFamilyRange(FamilyRange* out) override;  // 10, shared 0x54e880
-    virtual TrackedStat* GetStat() override;                      // 11, 0x54e550
-    virtual int Fire() override;                                  // 12, 0x54e620
+    virtual FamilyRange* GetTargetRange(FamilyRange* out) override { return GetMissionMgrFamilyRange(out); }  // 10, shared 0x54e880
+    virtual TrackedStat* GetTargetSpec() override;                      // 11, 0x54e550
+    virtual void Fire() override;                                  // 12, 0x54e620
 };
 
-class MissionMgrStatBTimer : public TimerBase {
+class MissionMgrStatBTimer : public TimerEvent {
 public:
     MissionMgrStatBTimer();                                     // 0x54e720
     MissionMgrStatBTimer(const MissionMgrStatBTimer& other);    // 0x54e770
     virtual ~MissionMgrStatBTimer();                            // 0x54e760 (deleting 0x54e740)
 
-    virtual TimerBase* Clone() override;                          // 1, 0x54e790
+    virtual MissionMgrStatBTimer* Clone() override;                          // 1, 0x54e790
     virtual int GetKind() override { return 0x393; }              // 9, 0x54e800
-    virtual FamilyRange* GetFamilyRange(FamilyRange* out) override;  // 10, shared 0x54e880
-    virtual TrackedStat* GetStat() override;                      // 11, 0x54e8a0
-    virtual int Fire() override;                                  // 12, 0x54e970
+    virtual FamilyRange* GetTargetRange(FamilyRange* out) override { return GetMissionMgrFamilyRange(out); }  // 10, shared 0x54e880
+    virtual TrackedStat* GetTargetSpec() override;                      // 11, 0x54e8a0
+    virtual void Fire() override;                                  // 12, 0x54e970
 };
 
 // Kinds 0x30c / 0x30d: events whose Execute hands the key and arguments to the mission manager. Their checks always
 // succeed and Read/Write/Checksum are the shared bodies 0x541180 / 0x564d50 / 0x541700.
-class MissionMgrEvent30c : public NotifEventBase {
+class MissionMgrEvent30c : public SourceEvent {
 public:
     MissionMgrEvent30c();                                     // 0x54db10
     MissionMgrEvent30c(const MissionMgrEvent30c& other);      // 0x54db60
     virtual ~MissionMgrEvent30c();                            // 0x54db50 (deleting 0x54db30)
 
-    virtual NotifEventBase* Clone() override;                       // 1, 0x54db80
-    virtual void Read(istream* in) override { FUN_00541180(this, in); }         // 2
-    virtual void Write(ostream* out) override { FUN_00564d50(this, out); }      // 3
-    virtual int Checksum(Crc32* crc) override { return FUN_00541700(this, crc); }     // 4
+    virtual MissionMgrEvent30c* Clone() override;                   // 1, 0x54db80
+    virtual void Read(istream* in) override { ReadSource(in); }              // 2, 0x541180
+    virtual void Write(ostream* out) override { WriteSource(out); }           // 3, 0x564d50
+    virtual void Checksum(Crc32* crc) override { ChecksumSource(crc); }       // 4, 0x541700
     virtual int CheckEnabled(StatusCode* status) override;          // 6, 0x54dc70
     virtual int CheckValid(StatusCode* status) override;            // 7, 0x54dce0
     virtual int Execute() override;                                 // 8, 0x54dd50
     virtual int GetKind() override { return 0x30c; }                // 9, 0x54dbf0
-    virtual int GetSecondaryKind() override { return 0x30c; }       // 10, shared 0x54dbf0
+    virtual int GetPriority() override { return 0x30c; }             // 10, shared 0x54dbf0
 };
 
-class MissionMgrEvent30d : public NotifEventBase {
+class MissionMgrEvent30d : public SourceEvent {
 public:
     MissionMgrEvent30d();                                     // 0x54ddc0
     MissionMgrEvent30d(const MissionMgrEvent30d& other);      // 0x54de10
     virtual ~MissionMgrEvent30d();                            // 0x54de00 (deleting 0x54dde0)
 
-    virtual NotifEventBase* Clone() override;                       // 1, 0x54de30
-    virtual void Read(istream* in) override { FUN_00541180(this, in); }         // 2
-    virtual void Write(ostream* out) override { FUN_00564d50(this, out); }      // 3
-    virtual int Checksum(Crc32* crc) override { return FUN_00541700(this, crc); }     // 4
+    virtual MissionMgrEvent30d* Clone() override;                   // 1, 0x54de30
+    virtual void Read(istream* in) override { ReadSource(in); }              // 2, 0x541180
+    virtual void Write(ostream* out) override { WriteSource(out); }           // 3, 0x564d50
+    virtual void Checksum(Crc32* crc) override { ChecksumSource(crc); }       // 4, 0x541700
     virtual int CheckEnabled(StatusCode* status) override;          // 6, 0x54df30
     virtual int CheckValid(StatusCode* status) override;            // 7, 0x54dfa0
     virtual int Execute() override;                                 // 8, 0x54e010
     virtual int GetKind() override { return 0x30d; }                // 9, 0x54dea0
-    virtual int GetSecondaryKind() override { return 0x156; }       // 10, 0x54deb0
+    virtual int GetPriority() override { return 0x156; }             // 10, 0x54deb0
 };
-
-// Shared slot 10 of the mission timers / of the manager timers.
-FamilyRange* __stdcall GetMissionFamilyRange(FamilyRange* out);     // 0x54d920: {0x40, 0x80}
-FamilyRange* __stdcall GetMissionMgrFamilyRange(FamilyRange* out);  // 0x54e880: {0xf8, 0xf9}
 
 // Factories registered for the kinds (0x51ef80); each returns a default-constructed object or null.
 MissionOrderCommand* CreateMissionOrderCommand();     // 0x54cfc0

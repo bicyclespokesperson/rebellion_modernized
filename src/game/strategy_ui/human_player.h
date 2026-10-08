@@ -70,7 +70,7 @@ public:
     void ExecuteCommand(int command, ObjectKeyValueSet* selection, ObjectKey* key, String* name);  // 0x486fb0
     // Checks `order` and sends it (to the other side and the game) or gives the advisor the reason it is refused.
     void SubmitOrder(PlayerMessage* order, int flag);                                              // 0x487740
-    void NotifyAdvisor(int value);                                                                 // 0x487810
+    void NotifyAdvisor(const ObjectKey* key);                                                                // 0x487810
     // Sets this side's answer to a vote (`choice` 0: declined, else accepted; `timed`: with a timeout).
     void SetVote(int choice, int timed, PlayerMessage* reply);                                     // 0x487830
     void ConfirmVote(PlayerMessage* reply);                                                        // 0x487890

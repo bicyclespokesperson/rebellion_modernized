@@ -300,12 +300,13 @@ int GameObjNotifier::ChecksumTree(Crc32* crc) {
     return ok;
 }
 
-void GameObjNotifier::SetRecord(DatRecord* record) { AssignRecord(record); }
+int GameObjNotifier::SetRecord(DatRecord* record) { return AssignRecord(record); }
 
-void GameObjNotifier::AssignRecord(DatRecord* record) {
+int GameObjNotifier::AssignRecord(DatRecord* record) {
     bool matches = true;
     if (record) matches = record->m_third == GetFamily();
     if (matches) m_record = record;
+    return matches;
 }
 
 int GameObjNotifier::AddChild(GameObjNotifier* child, GameObjNotifier** previousParent) {

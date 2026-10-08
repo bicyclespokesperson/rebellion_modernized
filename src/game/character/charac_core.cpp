@@ -93,11 +93,11 @@ void __thiscall AppendCharacterName(ObjectBase* base, String* out, int kind) {
     *out += text;
 }
 
-void Character::SetRecord(DatRecord* record) {
-    if (!record) return;
-    const bool familyMatches = record->m_third == GetFamily();
-    AssignRecord(record);
+int Character::SetRecord(DatRecord* record) {
+    if (!record) return 0;
+    const int familyMatches = AssignRecord(record);
     if (familyMatches) SetId(record->m_id);
+    return familyMatches;
 }
 
 MajorCharacterSD* Character::GetCharacterRecord() const { return static_cast<MajorCharacterSD*>(m_record); }

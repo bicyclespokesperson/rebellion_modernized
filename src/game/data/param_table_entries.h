@@ -25,6 +25,7 @@ public:
 class SideParamTableEntry : public TableEntry {
 public:
     static constexpr int kPairCount = 8;
+    static constexpr int kValueCount = kPairCount * 2;
 
     SideParamTableEntry();
     virtual ~SideParamTableEntry();

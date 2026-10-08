@@ -34,7 +34,7 @@ int UiGetHumanSide();                                        // 0x41cdb0
 int UiIsOpponentAI();                                        // 0x41cdd0
 void UiHumanCommand(int command, void* selection, void* key, const void* argument);  // 0x41cdf0
 void UiHumanReceiveMessage(PlayerMessage* message, int flag);  // 0x41ce20
-void UiHumanAdvisorNotify(int value);                        // 0x41ce40
+void UiHumanAdvisorNotify(const ObjectKey* key);                       // 0x41ce40
 void UiHumanSetVote(int choice, int timed, PlayerMessage* reply);  // 0x41ce60
 void UiHumanConfirmVote(PlayerMessage* reply);               // 0x41ce80
 void UiRequestRedraw(int value);                             // 0x41cea0

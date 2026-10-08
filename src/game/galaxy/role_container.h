@@ -25,7 +25,7 @@ public:
     virtual int Checksum(Crc32* crc) override;                              // 7, shared stub 0x569860
     virtual int Validate() override;                                        // 8, 0x577510 (jump stub to ValidateImpl)
     virtual int ApplyAll(NotifyContext* ctx) override;                      // 9, shared with GameRoot (0x513f20)
-    virtual void SetRecord(DatRecord* record) override;                     // 10, 0x50e1c0 (shared with Character)
+    virtual int SetRecord(DatRecord* record) override;                      // 10, 0x50e1c0 (shared with Character)
     virtual int GetEventKinds(int unused, EventKindSet* out) override;      // 15, 0x577190
     virtual int Virtual16() override { return 1; }                          // 16, shared 0x40f340
     virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;  // 22, 0x5771b0

@@ -77,9 +77,9 @@ void UiHumanReceiveMessage(PlayerMessage* message, int flag) {
     if (session) session->HumanReceiveMessage(message, flag);
 }
 
-void UiHumanAdvisorNotify(int value) {
+void UiHumanAdvisorNotify(const ObjectKey* key) {
     GameSession* session = GetGameSession();
-    if (session) session->HumanAdvisorNotify(value);
+    if (session) session->HumanAdvisorNotify(key);
 }
 
 void UiHumanSetVote(int choice, int timed, PlayerMessage* reply) {

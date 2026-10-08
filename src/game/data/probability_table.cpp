@@ -9,11 +9,13 @@ void CreateTableRegistry() { InitGDataTables(); }
 
 void DestroyTableRegistry() { DestroyGDataTables(); }
 
-ParamTableRecord* FindTableRecord(int tableType, int id) {
+TableEntry* FindTableRecord(int tableType, int id) {
     TableRegistry* registry = GetTableRegistry();
     if (!registry) return nullptr;
-    return reinterpret_cast<ParamTableRecord*>(registry->Lookup(tableType, id));
+    return registry->Lookup(tableType, id);
 }
+
+int TableRecordFirstValue(const TableEntry* record) { return *reinterpret_cast<const int*>(record + 1); }
 
 void ChecksumTables(Crc32* crc) {
     TableRegistry* registry = GetTableRegistry();
@@ -22,9 +24,9 @@ void ChecksumTables(Crc32* crc) {
 
 int LookupTableValue(int tableType, int id, int* value) {
     *value = 0;
-    const ParamTableRecord* record = FindTableRecord(tableType, id);
+    const TableEntry* record = FindTableRecord(tableType, id);
     const int found = record != nullptr;
-    if (found) *value = record->m_firstValue;
+    if (found) *value = TableRecordFirstValue(record);
     return found;
 }
 

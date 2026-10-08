@@ -8,13 +8,13 @@
 #include "core/layout.h"
 #include "core/stream_io.h"
 #include "gameobj/object_key.h"
-#include "strategy_ui/advisor_droid.h"
 #include "strategy_ui/advisor_notices.h"
 
 // The tasks of the player's advisors (0x49c6a0-0x49ecb0, 0x4c6ab0-0x4c7e10): small cousins of the AI's task types that work
 // from an AiGalaxyAnalysis and hand the orders they build to the advisor droid (the human player's helper that proposes and
 // starts building, shipbuilding and troop orders).
 
+class AdvisorBase;
 class AiSideController;
 class OrderBase;
 class ManufactureOrderBase;
@@ -133,6 +133,7 @@ public:
     AdvisorTaskManager();                         // 0x49dcf0
     virtual ~AdvisorTaskManager();                // 0: 0x49dd10 (deleting), 0x49dd30
     void Load(istream* in, AiGalaxyAnalysis* analysis);  // 0x49dd50
+    void Save(ostream* out);                      // 0x49de40 (the code AiTaskManager::Save shares)
     uint32_t CreateTask(int type, AiGalaxyAnalysis* analysis);  // 0x49df20
     AdvisorTaskBase* SelectNext();                // 0x49df70
     AdvisorTaskBase* MakeTask(int type);          // 0x49e010
@@ -150,6 +151,7 @@ public:
     AdvisorEntryTree();                           // 0x49c6a0
     virtual ~AdvisorEntryTree();                  // 0: 0x49c6c0 (deleting), 0x49c6e0
     void Load(istream* in);                       // 0x49c6f0
+    void Save(ostream* out);                      // 0x4e5210 (the code AiTaskObjectSet::Save shares)
 };
 
 #pragma clang diagnostic push

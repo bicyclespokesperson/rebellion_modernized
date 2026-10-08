@@ -2,10 +2,6 @@
 
 #include "core/game_string.h"
 
-// String::ReadFrom / String::WriteTo (String module).
-void __thiscall FUN_005f3530(String* text, istream* in);
-void __thiscall FUN_005f3560(String* text, ostream* out);
-
 void StreamRead16(istream* in, void* value) { istream_read(in, static_cast<char*>(value), 2); }
 void StreamWrite16(ostream* out, const void* value) { ostream_write(out, value, 2); }
 void StreamRead8(istream* in, void* value) { istream_read(in, static_cast<char*>(value), 1); }
@@ -19,8 +15,8 @@ void ReadValue16(istream* in, void* value) { StreamRead16(in, value); }
 void WriteValue16(ostream* out, const void* value) { StreamWrite16(out, value); }
 void ReadValue8(istream* in, void* value) { StreamRead8(in, value); }
 void WriteValue8(ostream* out, const void* value) { StreamWrite8(out, value); }
-void ReadString(istream* in, String* value) { FUN_005f3530(value, in); }
-void WriteString(ostream* out, String* value) { FUN_005f3560(value, out); }
+void ReadString(istream* in, String* value) { value->ReadFrom(in); }
+void WriteString(ostream* out, String* value) { value->WriteTo(out); }
 void ReadValueString(istream* in, String* value) { ReadString(in, value); }
 void WriteValueString(ostream* out, String* value) { WriteString(out, value); }
 

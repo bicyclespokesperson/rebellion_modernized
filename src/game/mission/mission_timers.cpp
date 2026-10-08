@@ -1,14 +1,14 @@
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
+#include "events/event_helpers.h"
 #include "gameobj/object_queries.h"
 #include "mission/mission.h"
 #include "mission/mission_events.h"
 
-namespace {
+using events::fireOnTimerOwner;
+using events::timerStatOfOwner;
 
-constexpr int kStatusCategory = 1;
-constexpr int kStatusOk = -1;
-constexpr int kStatusWrongObject = 0x12;
+namespace {
 
 constexpr int kMissionMgrStatAOffset = 0x5c;
 constexpr int kMissionMgrStatBOffset = 0x64;
@@ -16,45 +16,6 @@ constexpr int kMissionMgrStatBOffset = 0x64;
 constexpr FamilyRange kMissionFamilies(0x40, 0x80);
 constexpr FamilyRange kMissionMgrFamilies(0xf8, 0xf9);
 
-bool succeeded(const StatusCode& status) { return status.m_second == static_cast<uint32_t>(kStatusOk); }
-
-// Slots 11 and 12 of every timer here start the same way: the timer's own checks, then the lookup of the object the
-// timer acts on (the stat's owner), which both must find alive. Returns the object, or null with *ok cleared.
-template <typename Resolve>
-GameObj* findOwner(TimerBase* timer, Resolve resolve, int* ok) {
-    StatusCode status(kStatusCategory, kStatusOk);
-    GameObjNotifier* owner = nullptr;
-    *ok = timer->CheckValid(&status);
-    if (*ok) {
-        if (succeeded(status)) {
-            const StatusCode missing(kStatusCategory, kStatusWrongObject);
-            *ok = resolve(&timer->m_key, &owner, &missing, &status);
-        }
-        if (!*ok || !succeeded(status)) return nullptr;
-    }
-    return static_cast<GameObj*>(owner);
-}
-
-template <typename Resolve, typename Method>
-TrackedStat* statOfOwner(TimerBase* timer, Resolve resolve, Method method) {
-    int ok = 0;
-    GameObj* owner = findOwner(timer, resolve, &ok);
-    return ok && owner ? method(owner) : nullptr;
-}
-
-template <typename Resolve, typename Method>
-int fireOnOwner(TimerBase* timer, Resolve resolve, Method method) {
-    int ok = 0;
-    GameObj* owner = findOwner(timer, resolve, &ok);
-    if (ok && owner) {
-        NotifyContext ctx(timer->m_context);
-        ok = method(owner, &ctx);
-    }
-    return ok;
-}
-
-TrackedStat* missionStatA(GameObj* mission) { return static_cast<Mission*>(mission)->GetStatA(); }
-TrackedStat* missionStatB(GameObj* mission) { return static_cast<Mission*>(mission)->GetStatB(); }
 TrackedStat* managerStatA(GameObj* manager) {
     return reinterpret_cast<TrackedStat*>(reinterpret_cast<uint8_t*>(manager) + kMissionMgrStatAOffset);
 }
@@ -78,23 +39,21 @@ FamilyRange* __stdcall GetMissionMgrFamilyRange(FamilyRange* out) {
 
 // ---- MissionStatATimer (kind 0x38b) ----------------------------------------------------------------------------------
 
-MissionStatATimer::MissionStatATimer() : TimerBase() {}
+MissionStatATimer::MissionStatATimer() : TimerEvent() {}
 
-MissionStatATimer::MissionStatATimer(const MissionStatATimer& other) : TimerBase(other) {}
+MissionStatATimer::MissionStatATimer(const MissionStatATimer& other) : TimerEvent(other) {}
 
 MissionStatATimer::~MissionStatATimer() { REB_KEEP_VPTR_STORE(); }
 
-TimerBase* MissionStatATimer::Clone() { return NewOrNull<MissionStatATimer>(*this); }
+MissionStatATimer* MissionStatATimer::Clone() { return NewOrNull<MissionStatATimer>(*this); }
 
-FamilyRange* MissionStatATimer::GetFamilyRange(FamilyRange* out) { return GetMissionFamilyRange(out); }
-
-TrackedStat* MissionStatATimer::GetStat() {
-    return statOfOwner(this, ResolveMasterInFamilies_40_80, missionStatA);
+TrackedStat* MissionStatATimer::GetTargetSpec() {
+    return timerStatOfOwner<Mission>(this, ResolveMasterInFamilies_40_80, [](Mission* mission) { return mission->GetStatA(); });
 }
 
-int MissionStatATimer::Fire() {
-    return fireOnOwner(this, ResolveMasterInFamilies_40_80, [](GameObj* mission, NotifyContext* ctx) {
-        return FUN_00522a10(static_cast<Mission*>(mission), ctx);
+void MissionStatATimer::Fire() {
+    fireOnTimerOwner<Mission>(this, ResolveMasterInFamilies_40_80, [](Mission* mission, NotifyContext* ctx) {
+        return FUN_00522a10(mission, ctx);
     });
 }
 
@@ -102,23 +61,21 @@ MissionStatATimer* CreateMissionStatATimer() { return NewOrNull<MissionStatATime
 
 // ---- MissionStatBTimer (kind 0x38c) ----------------------------------------------------------------------------------
 
-MissionStatBTimer::MissionStatBTimer() : TimerBase() {}
+MissionStatBTimer::MissionStatBTimer() : TimerEvent() {}
 
-MissionStatBTimer::MissionStatBTimer(const MissionStatBTimer& other) : TimerBase(other) {}
+MissionStatBTimer::MissionStatBTimer(const MissionStatBTimer& other) : TimerEvent(other) {}
 
 MissionStatBTimer::~MissionStatBTimer() { REB_KEEP_VPTR_STORE(); }
 
-TimerBase* MissionStatBTimer::Clone() { return NewOrNull<MissionStatBTimer>(*this); }
+MissionStatBTimer* MissionStatBTimer::Clone() { return NewOrNull<MissionStatBTimer>(*this); }
 
-FamilyRange* MissionStatBTimer::GetFamilyRange(FamilyRange* out) { return GetMissionFamilyRange(out); }
-
-TrackedStat* MissionStatBTimer::GetStat() {
-    return statOfOwner(this, ResolveMasterInFamilies_40_80, missionStatB);
+TrackedStat* MissionStatBTimer::GetTargetSpec() {
+    return timerStatOfOwner<Mission>(this, ResolveMasterInFamilies_40_80, [](Mission* mission) { return mission->GetStatB(); });
 }
 
-int MissionStatBTimer::Fire() {
-    return fireOnOwner(this, ResolveMasterInFamilies_40_80, [](GameObj* mission, NotifyContext* ctx) {
-        return FUN_00522a30(static_cast<Mission*>(mission), ctx);
+void MissionStatBTimer::Fire() {
+    fireOnTimerOwner<Mission>(this, ResolveMasterInFamilies_40_80, [](Mission* mission, NotifyContext* ctx) {
+        return FUN_00522a30(mission, ctx);
     });
 }
 
@@ -126,22 +83,20 @@ MissionStatBTimer* CreateMissionStatBTimer() { return NewOrNull<MissionStatBTime
 
 // ---- MissionMgrStatATimer (kind 0x392) -------------------------------------------------------------------------------
 
-MissionMgrStatATimer::MissionMgrStatATimer() : TimerBase() {}
+MissionMgrStatATimer::MissionMgrStatATimer() : TimerEvent() {}
 
-MissionMgrStatATimer::MissionMgrStatATimer(const MissionMgrStatATimer& other) : TimerBase(other) {}
+MissionMgrStatATimer::MissionMgrStatATimer(const MissionMgrStatATimer& other) : TimerEvent(other) {}
 
 MissionMgrStatATimer::~MissionMgrStatATimer() { REB_KEEP_VPTR_STORE(); }
 
-TimerBase* MissionMgrStatATimer::Clone() { return NewOrNull<MissionMgrStatATimer>(*this); }
+MissionMgrStatATimer* MissionMgrStatATimer::Clone() { return NewOrNull<MissionMgrStatATimer>(*this); }
 
-FamilyRange* MissionMgrStatATimer::GetFamilyRange(FamilyRange* out) { return GetMissionMgrFamilyRange(out); }
-
-TrackedStat* MissionMgrStatATimer::GetStat() {
-    return statOfOwner(this, ResolveMasterInFamilies_f8_f9, managerStatA);
+TrackedStat* MissionMgrStatATimer::GetTargetSpec() {
+    return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_f8_f9, managerStatA);
 }
 
-int MissionMgrStatATimer::Fire() {
-    return fireOnOwner(this, ResolveMasterInFamilies_f8_f9, [](GameObj* manager, NotifyContext* ctx) {
+void MissionMgrStatATimer::Fire() {
+    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_f8_f9, [](GameObj* manager, NotifyContext* ctx) {
         return FUN_00546f80(reinterpret_cast<MissionMgr*>(manager), ctx);
     });
 }
@@ -150,22 +105,20 @@ MissionMgrStatATimer* CreateMissionMgrStatATimer() { return NewOrNull<MissionMgr
 
 // ---- MissionMgrStatBTimer (kind 0x393) -------------------------------------------------------------------------------
 
-MissionMgrStatBTimer::MissionMgrStatBTimer() : TimerBase() {}
+MissionMgrStatBTimer::MissionMgrStatBTimer() : TimerEvent() {}
 
-MissionMgrStatBTimer::MissionMgrStatBTimer(const MissionMgrStatBTimer& other) : TimerBase(other) {}
+MissionMgrStatBTimer::MissionMgrStatBTimer(const MissionMgrStatBTimer& other) : TimerEvent(other) {}
 
 MissionMgrStatBTimer::~MissionMgrStatBTimer() { REB_KEEP_VPTR_STORE(); }
 
-TimerBase* MissionMgrStatBTimer::Clone() { return NewOrNull<MissionMgrStatBTimer>(*this); }
+MissionMgrStatBTimer* MissionMgrStatBTimer::Clone() { return NewOrNull<MissionMgrStatBTimer>(*this); }
 
-FamilyRange* MissionMgrStatBTimer::GetFamilyRange(FamilyRange* out) { return GetMissionMgrFamilyRange(out); }
-
-TrackedStat* MissionMgrStatBTimer::GetStat() {
-    return statOfOwner(this, ResolveMasterInFamilies_f8_f9, managerStatB);
+TrackedStat* MissionMgrStatBTimer::GetTargetSpec() {
+    return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_f8_f9, managerStatB);
 }
 
-int MissionMgrStatBTimer::Fire() {
-    return fireOnOwner(this, ResolveMasterInFamilies_f8_f9, [](GameObj* manager, NotifyContext* ctx) {
+void MissionMgrStatBTimer::Fire() {
+    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_f8_f9, [](GameObj* manager, NotifyContext* ctx) {
         return FUN_00546fa0(reinterpret_cast<MissionMgr*>(manager), ctx);
     });
 }

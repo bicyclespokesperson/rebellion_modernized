@@ -1,5 +1,7 @@
 #pragma once
 
+#include "data/table_entry.h"
+
 // Access to the loaded rule tables (GData/*.DAT) through the table registry singleton (0x58b360), as used by
 // the rules code. Table-type numbers are the ones the registry loader assigns (0x58b420): 0xd is RLEVADTB,
 // 0x3c GNPRTB, 0x3d SDPRTB.
@@ -8,14 +10,6 @@ enum TableType {
     kTableRlevad = 0xd,
     kTableGnprtb = 0x3c,
     kTableSdprtb = 0x3d,
-};
-
-// Partial layout of a parameter/probability table record: the key it was loaded under and its first value.
-// GNPRTB records hold 8 difficulty values from +0x24, SDPRTB records 8 x 2 (per side).
-struct ParamTableRecord {
-    unsigned char m_unk00[0x20];
-    int m_id;          // +0x20
-    int m_firstValue;  // +0x24
 };
 
 class Crc32;
@@ -29,7 +23,10 @@ void CreateTableRegistry();
 void DestroyTableRegistry();
 
 // Record `id` of table `tableType`, or null (also null when there is no registry).
-ParamTableRecord* FindTableRecord(int tableType, int id);
+TableEntry* FindTableRecord(int tableType, int id);
+// The record's first value (the word at +0x24: GNPRTB records hold 8 difficulty values from there, SDPRTB records 8 x 2
+// per side, the other tables a key or count).
+int TableRecordFirstValue(const TableEntry* record);
 // Adds every table to the checksum (the registry's per-table virtual 3), stopping at the first that fails.
 void ChecksumTables(Crc32* crc);
 

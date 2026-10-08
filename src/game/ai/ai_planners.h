@@ -196,6 +196,103 @@ public:
     void FindTargetShip();                           // 0x482910
 };
 
+// 0x61 Rescue (free planner that hunts for a character): VT 0x65a710
+class AiRescuePlanner : public AiFreePlanner {
+public:
+    AiRescuePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters);  // 0x47e130
+    virtual ~AiRescuePlanner();                      // 0: 0x47e110 (deleting), 0x47e1b0
+    virtual int GetSubtype() override { return 0; }  // 5: 0x6158b0
+    virtual int Virtual06() override;                // 6: 0x47e1d0
+    virtual int GetStallLimit() override { return 10; }  // 9: 0x4820c0
+    virtual void Virtual12(int event) override { HandleQuietEvent(event); }  // 12: 0x47d4d0
+    virtual int Virtual16() override { return 8; }   // 16: 0x47e1c0
+    virtual int Virtual17() override { return 4; }   // 17: 0x4047d0
+    virtual void Prepare() override;                 // 18: 0x47e270
+    virtual void Virtual19() override;               // 19: 0x47e3f0
+    virtual int ChooseTarget() override;             // 20: 0x47e620
+
+    void PickCandidate();                            // 0x47ecf0
+};
+
+// 0x62 free planner (every subtype but 4, which AiAbductionPlanner handles): VT 0x65a9f8
+class AiMission62Planner : public AiFreePlanner {
+public:
+    AiMission62Planner(int view, AiSideController* owner, AiCharacterRecordSet* characters);  // 0x483140
+    virtual ~AiMission62Planner();                   // 0: 0x483120 (deleting), 0x4831c0
+    virtual int GetSubtype() override { return 0; }  // 5: 0x6158b0
+    virtual int Virtual06() override;                // 6: 0x4831f0
+    virtual int GetStallLimit() override { return 10; }  // 9: 0x4820c0
+    virtual void Virtual12(int event) override { HandleQuietEvent(event); }  // 12: 0x47d4d0
+    virtual int Virtual16() override { return 6; }   // 16: 0x4831e0
+    virtual int Virtual17() override { return 4; }   // 17: 0x4047d0
+    virtual void Prepare() override;                 // 18: 0x483290
+    virtual void Virtual19() override;               // 19: 0x483410
+    virtual int ChooseTarget() override;             // 20: 0x483640
+
+    void PickCandidate();                            // 0x483d10
+};
+
+// 0x51 Diplomacy: VT 0x65a900
+class AiDiplomacyPlanner : public AiFreePlanner {
+public:
+    AiDiplomacyPlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters);  // 0x481460
+    virtual ~AiDiplomacyPlanner();                   // 0: 0x481440 (deleting), 0x4814e0
+    virtual int GetSubtype() override { return 0; }  // 5: 0x6158b0
+    virtual int Virtual06() override;                // 6: 0x481500
+    virtual int GetStallLimit() override { return 5; }  // 9: 0x404c20
+    virtual void Virtual12(int event) override { HandleEvent(event); }  // 12: 0x47c890
+    virtual int Virtual13() override;                // 13: 0x481eb0
+    virtual void OnFinished() override;              // 14: 0x481fe0
+    virtual int CanUse(const ObjectKey* character) override;  // 15: 0x481ef0
+    virtual int Virtual16() override { return 0xb; } // 16: 0x4814f0
+    virtual int Virtual17() override { return 0; }   // 17: 0x6158b0
+    virtual void Prepare() override;                 // 18: 0x4815a0
+    virtual void Virtual19() override { AssignNoMembers(); }  // 19: 0x47f500
+    virtual int ChooseTarget() override;             // 20: 0x481720
+};
+
+// 0x54 system chooser, subtype 5 (a free planner that remembers the sector it works in): VT 0x65a7b0
+class AiMission54State5Planner : public AiFreePlanner {
+public:
+    AiMission54State5Planner(int view, AiSideController* owner, AiCharacterRecordSet* characters);  // 0x47f550
+    virtual ~AiMission54State5Planner();             // 0: 0x47f530 (deleting), 0x47f5e0
+    virtual void Read(istream* in) override;         // 1: 0x47f630 (shared with AiEspionageState6Planner)
+    virtual void Write(ostream* out) override;       // 2: 0x47f650 (shared with AiEspionageState6Planner)
+    virtual int GetSubtype() override { return 5; }  // 5: 0x404c20
+    virtual int Virtual06() override;                // 6: 0x47f680
+    virtual int GetStallLimit() override { return 1000; }  // 9: 0x480df0
+    virtual void Virtual12(int event) override;      // 12: 0x47f720
+    virtual void OnFinished() override;              // 14: 0x47fe10
+    virtual int Virtual16() override { return 9; }   // 16: 0x47f670
+    virtual int Virtual17() override { return 0; }   // 17: 0x6158b0
+    virtual void Prepare() override;                 // 18: 0x47f790
+    virtual void Virtual19() override { MarkMembersAssigned(); }  // 19: 0x481100
+    virtual int ChooseTarget() override;             // 20: 0x47f970
+
+    ObjectKey m_sectorKey;                           // +0x70 the sector of m_x34 (flagged busy while the mission runs)
+};
+
+// 0x52 Espionage, subtype 6: VT 0x65a8a8
+class AiEspionageState6Planner : public AiFreePlanner {
+public:
+    AiEspionageState6Planner(int view, AiSideController* owner, AiCharacterRecordSet* characters);  // 0x480d10
+    virtual ~AiEspionageState6Planner();             // 0: 0x480cf0 (deleting), 0x480da0
+    virtual void Read(istream* in) override;         // 1: 0x47f630 (the code AiMission54State5Planner::Read has)
+    virtual void Write(ostream* out) override;       // 2: 0x47f650
+    virtual int GetSubtype() override { return 6; }  // 5: 0x4953a0
+    virtual int Virtual06() override;                // 6: 0x480e10
+    virtual int GetStallLimit() override { return 1000; }  // 9: 0x480df0
+    virtual void Virtual12(int event) override;      // 12: 0x480eb0
+    virtual void OnFinished() override;              // 14: 0x481420
+    virtual int Virtual16() override { return 10; }  // 16: 0x480e00
+    virtual int Virtual17() override { return 0; }   // 17: 0x6158b0
+    virtual void Prepare() override;                 // 18: 0x480f30
+    virtual void Virtual19() override { MarkMembersAssigned(); }  // 19: 0x481100
+    virtual int ChooseTarget() override;             // 20: 0x481110
+
+    ObjectKey m_sectorKey;                           // +0x70
+};
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_SIZE(AiResearchPlanner1, 0x70);
@@ -205,6 +302,11 @@ REB_ASSERT_SIZE(AiSubduePlanner, 0x70);
 REB_ASSERT_SIZE(AiRecruitPlanner, 0x70);
 REB_ASSERT_SIZE(AiIncitePlanner, 0x70);
 REB_ASSERT_SIZE(AiDsSabotagePlanner, 0x70);
+REB_ASSERT_SIZE(AiRescuePlanner, 0x70);
+REB_ASSERT_SIZE(AiMission62Planner, 0x70);
+REB_ASSERT_SIZE(AiDiplomacyPlanner, 0x70);
+REB_ASSERT_SIZE(AiMission54State5Planner, 0x74);
+REB_ASSERT_SIZE(AiEspionageState6Planner, 0x74);
 REB_ASSERT_SIZE(AiSabotagePlanner, 0x7c);
 REB_ASSERT_SIZE(AiMission54Planner, 0x7c);
 REB_ASSERT_SIZE(AiEspionagePlanner, 0x7c);

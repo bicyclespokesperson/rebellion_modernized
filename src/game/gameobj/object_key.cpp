@@ -328,6 +328,40 @@ ObjectRefNode* ObjectRefList::AddKey(ObjectKey key) {
     return node;
 }
 
+ObjectRefNode::ObjectRefNode() : IdNode(), m_flag(1), m_count(0) {
+    m_key.m_value = 0;
+}
+
+// BUG(original): the copy constructor leaves m_flag uninitialised.
+ObjectRefNode::ObjectRefNode(const ObjectRefNode& other) : IdNode(), m_count(other.m_count), m_key(other.m_key) {}
+
+ObjectRefNode::~ObjectRefNode() { REB_KEEP_VPTR_STORE(); }
+
+int ObjectRefNode::Read(istream* in) {
+    ReadValue32(in, &m_flag);
+    ReadValue32(in, &m_count);
+    return m_key.Read(in);
+}
+
+int ObjectRefNode::Write(ostream* out) {
+    WriteValue32(out, &m_flag);
+    WriteValue32(out, &m_count);
+    return m_key.Write(out);
+}
+
+int ObjectRefNode::Checksum(Crc32* crc) {
+    crc->AddInt(m_flag);
+    crc->AddInt(m_count);
+    m_key.Checksum(crc);
+    return 1;
+}
+
+int ObjectRefNode::Set(const ObjectKey& key) {
+    m_key = key;
+    m_count = 0;
+    return 1;
+}
+
 ObjectKey* ObjectRefNode::GetKey(ObjectKey* out) const {
     out->m_value = m_key.m_value;
     return out;

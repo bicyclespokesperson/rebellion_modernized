@@ -22,7 +22,7 @@ public:
     virtual int Checksum(Crc32* crc) override;                              // 7, shared stub 0x569860
     virtual int Validate() override;                                        // 8, shared jump stub 0x569870
     virtual int ApplyAll(NotifyContext* ctx) override;                      // 9, shared with GameRoot (0x513f20)
-    virtual void SetRecord(DatRecord* record) override;                     // 10, 0x50e1c0 (shared with Character)
+    virtual int SetRecord(DatRecord* record) override;                      // 10, 0x50e1c0 (shared with Character)
     virtual int Virtual16() override { return 1; }                          // 16, shared 0x40f340
     virtual int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, shared stub 0x5774f0
     virtual GameObj* CreateViewObject() override;                           // 57, 0x526600

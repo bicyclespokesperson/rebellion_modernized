@@ -2,7 +2,7 @@
 
 #include "ai/ai_agent_bases.h"
 #include "ai/ai_common.h"
-#include "ai/ai_planner_decl.h"
+#include "ai/ai_planner.h"
 #include "ai/ai_side_controller.h"
 #include "ai/ai_system_record.h"
 #include "core/checked_new.h"

@@ -197,7 +197,7 @@ int AllianceAdvisor::LoadCueScripts() {
     strstreambuf_freeze(iostream_access::BufferOf(name.get()), 0);
     const int error = GetFileError();
     if (error == 0) {
-        FUN_0049c6f0(m_cueTree, reinterpret_cast<istream*>(file.get()));
+        m_cueTree.Load(reinterpret_cast<istream*>(file.get()));
         CloseFileStream(file.get());
     }
     return error == 0;

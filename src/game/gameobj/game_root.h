@@ -67,14 +67,14 @@ public:
     int InitializeNextSystem(int* done, NotifyContext* ctx);       // 0x51a570, stage 0xf
     int PlaceHeadquarters(NotifyContext* ctx);                     // 0x51a640, stage 0x10
     int PlaceCoreSystem(NotifyContext* ctx);                       // 0x51a680
-    int PlaceYavinSystem(NotifyContext* ctx);                      // 0x51a870
+    int PlaceCoruscantSystem(NotifyContext* ctx);                      // 0x51a870
     int SeedInitialForces(NotifyContext* ctx);                     // 0x51aa50, stage 0x12
     int SeedSystemTroops(NotifyContext* ctx);                      // 0x51ab20
-    int SeedCoruscantForces(NotifyContext* ctx);                   // 0x51acb0
+    int SeedYavinForces(NotifyContext* ctx);                   // 0x51acb0
     int SeedKey154Forces(NotifyContext* ctx);                      // 0x51ad90
-    int SeedYavinForces(NotifyContext* ctx);                       // 0x51ae20
+    int SeedCoruscantForces(NotifyContext* ctx);                       // 0x51ae20
     int SeedStartingFleet(NotifyContext* ctx);                     // 0x51af00
-    int SeedYavinFleet(NotifyContext* ctx);                        // 0x51b080
+    int SeedCoruscantFleet(NotifyContext* ctx);                        // 0x51b080
     int SeedAllianceReserves(NotifyContext* ctx);                  // 0x51b1b0
     int SeedEmpireReserves(NotifyContext* ctx);                    // 0x51b1d0
     int SeedSideReserves(int side, NotifyContext* ctx);            // 0x51b1f0

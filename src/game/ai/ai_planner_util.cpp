@@ -1,5 +1,8 @@
 #include "ai/ai_planner_util.h"
 
+#include "character/character.h"
+#include "fleet/fleet_iterator.h"
+
 using ai::IsSystemKey;
 using ai::KeyInFamilies;
 using ai::KeyOfNode;
@@ -151,6 +154,78 @@ int NoteTargetSystem(AiFreePlanner* planner, uint32_t systemMask) {
         if ((system->m_flags30.m_value & 1) != 0 && (system->m_flags30.m_value & 0x200) == 0) planner->m_destination = planner->m_x34;
     }
     return result;
+}
+
+bool IsCharacterTargetKey(const ObjectKey& key) { return KeyInFamilies(key, 0x30, 0x40) != 0; }
+
+ObjectKey SystemOfCharacter(AiFreePlanner* planner, const AiCharacterRecord* record) {
+    ObjectKey cursor = record->m_location;
+    bool done = false;
+    while (!IsSystemKey(cursor) && !done) {
+        GameObjNotifier* object = GetObjectInFamilies_01_ff(planner->m_view, &cursor);
+        if (object) {
+            if (object->m_parent == nullptr) {
+                cursor.Reset();
+                done = true;
+            } else {
+                cursor = ai::KeyOfObject(object->m_parent);
+            }
+        }
+    }
+    return cursor;
+}
+
+namespace {
+
+void AddUsableCharacters(AiFreePlanner* planner, GameObjNotifier* container, const CharacterHunt& hunt, ObjectKeySet& candidates) {
+    CharacterIterator characters(container, 1);
+    for (characters.Begin(); characters.m_current; characters.Advance()) {
+        const ObjectKey key = ai::KeyOfObject(characters.m_current);
+        AiCharacterRecord* record = static_cast<AiCharacterRecord*>(planner->m_characters->Find(&key));
+        if (record && (record->m_flags.m_value & hunt.characterFlagsA) != 0 && (record->m_flags.m_value & hunt.characterFlagsB) != 0) {
+            ObjectKey scratch;
+            ObjectKeyNode* node = NewOrNull<ObjectKeyNode>(*record->GetRecordKey(&scratch));
+            if (node) candidates.Add(node);
+        }
+    }
+}
+
+}  // namespace
+
+void ChooseCandidateTarget(AiFreePlanner* planner, const CharacterHunt& hunt) {
+    ObjectKeySet candidates;
+    if (!IsSystemKey(planner->m_x34)) return;
+    GameObjNotifier* systemObject = GetObjectInFamilies_90_98(planner->m_view, &planner->m_x34);
+    AiSystemEval* system = planner->m_owner->m_systems.FindEval(planner->m_x34);
+    if (systemObject && system) {
+        if ((system->m_flags2c.m_value & hunt.characterSystemMask) != 0)
+            AddUsableCharacters(planner, systemObject, hunt, candidates);
+        if ((system->m_flags2c.m_value & hunt.shipSystemMask) != 0) {
+            FleetIterator fleets(systemObject, 1);
+            for (fleets.Begin(); fleets.m_current; fleets.Advance()) {
+                AiFleetEval* fleet = planner->m_owner->m_fleets.FindEval(ai::KeyOfObject(fleets.m_current));
+                if (fleet && (fleet->m_flags.m_value & 1) == 0 && (fleet->m_flags.m_value & hunt.fleetMask) != 0) {
+                    for (ObjectKeyNode* node = fleet->m_shipKeys.First(); node; node = ai::NextNode(node)) {
+                        const ObjectKey shipKey = ai::KeyOfNode(node);
+                        GameObjNotifier* ship = GetObjectInFamilies_14_1c(planner->m_view, &shipKey);
+                        if (ship) AddUsableCharacters(planner, ship, hunt, candidates);
+                    }
+                }
+            }
+        }
+    }
+    const uint16_t count = static_cast<uint16_t>(candidates.Count());
+    if (count == 0) return;
+    int steps = SessionRandomNext(count);
+    ObjectKeyNode* node = candidates.First();
+    if (node) {
+        do {
+            if (steps < 1) break;
+            node = ai::NextNode(node);
+            --steps;
+        } while (node);
+        if (node) planner->m_target = ai::KeyOfNode(node);
+    }
 }
 
 }  // namespace ai_planner

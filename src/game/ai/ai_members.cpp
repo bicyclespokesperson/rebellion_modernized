@@ -6,7 +6,6 @@
 #include "ai/ai_agents.h"
 #include "ai/ai_character_records.h"
 #include "ai/ai_common.h"
-#include "ai/ai_planner_decl.h"
 #include "ai/ai_planners.h"
 #include "ai/ai_side_controller.h"
 #include "ai/ai_system_record.h"
@@ -583,17 +582,11 @@ void AiPlannerSet::CallSlot3(const int* key, int argument) {
 }
 
 AiMissionPlanner* AiPlannerSet::CreatePlanner(int kind, int subtype) {
-    using Constructor = AiMissionPlanner*(__thiscall*)(void*, int, AiSideController*, AiCharacterRecordSet*);
-    auto make = [&](size_t size, Constructor constructor) -> AiMissionPlanner* {
-        void* memory = ::operator new(size);
-        if (!memory) return nullptr;
-        return constructor(memory, m_view, m_owner, m_characters);
-    };
     switch (kind) {
         case 0x51:
-            return make(0x70, FUN_00481460);
+            return NewOrNull<AiDiplomacyPlanner>(m_view, m_owner, m_characters);
         case 0x52:
-            if (subtype == 6) return make(0x74, FUN_00480d10);
+            if (subtype == 6) return NewOrNull<AiEspionageState6Planner>(m_view, m_owner, m_characters);
             return NewOrNull<AiEspionagePlanner>(m_view, m_owner, m_characters);
         case 0x53:
             if (subtype == 1) return NewOrNull<AiResearchPlanner1>(m_view, m_owner, m_characters);
@@ -601,7 +594,7 @@ AiMissionPlanner* AiPlannerSet::CreatePlanner(int kind, int subtype) {
             if (subtype == 3) return NewOrNull<AiResearchPlanner3>(m_view, m_owner, m_characters);
             return nullptr;
         case 0x54:
-            if (subtype == 5) return make(0x74, FUN_0047f550);
+            if (subtype == 5) return NewOrNull<AiMission54State5Planner>(m_view, m_owner, m_characters);
             return NewOrNull<AiMission54Planner>(m_view, m_owner, m_characters);
         case 0x55:
             return NewOrNull<AiRecruitPlanner>(m_view, m_owner, m_characters);
@@ -610,9 +603,9 @@ AiMissionPlanner* AiPlannerSet::CreatePlanner(int kind, int subtype) {
         case 0x57:
             return NewOrNull<AiSubduePlanner>(m_view, m_owner, m_characters);
         case 0x61:
-            return make(0x70, FUN_0047e130);
+            return NewOrNull<AiRescuePlanner>(m_view, m_owner, m_characters);
         case 0x62:
-            if (subtype != 4) return make(0x70, FUN_00483140);
+            if (subtype != 4) return NewOrNull<AiMission62Planner>(m_view, m_owner, m_characters);
             return NewOrNull<AiAbductionPlanner>(m_view, m_owner, m_characters);
         case 0x63:
             return NewOrNull<AiAbductionPlanner>(m_view, m_owner, m_characters);

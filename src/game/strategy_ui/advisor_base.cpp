@@ -1,6 +1,7 @@
 #include <new>
 
 #include "app/player_controller_decl.h"
+#include "ai/ai_advisor_tasks.h"
 #include "app/rebapp_globals.h"
 #include "core/stream_io.h"
 #include "core/vptr_store.h"
@@ -29,8 +30,8 @@ constexpr int kPrimaryTaskId = 0x17;
 constexpr int kTaskIdA = 0x14;
 constexpr int kTaskIdB = 0x15;
 
-int TaskState(AdvisorTask* task) { return reinterpret_cast<PersistentInt*>(&task->m_value)->Get(); }
-void SetTaskStateRaw(AdvisorTask* task, int value) { task->m_value = value; }
+int TaskState(AdvisorTaskBase* task) { return task->m_flags.Get(); }
+void SetTaskStateRaw(AdvisorTaskBase* task, int value) { task->m_flags.m_value = value; }
 int NoticeKind(IdValueNode* notice) { return notice->m_value & kNoticeKindMask; }
 
 }  // namespace
@@ -47,9 +48,6 @@ void AdvisorInitStatics() {                                          // 0x4392b0
 // ---- Construction / persistence -------------------------------------------------------------------------------
 
 AdvisorBase::AdvisorBase(int side, HumanPlayer* player) : m_flags(0) {
-    FUN_0049dcf0(m_taskTree);
-    FUN_0049c780(m_aiHelper);
-    FUN_0049c6a0(m_cueTree);
     m_unk04 = 1;
     m_enabled = 1;
     m_state = 1;
@@ -58,8 +56,8 @@ AdvisorBase::AdvisorBase(int side, HumanPlayer* player) : m_flags(0) {
     m_currentTask = nullptr;
     m_unk38 = 0;
     m_side = side;
-    FUN_0049c880(m_aiHelper, side);
-    *reinterpret_cast<int*>(m_taskTree + 0xc) = side;
+    m_aiHelper.Init(side);
+    m_taskTree.m_view = side;
     m_unk160 = 0;
     g_advisorNagCount = 0;
     m_cueCount = 0;
@@ -94,9 +92,6 @@ AdvisorBase::~AdvisorBase() {
         ::operator delete(m_cueCooldown);
         m_cueCooldown = nullptr;
     }
-    FUN_0049c6e0(m_cueTree);
-    FUN_0049c810(m_aiHelper);
-    FUN_0049dd30(m_taskTree);
     REB_KEEP_VPTR_STORE();
 }
 
@@ -112,12 +107,12 @@ void AdvisorBase::Read(istream* in, HumanPlayer* player) {
     ReadValuePersistentInt(in, &g_humanUiFlags);
     ReadValue32(in, &g_advisorPendingMode);
     ReadValue32(in, &g_advisorPendingArg);
-    FUN_0049c8a0(m_aiHelper, in);
-    FUN_0049c6f0(m_cueTree, in);
+    m_aiHelper.Load(in);
+    m_cueTree.Load(in);
     ReadValue32(in, &m_unk38);
-    FUN_0049dd50(m_taskTree, in, m_aiHelper);
+    m_taskTree.Load(in, &m_aiHelper);
     ReadValue32(in, &taskId);
-    m_currentTask = static_cast<AdvisorTask*>(Tasks()->FindById(taskId));
+    m_currentTask = static_cast<AdvisorTaskBase*>(Tasks()->FindById(taskId));
     ReadValue8(in, &m_mood);
     ReadValue32(in, &m_unk160);
     ReadValue32(in, &g_advisorNagCount);
@@ -140,7 +135,7 @@ void AdvisorBase::Read(istream* in, HumanPlayer* player) {
     m_flags.Read(in);
     m_notices.Clear();
     m_notices.Read(in);
-    m_primaryTask = static_cast<AdvisorTask*>(Tasks()->FindById(kPrimaryTaskId));
+    m_primaryTask = static_cast<AdvisorTask23*>(Tasks()->FindById(kPrimaryTaskId));
     m_primaryTask->m_advisor = this;
 }
 
@@ -155,10 +150,10 @@ void AdvisorBase::Write(ostream* out) {
     WriteValuePersistentInt(out, &g_humanUiFlags);
     WriteValue32(out, &g_advisorPendingMode);
     WriteValue32(out, &g_advisorPendingArg);
-    FUN_0049c9f0(m_aiHelper, out);
-    FUN_004e5210(m_cueTree, out);
+    m_aiHelper.Save(out);
+    m_cueTree.Save(out);
     WriteValue32(out, &m_unk38);
-    FUN_0049de40(m_taskTree, out);
+    m_taskTree.Save(out);
     if (m_currentTask) taskId = m_currentTask->m_id;
     WriteValue32(out, &taskId);
     WriteValue8(out, &m_mood);
@@ -186,15 +181,15 @@ int AdvisorBase::StepStartup() {
         m_state = 2;
         break;
     case 2:
-        if (FUN_0049cb30(m_aiHelper) != 0) m_state = 3;
+        if (m_aiHelper.Step() != 0) m_state = 3;
         break;
     case 3: {
-        FUN_0049df20(m_taskTree, kTaskIdA, m_aiHelper);
-        FUN_0049df20(m_taskTree, kTaskIdB, m_aiHelper);
-        FUN_0049df20(m_taskTree, kPrimaryTaskId, m_aiHelper);
+        m_taskTree.CreateTask(kTaskIdA, &m_aiHelper);
+        m_taskTree.CreateTask(kTaskIdB, &m_aiHelper);
+        m_taskTree.CreateTask(kPrimaryTaskId, &m_aiHelper);
         m_unk18c = kInitialBatch;
         ResetTasks();
-        m_primaryTask = static_cast<AdvisorTask*>(Tasks()->FindById(kPrimaryTaskId));
+        m_primaryTask = static_cast<AdvisorTask23*>(Tasks()->FindById(kPrimaryTaskId));
         m_primaryTask->m_advisor = this;
         m_state = 5;
         return 1;
@@ -206,37 +201,37 @@ int AdvisorBase::StepStartup() {
 int AdvisorBase::StepTasks() {
     int result = 0;
     if (m_state == 4) {
-        AdvisorTask* task = m_currentTask;
+        AdvisorTaskBase* task = m_currentTask;
         if (!task) {
-            m_currentTask = FUN_0049df70(m_taskTree);
+            m_currentTask = m_taskTree.SelectNext();
             if (m_currentTask) return 0;
         } else if (m_unk188 < m_unk18c || task->m_id == static_cast<uint32_t>(kPrimaryTaskId)) {
-            task->m_unk30 = 0;
-            SidedMessage* order = task->NextOrder();
+            task->m_count = 0;
+            OrderBase* order = task->Step();
             if (order) {
                 IntPair status;
                 if (order->CheckValid(&status) == 0) {
-                    task->OnOrderRefused(&status, order);
+                    task->Refused(reinterpret_cast<int*>(&status), order);
                 } else {
                     m_player->SubmitMessage(reinterpret_cast<PlayerMessage*>(order));
                     if (task->m_id != static_cast<uint32_t>(kPrimaryTaskId)) ++m_unk188;
                 }
             }
-            if (task->m_done == 0) return 0;
+            if (task->m_finished == 0) return 0;
             if (TaskState(task) != kTaskReady) SetTaskStateRaw(task, 0);
             m_currentTask = nullptr;
         }
         m_state = 5;
         result = 1;
     } else if (m_state == 5) {
-        if (FUN_0049cc80(m_aiHelper) != 0) {
+        if (m_aiHelper.AnalyzeStep() != 0) {
             m_state = 6;
             return 0;
         }
     } else if (m_state == 6) {
-        if (!m_currentTask) m_currentTask = static_cast<AdvisorTask*>(Tasks()->First());
-        m_currentTask->Advance();
-        m_currentTask = static_cast<AdvisorTask*>(m_currentTask->m_successor);
+        if (!m_currentTask) m_currentTask = static_cast<AdvisorTaskBase*>(Tasks()->First());
+        m_currentTask->Evaluate();
+        m_currentTask = static_cast<AdvisorTaskBase*>(m_currentTask->m_successor);
         if (!m_currentTask) {
             m_state = 4;
             return 0;
@@ -267,32 +262,32 @@ void AdvisorBase::ResetSpeech() {
 
 int AdvisorBase::IsBusy() { return m_primaryTask && TaskState(m_primaryTask) == kTaskReady; }
 
-void AdvisorBase::SetTaskState(int value) {
-    if (m_primaryTask) FUN_0049e380(m_primaryTask, value);
+void AdvisorBase::SetTaskState(const ObjectKey* target) {
+    if (m_primaryTask) m_primaryTask->SetTarget(target);
 }
 
 void AdvisorBase::SelectTaskMode(int command) {
     if (m_enabled == 0) return;
     if (command == 0x110) {
-        FUN_0049e360(m_primaryTask, 2);
+        m_primaryTask->Start(2);
     } else if (command == 0x111) {
-        FUN_0049e360(m_primaryTask, 3);
+        m_primaryTask->Start(3);
     } else if (command == 0x112) {
-        FUN_0049e360(m_primaryTask, 1);
+        m_primaryTask->Start(1);
     }
 }
 
 void AdvisorBase::ToggleTask(unsigned command) {
-    AdvisorTask* task = nullptr;
+    AdvisorTaskBase* task = nullptr;
     unsigned toggledOn = command;
     unsigned toggledOff = command;
     if (m_enabled != 0) {
         if (command == 0x115) {
-            task = static_cast<AdvisorTask*>(Tasks()->FindById(kTaskIdB));
+            task = static_cast<AdvisorTaskBase*>(Tasks()->FindById(kTaskIdB));
             toggledOn = 0x100;
             toggledOff = 0x10;
         } else if (command == 0x116) {
-            task = static_cast<AdvisorTask*>(Tasks()->FindById(kTaskIdA));
+            task = static_cast<AdvisorTaskBase*>(Tasks()->FindById(kTaskIdA));
             toggledOn = 0x200;
             toggledOff = 0x20;
         }
@@ -314,12 +309,12 @@ void AdvisorBase::ToggleTask(unsigned command) {
 }
 
 int AdvisorBase::IsTaskReady(int command) {
-    AdvisorTask* task = nullptr;
+    AdvisorTaskBase* task = nullptr;
     if (m_enabled != 0) {
         if (command == 0x115) {
-            task = static_cast<AdvisorTask*>(Tasks()->FindById(kTaskIdB));
+            task = static_cast<AdvisorTaskBase*>(Tasks()->FindById(kTaskIdB));
         } else if (command == 0x116) {
-            task = static_cast<AdvisorTask*>(Tasks()->FindById(kTaskIdA));
+            task = static_cast<AdvisorTaskBase*>(Tasks()->FindById(kTaskIdA));
         }
     }
     if (task && TaskState(task) != kTaskReady) return 1;
@@ -445,8 +440,8 @@ void AdvisorBase::SpeakTopic(unsigned topic) {
     }
 }
 
-void AdvisorBase::SetAiHelperFlag(int value) { FUN_0049cd70(m_aiHelper, value); }
-void AdvisorBase::ClearAiHelperFlag(int value) { FUN_0049cd90(m_aiHelper, value); }
+void AdvisorBase::SetAiHelperFlag(int value) { m_aiHelper.SetFocusKey(reinterpret_cast<const uint32_t*>(static_cast<intptr_t>(value))); }
+void AdvisorBase::ClearAiHelperFlag(int value) { m_aiHelper.SetFocusValue(value); }
 
 void AdvisorBase::ResetTasks() {
     for (AvlNode* node = Tasks()->First(); node; node = node->m_successor) static_cast<IdValueNode*>(node)->m_value = kTaskReady;

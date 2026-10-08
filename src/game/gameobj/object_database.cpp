@@ -8,14 +8,6 @@
 // Data-table record for a key (0x51cab0).
 DatRecord* FUN_0051cab0(ObjectKey* key);
 
-// ObjectDatabase's own methods (0x585b20-0x585e80) belong to the timer/event module.
-ObjectDatabase* __thiscall FUN_00585b20(void* storage);
-int __thiscall FUN_00585b70(ObjectDatabase* db, GameObjNotifier* object);
-int __thiscall FUN_00585c70(ObjectDatabase* db, GameObjNotifier* object);
-int __thiscall FUN_00585d90(ObjectDatabase* db);
-ObjectEntry* __thiscall FUN_00585dc0(ObjectDatabase* db, const ObjectKey* key);
-ObjectEntry* __thiscall FUN_00585e40(ObjectDatabase* db, const FamilyRange* range);
-
 namespace {
 constexpr uint32_t kGameRootId = 3;
 constexpr FamilyRange kGameRootFamilies(family::kGameRoot, family::kGameRoot + 1);
@@ -47,7 +39,7 @@ ObjectKey* ObjectEntry::GetKey(ObjectKey* out) const {
     return out;
 }
 
-void ObjectEntry::AddObject(GameObjNotifier* object) {
+int ObjectEntry::AddObject(GameObjNotifier* object) {
     bool matches = false;
     if (object) matches = m_family == object->GetFamily();
     // BUG(original): the view side is read from `object` before it is known to be non-null.
@@ -56,10 +48,12 @@ void ObjectEntry::AddObject(GameObjNotifier* object) {
     if (matches && m_objects[view] == nullptr) {
         m_objects[view] = object;
         object->m_entry = this;
+        return 1;
     }
+    return 0;
 }
 
-void ObjectEntry::RemoveObject(GameObjNotifier* object) {
+int ObjectEntry::RemoveObject(GameObjNotifier* object) {
     bool matches = false;
     if (object) matches = m_family == object->GetFamily();
     // BUG(original): the view side is read from `object` before it is known to be non-null.
@@ -68,7 +62,9 @@ void ObjectEntry::RemoveObject(GameObjNotifier* object) {
     if (matches && object == m_objects[view]) {
         m_objects[view] = nullptr;
         object->m_entry = nullptr;
+        return 1;
     }
+    return 0;
 }
 
 GameObjNotifier* ObjectEntry::GetObject(int view) const {
@@ -93,6 +89,115 @@ ObjectEntry* ObjectEntry::NextInRange(const FamilyRange* range) const {
     ObjectEntry* next = static_cast<ObjectEntry*>(m_successor);
     if (next && range->m_first <= next->m_family && next->m_family < range->m_second) return next;
     return nullptr;
+}
+
+// ---- ObjectDatabase ----------------------------------------------------------------------------------------
+
+ObjectDatabase::ObjectDatabase() : IdAvlTree(), m_ok(1) {}
+
+ObjectDatabase::~ObjectDatabase() { REB_KEEP_VPTR_STORE(); }
+
+int ObjectDatabase::IsLess(AvlNode* a, AvlNode* b) {
+    bool less = false;
+    if (a && b) {
+        ObjectKey keyA;
+        ObjectKey keyB;
+        less = static_cast<ObjectEntry*>(a)->GetKey(&keyA)->m_value < static_cast<ObjectEntry*>(b)->GetKey(&keyB)->m_value;
+    }
+    return less;
+}
+
+int ObjectDatabase::AddObject(GameObjNotifier* object) {
+    if (!object) return 0;
+    ObjectKey key;
+    object->GetKey(&key);
+    ObjectEntry* entry = FindEntry(&key);
+    if (!entry) {
+        entry = NewOrNull<ObjectEntry>();
+        if (!entry) return 0;
+        entry->SetId(object->m_id);
+        entry->m_family = object->GetFamily();
+        AddWithId(entry);
+    }
+    return entry->AddObject(object);
+}
+
+int ObjectDatabase::RemoveObject(GameObjNotifier* object) {
+    if (!object) return 0;
+    ObjectKey key;
+    object->GetKey(&key);
+    ObjectEntry* entry = FindEntry(&key);
+    if (!entry) return 0;
+    int result = entry->RemoveObject(object);
+    if (result) {
+        bool empty = true;
+        for (int view = 0; view < 3; ++view) {
+            if (entry->GetObject(view)) empty = false;
+        }
+        if (empty) result = DeleteEntry(entry);
+    }
+    return result;
+}
+
+int ObjectDatabase::DetachEntry(AvlNode* entry) {
+    const int present = entry != nullptr;
+    if (present) Remove(entry);
+    return present;
+}
+
+int ObjectDatabase::DeleteEntry(AvlNode* entry) {
+    const int detached = DetachEntry(entry);
+    if (detached && entry) delete entry;
+    return detached;
+}
+
+int ObjectDatabase::AreAllLinked() {
+    int linked = 1;
+    for (AvlNode* node = First(); node && linked; node = node->m_successor) linked = static_cast<ObjectEntry*>(node)->IsFullyLinked();
+    return linked;
+}
+
+ObjectEntry* ObjectDatabase::FindEntry(const ObjectKey* key) {
+    AvlNode* node = m_root;
+    bool found = false;
+    while (node && !found) {
+        ObjectKey nodeKey;
+        if (static_cast<ObjectEntry*>(node)->GetKey(&nodeKey)->m_value < key->m_value) {
+            node = node->m_right;
+        } else if (key->m_value < static_cast<ObjectEntry*>(node)->GetKey(&nodeKey)->m_value) {
+            node = node->m_left;
+        } else {
+            found = true;
+        }
+    }
+    return static_cast<ObjectEntry*>(node);
+}
+
+ObjectEntry* ObjectDatabase::FindEntryInRange(const FamilyRange* range) {
+    const uint32_t probe = (range->m_first << 24) | 1;
+    AvlNode* node = m_root;
+    AvlNode* last = nullptr;
+    bool found = false;
+    while (node && !found) {
+        ObjectKey nodeKey;
+        last = node;
+        if (static_cast<ObjectEntry*>(node)->GetKey(&nodeKey)->m_value < probe) {
+            node = node->m_right;
+        } else if (probe < static_cast<ObjectEntry*>(node)->GetKey(&nodeKey)->m_value) {
+            node = node->m_left;
+        } else {
+            found = true;
+        }
+    }
+    if (!node && last) {
+        ObjectKey lastKey;
+        if (static_cast<ObjectEntry*>(last)->GetKey(&lastKey)->m_value < probe) last = last->m_successor;
+        if (last) {
+            const uint32_t family = static_cast<ObjectEntry*>(last)->m_family;
+            if (range->m_first <= family && family < range->m_second) node = last;
+        }
+    }
+    return static_cast<ObjectEntry*>(node);
 }
 
 // ---- ChildList ---------------------------------------------------------------------------------------------
@@ -198,7 +303,7 @@ GameObjNotifier* GetFirstMasterObjectInRange(const FamilyRange* range) { return 
 GameObjNotifier* LookupObject(const ObjectKey* key, int view) {
     ObjectEntry* entry = reinterpret_cast<ObjectEntry*>(const_cast<ObjectKey*>(key));
     // BUG(original): with no database the key itself is used as the entry.
-    if (g_objectDatabase) entry = FUN_00585dc0(g_objectDatabase, key);
+    if (g_objectDatabase) entry = g_objectDatabase->FindEntry(key);
     if (!entry) {
         if (key->IsSet() && g_unresolvedKeys && g_unresolvedKeys->m_root) g_unresolvedKeys->Find(key);
         return nullptr;
@@ -209,7 +314,7 @@ GameObjNotifier* LookupObject(const ObjectKey* key, int view) {
 GameObjNotifier* FindObjectInRange(const FamilyRange* range, int view, int resolve) {
     GameObjNotifier* object = nullptr;
     if (g_objectDatabase) {
-        ObjectEntry* entry = FUN_00585e40(g_objectDatabase, range);
+        ObjectEntry* entry = g_objectDatabase->FindEntryInRange(range);
         if (entry && entry->IsFullyLinked()) {
             object = entry->GetObject(view);
             if (resolve && object->IsUnderSideRoot()) object = FindNextObjectInRange(object, range, 1);
@@ -297,20 +402,19 @@ int CollectKeyDependencies(void* context, ObjectKeyValueSet* keys, ObjectKeyValu
 
 int RegisterObject(GameObjNotifier* object) {
     const bool haveDatabase = g_objectDatabase != nullptr;
-    if (haveDatabase) FUN_00585b70(g_objectDatabase, object);
+    if (haveDatabase) g_objectDatabase->AddObject(object);
     return haveDatabase;
 }
 
 int UnregisterObject(GameObjNotifier* object) {
     const bool haveDatabase = g_objectDatabase != nullptr;
-    if (haveDatabase) FUN_00585c70(g_objectDatabase, object);
+    if (haveDatabase) g_objectDatabase->RemoveObject(object);
     return haveDatabase;
 }
 
 void CreateObjectDatabase() {
     DestroyObjectDatabase();
-    void* memory = ::operator new(sizeof(ObjectDatabase));
-    g_objectDatabase = memory ? FUN_00585b20(memory) : nullptr;
+    g_objectDatabase = NewOrNull<ObjectDatabase>();
     if (!g_objectDatabase) DestroyObjectDatabase();
 }
 
@@ -323,7 +427,7 @@ void DestroyObjectDatabase() {
 
 int CheckObjectDatabase() {
     if (!g_objectDatabase) return 0;
-    return FUN_00585d90(g_objectDatabase);
+    return g_objectDatabase->AreAllLinked();
 }
 
 int NoteUnresolvedKeyOf(GameObjNotifier* object) {

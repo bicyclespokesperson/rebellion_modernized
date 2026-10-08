@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
 
+#include "ai/ai_advisor_tasks.h"
+#include "ai/ai_galaxy_analysis.h"
 #include "core/containers.h"
 #include "core/layout.h"
 #include "core/stream_io.h"
@@ -8,25 +10,10 @@
 #include "gameobj/status_code.h"
 
 class HumanPlayer;
+class ObjectKey;
 class OrderBase;
 class SidedMessage;
 class PlayerDispatch;
-
-// An entry of the advisor's task tree (IdValueNode at +0x1c: its state, 2 = ready). The concrete task classes belong
-// to the AI helper module (0x49c6a0-0x49ecb0); the advisor only drives them through these virtuals.
-class AdvisorTask : public IdValueNode {
-public:
-    virtual void Virtual03() = 0;
-    virtual void Advance() = 0;                                              // slot 4
-    virtual SidedMessage* NextOrder() = 0;                                   // slot 5: the order to give, or null
-    virtual void OnOrderRefused(IntPair* status, SidedMessage* order) = 0;  // slot 6
-
-    int m_done;          // +0x20 non-zero when the task has nothing more to do
-    uint8_t m_unk24[0xc];  // +0x24
-    int m_unk30;         // +0x30 cleared before each NextOrder
-    uint8_t m_unk34[0x20];  // +0x34
-    class AdvisorBase* m_advisor;  // +0x54
-};
 
 // The advisor droid of a side (0x194 bytes, VT 0x658e10): the character that talks to the player (C-3PO / R2-D2
 // style scripts), owned by the human player (m_player, +0x144). The base class holds the task machinery and the
@@ -61,7 +48,7 @@ public:
     void SpeakIfIdle();                     // 0x439bc0
     void ResetSpeech();                     // 0x439cb0
     int IsBusy();                           // 0x439cd0
-    void SetTaskState(int value);           // 0x439cf0
+    void SetTaskState(const ObjectKey* target);  // 0x439cf0: tells the primary task what the player picked
     void SelectTaskMode(int command);       // 0x439d10
     void ToggleTask(unsigned command);      // 0x439d60
     int IsTaskReady(int command);           // 0x439e30
@@ -78,20 +65,19 @@ public:
 
     uint32_t& CueDue(unsigned byteOffset) { return *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(m_cueDue) + byteOffset); }
 
-    IdAvlTree* Tasks() { return reinterpret_cast<IdAvlTree*>(m_taskTree); }
-    IdAvlTree* Cues() { return reinterpret_cast<IdAvlTree*>(m_cueTree); }
-    void* AiHelper() { return m_aiHelper; }
+    IdAvlTree* Tasks() { return &m_taskTree; }
+    IdAvlTree* Cues() { return &m_cueTree; }
 
     int m_unk04;                    // +0x04 1
     PlayerDispatch* m_dispatch;     // +0x08 set by the human player
     int m_state;                    // +0x0c start-up / update state machine (1..6)
     int m_enabled;                  // +0x10 the droid is switched on
     int m_side;                     // +0x14
-    alignas(4) uint8_t m_taskTree[0x1c];  // +0x18 AI helper task tree (ctor 0x49dcf0)
-    AdvisorTask* m_currentTask;     // +0x34 the task being stepped by StepTasks
+    AdvisorTaskManager m_taskTree;  // +0x18 the advisor's tasks (the three task types 0x14, 0x15 and 0x17)
+    AdvisorTaskBase* m_currentTask; // +0x34 the task being stepped by StepTasks
     int m_unk38;                    // +0x38
-    alignas(4) uint8_t m_aiHelper[0xfc];  // +0x3c AI helper object (ctor 0x49c780)
-    alignas(4) uint8_t m_cueTree[0xc];    // +0x138 tree of cue scripts (ctor 0x49c6a0)
+    AiGalaxyAnalysis m_aiHelper;    // +0x3c what the tasks know of the galaxy
+    AdvisorEntryTree m_cueTree;     // +0x138 tree of cue scripts (DroidScripts)
     HumanPlayer* m_player;          // +0x144
     uint32_t m_lastSpeechTime;      // +0x148
     int m_unk14c;                   // +0x14c 8
@@ -105,7 +91,7 @@ public:
     IntPair m_lastStatus;           // +0x174 the last refusal reason that was reacted to
     int m_statusRepeat;             // +0x17c
     const void* m_refusedOrder;     // +0x180 the order that was last refused (compared by identity)
-    AdvisorTask* m_primaryTask;     // +0x184 the task with id 0x17
+    AdvisorTask23* m_primaryTask;   // +0x184 the task with id 0x17 (what the player asked for)
     int m_unk188;                   // +0x188
     int m_unk18c;                   // +0x18c
     int m_unk190;                   // +0x190
@@ -191,8 +177,6 @@ extern int g_advisorFlushAll;         // 0x6b28d4
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AdvisorTask, 0x58);
-REB_ASSERT_OFFSET(AdvisorTask, m_advisor, 0x54);
 REB_ASSERT_SIZE(AdvisorBase, 0x194);
 REB_ASSERT_OFFSET(AdvisorBase, m_state, 0x0c);
 REB_ASSERT_OFFSET(AdvisorBase, m_taskTree, 0x18);

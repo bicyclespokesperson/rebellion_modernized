@@ -3,31 +3,18 @@
 Cleanup and loose ends reported by module agents. Remove an item when it is done.
 
 ## Code cleanup
-- `core/string_map.cpp`, `core/stream_io.cpp`: call String/StringCursor methods by `FUN_` names (written before the
-  String module merged) — switch to the real methods.
-- `data/`: factories and the "Table" class are registered through `FUN_` original addresses (e.g. `FUN_005950e0`) to
-  keep pointer identity; since patch_vtables now rewrites taken function addresses, use `&Function` directly.
-- `data/probability_table.h`: `ParamTableRecord` is a stand-in struct; replace with the real record class.
-- `data/`: `SideParamTableEntry::ParseText`/`Checksum` duplicate their 1-D helpers.
+- `gameobj/factory_registries.cpp` registers its 148 factories through `FUN_` declarations; 145 of the addresses have real names in
+  `symbols.csv` (`CreateFleet`, `Sector::Create`, ...): declare those and take their addresses.
 
 - `ObjectKeyNode`/`ObjectKeyValueNode`/`IntPairNode` Read/Write are declared `void`; the originals return their
   last callee's EAX (stream helper result). Check whether any caller uses the value; if so make them `int`.
 
-- `Character::SetRecord` (0x50e1c0) returns int in the original but the base declares `void`.
 - `CharacterData`/`RoleData` (character/character_data.h) are reconstructed; `RoleRecord` (role.h) is still provisional.
 
-- `mission/mission_timers_decl.h` and `mission_encounter_decl.h`: stand-ins `TimerBase`, `NotifEventBase`,
-  `MajorCharacterIterator` duplicate events' real `TimerEvent`, `SourceEvent`, `CharacterRangeIterator` (different
-  member names); mission code calls `Command::Read/Write/Checksum` (events: `ReadCommand`...). They link through
-  `symbols/aliases.csv` — port the mission code to the real classes, then delete those alias rows. (The CharacterMgr
-  stand-ins are gone: callers use `CharacterMgr` through `GetCharacterManager()`.)
-- `galaxy/game_setup_stages.cpp` names the systems 0x90000109 "Yavin" and 0x92000121 "Coruscant"; `CharacterMgr` (the
-  Emperor starts at, and the seat of power is, 0x90000109 under Empire control) suggests it is the other way round.
+- `mission/mission_mgr_decl.h` declares the mission manager's functions (family 0xf8, 0x541fc0-0x54cd80) by address; the events
+  subsystem calls the same manager through `events/source_events_decl.h` (`FUN_00546e30`). Replace both when the manager is
+  reconstructed. The mission timers, events and iterators use the real event classes now.
 
-## Unassigned functions (code map gaps / mis-assignments)
-- 0x58adb0–0x58b1a0: object-name node (0x58adb0), system-distance tables and neighbour-list builder
-  (0x58af30–0x58b060) → galaxy / gameobj. (The Detector/CombatUnit data blocks 0x58b1a0–0x58b300 are in
-  `fleet/unit_data.cpp` now.)
 
 ## Orders and movement (src/game/orders)
 - `orders/command_decl.h` now only includes events/event_base.h and events/event_queue.h (the command base classes and
@@ -56,8 +43,7 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   hooked; `UiTextNotice::Virtual16` (0x4974f0) hosts the address that `UiKeyNotice::Virtual14` shares (ICF).
 - `AdvisorRecordTypeResource` (0x4c5000) is `__stdcall` (it ends in `ret 4`); declared cdecl in the first version, which broke
   every original caller (found by `difftest --integration` on `Notice22`).
-- `PlayerDispatch` is created in place by `HumanPlayer` (storage at +0x6c) and `m_advisor` is a `void*` until the advisor
-  header can be included there. `GameSession`/`HumanPlayer` still pass `PlayerMessage*` where the real parameter is a
+- `PlayerDispatch` is created in place by `HumanPlayer` (storage at +0x6c). `GameSession`/`HumanPlayer` still pass `PlayerMessage*` where the real parameter is a
   `MessageBase*` or `UiNotice*` (the stand-in `PlayerMessage` should be dropped).
 - Mission families 0x56, 0x57, 0x58, 0x63 and 0x6a of `Notice22::Virtual05` (event 0x1f0) were reconstructed by reading only:
   no mission of those families exists in any scenario's game state, so no synthetic payload reached them.
@@ -73,27 +59,22 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   It is not reachable from any scenario.
 - Compiler-generated helpers are not hooked: the `SystemSlot` array element constructor/destructor (0x453200,
   0x453260), `MinimizedWindowSlot::MinimizedWindowSlot` (0x42dbe0) and the shared empty `ShowObjectPage` slot (0x45d3f0).
-- The advisor task classes have two views: `AdvisorTask` in `strategy_ui/advisor_droid.h` (what the droid calls: slots
-  4-6, `m_done` +0x20, `m_advisor` +0x54) and the real hierarchy `AdvisorTaskBase`/`AdvisorTask20/21/23` in
-  `ai/ai_advisor_tasks.h`. Make the droid use the AI classes and delete the UI stand-in.
-- `MenuWindowBase::AddTextEntry` (0x4ab1f0) and `SetEntryColors` (0x4ab1b0) are called as `FUN_` functions from
-  `GidMenuWindow`; the owner of the menu base classes should name them.
 
 ## AI foundation (src/game/ai, part 1)
 - Part 2a (postures 0x4ad770-0x4bb9f0, agents 0x479a40-0x47aa90, mission planners 0x47aae0-0x484180 and 0x4bce50-0x4be580) is
-  reconstructed except for five planner classes that are still created through `FUN_` constructors declared in
-  `ai_planner_decl.h`: Rescue (0x61, ctor 0x47e130), Diplomacy (0x51, 0x481460), the 0x54 variant for state 5 (0x47f550), the
-  0x52 variant for state 6 (0x480d10) and the free 0x62 planner (0x483140). Part 2b (the 14 task types, evaluators) still
-  calls its constructors as `FUN_` functions from `AiTaskManager::MakeTask`; `AiNotice` in `ai_task_base.h` is a stand-in.
+  reconstructed, including the last five planner classes (Rescue 0x61, Diplomacy 0x51, the 0x54 and 0x52 variants for states 5 and
+  6, the free 0x62 planner). `AiNotice` in `ai_task_base.h` is a stand-in.
 - Original quirks in the planners: `AiSystemRecord::AddPlanner/RemovePlanner` write +0x70/+0x74 even for the 0x70-byte free
   planners (heap overwrite masked by allocator slack); the Step slots 16/17 of the system planners leave EAX undefined, so the
   reconstructions are `PickLeaders`/`PickMembers` (void) behind the virtual overrides; `AiDsSabotagePlanner::ChooseTarget`
-  resets the target before testing it, so its keep-target branch is dead.
+  resets the target before testing it, so its keep-target branch is dead; `AiRescuePlanner::ChooseTarget` tests `(flags | 0x20) == 0`
+  (never true) where the free 0x62 planner tests `(flags & 0x60) == 0`, so a rescue target is never kept; `ObjectRefNode`'s copy
+  constructor leaves `m_flag` uninitialised.
 - Planner functions that no scenario reached (read only): sabotage 0x69, DS sabotage 0x6a, recruit 0x55, incite 0x56,
   research/subdue 0x53/0x57 steps, `AiAbductionPlanner::Read/Write`.
 - Classes that sit outside the module's ranges because the module needs them: `AiTaskNode` and `AiTaskObject`
-  (0x4ec920-0x4ecbc0, generic id nodes next to `ObjectKeyNode`), `AiMissionHistoryEntry` (0x4c8000, declared only; its
-  constructor, Read, Write and Fill are called at the original addresses) and `AiTaskManager::Save` (0x49de40).
+  (0x4ec920-0x4ecbc0, generic id nodes next to `ObjectKeyNode`), `AiMissionHistoryEntry` (0x4c8000) and `AiTaskManager::Save`
+  (0x49de40, also the advisor task manager's Save: `AdvisorTaskManager::Save` is an unhooked copy of the folded code).
   `AiSideController::GetFleetRecord` (0x476110) lies between the task and system records.
 - Original quirks that are reproduced and marked `BUG(original)`: `AiNoticeQueue::Load` never adds the groups it reads (a loaded
   queue is empty and leaks); `AiSystemRecord::Step` falls through from state 6 into the restart case;
@@ -113,9 +94,6 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   `ai_galaxy_analysis.cpp`) and the advisor tasks (`ai_advisor_tasks.cpp`) are reconstructed. The eight facility-building task
   types share one library (`ai_task_family.cpp`, parameter tables per type); the evaluators share `SectorPass` (Prepare),
   `ScoreVoteOf` and the planner/agent request functions of `AiPlanEvaluator`.
-- Stand-ins other modules should replace: `AdvisorSink` (ai_advisor_tasks.h) is the base of the advisor droid (0x439320,
-  VT 0x658e10) with its unnamed slots 0-2 and `Notify` in slot 3; `AdvisorEntry` (VT 0x65c5b0, ctor 0x4c5230) is only a
-  node declaration. `AiTaskManager::Save` (0x49de40) is also the advisor task manager's Save (identical code folded).
 - Shared one-address functions that cannot get a second symbol row: `AdvisorTask21::Refused` is `AdvisorTask20::Refused`
   (0x4c7550), the evaluators' kind getters of plans 1, 3, 4, 5 and 6 are the shared constants 0x5a66f0, 0x5a6730, 0x5a6700,
   0x499cd0 and 0x48d640 (defined inline, not hooked), `AdvisorTaskBase::Evaluate` is `AiStagedTask::Evaluate` (0x4cc990).
