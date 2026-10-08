@@ -266,8 +266,10 @@ void AiSystemRecord::AddPlanner(AiMissionPlanner* planner) {
     if (!node) return;
     m_planners.AddWithId(node);
     ++m_plannerCount[static_cast<uint16_t>(PlannerClassOf(planner))];
-    planner->m_systemRecordId = m_id;
-    planner->m_sectorKey = m_sectorKey;
+    // BUG(original): planners that do not work for a system record are shorter than this, the writes go past their end.
+    AiSystemPlanner* systemPlanner = static_cast<AiSystemPlanner*>(planner);
+    systemPlanner->m_systemRecordId = m_id;
+    systemPlanner->m_sectorKey = m_sectorKey;
     planner->SetTier(m_tier);
 }
 
@@ -278,8 +280,9 @@ void AiSystemRecord::RemovePlanner(AiMissionPlanner* planner) {
     delete node;
     --m_plannerCount[static_cast<uint16_t>(PlannerClassOf(planner))];
     planner->SetTier(0);
-    planner->m_systemRecordId = 0;
-    planner->m_sectorKey.Reset();
+    AiSystemPlanner* systemPlanner = static_cast<AiSystemPlanner*>(planner);
+    systemPlanner->m_systemRecordId = 0;
+    systemPlanner->m_sectorKey.Reset();
     planner->SetTier(0);
 }
 

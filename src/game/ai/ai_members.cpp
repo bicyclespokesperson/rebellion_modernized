@@ -3,9 +3,11 @@
 #include <new>
 
 #include "ai/ai_agent_bases.h"
+#include "ai/ai_agents.h"
 #include "ai/ai_character_records.h"
 #include "ai/ai_common.h"
 #include "ai/ai_planner_decl.h"
+#include "ai/ai_planners.h"
 #include "ai/ai_side_controller.h"
 #include "ai/ai_system_record.h"
 #include "core/checked_new.h"
@@ -380,31 +382,16 @@ void AiAgentSet::ReleaseAgent(uint32_t id) {
 
 AiAgentBase* AiAgentSet::CreateAgent(int kind) {
     switch (kind) {
-        case 1: {
-            void* memory = ::operator new(0x4c);
-            if (memory) return FUN_0047a430(memory, m_view, m_owner, m_characters);
-            break;
-        }
-        case 3: {
-            void* memory = ::operator new(0x5c);
-            if (memory) return FUN_0047a3c0(memory, m_view, m_owner, m_characters);
-            break;
-        }
-        case 4: {
-            void* memory = ::operator new(0x5c);
-            if (memory) return FUN_0047a000(memory, m_view, m_owner, m_characters);
-            break;
-        }
-        case 5: {
-            void* memory = ::operator new(0x5c);
-            if (memory) return FUN_00479f70(memory, m_view, m_owner, m_characters);
-            break;
-        }
-        case 6: {
-            void* memory = ::operator new(0x4c);
-            if (memory) return FUN_00479a60(memory, m_view, m_owner, m_characters);
-            break;
-        }
+        case 1:
+            return NewOrNull<AiAgentKind1>(m_view, m_owner, m_characters);
+        case 3:
+            return NewOrNull<AiAgentKind3>(m_view, m_owner, m_characters);
+        case 4:
+            return NewOrNull<AiAgentKind4>(m_view, m_owner, m_characters);
+        case 5:
+            return NewOrNull<AiAgentKind5>(m_view, m_owner, m_characters);
+        case 6:
+            return NewOrNull<AiAgentKind6>(m_view, m_owner, m_characters);
     }
     return nullptr;
 }
@@ -548,7 +535,7 @@ void AiPlannerSet::ReleasePlanner(uint32_t id) {
     if (!planner) return;
     planner->m_flags.m_value |= 0x10000000;
     if (planner->Virtual04() == 1) {
-        AiSystemRecord* record = static_cast<AiSystemRecord*>(m_owner->m_systemRecords.FindById(planner->m_systemRecordId));
+        AiSystemRecord* record = static_cast<AiSystemRecord*>(m_owner->m_systemRecords.FindById(static_cast<AiSystemPlanner*>(planner)->m_systemRecordId));
         if (record) record->RemovePlanner(planner);
     } else if (planner->Virtual04() == 2) {
         m_owner->UncountPlanner(planner);
@@ -559,7 +546,7 @@ AiMissionPlanner* AiPlannerSet::FindByTarget(const int* key) {
     AiMissionPlanner* planner = static_cast<AiMissionPlanner*>(First());
     bool found = false;
     while (planner && !found) {
-        if (static_cast<int>(planner->m_target.m_value) == *key)
+        if (static_cast<int>(planner->m_missionObject.m_value) == *key)
             found = true;
         else
             planner = static_cast<AiMissionPlanner*>(planner->m_successor);
@@ -577,12 +564,12 @@ void AiPlannerSet::NoteMissionObject(const ObjectKey* key) {
     const uint32_t plannerId = *reinterpret_cast<const uint32_t*>(raw + 0x58);
     if (plannerId == 0) return;
     AiMissionPlanner* planner = static_cast<AiMissionPlanner*>(FindById(plannerId));
-    if (planner) FUN_0047adf0(planner, key);
+    if (planner) planner->SetMissionObject(key);
 }
 
 void AiPlannerSet::NoteMission(const ObjectKey* key) {
     AiMissionPlanner* planner = FindByTarget(reinterpret_cast<const int*>(key));
-    if (planner) FUN_0047ae50(planner);
+    if (planner) planner->ReleaseUnfit();
 }
 
 void AiPlannerSet::CallSlot12(const int* key, int argument) {
@@ -606,30 +593,33 @@ AiMissionPlanner* AiPlannerSet::CreatePlanner(int kind, int subtype) {
         case 0x51:
             return make(0x70, FUN_00481460);
         case 0x52:
-            return subtype == 6 ? make(0x74, FUN_00480d10) : make(0x7c, FUN_00480730);
+            if (subtype == 6) return make(0x74, FUN_00480d10);
+            return NewOrNull<AiEspionagePlanner>(m_view, m_owner, m_characters);
         case 0x53:
-            if (subtype == 1) return make(0x70, FUN_0047bba0);
-            if (subtype == 2) return make(0x70, FUN_0047c170);
-            if (subtype == 3) return make(0x70, FUN_0047c750);
+            if (subtype == 1) return NewOrNull<AiResearchPlanner1>(m_view, m_owner, m_characters);
+            if (subtype == 2) return NewOrNull<AiResearchPlanner2>(m_view, m_owner, m_characters);
+            if (subtype == 3) return NewOrNull<AiResearchPlanner3>(m_view, m_owner, m_characters);
             return nullptr;
         case 0x54:
-            return subtype == 5 ? make(0x74, FUN_0047f550) : make(0x7c, FUN_0047f190);
+            if (subtype == 5) return make(0x74, FUN_0047f550);
+            return NewOrNull<AiMission54Planner>(m_view, m_owner, m_characters);
         case 0x55:
-            return make(0x70, FUN_0047d9a0);
+            return NewOrNull<AiRecruitPlanner>(m_view, m_owner, m_characters);
         case 0x56:
-            return make(0x70, FUN_0047fe50);
+            return NewOrNull<AiIncitePlanner>(m_view, m_owner, m_characters);
         case 0x57:
-            return make(0x70, FUN_0047cda0);
+            return NewOrNull<AiSubduePlanner>(m_view, m_owner, m_characters);
         case 0x61:
             return make(0x70, FUN_0047e130);
         case 0x62:
-            return subtype != 4 ? make(0x70, FUN_00483140) : make(0x80, FUN_00482b30);
+            if (subtype != 4) return make(0x70, FUN_00483140);
+            return NewOrNull<AiAbductionPlanner>(m_view, m_owner, m_characters);
         case 0x63:
-            return make(0x80, FUN_00482b30);
+            return NewOrNull<AiAbductionPlanner>(m_view, m_owner, m_characters);
         case 0x69:
-            return make(0x7c, FUN_0047d380);
+            return NewOrNull<AiSabotagePlanner>(m_view, m_owner, m_characters);
         case 0x6a:
-            return make(0x70, FUN_00482020);
+            return NewOrNull<AiDsSabotagePlanner>(m_view, m_owner, m_characters);
     }
     return nullptr;
 }

@@ -65,7 +65,7 @@ public:
     virtual int GetTier() override;               // 9: 0x6158b0 returns 0
     virtual int GetCountSlot() = 0;               // 10: 0 or 1, the index AiSideController::CountAgent counts the agent under
     virtual void ReleaseHook() = 0;               // 11: called when the agent releases its character
-    virtual void Virtual12() = 0;                 // 12
+    virtual ObjectKey* ChooseTarget(ObjectKey* out) = 0;  // 12: the system the agent should work at, into *out
     virtual void Prepare() = 0;                   // 13: state 3
     virtual int Evaluate() = 0;                   // 14: state 2, non-zero when ready
 
@@ -100,13 +100,6 @@ public:
     int m_systemRecordId;      // +0x54 id of the AiSystemRecord this agent serves
     ObjectKey m_sectorKey;     // +0x58
 };
-
-// The concrete agents of part 2, built by AiAgentSet::CreateAgent from memory of the matching size: (view, owner, characters).
-AiAgentBase* __thiscall FUN_0047a430(void* memory, int view, AiSideController* owner, AiCharacterRecordSet* characters);  // kind 1 (0x4c)
-AiAgentBase* __thiscall FUN_0047a3c0(void* memory, int view, AiSideController* owner, AiCharacterRecordSet* characters);  // kind 3 (0x5c)
-AiAgentBase* __thiscall FUN_0047a000(void* memory, int view, AiSideController* owner, AiCharacterRecordSet* characters);  // kind 4 (0x5c)
-AiAgentBase* __thiscall FUN_00479f70(void* memory, int view, AiSideController* owner, AiCharacterRecordSet* characters);  // kind 5 (0x5c)
-AiAgentBase* __thiscall FUN_00479a60(void* memory, int view, AiSideController* owner, AiCharacterRecordSet* characters);  // kind 6 (0x4c)
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
