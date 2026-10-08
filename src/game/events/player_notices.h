@@ -397,6 +397,90 @@ public:
 
 };
 
+// kind 25: event 0x1e0: where a character with the Force ended up
+class Notice25 : public UiTextNotice {
+public:
+    Notice25();  // 0x490250
+    Notice25(const LinkNode* payloads, int owner);  // 0x4902d0
+    virtual ~Notice25();  // 0x490330 (deleting 0x4902b0)
+
+    virtual int GetKind() override;  // 0x490f30
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 16; }  // shared 0x48af30
+    virtual UiNotice* Virtual10() override;  // 0x490ed0
+    virtual void Virtual05(int kind, int payload) override;  // 0x490340
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+
+    int m_f64;  // +0x64 which of the five texts
+};
+
+// kind 24: event 0x153: a system changed hands
+class Notice24 : public UiTextNotice {
+public:
+    Notice24();  // 0x490f80
+    Notice24(const LinkNode* payloads, int owner);  // 0x490ff0
+    virtual ~Notice24();  // 0x491050 (deleting 0x490fd0)
+
+    virtual int GetKind() override;  // 0x491180
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 1; }  // shared 0x40f340
+    virtual UiNotice* Virtual10() override;  // 0x491120
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override;  // 0x491060
+
+};
+
+// kind 21: events 2 and 0x182 / 0x14f: a fleet with a Death Star arrives
+class Notice21 : public UiKeyNotice {
+public:
+    Notice21();  // 0x494ef0
+    Notice21(const LinkNode* payloads, int owner);  // 0x494f80
+    virtual ~Notice21();  // 0x495000 (deleting 0x494f60)
+
+    virtual int GetKind() override;  // 0x4953b0
+    virtual int GetClass() override;  // 0x4953a0
+    virtual int Virtual11() override { return 0x400; }  // shared 0x48e670
+    virtual UiNotice* Virtual10() override;  // 0x495340
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void Virtual08(int kind, int a, int b) override;  // 0x4950d0
+    virtual void Virtual09(int kind, int a, int b, int c) override;  // 0x4952a0
+    virtual void Read(istream* in) override;  // 0x495050
+    virtual void Write(ostream* out) override;  // 0x495090
+
+    int m_f64;  // +0x64 which side's object is named (1 or 2)
+    ObjectKey m_subject;  // +0x68
+    int m_f6c;  // +0x6c
+};
+
+// kind 20: event 0x200: a character leads a mission to a system
+class Notice20 : public UiTextNotice {
+public:
+    Notice20();  // 0x4953c0
+    Notice20(const LinkNode* payloads, int owner);  // 0x495460
+    virtual ~Notice20();  // 0x4954f0 (deleting 0x495440)
+
+    virtual int GetKind() override;  // 0x495d40
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 16; }  // shared 0x48af30
+    virtual UiNotice* Virtual10() override;  // 0x495b90
+    virtual void Virtual05(int kind, int payload) override;  // 0x4955b0
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual int Virtual16(const LinkNode* payloads) override;  // 0x495bf0
+    int CountUnscheduled(const LinkNode* payloads);  // 0x495d00
+    virtual void Read(istream* in) override;  // 0x495550
+    virtual void Write(ostream* out) override;  // 0x495580
+
+    int m_f64;  // +0x64
+    String m_name;  // +0x68
+    ObjectKey m_unitKey;  // +0x74
+    int m_f78;  // +0x78 number of 0x200 payloads
+};
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_SIZE(Notice44, 0x68);
@@ -419,4 +503,8 @@ REB_ASSERT_SIZE(Notice28, 0x64);
 REB_ASSERT_SIZE(Notice30, 0x68);
 REB_ASSERT_SIZE(Notice26a, 0x64);
 REB_ASSERT_SIZE(Notice26b, 0x64);
+REB_ASSERT_SIZE(Notice25, 0x68);
+REB_ASSERT_SIZE(Notice24, 0x64);
+REB_ASSERT_SIZE(Notice21, 0x70);
+REB_ASSERT_SIZE(Notice20, 0x7c);
 #pragma clang diagnostic pop

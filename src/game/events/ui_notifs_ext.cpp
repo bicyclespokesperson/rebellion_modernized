@@ -1,5 +1,7 @@
 #include "events/ui_notifs_ext.h"
 
+#include <new>
+
 #include "app/player_controller_decl.h"
 #include "character/role.h"
 #include "core/checked_new.h"
@@ -91,6 +93,16 @@ void UiNotif1e0::Virtual05() {
     }
     if (inFamilyRange(ownerKey, 0x90, 0x98)) m_systemKey = ObjectKey(ownerKey);
     if (inFamilyRange(ownerKey, 0x98, 0xa0)) m_locationKey = ObjectKey(ownerKey);
+}
+
+ObjectKey* UiNotif1e0::CopyGrandparentKey(ObjectKey* out) {
+    new (out) ObjectKey(m_grandparentKey);
+    return out;
+}
+
+ObjectKey* UiNotif1e0::CopySystemKey(ObjectKey* out) {
+    new (out) ObjectKey(m_systemKey);
+    return out;
 }
 
 void UiNotif1e0::Dispatch(PlayerController* controller) { controller->Virtual79(&m_key, m_valueB); }

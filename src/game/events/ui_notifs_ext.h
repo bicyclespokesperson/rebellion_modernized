@@ -46,6 +46,9 @@ public:
     ObjectKey m_grandparentKey;  // +0x30
     ObjectKey m_systemKey;       // +0x34
     ObjectKey m_locationKey;     // +0x38
+
+    ObjectKey* CopyGrandparentKey(ObjectKey* out);  // 0x490f40
+    ObjectKey* CopySystemKey(ObjectKey* out);       // 0x490f60
 };
 
 void* CreateUiNotif200();  // 0x43c720
