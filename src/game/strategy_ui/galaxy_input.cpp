@@ -19,6 +19,7 @@
 #include "strategy_ui/order_confirm_window.h"
 #include "strategy_ui/panel_drag_button.h"
 #include "strategy_ui/report_window.h"
+#include "strategy_ui/vote_window.h"
 #include "ui/cool_game_window.h"
 #include "ui/cool_list_item.h"
 #include "ui/cool_window.h"
@@ -27,9 +28,6 @@
 #include "ui/sprite_stage.h"
 
 ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
-// The vote window of window type 6 (0x44f670, window_type6_and_panel).
-CoolWindow* __thiscall FUN_0044f670(void* memory, HINSTANCE instance, GalaxyWindow* parent, uint32_t childId,
-                                    LPARAM argument);
 
 namespace {
 
@@ -565,8 +563,10 @@ CoolWindow* GalaxyWindow::CreateModalWindow(WPARAM wParam, LPARAM lParam) {
     switch (wParam & kTypeMask) {
         case kVoteWindowType: {
             m_optionsRequested = 0;
-            void* memory = ::operator new(0x140);
-            window = memory ? FUN_0044f670(memory, m_instance, this, static_cast<uint32_t>(wParam), lParam) : nullptr;
+            void* memory = ::operator new(sizeof(VoteWindow));
+            window = memory ? new (memory) VoteWindow(m_instance, this, static_cast<uint32_t>(wParam),
+                                                      reinterpret_cast<Notice2*>(lParam))
+                            : nullptr;
             break;
         }
         case kMessageIndexWindowType: {
