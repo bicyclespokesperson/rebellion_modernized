@@ -67,7 +67,7 @@ Notice1::Notice1() : UiNotice() {
     m_f58 = 0;
 }
 
-Notice1::Notice1(const LinkNode* payloads, int owner, MessageBase* vote) : UiNotice(owner) {
+Notice1::Notice1(const LinkNode* payloads, int owner, Notice2* vote) : UiNotice(owner) {
     m_categories = Virtual11();
     m_f50 = 0;
     m_f54 = 0;

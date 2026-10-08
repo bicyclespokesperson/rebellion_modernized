@@ -781,11 +781,13 @@ public:
     MessageBase* m_subject;  // +0x5c the order that is confirmed
 };
 
+class Notice2;
+
 // kind 1: the dialog that reports a battle or a blockade of a system
 class Notice1 : public UiNotice {
 public:
     Notice1();  // 0x49aad0
-    Notice1(const LinkNode* payloads, int owner, MessageBase* vote);  // 0x49ac00
+    Notice1(const LinkNode* payloads, int owner, Notice2* vote);  // 0x49ac00
     virtual ~Notice1();  // 0x49ad50 (deleting 0x49abe0)
 
     virtual int GetKind() override { return 1; }  // shared 0x5a66f0
@@ -799,7 +801,7 @@ public:
     void FillNeutral();  // 0x49b150
     void FillOwnSide();  // 0x49b330
     void FillOtherSide();  // 0x49b4d0
-    void ReadVote(MessageBase* vote);  // 0x49b720
+    void ReadVote(Notice2* vote);  // 0x49b720
     virtual void Read(istream* in) override;  // 0x49aee0
     virtual void Write(ostream* out) override;  // 0x49afa0
 

@@ -2387,7 +2387,7 @@ address,kind,name,signature,size
 0x0049a8b0,func,Notice8::AppendOrderLines,,
 0x0049aad0,func,Notice1::Notice1,(void),
 0x0049abe0,func,Notice1::scalar_deleting_destructor,,
-0x0049ac00,func,Notice1::Notice1,"(class LinkNode const *,int,class MessageBase *)",
+0x0049ac00,func,Notice1::Notice1,"(class LinkNode const *,int,class Notice2 *)",
 0x0049ad50,func,Notice1::~Notice1,,
 0x0049aee0,func,Notice1::Read,,
 0x0049afa0,func,Notice1::Write,,

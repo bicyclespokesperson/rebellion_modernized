@@ -307,9 +307,9 @@ UiNotice* PlayerDispatch::CreateNotice(int kind, LinkNode* payloads) {
     UiNotice* notice = nullptr;
     switch (kind) {
     case 1: {
-        IdNode* vote = static_cast<IdNode*>(m_trees[3].First());
+        Notice2* vote = static_cast<Notice2*>(m_trees[3].First());
         if (vote) {
-            notice = NewOrNull<Notice1>(payloads, m_side, static_cast<MessageBase*>(vote));
+            notice = NewOrNull<Notice1>(payloads, m_side, vote);
             m_trees[3].DetachById(vote->m_id);
             delete vote;
         }
