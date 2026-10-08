@@ -152,3 +152,33 @@ void HeadlessSimulator::RecordSurvivors() {
         FUN_005b84a0(reinterpret_cast<char*>(deathStar) + 0x1c, unit);
     }
 }
+
+// ---- units registered with the simulator ---------------------------------------------------------------------------
+
+// Adds the unit to the list unless it is in there already (turn-sync module).
+void __thiscall FUN_005c5f20(SimUnitList* list, SimUnit* unit);
+
+int HeadlessSimulator::RandomBetween(int low, int high) { return m_random.Next(high - low) + low; }
+
+int HeadlessSimulator::AddCharacter(TacticalUnit* character) {
+    TacticalCharacterUnit* unit = static_cast<TacticalCharacterUnit*>(character);
+    m_characters.AddWithId(unit);
+    if (unit->m_isFirstCommander != 0) {
+        m_firstCommander[unit->m_notAlliance] = unit->m_id;
+        return unit->m_id;
+    }
+    if (unit->m_isSecondCommander != 0) m_secondCommander[unit->m_notAlliance] = unit->m_id;
+    return unit->m_id;
+}
+
+int HeadlessSimulator::AddSpecialForce(TacticalUnit* force) {
+    m_specialForces.AddWithId(force);
+    return force->m_id;
+}
+
+int HeadlessSimulator::AddLaunchedFighter(TacticalUnit* fighter) {
+    SimUnit* unit = reinterpret_cast<SimUnit*>(fighter);
+    FUN_005c5f20(&m_units, unit);
+    FUN_005c5f20(&m_launched, unit);
+    return *reinterpret_cast<int*>(reinterpret_cast<char*>(fighter) + 0xec);
+}

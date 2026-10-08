@@ -46,8 +46,8 @@ public:
 
     TurnSyncChannelA m_channelA;  // +0x1c
     TurnSyncChannelB m_channelB;  // +0x24
-    uint32_t m_family;            // +0x2c
-    uint32_t m_id;                // +0x30 (ids of the strategic object)
+    uint32_t m_objectFamily;        // +0x2c
+    uint32_t m_objectId;            // +0x30 (the strategic object)
     uint16_t m_spriteId;          // +0x34
     String m_name;                // +0x38
     int m_notAlliance;            // +0x44
@@ -70,8 +70,8 @@ public:
 
     TurnSyncChannelA m_channelA;  // +0x1c
     TurnSyncChannelB m_channelB;  // +0x24
-    uint32_t m_family;            // +0x2c
-    uint32_t m_id;                // +0x30
+    uint32_t m_objectFamily;        // +0x2c
+    uint32_t m_objectId;            // +0x30
     uint16_t m_spriteId;          // +0x34
     String m_name;                // +0x38
     int m_notAlliance;            // +0x44

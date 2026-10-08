@@ -6,8 +6,8 @@ TacticalCharacterUnit::TacticalCharacterUnit(uint32_t family, uint32_t id, uint1
                                              int shipHandle, int injured) {
     m_channelA.m_data = nullptr;
     m_channelB.m_data = nullptr;
-    m_family = family;
-    m_id = id;
+    m_objectFamily = family;
+    m_objectId = id;
     m_spriteId = spriteId;
     m_name.Assign(name);
     m_notAlliance = notAlliance;
@@ -26,8 +26,8 @@ TacticalSpecialForceUnit::TacticalSpecialForceUnit(uint32_t family, uint32_t id,
                                                    int notAlliance, int shipHandle) {
     m_channelA.m_data = nullptr;
     m_channelB.m_data = nullptr;
-    m_family = family;
-    m_id = id;
+    m_objectFamily = family;
+    m_objectId = id;
     m_spriteId = spriteId;
     m_name.Assign(name);
     m_notAlliance = notAlliance;

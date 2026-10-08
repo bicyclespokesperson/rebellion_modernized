@@ -2,8 +2,11 @@
 #include <cstdint>
 
 #include "app/player_controller_decl.h"
+#include "core/containers.h"
 #include "core/layout.h"
+#include "core/utility_classes.h"
 #include "tactical/tactical_types.h"
+#include "tactical/tactical_units.h"
 
 // The headless battle simulator (DAT_006bc4a8, 0x274 bytes): the auto-resolve engine. It runs the same capital-ship and
 // fighter unit objects as the 3D battle, one fixed step per frame, without any rendering (TacticalGame::Update with the
@@ -89,20 +92,28 @@ public:
 
 struct HeadlessSimulator {
     float m_elapsed;            // +0x00 simulated time
-    uint8_t m_pad04[0x0c];
+    RandomGenerator m_random;   // +0x04
+    uint8_t m_padc[4];
     BattleOutcome m_outcome;    // +0x10
-    uint8_t m_pad2c[0x44 - 0x2c];
+    IdAvlTree m_characters;     // +0x2c characters by handle
+    IdAvlTree m_specialForces;  // +0x38 special forces and troops by handle
     int m_battleKind;           // +0x44
     uint8_t m_pad48[4];
     SimUnitList m_units;        // +0x4c every unit in the battle
-    uint8_t m_pad58[0x24c - 0x58];
+    SimUnitList m_launched;     // +0x58 units whose carrier was found (launched fighters)
+    uint8_t m_pad64[0x24c - 0x64];
     SimulatorSide* m_sides[2];  // +0x24c
-    uint8_t m_pad254[0x264 - 0x254];
+    int m_secondCommander[2];   // +0x254 handle of each side's second-best commander
+    int m_firstCommander[2];    // +0x25c handle of each side's best commander
     float m_bestStrength[2];    // +0x264 the lowest strength each side has reached
     float m_stagnantTime[2];    // +0x26c time since each side's strength last dropped
     uint8_t m_pad274[0];
 
     int Step(float step);                     // 0x5ae9c0
+    int RandomBetween(int low, int high);     // 0x5af420
+    int AddCharacter(TacticalUnit* character);       // 0x5af440
+    int AddSpecialForce(TacticalUnit* force);        // 0x5af490
+    int AddLaunchedFighter(TacticalUnit* fighter);   // 0x5af4b0
     void RecordSurvivors();                   // 0x5aee90
 };
 
@@ -110,7 +121,12 @@ struct HeadlessSimulator {
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_OFFSET(HeadlessSimulator, m_outcome, 0x10);
 REB_ASSERT_OFFSET(HeadlessSimulator, m_battleKind, 0x44);
+REB_ASSERT_OFFSET(HeadlessSimulator, m_characters, 0x2c);
+REB_ASSERT_OFFSET(HeadlessSimulator, m_specialForces, 0x38);
 REB_ASSERT_OFFSET(HeadlessSimulator, m_units, 0x4c);
+REB_ASSERT_OFFSET(HeadlessSimulator, m_launched, 0x58);
+REB_ASSERT_OFFSET(HeadlessSimulator, m_secondCommander, 0x254);
+REB_ASSERT_OFFSET(HeadlessSimulator, m_firstCommander, 0x25c);
 REB_ASSERT_OFFSET(HeadlessSimulator, m_sides, 0x24c);
 REB_ASSERT_OFFSET(HeadlessSimulator, m_bestStrength, 0x264);
 REB_ASSERT_OFFSET(HeadlessSimulator, m_stagnantTime, 0x26c);
