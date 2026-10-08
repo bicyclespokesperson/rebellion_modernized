@@ -78,6 +78,9 @@ Never kill processes by name pattern (it kills your own shell); use the scripts'
    - Captures run the fully original game by default (`REB_DISABLE_HOOKS=all` is implied), so every call
      reaches the original address. Writes to a function's own incoming argument slots are ignored
      (MSVC uses them as scratch); the slot count comes from your declared signature, so declare it exactly.
+   - `tools/check_callee_pop.py` compares every hook's `RET n` with the original's — a free function or static member
+     whose original pops its arguments is `__stdcall`. It covers functions no capture reaches (a wrong convention
+     corrupts the caller's stack in live runs only).
    - A difftest SKIP is not a pass: it means the original could not be emulated (usually DirectX/COM
      behaviour) — such functions are checked with smoke runs only. Say so in your report.
    - Always finish with `tools/run_game.sh tests/scenarios/smoke.txt` and look at the screenshot.

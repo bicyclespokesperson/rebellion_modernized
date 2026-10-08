@@ -24,7 +24,16 @@ the relevant parts of docs/code_map.md for your module.
 - Verification: every reconstructed function must PASS difftest on at least one capture, or be listed in your
   report as SKIP (not emulatable) / not captured (not reached by any scenario) with the reason. Use the
   scenarios in tests/scenarios/ (see docs/ui_navigation.md if present for what each reaches). Capture with
-  several `skip` values for functions with multiple paths. Up to 64 capture targets per run.
+  several `skip` values for functions with multiple paths. Up to 1024 capture targets per run. Run difftest both
+  unit and `--integration` (integration catches wrong return values that only callers notice).
+- Calling conventions: run `tools/check_callee_pop.py` after building — it must report 0 mismatches (a free
+  function or static member whose original ends in `RET n` is `__stdcall`). Long runs: soak_fast.txt and
+  load_game.txt with all hooks must have no "Unhandled" in wine.log (`tools/bisect_crash.py` finds the culprit).
+- Commit early: after each verified class, so an interrupted session (usage limits happen) loses nothing.
+- Shell sandbox in worktrees: commands that build program names/arguments from `$VAR`/`$(...)` or redirect to
+  relative paths outside the worktree are refused — write small scripts in your scratchpad subdirectory and use
+  literal paths. Foreground `sleep` is blocked; wait on a run with a backgrounded
+  `until ! pgrep -f "tools/run_gam[e].sh"; do sleep 20; done`.
 - Do not edit tools/, src/hybrid/, docker/, CMakeLists.txt, or CLAUDE.md. If the tooling blocks you, work around
   it if possible and report the problem precisely.
 - When done: `tools/build_hybrid.sh`, all difftests of your captures pass, `tools/run_game.sh tests/scenarios/smoke.txt`
