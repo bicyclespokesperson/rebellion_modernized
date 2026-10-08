@@ -92,7 +92,7 @@ saves varies run to run.
 | M1 | Replace the 646 stale declarations; empty `aliases.csv`; one type per global | Hook count unchanged, −646 references |
 | M2 | combat_strat, saveload, the remaining large non-tactical functions, named ICF stubs, atexit thunks | No reference to non-tactical game code; difftest PASS |
 | M3 | Tactical fence (captures, reachable reconstruction, stubs, vote fallback) | Hybrid with stubs: auto-resolve OK; "tactical" resolves abstractly |
-| M4 | LIBCI + CRT fidelity pieces | difftest PASS; save/load scenarios OK |
+| M4 | LIBCI + CRT fidelity pieces | difftest PASS; save/load scenarios OK. LIBCI done (src/game/iostream, 0 references left); CRT pieces open |
 | M5 | `REB_OWN_DATA=1` hybrid: generated data image, vtable patching off | Scenarios match the normal hybrid |
 | M6 | Standalone `rebellion.exe` (clang-cl/lld-link, static UCRT, real import libs, init table, entry wrapper) | Zero absolute symbols; differential runs pass |
 | M7 | Determinism harness (can start with M1) | Repeated hybrid runs identical; heap probe recorded |
