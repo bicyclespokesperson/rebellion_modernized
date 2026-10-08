@@ -47,6 +47,11 @@ public:
     int m_unk40;             // +0x40
 };
 
+// Tells `sink` about every payload of the list (slot 7 of each payload); 0 for a null list, else 1. 0x4974f0 is its
+// body in the UiTextNotice / UiKeyNotice slots.
+class LinkNode;
+int ForwardPayloads(UiNotice* sink, const LinkNode* payloads);
+
 // VT 0x65c4f0, 0x64 bytes: a notice with two texts and two object references; slots 13-16 are new.
 class UiTextNotice : public UiNotice {
 public:
