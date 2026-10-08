@@ -200,10 +200,10 @@ void GameSession::Update() {
     }
     m_controllers[0]->Virtual10();
     m_controllers[1]->Virtual10();
-    if (FUN_0041dc10() && FUN_004888c0(m_controllers[0]) && FUN_004888c0(m_controllers[1])) FUN_0041dbf0();
+    if (FUN_0041dc10() && m_controllers[0]->IsSynced() && m_controllers[1]->IsSynced()) FUN_0041dbf0();
 }
 
-int GameSession::AreAllSynced() { return FUN_004888c0(m_controllers[0]) && FUN_004888c0(m_controllers[1]); }
+int GameSession::AreAllSynced() { return m_controllers[0]->IsSynced() && m_controllers[1]->IsSynced(); }
 
 int GameSession::ProcessAllMessages() {
     unsigned first = m_controllers[0]->Virtual11();
@@ -279,9 +279,9 @@ AvlNode* GameSession::GetFirstMessage() { return m_messages.First(); }
 
 void GameSession::SendNotificationToSide(int side, int argument) {
     if (side == 1)
-        FUN_0048aa00(m_controllers[0], argument);
+        m_controllers[0]->SendKeyRequest(reinterpret_cast<const ObjectKey*>(argument));
     else if (side == 2)
-        FUN_0048aa00(m_controllers[1], argument);
+        m_controllers[1]->SendKeyRequest(reinterpret_cast<const ObjectKey*>(argument));
 }
 
 // ---- sync points --------------------------------------------------------------------------------------------
@@ -304,14 +304,14 @@ void GameSession::AckSync(int side) {
 }
 
 void GameSession::FinishSync(PlayerMessage* message) {
-    if (m_human) FUN_00488ca0(m_human->Dispatch(), message);
+    if (m_human) m_human->Dispatch()->AddMessage(reinterpret_cast<UiNotice*>(message));
     m_controllers[0]->Virtual95();
     m_controllers[1]->Virtual95();
 }
 
 void GameSession::SetSyncTargets(unsigned target) {
-    FUN_004888d0(m_controllers[0], target);
-    FUN_004888d0(m_controllers[1], target);
+    m_controllers[0]->SetSyncTarget(target);
+    m_controllers[1]->SetSyncTarget(target);
 }
 
 // ---- battle-type vote ---------------------------------------------------------------------------------------
@@ -438,33 +438,33 @@ void GameSession::SetHumanUiFlag4000(int on) {
 IdAvlTree* GameSession::GetHumanOrderTree() { return m_human ? &m_human->Dispatch()->m_trees[0] : nullptr; }
 
 void GameSession::DeleteHumanMessage(int id) {
-    if (m_human) FUN_0048a190(m_human->Dispatch(), id);
+    if (m_human) m_human->Dispatch()->RemoveRecord(id);
 }
 
 void GameSession::SetHumanDispatchFlag(int on) {
-    if (m_human) FUN_0048a610(m_human->Dispatch(), on);
+    if (m_human) m_human->Dispatch()->SetHold(on);
 }
 
 void GameSession::SetHumanStateValue(int key, int value) {
-    if (m_human) FUN_0048a210(m_human->Dispatch(), key, value);
+    if (m_human) m_human->Dispatch()->SetStateValue(key, value);
 }
 
-unsigned GameSession::GetHumanStateValue(int key) { return m_human ? FUN_0048a1c0(m_human->Dispatch(), key) : 0; }
+unsigned GameSession::GetHumanStateValue(int key) { return m_human ? m_human->Dispatch()->GetStateValue(key) : 0; }
 
 int GameSession::GetHumanDefaultState() { return m_human ? m_human->Dispatch()->m_defaultState.Get() : 0; }
 
 void GameSession::SetHumanDefaultState(int state) {
-    if (m_human) FUN_0048a1f0(m_human->Dispatch(), state);
+    if (m_human) m_human->Dispatch()->SetDefaultState(state);
 }
 
 void GameSession::QueueHumanPopup(int a, int b) {
-    if (m_human) FUN_0048a470(m_human->Dispatch(), a, b);
+    if (m_human) m_human->Dispatch()->QueueChat(reinterpret_cast<String*>(a), b);
 }
 
-int GameSession::HumanDispatchIdle() { return m_human ? FUN_0048a500(m_human->Dispatch()) : 1; }
+int GameSession::HumanDispatchIdle() { return m_human ? m_human->Dispatch()->IsIdle() : 1; }
 
 void GameSession::ClearHumanAlerts(unsigned mask) {
-    if (m_human) FUN_0048a530(m_human->Dispatch(), mask);
+    if (m_human) m_human->Dispatch()->ClearAlerts(mask);
 }
 
 void GameSession::RequestRedraw(int value) { FUN_004878b0(value); }

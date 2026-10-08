@@ -50,6 +50,22 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
 - Event vtable slot 10 is `GetPriority` (TypeQueue ordering) on PlainEvent-derived classes; slot 11 of KeyedEvent-family
   vtables is 0 or an unrelated function (0x4f6030) and is not declared.
 
+## Events part 3 (UI notification handlers, player notices)
+- The scalar deleting destructors of the 95 `UiNotif*`, 6 `NetMsg*` and 44 `Notice*` classes are compiler-generated and not
+  hooked; `UiTextNotice::Virtual16` (0x4974f0) hosts the address that `UiKeyNotice::Virtual14` shares (ICF).
+- `AdvisorRecordTypeResource` (0x4c5000) is `__stdcall` (it ends in `ret 4`); declared cdecl in the first version, which broke
+  every original caller (found by `difftest --integration` on `Notice22`).
+- `PlayerDispatch` is created in place by `HumanPlayer` (storage at +0x6c) and `m_advisor` is a `void*` until the advisor
+  header can be included there. `GameSession`/`HumanPlayer` still pass `PlayerMessage*` where the real parameter is a
+  `MessageBase*` or `UiNotice*` (the stand-in `PlayerMessage` should be dropped).
+- Mission families 0x56, 0x57, 0x58, 0x63 and 0x6a of `Notice22::Virtual05` (event 0x1f0) were reconstructed by reading only:
+  no mission of those families exists in any scenario's game state, so no synthetic payload reached them.
+- `Notice8` (the order confirmation dialog), `Notice10` (chat) and `Notice42` (character notice) are created only by the
+  human player's UI paths; they were checked with synthetic calls (`--entry`), not by a scenario capture.
+- Verification harness idea that worked well and could become a tool: `difftest --entry <fn> --poke ...` on a capture taken in
+  a loaded game, with hand-built payload lists (vtable of the `UiNotif<N>` class, key, two ints) in the capture's stack page, and
+  keys of real objects found by scanning the capture's memory for object vtables.
+
 ## Strategic UI (src/game/strategy_ui)
 - The multiplayer vote window (window type 6, 0x44f670-0x451110 except the GID menu 0x451130-0x4511e0) is not
   reconstructed; `GalaxyWindow::CreateModalWindow` calls its constructor (`FUN_0044f670`) at the original address.

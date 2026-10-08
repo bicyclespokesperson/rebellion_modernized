@@ -32,5 +32,4 @@ void __thiscall FUN_004e5210(void* cueTree, ostream* out);
 void __thiscall FUN_0049e380(AdvisorTask* task, int value);
 void __thiscall FUN_0049e360(AdvisorTask* task, int value);
 
-void __thiscall FUN_0048a590(PlayerDispatch* dispatch, IdValueNode* notice);
-int __cdecl FUN_0048b460(int side, IdValueTree* notices);
+int __cdecl LoadAdvisorNotices(int side, IdValueTree* notices);  // 0x48b460

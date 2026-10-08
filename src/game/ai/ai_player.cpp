@@ -9,9 +9,6 @@
 #include "orders/order_base.h"
 #include "strategy_ui/game_ui_facade.h"
 
-// PlayerController (0x488460-0x48aa90): sends a message of the side to the game and the other side.
-void __thiscall FUN_0048aa90(PlayerController* player, PlayerMessage* message);
-
 namespace {
 
 constexpr int kAdvisorOrderKind = 0x203;
@@ -110,7 +107,7 @@ int AiPlayer::Virtual09() {
                     if (order->CheckValid(&status) == 0) {
                         m_currentTask->Refused(&result, order);
                     } else {
-                        FUN_0048aa90(this, reinterpret_cast<PlayerMessage*>(order));
+                        Send(order);
                         if (order->GetKind() != kAdvisorOrderKind) ++m_ordersSent;
                     }
                 }

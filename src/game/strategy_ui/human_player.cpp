@@ -107,7 +107,7 @@ HumanPlayer::HumanPlayer(int side) : PlayerController(side) {
     m_pausedSpeed = 0;
     if (m_side == kSideAlliance || m_side == kSideEmpire) m_advisor = NewAdvisor(this);
     m_advisor->m_dispatch = Dispatch();
-    *reinterpret_cast<void**>(Dispatch()->m_unk04) = m_advisor;
+    Dispatch()->m_advisor = m_advisor;
     Dispatch()->m_side = m_side;
 }
 
@@ -126,7 +126,7 @@ void HumanPlayer::Read(istream* in) {
     FUN_00488a30(Dispatch(), in);
     if (m_side == kSideAlliance || m_side == kSideEmpire) m_advisor = NewAdvisor(this);
     m_advisor->m_dispatch = Dispatch();
-    *reinterpret_cast<void**>(Dispatch()->m_unk04) = m_advisor;
+    Dispatch()->m_advisor = m_advisor;
     if (m_advisor) m_advisor->Read(in, this);
     m_pausedSpeed = 0;
 }
@@ -154,7 +154,7 @@ int HumanPlayer::Virtual04() {
 
 void HumanPlayer::Virtual07(PlayerMessage* message) {
     if (reinterpret_cast<MessageBase*>(message)->GetKind() == kAdvisorMessageEnd) {
-        FUN_0048a3b0(Dispatch(), message);
+        Dispatch()->OnChatMessage(reinterpret_cast<MessageBase*>(message));
         if (message) delete reinterpret_cast<MessageBase*>(message);
     } else {
         PlayerController::Virtual07(message);
@@ -162,7 +162,7 @@ void HumanPlayer::Virtual07(PlayerMessage* message) {
 }
 
 int HumanPlayer::Virtual08(PlayerMessage* message) {
-    if (reinterpret_cast<MessageBase*>(message)->GetKind() == kAdvisorMessageEnd) FUN_0048a3b0(Dispatch(), message);
+    if (reinterpret_cast<MessageBase*>(message)->GetKind() == kAdvisorMessageEnd) Dispatch()->OnChatMessage(reinterpret_cast<MessageBase*>(message));
     return 1;
 }
 
@@ -175,11 +175,11 @@ int HumanPlayer::Virtual09() {
 void HumanPlayer::Virtual10() {
     if (m_advisor && !HasPendingMessages()) m_advisor->Tick();
     if (void* message = FUN_004befe0(m_alertList)) {
-        FUN_00488b50(Dispatch(), message);
+        Dispatch()->HandleNotifications(static_cast<LinkNode*>(message));
         void** vtable = *static_cast<void***>(message);
         reinterpret_cast<void(__thiscall*)(void*, int)>(vtable[0])(message, 1);
     }
-    if (m_syncTarget == 0 && !UiIsPauseTick()) FUN_00488b90(Dispatch());
+    if (m_syncTarget == 0 && !UiIsPauseTick()) Dispatch()->Update();
 }
 
 void HumanPlayer::Virtual14() {
@@ -209,7 +209,7 @@ void HumanPlayer::Virtual17(int id, ObjectKey* key) {
     const int found = QueryBattleState(m_side, &a, &b, &c, &d);
     int attack = 0;
     if (found != 0 && a == 0 && b != 0 && c != 0) attack = 1;
-    FUN_00488d20(Dispatch(), key, attack);
+    Dispatch()->AddArrivalNotice(key, attack);
     Dispatch()->m_unk40 = 1;
 }
 
@@ -452,8 +452,8 @@ void HumanPlayer::Virtual91(const ObjectKey* key, const ObjectKey* newParent) {
 void HumanPlayer::ExecuteCommand(int command, ObjectKeyValueSet* selection, ObjectKey* key, String* name) {
     OrderBase* order;
     auto toggleDispatchFlag = [&](uint32_t kind) {
-        const unsigned state = FUN_0048a1c0(Dispatch(), kind);
-        FUN_0048a210(Dispatch(), kind, state ^ 4);
+        const unsigned state = Dispatch()->GetStateValue(kind);
+        Dispatch()->SetStateValue(kind, state ^ 4);
     };
     auto showSelectedObject = [&] {
         ObjectKey selected;
@@ -469,7 +469,7 @@ void HumanPlayer::ExecuteCommand(int command, ObjectKeyValueSet* selection, Obje
     };
     auto submitOrQueue = [&](int flag) {
         if (IsQueuedOrder(reinterpret_cast<PlayerMessage*>(order)))
-            FUN_0048a340(Dispatch(), reinterpret_cast<PlayerMessage*>(order));
+            Dispatch()->QueueConfirmation(reinterpret_cast<MessageBase*>(order));
         else
             SubmitOrder(reinterpret_cast<PlayerMessage*>(order), flag);
     };
@@ -651,10 +651,10 @@ void HumanPlayer::SubmitOrder(PlayerMessage* order, int flag) {
     if (reinterpret_cast<SidedMessage*>(order)->CheckValid(&status) == 0) {
         RefuseOrder(order, &status);
     } else if (flag == 0 && IsQueuedOrder(order)) {
-        FUN_0048a340(Dispatch(), order);
+        Dispatch()->QueueConfirmation(reinterpret_cast<MessageBase*>(order));
     } else {
         FUN_00488030(this, order);
-        FUN_0048aa90(this, order);
+        Send(reinterpret_cast<MessageBase*>(order));
         m_advisor->ResetSpeech();
         m_advisor->OnOrderSubmitted(order);
     }
@@ -672,19 +672,19 @@ void HumanPlayer::SetVote(int choice, int timed, PlayerMessage* reply) {
         m_voteState = 1;
         if (timed != 0) {
             m_voteTime.m_value = 10000.0f;
-            FUN_00488ca0(Dispatch(), reply);
+            Dispatch()->AddMessage(reinterpret_cast<UiNotice*>(reply));
             return;
         }
     }
-    FUN_00488ca0(Dispatch(), reply);
+    Dispatch()->AddMessage(reinterpret_cast<UiNotice*>(reply));
 }
 
 void HumanPlayer::ConfirmVote(PlayerMessage* reply) {
-    FUN_00488ca0(Dispatch(), reply);
+    Dispatch()->AddMessage(reinterpret_cast<UiNotice*>(reply));
     m_voteState = 3;
 }
 
-void HumanPlayer::SubmitMessage(PlayerMessage* message) { FUN_0048aa90(this, message); }
+void HumanPlayer::SubmitMessage(PlayerMessage* message) { Send(reinterpret_cast<MessageBase*>(message)); }
 
 void HumanPlayer::FillCommandMenu(EventKindSet* commands) {
     if (!m_advisor) return;
@@ -718,7 +718,7 @@ void HumanPlayer::FillOrderMenu(EventKindSet* commands) {
     commands->Add(0x11c, 1);
     for (const Toggle& toggle : toggles) {
         commands->Add(toggle.m_command, 1);
-        if ((FUN_0048a1c0(Dispatch(), toggle.m_kind) & 4) == 0) commands->Find(toggle.m_command)->m_unknown = 1;
+        if ((Dispatch()->GetStateValue(toggle.m_kind) & 4) == 0) commands->Find(toggle.m_command)->m_unknown = 1;
     }
 }
 

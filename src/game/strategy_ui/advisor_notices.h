@@ -21,17 +21,20 @@ public:
     virtual ~UiNotice();       // 0x4c4e30 (scalar deleting destructor 0x4c4d70)
     virtual void Read(istream* in);    // slot 1, 0x4c4e80
     virtual void Write(ostream* out);  // slot 2, 0x4c4f30
-    virtual int GetKind() = 0;   // slot 3: 0xf: a report with its own window (GalaxyWindow::OpenType1cWindow)
+    virtual int GetKind() = 0;   // slot 3: the index of the notice's handler in g_uiHandlers (events/player_notices.h)
     virtual int GetClass() = 0;  // slot 4: the sort of notice, 3..5 are the ones with a picture/sound page
-    virtual void Virtual05() {}  // 0x403ef0 (shared no-op)
-    virtual void Virtual06() = 0;
+    // Slots 5-9: what a notification payload tells the notice (NotifPayload::DispatchToSink calls the one that
+    // fits its shape with the payload's kind and data); the concrete notices override the ones they handle.
+    virtual void Virtual05(int kind, int payload) {}                     // 0x403ef0 (shared no-op)
+    virtual void Virtual06(int kind, int a, int b, int c) = 0;
     // Message 0x302 passes `a` on to the owning side's UI.
     virtual void OnMessage(int message, int a, int b);  // slot 7, 0x4c5020
-    virtual void Virtual08() = 0;
-    virtual void Virtual09() {}                       // 0x48acb0 (shared no-op)
-    virtual void Virtual10() = 0;
+    virtual void Virtual08(int kind, int a, int b) = 0;
+    virtual void Virtual09(int kind, int a, int b, int c) {}             // 0x48acb0 (shared no-op)
+    virtual UiNotice* Virtual10() = 0;                // slot 10: a new empty notice of the same class (UiHandler::CreateRecord)
     virtual int Virtual11() { return 0; }             // 0x6158b0 (shared)
     virtual int IsStale();                            // slot 12, 0x4c4fe0: created more than 300 ticks ago
+    virtual void Virtual13() {}                       // 0x619730 (shared no-op)
 
     int m_unk1c;             // +0x1c
     int m_owner;             // +0x20 the side the notice is for
@@ -45,6 +48,11 @@ public:
     int m_unk40;             // +0x40
 };
 
+// Tells `sink` about every payload of the list (slot 7 of each payload); 0 for a null list, else 1. 0x4974f0 is its
+// body in the UiTextNotice / UiKeyNotice slots.
+class LinkNode;
+int ForwardPayloads(UiNotice* sink, const LinkNode* payloads);
+
 // VT 0x65c4f0, 0x64 bytes: a notice with two texts and two object references; slots 13-16 are new.
 class UiTextNotice : public UiNotice {
 public:
@@ -53,10 +61,10 @@ public:
     virtual ~UiTextNotice();        // 0x4c4bd0 (scalar deleting destructor 0x4c4b30)
     virtual void Read(istream* in) override;    // 0x4c4c50
     virtual void Write(ostream* out) override;  // 0x4c4c90
-    virtual void Virtual13() {}   // 0x619730 (shared no-op)
+    void Virtual13() override {}  // 0x619730 (shared no-op)
     virtual void Virtual14() {}   // 0x619730
     virtual void Virtual15();     // 0x4c4cd0: Virtual13 through the vtable
-    virtual void Virtual16() {}   // 0x4974f0 (shared)
+    virtual int Virtual16(const LinkNode* payloads);  // 0x4974f0: hands every payload of the list to Virtual0x via DispatchToSink
 
     String m_text0;       // +0x44
     String m_text1;       // +0x50
@@ -72,8 +80,8 @@ public:
     virtual ~UiKeyNotice();        // 0x4c5140 (scalar deleting destructor 0x4c50b0)
     virtual void Read(istream* in) override;    // 0x4c51b0
     virtual void Write(ostream* out) override;  // 0x4c51f0
-    virtual void Virtual13() {}   // 0x619730 (shared no-op)
-    virtual void Virtual14() {}   // 0x4974f0 (shared)
+    void Virtual13() override {}  // 0x619730 (shared no-op)
+    virtual int Virtual14(const LinkNode* payloads);  // 0x4974f0 (shared)
 
     String m_text0;       // +0x44
     String m_text1;       // +0x50
