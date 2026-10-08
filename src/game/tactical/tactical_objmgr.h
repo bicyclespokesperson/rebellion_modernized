@@ -13,6 +13,7 @@
 
 class TacticalObjectManager;
 class TacticalUnit;
+class TacticalShipBase;
 
 // Per-side record (the manager keeps one for each side, at +0x08 and +0x0c).
 class TacticalSideData {
@@ -60,8 +61,8 @@ public:
     virtual void Virtual21(TacticalUnit* unit) = 0;     // 21 (+0x54): the facade registers a special force
     virtual void Virtual22(TacticalUnit* unit) = 0;     // 22 (+0x58): the facade registers a character
     virtual void Virtual23() = 0;
-    virtual void Virtual24(TacticalUnit* unit) = 0;     // 24 (+0x60): the facade registers a capital ship
-    virtual void Virtual25(TacticalUnit* unit) = 0;     // 25 (+0x64): the facade registers a fighter squadron
+    virtual void Virtual24(TacticalShipBase* ship) = 0;    // 24 (+0x60): the facade registers a capital ship
+    virtual void Virtual25(TacticalShipBase* fighter) = 0;    // 25 (+0x64): the facade registers a fighter squadron
     virtual void Virtual26() = 0;
     virtual void Virtual27() = 0;
     virtual void Virtual28() = 0;
@@ -78,10 +79,10 @@ public:
     virtual void Virtual39() = 0;
 
     // Adds a registered unit to the world's lists and returns its handle.
-    int AddShipToWorld(TacticalUnit* ship);                  // 0x5a9340
+    int AddShipToWorld(TacticalShipBase* ship);               // 0x5a9340
     int AddCharacterToWorld(TacticalUnit* character);        // 0x5a93e0
     int AddSpecialForceToWorld(TacticalUnit* force);         // 0x5a9450
-    int AddLaunchedFighterToWorld(TacticalUnit* fighter);    // 0x5a9470
+    int AddLaunchedFighterToWorld(TacticalShipBase* fighter);    // 0x5a9470
     int PlayerSideIsActive();                                // 0x5a74d0
     int PlayerSideCanAct(int side);                          // 0x5a8a90: asks the side's record, 0 when it is not the player's
     int CanPlayerCommandShip(void* ship);                    // 0x5ae120

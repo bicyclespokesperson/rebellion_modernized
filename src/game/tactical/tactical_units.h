@@ -4,6 +4,9 @@
 #include "core/containers.h"
 #include "core/game_string.h"
 #include "core/layout.h"
+#include "core/stream_io.h"
+#include "core/utility_classes.h"
+#include "core/vptr_store.h"
 
 // The tactical engine's unit records.
 //
@@ -44,8 +47,16 @@ public:
     TacticalCharacterUnit(uint32_t family, uint32_t id, uint16_t spriteId, String name, int notAlliance, int isMajor,
                           int isFirstCommander, int isSecondCommander, float scaleA, float scaleB,
                           int shipHandle, int injured);  // 0x596c40
+    TacticalCharacterUnit() {  // built by TacticalCharacterTree::Read before it reads the fields
+        m_channelA.m_data = nullptr;
+        m_channelB.m_data = nullptr;
+    }
     virtual ~TacticalCharacterUnit();  // 0x596d80 (scalar deleting destructor 0x596d60)
     virtual void Virtual01() override;  // 0x5bd880
+
+    void Checksum(Crc32* crc);  // 0x5bd7d0
+    void Read(istream* in);     // 0x5bd890
+    void Write(ostream* out);   // 0x5bd9a0
 
     TurnSyncChannelA m_channelA;  // +0x1c
     TurnSyncChannelB m_channelB;  // +0x24
@@ -68,8 +79,16 @@ class TacticalSpecialForceUnit : public TacticalUnit {
 public:
     TacticalSpecialForceUnit(uint32_t family, uint32_t id, uint16_t spriteId, String name, int notAlliance,
                              int shipHandle);  // 0x596df0
+    TacticalSpecialForceUnit() {  // built by TacticalSpecialForceTree::Read before it reads the fields
+        m_channelA.m_data = nullptr;
+        m_channelB.m_data = nullptr;
+    }
     virtual ~TacticalSpecialForceUnit();  // 0x596ec0 (scalar deleting destructor 0x596ea0)
     virtual void Virtual01() override;    // 0x5bd880
+
+    void Checksum(Crc32* crc);  // 0x5bdd40
+    void Read(istream* in);     // 0x5bddb0
+    void Write(ostream* out);   // 0x5bde70
 
     TurnSyncChannelA m_channelA;  // +0x1c
     TurnSyncChannelB m_channelB;  // +0x24
@@ -80,6 +99,42 @@ public:
     int m_notAlliance;            // +0x44
     int m_shipHandle;             // +0x48
 };
+
+// The simulator's trees of characters (VT 0x66c380) and of special forces and troops (VT 0x66c370) by handle: an IdAvlTree
+// with an accessor for the first node.
+class TacticalCharacterTree : public IdAvlTree {
+public:
+    TacticalCharacterTree() {}
+    virtual ~TacticalCharacterTree() { REB_KEEP_VPTR_STORE(); }  // 0x5bdaa0 (scalar deleting destructor 0x5a8860)
+    virtual IdNode* FirstItem();                                 // 0x5f6590
+
+    int CountItems();           // 0x5bdf20 (shared with TacticalSpecialForceTree)
+    void Read(istream* in);     // 0x5bdab0 replaces the contents with the records of the stream
+    void Write(ostream* out);   // 0x5bdba0
+    void Checksum(Crc32* crc);  // 0x5bdbf0
+};
+
+class TacticalSpecialForceTree : public IdAvlTree {
+public:
+    TacticalSpecialForceTree() {}
+    virtual ~TacticalSpecialForceTree() { REB_KEEP_VPTR_STORE(); }  // 0x5bdf10 (scalar deleting destructor 0x5a8880)
+    virtual IdNode* FirstItem();                                    // 0x5f6590
+
+    int CountItems();           // 0x5bdf20 (shared with TacticalCharacterTree)
+    void Read(istream* in);     // 0x5bdf40
+    void Write(ostream* out);   // 0x5be030
+    void Checksum(Crc32* crc);  // 0x5be080
+};
+
+// What the object manager hands an event handler: the payload is an array of 32-bit words.
+struct TacticalEvent {
+    void* m_unk00;
+    int* m_args;  // +0x04
+};
+
+// Event handler of the 3D battle (cdecl; registered in the object manager's event table): a character's ship and
+// injury state. args: 2 character handle, 6 ship handle, 8 / 9 injury flags.
+void __cdecl TacticalCharacterStatusEvent(TacticalEvent* event);  // 0x5bdc30
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

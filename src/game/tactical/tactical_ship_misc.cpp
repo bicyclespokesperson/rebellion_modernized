@@ -1,65 +1,26 @@
 #include <new>
 
+#include "tactical/tactical_groups.h"
+#include "tactical/tactical_objmgr.h"
+#include "tactical/tactical_registry.h"
 #include "tactical/tactical_externals.h"
 #include "tactical/tactical_facade.h"
 #include "tactical/tactical_game.h"
 #include "tactical/tactical_ship.h"
-#include "tactical/tactical_ship_ext.h"
 #include "tactical/tactical_simulator.h"
 
-// Small unit methods and vector helpers that did not fit elsewhere (0x5b1410-0x5b7d90, 0x5ba080-0x5ba380).
-
-namespace {
-
-constexpr int kUnknownLength = static_cast<int>(0xbf800000u);
-
-int bitsOf(float value) {
-    int bits;
-    __builtin_memcpy(&bits, &value, sizeof bits);
-    return bits;
-}
-
-}  // namespace
-
-// ---- vectors ------------------------------------------------------------------------------------------------------
-
-double TacticalVector::Length() {
-    if (bitsOf(m_cachedLength) == kUnknownLength) {
-        const double sum = (static_cast<double>(m_y) * m_y + static_cast<double>(m_z) * m_z) +
-                           static_cast<double>(m_x) * m_x;
-        m_cachedLength = static_cast<float>(X87Sqrt(sum));
-    }
-    return m_cachedLength;
-}
-
-void TacticalVector::Set(float x, float y, float z) {
-    m_x = x;
-    m_y = y;
-    m_z = z;
-    m_cachedLength = -1.0f;
-}
-
-int TacticalVector::MatchesXYZ(const TacticalVector* other) {
-    return m_x == other->m_x && m_y == other->m_y && m_z == other->m_z;
-}
-
-void TacticalVector::Scale(float factor) {
-    m_x = static_cast<float>(static_cast<double>(m_x) * factor);
-    m_cachedLength = -1.0f;
-    m_y = static_cast<float>(static_cast<double>(factor) * m_y);
-    m_z = static_cast<float>(static_cast<double>(m_z) * factor);
-}
+// Small unit methods that did not fit elsewhere (0x5b1410-0x5b7d90, 0x5ba080-0x5ba380).
 
 // ---- ship ---------------------------------------------------------------------------------------------------------
 
 double TacticalShipBase::Turn(float step, float rate) {
     if (GetSpeed() == 0.0f || rate == 0.0f) return 0.0f;
     if (step <= g_shipMinTurnStep) return step;
-    return TacticalShipObject::Turn(step, rate);
+    return MovingObject::Turn(step, rate);
 }
 
 double TacticalShipBase::GetRadius() {
-    return m_unk6c.Length() * 0.5f + static_cast<double>(m_unk0c) * 0.5555556f;
+    return m_unk6c.Length() * 0.5f + static_cast<double>(m_radius) * 0.5555556f;
 }
 
 int TacticalShipBase::HubQuery() { return FUN_0059f640(FUN_0059ed70(), this); }
@@ -87,8 +48,9 @@ void TacticalShipBase::GetGroupPosition(TacticalVector* out) {
     if (m_groupHandle == 0) {
         position = FUN_005a7490(GetObjectManager(), scratch, m_side);
     } else {
-        TacticalGroupView* group = m_unitKind == 1 ? FUN_005a6470(GetTacticalRegistry(), m_groupHandle)
-                                                   : FUN_005a6460(GetTacticalRegistry(), m_groupHandle);
+        TacticalRegistry* registry = GetTacticalRegistry();
+        ShipGroup* group = ShipGroupOf(m_unitKind == 1 ? registry->FindCapitalShipGroup(m_groupHandle)
+                                                       : registry->FindFighterGroup(m_groupHandle));
         position = group->GetPosition(scratch);
     }
     out->m_x = position->m_x;
@@ -128,19 +90,17 @@ void TacticalShipBase::BuildStatusRecord(TacticalShipStatusRecord* out) {
     int handle = m_unk178;
     if (m_channelB.m_data != nullptr) handle = m_groupHandle;
     if (handle != 0) {
-        TacticalGroupView* group = reinterpret_cast<TacticalGroupView*>(FUN_005a6480(GetTacticalRegistry(), handle));
+        ShipGroup* group = ShipGroupOf(GetTacticalRegistry()->FindShipGroup(handle));
         if (group != nullptr) {
             record.m_groupMode = FUN_005cb980(group);
-            if (group->Kind() == 3) record.m_hubValue = FUN_0059f640(FUN_0059ed70(), this);
-            char* raw = reinterpret_cast<char*>(group);
-            record.m_groupField68 = *reinterpret_cast<int*>(raw + 0x68);
-            record.m_groupField5c = *reinterpret_cast<int*>(raw + 0x5c);
-            record.m_groupField38 = *reinterpret_cast<int*>(raw + 0x38);
-            TacticalUnitTree* members = reinterpret_cast<TacticalUnitTree*>(raw + 0x98);
-            TacticalUnitNode* first = members->FirstNode();
-            if (first != nullptr) record.m_firstMember = members->FirstNode()->GetHandle();
-            TacticalGroupIdTree* other = reinterpret_cast<TacticalGroupIdTree*>(raw + 0x80);
-            if (other->FirstItem() != nullptr) record.m_secondGroupItem = other->FirstItem()->m_id;
+            if (TacticalUnitKind(group) == 3) record.m_hubValue = FUN_0059f640(FUN_0059ed70(), this);
+            record.m_groupField68 = group->m_unk68;
+            record.m_groupField5c = group->m_unk5c;
+            record.m_groupField38 = group->m_unk38;
+            UnitRefNode* first = static_cast<UnitRefNode*>(group->m_formationB.FirstNode());
+            if (first != nullptr) record.m_firstMember = static_cast<UnitRefNode*>(group->m_formationB.FirstNode())->Key();
+            AvlNode* second = group->m_targetsB.FirstNode();
+            if (second != nullptr) record.m_secondGroupItem = static_cast<IdNode*>(group->m_targetsB.FirstNode())->m_id;
         }
     }
     *out = record;
@@ -174,6 +134,6 @@ void __cdecl TacticalFighterStatusEvent(TacticalEvent* event) {
     FightSquadResult* record = reinterpret_cast<FightSquadResult*>(reinterpret_cast<char*>(event->m_args) + 8);
     if (record == nullptr) return;
     TacticalFighter* fighter =
-        reinterpret_cast<TacticalFighter*>(FUN_005a6340(GetTacticalRegistry(), record->m_unk00));
+        static_cast<TacticalFighter*>(GetTacticalRegistry()->FindShip(record->m_unk00));
     if (fighter != nullptr) fighter->ApplyStatus(record);
 }

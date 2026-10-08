@@ -133,7 +133,7 @@ uint16_t TacticalGame::LookupTypeSprite(int16_t key) {
 
 void TacticalGame::BeginBattle(int appState) {
     if (m_abstract) {
-        FUN_005ae460(GetHeadlessSimulator(), 0);
+        GetHeadlessSimulator()->FormBattleGroups(0);
         m_busy = 0;
         return;
     }
@@ -147,7 +147,7 @@ int TacticalGame::ShutDownBattle() {
     if (m_busy < 0) m_busy = 0;
     destroysSimulatorIfAny();
     DestroyObjectManager();
-    FUN_0059ede0();
+    DestroyTacticalHub();
     FUN_005bbee0();
     AppDestroyTacticalWindow();
     --m_busy;

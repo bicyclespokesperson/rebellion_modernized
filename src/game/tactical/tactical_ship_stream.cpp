@@ -1,5 +1,8 @@
+#include "tactical/tactical_externals.h"
+#include "tactical/tactical_groups.h"
+#include "tactical/tactical_objmgr.h"
+#include "tactical/tactical_registry.h"
 #include "tactical/tactical_ship.h"
-#include "tactical/tactical_ship_ext.h"
 
 // Save / network-sync serialization of the battle units: every unit writes, reads and checksums the same fields in the
 // same order (0x5b6a00 / 0x5b6eb0 / 0x5b7370 and the carrier parts).
@@ -125,9 +128,9 @@ void TacticalWeaponArc::Read(istream* in) {
     m_damageA = 0;
     m_damageB = 0;
     m_damageC = 0;
-    FUN_005d23b0(&m_profileA, in);
-    FUN_005d23b0(&m_profileB, in);
-    FUN_005d23b0(&m_profileC, in);
+    m_profileA.Read(in);
+    m_profileB.Read(in);
+    m_profileC.Read(in);
     m_unk54 = 0;
     m_unk58 = 0;
     m_unk5c = 0;
@@ -142,9 +145,9 @@ void TacticalWeaponArc::Write(ostream* out) {
     WriteValue32(out, &m_countA);
     WriteValue32(out, &m_countB);
     WriteValue32(out, &m_countC);
-    FUN_005d2400(&m_profileA, out);
-    FUN_005d2400(&m_profileB, out);
-    FUN_005d2400(&m_profileC, out);
+    m_profileA.Write(out);
+    m_profileB.Write(out);
+    m_profileC.Write(out);
     WriteValue32(out, &m_unk60);
     WriteValue32(out, &m_chargeState);
     WriteValue32(out, &m_charge);
@@ -156,9 +159,9 @@ void TacticalWeaponArc::Checksum(Crc32* crc) {
     crc->AddInt(m_countA);
     crc->AddInt(m_countB);
     crc->AddInt(m_countC);
-    FUN_005d2450(&m_profileA, crc);
-    FUN_005d2450(&m_profileB, crc);
-    FUN_005d2450(&m_profileC, crc);
+    m_profileA.Checksum(crc);
+    m_profileB.Checksum(crc);
+    m_profileC.Checksum(crc);
     crc->AddInt(m_unk60);
     crc->AddInt(m_chargeState);
     crc->AddInt(bitsOf(m_charge));
@@ -170,7 +173,7 @@ void TacticalWeaponArc::Checksum(Crc32* crc) {
 
 void TacticalShipBase::WriteState(ostream* out) {
     Writer writer{out};
-    TacticalShipObject::Write(out);
+    MovingObject::Write(out);
     int id = static_cast<int>(m_id);
     WriteValue32(out, &id);
     visitLeadingFields(*this, writer);
@@ -181,7 +184,7 @@ void TacticalShipBase::WriteState(ostream* out) {
 
 void TacticalShipBase::ReadState(istream* in) {
     Reader reader{in};
-    TacticalShipObject::Read(in);
+    MovingObject::Read(in);
     uint32_t id = 0;
     ReadValue32(in, &id);
     TacticalUnit::SetId(id);
@@ -193,7 +196,7 @@ void TacticalShipBase::ReadState(istream* in) {
 
 void TacticalShipBase::ChecksumState(Crc32* crc) {
     Summer summer{crc};
-    TacticalShipObject::Checksum(crc);
+    MovingObject::Checksum(crc);
     crc->AddInt(static_cast<int>(m_id));
     visitLeadingFields(*this, summer);
     visitMiddleFields(*this, summer);

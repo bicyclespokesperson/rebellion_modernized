@@ -4,6 +4,7 @@
 #include "tactical/tactical_facade.h"
 #include "tactical/tactical_game.h"
 #include "tactical/tactical_objmgr.h"
+#include "tactical/tactical_ship.h"
 #include "tactical/tactical_simulator.h"
 
 // TacticalUnit::Virtual01 returns the unit's kind; the declared signature in tactical_units.h is void, so the call goes
@@ -16,27 +17,21 @@ public:
 
 namespace {
 
-constexpr int kShipSubobjectOffset = 0xd4;
-constexpr int kLaunchInterfaceOffset = 0x418;
-constexpr int kUnitInterfaceOffset = 0x1c;
 constexpr int kFighterGroupKind = 3;
 constexpr int kCapitalGroupKind = 4;
 constexpr int kCapitalShipClass = 0;
 
 int kindOf(TacticalUnit* unit) { return TacticalUnitKind(unit); }
 
-template <class T>
-T* atOffset(void* base, int offset) {
-    return reinterpret_cast<T*>(static_cast<char*>(base) + offset);
+IdNode* shipNode(TacticalShipBase* ship) { return ship; }
+
+TacticalShipBase* shipOfNode(IdNode* node) { return static_cast<TacticalShipBase*>(static_cast<TacticalUnit*>(node)); }
+
+TacticalHangar* hangarOfDeathStar(TacticalUnit* deathStar) {
+    return static_cast<TacticalDeathStar*>(deathStar);
 }
 
-IdNode* shipNode(SimUnit* ship) { return atOffset<IdNode>(ship, kShipSubobjectOffset); }
-
-SimUnit* shipOfNode(IdNode* node) { return atOffset<SimUnit>(node, -kShipSubobjectOffset); }
-
 }  // namespace
-
-void* __thiscall FUN_005a9330(TacticalObjectManager* manager);  // the object manager's unit lookup for the launch interface
 
 int TacticalUnitKind(TacticalUnit* unit) { return reinterpret_cast<UnitKindView*>(unit)->Kind(); }
 
@@ -64,28 +59,28 @@ uint32_t TacticalRegistry::NextGroupHandle(unsigned side) {
     return 0;
 }
 
-SimUnit* TacticalRegistry::FindShip(int handle) {
+TacticalShipBase* TacticalRegistry::FindShip(int handle) {
     IdNode* node = m_ships.FindById(handle);
     return node ? shipOfNode(node) : nullptr;
 }
 
-TacticalUnit* TacticalRegistry::FindLaunchInterface(int handle) {
-    SimUnit* ship = FindShip(handle);
+TacticalHangar* TacticalRegistry::FindLaunchInterface(int handle) {
+    TacticalShipBase* ship = FindShip(handle);
     if (!ship) {
         if (GetTacticalGame()->m_abstract == 0) {
-            void* world = FUN_005a9330(GetObjectManager());
-            return world ? atOffset<TacticalUnit>(world, kUnitInterfaceOffset) : nullptr;
+            TacticalUnit* world = FUN_005a9330(GetObjectManager());
+            return world ? hangarOfDeathStar(world) : nullptr;
         }
         GetHeadlessSimulator();
         TacticalUnit* deathStar = GetTacticalRegistry()->GetDeathStar();
-        return deathStar ? atOffset<TacticalUnit>(deathStar, kUnitInterfaceOffset) : nullptr;
+        return deathStar ? hangarOfDeathStar(deathStar) : nullptr;
     }
-    if (ship->GetUnitClass() == kCapitalShipClass) return atOffset<TacticalUnit>(ship, kLaunchInterfaceOffset);
+    if (ship->GetUnitClass() == kCapitalShipClass) return static_cast<TacticalCapitalShip*>(ship);
     return nullptr;
 }
 
 IdNode* TacticalRegistry::FindShipOrViewGroup(int handle) {
-    SimUnit* ship = FindShip(handle);
+    TacticalShipBase* ship = FindShip(handle);
     if (ship) return shipNode(ship);
     return m_viewGroups.FindById(handle);
 }
@@ -108,7 +103,7 @@ IdNode* TacticalRegistry::RemoveShipGroup(int handle) {
     return found;
 }
 
-uint32_t TacticalRegistry::AddShip(SimUnit* ship) { return m_ships.AddWithId(ship ? shipNode(ship) : nullptr); }
+uint32_t TacticalRegistry::AddShip(TacticalShipBase* ship) { return m_ships.AddWithId(ship ? shipNode(ship) : nullptr); }
 
 uint32_t TacticalRegistry::AddViewGroup(IdNode* group) { return m_viewGroups.AddWithId(group); }
 

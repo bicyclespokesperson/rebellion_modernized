@@ -22,18 +22,18 @@ public:
     virtual ~AttackEvaluatorBase();  // 0x5d1e00 (scalar deleting destructor 0x5c9720)
     // Estimated time for the group to reach the unit (-1 when it cannot); adds the group's strength to *total and stores
     // the unit's speed in *speed.
-    virtual float Virtual01(SimUnit* unit, ShipGroup* group, float* total, float* speed);  // 0x5ed170
-    virtual float Evaluate(int a, SimUnit* unit) = 0;  // slot 2
+    virtual float Virtual01(TacticalShipBase* unit, ShipGroup* group, float* total, float* speed);  // 0x5ed170
+    virtual float Evaluate(int a, TacticalShipBase* unit) = 0;  // slot 2
     virtual int Virtual03(ShipGroup* group) = 0;       // slot 3
-    virtual int Virtual04(SimUnit* unit) = 0;          // slot 4
+    virtual int Virtual04(TacticalShipBase* unit) = 0;          // slot 4
 };
 
 class AttackEvaluator : public AttackEvaluatorBase {  // VT 0x66d100
 public:
     AttackEvaluator() {}
-    virtual float Evaluate(int a, SimUnit* unit) override;  // 0x5edc10
+    virtual float Evaluate(int a, TacticalShipBase* unit) override;  // 0x5edc10
     virtual int Virtual03(ShipGroup* group) override;       // 0x5eda50
-    virtual int Virtual04(SimUnit* unit) override;          // 0x5eda20
+    virtual int Virtual04(TacticalShipBase* unit) override;          // 0x5eda20
 };
 
 class TacticalSideBase;
@@ -113,9 +113,9 @@ public:
 
     int HasDisabledUnit();                     // 0x5c7e40 (a fleet unit with +0x150 set)
     void RecordFleetPriorities();              // 0x5c81d0 notes the strength and sorts the fleet into the target lists
-    float EvaluateAttack(int a, SimUnit* unit);  // 0x5c9190
-    float InterceptTime(SimUnit* unit, ShipGroup* group, float* total, float* speed);  // 0x5c9160
-    int EvaluateUnit4(SimUnit* unit);          // 0x5c91c0
+    float EvaluateAttack(int a, TacticalShipBase* unit);  // 0x5c9190
+    float InterceptTime(TacticalShipBase* unit, ShipGroup* group, float* total, float* speed);  // 0x5c9160
+    int EvaluateUnit4(TacticalShipBase* unit);          // 0x5c91c0
     int EvaluateUnit3(ShipGroup* group);       // 0x5c91e0
     void ReprioritiseTargets(float step);      // 0x5c9200
 
@@ -159,7 +159,7 @@ public:
     virtual int Slot06() override;                            // 0x5d1410
     virtual int SplitIntoGroups(TargetPriorityTree* targets, int least, int most) override;  // 0x5d1240
     virtual int Slot08() override;                            // 0x5d1080
-    virtual int RecordFleet(SimUnitList* unused);             // 0x5d14c0 slot 9
+    virtual int RecordFleet(UnitRefTree* unused);             // 0x5d14c0 slot 9
     virtual int StepSide(float step);                         // 0x5d14d0 slot 10
     virtual int Virtual11();                                  // 0x5d19a0
 };

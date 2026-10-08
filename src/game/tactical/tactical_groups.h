@@ -136,7 +136,7 @@ public:
     virtual void Virtual13();                // 0x5cb4d0
     virtual void Virtual14();                // 0x5cb5b0
     virtual void Virtual15();                // 0x5cb8e0
-    virtual void Virtual16();                // 0x5cafa0
+    virtual TacticalVector* GetPosition(TacticalVector* out);  // 0x5cafa0 slot 16
     virtual void Virtual17();                // 0x5cb990
     virtual void SetMode(int mode);          // 0x5ca6d0 slot 18
     virtual void Virtual19();                // 0x5cb770
@@ -150,7 +150,7 @@ public:
     virtual void Virtual27();                // 0x5c9780
     virtual void Virtual28();                // 0x5c9ae0
 
-    float MemberStrengthAgainst(SimUnit* target);  // 0x5cb650
+    float MemberStrengthAgainst(TacticalShipBase* target);  // 0x5cb650
 
     ShipGroup(int seedHandle, int id);  // 0x5c9fb0 the variant that takes the group's id
 
@@ -203,6 +203,13 @@ public:
     virtual void Virtual01() override;      // 0x5a6730 returns 3
     virtual void Virtual05() override;      // 0x5cc300
 };
+
+// The group an id-tree node of the registry stands for (a group starts with its TacticalUnit, which is the node).
+inline ShipGroup* ShipGroupOf(IdNode* node) { return static_cast<ShipGroup*>(static_cast<TacticalUnit*>(node)); }
+
+// Gives a new group a handle for its side and registers it (0x5afde0 a fighter group, 0x5afe10 a capital-ship group).
+void __stdcall RegisterFighterGroup(ShipGroup* group);
+void __stdcall RegisterCapitalShipGroup(ShipGroup* group);
 
 // Removes a unit from its group (a null group is ignored); 0x5caed0.
 void __stdcall RemoveMemberFromGroup(ShipGroup* group, int handle);

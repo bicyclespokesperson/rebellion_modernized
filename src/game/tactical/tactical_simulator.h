@@ -6,7 +6,7 @@
 #include "core/game_string.h"
 #include "core/layout.h"
 #include "core/utility_classes.h"
-#include "tactical/tactical_ship_decl.h"
+#include "tactical/tactical_lists.h"
 #include "tactical/tactical_types.h"
 #include "tactical/tactical_units.h"
 
@@ -18,47 +18,12 @@ class TacticalDeathStar;
 // abstract flag set steps it with 1.0). Its constructor (0x5af5f0) and most unit handling belong to the capital-ship
 // module; the part reconstructed here is the step and the end-of-battle bookkeeping (0x5ae9c0-0x5af4b0).
 
-// A battle unit (capital ship, fighter, Death Star...): only the interface the simulator uses. The classes live in the
-// capital-ship and fighter modules.
-class SimUnit {
-public:
-    virtual void Slot00();
-    virtual void Slot01();
-    virtual void Slot02();
-    virtual void Slot03();
-    virtual void Slot04();
-    virtual void Slot05();
-    virtual void Slot06();
-    virtual void Slot07();
-    virtual int GetUnitClass();  // slot 8 (+0x20): 0 for a capital ship, 1 for a fighter squadron
-    virtual int Slot09();        // slot 9 (+0x24): the unit's type index
-
-    uint8_t m_pad04[0x168 - 4];
-    int m_side;                  // +0x168 0 or 1
-    uint8_t m_pad16c[4];
-    int m_state;                 // +0x170 see SimUnitState
-};
-
 enum SimUnitState {
     kUnitDockedOrActive = 1,
     kUnitActive = 2,
     kUnitWithdrawing = 5,
     kUnitDeathStarPresent = 9,
 };
-
-// A node of a unit list (the lists are the ship-group module's id-ordered containers).
-class SimUnitNode {
-public:
-    virtual void Slot00();
-    virtual void Slot01();
-    virtual SimUnitNode* Next();  // slot 2 (+0x08)
-    virtual void Slot03();
-    virtual SimUnit* Value();     // slot 4 (+0x10)
-};
-
-using SimUnitList = TacticalUnitTree;
-
-inline SimUnitNode* FirstNodeOf(SimUnitList& list) { return reinterpret_cast<SimUnitNode*>(list.FirstNode()); }
 
 // One side's state inside the simulator (the object at +0x24c / +0x250; class and vtable live in the capital-ship module).
 class SimulatorSide {
@@ -86,9 +51,9 @@ public:
     int m_unk4c;                     // +0x4c
     float m_sign50;                  // +0x50 1.0 for the first side, -1.0 for the second
     float m_unk54;                   // +0x54 -1.0
-    SimUnitList m_fleet;             // +0x58 the side's units on the field
-    SimUnitList m_hangars;           // +0x64 the side's units still in hangars
-    SimUnitList m_retired;           // +0x70 the side's units that are out of the battle
+    UnitRefTree m_fleet;             // +0x58 the side's units on the field
+    UnitRefTree m_hangars;           // +0x64 the side's units still in hangars
+    UnitRefTree m_retired;           // +0x70 the side's units that are out of the battle
     float m_value;                   // +0x7c the side's fleet value (set by the facade)
     int m_flag80;                    // +0x80
     int m_unk84;                     // +0x84 5 while the side is withdrawing
@@ -99,6 +64,7 @@ public:
 // The two concrete sides (VT 0x66c428 / 0x66c3f8); their vtables differ only in a few slots of the AI module.
 class SimulatorSideA : public SimulatorSide {
 public:
+    virtual ~SimulatorSideA();  // 0x5d14a0 (scalar deleting destructor 0x5affd0)
     SimulatorSideA() {
         m_unkB0 = 0;
         m_unk48 = 0;
@@ -110,6 +76,7 @@ public:
 
 class SimulatorSideB : public SimulatorSide {
 public:
+    virtual ~SimulatorSideB();  // 0x5d14b0 (scalar deleting destructor 0x5afff0)
     SimulatorSideB() {
         m_unkB0 = 0;
         m_unk48 = 0;
@@ -133,10 +100,10 @@ struct HeadlessSimulator {
     TacticalSpecialForceTree m_specialForces;  // +0x38 special forces and troops by handle
     int m_battleKind;           // +0x44
     uint8_t m_pad48[4];
-    SimUnitList m_units;        // +0x4c every unit in the battle
-    SimUnitList m_launched;     // +0x58 units whose carrier was found (launched fighters)
-    SimUnitList m_active;       // +0x64 units in state 2
-    SimUnitList m_retired;      // +0x70 units that left the battle (state 0xb)
+    UnitRefTree m_units;        // +0x4c every unit in the battle
+    UnitRefTree m_launched;     // +0x58 units whose carrier was found (launched fighters)
+    UnitRefTree m_active;       // +0x64 units in state 2
+    UnitRefTree m_retired;      // +0x70 units that left the battle (state 0xb)
     String m_strings[0x26];     // +0x7c
     uint8_t m_pad244[8];
     SimulatorSide* m_sides[2];  // +0x24c
@@ -149,7 +116,7 @@ struct HeadlessSimulator {
     int RandomBetween(int low, int high);     // 0x5af420
     int AddCharacter(TacticalUnit* character);       // 0x5af440
     int AddSpecialForce(TacticalUnit* force);        // 0x5af490
-    int AddLaunchedFighter(TacticalUnit* fighter);   // 0x5af4b0
+    int AddLaunchedFighter(TacticalShipBase* fighter);   // 0x5af4b0
     void RecordSurvivors();                   // 0x5aee90
 
     // ---- units (capital-ship module) -----------------------------------------------------------------------
@@ -172,7 +139,7 @@ struct HeadlessSimulator {
     int DockInHangar(TacticalShipBase* unit);                 // 0x5afe40
     // Battle-start grouping (tactical_battle_groups.cpp): sorts the units into the sides' lists and forms capital-ship
     // groups by type, then splits the fighters into groups.
-    CapitalShipGroup* FormCapitalGroup(SimUnitList* units, int unitType, int role);  // 0x5ae330
+    CapitalShipGroup* FormCapitalGroup(UnitRefTree* units, int unitType, int role);  // 0x5ae330
     void FormBattleGroups(int unused);                                               // 0x5ae460
 };
 
@@ -198,6 +165,4 @@ REB_ASSERT_OFFSET(SimulatorSide, m_fleet, 0x58);
 REB_ASSERT_OFFSET(SimulatorSide, m_hangars, 0x64);
 REB_ASSERT_OFFSET(SimulatorSide, m_unk84, 0x84);
 REB_ASSERT_OFFSET(SimulatorSide, m_unkB0, 0xb0);
-REB_ASSERT_OFFSET(SimUnit, m_side, 0x168);
-REB_ASSERT_OFFSET(SimUnit, m_state, 0x170);
 #pragma clang diagnostic pop

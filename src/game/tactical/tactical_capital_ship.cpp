@@ -1,8 +1,10 @@
+#include "tactical/tactical_groups.h"
+#include "tactical/tactical_objmgr.h"
+#include "tactical/tactical_registry.h"
 #include "tactical/tactical_externals.h"
 #include "tactical/tactical_facade.h"
 #include "tactical/tactical_game.h"
 #include "tactical/tactical_ship.h"
-#include "tactical/tactical_ship_ext.h"
 #include "tactical/tactical_simulator.h"
 
 // Capital ship (0x5af4e0-0x5b8540). x87 conventions as in tactical_ship.cpp.
@@ -97,7 +99,7 @@ TacticalCapitalShip::TacticalCapitalShip(uint32_t family, uint32_t id, int notAl
     m_speedCH = speedCH;
     m_shieldCH = shieldCH;
     m_hyperdriveCH = hyperdriveCH;
-    m_unk04 = static_cast<float>(X87Sin(static_cast<double>(kPi) * 0.49444446f));
+    m_scale = static_cast<float>(x87Sin(static_cast<double>(kPi) * 0.49444446f));
     m_tractoredBy[0] = 0;
     m_tractoredBy[1] = 0;
     m_tractoredBy[2] = 0;
@@ -106,9 +108,9 @@ TacticalCapitalShip::TacticalCapitalShip(uint32_t family, uint32_t id, int notAl
     m_unk3a4 = 0;
     m_hasGravityWell = gravityWell != 0;
     m_unk08 = 3.0f;
-    m_unk0c = m_typeIndex == 0x15 ? 19.0f : static_cast<float>(3.0f * 1.2f);
+    m_radius = m_typeIndex == 0x15 ? 19.0f : static_cast<float>(3.0f * 1.2f);
     m_unk400 = hundred;
-    m_unk160 = static_cast<float>(static_cast<double>(m_unk0c) * 1.2f);
+    m_unk160 = static_cast<float>(static_cast<double>(m_radius) * 1.2f);
     m_turnAxis.m_x = static_cast<float>(static_cast<double>(kPi) * 0.083333336f);
     m_turnAxis.m_y = 0;
     m_turnAxis.m_z = 0;

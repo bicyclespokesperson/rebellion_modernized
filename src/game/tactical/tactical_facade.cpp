@@ -68,10 +68,9 @@ int __cdecl TacticalRegisterCapitalShip(
                                                 grid11, grid21, grid31, grid00, grid10, grid20, grid30, speedCH,
                                                 shieldCH, weaponCH, hyperdriveCH, tractorCH, a42, a41, a40, 100);
     }
-    TacticalUnit* unit = reinterpret_cast<TacticalUnit*>(ship);
     if (GetTacticalGame()->m_abstract == 0) {
-        GetObjectManager()->Virtual24(unit);
-        return GetObjectManager()->AddShipToWorld(unit);
+        GetObjectManager()->Virtual24(ship);
+        return GetObjectManager()->AddShipToWorld(ship);
     }
     GetHeadlessSimulator()->RegisterCapitalShip(ship);
     return GetHeadlessSimulator()->ActivateUnit(ship);
@@ -98,7 +97,7 @@ int __cdecl TacticalRegisterSpecialForce(uint32_t family, uint32_t id, uint32_t 
         return GetObjectManager()->AddSpecialForceToWorld(base);
     }
     GetHeadlessSimulator()->AssignCharacterHandle(base);
-    return FUN_005af490(GetHeadlessSimulator(), base);
+    return GetHeadlessSimulator()->AddSpecialForce(base);
 }
 
 int __cdecl TacticalRegisterCharacter(uint32_t family, uint32_t id, String name, int notAlliance, int isMajor,
@@ -117,7 +116,7 @@ int __cdecl TacticalRegisterCharacter(uint32_t family, uint32_t id, String name,
         return GetObjectManager()->AddCharacterToWorld(base);
     }
     GetHeadlessSimulator()->AssignCharacterHandle(base);
-    return FUN_005af440(GetHeadlessSimulator(), base);
+    return GetHeadlessSimulator()->AddCharacter(base);
 }
 
 int __cdecl TacticalRegisterFightSquad(
@@ -135,40 +134,39 @@ int __cdecl TacticalRegisterFightSquad(
                                                grid12, grid22, grid32, grid01, grid11, grid21, grid31, grid00, grid10,
                                                grid20, grid30, a42, a41, a40, totalTorpedoes, torpedoRange);
     }
-    TacticalUnit* unit = reinterpret_cast<TacticalUnit*>(fighter);
     if (GetTacticalGame()->m_abstract == 0) {
-        GetObjectManager()->Virtual25(unit);
+        GetObjectManager()->Virtual25(fighter);
     } else {
         GetHeadlessSimulator()->RegisterFighter(fighter);
     }
     if (carrierIsCapitalShip == kAttachedToCapitalShip) {
-        TacticalHangar* carrier = reinterpret_cast<TacticalHangar*>(FUN_005a6360(GetTacticalRegistry(), carrierHandle));
+        TacticalHangar* carrier = GetTacticalRegistry()->FindLaunchInterface(carrierHandle);
         if (carrier) {
             if (fighter->UpdateHyperdriveReady() == 0) {
                 fighter->SetState1();
                 carrier->Launch(fighter);
-                if (GetTacticalGame()->m_abstract != 0) return FUN_005af4b0(GetHeadlessSimulator(), unit);
-                return GetObjectManager()->AddLaunchedFighterToWorld(unit);
+                if (GetTacticalGame()->m_abstract != 0) return GetHeadlessSimulator()->AddLaunchedFighter(fighter);
+                return GetObjectManager()->AddLaunchedFighterToWorld(fighter);
             }
             fighter->SetState2();
             if (GetTacticalGame()->m_abstract != 0) return GetHeadlessSimulator()->ActivateUnit(fighter);
-            return GetObjectManager()->AddShipToWorld(unit);
+            return GetObjectManager()->AddShipToWorld(fighter);
         }
     }
     fighter->SetState2();
     if (GetTacticalGame()->m_abstract != 0) return GetHeadlessSimulator()->ActivateUnit(fighter);
-    return GetObjectManager()->AddShipToWorld(unit);
+    return GetObjectManager()->AddShipToWorld(fighter);
 }
 
 // ---- results -------------------------------------------------------------------------------------------------------
 
 CapitalShipResult* __cdecl TacticalGetCapitalShipResult(CapitalShipResult* out, int handle) {
     CapitalShipResult result;
-    TacticalCapitalShip* ship = reinterpret_cast<TacticalCapitalShip*>(FUN_005a6340(GetTacticalRegistry(), handle));
+    TacticalCapitalShip* ship = static_cast<TacticalCapitalShip*>(GetTacticalRegistry()->FindShip(handle));
     if (ship) {
         result = *ship->BuildResult(&result);
     } else {
-        TacticalUnit* deathStar = FUN_005a66a0(GetTacticalRegistry());
+        TacticalUnit* deathStar = GetTacticalRegistry()->GetDeathStar();
         if (deathStar) result = *static_cast<TacticalDeathStar*>(deathStar)->BuildCapitalShipResult(&result);
     }
     *out = result;
@@ -177,7 +175,7 @@ CapitalShipResult* __cdecl TacticalGetCapitalShipResult(CapitalShipResult* out, 
 
 FightSquadResult* __cdecl TacticalGetFightSquadResult(FightSquadResult* out, int handle) {
     FightSquadResult result;
-    TacticalFighter* fighter = reinterpret_cast<TacticalFighter*>(FUN_005a6340(GetTacticalRegistry(), handle));
+    TacticalFighter* fighter = static_cast<TacticalFighter*>(GetTacticalRegistry()->FindShip(handle));
     if (fighter) result = *fighter->BuildResult(&result);
     *out = result;
     return out;
@@ -191,7 +189,7 @@ CharacterResult* __cdecl TacticalMakeCharacterResult(CharacterResult* out, int h
 
 DeathStarResult* __cdecl TacticalGetDeathStarResult(DeathStarResult* out) {
     DeathStarResult result;
-    TacticalUnit* deathStar = FUN_005a66a0(GetTacticalRegistry());
+    TacticalUnit* deathStar = GetTacticalRegistry()->GetDeathStar();
     if (deathStar) result = *static_cast<TacticalDeathStar*>(deathStar)->BuildResult(&result);
     *out = result;
     return out;
@@ -220,7 +218,7 @@ void __cdecl TacticalPostNotice(int a, int unused) { GetTacticalGame()->PostHubN
 
 void __cdecl TacticalHubSync(int a) { FUN_005a5fd0(FUN_0059ed70(), a); }
 
-int TacticalHasDeathStar() { return FUN_005a66a0(GetTacticalRegistry()) != nullptr; }
+int TacticalHasDeathStar() { return GetTacticalRegistry()->GetDeathStar() != nullptr; }
 
 void __cdecl TacticalPostPair(int a, int b) { GetTacticalGame()->PostHubPair(a, b); }
 

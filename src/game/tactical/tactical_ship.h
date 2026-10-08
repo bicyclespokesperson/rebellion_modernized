@@ -3,19 +3,59 @@
 
 #include "core/game_string.h"
 #include "core/layout.h"
-#include "tactical/tactical_ship_decl.h"
+#include "core/stream_io.h"
+#include "core/utility_classes.h"
+#include "core/vptr_store.h"
+#include "tactical/tactical_lists.h"
+#include "tactical/tactical_math.h"
+#include "tactical/tactical_moving_object.h"
 #include "tactical/tactical_types.h"
 #include "tactical/tactical_units.h"
+#include "tactical/tactical_weapon_profile.h"
 
 // The battle units of the tactical engine: capital ships and fighter squadrons share the abstract base class
 // TacticalShipBase (0x5b0f70, VT 0x66c560, 0x418 bytes); a capital ship adds the carrier interface TacticalHangar
 // (0x5b82a0, 0x30 bytes) behind it. The same objects run in the 3D battle and in the headless simulator; only the
 // per-frame update and the presentation hooks are specific to the 3D battle.
 //
-// Layout: TacticalShipObject (+0x00, frame), TacticalUnit (+0xd4, id node keyed by the unit's handle: the registry
+// Layout: MovingObject (+0x00, frame), TacticalUnit (+0xd4, id node keyed by the unit's handle: the registry
 // hands out pointers to this subobject and the unit lists store it), four small interface bases, then the unit's state.
 
 class TacticalShipBase;
+
+// The four small interface bases that follow TacticalUnit in a battle unit. Their destructors (scalar deleting) are
+// 0x5a04d0 / 0x5a06a0 / 0x5a07d0 / 0x5a09a0; the third one also has read / write slots (0x5a0750 / 0x5a0770).
+class TacticalShipFacetA {
+public:
+    TacticalShipFacetA() : m_fA_04(0), m_fA_08(0) {}
+    virtual ~TacticalShipFacetA() { REB_KEEP_VPTR_STORE(); }
+    int m_fA_04;  // +0x04
+    int m_fA_08;  // +0x08
+};
+
+class TacticalShipFacetB {
+public:
+    TacticalShipFacetB() : m_fB_04(0) {}
+    virtual ~TacticalShipFacetB() { REB_KEEP_VPTR_STORE(); }
+    int m_fB_04;  // +0x04
+};
+
+class TacticalShipFacetC {
+public:
+    TacticalShipFacetC() : m_fC_04(0) {}
+    virtual ~TacticalShipFacetC() { REB_KEEP_VPTR_STORE(); }
+    virtual void Read(istream* in);    // 0x5a0750
+    virtual void Write(ostream* out);  // 0x5a0770
+    int m_fC_04;                       // +0x04
+};
+
+class TacticalShipFacetD {
+public:
+    TacticalShipFacetD() : m_fD_04(0), m_fD_08(0) {}
+    virtual ~TacticalShipFacetD() { REB_KEEP_VPTR_STORE(); }
+    int m_fD_04;  // +0x04
+    int m_fD_08;  // +0x08
+};
 
 // The ship state the 3D battle synchronises between machines and the group's view of it (0x68 bytes, 0x5b1c00).
 struct TacticalShipStatusRecord {
@@ -49,16 +89,6 @@ struct TacticalShipStatusRecord {
 
 // One of the four weapon arcs of a ship (0x74 bytes). The three weapon kinds each have a profile object (damage and
 // accuracy factors); `ComputeFirepower` of the owning ship fills m_firepower for a given target kind.
-// The 0x14-byte object describing how well one weapon kind hurts a target class (classes of the visual-resources
-// module, 0x5d2360); only the factors the damage computation reads are named.
-struct TacticalWeaponProfile {
-    void* m_vptr;
-    float m_f04;
-    float m_f08;
-    float m_f0c;
-    float m_f10;
-};
-
 class TacticalWeaponArc {
 public:
     TacticalWeaponArc();   // 0x5b0e50
@@ -73,9 +103,9 @@ public:
     float m_damageA;                // +0x0c
     float m_damageB;                // +0x10
     float m_damageC;                // +0x14
-    TacticalWeaponProfile m_profileA;  // +0x18 object built by 0x5d2530
-    TacticalWeaponProfile m_profileB;  // +0x2c object built by 0x5d24e0
-    TacticalWeaponProfile m_profileC;  // +0x40 object built by 0x5d2490
+    WeaponProfileA m_profileA;      // +0x18
+    WeaponProfileB m_profileB;      // +0x2c
+    WeaponProfileC m_profileC;      // +0x40
     float m_unk54;                  // +0x54
     float m_unk58;                  // +0x58
     float m_unk5c;                  // +0x5c
@@ -99,10 +129,10 @@ public:
     uint32_t m_capacity;          // +0x10
     float m_launchTime;           // +0x14 time of the next launch, 0 when none is scheduled
     float m_launchInterval;       // +0x18
-    TacticalUnitTree* m_docked;   // +0x1c
-    TacticalUnitTree* m_launched; // +0x20
+    UnitRefTree* m_docked;   // +0x1c
+    UnitRefTree* m_launched; // +0x20
     int m_unk24;                  // +0x24
-    TacticalUnitTree* m_unk28;    // +0x28
+    UnitRefTree* m_unk28;    // +0x28
     int m_unk2c;                  // +0x2c
 
     void Write(ostream* out);                   // 0x5b8990
@@ -122,7 +152,7 @@ public:
     void Disband();                             // 0x5b8d80 destroys the squadrons the carrier has aboard or in flight
 };
 
-class TacticalShipBase : public TacticalShipObject,
+class TacticalShipBase : public MovingObject,
                          public TacticalUnit,
                          public TacticalShipFacetA,
                          public TacticalShipFacetB,
@@ -132,7 +162,7 @@ public:
     TacticalShipBase();                       // 0x5b0f70
     virtual ~TacticalShipBase();              // 0x5b12d0 (scalar deleting destructor 0x5b12b0)
 
-    // ---- TacticalShipObject slots (1-2) -----------------------------------------------------------------------
+    // ---- MovingObject slots (1-2) -----------------------------------------------------------------------
     virtual double Turn(float step, float rate) override;   // 0x5b1410
     virtual void Advance(float milliseconds) override;     // 0x5b2f30 (3D battle: the per-frame update)
 
@@ -257,7 +287,7 @@ public:
     TacticalWeaponArc m_arcs[4];     // +0x17c
     int m_chargeQueue[4];            // +0x34c
     int m_unk35c;                    // +0x35c
-    TacticalUnitTree m_unk360;       // +0x360
+    UnitRefTree m_unk360;       // +0x360
     uint32_t m_speedCH;              // +0x36c critical hits taken per system
     uint32_t m_shieldCH;             // +0x370
     uint32_t m_hyperdriveCH;         // +0x374
@@ -364,12 +394,6 @@ public:
     uint32_t SquadsMax();                                     // 0x5ba380
 };
 
-// What the object manager hands an event handler: the payload is an array of 32-bit words.
-struct TacticalEvent {
-    void* m_unk00;
-    int* m_args;  // +0x04
-};
-
 // Event handlers of the 3D battle (cdecl; registered in the object manager's event table).
 void __cdecl TacticalShipStatusEvent(TacticalEvent* event);           // 0x5b01d0 a ship's synchronised state
 void __cdecl TacticalShipCarrierWaitEvent(TacticalEvent* event);      // 0x5b1e10
@@ -467,4 +491,12 @@ REB_ASSERT_OFFSET(TacticalShipBase, m_tractoredBy, 0x384);
 REB_ASSERT_OFFSET(TacticalShipBase, m_hullMax, 0x3c8);
 REB_ASSERT_OFFSET(TacticalShipBase, m_speed, 0x3f8);
 REB_ASSERT_OFFSET(TacticalShipBase, m_unk414, 0x414);
+#pragma clang diagnostic pop
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winvalid-offsetof"
+REB_ASSERT_SIZE(TacticalShipFacetA, 0x0c);
+REB_ASSERT_SIZE(TacticalShipFacetB, 0x08);
+REB_ASSERT_SIZE(TacticalShipFacetC, 0x08);
+REB_ASSERT_SIZE(TacticalShipFacetD, 0x0c);
 #pragma clang diagnostic pop

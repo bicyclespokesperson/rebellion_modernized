@@ -1,8 +1,10 @@
+#include "tactical/tactical_groups.h"
+#include "tactical/tactical_objmgr.h"
+#include "tactical/tactical_registry.h"
 #include "tactical/tactical_externals.h"
 #include "tactical/tactical_facade.h"
 #include "tactical/tactical_game.h"
 #include "tactical/tactical_ship.h"
-#include "tactical/tactical_ship_ext.h"
 #include "tactical/tactical_simulator.h"
 
 // Fighter squadron (0x5b8540-0x5ba3a0). x87 conventions as in tactical_ship.cpp.
@@ -72,12 +74,12 @@ TacticalFighter::TacticalFighter(uint32_t family, uint32_t id, int notAlliance, 
     m_unk3dc = m_firepowerTotal;
     m_shieldRecharge = 1.0f;
     m_unk3f4 = 0;
-    m_unk04 = static_cast<float>(X87Sin(static_cast<double>(kPi) * 0.49444446f));
+    m_scale = static_cast<float>(x87Sin(static_cast<double>(kPi) * 0.49444446f));
     m_unk08 = 0.3f;
     const double unk0c = static_cast<double>(0.3f) * 4.0f;
     m_weaponCH = 0;
     m_hitCount = 0;
-    m_unk0c = static_cast<float>(unk0c);
+    m_radius = static_cast<float>(unk0c);
     m_unk160 = static_cast<float>(unk0c * 1.2f);
     m_tractoredBy[0] = 0;
     m_tractoredBy[1] = 0;
@@ -122,7 +124,7 @@ double TacticalFighter::GetShieldRecharge() {
 double TacticalFighter::GetSpeed() {
     float tractored = 0.0f;
     if (m_unk3b4 == 0.0f) {
-        for (TacticalUnitNode* node = m_unk360.FirstNode(); node; node = node->Next()) {
+        for (UnitRefNode* node = m_unk360.FirstNode(); node; node = node->Next()) {
             tractored = static_cast<float>(node->Value()->TractorPower() + tractored);
         }
         const double skill = GetTacticalGame()->m_abstract != 0 ? GetHeadlessSimulator()->CommanderSkillB(m_side)
@@ -161,7 +163,7 @@ FightSquadResult* TacticalFighter::BuildResult(FightSquadResult* out) {
     out->m_unk14 = 0;
     out->m_unk10 = carrier;
     if (carrier != 0) {
-        TacticalUnit* launcher = FUN_005a6360(GetTacticalRegistry(), carrier);
+        TacticalHangar* launcher = GetTacticalRegistry()->FindLaunchInterface(carrier);
         if (launcher != nullptr) out->m_unk14 = (m_state == 1 || m_state == 5) ? 1 : 0;
     }
     out->m_unk1c = m_state;

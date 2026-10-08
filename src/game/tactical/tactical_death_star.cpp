@@ -1,8 +1,10 @@
+#include "tactical/tactical_groups.h"
+#include "tactical/tactical_objmgr.h"
+#include "tactical/tactical_registry.h"
 #include "tactical/tactical_externals.h"
 #include "tactical/tactical_facade.h"
 #include "tactical/tactical_game.h"
 #include "tactical/tactical_ship.h"
-#include "tactical/tactical_ship_ext.h"
 #include "tactical/tactical_simulator.h"
 
 // Death Star (0x5ba3a0-0x5ba8b0) and the headless simulator's handling of it.
@@ -94,20 +96,20 @@ int HeadlessSimulator::AddDeathStar(int family, int id, int notCompleted, int ha
 }
 
 void HeadlessSimulator::RegisterDeathStar(TacticalDeathStar* deathStar) {
-    FUN_005a6660(deathStar, 1);
+    deathStar->AssignHandle(1);
     deathStar->m_ownerHandle = deathStar->m_id;
-    reinterpret_cast<TacticalRegistryView*>(GetTacticalRegistry())->m_deathStar = deathStar;
+    GetTacticalRegistry()->m_deathStar = deathStar;
 }
 
 int HeadlessSimulator::SideZeroHasMoreFighters() {
     unsigned sideZero = 0;
     unsigned sideOne = 0;
-    TacticalUnit* deathStarUnit = FUN_005a66a0(GetTacticalRegistry());
+    TacticalUnit* deathStarUnit = GetTacticalRegistry()->GetDeathStar();
     if (deathStarUnit == nullptr) return 0;
     TacticalDeathStar* deathStar = static_cast<TacticalDeathStar*>(deathStarUnit);
     if (!deathStar->IsReady()) return 0;
-    for (SimUnitNode* node = FirstNodeOf(m_active); node; node = node->Next()) {
-        SimUnit* unit = node->Value();
+    for (UnitRefNode* node = m_active.FirstNode(); node; node = node->Next()) {
+        TacticalShipBase* unit = node->Value();
         if (unit->GetUnitClass() != 1) continue;
         if (node->Value()->m_side == 0) {
             ++sideZero;
@@ -122,10 +124,10 @@ int HeadlessSimulator::DockInHangar(TacticalShipBase* unit) {
     int placed = 0;
     if (unit->m_state != 2) return 0;
     if (unit->m_carrierHandle != 0) {
-        TacticalHangar* hangar = reinterpret_cast<TacticalHangar*>(FUN_005a6360(GetTacticalRegistry(), unit->m_carrierHandle));
+        TacticalHangar* hangar = GetTacticalRegistry()->FindLaunchInterface(unit->m_carrierHandle);
         if (hangar != nullptr) {
             GetHeadlessSimulator();
-            TacticalUnit* deathStarUnit = FUN_005a66a0(GetTacticalRegistry());
+            TacticalUnit* deathStarUnit = GetTacticalRegistry()->GetDeathStar();
             TacticalDeathStar* deathStar = static_cast<TacticalDeathStar*>(deathStarUnit);
             TacticalHangar* deathStarHangar = deathStar ? static_cast<TacticalHangar*>(deathStar) : nullptr;
             if (deathStarHangar == hangar) {
@@ -137,8 +139,8 @@ int HeadlessSimulator::DockInHangar(TacticalShipBase* unit) {
         }
     }
     if (placed == 0) {
-        for (SimUnitNode* node = FirstNodeOf(m_sides[unit->m_side]->m_fleet); node; node = node->Next()) {
-            TacticalShipBase* carrier = reinterpret_cast<TacticalShipBase*>(node->Value());
+        for (UnitRefNode* node = m_sides[unit->m_side]->m_fleet.FirstNode(); node; node = node->Next()) {
+            TacticalShipBase* carrier = node->Value();
             if (IsActiveUnit(carrier) == 1 && static_cast<TacticalCapitalShip*>(carrier)->Dock(unit) == 1) {
                 placed = 1;
                 break;
@@ -146,7 +148,7 @@ int HeadlessSimulator::DockInHangar(TacticalShipBase* unit) {
         }
         if (placed == 0 && unit->m_side == 1) {
             GetHeadlessSimulator();
-            TacticalUnit* deathStarUnit = FUN_005a66a0(GetTacticalRegistry());
+            TacticalUnit* deathStarUnit = GetTacticalRegistry()->GetDeathStar();
             if (deathStarUnit != nullptr) {
                 TacticalDeathStar* deathStar = static_cast<TacticalDeathStar*>(deathStarUnit);
                 if (deathStar->IsOperational()) placed = deathStar->Dock(unit);

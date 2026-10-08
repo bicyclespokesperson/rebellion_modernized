@@ -5,7 +5,7 @@
 #include "core/vptr_store.h"
 #include "tactical/tactical_facade.h"
 #include "tactical/tactical_registry.h"
-#include "tactical/tactical_unit_access.h"
+#include "tactical/tactical_ship.h"
 
 namespace {
 
@@ -18,30 +18,11 @@ constexpr float kSlotStepScale = -1.5f;
 constexpr float kTurnA = 0.6666667f;
 constexpr float kTurnC = 0.4f;
 constexpr float kDefaultDepth = 4.0f;
-constexpr int kShipPositionOffset = 0x30;
-constexpr int kShipRadiusOffset = 0x0c;
-
-TacticalVec4 positionOf(SimUnit* ship) {
-    return *reinterpret_cast<TacticalVec4*>(reinterpret_cast<char*>(ship) + kShipPositionOffset);
-}
-
 }  // namespace
-
-// ---- movement state ----------------------------------------------------------------------------------------------------
-
-MovingObject::MovingObject() {
-    m_scale = 1.0f;
-    m_unk50 = 0;
-    m_heading.Set(0, 0, 1.0f);
-}
-
-MovingObject::~MovingObject() { REB_KEEP_VPTR_STORE(); }
-
-void MovingObject::MoveVirtual03() {}
 
 // ---- slots and the trees that hold them ------------------------------------------------------------------------------
 
-FormationSlot::FormationSlot(SimUnit* unit) : UnitRefNode(unit) {}
+FormationSlot::FormationSlot(TacticalShipBase* unit) : UnitRefNode(unit) {}
 
 FormationSlot::~FormationSlot() {}
 
@@ -67,7 +48,7 @@ int FormationRankTree::IsLess(AvlNode* a, AvlNode* b) {
 
 // ---- the formation -----------------------------------------------------------------------------------------------------
 
-FormationBase::FormationBase(int groupHandle, TacticalVec4 position) {
+FormationBase::FormationBase(int groupHandle, TacticalVector position) {
     m_position.CopyFrom(&position);
     m_unk124 = 0;
     m_unk128 = kDefaultDepth;
@@ -76,15 +57,15 @@ FormationBase::FormationBase(int groupHandle, TacticalVec4 position) {
     m_unk134 = 0;
     m_radius = kBaseRadius;
     m_leaderHandle = groupHandle;
-    m_heading.m_x = 0;
-    m_heading.m_y = 0;
+    m_forward.m_x = 0;
+    m_forward.m_y = 0;
     if (static_cast<unsigned>(groupHandle) < kSecondSideFirstHandle) {
-        m_heading.m_z = 1.0f;
-        m_heading.m_w = -1.0f;
+        m_forward.m_z = 1.0f;
+        m_forward.m_cachedLength = -1.0f;
         m_angle = kPi * kQuarterTurn;
     } else {
-        m_heading.m_z = -1.0f;
-        m_heading.m_w = -1.0f;
+        m_forward.m_z = -1.0f;
+        m_forward.m_cachedLength = -1.0f;
         m_angle = kPi * -kQuarterTurn;
     }
 }
@@ -92,32 +73,32 @@ FormationBase::FormationBase(int groupHandle, TacticalVec4 position) {
 FormationBase::~FormationBase() {}
 
 int FormationBase::AddMember(int handle) {
-    SimUnit* ship = GetTacticalRegistry()->FindShip(handle);
+    TacticalShipBase* ship = GetTacticalRegistry()->FindShip(handle);
     if (!ship) return 0;
     AddUnit(ship);
     const unsigned count = m_count + 1;
     m_count = count;
     if (!(m_maxCount > count)) m_maxCount = count;
-    const double scaledRadius = static_cast<double>(unitField<float>(ship, kShipRadiusOffset)) * static_cast<double>(kRadiusScale);
+    const double scaledRadius = static_cast<double>(ship->m_radius) * static_cast<double>(kRadiusScale);
     const float radius = m_radius;
     m_radius = static_cast<float>(radius > scaledRadius ? static_cast<double>(radius) : scaledRadius);
 
     if (count == 1) {
-        m_position = positionOf(ship);
+        m_position = ship->m_position;
         m_leaderHandle = handle;
     }
     void* memory = ::operator new(sizeof(FormationSlot));
     FormationSlot* slot = memory ? new (memory) FormationSlot(ship) : nullptr;
-    TacticalVec4 offset;
+    TacticalVector offset;
     slot->m_position = *SlotOffset(&offset, ship);
     m_slotsByUnit.AddUniqueLinear(slot);
     return 1;
 }
 
 int FormationBase::RemoveMember(int handle) {
-    SimUnit* ship = GetTacticalRegistry()->FindShip(handle);
+    TacticalShipBase* ship = GetTacticalRegistry()->FindShip(handle);
     if (!ship) return 0;
-    const int shipHandle = unitHandle(ship);
+    const int shipHandle = static_cast<int>(ship->m_id);
     if (m_leaderHandle == shipHandle) {
         Find(shipHandle);
         UnitRefNode* node = static_cast<UnitRefNode*>(FirstNode());
@@ -135,14 +116,14 @@ int FormationBase::RemoveMember(int handle) {
         if (!found) m_leaderHandle = 0;
     }
     if (RemoveUnit(ship) == 1) --m_count;
-    IdNode* slot = m_slotsByUnit.FindLinear(unitHandle(ship));
+    IdNode* slot = m_slotsByUnit.FindLinear(static_cast<int>(ship->m_id));
     if (slot) m_slotsByUnit.RemoveLinear(static_cast<UnitRefNode*>(slot)->Key());
-    if (m_slotsByUnit2.FindLinear(unitHandle(ship))) m_slotsByUnit2.RemoveLinear(unitHandle(ship));
-    if (m_count == 1) m_leaderHandle = unitHandle(FirstUnit());
+    if (m_slotsByUnit2.FindLinear(static_cast<int>(ship->m_id))) m_slotsByUnit2.RemoveLinear(static_cast<int>(ship->m_id));
+    if (m_count == 1) m_leaderHandle = static_cast<int>(FirstUnit()->m_id);
     return 1;
 }
 
-CapitalShipFormation::CapitalShipFormation(int groupHandle, TacticalVec4 position)
+CapitalShipFormation::CapitalShipFormation(int groupHandle, TacticalVector position)
     : FormationBase(groupHandle, position) {
     m_unk140 = 0;
 }
@@ -154,7 +135,7 @@ void CapitalShipFormation::Virtual06() {}
 // The offset of the Nth unit of a capital-ship formation: units alternate to either side of the leader in a column of
 // rotated slots. The original evaluates the trigonometry on the x87 stack (cosines from the extended product, sines from
 // the argument rounded to float); doubles stand in for the extended values here.
-TacticalVec4* CapitalShipFormation::SlotOffset(TacticalVec4* out, SimUnit* unit) {
+TacticalVector* CapitalShipFormation::SlotOffset(TacticalVector* out, TacticalShipBase* unit) {
     if (m_count == 1) {
         *out = g_formationOrigin;
         return out;
@@ -172,22 +153,22 @@ TacticalVec4* CapitalShipFormation::SlotOffset(TacticalVec4* out, SimUnit* unit)
     const double sinB = x87Sin(static_cast<double>(static_cast<float>(angleB)));
     const double cosC = x87Cos(angleC);
     const double sinC = x87Sin(static_cast<double>(static_cast<float>(angleC)));
-    const float headingX = m_heading.m_x;
-    const float headingY = m_heading.m_y;
-    const float headingZ = m_heading.m_z;
+    const float headingX = m_forward.m_x;
+    const float headingY = m_forward.m_y;
+    const float headingZ = m_forward.m_z;
 
     const float rotatedZ = static_cast<float>(static_cast<double>(static_cast<float>(sinA)) * headingX + cosA * headingZ);
     const float rotatedX = static_cast<float>(cosA) * headingX - static_cast<float>(sinA) * headingZ;
     const float rotatedY = static_cast<float>(sinB * static_cast<double>(rotatedZ) + cosB * headingY);
     out->m_z = static_cast<float>(cosB) * rotatedZ - static_cast<float>(sinB) * headingY;
-    out->m_w = -1.0f;
+    out->m_cachedLength = -1.0f;
     out->m_y = static_cast<float>(cosC) * rotatedX - static_cast<float>(sinC) * rotatedY;
     out->m_x = static_cast<float>(sinC) * rotatedX + static_cast<float>(cosC) * rotatedY;
     return out;
 }
 
-FighterFormation::FighterFormation(int groupHandle, TacticalVec4 position) : FormationBase(groupHandle, position) {
-    m_v9c = TacticalVec4(2 * kPi, 2 * kPi, 2 * kPi);
+FighterFormation::FighterFormation(int groupHandle, TacticalVector position) : FormationBase(groupHandle, position) {
+    m_turnAxis = TacticalVector(2 * kPi, 2 * kPi, 2 * kPi);
     m_position = position;
 }
 
@@ -195,7 +176,7 @@ FighterFormation::~FighterFormation() {}
 
 void FighterFormation::Virtual06() {}
 
-TacticalVec4* FighterFormation::SlotOffset(TacticalVec4* out, SimUnit* unit) {
+TacticalVector* FighterFormation::SlotOffset(TacticalVector* out, TacticalShipBase* unit) {
     if (m_count == 1) {
         *out = g_formationOrigin;
         return out;
@@ -203,14 +184,14 @@ TacticalVec4* FighterFormation::SlotOffset(TacticalVec4* out, SimUnit* unit) {
     const int side = (m_count & 1) ? 1 : -1;
     unsigned widest = m_maxCount;
     if (!(widest > m_count)) widest = m_count;
-    const double scaled = static_cast<double>(unitField<float>(unit, kShipRadiusOffset)) * static_cast<double>(kRadiusScale);
+    const double scaled = static_cast<double>(unit->m_radius) * static_cast<double>(kRadiusScale);
     const float radius = m_radius;
     const double reach = radius > scaled ? static_cast<double>(radius) : scaled;
     int steps = static_cast<int>(side * reach);
     steps = steps * (static_cast<int>(widest) >> 1);
-    out->m_x = -(m_heading.m_z * static_cast<float>(steps));
+    out->m_x = -(m_forward.m_z * static_cast<float>(steps));
     out->m_y = 0.0f;
-    out->m_z = m_heading.m_x * static_cast<float>(steps);
-    out->m_w = -1.0f;
+    out->m_z = m_forward.m_x * static_cast<float>(steps);
+    out->m_cachedLength = -1.0f;
     return out;
 }

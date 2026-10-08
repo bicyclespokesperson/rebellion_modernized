@@ -1,9 +1,11 @@
+#include "tactical/tactical_groups.h"
+#include "tactical/tactical_objmgr.h"
+#include "tactical/tactical_registry.h"
 #include "tactical/tactical_ship.h"
 
 #include "tactical/tactical_externals.h"
 #include "tactical/tactical_facade.h"
 #include "tactical/tactical_game.h"
-#include "tactical/tactical_ship_ext.h"
 #include "tactical/tactical_simulator.h"
 
 // Conventions of this file: the original keeps intermediate results on the x87 stack (the process runs with a 53-bit
@@ -13,9 +15,6 @@
 // ---- weapon arc ---------------------------------------------------------------------------------------------------
 
 TacticalWeaponArc::TacticalWeaponArc() {
-    FUN_005d2530(&m_profileA);
-    FUN_005d24e0(&m_profileB);
-    FUN_005d2490(&m_profileC);
     m_unk54 = 0;
     m_unk5c = 0;
     m_unk58 = 0;
@@ -32,11 +31,7 @@ TacticalWeaponArc::TacticalWeaponArc() {
     m_chargeState = 1;
 }
 
-TacticalWeaponArc::~TacticalWeaponArc() {
-    FUN_005d24d0(&m_profileC);
-    FUN_005d2520(&m_profileB);
-    FUN_005d2570(&m_profileA);
-}
+TacticalWeaponArc::~TacticalWeaponArc() {}
 
 // ---- construction -------------------------------------------------------------------------------------------------
 
@@ -80,7 +75,7 @@ TacticalShipBase::TacticalShipBase() {
     m_tractorCH = 0;
     m_weaponCH = 0;
     m_hitCount = 0;
-    m_unk04 = static_cast<float>(X87Sin(static_cast<double>(3.1415927f) * static_cast<double>(0.49444446f)));
+    m_scale = static_cast<float>(x87Sin(static_cast<double>(3.1415927f) * static_cast<double>(0.49444446f)));
     m_tractoredBy[0] = 0;
     m_tractoredBy[1] = 0;
     m_tractoredBy[2] = 0;
@@ -103,9 +98,9 @@ TacticalShipBase::~TacticalShipBase() { REB_KEEP_VPTR_STORE(); }
 TacticalHangar::TacticalHangar() {
     m_unk24 = 0;
     m_unk2c = 0;
-    m_docked = new TacticalUnitTree();
-    m_launched = new TacticalUnitTree();
-    m_unk28 = new TacticalUnitTree();
+    m_docked = new UnitRefTree();
+    m_launched = new UnitRefTree();
+    m_unk28 = new UnitRefTree();
     m_ownerHandle = 0;
     m_launchInterval = 5.0f;
     m_inFlight = 0;
@@ -139,7 +134,7 @@ int TacticalHangar::Dock(TacticalShipBase* fighter) {
     fighter->m_carrierHandle = m_ownerHandle;
     fighter->m_state = 1;
     ++m_inFlight;
-    m_launched->Add(fighter);
+    m_launched->AddUnit(fighter);
     return 1;
 }
 
@@ -149,7 +144,7 @@ int TacticalHangar::Launch(TacticalShipBase* fighter) {
     if (m_aboard >= m_capacity) return 0;
     ++m_inFlight;
     ++m_aboard;
-    m_docked->Add(fighter);
+    m_docked->AddUnit(fighter);
     fighter->m_carrierHandle = m_ownerHandle;
     fighter->SetState1();
     if (m_launchTime == 0.0f && GetTacticalGame()->m_abstract == 0) {
@@ -441,7 +436,7 @@ void TacticalShipBase::Recharge(float step) {
 double TacticalShipBase::GetSpeed() {
     float tractored = 0.0f;
     if (m_unk3b4 == 0.0f) {
-        for (TacticalUnitNode* node = m_unk360.FirstNode(); node; node = node->Next()) {
+        for (UnitRefNode* node = m_unk360.FirstNode(); node; node = node->Next()) {
             tractored = static_cast<float>(node->Value()->TractorPower() + tractored);
         }
         const double skill = GetTacticalGame()->m_abstract != 0 ? GetHeadlessSimulator()->CommanderSkillA(m_side)
@@ -456,25 +451,25 @@ double TacticalShipBase::GetSpeed() {
 // ---- carrier helpers --------------------------------------------------------------------------------------------
 
 int __stdcall TacticalShipIsInState3(int handle) {
-    TacticalShipBase* ship = reinterpret_cast<TacticalShipBase*>(FUN_005a6340(GetTacticalRegistry(), handle));
+    TacticalShipBase* ship = GetTacticalRegistry()->FindShip(handle);
     return ship != nullptr && ship->m_state == 3;
 }
 
 void TacticalHangar::ReleaseDocked() {
-    for (TacticalUnitNode* node = m_docked->FirstNode(); node;) {
-        TacticalUnitNode* next = node->Next();
-        if (TacticalShipIsInState3(node->GetHandle()) == 0) {
-            m_launched->Add(node->Value());
+    for (UnitRefNode* node = m_docked->FirstNode(); node;) {
+        UnitRefNode* next = node->Next();
+        if (TacticalShipIsInState3(node->Key()) == 0) {
+            m_launched->AddUnit(node->Value());
             node->Value()->m_state = 5;
-            m_docked->RemoveById(node->GetHandle());
+            m_docked->RemoveById(node->Key());
         }
         node = next;
     }
 }
 
 void TacticalHangar::Disband() {
-    for (TacticalUnitNode* node = m_docked->FirstNode(); node; node = node->Next()) node->Value()->Destroy();
-    for (TacticalUnitNode* node = m_launched->FirstNode(); node; node = node->Next()) node->Value()->Destroy();
+    for (UnitRefNode* node = m_docked->FirstNode(); node; node = node->Next()) node->Value()->Destroy();
+    for (UnitRefNode* node = m_launched->FirstNode(); node; node = node->Next()) node->Value()->Destroy();
     m_docked->Clear();
     m_launched->Clear();
 }

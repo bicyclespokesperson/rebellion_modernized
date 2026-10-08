@@ -4,27 +4,20 @@
 #include "tactical/tactical_groups.h"
 #include "tactical/tactical_side.h"
 #include "tactical/tactical_simulator.h"
-#include "tactical/tactical_unit_access.h"
+#include "tactical/tactical_ship.h"
 
 namespace {
 
 constexpr int kFighterClass = 1;
 constexpr int kTypeKinds = 4;
 constexpr unsigned kMinimumToSplit = 8;
-constexpr int kSimulatorUnlaunchedOffset = 0x64;
 
 TacticalAiSide* sideOf(HeadlessSimulator* simulator, int index) {
     return reinterpret_cast<TacticalAiSide*>(simulator->m_sides[index]);
 }
 
-UnitRefTree* unlaunchedUnits(HeadlessSimulator* simulator) {
-    return reinterpret_cast<UnitRefTree*>(reinterpret_cast<char*>(simulator) + kSimulatorUnlaunchedOffset);
-}
-
-SimUnitList* asList(UnitRefTree* tree) { return reinterpret_cast<SimUnitList*>(tree); }
-
 // The lists have their own vtables; the call must stay virtual even for the simulator's own member.
-__attribute__((noinline)) SimUnitNode* firstNode(SimUnitList* list) { return FirstNodeOf(*list); }
+__attribute__((noinline)) UnitRefNode* firstNode(UnitRefTree* list) { return list->FirstNode(); }
 
 UnitRefNode* firstMemberNode(CapitalShipGroup* group) { return static_cast<UnitRefNode*>(group->FirstNode()); }
 
@@ -33,10 +26,10 @@ UnitRefNode* firstMemberNode(CapitalShipGroup* group) { return static_cast<UnitR
 void formCapitalGroups(HeadlessSimulator* simulator, int side, int firstType) {
     unsigned counts[kTypeKinds] = {0, 0, 0, 0};
     CapitalShipGroup* groups[kTypeKinds];
-    for (SimUnitNode* node = firstNode(&simulator->m_units); node; node = node->Next()) {
-        if (unitSide(node->Value()) == side) {
-            const unsigned offset = node->Value()->Slot09() - firstType;
-            if (offset < kTypeKinds) ++counts[node->Value()->Slot09() - firstType];
+    for (UnitRefNode* node = firstNode(&simulator->m_units); node; node = node->Next()) {
+        if (node->Value()->m_side == side) {
+            const unsigned offset = node->Value()->GetTypeIndex() - firstType;
+            if (offset < kTypeKinds) ++counts[node->Value()->GetTypeIndex() - firstType];
         }
     }
     for (int i = 0; i < kTypeKinds; ++i) {
@@ -65,15 +58,15 @@ void formCapitalGroups(HeadlessSimulator* simulator, int side, int firstType) {
         UnitRefNode* next = nullptr;
         for (unsigned remaining = counts[target]; remaining != 0; --remaining) {
             if (node) {
-                type = node->Value()->Slot09();
-                next = static_cast<UnitRefNode*>(node->Next());
+                type = node->Value()->GetTypeIndex();
+                next = node->Next();
                 movedUnits.AddUnit(node->Value());
                 donor->Virtual21(node->Key());
                 donor->RemoveMember(node->Key());
             }
             node = next;
         }
-        groups[target] = simulator->FormCapitalGroup(asList(&movedUnits), type, target);
+        groups[target] = simulator->FormCapitalGroup(&movedUnits, type, target);
     }
 }
 
@@ -86,37 +79,37 @@ void splitFighters(TacticalAiSide* side) {
 
 }  // namespace
 
-CapitalShipGroup* HeadlessSimulator::FormCapitalGroup(SimUnitList* units, int unitType, int role) {
+CapitalShipGroup* HeadlessSimulator::FormCapitalGroup(UnitRefTree* units, int unitType, int role) {
     bool first = true;
     CapitalShipGroup* group = nullptr;
-    for (SimUnitNode* node = firstNode(units); node; node = node->Next()) {
-        if (node->Value()->Slot09() != unitType) continue;
-        SimUnit* unit = node->Value();
+    for (UnitRefNode* node = firstNode(units); node; node = node->Next()) {
+        if (node->Value()->GetTypeIndex() != unitType) continue;
+        TacticalShipBase* unit = node->Value();
         if (first) {
             first = false;
             void* memory = ::operator new(sizeof(CapitalShipGroup));
-            group = memory ? new (memory) CapitalShipGroup(unitHandle(unit)) : nullptr;
-            FUN_005afe10(group);
-            unitGroupId(unit) = group->m_id;
+            group = memory ? new (memory) CapitalShipGroup(static_cast<int>(unit->m_id)) : nullptr;
+            RegisterCapitalShipGroup(group);
+            unit->m_groupHandle = group->m_id;
             group->SetRole(role);
-            group->SetSeedHandle(unitHandle(unit));
-            sideOf(this, unitSide(unit))->m_groups.AddGroup(group);
+            group->SetSeedHandle(static_cast<int>(unit->m_id));
+            sideOf(this, unit->m_side)->m_groups.AddGroup(group);
         } else {
-            group->AddMember(unitHandle(unit));
+            group->AddMember(static_cast<int>(unit->m_id));
         }
     }
     return group;
 }
 
 void HeadlessSimulator::FormBattleGroups(int) {
-    for (SimUnitNode* node = firstNode(&m_units); node; node = node->Next()) {
-        SimUnit* unit = node->Value();
-        if (unitVirtuals(unit)->GetUnitClass() == kFighterClass) {
-            if (FUN_005b69f0(unit) == 0) sideOf(this, unitSide(unit))->m_hangars.AddUnit(unit);
+    for (UnitRefNode* node = firstNode(&m_units); node; node = node->Next()) {
+        TacticalShipBase* unit = node->Value();
+        if (unit->GetUnitClass() == kFighterClass) {
+            if (FUN_005b69f0(unit) == 0) sideOf(this, unit->m_side)->m_hangars.AddUnit(unit);
         } else {
-            sideOf(this, unitSide(unit))->m_fleet.AddUnit(unit);
+            sideOf(this, unit->m_side)->m_fleet.AddUnit(unit);
         }
-        if (FUN_005b69f0(unit) == 0) unlaunchedUnits(this)->AddUnit(unit);
+        if (FUN_005b69f0(unit) == 0) m_active.AddUnit(unit);
     }
     formCapitalGroups(this, 0, 0x1d);
     splitFighters(sideOf(this, 0));
