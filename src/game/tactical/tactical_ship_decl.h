@@ -3,12 +3,18 @@
 
 #include "core/containers.h"
 #include "core/layout.h"
+#include "core/stream_io.h"
+#include "core/utility_classes.h"
 #include "core/vptr_store.h"
 #include "tactical/tactical_units.h"
 
 // FSIN on the x87 stack, as the original uses it (the C library call would give a different rounding).
 inline double X87Sin(double x) {
     __asm__("fsin" : "+t"(x));
+    return x;
+}
+inline double X87Sqrt(double x) {
+    __asm__("fsqrt" : "+t"(x));
     return x;
 }
 inline double X87Cos(double x) {
@@ -41,9 +47,9 @@ public:
     virtual double Turn(float step, float rate);   // 0x5cd460
     virtual void Advance(float milliseconds);     // 0x5cd640
     virtual int Virtual03();                      // 0x5cd6b0: returns 0
-    virtual void Read(void* stream);              // 0x5cd000
-    virtual void Write(void* stream);             // 0x5cd0f0
-    virtual void Checksum(void* stream);          // 0x5cd1e0
+    virtual void Read(istream* in);               // 0x5cd000
+    virtual void Write(ostream* out);             // 0x5cd0f0
+    virtual void Checksum(Crc32* crc);            // 0x5cd1e0
 
     float m_unk04;                 // +0x04
     float m_unk08;                 // +0x08
@@ -88,8 +94,8 @@ class TacticalShipFacetC {
 public:
     TacticalShipFacetC() : m_fC_04(0) {}
     virtual ~TacticalShipFacetC() { REB_KEEP_VPTR_STORE(); }
-    virtual void Read(void* stream);   // 0x5a0750
-    virtual void Write(void* stream);  // 0x5a0770
+    virtual void Read(istream* in);    // 0x5a0750
+    virtual void Write(ostream* out);  // 0x5a0770
     int m_fC_04;                       // +0x04
 };
 
@@ -123,6 +129,9 @@ public:
     virtual TacticalUnitNode* FirstNode();            // 0x5f6590
     virtual int Virtual05();                          // 0x5c6030
 
+    void Read(istream* in);                      // 0x5c5de0
+    void Write(ostream* out);                    // 0x5c5e50
+    void Checksum(Crc32* crc);                   // 0x5c5ed0
     int Add(TacticalShipBase* unit);             // 0x5c5f20 wraps the unit unless its handle is in the tree already
     int RemoveById(int handle);                  // 0x5c60d0
     int RemoveUnit(TacticalShipBase* unit);      // 0x5c5fb0

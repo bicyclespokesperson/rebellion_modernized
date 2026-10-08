@@ -102,7 +102,12 @@ public:
 
     int m_unk04;                        // +0x04
     TacticalSideData* m_sides[2];       // +0x08
-    uint8_t m_pad10[0x898 - 0x10];
+    uint8_t m_pad10[0x87c - 0x10];
+    uint32_t m_clock;                   // +0x87c the battle clock in milliseconds
+    uint8_t m_pad880[0x88c - 0x880];
+    int m_impactFlag;                   // +0x88c set when a unit was hit
+    int m_unitsChanged;                 // +0x890 set when a unit left the world
+    int m_unk894;                       // +0x894
     float m_cameraDistance;             // +0x898
     uint8_t m_pad89c[0x8b0 - 0x89c];
     int m_unk8b0;                       // +0x8b0

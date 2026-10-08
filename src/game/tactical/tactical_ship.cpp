@@ -153,8 +153,7 @@ int TacticalHangar::Launch(TacticalShipBase* fighter) {
     fighter->m_carrierHandle = m_ownerHandle;
     fighter->SetState1();
     if (m_launchTime == 0.0f && GetTacticalGame()->m_abstract == 0) {
-        TacticalObjectManager* manager = GetObjectManager();
-        const float time = static_cast<float>(*reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(manager) + 0x87c));
+        const float time = static_cast<float>(GetObjectManager()->m_clock);
         const float roll = static_cast<float>(static_cast<uint32_t>(FUN_005a8a70(GetObjectManager(), 0, 8)));
         m_launchTime = static_cast<float>(GetLaunchInterval() + roll + time);
     }

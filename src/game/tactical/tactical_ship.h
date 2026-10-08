@@ -33,6 +33,9 @@ class TacticalWeaponArc {
 public:
     TacticalWeaponArc();   // 0x5b0e50
     ~TacticalWeaponArc();  // 0x5b0ee0
+    void Read(istream* in);     // 0x5b0c90
+    void Write(ostream* out);   // 0x5b0d40
+    void Checksum(Crc32* crc);  // 0x5b0dd0
 
     int m_countA;                   // +0x00 number of weapons of the first kind (grid x2... see the constructor)
     int m_countB;                   // +0x04
@@ -72,10 +75,16 @@ public:
     TacticalUnitTree* m_unk28;    // +0x28
     int m_unk2c;                  // +0x2c
 
+    void Write(ostream* out);                   // 0x5b8990
+    void Read(istream* in);                     // 0x5b8a10
+    void Checksum(Crc32* crc);                  // 0x5b8a90
     int TakeOut(TacticalShipBase* fighter);     // 0x5b8450
     int Dock(TacticalShipBase* fighter);        // 0x5b84a0
     int Launch(TacticalShipBase* fighter);      // 0x5b8570
     double GetLaunchInterval();                 // 0x5b8b00
+    void ReleaseSlot(TacticalShipBase* fighter);  // 0x5b8400
+    int AllLaunched();                          // 0x5b8480
+    int ReserveSlot(TacticalShipBase* fighter); // 0x5b84e0
     void ReleaseDocked();                       // 0x5b8d10 sends every docked squadron into battle
     void Disband();                             // 0x5b8d80 destroys the squadrons the carrier has aboard or in flight
 };
@@ -100,12 +109,12 @@ public:
     virtual int Destroy();                                 // 7: 0x5b2d20
     virtual int GetUnitClass();                        // 8: 0 for a capital ship, 1 for a fighter squadron
     virtual uint32_t GetTypeIndex();                       // 9: 0x5a6760
-    virtual void ReadState(void* stream);                  // 10
-    virtual void ReadExtra(void* stream);                  // 11
-    virtual void WriteState(void* stream);                 // 12
-    virtual void WriteExtra(void* stream);                 // 13
-    virtual void ChecksumState(void* stream);              // 14
-    virtual void ChecksumExtra(void* stream);              // 15
+    virtual void ReadState(istream* in);                   // 10: 0x5b6eb0
+    virtual void ReadExtra(istream* in);                   // 11: 0x5b7350 (carrier lists)
+    virtual void WriteState(ostream* out);                 // 12: 0x5b6a00
+    virtual void WriteExtra(ostream* out);                 // 13: 0x5b6e90
+    virtual void ChecksumState(Crc32* crc);                // 14: 0x5b7370
+    virtual void ChecksumExtra(Crc32* crc);                // 15: 0x5b7750
     virtual void StartTractoring(int target);              // 16: 0x5b23e0
     virtual void AddTractorSource(int source);             // 17: 0x5b24d0
     virtual void StopTractoring(int target);               // 18: 0x5b2440
@@ -116,10 +125,10 @@ public:
     virtual double GetTractorRange();                       // 23: 0x5a66e0
     virtual double GetWeaponRecharge();                 // 24
     virtual double GetShieldRecharge();                 // 25
-    virtual void Virtual26();
+    virtual void Virtual26();                              // 26: capital 0x5b0ad0 / fighter 0x5ba2f0: leaves the carrier
     virtual int GetSoundId();
     virtual int Virtual28();
-    virtual void Virtual29();
+    virtual int Virtual29();
     virtual int Virtual30();
     virtual void Virtual31(TacticalVector* out);           // 0x5b4960
     virtual int Virtual32(float a);                        // 32: 0x5b4d40 / 0x5b9a20
@@ -143,12 +152,22 @@ public:
     virtual void Virtual50();
     virtual void Virtual51();
     virtual void Virtual52();
-    virtual void Virtual53(float a);                       // 0x5b5750
-    virtual void Virtual54(float a);                       // 0x5b5100
-    virtual void Virtual55(float a);                       // 0x5b5b60
-    virtual void Virtual56(float a);                       // 0x5b5f50
+    virtual void Virtual53(float damage, int attacker, int target);                       // 0x5b5750
+    virtual void Virtual54(float damage, int attacker, int target);                       // 0x5b5100
+    virtual void Virtual55(float damage, int attacker, int target);                       // 0x5b5b60
+    virtual void Virtual56(float damage, int attacker, int target);                       // 0x5b5f50
 
     // ---- not virtual -------------------------------------------------------------------------------------------
+    int HasTractoringShips();                  // 0x5b23c0
+    void AddTractoringShip(TacticalShipBase* tractor);   // 0x5b2570
+    void RemoveTractoringShip(int handle);     // 0x5b25d0
+    void BeginTractoring();                    // 0x5b2520
+    void EndTractoring();                      // 0x5b2550
+    void AddTractorJam(float amount);          // 0x5b2e20
+    void AddTractorDelay(float amount);        // 0x5b2e40
+    void ConsiderTractoring(int target);       // 0x5b2140
+    float DistanceTo(TacticalShipBase* other);
+    void RepairOneHit();                       // 0x5b1490
     double ScaleByHull(float value);            // 0x5b1770: value * hull / hullMax
     double ScaleByHullFull();                   // 0x5b1640
     double ShieldFraction();                    // 0x5b1650
@@ -256,6 +275,17 @@ public:
     virtual ~TacticalCapitalShip();   // 0x5b0520 (scalar deleting destructor 0x5a6770)
 
     virtual int GetUnitClass() override;               // 0x6158b0 (shared stub)
+    virtual void Virtual26() override;                 // 0x5b0ad0
+    virtual int Virtual28() override;                  // 0x5b04c0
+    virtual int Virtual29() override;                  // 0x5b04e0
+    virtual int Virtual30() override;                  // 0x5b0500
+    virtual void Virtual39(float step) override;       // 0x5b0330
+    virtual void ReadState(istream* in) override;      // 0x5b0040
+    virtual void ReadExtra(istream* in) override;      // 0x5b0050
+    virtual void WriteState(ostream* out) override;    // 0x5b0010
+    virtual void WriteExtra(ostream* out) override;    // 0x5b0020
+    virtual void ChecksumState(Crc32* crc) override;   // 0x5b0070
+    virtual void ChecksumExtra(Crc32* crc) override;   // 0x5b0080
     virtual double GetWeaponRecharge() override;        // 0x5b0400
     virtual double GetShieldRecharge() override;        // 0x5b0460
     virtual double GetTurnRate() override;              // 0x5b0be0
@@ -279,6 +309,10 @@ public:
     virtual ~TacticalFighter();   // 0x5b8ec0 (scalar deleting destructor 0x5a6790)
 
     virtual int GetUnitClass() override;               // 0x40f340 (shared stub)
+    virtual void Virtual26() override;                 // 0x5ba2f0
+    virtual int Virtual28() override;                  // 0x5b8f00
+    virtual int Virtual29() override;                  // 0x5b8f20
+    virtual int Virtual30() override;                  // 0x5b8f50
     virtual double GetWeaponRecharge() override;        // 0x5b9c00
     virtual double GetShieldRecharge() override;        // 0x5b9c30
     virtual double GetSpeed() override;                 // 0x5ba190
@@ -287,6 +321,44 @@ public:
 
     FightSquadResult* BuildResult(FightSquadResult* out);     // 0x5b8e00
 };
+
+// What the object manager hands an event handler: the payload is an array of 32-bit words.
+struct TacticalEvent {
+    void* m_unk00;
+    int* m_args;  // +0x04
+};
+
+// Event handlers of the 3D battle (cdecl; registered in the object manager's event table).
+void __cdecl TacticalShipStatusEvent(TacticalEvent* event);           // 0x5b01d0 a ship's synchronised state
+void __cdecl TacticalShipCarrierWaitEvent(TacticalEvent* event);      // 0x5b1e10
+void __cdecl TacticalShipJumpEvent(TacticalEvent* event);             // 0x5b1e40
+void __cdecl TacticalShipImpactEventB(TacticalEvent* event);          // 0x5b1ea0
+void __cdecl TacticalShipImpactEventC(TacticalEvent* event);          // 0x5b1f60
+void __cdecl TacticalShipImpactEventD(TacticalEvent* event);          // 0x5b2080
+void __cdecl TacticalShipTractorStatusEvent(TacticalEvent* event);    // 0x5b2340
+void __cdecl TacticalShipStartTractorEvent(TacticalEvent* event);     // 0x5b2630
+void __cdecl TacticalShipStopTractorEvent(TacticalEvent* event);      // 0x5b26a0
+void __cdecl TacticalShipWithdrawEvent(TacticalEvent* event);         // 0x5b26d0
+void __cdecl TacticalShipJumpAbortEvent(TacticalEvent* event);        // 0x5b2720
+void __cdecl TacticalShipAddDelayEvent(TacticalEvent* event);         // 0x5b27b0
+void __cdecl TacticalShipClearArcEvent(TacticalEvent* event);         // 0x5b27e0
+void __cdecl TacticalShipAddTractorJamEvent(TacticalEvent* event);    // 0x5b2810
+void __cdecl TacticalShipHitSpeedEvent(TacticalEvent* event);         // 0x5b2840
+void __cdecl TacticalShipHitTractorEvent(TacticalEvent* event);       // 0x5b2870
+void __cdecl TacticalShipHitWeaponEvent(TacticalEvent* event);        // 0x5b28a0
+void __cdecl TacticalShipHitShieldEvent(TacticalEvent* event);        // 0x5b28d0
+void __cdecl TacticalShipHitHyperdriveEvent(TacticalEvent* event);    // 0x5b2900
+void __cdecl TacticalShipRepairSpeedEvent(TacticalEvent* event);      // 0x5b2930
+void __cdecl TacticalShipRepairTractorEvent(TacticalEvent* event);    // 0x5b2960
+void __cdecl TacticalShipRepairWeaponEvent(TacticalEvent* event);     // 0x5b2990
+void __cdecl TacticalShipRepairShieldEvent(TacticalEvent* event);     // 0x5b29c0
+void __cdecl TacticalShipRepairHyperdriveEvent(TacticalEvent* event); // 0x5b29f0
+void __cdecl TacticalShipHitEvent54(TacticalEvent* event);            // 0x5b2a20
+void __cdecl TacticalShipHitEvent55(TacticalEvent* event);            // 0x5b2a70
+void __cdecl TacticalShipHitEvent56(TacticalEvent* event);            // 0x5b2ac0
+void __cdecl TacticalShipHitEvent53(TacticalEvent* event);            // 0x5b2b10
+void __cdecl TacticalShipCollisionEvent(TacticalEvent* event);        // 0x5b2b60
+void __cdecl TacticalShipImpactEventE(TacticalEvent* event);          // 0x5b2c70
 
 // 0x5b8ce0: whether the unit with this handle is a ship in state 3.
 int __stdcall TacticalShipIsInState3(int handle);
