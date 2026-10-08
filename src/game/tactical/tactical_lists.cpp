@@ -50,6 +50,12 @@ SimUnit* UnitRefTree::FirstUnit() {
 
 IdNode* UnitRefTree::Find(int handle) { return FindById(handle); }
 
+int UnitRefTree::CountNodes() {
+    int count = 0;
+    for (SimUnitNode* node = reinterpret_cast<SimUnitList*>(this)->First(); node; node = node->Next()) ++count;
+    return count;
+}
+
 // ---- InsertionOrderTree ---------------------------------------------------------------------------------------------
 
 InsertionOrderTree::InsertionOrderTree() {}
@@ -78,6 +84,13 @@ void InsertionOrderTree::RemoveLinear(uint32_t id) {
     }
 }
 
+uint32_t InsertionOrderTree::AddUnitLinear(SimUnit* unit) {
+    if (FindLinear(unitHandle(unit))) return 0;
+    void* memory = ::operator new(sizeof(UnitRefNode));
+    UnitRefNode* node = memory ? FUN_005e9cc0(memory, unit) : nullptr;
+    return AddUniqueLinear(node);
+}
+
 TargetOrderTree::TargetOrderTree() {}
 
 TargetOrderTree::~TargetOrderTree() {}
@@ -94,6 +107,12 @@ FormationOrderTree::~FormationOrderTree() {}
 uint32_t FormationOrderTree::AddUniqueLinearSlot(IdNode* node) { return AddUniqueLinear(node); }
 
 AvlNode* FormationOrderTree::FirstNode() { return First(); }
+
+SimUnit* FormationOrderTree::FirstUnit() {
+    SimUnitNode* node = reinterpret_cast<SimUnitNode*>(FirstNode());
+    if (node) return node->Value();
+    return nullptr;
+}
 
 // ---- ship groups by id ----------------------------------------------------------------------------------------------
 

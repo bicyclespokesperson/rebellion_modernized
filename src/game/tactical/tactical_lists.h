@@ -39,6 +39,7 @@ public:
     int RemoveById(int handle);           // 0x5c60d0
     SimUnit* FirstUnit();                 // 0x5c6070
     IdNode* Find(int handle);             // 0x5ca4b0
+    int CountNodes();                     // 0x5c5eb0
 };
 
 // Tree whose nodes are never "less" than each other, so insertion order is kept (ids are not unique per se).
@@ -49,6 +50,7 @@ public:
     virtual int IsLess(AvlNode* a, AvlNode* b) override;  // 0x5c61f0 always 0
 
     uint32_t AddUniqueLinear(IdNode* node);  // 0x5c61a0 adds unless a node with that id is there
+    uint32_t AddUnitLinear(SimUnit* unit);   // 0x5d1ff0 adds a node for the unit unless its handle is there
     IdNode* FindLinear(uint32_t id);         // 0x5c61d0 (walks the successor links)
     void RemoveLinear(uint32_t id);          // 0x5c6200 removes and deletes the node
 };
@@ -68,6 +70,8 @@ public:
     virtual ~FormationOrderTree();        // 0x5d2180 (scalar deleting destructor 0x5cbcb0)
     virtual uint32_t AddUniqueLinearSlot(IdNode* node);  // 0x5cbc90 slot 3
     virtual AvlNode* FirstNode();         // 0x5cbca0 slot 4
+
+    SimUnit* FirstUnit();                 // 0x5d2190
 };
 
 // ---- ship groups by id ----------------------------------------------------------------------------------------------

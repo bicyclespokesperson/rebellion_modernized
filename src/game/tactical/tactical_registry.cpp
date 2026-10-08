@@ -19,11 +19,11 @@ namespace {
 constexpr int kShipSubobjectOffset = 0xd4;
 constexpr int kLaunchInterfaceOffset = 0x418;
 constexpr int kUnitInterfaceOffset = 0x1c;
-constexpr int kCharacterKind = 3;
-constexpr int kSpecialForceKind = 4;
+constexpr int kFighterGroupKind = 3;
+constexpr int kCapitalGroupKind = 4;
 constexpr int kCapitalShipClass = 0;
 
-int kindOf(TacticalUnit* unit) { return reinterpret_cast<UnitKindView*>(unit)->Kind(); }
+int kindOf(TacticalUnit* unit) { return TacticalUnitKind(unit); }
 
 template <class T>
 T* atOffset(void* base, int offset) {
@@ -37,6 +37,8 @@ SimUnit* shipOfNode(IdNode* node) { return atOffset<SimUnit>(node, -kShipSubobje
 }  // namespace
 
 void* __thiscall FUN_005a9330(TacticalObjectManager* manager);  // the object manager's unit lookup for the launch interface
+
+int TacticalUnitKind(TacticalUnit* unit) { return reinterpret_cast<UnitKindView*>(unit)->Kind(); }
 
 TacticalRegistry::TacticalRegistry() {
     m_deathStar = nullptr;
@@ -82,41 +84,41 @@ TacticalUnit* TacticalRegistry::FindLaunchInterface(int handle) {
     return nullptr;
 }
 
-IdNode* TacticalRegistry::FindShipOrGroup(int handle) {
+IdNode* TacticalRegistry::FindShipOrViewGroup(int handle) {
     SimUnit* ship = FindShip(handle);
     if (ship) return shipNode(ship);
-    return m_groups.FindById(handle);
+    return m_viewGroups.FindById(handle);
 }
 
-IdNode* TacticalRegistry::FindGroup(int handle) { return m_groups.FindById(handle); }
+IdNode* TacticalRegistry::FindViewGroup(int handle) { return m_viewGroups.FindById(handle); }
 
-IdNode* TacticalRegistry::FindCharacter(int handle) { return m_characters.FindById(handle); }
+IdNode* TacticalRegistry::FindFighterGroup(int handle) { return m_fighterGroups.FindById(handle); }
 
-IdNode* TacticalRegistry::FindSpecialForce(int handle) { return m_specialForces.FindById(handle); }
+IdNode* TacticalRegistry::FindCapitalShipGroup(int handle) { return m_capitalGroups.FindById(handle); }
 
-IdNode* TacticalRegistry::FindCharacterOrSpecialForce(int handle) {
-    IdNode* found = m_characters.FindById(handle);
-    if (!found) found = m_specialForces.FindById(handle);
+IdNode* TacticalRegistry::FindShipGroup(int handle) {
+    IdNode* found = m_fighterGroups.FindById(handle);
+    if (!found) found = m_capitalGroups.FindById(handle);
     return found;
 }
 
-IdNode* TacticalRegistry::RemoveCharacterOrSpecialForce(int handle) {
-    IdNode* found = m_characters.DetachById(handle);
-    if (!found) found = m_specialForces.DetachById(handle);
+IdNode* TacticalRegistry::RemoveShipGroup(int handle) {
+    IdNode* found = m_fighterGroups.DetachById(handle);
+    if (!found) found = m_capitalGroups.DetachById(handle);
     return found;
 }
 
 uint32_t TacticalRegistry::AddShip(SimUnit* ship) { return m_ships.AddWithId(ship ? shipNode(ship) : nullptr); }
 
-uint32_t TacticalRegistry::AddGroup(IdNode* group) { return m_groups.AddWithId(group); }
+uint32_t TacticalRegistry::AddViewGroup(IdNode* group) { return m_viewGroups.AddWithId(group); }
 
-uint32_t TacticalRegistry::AddCharacter(IdNode* character) { return m_characters.AddWithId(character); }
+uint32_t TacticalRegistry::AddFighterGroup(IdNode* group) { return m_fighterGroups.AddWithId(group); }
 
-uint32_t TacticalRegistry::AddSpecialForce(IdNode* force) { return m_specialForces.AddWithId(force); }
+uint32_t TacticalRegistry::AddCapitalShipGroup(IdNode* group) { return m_capitalGroups.AddWithId(group); }
 
-uint32_t TacticalRegistry::AddCharacterOrSpecialForce(TacticalUnit* unit) {
-    if (kindOf(unit) == kCharacterKind) return m_characters.AddWithId(unit);
-    if (kindOf(unit) == kSpecialForceKind) return m_specialForces.AddWithId(unit);
+uint32_t TacticalRegistry::AddShipGroup(TacticalUnit* group) {
+    if (kindOf(group) == kFighterGroupKind) return m_fighterGroups.AddWithId(group);
+    if (kindOf(group) == kCapitalGroupKind) return m_capitalGroups.AddWithId(group);
     return 0;
 }
 
