@@ -1237,7 +1237,7 @@ void FleetWindow::UpdateShipList() {
         ostream_operator_ls_char(stream.Out(), 0);
         DrawTextA(dc, strstreambuf_str(StreambufOf(&stream)), -1, &area, DT_SINGLELINE);
         strstreambuf_freeze(StreambufOf(&stream), 0);
-        istream_seekg_pos(reinterpret_cast<istream*>(stream.bytes), 0);
+        istream_seekg_pos(reinterpret_cast<istream*>(stream.m_bytes), 0);
         ostream_seekp_pos(stream.Out(), 0);
         ostream_operator_ls_long(stream.Out(), m_capacityTotal);
         ostream_operator_ls_char(stream.Out(), 0);

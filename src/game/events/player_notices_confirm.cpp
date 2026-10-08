@@ -9,7 +9,6 @@
 #include "orders/move_orders.h"
 #include "ui/message_template.h"
 
-ostream* __thiscall ostream_operator_ls_long(ostream* out, long value);
 extern const char DAT_006a8798[];
 
 namespace {

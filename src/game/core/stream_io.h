@@ -1,16 +1,7 @@
 #pragma once
 #include <cstdint>
 
-class istream;
-class ostream;
-class ifstream;
-class ofstream;
-
-// Statically linked iostream entry points (LIBCI), called by address.
-istream* __thiscall istream_read(istream* in, void* buffer, int count);
-ostream* __thiscall ostream_write(ostream* out, const void* buffer, int count);
-long __thiscall istream_tellg(istream* in);
-long __thiscall ostream_tellp(ostream* out);
+#include "iostream/iostream.h"
 
 // Raw binary I/O of 1, 2 and 4 bytes. Every persistent object in the game saves and loads itself with these.
 void StreamRead8(istream* in, void* value);

@@ -69,7 +69,7 @@ int DatRecord::Parse(istream* in) {
     if (iostream_access::State(in) != 0) ok = 0;
     if (ok) {
         ReadCsvField(in, token.get(), &endOfLine);
-        if (iostream_access::AvailableBytes(iostream_access::BufferOf(token.get())) == 0) ok = 0;
+        if (iostream_access::WrittenBytes(iostream_access::BufferOf(token.get())) == 0) ok = 0;
         if (iostream_access::State(in) != 0) ok = 0;
         if (ok) ok = ParseFields(in, &endOfLine);
     }
