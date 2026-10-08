@@ -24,8 +24,10 @@ from pathlib import Path
 import capstone
 import pefile
 
-ROOT = Path(__file__).resolve().parent.parent
-EXE = ROOT / "orig_game_files" / "Star Wars - Rebellion" / "REBEXE.EXE"
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from paths import MAIN, ROOT  # noqa: E402
+
+EXE = MAIN / "orig_game_files" / "Star Wars - Rebellion" / "REBEXE.EXE"
 DLL = ROOT / "build" / "hybrid" / "smackw32.dll"
 MAP = ROOT / "build" / "hybrid" / "smackw32.map"
 MAP_SYMBOL = re.compile(r"^\s*0001:[0-9a-f]+\s+(\S+)\s+([0-9a-f]{8,16})\s", re.M)

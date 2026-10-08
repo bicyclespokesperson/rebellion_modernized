@@ -23,6 +23,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+import functools
 import concurrent.futures
 import contextlib
 import csv
@@ -239,7 +240,27 @@ def stack_arg_bytes(signature_key: str) -> int:
             cur += c
     params.append(cur)
     # Varargs ("...") have no static size; only the named parameters are counted.
-    return sum(8 if p.endswith(EIGHT_BYTE_PARAMS) else 4 for p in params if p != "...")
+    return sum(param_bytes(p) for p in params if p != "...")
+
+
+@functools.cache
+def class_sizes() -> dict[str, int]:
+    """Class name -> size, from the REB_ASSERT_SIZE(Class, 0x..) layout assertions of the reconstruction."""
+    sizes = {}
+    for header in (ROOT / "src" / "game").rglob("*.h"):
+        for m in re.finditer(r"REB_ASSERT_SIZE\(([A-Za-z_][\w:]*),\s*(0x[0-9a-fA-F]+|\d+)\)", header.read_text()):
+            sizes[m.group(1).split("::")[-1]] = int(m.group(2), 0)
+    return sizes
+
+
+def param_bytes(param: str) -> int:
+    """Stack bytes of one undecorated parameter type: a class passed by value occupies its size, rounded up."""
+    if param.endswith(EIGHT_BYTE_PARAMS):
+        return 8
+    m = re.fullmatch(r"(?:const)?(?:class|struct)([A-Za-z_][\w:]*)", param)
+    if m and (size := class_sizes().get(m.group(1).split("::")[-1])):
+        return (size + 3) & ~3
+    return 4
 
 
 class Emulator:
