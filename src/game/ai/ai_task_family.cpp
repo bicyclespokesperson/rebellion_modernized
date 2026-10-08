@@ -375,7 +375,7 @@ int PickSupplySystemNear(const FamilyFields& f, const FamilyParams& p) {
             }
         }
     }
-    if (result != 0 && f.targets->Find(f.system) == nullptr) {
+    if (p.supplyClaims && result != 0 && f.targets->Find(f.system) == nullptr) {
         AiSystemEval* eval = EvalOf(f, *f.system);
         if (eval) {
             ObjectKeyNode* node = NewOrNull<ObjectKeyNode>(*f.system);

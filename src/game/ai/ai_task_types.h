@@ -241,6 +241,67 @@ public:
     ObjectKeySet m_dropped;       // +0x80
 };
 
+// ---- type 6: troops ---------------------------------------------------------------------------------------------------------
+
+// A facility-family task for troop regiments: stage 0x3ef sends regiments to the systems that lack them, 0x3f0 picks the kind of
+// regiment the side lacks (m_round walks through five ways to pick the system), 0x3ec handles the facilities (VT 0x65c818,
+// 0x8c bytes, 0x4dd440-0x4e1e30).
+class AiTask6 : public AiStagedTask {
+public:
+    explicit AiTask6(int view);                     // 0x4dd460
+    virtual ~AiTask6();                             // 0: 0x4dd440 (deleting), 0x4dd550
+    virtual void Read(istream* in) override;        // 1: 0x4dd600
+    virtual void Write(ostream* out) override;      // 2: 0x4dd6d0
+    virtual OrderBase* Step() override;             // 5: 0x4dd7a0
+
+    OrderBase* StepMoves();                         // 0x4dd840 (stage 0x3ef)
+    OrderBase* StepClasses();                       // 0x4dd8d0 (stage 0x3f0)
+    OrderBase* StepTargets();                       // 0x4dda00 (stage 0x3ec)
+    OrderBase* BuildTroopMoveOrderA();              // 0x4ddb70
+    OrderBase* BuildTroopMoveOrderB();              // 0x4de130
+    OrderBase* BuildTroopMoveOrderC();              // 0x4de6f0
+    OrderBase* BuildTroopMoveOrderD();              // 0x4deba0
+    int ChooseManager();                            // 0x4df160
+    int ChooseKind();                               // 0x4df440
+    int ComputeClassCount();                        // 0x4df9a0
+    int ResetCount();                               // 0x4dfa70
+    OrderBase* BuildTroopScrapOrder();              // 0x4dfa80
+    int SelectTarget();                             // 0x4dfcf0
+    int PickSupplySystem();                         // 0x4dffd0
+    OrderBase* BuildScrapOrder();                   // 0x4e0170
+    int ComputeFacilityCount();                     // 0x4e06b0
+    OrderBase* BuildCapitalOrder();                 // 0x4e0750
+    OrderBase* BuildFleetDestinationOrder(ObjectKey* target);  // 0x4e0a30
+    OrderBase* BuildManufactureOrder212();          // 0x4e0b70
+    OrderBase* BuildDestinationOrder(ObjectKey* target);  // 0x4e0c90
+    OrderBase* BuildManufactureOrder210();          // 0x4e0dd0
+    void PickByFleetDistance();                     // 0x4e0ef0
+    void PickBySectorDistanceA();                   // 0x4e1060
+    void PickBySectorRank();                        // 0x4e11a0
+    void PickByParentSystem();                      // 0x4e12e0
+    void PickBySectorDistanceB();                   // 0x4e1430
+    void AddTargetSystem();                         // 0x4e15b0
+    int Need();                                     // 0x4e19c0
+    int NeedForTargets();                           // 0x4e1a20
+    void RefreshTargets();                          // 0x4e1b00
+    aitask::FamilyFields Fields();
+
+    AiRankedSelector m_selector;  // +0x40
+    ObjectKey m_manager;          // +0x50
+    ObjectKey m_unit;             // +0x54
+    ObjectKey m_system;           // +0x58
+    ObjectKey m_classKey;         // +0x5c starts as 0
+    int m_count;                  // +0x60
+    int m_cap;                    // +0x64
+    int m_limit;                  // +0x68
+    int m_classFlags;             // +0x6c ChooseClass arguments set by the Pick functions
+    int m_classMode;              // +0x70
+    int m_classOrder;             // +0x74
+    int m_round;                  // +0x78 which of the four orders ChooseKind uses next
+    ObjectKeySet m_targets;       // +0x7c
+    ObjectKeySet m_dropped;       // +0x84
+};
+
 // ---- type 8: system records ----------------------------------------------------------------------------------------------
 
 // Runs the AiSystemRecords of the side one at a time: moves each record to a sector that suits it and lets it step through its
@@ -411,6 +472,8 @@ REB_ASSERT_SIZE(AiTask7, 0x7c);
 REB_ASSERT_OFFSET(AiFacilityTaskBase, m_targets, 0x6c);
 REB_ASSERT_SIZE(AiTask11, 0x88);
 REB_ASSERT_OFFSET(AiTask11, m_targets, 0x78);
+REB_ASSERT_SIZE(AiTask6, 0x8c);
+REB_ASSERT_OFFSET(AiTask6, m_targets, 0x7c);
 REB_ASSERT_SIZE(AiTask8, 0x58);
 REB_ASSERT_SIZE(AiTask9, 0x58);
 REB_ASSERT_SIZE(AiTask4, 0x60);

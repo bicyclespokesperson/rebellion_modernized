@@ -57,6 +57,7 @@ struct FamilyParams {
     uint32_t scrapSecondMask;
     bool targetCountGuard;       // AddTargetSystem does nothing when the list already has two systems
     bool supplyResetsCap;        // PickSupplySystemNear clears *cap first
+    bool supplyClaims;           // PickSupplySystemNear adds the target system to the list and claims it
 };
 
 int Need(const FamilyFields& f, const FamilyParams& p);
