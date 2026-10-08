@@ -29,6 +29,9 @@ the relevant parts of docs/code_map.md for your module.
 - Calling conventions: run `tools/check_callee_pop.py` after building — it must report 0 mismatches (a free
   function or static member whose original ends in `RET n` is `__stdcall`). Long runs: soak_fast.txt and
   load_game.txt with all hooks must have no "Unhandled" in wine.log (`tools/bisect_crash.py` finds the culprit).
+- Keep capture runs under your worktree's `work/run/` (the default; with `--out`, use `work/run/<name>`): the
+  integration imports captures only from there into the shared regression store, so captures saved elsewhere
+  (e.g. your scratchpad) never become regression tests.
 - Commit early: after each verified class, so an interrupted session (usage limits happen) loses nothing.
 - Shell sandbox in worktrees: commands that build program names/arguments from `$VAR`/`$(...)` or redirect to
   relative paths outside the worktree are refused — write small scripts in your scratchpad subdirectory and use

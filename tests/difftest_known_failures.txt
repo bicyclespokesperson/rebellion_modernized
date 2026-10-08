@@ -1,3 +1,4 @@
 # Captures whose FAIL is a limitation of the emulator, not a reconstruction bug. Format: <capture file name> <reason>
 # difftest reports these as XFAIL. Keep each entry justified; remove it when the cause goes away.
 snd_g2_006138b0_0.cap SoundBuffer::Refill: the original passes its own istream* argument slot to IDirectSoundBuffer::Lock as an out-parameter; the stubbed Lock never writes it, so the original sums a pointer into m_writePosition
+battle_run_res_00596870_2.cap TacticalGetCapitalShipResult: copies a local CapitalShipResult whose padding bytes were never written; the original and the reconstruction leave different stack garbage there
