@@ -14,6 +14,7 @@ class TacticalHub;
 
 float __thiscall FUN_005b18d0(SimUnit* unit);                   // the unit's strongest weapon figure
 int __thiscall FUN_005b1b70(SimUnit* unit);
+int __thiscall FUN_005b69f0(SimUnit* unit);
 int __thiscall FUN_005b7ce0(SimUnit* unit);
 int __thiscall FUN_005b7d10(SimUnit* unit);
 float __thiscall FUN_005b7780(SimUnit* unit, SimUnit* target, int b);

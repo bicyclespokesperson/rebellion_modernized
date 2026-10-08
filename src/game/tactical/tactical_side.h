@@ -120,7 +120,7 @@ public:
     virtual int Slot06() override;                            // 0x5d1410
     virtual int SplitIntoGroups(TargetPriorityTree* targets, int least, int most) override;  // 0x5d1240
     virtual int Slot08() override;                            // 0x5d1080
-    virtual int RecordFleet(int unused);                      // 0x5d14c0 slot 9
+    virtual int RecordFleet(SimUnitList* unused);             // 0x5d14c0 slot 9
     virtual int StepSide(float step);                         // 0x5d14d0 slot 10
     virtual int Virtual11();                                  // 0x5d19a0
 };

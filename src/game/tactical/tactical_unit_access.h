@@ -34,7 +34,7 @@ public:
     virtual void Slot06();
     virtual void Slot07();
     virtual int GetUnitClass();  // 8
-    virtual void Slot09();
+    virtual int Slot09();  // 9: the unit type index
     virtual void Slot10();
     virtual void Slot11();
     virtual void Slot12();

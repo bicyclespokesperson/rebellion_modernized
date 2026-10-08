@@ -231,7 +231,7 @@ int TacticalAiSide::SplitIntoGroups(TargetPriorityTree* targets, int least, int 
     return index > 0 ? groups : 0;
 }
 
-int TacticalAiSide::RecordFleet(int) {
+int TacticalAiSide::RecordFleet(SimUnitList*) {
     RecordFleetPriorities();
     return 1;
 }

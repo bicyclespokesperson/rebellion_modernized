@@ -285,7 +285,7 @@ void ShipGroup::SetMode(int mode) {
 }
 
 CapitalShipGroup::CapitalShipGroup(int seedHandle) : ShipGroup(seedHandle) {
-    m_unkbc = 4;
+    m_role = 4;
     m_unkc0 = 0;
     SimUnit* seed = shipByHandle(seedHandle);
     if (seed) {
@@ -302,6 +302,8 @@ CapitalShipGroup::CapitalShipGroup(int seedHandle) : ShipGroup(seedHandle) {
 }
 
 CapitalShipGroup::~CapitalShipGroup() {}
+
+void CapitalShipGroup::SetRole(int role) { m_role = role; }
 
 void CapitalShipGroup::SetMode(int mode) { ShipGroup::SetMode(mode); }
 

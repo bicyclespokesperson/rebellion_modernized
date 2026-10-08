@@ -152,7 +152,7 @@ public:
     virtual void SetMode(int mode);          // 0x5ca6d0 slot 18
     virtual void Virtual19();                // 0x5cb770
     virtual void Virtual20();                // 0x5cb7b0
-    virtual void Virtual21();                // 0x5cb870
+    virtual void Virtual21(int handle);      // 0x5cb870
     virtual void Virtual22();                // 0x5cb840
     virtual void Virtual23();                // 0x5cb7e0
     virtual void Virtual24();                // 0x5cb810
@@ -201,7 +201,9 @@ public:
     virtual void Virtual26() override;          // 0x5c6270
     virtual void Virtual27() override;          // 0x5c6230
 
-    int m_unkbc;  // +0xbc 4
+    void SetRole(int role);  // 0x5c7140
+
+    int m_role;   // +0xbc 4 until the simulator names one
     int m_unkc0;  // +0xc0
 };
 

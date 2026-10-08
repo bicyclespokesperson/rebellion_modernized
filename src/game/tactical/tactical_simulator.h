@@ -90,6 +90,8 @@ public:
     int m_unkB0;                     // +0xb0
 };
 
+class CapitalShipGroup;
+
 struct HeadlessSimulator {
     float m_elapsed;            // +0x00 simulated time
     RandomGenerator m_random;   // +0x04
@@ -114,6 +116,10 @@ struct HeadlessSimulator {
     int AddSpecialForce(TacticalUnit* force);        // 0x5af490
     int AddLaunchedFighter(TacticalUnit* fighter);   // 0x5af4b0
     void RecordSurvivors();                   // 0x5aee90
+    // Battle-start grouping (tactical_battle_groups.cpp): sorts the units into the sides' lists and forms capital-ship
+    // groups by type, then splits the fighters into groups.
+    CapitalShipGroup* FormCapitalGroup(SimUnitList* units, int unitType, int role);  // 0x5ae330
+    void FormBattleGroups(int unused);                                               // 0x5ae460
 };
 
 #pragma clang diagnostic push
