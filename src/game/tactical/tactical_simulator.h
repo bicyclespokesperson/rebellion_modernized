@@ -5,8 +5,11 @@
 #include "core/containers.h"
 #include "core/layout.h"
 #include "core/utility_classes.h"
+#include "tactical/tactical_ship_decl.h"
 #include "tactical/tactical_types.h"
 #include "tactical/tactical_units.h"
+
+class TacticalShipBase;
 
 // The headless battle simulator (DAT_006bc4a8, 0x274 bytes): the auto-resolve engine. It runs the same capital-ship and
 // fighter unit objects as the 3D battle, one fixed step per frame, without any rendering (TacticalGame::Update with the
@@ -60,6 +63,8 @@ public:
     virtual SimUnitNode* First();   // slot 4 (+0x10)
 
     uint8_t m_pad04[8];
+
+    TacticalUnitTree* AsTree() { return reinterpret_cast<TacticalUnitTree*>(this); }
 };
 
 // One side's state inside the simulator (the object at +0x24c / +0x250; class and vtable live in the capital-ship module).
@@ -84,7 +89,9 @@ public:
     uint8_t m_pad40[0x58 - 0x40];
     SimUnitList m_fleet;             // +0x58 the side's units on the field
     SimUnitList m_hangars;           // +0x64 the side's units still in hangars
-    uint8_t m_pad70[0x84 - 0x70];
+    SimUnitList m_retired;           // +0x70 the side's units that are out of the battle
+    float m_value;                   // +0x7c the side's fleet value (set by the facade)
+    int m_flag80;                    // +0x80
     int m_unk84;                     // +0x84 5 while the side is withdrawing
     uint8_t m_pad88[0xb0 - 0x88];
     int m_unkB0;                     // +0xb0
@@ -101,7 +108,9 @@ struct HeadlessSimulator {
     uint8_t m_pad48[4];
     SimUnitList m_units;        // +0x4c every unit in the battle
     SimUnitList m_launched;     // +0x58 units whose carrier was found (launched fighters)
-    uint8_t m_pad64[0x24c - 0x64];
+    SimUnitList m_active;       // +0x64 units in state 2
+    SimUnitList m_retired;      // +0x70 units that left the battle (state 0xb)
+    uint8_t m_pad7c[0x24c - 0x7c];
     SimulatorSide* m_sides[2];  // +0x24c
     int m_secondCommander[2];   // +0x254 handle of each side's second-best commander
     int m_firstCommander[2];    // +0x25c handle of each side's best commander
@@ -114,6 +123,20 @@ struct HeadlessSimulator {
     int AddSpecialForce(TacticalUnit* force);        // 0x5af490
     int AddLaunchedFighter(TacticalUnit* fighter);   // 0x5af4b0
     void RecordSurvivors();                   // 0x5aee90
+
+    // ---- units (capital-ship module) -----------------------------------------------------------------------
+    int ActivateUnit(TacticalShipBase* ship);                 // 0x5af5c0
+    void RetireUnit(TacticalShipBase* unit);                  // 0x5af7a0
+    void DockAtDeathStar(TacticalShipBase* unit);             // 0x5af910
+    double OpponentStrength(int side);                        // 0x5afa30
+    void SetSideFlag(int side, int value);                    // 0x5afb30
+    void SetSideValue(int side, float value);                 // 0x5afb50
+    double CommanderSkillA(int side);                         // 0x5afb70 first commander's leadership
+    double CommanderSkillB(int side);                         // 0x5afc00 second commander's combat skill
+    int IsActiveUnit(TacticalShipBase* ship);                 // 0x5afc80
+    void RegisterFighter(TacticalShipBase* unit);             // 0x5afd40
+    void RegisterCapitalShip(TacticalShipBase* unit);         // 0x5afd70
+    void AssignCharacterHandle(TacticalUnit* unit);           // 0x5afdb0
 };
 
 #pragma clang diagnostic push
