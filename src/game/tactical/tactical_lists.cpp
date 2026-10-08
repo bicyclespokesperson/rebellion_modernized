@@ -5,6 +5,23 @@
 #include "core/checked_new.h"
 #include "tactical/tactical_unit_access.h"
 
+// ---- UnitRefNode ----------------------------------------------------------------------------------------------------
+
+UnitRefNode::UnitRefNode(SimUnit* unit) {
+    m_unit = unit;
+    SetId(unitHandle(unit));
+}
+
+UnitRefNode::~UnitRefNode() {}
+
+int UnitRefNode::Key() { return m_id; }
+
+AvlNode* UnitRefNode::Next() { return m_successor; }
+
+AvlNode* UnitRefNode::Previous() { return Predecessor(); }
+
+SimUnit* UnitRefNode::Value() { return m_unit; }
+
 // ---- UnitRefTree ----------------------------------------------------------------------------------------------------
 
 UnitRefTree::~UnitRefTree() {}
@@ -21,7 +38,7 @@ AvlNode* UnitRefTree::LastNode() { return Last(); }
 uint32_t UnitRefTree::AddUnit(SimUnit* unit) {
     if (unit && !Find(unitHandle(unit))) {
         void* memory = ::operator new(sizeof(UnitRefNode));
-        UnitRefNode* node = memory ? FUN_005e9cc0(memory, unit) : nullptr;
+        UnitRefNode* node = memory ? new (memory) UnitRefNode(unit) : nullptr;
         return AddWithId(node);
     }
     return 0;
@@ -87,7 +104,7 @@ void InsertionOrderTree::RemoveLinear(uint32_t id) {
 uint32_t InsertionOrderTree::AddUnitLinear(SimUnit* unit) {
     if (FindLinear(unitHandle(unit))) return 0;
     void* memory = ::operator new(sizeof(UnitRefNode));
-    UnitRefNode* node = memory ? FUN_005e9cc0(memory, unit) : nullptr;
+    UnitRefNode* node = memory ? new (memory) UnitRefNode(unit) : nullptr;
     return AddUniqueLinear(node);
 }
 

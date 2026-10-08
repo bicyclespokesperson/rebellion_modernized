@@ -9,7 +9,6 @@
 // AI code calls. Declared by original address; the owning modules name them (drop the declarations when they land).
 
 class ShipGroup;
-class GroupFormation;
 class TacticalHub;
 
 float __thiscall FUN_005b18d0(SimUnit* unit);                   // the unit's strongest weapon figure
@@ -40,6 +39,3 @@ void __stdcall FUN_005afe10(ShipGroup* group);  // registers a capital-ship grou
 void __thiscall FUN_005cb1a0(ShipGroup* group, int a);
 void __thiscall FUN_005a0320(TacticalHub* hub, int groupId);
 TacticalHub* FUN_0059ed70();
-
-GroupFormation* __thiscall FUN_005c72b0(void* memory, int groupHandle, TacticalVec4 position);  // capital-ship formation
-GroupFormation* __thiscall FUN_005ec310(void* memory, int groupHandle, TacticalVec4 position);  // fighter formation

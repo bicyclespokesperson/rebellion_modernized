@@ -1,5 +1,7 @@
 #include "tactical/tactical_side.h"
 
+#include "core/vptr_store.h"
+
 #include <new>
 
 #include "tactical/tactical_externals_2b.h"
@@ -29,9 +31,9 @@ TargetPriorityNode* successor(TargetPriorityNode* node) { return static_cast<Tar
 
 // ---- scorers ----------------------------------------------------------------------------------------------------------
 
-AttackEvaluatorBase::~AttackEvaluatorBase() {}
+AttackEvaluatorBase::~AttackEvaluatorBase() { REB_KEEP_VPTR_STORE(); }
 
-FormationEvaluatorBase::~FormationEvaluatorBase() {}
+FormationEvaluatorBase::~FormationEvaluatorBase() { REB_KEEP_VPTR_STORE(); }
 
 SideOrderTree::~SideOrderTree() {}
 

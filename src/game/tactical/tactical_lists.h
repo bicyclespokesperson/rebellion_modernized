@@ -13,17 +13,18 @@ class ShipGroup;
 
 // The capital-ship / fighter class is SimUnit (tactical_simulator.h). Its id (the registry handle) is at +0xec.
 
-// A node of a UnitRefTree; the class lives in the formation module (constructor 0x5e9cc0, VT 0x66d820, 0x20 bytes).
+// A node of a UnitRefTree (VT 0x66d820, 0x20 bytes): keyed by the unit's handle.
 class UnitRefNode : public IdNode {
 public:
-    virtual int Key();             // slot 1
-    virtual AvlNode* Next();       // slot 2
-    virtual AvlNode* Previous();   // slot 3
-    virtual SimUnit* Value();      // slot 4
+    explicit UnitRefNode(SimUnit* unit);  // 0x5e9cc0
+    virtual ~UnitRefNode();               // 0x5e9d40 (scalar deleting destructor 0x5e9d80)
+    virtual int Key();                    // 0x5e9d20 slot 1
+    virtual AvlNode* Next();              // 0x5c7530 slot 2
+    virtual AvlNode* Previous();          // 0x5e9d30 slot 3
+    virtual SimUnit* Value();             // 0x52bed0 slot 4
 
     SimUnit* m_unit;  // +0x1c
 };
-UnitRefNode* __thiscall FUN_005e9cc0(void* memory, SimUnit* unit);
 
 // Tree of UnitRefNodes keyed by the unit's handle (VT 0x66bdd0): a battle side's fleet, hangars and group members.
 class UnitRefTree : public IdAvlTree {
@@ -131,6 +132,7 @@ public:
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
+REB_ASSERT_SIZE(UnitRefNode, 0x20);
 REB_ASSERT_SIZE(UnitRefTree, 0x0c);
 REB_ASSERT_SIZE(InsertionOrderTree, 0x0c);
 REB_ASSERT_SIZE(GroupRefNode, 0x20);

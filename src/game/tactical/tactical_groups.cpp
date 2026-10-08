@@ -178,7 +178,7 @@ void ShipGroup::AddMember(int handle) {
     SimUnit* unit = shipByHandle(handle);
     AddUnit(unit);
     if (m_firstMember == 0) m_firstMember = handle;
-    m_formation->AddUnit(handle);
+    m_formation->AddMember(handle);
     unitGroupId(unit) = m_id;
 }
 
@@ -189,7 +189,7 @@ void ShipGroup::RemoveMember(int handle) {
     if (unitGroupId(unit) == static_cast<int>(m_id)) unitGroupId(unit) = 0;
     if (handle == m_firstMember) m_firstMember = firstMemberOtherThan(this, m_firstMember);
     RemoveUnit(unit);
-    m_formation->RemoveUnit(handle);
+    m_formation->RemoveMember(handle);
 }
 
 float ShipGroup::MemberStrengthAgainst(SimUnit* target) {
@@ -290,8 +290,8 @@ CapitalShipGroup::CapitalShipGroup(int seedHandle) : ShipGroup(seedHandle) {
     SimUnit* seed = shipByHandle(seedHandle);
     if (seed) {
         void* memory = ::operator new(0x144);
-        m_formation = memory ? FUN_005c72b0(memory, seedHandle, positionOf(seed)) : nullptr;
-        m_formation->AddUnit(seedHandle);
+        m_formation = memory ? new (memory) CapitalShipFormation(seedHandle, positionOf(seed)) : nullptr;
+        m_formation->AddMember(seedHandle);
     }
     m_unk3c = 2;
     m_unk38 = 2;
@@ -310,8 +310,8 @@ void CapitalShipGroup::SetMode(int mode) { ShipGroup::SetMode(mode); }
 FighterGroup::FighterGroup(int seedHandle) : ShipGroup(seedHandle) {
     SimUnit* seed = shipByHandle(seedHandle);
     void* memory = ::operator new(0x140);
-    m_formation = memory ? FUN_005ec310(memory, seedHandle, positionOf(seed)) : nullptr;
-    m_formation->AddUnit(seedHandle);
+    m_formation = memory ? new (memory) FighterFormation(seedHandle, positionOf(seed)) : nullptr;
+    m_formation->AddMember(seedHandle);
     m_unk3c = 2;
     m_unk38 = 2;
     m_unk58 = 2;

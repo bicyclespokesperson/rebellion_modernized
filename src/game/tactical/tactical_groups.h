@@ -3,6 +3,7 @@
 
 #include "core/containers.h"
 #include "core/layout.h"
+#include "tactical/tactical_formation.h"
 #include "tactical/tactical_lists.h"
 #include "tactical/tactical_units.h"
 
@@ -12,19 +13,7 @@
 
 class TacticalSideBase;
 
-// The formation object of a group (class in the formation module, 0x5ea030; its slots 7 and 8 add and remove a unit).
-class GroupFormation {
-public:
-    virtual ~GroupFormation();
-    virtual void Virtual01();
-    virtual void Virtual02();
-    virtual void Virtual03();
-    virtual void Virtual04();
-    virtual void Virtual05();
-    virtual void Virtual06();
-    virtual void AddUnit(int handle);     // slot 7 (+0x1c)
-    virtual void RemoveUnit(int handle);  // slot 8 (+0x20)
-};
+// The formation object of a group (tactical_formation.h).
 
 // The embedded link a behavior object keeps (VT 0x66c678, 0x18 bytes: an AvlNode with three virtual functions).
 class BehaviorLink : public AvlNode {
@@ -172,7 +161,7 @@ public:
     GroupBehavior* m_behavior;        // +0x40
     UnitRefTree m_founders;           // +0x44 the unit the group was created for
     int m_side;                       // +0x50 the side of the seed unit
-    GroupFormation* m_formation;      // +0x54
+    FormationBase* m_formation;       // +0x54
     int m_unk58;                      // +0x58
     int m_unk5c;                      // +0x5c
     GroupOrder* m_order;              // +0x60
