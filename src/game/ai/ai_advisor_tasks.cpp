@@ -14,8 +14,6 @@
 
 using ai::KeyInFamilies;
 
-extern uint32_t g_humanUiFlags;
-
 namespace {
 
 constexpr int kScrapOrder = 0x200;
@@ -499,8 +497,8 @@ void AdvisorTask23::SetTarget(const ObjectKey* target) {
                 if (order) {
                     order->m_side = m_view;
                     order->SetTarget(target);
-                    const int status[2] = {1, 0x24};
-                    m_advisor->Notify(order, status);
+                    StatusCode status(1, 0x24);
+                    m_advisor->HandleRefusedOrder(order, &status);
                     delete order;
                 }
                 FinishTask(this);
@@ -512,8 +510,8 @@ void AdvisorTask23::SetTarget(const ObjectKey* target) {
     } else if (family == 0) {
         FinishTask(this);
     } else {
-        const int status[2] = {1, 0x27};
-        m_advisor->Notify(nullptr, status);
+        StatusCode status(1, 0x27);
+        m_advisor->HandleRefusedOrder(nullptr, &status);
         FinishTask(this);
     }
 }
@@ -539,7 +537,7 @@ void AdvisorTask23::Refused(int* status, OrderBase* order) {
     m_finished = 1;
     m_flags.m_value = kTaskDone;
     m_count = 0;
-    m_advisor->Notify(order, status);
+    m_advisor->HandleRefusedOrder(order, reinterpret_cast<StatusCode*>(status));
     if (order) delete order;
 }
 
@@ -569,8 +567,8 @@ OrderBase* AdvisorTask23::Advance() {
         ManufactureOrderBase* order = static_cast<ManufactureOrderBase*>(BuildManufactureOrder(OrderKind()));
         if (order) {
             OpenWindow(order);
-            g_humanUiFlags |= kTaskHandOff;
-            m_advisor->SetPendingOrder(order);
+            g_humanUiFlags.m_value |= kTaskHandOff;
+            m_advisor->SetRefusedOrder(order);
             m_phase = 0;
             m_kind = 0;
             m_finished = 1;
@@ -613,8 +611,8 @@ int AdvisorTask23::PickSite() {
         }
     }
     if (result == 0) {
-        const int status[2] = {0xa0, 3};
-        m_advisor->Notify(nullptr, status);
+        StatusCode status(0xa0, 3);
+        m_advisor->HandleRefusedOrder(nullptr, &status);
     }
     return result;
 }
@@ -795,8 +793,7 @@ void AdvisorEntryTree::Load(istream* in) {
     uint32_t count;
     ReadValue32(in, &count);
     for (uint32_t index = 0; index < count; ++index) {
-        void* memory = ::operator new(0x2c);
-        AdvisorEntry* entry = memory ? ConstructAdvisorEntry(memory) : nullptr;
+        DroidScript* entry = new DroidScript();
         entry->Read(in);
         AddWithId(entry);
     }

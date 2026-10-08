@@ -8,6 +8,8 @@
 #include "core/layout.h"
 #include "core/stream_io.h"
 #include "gameobj/object_key.h"
+#include "strategy_ui/advisor_droid.h"
+#include "strategy_ui/advisor_notices.h"
 
 // The tasks of the player's advisors (0x49c6a0-0x49ecb0, 0x4c6ab0-0x4c7e10): small cousins of the AI's task types that work
 // from an AiGalaxyAnalysis and hand the orders they build to the advisor droid (the human player's helper that proposes and
@@ -17,18 +19,6 @@ class AiSideController;
 class OrderBase;
 class ManufactureOrderBase;
 class System;
-
-// The advisor droid a task reports to (the base of 0x439320, VT 0x658e10; its class is part of the strategic UI module).
-class AdvisorSink {
-public:
-    virtual void Virtual00() = 0;
-    virtual void Virtual01() = 0;
-    virtual void Virtual02() = 0;
-    // 3: shows the advisor's reaction to the order (null if there is none) and the status that made it
-    virtual void Notify(OrderBase* order, const int* status) = 0;
-
-    void SetPendingOrder(OrderBase* order);  // 0x43a290
-};
 
 // ---- AdvisorTaskBase --------------------------------------------------------------------------------------------------
 
@@ -132,7 +122,7 @@ public:
     ObjectKey m_target;           // +0x3c
     ObjectKey m_site;             // +0x40
     AiRankedSelector m_selector;  // +0x44
-    AdvisorSink* m_advisor;       // +0x54
+    AdvisorBase* m_advisor;       // +0x54
 };
 
 // ---- the collections --------------------------------------------------------------------------------------------------
@@ -154,14 +144,7 @@ public:
     AdvisorTaskBase* m_last;      // +0x18
 };
 
-// A remembered thing of the advisor: the nodes of the tree below (VT 0x65c5b0, 0x2c bytes, built by 0x4c5230).
-class AdvisorEntry : public IdNode {
-public:
-    virtual void Read(istream* in) = 0;  // 1
-};
-AdvisorEntry* __thiscall ConstructAdvisorEntry(void* memory);  // 0x4c5230
-
-// The tree of AdvisorEntry (VT 0x65bc78, 0xc bytes).
+// The tree of DroidScript (VT 0x65bc78, 0xc bytes).
 class AdvisorEntryTree : public IdAvlTree {
 public:
     AdvisorEntryTree();                           // 0x49c6a0
