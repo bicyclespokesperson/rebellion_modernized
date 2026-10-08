@@ -1,5 +1,7 @@
 #include "economy/procfacil.h"
 
+#include "core/checked_new.h"
+#include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
 #include "fleet/unit_view_flags.h"
@@ -12,7 +14,6 @@ int FUN_0053fa60(int eventId, int a, GameObj* object, void* data, NotifyContext*
 int FUN_0053fab0(int eventId, int a, GameObj* object, void* data, NotifyContext* ctx);
 
 // The data block constructor (0x584590).
-GameObjData* __thiscall FUN_00584590(void* memory);
 
 extern int g_procFacilNotifyLog;  // 0x6b9048, never set in the shipped game
 
@@ -84,8 +85,47 @@ ProcFacil::~ProcFacil() { REB_KEEP_VPTR_STORE(); }
 int ProcFacil::Virtual46(NotifyContext* ctx) { return ChangeDestroyedReason(kDestroyedReasonIdle, ctx); }
 
 GameObjData* ProcFacil::CreateData() {
-    void* memory = ::operator new(0x28);
-    return memory ? FUN_00584590(memory) : nullptr;
+    return NewOrNull<ProcFacilData>();
+}
+
+ProcFacilData::ProcFacilData() : m_duration(0), m_cycleCount(0) {}
+
+ProcFacilData::~ProcFacilData() { REB_KEEP_VPTR_STORE(); }
+
+int ProcFacilData::Read(istream* in) {
+    int result = UnitObjData::Read(in);
+    if (result) {
+        result = m_processingStat.Read(in);
+        if (result) {
+            ReadValue32(in, &m_duration);
+            ReadValue32(in, &m_cycleCount);
+        }
+    }
+    return result;
+}
+
+int ProcFacilData::Write(ostream* out) {
+    int result = UnitObjData::Write(out);
+    if (result) {
+        result = m_processingStat.Write(out);
+        if (result) {
+            WriteValue32(out, &m_duration);
+            WriteValue32(out, &m_cycleCount);
+        }
+    }
+    return result;
+}
+
+int ProcFacilData::Checksum(Crc32* crc) {
+    int result = UnitObjData::Checksum(crc);
+    if (result) {
+        result = m_processingStat.Checksum(crc);
+        if (result) {
+            crc->AddInt(m_duration);
+            crc->AddInt(m_cycleCount);
+        }
+    }
+    return result;
 }
 
 int ProcFacil::OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) {

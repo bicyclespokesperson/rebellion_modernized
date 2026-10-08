@@ -63,9 +63,13 @@ int Mission::CheckOrder(int a, int orderKind, StatusCode* out) {
     return result;
 }
 
+void ConstructMissionEventKinds() { new (&g_missionEventKinds) EventKindSet(); }  // 0x525710
+
+void RegisterMissionEventKindsAtExit() { atexit(LAB_00525730); }  // 0x525720
+
 void Mission::InitStatics() {
-    new (&g_missionEventKinds) EventKindSet();
-    atexit(LAB_00525730);
+    ConstructMissionEventKinds();
+    RegisterMissionEventKindsAtExit();
 }
 
 // ---- simple accessors -------------------------------------------------------------------------------------

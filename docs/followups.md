@@ -13,20 +13,21 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
 - `ObjectKeyNode`/`ObjectKeyValueNode`/`IntPairNode` Read/Write are declared `void`; the originals return their
   last callee's EAX (stream helper result). Check whether any caller uses the value; if so make them `int`.
 
-- `character/role.h`: Role slots 131–134 probably take `ObjectKey*`/`NotifyContext*`, not `int` (Character code
-  uses reinterpret_cast as a workaround) — verify from the callee `ret n` and fix.
 - `Character::SetRecord` (0x50e1c0) returns int in the original but the base declares `void`.
 - `CharacterData`/`RoleData` (character/character_data.h) are reconstructed; `RoleRecord` (role.h) is still provisional.
 
 - `mission/mission_timers_decl.h` and `mission_encounter_decl.h`: stand-ins `TimerBase`, `NotifEventBase`,
   `MajorCharacterIterator` duplicate events' real `TimerEvent`, `SourceEvent`, `CharacterRangeIterator` (different
   member names); mission code calls `Command::Read/Write/Checksum` (events: `ReadCommand`...). They link through
-  `symbols/aliases.csv` — port the mission code to the real classes, then delete those alias rows.
+  `symbols/aliases.csv` — port the mission code to the real classes, then delete those alias rows. (The CharacterMgr
+  stand-ins are gone: callers use `CharacterMgr` through `GetCharacterManager()`.)
+- `galaxy/game_setup_stages.cpp` names the systems 0x90000109 "Yavin" and 0x92000121 "Coruscant"; `CharacterMgr` (the
+  Emperor starts at, and the seat of power is, 0x90000109 under Empire control) suggests it is the other way round.
 
 ## Unassigned functions (code map gaps / mis-assignments)
-- 0x58adb0–0x58b2e0: object-name node (0x58adb0), system-distance tables and neighbour-list builder
-  (0x58af30–0x58b060), serialization wrappers (0x58b1a0, 0x58b2c0) → galaxy / gameobj.
-- 0x5696b0–0x5698b0: GameObj subclass of type 0xf2 → gameobj (needs the GameObj header).
+- 0x58adb0–0x58b1a0: object-name node (0x58adb0), system-distance tables and neighbour-list builder
+  (0x58af30–0x58b060) → galaxy / gameobj. (The Detector/CombatUnit data blocks 0x58b1a0–0x58b300 are in
+  `fleet/unit_data.cpp` now.)
 
 ## Orders and movement (src/game/orders)
 - `orders/command_decl.h` now only includes events/event_base.h and events/event_queue.h (the command base classes and

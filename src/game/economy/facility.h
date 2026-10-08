@@ -16,6 +16,13 @@
 //     ProcFacil (0x53a670, VT 0x6615b0)                                economy/procfacil.h
 //       ManufacturingFacility (0x52cbc0) -> types 0x28-0x2a
 //       ProductionBase (0x55a600) -> production facilities 0x2c-0x2d
+// The data block of Facility objects (VT 0x66a150, 0x18 bytes, ctor 0x584100): a UnitObjData without fields.
+class FacilityData : public UnitObjData {
+public:
+    FacilityData();           // 0x584100
+    virtual ~FacilityData();  // 0x584120 (deleting), 0x584140
+};
+
 class Facility : public UnitObjBase {
 public:
     Facility();           // 0x539980

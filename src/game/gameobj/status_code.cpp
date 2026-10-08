@@ -32,6 +32,34 @@ IntPair::IntPair() : m_first(0), m_second(0) {}
 
 IntPair::IntPair(const IntPair& other) : m_first(other.m_first), m_second(other.m_second) {}
 
+void IntPair::Set(uint32_t first, uint32_t second) {
+    m_first = first;
+    m_second = second;
+}
+
+void IntPair::SetSecond(uint32_t second) { m_second = second; }
+
+int IntPair::Write(ostream* out) {
+    WriteValue32(out, &m_first);
+    WriteValue32(out, &m_second);
+    return 1;
+}
+
+int IntPair::Read(istream* in) {
+    ReadValue32(in, &m_first);
+    ReadValue32(in, &m_second);
+    return 1;
+}
+
+IntPair* IntPair::Add(IntPair* out, const IntPair& other) {
+    out->Set(m_first + other.m_first, m_second + other.m_second);
+    return out;
+}
+
+int IntPair::Equals(const IntPair& other) { return m_first == other.m_first && m_second == other.m_second ? 1 : 0; }
+
+int IntPair::NotEquals(const IntPair& other) { return Equals(other) == 0; }
+
 // ---- EventKindSet ------------------------------------------------------------------------------------------
 
 EventKindSet::EventKindSet() : IntKeyedSet() {}

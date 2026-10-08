@@ -4,9 +4,9 @@
 
 // Rules over GNPRTB 0x0cxx (escape), 0x06xx and 0x02xx (identify / betrayal) (0x55e5b0-0x55ec90).
 
-void RollEscapeTable(int unused, int a, int b, int c, int d, int* success) {
+int RollEscapeTable(int unused, int a, int b, int c, int d, int* success) {
     *success = 0;
-    RollTableChance(mission_table::kEscape, ((b + a) - c) - d, success);
+    return RollTableChance(mission_table::kEscape, ((b + a) - c) - d, success);
 }
 
 int ComputeEscapeBase(int* out) {

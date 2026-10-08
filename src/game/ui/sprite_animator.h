@@ -4,26 +4,11 @@
 #include "core/containers.h"
 #include "core/layout.h"
 #include "platform/win32.h"
+#include "ui/animation_step.h"
 
 class Sprite;
 class SpriteAnimator;
 class SpriteStage;
-
-// A step of an animation script as the sprite animator runs it (made by the factory 0x403ed0 from a script kind, owned
-// by the module that reconstructs the scripts): declared as far as the animator uses it.
-class AnimationStep : public LinkNode {
-public:
-    virtual void Attach(SpriteAnimator* animator);            // slot 3
-    virtual void SetScript(const uint32_t* sequence);         // slot 4
-    virtual void SetStart(int x, int y);                      // slot 5
-    // Moves the script on one frame; sets *changed and the rectangle that changed; non-zero when the script is over.
-    virtual int Advance(RECT* area, int* changed);            // slot 6
-    virtual void Begin();                                     // slot 7
-    virtual void Finish();                                    // slot 8
-    virtual void Abort();                                     // slot 9
-
-    SpriteStage* m_stage;  // +0x0c
-};
 
 // Runs animation scripts on the sprites of a SpriteStage, one script step after the other (VT 0x65a358, ctor 0x4727e0).
 // The animator is an IdNode (the stage keeps it by id); m_current is the step being played and the following ones wait

@@ -153,10 +153,7 @@ public:
     int Checksum(Crc32* crc);
 
     int Set(const ObjectKey& key);  // copies the key, zeroes m_count, returns 1
-    ObjectKey* GetKey(ObjectKey* out) const {
-        out->m_value = m_key.m_value;
-        return out;
-    }
+    ObjectKey* GetKey(ObjectKey* out) const;  // 0x559950
 
     int m_flag;       // +0x1c
     int m_count;      // +0x20

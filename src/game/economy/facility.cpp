@@ -2,6 +2,7 @@
 
 #include <new>
 
+#include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "data/sd_record_bases.h"
 #include "gameobj/game_obj_iterator.h"
@@ -13,8 +14,6 @@ extern "C" void __cdecl LAB_00539d30();
 extern EventKindSet g_facilityEventKinds;  // 0x6b9038
 extern int g_facilityEventKindsReady;      // 0x6b9040
 
-// The data block constructor (0x584100): a UnitObjData subclass without fields of its own.
-GameObjData* __thiscall FUN_00584100(void* memory);
 
 namespace {
 constexpr int kStatusCategory = 1;
@@ -47,9 +46,12 @@ int Facility::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 GameObjData* Facility::CreateData() {
-    void* memory = ::operator new(0x18);
-    return memory ? FUN_00584100(memory) : nullptr;
+    return NewOrNull<FacilityData>();
 }
+
+FacilityData::FacilityData() {}
+
+FacilityData::~FacilityData() { REB_KEEP_VPTR_STORE(); }
 
 int Facility::OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) {
     return UnitObjBase::OnControlKindChanged(oldKind, newKind, ctx);

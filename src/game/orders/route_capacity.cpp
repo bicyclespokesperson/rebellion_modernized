@@ -381,3 +381,5 @@ int CapacityLeg::Build(int side, int arg, int kind, const int* filter, GameObj* 
     }
     return ok;
 }
+
+int CapacityTable::MarkAllIncomingOverCapacity() { return m_incoming.MarkAllOverCapacity(); }

@@ -67,7 +67,7 @@ int MissionRescue::Virtual159(GameObj* person, int roll, int* out, NotifyContext
     if (target) {
         ObjectKey key;
         role->GetKey(&key);
-        const int moved = target->Virtual132(static_cast<int>(reinterpret_cast<uintptr_t>(&key)), ctx);
+        const int moved = target->Virtual132(&key, ctx);
         ok = moved && ok ? 1 : 0;
     }
     return ok;

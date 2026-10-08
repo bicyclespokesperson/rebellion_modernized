@@ -161,7 +161,7 @@ int IsAtLeastGnprtb0E01(int value);
 int IsAtLeastGnprtb0E02(int value);
 
 // ---- 0x0cxx / 0x06xx / 0x02xx (mission_rules_0c_06_02.cpp) ----
-void RollEscapeTable(int unused, int a, int b, int c, int d, int* success);
+int RollEscapeTable(int unused, int a, int b, int c, int d, int* success);
 int ComputeEscapeBase(int* out);
 int ComputeScaledByGnprtb0600(int a, int b, int* out);
 int ComputeScaledByGnprtb0601(int a, int b, int* out);

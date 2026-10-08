@@ -72,7 +72,7 @@ int RoleActivityCommand::Execute() {
     StatusCode status(kStatusCategory, kStatusOk);
     StatusCode missing(kStatusCategory, kStatusNoRole);
     int ok = ResolveMasterInFamilies_30_40(&m_key, &role, &missing, &status);
-    if (ok && isOk(status)) static_cast<Role*>(role)->Virtual128(reinterpret_cast<int>(&m_request), &ctx);
+    if (ok && isOk(status)) static_cast<Role*>(role)->Virtual128(&m_request, &ctx);
     return 0;
 }
 

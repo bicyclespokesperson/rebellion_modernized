@@ -6,6 +6,7 @@
 #include "core/vptr_store.h"
 #include "economy/side.h"
 #include "events/event_base.h"
+#include "data/probability_table.h"
 #include "data/table_registration.h"
 #include "gameobj/factory_registries.h"
 #include "gameobj/game_hooks.h"
@@ -555,7 +556,7 @@ int GameManager::CaptureSnapshot() {
         m_snapshot[0].m_stateCrc = state;
         Crc32 tables;
         FUN_0051cce0(&tables);
-        NotifyTables(&tables);
+        ChecksumTables(&tables);
         m_snapshot[0].m_tableCrc = tables;
         if (m_firstSnapshotTick == 0) m_firstSnapshotTick = m_tickCount;
     }

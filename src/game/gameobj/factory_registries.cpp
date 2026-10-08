@@ -1,3 +1,4 @@
+#include "character/character_mgr.h"
 #include "gameobj/factory_registries.h"
 
 #include "gameobj/game_obj_root.h"
@@ -58,7 +59,6 @@ GameObjNotifier* FUN_00503ee0();
 GameObjNotifier* FUN_004fffe0();
 GameObjNotifier* FUN_00569aa0();
 GameObjNotifier* FUN_00556f30();
-GameObjNotifier* FUN_00562120();
 GameObjNotifier* FUN_0052c610();
 GameObjNotifier* FUN_0055b4f0();
 GameObjNotifier* FUN_00504560();
@@ -230,7 +230,7 @@ void RegisterGameObjFactories() {
     GameObjRoot::RegisterFactory(0x14, FUN_004fffe0);
     GameObjRoot::RegisterFactory(0x57, FUN_00569aa0);
     GameObjRoot::RegisterFactory(0xf9, FUN_00556f30);
-    GameObjRoot::RegisterFactory(0xfa, FUN_00562120);
+    GameObjRoot::RegisterFactory(0xfa, CharacterMgr::Create);
     GameObjRoot::RegisterFactory(0x29, FUN_0052c610);
     GameObjRoot::RegisterFactory(0xa4, FUN_0055b4f0);
     GameObjRoot::RegisterFactory(0x10, FUN_00504560);

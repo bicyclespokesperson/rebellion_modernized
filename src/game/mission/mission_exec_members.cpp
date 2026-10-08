@@ -209,9 +209,9 @@ int MissionMgr::ReleasePersons(ObjectKeyValueSet* persons, NotifyContext* ctx) {
         if (!(person->m_stateFlags & kStateDestroyed)) {
             if (person->Virtual117() == 0) {
                 ObjectKey noHolder;
-                ok = person->Virtual131(static_cast<int>(reinterpret_cast<intptr_t>(&noHolder)), ctx) && ok;
+                ok = person->Virtual131(&noHolder, ctx) && ok;
             } else {
-                ok = person->Virtual134(contextAsInt(ctx)) && ok;
+                ok = person->Virtual134(ctx) && ok;
             }
         }
         ObjectKey location;
@@ -220,7 +220,7 @@ int MissionMgr::ReleasePersons(ObjectKeyValueSet* persons, NotifyContext* ctx) {
             if (!location.OrNull()) {
                 if (!(person->m_stateFlags & kStateDestroyed) && person->Virtual117() == 0) {
                     ObjectKey noHolder;
-                    ok = person->Virtual131(static_cast<int>(reinterpret_cast<intptr_t>(&noHolder)), ctx) && ok;
+                    ok = person->Virtual131(&noHolder, ctx) && ok;
                 }
                 location = keyOf((person->m_flags & kSideBitsMask) == kSideBitsAlliance ? kHomeAllianceKey : kHomeEmpireKey);
             }
@@ -241,7 +241,7 @@ int MissionMgr::ReleaseFreePersons(ObjectKeyValueSet* persons, NotifyContext* ct
         node->GetKey(&nodeKey);
         Character* person = static_cast<Character*>(GetMasterInFamilies_30_40(&nodeKey));
         if (person && person->Virtual117() != 0 && !(person->m_stateFlags & kStateDestroyed))
-            ok = person->Virtual134(contextAsInt(ctx)) && ok;
+            ok = person->Virtual134(ctx) && ok;
     }
     return ok;
 }

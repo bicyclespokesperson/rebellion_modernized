@@ -327,3 +327,8 @@ ObjectRefNode* ObjectRefList::AddKey(ObjectKey key) {
     }
     return node;
 }
+
+ObjectKey* ObjectRefNode::GetKey(ObjectKey* out) const {
+    out->m_value = m_key.m_value;
+    return out;
+}

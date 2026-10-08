@@ -34,7 +34,7 @@ public:
     virtual int GetLoyalty() override;                                                      // 126, 0x503ca0
     virtual int Virtual127() override { return 1; }                                         // 127
     virtual int Virtual130(NotifyContext* ctx) override;                                    // 130, 0x503ea0
-    virtual int Virtual131(int a, NotifyContext* ctx) override;                             // 131, 0x503eb0
+    virtual int Virtual131(const ObjectKey* opponent, NotifyContext* ctx) override;                             // 131, 0x503eb0
 
     // CreateViews (slot 37) is a shared jump stub at 0x55ac90, outside this class.
 

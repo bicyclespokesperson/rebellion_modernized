@@ -28,7 +28,7 @@ public:
     virtual int GetEventKinds(int unused, EventKindSet* out) override;                        // 15, 0x592400
     virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                   // 22, 0x592420
     virtual int GetCheckFunctions(MissionCheckFunctions* out) override;                       // 111, 0x5924e0
-    virtual int IsFinalPhase() override { return m_phase == 9; }                                         // 114, 0x592500
+    virtual int IsFinalPhase() override;                                                      // 114, 0x592500
     virtual int AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, NotifyContext* ctx) override;  // 120, 0x592510
     virtual int OnPhaseChanged(int oldValue, int newValue, NotifyContext* ctx) override;      // 125, 0x592f50
 

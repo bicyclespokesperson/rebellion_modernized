@@ -91,7 +91,7 @@ int Character::OnAutoroutingChanged(int newValue, NotifyContext* ctx) {
 
 int Character::OnAdriftChanged(int newValue, NotifyContext* ctx) {
     int result = Role::OnAdriftChanged(newValue, ctx);
-    if (m_flagsAc & kCapturedFlag) result = Virtual134(reinterpret_cast<int>(ctx));
+    if (m_flagsAc & kCapturedFlag) result = Virtual134(ctx);
     return result;
 }
 
