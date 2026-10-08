@@ -64,12 +64,17 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   `GidMenuWindow`; the owner of the menu base classes should name them.
 
 ## AI foundation (src/game/ai, part 1)
-- Part 2 (planners, postures, the 14 task types, agents, evaluators) is not reconstructed. Its base classes are complete
-  here, but three of them are still stand-ins that part 2 should replace: `ai_planner_decl.h` (`AiMissionPlanner`, VT 0x65c3b0),
-  `ai_posture_decl.h` (`AiPosture`, VT 0x65c0b0, with its non-virtual methods 0x4adaf0/0x4adb70/0x4add40 and the six
-  constructors) and `AiNotice` in `ai_task_base.h` (a `PlayerNotice` of the player module). The constructors of the planners,
-  postures, agents and the 14 task types are called as `FUN_` functions from `AiPlannerSet`, `AiSystemRecord::CreatePosture`,
-  `AiAgentSet::CreateAgent` and `AiTaskManager::MakeTask`.
+- Part 2a (postures 0x4ad770-0x4bb9f0, agents 0x479a40-0x47aa90, mission planners 0x47aae0-0x484180 and 0x4bce50-0x4be580) is
+  reconstructed except for five planner classes that are still created through `FUN_` constructors declared in
+  `ai_planner_decl.h`: Rescue (0x61, ctor 0x47e130), Diplomacy (0x51, 0x481460), the 0x54 variant for state 5 (0x47f550), the
+  0x52 variant for state 6 (0x480d10) and the free 0x62 planner (0x483140). Part 2b (the 14 task types, evaluators) still
+  calls its constructors as `FUN_` functions from `AiTaskManager::MakeTask`; `AiNotice` in `ai_task_base.h` is a stand-in.
+- Original quirks in the planners: `AiSystemRecord::AddPlanner/RemovePlanner` write +0x70/+0x74 even for the 0x70-byte free
+  planners (heap overwrite masked by allocator slack); the Step slots 16/17 of the system planners leave EAX undefined, so the
+  reconstructions are `PickLeaders`/`PickMembers` (void) behind the virtual overrides; `AiDsSabotagePlanner::ChooseTarget`
+  resets the target before testing it, so its keep-target branch is dead.
+- Planner functions that no scenario reached (read only): sabotage 0x69, DS sabotage 0x6a, recruit 0x55, incite 0x56,
+  research/subdue 0x53/0x57 steps, `AiAbductionPlanner::Read/Write`.
 - Classes that sit outside the module's ranges because the module needs them: `AiTaskNode` and `AiTaskObject`
   (0x4ec920-0x4ecbc0, generic id nodes next to `ObjectKeyNode`), `AiMissionHistoryEntry` (0x4c8000, declared only; its
   constructor, Read, Write and Fill are called at the original addresses) and `AiTaskManager::Save` (0x49de40).
