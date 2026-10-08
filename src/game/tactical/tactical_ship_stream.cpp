@@ -1,5 +1,8 @@
+#include "tactical/tactical_externals.h"
+#include "tactical/tactical_groups.h"
+#include "tactical/tactical_objmgr.h"
+#include "tactical/tactical_registry.h"
 #include "tactical/tactical_ship.h"
-#include "tactical/tactical_ship_ext.h"
 
 // Save / network-sync serialization of the battle units: every unit writes, reads and checksums the same fields in the
 // same order (0x5b6a00 / 0x5b6eb0 / 0x5b7370 and the carrier parts).
@@ -170,7 +173,7 @@ void TacticalWeaponArc::Checksum(Crc32* crc) {
 
 void TacticalShipBase::WriteState(ostream* out) {
     Writer writer{out};
-    TacticalShipObject::Write(out);
+    MovingObject::Write(out);
     int id = static_cast<int>(m_id);
     WriteValue32(out, &id);
     visitLeadingFields(*this, writer);
@@ -181,7 +184,7 @@ void TacticalShipBase::WriteState(ostream* out) {
 
 void TacticalShipBase::ReadState(istream* in) {
     Reader reader{in};
-    TacticalShipObject::Read(in);
+    MovingObject::Read(in);
     uint32_t id = 0;
     ReadValue32(in, &id);
     TacticalUnit::SetId(id);
@@ -193,7 +196,7 @@ void TacticalShipBase::ReadState(istream* in) {
 
 void TacticalShipBase::ChecksumState(Crc32* crc) {
     Summer summer{crc};
-    TacticalShipObject::Checksum(crc);
+    MovingObject::Checksum(crc);
     crc->AddInt(static_cast<int>(m_id));
     visitLeadingFields(*this, summer);
     visitMiddleFields(*this, summer);

@@ -6,16 +6,12 @@
 #include "tactical/tactical_facade.h"
 #include "tactical/tactical_objmgr.h"
 #include "tactical/tactical_registry.h"
-#include "tactical/tactical_unit_access.h"
+#include "tactical/tactical_ship.h"
 
 namespace {
 
 constexpr int kBehaviorSize = 0x3c;
 constexpr float kDefaultBehaviorRange = 5.0f;
-constexpr int kPositionOffset = 0x30;
-constexpr int kChannelAOffset = 0x11c;
-constexpr int kChannelBOffset = 0x124;
-constexpr int kUnitGroupIdBackReference = 0x178;
 constexpr int kFighterGroupKind = 3;
 constexpr int kCapitalGroupKind = 4;
 constexpr int kMemberStateActive = 2;
@@ -23,20 +19,16 @@ constexpr int kMemberStateReturning = 6;
 constexpr int kMemberStateEngaging = 4;
 constexpr int kBeginPlayerSideOffset = 0x18;
 
-SimUnit* shipByHandle(int handle) { return GetTacticalRegistry()->FindShip(handle); }
+TacticalShipBase* shipByHandle(int handle) { return GetTacticalRegistry()->FindShip(handle); }
 
-SimUnitNode* firstUnitNode(UnitRefTree& tree) { return FirstNodeOf(*reinterpret_cast<SimUnitList*>(&tree)); }
-
-TacticalVec4 positionOf(SimUnit* unit) {
-    return *reinterpret_cast<TacticalVec4*>(reinterpret_cast<char*>(unit) + kPositionOffset);
-}
+UnitRefNode* firstUnitNode(UnitRefTree& tree) { return tree.FirstNode(); }
 
 int firstMemberOtherThan(UnitRefTree* members, int handle) {
-    UnitRefNode* node = static_cast<UnitRefNode*>(members->FirstNode());
+    UnitRefNode* node = members->FirstNode();
     if (node) {
         do {
             if (node->Key() != handle) break;
-            node = static_cast<UnitRefNode*>(node->Next());
+            node = node->Next();
         } while (node);
         if (node) return node->Key();
     }
@@ -122,12 +114,12 @@ ShipGroup::ShipGroup(int seedHandle) {
     m_unk58 = 0;
     m_unk5c = 0;
     m_formation = nullptr;
-    SimUnit* seed = shipByHandle(seedHandle);
+    TacticalShipBase* seed = shipByHandle(seedHandle);
     if (seed) {
         m_founders.AddUnit(seed);
-        m_side = unitSide(seed);
-        m_channelA.m_data = unitField<void*>(seed, kChannelAOffset);
-        m_channelB.m_data = unitField<void*>(seed, kChannelBOffset);
+        m_side = seed->m_side;
+        m_channelA.m_data = seed->m_channelA.m_data;
+        m_channelB.m_data = seed->m_channelB.m_data;
     }
 }
 
@@ -149,13 +141,13 @@ ShipGroup::ShipGroup(int seedHandle, int id) {
     m_unk5c = 0;
     m_formation = nullptr;
     SetId(id);
-    SimUnit* seed = shipByHandle(seedHandle);
+    TacticalShipBase* seed = shipByHandle(seedHandle);
     if (seed) {
         m_founders.AddUnit(seed);
-        unitField<int>(seed, kUnitGroupIdBackReference) = m_id;
-        m_side = unitSide(seed);
-        m_channelA.m_data = unitField<void*>(seed, kChannelAOffset);
-        m_channelB.m_data = unitField<void*>(seed, kChannelBOffset);
+        seed->m_unk178 = m_id;
+        m_side = seed->m_side;
+        m_channelA.m_data = seed->m_channelA.m_data;
+        m_channelB.m_data = seed->m_channelB.m_data;
     }
 }
 
@@ -167,36 +159,36 @@ ShipGroup::~ShipGroup() {
 
 void ShipGroup::SetSeedHandle(int handle) {
     m_firstMember = handle;
-    SimUnit* unit = shipByHandle(handle);
+    TacticalShipBase* unit = shipByHandle(handle);
     if (unit) {
         AddUnit(unit);
-        unitGroupId(unit) = m_id;
+        unit->m_groupHandle = m_id;
     }
 }
 
 void ShipGroup::AddMember(int handle) {
-    SimUnit* unit = shipByHandle(handle);
+    TacticalShipBase* unit = shipByHandle(handle);
     AddUnit(unit);
     if (m_firstMember == 0) m_firstMember = handle;
     m_formation->AddMember(handle);
-    unitGroupId(unit) = m_id;
+    unit->m_groupHandle = m_id;
 }
 
 void ShipGroup::RemoveMember(int handle) {
-    SimUnit* unit = shipByHandle(handle);
+    TacticalShipBase* unit = shipByHandle(handle);
     if (!unit) return;
     Find(handle);
-    if (unitGroupId(unit) == static_cast<int>(m_id)) unitGroupId(unit) = 0;
+    if (unit->m_groupHandle == static_cast<int>(m_id)) unit->m_groupHandle = 0;
     if (handle == m_firstMember) m_firstMember = firstMemberOtherThan(this, m_firstMember);
     RemoveUnit(unit);
     m_formation->RemoveMember(handle);
 }
 
-float ShipGroup::MemberStrengthAgainst(SimUnit* target) {
+float ShipGroup::MemberStrengthAgainst(TacticalShipBase* target) {
     float total = 0.0f;
-    for (SimUnitNode* node = firstUnitNode(*this); node; node = node->Next()) {
-        if (unitState(node->Value()) == kMemberStateActive || unitState(node->Value()) == kMemberStateReturning ||
-            unitState(node->Value()) == kMemberStateEngaging) {
+    for (UnitRefNode* node = firstUnitNode(*this); node; node = node->Next()) {
+        if (node->Value()->m_state == kMemberStateActive || node->Value()->m_state == kMemberStateReturning ||
+            node->Value()->m_state == kMemberStateEngaging) {
             total = FUN_005b7780(node->Value(), target, 0) + total;
         }
     }
@@ -287,10 +279,10 @@ void ShipGroup::SetMode(int mode) {
 CapitalShipGroup::CapitalShipGroup(int seedHandle) : ShipGroup(seedHandle) {
     m_role = 4;
     m_unkc0 = 0;
-    SimUnit* seed = shipByHandle(seedHandle);
+    TacticalShipBase* seed = shipByHandle(seedHandle);
     if (seed) {
         void* memory = ::operator new(0x144);
-        m_formation = memory ? new (memory) CapitalShipFormation(seedHandle, positionOf(seed)) : nullptr;
+        m_formation = memory ? new (memory) CapitalShipFormation(seedHandle, seed->m_position) : nullptr;
         m_formation->AddMember(seedHandle);
     }
     m_unk3c = 2;
@@ -308,9 +300,9 @@ void CapitalShipGroup::SetRole(int role) { m_role = role; }
 void CapitalShipGroup::SetMode(int mode) { ShipGroup::SetMode(mode); }
 
 FighterGroup::FighterGroup(int seedHandle) : ShipGroup(seedHandle) {
-    SimUnit* seed = shipByHandle(seedHandle);
+    TacticalShipBase* seed = shipByHandle(seedHandle);
     void* memory = ::operator new(0x140);
-    m_formation = memory ? new (memory) FighterFormation(seedHandle, positionOf(seed)) : nullptr;
+    m_formation = memory ? new (memory) FighterFormation(seedHandle, seed->m_position) : nullptr;
     m_formation->AddMember(seedHandle);
     m_unk3c = 2;
     m_unk38 = 2;

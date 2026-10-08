@@ -7,7 +7,7 @@
 namespace {
 
 // The lists are objects with their own vtable; the call must stay virtual even though the list is a member.
-__attribute__((noinline)) SimUnitNode* firstNode(SimUnitList* list) { return reinterpret_cast<SimUnitNode*>(list->FirstNode()); }
+__attribute__((noinline)) UnitRefNode* firstNode(UnitRefTree* list) { return list->FirstNode(); }
 
 constexpr float kStalemateSeconds = 1200.0f;
 constexpr float kDeathStarWins = -1.0f;
@@ -17,11 +17,11 @@ TacticalDeathStar* asDeathStar(TacticalUnit* unit) { return static_cast<Tactical
 int deathStarHasFlag(TacticalUnit* deathStar) { return asDeathStar(deathStar)->m_fired; }
 
 // Destroys every unit in the list (RetireUnit retires one unit; the successor is read first because the list changes).
-void retireAll(HeadlessSimulator* simulator, SimUnitList* list) {
-    SimUnitNode* node = firstNode(list);
+void retireAll(HeadlessSimulator* simulator, UnitRefTree* list) {
+    UnitRefNode* node = firstNode(list);
     while (node) {
-        SimUnitNode* next = node->Next();
-        simulator->RetireUnit(reinterpret_cast<TacticalShipBase*>(node->Value()));
+        UnitRefNode* next = node->Next();
+        simulator->RetireUnit(node->Value());
         node = next;
     }
 }
@@ -31,8 +31,8 @@ void retireSide(HeadlessSimulator* simulator, SimulatorSide* side) {
     retireAll(simulator, &side->m_hangars);
 }
 
-bool anyUnitActive(SimUnitList* list, bool found) {
-    for (SimUnitNode* node = firstNode(list); node; node = node->Next()) {
+bool anyUnitActive(UnitRefTree* list, bool found) {
+    for (UnitRefNode* node = firstNode(list); node; node = node->Next()) {
         if (found) return found;
         if (node->Value()->m_state == kUnitActive) found = true;
     }
@@ -76,7 +76,7 @@ int HeadlessSimulator::Step(float step) {
         if (stagnant < kStalemateSeconds) return 0;
         float scoreA = m_sides[0]->m_strength;
         const float scoreB = m_sides[1]->m_strength;
-        TacticalUnit* deathStar = FUN_005a66a0(GetTacticalRegistry());
+        TacticalUnit* deathStar = GetTacticalRegistry()->GetDeathStar();
         if (deathStar && asDeathStar(deathStar)->IsOperational()) scoreA = kDeathStarWins;
         if (!(scoreA < scoreB)) {
             if (m_sides[1]->HasNoShipsAtAll()) {
@@ -99,19 +99,19 @@ int HeadlessSimulator::Step(float step) {
     int sideHasDeathStar[2] = {0, 0};
     if (m_sides[0]->m_unk84 == kUnitWithdrawing) m_outcome.m_sideAFinal = 1;
     if (m_sides[1]->m_unk84 == kUnitWithdrawing) m_outcome.m_sideBFinal = 1;
-    TacticalUnit* deathStar = FUN_005a66a0(GetTacticalRegistry());
+    TacticalUnit* deathStar = GetTacticalRegistry()->GetDeathStar();
     if (deathStar) {
-        if (deathStarHasFlag(FUN_005a66a0(GetTacticalRegistry())) != 0) sideHasDeathStar[1] = 1;
+        if (deathStarHasFlag(GetTacticalRegistry()->GetDeathStar()) != 0) sideHasDeathStar[1] = 1;
     }
-    for (SimUnitNode* node = firstNode(&m_units); node; node = node->Next()) {
-        SimUnit* unit = node->Value();
+    for (UnitRefNode* node = firstNode(&m_units); node; node = node->Next()) {
+        TacticalShipBase* unit = node->Value();
         if (unit->m_state == kUnitDeathStarPresent) sideHasDeathStar[unit->m_side] = 1;
     }
     m_outcome.m_sideAFinal &= sideHasDeathStar[0];
     m_outcome.m_sideBFinal &= sideHasDeathStar[1];
 
-    deathStar = FUN_005a66a0(GetTacticalRegistry());
-    const bool deathStarDecides = deathStar && asDeathStar(FUN_005a66a0(GetTacticalRegistry()))->IsOperational();
+    deathStar = GetTacticalRegistry()->GetDeathStar();
+    const bool deathStarDecides = deathStar && asDeathStar(GetTacticalRegistry()->GetDeathStar())->IsOperational();
     if (!deathStarDecides) {
         if (!sideHasActiveUnit(m_sides[1]) && m_outcome.m_sideAFinal == 0) m_outcome.m_sideAAlive = 1;
     }
@@ -125,8 +125,8 @@ int HeadlessSimulator::Step(float step) {
 }
 
 void HeadlessSimulator::RecordSurvivors() {
-    for (SimUnitNode* outer = firstNode(&m_units); outer; outer = outer->Next()) {
-        SimUnit* unit = outer->Value();
+    for (UnitRefNode* outer = firstNode(&m_units); outer; outer = outer->Next()) {
+        TacticalShipBase* unit = outer->Value();
         if (unit->GetUnitClass() != 1) continue;
         const int state = unit->m_state;
         if (state != kUnitActive && state != kUnitDockedOrActive && state != kUnitWithdrawing &&
@@ -134,20 +134,20 @@ void HeadlessSimulator::RecordSurvivors() {
             continue;
         }
         bool covered = false;
-        for (SimUnitNode* inner = firstNode(&m_units); inner; inner = inner->Next()) {
+        for (UnitRefNode* inner = firstNode(&m_units); inner; inner = inner->Next()) {
             if (covered) break;
-            SimUnit* candidate = inner->Value();
+            TacticalShipBase* candidate = inner->Value();
             if (candidate->GetUnitClass() != 0) continue;
             if (candidate->m_side != unit->m_side) continue;
             if (candidate->m_state != kUnitActive && candidate->m_state != kUnitDeathStarPresent) continue;
-            if (static_cast<TacticalCapitalShip*>(reinterpret_cast<TacticalShipBase*>(candidate))->Dock(reinterpret_cast<TacticalShipBase*>(unit)) == 1) covered = true;
+            if (static_cast<TacticalCapitalShip*>(candidate)->Dock(unit) == 1) covered = true;
         }
         if (covered) continue;
-        TacticalUnit* deathStar = FUN_005a66a0(GetTacticalRegistry());
+        TacticalUnit* deathStar = GetTacticalRegistry()->GetDeathStar();
         if (!deathStar) continue;
         if (!asDeathStar(deathStar)->IsOperational() && deathStarHasFlag(deathStar) == 0) continue;
         if (unit->m_side != 1) continue;
-        static_cast<TacticalHangar*>(asDeathStar(deathStar))->Dock(reinterpret_cast<TacticalShipBase*>(unit));
+        static_cast<TacticalHangar*>(asDeathStar(deathStar))->Dock(unit);
     }
 }
 
@@ -171,9 +171,8 @@ int HeadlessSimulator::AddSpecialForce(TacticalUnit* force) {
     return force->m_id;
 }
 
-int HeadlessSimulator::AddLaunchedFighter(TacticalUnit* fighter) {
-    SimUnit* unit = reinterpret_cast<SimUnit*>(fighter);
-    m_units.Add(reinterpret_cast<TacticalShipBase*>(unit));
-    m_launched.Add(reinterpret_cast<TacticalShipBase*>(unit));
-    return *reinterpret_cast<int*>(reinterpret_cast<char*>(fighter) + 0xec);
+int HeadlessSimulator::AddLaunchedFighter(TacticalShipBase* fighter) {
+    m_units.AddUnit(fighter);
+    m_launched.AddUnit(fighter);
+    return fighter->m_id;
 }

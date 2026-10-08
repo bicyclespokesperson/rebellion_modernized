@@ -1,8 +1,10 @@
+#include "tactical/tactical_groups.h"
+#include "tactical/tactical_objmgr.h"
+#include "tactical/tactical_registry.h"
 #include "tactical/tactical_externals.h"
 #include "tactical/tactical_facade.h"
 #include "tactical/tactical_game.h"
 #include "tactical/tactical_ship.h"
-#include "tactical/tactical_ship_ext.h"
 #include "tactical/tactical_simulator.h"
 
 // The 3D battle's unit events (handlers the object manager calls for the events other machines or the AI post: damage,
@@ -11,7 +13,7 @@
 namespace {
 
 TacticalShipBase* findShip(int handle) {
-    return reinterpret_cast<TacticalShipBase*>(FUN_005a6340(GetTacticalRegistry(), handle));
+    return GetTacticalRegistry()->FindShip(handle);
 }
 
 float floatArg(int word) {
@@ -41,7 +43,7 @@ void TacticalShipBase::AddTractoringShip(TacticalShipBase* tractor) {
         FUN_005ba980(FUN_005ba8b0(), 6, 1);
         if (m_hasGravityWell == 0) FUN_005c1360(static_cast<int>(m_id), 1);
     }
-    m_unk360.Add(tractor);
+    m_unk360.AddUnit(tractor);
 }
 
 void TacticalShipBase::RemoveTractoringShip(int handle) {
@@ -116,7 +118,7 @@ float TacticalShipBase::DistanceTo(TacticalShipBase* other) {
     const double dy = static_cast<double>(m_position.m_y) - other->m_position.m_y;
     const double dx = static_cast<double>(m_position.m_x) - other->m_position.m_x;
     const double yz = dy * dy + dz * static_cast<float>(dz);
-    return static_cast<float>(X87Sqrt(yz + dx * static_cast<float>(dx)));
+    return static_cast<float>(x87Sqrt(yz + dx * static_cast<float>(dx)));
 }
 
 void TacticalShipBase::ConsiderTractoring(int target) {
@@ -158,9 +160,9 @@ int TacticalShipBase::Destroy() {
     }
     m_hull = 0;
     if (m_channelB.m_data == nullptr) Virtual26();
-    TacticalGroupView* group = reinterpret_cast<TacticalGroupView*>(FUN_005a6480(GetTacticalRegistry(), m_groupHandle));
+    ShipGroup* group = ShipGroupOf(GetTacticalRegistry()->FindShipGroup(m_groupHandle));
     if (group != nullptr) {
-        group->ForgetMember(static_cast<int>(m_id));
+        group->Virtual21(static_cast<int>(m_id));
         FUN_005caef0(group, static_cast<int>(m_id));
     }
     FUN_005a9130(GetObjectManager(), this);
@@ -228,7 +230,7 @@ void TacticalCapitalShip::Virtual39(float step) {
 }
 
 void TacticalCapitalShip::Virtual26() {
-    for (TacticalUnitNode* node = m_unk28->FirstNode(); node != nullptr; node = m_unk28->FirstNode()) {
+    for (UnitRefNode* node = m_unk28->FirstNode(); node != nullptr; node = m_unk28->FirstNode()) {
         TacticalHangar::ReleaseSlot(node->Value());
     }
     if (m_tractorTarget != 0) {
@@ -243,7 +245,7 @@ void TacticalCapitalShip::Virtual26() {
 
 void TacticalFighter::Virtual26() {
     if (m_carrierHandle != 0) {
-        TacticalHangar* hangar = reinterpret_cast<TacticalHangar*>(FUN_005a6360(GetTacticalRegistry(), m_carrierHandle));
+        TacticalHangar* hangar = GetTacticalRegistry()->FindLaunchInterface(m_carrierHandle);
         hangar->ReleaseSlot(this);
         m_unk35c = 0;
         m_carrierHandle = 0;
@@ -254,37 +256,37 @@ void TacticalFighter::Virtual26() {
 
 int TacticalCapitalShip::Virtual28() {
     if (m_groupHandle == 0) return 0;
-    TacticalGroupView* group = FUN_005a6460(GetTacticalRegistry(), m_groupHandle);
-    return *reinterpret_cast<int*>(reinterpret_cast<char*>(group) + 0x5c);
+    ShipGroup* group = ShipGroupOf(GetTacticalRegistry()->FindFighterGroup(m_groupHandle));
+    return group->m_unk5c;
 }
 
 int TacticalCapitalShip::Virtual29() {
     if (m_groupHandle == 0) return 0;
-    TacticalGroupView* group = FUN_005a6460(GetTacticalRegistry(), m_groupHandle);
+    ShipGroup* group = ShipGroupOf(GetTacticalRegistry()->FindFighterGroup(m_groupHandle));
     return FUN_005cb980(group);
 }
 
 int TacticalCapitalShip::Virtual30() {
     if (m_groupHandle == 0) return 0;
-    TacticalGroupView* group = FUN_005a6460(GetTacticalRegistry(), m_groupHandle);
-    return *reinterpret_cast<int*>(reinterpret_cast<char*>(group) + 0x64);
+    ShipGroup* group = ShipGroupOf(GetTacticalRegistry()->FindFighterGroup(m_groupHandle));
+    return group->m_mode;
 }
 
 int TacticalFighter::Virtual28() {
-    TacticalGroupView* group = FUN_005a6470(GetTacticalRegistry(), m_groupHandle);
-    if (group != nullptr) return *reinterpret_cast<int*>(reinterpret_cast<char*>(group) + 0x5c);
+    ShipGroup* group = ShipGroupOf(GetTacticalRegistry()->FindCapitalShipGroup(m_groupHandle));
+    if (group != nullptr) return group->m_unk5c;
     return 0;
 }
 
 int TacticalFighter::Virtual29() {
-    TacticalGroupView* group = FUN_005a6470(GetTacticalRegistry(), m_groupHandle);
+    ShipGroup* group = ShipGroupOf(GetTacticalRegistry()->FindCapitalShipGroup(m_groupHandle));
     if (group != nullptr) return FUN_005cb980(group);
     return 0;
 }
 
 int TacticalFighter::Virtual30() {
-    TacticalGroupView* group = FUN_005a6470(GetTacticalRegistry(), m_groupHandle);
-    if (group != nullptr) return *reinterpret_cast<int*>(reinterpret_cast<char*>(group) + 0x64);
+    ShipGroup* group = ShipGroupOf(GetTacticalRegistry()->FindCapitalShipGroup(m_groupHandle));
+    if (group != nullptr) return group->m_mode;
     return 0;
 }
 
@@ -304,7 +306,7 @@ int TacticalHangar::ReserveSlot(TacticalShipBase* fighter) {
     ++m_aboard;
     fighter->m_unk35c = 1;
     GetObjectManager()->PostEvent(0x2c, static_cast<int>(fighter->m_id), m_ownerHandle, 1);
-    m_unk28->Add(fighter);
+    m_unk28->AddUnit(fighter);
     return 1;
 }
 
@@ -565,23 +567,23 @@ void __cdecl TacticalShipImpactEventE(TacticalEvent* event) {
 // ---- carrier launches ----------------------------------------------------------------------------------------------
 
 void TacticalHangar::OnFighterLaunched(TacticalShipBase* fighter) {
-    m_launched->Add(fighter);
+    m_launched->AddUnit(fighter);
     m_unk28->RemoveById(static_cast<int>(fighter->m_id));
     ++m_inFlight;
     const int groupHandle = fighter->m_groupHandle;
     fighter->m_unk35c = 4;
-    TacticalGroupView* group = reinterpret_cast<TacticalGroupView*>(FUN_005a6480(GetTacticalRegistry(), groupHandle));
+    ShipGroup* group = ShipGroupOf(GetTacticalRegistry()->FindShipGroup(groupHandle));
     int kind = 4;
     if (group != nullptr) {
         kind = FUN_005c7150(group);
-        group->ForgetMember(static_cast<int>(fighter->m_id));
+        group->Virtual21(static_cast<int>(fighter->m_id));
         FUN_005caef0(group, static_cast<int>(fighter->m_id));
     }
     FUN_005a9070(GetObjectManager(), fighter);
     const int side = fighter->m_side;
     fighter->m_state = 5;
     if (side != GetObjectManager()->m_playerSide || groupHandle == 0) return;
-    if (FUN_005a6480(GetTacticalRegistry(), groupHandle) != nullptr) return;
+    if (GetTacticalRegistry()->FindShipGroup(groupHandle) != nullptr) return;
     if (fighter->m_side == 0) {
         if (kind == 0) {
             FUN_005ba980(FUN_005ba8b0(), 0x87, 1);
@@ -647,10 +649,10 @@ void TacticalHangar::LaunchNow(TacticalShipBase* fighter) {
 void __cdecl TacticalCarrierLaunchEvent(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* fighter = findShip(args[1]);
-    TacticalHangar* hangar = reinterpret_cast<TacticalHangar*>(FUN_005a6360(GetTacticalRegistry(), args[0]));
+    TacticalHangar* hangar = GetTacticalRegistry()->FindLaunchInterface(args[0]);
     if (fighter == nullptr || hangar == nullptr) return;
-    TacticalGroupView* group = reinterpret_cast<TacticalGroupView*>(FUN_005a6480(GetTacticalRegistry(), fighter->m_groupHandle));
-    if (group != nullptr && *reinterpret_cast<int*>(reinterpret_cast<char*>(group) + 0x64) == 2) return;
+    ShipGroup* group = ShipGroupOf(GetTacticalRegistry()->FindShipGroup(fighter->m_groupHandle));
+    if (group != nullptr && group->m_mode == 2) return;
     TacticalUnit* deathStar = FUN_005a9330(GetObjectManager());
     if (deathStar != nullptr && args[0] == static_cast<int>(deathStar->m_id)) {
         if (static_cast<TacticalDeathStar*>(deathStar)->IsOperational()) hangar->LaunchNow(fighter);
@@ -663,7 +665,7 @@ void __cdecl TacticalCarrierLaunchEvent(TacticalEvent* event) {
 void __cdecl TacticalCarrierLaunchedEvent(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* fighter = findShip(args[1]);
-    TacticalHangar* hangar = reinterpret_cast<TacticalHangar*>(FUN_005a6360(GetTacticalRegistry(), args[0]));
+    TacticalHangar* hangar = GetTacticalRegistry()->FindLaunchInterface(args[0]);
     if (hangar == nullptr) return;
     TacticalUnit* deathStar = FUN_005a9330(GetObjectManager());
     if (deathStar != nullptr && args[0] == static_cast<int>(deathStar->m_id)) {

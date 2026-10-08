@@ -7,7 +7,7 @@
 #include "tactical/tactical_registry.h"
 #include "tactical/tactical_groups.h"
 #include "tactical/tactical_side.h"
-#include "tactical/tactical_unit_access.h"
+#include "tactical/tactical_ship.h"
 #include "tactical/tactical_units.h"
 
 namespace {
@@ -28,51 +28,41 @@ constexpr float kAboardWeight = 1.0f;
 constexpr float kScaleSlack = 0.65f;
 constexpr float kDistanceWeight = 0.001f;
 constexpr float kMinimumDistance = 1.0f;
-constexpr int kRadiusOffset = 0x3c0;
-constexpr int kDamageOffset = 0x3cc;
-constexpr int kUnitPositionOffset = 0x30;
-constexpr int kFormationPositionOffset = 0x3c;
 
-// The simulator's two record trees (characters and special forces) hold the units that travel aboard a ship; their first
-// node is reached through the second virtual slot after the tree interface.
-class SimRecordTree : public IdAvlTree {
-public:
-    virtual AvlNode* FirstRecord();  // slot 3
-};
-
-SimUnitNode* firstUnitNode(UnitRefTree& tree) { return FirstNodeOf(*reinterpret_cast<SimUnitList*>(&tree)); }
+UnitRefNode* firstUnitNode(UnitRefTree& tree) { return tree.FirstNode(); }
 
 bool differs(float a, float b) { return a < b || a > b; }
 
-int countAboard(IdAvlTree* tree, int shipHandleOffset, int handle) {
+template <class Unit, class Tree>
+int countAboard(Tree& tree, int handle) {
     int count = 0;
-    for (AvlNode* node = reinterpret_cast<SimRecordTree*>(tree)->FirstRecord(); node; node = node->m_successor) {
-        if (*reinterpret_cast<int*>(reinterpret_cast<char*>(node) + shipHandleOffset) == handle) ++count;
+    for (AvlNode* node = tree.FirstItem(); node; node = node->m_successor) {
+        if (static_cast<Unit*>(node)->m_shipHandle == handle) ++count;
     }
     return count;
 }
 
 }  // namespace
 
-float AttackEvaluatorBase::Virtual01(SimUnit* unit, ShipGroup* group, float* total, float* speed) {
-    unitVirtuals(unit)->GetUnitClass();
+float AttackEvaluatorBase::Virtual01(TacticalShipBase* unit, ShipGroup* group, float* total, float* speed) {
+    unit->GetUnitClass();
     *speed = 0.0f;
     if (!unit || !group) return kNoTime;
 
     *total = group->MemberStrengthAgainst(unit) + *total;
-    float scale = unitField<float>(unit, kRadiusOffset) + unitField<float>(unit, kDamageOffset) * kScaleSlack;
+    float scale = unit->m_shield + unit->m_hull * kScaleSlack;
     if (kMinimumDistance > scale) scale = kMinimumDistance;
-    const float unitSpeed = unitVirtuals(unit)->Slot25();
+    const float unitSpeed = unit->GetShieldRecharge();
     *speed = unitSpeed;
     const double remaining = static_cast<double>(*total) - static_cast<double>(unitSpeed);
     if (!(remaining > 0.0)) return kNoTime;
 
     float ratio = static_cast<float>(static_cast<double>(scale) / remaining);
-    const float* position = reinterpret_cast<const float*>(reinterpret_cast<char*>(unit) + kUnitPositionOffset);
-    const float* anchor = reinterpret_cast<const float*>(reinterpret_cast<char*>(group->m_formation) + kFormationPositionOffset);
-    const float dx = position[0] - anchor[0];
-    const float dz = position[2] - anchor[2];
-    const float dy = position[1] - anchor[1];
+    const TacticalVector& position = unit->m_position;
+    const TacticalVector& anchor = group->m_formation->m_position;
+    const float dx = position.m_x - anchor.m_x;
+    const float dz = position.m_z - anchor.m_z;
+    const float dy = position.m_y - anchor.m_y;
     if (differs(dx, g_formationOrigin.m_x) || differs(dy, g_formationOrigin.m_y) || differs(dz, g_formationOrigin.m_z)) {
         const float formationSpeed = group->m_formation->Virtual13();
         float distance = 0.0f;
@@ -83,9 +73,9 @@ float AttackEvaluatorBase::Virtual01(SimUnit* unit, ShipGroup* group, float* tot
     return ratio;
 }
 
-int AttackEvaluator::Virtual04(SimUnit* unit) {
-    if (unitState(unit) == kStateActive) {
-        const float value = unitVirtuals(unit)->Slot24();
+int AttackEvaluator::Virtual04(TacticalShipBase* unit) {
+    if (unit->m_state == kStateActive) {
+        const float value = unit->GetWeaponRecharge();
         if (differs(value, 0.0f)) return 1;
     }
     return 0;
@@ -95,12 +85,12 @@ int AttackEvaluator::Virtual03(ShipGroup* group) {
     const int mode = group->m_mode;
     if (mode == kModeAttacking || mode == kModeReturning || mode == kModeMoving) return 1;
     if (TacticalUnitKind(group) == kCapitalGroupKind) {
-        for (SimUnitNode* node = firstUnitNode(*group); node; node = node->Next()) {
-            if (unitState(node->Value()) == kStateDocked) return 1;
-            if (unitState(node->Value()) == kStateLanding) return 1;
+        for (UnitRefNode* node = firstUnitNode(*group); node; node = node->Next()) {
+            if (node->Value()->m_state == kStateDocked) return 1;
+            if (node->Value()->m_state == kStateLanding) return 1;
         }
     }
-    SimUnit* leader = group->m_formationA.FirstUnit();
+    TacticalShipBase* leader = group->m_formationA.FirstUnit();
     if (!leader) return 0;
     if (!Virtual04(leader)) return 0;
 
@@ -123,23 +113,23 @@ int AttackEvaluator::Virtual03(ShipGroup* group) {
     return 0;
 }
 
-float AttackEvaluator::Evaluate(int a, SimUnit* unit) {
+float AttackEvaluator::Evaluate(int a, TacticalShipBase* unit) {
     float score = 0.0f;
     if (!unit) return score;
     HeadlessSimulator* simulator = GetHeadlessSimulator();
-    score = static_cast<float>(countAboard(&simulator->m_specialForces, 0x48, unitHandle(unit))) * kAboardWeight + score;
+    score = static_cast<float>(countAboard<TacticalSpecialForceUnit>(simulator->m_specialForces, static_cast<int>(unit->m_id))) * kAboardWeight + score;
     simulator = GetHeadlessSimulator();
-    score = static_cast<float>(countAboard(&simulator->m_characters, 0x5c, unitHandle(unit))) * kAboardWeight + score;
+    score = static_cast<float>(countAboard<TacticalCharacterUnit>(simulator->m_characters, static_cast<int>(unit->m_id))) * kAboardWeight + score;
     score = FUN_005b7a80(unit, a, 0) * kStrengthWeight + score;
     score = score - FUN_005b1710(unit) * kPenaltyWeight;
     score = score - FUN_005b1640(unit) * kPenaltyWeight;
-    if (unitState(unit) == kStateDocked || unitState(unit) == kStateLanding) score = score - kPenaltyWeight;
-    const int side = unitSide(unit);
+    if (unit->m_state == kStateDocked || unit->m_state == kStateLanding) score = score - kPenaltyWeight;
+    const int side = unit->m_side;
     SideOrderTree& orders = reinterpret_cast<TacticalSideBase*>(GetHeadlessSimulator()->m_sides[side])->m_orders;
     float result = score;
     for (AvlNode* node = orders.First(); node; node = node->m_successor) {
         const SideOrderNode* order = reinterpret_cast<const SideOrderNode*>(node);
-        if (order->m_unitHandle == static_cast<uint32_t>(unitHandle(unit))) result = order->m_weight * kOrderWeight + result;
+        if (order->m_unitHandle == static_cast<uint32_t>(static_cast<int>(unit->m_id))) result = order->m_weight * kOrderWeight + result;
     }
     return result;
 }
@@ -234,7 +224,7 @@ int FormationEvaluator::Assign(TacticalSideBase* side, GroupRefTree* groups, Tar
             if (!timeIsUsable(time, limit)) continue;
             for (ScoredGroupNode* assigned = static_cast<ScoredGroupNode*>(scored.Last()); assigned;
                  assigned = previousScored(assigned)) {
-                SimUnit* targetUnit = target->m_unit.m_unit;
+                TacticalShipBase* targetUnit = target->m_unit.m_unit;
                 FUN_005afa00(GetHeadlessSimulator(), targetUnit, assigned->m_group.m_group);
                 remaining.DeleteById(assigned->m_group.m_group->m_id);
                 if (!differs(assigned->m_priority, candidate->m_priority) && assigned->m_group.SameGroup(&candidate->m_group)) break;
@@ -251,7 +241,7 @@ int FormationEvaluator::Assign(TacticalSideBase* side, GroupRefTree* groups, Tar
                 pick = nextTarget(pick);
             } while (pick);
         }
-        SimUnit* chosen = pick ? pick->m_unit.m_unit : firstTarget(targets)->m_unit.m_unit;
+        TacticalShipBase* chosen = pick ? pick->m_unit.m_unit : firstTarget(targets)->m_unit.m_unit;
         FUN_005afa00(GetHeadlessSimulator(), chosen, leftover->Value());
     }
     return 1;

@@ -1,7 +1,9 @@
+#include "tactical/tactical_groups.h"
+#include "tactical/tactical_objmgr.h"
+#include "tactical/tactical_registry.h"
 #include "tactical/tactical_externals.h"
 #include "tactical/tactical_facade.h"
 #include "tactical/tactical_ship.h"
-#include "tactical/tactical_ship_ext.h"
 #include "tactical/tactical_simulator.h"
 
 // The headless simulator's handling of units (0x5af4e0-0x5afe40): putting them into the right lists, taking them out
@@ -10,12 +12,10 @@
 namespace {
 
 TacticalShipBase* findShip(int handle) {
-    return reinterpret_cast<TacticalShipBase*>(FUN_005a6340(GetTacticalRegistry(), handle));
+    return GetTacticalRegistry()->FindShip(handle);
 }
 
-TacticalGroupView* findGroup(int handle) {
-    return reinterpret_cast<TacticalGroupView*>(FUN_005a6480(GetTacticalRegistry(), handle));
-}
+ShipGroup* findGroup(int handle) { return ShipGroupOf(GetTacticalRegistry()->FindShipGroup(handle)); }
 
 TacticalCharacterUnit* findCharacter(IdAvlTree& characters, int handle) {
     return static_cast<TacticalCharacterUnit*>(characters.FindById(handle));
@@ -23,10 +23,10 @@ TacticalCharacterUnit* findCharacter(IdAvlTree& characters, int handle) {
 
 // Takes the unit's group (if any) out of the side's list once the group has lost its last member.
 void leaveGroup(HeadlessSimulator* simulator, TacticalShipBase* unit) {
-    TacticalGroupView* group = findGroup(unit->m_groupHandle);
+    ShipGroup* group = findGroup(unit->m_groupHandle);
     if (group == nullptr) return;
-    FUN_005caed0(group, unit->m_id);
-    if (group->m_memberCount == 0) simulator->m_sides[group->m_side]->m_retired.RemoveById(group->m_id);
+    RemoveMemberFromGroup(group, unit->m_id);
+    if (group->m_firstMember == 0) simulator->m_sides[group->m_side]->m_retired.RemoveById(group->m_id);
 }
 
 void removeFromStateList(HeadlessSimulator* simulator, TacticalShipBase* unit) {
@@ -40,7 +40,7 @@ void removeFromStateList(HeadlessSimulator* simulator, TacticalShipBase* unit) {
 }  // namespace
 
 int HeadlessSimulator::ActivateUnit(TacticalShipBase* ship) {
-    m_units.Add(ship);
+    m_units.AddUnit(ship);
     ship->m_state = 2;
     return ship->m_id;
 }
@@ -50,7 +50,7 @@ void HeadlessSimulator::RetireUnit(TacticalShipBase* unit) {
     removeFromStateList(this, unit);
     unit->m_state = 0xb;
     unit->TakeDamage(100000.0f);
-    m_retired.Add(unit);
+    m_retired.AddUnit(unit);
     leaveGroup(this, unit);
     if (unit->GetUnitClass() != 0) {
         m_sides[unit->m_side]->m_hangars.RemoveById(unit->m_id);
@@ -58,14 +58,14 @@ void HeadlessSimulator::RetireUnit(TacticalShipBase* unit) {
     }
     m_sides[unit->m_side]->m_fleet.RemoveById(unit->m_id);
     TacticalCapitalShip* ship = static_cast<TacticalCapitalShip*>(unit);
-    for (TacticalUnitNode* node = ship->m_docked->FirstNode(); node;) {
-        TacticalUnitNode* next = node->Next();
+    for (UnitRefNode* node = ship->m_docked->FirstNode(); node;) {
+        UnitRefNode* next = node->Next();
         RetireUnit(node->Value());
         node = next;
     }
     ship->m_docked->Clear();
-    for (TacticalUnitNode* node = ship->m_launched->FirstNode(); node;) {
-        TacticalUnitNode* next = node->Next();
+    for (UnitRefNode* node = ship->m_launched->FirstNode(); node;) {
+        UnitRefNode* next = node->Next();
         RetireUnit(node->Value());
         node = next;
     }
@@ -134,18 +134,18 @@ int HeadlessSimulator::IsActiveUnit(TacticalShipBase* ship) {
 }
 
 void HeadlessSimulator::RegisterFighter(TacticalShipBase* unit) {
-    FUN_005a6660(unit, unit->m_side);
-    FUN_005a64e0(GetTacticalRegistry(), unit);
+    unit->AssignHandle(unit->m_side);
+    GetTacticalRegistry()->AddShip(unit);
 }
 
 void HeadlessSimulator::RegisterCapitalShip(TacticalShipBase* unit) {
-    FUN_005a6660(unit, unit->m_side);
-    FUN_005a64e0(GetTacticalRegistry(), unit);
+    unit->AssignHandle(unit->m_side);
+    GetTacticalRegistry()->AddShip(unit);
     static_cast<TacticalCapitalShip*>(unit)->m_ownerHandle = unit->m_id;
 }
 
 void HeadlessSimulator::AssignCharacterHandle(TacticalUnit* unit) {
-    FUN_005a6660(unit, static_cast<TacticalCharacterUnit*>(unit)->m_notAlliance);
+    unit->AssignHandle(static_cast<TacticalCharacterUnit*>(unit)->m_notAlliance);
 }
 
 // ---- construction ---------------------------------------------------------------------------------------------------

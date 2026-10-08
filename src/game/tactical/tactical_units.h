@@ -4,6 +4,9 @@
 #include "core/containers.h"
 #include "core/game_string.h"
 #include "core/layout.h"
+#include "core/stream_io.h"
+#include "core/utility_classes.h"
+#include "core/vptr_store.h"
 
 // The tactical engine's unit records.
 //
@@ -79,6 +82,22 @@ public:
     String m_name;                // +0x38
     int m_notAlliance;            // +0x44
     int m_shipHandle;             // +0x48
+};
+
+// The simulator's trees of characters (VT 0x66c380) and of special forces and troops (VT 0x66c370) by handle: an IdAvlTree
+// with an accessor for the first node.
+class TacticalCharacterTree : public IdAvlTree {
+public:
+    TacticalCharacterTree() {}
+    virtual ~TacticalCharacterTree() { REB_KEEP_VPTR_STORE(); }  // 0x5bdaa0 (scalar deleting destructor 0x5a8860)
+    virtual IdNode* FirstItem();                                 // 0x5f6590
+};
+
+class TacticalSpecialForceTree : public IdAvlTree {
+public:
+    TacticalSpecialForceTree() {}
+    virtual ~TacticalSpecialForceTree() { REB_KEEP_VPTR_STORE(); }  // 0x5bdf10 (scalar deleting destructor 0x5a8880)
+    virtual IdNode* FirstItem();                                    // 0x5f6590
 };
 
 #pragma clang diagnostic push

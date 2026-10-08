@@ -6,7 +6,7 @@
 
 #include "tactical/tactical_externals_2b.h"
 #include "tactical/tactical_game.h"
-#include "tactical/tactical_unit_access.h"
+#include "tactical/tactical_ship.h"
 
 namespace {
 
@@ -17,9 +17,9 @@ constexpr int kFighterClass = 1;
 constexpr float kNoInterceptTime = -1.0f;
 constexpr int kStateActive = 2;
 
-SimUnitNode* firstUnitNode(UnitRefTree& tree) { return FirstNodeOf(*reinterpret_cast<SimUnitList*>(&tree)); }
+UnitRefNode* firstUnitNode(UnitRefTree& tree) { return tree.FirstNode(); }
 
-TargetPriorityNode* newPriorityNode(float priority, SimUnit* unit) {
+TargetPriorityNode* newPriorityNode(float priority, TacticalShipBase* unit) {
     void* memory = ::operator new(sizeof(TargetPriorityNode));
     return memory ? new (memory) TargetPriorityNode(priority, unit) : nullptr;
 }
@@ -93,8 +93,8 @@ TacticalSideBase::~TacticalSideBase() {
 }
 
 int TacticalSideBase::HasDisabledUnit() {
-    for (SimUnitNode* node = firstUnitNode(m_fleet); node; node = node->Next()) {
-        if (unitField<int>(node->Value(), 0x150) != 0) return 1;
+    for (UnitRefNode* node = firstUnitNode(m_fleet); node; node = node->Next()) {
+        if (node->Value()->m_hasGravityWell != 0) return 1;
     }
     return 0;
 }
@@ -103,8 +103,8 @@ void TacticalSideBase::RecordFleetPriorities() {
     const int count = Refresh(0);
     m_previousStrength = m_strength;
     m_unitCount = count;
-    for (SimUnitNode* node = firstUnitNode(m_fleet); node; node = node->Next()) {
-        const float strength = unitVirtuals(node->Value())->Slot36();
+    for (UnitRefNode* node = firstUnitNode(m_fleet); node; node = node->Next()) {
+        const float strength = node->Value()->GetSpeed();
         const float spare = FUN_005b18d0(node->Value());
         const float priority = strength - spare * kFleetPriorityScale;
         TargetPriorityNode* entry = nullptr;
@@ -120,18 +120,18 @@ void TacticalSideBase::RecordFleetPriorities() {
     }
 }
 
-float TacticalSideBase::InterceptTime(SimUnit* unit, ShipGroup* group, float* total, float* speed) {
+float TacticalSideBase::InterceptTime(TacticalShipBase* unit, ShipGroup* group, float* total, float* speed) {
     if (m_attackEvaluator) return m_attackEvaluator->Virtual01(unit, group, total, speed);
     return kNoInterceptTime;
 }
 
-float TacticalSideBase::EvaluateAttack(int a, SimUnit* unit) {
+float TacticalSideBase::EvaluateAttack(int a, TacticalShipBase* unit) {
     float result = 0.0f;
     if (unit && m_attackEvaluator) result = m_attackEvaluator->Evaluate(a, unit);
     return result;
 }
 
-int TacticalSideBase::EvaluateUnit4(SimUnit* unit) {
+int TacticalSideBase::EvaluateUnit4(TacticalShipBase* unit) {
     if (m_attackEvaluator) return m_attackEvaluator->Virtual04(unit);
     return 0;
 }
@@ -148,7 +148,7 @@ void TacticalSideBase::ReprioritiseTargets(float) {
     TargetPriorityTree sorted;
     for (TargetPriorityNode* node = firstNode(*list); node;) {
         TargetPriorityNode* next = successor(node);
-        if (unitVirtuals(node->m_unit.m_unit)->GetUnitClass() == kFighterClass) {
+        if (node->m_unit.m_unit->GetUnitClass() == kFighterClass) {
             sorted.Insert(newPriorityNode(node->m_priority, node->m_unit.m_unit));
             TargetPriorityNode* match = firstNode(*list);
             while (match && !match->m_unit.SameUnit(&node->m_unit)) match = successor(match);
@@ -181,7 +181,7 @@ void TacticalSideBase::ReprioritiseTargets(float) {
     for (GroupRefNode* node = static_cast<GroupRefNode*>(m_groups.FirstNode()); node;
          node = static_cast<GroupRefNode*>(node->Next())) {
         if (EvaluateUnit3(node->Value()) != 0) continue;
-        SimUnit* first = node->Value()->FirstUnit();
+        TacticalShipBase* first = node->Value()->FirstUnit();
         if (first && FUN_005b7ce0(first) != 0) {
             flaggedGroups.AddGroup(node->Value());
         } else {

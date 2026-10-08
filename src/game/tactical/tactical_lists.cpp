@@ -3,24 +3,24 @@
 #include <new>
 
 #include "core/checked_new.h"
-#include "tactical/tactical_unit_access.h"
+#include "tactical/tactical_ship.h"
 
 // ---- UnitRefNode ----------------------------------------------------------------------------------------------------
 
-UnitRefNode::UnitRefNode(SimUnit* unit) {
+UnitRefNode::UnitRefNode(TacticalShipBase* unit) {
     m_unit = unit;
-    SetId(unitHandle(unit));
+    SetId(unit->m_id);
 }
 
 UnitRefNode::~UnitRefNode() {}
 
 int UnitRefNode::Key() { return m_id; }
 
-AvlNode* UnitRefNode::Next() { return m_successor; }
+UnitRefNode* UnitRefNode::Next() { return static_cast<UnitRefNode*>(m_successor); }
 
-AvlNode* UnitRefNode::Previous() { return Predecessor(); }
+UnitRefNode* UnitRefNode::Previous() { return static_cast<UnitRefNode*>(Predecessor()); }
 
-SimUnit* UnitRefNode::Value() { return m_unit; }
+TacticalShipBase* UnitRefNode::Value() { return m_unit; }
 
 // ---- UnitRefTree ----------------------------------------------------------------------------------------------------
 
@@ -31,12 +31,12 @@ uint32_t UnitRefTree::AddUnique(UnitRefNode* node) {
     return 0;
 }
 
-AvlNode* UnitRefTree::FirstNode() { return First(); }
+UnitRefNode* UnitRefTree::FirstNode() { return static_cast<UnitRefNode*>(First()); }
 
-AvlNode* UnitRefTree::LastNode() { return Last(); }
+UnitRefNode* UnitRefTree::LastNode() { return static_cast<UnitRefNode*>(Last()); }
 
-uint32_t UnitRefTree::AddUnit(SimUnit* unit) {
-    if (unit && !Find(unitHandle(unit))) {
+uint32_t UnitRefTree::AddUnit(TacticalShipBase* unit) {
+    if (unit && !Find(unit->m_id)) {
         void* memory = ::operator new(sizeof(UnitRefNode));
         UnitRefNode* node = memory ? new (memory) UnitRefNode(unit) : nullptr;
         return AddWithId(node);
@@ -44,9 +44,9 @@ uint32_t UnitRefTree::AddUnit(SimUnit* unit) {
     return 0;
 }
 
-int UnitRefTree::RemoveUnit(SimUnit* unit) {
-    if (unit && Find(unitHandle(unit))) {
-        DeleteById(unitHandle(unit));
+int UnitRefTree::RemoveUnit(TacticalShipBase* unit) {
+    if (unit && Find(unit->m_id)) {
+        DeleteById(unit->m_id);
         return 1;
     }
     return 0;
@@ -60,8 +60,8 @@ int UnitRefTree::RemoveById(int handle) {
     return 0;
 }
 
-SimUnit* UnitRefTree::FirstUnit() {
-    if (FirstNode()) return reinterpret_cast<SimUnitNode*>(FirstNode())->Value();
+TacticalShipBase* UnitRefTree::FirstUnit() {
+    if (FirstNode()) return FirstNode()->Value();
     return nullptr;
 }
 
@@ -69,7 +69,7 @@ IdNode* UnitRefTree::Find(int handle) { return FindById(handle); }
 
 int UnitRefTree::CountNodes() {
     int count = 0;
-    for (SimUnitNode* node = FirstNodeOf(*reinterpret_cast<SimUnitList*>(this)); node; node = node->Next()) ++count;
+    for (UnitRefNode* node = FirstNode(); node; node = node->Next()) ++count;
     return count;
 }
 
@@ -101,8 +101,8 @@ void InsertionOrderTree::RemoveLinear(uint32_t id) {
     }
 }
 
-uint32_t InsertionOrderTree::AddUnitLinear(SimUnit* unit) {
-    if (FindLinear(unitHandle(unit))) return 0;
+uint32_t InsertionOrderTree::AddUnitLinear(TacticalShipBase* unit) {
+    if (FindLinear(unit->m_id)) return 0;
     void* memory = ::operator new(sizeof(UnitRefNode));
     UnitRefNode* node = memory ? new (memory) UnitRefNode(unit) : nullptr;
     return AddUniqueLinear(node);
@@ -125,8 +125,8 @@ uint32_t FormationOrderTree::AddUniqueLinearSlot(IdNode* node) { return AddUniqu
 
 AvlNode* FormationOrderTree::FirstNode() { return First(); }
 
-SimUnit* FormationOrderTree::FirstUnit() {
-    SimUnitNode* node = reinterpret_cast<SimUnitNode*>(FirstNode());
+TacticalShipBase* FormationOrderTree::FirstUnit() {
+    UnitRefNode* node = static_cast<UnitRefNode*>(FirstNode());
     if (node) return node->Value();
     return nullptr;
 }
@@ -181,16 +181,16 @@ GroupRefNode* GroupRefTree::AddGroup(ShipGroup* group) {
 // ---- targets ordered by priority ------------------------------------------------------------------------------------
 
 int UnitRefSlot::SameUnit(UnitRefSlot* other) {
-    if (m_unit && other->m_unit) return unitHandle(m_unit) == unitHandle(other->m_unit);
+    if (m_unit && other->m_unit) return m_unit->m_id == other->m_unit->m_id;
     return m_unit == other->m_unit;
 }
 
 int UnitRefSlot::UnitBefore(UnitRefSlot* other) {
-    if (m_unit && other->m_unit) return static_cast<uint32_t>(unitHandle(m_unit)) < static_cast<uint32_t>(unitHandle(other->m_unit));
+    if (m_unit && other->m_unit) return m_unit->m_id < other->m_unit->m_id;
     return 0;
 }
 
-TargetPriorityNode::TargetPriorityNode(float priority, SimUnit* unit) {
+TargetPriorityNode::TargetPriorityNode(float priority, TacticalShipBase* unit) {
     m_priority = priority;
     m_unit.m_unit = unit;
 }

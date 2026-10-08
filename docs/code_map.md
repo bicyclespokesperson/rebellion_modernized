@@ -278,11 +278,12 @@ Code lives in `src/game/app/battle_flow*.cpp|battle_handoff.cpp|battle_results.c
   unreconstructed 3D-mode code with no scenario that reaches it.
 - **Unit classes (0x5af4e0-0x5bbf10, `src/game/tactical/tactical_ship*.cpp`, `tactical_capital_ship.cpp`, `tactical_fighter.cpp`,
   `tactical_death_star.cpp`, `tactical_simulator_units.cpp`): ~175 functions done.** `TacticalShipBase` (0x418, multiple
-  inheritance: `TacticalShipObject` + `TacticalUnit` at +0xd4 + facets; vtable `TacticalShipObject`-primary, 57 slots),
+  inheritance: `MovingObject` + `TacticalUnit` at +0xd4 + facets; vtable `MovingObject`-primary, 57 slots),
   `TacticalCapitalShip` (0x448, + `TacticalHangar` at +0x418), `TacticalFighter` (0x418), `TacticalDeathStar` (0x7c), the
   headless simulator constructor/destructor (0x5af5f0/0x5afa50) and its unit/skill/registration functions. The registry and
   simulator pass the ship *start* pointer. Hangar-subobject virtuals are free `__thiscall` functions (`this` = hangar).
-  `tactical_ship_decl.h`/`tactical_ship_ext.h` hold stand-ins for classes owned by other tactical modules (drop when merged).
+  The unit classes use the real shared classes: `MovingObject` (`tactical_moving_object.h`, first base of units and formations), `TacticalVector`
+  (`tactical_math.h`), `UnitRefTree`/`UnitRefNode` (`tactical_lists.h`, holding `TacticalShipBase*`), `ShipGroup`, `TacticalRegistry`.
   Not reconstructed: compiler thunks and static initializers; sound/presentation (0x5b00a0-0x5b0170, 0x5ba0b0-0x5ba0f0, sound
   manager 0x5ba8b0-0x5bbee0); the 3D movement/steering/hit code (0x5b2f30-0x5b8f70 big functions, incl. the weapon-hit virtuals
   0x5b5100/0x5b5750/0x5b5b60/0x5b5f50, 0x5b97a0, 0x5b9a20); small leftovers 0x5afde0, 0x5afe10, 0x5b1dc0, 0x5b2e60, 0x5ba480.
