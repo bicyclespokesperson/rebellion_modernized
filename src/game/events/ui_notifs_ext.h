@@ -5,6 +5,7 @@
 
 #include "events/notif_event_payloads.h"
 #include "events/ui_notif_helpers.h"
+#include "strategy_ui/advisor_notices.h"
 
 class PlayerController;
 
@@ -20,7 +21,7 @@ public:
     virtual int Virtual04() override { return 4; }           // shared 0x4047d0
     virtual void Virtual05() override;                       // 0x43c7f0
     virtual void Dispatch(PlayerController* controller) override;  // 0x43c890
-    virtual void DispatchToSink(void* sink) override { forwardSelfToSink(this, sink); }  // shared 0x43df10
+    virtual void DispatchToSink(UiNotice* sink) override { if (sink) sink->Virtual05(GetKind(), asArg(this)); }  // shared 0x43df10
 
     ObjectKey m_missionKey;  // +0x2c the mission of the character named by m_key
     int m_leadsMission;      // +0x30 1 if the character is the mission's leader
@@ -39,7 +40,7 @@ public:
     virtual int Virtual04() override { return 2; }           // shared 0x43c1f0
     virtual void Virtual05() override;                       // 0x43dd30
     virtual void Dispatch(PlayerController* controller) override;  // 0x43def0
-    virtual void DispatchToSink(void* sink) override { forwardSelfToSink(this, sink); }  // shared 0x43df10
+    virtual void DispatchToSink(UiNotice* sink) override { if (sink) sink->Virtual05(GetKind(), asArg(this)); }  // shared 0x43df10
 
     ObjectKey m_shipKey;         // +0x2c
     ObjectKey m_grandparentKey;  // +0x30

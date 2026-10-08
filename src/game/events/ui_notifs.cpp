@@ -23,7 +23,9 @@ void UiNotif340::Write(ostream* out) { reinterpret_cast<NullableKeyPairPayload*>
 
 int UiNotif340::GetKind() { return 0x340; }
 
-void UiNotif340::DispatchToSink(void* sink) { forwardKeysToSink(this, sink); }
+void UiNotif340::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->OnMessage(GetKind(), asArg(&m_key), asArg(&m_keyA));
+}
 
 void* CreateUiNotif340() { return NewOrNull<UiNotif340>(); }
 
@@ -40,7 +42,9 @@ int UiNotif14f::GetKind() { return 0x14f; }
 
 void UiNotif14f::Dispatch(PlayerController* controller) { controller->Virtual43(&m_key, m_valueB); }
 
-void UiNotif14f::DispatchToSink(void* sink) { forwardKeyAndTwoValuesToSink(this, sink); }
+void UiNotif14f::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual09(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+}
 
 void* CreateUiNotif14f() { return NewOrNull<UiNotif14f>(); }
 
@@ -50,6 +54,10 @@ UiNotif150::UiNotif150() : IntPairPayload() {}
 UiNotif150::~UiNotif150() { REB_KEEP_VPTR_STORE(); }
 
 void UiNotif150::Dispatch(PlayerController* controller) { controller->Virtual44(&m_key, m_valueB); }
+
+void UiNotif150::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual09(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+}
 
 void* CreateUiNotif150() { return NewOrNull<UiNotif150>(); }
 
@@ -62,7 +70,9 @@ int UiNotif14d::GetKind() { return 0x14d; }
 
 void UiNotif14d::Dispatch(PlayerController* controller) { controller->Virtual41(&m_key, m_valueB); }
 
-void UiNotif14d::DispatchToSink(void* sink) { forwardKeyAndValueToSink(this, sink); }
+void UiNotif14d::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
 
 void* CreateUiNotif14d() { return NewOrNull<UiNotif14d>(); }
 
@@ -74,6 +84,10 @@ UiNotif14e::~UiNotif14e() { REB_KEEP_VPTR_STORE(); }
 int UiNotif14e::GetKind() { return 0x14e; }
 
 void UiNotif14e::Dispatch(PlayerController* controller) { controller->Virtual42(&m_key, m_valueB); }
+
+void UiNotif14e::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
 
 void* CreateUiNotif14e() { return NewOrNull<UiNotif14e>(); }
 
@@ -96,6 +110,10 @@ UiNotif141::~UiNotif141() { REB_KEEP_VPTR_STORE(); }
 int UiNotif141::GetKind() { return 0x141; }
 
 void UiNotif141::Dispatch(PlayerController* controller) { controller->Virtual31(&m_key, m_valueB); }
+
+void UiNotif141::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual09(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+}
 
 void* CreateUiNotif141() { return NewOrNull<UiNotif141>(); }
 
@@ -174,6 +192,10 @@ int UiNotif143::GetKind() { return 0x143; }
 
 void UiNotif143::Dispatch(PlayerController* controller) { controller->Virtual33(&m_key, m_valueB); }
 
+void UiNotif143::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual09(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+}
+
 void* CreateUiNotif143() { return NewOrNull<UiNotif143>(); }
 
 // ---- UiNotif145 (kind 0x145) ----
@@ -185,6 +207,10 @@ int UiNotif145::GetKind() { return 0x145; }
 
 void UiNotif145::Dispatch(PlayerController* controller) { controller->Virtual35(&m_key, m_valueB); }
 
+void UiNotif145::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual09(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+}
+
 void* CreateUiNotif145() { return NewOrNull<UiNotif145>(); }
 
 // ---- UiNotif14b (kind 0x14b) ----
@@ -195,6 +221,10 @@ UiNotif14b::~UiNotif14b() { REB_KEEP_VPTR_STORE(); }
 int UiNotif14b::GetKind() { return 0x14b; }
 
 void UiNotif14b::Dispatch(PlayerController* controller) { controller->Virtual39(&m_key, m_valueB); }
+
+void UiNotif14b::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
 
 void* CreateUiNotif14b() { return NewOrNull<UiNotif14b>(); }
 
@@ -214,6 +244,10 @@ UiNotif148::~UiNotif148() { REB_KEEP_VPTR_STORE(); }
 
 int UiNotif148::GetKind() { return 0x148; }
 
+void UiNotif148::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual09(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+}
+
 void* CreateUiNotif148() { return NewOrNull<UiNotif148>(); }
 
 // ---- UiNotif156 (kind 0x156) ----
@@ -222,6 +256,10 @@ UiNotif156::UiNotif156() : IntPairPayload() {}
 UiNotif156::~UiNotif156() { REB_KEEP_VPTR_STORE(); }
 
 void UiNotif156::Dispatch(PlayerController* controller) { controller->Virtual50(&m_key, m_valueB); }
+
+void UiNotif156::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual09(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+}
 
 void* CreateUiNotif156() { return NewOrNull<UiNotif156>(); }
 
@@ -254,6 +292,10 @@ int UiNotif153::GetKind() { return 0x153; }
 
 void UiNotif153::Dispatch(PlayerController* controller) { controller->Virtual47(&m_key, m_valueB); }
 
+void UiNotif153::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
+
 void* CreateUiNotif153() { return NewOrNull<UiNotif153>(); }
 
 // ---- UiNotif154 (kind 0x154) ----
@@ -265,6 +307,10 @@ int UiNotif154::GetKind() { return 0x154; }
 
 void UiNotif154::Dispatch(PlayerController* controller) { controller->Virtual46(&m_key, m_valueB); }
 
+void UiNotif154::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
+
 void* CreateUiNotif154() { return NewOrNull<UiNotif154>(); }
 
 // ---- UiNotif155 (kind 0x155) ----
@@ -275,6 +321,10 @@ UiNotif155::~UiNotif155() { REB_KEEP_VPTR_STORE(); }
 int UiNotif155::GetKind() { return 0x155; }
 
 void UiNotif155::Dispatch(PlayerController* controller) { controller->Virtual45(&m_key, m_valueB); }
+
+void UiNotif155::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
 
 void* CreateUiNotif155() { return NewOrNull<UiNotif155>(); }
 
@@ -366,6 +416,10 @@ int UiNotif125::GetKind() { return 0x125; }
 
 void UiNotif125::Dispatch(PlayerController* controller) { controller->Virtual61(m_valueA, m_valueB); }
 
+void UiNotif125::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
+
 void* CreateUiNotif125() { return NewOrNull<UiNotif125>(); }
 
 // ---- UiNotif126 (kind 0x126) ----
@@ -376,6 +430,10 @@ UiNotif126::~UiNotif126() { REB_KEEP_VPTR_STORE(); }
 int UiNotif126::GetKind() { return 0x126; }
 
 void UiNotif126::Dispatch(PlayerController* controller) { controller->Virtual60(m_valueA, m_valueB); }
+
+void UiNotif126::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
 
 void* CreateUiNotif126() { return NewOrNull<UiNotif126>(); }
 
@@ -388,6 +446,10 @@ int UiNotif127::GetKind() { return 0x127; }
 
 void UiNotif127::Dispatch(PlayerController* controller) { controller->Virtual59(m_valueA, m_valueB); }
 
+void UiNotif127::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
+
 void* CreateUiNotif127() { return NewOrNull<UiNotif127>(); }
 
 // ---- UiNotif129 (kind 0x129) ----
@@ -396,6 +458,10 @@ UiNotif129::UiNotif129() : IntPairPayload() {}
 UiNotif129::~UiNotif129() { REB_KEEP_VPTR_STORE(); }
 
 int UiNotif129::GetKind() { return 0x129; }
+
+void UiNotif129::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
 
 void* CreateUiNotif129() { return NewOrNull<UiNotif129>(); }
 
@@ -406,6 +472,10 @@ UiNotif12a::~UiNotif12a() { REB_KEEP_VPTR_STORE(); }
 
 int UiNotif12a::GetKind() { return 0x12a; }
 
+void UiNotif12a::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
+
 void* CreateUiNotif12a() { return NewOrNull<UiNotif12a>(); }
 
 // ---- UiNotif12b (kind 0x12b) ----
@@ -415,6 +485,10 @@ UiNotif12b::~UiNotif12b() { REB_KEEP_VPTR_STORE(); }
 
 int UiNotif12b::GetKind() { return 0x12b; }
 
+void UiNotif12b::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
+
 void* CreateUiNotif12b() { return NewOrNull<UiNotif12b>(); }
 
 // ---- UiNotif12c (kind 0x12c) ----
@@ -423,6 +497,10 @@ UiNotif12c::UiNotif12c() : IntPairPayload() {}
 UiNotif12c::~UiNotif12c() { REB_KEEP_VPTR_STORE(); }
 
 int UiNotif12c::GetKind() { return 0x12c; }
+
+void UiNotif12c::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
 
 void* CreateUiNotif12c() { return NewOrNull<UiNotif12c>(); }
 
@@ -435,6 +513,10 @@ int UiNotif128::GetKind() { return 0x128; }
 
 void UiNotif128::Dispatch(PlayerController* controller) { controller->Virtual29(m_valueB); }
 
+void UiNotif128::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
+
 void* CreateUiNotif128() { return NewOrNull<UiNotif128>(); }
 
 // ---- UiNotif380 (kind 0x380) ----
@@ -444,7 +526,9 @@ UiNotif380::~UiNotif380() { REB_KEEP_VPTR_STORE(); }
 
 void UiNotif380::Dispatch(PlayerController* controller) { controller->Virtual81(&m_key, &m_keyA, &m_keyB); }
 
-void UiNotif380::DispatchToSink(void* sink) { forwardThreeKeysToSink(this, sink); }
+void UiNotif380::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual06(GetKind(), asArg(&m_key), asArg(&m_keyA), asArg(&m_keyB));
+}
 
 void* CreateUiNotif380() { return NewOrNull<UiNotif380>(); }
 
@@ -457,7 +541,9 @@ int UiNotif1f0::GetKind() { return 0x1f0; }
 
 void UiNotif1f0::Dispatch(PlayerController* controller) { controller->Virtual74(&m_key, m_valueB); }
 
-void UiNotif1f0::DispatchToSink(void* sink) { forwardSelfToSink(this, sink); }
+void UiNotif1f0::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual05(GetKind(), asArg(this));
+}
 
 void* CreateUiNotif1f0() { return NewOrNull<UiNotif1f0>(); }
 
@@ -469,6 +555,10 @@ UiNotif1f1::~UiNotif1f1() { REB_KEEP_VPTR_STORE(); }
 int UiNotif1f1::GetKind() { return 0x1f1; }
 
 void UiNotif1f1::Dispatch(PlayerController* controller) { controller->Virtual75(&m_key, m_valueB); }
+
+void UiNotif1f1::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual05(GetKind(), asArg(this));
+}
 
 void* CreateUiNotif1f1() { return NewOrNull<UiNotif1f1>(); }
 
@@ -486,12 +576,20 @@ UiNotif221::UiNotif221() : IntPairPayload() {}
 
 UiNotif221::~UiNotif221() { REB_KEEP_VPTR_STORE(); }
 
+void UiNotif221::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual05(GetKind(), asArg(this));
+}
+
 void* CreateUiNotif221() { return NewOrNull<UiNotif221>(); }
 
 // ---- UiNotif220 (kind 0x220) ----
 UiNotif220::UiNotif220() : IntPairPayload() {}
 
 UiNotif220::~UiNotif220() { REB_KEEP_VPTR_STORE(); }
+
+void UiNotif220::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
 
 void* CreateUiNotif220() { return NewOrNull<UiNotif220>(); }
 
@@ -555,6 +653,10 @@ int UiNotif160::GetKind() { return 0x160; }
 
 void UiNotif160::Dispatch(PlayerController* controller) { controller->Virtual51(&m_key, m_valueB); }
 
+void UiNotif160::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
+
 void* CreateUiNotif160() { return NewOrNull<UiNotif160>(); }
 
 // ---- UiNotif162 (kind 0x162) ----
@@ -599,6 +701,10 @@ UiNotif360::~UiNotif360() { REB_KEEP_VPTR_STORE(); }
 
 int UiNotif360::GetKind() { return 0x360; }
 
+void UiNotif360::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual05(GetKind(), asArg(this));
+}
+
 void* CreateUiNotif360() { return NewOrNull<UiNotif360>(); }
 
 // ---- UiNotif361 (kind 0x361) ----
@@ -608,6 +714,10 @@ UiNotif361::~UiNotif361() { REB_KEEP_VPTR_STORE(); }
 
 int UiNotif361::GetKind() { return 0x361; }
 
+void UiNotif361::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual06(GetKind(), asArg(&m_key), asArg(&m_keyA), asArg(&m_keyB));
+}
+
 void* CreateUiNotif361() { return NewOrNull<UiNotif361>(); }
 
 // ---- UiNotif362 (kind 0x362) ----
@@ -616,6 +726,10 @@ UiNotif362::UiNotif362() : KeyPairPayload() {}
 UiNotif362::~UiNotif362() { REB_KEEP_VPTR_STORE(); }
 
 int UiNotif362::GetKind() { return 0x362; }
+
+void UiNotif362::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual05(GetKind(), asArg(this));
+}
 
 void* CreateUiNotif362() { return NewOrNull<UiNotif362>(); }
 
@@ -627,6 +741,10 @@ UiNotif1e1::~UiNotif1e1() { REB_KEEP_VPTR_STORE(); }
 int UiNotif1e1::GetKind() { return 0x1e1; }
 
 void UiNotif1e1::Dispatch(PlayerController* controller) { controller->Virtual78(&m_key, m_valueB); }
+
+void UiNotif1e1::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual05(GetKind(), asArg(this));
+}
 
 void* CreateUiNotif1e1() { return NewOrNull<UiNotif1e1>(); }
 
@@ -673,12 +791,20 @@ UiNotif210::UiNotif210() : IntPairPayload() {}
 
 UiNotif210::~UiNotif210() { REB_KEEP_VPTR_STORE(); }
 
+void UiNotif210::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
+
 void* CreateUiNotif210() { return NewOrNull<UiNotif210>(); }
 
 // ---- UiNotif211 (kind 0x211) ----
 UiNotif211::UiNotif211() : IntPairPayload() {}
 
 UiNotif211::~UiNotif211() { REB_KEEP_VPTR_STORE(); }
+
+void UiNotif211::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
 
 void* CreateUiNotif211() { return NewOrNull<UiNotif211>(); }
 
@@ -687,12 +813,20 @@ UiNotif212::UiNotif212() : IntPairPayload() {}
 
 UiNotif212::~UiNotif212() { REB_KEEP_VPTR_STORE(); }
 
+void UiNotif212::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
+
 void* CreateUiNotif212() { return NewOrNull<UiNotif212>(); }
 
 // ---- UiNotif230 (kind 0x230) ----
 UiNotif230::UiNotif230() : IntPairPayload() {}
 
 UiNotif230::~UiNotif230() { REB_KEEP_VPTR_STORE(); }
+
+void UiNotif230::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
 
 void* CreateUiNotif230() { return NewOrNull<UiNotif230>(); }
 
@@ -703,6 +837,10 @@ UiNotif231::~UiNotif231() { REB_KEEP_VPTR_STORE(); }
 
 int UiNotif231::GetKind() { return 0x231; }
 
+void UiNotif231::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
+
 void* CreateUiNotif231() { return NewOrNull<UiNotif231>(); }
 
 // ---- UiNotif300 (kind 0x300) ----
@@ -712,12 +850,20 @@ UiNotif300::~UiNotif300() { REB_KEEP_VPTR_STORE(); }
 
 void UiNotif300::Dispatch(PlayerController* controller) { controller->Virtual83(&m_key, &m_keyA, reinterpret_cast<int>(&m_keyB)); }
 
+void UiNotif300::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual06(GetKind(), asArg(&m_key), asArg(&m_keyA), asArg(&m_keyB));
+}
+
 void* CreateUiNotif300() { return NewOrNull<UiNotif300>(); }
 
 // ---- UiNotif301 (kind 0x301) ----
 UiNotif301::UiNotif301() : KeyPairPayload() {}
 
 UiNotif301::~UiNotif301() { REB_KEEP_VPTR_STORE(); }
+
+void UiNotif301::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual06(GetKind(), asArg(&m_key), asArg(&m_keyA), asArg(&m_keyB));
+}
 
 void* CreateUiNotif301() { return NewOrNull<UiNotif301>(); }
 
@@ -741,6 +887,10 @@ int UiNotif107::GetKind() { return 0x107; }
 
 void UiNotif107::Dispatch(PlayerController* controller) { controller->Virtual90(&m_key); }
 
+void UiNotif107::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
+
 void* CreateUiNotif107() { return NewOrNull<UiNotif107>(); }
 
 // ---- UiNotif100 (kind 0x100) ----
@@ -749,6 +899,10 @@ UiNotif100::UiNotif100() : IntPairPayload() {}
 UiNotif100::~UiNotif100() { REB_KEEP_VPTR_STORE(); }
 
 void UiNotif100::Dispatch(PlayerController* controller) { controller->Virtual84(&m_key, m_valueB); }
+
+void UiNotif100::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual09(GetKind(), asArg(&m_key), m_valueB, m_valueA);
+}
 
 void* CreateUiNotif100() { return NewOrNull<UiNotif100>(); }
 
@@ -774,15 +928,13 @@ void UiNotif302::Dispatch(PlayerController* controller) {
     if (m_value0c == 0) UiSendNotificationToSide(m_value18, reinterpret_cast<int>(&m_key));
 }
 
-void UiNotif302::DispatchToSink(void* sink) {
+void UiNotif302::DispatchToSink(UiNotice* sink) {
     if (!sink) {
-        UiSendNotificationToSide(m_value18, reinterpret_cast<int>(&m_key));
+        UiSendNotificationToSide(m_value18, asArg(&m_key));
         return;
     }
-    void* const* sinkVtable = vtableOf(sink);
     ObjectKey keyA;
-    int result = callRawThiscall(vtableOf(this), 3, this, &m_key, copyFirstKey(this, &keyA));
-    callRawThiscall(sinkVtable, 7, sink, result);
+    sink->OnMessage(GetKind(), asArg(&m_key), asArg(copyFirstKey(this, &keyA)));
 }
 
 void* CreateUiNotif302() { return NewOrNull<UiNotif302>(); }
@@ -799,7 +951,12 @@ UiNotif304::UiNotif304() : KeyPairPayload() {}
 
 UiNotif304::~UiNotif304() { REB_KEEP_VPTR_STORE(); }
 
-void UiNotif304::DispatchToSink(void* sink) { forwardKeyAndFirstKeyToSink(this, sink); }
+void UiNotif304::DispatchToSink(UiNotice* sink) {
+    if (sink) {
+        ObjectKey keyA;
+        sink->OnMessage(GetKind(), asArg(&m_key), asArg(copyFirstKey(this, &keyA)));
+    }
+}
 
 void* CreateUiNotif304() { return NewOrNull<UiNotif304>(); }
 
@@ -813,7 +970,12 @@ void UiNotif305::Dispatch(PlayerController* controller) {
     controller->Virtual92(reinterpret_cast<int>(&m_key), copyFirstKey(this, &keyA));
 }
 
-void UiNotif305::DispatchToSink(void* sink) { forwardKeyAndFirstKeyToSink(this, sink); }
+void UiNotif305::DispatchToSink(UiNotice* sink) {
+    if (sink) {
+        ObjectKey keyA;
+        sink->OnMessage(GetKind(), asArg(&m_key), asArg(copyFirstKey(this, &keyA)));
+    }
+}
 
 void* CreateUiNotif305() { return NewOrNull<UiNotif305>(); }
 
@@ -822,7 +984,12 @@ UiNotif306::UiNotif306() : KeyPairPayload() {}
 
 UiNotif306::~UiNotif306() { REB_KEEP_VPTR_STORE(); }
 
-void UiNotif306::DispatchToSink(void* sink) { forwardKeyAndFirstKeyToSink(this, sink); }
+void UiNotif306::DispatchToSink(UiNotice* sink) {
+    if (sink) {
+        ObjectKey keyA;
+        sink->OnMessage(GetKind(), asArg(&m_key), asArg(copyFirstKey(this, &keyA)));
+    }
+}
 
 void* CreateUiNotif306() { return NewOrNull<UiNotif306>(); }
 
@@ -834,6 +1001,10 @@ UiNotif105::~UiNotif105() { REB_KEEP_VPTR_STORE(); }
 int UiNotif105::GetKind() { return 0x105; }
 
 void UiNotif105::Dispatch(PlayerController* controller) { controller->Virtual85(&m_key, m_valueB); }
+
+void UiNotif105::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
 
 void* CreateUiNotif105() { return NewOrNull<UiNotif105>(); }
 
@@ -896,6 +1067,10 @@ int UiNotif106::GetKind() { return 0x106; }
 
 void UiNotif106::Dispatch(PlayerController* controller) { controller->Virtual89(&m_key, m_valueB); }
 
+void UiNotif106::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
+
 void* CreateUiNotif106() { return NewOrNull<UiNotif106>(); }
 
 // ---- UiNotif183 (kind 0x183) ----
@@ -907,6 +1082,10 @@ int UiNotif183::GetKind() { return 0x183; }
 
 void UiNotif183::Dispatch(PlayerController* controller) { controller->Virtual62(&m_key, m_valueB); }
 
+void UiNotif183::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
+
 void* CreateUiNotif183() { return NewOrNull<UiNotif183>(); }
 
 // ---- UiNotif180 (kind 0x180) ----
@@ -917,6 +1096,10 @@ UiNotif180::~UiNotif180() { REB_KEEP_VPTR_STORE(); }
 int UiNotif180::GetKind() { return 0x180; }
 
 void UiNotif180::Dispatch(PlayerController* controller) { controller->Virtual63(&m_key, m_valueB); }
+
+void UiNotif180::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
 
 void* CreateUiNotif180() { return NewOrNull<UiNotif180>(); }
 
@@ -940,6 +1123,10 @@ int UiNotif182::GetKind() { return 0x182; }
 
 void UiNotif182::Dispatch(PlayerController* controller) { controller->Virtual65(&m_key, m_valueB); }
 
+void UiNotif182::DispatchToSink(UiNotice* sink) {
+    if (sink) sink->Virtual08(GetKind(), asArg(&m_key), m_valueB);
+}
+
 void* CreateUiNotif182() { return NewOrNull<UiNotif182>(); }
 
 // ---- UiNotif1a0 (kind 0x1a0) ----
@@ -960,16 +1147,13 @@ UiNotif2::~UiNotif2() { REB_KEEP_VPTR_STORE(); }
 
 int UiNotif2::GetKind() { return 0x2; }
 
-void UiNotif2::DispatchToSink(void* sink) {
+void UiNotif2::DispatchToSink(UiNotice* sink) {
     if ((DAT_006b28d8 & 1) == 0) {
         DAT_006b28d8 |= 1;
         new (&DAT_006b28dc) ObjectKey();
         atexit(FUN_0043fc40);
     }
-    if (!sink) return;
-    void* const* sinkVtable = vtableOf(sink);
-    int result = callRawThiscall(vtableOf(this), 3, this, &DAT_006b28dc, 1);
-    callRawThiscall(sinkVtable, 8, sink, result);
+    if (sink) sink->Virtual08(GetKind(), asArg(&DAT_006b28dc), 1);
 }
 
 void* CreateUiNotif2() { return NewOrNull<UiNotif2>(); }

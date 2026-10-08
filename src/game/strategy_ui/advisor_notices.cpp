@@ -6,6 +6,7 @@
 #include "core/vptr_store.h"
 #include "events/game_clock_hooks.h"
 #include "gameobj/game_obj.h"
+#include "gameobj/notif_payload.h"
 #include "platform/win32.h"
 #include "strategy_ui/game_ui_facade.h"
 
@@ -117,6 +118,21 @@ void UiTextNotice::Write(ostream* out) {
 }
 
 void UiTextNotice::Virtual15() { Virtual13(); }
+
+namespace {
+
+int forwardPayloads(UiNotice* sink, const LinkNode* payloads) {
+    if (!payloads) return 0;
+    for (const LinkNode* node = payloads->m_next; node; node = node->m_next)
+        static_cast<NotifPayload*>(const_cast<LinkNode*>(node))->DispatchToSink(sink);
+    return 1;
+}
+
+}  // namespace
+
+int UiTextNotice::Virtual16(const LinkNode* payloads) { return forwardPayloads(this, payloads); }
+
+int UiKeyNotice::Virtual14(const LinkNode* payloads) { return forwardPayloads(this, payloads); }
 
 UiKeyNotice::UiKeyNotice() : UiNotice() {}
 

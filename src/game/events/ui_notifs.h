@@ -2,13 +2,14 @@
 // The UI notification handlers 0x43a2d0-0x440ea0: one class per notification kind, derived from the leaf payloads of
 // notif_event_payloads.h (they add no data). Slot 6 (Dispatch) tells the PlayerController of the side about the
 // notification through one of its virtual hooks (PlayerController slot = byte offset / 4); slot 7 (DispatchToSink)
-// is dead code in the original: it calls the kind getter (slot 3, which takes no arguments) with arguments.
-// Slot 4 is the delivery mode (1 unless overridden).
+// tells a UiNotice (strategy_ui/advisor_notices.h) the kind and the payload's data through the notice slot that
+// fits the payload's shape. Slot 4 is the delivery mode (1 unless overridden).
 #include <cstdint>
 
 #include "events/notif_event_payloads.h"
 #include "events/ui_notif_helpers.h"
 #include "gameobj/status_code.h"
+#include "strategy_ui/advisor_notices.h"
 
 class PlayerController;
 
@@ -22,7 +23,7 @@ public:
     virtual int GetKind() override;  // 0x43a390
     virtual int Virtual04() override { return 3; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override;  // 0x43a3a0
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43a3a0
 };
 
 void* CreateUiNotif340();  // 0x43a320
@@ -37,7 +38,7 @@ public:
     virtual int GetKind() override;  // 0x43a490
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43a4a0
-    virtual void DispatchToSink(void* sink) override;  // 0x43e980
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e980
 };
 
 void* CreateUiNotif14f();  // 0x43a420
@@ -52,7 +53,7 @@ public:
     virtual int GetKind() override { return 0x150; }
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43a580
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndTwoValuesToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e980
 };
 
 void* CreateUiNotif150();  // 0x43a510
@@ -67,7 +68,7 @@ public:
     virtual int GetKind() override;  // 0x43a660
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43a670
-    virtual void DispatchToSink(void* sink) override;  // 0x43e4c0
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif14d();  // 0x43a5f0
@@ -82,7 +83,7 @@ public:
     virtual int GetKind() override;  // 0x43a750
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43a770
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif14e();  // 0x43a6e0
@@ -96,7 +97,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43a850
     virtual void Dispatch(PlayerController* controller) override;  // 0x43a860
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif142();  // 0x43a7e0
@@ -111,7 +112,7 @@ public:
     virtual int GetKind() override;  // 0x43a940
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43a960
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndTwoValuesToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e980
 };
 
 void* CreateUiNotif141();  // 0x43a8d0
@@ -125,7 +126,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43aa40
     virtual void Dispatch(PlayerController* controller) override;  // 0x43aa50
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif14a();  // 0x43a9d0
@@ -139,7 +140,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43ab30
     virtual void Dispatch(PlayerController* controller) override;  // 0x43ab40
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif140();  // 0x43aac0
@@ -153,7 +154,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43ac20
     virtual void Dispatch(PlayerController* controller) override;  // 0x43ac30
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif14c();  // 0x43abb0
@@ -167,7 +168,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43ad10
     virtual void Dispatch(PlayerController* controller) override;  // 0x43ad20
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif149();  // 0x43aca0
@@ -181,7 +182,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43ae00
     virtual void Dispatch(PlayerController* controller) override;  // 0x43ae10
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif146();  // 0x43ad90
@@ -195,7 +196,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43aef0
     virtual void Dispatch(PlayerController* controller) override;  // 0x43af00
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif144();  // 0x43ae80
@@ -210,7 +211,7 @@ public:
     virtual int GetKind() override;  // 0x43afe0
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43aff0
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndTwoValuesToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e980
 };
 
 void* CreateUiNotif143();  // 0x43af70
@@ -225,7 +226,7 @@ public:
     virtual int GetKind() override;  // 0x43b0d0
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43b0e0
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndTwoValuesToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e980
 };
 
 void* CreateUiNotif145();  // 0x43b060
@@ -240,7 +241,7 @@ public:
     virtual int GetKind() override;  // 0x43b1c0
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43b1d0
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif14b();  // 0x43b150
@@ -254,7 +255,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43b2b0
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif147();  // 0x43b240
@@ -269,7 +270,7 @@ public:
     virtual int GetKind() override;  // 0x43b380
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndTwoValuesToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e980
 };
 
 void* CreateUiNotif148();  // 0x43b310
@@ -284,7 +285,7 @@ public:
     virtual int GetKind() override { return 0x156; }
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43b450
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndTwoValuesToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e980
 };
 
 void* CreateUiNotif156();  // 0x43b3e0
@@ -299,7 +300,7 @@ public:
     virtual int GetKind() override;  // 0x43b530
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43b540
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif151();  // 0x43b4c0
@@ -314,7 +315,7 @@ public:
     virtual int GetKind() override { return 0x152; }
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43b620
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif152();  // 0x43b5b0
@@ -329,7 +330,7 @@ public:
     virtual int GetKind() override;  // 0x43b700
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43b710
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif153();  // 0x43b690
@@ -344,7 +345,7 @@ public:
     virtual int GetKind() override;  // 0x43b7f0
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43b800
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif154();  // 0x43b780
@@ -359,7 +360,7 @@ public:
     virtual int GetKind() override;  // 0x43b8e0
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43b8f0
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif155();  // 0x43b870
@@ -373,7 +374,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43b9d0
     virtual void Dispatch(PlayerController* controller) override;  // 0x43b9e0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif121();  // 0x43b960
@@ -387,7 +388,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43bac0
     virtual void Dispatch(PlayerController* controller) override;  // 0x43bad0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif123();  // 0x43ba50
@@ -401,7 +402,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43bbb0
     virtual void Dispatch(PlayerController* controller) override;  // 0x43bbc0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif122();  // 0x43bb40
@@ -415,7 +416,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43bca0
     virtual void Dispatch(PlayerController* controller) override;  // 0x43bcb0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif124();  // 0x43bc30
@@ -429,7 +430,7 @@ public:
     virtual void Write(ostream* out) override;  // 0x43bdb0
     virtual int GetKind() override;  // 0x43bd90
     virtual void Dispatch(PlayerController* controller) override;  // 0x43bdc0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
     IntPair* GetRange(IntPair* out);  // 0x43c0f0
 };
 
@@ -444,7 +445,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43bee0
     virtual void Dispatch(PlayerController* controller) override;  // 0x43bef0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif120();  // 0x43be70
@@ -459,7 +460,7 @@ public:
     virtual int GetKind() override;  // 0x43bfd0
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43bfe0
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif125();  // 0x43bf60
@@ -474,7 +475,7 @@ public:
     virtual int GetKind() override;  // 0x43c0c0
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43c0d0
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif126();  // 0x43c050
@@ -489,7 +490,7 @@ public:
     virtual int GetKind() override;  // 0x43c1e0
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43c200
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif127();  // 0x43c170
@@ -504,7 +505,7 @@ public:
     virtual int GetKind() override;  // 0x43c2e0
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif129();  // 0x43c270
@@ -519,7 +520,7 @@ public:
     virtual int GetKind() override;  // 0x43c3b0
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif12a();  // 0x43c340
@@ -534,7 +535,7 @@ public:
     virtual int GetKind() override;  // 0x43c480
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif12b();  // 0x43c410
@@ -549,7 +550,7 @@ public:
     virtual int GetKind() override;  // 0x43c550
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif12c();  // 0x43c4e0
@@ -564,7 +565,7 @@ public:
     virtual int GetKind() override;  // 0x43c620
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43c630
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif128();  // 0x43c5b0
@@ -579,7 +580,7 @@ public:
     virtual int GetKind() override { return 0x380; }
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43c980
-    virtual void DispatchToSink(void* sink) override;  // 0x43e690
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e690
 };
 
 void* CreateUiNotif380();  // 0x43c900
@@ -594,7 +595,7 @@ public:
     virtual int GetKind() override;  // 0x43ca60
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43ca70
-    virtual void DispatchToSink(void* sink) override;  // 0x43df10
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43df10
 };
 
 void* CreateUiNotif1f0();  // 0x43c9f0
@@ -609,7 +610,7 @@ public:
     virtual int GetKind() override;  // 0x43cb50
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43cb60
-    virtual void DispatchToSink(void* sink) override { forwardSelfToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43df10
 };
 
 void* CreateUiNotif1f1();  // 0x43cae0
@@ -624,7 +625,7 @@ public:
     virtual int GetKind() override { return 0x370; }
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43cc70
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif370();  // 0x43cbd0
@@ -639,7 +640,7 @@ public:
     virtual int GetKind() override { return 0x221; }
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardSelfToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43df10
 };
 
 void* CreateUiNotif221();  // 0x43cce0
@@ -654,7 +655,7 @@ public:
     virtual int GetKind() override { return 0x220; }
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif220();  // 0x43cda0
@@ -668,7 +669,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43ced0
     virtual void Dispatch(PlayerController* controller) override;  // 0x43cee0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif161();  // 0x43ce60
@@ -682,7 +683,7 @@ public:
     virtual void Write(ostream* out) override { reinterpret_cast<NullableKeyPairPayload*>(this)->WritePayload(out); }
     virtual int GetKind() override { return 0x321; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43cfc0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif321();  // 0x43cf50
@@ -696,7 +697,7 @@ public:
     virtual void Write(ostream* out) override { reinterpret_cast<NullableKeyPairPayload*>(this)->WritePayload(out); }
     virtual int GetKind() override { return 0x320; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43d0a0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif320();  // 0x43d030
@@ -710,7 +711,7 @@ public:
     virtual void Write(ostream* out) override;  // 0x43d1a0
     virtual int GetKind() override;  // 0x43d180
     virtual void Dispatch(PlayerController* controller) override;  // 0x43d1b0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif520();  // 0x43d110
@@ -725,7 +726,7 @@ public:
     virtual int GetKind() override;  // 0x43d300
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43d310
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif160();  // 0x43d290
@@ -739,7 +740,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43d3f0
     virtual void Dispatch(PlayerController* controller) override;  // 0x43d400
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif162();  // 0x43d380
@@ -753,7 +754,7 @@ public:
     virtual void Write(ostream* out) override;  // 0x43d4f0
     virtual int GetKind() override { return 0x400; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43d500
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif400();  // 0x43d470
@@ -767,7 +768,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43d5e0
     virtual void Dispatch(PlayerController* controller) override;  // 0x43d5f0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif163();  // 0x43d570
@@ -782,7 +783,7 @@ public:
     virtual int GetKind() override;  // 0x43d6d0
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardSelfToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43df10
 };
 
 void* CreateUiNotif360();  // 0x43d660
@@ -797,7 +798,7 @@ public:
     virtual int GetKind() override;  // 0x43d7a0
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardThreeKeysToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e690
 };
 
 void* CreateUiNotif361();  // 0x43d730
@@ -812,7 +813,7 @@ public:
     virtual int GetKind() override;  // 0x43d870
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardSelfToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43df10
 };
 
 void* CreateUiNotif362();  // 0x43d800
@@ -827,7 +828,7 @@ public:
     virtual int GetKind() override;  // 0x43d940
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43d950
-    virtual void DispatchToSink(void* sink) override { forwardSelfToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43df10
 };
 
 void* CreateUiNotif1e1();  // 0x43d8d0
@@ -842,7 +843,7 @@ public:
     virtual int GetKind() override;  // 0x43da30
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif1e5();  // 0x43d9c0
@@ -857,7 +858,7 @@ public:
     virtual int GetKind() override;  // 0x43db00
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif1e4();  // 0x43da90
@@ -872,7 +873,7 @@ public:
     virtual int GetKind() override;  // 0x43dff0
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43e000
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif1e2();  // 0x43df80
@@ -887,7 +888,7 @@ public:
     virtual int GetKind() override;  // 0x43e0e0
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif1e3();  // 0x43e070
@@ -902,7 +903,7 @@ public:
     virtual int GetKind() override { return 0x210; }
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif210();  // 0x43e140
@@ -917,7 +918,7 @@ public:
     virtual int GetKind() override { return 0x211; }
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif211();  // 0x43e200
@@ -932,7 +933,7 @@ public:
     virtual int GetKind() override { return 0x212; }
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif212();  // 0x43e2c0
@@ -947,7 +948,7 @@ public:
     virtual int GetKind() override { return 0x230; }
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif230();  // 0x43e380
@@ -962,7 +963,7 @@ public:
     virtual int GetKind() override;  // 0x43e4b0
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif231();  // 0x43e440
@@ -977,7 +978,7 @@ public:
     virtual int GetKind() override { return 0x300; }
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43e5b0
-    virtual void DispatchToSink(void* sink) override { forwardThreeKeysToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e690
 };
 
 void* CreateUiNotif300();  // 0x43e540
@@ -992,7 +993,7 @@ public:
     virtual int GetKind() override { return 0x301; }
     virtual int Virtual04() override { return 3; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override { forwardThreeKeysToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e690
 };
 
 void* CreateUiNotif301();  // 0x43e620
@@ -1006,7 +1007,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43e780
     virtual void Dispatch(PlayerController* controller) override;  // 0x43e790
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif103();  // 0x43e710
@@ -1021,7 +1022,7 @@ public:
     virtual int GetKind() override;  // 0x43e870
     virtual int Virtual04() override { return 3; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43e880
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif107();  // 0x43e800
@@ -1036,7 +1037,7 @@ public:
     virtual int GetKind() override { return 0x100; }
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43e960
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndTwoValuesToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e980
 };
 
 void* CreateUiNotif100();  // 0x43e8f0
@@ -1050,7 +1051,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43ea70
     virtual void Dispatch(PlayerController* controller) override;  // 0x43e790
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif102();  // 0x43ea00
@@ -1065,7 +1066,7 @@ public:
     virtual int GetKind() override { return 0x302; }
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43eb40
-    virtual void DispatchToSink(void* sink) override;  // 0x43ebc0
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43ebc0
 };
 
 void* CreateUiNotif302();  // 0x43ead0
@@ -1080,7 +1081,7 @@ public:
     virtual int GetKind() override { return 0x303; }
     virtual int Virtual04() override { return 3; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif303();  // 0x43eca0
@@ -1095,7 +1096,7 @@ public:
     virtual int GetKind() override { return 0x304; }
     virtual int Virtual04() override { return 3; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override;  // 0x43edd0
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43edd0
 };
 
 void* CreateUiNotif304();  // 0x43ed60
@@ -1110,7 +1111,7 @@ public:
     virtual int GetKind() override { return 0x305; }
     virtual int Virtual04() override { return 3; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43ef10
-    virtual void DispatchToSink(void* sink) override;  // 0x43ef70
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43ef70
 };
 
 void* CreateUiNotif305();  // 0x43ee90
@@ -1125,7 +1126,7 @@ public:
     virtual int GetKind() override { return 0x306; }
     virtual int Virtual04() override { return 3; }
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override;  // 0x43f0a0
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43f0a0
 };
 
 void* CreateUiNotif306();  // 0x43f030
@@ -1140,7 +1141,7 @@ public:
     virtual int GetKind() override;  // 0x43f1f0
     virtual int Virtual04() override { return 3; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43f200
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif105();  // 0x43f180
@@ -1154,7 +1155,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43f2e0
     virtual void Dispatch(PlayerController* controller) override;  // 0x43f2f0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif104();  // 0x43f270
@@ -1168,7 +1169,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43f3d0
     virtual void Dispatch(PlayerController* controller) override;  // 0x43f3e0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
     ObjectKey* GetKeyPointer();  // 0x43f440
     String* CopyName(String* out);  // 0x43f470
     String* CopyNameForSink(String* out);  // 0x43f450
@@ -1185,7 +1186,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43f550
     virtual void Dispatch(PlayerController* controller) override;  // 0x43f560
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif101();  // 0x43f4e0
@@ -1200,7 +1201,7 @@ public:
     virtual int GetKind() override;  // 0x43f640
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43f650
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif106();  // 0x43f5d0
@@ -1215,7 +1216,7 @@ public:
     virtual int GetKind() override;  // 0x43f730
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43f740
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif183();  // 0x43f6c0
@@ -1230,7 +1231,7 @@ public:
     virtual int GetKind() override;  // 0x43f820
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43f830
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif180();  // 0x43f7b0
@@ -1245,7 +1246,7 @@ public:
     virtual int GetKind() override;  // 0x43f910
     virtual int Virtual04() override { return 2; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43f920
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif181();  // 0x43f8a0
@@ -1260,7 +1261,7 @@ public:
     virtual int GetKind() override;  // 0x43fa00
     virtual int Virtual04() override { return 4; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x43fa10
-    virtual void DispatchToSink(void* sink) override { forwardKeyAndValueToSink(this, sink); }
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43e4c0
 };
 
 void* CreateUiNotif182();  // 0x43f990
@@ -1274,7 +1275,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43faf0
     virtual void Dispatch(PlayerController* controller) override;  // 0x43fb00
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif1a0();  // 0x43fa80
@@ -1288,7 +1289,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43c1f0
     virtual void Dispatch(PlayerController*) override {}
-    virtual void DispatchToSink(void* sink) override;  // 0x43fbe0
+    virtual void DispatchToSink(UiNotice* sink) override;  // 0x43fbe0
 };
 
 void* CreateUiNotif2();  // 0x43fb70
@@ -1302,7 +1303,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43fd10
     virtual void Dispatch(PlayerController* controller) override;  // 0x43fd20
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif1c0();  // 0x43fca0
@@ -1316,7 +1317,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43fe00
     virtual void Dispatch(PlayerController* controller) override;  // 0x43fe10
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif1c1();  // 0x43fd90
@@ -1330,7 +1331,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43fef0
     virtual void Dispatch(PlayerController* controller) override;  // 0x43ff00
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif1c2();  // 0x43fe80
@@ -1344,7 +1345,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x43ffe0
     virtual void Dispatch(PlayerController* controller) override;  // 0x43fff0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif1c3();  // 0x43ff70
@@ -1358,7 +1359,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x4400d0
     virtual void Dispatch(PlayerController* controller) override;  // 0x4400e0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif1c4();  // 0x440060
@@ -1372,7 +1373,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x4401c0
     virtual void Dispatch(PlayerController* controller) override;  // 0x4401d0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif1c5();  // 0x440150
@@ -1386,7 +1387,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override;  // 0x4402b0
     virtual void Dispatch(PlayerController* controller) override;  // 0x4402c0
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif1c6();  // 0x440240
@@ -1400,7 +1401,7 @@ public:
     virtual void Write(ostream* out) override { WritePayload(out); }
     virtual int GetKind() override { return 0x1; }
     virtual void Dispatch(PlayerController* controller) override;  // 0x440330
-    virtual void DispatchToSink(void*) override {}
+    virtual void DispatchToSink(UiNotice*) override {}
 };
 
 void* CreateUiNotif1();  // 0x440350
