@@ -91,9 +91,15 @@ int MissionRuleBase::InitEventKinds(int unused, EventKindSet* out) {
     return initFrom(BuildEventKinds, &g_ruleBaseEventKinds, out);
 }
 
+int MissionRuleBase::IsFinalPhase() { return m_phase == 9; }
+
+void ConstructMissionRuleBaseEventKinds() { new (&g_ruleBaseEventKinds) EventKindSet(); }  // 0x593360
+
+void RegisterMissionRuleBaseEventKindsAtExit() { atexit(LAB_00593380); }  // 0x593370
+
 void MissionRuleBase::InitStatics() {
-    new (&g_ruleBaseEventKinds) EventKindSet();
-    atexit(LAB_00593380);
+    ConstructMissionRuleBaseEventKinds();
+    RegisterMissionRuleBaseEventKindsAtExit();
 }
 
 int MissionRuleBase::GetEventKinds(int unused, EventKindSet* out) {
@@ -318,9 +324,13 @@ int MissionSystemTargetBase::InitEventKinds(int unused, EventKindSet* out) {
     return initFrom(BuildEventKinds, &g_systemTargetBaseEventKinds, out);
 }
 
+void ConstructMissionSystemTargetBaseEventKinds() { new (&g_systemTargetBaseEventKinds) EventKindSet(); }  // 0x586b30
+
+void RegisterMissionSystemTargetBaseEventKindsAtExit() { atexit(LAB_00586b50); }  // 0x586b40
+
 void MissionSystemTargetBase::InitStatics() {
-    new (&g_systemTargetBaseEventKinds) EventKindSet();
-    atexit(LAB_00586b50);
+    ConstructMissionSystemTargetBaseEventKinds();
+    RegisterMissionSystemTargetBaseEventKindsAtExit();
 }
 
 int MissionSystemTargetBase::GetEventKinds(int unused, EventKindSet* out) {
@@ -393,9 +403,13 @@ int MissionCharacterTargetBase::InitEventKinds(int unused, EventKindSet* out) {
     return initFrom(BuildEventKinds, &g_characterTargetBaseEventKinds, out);
 }
 
+void ConstructMissionCharacterTargetBaseEventKinds() { new (&g_characterTargetBaseEventKinds) EventKindSet(); }  // 0x5870c0
+
+void RegisterMissionCharacterTargetBaseEventKindsAtExit() { atexit(LAB_005870e0); }  // 0x5870d0
+
 void MissionCharacterTargetBase::InitStatics() {
-    new (&g_characterTargetBaseEventKinds) EventKindSet();
-    atexit(LAB_005870e0);
+    ConstructMissionCharacterTargetBaseEventKinds();
+    RegisterMissionCharacterTargetBaseEventKindsAtExit();
 }
 
 int MissionCharacterTargetBase::GetEventKinds(int unused, EventKindSet* out) {
@@ -465,9 +479,13 @@ int MissionObjectTargetBase::InitEventKinds(int unused, EventKindSet* out) {
     return initFrom(BuildEventKinds, &g_objectTargetBaseEventKinds, out);
 }
 
+void ConstructMissionObjectTargetBaseEventKinds() { new (&g_objectTargetBaseEventKinds) EventKindSet(); }  // 0x5936f0
+
+void RegisterMissionObjectTargetBaseEventKindsAtExit() { atexit(LAB_00593710); }  // 0x593700
+
 void MissionObjectTargetBase::InitStatics() {
-    new (&g_objectTargetBaseEventKinds) EventKindSet();
-    atexit(LAB_00593710);
+    ConstructMissionObjectTargetBaseEventKinds();
+    RegisterMissionObjectTargetBaseEventKindsAtExit();
 }
 
 int MissionObjectTargetBase::GetEventKinds(int unused, EventKindSet* out) {
@@ -518,9 +536,13 @@ int MissionStoryBase::InitEventKinds(int unused, EventKindSet* out) {
     return initFrom(BuildEventKinds, &g_storyBaseEventKinds, out);
 }
 
+void ConstructMissionStoryBaseEventKinds() { new (&g_storyBaseEventKinds) EventKindSet(); }  // 0x5944e0
+
+void RegisterMissionStoryBaseEventKindsAtExit() { atexit(LAB_00594500); }  // 0x5944f0
+
 void MissionStoryBase::InitStatics() {
-    new (&g_storyBaseEventKinds) EventKindSet();
-    atexit(LAB_00594500);
+    ConstructMissionStoryBaseEventKinds();
+    RegisterMissionStoryBaseEventKindsAtExit();
 }
 
 int MissionStoryBase::GetEventKinds(int unused, EventKindSet* out) {
@@ -566,9 +588,13 @@ int MissionTypeBase::InitEventKinds(int unused, EventKindSet* out) {
     return initFrom(BuildEventKinds, &g_typeBaseEventKinds, out);
 }
 
+void ConstructMissionTypeBaseEventKinds() { new (&g_typeBaseEventKinds) EventKindSet(); }  // 0x593b50
+
+void RegisterMissionTypeBaseEventKindsAtExit() { atexit(LAB_00593b70); }  // 0x593b60
+
 void MissionTypeBase::InitStatics() {
-    new (&g_typeBaseEventKinds) EventKindSet();
-    atexit(LAB_00593b70);
+    ConstructMissionTypeBaseEventKinds();
+    RegisterMissionTypeBaseEventKindsAtExit();
 }
 
 int MissionTypeBase::GetEventKinds(int unused, EventKindSet* out) {

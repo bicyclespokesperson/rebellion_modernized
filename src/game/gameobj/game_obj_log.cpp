@@ -3,7 +3,7 @@
 
 // Notification debug log. The original guards every entry with a "logging enabled?" call that the linker folded into
 // the shared `return 0` stub, so none of the formatting ever runs. The wrappers below keep that structure (and their
-// argument conventions); the formatter itself, LogChange (0x4f8c60), is not reconstructed.
+// argument conventions); the formatter itself, LogChange (0x4f8c60), keeps only its guard (see below).
 
 int icf_return_zero();
 void FUN_0051ccc0(ObjectKey* key, String* out);
@@ -26,6 +26,13 @@ const char* sideName(uint32_t side) {
 }
 
 }  // namespace
+
+// NOTE: the original body formats one line into a static ostrstream (side names, the key's id, "Old"/"New" values) behind
+// the same never-true guard; that dead branch is not reproduced, the observable result is the 1 returned either way.
+int GameObj::LogChange(const char* tag, const char* property, const char* newText, const char* oldText, const char* extra,
+                       NotifyContext* ctx) {
+    return 1;
+}
 
 int GameObj::LogFlag(const char* tag, const char* property, int value, int unused, NotifyContext* ctx) {
     int result = 1;

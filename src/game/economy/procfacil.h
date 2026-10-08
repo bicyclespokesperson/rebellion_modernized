@@ -5,11 +5,15 @@
 #include "economy/facility.h"
 #include "gameobj/tracked_stat.h"
 
-// The data block of ProcFacil objects (VT 0x66a178, 0x28 bytes, ctor 0x584590 over the facility data block 0x584100,
-// VT 0x66a150, which is a UnitObjData without fields). DROP AT MERGE if the owner of 0x584100-0x584750 declares it;
-// only the layout and the members the facility code touches are declared.
-class ProcFacilData : public UnitObjData {
+// The data block of ProcFacil objects (VT 0x66a178, 0x28 bytes, ctor 0x584590 over the facility data block 0x584100).
+class ProcFacilData : public FacilityData {
 public:
+    ProcFacilData();                              // 0x584590
+    virtual ~ProcFacilData();                     // 0x5845f0 (deleting), 0x584610
+    virtual int Read(istream* in) override;       // 0x584660
+    virtual int Write(ostream* out) override;     // 0x5846b0
+    virtual int Checksum(Crc32* crc) override;    // 0x584700
+
     TrackedStat m_processingStat;  // +0x18, the counted value that the "processing" timer event 0x394 tracks
     int m_duration;                // +0x20, processing time in game time units
     int m_cycleCount;              // +0x24, bumped whenever the state enters or leaves WAITING

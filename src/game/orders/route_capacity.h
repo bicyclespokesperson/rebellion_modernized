@@ -99,6 +99,8 @@ public:
     CapacityTable();           // 0x550020
     virtual ~CapacityTable();  // 0x550090
 
+    int MarkAllIncomingOverCapacity();  // 0x5500f0
+
     CapacitySlotArray m_incoming;  // +0x004
     CapacitySlotArray m_outgoing;  // +0x104
 };

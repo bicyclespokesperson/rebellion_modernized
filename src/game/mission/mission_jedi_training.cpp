@@ -16,6 +16,18 @@ int __cdecl FUN_00582cd0(ObjectKey* key, void** any, void** specialForces, void*
 int __cdecl FUN_00582e90(ObjectKey* key, void** any, void** specialForces, void** character);
 void* __cdecl FUN_0051cab0(ObjectKey* key);
 
+// The MissionOrderCheck record as the Jedi Training target check reads it.
+struct TrainingOrderCheck {
+    int m_unk00;                    // +0x00
+    int m_hasTeam;                  // +0x04
+    int m_useKeySets;               // +0x08: 0 = the three object-reference lists, else the three key sets
+    int m_unk0c;                    // +0x0c
+    int m_side;                     // +0x10
+    int m_unk14;                    // +0x14
+    ObjectRefList* m_refLists[3];   // +0x18, +0x1c, +0x20
+    ObjectKeyValueSet* m_keySets[3];  // +0x24, +0x28, +0x2c
+};
+
 namespace {
 constexpr uint32_t kFamilyMissionJediTraining = 0x58;
 constexpr FamilyRange kJediTrainingFamilies(0x58, 0x59);
@@ -31,17 +43,6 @@ constexpr int kReasonNoStudents = 0x94;
 constexpr int kReasonNoForce = 5;
 constexpr int kReasonStudentStronger = 0xd;
 
-// The MissionOrderCheck record as the Jedi Training target check reads it.
-struct TrainingOrderCheck {
-    int m_unk00;                    // +0x00
-    int m_hasTeam;                  // +0x04
-    int m_useKeySets;               // +0x08: 0 = the three object-reference lists, else the three key sets
-    int m_unk0c;                    // +0x0c
-    int m_side;                     // +0x10
-    int m_unk14;                    // +0x14
-    ObjectRefList* m_refLists[3];   // +0x18, +0x1c, +0x20
-    ObjectKeyValueSet* m_keySets[3];  // +0x24, +0x28, +0x2c
-};
 
 template <class T>
 T FieldAt(void* object, int offset) {
@@ -59,7 +60,10 @@ void Reject(StatusCode* status, int* out, int reason, int outValue) {
     *out = outValue;
 }
 
-int FindTrainerInKeySet(int side, ObjectKeyValueSet* set, void** out) {
+}  // namespace
+
+// The helpers of CheckTarget (0x570940-0x570f80).
+int FindTrainerInKeySet(int side, ObjectKeyValueSet* set, void** out) {  // 0x570e40
     int result = 1;
     *out = nullptr;
     for (AvlNode* node = set->First(); node && !*out && result; node = node->m_successor) {
@@ -81,7 +85,7 @@ int FindTrainerInKeySet(int side, ObjectKeyValueSet* set, void** out) {
     return result;
 }
 
-int FindTrainerInRefList(int side, ObjectRefList* list, void** out) {
+int FindTrainerInRefList(int side, ObjectRefList* list, void** out) {  // 0x570f80
     int result = 1;
     *out = nullptr;
     for (AvlNode* node = list->First(); node && !*out && result; node = node->m_successor) {
@@ -99,7 +103,7 @@ int FindTrainerInRefList(int side, ObjectRefList* list, void** out) {
     return result;
 }
 
-int CheckStudentKeySet(ObjectKeySet* set, TrainingOrderCheck* check, StatusCode* status, int* out) {
+int CheckStudentKeySet(ObjectKeySet* set, TrainingOrderCheck* check, StatusCode* status, int* out) {  // 0x570940
     *status = MakeStatus(mission_status::kOk);
     int result = 1;
     void* teacher = nullptr;
@@ -131,7 +135,7 @@ int CheckStudentKeySet(ObjectKeySet* set, TrainingOrderCheck* check, StatusCode*
     return result;
 }
 
-int CheckStudentRefList(ObjectRefList* list, TrainingOrderCheck* check, StatusCode* status, int* out) {
+int CheckStudentRefList(ObjectRefList* list, TrainingOrderCheck* check, StatusCode* status, int* out) {  // 0x570bc0
     *status = MakeStatus(mission_status::kOk);
     int result = 1;
     void* teacher = nullptr;
@@ -161,7 +165,6 @@ int CheckStudentRefList(ObjectRefList* list, TrainingOrderCheck* check, StatusCo
     }
     return result;
 }
-}  // namespace
 
 MissionJediTraining::MissionJediTraining() {}
 
