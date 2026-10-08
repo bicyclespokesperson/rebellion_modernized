@@ -140,7 +140,7 @@ public:
     int AddKeyValue(const ObjectKey* key, int value);
 };
 
-// {id, int, int, key} record: m_flag defaults to 1, m_count to 0.
+// {id, int, int, key} record: m_flag defaults to 1, m_count to 0 and the key to 0 (not the unset value 2).
 // Its virtual table (0x661aec, after the destructor) is owned by the module that defines the class (0x540750+); only
 // the non-virtual serialization helpers and the destructor are used here.
 class ObjectRefNode : public IdNode {

@@ -38,7 +38,7 @@ public:
     virtual ~Character();                                             // 0x4ecfb0 (deleting), 0x4ecfd0
 
     // ---- overrides of GameObj / UnitObjBase / Role slots ----
-    virtual void SetRecord(DatRecord* record) override;                // 10, 0x50e1c0 (returns an int in the original)
+    virtual int SetRecord(DatRecord* record) override;                 // 10, 0x50e1c0
     virtual int GetTransitSpeed(int arg) override;                     // 13, 0x4ed370: the hyperdrive modifier while existing
     virtual int GetEventKinds(int unused, EventKindSet* out) override;  // 15, 0x4ed350
     virtual int Virtual17() override { return 0; }                     // 17

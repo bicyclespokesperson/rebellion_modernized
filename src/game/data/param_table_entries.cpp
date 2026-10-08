@@ -7,31 +7,27 @@
 
 namespace {
 
-template <size_t N>
-void readValues(istream* in, int (&values)[N]) {
-    for (int& value : values) ReadValue32(in, &value);
+void readValues(istream* in, int* values, size_t count) {
+    for (size_t i = 0; i < count; ++i) ReadValue32(in, &values[i]);
 }
 
-template <size_t N>
-void writeValues(ostream* out, int (&values)[N]) {
-    for (int& value : values) WriteValue32(out, &value);
+void writeValues(ostream* out, const int* values, size_t count) {
+    for (size_t i = 0; i < count; ++i) WriteValue32(out, &values[i]);
 }
 
-template <size_t N>
-int checksumValues(Crc32* crc, TableEntry* entry, const int (&values)[N]) {
+int checksumValues(Crc32* crc, TableEntry* entry, const int* values, size_t count) {
     const int result = entry->TableEntry::Checksum(crc);
-    for (int value : values) crc->AddInt(value);
+    for (size_t i = 0; i < count; ++i) crc->AddInt(values[i]);
     return result;
 }
 
-template <size_t N>
-int parseTextValues(TableEntry* entry, istream* in, int (&values)[N]) {
+int parseTextValues(TableEntry* entry, istream* in, int* values, size_t count) {
     ScopedStrstream token;
     int endOfLine = 0;
     ReadCsvField(in, token.get(), &endOfLine);
     const int ok = entry->ParseHeader(in, &endOfLine);
     if (ok) {
-        for (int& value : values) ParseLongField(in, token.get(), &endOfLine, &value);
+        for (size_t i = 0; i < count; ++i) ParseLongField(in, token.get(), &endOfLine, &values[i]);
     }
     SkipRestOfLine(in, &endOfLine);
     return ok;
@@ -47,19 +43,19 @@ GeneralParamTableEntry::~GeneralParamTableEntry() { REB_KEEP_VPTR_STORE(); }
 
 int GeneralParamTableEntry::Read(istream* in) {
     TableEntry::Read(in);
-    readValues(in, m_values);
+    readValues(in, m_values, kValueCount);
     return 1;
 }
 
 int GeneralParamTableEntry::Write(ostream* out) {
     TableEntry::Write(out);
-    writeValues(out, m_values);
+    writeValues(out, m_values, kValueCount);
     return 1;
 }
 
-int GeneralParamTableEntry::Checksum(Crc32* crc) { return checksumValues(crc, this, m_values); }
+int GeneralParamTableEntry::Checksum(Crc32* crc) { return checksumValues(crc, this, m_values, kValueCount); }
 
-int GeneralParamTableEntry::ParseText(istream* in) { return parseTextValues(this, in, m_values); }
+int GeneralParamTableEntry::ParseText(istream* in) { return parseTextValues(this, in, m_values, kValueCount); }
 
 int GeneralParamTableEntry::GetValue(int index) const {
     if (index < 0 || index >= kValueCount) return 0;
@@ -76,35 +72,19 @@ SideParamTableEntry::~SideParamTableEntry() { REB_KEEP_VPTR_STORE(); }
 
 int SideParamTableEntry::Read(istream* in) {
     TableEntry::Read(in);
-    for (auto& pair : m_values) readValues(in, pair);
+    readValues(in, &m_values[0][0], kValueCount);
     return 1;
 }
 
 int SideParamTableEntry::Write(ostream* out) {
     TableEntry::Write(out);
-    for (auto& pair : m_values) writeValues(out, pair);
+    writeValues(out, &m_values[0][0], kValueCount);
     return 1;
 }
 
-int SideParamTableEntry::Checksum(Crc32* crc) {
-    const int result = TableEntry::Checksum(crc);
-    for (const auto& pair : m_values)
-        for (int value : pair) crc->AddInt(value);
-    return result;
-}
+int SideParamTableEntry::Checksum(Crc32* crc) { return checksumValues(crc, this, &m_values[0][0], kValueCount); }
 
-int SideParamTableEntry::ParseText(istream* in) {
-    ScopedStrstream token;
-    int endOfLine = 0;
-    ReadCsvField(in, token.get(), &endOfLine);
-    const int ok = ParseHeader(in, &endOfLine);
-    if (ok) {
-        for (auto& pair : m_values)
-            for (int& value : pair) ParseLongField(in, token.get(), &endOfLine, &value);
-    }
-    SkipRestOfLine(in, &endOfLine);
-    return ok;
-}
+int SideParamTableEntry::ParseText(istream* in) { return parseTextValues(this, in, &m_values[0][0], kValueCount); }
 
 int SideParamTableEntry::GetValue(int pair, int member) const {
     if (pair < 0 || pair >= kPairCount || member < 1 || member > 2) return 0;

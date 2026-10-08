@@ -763,9 +763,9 @@ int RollCriticalHitType(int hullLeft, int damage, int* hitType) {
     const int bonus = GameRandom(g_gnprtb0801);
     const int chance = RatioToPercent(damage, damage + hullLeft) + bonus;
     if (chance >= g_gnprtb0802) {
-        const ParamTableRecord* record = FindTableRecord(kHitTypeTable, GameRandom(g_gnprtb0803));
+        const TableEntry* record = FindTableRecord(kHitTypeTable, GameRandom(g_gnprtb0803));
         ok = record != nullptr;
-        if (ok) *hitType = record->m_firstValue;
+        if (ok) *hitType = TableRecordFirstValue(record);
     }
     return ok;
 }

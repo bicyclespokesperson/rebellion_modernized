@@ -183,11 +183,11 @@ int GameRoot::SumSeedValues(int factor, ObjectRefList* list, int* total) {
 int GameRoot::SeedFromTableRows(GameObjNotifier* parent, int tableType, int first, int last, NotifyContext* ctx) {
     int ok = 1;
     for (; first <= last; ++first) {
-        ParamTableRecord* row = FindTableRecord(tableType, first);
+        TableEntry* row = FindTableRecord(tableType, first);
         ok = bothTrue(row != nullptr, ok);
-        if (row != nullptr && row->m_id == first) {
+        if (row != nullptr && row->m_field20 == first) {
             ObjectRefList* list = reinterpret_cast<ObjectRefList*>(reinterpret_cast<uint8_t*>(row) + 0x28);
-            ok = bothTrue(CreateChildrenFromList(parent, row->m_firstValue, list, ctx), ok);
+            ok = bothTrue(CreateChildrenFromList(parent, TableRecordFirstValue(row), list, ctx), ok);
         }
     }
     return ok;

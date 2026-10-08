@@ -25,11 +25,11 @@ int Sector::ApplyAll(NotifyContext* ctx) {
     return isSideView;
 }
 
-void Sector::SetRecord(DatRecord* record) {
-    if (!record) return;
-    const bool familyMatches = record->m_third == GetFamily();
-    AssignRecord(record);
+int Sector::SetRecord(DatRecord* record) {
+    if (!record) return 0;
+    const int familyMatches = AssignRecord(record);
     if (familyMatches) SetId(record->m_id);
+    return familyMatches;
 }
 
 int Sector::CreateViews(int controlKind, NotifyContext* ctx) { return GameObj::CreateViews(controlKind, ctx); }

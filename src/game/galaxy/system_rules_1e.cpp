@@ -19,9 +19,9 @@ int rollStartingUnit(int a, int b, int chancePerPoint, int table, int* garrisone
         return 1;
     }
     const int roll = GameRandom(100);
-    const ParamTableRecord* record = FindTableRecord(table, roll);
+    const TableEntry* record = FindTableRecord(table, roll);
     if (record) {
-        outKey->m_value = static_cast<uint32_t>(record->m_firstValue);
+        outKey->m_value = static_cast<uint32_t>(TableRecordFirstValue(record));
         *garrisoned = outKey->IsSet();
     }
     return record != nullptr;

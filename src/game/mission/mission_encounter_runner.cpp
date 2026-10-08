@@ -330,7 +330,7 @@ int EncounterRunner::PrepareUnitSelections(NotifyContext* ctx) {
 int EncounterRunner::VisitLocationPersons(GameObjNotifier* parent) {
     int ok = 1;
     {
-        MajorCharacterIterator persons(parent, 1);
+        CharacterRangeIterator persons(parent, 1);
         for (persons.Begin(); persons.Current(); persons.Advance()) {
             Role* person = static_cast<Role*>(persons.Current());
             int foreign = 0;

@@ -66,7 +66,7 @@ public:
     // Forwarders to the human controller (no-ops, or 0, when there is none).
     void HumanCommand(int command, void* a, void* b, const void* c);
     void HumanReceiveMessage(PlayerMessage* message, int flag);
-    void HumanAdvisorNotify(int value);
+    void HumanAdvisorNotify(const ObjectKey* key);
     void HumanSetVote(int choice, int timed, PlayerMessage* reply);
     void HumanConfirmVote(PlayerMessage* reply);
     void SetHumanUiTarget(int a, int b);

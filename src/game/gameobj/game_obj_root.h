@@ -83,7 +83,8 @@ public:
     virtual ~GameObjNotifier();
     // Applies every property of the master to this side view (GameObj 0x4f9540).
     virtual int ApplyAll(NotifyContext* ctx) = 0;
-    virtual void SetRecord(DatRecord* record);
+    // 1 if the record was stored (a null record or one of this object's family), as AssignRecord says.
+    virtual int SetRecord(DatRecord* record);
     // Fills `out` with the keys of the objects this one depends on (the default implementation: just itself).
     virtual int CollectDependencies(void* context, int value, ObjectKeyValueSet* out) = 0;
 
@@ -107,7 +108,7 @@ public:
     int ReadTree(istream* in);
     int WriteTree(ostream* out);
     int ChecksumTree(Crc32* crc);
-    void AssignRecord(DatRecord* record);
+    int AssignRecord(DatRecord* record);
     int AddChild(GameObjNotifier* child, GameObjNotifier** previousParent);
     static int __stdcall RemoveFromParent(GameObjNotifier* child);
 

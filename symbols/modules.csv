@@ -230,7 +230,10 @@ start,end,module,subsystem,confidence,evidence
 0x00585b20,0x005866c0,timer_event_base,events,high,timer base 585fe0 (VT 0x66a230; fire 5862a0; delay 586130); event base 5863b0; 53f helpers; notes:timer-scheduler
 0x005866c0,0x00587100,mission_target_bases,mission,medium,mission bases: system-target 5866c0/5868c0; char-target 586c20/586e20; 2 INIT guards; notes:mission-lifecycle
 0x00587100,0x0058adb0,mission_resolution_phases,mission,high,decoy/foil/betrayal phase mgr 5897c0->589970; S:decoy S:foil S:"identify traitor" S:force-detect; notes:decoy-roll
-0x0058adb0,0x0058b960,data_table_registry,data,medium,table id registry 58b420 (58b810 GDATA ids); lookup 58b7e0; table base VT 0x66a8b0 for 557/558; notes:uprising-incident
+0x0058adb0,0x0058af30,object_name_node,gameobj,high,ObjectNameNode 0x58adb0 (gameobj/object_name_node.cpp)
+0x0058af30,0x0058b1a0,system_neighbours,galaxy,high,SystemNeighbourTable/Cursor and CompareSystemDistance (galaxy/system_neighbours.cpp)
+0x0058b1a0,0x0058b310,unit_data_blocks,fleet,high,CombatUnitData/DetectorData (fleet/unit_data.cpp)
+0x0058b310,0x0058b960,data_table_registry,data,medium,table id registry 58b420 (58b810 GDATA ids); lookup 58b7e0; table base VT 0x66a8b0 for 557/558; notes:uprising-incident
 0x0058b960,0x0058c960,cmd_225_resolver,combat_strat,low,multi-step resolver 58c120 driven by cmd 0x225 fire (563390); functors VT 0x66a8d8
 0x0058c960,0x0058e570,planet_assault_resolver,combat_strat,low,resolver 58d770 for cmd 0x224 fire (5637c0); switch on 0x220-0x223; troop sums 58df60; control change 58e320
 0x0058e570,0x0058fd50,seedlist_table_entries,data,medium,INIT S:SeedList (5954a0 class reg); SeedTableEntry 58f0e0 SeedFamilyTableEntry 58f3a0 IntTableEntry 58fb40 (569280)

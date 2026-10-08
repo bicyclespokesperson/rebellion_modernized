@@ -12,15 +12,7 @@ class Role;
 // 0x50c640: the key of the object that owns `self` (written to *out and returned).
 ObjectKey* __thiscall GetOwnerKeyValue(GameObjNotifier* self, ObjectKey* out);
 
-#include "gameobj/child_iterator.h"
-
-// Iterators of the major / minor characters of an object (families 0x30-0x38 and 0x38-0x3c), owned by the character
-// modules.
-class MajorCharacterIterator : public ChildIterator {
-public:
-    MajorCharacterIterator(GameObjNotifier* parent, uint32_t stateFilter);  // 0x5947c0
-    virtual ~MajorCharacterIterator();                                        // 0x594840
-};
+#include "events/misc_helpers.h"
 
 #include "story/story_characters.h"
 

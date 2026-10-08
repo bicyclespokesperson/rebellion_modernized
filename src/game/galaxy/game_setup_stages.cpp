@@ -54,13 +54,12 @@ int FUN_0055a050(int value);
 
 namespace {
 
-constexpr int kSetRecordSlot = 10;
 constexpr int kVirtual48Slot = 48;
 constexpr int kInitializeSlot = 115;
 constexpr int kFacilityOutputSlot = 114;
 constexpr uint32_t kViewSideShift = 6;
-constexpr uint32_t kCoruscantKey = 0x92000121;
-constexpr uint32_t kYavinKey = 0x90000109;
+constexpr uint32_t kYavinKey = 0x92000121;
+constexpr uint32_t kCoruscantKey = 0x90000109;
 constexpr size_t kCharacterManagerGalaxySizeOffset = 0x5c;
 constexpr size_t kFacilityLevelOffset = 0x58;
 constexpr FamilyRange kSectorFamilies(0x80, 0x90);
@@ -137,7 +136,7 @@ int GameRoot::SetupRootObject(NotifyContext* ctx) {
     DatRecord* record = FUN_0051cab0(&rootKey);
     int ok = record != nullptr;
     if (record != nullptr) {
-        ok = bothTrue(callVirtual<int>(this, kSetRecordSlot, record), ok);
+        ok = bothTrue(SetRecord(record), ok);
         ok = bothTrue(DestroyRandomGenerator(), ok);
         ok = bothTrue(CreateRandomGenerator(), ok);
         ok = bothTrue(GameObj::CreateViews(3, ctx), ok);
@@ -191,8 +190,8 @@ int GameRoot::CreateSectors(int galaxySize, NotifyContext* ctx) {
 
 int GameRoot::DistributeSystems(NotifyContext* ctx) {
     (void)ctx;
-    uint32_t coruscantId = 0;
     uint32_t yavinId = 0;
+    uint32_t coruscantId = 0;
     int systemsPlaced = 0;
     int result = CheckObjectDatabase();
     if (result == 0) return 0;
@@ -215,10 +214,10 @@ int GameRoot::DistributeSystems(NotifyContext* ctx) {
         ObjectRefList& pool = FUN_00526550(sector) == 1 ? core : m_refLists[5];
         const ObjectKey systemKey = keyOfRecord(record);
         ObjectRefNode* node = pool.AddKey(systemKey);
-        if (systemKey.m_value == kCoruscantKey) {
-            coruscantId = node->m_id;
-        } else if (systemKey.m_value == kYavinKey) {
+        if (systemKey.m_value == kYavinKey) {
             yavinId = node->m_id;
+        } else if (systemKey.m_value == kCoruscantKey) {
+            coruscantId = node->m_id;
         }
     }
 
@@ -237,11 +236,11 @@ int GameRoot::DistributeSystems(NotifyContext* ctx) {
     toPool0xe0 -= 1;
     int remaining = coreCount - 1;
 
-    IdNode* node = core.DetachById(yavinId);
+    IdNode* node = core.DetachById(coruscantId);
     node->SetId(0);
     m_refLists[6].Add(static_cast<ObjectRefNode*>(node));
 
-    node = m_refLists[5].DetachById(coruscantId);
+    node = m_refLists[5].DetachById(yavinId);
     node->SetId(0);
     m_refLists[6].Add(static_cast<ObjectRefNode*>(node));
 
@@ -356,7 +355,7 @@ int GameRoot::PlaceNextPooledSystem(int* done, NotifyContext* ctx) {
             pool = &m_refLists[6];
             const uint32_t firstKey = static_cast<ObjectRefNode*>(m_refLists[6].First())->m_key.m_value;
             unitsC = 0;
-            if (firstKey != kCoruscantKey && firstKey == kYavinKey) {
+            if (firstKey != kYavinKey && firstKey == kCoruscantKey) {
                 unitsA = 1;
                 unitsB = 2;
             } else {
@@ -400,8 +399,8 @@ int GameRoot::InitializeNextSystem(int* done, NotifyContext* ctx) {
 
 int GameRoot::PlaceHeadquarters(NotifyContext* ctx) {
     const int core = PlaceCoreSystem(ctx);
-    const int yavin = PlaceYavinSystem(ctx);
-    return yavin != 0 && core != 0 ? 1 : 0;
+    const int coruscant = PlaceCoruscantSystem(ctx);
+    return coruscant != 0 && core != 0 ? 1 : 0;
 }
 
 int GameRoot::PlaceCoreSystem(NotifyContext* ctx) {
@@ -418,8 +417,8 @@ int GameRoot::PlaceCoreSystem(NotifyContext* ctx) {
     return ok;
 }
 
-int GameRoot::PlaceYavinSystem(NotifyContext* ctx) {
-    GameObjNotifier* headquarters = masterSystem(kYavinKey);
+int GameRoot::PlaceCoruscantSystem(NotifyContext* ctx) {
+    GameObjNotifier* headquarters = masterSystem(kCoruscantKey);
     int ok = headquarters != nullptr;
     if (headquarters != nullptr) {
         int tableType = 0;
@@ -435,11 +434,11 @@ int GameRoot::PlaceYavinSystem(NotifyContext* ctx) {
 
 int GameRoot::SeedInitialForces(NotifyContext* ctx) {
     int ok = SeedSystemTroops(ctx);
-    ok = bothTrue(SeedCoruscantForces(ctx), ok);
-    ok = bothTrue(SeedKey154Forces(ctx), ok);
     ok = bothTrue(SeedYavinForces(ctx), ok);
+    ok = bothTrue(SeedKey154Forces(ctx), ok);
+    ok = bothTrue(SeedCoruscantForces(ctx), ok);
     ok = bothTrue(SeedStartingFleet(ctx), ok);
-    ok = bothTrue(SeedYavinFleet(ctx), ok);
+    ok = bothTrue(SeedCoruscantFleet(ctx), ok);
     ok = bothTrue(SeedAllianceReserves(ctx), ok);
     return SeedEmpireReserves(ctx) != 0 && ok != 0 ? 1 : 0;
 }
@@ -467,8 +466,8 @@ int GameRoot::SeedSystemTroops(NotifyContext* ctx) {
     return ok;
 }
 
-int GameRoot::SeedCoruscantForces(NotifyContext* ctx) {
-    GameObjNotifier* system = masterSystem(kCoruscantKey);
+int GameRoot::SeedYavinForces(NotifyContext* ctx) {
+    GameObjNotifier* system = masterSystem(kYavinKey);
     int tableType = 0;
     int first = 0;
     int last = 0;
@@ -490,8 +489,8 @@ int GameRoot::SeedKey154Forces(NotifyContext* ctx) {
     return ok;
 }
 
-int GameRoot::SeedYavinForces(NotifyContext* ctx) {
-    GameObjNotifier* system = masterSystem(kYavinKey);
+int GameRoot::SeedCoruscantForces(NotifyContext* ctx) {
+    GameObjNotifier* system = masterSystem(kCoruscantKey);
     int tableType = 0;
     int first = 0;
     int last = 0;
@@ -501,9 +500,9 @@ int GameRoot::SeedYavinForces(NotifyContext* ctx) {
 }
 
 int GameRoot::SeedStartingFleet(NotifyContext* ctx) {
-    int atCoruscant = 1;
-    const int rolled = FUN_0055d500(&atCoruscant);
-    GameObjNotifier* system = atCoruscant == 0 ? GetMasterInFamilies_90_98(&m_key154) : masterSystem(kCoruscantKey);
+    int atYavin = 1;
+    const int rolled = FUN_0055d500(&atYavin);
+    GameObjNotifier* system = atYavin == 0 ? GetMasterInFamilies_90_98(&m_key154) : masterSystem(kYavinKey);
     int ok = bothTrue(rolled, system != nullptr);
     GameObj* fleet = nullptr;
     if (system != nullptr) {
@@ -518,8 +517,8 @@ int GameRoot::SeedStartingFleet(NotifyContext* ctx) {
     return tablesOk;
 }
 
-int GameRoot::SeedYavinFleet(NotifyContext* ctx) {
-    GameObjNotifier* system = masterSystem(kYavinKey);
+int GameRoot::SeedCoruscantFleet(NotifyContext* ctx) {
+    GameObjNotifier* system = masterSystem(kCoruscantKey);
     GameObj* fleet = nullptr;
     int ok = system != nullptr;
     if (system != nullptr) {
@@ -691,8 +690,8 @@ int GameRoot::FinishSideView(NotifyContext* ctx) {
         for (firstSystems.Begin(); firstSystems.Current() != nullptr; firstSystems.Advance())
             ok = bothTrue(FUN_00539ac0(firstSystems.Current(), &updateContext), ok);
     }
-    GameObjNotifier* coruscant = masterSystem(kCoruscantKey);
-    int result = bothTrue(coruscant != nullptr, ok);
-    if (coruscant != nullptr) result = bothTrue(FUN_0050d5a0(coruscant, 10, 2, ctx), result);
+    GameObjNotifier* yavin = masterSystem(kYavinKey);
+    int result = bothTrue(yavin != nullptr, ok);
+    if (yavin != nullptr) result = bothTrue(FUN_0050d5a0(yavin, 10, 2, ctx), result);
     return result;
 }

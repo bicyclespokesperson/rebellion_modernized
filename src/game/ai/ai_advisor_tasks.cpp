@@ -10,6 +10,7 @@
 #include "galaxy/system.h"
 #include "orders/order_base.h"
 #include "orders/orders_210_216.h"
+#include "strategy_ui/advisor_droid.h"
 #include "strategy_ui/game_ui_facade.h"
 
 using ai::KeyInFamilies;
@@ -693,6 +694,24 @@ AdvisorTaskManager::~AdvisorTaskManager() {
     REB_KEEP_VPTR_STORE();
 }
 
+void AdvisorTaskManager::Save(ostream* out) {
+    WriteValue32(out, &m_view);
+    int16_t count = Count();
+    WriteValue16(out, &count);
+    for (AvlNode* node = First(); node; node = node->m_successor) {
+        AdvisorTaskBase* task = static_cast<AdvisorTaskBase*>(node);
+        uint32_t id = task->m_id;
+        WriteValue32(out, &id);
+        task->Write(out);
+    }
+    uint32_t id = m_current ? m_current->m_id : 0;
+    WriteValue32(out, &id);
+    id = m_cursor ? m_cursor->m_id : 0;
+    WriteValue32(out, &id);
+    id = m_last ? m_last->m_id : 0;
+    WriteValue32(out, &id);
+}
+
 void AdvisorTaskManager::Load(istream* in, AiGalaxyAnalysis* analysis) {
     Clear();
     ReadValue32(in, &m_view);
@@ -788,6 +807,12 @@ AdvisorTaskBase* AdvisorTaskManager::PickBest() {
 AdvisorEntryTree::AdvisorEntryTree() : IdAvlTree() {}
 
 AdvisorEntryTree::~AdvisorEntryTree() { REB_KEEP_VPTR_STORE(); }
+
+void AdvisorEntryTree::Save(ostream* out) {
+    uint32_t count = static_cast<uint16_t>(Count());
+    WriteValue32(out, &count);
+    for (AvlNode* node = First(); node; node = node->m_successor) static_cast<DroidScript*>(node)->Write(out);
+}
 
 void AdvisorEntryTree::Load(istream* in) {
     uint32_t count;

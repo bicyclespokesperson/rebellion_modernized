@@ -26,9 +26,10 @@ public:
     virtual ~ObjectEntry();
 
     ObjectKey* GetKey(ObjectKey* out) const;
-    // Stores `object` in the slot of its view side if the family matches and the slot is free.
-    void AddObject(GameObjNotifier* object);
-    void RemoveObject(GameObjNotifier* object);
+    // Stores `object` in the slot of its view side if the family matches and the slot is free; 1 if it was stored.
+    int AddObject(GameObjNotifier* object);
+    // Clears the slot if it holds `object`; 1 if it did.
+    int RemoveObject(GameObjNotifier* object);
     GameObjNotifier* GetObject(int view) const;
     // All three slots are filled with objects that point back at this entry and are attached (have a parent) or are
     // the game root.
@@ -59,11 +60,24 @@ public:
     int m_ok;  // +0x0c
 };
 
-// The database itself (0x585b20, owned by the timer/event module): an IdAvlTree of ObjectEntries. Only its layout is
-// declared here; its methods are called through the FUN_ declarations in object_database.cpp.
+// The database itself (VT 0x66a220, 0x585b20-0x585f80): an IdAvlTree of ObjectEntries ordered by key.
 class ObjectDatabase : public IdAvlTree {
 public:
-    virtual ~ObjectDatabase();
+    ObjectDatabase();                                 // 0x585b20
+    virtual ~ObjectDatabase();                        // 0: 0x585b40 (deleting), 0x585b60
+    virtual int IsLess(AvlNode* a, AvlNode* b) override;  // 2: 0x585f50
+
+    // Puts the object in the entry of its key (creating the entry); 0 for a null object.
+    int AddObject(GameObjNotifier* object);           // 0x585b70
+    // Takes the object out of its entry and deletes the entry once it holds no object; 1 if the object was in it.
+    int RemoveObject(GameObjNotifier* object);        // 0x585c70
+    int DetachEntry(AvlNode* entry);                  // 0x585d40: unlinks the node; 1 unless it is null
+    int DeleteEntry(AvlNode* entry);                  // 0x585d60
+    int AreAllLinked();                               // 0x585d90
+    ObjectEntry* FindEntry(const ObjectKey* key);     // 0x585dc0
+    // The entry with the lowest key whose family is the range's first family or, failing that, the next entry if it lies in
+    // the range.
+    ObjectEntry* FindEntryInRange(const FamilyRange* range);  // 0x585e40
 
     int m_ok;  // +0x0c
 };

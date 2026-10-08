@@ -37,7 +37,7 @@ int bindAll(const SdprtbBinding (&bindings)[N]) {
     return allBound;
 }
 
-int recordHasId(const ParamTableRecord* record, int id) { return record && record->m_id == id; }
+int recordHasId(const TableEntry* record, int id) { return record && record->m_field20 == id; }
 
 int isSideInRange(int side) { return side >= 1 && side <= 2; }
 
@@ -60,7 +60,7 @@ int BindGnprtbDefault() { return BindGnprtbParameter(1, &g_gnprtbDefault) != 0; 
 
 int BindGnprtbParameter(int id, int* value) {
     *value = 0;
-    const ParamTableRecord* record = FindTableRecord(kTableGnprtb, id);
+    const TableEntry* record = FindTableRecord(kTableGnprtb, id);
     const int found = recordHasId(record, id);
     if (found) *value = reinterpret_cast<const GeneralParamTableEntry*>(record)->GetValue(g_gnprtbDifficulty);
     return found;
@@ -68,7 +68,7 @@ int BindGnprtbParameter(int id, int* value) {
 
 int BindSdprtbParameter(int id, int side, int* value) {
     *value = 0;
-    const ParamTableRecord* record = FindTableRecord(kTableSdprtb, id);
+    const TableEntry* record = FindTableRecord(kTableSdprtb, id);
     int usable = recordHasId(record, id);
     if (usable) usable = isSideInRange(side);
     if (usable) *value = reinterpret_cast<const SideParamTableEntry*>(record)->GetValue(g_gnprtbDifficulty, side);

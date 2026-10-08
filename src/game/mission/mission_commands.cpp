@@ -1,5 +1,6 @@
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
+#include "events/event_helpers.h"
 #include "gameobj/object_queries.h"
 #include "mission/mission.h"
 #include "mission/mission_events.h"
@@ -112,8 +113,8 @@ int MissionOrderCommand::Execute() {
                           &status);
     }
     if (ok && succeeded(status)) {
-        CallVirtualSlot<int>(manager, kMissionMgrCreateMissionSlot, &m_request, m_unk50, m_unk54, m_side, &m_missionKey,
-                             &m_resultKey, &m_team, &m_characters, &ctx);
+        events::callVirtualSlot<int>(manager, kMissionMgrCreateMissionSlot, &m_request, m_unk50, m_unk54, m_side, &m_missionKey,
+                                   &m_resultKey, &m_team, &m_characters, &ctx);
     }
     return 0;
 }
@@ -150,7 +151,7 @@ int MissionActivityCommand::Execute() {
     StatusCode status;
     constexpr int kMissionSlot117 = 117;
     if (resolveMission(&m_key, &mission, &status) && succeeded(status)) {
-        CallVirtualSlot<int>(mission, kMissionSlot117, &m_request, &ctx);
+        events::callVirtualSlot<int>(mission, kMissionSlot117, &m_request, &ctx);
     }
     return 0;
 }

@@ -396,7 +396,7 @@ void GalaxyWindow::CompleteTargeting(WPARAM keys, LPARAM position) {
                 }
             }
             if (!pending) {
-                UiHumanAdvisorNotify(static_cast<int>(reinterpret_cast<uintptr_t>(&key)));
+                UiHumanAdvisorNotify(&key);
             } else if (key.Id() != 0) {
                 switch (pending->GetKind()) {
                     case kTargetCommandMove:
