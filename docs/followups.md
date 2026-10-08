@@ -56,10 +56,9 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   It is not reachable from any scenario.
 - Compiler-generated helpers are not hooked: the `SystemSlot` array element constructor/destructor (0x453200,
   0x453260), `MinimizedWindowSlot::MinimizedWindowSlot` (0x42dbe0) and the shared empty `ShowObjectPage` slot (0x45d3f0).
-- `GalaxyWindow::WindowProc` WM_PAINT cannot be compared by difftest (uninitialised PAINTSTRUCT in the emulator); the
-  hybrid scenario screenshots are the check.
-- `SpriteAnimator` is still the stand-in `ui/sprite_animator_decl.h` (its constructor 0x4727e0 and the completion
-  hook setter 0x472b20 are called as `FUN_` functions from `GalaxyWindow::CreateDroidAnimations`).
+- The advisor task classes have two views: `AdvisorTask` in `strategy_ui/advisor_droid.h` (what the droid calls: slots
+  4-6, `m_done` +0x20, `m_advisor` +0x54) and the real hierarchy `AdvisorTaskBase`/`AdvisorTask20/21/23` in
+  `ai/ai_advisor_tasks.h`. Make the droid use the AI classes and delete the UI stand-in.
 - `MenuWindowBase::AddTextEntry` (0x4ab1f0) and `SetEntryColors` (0x4ab1b0) are called as `FUN_` functions from
   `GidMenuWindow`; the owner of the menu base classes should name them.
 

@@ -844,7 +844,8 @@ def main() -> int:
     ap.add_argument("-j", "--jobs", type=int, default=1, help="replay captures in this many processes")
     g = ap.add_argument_group("state/API overrides (for exercising other paths from the same capture)")
     g.add_argument("--poke", default="", help='overwrite memory before both runs: "ecx+0xc=0a000000;[ecx]+0xe=@esp+8" '
-                   "(<addr expr>=<hex bytes> or =@<expr> for a dword; expr: registers, numbers, [deref], + -)")
+                   "(<addr expr>=<hex bytes> or =@<expr> for a dword; expr: registers, numbers, [deref], + -). "
+                   "Hex bytes are raw memory order: the dword 5 is 05000000, not 5")
     g.add_argument("--entry", type=lambda v: int(v, 0), help="run this function instead (same signature)")
     g.add_argument("--gdi-handles", action="store_true", help="GDI32 calls return non-zero handles")
     g.add_argument("--qpc", type=lambda v: int(v, 0), help="QueryPerformanceCounter value")
