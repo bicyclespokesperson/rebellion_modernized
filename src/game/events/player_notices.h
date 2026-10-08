@@ -481,6 +481,280 @@ public:
     int m_f78;  // +0x78 number of 0x200 payloads
 };
 
+// kind 19: event 0x340: an object arrived in a system
+class Notice19 : public UiTextNotice {
+public:
+    Notice19();  // 0x495d50
+    Notice19(const LinkNode* payloads, int owner);  // 0x495dd0
+    virtual ~Notice19();  // 0x495e40 (deleting 0x495db0)
+
+    virtual int GetKind() override;  // 0x496000
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 256; }  // shared 0x48bc60
+    virtual UiNotice* Virtual10() override;  // 0x495fa0
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override;  // 0x495e90
+    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Read(istream* in) override;  // 0x495e50
+    virtual void Write(ostream* out) override;  // 0x495e70
+
+    int m_unused64;  // +0x64, never set
+    int m_f68;  // +0x68
+};
+
+// kind 7: event 0x14e: a system is under attack
+class Notice7 : public UiTextNotice {
+public:
+    Notice7();  // 0x496010
+    Notice7(const LinkNode* payloads, int owner);  // 0x496080
+    virtual ~Notice7();  // 0x4960e0 (deleting 0x496060)
+
+    virtual int GetKind() override { return 7; }  // shared 0x4e7790
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 256; }  // shared 0x48bc60
+    virtual UiNotice* Virtual10() override;  // 0x496320
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void Virtual08(int kind, int a, int b) override;  // 0x4960f0
+
+};
+
+// kind 16: event 0x303: a facility or ship arrived at a system
+class Notice16 : public UiTextNotice {
+public:
+    Notice16();  // 0x497560
+    Notice16(const LinkNode* payloads, int owner);  // 0x4975e0
+    virtual ~Notice16();  // 0x497650 (deleting 0x4975c0)
+
+    virtual int GetKind() override { return 16; }  // shared 0x5a5980
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 8; }  // shared 0x48c2a0
+    virtual UiNotice* Virtual10() override;  // 0x4977b0
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override;  // 0x497690
+    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Read(istream* in) override;  // 0x497660
+    virtual void Write(ostream* out) override;  // 0x497910
+
+    int m_f64;  // +0x64
+    int m_f68;  // +0x68
+};
+
+// kind 14: event 0x107: an object was destroyed
+class Notice14 : public UiTextNotice {
+public:
+    Notice14();  // 0x497810
+    Notice14(const LinkNode* payloads, int owner);  // 0x497890
+    virtual ~Notice14();  // 0x497900 (deleting 0x497870)
+
+    virtual int GetKind() override { return 14; }  // shared 0x5a5920
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 8; }  // shared 0x48c2a0
+    virtual UiNotice* Virtual10() override;  // 0x498060
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override;  // 0x497940
+    virtual void Read(istream* in) override { UiTextNotice::Read(in);
+    ReadValue32(in, &m_f64);
+    ReadValue32(in, &m_f68); }  // shared 0x497660
+    virtual void Write(ostream* out) override { UiTextNotice::Write(out);
+    WriteValue32(out, &m_f64);
+    WriteValue32(out, &m_f68); }  // shared 0x497910
+
+    int m_f64;  // +0x64
+    int m_f68;  // +0x68
+};
+
+// kind 13: event 0x105: an object was created
+class Notice13 : public UiTextNotice {
+public:
+    Notice13();  // 0x4980c0
+    Notice13(const LinkNode* payloads, int owner);  // 0x498140
+    virtual ~Notice13();  // 0x4981b0 (deleting 0x498120)
+
+    virtual int GetKind() override { return 13; }  // shared 0x5a5600
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 128; }  // shared 0x526670
+    virtual UiNotice* Virtual10() override;  // 0x498810
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override;  // 0x4981c0
+    virtual void Read(istream* in) override { UiTextNotice::Read(in);
+    ReadValue32(in, &m_f64);
+    ReadValue32(in, &m_f68); }  // shared 0x497660
+    virtual void Write(ostream* out) override { UiTextNotice::Write(out);
+    WriteValue32(out, &m_f64);
+    WriteValue32(out, &m_f68); }  // shared 0x497910
+
+    int m_f64;  // +0x64
+    int m_f68;  // +0x68
+};
+
+// kind 12: event 0x304: two objects met in a system
+class Notice12 : public UiTextNotice {
+public:
+    Notice12();  // 0x498870
+    Notice12(const LinkNode* payloads, int owner);  // 0x4988f0
+    virtual ~Notice12();  // 0x498960 (deleting 0x4988d0)
+
+    virtual int GetKind() override;  // 0x498ba0
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 8; }  // shared 0x48c2a0
+    virtual UiNotice* Virtual10() override;  // 0x498b40
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override;  // 0x498970
+    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual int Virtual16(const LinkNode* payloads) override;  // shared 0x48bbf0
+    virtual void Read(istream* in) override { UiTextNotice::Read(in);
+    ReadValue32(in, &m_f64); }  // shared 0x48b960
+    virtual void Write(ostream* out) override { UiTextNotice::Write(out);
+    WriteValue32(out, &m_f64); }  // shared 0x48b980
+
+    int m_f64;  // +0x64
+};
+
+// kind 11: event 0x148: a system became garrisoned
+class Notice11 : public UiTextNotice {
+public:
+    Notice11();  // 0x498bb0
+    Notice11(const LinkNode* payloads, int owner);  // 0x498c30
+    virtual ~Notice11();  // 0x498ca0 (deleting 0x498c10)
+
+    virtual int GetKind() override;  // 0x498e10
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 1; }  // shared 0x40f340
+    virtual UiNotice* Virtual10() override;  // 0x498db0
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual09(int kind, int a, int b, int c) override;  // 0x498cb0
+
+};
+
+// kind 10: a text for the side opposite the owner (no payloads)
+class Notice10 : public UiTextNotice {
+public:
+    Notice10();  // 0x498e20
+    Notice10(const char* text, int owner, int showFirst);  // 0x498e90
+    virtual ~Notice10();  // 0x498fa0 (deleting 0x498e70)
+
+    virtual int GetKind() override;  // 0x499020
+    virtual int GetClass() override { return 8; }  // shared 0x48ad30
+    virtual int Virtual11() override { return 32; }  // shared 0x526bd0
+    virtual UiNotice* Virtual10() override;  // 0x498fb0
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual int IsStale() override { return 0; }  // shared 0x6158b0
+    virtual int Virtual16(const LinkNode* payloads) override { return 0; }  // shared 0x48b440
+    void SetSecondText(const char* text);  // 0x499010
+
+};
+
+// kind 9: event 0x145: a system gained or lost a population/ruler
+class Notice9 : public UiTextNotice {
+public:
+    Notice9();  // 0x499030
+    Notice9(const LinkNode* payloads, int owner);  // 0x4990b0
+    virtual ~Notice9();  // 0x499120 (deleting 0x499090)
+
+    virtual int GetKind() override;  // 0x499350
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 1; }  // shared 0x40f340
+    virtual UiNotice* Virtual10() override;  // 0x4992f0
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual09(int kind, int a, int b, int c) override;  // 0x499130
+    virtual void Read(istream* in) override { UiTextNotice::Read(in);
+    ReadValue32(in, &m_f64);
+    ReadValue32(in, &m_f68); }  // shared 0x497660
+    virtual void Write(ostream* out) override { UiTextNotice::Write(out);
+    WriteValue32(out, &m_f64);
+    WriteValue32(out, &m_f68); }  // shared 0x497910
+
+    int m_f64;  // +0x64
+    int m_f68;  // +0x68
+};
+
+// kind 3: event 0x14b: a system was occupied or liberated
+class Notice3 : public UiTextNotice {
+public:
+    Notice3();  // 0x499360
+    Notice3(const LinkNode* payloads, int owner);  // 0x4993e0
+    virtual ~Notice3();  // 0x499450 (deleting 0x4993c0)
+
+    virtual int GetKind() override { return 3; }  // shared 0x5a6730
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 1; }  // shared 0x40f340
+    virtual UiNotice* Virtual10() override;  // 0x499620
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override;  // 0x499460
+    virtual void Read(istream* in) override { UiTextNotice::Read(in);
+    ReadValue32(in, &m_f64); }  // shared 0x48b960
+    virtual void Write(ostream* out) override { UiTextNotice::Write(out);
+    WriteValue32(out, &m_f64); }  // shared 0x48b980
+
+    int m_f64;  // +0x64
+};
+
+// kind 4: event 0x100: a system changed hands
+class Notice4 : public UiTextNotice {
+public:
+    Notice4();  // 0x499680
+    Notice4(const LinkNode* payloads, int owner);  // 0x4996f0
+    virtual ~Notice4();  // 0x499750 (deleting 0x4996d0)
+
+    virtual int GetKind() override { return 4; }  // shared 0x5a6700
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 1; }  // shared 0x40f340
+    virtual UiNotice* Virtual10() override;  // 0x499960
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual09(int kind, int a, int b, int c) override;  // 0x499760
+    virtual void Read(istream* in) override { UiTextNotice::Read(in);
+    ReadValue32(in, &m_f64); }  // shared 0x48b960
+    virtual void Write(ostream* out) override { UiTextNotice::Write(out);
+    WriteValue32(out, &m_f64); }  // shared 0x48b980
+
+    int m_f64;  // +0x64
+};
+
+// kind 5: events 0x125-0x127: a tier record of a side changed
+class Notice5 : public UiTextNotice {
+public:
+    Notice5();  // 0x4999c0
+    Notice5(const LinkNode* payloads, int owner);  // 0x499a30
+    virtual ~Notice5();  // 0x499a90 (deleting 0x499a10)
+
+    virtual int GetKind() override;  // 0x499cd0
+    virtual int GetClass() override { return 4; }  // shared 0x5a6700
+    virtual int Virtual11() override { return 8; }  // shared 0x48c2a0
+    virtual UiNotice* Virtual10() override;  // 0x499c70
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override;  // 0x499aa0
+
+};
+
+// kind 6: event 0x106: a capital ship or squadron was lost
+class Notice6 : public UiTextNotice {
+public:
+    Notice6();  // 0x499ce0
+    Notice6(const LinkNode* payloads, int owner);  // 0x499d50
+    virtual ~Notice6();  // 0x499db0 (deleting 0x499d30)
+
+    virtual int GetKind() override { return 6; }  // shared 0x48d640
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 128; }  // shared 0x526670
+    virtual UiNotice* Virtual10() override;  // 0x49a0c0
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override;  // 0x499de0
+
+};
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_SIZE(Notice44, 0x68);
@@ -507,4 +781,17 @@ REB_ASSERT_SIZE(Notice25, 0x68);
 REB_ASSERT_SIZE(Notice24, 0x64);
 REB_ASSERT_SIZE(Notice21, 0x70);
 REB_ASSERT_SIZE(Notice20, 0x7c);
+REB_ASSERT_SIZE(Notice19, 0x6c);
+REB_ASSERT_SIZE(Notice7, 0x64);
+REB_ASSERT_SIZE(Notice16, 0x6c);
+REB_ASSERT_SIZE(Notice14, 0x6c);
+REB_ASSERT_SIZE(Notice13, 0x6c);
+REB_ASSERT_SIZE(Notice12, 0x68);
+REB_ASSERT_SIZE(Notice11, 0x64);
+REB_ASSERT_SIZE(Notice10, 0x64);
+REB_ASSERT_SIZE(Notice9, 0x6c);
+REB_ASSERT_SIZE(Notice3, 0x68);
+REB_ASSERT_SIZE(Notice4, 0x68);
+REB_ASSERT_SIZE(Notice5, 0x64);
+REB_ASSERT_SIZE(Notice6, 0x64);
 #pragma clang diagnostic pop
