@@ -12,15 +12,16 @@ extern "C" void __cdecl LAB_004178d0();
 
 int UiHumanNextAdvice();  // 0x41d3b0
 
+extern const char g_localMachineRootName[];  // 0x6a844c "HKEY_LOCAL_MACHINE"
+extern const char g_registryKeyPath[];       // 0x6a81fc
+extern const char g_musicVolumeName[];       // 0x6a8584 "MusicVolume"
+extern const char g_musicSwitchName[];       // 0x6a8578 "MusicSwitch"
+
 namespace {
 
 constexpr int kMusicTrackCount = 0x10;
 constexpr uint32_t kBufferFinished = 0x4c9;
 constexpr uint32_t kDisplayOptionMusic = 0x100;
-const char kRegistryRoot[] = "HKEY_LOCAL_MACHINE";
-const char kRegistryKey[] = "SOFTWARE\\LucasArts Entertainment Company LLC\\Star Wars Rebellion";
-const char kVolumeValue[] = "MusicVolume";
-const char kSwitchValue[] = "MusicSwitch";
 
 }  // namespace
 
@@ -38,8 +39,8 @@ void InitMusic() {
     }
     g_musicDirectory += String("MDATA\\");
     SoundManager::SetEventCallback(MusicEventCallback);
-    g_musicVolume = -static_cast<int>(ReadRegistryDword(kRegistryKey, kVolumeValue));
-    const int musicOff = static_cast<int>(ReadRegistryDword(kRegistryKey, kSwitchValue));
+    g_musicVolume = -static_cast<int>(ReadRegistryDword(g_registryKeyPath, g_musicVolumeName));
+    const int musicOff = static_cast<int>(ReadRegistryDword(g_registryKeyPath, g_musicSwitchName));
     g_musicSwitchOn = musicOff == 0;
     if (musicOff != 0) g_musicFlags.m_value |= music_flag::kMuted;
     uint32_t options = AppGetDisplayOptions();
@@ -75,7 +76,7 @@ void StopMusic() {
 
 void SetMusicVolume(int volume) {
     g_musicVolume = volume;
-    WriteRegistryDword(kRegistryRoot, kRegistryKey, kVolumeValue, static_cast<uint32_t>(-volume));
+    WriteRegistryDword(g_localMachineRootName, g_registryKeyPath, g_musicVolumeName, static_cast<uint32_t>(-volume));
     if (!(g_musicFlags.m_value & music_flag::kMuted) && g_musicRequest.m_soundId != 0) {
         SoundManager::Query(&g_musicRequest);
         if (g_musicRequest.m_playing) SoundManager::SetVolume(&g_musicRequest, g_musicVolume);
@@ -93,7 +94,7 @@ void SetMusicSwitch(int enabled) {
         g_musicFlags.m_value &= ~music_flag::kMuted;
         StartMusicTrack(static_cast<uint32_t>(UiHumanNextAdvice()));
     }
-    WriteRegistryDword(kRegistryRoot, kRegistryKey, kSwitchValue, enabled == 0);
+    WriteRegistryDword(g_localMachineRootName, g_registryKeyPath, g_musicSwitchName, enabled == 0);
     uint32_t options = AppGetDisplayOptions();
     if (g_musicSwitchOn != 0) {
         AppSetDisplayOptions(options | kDisplayOptionMusic);

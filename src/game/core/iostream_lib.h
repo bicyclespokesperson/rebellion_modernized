@@ -84,6 +84,12 @@ void __thiscall ofstream_dtor(ios* iosBase);
 ifstream* __thiscall ifstream_ctor(ifstream* self, int isMostDerived);
 void __thiscall ifstream_dtor(ios* iosBase);
 
+// The out-of-line copies of ios::lock(), unlock(), unsetf() and setf() the game's own code carries (0x4f90b0-0x4f9130).
+void __cdecl ios_lock(ios* stream);
+void __cdecl ios_unlock(ios* stream);
+ios* __cdecl ios_unsetf(ios* stream, unsigned mask);
+ios* __cdecl ios_setf(ios* stream, unsigned mask);
+
 void __cdecl mtx_lock(void* criticalSection);
 void __cdecl mtx_unlock(void* criticalSection);
 
