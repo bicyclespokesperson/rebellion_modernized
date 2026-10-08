@@ -334,9 +334,9 @@ uint32_t __cdecl TacticalGetUnitStat38(void* unit) {
     return unit ? *reinterpret_cast<uint32_t*>(static_cast<char*>(unit) + 0x38) : 0;
 }
 
-void __cdecl TacticalNotifySync(int handle) { FUN_005bbd90(FUN_005bbe70(handle)); }
+void __cdecl TacticalNotifySync(int handle) { FUN_005bbd90(FUN_005bbe70(handle), handle); }
 
-void __cdecl TacticalNotifySyncQuiet(int handle) { FUN_005ae1e0(FUN_005bbe70(handle)); }
+void __cdecl TacticalNotifySyncQuiet(int handle) { FUN_005ae1e0(FUN_005bbe70(handle), handle); }
 
 int TacticalWorldCheck() { return GetObjectManager()->WorldCheck(); }
 

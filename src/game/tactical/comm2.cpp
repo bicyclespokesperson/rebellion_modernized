@@ -186,7 +186,7 @@ void CommSyncState() {
 }
 
 void __cdecl CommTrace(const char* text) {
-    if (FUN_005f7cc0()) FUN_005ae1e0(const_cast<char*>(text));
+    if (CommMgr* comm = FUN_005f7cc0()) FUN_005ae1e0(comm, reinterpret_cast<int>(text));
 }
 
 void CommSendPlayerQuit() {

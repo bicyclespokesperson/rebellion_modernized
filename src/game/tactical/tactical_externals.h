@@ -11,7 +11,10 @@
 
 class TacticalObjectManager;
 class TacticalHub;
-class TacticalRegistry;
+class TacticalRegistry {
+public:
+    virtual ~TacticalRegistry();
+};
 struct HeadlessSimulator;
 class TacticalCapitalShip;
 class TacticalFighter;
@@ -85,8 +88,8 @@ void FUN_005bf320();
 void FUN_005c1020(int a);
 void FUN_005bbee0();
 void* FUN_005bbe70(int handle);
-void __thiscall FUN_005bbd90(void* syncObject);
-void __thiscall FUN_005ae1e0(void* syncObject);
+void __thiscall FUN_005bbd90(void* syncObject, int handle);
+void __thiscall FUN_005ae1e0(void* self, int argument);  // shared empty stub (pops one argument)
 void FUN_005c1470(float seconds);
 int FUN_005c1490();
 
