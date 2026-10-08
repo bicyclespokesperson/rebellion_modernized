@@ -27,6 +27,14 @@ TEXT_TYPES = {"T", "t"}
 DATA_TYPES = {"D", "d", "B", "b", "R", "r"}
 # Defined by the hybrid runtime, never mapped to original addresses.
 RUNTIME_SYMBOLS = {"_DllMain@12", "__fltused", "@feat.00"}
+# REBEXE.EXE data sections (this tool runs in a container that does not see the EXE).
+RDATA_RANGE = (0x658000, 0x6a6000)
+DATA_RANGE = (0x6a6000, 0x6b0600)
+BSS_RANGE = (0x6b0600, 0x6c0000)
+GAP_CATEGORIES = (
+    "game_function", "tactical_function", "stale_declaration", "alias_standin", "win32_import", "libci", "crt",
+    "data_bss", "data_data", "data_rdata", "unresolved_other",
+)
 
 
 @dataclass(frozen=True)
@@ -222,6 +230,76 @@ def resolve(sym: ObjSymbol, table: dict[str, OriginalSymbol], ambiguous: set[str
     return None
 
 
+@dataclass(frozen=True)
+class GapClassifier:
+    """Sorts references to original code/data into the categories of docs/phase2_plan.md."""
+    modules: list[tuple[int, int, str]]
+    function_sizes: dict[int, int]
+    library_kinds: dict[int, str]
+
+    @staticmethod
+    def load(symbols_dir: Path) -> "GapClassifier":
+        with open(symbols_dir / "modules.csv", newline="") as fh:
+            modules = sorted((int(r["start"], 16), int(r["end"], 16), r["subsystem"] or r["module"])
+                             for r in csv.DictReader(fh))
+        with open(symbols_dir / "functions.csv", newline="") as fh:
+            sizes = {int(r["address"], 16): int(r["size"]) for r in csv.DictReader(fh)}
+        with open(symbols_dir / "library_functions.csv", newline="") as fh:
+            libs = {int(r["address"], 16): r["library"] for r in csv.DictReader(fh)}
+        return GapClassifier(modules, sizes, libs)
+
+    def subsystem(self, address: int) -> str:
+        for start, end, subsystem in self.modules:
+            if start <= address < end:
+                return subsystem
+        return ""
+
+    def library_category(self, address: int) -> str | None:
+        kind = self.library_kinds.get(address)
+        if kind is None and self.subsystem(address) == "library":
+            kind = "crt"
+        if kind is None:
+            return None
+        return "libci" if kind == "iostream" else "crt"
+
+    def function_category(self, address: int) -> str:
+        return self.library_category(address) or (
+            "tactical_function" if self.subsystem(address) == "tactical" else "game_function")
+
+
+def data_category(address: int) -> str:
+    for category, (lo, hi) in (("data_rdata", RDATA_RANGE), ("data_data", DATA_RANGE), ("data_bss", BSS_RANGE)):
+        if lo <= address < hi:
+            return category
+    return "unresolved_other"
+
+
+def build_gap_report(refs: list[tuple[str, str, OriginalSymbol]], hooked: set[int], classifier: GapClassifier) -> dict:
+    """refs: (raw symbol, how it resolved: 'csv' | 'alias' | 'import', original symbol)."""
+    categories: dict[str, list[dict]] = {c: [] for c in GAP_CATEGORIES}
+    raw_by_data_address: dict[int, set[str]] = {}
+    for raw, how, orig in refs:
+        entry: dict = {"symbol": raw, "address": f"{orig.address:#010x}", "name": orig.name}
+        if how == "import":
+            category = "win32_import"
+        elif orig.kind != "func":
+            category = data_category(orig.address)
+            raw_by_data_address.setdefault(orig.address, set()).add(raw)
+        elif how == "alias":
+            category = "alias_standin"
+        elif orig.address in hooked:
+            category = "stale_declaration"
+        else:
+            category = classifier.function_category(orig.address)
+            entry["size"] = classifier.function_sizes.get(orig.address, 0)
+        categories[category].append(entry)
+    multi_typed = [{"address": f"{a:#010x}", "symbols": sorted(r)} for a, r in sorted(raw_by_data_address.items())
+                   if len(r) > 1]
+    return {"categories": {c: sorted(v, key=lambda e: (e.get("address", ""), e["symbol"]))
+                           for c, v in categories.items()},
+            "multi_typed_globals": multi_typed}
+
+
 def quote(sym: str) -> str:
     return '"' + sym.replace('"', '\\"') + '"'
 
@@ -259,6 +337,9 @@ def main() -> int:
             s.key = s.signature_key = c_symbol_key(s.raw)
 
     absolute: list[tuple[str, int]] = []
+    gap_refs: list[tuple[str, str, OriginalSymbol]] = []
+    unresolved: list[str] = []
+    defined_anywhere = {s.raw for s in symbols if s.defined}
     hooks: list[tuple[int, str, str]] = []
     errors: list[str] = []
     hooked_by_address: dict[int, str] = {}
@@ -266,18 +347,24 @@ def main() -> int:
         m = IMPORT_REF.match(s.raw)
         if m and not s.defined and m.group(1) in game_imports:
             absolute.append((s.raw, game_imports[m.group(1)]))
+            gap_refs.append((s.raw, "import", OriginalSymbol(game_imports[m.group(1)], "data", m.group(1))))
             continue
         try:
             orig = resolve(s, table, ambiguous)
         except LookupError as e:
             errors.append(str(e))
             continue
+        via_alias = False
         if orig is None and not s.defined:
             orig = resolve(s, aliases, set())
+            via_alias = orig is not None
         if orig is None:
+            if not s.defined and s.raw not in defined_anywhere:
+                unresolved.append(s.raw)
             continue
         if not s.defined:
             absolute.append((s.raw, orig.address))
+            gap_refs.append((s.raw, "alias" if via_alias else "csv", orig))
         elif s.nm_type in TEXT_TYPES:
             if orig.kind != "func":
                 errors.append(f"{s.key}: defined as code but {orig.name} at {orig.address:#x} is data")
@@ -303,9 +390,12 @@ def main() -> int:
         lines.append(f'reb_hook_name_{i}: .asciz "{key}"')
     args.out_asm.parent.mkdir(parents=True, exist_ok=True)
     args.out_asm.write_text("\n".join(lines) + "\n")
+    gaps = build_gap_report(gap_refs, set(hooked_by_address), GapClassifier.load(args.csv.parent))
+    gaps["categories"]["unresolved_other"] += [{"symbol": r} for r in sorted(unresolved)]
     args.out_report.write_text(json.dumps({
         "reimplemented": {f"{a:#010x}": k for a, _, k, _ in sorted(hooks)},
         "referenced_originals": len(absolute),
+        "gaps": gaps,
     }, indent=1) + "\n")
     print(f"gen_link_symbols: {len(hooks)} hooks, {len(absolute)} original references")
     return 0
