@@ -1,7 +1,54 @@
 #include "ai/ai_task_manager.h"
 
+#include "ai/ai_order_util.h"
+#include "ai/ai_task_types.h"
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
+#include "events/game_clock_hooks.h"
+
+// ---- AiMissionHistoryEntry ----------------------------------------------------------------------------------------------
+
+AiMissionHistoryEntry::AiMissionHistoryEntry() : AvlNode(), m_time(), m_key() {
+    m_id = 0;
+    m_x1c = 0;
+    m_x20 = 0;
+}
+
+AiMissionHistoryEntry::~AiMissionHistoryEntry() { REB_KEEP_VPTR_STORE(); }
+
+void AiMissionHistoryEntry::Read(istream* in) {
+    ReadValue32(in, &m_id);
+    ReadValue32(in, &m_x1c);
+    ReadValue32(in, &m_x20);
+    ReadGameTime(&m_time, in);
+    m_key.Read(in);
+}
+
+void AiMissionHistoryEntry::Write(ostream* out) {
+    WriteValue32(out, &m_id);
+    WriteValue32(out, &m_x1c);
+    WriteValue32(out, &m_x20);
+    StreamWrite32(out, &m_time);
+    m_key.Write(out);
+}
+
+int AiMissionHistoryEntry::Fill(const void* mission) {
+    const uint8_t* raw = static_cast<const uint8_t*>(mission);
+    m_key = *reinterpret_cast<const ObjectKey*>(raw + 0x2c);
+    const bool againstSystem = ai::IsSystemKey(m_key);
+    m_id = *reinterpret_cast<const uint32_t*>(raw + 0x20);
+    const uint32_t id = m_id;
+    const int kind = *reinterpret_cast<const int*>(raw + 0x24);
+    m_x1c = kind;
+    if (kind == 1 || kind == 2)
+        m_x20 = 1;
+    else if (kind == 3)
+        m_x20 = 2;
+    else
+        m_x20 = 0;
+    AssignGameTime(&m_time, reinterpret_cast<const GameTime*>(raw + 0x28));
+    return id != 0 && againstSystem;
+}
 
 // ---- AiMissionHistory ---------------------------------------------------------------------------------------------------
 
@@ -153,64 +200,35 @@ AiTaskBase* AiTaskManager::SelectNext() {
 }
 
 AiTaskBase* AiTaskManager::MakeTask(int type) {
-    void* memory;
     switch (type) {
     case 1:
-        memory = ::operator new(0x78);
-        if (memory) return FUN_004da950(memory, m_view);
-        break;
+        return NewOrNull<AiTask1>(m_view);
     case 2:
-        memory = ::operator new(0x80);
-        if (memory) return FUN_004e1e50(memory, m_view);
-        break;
+        return NewOrNull<AiTask2>(m_view);
     case 3:
-        memory = ::operator new(0x7c);
-        if (memory) return FUN_004d6b20(memory, m_view);
-        break;
+        return NewOrNull<AiTask3>(m_view);
     case 4:
-        memory = ::operator new(0x60);
-        if (memory) return FUN_004d2220(memory, m_view);
-        break;
+        return NewOrNull<AiTask4>(m_view);
     case 5:
-        memory = ::operator new(0x88);
-        if (memory) return FUN_004cfb20(memory, m_view);
-        break;
+        return NewOrNull<AiTask5>(m_view);
     case 6:
-        memory = ::operator new(0x8c);
-        if (memory) return FUN_004dd460(memory, m_view);
-        break;
+        return NewOrNull<AiTask6>(m_view);
     case 7:
-        memory = ::operator new(0x7c);
-        if (memory) return FUN_004d2ef0(memory, m_view);
-        break;
+        return NewOrNull<AiTask7>(m_view);
     case 8:
-        memory = ::operator new(0x58);
-        if (memory) return FUN_004cf410(memory, m_view);
-        break;
+        return NewOrNull<AiTask8>(m_view);
     case 9:
-        memory = ::operator new(0x58);
-        if (memory) return FUN_004cf0a0(memory, m_view);
-        break;
+        return NewOrNull<AiTask9>(m_view);
     case 10:
-        memory = ::operator new(0x84);
-        if (memory) return FUN_004cc6b0(memory, m_view);
-        break;
+        return NewOrNull<AiTask10>(m_view);
     case 11:
-        memory = ::operator new(0x88);
-        if (memory) return FUN_004c8820(memory, m_view);
-        break;
+        return NewOrNull<AiTask11>(m_view);
     case 12:
-        memory = ::operator new(0x60);
-        if (memory) return FUN_004c8260(memory, m_view);
-        break;
+        return NewOrNull<AiTask12>(m_view);
     case 13:
-        memory = ::operator new(0x70);
-        if (memory) return FUN_004bf0d0(memory, m_view);
-        break;
+        return NewOrNull<AiTask13>(m_view);
     case 14:
-        memory = ::operator new(0x4c);
-        if (memory) return FUN_004d2810(memory, m_view);
-        break;
+        return NewOrNull<AiTask14>(m_view);
     }
     return nullptr;
 }

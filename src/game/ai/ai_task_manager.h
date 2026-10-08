@@ -15,7 +15,7 @@ class AiSideController;
 
 // ---- AiMissionHistory ---------------------------------------------------------------------------------------------------
 
-// One remembered mission (VT 0x65c6b4, 0x2c bytes; reconstructed with the task types at 0x4c8000, part 2 of the AI module).
+// One remembered mission (VT 0x65c6b4, 0x2c bytes; lies with the task types at 0x4c8000).
 class AiMissionHistoryEntry : public AvlNode {
 public:
     AiMissionHistoryEntry();                    // 0x4c8000
@@ -84,22 +84,6 @@ public:
 
     int m_x0c;                // +0x0c always 1
 };
-
-// The constructors of the 14 task types (part 2): (view) on memory from operator new.
-AiTaskBase* __thiscall FUN_004da950(void* memory, int view);  // type 1 (0x78)
-AiTaskBase* __thiscall FUN_004e1e50(void* memory, int view);  // type 2 (0x80)
-AiTaskBase* __thiscall FUN_004d6b20(void* memory, int view);  // type 3 (0x7c)
-AiTaskBase* __thiscall FUN_004d2220(void* memory, int view);  // type 4 (0x60)
-AiTaskBase* __thiscall FUN_004cfb20(void* memory, int view);  // type 5 (0x88)
-AiTaskBase* __thiscall FUN_004dd460(void* memory, int view);  // type 6 (0x8c)
-AiTaskBase* __thiscall FUN_004d2ef0(void* memory, int view);  // type 7 (0x7c)
-AiTaskBase* __thiscall FUN_004cf410(void* memory, int view);  // type 8 (0x58)
-AiTaskBase* __thiscall FUN_004cf0a0(void* memory, int view);  // type 9 (0x58)
-AiTaskBase* __thiscall FUN_004cc6b0(void* memory, int view);  // type 10 (0x84)
-AiTaskBase* __thiscall FUN_004c8820(void* memory, int view);  // type 11 (0x88)
-AiTaskBase* __thiscall FUN_004c8260(void* memory, int view);  // type 12 (0x60)
-AiTaskBase* __thiscall FUN_004bf0d0(void* memory, int view);  // type 13 (0x70)
-AiTaskBase* __thiscall FUN_004d2810(void* memory, int view);  // type 14 (0x4c)
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
