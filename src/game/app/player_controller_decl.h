@@ -110,8 +110,8 @@ public:
     virtual void Virtual32(const ObjectKey* key, int arg) {}
     virtual void Virtual33(const ObjectKey* key, int arg) {}
     virtual void Virtual34(const ObjectKey* key, int arg) {}
-    virtual void Virtual35() {}
-    virtual void Virtual36() {}
+    virtual void Virtual35(const ObjectKey* key, int arg) {}
+    virtual void Virtual36(const ObjectKey* key, int arg) {}
     virtual void Virtual37(const ObjectKey* key, int arg) {}
     virtual void Virtual38(const ObjectKey* key, int arg) {}
     virtual void Virtual39(const ObjectKey* key, int arg) {}
@@ -130,16 +130,16 @@ public:
     virtual void Virtual52(const ObjectKey* manager, int position) {}
     virtual void Virtual53(const ObjectKey* manager, const ObjectKey* character) {}
     virtual void Virtual54(const ObjectKey* manager, String* text) {}
-    virtual void Virtual55() {}
-    virtual void Virtual56() {}
-    virtual void Virtual57() {}
+    virtual void Virtual55(const ObjectKey* key, const ObjectKey* first, const ObjectKey* second) {}
+    virtual void Virtual56(const ObjectKey* key, int arg) {}
+    virtual void Virtual57(const ObjectKey* key, const ObjectKey* other) {}
     virtual void Virtual58(const ObjectKey* key, int arg) {}
     virtual void Virtual59(int a, int b) {}
     virtual void Virtual60(int a, int b) {}
     virtual void Virtual61(int a, int b) {}
     virtual void Virtual62(const ObjectKey* key, int redraw) {}
     virtual void Virtual63(const ObjectKey* key, int redraw) {}
-    virtual void Virtual64() {}
+    virtual void Virtual64(const ObjectKey* key, int arg) {}
     virtual void Virtual65(const ObjectKey* key, int redraw) {}
     virtual void Virtual66(const ObjectKey* key, int arg) {}
     virtual void Virtual67(const ObjectKey* key, int arg) {}
@@ -160,7 +160,7 @@ public:
     virtual void Virtual82(const ObjectKey* key) {}
     virtual void Virtual83(const ObjectKey* key, const ObjectKey* newParent, int arg) {}
     virtual void Virtual84(const ObjectKey* key, int arg) {}
-    virtual void Virtual85() {}
+    virtual void Virtual85(const ObjectKey* key, int arg) {}
     virtual void Virtual86(const ObjectKey* key, int arg) {}
     virtual void Virtual87(const ObjectKey* key, int name0, int name1, int name2) {}
     virtual void Virtual88(const ObjectKey* key, int arg) {}

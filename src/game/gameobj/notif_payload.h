@@ -8,16 +8,18 @@
 
 // Base of the small notification payload classes (VT 0x65ecf8; the leaf classes' vtables are 0x661300-0x661380, the
 // ObjectKey-carrying subclass built at 0x583fe0 adds a key at +0x20): a LinkNode followed by five ints that the leaf
-// classes' Read/Write call ReadFields/WriteFields for. Slots 3, 6 and 7 are pure and not understood yet.
+// classes' Read/Write call ReadFields/WriteFields for. Slots 3, 6 and 7 are pure; the UI notification handlers implement them.
+class PlayerController;
+
 class NotifPayload : public LinkNode {
 public:
     NotifPayload();
     virtual ~NotifPayload();
-    virtual int Virtual03() = 0;
-    virtual int Virtual04() { return 1; }
+    virtual int GetKind() = 0;
+    virtual int Virtual04() { return 1; }  // the delivery mode of the notification (1 unless a handler overrides it)
     virtual void Virtual05() {}
-    virtual int Virtual06() = 0;
-    virtual int Virtual07() = 0;
+    virtual void Dispatch(PlayerController* controller) = 0;  // the UI handlers (events/ui_notifs.h) tell a controller
+    virtual void DispatchToSink(void* sink) = 0;              // dead code in the original, see events/ui_notif_helpers.h
 
     // LinkNode::Read (a no-op), then the five ints; always 1.
     int ReadFields(istream* in);
