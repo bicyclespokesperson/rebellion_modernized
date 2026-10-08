@@ -4,6 +4,7 @@
 #include "core/utility_classes.h"
 #include "events/game_clock_hooks.h"
 #include "events/game_step_driver.h"
+#include "strategy_ui/advisor_droid.h"
 #include "orders/order_list.h"
 #include "app/rebapp_globals.h"
 #include "strategy_ui/galaxy_window.h"
@@ -551,7 +552,6 @@ void UiResumePendingRequest() {
 // ---- Input hooks ---------------------------------------------------------------------------------------------
 
 // 0x43a200: flags the request that Escape (or a click outside the game's windows) was pressed.
-void FUN_0043a200();
 
 extern HHOOK g_uiKeyboardHook;       // 0x6b14ac
 extern HHOOK g_uiMouseHook;          // 0x6b14b0
@@ -561,7 +561,7 @@ extern int g_uiInputActive;          // 0x6b14bc
 
 LRESULT CALLBACK UiKeyboardHook(int code, WPARAM wParam, LPARAM lParam) {
     const int notStarted = g_uiGameInputStarted == 0;
-    if (code >= 0 && g_uiGameInputStarted == 0 && wParam == VK_ESCAPE && (lParam & 0x80000000)) FUN_0043a200();
+    if (code >= 0 && g_uiGameInputStarted == 0 && wParam == VK_ESCAPE && (lParam & 0x80000000)) AdvisorRequestIdle();
     CallNextHookEx(g_uiKeyboardHook, code, wParam, lParam);
     return notStarted;
 }
@@ -572,7 +572,7 @@ LRESULT CALLBACK UiMouseHook(int code, WPARAM wParam, LPARAM lParam) {
         switch (wParam) {
         case WM_LBUTTONDOWN:
         case WM_RBUTTONDOWN:
-            FUN_0043a200();
+            AdvisorRequestIdle();
             handled = true;
             break;
         case WM_LBUTTONUP:

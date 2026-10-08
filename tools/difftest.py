@@ -749,7 +749,7 @@ def run_capture(path: Path, args, exe_pristine: Image, imports: Imports) -> bool
     hooks = hook_table(dll)
     target = next((h for h in hooks if h.original == cap.function), None)
     # A __stdcall member (flag 0x100 in the return kind) also has `this` on the stack.
-    arg_bytes = (stack_arg_bytes(target.name) + (4 if target.return_kind & 0x100 else 0)) if target else 0
+    arg_bytes = (stack_arg_bytes(target.name) + (4 if target.return_kind & 0x100 else 0) + (4 if target.return_kind & 0x200 else 0)) if target else 0
     label = f"{path.name} [{cap.function:#010x}]"
     try:
         orig = Emulator(cap, pack, fresh(exe_pristine), dll, imports, args.max_insns, arg_bytes).run(cap.function)

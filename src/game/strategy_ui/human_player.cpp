@@ -4,6 +4,7 @@
 
 #include "app/rebapp_globals.h"
 #include "audio/sound_manager.h"
+#include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/stream_io.h"
 #include "core/vptr_store.h"
@@ -13,6 +14,8 @@
 #include "gameobj/object_lookup.h"
 #include "gameobj/status_code.h"
 #include "orders/order_base.h"
+#include "strategy_ui/advisor_droid.h"
+#include "strategy_ui/advisor_notices.h"
 #include "strategy_ui/game_ui_facade.h"
 
 // ---- Parts of the player controller (0x488460-0x48aa90) and of the advisor droid (0x4392b0-0x43a2d0) that this class
@@ -34,26 +37,6 @@ void __thiscall FUN_004beea0(void* alerts, istream* in);
 void __thiscall FUN_004bef30(void* alerts, ostream* out);
 void __thiscall FUN_004bef90(void* alerts, PlayerNotice* notice);
 void* __thiscall FUN_004befe0(void* alerts);
-void* __thiscall FUN_004c27f0(void* memory, int side, HumanPlayer* player);
-void* __thiscall FUN_004c0710(void* memory, int side, HumanPlayer* player);
-int __thiscall FUN_00439950(void* advisor);
-int __thiscall FUN_00439a10(void* advisor);
-void __thiscall FUN_00439bb0(void* advisor);
-void __thiscall FUN_00439bc0(void* advisor);
-void __thiscall FUN_00439cb0(void* advisor);
-uint32_t __thiscall FUN_00439cd0(void* advisor);
-void __thiscall FUN_00439cf0(void* advisor, int value);
-void __thiscall FUN_00439d10(void* advisor, int command);
-void __thiscall FUN_00439d60(void* advisor, int command);
-int __thiscall FUN_00439e30(void* advisor, int kind);
-void FUN_00439e80(int command);
-void __thiscall FUN_00439ed0(void* advisor);
-void FUN_00439eb0(int a, int b);
-void __thiscall FUN_0043a0b0(void* advisor, unsigned mask);
-void __thiscall FUN_0043a210(void* advisor, int value);
-void __thiscall FUN_0043a220(void* advisor, int value);
-int __thiscall FUN_0043a250(void* advisor);
-void __thiscall FUN_0043a2a0(void* advisor, PlayerMessage* order);
 void __thiscall FUN_0049cdb0(void* aiHelper, const ObjectKey* key, int arg);
 void __thiscall FUN_0049d0b0(void* aiHelper, const ObjectKey* key);
 void __thiscall FUN_0049d3b0(void* aiHelper, const ObjectKey* key, const ObjectKey* newParent, int arg);
@@ -61,14 +44,11 @@ int FUN_0041dcb0(int speed);
 void __thiscall FUN_00403ef0(void* advisor, int a, int b);
 extern PersistentInt g_humanUiFlags;  // 0x6b28b0
 void __thiscall FUN_00488030(HumanPlayer* player, PlayerMessage* message);
-SoundRequest* FUN_004c4a20(SoundRequest* result, uint32_t adviceId);
-uint32_t FUN_004c4990(uint32_t id);
 int __thiscall FUN_0041bde0(GameObjNotifier* side, void* scratch);
 
 namespace {
 
 constexpr uint32_t kAdvisorMessageEnd = 0x11;
-constexpr uint32_t kAdvisorSide1Size = 0x194;
 constexpr int kSideAlliance = 1;
 constexpr int kSideEmpire = 2;
 constexpr uint32_t kSetSpeedKind = 0x280;
@@ -91,11 +71,9 @@ void PlayEffect(uint32_t soundId) {
     SoundManager::Play(&request);
 }
 
-void* NewAdvisor(HumanPlayer* player) {
-    void* memory = ::operator new(kAdvisorSide1Size);
-    if (!memory) return nullptr;
-    if (player->m_side == kSideAlliance) return FUN_004c27f0(memory, player->m_side, player);
-    return FUN_004c0710(memory, player->m_side, player);
+AdvisorBase* NewAdvisor(HumanPlayer* player) {
+    if (player->m_side == kSideAlliance) return NewOrNull<AllianceAdvisor>(player->m_side, player);
+    return NewOrNull<EmpireAdvisor>(player->m_side, player);
 }
 
 bool FamilyIn(const ObjectKey& key, uint32_t first, uint32_t last) { return key.Family() >= first && key.Family() < last; }
@@ -107,7 +85,7 @@ struct AdvisorStats {
 
 }  // namespace
 
-void HumanSetUiTarget(int a, int b) { FUN_00439eb0(a, b); }
+void HumanSetUiTarget(int a, int b) { AdvisorSetPendingCommand(a, b); }
 
 // ---- Construction ----------------------------------------------------------------------------------------------
 
@@ -128,16 +106,13 @@ HumanPlayer::HumanPlayer(int side) : PlayerController(side) {
     m_advisor = nullptr;
     m_pausedSpeed = 0;
     if (m_side == kSideAlliance || m_side == kSideEmpire) m_advisor = NewAdvisor(this);
-    *reinterpret_cast<PlayerDispatch**>(static_cast<char*>(m_advisor) + 8) = Dispatch();
+    m_advisor->m_dispatch = Dispatch();
     *reinterpret_cast<void**>(Dispatch()->m_unk04) = m_advisor;
     Dispatch()->m_side = m_side;
 }
 
 HumanPlayer::~HumanPlayer() {
-    if (m_advisor) {
-        void** vtable = *static_cast<void***>(m_advisor);
-        reinterpret_cast<void(__thiscall*)(void*, int)>(vtable[0])(m_advisor, 1);
-    }
+    delete m_advisor;
     FUN_00488990(Dispatch());
     FUN_004bee90(m_alertList);
     REB_KEEP_VPTR_STORE();
@@ -150,12 +125,9 @@ void HumanPlayer::Read(istream* in) {
     FUN_004beea0(m_alertList, in);
     FUN_00488a30(Dispatch(), in);
     if (m_side == kSideAlliance || m_side == kSideEmpire) m_advisor = NewAdvisor(this);
-    *reinterpret_cast<PlayerDispatch**>(static_cast<char*>(m_advisor) + 8) = Dispatch();
+    m_advisor->m_dispatch = Dispatch();
     *reinterpret_cast<void**>(Dispatch()->m_unk04) = m_advisor;
-    if (m_advisor) {
-        void** vtable = *static_cast<void***>(m_advisor);
-        reinterpret_cast<void(__thiscall*)(void*, istream*, HumanPlayer*)>(vtable[1])(m_advisor, in, this);
-    }
+    if (m_advisor) m_advisor->Read(in, this);
     m_pausedSpeed = 0;
 }
 
@@ -165,17 +137,14 @@ void HumanPlayer::Write(ostream* out) {
     WriteValue32(out, &m_speed);
     FUN_004bef30(m_alertList, out);
     FUN_00488ac0(Dispatch(), out);
-    if (m_advisor) {
-        void** vtable = *static_cast<void***>(m_advisor);
-        reinterpret_cast<void(__thiscall*)(void*, ostream*)>(vtable[2])(m_advisor, out);
-    }
+    if (m_advisor) m_advisor->Write(out);
 }
 
 // ---- Controller slots --------------------------------------------------------------------------------------------
 
 int HumanPlayer::Virtual04() {
     int result = 1;
-    if (m_advisor) result = FUN_00439950(m_advisor);
+    if (m_advisor) result = m_advisor->StepStartup();
     if (result) {
         FUN_00488b30(Dispatch());
         SetSpeed(2);
@@ -199,12 +168,12 @@ int HumanPlayer::Virtual08(PlayerMessage* message) {
 
 int HumanPlayer::Virtual09() {
     int result = 1;
-    if (m_advisor) result = FUN_00439a10(m_advisor);
+    if (m_advisor) result = m_advisor->StepTasks();
     return result;
 }
 
 void HumanPlayer::Virtual10() {
-    if (m_advisor && !HasPendingMessages()) FUN_00439bb0(m_advisor);
+    if (m_advisor && !HasPendingMessages()) m_advisor->Tick();
     if (void* message = FUN_004befe0(m_alertList)) {
         FUN_00488b50(Dispatch(), message);
         void** vtable = *static_cast<void***>(message);
@@ -217,7 +186,7 @@ void HumanPlayer::Virtual14() {
     UiRefreshChildWindows();
     const int day = FUN_0041dcb0(m_speed);
     UiSetDateAndSpeed(day, m_speed);
-    FUN_00439bc0(m_advisor);
+    m_advisor->SpeakIfIdle();
 }
 
 void HumanPlayer::Virtual20(PlayerNotice* notice) {
@@ -257,9 +226,9 @@ void HumanPlayer::Virtual19(int id, ObjectKey* key) {
 }
 
 void HumanPlayer::Virtual21() {
-    char* advisor = static_cast<char*>(m_advisor);
-    *reinterpret_cast<int*>(advisor + 0x188) = 0;
-    uint8_t* mood = reinterpret_cast<uint8_t*>(advisor + 0x170);
+    char* advisor = reinterpret_cast<char*>(m_advisor);
+    m_advisor->m_unk188 = 0;
+    uint8_t* mood = &m_advisor->m_mood;
     *mood = 8;
     const int difference = *reinterpret_cast<int*>(advisor + 0xc4) - *reinterpret_cast<int*>(advisor + 200);
     if (difference < 2) {
@@ -327,7 +296,7 @@ void HumanPlayer::Virtual25(int value) {
         available = total - *reinterpret_cast<int*>(reinterpret_cast<char*>(side) + 0x74);
     }
     UiSetMaintenance(available, total);
-    FUN_0043a210(m_advisor, value);
+    m_advisor->SetAiHelperFlag(value);
 }
 
 void HumanPlayer::Virtual26(int value) {
@@ -340,15 +309,14 @@ void HumanPlayer::Virtual26(int value) {
         available = total - *reinterpret_cast<int*>(reinterpret_cast<char*>(side) + 0x74);
     }
     UiSetMaintenance(available, total);
-    FUN_0043a220(m_advisor, value);
+    m_advisor->ClearAiHelperFlag(value);
 }
 
 void HumanPlayer::Virtual27(int) {}
 
 void HumanPlayer::Virtual29(unsigned flags) {
     if ((flags & 0x10000000) && m_advisor) {
-        void** vtable = *static_cast<void***>(m_advisor);
-        reinterpret_cast<void(__thiscall*)(void*, unsigned)>(vtable[4])(m_advisor, flags);
+        m_advisor->HandleUiFlags(flags);
     }
 }
 
@@ -543,7 +511,7 @@ void HumanPlayer::ExecuteCommand(int command, ObjectKeyValueSet* selection, Obje
     }
     if (command < 0x113) {
         if (command > 0x10f) {
-            FUN_00439d10(m_advisor, command);
+            m_advisor->SelectTaskMode(command);
             UiBeginTargeting(nullptr);
             return;
         }
@@ -573,13 +541,13 @@ void HumanPlayer::ExecuteCommand(int command, ObjectKeyValueSet* selection, Obje
         case 0x116:
         case 0x117:
         case 0x118:
-            FUN_00439d60(m_advisor, command);
+            m_advisor->ToggleTask(command);
             return;
         case 0x119:
         case 0x11a:
         case 0x11b:
         case 0x11e:
-            FUN_00439e80(command);
+            AdvisorToggleUiFlag(command);
             return;
         case 0x11c:
             UiPostOpenType0dWindow(1, 0x79);
@@ -687,13 +655,13 @@ void HumanPlayer::SubmitOrder(PlayerMessage* order, int flag) {
     } else {
         FUN_00488030(this, order);
         FUN_0048aa90(this, order);
-        FUN_00439cb0(m_advisor);
-        FUN_0043a2a0(m_advisor, order);
+        m_advisor->ResetSpeech();
+        m_advisor->OnOrderSubmitted(order);
     }
 }
 
 void HumanPlayer::NotifyAdvisor(int value) {
-    if (m_advisor) FUN_00439cf0(m_advisor, value);
+    if (m_advisor) m_advisor->SetTaskState(value);
 }
 
 void HumanPlayer::SetVote(int choice, int timed, PlayerMessage* reply) {
@@ -734,9 +702,9 @@ void HumanPlayer::FillCommandMenu(EventKindSet* commands) {
     commands->Add(0x11e, advisorMask);
     if (g_humanUiFlags.m_value & 0x1000) commands->Find(0x11b)->m_unknown = 1;
     if (!(g_humanUiFlags.Get() & 0x8000)) commands->Find(0x11e)->m_unknown = 1;
-    if (FUN_00439e30(m_advisor, 0x115)) commands->Find(0x115)->m_unknown = 1;
-    if (FUN_00439e30(m_advisor, 0x116)) commands->Find(0x116)->m_unknown = 1;
-    if (FUN_00439e30(m_advisor, 0x117)) commands->Find(0x117)->m_unknown = 1;
+    if (m_advisor->IsTaskReady(0x115)) commands->Find(0x115)->m_unknown = 1;
+    if (m_advisor->IsTaskReady(0x116)) commands->Find(0x116)->m_unknown = 1;
+    if (m_advisor->IsTaskReady(0x117)) commands->Find(0x117)->m_unknown = 1;
 }
 
 void HumanPlayer::FillOrderMenu(EventKindSet* commands) {
@@ -755,18 +723,18 @@ void HumanPlayer::FillOrderMenu(EventKindSet* commands) {
 }
 
 void HumanPlayer::AdvisorReset() {
-    if (m_advisor) FUN_00439ed0(m_advisor);
+    if (m_advisor) AdvisorNoteNag();
 }
 
 uint32_t HumanPlayer::GetAdvisorCommandMask() {
     uint32_t mask = 0;
-    if (m_advisor) mask = *reinterpret_cast<uint32_t*>(static_cast<char*>(m_advisor) + 0x10);
+    if (m_advisor) mask = static_cast<uint32_t>(m_advisor->m_enabled);
     return mask;
 }
 
 uint32_t HumanPlayer::GetAdvisorOrderMask() {
     uint32_t mask = 0;
-    if (m_advisor) mask = FUN_00439cd0(m_advisor);
+    if (m_advisor) mask = m_advisor->IsBusy();
     return mask;
 }
 
@@ -781,8 +749,7 @@ OrderBase* HumanPlayer::CreateOrder(int kind, ObjectKeyValueSet* team, ObjectKey
 }
 
 void HumanPlayer::RefuseOrder(PlayerMessage* order, IntPair* status) {
-    void** vtable = *static_cast<void***>(m_advisor);
-    reinterpret_cast<void(__thiscall*)(void*, PlayerMessage*, IntPair*)>(vtable[3])(m_advisor, order, status);
+    m_advisor->HandleRefusedOrder(reinterpret_cast<OrderBase*>(order), status);
     if (order) delete reinterpret_cast<MessageBase*>(order);
 }
 
@@ -859,12 +826,12 @@ void HumanPlayer::SetAdvisorFlag4000(int on) {
 
 int HumanPlayer::NextAdvice() {
     int result = 0;
-    if (m_advisor) result = FUN_0043a250(m_advisor);
+    if (m_advisor) result = m_advisor->PickAdvice();
     return result;
 }
 
 void HumanPlayer::ClearAlerts(unsigned mask) {
-    if (m_advisor) FUN_0043a0b0(m_advisor, mask);
+    if (m_advisor) m_advisor->SpeakTopic(mask);
 }
 
 void HumanPlayer::SetPaused(int paused) {
@@ -900,8 +867,8 @@ void HumanPlayer::SpeakOrderAdvice(PlayerMessage* order) {
                         ObjectKey parentKey;
                         object->m_parent->GetKey(&parentKey);
                         if (FamilyIn(parentKey, 0x90, 0x98) && (parentKey.m_value & 0xffffff) == 0xf9)
-                            advice = FUN_004c4990(0x131);
-                        if (static_cast<int16_t>(advice) == 0) advice = FUN_004c4990(0xc9);
+                            advice = AdvisorPickAdviceLine(0x131);
+                        if (static_cast<int16_t>(advice) == 0) advice = AdvisorPickAdviceLine(0xc9);
                         known = false;
                     } else {
                         advice = 0xc9;
@@ -913,7 +880,7 @@ void HumanPlayer::SpeakOrderAdvice(PlayerMessage* order) {
                 case 0x281: advice = 0xfb; break;
                 default: known = false;
                 }
-                if (known) advice = FUN_004c4990(advice);
+                if (known) advice = AdvisorPickAdviceLine(advice);
             }
         }
     } else if (kind == 0x250) {
@@ -936,12 +903,12 @@ void HumanPlayer::SpeakOrderAdvice(PlayerMessage* order) {
                 case 0x281: advice = 0xff; break;
                 default: known = false;
                 }
-                if (known) advice = FUN_004c4990(advice);
+                if (known) advice = AdvisorPickAdviceLine(advice);
             }
         }
     }
     if (static_cast<int16_t>(advice) != 0) {
         alignas(8) char result[0x18];
-        FUN_004c4a20(reinterpret_cast<SoundRequest*>(result), advice);
+        AdvisorPlayAdvice(reinterpret_cast<SoundRequest*>(result), advice);
     }
 }

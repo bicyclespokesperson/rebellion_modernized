@@ -19,6 +19,8 @@ class OwningIdList : public IdSortedLinkList {
 public:
     OwningIdList();           // 0x4c7f50
     virtual ~OwningIdList();  // 0x4c7f90 (scalar deleting destructor 0x4c7f70)
+    // Slot 2, 0x4c7fe0: whether `a`'s id is below `b`'s (what IdSortedLinkList::IsLess does without the null checks).
+    virtual int IsLessById(LinkNode* a, LinkNode* b);
 };
 
 // The entries of one menu level, by command id (VT 0x65bee0).

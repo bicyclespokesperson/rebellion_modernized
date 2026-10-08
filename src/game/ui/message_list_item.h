@@ -5,7 +5,7 @@
 #include "ui/cool_drag_list.h"
 #include "ui/cool_list_item.h"
 
-class MessageRecord;
+#include "ui/message_record_decl.h"
 
 // A row of the message index (0x468ab0): shows a message record's text. Rows whose m_visible is 0 are skipped by
 // Next/Previous (the same code as ObjectListItem's, linker-folded).

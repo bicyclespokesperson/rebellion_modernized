@@ -13,24 +13,18 @@
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
 #include "gfx/dib_bitmap.h"
+#include "strategy_ui/fleet_window.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "strategy_ui/sector_window.h"
+#include "strategy_ui/system_forces_window.h"
+#include "strategy_ui/system_missions_window.h"
 #include "ui/bitmap_status_bar.h"
 #include "ui/cool_app.h"
 #include "ui/cool_drag_list.h"
 #include "ui/cool_list_item.h"
 
 ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
-// The side that controls the missions of `system` as seen from `view` (0 none, 1 Alliance, 2 Empire, 3 both).
-int FUN_004a1f60(GameObjNotifier* system, int view);
-// The windows the markers open (other modules): fleets, defense, missions.
-void* __thiscall FUN_004a7790(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
-                              int childId, GameObjNotifier* system);
-void* __thiscall FUN_004a2630(void* memory, HINSTANCE instance, int x, int y, CoolWindow* parent, int childId,
-                              GameObjNotifier* system);
-void* __thiscall FUN_0049f130(void* memory, HINSTANCE instance, int x, int y, CoolWindow* parent, int childId,
-                              GameObjNotifier* system);
 void* __thiscall FUN_00452fc0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                               int childId, GameObjNotifier* system);
 
@@ -214,25 +208,25 @@ CoolWindow* SectorWindow::OpenMarkerWindow(ObjectListItem* item, int x, int y) {
             break;
         }
         case 8: {
-            void* memory = ::operator new(0x184);
-            window = memory ? static_cast<CoolWindow*>(FUN_004a7790(memory, instance, position.x, position.y, 0xeb, 0x130,
-                                                                    m_galaxy, childId, system))
+            void* memory = ::operator new(sizeof(SystemForcesWindow));
+            window = memory ? static_cast<CoolWindow*>(new (memory) SystemForcesWindow(instance, position.x, position.y, 0xeb,
+                                                                                       0x130, m_galaxy, childId, system))
                             : nullptr;
             advisorMask = 8;
             break;
         }
         case 0x10: {
-            void* memory = ::operator new(0x1b4);
+            void* memory = ::operator new(sizeof(FleetWindow));
             window = memory ? static_cast<CoolWindow*>(
-                                  FUN_004a2630(memory, instance, position.x, position.y, m_galaxy, childId, system))
+                                  new (memory) FleetWindow(instance, position.x, position.y, m_galaxy, childId, system))
                             : nullptr;
             advisorMask = 4;
             break;
         }
         case 0x40: {
-            void* memory = ::operator new(0x1cc);
-            window = memory ? static_cast<CoolWindow*>(
-                                  FUN_0049f130(memory, instance, position.x, position.y, m_galaxy, childId, system))
+            void* memory = ::operator new(sizeof(SystemMissionsWindow));
+            window = memory ? static_cast<CoolWindow*>(new (memory) SystemMissionsWindow(instance, position.x, position.y,
+                                                                                         m_galaxy, childId, system))
                             : nullptr;
             advisorMask = 0x10;
             break;
@@ -646,7 +640,7 @@ void SectorWindow::UpdateMissionMarker(GameObjNotifier* system, GameObjNotifier*
     ObjectKey key;
     FUN_004025b0(system, &key);
     ObjectListItem* marker = static_cast<ObjectListItem*>(m_markers.FindById((key.m_value & 0xffff) | 0x400000));
-    const int controlSide = FUN_004a1f60(system, m_galaxy->m_side);
+    const int controlSide = DominantMissionSide(system, m_galaxy->m_side);
     const int count = (controlSide == 0 || controlSide == 3) ? 0 : 1;
     SetMarkerState(marker, controlSide, count);
 }

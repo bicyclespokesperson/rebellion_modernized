@@ -1,0 +1,63 @@
+# Message Index in a loaded game (RebelsFastStart, Alliance): F6, open a message, step through the messages, tabs,
+# select all, accept a mission report. See docs/ui_navigation.md. Runtime ~125 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot mi_00_galaxy
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 52
+46 move 170 56
+47 click 170 56
+49 key F6
+53 shot mi_01_list
+# Double-click the first row: the message page.
+55 move 260 164
+56 move 262 165
+57 click 262 165
+57.0 click 262 165
+57.15 click 262 165
+61 shot mi_02_message
+# Next / previous message (top right of the page).
+62 move 459 70
+63 move 461 70
+64 click 461 70
+67 shot mi_03_next
+68 move 436 70
+69 move 438 70
+70 click 438 70
+73 shot mi_04_previous
+# Back to the list; second tab; first tab; select all.
+74 key Escape
+77 shot mi_05_back
+78 move 135 112
+79 move 138 112
+80 click 138 112
+83 shot mi_06_tab
+84 move 100 115
+85 move 102 115
+86 click 102 115
+89 shot mi_07_all_tab
+90 move 345 138
+91 move 347 138
+92 click 347 138
+94 shot mi_08_select_all
+# Second row: a message with accept / decline buttons; accept it.
+95 move 260 185
+96 move 262 186
+97 click 262 186
+97.0 click 262 186
+97.15 click 262 186
+101 shot mi_09_second_message
+102 move 435 305
+103 move 437 306
+104 click 437 306
+107 shot mi_10_accepted
+108 key Escape

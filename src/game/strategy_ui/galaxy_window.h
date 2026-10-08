@@ -196,7 +196,7 @@ public:
     void OpenSystemFinder();                            // 0x42a000
     void OpenFleetFinder();                             // 0x42a0c0
     void OpenPersonnelFinder();                         // 0x42a180
-    void OpenMessageIndex(int tab, int kind);           // 0x42a240
+    void OpenMessageIndex(int mode, int tab);           // 0x42a240
     // Closes the popups, shows the message index (child 0xd) tab refresh of the window's tab control (0x469d20).
     void RefreshMessageIndex();                         // 0x42a300
     // Asks for the characters that can take the mission command; opens the selection window (type 0xc) if there are some.

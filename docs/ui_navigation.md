@@ -17,6 +17,13 @@ here was verified against the original game; the screenshots land in `work/run/<
 | `save_game_slot.txt` | loads "RebelsFastStart", opens the in-game Saved Games screen (monitor at 15,372) and saves into the first empty row (left icon at 50,258); creates `work/game/SaveGame/SAVEGAME.005` (delete it before re-running: a second save asks to overwrite) | ~65 s |
 | `scroll_bar.txt` | loaded game, System Finder (F2), clicks on its vertical scroll bar (track below the thumb, thumb, arrow buttons): CoolScrollBar mouse/timer/capture paths | ~85 s |
 | `space_battle_autoresolve.txt` | loaded game; the "Battle at Ando" window pops up; chooses *Simulate Results* (auto-resolve) | ~130 s |
+| `message_index.txt` | Message Index (F6): tabs, rows, buttons | ~100 s |
+| `mission_dialog.txt` | the mission selection dialog (target a mission, choose characters) | ~100 s |
+| `battle_window.txt` | the battle result window after "Simulate Results": summary, forces pages, kind tabs, go-to page | ~150 s |
+| `system_missions.txt` | missions window of a system (Personnel Finder row 3, Crix Madine): mission row, tabs, character, menus, title bar buttons | ~110 s |
+| `fleet_window.txt` | fleet window (Fleet Finder, Fleet 1 at Yavin): select/open the fleet, kind tabs, ship list, menus, title bar buttons | ~130 s |
+| `system_forces.txt` | forces window of a system (Personnel Finder row 1, Bren Derlin): the five tabs, list, Left/Right keys, buttons | ~110 s |
+| `system_windows_events.txt` | forces, missions and fleet windows open together at Fast: reaches their object-notification handlers | ~100 s |
 
 Each was run at least twice (loads/battle/tour in parallel containers) with identical results. The load-based
 scenarios are far more deterministic than the new-game ones (the new-game galaxy is randomised).

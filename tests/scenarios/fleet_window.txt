@@ -1,0 +1,79 @@
+# The fleet window of a system (galaxy view child kind 0x10): opened from the Fleet Finder (Fleet 1 at Yavin), the fleet
+# row selected, opened (double click), the tabs of the kinds of units, the ship list, menus and the title bar buttons.
+# Loaded game RebelsFastStart, Very Slow. Runtime ~130 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot fw_00_galaxy
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 52
+46 move 170 56
+47 click 170 56
+62 key F3
+65 shot fw_01_fleet_finder
+66 move 100 197
+67 move 105 200
+68 click 105 200
+69.0 click 105 200
+69.15 click 105 200
+72 shot fw_02_fleet_window
+# Select the fleet row, open it (double click), look at the units.
+74 move 325 125
+75 move 330 128
+76 click 330 128
+78 shot fw_03_fleet_selected
+79.0 click 330 128
+79.15 click 330 128
+81 shot fw_04_fleet_opened
+# The tabs of the right-hand part: ships, fighters, troops, personnel.
+82 move 405 190
+83 move 410 193
+84 click 410 193
+86 shot fw_05_tab_ships
+87 move 430 190
+88 move 435 193
+89 click 435 193
+91 shot fw_06_tab_fighters
+92 move 455 190
+93 move 460 193
+94 click 460 193
+96 shot fw_07_tab_troops
+97 move 480 190
+98 move 485 193
+99 click 485 193
+101 shot fw_08_tab_personnel
+102 move 405 190
+103 move 410 193
+104 click 410 193
+# The ship list: click a row, right click it; right click the fleet row.
+105 move 430 230
+106 move 435 235
+107 click 435 235
+108 rclick 435 235
+110 shot fw_09_ship_menu
+111 key Escape
+112 move 325 125
+113 move 330 128
+114 rclick 330 128
+116 shot fw_10_fleet_menu
+117 key Escape
+# The sector button, the side button, then close with Escape.
+118 move 310 93
+119 move 313 96
+120 click 313 96
+123 shot fw_11_sector_button
+124 move 510 93
+125 move 515 96
+126 click 515 96
+128 shot fw_12_side_button
+129 key Escape
+132 shot fw_13_closed
+135 end

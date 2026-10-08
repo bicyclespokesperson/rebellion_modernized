@@ -5,6 +5,7 @@
 #include "core/layout.h"
 #include "gameobj/object_key.h"
 
+class AdvisorBase;
 class ObjectKeyValueSet;
 class OrderBase;
 class EventKindSet;
@@ -99,13 +100,13 @@ public:
     int m_pausedSpeed;            // +0x58 the speed to return to after a pause, 0 while not paused
     uint8_t m_alertList[0x10];    // +0x5c list built by 0x4bee50
     alignas(4) uint8_t m_dispatchStorage[sizeof(PlayerDispatch)];  // +0x6c the PlayerDispatch, built and destroyed by the original's functions
-    void* m_advisor;              // +0xc0 advisor droid (0x4c27f0 / 0x4c0710)
+    AdvisorBase* m_advisor;       // +0xc0 advisor droid (AllianceAdvisor / EmpireAdvisor)
 
     PlayerDispatch* Dispatch() { return reinterpret_cast<PlayerDispatch*>(m_dispatchStorage); }
 };
 
 // Static helpers of the human player that only set UI globals: the two thunks jump to 0x439ef0 / 0x43a1f0 (not
-// reconstructed here); HumanSetUiTarget forwards to 0x439eb0.
+// reconstructed here); HumanSetUiTarget forwards to AdvisorSetPendingCommand (0x439eb0).
 void __cdecl FUN_004878b0(int value);
 void __cdecl FUN_004878c0(int value);
 void HumanSetUiTarget(int a, int b);  // 0x4878d0

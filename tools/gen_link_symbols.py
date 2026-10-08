@@ -103,6 +103,9 @@ def last_identifier(text: str) -> str:
 RETURN_VOID, RETURN_X87, RETURN_EDX_EAX = 0, 0x10, 8
 # OR'ed into the return kind: a __stdcall member function (its `this` is the first stack argument).
 FLAG_STACK_THIS = 0x100
+# OR'ed into the return kind: the result is a class returned by value, which MSVC passes through a hidden pointer
+# argument (one more stack slot that the callee may use as scratch).
+FLAG_HIDDEN_RETURN = 0x200
 
 
 def return_kind(demangled: str) -> int:
@@ -126,6 +129,8 @@ def return_kind(demangled: str) -> int:
         return RETURN_X87
     if base in ("__int64", "unsigned __int64"):
         return RETURN_EDX_EAX
+    if re.match(r"(class|struct|union)\b", base):
+        return 4 | FLAG_HIDDEN_RETURN
     return 4
 
 
