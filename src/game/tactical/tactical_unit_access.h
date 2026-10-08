@@ -49,7 +49,7 @@ public:
     virtual void Slot21();
     virtual void Slot22();
     virtual void Slot23();
-    virtual void Slot24();
+    virtual float Slot24();  // +0x60
     virtual float Slot25();  // +0x64
     virtual void Slot26();
     virtual void Slot27();

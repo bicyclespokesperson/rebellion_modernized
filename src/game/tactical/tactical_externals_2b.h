@@ -11,6 +11,8 @@
 class ShipGroup;
 class TacticalHub;
 
+float __thiscall FUN_005b1640(SimUnit* unit);
+float __thiscall FUN_005b1710(SimUnit* unit);
 float __thiscall FUN_005b18d0(SimUnit* unit);                   // the unit's strongest weapon figure
 int __thiscall FUN_005b1b70(SimUnit* unit);
 int __thiscall FUN_005b69f0(SimUnit* unit);
@@ -33,6 +35,7 @@ int __thiscall FUN_005afe40(HeadlessSimulator* simulator, SimUnit* unit);
 int __thiscall FUN_005afcc0(HeadlessSimulator* simulator);
 float __thiscall FUN_005afa30(HeadlessSimulator* simulator, int side);
 void __thiscall FUN_005aefc0(HeadlessSimulator* simulator, ShipGroup* group);
+void __thiscall FUN_005afa00(HeadlessSimulator* simulator, SimUnit* target, ShipGroup* group);  // the group's target becomes `target`
 void __stdcall FUN_005afde0(ShipGroup* group);  // registers a fighter group
 void __stdcall FUN_005afe10(ShipGroup* group);  // registers a capital-ship group
 

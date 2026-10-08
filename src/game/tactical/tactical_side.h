@@ -20,7 +20,9 @@ class HeadlessSimulator;
 class AttackEvaluatorBase {
 public:
     virtual ~AttackEvaluatorBase();  // 0x5d1e00 (scalar deleting destructor 0x5c9720)
-    virtual void Virtual01();        // 0x5ed170
+    // Estimated time for the group to reach the unit (-1 when it cannot); adds the group's strength to *total and stores
+    // the unit's speed in *speed.
+    virtual float Virtual01(SimUnit* unit, ShipGroup* group, float* total, float* speed);  // 0x5ed170
     virtual float Evaluate(int a, SimUnit* unit) = 0;  // slot 2
     virtual int Virtual03(ShipGroup* group) = 0;       // slot 3
     virtual int Virtual04(SimUnit* unit) = 0;          // slot 4
@@ -41,16 +43,52 @@ class TargetPriorityTree;
 class FormationEvaluatorBase {
 public:
     virtual ~FormationEvaluatorBase();  // 0x5d1e10 (scalar deleting destructor 0x5c9760)
-    virtual void Assign(TacticalSideBase* side, GroupRefTree* groups, TargetPriorityTree* targets, float limit);  // slot 1
+    virtual int Assign(TacticalSideBase* side, GroupRefTree* groups, TargetPriorityTree* targets, float limit);  // slot 1
 };
 
 class FormationEvaluator : public FormationEvaluatorBase {  // VT 0x66d118
 public:
     FormationEvaluator() {}
-    virtual void Assign(TacticalSideBase* side, GroupRefTree* groups, TargetPriorityTree* targets, float limit) override;  // 0x5ecb90
+    virtual int Assign(TacticalSideBase* side, GroupRefTree* groups, TargetPriorityTree* targets, float limit) override;  // 0x5ecb90
 };
 
-// A tree of orders the side issues (VT 0x66cc28); the nodes are 0x30 bytes (AvlNode, a float key, a position record).
+// A pointer to a group compared by the group's id (0x5f2e40 / 0x5f2e70).
+struct GroupRefSlot {
+    ShipGroup* m_group;
+    int SameGroup(GroupRefSlot* other);
+    int GroupBefore(GroupRefSlot* other);
+};
+
+// A group with the time it needs to reach a target (VT 0x66da5c, 0x20 bytes); lower time sorts first.
+class ScoredGroupNode : public AvlNode {
+public:
+    ScoredGroupNode(float priority, ShipGroup* group);
+    virtual ~ScoredGroupNode();  // 0x5ed160 (scalar deleting destructor 0x5ed140)
+
+    float m_priority;     // +0x18
+    GroupRefSlot m_group;  // +0x1c
+};
+
+// AvlTree of ScoredGroupNodes (VT 0x66da60).
+class ScoredGroupTree : public AvlTree {
+public:
+    ScoredGroupTree() {}
+    virtual ~ScoredGroupTree();                            // 0x5ed0d0 (scalar deleting destructor 0x5ed120)
+    virtual int IsLess(AvlNode* a, AvlNode* b) override;   // 0x5ed0e0
+};
+
+// A node of the side's order tree (0x30 bytes): the keys the tree sorts by, and the weight the evaluator reads.
+struct SideOrderNode {
+    uint8_t m_node[0x18];
+    float m_primary;      // +0x18
+    void* m_vptr;         // +0x1c (the position record's vtable)
+    uint32_t m_unitHandle;  // +0x20
+    uint32_t m_second;    // +0x24
+    float m_weight;       // +0x28
+    float m_secondary;    // +0x2c
+};
+
+// A tree of orders the side issues (VT 0x66cc28); the nodes are SideOrderNodes.
 class SideOrderTree : public AvlTree {
 public:
     SideOrderTree() {}
@@ -76,6 +114,7 @@ public:
     int HasDisabledUnit();                     // 0x5c7e40 (a fleet unit with +0x150 set)
     void RecordFleetPriorities();              // 0x5c81d0 notes the strength and sorts the fleet into the target lists
     float EvaluateAttack(int a, SimUnit* unit);  // 0x5c9190
+    float InterceptTime(SimUnit* unit, ShipGroup* group, float* total, float* speed);  // 0x5c9160
     int EvaluateUnit4(SimUnit* unit);          // 0x5c91c0
     int EvaluateUnit3(ShipGroup* group);       // 0x5c91e0
     void ReprioritiseTargets(float step);      // 0x5c9200
@@ -128,6 +167,8 @@ public:
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_SIZE(SideOrderTree, 0x08);
+REB_ASSERT_SIZE(ScoredGroupNode, 0x20);
+REB_ASSERT_SIZE(SideOrderNode, 0x30);
 REB_ASSERT_OFFSET(TacticalSideBase, m_channelB, 0x0c);
 REB_ASSERT_OFFSET(TacticalSideBase, m_unk24, 0x24);
 REB_ASSERT_OFFSET(TacticalSideBase, m_attackEvaluator, 0x2c);

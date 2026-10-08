@@ -14,6 +14,7 @@ constexpr float kFleetPriorityScale = -10000.0f;
 constexpr float kRankStep = 1.0f;
 constexpr float kAssignmentLimit = 180.0f;
 constexpr int kFighterClass = 1;
+constexpr float kNoInterceptTime = -1.0f;
 constexpr int kStateActive = 2;
 
 SimUnitNode* firstUnitNode(UnitRefTree& tree) { return reinterpret_cast<SimUnitList*>(&tree)->First(); }
@@ -38,24 +39,15 @@ FormationEvaluatorBase::~FormationEvaluatorBase() { REB_KEEP_VPTR_STORE(); }
 SideOrderTree::~SideOrderTree() {}
 
 int SideOrderTree::IsLess(AvlNode* a, AvlNode* b) {
-    struct OrderKey {
-        uint8_t m_node[0x18];
-        float m_primary;       // +0x18
-        void* m_vptr;          // +0x1c
-        uint32_t m_first;      // +0x20
-        uint32_t m_second;     // +0x24
-        float m_third;         // +0x28
-        float m_secondary;     // +0x2c
-    };
-    const OrderKey* left = reinterpret_cast<const OrderKey*>(a);
-    const OrderKey* right = reinterpret_cast<const OrderKey*>(b);
+    const SideOrderNode* left = reinterpret_cast<const SideOrderNode*>(a);
+    const SideOrderNode* right = reinterpret_cast<const SideOrderNode*>(b);
     if (left->m_primary == right->m_primary) {
         if (left->m_secondary == right->m_secondary) {
-            const bool firstLess = left->m_first < right->m_first;
-            if (left->m_first != right->m_first) return firstLess;
+            const bool firstLess = left->m_unitHandle < right->m_unitHandle;
+            if (left->m_unitHandle != right->m_unitHandle) return firstLess;
             const bool secondLess = left->m_second < right->m_second;
             if (left->m_second != right->m_second) return secondLess;
-            if (left->m_third < right->m_third) return true;
+            if (left->m_weight < right->m_weight) return true;
         } else if (left->m_secondary < right->m_secondary) {
             return true;
         }
@@ -126,6 +118,11 @@ void TacticalSideBase::RecordFleetPriorities() {
             m_targets[1].Insert(entry);
         }
     }
+}
+
+float TacticalSideBase::InterceptTime(SimUnit* unit, ShipGroup* group, float* total, float* speed) {
+    if (m_attackEvaluator) return m_attackEvaluator->Virtual01(unit, group, total, speed);
+    return kNoInterceptTime;
 }
 
 float TacticalSideBase::EvaluateAttack(int a, SimUnit* unit) {

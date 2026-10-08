@@ -79,7 +79,7 @@ public:
     virtual void Virtual10();                               // 0x5ebdf0
     virtual void Virtual11();                               // 0x5ea500
     virtual TacticalVec4* SlotOffset(TacticalVec4* out, SimUnit* unit) = 0;  // slot 12
-    virtual void Virtual13();                               // 0x5ea4e0
+    virtual float Virtual13();                              // 0x5ea4e0 (the formation's speed)
     virtual void Virtual14();                               // 0x5c7310
     virtual void Virtual15();                               // 0x5c7350
     virtual void Virtual16();                               // 0x5ea740
@@ -112,7 +112,7 @@ public:
     virtual void Virtual06() override;                             // 0x526f00
     virtual void Virtual09() override;                             // 0x5ebe30
     virtual TacticalVec4* SlotOffset(TacticalVec4* out, SimUnit* unit) override;  // 0x5ebee0
-    virtual void Virtual13() override;                             // 0x5ec0b0
+    virtual float Virtual13() override;                            // 0x5ec0b0
     virtual void MoveVirtual03() override;                         // 0x5ec0d0
     virtual void MoveVirtual04() override;                         // 0x5ec510
     virtual void MoveVirtual05() override;                         // 0x5ec4e0
@@ -127,7 +127,7 @@ public:
     virtual ~FighterFormation();                               // 0x5ec3e0 (scalar deleting destructor 0x5ec670)
     virtual void Virtual06() override;                         // 0x43c1f0
     virtual TacticalVec4* SlotOffset(TacticalVec4* out, SimUnit* unit) override;  // 0x5ec400
-    virtual void Virtual13() override;                         // 0x5ec3c0
+    virtual float Virtual13() override;                        // 0x5ec3c0
     virtual void MoveVirtual03() override;                     // 0x5eb1a0
 };
 
