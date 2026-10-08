@@ -11,13 +11,6 @@
 #include "tactical/tactical_facade.h"
 #include "tactical/tactical_game.h"
 
-// The save/load members of the battle-flow object (0x409230-0x40a050; not reconstructed): file names for the pre-battle
-// save, the stream writer and reader.
-void __thiscall FUN_00409ec0(BattleFlow* flow, String* out);     // the pre-battle save's path
-void __thiscall FUN_00409dd0(BattleFlow* flow, String* out);     // the saved-games directory
-int __thiscall FUN_00409690(BattleFlow* flow, ofstream* file);   // writes the game
-int __thiscall FUN_00409700(BattleFlow* flow);                   // restores the game from the pre-battle save
-
 extern float g_tacticalFrameMilliseconds;  // 0x658640
 extern float g_flowScaleA;                 // 0x65863c
 extern float g_flowScaleASquared;          // 0x6b1210
@@ -187,12 +180,12 @@ void BattleFlow::Step(int* stepped) {
             }
             {
                 String saveName;
-                FUN_00409ec0(this, &saveName);
+                BuildPreBattleSavePath(&saveName);
                 ScopedOfstream file;
                 OpenOutputFile(file.get(), saveName.m_text);
                 if (GetFileError() == 0) {
                     HCURSOR previousCursor = showWaitCursor();
-                    FUN_00409690(this, file.get());
+                    SaveStrategic(reinterpret_cast<ostream*>(file.get()));
                     SetCursor(previousCursor);
                 }
                 CloseFileStream(file.get());
@@ -245,12 +238,12 @@ void BattleFlow::Step(int* stepped) {
             g_gameStepDriver = memory ? new (memory) GameStepDriver() : nullptr;
             if (g_gameStepDriver && g_gameStepDriver->m_ok != 0) {
                 String path;
-                FUN_00409dd0(this, &path);
+                BuildSaveDirectory(&path);
             }
-            FUN_00409700(this);
+            LoadPreBattleSave();
             {
                 String saveName;
-                FUN_00409ec0(this, &saveName);
+                BuildPreBattleSavePath(&saveName);
                 DeleteGameFile(saveName.m_text);
             }
             if (g_gameStepDriver) {

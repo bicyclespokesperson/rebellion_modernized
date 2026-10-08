@@ -69,18 +69,6 @@ void FUN_005970d0(void* buffer, int size, int c, int d);
 void FUN_00597170();
 void FUN_00596a00();
 
-// ---- Battle flow / session (0x409230-0x40a050) --------------------------------------------------------------
-void* FUN_00409270();            // the battle-flow object, null before a game is created
-void FUN_00409280();             // create the battle-flow object
-void FUN_00409370();             // destroy it
-void __thiscall FUN_00409480(void* battleFlow, void* stream);   // restore a saved game
-void __thiscall FUN_004095b0(void* battleFlow, void* stream);   // write a saved game
-void __thiscall FUN_00409fe0(void* battleFlow, void* setup, int gameType, int side);
-void __thiscall FUN_0040a050(void* battleFlow, int* stepped);
-void __thiscall FUN_00409bd0(void* battleFlow);
-int __thiscall FUN_00409390(void* battleFlow);
-void __thiscall FUN_004093b0(void* battleFlow, int value);
-
 // ---- Strategic game helpers (0x41cxxx, 0x4fdxxx, 0x51cxxx) ----------------------------------------------------------
 int FUN_0041dad0();
 void FUN_0041dae0(int value);

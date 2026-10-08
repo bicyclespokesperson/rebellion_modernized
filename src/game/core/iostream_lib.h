@@ -107,6 +107,9 @@ ostream* __thiscall ostream_operator_ls_char(ostream* out, char value);
 ostream* __thiscall ostream_operator_ls_long(ostream* out, long value);
 ostream* __thiscall ostream_operator_ls_cstr(ostream* out, const char* text);
 ostream* __thiscall ostream_write(ostream* out, const void* buffer, int count);
+// Copies the rest of a streambuf (a file's) into the stream / reads the stream into the streambuf.
+ostream* __thiscall ostream_operator_ls_streambuf(ostream* out, streambuf* buffer);  // 0x616ae0
+istream* __thiscall istream_operator_rs_streambuf(istream* in, streambuf* buffer);   // 0x616b70
 ostream* __thiscall ostream_seekp_pos(ostream* out, long position);
 
 char* __thiscall strstreambuf_str(streambuf* buffer);
