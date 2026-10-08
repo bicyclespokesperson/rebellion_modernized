@@ -67,7 +67,7 @@ saves varies run to run.
 - Real clocks / per-call clocks at 1 ms per QPC call: the loop runs ~80,000 iterations/s, so ~300 ticks/s elapse and the
   save differs on every run (tick 11,055 to 11,227; 15,000-byte diffs, sizes differ by 48 bytes), because every
   scripting jitter of tens of ms moves the tick by tens. Freezing all clocks (step 0) changes the game's behaviour
-  (UI animations stall) and no save is produced reproducibly. Freezing only QPC freezes the simulation, but the save
+  (UI animations stall) and the saves still differ (sizes differ by hundreds of bytes). Freezing only QPC freezes the simulation, but the save
   is a simulation command and never runs.
 - Fix: a slow QPC (`REB_QPC_STEP_NS=1000`, one tick per ~250,000 iterations, ~3 s) while timeGetTime/GetTickCount stay at
   1 ms per call so the UI still animates. A tick boundary now rarely falls near an input event.
@@ -76,8 +76,8 @@ saves varies run to run.
   mismatch that is only the tick; a larger `REB_QPC_STEP_NS`/longer scenario lowers the odds further.
 - Not sources: `time()` (fixed), multimedia timers (`REB_NO_TIMERS=1` made no difference to the pattern), the heap.
 - Heap probe (18 MB address-space reservation before the CRT heap exists, then 1,690-byte allocations from both the
-  CRT's NT heap and, with `REB_HEAP_PROBE_SBH=1`, its small-block heap; heap addresses move by 0x1a8-0x1000 within the
-  first region): saves under the probe are byte-identical to each other and to the baseline run with the same tick. Heap
+  CRT's NT heap and, with `REB_HEAP_PROBE_SBH=1`, its small-block heap; the probe allocations land at 0x1691548 and
+  0x1691BF0): saves under the probe are byte-identical to each other and to the baseline run with the same tick. Heap
   addresses do not reach the save file for this scenario (save path only). The probe does not move whole regions,
   and the pointer-ordered container risk in the plan remains untested for scenarios that run the simulation.
 - For the standalone comparison use the same switches in both builds; the scenario must not depend on wall-clock time
