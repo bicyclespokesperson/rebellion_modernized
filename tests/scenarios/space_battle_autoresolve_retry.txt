@@ -1,0 +1,70 @@
+# Load RebelsFastStart, run at Fast speed; ~40 s after unpausing, a space battle at Ando pops up
+# (Imperial fleet vs. the Alliance defenders). We choose "Simulate Results" (auto-resolve), not Retreat
+# or Take Command (tactical). Runtime ~130 s. See docs/ui_navigation.md.
+12 key Escape
+16 key Escape
+20 key Escape
+# Main menu: Load Game monitor (right-centre of the cockpit, ~430,248). Hover first, then click.
+26 move 425 245
+27 move 430 248
+29 click 430 248
+33 shot load_list
+# Saved Games screen: slot rows at y=90,132,173,216,... (JAS1, Rebels, RebelsFastStart, JAS2, empty, empty).
+# The "Load Game" icon is the right-hand end of a row (x~305). Row 3 = RebelsFastStart.
+# (Clicking a row's load icon immediately loads when no game is in progress; otherwise a confirm
+# dialog appears: check mark at ~280,300.)
+34 move 300 170
+35 move 305 173
+36 click 305 173
+# Loading takes ~2-3 s; we land on the galaxy screen, paused (clock frozen).
+41 shot load_galaxy
+# Game speed control: top-left box in the Alliance skin. Right-click -> menu
+# (Pause / Very Slow / Slow / Medium / Fast); Fast is the bottom entry at ~(170,116).
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 112
+46 move 170 116
+47 click 170 116
+# The "Battle at Ando" window appears ~85-90 s after launch (clock must be running, Fast speed).
+# Wait for it, confirm with a screenshot, then click the middle bottom button.
+# Buttons under the picture: left = Retreat (115,356), middle = Simulate Results (275,356),
+# right = Take Command (410,356, enters the 3D tactical mode: avoid).
+95 shot popup_0
+97 move 270 350
+98 move 275 354
+99 click 275 354
+107 shot popup_1
+109 move 270 350
+110 move 275 354
+111 click 275 354
+119 shot popup_2
+121 move 270 350
+122 move 275 354
+123 click 275 354
+131 shot popup_3
+133 move 270 350
+134 move 275 354
+135 click 275 354
+143 shot popup_4
+145 move 270 350
+146 move 275 354
+147 click 275 354
+155 shot popup_5
+157 move 270 350
+158 move 275 354
+159 click 275 354
+167 shot popup_6
+169 move 270 350
+170 move 275 354
+171 click 275 354
+179 shot popup_7
+181 move 270 350
+182 move 275 354
+183 click 275 354
+191 shot after_clicks
+199 move 495 85
+200 move 498 90
+201 click 498 90
+205 shot final
+207 end
