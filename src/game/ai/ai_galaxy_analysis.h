@@ -43,6 +43,8 @@ public:
     int ChooseFromSide(ObjectKey* out, int recordType, uint32_t requiredFlags, int mode, int descending);  // 0x49dad0
     void AddSectorTotals(const int* stats, const int* flags);  // 0x49db10
 
+    AiSystemScan* FindSystemScan(const ObjectKey* key);  // 0x4c7cd0
+
     int& Total(int offset) { return m_stat[(offset - 0x80) / 4]; }
 
     int m_view;                      // +0x00

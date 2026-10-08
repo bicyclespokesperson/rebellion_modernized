@@ -308,3 +308,8 @@ void AiGalaxyAnalysis::AddSectorTotals(const int* stats, const int* flags) {
         target += 4;
     }
 }
+
+AiSystemScan* AiGalaxyAnalysis::FindSystemScan(const ObjectKey* key) {
+    ObjectKey copy = *key;
+    return m_systemScans.FindScan(copy);
+}
