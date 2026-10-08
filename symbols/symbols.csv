@@ -2069,6 +2069,7 @@ address,kind,name,signature,size
 0x0048b3e0,func,Notice42::Virtual10,,
 0x0048b440,func,PlayerController::Virtual08,,
 0x0048b450,func,ScrapCommand::GetKind,,
+0x0048b460,func,LoadAdvisorNotices,,
 0x0048b5d0,func,Notice42::GetKind,,
 0x0048b5e0,func,Notice41::Notice41,(void),
 0x0048b640,func,Notice41::scalar_deleting_destructor,,

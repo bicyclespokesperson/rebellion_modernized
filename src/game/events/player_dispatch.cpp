@@ -169,8 +169,8 @@ void PlayerDispatch::AddNotice(UiNotice* notice) {
             m_trees[0].AddWithId(notice);
             m_unk50 |= notice->m_categories;
             UiClearButtonHighlights(notice->m_categories);
-            if (notice->m_unk40 != 0 && (previous & 4) == 0) {
-                static_cast<AdvisorBase*>(m_advisor)->ScheduleCue(notice->m_unk40);
+            if (notice->m_unk28 != 0 && (previous & 4) == 0) {
+                static_cast<AdvisorBase*>(m_advisor)->ScheduleCue(notice->m_unk28);
                 RefreshRecords();
                 UiRefreshMessageIndex();
                 return;

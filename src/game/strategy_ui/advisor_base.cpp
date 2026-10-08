@@ -356,7 +356,7 @@ void AdvisorRequestIdle() { g_humanUiFlags.m_value |= 0x2000; }  // 0x43a200
 
 void AdvisorBase::FlushPending() {
     if ((m_flags.m_value & kFlagNoticesCollected) != 0) return;
-    if (FUN_0048b460(m_side, &m_notices) != 0) m_flags.m_value |= kFlagNoticesCollected;
+    if (LoadAdvisorNotices(m_side, &m_notices) != 0) m_flags.m_value |= kFlagNoticesCollected;
     IdValueNode* notice = static_cast<IdValueNode*>(m_notices.Last());
     while (notice) {
         IdValueNode* previous = static_cast<IdValueNode*>(notice->Predecessor());

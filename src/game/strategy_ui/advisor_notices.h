@@ -118,7 +118,7 @@ public:
 uint16_t AdvisorPickAdviceLine(uint32_t adviceId);  // 0x4c4990
 // Plays `adviceId` as a sound effect of the advisor module and returns a copy of the request in `result`.
 SoundRequest* __cdecl AdvisorPlayAdvice(SoundRequest* result, uint32_t adviceId);  // 0x4c4a20
-uint16_t AdvisorRecordTypeResource(GameObj* object);  // 0x4c5000
+uint16_t __stdcall AdvisorRecordTypeResource(GameObj* object);  // 0x4c5000
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
