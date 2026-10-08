@@ -15,8 +15,17 @@ class TacticalObjectManager;
 class TacticalUnit;
 
 // Per-side record (the manager keeps one for each side, at +0x08 and +0x0c).
-struct TacticalSideData {
-    uint8_t m_pad00[0x24];
+class TacticalSideData {
+public:
+    virtual void Slot00();
+    virtual void Slot01();
+    virtual void Slot02();
+    virtual int HasNoShips();  // slot 3 (+0x0c)
+
+    uint8_t m_pad04[4];
+    int m_status;           // +0x08 1 while the side is active
+    uint8_t m_pad0c[0x20 - 0x0c];
+    int m_controlFlag;      // +0x20
     GameTime m_battleTime;  // +0x24 the vote time of this side's controller
     uint8_t m_pad28[0x7c - 0x28];
     float m_valueScaled;    // +0x7c the side's fleet value in milliseconds (set from a value in seconds)
@@ -74,7 +83,7 @@ public:
     int AddSpecialForceToWorld(TacticalUnit* force);         // 0x5a9450
     int AddLaunchedFighterToWorld(TacticalUnit* fighter);    // 0x5a9470
     int PlayerSideIsActive();                                // 0x5a74d0
-    int PlayerSideCanAct(int side);                          // 0x5a8a90
+    int PlayerSideCanAct(int side);                          // 0x5a8a90: asks the side's record, 0 when it is not the player's
     int CanPlayerCommandShip(void* ship);                    // 0x5ae120
     int CanPlayerCommandFighter(void* fighter);              // 0x5ae170
     int AnySideHasFlag();                                    // 0x5adde0

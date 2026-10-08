@@ -10,6 +10,7 @@
 #include "tactical/tactical_units.h"
 
 class TacticalObjectManager;
+class TacticalSideData;
 class TacticalHub;
 class TacticalRegistry {
 public:
@@ -87,6 +88,10 @@ int __thiscall FUN_005af4e0(HeadlessSimulator* simulator, int family, int id, in
 
 // ---- Turn sync / 3D view ----
 void FUN_005be0f0();
+int __thiscall FUN_005c7e40(TacticalSideData* side);
+void FUN_005c0f80(int paused);
+int __thiscall FUN_005ae1d0(TacticalObjectManager* manager, int side);
+void __thiscall FUN_0059e840(TacticalHub* hub);
 void FUN_005bf320();
 void FUN_005c1020(int a);
 void FUN_005bbee0();
