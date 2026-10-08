@@ -9,6 +9,7 @@
 #include "core/containers.h"
 #include "core/layout.h"
 #include "gameobj/object_key.h"
+#include "orders/order_base.h"
 #include "strategy_ui/advisor_notices.h"
 
 // kind 44: three texts for the events 0x129-0x12b
@@ -755,6 +756,196 @@ public:
 
 };
 
+// kind 8: the dialog that confirms an order
+class Notice8 : public UiNotice {
+public:
+    Notice8();  // 0x49a120
+    Notice8(int owner, MessageBase* subject);  // 0x49a1b0
+    virtual ~Notice8();  // 0x49a230 (deleting 0x49a190)
+
+    virtual int GetKind() override { return 8; }  // shared 0x48c2a0
+    virtual int GetClass() override { return 5; }  // shared 0x404c20
+    virtual int Virtual11() override { return 0; }  // shared 0x6158b0
+    virtual UiNotice* Virtual10() override;  // 0x49a2f0
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    void BuildText();  // 0x49a350
+    void AppendName(GameObjNotifier* object);  // 0x49a880
+    void AppendOrderLines();  // 0x49a8b0
+    virtual void Read(istream* in) override;  // 0x49a290
+    virtual void Write(ostream* out) override;  // 0x49a2c0
+
+    String m_text0;  // +0x44
+    String m_text1;  // +0x50
+    MessageBase* m_subject;  // +0x5c the order that is confirmed
+};
+
+// kind 1: the dialog that reports a battle or a blockade of a system
+class Notice1 : public UiNotice {
+public:
+    Notice1();  // 0x49aad0
+    Notice1(const LinkNode* payloads, int owner, MessageBase* vote);  // 0x49ac00
+    virtual ~Notice1();  // 0x49ad50 (deleting 0x49abe0)
+
+    virtual int GetKind() override { return 1; }  // shared 0x5a66f0
+    virtual int GetClass() override { return 1; }  // shared 0x5a66f0
+    virtual int Virtual11() override { return 256; }  // shared 0x48bc60
+    virtual UiNotice* Virtual10() override;  // 0x49b6c0
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override;  // 0x49b060
+    int DispatchAndFill(const LinkNode* payloads);  // 0x49b0f0
+    void FillNeutral();  // 0x49b150
+    void FillOwnSide();  // 0x49b330
+    void FillOtherSide();  // 0x49b4d0
+    void ReadVote(MessageBase* vote);  // 0x49b720
+    virtual void Read(istream* in) override;  // 0x49aee0
+    virtual void Write(ostream* out) override;  // 0x49afa0
+
+    ObjectKey m_systemKey;  // +0x44
+    ObjectKey m_keyB;  // +0x48
+    ObjectKey m_keyC;  // +0x4c
+    int m_f50;  // +0x50
+    int m_f54;  // +0x54
+    int m_f58;  // +0x58 1 or 2 for the side that owns the notice
+    int m_f5c;  // +0x5c, never set
+    ObjectKeySet m_set60;  // +0x60
+    ObjectKeySet m_set68;  // +0x68
+    ObjectKeySet m_set70;  // +0x70
+    ObjectKeySet m_set78;  // +0x78
+    ObjectKeySet m_set80;  // +0x80
+    String m_text88;  // +0x88
+    String m_text94;  // +0x94
+    String m_texta0;  // +0xa0
+    String m_textac;  // +0xac
+    String m_textb8;  // +0xb8
+};
+
+// kind 2: the dialog that reports the arrival of a fleet at a system
+class Notice2 : public UiNotice {
+public:
+    Notice2();  // 0x49bda0
+    Notice2(const ObjectKey* key, int owner);  // 0x49be60
+    virtual ~Notice2();  // 0x49bf40 (deleting 0x49be40)
+
+    virtual int GetKind() override { return 2; }  // shared 0x4e8740
+    virtual int GetClass() override { return 2; }  // shared 0x4e8740
+    virtual int Virtual11() override { return 256; }  // shared 0x48bc60
+    virtual UiNotice* Virtual10() override;  // 0x49c570
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override { UiNotice::OnMessage(kind, a, b); }  // shared 0x49c0b0
+    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    int FillText();  // 0x49c0d0
+    void AddObjectKeys(GameObjNotifier* object);  // 0x49c5d0
+    virtual void Read(istream* in) override;  // 0x49bfd0
+    virtual void Write(ostream* out) override;  // 0x49c040
+
+    ObjectKey m_systemKey;  // +0x44
+    int m_side;  // +0x48 1 or 2 for the side that owns the notice
+    int m_f4c;  // +0x4c
+    int m_attack;  // +0x50
+    String m_text54;  // +0x54
+    String m_text60;  // +0x60
+    ObjectKeySet m_set6c;  // +0x6c
+    ObjectKeySet m_set74;  // +0x74
+};
+
+// kind 15: event 0x182: a fleet arrived (with the objects that came along)
+class Notice15 : public UiTextNotice {
+public:
+    Notice15();  // 0x496380
+    Notice15(const LinkNode* payloads, int owner);  // 0x496460
+    virtual ~Notice15();  // 0x496530 (deleting 0x496440)
+
+    virtual int GetKind() override { return 15; }  // shared 0x5a56b0
+    virtual int GetClass() override;  // 0x497530
+    virtual int Virtual11() override { return 256; }  // shared 0x48bc60
+    virtual UiNotice* Virtual10() override;  // 0x497490
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override;  // 0x497380
+    virtual void Virtual08(int kind, int a, int b) override;  // 0x496770, not reconstructed yet
+    virtual void Virtual09(int kind, int a, int b, int c) override;  // 0x496f50, not reconstructed yet
+    virtual int IsStale() override { return 0; }  // shared 0x6158b0
+    virtual void Read(istream* in) override;  // 0x496670
+    virtual void Write(ostream* out) override;  // 0x4966f0
+
+    int m_f64;  // +0x64
+    int m_f68;  // +0x68
+    int m_f6c;  // +0x6c
+    ObjectKeySet m_set70;  // +0x70
+    ObjectKeySet m_set78;  // +0x78
+    ObjectKeySet m_set80;  // +0x80
+    ObjectKeySet m_set88;  // +0x88
+    ObjectKeySet m_set90;  // +0x90
+    ObjectKeySet m_set98;  // +0x98
+    int m_fa0;  // +0xa0
+};
+
+// kind 23: events 0x1f1 and 0x302: a mission outcome (the kind and class can change)
+class Notice23 : public UiTextNotice {
+public:
+    Notice23();  // 0x491190
+    Notice23(const LinkNode* payloads, int owner);  // 0x491260
+    virtual ~Notice23();  // 0x491320 (deleting 0x491240)
+
+    virtual int GetKind() override;  // 0x492380
+    virtual int GetClass() override;  // 0x492390
+    virtual int Virtual11() override { return 16; }  // shared 0x48af30
+    virtual UiNotice* Virtual10() override;  // 0x4922d0
+    virtual void Virtual05(int kind, int payload) override;  // 0x491500, not reconstructed yet
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override;  // 0x492250
+    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual int Virtual16(const LinkNode* payloads) override;  // 0x492330
+    virtual void Read(istream* in) override;  // 0x4913f0
+    virtual void Write(ostream* out) override;  // 0x4914a0
+
+    int m_f64;  // +0x64
+    String m_name;  // +0x68
+    ObjectKey m_key74;  // +0x74
+    ObjectKey m_key78;  // +0x78
+    int m_kind;  // +0x7c what GetKind returns
+    int m_f80;  // +0x80
+    int m_class;  // +0x84 what GetClass returns
+    ObjectKeySet m_keys;  // +0x88
+    void* m_order90;  // +0x90
+};
+
+// kind 22: events 0x1f0 and 0x302: a mission outcome with an order (the kind and class can change)
+class Notice22 : public UiTextNotice {
+public:
+    Notice22();  // 0x4923a0
+    Notice22(const LinkNode* payloads, int owner);  // 0x492470
+    virtual ~Notice22();  // 0x492530 (deleting 0x492450)
+
+    virtual int GetKind() override { return m_kind; }  // shared 0x492380
+    virtual int GetClass() override { return m_class; }  // shared 0x492390
+    virtual int Virtual11() override { return 16; }  // shared 0x48af30
+    virtual UiNotice* Virtual10() override;  // 0x494cc0
+    virtual void Virtual05(int kind, int payload) override;  // 0x4927c0, not reconstructed yet
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override;  // 0x494c40
+    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual14() override;  // 0x494d70
+    virtual void Virtual15() override;  // 0x494d90
+    virtual int Virtual16(const LinkNode* payloads) override;  // 0x494d20
+    void ListSecondKeys();  // 0x494df0
+    virtual void Read(istream* in) override;  // 0x492610
+    virtual void Write(ostream* out) override;  // 0x492740
+
+    int m_f64;  // +0x64
+    String m_name;  // +0x68
+    ObjectKey m_key74;  // +0x74
+    ObjectKey m_key78;  // +0x78
+    int m_kind;  // +0x7c what GetKind returns
+    int m_f80;  // +0x80
+    int m_class;  // +0x84 what GetClass returns
+    ObjectKeySet m_keys;  // +0x88
+    MessageBase* m_order;  // +0x90 the order 0x250 the notice offers, owned
+    const LinkNode* m_payloads;  // +0x94
+};
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_SIZE(Notice44, 0x68);
@@ -794,4 +985,10 @@ REB_ASSERT_SIZE(Notice3, 0x68);
 REB_ASSERT_SIZE(Notice4, 0x68);
 REB_ASSERT_SIZE(Notice5, 0x64);
 REB_ASSERT_SIZE(Notice6, 0x64);
+REB_ASSERT_SIZE(Notice8, 0x60);
+REB_ASSERT_SIZE(Notice1, 0xc4);
+REB_ASSERT_SIZE(Notice2, 0x7c);
+REB_ASSERT_SIZE(Notice15, 0xa4);
+REB_ASSERT_SIZE(Notice23, 0x94);
+REB_ASSERT_SIZE(Notice22, 0x98);
 #pragma clang diagnostic pop

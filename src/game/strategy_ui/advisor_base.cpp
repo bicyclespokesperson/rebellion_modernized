@@ -361,7 +361,7 @@ void AdvisorBase::FlushPending() {
     while (notice) {
         IdValueNode* previous = static_cast<IdValueNode*>(notice->Predecessor());
         if (NoticeKind(notice) == 7 || g_advisorFlushAll != 0) {
-            FUN_0048a590(m_player->Dispatch(), notice);
+            m_player->Dispatch()->AddCharacterNotice(notice);
             m_notices.DetachById(notice->m_id);
             delete notice;
         }
@@ -396,7 +396,7 @@ void AdvisorBase::SpeakNow() {
         if (found == 0) {
             notice = static_cast<IdValueNode*>(notice->m_successor);
         } else {
-            FUN_0048a590(m_player->Dispatch(), notice);
+            m_player->Dispatch()->AddCharacterNotice(notice);
             IdNode* removed = m_notices.DetachById(notice->m_id);
             if (!removed) break;
             delete removed;
@@ -433,7 +433,7 @@ void AdvisorBase::SpeakTopic(unsigned topic) {
     IdValueNode* notice = static_cast<IdValueNode*>(m_notices.First());
     while (notice && !told) {
         if (static_cast<uint32_t>(NoticeKind(notice)) == kind) {
-            FUN_0048a590(m_player->Dispatch(), notice);
+            m_player->Dispatch()->AddCharacterNotice(notice);
             told = true;
             m_lastSpeechTime = GameHookTickCount();
             IdNode* removed = m_notices.DetachById(notice->m_id);

@@ -34,6 +34,7 @@ public:
     virtual UiNotice* Virtual10() = 0;                // slot 10: a new empty notice of the same class (UiHandler::CreateRecord)
     virtual int Virtual11() { return 0; }             // 0x6158b0 (shared)
     virtual int IsStale();                            // slot 12, 0x4c4fe0: created more than 300 ticks ago
+    virtual void Virtual13() {}                       // 0x619730 (shared no-op)
 
     int m_unk1c;             // +0x1c
     int m_owner;             // +0x20 the side the notice is for
@@ -60,7 +61,7 @@ public:
     virtual ~UiTextNotice();        // 0x4c4bd0 (scalar deleting destructor 0x4c4b30)
     virtual void Read(istream* in) override;    // 0x4c4c50
     virtual void Write(ostream* out) override;  // 0x4c4c90
-    virtual void Virtual13() {}   // 0x619730 (shared no-op)
+    void Virtual13() override {}  // 0x619730 (shared no-op)
     virtual void Virtual14() {}   // 0x619730
     virtual void Virtual15();     // 0x4c4cd0: Virtual13 through the vtable
     virtual int Virtual16(const LinkNode* payloads);  // 0x4974f0: hands every payload of the list to Virtual0x via DispatchToSink
@@ -79,7 +80,7 @@ public:
     virtual ~UiKeyNotice();        // 0x4c5140 (scalar deleting destructor 0x4c50b0)
     virtual void Read(istream* in) override;    // 0x4c51b0
     virtual void Write(ostream* out) override;  // 0x4c51f0
-    virtual void Virtual13() {}   // 0x619730 (shared no-op)
+    void Virtual13() override {}  // 0x619730 (shared no-op)
     virtual int Virtual14(const LinkNode* payloads);  // 0x4974f0 (shared)
 
     String m_text0;       // +0x44
