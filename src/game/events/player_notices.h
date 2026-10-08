@@ -268,6 +268,135 @@ public:
     ObjectKey m_secondKey;  // +0x6c the character of the Empire
 };
 
+// kind 31: event 0x128
+class Notice31 : public UiKeyNotice {
+public:
+    Notice31();  // 0x48e490
+    Notice31(const LinkNode* payloads, int owner);  // 0x48e500
+    virtual ~Notice31();  // 0x48e570 (deleting 0x48e4e0)
+
+    virtual int GetKind() override;  // 0x48e680
+    virtual int GetClass() override { return 6; }  // shared 0x48d640
+    virtual int Virtual11() override { return 0x400; }  // shared 0x48e670
+    virtual UiNotice* Virtual10() override;  // 0x48e610
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void Virtual08(int kind, int a, int b) override;  // 0x48e5a0
+    virtual void Read(istream* in) override;  // 0x48e580
+    virtual void Write(ostream* out) override;  // 0x48f770
+
+    int m_f64;  // +0x64
+};
+
+// kind 32: events 2, 0x141, 0x143, 0x154, 0x155, 0x302: a system being besieged or blockaded
+class Notice32 : public UiTextNotice {
+public:
+    Notice32();  // 0x48e690
+    Notice32(const LinkNode* payloads, int owner);  // 0x48e720
+    virtual ~Notice32();  // 0x48e7a0 (deleting 0x48e700)
+
+    virtual int GetKind() override;  // 0x48ec70
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 4; }  // shared 0x4047d0
+    virtual UiNotice* Virtual10() override;  // 0x48ec10
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override;  // 0x48e890
+    virtual void Virtual08(int kind, int a, int b) override;  // 0x48e940
+    virtual void Virtual09(int kind, int a, int b, int c) override;  // 0x48e840
+    virtual void Read(istream* in) override;  // 0x48e800
+    virtual void Write(ostream* out) override;  // 0x48e820
+
+    PersistentInt m_state;  // +0x64 bit 1: attackers outnumber, 2: blockade, 4: siege, 8: cleared, 0x10: unit given
+    String m_name;  // +0x68
+};
+
+// kind 29: event 0x1e1: a character gained the Force
+class Notice29 : public UiTextNotice {
+public:
+    Notice29();  // 0x48ec80
+    Notice29(const LinkNode* payloads, int owner);  // 0x48ed00
+    virtual ~Notice29();  // 0x48ed70 (deleting 0x48ece0)
+
+    virtual int GetKind() override;  // 0x48f0d0
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 16; }  // shared 0x48af30
+    virtual UiNotice* Virtual10() override;  // 0x48f070
+    virtual void Virtual05(int kind, int payload) override;  // 0x48ed80
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+
+};
+
+// kind 28: event 0x362: two characters meet (one can train the other)
+class Notice28 : public UiTextNotice {
+public:
+    Notice28();  // 0x48f0e0
+    Notice28(const LinkNode* payloads, int owner);  // 0x48f160
+    virtual ~Notice28();  // 0x48f1d0 (deleting 0x48f140)
+
+    virtual int GetKind() override;  // 0x48f660
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 16; }  // shared 0x48af30
+    virtual UiNotice* Virtual10() override;  // 0x48f600
+    virtual void Virtual05(int kind, int payload) override;  // 0x48f1e0
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual int IsStale() override { return 0; }  // shared 0x6158b0
+
+};
+
+// kind 30: event 0x128 for the first system of the Alliance
+class Notice30 : public UiKeyNotice {
+public:
+    Notice30();  // 0x48f690
+    Notice30(const LinkNode* payloads, int owner);  // 0x48f700
+    virtual ~Notice30();  // 0x48f760 (deleting 0x48f6e0)
+
+    virtual int GetKind() override;  // 0x48f900
+    virtual int GetClass() override { return 6; }  // shared 0x48d640
+    virtual int Virtual11() override { return 1; }  // shared 0x40f340
+    virtual UiNotice* Virtual10() override;  // 0x48f8a0
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void Virtual08(int kind, int a, int b) override;  // 0x48f790
+
+    int m_f64;  // +0x64
+};
+
+// kind 26: event 0x212 (shares its kind with Notice26b)
+class Notice26a : public UiTextNotice {
+public:
+    Notice26a();  // 0x48f910
+    Notice26a(const LinkNode* payloads, int owner);  // 0x48f990
+    virtual ~Notice26a();  // 0x48f9f0 (deleting 0x48f970)
+
+    virtual int GetKind() override;  // 0x48fcf0
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 16; }  // shared 0x48af30
+    virtual UiNotice* Virtual10() override;  // 0x48fc90
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override;  // 0x48fa00
+
+};
+
+// kind 26: event 0x106: a character was killed or captured
+class Notice26b : public UiTextNotice {
+public:
+    Notice26b();  // 0x48fd00
+    Notice26b(const LinkNode* payloads, int owner);  // 0x48fd80
+    virtual ~Notice26b();  // 0x48fde0 (deleting 0x48fd60)
+
+    virtual int GetKind() override { return 26; }  // shared 0x48fcf0
+    virtual int GetClass() override { return 3; }  // shared 0x5a6730
+    virtual int Virtual11() override { return 16; }  // shared 0x48af30
+    virtual UiNotice* Virtual10() override;  // 0x4901f0
+    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, int a, int b) override;  // 0x48fdf0
+
+};
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_SIZE(Notice44, 0x68);
@@ -283,4 +412,11 @@ REB_ASSERT_SIZE(Notice38, 0x68);
 REB_ASSERT_SIZE(Notice37, 0x68);
 REB_ASSERT_SIZE(Notice35, 0x64);
 REB_ASSERT_SIZE(Notice36, 0x70);
+REB_ASSERT_SIZE(Notice31, 0x68);
+REB_ASSERT_SIZE(Notice32, 0x74);
+REB_ASSERT_SIZE(Notice29, 0x64);
+REB_ASSERT_SIZE(Notice28, 0x64);
+REB_ASSERT_SIZE(Notice30, 0x68);
+REB_ASSERT_SIZE(Notice26a, 0x64);
+REB_ASSERT_SIZE(Notice26b, 0x64);
 #pragma clang diagnostic pop

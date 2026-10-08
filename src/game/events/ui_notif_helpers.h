@@ -9,3 +9,7 @@ inline int asArg(const void* pointer) { return static_cast<int>(reinterpret_cast
 
 // 0x43f110: copies the first key of a key-pair payload (the helper of the handlers that name a second object).
 ObjectKey* __thiscall copyFirstKey(KeyPairPayload* self, ObjectKey* out);
+
+// 0x48f670: copies the second key of a key-pair payload; 0x494ed0 forwards to it.
+ObjectKey* __thiscall copySecondKey(KeyPairPayload* self, ObjectKey* out);
+ObjectKey* __thiscall copySecondKeyOf(KeyPairPayload* self, ObjectKey* out);
