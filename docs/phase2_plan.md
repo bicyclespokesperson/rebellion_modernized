@@ -191,12 +191,31 @@ return 1; `g_coolDragListClassName` is an `.rdata` pointer to a `.data` string t
 window was never created, ui_tour crashed opening the system window). `tools/vtable_gaps.py` skipped every multiple-inheritance vtable
 (`Class::vftable{Base}`, all GameObj classes); it compares them now, which also found the candidates listed below.
 
-**Remaining vtable candidates** (`tools/vtable_gaps.py --exe <EXE> --list`, own vtables differ from the original's and the original slot
-is not a pure forwarder to ours): `MissionJediTraining` slot 7 (checksum: the original forwards to `MissionPalace::Checksum` 0x56dee0, ours
-inherits `MissionExtraKeyBase::Checksum`, which also sums the extra key), `HumanPlayer` slot 28 (0x486870), slot 48 of every
-Facility/CapShip/Fleet/CombatUnit class (our own `return 1` stub; the original 0x4f29a0 forwards to 0x51ebb0, probably the same), slot 133/137
-of two manufacturing classes (forwarders), and tactical-only ones (`CapitalShipFormation`/`FighterFormation` slot 6 return 3/2 in the
-original, `TacticalSpecialForceUnit` slot 1, `GroupOrder*`).
+**Vtable candidates, resolved (Oct 9).** Against the disassembly, only one was a real gap: `MissionJediTraining` slot 7 is the
+original `MissionPalace::Checksum` forwarder (0x56dee0 -> 0x56da70 -> 0x56aab0), so the Teacher key is *not* part of the
+checksum (Read/Write do include it; `BUG(original)`); the class now overrides `Checksum` with the rule-base sum. The rest are
+behaviourally equal: slot 48 of Facility/CapShip/Fleet/CombatUnit (slot 47 for Fleet) is 0x4f29a0 -> 0x51ebb0 (`return 1`), `HumanPlayer`
+slot 28 is 0x486870 -> 0x5ae1e0 (`ret 4`), slot 133 (0x52d5e0 -> `Fleet::Virtual18`, returns 1) and 137 (0x4f2a70 -> 0x524b10, returns 1) are
+forwarders to such stubs; `DefenseFacility`/`ShipGroup` slots that name `_purecall` are abstract in the original. Left as is, tactical only:
+`CapitalShipFormation`/`FighterFormation` slot 6 return 3/2 in the original, `TacticalSpecialForceUnit` slot 1 returns 8, `GroupOrder*`.
+
+**Static init (done).** `tools/build_standalone.sh` runs `gen_static_init.py --standalone` on the host (from the user's EXE, like the data
+image; `gen/static_init_table.cpp` is never committed): the 111 reconstructed initializers become calls (bound to the objects' symbols with
+`/alternatename`, since clang-cl keeps the `\x01` of an asm label literally), the other 1,670 are baked stores into `reb_data_block`, all in the
+original order; the entry runs it from a `.CRT$XCU` entry. The interim `reb_init_table` of the data image is gone.
+`tools/check_init_state.sh` verifies it: the original game with every hook disabled is captured at WinMain's first instruction
+(`REB_CAPTURE=0x4165b0:1`), the standalone writes its game-owned data (`REB_DUMP_INIT_STATE`, after the table ran, before WinMain), and
+`tools/compare_init_state.py` compares the two segments the data image owns (0x6a7c10-0x6ac970, 0x6b059c-0x6be708) after undoing the
+relocation of pointers into the block (25 of them). Result: 0 differing dwords except 107 vtable pointers (to our own vtable copies; each
+reference value is a named `vftable`).
+
+**`battle_closed` (936 px) was timing.** With `REB_DETERMINISTIC=1` the hybrid and the standalone (before and after the full init table)
+have a pixel-identical `battle_closed`; what still differs between *any* two runs, hybrid vs hybrid included, is a 10-pixel-high
+strip of the title/status line at y 20-29 (`battle_after_20s`/`battle_result_a`, 45-55 px). Not an init-table effect.
+
+**Regression guard.** `tools/standalone_check.sh` (last stage of `tools/integrate.sh`) builds the standalone, runs smoke (no `Unhandled`)
+and compares the save of `save_determinism` with the original code's save of the same session (equal, or a tick-only difference of at
+most 70 bytes at equal size, retried once); one `STANDALONE OK|FAIL` line, about 6 minutes.
 
 **Scenarios under Wine** (real clocks, `tools/run_game.sh --standalone`): 49 of the 51 scenarios of `tests/scenarios/` (all but `fast_play_missions_long` and `load_game_long`) ran to the
 end of their script without a crash or `Unhandled` in `wine.log`, including main menu (smoke), `load_game` (60 s of play), `save_game_slot`
@@ -229,7 +248,7 @@ generated `static_init_table.cpp` of the CRT/init work replaces the interim tabl
 | M3 | Tactical fence (captures, reachable reconstruction, stubs, vote fallback) | Hybrid with stubs: auto-resolve OK; "tactical" resolves abstractly. Done: see docs/code_map.md "Tactical fence (M3)" |
 | M4 | LIBCI + CRT fidelity pieces | difftest PASS; save/load scenarios OK. LIBCI done (src/game/iostream, 0 references left); CRT fidelity pieces done (src/game/crt; decisions for the rest in docs/library_code.md) |
 | M5 | `REB_OWN_DATA=1` hybrid: generated data image, vtable patching off | Scenarios match the normal hybrid. Data image done (above); vtable patching still on |
-| M6 | Standalone `rebellion.exe` (clang-cl/lld-link, static UCRT, real import libs, init table, entry wrapper) | Zero absolute symbols; differential runs pass. First exe built and measured, see "M6" above (saves byte-identical on `save_determinism`; the full init table and CRT fidelity pieces are open) |
+| M6 | Standalone `rebellion.exe` (clang-cl/lld-link, static UCRT, real import libs, init table, entry wrapper) | Zero absolute symbols; differential runs pass. First exe built and measured, see "M6" above (saves identical on `save_determinism` up to the tick; the full generated init table is in; CRT fidelity pieces are open) |
 | M7 | Determinism harness (can start with M1) | Repeated hybrid runs identical; heap probe recorded |
 
 ## Risks
