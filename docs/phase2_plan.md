@@ -31,7 +31,9 @@ Goal: the same sources link into an executable that runs without REBEXE.EXE (i68
   tables are compiler-generated.
 - **Static init:** generated `static_init_table.cpp` calling the initializers in the original table order (0x6a6004,
   1,781 entries) from an entry wrapper. Tactical ID initializers (1,667, pure constant arithmetic) are evaluated in
-  Unicorn at generation time and baked into the data image. The 88 atexit thunks are reconstructed.
+  Unicorn at generation time and baked as stores into the data block. The 88 atexit thunks are reconstructed.
+  Done: `tools/gen_static_init.py` (table 0x6a6000-0x6a7bd8, 111 calls, 1,670 baked, 0 unhandled, validated in the
+  emulator; details in docs/library_code.md, "Static initializers").
 - **LIBCI iostream:** reconstruct (game code depends on its layout: virtual-base `ios`, `x_lockc` +0x34, critical
   section +0x38, strstreambuf freeze semantics). **CRT:** static UCRT, except reconstructed fidelity pieces: `rand/srand`
   (per-thread seed, initial 1), `qsort` (VC5 order of equal elements), `_CIpow`, `_CIacos`, `floor`, `__ftol`.
@@ -159,7 +161,7 @@ incomplete vtables closed (M2/M3), that candidate list reviewed, and soak/save s
 | M1 | Replace the 646 stale declarations; no `aliases.csv` (deleted in M3); one type per global | Hook count unchanged, −646 references |
 | M2 | combat_strat, saveload, the remaining large non-tactical functions, named ICF stubs, atexit thunks | No reference to non-tactical game code; difftest PASS |
 | M3 | Tactical fence (captures, reachable reconstruction, stubs, vote fallback) | Hybrid with stubs: auto-resolve OK; "tactical" resolves abstractly. Done: see docs/code_map.md "Tactical fence (M3)" |
-| M4 | LIBCI + CRT fidelity pieces | difftest PASS; save/load scenarios OK. LIBCI done (src/game/iostream, 0 references left); CRT pieces open |
+| M4 | LIBCI + CRT fidelity pieces | difftest PASS; save/load scenarios OK. LIBCI done (src/game/iostream, 0 references left); CRT fidelity pieces done (src/game/crt; decisions for the rest in docs/library_code.md) |
 | M5 | `REB_OWN_DATA=1` hybrid: generated data image, vtable patching off | Scenarios match the normal hybrid. Data image done (above); vtable patching still on |
 | M6 | Standalone `rebellion.exe` (clang-cl/lld-link, static UCRT, real import libs, init table, entry wrapper) | Zero absolute symbols; differential runs pass |
 | M7 | Determinism harness (can start with M1) | Repeated hybrid runs identical; heap probe recorded |

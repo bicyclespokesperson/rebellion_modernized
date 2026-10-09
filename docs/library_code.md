@@ -71,6 +71,63 @@ Verification: `tests/difftest_ext/iostream_variants.py` (poked entry cases for t
 scenario reaches, 1,521 cases, unit and `--integration`) on top of captures over load_game, save_game_slot, mp_lobby_host/join and
 new_game_rebel.
 
+## CRT in the standalone build: reconstruct or use the host (M4)
+
+The standalone program links the host's static UCRT. Only what can change a game result or a file byte is reconstructed
+(`src/game/crt`, hooked and difftested like game code); the rest of the CRT symbols the reconstructed code references
+(`tools/standalone_gaps.py --list crt`, 48 symbols) uses the host, with the reason below.
+
+Reconstructed:
+
+| Symbol | Where | Why / how |
+|---|---|---|
+| `_rand`, `_srand` 0x61a310, 0x61a300 | `crt/rand.cpp` | VC5 LCG; seed per thread, initially 1. The hybrid keeps it in the original's thread data block (`__getptd()+0x14`) so memory effects equal the original's; without `REB_HYBRID` it is a `thread_local`. |
+| `_qsort` 0x61a0c0 (+ `__shortsort`, `__swap`) | `crt/qsort.cpp` | The VC5 algorithm (middle pivot moved to the front, explicit stack, selection sort up to 8 elements): the order of equal elements decides the neighbour lists of `SystemNeighbourTable::Build`. |
+| `_floor` 0x619610 | `crt/floor.cpp` | FRNDINT under control word 0x173f (round down). Infinities/NaNs return unchanged; the original's `_matherr`/errno reporting for NaNs is not kept. |
+| `__ftol` 0x619780 | `crt/x87_math.cpp` | The compiler's double-to-integer cast (FISTP with rounding forced to truncation). Only unreconstructed code calls it; clang emits an equivalent inline. |
+| `_CIpow` 0x6197b0 | `crt/x87_math.cpp` | FYL2X/F2XM1/FSCALE at the caller's precision: `pow(10, 2)` is 100.00000000000004 here, so host `pow` would change volume slider results. Intel-syntax transliteration of 0x6197d2 and its helpers (the error paths excepted, below). |
+| `_CIacos` 0x61a340 | `crt/x87_math.cpp` | atan2(sqrt((1+x)(1-x)), x) at x87 precision. |
+| `_atoi` 0x619600 (`_atol` 0x619560) | `crt/atoi.cpp` | Wraps at 32 bits instead of clamping like `strtol`; C-locale white space and digits. |
+
+Not reconstructed on purpose: the error paths of `_CIpow`/`_CIacos`/`_floor` (domain errors, overflow, NaN operands). The
+original sets `errno` and calls `_matherr`; the reconstruction returns the same value and restores the control word but
+touches neither. The game never reads either, and its inputs (slider positions, 0..1 cosines) do not get there.
+`tests/difftest_ext/crt_variants.py` sweeps the cases that do not report errors (343 cases: pow, acos, ftol, floor, atoi,
+qsort with ties) and `tools/difftest.py` now loads the captured x87 stack (`--fpu`, `--fpcw` override it); before that every
+run started with an empty FPU.
+
+Host CRT is fine:
+
+| Symbol(s) | Reason |
+|---|---|
+| `_sprintf` | The game formats only `%s`, `%ld`, `%lu`, `%d`/`%x`-style integers (19 sites plus `ostream` number output); no floating-point conversion. |
+| `_fopen _fread _fseek _ftell _fclose _fflush` | Binary reads of game files and plain seeks; no behaviour that differs between CRTs. |
+| `__sopen __read __write __lseek __close` | Same flag values (`_O_BINARY`, `_O_TEXT`, sharing modes) and CR/LF translation, so file bytes are identical. The one dependency on CRT internals, `filebuf::sync` reading the handle-info table `__pioinfo` for the text-mode flag, is split by `REB_HYBRID` in `iostream/filebuf.cpp`: standalone uses `_setmode` and cannot see the CRT's end-of-file flag (the original adds a byte for it when a text read stopped on a lone CR; open item). |
+| `_malloc _free` `operator_new operator_delete` | Pointer values differ from the VC5 small-block heap (the pointer-ordered containers risk in the plan), but nothing stores them. The standalone must define `operator new` as malloc-or-null (the code is built with `-fcheck-new`). Not hooked in the hybrid: it would split the heap between original and reconstructed callers. |
+| `_atexit` | Same LIFO order. |
+| `_strncpy _strncat _strncmp _strchr _memmove` | Defined byte semantics (padding, overlap) are identical. |
+| `__strnicmp _stricmp` | Both lower-case through the locale's table; the game compares ASCII names. |
+| `_toupper _isxdigit _isspace _ispunct _isprint`, `_setlocale` | Locale tables: the game calls `setlocale(LC_ALL, "")` and classifies keystrokes and ASCII text; both CRTs derive them from the same Windows locale. |
+| `_strtol _strtoul`, `__errno` | Same clamping to LONG_MAX/MIN and `ERANGE`; `istream::operator>>` reads `errno` only after a conversion. |
+| `_time` 0x61b120 | Seconds since 1970 (UTC); used only to seed the game's `RandomGenerator`, which is not reproducible anyway (the determinism harness fixes it). The standalone needs a `time(long*)` shim over `_time32`: the UCRT header makes `time` an inline wrapper over `_time64`. |
+| `__chdir __chdrive` | `SetCurrentDirectory` and the `=X:` variables; one call each at start-up. |
+| `__aulldiv` | Compiler runtime for 64-bit division; clang's own is the same arithmetic. |
+| `_purecall`, `__except_handler3`, `icf_return_zero` | Never reached by reconstructed code (the build has no exceptions and no `__try`); the ICF stub is whatever lld folds. |
+
+## Static initializers
+
+`tools/gen_static_init.py` reads the tables `__cinit` (0x61d5d0) walks: the C initializers 0x6a7bdc-0x6a7bec (3 entries:
+`__onexitinit`, `__initstdio`, `__CxxSetUnhandledExceptionFilter`) plus the FP hook `__fpmath` through the pointer at 0x6acacc, all
+CRT-owned and left to the host, then the C++ table 0x6a6000-0x6a7bd8 (1,782 slots, the first one empty, 1,781 entries).
+It writes `static_init_table.cpp` (`RunStaticInitializers()`): 111 calls of reconstructed initializers (by linker symbol),
+1,670 initializers evaluated in Unicorn against the pristine EXE and baked as 1,673 byte-run stores into `reb_data_block`
+(4,822 bytes), 0 unhandled. Two of the baked ones (0x54f7c0, 0x5d8930) also register an unreconstructed destructor with
+`atexit` in the original; the table omits the registration (it would run at process exit only) and says so in a comment.
+The sequence is validated in the emulator: the original's code for all 1,781 entries against the generated one (hooks for
+the reconstructed ones, baked stores for the rest) leave identical bytes in .data/.bss and the emulated heap; flipping one
+baked byte is detected (`--negative-control`). Initializers that allocate or call imports could not be baked; none of the
+1,670 does.
+
 ## Top 40 library functions by game call sites
 
 Counts are call/jump references from game code (addresses below 0x6153b0, plus the game COMDAT block 0x628e10-0x62908f). References from `Unwind@` funclets are not included (they are large for `operator_delete`: 2210, `icf_empty_function`: ~5000).
