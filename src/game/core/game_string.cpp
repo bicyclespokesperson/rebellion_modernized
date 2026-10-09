@@ -5,12 +5,12 @@
 #include <locale.h>
 #include <new>
 
+#include "iostream/iostream.h"
+
 int16_t FUN_00479ac0();  // returns 1: bytes reserved for the terminator
 
 void FUN_005f4c40(istream* in, uint16_t* value);        // binary read of a uint16
 void FUN_005f4c60(ostream* out, const uint16_t* value);  // binary write of a uint16
-istream* __thiscall istream_read(istream* in, char* buffer, int count);
-ostream* __thiscall ostream_write(ostream* out, const char* buffer, int count);
 
 extern char g_stringResourceBuffer[0x100];
 extern void* g_loadStringCallback;

@@ -41,6 +41,36 @@ Confidence summary (462 entries): high 297, medium 134, low 31. By library: crt 
 * **iostream usage**: the game uses strstream/ostrstream (formatting and parsing text: 54 `strstream_ctor`, 100 `operator<<(const char*)`, 95 `operator>>(long&)`), plus ifstream/ofstream for files (~12 constructor calls, 6 `close`). `ios::lock()`-style locking is (apparently) inlined into game code as calls to four 12-byte wrappers around Initialize/Delete/Enter/LeaveCriticalSection (`mtx_init/term/lock/unlock`, 0x615ec0-0x615ef0).
 * Hidden entry points reached only via data tables (`__cfltcvt_tab`, vftables, scope tables): 0x620070/0x6200e0/0x620100/0x6204d0, 0x6170a0, 0x617160, 0x617eb0, etc.; also `__except_handler3` at 0x61a414 (SEH personality for every `__try`, signature "VC20XC00" just before it) which Ghidra did not make a function.
 
+## Reconstruction of LIBCI (src/game/iostream)
+
+The 95 functions of 0x6153b0-0x6184e0 that carry logic are reconstructed and hooked like game code (the compiler-made scalar
+deleting destructors, `mtx_*`-style thunks excepted: `mtx_*` are reconstructed, the deleting destructors and the ICF-folded
+`icf_return_zero` (also `strstreambuf::sync`) are not). `iostream/iostream.h` is the only declaration of the library; game code
+includes it. The classes are layout structs plus free functions named as in `library_functions.csv`, not C++ classes, so that
+objects keep the original layout and every virtual call (`streambuf` slots, the `ios` deleting destructor) goes through the
+original vftables, which `symbols.csv` names `<class>::vftable` / `<class>::vbtable` (0x66e4dc-0x66e630).
+
+Layout facts worth knowing (found while reconstructing):
+
+* `streambuf` (0x4c bytes) lists the put area first: `base +0x10, ebuf +0x14, pbase +0x18, pptr +0x1c, epptr +0x20, eback +0x24,
+  gptr +0x28, egptr +0x2c`, lock count +0x30, critical section +0x34. `strstreambuf` adds `dynamic +0x4c, next size +0x50,
+  static +0x58, allocator +0x5c, deallocator +0x60` (size 0x64); `filebuf` adds `fd +0x4c, opened +0x50` (size 0x54). The
+  game's inlined "bytes written to a strstream" test reads `pptr - pbase`.
+* `ios` (0x50): `bp +4, state +8, delbuf +0x1c, tie +0x20, flags +0x24, precision +0x28, fill +0x2c, width +0x30, lock count
+  +0x34, CRITICAL_SECTION +0x38`. `istream` is {vbptr, `_fGline`, `gcount`} (12 bytes), `ostream` {vbptr, floatused} (8).
+* Destructor entry points take the address of the `ios` base in ECX; `istream_dtor` and `ostream_dtor` take the address
+  just past their own part (istream + 0xc, ostream + 8), which for a strstream/iostream is *not* the ios (it is ios - 8).
+* Original quirks kept: `getint`'s final length test can never fire (`BUG(original)`), `strstreambuf::seekoff` stores a
+  stale pointer after growing the buffer, `ostream::operator<<(char)` calls `overflow` a second time after a failed
+  `sputc`, the filebuf destructor takes the buffer lock and never releases it, `ios::ios` leaves `isfx/osfx` special words
+  uninitialised.
+* Data the library needs is named in `symbols.csv`: `g_iosInstanceCount` 0x6be740, `g_iosStaticLock` 0x6be708, `g_pioinfo` 0x6bed20
+  (the CRT's handle table, read by `filebuf::sync` for the text-mode flag).
+
+Verification: `tests/difftest_ext/iostream_variants.py` (poked entry cases for the text parsing and number formatting paths no
+scenario reaches, 1,521 cases, unit and `--integration`) on top of captures over load_game, save_game_slot, mp_lobby_host/join and
+new_game_rebel.
+
 ## Top 40 library functions by game call sites
 
 Counts are call/jump references from game code (addresses below 0x6153b0, plus the game COMDAT block 0x628e10-0x62908f). References from `Unwind@` funclets are not included (they are large for `operator_delete`: 2210, `icf_empty_function`: ~5000).

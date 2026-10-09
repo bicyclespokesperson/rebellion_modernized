@@ -109,7 +109,7 @@ void SoundSource::LoadFromFile(const char* fileName, long seekPosition, int mode
     if (!fileName) return;
     istream* stream = nullptr;
     if (void* memory = ::operator new(kIfstreamSize))
-        stream = reinterpret_cast<istream*>(ifstream_ctor_open(memory, fileName, kBinaryInputMode, g_filebufOpenprot, 1));
+        stream = reinterpret_cast<istream*>(ifstream_ctor_open(static_cast<ifstream*>(memory), fileName, kBinaryInputMode, g_filebufOpenprot, 1));
     if (!stream) return;
     AttachFile(stream, seekPosition, mode, request);
     if (m_stream == nullptr) DeleteStream(stream);

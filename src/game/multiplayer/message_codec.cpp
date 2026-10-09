@@ -16,17 +16,7 @@ namespace {
 constexpr int kInitialCapacity = 10;
 constexpr int kOutputMode = 2;
 
-struct StreamBufferPointers {
-    uint8_t m_pad[0x18];
-    const char* m_pbase;  // +0x18
-    const char* m_pptr;   // +0x1c
-};
-
-uint32_t BytesWritten(OStrStream* stream) {
-    const auto* buffer = static_cast<const StreamBufferPointers*>(StreambufOf(stream->Out()));
-    if (buffer->m_pptr < buffer->m_pbase) return 0;
-    return static_cast<uint32_t>(buffer->m_pptr - buffer->m_pbase);
-}
+uint32_t BytesWritten(OStrStream* stream) { return iostream_access::WrittenBytes(StreambufOf(stream->Out())); }
 
 // delete through a stream pointer: the scalar deleting destructor sits in slot 0 of the virtual base's vftable.
 void DeleteStream(void* stream) {

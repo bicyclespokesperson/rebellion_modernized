@@ -4,6 +4,7 @@
 #include <new>
 
 #include "core/vptr_store.h"
+#include "iostream/iostream.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
 
@@ -19,25 +20,7 @@ extern int g_ddReportErrors;
 extern int g_ddExclusive;
 extern HMODULE g_ddErrorModule;
 
-class ostream;
-void* __thiscall strstream_ctor(void* stream, int mostDerived);
-void __thiscall strstream_dtor(void* stream);
-void __thiscall ios_dtor(void* ios);
-ostream* __thiscall ostream_operator_ls_cstr(ostream* out, const char* text);
-ostream* __thiscall ostream_operator_ls_char(ostream* out, char value);
-char* __thiscall strstreambuf_str(void* buffer);
-void __thiscall strstreambuf_freeze(void* buffer, int frozen);
-void __cdecl mtx_lock(void* lock);
-void __cdecl mtx_unlock(void* lock);
-
 namespace {
-constexpr size_t kStrstreamSize = 0x64;
-constexpr size_t kOstreamOffset = 0x0c;
-constexpr size_t kIosOffset = 0x14;
-constexpr size_t kIosStreambufOffset = 0x04;
-constexpr size_t kIosStateOffset = 0x08;
-constexpr size_t kIosLockCountOffset = 0x34;
-constexpr size_t kIosLockOffset = 0x38;
 
 constexpr HRESULT kDirectDrawUnsupported = 0x88760082;
 constexpr DWORD kExclusiveFlags = DDSCL_FULLSCREEN | DDSCL_EXCLUSIVE | DDSCL_ALLOWMODEX;
@@ -48,16 +31,11 @@ constexpr UINT kSetWindowPosResize = SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE;
 constexpr UINT kSetWindowPosNotTopmost = SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE;
 constexpr UINT kSetWindowPosMove = SWP_NOSIZE | SWP_NOZORDER | SWP_NOACTIVATE;
 
-template <class T>
-T* IosField(char* ios, size_t offset) {
-    return reinterpret_cast<T*>(ios + offset);
-}
-
 // The directory and file name are concatenated in a strstream, as the original did.
 HMODULE LoadErrorTextLibrary(const char* directory, int ownsDirectory) {
-    alignas(8) char stream[kStrstreamSize];
-    strstream_ctor(stream, 1);
-    ostream* out = reinterpret_cast<ostream*>(stream + kOstreamOffset);
+    strstream stream;
+    strstream_ctor(&stream, 1);
+    ostream* out = stream.Out();
     if (directory) {
         ostream* next = ostream_operator_ls_cstr(out, directory);
         ostream_operator_ls_cstr(next, "\\");
@@ -65,18 +43,14 @@ HMODULE LoadErrorTextLibrary(const char* directory, int ownsDirectory) {
     ostream* next = ostream_operator_ls_cstr(out, "cdderr.dll");
     ostream_operator_ls_char(next, 0);
 
-    char* ios = stream + (*reinterpret_cast<int**>(stream))[1];
-    void* streambuf = *IosField<void*>(ios, kIosStreambufOffset);
-    HMODULE module = LoadLibraryA(strstreambuf_str(streambuf));
-    strstreambuf_freeze(*IosField<void*>(ios, kIosStreambufOffset), 0);
+    ios* base = stream.Ios();
+    HMODULE module = LoadLibraryA(strstreambuf_str(base->m_bp));
+    strstreambuf_freeze(base->m_bp, 0);
 
-    if (*IosField<int>(ios, kIosLockCountOffset) < 0) mtx_lock(ios + kIosLockOffset);
-    const int lockCount = *IosField<int>(ios, kIosLockCountOffset);
-    *IosField<int>(ios, kIosStateOffset) = 0;
-    if (lockCount < 0) mtx_unlock(ios + kIosLockOffset);
+    iostream_access::Clear(base, 0);
     if (directory && ownsDirectory) operator delete(const_cast<char*>(directory));
-    strstream_dtor(stream + kIosOffset);
-    ios_dtor(stream + kIosOffset);
+    strstream_dtor(base);
+    ios_dtor(base);
     return module;
 }
 }  // namespace

@@ -34,8 +34,6 @@ ObjectKey* __thiscall FUN_00402d80(GameObjNotifier* object, ObjectKey* out);
 ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
 // The picture of an object for its status window (galaxy view routes, 0x42c3b0).
 DibBitmap* CreateObjectPicture(HMODULE module, const ObjectKey* key, GameObjNotifier* object, int a, int b);
-// ostream::operator<<(int) of the statically linked iostream library.
-ostream* __thiscall ostream_operator_ls_int(ostream* out, int value);
 
 namespace {
 

@@ -63,7 +63,7 @@ int TableEntry::ParseHeader(istream* in, int* endOfLine) {
         ok = true;
         ReadCsvField(in, token.get(), endOfLine);
         streambuf* buffer = iostream_access::BufferOf(token.get());
-        if (iostream_access::AvailableBytes(buffer) == 0) ok = false;
+        if (iostream_access::WrittenBytes(buffer) == 0) ok = false;
         if (strstreambuf_str(buffer) != nullptr && *strstreambuf_str(buffer) == '\0') ok = false;
         strstreambuf_freeze(buffer, 0);
         if (iostream_access::State(in) != 0) ok = false;

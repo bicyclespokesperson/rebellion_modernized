@@ -3,6 +3,7 @@
 #include "platform/win32.h"
 
 #include "core/game_string.h"
+#include "iostream/iostream.h"
 
 extern int g_fileError;
 extern HMODULE g_resourceModule;
@@ -12,9 +13,6 @@ extern int g_filebufOpenprot;
 #pragma clang diagnostic ignored "-Winconsistent-dllimport"
 extern "C" char* __cdecl strncpy(char* destination, const char* source, size_t count);
 
-void __thiscall ifstream_open(ifstream* stream, const char* fileName, int mode, int protection);
-void __thiscall ofstream_open(ofstream* stream, const char* fileName, int mode, int protection);
-void __thiscall fstreambase_close(void* stream);
 
 namespace {
 
