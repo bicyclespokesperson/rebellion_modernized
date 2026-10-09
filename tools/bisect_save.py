@@ -35,9 +35,9 @@ def hooks() -> dict[int, str]:
     return {int(a, 16): name for a, name in report["reimplemented"].items()}
 
 
-def run(scenario: Path, disabled: str, tag: str, save: str, start: int, length: int) -> bytes | None:
+def run(scenario: Path, disabled: str, tag: str, save: str, start: int, length: int, enable_only: bool = False) -> bytes | None:
     out = ROOT / "work" / "run" / f"bisect_save_{tag}"
-    env = dict(os.environ, REB_DISABLE_HOOKS=disabled)
+    env = dict(os.environ, **({"REB_ENABLE_HOOKS": disabled} if enable_only else {"REB_DISABLE_HOOKS": disabled}))
     subprocess.run([str(ROOT / "tools" / "run_game.sh"), "--out", str(out), str(scenario)], env=env,
                    stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     path = out / "SaveGame" / save
@@ -50,6 +50,10 @@ def main() -> int:
     ap.add_argument("--save", default="SAVEGAME.005", help="save file the scenario writes")
     ap.add_argument("--range", default="0x6a:0x10", help="START:LENGTH of the bytes that must match the original code's")
     ap.add_argument("-k", type=int, default=6, help="chunks (parallel runs) per round")
+    ap.add_argument("--enable-only", action="store_true",
+                    help="each run installs only one chunk's hooks (REB_ENABLE_HOOKS); a chunk whose run differs from the "
+                         "original holds a function that alone causes the difference (for several independent culprits, "
+                         "where disabling any one chunk changes nothing)")
     ap.add_argument("--within", help="START:END: only hooks in this address range are suspects (the rest stay enabled)")
     ap.add_argument("--reference", help="hex bytes of the original code's range (skips the reference run)")
     ap.add_argument("--all-hooks", help="hex bytes of the all-hooks range (skips the baseline run)")
@@ -82,12 +86,16 @@ def main() -> int:
         chunks = [suspects[i:i + size] for i in range(0, len(suspects), size)]
         with ThreadPoolExecutor(len(chunks)) as pool:
             results = list(pool.map(lambda ic: run(args.scenario, ",".join(f"{a:x}" for a in ic[1]), f"r{rnd}_{ic[0]}",
-                                                   args.save, start, length), enumerate(chunks)))
-        culprits = [c for c, got in zip(chunks, results) if got == reference]
+                                                   args.save, start, length, args.enable_only), enumerate(chunks)))
+        if args.enable_only:
+            culprits = [c for c, got in zip(chunks, results) if got is not None and got != reference][:1]
+        else:
+            culprits = [c for c, got in zip(chunks, results) if got == reference]
         for i, (c, got) in enumerate(zip(chunks, results)):
             label = "ref" if got == reference else "all" if got == everything else "none" if got is None else got.hex()
             print(f"  chunk {i} {c[0]:#x}..{c[-1]:#x} ({len(c)}): {label}", flush=True)
-        print(f"round {rnd}: {len(suspects)} suspects in {len(chunks)} chunks; matches the original when disabling "
+        what = "installing only" if args.enable_only else "disabling"
+        print(f"round {rnd}: {len(suspects)} suspects in {len(chunks)} chunks; matches the original when {what} "
               f"chunk(s) {[i for i, r in enumerate(results) if r == reference]}", flush=True)
         if len(culprits) != 1:
             print("ambiguous (0 or several chunks matter: flaky run or several culprits); stopping with:")
