@@ -42,6 +42,7 @@ public:
     virtual void Virtual87(const ObjectKey* key, int name0, int name1, int name2) override;  // 87: 0x485360
     virtual void Virtual93(unsigned target) override;                                  // 93: 0x4853a0
     virtual void Virtual94(int side) override;                                         // 94: 0x4853f0
+    virtual void Virtual95() override {}                                               // 95, shared 0x619730 (no vote counting)
 
     // Hands a message that is not a vote or sync message to the UI.
     void RouteMessage(MessageBase* message);  // 0x485440

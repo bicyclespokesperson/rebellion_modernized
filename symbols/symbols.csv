@@ -2540,7 +2540,7 @@ address,kind,name,signature,size
 0x0048bd90,func,Notice33::~Notice33,,
 0x0048bde0,func,Notice33::Read,,
 0x0048be20,func,Notice33::Write,,
-0x0048be60,func,Notice33::OnMessage,,
+0x0048be60,func,Notice33::Virtual08,,
 0x0048c240,func,Notice33::Virtual10,,
 0x0048c2a0,func,Notice44::Virtual11,,
 0x0048c2b0,func,Notice33::IsStale,,

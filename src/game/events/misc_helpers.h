@@ -21,6 +21,10 @@ public:
     ObjectKeyPairNode(const ObjectKeyPairNode& other);                // 0x594920
     virtual ~ObjectKeyPairNode();                                     // 0x594980
     virtual ObjectKeyNode* Clone() override;                          // 1: 0x5949d0
+    // The second key is streamed as a plain 4-byte value; the original shares IntPairNode's 0x585590-0x5855d0.
+    virtual void Read(istream* in) override;                          // 3, shared 0x585590
+    virtual void Write(ostream* out) override;                        // 5, shared 0x5855b0
+    virtual int Checksum(Crc32* crc) override;                        // 6, shared 0x5855d0
 
     ObjectKey m_second;  // +0x1c
 };

@@ -328,7 +328,7 @@ int Notice33::GetKind() { return 33; }
 
 UiNotice* Notice33::Virtual10() { return NewOrNull<Notice33>(); }
 
-void Notice33::OnMessage(int kind, int a, int b) {
+void Notice33::Virtual08(int kind, int a, int b) {
     if (kind != 0x160) return;
     const ObjectKey* key = reinterpret_cast<const ObjectKey*>(a);
     ManuMgr* manager = nullptr;

@@ -123,6 +123,7 @@ public:
     virtual int Read(istream* in) override { return OrderBase::Read(in); }      // 1, shared 0x53d0f0
     virtual int Write(ostream* out) override { return OrderBase::Write(out); }  // 2, shared 0x53dd90
     virtual int GetKind() override { return 0x268; }                            // 3: 0x5812c0
+    virtual int IsListed() override { return 0; }                               // 4, shared 0x6158b0
     virtual Command* CreateCommand() override;                                  // 18: 0x5812d0
 };
 

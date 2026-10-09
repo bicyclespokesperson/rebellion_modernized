@@ -34,6 +34,7 @@ public:
     virtual void OnCreate3() override;                      // slot 16, 0x443020: encyclopedia and close buttons
     virtual void DrawOverlay(HDC dc) override;              // slot 17, 0x444370: the title and the name
     virtual void OnCommand(int a, int b, int c) override;   // slot 18, 0x4443a0
+    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, shared 0x4a7390 (FleetWindow::OnKeyDown)
 
     // Replaces m_items by a new, empty list sorted by id and gives it to m_list.
     void ReplaceItemList();                                                                  // part of 0x443130
