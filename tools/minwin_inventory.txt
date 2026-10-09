@@ -5,7 +5,7 @@
 ## Summary (distinct names by group)
   user32             244   (function 92, macro 144, macro-function 2, type 6)
   gdi32               84   (function 40, macro 34, macro-function 1, type 9)
-  base                67   (macro 13, macro-function 2, type 52)
+  base                65   (macro 13, macro-function 2, type 50)
   kernel32            49   (function 38, macro 7, type 4)
   winmm               37   (function 9, macro 20, type 8)
   dplayx              24   (function 3, struct 5, type 1, variable 15)
@@ -19,7 +19,7 @@
   other:mmeapi         2   (macro 1, type 1)
   avifil32/vfw         2   (type 2)
   ole/com              1   (type 1)
-  TOTAL              585
+  TOTAL              583
 
 ## advapi32
  [function] 5
@@ -36,12 +36,12 @@
   AVIFILEINFOA(1) PAVIFILE(1)
 
 ## base
- [type] 52
-  ATOM(2) BOOL(26) BYTE(1) COLORREF(109) DWORD(121) DWORD_PTR(33) GUID(21) HACCEL(3) HANDLE(11) HBITMAP(5) HBRUSH(35)
+ [type] 50
+  ATOM(2) BOOL(24) BYTE(1) COLORREF(109) DWORD(115) DWORD_PTR(33) GUID(21) HACCEL(3) HANDLE(11) HBITMAP(5) HBRUSH(35)
   HCURSOR(23) HDC(238) HFILE(1) HFONT(13) HGDIOBJ(76) HGLOBAL(18) HHOOK(5) HICON(5) HINSTANCE(146) HKEY(5) HMENU(7)
   HMODULE(196) HPALETTE(58) HPEN(6) HRESULT(64) HRSRC(12) HWND(239) LARGE_INTEGER(3) LONG(122) LONG_PTR(1)
-  LPARAM(270) LPBYTE(1) LPCSTR(9) LPCVOID(1) LPDWORD(2) LPPOINT(1) LPRECT(2) LPSTR(10) LPVOID(7) LRESULT(172)
-  POINT(82) POINTS(34) PUINT(1) RECT(259) SHORT(32) SIZE(9) UINT(296) UINT_PTR(9) ULONG(1) WORD(6) WPARAM(248)
+  LPARAM(270) LPBYTE(1) LPCSTR(6) LPDWORD(1) LPPOINT(1) LPRECT(2) LPSTR(9) LPVOID(5) LRESULT(172) POINT(82)
+  POINTS(34) RECT(259) SHORT(32) SIZE(9) UINT(296) UINT_PTR(9) ULONG(1) WORD(6) WPARAM(248)
  [macro] 13
   CALLBACK(14) ERROR_ALREADY_EXISTS(1) ERROR_INVALID_HANDLE(1) ERROR_SUCCESS(7) E_FAIL(6) FALSE(214) HFILE_ERROR(1)
   InterlockedExchange(10) KEY_READ(2) KEY_WRITE(1) REG_DWORD(2) TRUE(36) WAIT_TIMEOUT(2)
@@ -122,7 +122,7 @@
   FreeResource(16) GetComputerNameA(1) GetCurrentThreadId(3) GetDriveTypeA(1) GetLastError(8) GetModuleHandleA(1)
   GetTickCount(3) InitializeCriticalSection(3) LeaveCriticalSection(7) LoadLibraryA(2) LoadResource(16)
   LockResource(16) OutputDebugStringA(1) QueryPerformanceCounter(2) QueryPerformanceFrequency(1) SetEvent(3)
-  SetThreadPriority(3) Sleep(1) SleepEx(1) TerminateThread(3) VerLanguageNameA(2) WaitForMultipleObjects(3)
+  SetThreadPriority(3) Sleep(1) SleepEx(1) TerminateThread(3) VerLanguageNameA(1) WaitForMultipleObjects(3)
   WaitForSingleObject(4) _lclose(5) _lopen(1) _lread(2)
  [type] 4
   CRITICAL_SECTION(2) LPCRITICAL_SECTION(4) LPTHREAD_START_ROUTINE(3) WIN32_FIND_DATAA(1)
@@ -194,7 +194,7 @@
 
 ## version
  [function] 3
-  GetFileVersionInfoA(2) GetFileVersionInfoSizeA(2) VerQueryValueA(3)
+  GetFileVersionInfoA(1) GetFileVersionInfoSizeA(1) VerQueryValueA(2)
 
 ## winmm
  [function] 9
