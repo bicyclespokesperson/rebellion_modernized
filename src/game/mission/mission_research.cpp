@@ -13,9 +13,8 @@
 #include "mission/mission_external.h"
 #include "mission/mission_rules.h"
 
-extern "C" void __cdecl LAB_0056d180();
+extern "C" void __cdecl LAB_0056d190();  // the atexit destructor of the event kind set
 
-extern int DAT_006bb568;  // g_gnprtb1816
 extern int g_missionResearchEventKindsReady;      // 0x6bb984
 extern EventKindSet g_missionResearchEventKinds;  // 0x6bb988
 
@@ -345,7 +344,7 @@ int MissionResearch::Virtual159(GameObj* person, int roll, int* out, NotifyConte
     if (!role->Virtual118()) return ok;
     int baseSkill = 0;
     ok = role->GetBaseRdForKind(kind, &baseSkill) != 0 && ok;
-    ok = role->SetBaseRdForKind(kind, baseSkill + DAT_006bb568, ctx) != 0 && ok;
+    ok = role->SetBaseRdForKind(kind, baseSkill + g_gnprtb180E, ctx) != 0 && ok;
     return ok;
 }
 
@@ -378,7 +377,7 @@ int MissionResearch::BuildEventKinds() {
 
 void ConstructMissionResearchEventKinds() { new (&g_missionResearchEventKinds) EventKindSet(); }
 
-void RegisterMissionResearchEventKindsAtExit() { atexit(LAB_0056d180); }
+void RegisterMissionResearchEventKindsAtExit() { atexit(LAB_0056d190); }
 
 void MissionResearch::InitStatics() {
     ConstructMissionResearchEventKinds();

@@ -6,14 +6,8 @@
 #include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "data/seed_list.h"
+#include "economy/side.h"
 #include "gameobj/object_name_node.h"
-
-// Pieces owned by the data-table module (0x58e5a0-0x58eda0, 0x52d720, 0x53b860), used through their addresses.
-void* __thiscall FUN_0058ec40(void* storage);
-void* __thiscall FUN_0058eb60(void* storage);
-void* __thiscall FUN_0058ecc0(void* storage);
-void __thiscall FUN_0052d720(void* storage);
-void __thiscall FUN_0052d760(void* list);
 
 namespace {
 
@@ -63,8 +57,8 @@ const ResourceStringId* NameResource(const DatRecord* record) {
 // A name list on the stack (0x52d720 constructs it, 0x52d760 destroys it).
 class NameList {
 public:
-    NameList() { FUN_0052d720(storage); }
-    ~NameList() { FUN_0052d760(storage); }
+    NameList() { new (storage) ObjectNameList(); }
+    ~NameList() { reinterpret_cast<ObjectNameList*>(storage)->ObjectNameList::~ObjectNameList(); }
     IdAvlTree* tree() { return reinterpret_cast<IdAvlTree*>(storage); }
 
 private:
@@ -95,7 +89,7 @@ int ObjectTypeDb::BuildFamilies() {
         m_families = nullptr;
     }
     void* memory = ::operator new(sizeof(FamilyTable));
-    m_families = memory ? static_cast<FamilyTable*>(FUN_0058ec40(memory)) : nullptr;
+    m_families = memory ? reinterpret_cast<FamilyTable*>(new (memory) SeedListFileTree()) : nullptr;
     return m_families ? m_families->m_ok : 0;
 }
 
@@ -123,7 +117,7 @@ int ObjectTypeDb::LoadFamilies() {
 
 int ObjectTypeDb::AddFamily(int a, int b) {
     void* memory = ::operator new(kEntrySize);
-    void* entry = memory ? FUN_0058eb60(memory) : nullptr;
+    void* entry = memory ? new (memory) SeedListFile() : nullptr;
     int ok = entry != nullptr;
     if (ok) {
         ok = Field<int>(entry, kEntryOkOffset);
@@ -198,7 +192,7 @@ int ObjectTypeDb::CollectRecords(int view, uint32_t kind, int level, int whenBel
             if (!wanted) continue;
 
             void* memory = ::operator new(kNameNodeSize);
-            void* nameNode = memory ? FUN_0058ecc0(memory) : nullptr;
+            void* nameNode = memory ? new (memory) RecordNameNode() : nullptr;
             ok = nameNode != nullptr;
             if (nameNode) {
                 ok = static_cast<RecordNameNode*>(nameNode)->SetFromRecord(record);

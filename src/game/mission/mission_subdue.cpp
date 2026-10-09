@@ -7,7 +7,6 @@ extern "C" void __cdecl LAB_00569df0();
 extern int g_missionSubdueEventKindsReady;      // 0x6bb918
 extern EventKindSet g_missionSubdueEventKinds;  // 0x6bb910
 
-extern int DAT_006bb538;  // g_gnprtb1811
 
 namespace {
 constexpr uint32_t kFamilyMissionSubdue = 0x57;
@@ -85,7 +84,7 @@ int MissionSubdue::Virtual159(GameObj* person, int roll, int* out, NotifyContext
     ok = SetTaskStatus((system->m_flags & 4) ? kTaskStarted : kTaskSucceeded, ctx) && ok;
     if (m_taskStatus == kTaskSucceeded && static_cast<Role*>(person)->Virtual118()) {
         Role* role = static_cast<Role*>(person);
-        ok = role->SetBaseLeadership(role->m_baseLeadership + DAT_006bb538, ctx) && ok;
+        ok = role->SetBaseLeadership(role->m_baseLeadership + g_gnprtb1811, ctx) && ok;
     }
     return ok;
 }

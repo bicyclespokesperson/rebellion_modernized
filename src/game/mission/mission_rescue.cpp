@@ -7,7 +7,6 @@ extern "C" void __cdecl LAB_0056afa0();
 extern int g_missionRescueEventKindsReady;      // 0x6bb94c
 extern EventKindSet g_missionRescueEventKinds;  // 0x6bb950
 
-extern int DAT_006bb55c;
 
 namespace {
 constexpr uint32_t kFamilyMissionRescue = 0x61;
@@ -61,7 +60,7 @@ int MissionRescue::Virtual159(GameObj* person, int roll, int* out, NotifyContext
     *out = 1;
     SetTaskStatus(kTaskSucceeded, ctx);
     Role* role = static_cast<Role*>(person);
-    if (role->Virtual118()) role->SetBaseCombat(role->m_baseCombat + DAT_006bb55c, ctx);
+    if (role->Virtual118()) role->SetBaseCombat(role->m_baseCombat + g_gnprtb1812, ctx);
     Role* target = nullptr;
     ok = static_cast<MissionCharacterTargetBase*>(this)->GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target));
     if (target) {

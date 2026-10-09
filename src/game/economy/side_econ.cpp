@@ -3,6 +3,7 @@
 #include "economy/manu_mgr.h"
 #include "economy/side.h"
 #include "economy/side_decl.h"
+#include "events/plain_events.h"
 #include "galaxy/game_setup_seed.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
@@ -525,18 +526,19 @@ int Side::ServeManufacturerQueue(int* more, NotifyContext* ctx) {
 
 namespace {
 
-int scheduleEvent(Side* side, SideTimedEvent* (__thiscall* construct)(void*)) {
-    void* memory = ::operator new(sizeof(SideTimedEvent));
-    SideTimedEvent* event = memory ? construct(memory) : nullptr;
+template <class Event>
+int scheduleEvent(Side* side) {
+    void* memory = ::operator new(sizeof(Event));
+    Event* event = memory ? new (memory) Event() : nullptr;
     int result = 0;
     if (event) {
-        result = event->m_ok;
+        result = event->m_flag;
         if (result == 0) {
             delete event;
         } else {
             ObjectKey key;
             side->GetKey(&key);
-            event->m_targetKey = key;
+            event->m_key = key;
             CallGameHook2AF8(static_cast<int>(reinterpret_cast<intptr_t>(event)));
         }
     }
@@ -545,6 +547,6 @@ int scheduleEvent(Side* side, SideTimedEvent* (__thiscall* construct)(void*)) {
 
 }  // namespace
 
-int Side::ScheduleRefineryEvent() { return scheduleEvent(this, FUN_005777c0); }
+int Side::ScheduleRefineryEvent() { return scheduleEvent<RefineryQueueEvent>(this); }
 
-int Side::ScheduleManufacturerEvent() { return scheduleEvent(this, FUN_00577b00); }
+int Side::ScheduleManufacturerEvent() { return scheduleEvent<ManufacturerQueueEvent>(this); }

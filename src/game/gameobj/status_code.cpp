@@ -3,20 +3,16 @@
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 
-// EventKindNode's constructor/destructor (0x582a00/0x582a70) live in another module.
-EventKindNode* __thiscall FUN_00582a00(void* storage);
-void __thiscall FUN_00582a70(EventKindNode* node);
-
 namespace {
 
 // A throwaway node used as the probe of a lookup.
 class KindProbe {
 public:
     explicit KindProbe(int kind) {
-        m_node = FUN_00582a00(storage);
+        m_node = new (storage) EventKindNode();
         m_node->m_key = kind;
     }
-    ~KindProbe() { FUN_00582a70(m_node); }
+    ~KindProbe() { m_node->EventKindNode::~EventKindNode(); }
     EventKindNode* node() const { return m_node; }
 
 private:
@@ -80,7 +76,7 @@ EventKindNode* EventKindSet::Add(int kind, int value) {
     EventKindNode* node = nullptr;
     if (!Contains(kind)) {
         void* memory = ::operator new(sizeof(EventKindNode));
-        node = memory ? FUN_00582a00(memory) : nullptr;
+        node = memory ? new (memory) EventKindNode() : nullptr;
         if (node) {
             node->m_value = value;
             node->m_key = kind;
@@ -104,7 +100,7 @@ int EventKindSet::Read(istream* in) {
         int kind;
         ReadValue32(in, &kind);
         void* memory = ::operator new(sizeof(EventKindNode));
-        EventKindNode* node = memory ? FUN_00582a00(memory) : nullptr;
+        EventKindNode* node = memory ? new (memory) EventKindNode() : nullptr;
         if (node) {
             node->m_key = kind;
             AddIfAbsent(node);

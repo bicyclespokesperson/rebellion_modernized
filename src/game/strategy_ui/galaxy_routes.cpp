@@ -23,6 +23,7 @@
 #include "strategy_ui/mission_selection_window.h"
 #include "strategy_ui/object_menu.h"
 #include "strategy_ui/personnel_finder_window.h"
+#include "strategy_ui/sector_window.h"
 #include "strategy_ui/system_finder_window.h"
 #include "strategy_ui/system_window.h"
 #include "strategy_ui/troop_finder_window.h"
@@ -48,8 +49,6 @@ extern int g_briefingDllSide;  // 0x6b14d4 the side whose briefing DLL (slot 0xd
 
 // The other strategy windows' constructors (the finders, message index, mission selection, side windows) and helpers
 // of the modules that own them.
-void* __thiscall FUN_004591d0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
-                              DibBitmap* backdrop, uint32_t childId, GameObjNotifier* sector);
 void __thiscall FUN_00457f30(SystemWindow* window, int slot, GameObjNotifier* manager, const ObjectKey* character);
 void* __thiscall FUN_0042dbe0(void* self);
 
@@ -198,8 +197,7 @@ CoolWindow* GalaxyWindow::OpenSectorWindow(const ObjectKey* sectorKey) {
     }
     void* memory = ::operator new(kSectorWindowSize);
     CoolWindow* window =
-        memory ? static_cast<CoolWindow*>(FUN_004591d0(memory, m_instance, left, top, kSectorWindowWidth,
-                                                       kSectorWindowHeight, this, GetBackground(), childId, sector))
+        memory ? static_cast<CoolWindow*>(new (memory) SectorWindow(m_instance, left, top, kSectorWindowWidth, kSectorWindowHeight, this, GetBackground(), childId, sector))
                : nullptr;
     if (!window) return nullptr;
     window->Create(0);

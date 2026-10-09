@@ -8,6 +8,7 @@
 #include "data/game_math.h"
 #include "economy/manu_mgr.h"
 #include "economy/side.h"
+#include "events/command_classes2.h"
 #include "gameobj/key_int_set.h"
 #include "gameobj/key_queue.h"
 #include "gameobj/object_database.h"
@@ -102,7 +103,7 @@ int DestinationOrder::GetKind() { return 0x214; }
 
 Command* DestinationOrder::CreateCommand() {
     void* memory = ::operator new(0x58);
-    return memory ? FUN_0057ddc0(memory) : nullptr;
+    return memory ? new (memory) DestinationCommand() : nullptr;
 }
 
 void* CreateDestinationOrder() { return NewOrNull<DestinationOrder>(); }
@@ -229,7 +230,7 @@ int RenameOrder215::CheckEnabled(StatusCode* status) {
 
 Command* RenameOrder215::CreateCommand() {
     void* memory = ::operator new(0x5c);
-    return memory ? FUN_0057e460(memory) : nullptr;
+    return memory ? new (memory) ManagerRenameCommand() : nullptr;
 }
 
 int RenameOrder215::CheckDestination(StatusCode* status) {
@@ -274,7 +275,7 @@ int ManufactureOrderBase::Write(ostream* out) {
 
 Command* ManufactureOrderBase::CreateCommand() {
     void* memory = ::operator new(0x58);
-    return memory ? FUN_0057f230(memory) : nullptr;
+    return memory ? new (memory) ManufactureCommand() : nullptr;
 }
 
 uint32_t ManufactureOrderBase::FillChoices(AvlTree* choices) {
@@ -496,7 +497,7 @@ int Order213::GetKind() { return 0x213; }
 
 Command* Order213::CreateCommand() {
     void* memory = ::operator new(0x50);
-    return memory ? FUN_0057e950(memory) : nullptr;
+    return memory ? new (memory) ManagerCommand213() : nullptr;
 }
 
 void* CreateOrder213() { return NewOrNull<Order213>(); }
@@ -511,7 +512,7 @@ int Order216::GetKind() { return 0x216; }
 
 Command* Order216::CreateCommand() {
     void* memory = ::operator new(0x54);
-    return memory ? FUN_0057ed20(memory) : nullptr;
+    return memory ? new (memory) ManagerCommand216() : nullptr;
 }
 
 void* CreateOrder216() { return NewOrNull<Order216>(); }

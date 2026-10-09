@@ -3,13 +3,8 @@
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
+#include "ui/cool_button.h"
 #include "ui/cool_scrollable.h"
-
-// CoolStrobeButton's constructor (0x602150, reconstructed with the buttons): the arrow buttons are strobe
-// buttons drawn from two RT_BITMAP images.
-CoolWindow* __thiscall FUN_00602150(void* memory, HINSTANCE instance, int x, int y, int width, int height,
-                                    CoolWindow* parent, uint32_t childId, uint32_t normalImageId,
-                                    uint32_t pressedImageId, DibBitmap* background, int unknown, uint32_t flags);
 
 namespace {
 
@@ -123,8 +118,7 @@ void CoolScrollBar::CreateArrowButton(CoolWindow*& button, HMODULE module, uint1
     DibBitmap* image = LoadArtBitmap(module, normalId);
     if (image) {
         void* memory = ::operator new(kStrobeButtonSize);
-        button = memory ? FUN_00602150(memory, module, 0, 0, image->Width(), image->Height(), this, childId, normalId,
-                                       pressedId, m_trackTile, kArrowButtonUnknown, m_buttonFlags)
+        button = memory ? new (memory) CoolStrobeButton(module, 0, 0, image->Width(), image->Height(), this, childId, normalId, pressedId, m_trackTile, kArrowButtonUnknown, m_buttonFlags)
                         : nullptr;
         delete image;
     }

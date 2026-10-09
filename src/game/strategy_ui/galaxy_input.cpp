@@ -639,7 +639,7 @@ LRESULT GalaxyWindow::OnModalRequest(UINT message, WPARAM wParam, LPARAM lParam)
             SoundManager::Shutdown(0);
             const uint8_t* record = reinterpret_cast<const uint8_t*>(lParam);
             AppPlayMovie(*reinterpret_cast<const int*>(record + kMovieRecordIdOffset),
-                         static_cast<int>(reinterpret_cast<uintptr_t>(record + kMovieRecordNameOffset)), 0);
+                         reinterpret_cast<const String*>(record + kMovieRecordNameOffset), nullptr);
         }
         return 0;
     }

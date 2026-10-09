@@ -17,10 +17,6 @@ extern ObjectKeyValueSet g_manuMgrEmptyQueue;  // 0x6b9010
 extern EventKindSet g_manuMgrEventKinds;    // 0x6b9018
 extern uint8_t g_manuMgrEmptyQueueGuard;    // 0x6b9020
 
-// Data-table record lookup by key (0x51cab0).
-// The data block constructor (0x583800).
-ManuMgrData* __thiscall FUN_00583800(void* memory);
-
 namespace {
 
 constexpr int kStatusCategory = 1;
@@ -59,7 +55,7 @@ ManuMgr::~ManuMgr() { REB_KEEP_VPTR_STORE(); }
 GameObjData* ManuMgr::CreateData() {
     void* memory = operator new(sizeof(ManuMgrData));
     if (!memory) return nullptr;
-    return FUN_00583800(memory);
+    return new (memory) ManuMgrData();
 }
 
 // ---- names ---------------------------------------------------------------------------------------------------

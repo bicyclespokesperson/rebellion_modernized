@@ -1,5 +1,6 @@
 #include <new>
 
+#include "app/app_control_cmds.h"
 #include "app/app_externals.h"
 #include "app/app_save_strings.h"
 #include "app/rebapp_globals.h"
@@ -249,14 +250,14 @@ int RebellionApplication::IsSessionActive() {
 
 void RebellionApplication::SendSaveCommand(int a, int b, String name, int d) {
     void* commandMemory = operator new(0x38);
-    AppCommand* command = commandMemory ? static_cast<AppCommand*>(FUN_004210c0(commandMemory)) : nullptr;
+    AppCommand* command = commandMemory ? reinterpret_cast<AppCommand*>(new (commandMemory) MpPlayerInfoMsg()) : nullptr;
     if (!command) return;
     command->m_unknown24 = b;
     command->m_unknown20 = a;
     command->SetName(name);
     command->m_unknown34 = d;
     void* executorMemory = operator new(0x1c);
-    CommandExecutor* executor = executorMemory ? static_cast<CommandExecutor*>(FUN_0051c300(executorMemory)) : nullptr;
+    CommandExecutor* executor = executorMemory ? static_cast<CommandExecutor*>(new (executorMemory) MessageCodec()) : nullptr;
     if (!executor) return;
     static_cast<MessageCodec*>(executor)->Serialize(reinterpret_cast<MessageBase*>(command));
     if (executor->m_valid) {

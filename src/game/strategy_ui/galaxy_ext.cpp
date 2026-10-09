@@ -15,8 +15,10 @@
 #include "strategy_ui/fleet_window.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
+#include "strategy_ui/sector_window.h"
 #include "strategy_ui/system_forces_window.h"
 #include "strategy_ui/system_missions_window.h"
+#include "strategy_ui/system_window.h"
 #include "ui/cool_game_window.h"
 #include "ui/cool_label.h"
 #include "ui/object_list_item.h"
@@ -25,12 +27,6 @@ extern const char g_newlineString[];  // 0x6a8170 "\n"
 extern const int16_t g_mapGridWidth;   // 0x659b48
 extern const int16_t g_mapGridHeight;  // 0x659b4a
 extern const int16_t g_stringGroup65d424;  // 0x65d424 group of the localised sector name suffix
-
-// Windows of the other strategy modules, built from a saved ChildWindowState.
-void* __thiscall FUN_004591d0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
-                              DibBitmap* backdrop, uint32_t childId, GameObjNotifier* sector);
-void* __thiscall FUN_00452fc0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
-                              int a, int b);
 
 namespace {
 
@@ -145,9 +141,7 @@ CoolWindow* GalaxyWindow::OpenChildWindow(istream* in, ChildWindowState* state) 
         switch (state->m_type) {
         case kTypeSector: {
             void* memory = ::operator new(kSectorWindowSize);
-            window = memory ? static_cast<CoolWindow*>(FUN_004591d0(memory, m_instance, state->m_x, state->m_y,
-                                                                    state->m_width, state->m_height, this,
-                                                                    GetBackground(), 0, nullptr))
+            window = memory ? static_cast<CoolWindow*>(new (memory) SectorWindow(m_instance, state->m_x, state->m_y, state->m_width, state->m_height, this, GetBackground(), 0, nullptr))
                             : nullptr;
             tracked = true;
             minimizable = false;
@@ -168,8 +162,7 @@ CoolWindow* GalaxyWindow::OpenChildWindow(istream* in, ChildWindowState* state) 
         case kTypeSystem: {
             void* memory = ::operator new(0x26c);
             tracked = true;
-            window = memory ? static_cast<CoolWindow*>(FUN_00452fc0(memory, m_instance, state->m_x, state->m_y,
-                                                                    state->m_width, state->m_height, this, 0, 0))
+            window = memory ? static_cast<CoolWindow*>(new (memory) SystemWindow(m_instance, state->m_x, state->m_y, state->m_width, state->m_height, this, 0, 0))
                             : nullptr;
             break;
         }

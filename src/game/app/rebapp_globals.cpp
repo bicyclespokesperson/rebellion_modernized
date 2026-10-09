@@ -210,8 +210,8 @@ void AppSetUnknown138(int value) {
     if (g_app) App()->m_unknown138 = value;
 }
 
-void AppPlayMovie(int movieId, int a, int b) {
-    if (g_app) App()->PlayMovie(movieId, a, b);
+void AppPlayMovie(int movieId, const String* caption, void(__cdecl* callback)(uint32_t, uint32_t, int)) {
+    if (g_app) App()->PlayMovie(movieId, caption, callback);
 }
 
 int AppShowHelp() {

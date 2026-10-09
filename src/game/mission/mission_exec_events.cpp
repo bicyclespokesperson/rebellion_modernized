@@ -52,9 +52,9 @@ int MissionMgr::UpdateMissionsForObject(ObjectKey* key, int unused, ObjectKey* l
         }
     }
     if (InFamilies(key, 0x28, 0x2c)) {
-        MissionIteratorFam53 missions(this);
-        for (missions.get()->Begin(); missions.get()->Current(); missions.get()->Advance()) {
-            Mission* mission = missions.Current();
+        MissionResearchIterator missions(this);
+        for (missions.Begin(); missions.Current(); missions.Advance()) {
+            Mission* mission = static_cast<Mission*>(missions.Current());
             if (mission->TargetLocationKeyIs(location)) ok = mission->UpdatePhaseForTeam(ctx) && ok;
         }
     }
@@ -126,9 +126,9 @@ int MissionMgr::OnSystemEventNoop(int a, int b, int c) { return 1; }
 int MissionMgr::UpdateMissionsAtSystemA(ObjectKey* key, int enabled, NotifyContext* ctx) {
     int ok = 1;
     if (InFamilies(key, kFamilySystemBegin, kFamilySystemEnd) && enabled != 0) {
-        MissionIteratorFam58 missions(this);
-        for (missions.get()->Begin(); missions.get()->Current(); missions.get()->Advance()) {
-            Mission* mission = missions.Current();
+        MissionJediTrainingIterator missions(this);
+        for (missions.Begin(); missions.Current(); missions.Advance()) {
+            Mission* mission = static_cast<Mission*>(missions.Current());
             if (mission->TargetLocationKeyIs(key)) ok = static_cast<MissionJediTraining*>(mission)->RequestPhase9(ctx) && ok;
         }
     }
@@ -138,9 +138,9 @@ int MissionMgr::UpdateMissionsAtSystemA(ObjectKey* key, int enabled, NotifyConte
 int MissionMgr::UpdateMissionsAtSystemB(ObjectKey* key, int enabled, NotifyContext* ctx) {
     int ok = 1;
     if (InFamilies(key, kFamilySystemBegin, kFamilySystemEnd) && enabled != 0) {
-        MissionIteratorFam58 missions(this);
-        for (missions.get()->Begin(); missions.get()->Current(); missions.get()->Advance()) {
-            Mission* mission = missions.Current();
+        MissionJediTrainingIterator missions(this);
+        for (missions.Begin(); missions.Current(); missions.Advance()) {
+            Mission* mission = static_cast<Mission*>(missions.Current());
             if (mission->TargetLocationKeyIs(key)) ok = static_cast<MissionJediTraining*>(mission)->RequestPhase10(ctx) && ok;
         }
     }
@@ -150,9 +150,9 @@ int MissionMgr::UpdateMissionsAtSystemB(ObjectKey* key, int enabled, NotifyConte
 int MissionMgr::UpdateMissionsAtLocation53(ObjectKey* key, int unused, NotifyContext* ctx) {
     int ok = 1;
     if (InFamilies(key, kFamilySystemBegin, kFamilySystemEnd)) {
-        MissionIteratorFam53 missions(this);
-        for (missions.get()->Begin(); missions.get()->Current(); missions.get()->Advance()) {
-            Mission* mission = missions.Current();
+        MissionResearchIterator missions(this);
+        for (missions.Begin(); missions.Current(); missions.Advance()) {
+            Mission* mission = static_cast<Mission*>(missions.Current());
             if (mission->TargetLocationKeyIs(key)) ok = mission->UpdatePhaseForTeam(ctx) && ok;
         }
     }
@@ -161,9 +161,9 @@ int MissionMgr::UpdateMissionsAtLocation53(ObjectKey* key, int unused, NotifyCon
 
 int MissionMgr::UpdateMissionsAtLocation50to60(ObjectKey* key, int unused, NotifyContext* ctx) {
     int ok = 1;
-    MissionIteratorFam50to60 missions(this);
-    for (missions.get()->Begin(); missions.get()->Current(); missions.get()->Advance()) {
-        Mission* mission = missions.Current();
+    MissionTargetKindIterator missions(this);
+    for (missions.Begin(); missions.Current(); missions.Advance()) {
+        Mission* mission = static_cast<Mission*>(missions.Current());
         if (mission->TargetLocationKeyIs(key)) ok = mission->UpdatePhaseForTeam(ctx) && ok;
     }
     return ok;

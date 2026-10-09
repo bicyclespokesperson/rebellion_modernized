@@ -454,7 +454,7 @@ void MainMenuWindow::OnCommand(uint32_t commandId) {
         m_leaving = 1;
         m_playingMovie = 1;
         Hide();
-        AppPlayMovie(kMovieQuit, 0, reinterpret_cast<int>(&MainMenuMovieDone));
+        AppPlayMovie(kMovieQuit, nullptr, reinterpret_cast<void(__cdecl*)(uint32_t, uint32_t, int)>(&MainMenuMovieDone));
         return;
     }
 }

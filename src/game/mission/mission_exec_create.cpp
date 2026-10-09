@@ -1,5 +1,6 @@
 #include "mission/mission_exec_decl.h"
 #include "galaxy/system_rules.h"
+#include "mission/mission_rules.h"
 
 using namespace mission_exec;
 
@@ -27,7 +28,7 @@ ObjectKey keyOf(uint32_t value) {
 
 int MissionMgr::CreateStoryMissionAtRandom(NotifyContext* ctx) {
     int result = 1;
-    if (!PercentChance(DAT_006bb5b8)) return result;
+    if (!PercentChance(g_gnprtb1806)) return result;
 
     ObjectKey parentKey;
     GameObjNotifier* first = nullptr;

@@ -40,7 +40,6 @@ void __thiscall FUN_005a0c20(TacticalHub* hub, uint32_t* out);
 void __thiscall FUN_005a5fd0(TacticalHub* hub, int arg);
 void FUN_005a0240();
 
-TacticalRegistry* __thiscall FUN_005a6290(void* memory);                          // registry constructor
 
 // ---- Capital ship / fighter / Death Star modules ----
 void FUN_005ba920();

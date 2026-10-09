@@ -35,18 +35,8 @@ public:
     uint8_t m_pad9c[0x114 - 0x9c];
 };
 
-void* __thiscall FUN_00421c70(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
-                              int side, int firstGame);  // strategic window constructor
 void* __thiscall FUN_0059a8d0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                               void* directDrawHost);  // tactical window constructor
-void* __thiscall FUN_0040d7a0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
-                              int a, int b, int c, int d, int e, int f, int g, int h);  // multiplayer lobby window
-void* __thiscall FUN_00406950(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
-                              int inGame);  // game options window
-void* __thiscall FUN_00404c30(void* memory, HINSTANCE instance, int x, int y, int width, int height,
-                              CoolWindow* parent);  // front-end (main menu) window
-void* __thiscall FUN_004213e0(void* memory, int movieId, int arg2, HINSTANCE instance, int x, int y, int width,
-                              int height, CoolWindow* parent, int arg9);  // movie window
 
 
 int __thiscall FUN_0059cb60(TacticalWindow* window, void* stream);  // tactical window: save its state
@@ -74,12 +64,9 @@ struct GameSetup {
     int m_networkMode;  // +0x0c
     int m_unknown10;  // +0x10 RebellionApplication::m_paramF0
 };
-GameSetup* __thiscall FUN_0051c740(GameSetup* setup);
-void __thiscall FUN_0051c780(GameSetup* setup);
 
 // Serialises a command into a buffer for the other players (the multiplayer module's MessageCodec, 0x51c300).
 using CommandExecutor = MessageCodec;
-void* __thiscall FUN_0051c300(void* memory);
 
 // The 0x38-byte command (ctor 0x4210c0, module app_control_cmds) that carries a save request to the other players.
 class AppCommand {
@@ -93,7 +80,6 @@ public:
     String m_name;          // +0x28
     int m_unknown34;        // +0x34
 };
-void* __thiscall FUN_004210c0(void* memory);
 
 // ---- Appended by the save/load slice -------------------------------------------------------------------------
 void FUN_00401b50();       // thunk to FUN_00409280: create the battle-flow object

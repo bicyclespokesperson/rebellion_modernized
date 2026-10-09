@@ -25,15 +25,11 @@
 // ---- Parts of the player controller (0x488460-0x48aa90) and of the advisor droid (0x4392b0-0x43a2d0) that this class
 // calls; they belong to other modules.
 void __thiscall FUN_0048aa90(PlayerController* player, PlayerMessage* message);
-void __thiscall FUN_004888f0(PlayerDispatch* dispatch);
-void __thiscall FUN_00488990(PlayerDispatch* dispatch);
 void __thiscall FUN_00488b50(PlayerDispatch* dispatch, void* message);
 void __thiscall FUN_00488b90(PlayerDispatch* dispatch);
 void __thiscall FUN_00488d20(PlayerDispatch* dispatch, const ObjectKey* key, int flag);
 void __thiscall FUN_0048a340(PlayerDispatch* dispatch, PlayerMessage* message);
 void __thiscall FUN_0048a3b0(PlayerDispatch* dispatch, PlayerMessage* message);
-void __thiscall FUN_004bee50(void* alerts);
-void __thiscall FUN_004bee90(void* alerts);
 int FUN_0041dcb0(int speed);
 extern PersistentInt g_humanUiFlags;  // 0x6b28b0
 
@@ -81,8 +77,8 @@ void HumanSetUiTarget(int a, int b) { AdvisorSetPendingCommand(a, b); }
 // ---- Construction ----------------------------------------------------------------------------------------------
 
 HumanPlayer::HumanPlayer() : PlayerController() {
-    FUN_004bee50(m_alertList);
-    FUN_004888f0(Dispatch());
+    new (m_alertList) AiNoticeQueue();
+    new (Dispatch()) PlayerDispatch();
     m_unk50 = 0;
     m_speed = 0;
     m_advisor = nullptr;
@@ -90,8 +86,8 @@ HumanPlayer::HumanPlayer() : PlayerController() {
 }
 
 HumanPlayer::HumanPlayer(int side) : PlayerController(side) {
-    FUN_004bee50(m_alertList);
-    FUN_004888f0(Dispatch());
+    new (m_alertList) AiNoticeQueue();
+    new (Dispatch()) PlayerDispatch();
     m_unk50 = 0;
     m_speed = 0;
     m_advisor = nullptr;
@@ -104,8 +100,8 @@ HumanPlayer::HumanPlayer(int side) : PlayerController(side) {
 
 HumanPlayer::~HumanPlayer() {
     delete m_advisor;
-    FUN_00488990(Dispatch());
-    FUN_004bee90(m_alertList);
+    Dispatch()->PlayerDispatch::~PlayerDispatch();
+    reinterpret_cast<AiNoticeQueue*>(m_alertList)->AiNoticeQueue::~AiNoticeQueue();
     REB_KEEP_VPTR_STORE();
 }
 

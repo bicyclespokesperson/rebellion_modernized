@@ -23,7 +23,6 @@ public:
 
 class System;
 class ManuMgr;
-class SideTimedEvent;
 
 // Notification event ids the Side raises (FUN_0053fa60 / 0x53fcf0 / 0x53fd60 / 0x53fdd0).
 namespace side_event {

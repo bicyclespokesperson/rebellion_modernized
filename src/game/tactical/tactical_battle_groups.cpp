@@ -13,7 +13,7 @@ constexpr int kTypeKinds = 4;
 constexpr unsigned kMinimumToSplit = 8;
 
 TacticalAiSide* sideOf(HeadlessSimulator* simulator, int index) {
-    return reinterpret_cast<TacticalAiSide*>(simulator->m_sides[index]);
+    return simulator->m_sides[index];
 }
 
 // The lists have their own vtables; the call must stay virtual even for the simulator's own member.

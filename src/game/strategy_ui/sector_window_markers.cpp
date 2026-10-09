@@ -20,13 +20,12 @@
 #include "strategy_ui/sector_window.h"
 #include "strategy_ui/system_forces_window.h"
 #include "strategy_ui/system_missions_window.h"
+#include "strategy_ui/system_window.h"
 #include "ui/bitmap_status_bar.h"
 #include "ui/cool_app.h"
 #include "ui/cool_drag_list.h"
 #include "ui/cool_list_item.h"
 
-void* __thiscall FUN_00452fc0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
-                              int childId, GameObjNotifier* system);
 
 namespace {
 
@@ -201,8 +200,7 @@ CoolWindow* SectorWindow::OpenMarkerWindow(ObjectListItem* item, int x, int y) {
         switch (kind) {
         case 4: {
             void* memory = ::operator new(0x26c);
-            window = memory ? static_cast<CoolWindow*>(FUN_00452fc0(memory, instance, position.x, position.y, 0xe2, 0x130,
-                                                                    m_galaxy, childId, system))
+            window = memory ? static_cast<CoolWindow*>(new (memory) SystemWindow(instance, position.x, position.y, 0xe2, 0x130, m_galaxy, childId, system))
                             : nullptr;
             advisorMask = 2;
             break;

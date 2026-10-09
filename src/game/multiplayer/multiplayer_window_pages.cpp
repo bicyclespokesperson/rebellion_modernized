@@ -19,7 +19,6 @@
 #include "ui/text_scroll_field.h"
 
 extern const RECT g_rectProviderList;  // 0x658668
-extern const RECT g_rectSessionList;   // 0x658778
 extern uint32_t g_lobbyProviderItemWidth;  // 0x6b1244
 extern int g_flowRangeSpan;                // 0x6b1240 width of the session list items (computed by 0x40d780)
 

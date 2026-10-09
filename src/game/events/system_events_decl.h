@@ -16,6 +16,3 @@ int FUN_00515e70(ObjectKey* key, int value, NotifyContext* ctx);
 int FUN_00515eb0(ObjectKey* key, int value, NotifyContext* ctx);
 int FUN_00515ef0(ObjectKey* key, int value, NotifyContext* ctx);
 int FUN_00515f40(ObjectKey* key, int value, NotifyContext* ctx);
-
-// 0x558880 as a call on an already constructed SideBits: resets it, then takes `value` if it is a valid side set.
-void __thiscall FUN_00558880(SideBits* bits, uint32_t value);

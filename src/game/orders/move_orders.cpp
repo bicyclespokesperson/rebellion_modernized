@@ -336,7 +336,7 @@ void* CreateObjectMoveOrder() { return NewOrNull<ObjectMoveOrder>(); }
 
 Command* ObjectMoveOrder::CreateCommand() {
     void* memory = ::operator new(0x50);
-    return memory ? FUN_00578ab0(memory) : nullptr;
+    return memory ? new (memory) MoveCommand() : nullptr;
 }
 
 int ObjectMoveOrder::CheckValid(StatusCode* status) {
@@ -469,7 +469,7 @@ int RenameOrder::CheckEnabled(StatusCode* status) {
 
 Command* RenameOrder::CreateCommand() {
     void* memory = ::operator new(sizeof(RenameCommand));
-    return memory ? FUN_005790f0(memory) : nullptr;
+    return memory ? new (memory) RenameCommand() : nullptr;
 }
 
 int RenameOrder::CheckDestination(StatusCode* status) {
@@ -498,7 +498,7 @@ void* CreateScrapOrder() { return NewOrNull<ScrapOrder>(); }
 
 Command* ScrapOrder::CreateCommand() {
     void* memory = ::operator new(0x50);
-    return memory ? FUN_00579570(memory) : nullptr;
+    return memory ? new (memory) ScrapCommand() : nullptr;
 }
 
 ReadyForDeleteOrder::ReadyForDeleteOrder() : OrderBase() {}
@@ -508,7 +508,7 @@ void* CreateReadyForDeleteOrder() { return NewOrNull<ReadyForDeleteOrder>(); }
 
 Command* ReadyForDeleteOrder::CreateCommand() {
     void* memory = ::operator new(0x50);
-    return memory ? FUN_00579940(memory) : nullptr;
+    return memory ? new (memory) ReadyForDeleteCommand() : nullptr;
 }
 
 // ---- ObjectKeyIntSet ------------------------------------------------------------------------------------------

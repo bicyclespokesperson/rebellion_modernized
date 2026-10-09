@@ -26,7 +26,7 @@ void retireAll(HeadlessSimulator* simulator, UnitRefTree* list) {
     }
 }
 
-void retireSide(HeadlessSimulator* simulator, SimulatorSide* side) {
+void retireSide(HeadlessSimulator* simulator, TacticalAiSide* side) {
     retireAll(simulator, &side->m_fleet);
     retireAll(simulator, &side->m_hangars);
 }
@@ -39,7 +39,7 @@ bool anyUnitActive(UnitRefTree* list, bool found) {
     return found;
 }
 
-bool sideHasActiveUnit(SimulatorSide* side) {
+bool sideHasActiveUnit(TacticalAiSide* side) {
     bool found = anyUnitActive(&side->m_fleet, false);
     if (found) return true;
     return anyUnitActive(&side->m_hangars, false);
@@ -80,14 +80,14 @@ int HeadlessSimulator::Step(float step) {
         if (deathStar && asDeathStar(deathStar)->IsOperational()) scoreA = kDeathStarWins;
         if (!(scoreA < scoreB)) {
             if (m_sides[1]->HasNoShipsAtAll()) {
-                m_sides[1]->m_unkB0 = 1;
+                m_sides[1]->m_unkb0 = 1;
             } else {
                 retireSide(this, m_sides[1]);
             }
         }
         if (scoreA <= scoreB) {
             if (m_sides[0]->HasNoShipsAtAll()) {
-                m_sides[0]->m_unkB0 = 1;
+                m_sides[0]->m_unkb0 = 1;
                 return 0;
             }
             retireSide(this, m_sides[0]);
@@ -97,8 +97,8 @@ int HeadlessSimulator::Step(float step) {
 
     m_outcome = BattleOutcome();
     int sideHasDeathStar[2] = {0, 0};
-    if (m_sides[0]->m_unk84 == kUnitWithdrawing) m_outcome.m_sideAFinal = 1;
-    if (m_sides[1]->m_unk84 == kUnitWithdrawing) m_outcome.m_sideBFinal = 1;
+    if (m_sides[0]->m_state == kUnitWithdrawing) m_outcome.m_sideAFinal = 1;
+    if (m_sides[1]->m_state == kUnitWithdrawing) m_outcome.m_sideBFinal = 1;
     TacticalUnit* deathStar = GetTacticalRegistry()->GetDeathStar();
     if (deathStar) {
         if (deathStarHasFlag(GetTacticalRegistry()->GetDeathStar()) != 0) sideHasDeathStar[1] = 1;

@@ -33,7 +33,7 @@ TargetPriorityNode* newPriorityNode(float priority, TacticalShipBase* unit) {
 }
 
 TacticalSideBase* opposingSide(HeadlessSimulator* simulator, int sideIndex) {
-    return reinterpret_cast<TacticalSideBase*>(simulator->m_sides[sideIndex == 0 ? 1 : 0]);
+    return simulator->m_sides[sideIndex == 0 ? 1 : 0];
 }
 
 int kindOfGroup(ShipGroup* group) { return TacticalUnitKind(group); }
@@ -143,7 +143,7 @@ int TacticalAiSide::Refresh(int a) {
         bool engaged = false;
         const int index = SideIndex();
         GroupRefTree& enemyGroups =
-            reinterpret_cast<TacticalSideBase*>(GetHeadlessSimulator()->m_sides[index == 1 ? 0 : 1])->m_groups;
+            GetHeadlessSimulator()->m_sides[index == 1 ? 0 : 1]->m_groups;
         for (GroupRefNode* groupNode = firstGroupNode(enemyGroups); groupNode; groupNode = nextGroupNode(groupNode)) {
             TacticalShipBase* leader = groupNode->Value()->m_formationA.FirstUnit();
             if (leader && static_cast<int>(leader->m_id) == node->Key()) {
@@ -242,7 +242,7 @@ int TacticalAiSide::Virtual11() {
         if (!(m_strength < 0.0f) && !(m_strength > 0.0f)) return 1;
         HeadlessSimulator* simulator = GetHeadlessSimulator();
         const int index = SideIndex();
-        TacticalSideBase* enemy = reinterpret_cast<TacticalSideBase*>(simulator->m_sides[index == 0 ? 1 : 0]);
+        TacticalSideBase* enemy = simulator->m_sides[index == 0 ? 1 : 0];
         enemy->Refresh(0);
         const float enemyStrength = GetHeadlessSimulator()->OpponentStrength(SideIndex());
         if (enemyStrength > 0.0f) {
@@ -259,7 +259,7 @@ int TacticalAiSide::StepSide(float step) {
     TacticalUnit* deathStar = GetTacticalRegistry()->GetDeathStar();
     if (SideIndex() == 0) {
         if (deathStar && static_cast<TacticalDeathStar*>(deathStar)->IsReady() == 1) {
-            const int enemyHangars = reinterpret_cast<TacticalSideBase*>(simulator->m_sides[1])->m_hangars.CountNodes();
+            const int enemyHangars = simulator->m_sides[1]->m_hangars.CountNodes();
             if (enemyHangars < m_hangars.CountNodes()) {
                 for (GroupRefNode* node = firstGroupNode(m_groups); node; node = nextGroupNode(node)) {
                     if (kindOfGroup(node->Value()) == kCapitalGroupKind) {

@@ -7,7 +7,6 @@ extern "C" void __cdecl LAB_00574230();
 extern int g_missionDiplomacyEventKindsReady;      // 0x6bba90
 extern EventKindSet g_missionDiplomacyEventKinds;  // 0x6bba88
 
-extern int DAT_006bb588;  // g_gnprtb1822
 
 namespace {
 constexpr uint32_t kFamilyMissionDiplomacy = 0x51;
@@ -95,7 +94,7 @@ int MissionDiplomacy::Virtual159(GameObj* person, int roll, int* out, NotifyCont
     const bool ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
     Role* role = static_cast<Role*>(person);
     if (!role->Virtual118()) return ok;
-    const int updated = role->SetBaseDiplomacy(role->m_baseDiplomacy + DAT_006bb588, ctx);
+    const int updated = role->SetBaseDiplomacy(role->m_baseDiplomacy + g_gnprtb180C, ctx);
     return updated != 0 && ok ? 1 : 0;
 }
 

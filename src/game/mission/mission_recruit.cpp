@@ -13,7 +13,6 @@ extern "C" void __cdecl LAB_0056bbb0();
 extern int g_missionRecruitEventKindsReady;      // 0x6bb968
 extern EventKindSet g_missionRecruitEventKinds;  // 0x6bb960
 
-extern int DAT_006bb5b0;  // g_gnprtb1824
 
 namespace {
 constexpr uint32_t kFamilyMissionRecruit = 0x55;
@@ -223,7 +222,7 @@ int MissionRecruit::Virtual159(GameObj* person, int roll, int* out, NotifyContex
     ok = SetRecruitedCharacter(&recruit, ctx) != 0 && ok;
     ok = SetTaskStatus(kTaskSucceeded, ctx) != 0 && ok;
     Role* role = static_cast<Role*>(person);
-    if (role->Virtual118()) ok = role->SetBaseLeadership(role->m_baseLeadership + DAT_006bb5b0, ctx) != 0 && ok;
+    if (role->Virtual118()) ok = role->SetBaseLeadership(role->m_baseLeadership + g_gnprtb180F, ctx) != 0 && ok;
     return ok;
 }
 

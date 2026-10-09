@@ -9,7 +9,6 @@ extern "C" void __cdecl LAB_00577030();
 extern int g_missionAbductionEventKindsReady;      // 0x6bbb30
 extern EventKindSet g_missionAbductionEventKinds;  // 0x6bbb28
 
-extern int DAT_006bb574;
 
 namespace {
 constexpr uint32_t kFamilyMissionAbduction = 0x62;
@@ -68,7 +67,7 @@ int MissionAbduction::Virtual159(GameObj* personObject, int roll, int* out, Noti
     *out = 1;
     Role* person = static_cast<Role*>(personObject);
     bool ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
-    if (person->Virtual118()) ok = person->SetBaseCombat(person->m_baseCombat + DAT_006bb574, ctx) && ok;
+    if (person->Virtual118()) ok = person->SetBaseCombat(person->m_baseCombat + g_gnprtb1813, ctx) && ok;
     Character* target = nullptr;
     ok = static_cast<MissionCharacterTargetBase*>(this)->GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target)) && ok;
     if (target) {

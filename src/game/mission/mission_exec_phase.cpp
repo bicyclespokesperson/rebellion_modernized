@@ -127,18 +127,18 @@ int MissionMgr::UpdateSystemMissionScores(Mission* mission, int fromPhase, int t
     int secondScore = 0;
     int bonus = 0;
     bool found = false;
-    MissionIteratorFam56 firstGroup(this);
-    for (firstGroup.get()->Begin(); firstGroup.get()->Current(); firstGroup.get()->Advance()) {
-        Mission* other = firstGroup.Current();
+    MissionInciteIterator firstGroup(this);
+    for (firstGroup.Begin(); firstGroup.Current(); firstGroup.Advance()) {
+        Mission* other = static_cast<Mission*>(firstGroup.Current());
         ObjectKey leaderKey;
         if (other->IsPhase8() && leader->GetKey(&leaderKey)->m_value == other->m_targetLocationKey.m_value) {
             found = true;
             firstScore += DivideByMissionDivisor(other->AverageMemberSkill());
         }
     }
-    MissionIteratorFam57 secondGroup(this);
-    for (secondGroup.get()->Begin(); secondGroup.get()->Current(); secondGroup.get()->Advance()) {
-        Mission* other = secondGroup.Current();
+    MissionSubdueIterator secondGroup(this);
+    for (secondGroup.Begin(); secondGroup.Current(); secondGroup.Advance()) {
+        Mission* other = static_cast<Mission*>(secondGroup.Current());
         ObjectKey leaderKey;
         if (other->IsPhase8() && leader->GetKey(&leaderKey)->m_value == other->m_targetLocationKey.m_value)
             secondScore += NegatedDivideByMissionDivisor(other->AverageMemberSkill());

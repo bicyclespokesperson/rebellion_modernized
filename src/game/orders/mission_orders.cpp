@@ -2,14 +2,12 @@
 
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
+#include "events/person_events.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/object_queries.h"
 #include "gameobj/object_type_db.h"
 #include "orders/route_context.h"
 #include "story/mission_mgr.h"
-
-// The 0x50-byte command of order 0x242 (ctor 0x540c40, another module).
-Command* __thiscall FUN_00540c40(void* memory);
 
 // The mission manager functions the checks go through (0x541fc0-0x54cd80, another module); `self` is the mission
 // manager, the master of family 0xf8.
@@ -65,7 +63,7 @@ Order242::~Order242() { REB_KEEP_VPTR_STORE(); }
 
 Command* Order242::CreateCommand() {
     void* memory = ::operator new(0x50);
-    return memory ? FUN_00540c40(memory) : nullptr;
+    return memory ? new (memory) RoleActivityCommand() : nullptr;
 }
 
 Order242* CreateOrder242() { return NewOrNull<Order242>(); }

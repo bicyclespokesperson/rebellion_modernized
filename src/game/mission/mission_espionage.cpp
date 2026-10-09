@@ -12,7 +12,6 @@ extern "C" void __cdecl LAB_005739a0();
 extern int g_missionEspionageEventKindsReady;      // 0x6bba64
 extern EventKindSet g_missionEspionageEventKinds;  // 0x6bba68
 
-extern int DAT_006bb534;  // g_gnprtb1810
 
 namespace {
 constexpr uint32_t kFamilyMissionEspionage = 0x52;
@@ -103,7 +102,7 @@ int MissionEspionage::Virtual159(GameObj* person, int roll, int* out, NotifyCont
     if (!leader || ControlSide() == leader->ControlSide()) return result;
     Role* role = static_cast<Role*>(person);
     if (!role->Virtual118()) return result;
-    const int raised = role->SetBaseEspionage(role->m_baseEspionage + DAT_006bb534, ctx);
+    const int raised = role->SetBaseEspionage(role->m_baseEspionage + g_gnprtb180D, ctx);
     return raised && result ? 1 : 0;
 }
 

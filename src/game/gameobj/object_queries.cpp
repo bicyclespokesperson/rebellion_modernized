@@ -1,6 +1,7 @@
 #include "gameobj/object_queries.h"
 
 #include "gameobj/game_obj.h"
+#include "gameobj/game_root.h"
 
 namespace {
 
@@ -206,26 +207,9 @@ int ResolveMasterInFamilies_f9_fa(const ObjectKey* key, GameObjNotifier** out, c
     return ResolveMasterIn(0xf9, 0xfa, key, out, missing, status);
 }
 
-// The pointer members of the game root class (GameRoot) that these getters read; the class itself is declared with
-// the game root's reconstruction, so only the cache's offsets are mirrored here.
-struct GameRootCache {
-    uint8_t m_head[0xb0];
-    GameObjNotifier* m_b0;
-    uint8_t m_unk_b4[4];
-    GameObjNotifier* m_b8;
-    GameObjNotifier* m_bc;
-    GameObjNotifier* m_c0;
-    GameObjNotifier* m_c4;
-    GameObjNotifier* m_c8;
-    uint8_t m_unk_cc[0x10];
-    GameObjNotifier* m_dc;
-};
-
-extern GameRootCache* g_gameRoot;  // 0x6b2bb0, the game root object (family 0xf1; GameRoot in game_root.h)
-
 namespace {
 
-GameObjNotifier* ReadCached(GameObjNotifier* GameRootCache::*member) {
+GameObjNotifier* ReadCached(GameObjNotifier* GameRoot::*member) {
     return g_gameRoot ? g_gameRoot->*member : nullptr;
 }
 
@@ -236,24 +220,24 @@ GameObjNotifier* GetMasterWithKey(uint32_t family, uint32_t id) {
 
 }  // namespace
 
-GameObjNotifier* GetGameRootObjectCached() { return reinterpret_cast<GameObjNotifier*>(g_gameRoot); }
+GameObjNotifier* GetGameRootObjectCached() { return g_gameRoot; }
 
-GameObjNotifier* GetGameRootMember_b0() { return ReadCached(&GameRootCache::m_b0); }
+GameObjNotifier* GetGameRootMember_b0() { return ReadCached(&GameRoot::m_master_f2000003); }
 
-GameObjNotifier* GetGameRootMember_b8() { return ReadCached(&GameRootCache::m_b8); }
+GameObjNotifier* GetGameRootMember_b8() { return ReadCached(&GameRoot::m_master_f8000006); }
 
-GameObjNotifier* GetGameRootMember_bc() { return ReadCached(&GameRootCache::m_bc); }
+GameObjNotifier* GetGameRootMember_bc() { return ReadCached(&GameRoot::m_master_f9000007); }
 
-GameObjNotifier* GetGameRootMember_c0() { return ReadCached(&GameRootCache::m_c0); }
+GameObjNotifier* GetGameRootMember_c0() { return ReadCached(&GameRoot::m_master_fa000008); }
 
 GameObjNotifier* GetGameRootSideMember(int side) {
     if (side < 1 || side > 2 || !g_gameRoot) return nullptr;
-    return side == 1 ? g_gameRoot->m_c4 : g_gameRoot->m_c8;
+    return side == 1 ? g_gameRoot->m_master_f300000f : g_gameRoot->m_master_f3000010;
 }
 
 GameObjNotifier* GetGameRootSideMemberThunk(int side) { return GetGameRootSideMember(side); }
 
-GameObjNotifier* GetGameRootMember_dc() { return ReadCached(&GameRootCache::m_dc); }
+GameObjNotifier* GetGameRootMember_dc() { return ReadCached(&GameRoot::m_master_98000481); }
 
 GameObjNotifier* GetMaster_33000243() { return GetMasterWithKey(0x33, 0x243); }
 

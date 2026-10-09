@@ -172,8 +172,8 @@ int SystemEvent31b::Execute() {
     NotifyContext ctx(m_context);
     SideBits first;
     SideBits second;
-    FUN_00558880(&first, m_valueA);
-    FUN_00558880(&second, m_valueB);
+    new (&first) SideBits(m_valueA);
+    new (&second) SideBits(m_valueB);
     FUN_00515c00(&m_key, &first, &second, &ctx);
     return 0;
 }

@@ -6,8 +6,6 @@
 #include "data/dat_record.h"
 #include "gameobj/object_key.h"
 
-void* __thiscall FUN_004f3f70(SeedItemSet* items);
-void __thiscall FUN_004f3fb0(SeedItemSet* items);
 
 namespace {
 
@@ -61,11 +59,11 @@ int SeedTableEntry::ParseText(istream* in) {
 
 // ---- SeedFamilyTableEntry ----------------------------------------------------------------------------------
 
-SeedFamilyTableEntry::SeedFamilyTableEntry() : m_field24(0) { FUN_004f3f70(&m_items); }
+SeedFamilyTableEntry::SeedFamilyTableEntry() : m_field24(0) { new (&m_items) ObjectRefList(); }
 
 SeedFamilyTableEntry::~SeedFamilyTableEntry() {
     REB_KEEP_VPTR_STORE();
-    FUN_004f3fb0(&m_items);
+    reinterpret_cast<ObjectRefList*>(&m_items)->ObjectRefList::~ObjectRefList();
 }
 
 void* CreateSeedFamilyTableEntry() { return NewOrNull<SeedFamilyTableEntry>(); }

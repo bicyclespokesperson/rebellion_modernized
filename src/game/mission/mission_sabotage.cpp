@@ -7,8 +7,6 @@ extern "C" void __cdecl LAB_0056a410();
 extern int g_missionSabotageEventKindsReady;      // 0x6bb920
 extern EventKindSet g_missionSabotageEventKinds;  // 0x6bb928
 
-extern int DAT_006bb58c;
-extern int DAT_006bb518;
 
 namespace {
 constexpr uint32_t kFamilyMissionSabotage = 0x69;
@@ -85,8 +83,8 @@ int MissionSabotage::Virtual159(GameObj* person, int roll, int* out, NotifyConte
     ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
     Role* role = static_cast<Role*>(person);
     if (!role->Virtual118()) return ok;
-    ok = role->SetBaseEspionage(role->m_baseEspionage + DAT_006bb58c, ctx) && ok;
-    ok = role->SetBaseCombat(role->m_baseCombat + DAT_006bb518, ctx) && ok;
+    ok = role->SetBaseEspionage(role->m_baseEspionage + g_gnprtb1815, ctx) && ok;
+    ok = role->SetBaseCombat(role->m_baseCombat + g_gnprtb1816, ctx) && ok;
     return ok;
 }
 

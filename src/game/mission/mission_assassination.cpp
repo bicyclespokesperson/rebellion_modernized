@@ -9,7 +9,6 @@ extern "C" void __cdecl LAB_00576790();
 extern int g_missionAssassinationEventKindsReady;      // 0x6bbb08
 extern EventKindSet g_missionAssassinationEventKinds;  // 0x6bbb00
 
-extern int DAT_006bb584;
 
 namespace {
 constexpr uint32_t kFamilyMissionAssassination = 0x63;
@@ -75,7 +74,7 @@ int MissionAssassination::Virtual159(GameObj* personObject, int roll, int* out, 
     ok = SetTaskStatus(kTaskSucceeded, ctx) && ok;
     Role* person = static_cast<Role*>(personObject);
     if (!person->Virtual118()) return ok;
-    return person->SetBaseCombat(person->m_baseCombat + DAT_006bb584, ctx) && ok ? 1 : 0;
+    return person->SetBaseCombat(person->m_baseCombat + g_gnprtb1814, ctx) && ok ? 1 : 0;
 }
 
 int MissionAssassination::BuildEventKinds() {

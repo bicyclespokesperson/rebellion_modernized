@@ -17,11 +17,3 @@ class DatRecord;
 // The set of objects the manager's facility list holds (a static empty one for a sided object).
 int __stdcall FUN_00555f00(GameObjNotifier* manager, const ObjectKey* item, int count, StatusCode* status, int* out);
 int __stdcall FUN_00555f90(GameObjNotifier* manager, const ObjectKey* item, StatusCode* status, int* out);
-
-// Constructors of the commands the orders create (0x57ddc0 destination, 0x57e460 rename, 0x57f230 manufacture,
-// 0x57e950 kind 0x213, 0x57ed20 kind 0x216). Each initialises the Command base and returns `memory`.
-Command* __thiscall FUN_0057ddc0(void* memory);
-Command* __thiscall FUN_0057e460(void* memory);
-Command* __thiscall FUN_0057f230(void* memory);
-Command* __thiscall FUN_0057e950(void* memory);
-Command* __thiscall FUN_0057ed20(void* memory);

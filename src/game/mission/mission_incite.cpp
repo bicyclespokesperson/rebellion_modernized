@@ -7,7 +7,6 @@ extern "C" void __cdecl LAB_00571c00();
 extern int g_missionInciteEventKindsReady;      // 0x6bba30
 extern EventKindSet g_missionInciteEventKinds;  // 0x6bba28
 
-extern int DAT_006bb5a0;
 
 namespace {
 constexpr uint32_t kFamilyMissionIncite = 0x56;
@@ -82,7 +81,7 @@ int MissionIncite::Virtual159(GameObj* person, int roll, int* out, NotifyContext
     ok = SetTaskStatus(uprisingContained ? kTaskStarted : kTaskSucceeded, ctx) && ok ? 1 : 0;
     if (m_taskStatus == kTaskSucceeded && static_cast<Role*>(person)->Virtual118()) {
         Role* role = static_cast<Role*>(person);
-        ok = role->SetBaseLeadership(role->m_baseLeadership + DAT_006bb5a0, ctx) && ok ? 1 : 0;
+        ok = role->SetBaseLeadership(role->m_baseLeadership + g_gnprtb1810, ctx) && ok ? 1 : 0;
     }
     return ok;
 }

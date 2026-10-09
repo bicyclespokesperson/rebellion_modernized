@@ -25,7 +25,6 @@ extern int g_flowRangeSpan;                // 0x6b1240 width of the session list
 extern const RECT g_rectProviderList;  // 0x658668
 extern const RECT g_rectSideAClick;    // 0x6586a8
 extern const RECT g_rectSideBClick;    // 0x6586b8
-extern const RECT g_rectSessionList;   // 0x658778
 
 namespace {
 

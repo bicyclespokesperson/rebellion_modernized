@@ -207,7 +207,7 @@ BattleOutcome* __cdecl TacticalGetBattleOutcome(BattleOutcome* out, int unused) 
 TacticalRegistry* GetTacticalRegistry() {
     if (!g_tacticalRegistry) {
         void* memory = ::operator new(0x48);
-        g_tacticalRegistry = memory ? FUN_005a6290(memory) : nullptr;
+        g_tacticalRegistry = memory ? new (memory) TacticalRegistry() : nullptr;
     }
     return g_tacticalRegistry;
 }
