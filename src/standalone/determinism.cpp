@@ -10,6 +10,9 @@
 //   REB_QPC_FAST_UNTIL_TICK=<n>, REB_QPC_FAST_STEP_NS=<m>: as in the hybrid, the counter steps m ns (default 1,000,000) per call
 //                        while the game manager's tick counter is below n, then REB_QPC_STEP_NS.
 //   REB_QPC_HOLD_UNTIL_KEY=<vk>: the counter stands still after that tick until the virtual key (decimal) is seen down.
+//   REB_CLOCK_FROM_QPC=1: timeGetTime/GetTickCount read the virtual QueryPerformanceCounter instead of counting calls.
+//   REB_QPC_START_KEY=<vk>: the counter stands still from the moment a game exists until the key is seen down (same key as the
+//                        hold key: released and pressed again).
 //   REB_NO_TIMERS=1      timeSetEvent returns a fake id and never calls back.
 #include <windows.h>
 #include <mmsystem.h>
@@ -29,11 +32,15 @@ bool g_noTimers = false;
 volatile LONG g_clockCalls = 0;
 volatile LONG g_counterCalls = 0;
 uint32_t g_stepUs = 1000;
+bool g_clockFromCounter = false;
 uint32_t g_counterStepNs = 1000;
 uint32_t g_fastStepNs = 1000000;
 uint32_t g_fastUntilTick = 0;
+uint32_t g_startKey = 0;
+bool g_startSeen = false;
 uint32_t g_releaseKey = 0;
 bool g_releaseSeen = false;
+bool g_releaseArmed = true;
 int64_t g_counterNs = 0;
 volatile LONG g_counterLock = 0;
 volatile LONG g_ready = 0;
@@ -58,7 +65,10 @@ void EnsureReady() {
     if (present) g_counterStepNs = counterStep;
     if (const uint32_t step = EnvNumber("REB_QPC_FAST_STEP_NS")) g_fastStepNs = step;
     g_fastUntilTick = EnvNumber("REB_QPC_FAST_UNTIL_TICK");
+    g_startKey = EnvNumber("REB_QPC_START_KEY");
     g_releaseKey = EnvNumber("REB_QPC_HOLD_UNTIL_KEY");
+    g_releaseArmed = g_releaseKey != g_startKey;
+    g_clockFromCounter = EnvNumber("REB_CLOCK_FROM_QPC") != 0;
     g_ready = 1;
 }
 
@@ -69,22 +79,45 @@ Function RealFunction(const char* module, const char* name) {
     return reinterpret_cast<Function>(GetProcAddress(handle, name));
 }
 
-uint64_t AdvanceClockUs() { return static_cast<uint64_t>(static_cast<uint32_t>(InterlockedIncrement(&g_clockCalls))) * g_stepUs; }
+uint64_t AddCounterNs(uint32_t stepNs);
+
+uint64_t AdvanceClockUs() {
+    if (g_clockFromCounter) return AddCounterNs(0) / 1000;
+    return static_cast<uint64_t>(static_cast<uint32_t>(InterlockedIncrement(&g_clockCalls))) * g_stepUs;
+}
 
 uint32_t CurrentGameTick() {
     return g_gameManager ? static_cast<uint32_t>(g_gameManager->m_tickCount) : 0;
 }
 
-bool ReleaseKeyDown() { return (GetAsyncKeyState(static_cast<int>(g_releaseKey)) & 0x8000) != 0; }
+bool KeyDown(uint32_t vk) { return (GetAsyncKeyState(static_cast<int>(vk)) & 0x8000) != 0; }
+
+bool StartGateOpen(uint32_t tick) {
+    if (g_startKey == 0 || g_startSeen) return true;
+    if (tick == 0 || !KeyDown(g_startKey)) return tick == 0;
+    g_startSeen = true;
+    return true;
+}
+
+bool ReleaseGateOpen() {
+    if (g_releaseKey == 0 || g_releaseSeen) return true;
+    const bool down = KeyDown(g_releaseKey);
+    if (!g_releaseArmed) {
+        g_releaseArmed = !down;
+        return false;
+    }
+    if (!down) return false;
+    g_releaseSeen = true;
+    return true;
+}
 
 uint32_t CurrentCounterStepNs() {
     if (g_fastUntilTick == 0) return g_counterStepNs;
-    if (CurrentGameTick() < g_fastUntilTick) return g_fastStepNs;
-    if (g_releaseKey != 0 && !g_releaseSeen) {
-        if (!ReleaseKeyDown()) return 0;
-        g_releaseSeen = true;
-    }
-    return g_counterStepNs;
+    const uint32_t tick = CurrentGameTick();
+    if (!StartGateOpen(tick)) return 0;
+    if (tick == 0) return g_counterStepNs;
+    if (tick < g_fastUntilTick) return g_fastStepNs;
+    return ReleaseGateOpen() ? g_counterStepNs : 0;
 }
 
 uint64_t AddCounterNs(uint32_t step_ns) {
