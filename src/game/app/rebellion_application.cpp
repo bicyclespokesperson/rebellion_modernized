@@ -552,6 +552,11 @@ LRESULT __stdcall RebellionApplication::WindowProc(UINT message, WPARAM wParam, 
     return CoolWindow::WindowProc(message, wParam, lParam);
 }
 
+#ifdef REB_STANDALONE
+bool RebSimRequested();
+int RebSimRun(RebellionApplication* app);
+#endif
+
 int __stdcall WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int showCommand) {
     WPARAM exitCode = 0;
     HANDLE semaphore = CreateSemaphoreA(nullptr, 0, 1, g_appClassName);
@@ -604,6 +609,9 @@ int __stdcall WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR comm
     }
     if (!app) return 2;
     app->SetScreenSize(kScreenWidth, kScreenHeight);
+#ifdef REB_STANDALONE
+    if (RebSimRequested()) RebSimRun(app);  // headless simulation harness (src/port); exits the process
+#endif
     exitCode = app->Run(showCommand, 1);
     delete app;
     CloseHandle(semaphore);
