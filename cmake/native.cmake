@@ -61,7 +61,7 @@ set(SDL_LIBURING OFF CACHE BOOL "" FORCE)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_subdirectory(${SDL3_SRC} ${CMAKE_BINARY_DIR}/sdl3 EXCLUDE_FROM_ALL)
 # SDL's X11 clipboard code has a global function named GetWindow, which is also a Win32 name minwin defines.
-target_compile_definitions(SDL3-static PRIVATE GetWindow=SDL_X11_GetWindow)
+target_compile_definitions(SDL3-static PRIVATE GetWindow=SDL_X11_GetWindow )
 set(FT_DISABLE_ZLIB ON CACHE BOOL "" FORCE)
 set(FT_DISABLE_BZIP2 ON CACHE BOOL "" FORCE)
 set(FT_DISABLE_PNG ON CACHE BOOL "" FORCE)

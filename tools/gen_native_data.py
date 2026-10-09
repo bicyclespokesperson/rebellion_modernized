@@ -193,6 +193,11 @@ def c_string(raw: bytes) -> str:
     return '"' + "".join(f"\\x{b:02x}" if not (0x20 <= b < 0x7F) or b in (0x22, 0x5C, 0x3F) else chr(b) for b in raw) + '"'
 
 
+def final_align(align: int, size: int) -> int:
+    """The x86-64 ABI aligns arrays of 16 bytes or more to 16, and the compiler relies on it for externs (aligned SSE stores)."""
+    return max(align, 16 if size >= 16 else 8 if size >= 8 else 1)
+
+
 def byte_lines(data: bytes) -> list[str]:
     return ["    " + ",".join(str(b) for b in data[i:i + 32]) + "," for i in range(0, len(data), 32)]
 
@@ -290,19 +295,19 @@ def main() -> int:
                 counts["pointer table with strings"] += 1
                 layout[name] = {"address": address, "size": count * 8, "kind": "string pointers"}
                 return
-            out_lines.append(f"alignas({max(align, 8)}) unsigned char {name}_n[{size}] {raw_symbol};")
+            out_lines.append(f"alignas({final_align(align, size)}) unsigned char {name}_n[{size}] {raw_symbol};")
             counts["zero-initialised, holds pointers"] += 1
             layout[name] = {"address": address, "size": size, "kind": "zero"}
             return
         data = exe.read(address, size)
         if any(data):
-            out_lines.append(f"alignas({max(align, 1)}) unsigned char {name}_n[{size}] {raw_symbol} = {{")
+            out_lines.append(f"alignas({final_align(align, size)}) unsigned char {name}_n[{size}] {raw_symbol} = {{")
             out_lines.extend(byte_lines(data))
             out_lines.append("};")
             counts["copied from the EXE"] += 1
             layout[name] = {"address": address, "size": size, "kind": "data"}
         else:
-            out_lines.append(f"alignas({max(align, 1)}) unsigned char {name}_n[{size}] {raw_symbol};")
+            out_lines.append(f"alignas({final_align(align, size)}) unsigned char {name}_n[{size}] {raw_symbol};")
             counts["zero"] += 1
             layout[name] = {"address": address, "size": size, "kind": "zero"}
 
