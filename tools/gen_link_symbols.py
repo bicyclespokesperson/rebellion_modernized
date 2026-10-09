@@ -308,7 +308,7 @@ def quote(sym: str) -> str:
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--csv", type=Path, required=True)
-    ap.add_argument("--out-asm", type=Path, required=True)
+    ap.add_argument("--out-asm", type=Path, help="link-time glue (hybrid; not written with --standalone)")
     ap.add_argument("--out-report", type=Path, required=True)
     ap.add_argument("--game", nargs="+", type=Path, required=True, help="reconstructed game objects")
     ap.add_argument("--runtime", nargs="+", type=Path, required=True,
@@ -317,9 +317,15 @@ def main() -> int:
                     help="REB_OWN_DATA: do not bind game-owned globals to original addresses (tools/gen_data_image.py "
                          "defines them); write --out-data-refs for that tool")
     ap.add_argument("--out-data-refs", type=Path, help="with --own-data: JSON of the globals the data image must define")
+    ap.add_argument("--standalone", action="store_true",
+                    help="REB_STANDALONE: no absolute symbols; EVERY referenced original global (also CRT/LIBCI data and "
+                         "vtables) is left to the data image, original functions that are still referenced are listed")
     args = ap.parse_args()
+    args.own_data = args.own_data or args.standalone
     if args.own_data and args.out_data_refs is None:
-        ap.error("--own-data needs --out-data-refs")
+        ap.error("--own-data/--standalone need --out-data-refs")
+    if not args.standalone and args.out_asm is None:
+        ap.error("--out-asm is required without --standalone")
 
     table, ambiguous = load_csv(args.csv)
     game_imports = load_game_imports(args.csv.parent / "imports.csv")
@@ -345,11 +351,14 @@ def main() -> int:
     unresolved: list[str] = []
     defined_anywhere = {s.raw for s in symbols if s.defined}
     hooks: list[tuple[int, str, str]] = []
+    still_original: list[tuple[str, OriginalSymbol]] = []
     errors: list[str] = []
     hooked_by_address: dict[int, str] = {}
     for s in symbols:
         m = IMPORT_REF.match(s.raw)
         if m and not s.defined and m.group(1) in game_imports:
+            if args.standalone:
+                continue
             absolute.append((s.raw, game_imports[m.group(1)]))
             gap_refs.append((s.raw, "import", OriginalSymbol(game_imports[m.group(1)], "data", m.group(1))))
             continue
@@ -363,8 +372,10 @@ def main() -> int:
                 unresolved.append(s.raw)
             continue
         if not s.defined:
-            if args.own_data and orig.kind != "func" and own_data.owns(orig.address, orig.name):
+            if args.own_data and orig.kind != "func" and (args.standalone or own_data.owns(orig.address, orig.name)):
                 owned_data[s.raw] = orig
+            elif args.standalone:
+                still_original.append((s.raw, orig))
             else:
                 absolute.append((s.raw, orig.address))
             gap_refs.append((s.raw, "csv", orig))
@@ -383,6 +394,8 @@ def main() -> int:
         return 1
 
     lines = ['.globl "@feat.00"', '"@feat.00" = 1']
+    if args.standalone:
+        lines = []
     for raw, address in sorted(absolute, key=lambda x: x[1]):
         lines += [f".globl {quote(raw)}", f"{quote(raw)} = {address:#x}"]
     lines += ['.section .rdata,"dr"', ".p2align 2", ".globl _reb_hook_table", "_reb_hook_table:"]
@@ -391,8 +404,9 @@ def main() -> int:
     lines += [".long 0", ".long 0", ".long 0", ".long 0"]
     for i, (_, _, key, _) in enumerate(sorted(hooks)):
         lines.append(f'reb_hook_name_{i}: .asciz "{key}"')
-    args.out_asm.parent.mkdir(parents=True, exist_ok=True)
-    args.out_asm.write_text("\n".join(lines) + "\n")
+    if not args.standalone:
+        args.out_asm.parent.mkdir(parents=True, exist_ok=True)
+        args.out_asm.write_text("\n".join(lines) + "\n")
     gaps = build_gap_report(gap_refs, set(hooked_by_address), GapClassifier.load(args.csv.parent))
     gaps["categories"]["unresolved_other"] += [{"symbol": r} for r in sorted(unresolved)]
     args.out_report.write_text(json.dumps({
@@ -404,6 +418,7 @@ def main() -> int:
         args.out_data_refs.write_text(json.dumps({
             "data": {raw: {"address": f"{o.address:#010x}", "name": o.name} for raw, o in sorted(owned_data.items())},
             "hooks": {f"{a:#010x}": raw for a, raw, _, _ in sorted(hooks)},
+            "original_functions": {raw: f"{o.address:#010x} {o.name}" for raw, o in sorted(still_original)},
         }, indent=1) + "\n")
     print(f"gen_link_symbols: {len(hooks)} hooks, {len(absolute)} original references"
           + (f", {len(owned_data)} globals left to the data image" if args.own_data else ""))

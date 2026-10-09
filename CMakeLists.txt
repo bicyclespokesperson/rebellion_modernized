@@ -13,6 +13,13 @@ list(FILTER REB_GAME_SOURCES EXCLUDE REGEX "tactical_3d_absent\\.cpp$")
 # The stubs are compiled either way (reb_tactical_stubs) so they cannot rot; they are linked only when the option is on.
 option(REB_NO_TACTICAL_3D "Stub out the 3D tactical code; battles are always auto-resolved" OFF)
 
+# REB_STANDALONE: build rebellion.exe, the executable that runs without REBEXE.EXE (docs/phase2_plan.md, M6). Driven by
+# tools/build_standalone.sh; it implies REB_NO_TACTICAL_3D and replaces everything below the "Standalone" marker.
+option(REB_STANDALONE "Build the standalone rebellion.exe instead of the hybrid proxy DLL" OFF)
+if(REB_STANDALONE)
+  set(REB_NO_TACTICAL_3D ON)
+endif()
+
 # ---- Hybrid build -------------------------------------------------------------------------------
 # A proxy SMACKW32.DLL loaded by the original REBEXE.EXE. Reimplemented functions are patched over the
 # originals; everything not yet reimplemented (functions, globals, the CRT) is resolved to its original
@@ -43,6 +50,13 @@ target_compile_options(reb_tactical_stubs PRIVATE ${REB_HYBRID_FLAGS})
 if(REB_NO_TACTICAL_3D)
   target_compile_definitions(reb_game PRIVATE REB_NO_TACTICAL_3D=1)
   set(REB_STUB_OBJECTS $<TARGET_OBJECTS:reb_tactical_stubs>)
+endif()
+
+if(REB_STANDALONE)
+  target_compile_definitions(reb_game PRIVATE REB_STANDALONE=1)
+  target_compile_definitions(reb_tactical_stubs PRIVATE REB_STANDALONE=1)
+  include(${CMAKE_SOURCE_DIR}/cmake/standalone.cmake)
+  return()
 endif()
 
 add_library(reb_runtime OBJECT src/hybrid/dllmain.cpp src/hybrid/hook.cpp src/hybrid/capture.cpp src/hybrid/runtime_mem.cpp src/hybrid/determinism.cpp src/hybrid/own_data.cpp)

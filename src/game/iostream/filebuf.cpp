@@ -11,8 +11,12 @@ long __cdecl _lseek(int fd, long offset, int origin);
 int __cdecl _sopen(const char* name, int flags, int share, ...);
 }
 
+#ifdef REB_STANDALONE
+extern "C" int __cdecl _setmode(int fd, int mode);
+#else
 // The CRT's table of low-level file handle info: blocks of 32 entries of 0x24 bytes, the handle flags at +4.
 extern uint8_t* g_pioinfo[];  // 0x6bed20
+#endif
 
 namespace {
 
@@ -44,7 +48,20 @@ constexpr int kDefaultPermissions = 0x180;
 
 constexpr int kProtectionMask = 0xe00;
 
+#ifdef REB_STANDALONE
+// The UCRT keeps its handle table private (other layout), so the text-mode flag is probed through _setmode. The pending
+// flag (0x02) has no public equivalent and reads as clear.
+uint8_t HandleFlags(int fd) {
+    constexpr int kTextMode = 0x4000;
+    constexpr int kBinaryMode = 0x8000;
+    const int previous = _setmode(fd, kBinaryMode);
+    if (previous == -1) return 0;
+    _setmode(fd, previous);
+    return previous == kTextMode ? kTextModeFlag : 0;
+}
+#else
 uint8_t HandleFlags(int fd) { return g_pioinfo[fd >> kEntriesPerBlockShift][4 + (fd & kEntryMask) * kEntrySize]; }
+#endif
 
 int SharingModeFor(int protection) {
     protection &= kProtectionMask;
