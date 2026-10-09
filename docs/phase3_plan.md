@@ -184,7 +184,7 @@ missing name (and its dependencies) from the SDK's AST; the headers are hand-mai
 **Exit test** (standalone, `REB_MINWIN=ON`, real import libraries): `tools/pe_compare.py` against the SDK build: `.text .rdata .data .gfids .tls .rsrc .reloc` byte-identical (timestamp
 and debug directory ignored); `tools/standalone_check.sh`: `STANDALONE OK: smoke clean, saves byte-identical to the original's`; `tools/sim_goldens.sh check`: battle1, alliance1, empire1 identical
 to the goldens; smoke and load_game screenshots: `smoke_menu`, `load_galaxy`, `load_list` byte-identical to the SDK build's (the later `load_run_*` frames differ between *any* two runs, ON vs ON included: real-time
-animation). Hybrid: `tools/build_hybrid.sh` unchanged (10,706 hooks); difftest over the regression store, see the report.
+animation). Hybrid: `tools/build_hybrid.sh` unchanged (10,706 hooks); unit difftest over the shared regression store (12,864 captures): 12,318 PASS, 540 SKIP (not emulatable), 0 FAIL.
 
 **LP64 syntax pass** (`tools/minwin_syntax.sh lp64`: `clang++ --target=x86_64-linux-gnu -std=c++20 -fsyntax-only -fms-extensions -fno-exceptions -fno-rtti -fcheck-new -fwrapv -fno-strict-aliasing -fsigned-char -DREB_MINWIN=1`):
 454 of 459 TUs compile, none of the 5 failing is about Win32/DirectX/minwin: `_stricmp`/`_strnicmp` undeclared (`ui/cool_app.cpp`, `ui/cool_drag_list.cpp`, `core/game_string.cpp`) and the MSVC CRT headers
