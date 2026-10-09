@@ -74,6 +74,8 @@ saves varies run to run.
 - Hybrid baseline: byte-identical saves in 7 of 8 runs (887,465 bytes). The 8th differs from the others in exactly the
   tick counter (8089 instead of 8090), its copies and checksums: a tick boundary landed on the click. Re-run on a
   mismatch that is only the tick; a larger `REB_QPC_STEP_NS`/longer scenario lowers the odds further.
+- After the LIBCI reconstruction (M4) the same scenario writes a byte-identical SAVEGAME.005 (md5 6eec1db1...): the
+  reconstructed ostream/filebuf write path reproduces the original library's output.
 - Not sources: `time()` (fixed), multimedia timers (`REB_NO_TIMERS=1` made no difference to the pattern), the heap.
 - Heap probe (18 MB address-space reservation before the CRT heap exists, then 1,690-byte allocations from both the
   CRT's NT heap and, with `REB_HEAP_PROBE_SBH=1`, its small-block heap; the probe allocations land at 0x1691548 and
