@@ -14,7 +14,7 @@ add_custom_target(reb_import_libs DEPENDS ${REB_IMPORT_LIBS})
 
 add_library(reb_standalone_runtime OBJECT src/standalone/entry.cpp src/standalone/crt_shims.cpp src/standalone/iostream_vtable_functions.cpp src/standalone/crash_log.cpp)
 target_include_directories(reb_standalone_runtime PRIVATE src/game src)
-target_compile_options(reb_standalone_runtime PRIVATE ${REB_HYBRID_FLAGS})
+target_compile_options(reb_standalone_runtime PRIVATE ${REB_HYBRID_FLAGS} -DREB_ZERO_NEW=1)
 
 # Stage 1 (container): which original globals the objects still reference -> gen/data_refs.json (the host stage
 # tools/gen_data_image.py --standalone turns it into gen/data_image.s; stage 3 sets REB_DATA_IMAGE).

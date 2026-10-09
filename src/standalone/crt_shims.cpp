@@ -28,3 +28,20 @@ __declspec(naked) void CIpow() {  // referenced as "_CIpow" from inline asm: the
     }
 }
 }
+
+#ifdef REB_ZERO_NEW
+#include <stdlib.h>
+#include <string.h>
+void* operator new(size_t size) {
+    void* memory = malloc(size);
+    if (memory) memset(memory, 0, size);
+    return memory;
+}
+void* operator new[](size_t size) {
+    void* memory = malloc(size);
+    if (memory) memset(memory, 0, size);
+    return memory;
+}
+void operator delete(void* memory) { free(memory); }
+void operator delete[](void* memory) { free(memory); }
+#endif

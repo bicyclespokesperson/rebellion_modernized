@@ -36,7 +36,7 @@ def class_name(mangled: str) -> str:
     m = re.match(r"\?\?_7(.+?)@@6B(.*)@$", mangled)
     if not m:
         return mangled
-    return "::".join(reversed(m.group(1).split("@"))) + (f" (base {m.group(2)})" if m.group(2) else "")
+    return "::".join(reversed(m.group(1).split("@"))) + (f" (base {m.group(2).rstrip('@')})" if m.group(2) else "")
 
 
 def main() -> int:
@@ -66,7 +66,7 @@ def main() -> int:
         return "tactical" if subsystem == "tactical" else "other game code"
 
     originals = {r["name"]: int(r["address"], 16) for r in csv.DictReader(open(ROOT / "symbols" / "symbols.csv"))
-                 if r["kind"] == "data" and r["name"].endswith("::vftable")}
+                 if r["kind"] == "data" and "::vftable" in r["name"]}
     exe = pefile.PE(str(args.exe)) if args.exe else None
     differing: list[str] = []
     sizes = {int(r["address"], 16): int(r["size"]) for r in csv.DictReader(open(ROOT / "symbols" / "functions.csv"))}
@@ -193,7 +193,8 @@ def main() -> int:
                 break
             slots.append(value)
         label = class_name(name)
-        original_va = None if "(base" in label else originals.get(label + "::vftable")
+        multi = re.match(r"(.*) \(base (.*)\)$", label)
+        original_va = originals.get(f"{multi[1]}::vftable{{{multi[2]}}}") if multi else originals.get(label + "::vftable")
         if exe is not None and original_va is not None:
             exe_base = exe.OPTIONAL_HEADER.ImageBase
             original_count = original_slot_count(original_va)

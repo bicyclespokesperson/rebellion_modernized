@@ -67,6 +67,13 @@ constexpr int kUnitSlotB = 114;
 
 // ---- construction -----------------------------------------------------------------------------------------
 
+int System::SetRecord(DatRecord* record) {
+    if (!record) return 0;
+    const int familyMatches = AssignRecord(record);
+    if (familyMatches) SetId(record->m_id);
+    return familyMatches;
+}
+
 System::System()
     : GameObj(),
       m_loyalty(50),

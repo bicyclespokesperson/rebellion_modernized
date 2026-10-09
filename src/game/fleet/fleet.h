@@ -44,6 +44,7 @@ public:
     virtual int GetTransitSpeed(int arg) override;                   // 13, 0x4fd900: slowest ready ship's speed
     virtual int IsConstructed() override;                            // 14, 0x4fda10: some ship is ready
     virtual int GetEventKinds(int unused, EventKindSet* out) override;  // 15, 0x4fdad0
+    virtual int Virtual18() override { return 1; }                   // 18, 0x40f340
     virtual int CanBeControlledBy(int arg) override;                 // 20, 0x4fdaf0: true until the fleet is created
     virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;  // 22, 0x4fdb00
     virtual int CheckRequestImpl(const ActivityRequest* request, StatusCode* out) override;  // 23, 0x4fdbc0

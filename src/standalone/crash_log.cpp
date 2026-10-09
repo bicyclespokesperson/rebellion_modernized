@@ -34,6 +34,15 @@ LONG WINAPI LogCrash(EXCEPTION_POINTERS* info) {
           record->NumberParameters > 1 ? static_cast<DWORD>(record->ExceptionInformation[1]) : 0);
     Write(file, "eax %08x ebx %08x ecx %08x edx %08x esi %08x edi %08x ebp %08x esp %08x\r\n", c->Eax, c->Ebx, c->Ecx,
           c->Edx, c->Esi, c->Edi, c->Ebp, c->Esp);
+    const DWORD registers[] = {c->Eax, c->Ebx, c->Ecx, c->Edx, c->Esi, c->Edi};
+    const char* const names[] = {"eax", "ebx", "ecx", "edx", "esi", "edi"};
+    for (int r = 0; r < 6; ++r) {
+        const DWORD* memory = reinterpret_cast<const DWORD*>(registers[r]);
+        if (registers[r] < 0x10000 || IsBadReadPtr(memory, 64)) continue;
+        Write(file, "[%s]", names[r]);
+        for (int i = 0; i < 16; ++i) Write(file, " %08x", memory[i]);
+        Write(file, "\r\n");
+    }
     Write(file, "code addresses on the stack:\r\n");
     const DWORD* stack = reinterpret_cast<const DWORD*>(c->Esp);
     int found = 0;

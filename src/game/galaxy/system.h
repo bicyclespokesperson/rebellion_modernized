@@ -69,7 +69,7 @@ public:
 
     // ---- overrides of GameObj slots ----
     virtual int GetOwnerKey(ObjectKey* out) override;                                       // 3, 0x508070
-    // Slot 10 is 0x50e1c0, shared (ICF) with Character::SetRecord: not declared here so that it is defined only once.
+    virtual int SetRecord(DatRecord* record) override;                                      // 10, 0x50e1c0 (shared with Character)
     virtual int CollectDependencies(void* context, int value, ObjectKeyValueSet* out) override;  // 11, 0x512700
     virtual int GetEventKinds(int unused, EventKindSet* out) override;                      // 15, 0x507290
     virtual int Virtual16() override { return 1; }                                          // 16
