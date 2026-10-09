@@ -27,7 +27,7 @@ constexpr int kMissionCancelOrder = 0x250;
 constexpr uint32_t kHasLeaders = 1;
 constexpr uint32_t kHasMembers = 2;
 constexpr uint32_t kHasDestination = 4;
-constexpr uint32_t kSomeoneToMove = 8;
+constexpr uint32_t kTeamInPlace = 8;
 constexpr uint32_t kDestinationReached = 0x10;
 constexpr uint32_t kMoving = 0x40;
 constexpr uint32_t kStalled = 0x80;
@@ -455,7 +455,7 @@ OrderBase* AiFreePlanner::Step(int* done) {
         break;
     case 7:
         order = MoveTeams();
-        if ((m_flags.m_value & kSomeoneToMove) != 0 && (m_flags.m_value & kDestinationReached) != 0) {
+        if ((m_flags.m_value & kTeamInPlace) != 0 && (m_flags.m_value & kDestinationReached) != 0) {
             m_state = 8;
             break;
         }
@@ -539,12 +539,12 @@ int AiFreePlanner::ChooseDestination() {
 OrderBase* AiFreePlanner::MoveTeams() {
     OrderBase* order = nullptr;
     ObjectKeyValueSet team;
-    m_flags.m_value &= ~kSomeoneToMove;
+    m_flags.m_value &= ~kTeamInPlace;
     ForEachKey(m_leaders, [&](const ObjectKey& key) {
         AiCharacterRecord* character = FindCharacter(this, key);
         if (character && (character->m_flags.m_value & kCharacterUnavailable) == 0) {
             if (character->m_location.m_value == m_destination.m_value)
-                m_flags.m_value |= kSomeoneToMove;
+                m_flags.m_value |= kTeamInPlace;
             else
                 AddToTeam(&team, key);
         }
@@ -636,7 +636,7 @@ OrderBase* AiSystemPlanner::Step(int* done) {
         break;
     case 7:
         order = MoveTeams();
-        if ((m_flags.m_value & kSomeoneToMove) != 0) {
+        if ((m_flags.m_value & kTeamInPlace) != 0) {
             m_state = 8;
             break;
         }
@@ -737,28 +737,30 @@ int AiSystemPlanner::ChooseSystem() {
 OrderBase* AiSystemPlanner::MoveTeams() {
     OrderBase* order = nullptr;
     ObjectKeyValueSet team;
-    m_flags.m_value &= ~kSomeoneToMove;
-    bool leadersReady = static_cast<uint16_t>(m_leaders.Count()) != 0;
-    auto gather = [&](ObjectKeySet& set, bool clearsReady) {
+    m_flags.m_value &= ~kTeamInPlace;
+    // Everyone is in place when there are leaders and no leader or member is unavailable or still away.
+    bool allInPlace = static_cast<uint16_t>(m_leaders.Count()) != 0;
+    auto gather = [&](ObjectKeySet& set) {
         for (ObjectKeyNode* node = set.First(); node; node = NextNode(node)) {
             AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
             if (!character) continue;
             if ((character->m_flags.m_value & kCharacterUnavailable) != 0) {
-                if (clearsReady) leadersReady = false;
+                allInPlace = false;
             } else if (character->m_location.m_value != m_destination.m_value) {
+                allInPlace = false;
                 AddToTeam(&team, KeyOfNode(node));
             }
         }
     };
-    gather(m_leaders, true);
-    gather(m_members, false);
+    gather(m_leaders);
+    gather(m_members);
     if (team.First() && (order = static_cast<OrderBase*>(CreateMessageByKind(ai::kMoveOrder)))) {
         order->m_side = m_view;
         order->SetTeam(&team);
         order->SetTarget(&m_destination);
     }
-    if (leadersReady && (m_flags.m_value & kHasLeaders) != 0 && (m_flags.m_value & kHasMembers) != 0)
-        m_flags.m_value |= kSomeoneToMove;
+    if (allInPlace && (m_flags.m_value & kHasLeaders) != 0 && (m_flags.m_value & kHasMembers) != 0)
+        m_flags.m_value |= kTeamInPlace;
     return order;
 }
 

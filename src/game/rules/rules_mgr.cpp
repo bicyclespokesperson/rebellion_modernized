@@ -769,7 +769,7 @@ int RulesMgr::ResumeTrip(GameObj* unit, uint32_t* notHyperdrive, NotifyContext* 
     ObjectKey departure;
     int ok = unit->GetOwnerKey(&owner) != 0;
     new (&departure) ObjectKey(unit->m_departureKey);
-    if (departure.m_value != owner.m_value) ok = both(BeginTravel(unit, &owner, &departure, ctx), ok);
+    if (departure.m_value != owner.m_value) ok = both(BeginTravel(unit, &departure, &owner, ctx), ok);
     *notHyperdrive = (~unit->m_stateFlags >> 11) & 1;
     return ok;
 }

@@ -28,9 +28,10 @@ IntPair::IntPair() : m_first(0), m_second(0) {}
 
 IntPair::IntPair(const IntPair& other) : m_first(other.m_first), m_second(other.m_second) {}
 
-void IntPair::Set(uint32_t first, uint32_t second) {
+IntPair* IntPair::Set(uint32_t first, uint32_t second) {
     m_first = first;
     m_second = second;
+    return this;
 }
 
 void IntPair::SetSecond(uint32_t second) { m_second = second; }

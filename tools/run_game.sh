@@ -10,7 +10,7 @@
 #   --out:   output directory (default work/run/<scenario name>); receives screenshots, wine.log,
 #            rebhybrid.log and captures/ (when REB_CAPTURE is set)
 # Environment passed through: REB_CAPTURE, REB_DISABLE_HOOKS, REB_ENABLE_HOOKS (only these hooks are installed), WINEDEBUG, and the determinism switches
-# REB_DETERMINISTIC, REB_CLOCK_STEP_US, REB_QPC_STEP_NS, REB_QPC_FAST_UNTIL_TICK, REB_QPC_FAST_STEP_NS, REB_QPC_HOLD_UNTIL_KEY, REB_QPC_START_KEY, REB_CLOCK_FROM_QPC, REB_CLOCK_TRACE, REB_NO_TIMERS, REB_HEAP_PROBE, REB_HEAP_PROBE_SBH, REB_DATA_TRIPWIRE
+# REB_DETERMINISTIC, REB_CLOCK_STEP_US, REB_QPC_STEP_NS, REB_QPC_FAST_UNTIL_TICK, REB_QPC_FAST_STEP_NS, REB_QPC_HOLD_UNTIL_KEY, REB_QPC_START_KEY, REB_CLOCK_FROM_QPC, REB_CLOCK_TRACE, REB_NO_TIMERS, REB_VIRTUAL_SOUND, REB_HEAP_PROBE, REB_HEAP_PROBE_SBH, REB_DATA_TRIPWIRE
 # (see src/hybrid/determinism.cpp), and REB_DUMP_INIT_STATE (standalone: Z:\\out\\init_state.bin, tools/check_init_state.sh).
 # When REB_CAPTURE is set, REB_DISABLE_HOOKS defaults to "all": captures then record original-code state,
 # and functions that reconstructed code calls directly (bypassing the original address) are still hit.
@@ -83,6 +83,7 @@ passthrough=(
   MW_TEXT_TRACE
   MW_RES_TRACE
   SDL_AUDIODRIVER
+  REB_VIRTUAL_SOUND
 )
 env_args=()
 for name in "${passthrough[@]}"; do env_args+=(-e "$name"); done

@@ -16,6 +16,8 @@
 #  - then the virtual QueryPerformanceCounter advances 1 ms per call (REB_QPC_FAST_UNTIL_TICK), so ticks are cheap, and
 #    timeGetTime/GetTickCount read that counter (REB_CLOCK_FROM_QPC) instead of counting calls (the droid advisor times its
 #    cues with them and draws from the random generator the AI breaks ties with); multimedia timers never fire (REB_NO_TIMERS);
+#  - sound buffers report "playing" for their length in virtual time (REB_VIRTUAL_SOUND): the droids' talking animation steps last until
+#    their sound ends, so with wall-clock sound the advisor's draws land a wall-clock-dependent number of ticks later;
 #  - when the game's tick counter reaches TICK the clock stands still again (REB_QPC_HOLD_UNTIL_KEY) until the script presses
 #    Scroll Lock a second time, right before it opens the Saved Games screen, and runs one tick per ~3 s from then on.
 # The save therefore happens at TICK + a few ticks counted from that key press, not from wall time.
@@ -55,7 +57,7 @@ if [[ $build == 1 ]]; then
   [[ " $configs " == *" standalone "* ]] && { "$ROOT/tools/build_standalone.sh" > "$base/build_standalone.log" 2>&1 || { echo "standalone build failed"; exit 1; }; }
 fi
 
-export REB_DETERMINISTIC=1 REB_QPC_FAST_UNTIL_TICK="$ticks" REB_QPC_START_KEY=145 REB_QPC_HOLD_UNTIL_KEY=145 REB_CLOCK_FROM_QPC=1 REB_NO_TIMERS=1
+export REB_DETERMINISTIC=1 REB_QPC_FAST_UNTIL_TICK="$ticks" REB_QPC_START_KEY=145 REB_QPC_HOLD_UNTIL_KEY=145 REB_CLOCK_FROM_QPC=1 REB_NO_TIMERS=1 REB_VIRTUAL_SOUND=1
 
 run_one() {
   local config="$1" i="$2" flag=() hooks=()

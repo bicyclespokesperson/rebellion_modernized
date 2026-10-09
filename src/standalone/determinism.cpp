@@ -14,12 +14,15 @@
 //   REB_QPC_START_KEY=<vk>: the counter stands still from the moment a game exists until the key is seen down (same key as the
 //                        hold key: released and pressed again).
 //   REB_NO_TIMERS=1      timeSetEvent returns a fake id and never calls back.
+//   REB_VIRTUAL_SOUND=1  with REB_DETERMINISTIC: the playing state of sound buffers follows the virtual counter
+//                        (src/port/virtual_sound.h; not in REB_MINWIN_IMPL builds, whose dsound is the port's own).
 #include <windows.h>
 #include <mmsystem.h>
 #include <stdint.h>
 #include <time.h>
 
 #include "events/game_manager.h"
+#include "port/virtual_sound.h"
 
 #if defined(REB_MINWIN_IMPL)
 extern "C" UINT WINAPI MinwinTimeSetEvent(UINT delay, UINT resolution, LPTIMECALLBACK callback, DWORD_PTR user, UINT flags);
@@ -34,6 +37,7 @@ constexpr int64_t kFixedTime = 946728000;  // 2000-01-01 12:00:00 UTC
 
 bool g_deterministic = false;
 bool g_noTimers = false;
+bool g_virtualSound = false;
 volatile LONG g_clockCalls = 0;
 volatile LONG g_counterCalls = 0;
 uint32_t g_stepUs = 1000;
@@ -64,6 +68,7 @@ void EnsureReady() {
     if (g_ready) return;
     g_deterministic = EnvNumber("REB_DETERMINISTIC") != 0;
     g_noTimers = EnvNumber("REB_NO_TIMERS") != 0;
+    g_virtualSound = EnvNumber("REB_VIRTUAL_SOUND") != 0;
     if (const uint32_t step = EnvNumber("REB_CLOCK_STEP_US")) g_stepUs = step;
     bool present = false;
     const uint32_t counterStep = EnvNumber("REB_QPC_STEP_NS", &present);
@@ -219,6 +224,20 @@ UINT WINAPI RebTimeSetEvent(UINT delay, UINT resolution, LPTIMECALLBACK callback
 #endif
 }
 
+#if !defined(REB_MINWIN_IMPL)
+uint64_t VirtualNowUs() { return AddCounterNs(0) / 1000; }
+
+void NoLog(const char*, ...) {}
+
+HRESULT WINAPI RebDirectSoundCreate(const GUID* device, void** directSound, void* outer) {
+    EnsureReady();
+    static auto real = RealFunction<HRESULT(WINAPI*)(const GUID*, void**, void*)>("dsound.dll", "DirectSoundCreate");
+    const HRESULT result = real(device, directSound, outer);
+    if (g_deterministic && g_virtualSound) virtual_sound::Attach(result, directSound, VirtualNowUs, NoLog, false);
+    return result;
+}
+#endif
+
 }  // namespace
 
 #define REB_DEFINE_IMPORT(symbol, function) \
@@ -232,6 +251,9 @@ REB_DEFINE_IMPORT("__imp__timeGetTime@0", RebTimeGetTime);
 REB_DEFINE_IMPORT("__imp__GetLocalTime@4", RebGetLocalTime);
 REB_DEFINE_IMPORT("__imp__GetSystemTime@4", RebGetSystemTime);
 REB_DEFINE_IMPORT("__imp__timeSetEvent@20", RebTimeSetEvent);
+#if !defined(REB_MINWIN_IMPL)
+REB_DEFINE_IMPORT("__imp__DirectSoundCreate@12", RebDirectSoundCreate);
+#endif
 
 // The game's single time() call (a seed): the UCRT's time() is inline over these.
 extern "C" __time64_t __cdecl _time64(__time64_t* out) {
