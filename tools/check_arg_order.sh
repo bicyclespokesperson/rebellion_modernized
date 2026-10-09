@@ -12,6 +12,6 @@ bdir="${REB_ARGCHECK_DIR:-build/argcheck}"
 mkdir -p "$ROOT/$bdir"
 mode=--check
 [[ "${1:-}" == --all ]] && mode=--all
-docker run --rm -u "$(id -u):$(id -g)" -v "$ROOT:$ROOT" -v "$MAIN:$MAIN:ro" -w "$ROOT" rebellion-native bash -c \
+docker run --rm -u "$(id -u):$(id -g)" "${REB_MOUNTS[@]}" -w "$ROOT" rebellion-native bash -c \
   "cmake -S . -B $bdir -G Ninja -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19 -DREB_NATIVE=ON > $bdir/configure.log 2>&1 \
    || { tail -20 $bdir/configure.log; exit 2; }; python3 tools/find_arg_order.py $bdir --repo $ROOT $mode ${REB_ARGCHECK_ARGS:-}"
