@@ -66,20 +66,33 @@ struct CallerCount {
     char api;
     uintptr_t address;
     uint32_t count;
+    uint32_t logged;
 };
+constexpr uint32_t kLoggedCallsPerCaller = 4000;
+char g_traceBuffer[1 << 16];
+int g_traceBufferLength = 0;
 constexpr int kCallerTableSize = 256;
 CallerCount g_callerCounts[kCallerTableSize];
 
-void AppendTraceLine(const char* text, int length) {
+void FlushTrace() {
+    if (g_traceBufferLength == 0) return;
     const HANDLE file = CreateFileA("Z:\\out\\clock_trace.log", FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS,
                                     FILE_ATTRIBUTE_NORMAL, nullptr);
-    if (file == INVALID_HANDLE_VALUE) return;
-    DWORD written;
-    WriteFile(file, text, static_cast<DWORD>(length), &written, nullptr);
-    CloseHandle(file);
+    if (file != INVALID_HANDLE_VALUE) {
+        DWORD written;
+        WriteFile(file, g_traceBuffer, static_cast<DWORD>(g_traceBufferLength), &written, nullptr);
+        CloseHandle(file);
+    }
+    g_traceBufferLength = 0;
+}
+
+void AppendTraceLine(const char* text, int length) {
+    if (length > static_cast<int>(sizeof g_traceBuffer) - g_traceBufferLength) FlushTrace();
+    for (int i = 0; i < length; ++i) g_traceBuffer[g_traceBufferLength++] = text[i];
 }
 
 uint32_t CurrentGameTick();
+uint64_t AddCounterNs(uint32_t stepNs);
 
 void DumpCallerCounts(uint32_t tick) {
     char line[96];
@@ -89,6 +102,7 @@ void DumpCallerCounts(uint32_t tick) {
         AppendTraceLine(line, wsprintfA(line, "clock count %c %08x: %u\r\n", caller.api, static_cast<unsigned>(caller.address), caller.count));
         caller.count = 0;
     }
+    FlushTrace();
 }
 
 void CountCaller(char api, void* returnAddress) {
@@ -98,12 +112,19 @@ void CountCaller(char api, void* returnAddress) {
     }
     int slot = 0;
     while (slot < kCallerTableSize && g_callerCounts[slot].count && !(g_callerCounts[slot].api == api && g_callerCounts[slot].address == address)) ++slot;
-    if (slot < kCallerTableSize) {
-        g_callerCounts[slot].api = api;
-        g_callerCounts[slot].address = address;
-        ++g_callerCounts[slot].count;
-    }
     const uint32_t tick = CurrentGameTick();
+    if (slot < kCallerTableSize) {
+        CallerCount& caller = g_callerCounts[slot];
+        caller.api = api;
+        caller.address = address;
+        ++caller.count;
+        if (g_startSeen && caller.logged < kLoggedCallsPerCaller) {
+            ++caller.logged;
+            char line[96];
+            AppendTraceLine(line, wsprintfA(line, "clock call %c %08x tick %u at %u us\r\n", api, static_cast<unsigned>(address), tick,
+                                            static_cast<unsigned>(AddCounterNs(0) / 1000)));
+        }
+    }
     if (tick >= g_traceNextTick) {
         if (g_traceNextTick) DumpCallerCounts(tick);
         g_traceNextTick = (tick / g_traceEveryTicks + 1) * g_traceEveryTicks;
