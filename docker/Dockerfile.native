@@ -10,3 +10,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 RUN apt-get update && apt-get install -y --no-install-recommends libxtst-dev libxrender-dev libxkbcommon-x11-dev \
     && rm -rf /var/lib/apt/lists/*
+# The data and static-initializer generators (tools/gen_native_*.py) run in the container: they read the EXE, ask libclang for the
+# layout of the game's globals, and emulate the original's initializers.
+RUN apt-get update && apt-get install -y --no-install-recommends python3-pefile python3-capstone python3-unicorn python3-clang-19 libclang-19-dev git \
+    && rm -rf /var/lib/apt/lists/*

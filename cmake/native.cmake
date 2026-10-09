@@ -5,6 +5,7 @@
 # The game objects are the same sources as the Windows builds, compiled for the host ABI (LP64, Itanium C++ ABI). The
 # platform comes from src/port/minwin_impl (SDL3 for window/input/audio, FreeType for text) and src/port/native (kernel32 on
 # POSIX, the MSVC CRT names the game uses).
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(REB_GEN ${CMAKE_BINARY_DIR}/gen)
 set(MW ${CMAKE_SOURCE_DIR}/src/port/minwin_impl)
 set(REB_NATIVE_SANITIZE "" CACHE STRING "address;undefined: sanitizers for the game, port and runtime objects")
@@ -59,6 +60,8 @@ set(SDL_IBUS OFF CACHE BOOL "" FORCE)
 set(SDL_LIBURING OFF CACHE BOOL "" FORCE)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 add_subdirectory(${SDL3_SRC} ${CMAKE_BINARY_DIR}/sdl3 EXCLUDE_FROM_ALL)
+# SDL's X11 clipboard code has a global function named GetWindow, which is also a Win32 name minwin defines.
+target_compile_definitions(SDL3-static PRIVATE GetWindow=SDL_X11_GetWindow)
 set(FT_DISABLE_ZLIB ON CACHE BOOL "" FORCE)
 set(FT_DISABLE_BZIP2 ON CACHE BOOL "" FORCE)
 set(FT_DISABLE_PNG ON CACHE BOOL "" FORCE)
@@ -88,6 +91,7 @@ target_include_directories(reb_native_port PRIVATE src/game src src/port/native/
 target_compile_options(reb_native_port PRIVATE ${REB_NATIVE_FLAGS})
 target_compile_definitions(reb_native_port PRIVATE REB_MINWIN=1 ${REB_NATIVE_DEFS})
 
+add_custom_target(reb_native_objects DEPENDS reb_game reb_tactical_stubs reb_minwin_impl reb_native_port)
 set(REB_NATIVE_GENERATED)
 if(REB_NATIVE_GEN)
   file(GLOB REB_NATIVE_GENERATED CONFIGURE_DEPENDS ${REB_GEN}/*.cpp)

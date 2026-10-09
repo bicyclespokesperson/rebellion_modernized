@@ -1,5 +1,6 @@
 #pragma once
 #include "core/reb_abi.h"
+#include <cstddef>
 #include <cstdint>
 
 #include "core/layout.h"
@@ -26,6 +27,10 @@ class ostrstream;
 class strstream;
 class ifstream;
 class ofstream;
+
+// The CRITICAL_SECTION embedded in ios and streambuf: 0x18 bytes on 32-bit Windows, 0x28 for the 64-bit layout of minwin.
+constexpr size_t kCriticalSectionBytes = sizeof(void*) == 4 ? 0x18 : 0x28;
+constexpr size_t kPointerAlignment = alignof(void*);
 
 namespace iostream_flags {
 // ios::state
@@ -98,7 +103,7 @@ public:
     uint8_t m_pad2d[3];          // +0x2d
     int m_width;                 // +0x30
     int m_lockCount;             // +0x34 negative while locking is enabled (the library's x_lockc)
-    uint8_t m_lock[0x18];        // +0x38 CRITICAL_SECTION
+    alignas(kPointerAlignment) uint8_t m_lock[kCriticalSectionBytes];  // +0x38 CRITICAL_SECTION
 
     static const IosVtable vftable;  // 0x66e4dc
 };
@@ -119,7 +124,7 @@ public:
     char* m_gptr;                      // +0x28
     char* m_egptr;                     // +0x2c
     int m_lockCount;                   // +0x30
-    uint8_t m_lock[0x18];              // +0x34 CRITICAL_SECTION
+    alignas(kPointerAlignment) uint8_t m_lock[kCriticalSectionBytes];  // +0x34 CRITICAL_SECTION
 
     static const StreambufVtable vftable;  // 0x66e5e4
 };
@@ -167,12 +172,19 @@ public:
     static const int vbtable[2];     // 0x66e550
 };
 
+// The virtual base ios sits after the stream's own parts, at the next multiple of its alignment (the 32-bit values are the
+// original's: istream 0x0c, ostream 8, ios 0x50).
+struct StreamLayout {
+    static constexpr int Align(size_t offset) { return static_cast<int>((offset + alignof(ios) - 1) / alignof(ios) * alignof(ios)); }
+};
+
 // iostream (0x64 bytes): istream at +0, ostream at +0x0c, ios at +0x14.
 class iostream {
 public:
-    static constexpr int kOstreamOffset = 0x0c;
-    static constexpr int kIosOffset = 0x14;
-    uint8_t m_bytes[0x64];
+    static constexpr int kOstreamOffset = sizeof(istream);
+    static constexpr int kIosOffset = StreamLayout::Align(sizeof(istream) + sizeof(ostream));
+    static constexpr int kSize = kIosOffset + sizeof(ios);
+    alignas(ios) uint8_t m_bytes[kSize];
 
     static const IosVtable vftable;     // 0x66e614
     static const int vbtableIstream[2];  // 0x66e620
@@ -184,8 +196,9 @@ class istrstream {
 public:
     istream* In() { return reinterpret_cast<istream*>(m_bytes); }
     ios* Ios() { return reinterpret_cast<ios*>(m_bytes + kIosOffset); }
-    static constexpr int kIosOffset = 0x0c;
-    uint8_t m_bytes[0x5c];
+    static constexpr int kIosOffset = StreamLayout::Align(sizeof(istream));
+    static constexpr int kSize = kIosOffset + sizeof(ios);
+    alignas(ios) uint8_t m_bytes[kSize];
 
     static const IosVtable vftable;  // 0x66e514
     static const int vbtable[2];     // 0x66e518
@@ -196,8 +209,9 @@ class ostrstream {
 public:
     ostream* Out() { return reinterpret_cast<ostream*>(m_bytes); }
     ios* Ios() { return reinterpret_cast<ios*>(m_bytes + kIosOffset); }
-    static constexpr int kIosOffset = 0x08;
-    uint8_t m_bytes[0x58];
+    static constexpr int kIosOffset = StreamLayout::Align(sizeof(ostream));
+    static constexpr int kSize = kIosOffset + sizeof(ios);
+    alignas(ios) uint8_t m_bytes[kSize];
 
     static const IosVtable vftable;  // 0x66e524
     static const int vbtable[2];     // 0x66e528
@@ -208,10 +222,10 @@ class strstream {
 public:
     ostream* Out() { return reinterpret_cast<ostream*>(m_bytes + kOstreamOffset); }
     ios* Ios() { return reinterpret_cast<ios*>(m_bytes + kIosOffset); }
-    static constexpr int kOstreamOffset = 0x0c;
-    static constexpr int kIosOffset = 0x14;
-    static constexpr int kSize = 0x64;
-    uint8_t m_bytes[kSize];
+    static constexpr int kOstreamOffset = sizeof(istream);
+    static constexpr int kIosOffset = StreamLayout::Align(sizeof(istream) + sizeof(ostream));
+    static constexpr int kSize = kIosOffset + sizeof(ios);
+    alignas(ios) uint8_t m_bytes[kSize];
 
     static const IosVtable vftable;      // 0x66e534
     static const int vbtableIstream[2];  // 0x66e540
@@ -221,9 +235,9 @@ public:
 // ifstream (0x5c bytes): istream at +0, ios at +0x0c.
 class ifstream {
 public:
-    static constexpr int kIosOffset = 0x0c;
-    static constexpr int kSize = 0x5c;
-    uint8_t m_bytes[kSize];
+    static constexpr int kIosOffset = StreamLayout::Align(sizeof(istream));
+    static constexpr int kSize = kIosOffset + sizeof(ios);
+    alignas(ios) uint8_t m_bytes[kSize];
 
     static const IosVtable vftable;  // 0x66e56c
     static const int vbtable[2];     // 0x66e570
@@ -232,9 +246,9 @@ public:
 // ofstream (0x58 bytes): ostream at +0, ios at +8.
 class ofstream {
 public:
-    static constexpr int kIosOffset = 0x08;
-    static constexpr int kSize = 0x58;
-    uint8_t m_bytes[kSize];
+    static constexpr int kIosOffset = StreamLayout::Align(sizeof(ostream));
+    static constexpr int kSize = kIosOffset + sizeof(ios);
+    alignas(ios) uint8_t m_bytes[kSize];
 
     static const IosVtable vftable;  // 0x66e55c
     static const int vbtable[2];     // 0x66e560
@@ -433,7 +447,7 @@ inline void UnlockBuffer(streambuf* buffer) {
 }
 
 // The counter at +4 that the inlined istream::getline() bumps around its call.
-inline int& GetlineCount(strstream* stream) { return *reinterpret_cast<int*>(stream->m_bytes + 4); }
+inline int& GetlineCount(strstream* stream) { return reinterpret_cast<istream*>(stream)->m_fGline; }
 
 inline istream* AsIstream(strstream* stream) { return reinterpret_cast<istream*>(stream); }
 inline ostream* AsOstream(strstream* stream) {

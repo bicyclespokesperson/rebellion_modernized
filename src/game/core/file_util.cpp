@@ -26,9 +26,8 @@ constexpr int kInvalidDescriptor = -1;
 int FilebufDescriptor(void* fstream) {
     char* object = static_cast<char*>(fstream);
     const int* vbtable = *reinterpret_cast<int**>(object);
-    char* ios = object + vbtable[1];
-    char* filebuf = *reinterpret_cast<char**>(ios + 4);
-    return *reinterpret_cast<int*>(filebuf + 0x4c);
+    const ::ios* stream = reinterpret_cast<const ::ios*>(object + vbtable[1]);
+    return static_cast<const ::filebuf*>(stream->m_bp)->m_fd;
 }
 
 }  // namespace
