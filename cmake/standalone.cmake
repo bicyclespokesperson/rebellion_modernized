@@ -57,7 +57,11 @@ endif()
 option(REB_MINWIN_IMPL "Link the native minwin implementation (SDL3) instead of user32/gdi32/comctl32" OFF)
 set(REB_WINDOWS_LIBS kernel32 user32 gdi32 advapi32 winmm comctl32 version ddraw dsound dxguid avifil32 ole32 uuid)
 if(REB_MINWIN_IMPL)
-  list(REMOVE_ITEM REB_WINDOWS_LIBS user32 gdi32 comctl32)
+  # Only kernel32 (and SDL3, below) may be imported: anything else the link needs must come from our own code.
+  set(REB_WINDOWS_LIBS kernel32)
+  set(REB_IMPORT_LIBS)
+  set(CMAKE_CXX_STANDARD_LIBRARIES "")
+  set(CMAKE_C_STANDARD_LIBRARIES "")
 endif()
 target_link_libraries(rebellion PRIVATE
   libcmt libvcruntime libucrt oldnames legacy_stdio_definitions legacy_stdio_wide_specifiers
@@ -97,39 +101,73 @@ if(REB_MINWIN_IMPL)
     message(FATAL_ERROR "REB_MINWIN_IMPL needs REB_MINWIN=ON")
   endif()
   set(SDL3_ROOT ${CMAKE_SOURCE_DIR}/third_party/SDL3)
-  if(NOT EXISTS ${SDL3_ROOT}/lib/x86/SDL3.lib)
-    message(FATAL_ERROR "SDL3 is missing: run tools/fetch_deps.sh")
+  set(FREETYPE_ROOT ${CMAKE_SOURCE_DIR}/third_party/freetype-2.13.2)
+  if(NOT EXISTS ${SDL3_ROOT}/lib/x86/SDL3.lib OR NOT EXISTS ${FREETYPE_ROOT}/CMakeLists.txt)
+    message(FATAL_ERROR "SDL3 or FreeType is missing: run tools/fetch_deps.sh")
   endif()
-  # The GDI component (src/port/minwin_impl/gdi) is built by another workstream; until it lands this stand-in provides gdi32.
-  option(REB_GDI_STUB "Use the throwaway GDI stand-in" ON)
-  set(REB_MINWIN_USER_SOURCES
-    src/port/minwin_impl/user/region.cpp src/port/minwin_impl/user/window.cpp src/port/minwin_impl/user/focus.cpp
-    src/port/minwin_impl/user/message.cpp src/port/minwin_impl/user/paint.cpp src/port/minwin_impl/user/input.cpp
-    src/port/minwin_impl/user/platform.cpp src/port/minwin_impl/user/misc.cpp src/port/minwin_impl/user/mmtimer.cpp
-    src/port/minwin_impl/user/cursor.cpp
-    src/port/msg_trace.cpp)
-  if(REB_GDI_STUB)
-    list(APPEND REB_MINWIN_USER_SOURCES src/port/minwin_impl/gdi_stub/gdi_stub.cpp)
-  endif()
-  add_library(reb_minwin_impl OBJECT ${REB_MINWIN_USER_SOURCES})
-  target_include_directories(reb_minwin_impl PRIVATE src/game src ${SDL3_ROOT}/include)
-  target_compile_options(reb_minwin_impl PRIVATE ${REB_HYBRID_FLAGS})
-  target_compile_definitions(reb_standalone_runtime PRIVATE REB_MINWIN_IMPL=1)
 
+  # FreeType (the text component), static, against the static CRT like everything else in the executable.
+  set(FT_DISABLE_ZLIB ON CACHE BOOL "" FORCE)
+  set(FT_DISABLE_BZIP2 ON CACHE BOOL "" FORCE)
+  set(FT_DISABLE_PNG ON CACHE BOOL "" FORCE)
+  set(FT_DISABLE_HARFBUZZ ON CACHE BOOL "" FORCE)
+  set(FT_DISABLE_BROTLI ON CACHE BOOL "" FORCE)
+  set(BUILD_SHARED_LIBS OFF CACHE BOOL "" FORCE)
+  set(CMAKE_MSVC_RUNTIME_LIBRARY MultiThreaded)
+  set(CMAKE_RC_FLAGS "${CMAKE_RC_FLAGS} -I${XWIN_DIR}/sdk/include/um -I${XWIN_DIR}/sdk/include/shared")
+  add_subdirectory(${FREETYPE_ROOT} ${CMAKE_BINARY_DIR}/freetype EXCLUDE_FROM_ALL)
+
+  set(MW src/port/minwin_impl)
+  set(REB_MINWIN_IMPL_SOURCES
+    # window manager (user32, comctl32, winmm timers)
+    ${MW}/user/region.cpp ${MW}/user/window.cpp ${MW}/user/focus.cpp ${MW}/user/message.cpp ${MW}/user/paint.cpp
+    ${MW}/user/input.cpp ${MW}/user/platform.cpp ${MW}/user/misc.cpp ${MW}/user/mmtimer.cpp src/port/msg_trace.cpp
+    # components (each is also a stand-alone library with unit tests, src/port/minwin_impl/CMakeLists.txt)
+    ${MW}/config/config.cpp ${MW}/config/advapi32_api.cpp
+    ${MW}/res/pe_module.cpp ${MW}/res/mapped_file.cpp ${MW}/res/formats.cpp ${MW}/res/path.cpp ${MW}/res/modules.cpp ${MW}/res/res_api.cpp
+    ${MW}/gdi/objects.cpp ${MW}/gdi/dc.cpp ${MW}/gdi/raster.cpp ${MW}/gdi/shapes.cpp ${MW}/gdi/blit_api.cpp
+    ${MW}/text/font_files.cpp ${MW}/text/ft_font.cpp ${MW}/text/text_api.cpp
+    ${MW}/dsound/mixer.cpp ${MW}/dsound/dsound_api.cpp
+    ${MW}/smack/smk_movie.cpp ${MW}/smack/smack_api.cpp ${MW}/smack/smack_clock.cpp
+    # what the port adds around them
+    ${MW}/ddraw/ddraw_api.cpp ${MW}/stubs/unavailable.cpp ${MW}/audio/sdl_audio.cpp ${MW}/glue/wiring.cpp)
+  add_library(reb_minwin_impl OBJECT ${REB_MINWIN_IMPL_SOURCES})
+  set_target_properties(reb_minwin_impl PROPERTIES MSVC_RUNTIME_LIBRARY MultiThreaded)
+  target_include_directories(reb_minwin_impl PRIVATE src/game src ${MW} ${SDL3_ROOT}/include ${FREETYPE_ROOT}/include)
+  target_compile_options(reb_minwin_impl PRIVATE ${REB_HYBRID_FLAGS})
+  # The game objects are compiled -MD with the UCRT linked statically; these use the static C++ library (libcpmt), which wants -MT.
+  target_compile_definitions(reb_minwin_impl PRIVATE REB_MINWIN=1 _ALLOW_RUNTIME_LIBRARY_MISMATCH)
+  target_compile_definitions(reb_standalone_runtime PRIVATE REB_MINWIN_IMPL=1 _ALLOW_RUNTIME_LIBRARY_MISMATCH)
+  target_compile_definitions(reb_game PRIVATE _ALLOW_RUNTIME_LIBRARY_MISMATCH)  # only drops the STL headers' link-time marker
+  target_compile_definitions(reb_tactical_stubs PRIVATE _ALLOW_RUNTIME_LIBRARY_MISMATCH)
+  # IID_IDirectDraw2, IID_IDirectSoundNotify and IID_IDirectSound3DListener are the game's own data (the data image defines them).
+  target_compile_definitions(reb_minwin_impl PRIVATE MW_IIDS_IN_GAME_DATA=1)
+
+  # The game objects call every Win32 function through its import slot (__imp__Name@N); these slots point at our functions.
+  # timeGetTime / timeSetEvent are the determinism shims' (src/standalone/determinism.cpp), which call the implementation.
   set(REB_MINWIN_IMPORTS ${REB_GEN}/minwin_imports.cpp)
+  set(REB_MINWIN_HEADERS ${CMAKE_SOURCE_DIR}/src/port/minwin)
+  set(REB_RESOURCE_KERNEL32 LoadLibraryA,FreeLibrary,GetModuleHandleA,FindResourceA,LoadResource,LockResource,FreeResource,SizeofResource,VerLanguageNameA)
   add_custom_command(
     OUTPUT ${REB_MINWIN_IMPORTS}
     COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/gen_minwin_imports.py --out ${REB_MINWIN_IMPORTS}
-            --header ${CMAKE_SOURCE_DIR}/src/port/minwin/user32.h --header ${CMAKE_SOURCE_DIR}/src/port/minwin/gdi32.h
-            --header ${CMAKE_SOURCE_DIR}/src/port/minwin/comctl32.h
-            --header ${CMAKE_SOURCE_DIR}/src/port/minwin/winmm.h:timeKillEvent
+            --include platform/smacker.h --include platform/dplay.h
+            --header ${REB_MINWIN_HEADERS}/user32.h --header ${REB_MINWIN_HEADERS}/gdi32.h --header ${REB_MINWIN_HEADERS}/comctl32.h
+            --header ${REB_MINWIN_HEADERS}/advapi32.h --header ${REB_MINWIN_HEADERS}/version.h --header ${REB_MINWIN_HEADERS}/vfw.h
+            --header ${REB_MINWIN_HEADERS}/winmm.h:-timeSetEvent,timeGetTime
+            --header ${REB_MINWIN_HEADERS}/ddraw.h --header ${REB_MINWIN_HEADERS}/dsound.h
+            --header ${REB_MINWIN_HEADERS}/kernel32.h:${REB_RESOURCE_KERNEL32}
+            --header ${CMAKE_SOURCE_DIR}/src/game/platform/smacker.h --header ${CMAKE_SOURCE_DIR}/src/game/platform/dplay.h
             --extra "wvsprintfA:12:int __stdcall wvsprintfA(char*, const char*, va_list)"
-    DEPENDS ${CMAKE_SOURCE_DIR}/tools/gen_minwin_imports.py ${CMAKE_SOURCE_DIR}/src/port/minwin/user32.h
-            ${CMAKE_SOURCE_DIR}/src/port/minwin/gdi32.h ${CMAKE_SOURCE_DIR}/src/port/minwin/comctl32.h VERBATIM)
+    DEPENDS ${CMAKE_SOURCE_DIR}/tools/gen_minwin_imports.py ${REB_MINWIN_HEADERS}/user32.h ${REB_MINWIN_HEADERS}/gdi32.h
+            ${REB_MINWIN_HEADERS}/comctl32.h ${REB_MINWIN_HEADERS}/advapi32.h ${REB_MINWIN_HEADERS}/version.h
+            ${REB_MINWIN_HEADERS}/vfw.h ${REB_MINWIN_HEADERS}/winmm.h ${REB_MINWIN_HEADERS}/ddraw.h ${REB_MINWIN_HEADERS}/dsound.h
+            ${REB_MINWIN_HEADERS}/kernel32.h ${CMAKE_SOURCE_DIR}/src/game/platform/smacker.h ${CMAKE_SOURCE_DIR}/src/game/platform/dplay.h VERBATIM)
   add_library(reb_minwin_imports OBJECT ${REB_MINWIN_IMPORTS})
   target_include_directories(reb_minwin_imports PRIVATE src/game src)
   target_compile_options(reb_minwin_imports PRIVATE ${REB_HYBRID_FLAGS})
+  target_compile_definitions(reb_minwin_imports PRIVATE REB_MINWIN=1)
 
   target_sources(rebellion PRIVATE $<TARGET_OBJECTS:reb_minwin_impl> $<TARGET_OBJECTS:reb_minwin_imports>)
-  target_link_libraries(rebellion PRIVATE ${SDL3_ROOT}/lib/x86/SDL3.lib)
+  target_link_libraries(rebellion PRIVATE libcpmt freetype ${SDL3_ROOT}/lib/x86/SDL3.lib)
 endif()

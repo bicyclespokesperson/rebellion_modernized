@@ -34,6 +34,14 @@ int Sample(const uint8_t* frame, int channel, int bits) {
 
 void SetEventSignaler(EventSignaler signaler) { g_signaler = signaler; }
 
+namespace {
+DeviceOpener g_deviceOpener = nullptr;
+}
+void SetDeviceOpener(DeviceOpener opener) { g_deviceOpener = opener; }
+void OpenDevice() {
+    if (g_deviceOpener) g_deviceOpener();
+}
+
 #if defined(_WIN32)
 static_assert(sizeof(CRITICAL_SECTION) <= 64, "Mutex storage");
 Mutex::Mutex() { InitializeCriticalSection(reinterpret_cast<CRITICAL_SECTION*>(m_storage)); }

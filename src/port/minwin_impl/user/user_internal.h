@@ -59,11 +59,6 @@ struct StyleStruct {  // STYLESTRUCT
 struct MinMaxInfo {  // MINMAXINFO
     POINT ptReserved, ptMaxSize, ptMaxPosition, ptMinTrackSize, ptMaxTrackSize;
 };
-struct AccelEntry {  // ACCEL as stored in an RT_ACCELERATOR resource
-    uint8_t flags;
-    uint16_t key;
-    uint16_t command;
-};
 
 // ---- rectangles and regions (rect lists: everything the game draws is rectangular) ------------------------------------
 inline int Width(const RECT& r) { return r.right - r.left; }

@@ -11,7 +11,10 @@ src/standalone/determinism.cpp). The set of functions comes from the minwin head
 implemented shows up as an unresolved `_Name@N` at link time.
 
   gen_minwin_imports.py --out gen/minwin_imports.cpp --header src/port/minwin/user32.h [--header winmm.h:timeKillEvent,...]
+                        [--header winmm.h:-timeSetEvent,timeGetTime] [--include platform/smacker.h]
                         [--extra wvsprintfA:12:"int __stdcall wvsprintfA(char*, const char*, va_list)"]
+`--header path:a,b` takes only those functions, `path:-a,b` all but those. Headers whose functions are marked REB_DLLIMPORT
+(platform/smacker.h, platform/dplay.h) are named with --include as well, so the generated file can see the declarations.
 """
 from __future__ import annotations
 
@@ -19,7 +22,7 @@ import argparse
 import re
 from pathlib import Path
 
-DECLARATION = re.compile(r"MINWIN_IMPORT\s+(?:\[\[noreturn\]\]\s+)?(?P<ret>[\w\s\*]+?)\s+REB_(?P<conv>STDCALL|CDECL)\s+(?P<name>\w+)\((?P<args>[^;]*)\);")
+DECLARATION = re.compile(r"(?:MINWIN_IMPORT|REB_DLLIMPORT)\s+(?:\[\[noreturn\]\]\s+)?(?P<ret>[\w\s\*]+?)\s+REB_(?P<conv>STDCALL|CDECL)\s+(?P<name>\w+)\((?P<args>[^;]*)\);")
 BY_VALUE_SIZES = {"POINT": 8, "SIZE": 8}
 
 
@@ -41,11 +44,11 @@ def parameter_bytes(arguments: str) -> int | None:
     return total
 
 
-def declarations(header: Path, only: set[str] | None) -> list[tuple[str, str, int | None]]:
+def declarations(header: Path, only: set[str] | None, excluded: set[str]) -> list[tuple[str, str, int | None]]:
     found = []
     for match in DECLARATION.finditer(header.read_text()):
         name = match["name"]
-        if only is not None and name not in only:
+        if (only is not None and name not in only) or name in excluded:
             continue
         found.append((name, match["conv"], parameter_bytes(match["args"])))
     return found
@@ -54,7 +57,8 @@ def declarations(header: Path, only: set[str] | None) -> list[tuple[str, str, in
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--out", type=Path, required=True)
-    parser.add_argument("--header", action="append", default=[], help="path[:name,name,...]")
+    parser.add_argument("--header", action="append", default=[], help="path[:[-]name,name,...]")
+    parser.add_argument("--include", action="append", default=[], help="a header (as in #include \"...\") to include with REB_DLLIMPORT empty")
     parser.add_argument("--extra", action="append", default=[], help="name:bytes:prototype (a function the headers do not declare)")
     args = parser.parse_args()
 
@@ -63,6 +67,10 @@ def main() -> None:
         "#define MINWIN_IMPLEMENTATION 1",
         "#include <stdarg.h>",
         '#include "port/minwin/minwin.h"',
+        '#include "core/reb_abi.h"',
+        "#undef REB_DLLIMPORT",
+        "#define REB_DLLIMPORT",
+        *[f'#include "{header}"' for header in args.include],
         "",
         "template <class T> struct StackBytes;",
         "template <class R, class... A> struct StackBytes<R(__stdcall*)(A...)> {",
@@ -76,9 +84,10 @@ def main() -> None:
     ]
     for entry in args.header:
         path, _, names = entry.partition(":")
-        only = set(names.split(",")) if names else None
+        excluded = set(names[1:].split(",")) if names.startswith("-") else set()
+        only = set(names.split(",")) if names and not excluded else None
         lines.append(f"// {Path(path).name}")
-        for name, conv, size in declarations(Path(path), only):
+        for name, conv, size in declarations(Path(path), only, excluded):
             if conv == "CDECL" or size is None:
                 lines.append(f'SLOT("__imp__{name}", {name});')
             else:

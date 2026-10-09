@@ -15,6 +15,7 @@
 
 #if defined(REB_MINWIN_IMPL)
 extern "C" UINT WINAPI MinwinTimeSetEvent(UINT delay, UINT resolution, LPTIMECALLBACK callback, DWORD_PTR user, UINT flags);
+extern "C" DWORD WINAPI MinwinTimeGetTime();
 #endif
 
 namespace {
@@ -54,8 +55,19 @@ void EnsureReady() {
 
 template <typename Function>
 Function RealFunction(const char* module, const char* name) {
+#if defined(REB_MINWIN_IMPL)
+    // The ANSI module functions are the resource library's here (they only know the game's own DLLs).
+    wchar_t wide[32];
+    for (int i = 0;; ++i) {
+        wide[i] = static_cast<unsigned char>(module[i]);
+        if (!module[i]) break;
+    }
+    HMODULE handle = GetModuleHandleW(wide);
+    if (!handle) handle = LoadLibraryW(wide);
+#else
     HMODULE handle = GetModuleHandleA(module);
     if (!handle) handle = LoadLibraryA(module);
+#endif
     return reinterpret_cast<Function>(GetProcAddress(handle, name));
 }
 
@@ -95,8 +107,12 @@ DWORD WINAPI RebGetTickCount() {
 DWORD WINAPI RebTimeGetTime() {
     EnsureReady();
     if (g_deterministic) return kTickBaseMs + static_cast<DWORD>(AdvanceClockUs() / 1000);
+#if defined(REB_MINWIN_IMPL)
+    return MinwinTimeGetTime();
+#else
     static auto real = RealFunction<DWORD(WINAPI*)()>("winmm.dll", "timeGetTime");
     return real();
+#endif
 }
 
 void WINAPI RebGetLocalTime(SYSTEMTIME* out) {

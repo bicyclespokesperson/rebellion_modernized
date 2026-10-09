@@ -34,7 +34,7 @@ DEFAULT_NOISE = {
     "0x282": "WM_IME_NOTIFY: Wine's IME integration",
 }
 
-LINE = re.compile(r"^(?P<depth>\d+) (?P<cls>\S+) #(?P<serial>\d+) (?P<msg>\S+) (?P<w>\S+) (?P<l>\S+)$")
+LINE = re.compile(r"^(?P<depth>\d+) (?P<cls>\S+) #(?P<serial>\d+) (?P<msg>\S+) (?P<w>\S+) (?P<l>\S+)(?: @[0-9a-f]+)?$")
 
 
 def parse(path: Path) -> list[tuple[str, str]]:

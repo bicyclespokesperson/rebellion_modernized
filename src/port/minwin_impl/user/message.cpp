@@ -5,6 +5,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <vector>
+
+#include "port/minwin_impl/res/modules.h"
 #include "port/minwin_impl/user/input.h"
 #include "port/minwin_impl/user/user_internal.h"
 #include "port/msg_trace.h"
@@ -124,6 +127,10 @@ void RunGetMessageHook(MSG* m, bool remove) {
     CallHooks(WH_GETMESSAGE, kHcAction, remove ? PM_REMOVE : PM_NOREMOVE, reinterpret_cast<LPARAM>(m));
 }
 
+#if defined(_WIN32)
+extern "C" const char __ImageBase;
+#endif
+
 // REB_MINWIN_TRACE=stacks: the code addresses on the stack (tools/map_lookup.py turns them into function names).
 void NoteCodeAddresses(const char* what) {
     static int mode = -1;
@@ -132,7 +139,12 @@ void NoteCodeAddresses(const char* what) {
         mode = text && strstr(text, "stacks") ? 1 : 0;
     }
     if (!mode || !msgtrace::Enabled()) return;
-    const uint8_t* base = reinterpret_cast<const uint8_t*>(GetModuleHandleA(nullptr));
+#if defined(_WIN32)
+    const uint8_t* base = reinterpret_cast<const uint8_t*>(&__ImageBase);
+#else
+    return;
+    const uint8_t* base = nullptr;
+#endif
     uint32_t peOffset, sizeOfCode, baseOfCode;
     memcpy(&peOffset, base + 0x3c, 4);
     memcpy(&sizeOfCode, base + peOffset + 24 + 4, 4);
@@ -613,7 +625,7 @@ TranslatedKey g_translatedKey;
 }  // namespace
 
 extern "C" int REB_STDCALL TranslateAcceleratorA(HWND hwnd, HACCEL table, LPMSG msg) {
-    const AcceleratorTable* accel = reinterpret_cast<const AcceleratorTable*>(table);
+    const std::vector<mw::res::Accelerator>* accel = mw::res::AcceleratorsFromHandle(table);
     if (!accel || !msg) return 0;
     if ((msg->message == WM_KEYUP || msg->message == WM_SYSKEYUP) && g_translatedKey.valid && g_translatedKey.vk == msg->wParam) {
         g_translatedKey.valid = false;
@@ -623,8 +635,7 @@ extern "C" int REB_STDCALL TranslateAcceleratorA(HWND hwnd, HACCEL table, LPMSG 
     const bool shift = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
     const bool control = (GetKeyState(VK_CONTROL) & 0x8000) != 0;
     const bool alt = (GetKeyState(VK_MENU) & 0x8000) != 0;
-    for (int i = 0; i < accel->count; ++i) {
-        const AccelEntry& e = accel->entries[i];
+    for (const mw::res::Accelerator& e : *accel) {
         if (!(e.flags & 1)) continue;  // ASCII entries match WM_CHAR, which the game's table does not use
         if (e.key != msg->wParam) continue;
         if (((e.flags & 4) != 0) != shift || ((e.flags & 8) != 0) != control || ((e.flags & 0x10) != 0) != alt) continue;

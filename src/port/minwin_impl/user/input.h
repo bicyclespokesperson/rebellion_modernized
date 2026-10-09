@@ -22,11 +22,6 @@ struct InputEvent {
     MSG msg;             // the message to deliver, valid after FinalizeInput
 };
 
-struct AcceleratorTable {
-    int count;
-    AccelEntry entries[1];
-};
-
 // Turns a raw event into the message(s) Windows would produce at retrieval time: hit-testing (WM_NCHITTEST), WM_PARENTNOTIFY,
 // WM_MOUSEACTIVATE, window activation and WM_SETCURSOR happen here, in that order. False discards the event.
 bool FinalizeInput(InputEvent* event);

@@ -32,6 +32,7 @@ uintptr_t g_windows[kMaxWindows];
 int g_windowCount = 0;
 FILE* g_file = nullptr;
 int g_state = 0;  // 0 unknown, 1 enabled, -1 disabled
+bool g_rawHandles = false;  // REB_MSG_TRACE_HANDLES=1: append the raw handle value of every window to the line
 
 int Serial(uintptr_t handle) {
     if (!handle) return 0;
@@ -57,6 +58,8 @@ void Init() {
     if (!path || !*path) { g_state = -1; return; }
     g_file = fopen(path, "w");
     g_state = g_file ? 1 : -1;
+    const char* raw = getenv("REB_MSG_TRACE_HANDLES");
+    g_rawHandles = raw && *raw == '1';
 }
 
 void FormatValue(char* out, size_t size, uintptr_t value, bool pointerLike) {
@@ -96,7 +99,8 @@ void Log(const char* windowClass, uintptr_t window, unsigned message, uintptr_t 
     snprintf(cls, sizeof cls, "%s", windowClass);
     for (char* c = cls; *c; ++c)
         if (*c == ' ') *c = '_';
-    fprintf(g_file, "%d %s #%d %s %s %s\n", depth, cls, serial, name, w, l);
+    if (g_rawHandles) fprintf(g_file, "%d %s #%d %s %s %s @%x\n", depth, cls, serial, name, w, l, static_cast<unsigned>(window));
+    else fprintf(g_file, "%d %s #%d %s %s %s\n", depth, cls, serial, name, w, l);
     fflush(g_file);
     if (message == 0x82) Forget(window);
 }

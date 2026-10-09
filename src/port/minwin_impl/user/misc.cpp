@@ -7,10 +7,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#include <map>
+
+#include "port/minwin_impl/res/modules.h"
 #include "port/minwin_impl/user/input.h"
 #include "port/minwin_impl/user/user_internal.h"
-
-SDL_Cursor* CreateCursorFromResource(HINSTANCE, LPCSTR);
 
 namespace minwin {
 
@@ -19,12 +20,7 @@ void SetSdlTitle(const char* text);
 
 namespace {
 
-struct CursorObject {
-    SDL_Cursor* sdl;
-    bool stock;
-};
-
-CursorObject* g_cursor = nullptr;
+HCURSOR g_cursor = nullptr;  // an mw::res::CursorObject: LoadCursorA belongs to the resource library
 int g_showCursorCounter = 0;
 
 struct Caret {
@@ -34,13 +30,6 @@ struct Caret {
     int hidden;
     unsigned created;
 } g_caret = {nullptr, 0, 0, 0, 0, 0, 0};
-
-CursorObject* NewCursor(SDL_Cursor* sdl, bool stock) {
-    CursorObject* c = static_cast<CursorObject*>(Alloc(sizeof(CursorObject)));
-    c->sdl = sdl;
-    c->stock = stock;
-    return c;
-}
 
 SDL_SystemCursor SystemCursorFor(unsigned id) {
     switch (id) {
@@ -58,10 +47,31 @@ SDL_SystemCursor SystemCursorFor(unsigned id) {
     }
 }
 
+SDL_Cursor* CreateSdlCursor(const mw::res::CursorObject& cursor) {
+    if (cursor.systemId) return SDL_CreateSystemCursor(SystemCursorFor(static_cast<unsigned>(cursor.systemId)));
+    const mw::res::Image& image = cursor.image;
+    if (image.width <= 0 || image.height <= 0) return SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
+    SDL_Surface* surface = SDL_CreateSurfaceFrom(image.width, image.height, SDL_PIXELFORMAT_RGBA32,
+                                                 const_cast<uint8_t*>(image.rgba.data()), image.width * 4);
+    SDL_Cursor* sdl = surface ? SDL_CreateColorCursor(surface, image.hotX, image.hotY) : nullptr;
+    if (surface) SDL_DestroySurface(surface);
+    return sdl ? sdl : SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
+}
+
+SDL_Cursor* SdlCursorFor(HCURSOR handle) {
+    static std::map<const mw::res::CursorObject*, SDL_Cursor*> cache;
+    const mw::res::CursorObject* cursor = mw::res::CursorFromHandle(handle);
+    if (!cursor) return nullptr;
+    auto found = cache.find(cursor);
+    if (found != cache.end()) return found->second;
+    EnsurePlatform();
+    return cache[cursor] = CreateSdlCursor(*cursor);
+}
+
 void ApplyCursor() {
     const bool visible = g_showCursorCounter >= 0 && g_cursor != nullptr;
     if (visible) {
-        if (g_cursor->sdl) SDL_SetCursor(g_cursor->sdl);
+        if (SDL_Cursor* sdl = SdlCursorFor(g_cursor)) SDL_SetCursor(sdl);
         SDL_ShowCursor();
     } else {
         SDL_HideCursor();
@@ -159,24 +169,11 @@ int REB_STDCALL wvsprintfA(LPSTR out, LPCSTR format, va_list args) {
 
 // ---- cursor ---------------------------------------------------------------------------------------------------------------
 
-HCURSOR REB_STDCALL LoadCursorA(HINSTANCE instance, LPCSTR name) {
-    EnsurePlatform();
-    const uintptr_t id = reinterpret_cast<uintptr_t>(name);
-    if (!instance && id < 0x10000)
-        return reinterpret_cast<HCURSOR>(NewCursor(SDL_CreateSystemCursor(SystemCursorFor(static_cast<unsigned>(id))), true));
-    return reinterpret_cast<HCURSOR>(NewCursor(CreateCursorFromResource(instance, name), false));
-}
-
-HICON REB_STDCALL LoadIconA(HINSTANCE, LPCSTR) {
-    static int dummy;
-    return reinterpret_cast<HICON>(&dummy);
-}
-
 HCURSOR REB_STDCALL SetCursor(HCURSOR handle) {
-    CursorObject* old = g_cursor;
-    g_cursor = reinterpret_cast<CursorObject*>(handle);
+    HCURSOR old = g_cursor;
+    g_cursor = handle;
     ApplyCursor();
-    return reinterpret_cast<HCURSOR>(old);
+    return old;
 }
 
 int REB_STDCALL ShowCursor(BOOL show) {
@@ -234,55 +231,7 @@ BOOL REB_STDCALL GetCaretPos(LPPOINT p) {
     return TRUE;
 }
 
-// ---- resources ------------------------------------------------------------------------------------------------------------
-
-int REB_STDCALL LoadStringA(HINSTANCE instance, UINT id, LPSTR buffer, int max) {
-    HRSRC block = FindResourceFor(instance, MAKEINTRESOURCE((id >> 4) + 1), 6);
-    if (!block) return 0;
-    const uint8_t* data = static_cast<const uint8_t*>(LockResource(LoadResource(instance ? instance : GetModuleHandleA(nullptr), block)));
-    if (!data) return 0;
-    for (unsigned i = 0; i < (id & 15); ++i) {
-        uint16_t length;
-        memcpy(&length, data, sizeof length);
-        data += sizeof length + length * sizeof(uint16_t);
-    }
-    uint16_t length;
-    memcpy(&length, data, sizeof length);
-    data += sizeof length;
-    if (max <= 0) return 0;
-    int copied = 0;
-    for (; copied < static_cast<int>(length) && copied < max - 1; ++copied) {
-        uint16_t unit;
-        memcpy(&unit, data + copied * sizeof(uint16_t), sizeof unit);
-        buffer[copied] = unit < 256 ? static_cast<char>(unit) : '?';
-    }
-    buffer[copied] = 0;
-    return copied;
-}
-
-HACCEL REB_STDCALL LoadAcceleratorsA(HINSTANCE instance, LPCSTR name) {
-    HRSRC block = FindResourceFor(instance, name, 9);
-    if (!block) return nullptr;
-    const uint8_t* data = static_cast<const uint8_t*>(LockResource(LoadResource(instance ? instance : GetModuleHandleA(nullptr), block)));
-    if (!data) return nullptr;
-    int count = 0;
-    for (const uint8_t* p = data;; p += 8) {
-        ++count;
-        if (p[0] & 0x80) break;
-    }
-    AcceleratorTable* table = static_cast<AcceleratorTable*>(Alloc(sizeof(AcceleratorTable) + sizeof(AccelEntry) * static_cast<size_t>(count)));
-    table->count = count;
-    for (int i = 0; i < count; ++i) {
-        const uint8_t* p = data + i * 8;
-        uint16_t key, command;
-        memcpy(&key, p + 2, sizeof key);
-        memcpy(&command, p + 4, sizeof command);
-        table->entries[i].flags = p[0] & 0x7f;
-        table->entries[i].key = key;
-        table->entries[i].command = command;
-    }
-    return reinterpret_cast<HACCEL>(table);
-}
+// ---- bitmap resources (strings, cursors, icons and accelerators are in the res library) ------------------------------------------------------------------------------------------------------------
 
 HBITMAP REB_STDCALL LoadBitmapA(HINSTANCE instance, LPCSTR name) {
     HRSRC block = FindResourceFor(instance, name, 2);

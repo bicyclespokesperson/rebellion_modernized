@@ -32,6 +32,11 @@ struct Notification {
 using EventSignaler = void (*)(void* event);
 void SetEventSignaler(EventSignaler signaler);
 
+// Called by DirectSoundCreate (every time): the integration layer starts its audio backend here, on the first call.
+using DeviceOpener = void (*)();
+void SetDeviceOpener(DeviceOpener opener);
+void OpenDevice();
+
 // A plain mutex (CRITICAL_SECTION / pthread): std::mutex would pull msvcp140.dll into the i686-windows builds, which Wine lacks.
 class Mutex {
 public:
