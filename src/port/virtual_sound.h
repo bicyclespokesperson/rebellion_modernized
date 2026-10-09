@@ -73,6 +73,7 @@ using StopFn = HRESULT(WINAPI*)(void*);
 struct State {
     NowUs now = nullptr;
     Log log = nullptr;
+    bool trace = false;
     volatile LONG lock = 0;
     BufferState buffers[kMaxBuffers] = {};
     void** soundVtable = nullptr;
@@ -215,6 +216,9 @@ inline HRESULT WINAPI Play(void* buffer, DWORD reserved1, DWORD priority, DWORD 
         state->playing = true;
         state->looping = (flags & kPlayLooping) != 0;
         state->startUs = g_state.now();
+        if (g_state.trace)
+            g_state.log("virtual sound: play %p at %u us, %u bytes from %u at %u/s, %s", buffer, static_cast<unsigned>(state->startUs),
+                        state->bytes, state->position, state->bytesPerSecond, state->looping ? "looping" : "once");
     }
     return result;
 }
@@ -244,11 +248,13 @@ inline HRESULT WINAPI Stop(void* buffer) {
 }
 
 // Call with the result of the real DirectSoundCreate.
-inline void Attach(HRESULT result, void** directSound, NowUs now, Log log) {
+// `trace` logs every Play of a tracked buffer.
+inline void Attach(HRESULT result, void** directSound, NowUs now, Log log, bool trace) {
     if (result < 0 || !directSound || !*directSound) return;
     Guard guard;
     g_state.now = now;
     g_state.log = log;
+    g_state.trace = trace;
     void** vtable = VtableOf(*directSound);
     if (g_state.soundVtable == vtable) return;
     g_state.soundVtable = vtable;

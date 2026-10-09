@@ -292,7 +292,7 @@ uint64_t virtual_now_us() { return add_counter_ns(0) / 1000; }
 
 HRESULT WINAPI virtual_direct_sound_create(const void* device, void** direct_sound, void* outer) {
     const HRESULT result = g_real_direct_sound_create(device, direct_sound, outer);
-    virtual_sound::Attach(result, direct_sound, virtual_now_us, log);
+    virtual_sound::Attach(result, direct_sound, virtual_now_us, log, g_trace_callers);
     return result;
 }
 

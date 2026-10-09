@@ -15,7 +15,8 @@ public:
     IntPair(const IntPair& other);
     constexpr IntPair(uint32_t first, uint32_t second) : m_first(first), m_second(second) {}
 
-    void Set(uint32_t first, uint32_t second);            // 0x51c900
+    // The original is the (uint32_t, uint32_t) constructor: it returns `this`, and original callers pass that EAX on.
+    IntPair* Set(uint32_t first, uint32_t second);        // 0x51c900
     void SetSecond(uint32_t second);                      // 0x51c9b0
     // Both values as raw words (the Read/Write of the pairs the economy classes keep).
     int Write(ostream* out);                              // 0x51c920

@@ -217,7 +217,7 @@ HRESULT WINAPI RebDirectSoundCreate(const GUID* device, void** directSound, void
     EnsureReady();
     static auto real = RealFunction<HRESULT(WINAPI*)(const GUID*, void**, void*)>("dsound.dll", "DirectSoundCreate");
     const HRESULT result = real(device, directSound, outer);
-    if (g_deterministic && g_virtualSound) virtual_sound::Attach(result, directSound, VirtualNowUs, NoLog);
+    if (g_deterministic && g_virtualSound) virtual_sound::Attach(result, directSound, VirtualNowUs, NoLog, false);
     return result;
 }
 #endif
