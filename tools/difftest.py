@@ -68,6 +68,8 @@ class Capture:
     regs: dict[str, int]
     fpu_control: int
     pages: dict[int, tuple[int, int]]  # page address -> (protect, pack offset)
+    fpu_status: int = 0
+    fpu_stack: bytes = bytes(80)  # ST(0)..ST(7) as 10-byte extended values, in stack order
 
     @staticmethod
     def load(path: Path) -> "Capture":
@@ -83,7 +85,7 @@ class Capture:
         for i in range(count):
             a, prot, off = PAGEREF.unpack_from(data, HEADER.size + i * PAGEREF.size)
             pages[a] = (prot, off)
-        return Capture(path, function, teb, regs, f[15], pages)
+        return Capture(path, function, teb, regs, f[15], pages, f[16], f[18])
 
 
 @dataclass
@@ -198,6 +200,7 @@ def jump(src: int, dst: int) -> bytes:
     return b"\xE9" + struct.pack("<i", dst - (src + 5))
 
 
+DEFAULT_QPC = 0x123456789A
 HEAP_BASE = 0x70000000
 HEAP_SIZE = 0x4000000
 FILE_HANDLE_BASE = 0x100
@@ -219,6 +222,8 @@ class Config:
     entry: int | None = None
     cursor: tuple[int, int] = (0, 0)
     move_window_ok: bool = False
+    fpu_stack: bytes | None = None
+    fpcw: int | None = None
 
 
 CFG = Config()
@@ -444,8 +449,8 @@ class Emulator:
         if function == "GetTimeZoneInformation":
             self.write_guest(args[0], bytes(172))
             return 0
-        if function == "QueryPerformanceCounter" and CFG.qpc is not None:
-            self.write_guest(args[0], CFG.qpc.to_bytes(8, "little"))
+        if function == "QueryPerformanceCounter":  # a fixed value: an unwritten out-parameter is stack garbage that differs per build
+            self.write_guest(args[0], (DEFAULT_QPC if CFG.qpc is None else CFG.qpc).to_bytes(8, "little"))
             return 1
         if function == "QueryPerformanceFrequency" and CFG.qpf is not None:
             self.write_guest(args[0], CFG.qpf.to_bytes(8, "little"))
@@ -647,7 +652,8 @@ class Emulator:
                  "eflags": UC_X86_REG_EFLAGS}
         for k, r in names.items():
             uc.reg_write(r, cap.regs[k])
-        uc.reg_write(UC_X86_REG_FPCW, cap.fpu_control)
+        uc.reg_write(UC_X86_REG_FPCW, cap.fpu_control if CFG.fpcw is None else CFG.fpcw)
+        self.load_fpu_stack()
         uc.hook_add(UC_HOOK_MEM_UNMAPPED, self.on_unmapped)
         uc.hook_add(UC_HOOK_MEM_WRITE, self.on_write)
         uc.hook_add(UC_HOOK_CODE, self.on_stub, begin=STUB_BASE, end=SENTINEL)
@@ -659,6 +665,16 @@ class Emulator:
         uc.mem_write(esp, struct.pack("<I", SENTINEL))
         self.apply_pokes()
         self.writes.clear()
+
+    def load_fpu_stack(self) -> None:
+        """Start with the captured x87 stack (arguments of _CIpow/__ftol-style functions live there). Unicorn's FPn
+        registers are the physical ones, so ST(i) goes to (TOP + i) mod 8."""
+        top = (self.cap.fpu_status >> 11) & 7
+        self.uc.reg_write(UC_X86_REG_FPSW, self.cap.fpu_status & 0x3800)
+        stack = CFG.fpu_stack if CFG.fpu_stack is not None else self.cap.fpu_stack
+        for i in range(8):
+            mantissa, exponent = struct.unpack_from("<QH", stack, 10 * i)
+            self.uc.reg_write(UC_X86_REG_FP0 + ((top + i) & 7), (mantissa, exponent))
 
     def setup_fs(self, teb: int) -> None:
         # Flat 4 GiB code/data segments plus an FS segment based at the captured TEB.
@@ -688,7 +704,7 @@ class Emulator:
         res.regs = {k: self.uc.reg_read(r) for k, r in regs.items()}
         fpsw = self.uc.reg_read(UC_X86_REG_FPSW)
         res.fpu_top = (fpsw >> 11) & 7
-        st0 = self.uc.reg_read(UC_X86_REG_FP0)
+        st0 = self.uc.reg_read(UC_X86_REG_FP0 + res.fpu_top)
         res.st0 = struct.pack("<QH", *st0) if isinstance(st0, tuple) else b""
         for a in sorted(self.writes):
             if self.stack_lo <= a < self.frame_hi:
@@ -855,6 +871,30 @@ def run_captures(captures: list[Path], dll: Path = DLL_PATH, integration: bool =
     return results
 
 
+def extended_from_double(value: float) -> bytes:
+    """The 10-byte x87 extended representation of a double (exact: every double is representable)."""
+    bits = struct.unpack("<Q", struct.pack("<d", value))[0]
+    sign, exponent, fraction = bits >> 63, (bits >> 52) & 0x7FF, bits & ((1 << 52) - 1)
+    if exponent == 0x7FF:
+        mantissa, exponent = (1 << 63) | (fraction << 11), 0x7FFF
+    elif exponent:
+        mantissa, exponent = (1 << 63) | (fraction << 11), exponent - 1023 + 16383
+    elif fraction:
+        shift = 64 - fraction.bit_length()
+        mantissa, exponent = fraction << shift, 16383 - 1022 - (shift - 11)
+    else:
+        mantissa, exponent = 0, 0
+    return struct.pack("<QH", mantissa, exponent | (sign << 15))
+
+
+def parse_fpu_stack(text: str) -> bytes:
+    """--fpu value -> 80 bytes. Registers not listed are empty (zero)."""
+    stack = bytearray(80)
+    for i, item in enumerate(filter(None, (t.strip() for t in text.split(",")))):
+        stack[10 * i:10 * i + 10] = bytes.fromhex(item) if len(item) == 20 else extended_from_double(float(item))
+    return bytes(stack)
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("captures", nargs="+", type=Path)
@@ -875,11 +915,16 @@ def main() -> int:
     g.add_argument("--lock-hex", default="", help="FindResource/LoadResource/LockResource yield these bytes")
     g.add_argument("--cursor", default="0,0", help="GetCursorPos result as x,y")
     g.add_argument("--move-window-ok", action="store_true", help="MoveWindow returns 1 instead of 0")
+    g.add_argument("--fpcw", type=lambda v: int(v, 0), help="x87 control word for both runs (the capture's by default)")
+    g.add_argument("--fpu", default="", help='replace the x87 stack before both runs: "st0,st1,..." as decimal doubles, '
+                   'nan, inf, -inf, or 20 hex digits (10 bytes in memory order); unlisted registers are zero')
     args = ap.parse_args()
     CFG.pokes, CFG.gdi_handles, CFG.qpc, CFG.qpf = args.poke, args.gdi_handles, args.qpc, args.qpf
     CFG.time_get_time, CFG.lock_hex, CFG.entry = args.time_get_time, args.lock_hex, args.entry
     CFG.cursor = tuple(int(v) for v in args.cursor.split(","))
     CFG.move_window_ok = args.move_window_ok
+    CFG.fpu_stack = parse_fpu_stack(args.fpu) if args.fpu else None
+    CFG.fpcw = args.fpcw
     results = run_captures(args.captures, args.dll, args.integration, args.orig_only, args.max_insns, args.jobs)
     print(f"{sum(results)}/{len(results)} passed or skipped")
     return 0 if all(results) else 1

@@ -11,8 +11,13 @@ long __cdecl _lseek(int fd, long offset, int origin);
 int __cdecl _sopen(const char* name, int flags, int share, ...);
 }
 
+#ifdef REB_HYBRID
 // The CRT's table of low-level file handle info: blocks of 32 entries of 0x24 bytes, the handle flags at +4.
 extern uint8_t* g_pioinfo[];  // 0x6bed20
+#else
+#include <fcntl.h>
+#include <io.h>
+#endif
 
 namespace {
 
@@ -44,7 +49,19 @@ constexpr int kDefaultPermissions = 0x180;
 
 constexpr int kProtectionMask = 0xe00;
 
+#ifdef REB_HYBRID
 uint8_t HandleFlags(int fd) { return g_pioinfo[fd >> kEntriesPerBlockShift][4 + (fd & kEntryMask) * kEntrySize]; }
+#else
+// The host CRT keeps its handle table private. Text mode is observable through _setmode; the end-of-file flag the
+// original adds a byte for is not, so a text-mode seek back after reading to a lone CR at the end of a buffer can be
+// one byte off (docs/library_code.md, CRT decisions).
+uint8_t HandleFlags(int fd) {
+    const int mode = _setmode(fd, _O_BINARY);
+    if (mode == -1) return 0;
+    _setmode(fd, mode);
+    return (mode & _O_TEXT) != 0 ? kTextModeFlag : 0;
+}
+#endif
 
 int SharingModeFor(int protection) {
     protection &= kProtectionMask;

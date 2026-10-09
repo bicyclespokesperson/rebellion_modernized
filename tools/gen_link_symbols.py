@@ -119,6 +119,23 @@ FLAG_STACK_THIS = 0x100
 FLAG_HIDDEN_RETURN = 0x200
 
 
+# CRT pieces defined with C linkage (src/game/crt) have no mangled signature to read the return type and the stack
+# arguments from; tools/difftest.py needs both. Keys are c_symbol_key() names. The x87 ones take their arguments in ST0/ST1.
+C_HOOK_SIGNATURES = {
+    "floor": (RETURN_X87, "(double)"),
+    "CIpow": (RETURN_X87, "()"),
+    "CIacos": (RETURN_X87, "()"),
+    "_ftol": (RETURN_EDX_EAX, "()"),
+    "qsort": (RETURN_VOID, "(void*,unsigned int,unsigned int,void*)"),
+    "_shortsort": (RETURN_VOID, "(char*,char*,unsigned int,void*)"),
+    "_swap": (RETURN_VOID, "(char*,char*,unsigned int)"),
+    "srand": (RETURN_VOID, "(unsigned int)"),
+    "rand": (4, "()"),
+    "atoi": (4, "(char const*)"),
+    "atol": (4, "(char const*)"),
+}
+
+
 def return_kind(demangled: str) -> int:
     """How a function returns its value, from the return type in an llvm-undname rendering."""
     text = re.sub(r"^(public|protected|private): ", "", demangled)
@@ -338,6 +355,9 @@ def main() -> int:
                 s.return_kind |= FLAG_STACK_THIS
         else:
             s.key = s.signature_key = c_symbol_key(s.raw)
+            if s.key in C_HOOK_SIGNATURES:
+                s.return_kind, params = C_HOOK_SIGNATURES[s.key]
+                s.signature_key = s.key + params
 
     absolute: list[tuple[str, int]] = []
     owned_data: dict[str, OriginalSymbol] = {}
