@@ -97,7 +97,7 @@ int SliderPositionToVolume(int position) {
     if (position == 0) return kMinVolume;
     const double hundredth = 0.01;
     const double scale = 2000.0;
-    return static_cast<int>(floor(reb_scaled_log10(position, hundredth, scale)));
+    return reb_ftol(floor(reb_scaled_log10(position, hundredth, scale)));
 }
 
 // The inverse: floor(10 ^ (volume / 2000) * 100), through the CRT's x87 pow like the original.
@@ -107,7 +107,7 @@ int VolumeToSliderPosition(int volume) {
     const double hundredth = 0.01;
     const double twentieth = 0.05;
     const double hundred = 100.0;
-    return static_cast<int>(floor(reb_scaled_pow(ten, volume, hundredth, twentieth, hundred)));
+    return reb_ftol(floor(reb_scaled_pow(ten, volume, hundredth, twentieth, hundred)));
 }
 
 uint32_t LabelColor(uint32_t options, uint32_t bit) { return (options & bit ? kOnOffDelta : 0) + kLabelOff; }

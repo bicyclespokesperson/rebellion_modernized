@@ -5,6 +5,7 @@
 #include <new>
 
 #include "gfx/dib_bitmap.h"
+#include "core/reb_x87.h"
 
 namespace {
 constexpr int kBitsPerPixelRgb = 24;
@@ -34,7 +35,7 @@ float BytesPerPixel(int bitsPerPixel) {
     }
 }
 
-int TruncatedProduct(int count, float scale) { return static_cast<int>(static_cast<double>(count) * scale); }
+int TruncatedProduct(int count, float scale) { return reb_ftol(static_cast<double>(count) * scale); }
 
 int SquaredDistance(const uint8_t* a, const uint8_t* b) {
     const int blue = a[0] - b[0];

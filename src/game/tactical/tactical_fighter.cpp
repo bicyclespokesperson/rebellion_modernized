@@ -1,4 +1,5 @@
 #include "tactical/tactical_groups.h"
+#include "core/reb_x87.h"
 #include "tactical/tactical_objmgr.h"
 #include "tactical/tactical_registry.h"
 #include "tactical/tactical_externals.h"
@@ -156,7 +157,7 @@ FightSquadResult* TacticalFighter::BuildResult(FightSquadResult* out) {
     if (state == 0xb) {
         out->m_squadSize = 0;
     } else {
-        const uint32_t squads = static_cast<uint32_t>(m_hull / 8.0f);
+        const uint32_t squads = reb_ftou(m_hull / 8.0f);
         out->m_squadSize = squads < 1 ? 1 : static_cast<int>(squads);
     }
     const int carrier = m_carrierHandle;

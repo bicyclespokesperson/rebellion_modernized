@@ -9,7 +9,7 @@ else()
   set(REB_PLATFORM_NAME linux)
 endif()
 
-set(REB_PLATFORM_SOURCE ${CMAKE_SOURCE_DIR}/src/port/native/platform_${REB_PLATFORM_NAME}.cpp)
+set(REB_PLATFORM_SOURCE ${CMAKE_CURRENT_LIST_DIR}/../src/port/native/platform_${REB_PLATFORM_NAME}.cpp)
 
 # Libraries the executable needs beyond SDL3 and FreeType (SDL3-static brings its own frameworks / system libraries).
 if(APPLE)
@@ -44,7 +44,7 @@ function(reb_native_platform_package target)
     MACOSX_BUNDLE_GUI_IDENTIFIER "org.rebellion-port.rebellion"
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${REB_BUNDLE_VERSION}
     MACOSX_BUNDLE_BUNDLE_VERSION ${REB_BUNDLE_VERSION})
-  set(fonts ${CMAKE_SOURCE_DIR}/third_party/liberation-fonts-ttf-2.1.5)
+  set(fonts ${CMAKE_CURRENT_LIST_DIR}/../third_party/liberation-fonts-ttf-2.1.5)
   add_custom_command(TARGET ${target} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resources/fonts
     COMMAND ${CMAKE_COMMAND} -E copy ${fonts}/LiberationSans-Regular.ttf ${fonts}/LiberationSans-Bold.ttf

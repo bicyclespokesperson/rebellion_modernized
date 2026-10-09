@@ -1,4 +1,5 @@
 #include "tactical/tactical_ship.h"
+#include "core/reb_x87.h"
 
 // The strength rating of a ship against a target (0x5b7780) or a target class (0x5b7a80): its firepower per weapon
 // kind, weighted by the profile factors, divided by its recharge time. Intermediate values the original keeps on the
@@ -20,7 +21,7 @@ double TacticalShipBase::AttackRating(TacticalShipBase* target, int) {
     if (arcIndex == 4) return sum;
     TacticalWeaponArc& arc = m_arcs[arcIndex];
     uint32_t total = arc.m_countA + arc.m_countB + arc.m_countC;
-    if (GetUnitClass() == 1) total = static_cast<uint32_t>(ScaleByHull(static_cast<float>(total)));
+    if (GetUnitClass() == 1) total = reb_ftou(ScaleByHull(static_cast<float>(total)));
     const double quotient = static_cast<double>(total) / recharge;
     const float divisor = static_cast<float>(quotient);
     if (quotient <= 0.0f) return 0.0f;
@@ -66,7 +67,7 @@ double TacticalShipBase::AttackRatingVsClass(int targetClass, int) {
     if (arcIndex == 4) return sum;
     TacticalWeaponArc& arc = m_arcs[arcIndex];
     uint32_t total = arc.m_countA + arc.m_countB + arc.m_countC;
-    if (GetUnitClass() == 1) total = static_cast<uint32_t>(ScaleByHull(static_cast<float>(total)));
+    if (GetUnitClass() == 1) total = reb_ftou(ScaleByHull(static_cast<float>(total)));
     const double quotient = static_cast<double>(total) / recharge;
     const float divisor = static_cast<float>(quotient);
     if (quotient <= 0.0f) return 0.0f;

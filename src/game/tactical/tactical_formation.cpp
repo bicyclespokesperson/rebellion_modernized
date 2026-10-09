@@ -1,4 +1,5 @@
 #include "tactical/tactical_formation.h"
+#include "core/reb_x87.h"
 
 #include <new>
 
@@ -141,7 +142,7 @@ TacticalVector* CapitalShipFormation::SlotOffset(TacticalVector* out, TacticalSh
         return out;
     }
     const int side = (m_count & 1) ? 1 : -1;
-    const int step = static_cast<int>(side * 3.0f * kSlotStepScale);
+    const int step = reb_ftol(side * 3.0f * kSlotStepScale);
     const int slot = 1 - step * (static_cast<int>(m_count) >> 1);
     const double turn = static_cast<double>(slot) * static_cast<double>(kPi);
     const double angleA = turn * static_cast<double>(kTurnA);
@@ -187,7 +188,7 @@ TacticalVector* FighterFormation::SlotOffset(TacticalVector* out, TacticalShipBa
     const double scaled = static_cast<double>(unit->m_radius) * static_cast<double>(kRadiusScale);
     const float radius = m_radius;
     const double reach = radius > scaled ? static_cast<double>(radius) : scaled;
-    int steps = static_cast<int>(side * reach);
+    int steps = reb_ftol(side * reach);
     steps = steps * (static_cast<int>(widest) >> 1);
     out->m_x = -(m_forward.m_z * static_cast<float>(steps));
     out->m_y = 0.0f;

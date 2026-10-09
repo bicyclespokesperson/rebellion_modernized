@@ -1,4 +1,5 @@
 #include "core/reb_abi.h"
+#include "core/reb_x87.h"
 #include "strategy_ui/sector_window.h"
 
 #include <cstdint>
@@ -55,7 +56,7 @@ void DeleteBitmap(DibBitmap* bitmap) {
 ResourceStringId StringId(uint16_t id) { return ResourceStringId{static_cast<int16_t>(id), 2}; }
 
 int ScaledOffset(int delta, int gridSize, double scale, int extent) {
-    return static_cast<int>(static_cast<double>(delta) / (static_cast<double>(gridSize) + 1.0) * scale * extent);
+    return reb_ftol(static_cast<double>(delta) / (static_cast<double>(gridSize) + 1.0) * scale * extent);
 }
 
 bool InFamilies(uint32_t family, uint32_t first, uint32_t end) { return family >= first && family < end; }

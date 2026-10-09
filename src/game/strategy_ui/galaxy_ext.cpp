@@ -1,4 +1,5 @@
 #include "core/reb_abi.h"
+#include "core/reb_x87.h"
 #include <cstdint>
 
 #include "ai/ai_common.h"
@@ -48,7 +49,7 @@ enum SavedWindowType : uint32_t {
 };
 
 int GridScaled(int value, int gridSize, double scale) {
-    return static_cast<int>(static_cast<double>(value) / static_cast<double>(gridSize + 1) * scale);
+    return reb_ftol(static_cast<double>(value) / static_cast<double>(gridSize + 1) * scale);
 }
 
 void AddSideOffset(int side, int* x, int* y) {
