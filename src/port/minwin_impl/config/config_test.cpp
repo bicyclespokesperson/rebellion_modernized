@@ -52,15 +52,15 @@ TEST(registry_api_semantics) {
     DWORD type = 0, size = 0;
     CHECK_EQ(RegQueryValueExA(key, "DllLocation", nullptr, &type, nullptr, &size), 0);
     CHECK_EQ(type, 1);
-    CHECK_EQ(size, 6);
+    CHECK_EQ(size, sizeof(WINDOWS_ROOT("/inst")));
     char small[3];
     DWORD smallSize = sizeof small;
     CHECK_EQ(RegQueryValueExA(key, "DllLocation", nullptr, &type, reinterpret_cast<LPBYTE>(small), &smallSize), 234);
-    CHECK_EQ(smallSize, 6);
+    CHECK_EQ(smallSize, sizeof(WINDOWS_ROOT("/inst")));
     char buf[16];
     size = sizeof buf;
     CHECK_EQ(RegQueryValueExA(key, "DllLocation", nullptr, &type, reinterpret_cast<LPBYTE>(buf), &size), 0);
-    CHECK_STR(buf, "/inst");
+    CHECK_STR(buf, WINDOWS_ROOT("/inst"));
     CHECK_EQ(RegQueryValueExA(key, "Volume", nullptr, &type, nullptr, &size), 2);
     DWORD volume = 0x1234;
     CHECK_EQ(RegSetValueExA(key, "Volume", 0, REG_DWORD, reinterpret_cast<const BYTE*>(&volume), 4), 0);

@@ -63,13 +63,15 @@ bool MatchesWindow(const Window* target, const Window* filter) {
 LRESULT CallProc(Window* w, UINT msg, WPARAM wp, LPARAM lp) {
     if (!w->cls->builtin && msgtrace::Enabled()) msgtrace::Log(w->cls->name, w->handle, msg, wp, lp, g_depth);
     WNDPROC proc = w->proc;
-    if (!w->cls->builtin) ++g_depth;
+    // The procedure may destroy its own window (a popup menu dismissing itself): `w` is not touched afterwards.
+    const bool builtin = w->cls->builtin;
+    if (!builtin) ++g_depth;
     LRESULT result;
     if (proc)
         result = proc(ToHandle(w), msg, wp, lp);
     else
         result = DefaultWindowProc(w, msg, wp, lp);
-    if (!w->cls->builtin) --g_depth;
+    if (!builtin) --g_depth;
     if (msg == WM_QUERYNEWPALETTE) FlushPaletteNotification();
     return result;
 }

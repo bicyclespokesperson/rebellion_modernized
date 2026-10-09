@@ -18,6 +18,7 @@
 #include <unistd.h>
 
 #include <string>
+#include <unordered_set>
 
 #include "port/minwin/minwin.h"
 #include "port/minwin_impl/res/path.h"
@@ -27,8 +28,29 @@ namespace {
 
 enum class Kind { Event, Semaphore, Thread, Find };
 
+// The objects that exist: a handle is a pointer, and the game (like any Win32 program) can use a handle after closing it -- the
+// DirectSound mixer signals notification events its client has closed -- which must fail, not touch freed memory.
+struct LiveObjects {
+    pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+    std::unordered_set<const void*> set;
+};
+
+LiveObjects& Live() {
+    static LiveObjects live;
+    return live;
+}
+
 struct Object {
-    explicit Object(Kind k) : kind(k) {}
+    explicit Object(Kind k) : kind(k) {
+        pthread_mutex_lock(&Live().lock);
+        Live().set.insert(this);
+        pthread_mutex_unlock(&Live().lock);
+    }
+    ~Object() {
+        pthread_mutex_lock(&Live().lock);
+        Live().set.erase(this);
+        pthread_mutex_unlock(&Live().lock);
+    }
     Kind kind;
 };
 
@@ -88,7 +110,10 @@ constexpr uintptr_t kSmallHandleLimit = 0x10000;
 
 Object* AsObject(HANDLE handle) {
     if (!handle || handle == INVALID_HANDLE_VALUE || reinterpret_cast<uintptr_t>(handle) < kSmallHandleLimit) return nullptr;
-    return static_cast<Object*>(handle);
+    pthread_mutex_lock(&Live().lock);
+    const bool live = Live().set.count(handle) != 0;
+    pthread_mutex_unlock(&Live().lock);
+    return live ? static_cast<Object*>(handle) : nullptr;
 }
 
 bool IsSignaled(Object* object) {
