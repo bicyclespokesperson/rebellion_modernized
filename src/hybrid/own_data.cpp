@@ -77,7 +77,9 @@ void install_own_data() {
     for (int i = 0; i < 3; ++i)
         VirtualProtect(reinterpret_cast<void*>(kPatchedRegions[i].begin), kPatchedRegions[i].size, PAGE_EXECUTE_READWRITE, &old[i]);
     int patched = 0;
-    for (const uint32_t* site = reb_code_refs; *site; ++site, ++patched) *reinterpret_cast<uint32_t*>(*site) += delta;
+    // REB_OWN_DATA_NO_PATCH=1 leaves the original code on the EXE's copy: a negative control for the tripwire.
+    const bool skip = env_set("REB_OWN_DATA_NO_PATCH");
+    for (const uint32_t* site = reb_code_refs; *site && !skip; ++site, ++patched) *reinterpret_cast<uint32_t*>(*site) += delta;
     for (int i = 0; i < 3; ++i) {
         DWORD ignored;
         VirtualProtect(reinterpret_cast<void*>(kPatchedRegions[i].begin), kPatchedRegions[i].size, old[i], &ignored);
