@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <new>
 
 #include "ui/cool_window.h"
@@ -6,7 +7,7 @@
 // Static initializers of the UI framework's globals (the three pieces of each: construct, register the destructor with
 // atexit, and the chain that runs both).
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyResourceDlls();
 void DestroyFontTable();
 void DestroyPopupStack();

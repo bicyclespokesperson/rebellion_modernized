@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ai/ai_character_records.h"
 
 #include "ai/ai_common.h"
@@ -43,16 +44,16 @@ int ValueOfMissionKey(uint32_t key) {
 
 }  // namespace
 
-ObjectKey* __thiscall GetAiRecordKey(DatRecord* record, ObjectKey* out) {
+ObjectKey* REB_THISCALL GetAiRecordKey(DatRecord* record, ObjectKey* out) {
     const uint32_t id = record->m_id;
     const uint32_t family = record->m_third;
     out->m_value = (id & 0xffffff) | (family << 24);
     return out;
 }
 
-ObjectKey* __thiscall GetObjectKey(GameObjNotifier* object, ObjectKey* out) { return object->GetKey(out); }
+ObjectKey* REB_THISCALL GetObjectKey(GameObjNotifier* object, ObjectKey* out) { return object->GetKey(out); }
 
-ObjectKey* __thiscall GetObjectRecordKey(GameObjNotifier* object, ObjectKey* out) {
+ObjectKey* REB_THISCALL GetObjectRecordKey(GameObjNotifier* object, ObjectKey* out) {
     if (!object->m_record) {
         out->m_value = 0;
         return out;
@@ -71,7 +72,7 @@ int IsStoryKeyOf6(uint32_t key) {
            key == 0x35000281;
 }
 
-int __stdcall IsStoryKeyOf2(uint32_t key) { return key == 0x32000242 || key == 0x35000281; }
+int REB_STDCALL IsStoryKeyOf2(uint32_t key) { return key == 0x32000242 || key == 0x35000281; }
 
 // ---- AiCharacterRecord ----------------------------------------------------------------------------------------------
 

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "events/ui_notifs_ext.h"
 
 #include <new>
@@ -10,7 +11,7 @@
 #include "gameobj/object_lookup.h"
 #include "mission/mission.h"
 
-ObjectKey* __thiscall GetObjectKey(GameObjNotifier* object, ObjectKey* out);  // 0x4025b0
+ObjectKey* REB_THISCALL GetObjectKey(GameObjNotifier* object, ObjectKey* out);  // 0x4025b0
 
 namespace {
 

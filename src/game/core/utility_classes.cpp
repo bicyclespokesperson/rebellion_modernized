@@ -1,16 +1,17 @@
+#include "core/reb_abi.h"
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
 
 // The game CRT's 32-bit time() (0x61b120). Not <ctime>: UCRT's time() is an inline wrapper over _time64.
-extern "C" long __cdecl time(long* result);
+extern "C" long REB_CDECL time(long* result);
 
 extern uint32_t g_crcTable[256];
 extern int g_crcTableReady;
 
 // The game's statically linked C runtime (the UCRT headers would declare these as DLL imports).
 extern "C" {
-int __cdecl rand(void);
-void __cdecl srand(unsigned int seed);
+int REB_CDECL rand(void);
+void REB_CDECL srand(unsigned int seed);
 }
 
 // ---- ObjectBase --------------------------------------------------------------------------------------------

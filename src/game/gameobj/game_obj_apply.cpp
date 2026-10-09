@@ -490,7 +490,7 @@ int GameObj::ReleaseDestroyed(NotifyContext* ctx) {
             context.m_flag04 = 1;
             context.m_flag08 = 3;
             if (!(m_stateFlags & 2)) context.SetViewFlag(static_cast<int>(ViewSide()), 0);
-            bool ok = Virtual55(reinterpret_cast<int>(&context)) && result;
+            bool ok = Virtual55(reinterpret_cast<intptr_t>(&context)) && result;
             ok = ApplyDestroyed(&context) && ok;
             result = RefreshParentView(&context) && ok ? 1 : 0;
         }

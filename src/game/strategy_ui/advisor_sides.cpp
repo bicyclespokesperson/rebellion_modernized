@@ -1,7 +1,11 @@
+#include "economy/manu_mgr.h"
+#include "orders/mission_orders.h"
+#include "core/reb_abi.h"
 #include "strategy_ui/advisor_sides.h"
 
 #include <new>
 
+#include "fleet/capship.h"
 #include "gameobj/object_lookup.h"
 #include "orders/order_base.h"
 
@@ -14,13 +18,7 @@ constexpr uint32_t kSystemFamilies[2] = {0x90, 0x98};
 constexpr uint32_t kManagerFamilies[2] = {0xa0, 0xb0};
 constexpr uint32_t kShipFamilies[2] = {0x14, 0x1c};
 constexpr int kOrderKindMission = 0x240;
-constexpr unsigned kMissionRefusalSlotBase = 0x58;
 constexpr uint8_t kObjectFlagSelected = 8;
-
-int CallVirtual(GameObjNotifier* object, unsigned slot) {
-    void** vtable = *reinterpret_cast<void***>(object);
-    return reinterpret_cast<int(__thiscall*)(GameObjNotifier*)>(vtable[slot])(object);
-}
 
 bool TargetIn(OrderBase* order, uint32_t first, uint32_t last) {
     ObjectKey key;
@@ -45,7 +43,7 @@ void advisor_sides::RefusedGeneric(AdvisorBase* advisor, OrderBase* order, IntPa
     if (Is(status, 0x40, 0x91)) {
         bool missionOrder = false;
         if (order->GetTarget(&target)->IsSet() != 0 && order->GetKind() == kOrderKindMission) {
-            AvlTree* secondTeam = reinterpret_cast<AvlTree*>(reinterpret_cast<char*>(order) + kMissionRefusalSlotBase);
+            AvlTree* secondTeam = &static_cast<MissionOrder*>(order)->m_characters;
             missionOrder = order->GetTeam()->First() == nullptr && secondTeam->First() != nullptr;
         }
         if (missionOrder) {
@@ -63,7 +61,7 @@ void advisor_sides::RefusedGeneric(AdvisorBase* advisor, OrderBase* order, IntPa
         bool targetsSystem = order->GetTarget(&target)->IsSet() != 0 && TargetIn(order, 0x90, 0x98);
         if (!targetsSystem) return;
         GameObjNotifier* system = GetObjectInFamilies_90_98(advisor->m_side, order->GetTarget(&target));
-        if (system && (*(reinterpret_cast<uint8_t*>(system) + 0x50) & kObjectFlagSelected) != 0) {
+        if (system && (static_cast<GameObj*>(system)->m_stateFlags & kObjectFlagSelected) != 0) {
             Raise(advisor, 0x18, kShortCue);
             return;
         }
@@ -118,7 +116,7 @@ void advisor_sides::RefusedUnits(AdvisorBase* advisor, OrderBase* order, IntPair
     GameObjNotifier* ship = GetObjectInFamilies_14_1c(view, order->GetTarget(&target));
     if (Is(status, 0x14, 1)) {
         if (ship) {
-            if (CallVirtual(ship, 0x26c / 4) != 0) {
+            if (static_cast<CapShip*>(ship)->GetFighterCapacity() != 0) {
                 Raise(advisor, 0x20, kQuickCue);
             } else {
                 Raise(advisor, 0x1c, kQuickCue);
@@ -131,7 +129,7 @@ void advisor_sides::RefusedUnits(AdvisorBase* advisor, OrderBase* order, IntPair
         }
     } else if (Is(status, 0x14, 2)) {
         if (ship) {
-            if (CallVirtual(ship, 0x270 / 4) != 0) {
+            if (static_cast<CapShip*>(ship)->GetTroopCapacity() != 0) {
                 Raise(advisor, 0x20, kQuickCue);
             } else {
                 Raise(advisor, 0x1c, kQuickCue);
@@ -146,6 +144,6 @@ void advisor_sides::RefusedUnits(AdvisorBase* advisor, OrderBase* order, IntPair
     fallback(advisor);
 }
 
-ObjectKey* __thiscall ManagerGetLocationKey(GameObjNotifier* manager, ObjectKey* out) {
-    return new (out) ObjectKey(*reinterpret_cast<ObjectKey*>(reinterpret_cast<char*>(manager) + 0x7c));
+ObjectKey* REB_THISCALL ManagerGetLocationKey(GameObjNotifier* manager, ObjectKey* out) {
+    return new (out) ObjectKey(static_cast<ManuMgr*>(manager)->m_targetKey);
 }

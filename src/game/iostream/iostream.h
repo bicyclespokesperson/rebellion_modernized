@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -57,7 +58,7 @@ constexpr int kApp = 8;
 constexpr int kTrunc = 0x10;
 }  // namespace iostream_flags
 
-typedef int (__thiscall* IosScalarDeletingDtor)(void*, unsigned);
+typedef int (REB_THISCALL* IosScalarDeletingDtor)(void*, unsigned);
 
 // ios vftable (one slot, the scalar deleting destructor).
 struct IosVtable {
@@ -67,16 +68,16 @@ struct IosVtable {
 // streambuf vftable. The methods the library reaches virtually are called through these slots.
 struct StreambufVtable {
     IosScalarDeletingDtor m_scalarDeletingDtor;                  // [0]
-    int(__thiscall* m_sync)(streambuf*);                          // [1]
-    streambuf*(__thiscall* m_setbuf)(streambuf*, char*, int);     // [2]
-    int(__thiscall* m_seekoff)(streambuf*, long, int, int);       // [3]
-    int(__thiscall* m_seekpos)(streambuf*, long, int);            // [4]
-    int(__thiscall* m_xsputn)(streambuf*, const char*, int);      // [5]
-    int(__thiscall* m_xsgetn)(streambuf*, char*, int);            // [6]
-    int(__thiscall* m_overflow)(streambuf*, int);                 // [7]
-    int(__thiscall* m_underflow)(streambuf*);                     // [8]
-    int(__thiscall* m_pbackfail)(streambuf*, int);                // [9]
-    int(__thiscall* m_doallocate)(streambuf*);                    // [10]
+    int(REB_THISCALL* m_sync)(streambuf*);                          // [1]
+    streambuf*(REB_THISCALL* m_setbuf)(streambuf*, char*, int);     // [2]
+    int(REB_THISCALL* m_seekoff)(streambuf*, long, int, int);       // [3]
+    int(REB_THISCALL* m_seekpos)(streambuf*, long, int);            // [4]
+    int(REB_THISCALL* m_xsputn)(streambuf*, const char*, int);      // [5]
+    int(REB_THISCALL* m_xsgetn)(streambuf*, char*, int);            // [6]
+    int(REB_THISCALL* m_overflow)(streambuf*, int);                 // [7]
+    int(REB_THISCALL* m_underflow)(streambuf*);                     // [8]
+    int(REB_THISCALL* m_pbackfail)(streambuf*, int);                // [9]
+    int(REB_THISCALL* m_doallocate)(streambuf*);                    // [10]
 };
 
 // ios (0x50 bytes): the virtual base of every stream.
@@ -130,8 +131,8 @@ public:
     int m_nextSize;      // +0x50 size of the next allocation
     uint8_t m_pad54[4];  // +0x54 never initialised
     int m_static;        // +0x58 the buffer was supplied by the caller
-    void*(__cdecl* m_allocate)(size_t);  // +0x5c
-    void(__cdecl* m_free)(void*);        // +0x60
+    void*(REB_CDECL* m_allocate)(size_t);  // +0x5c
+    void(REB_CDECL* m_free)(void*);        // +0x60
 
     static const StreambufVtable vftable;  // 0x66e4e4
 };
@@ -275,121 +276,121 @@ REB_ASSERT_OFFSET(filebuf, m_fd, 0x4c);
 #pragma clang diagnostic pop
 
 // ---- ios -------------------------------------------------------------------------------------------------------
-ios* __thiscall ios_ctor(ios* self);                       // 0x6153b0
-void __thiscall ios_dtor(ios* self);                       // 0x615440
-void __thiscall ios_init(ios* self, streambuf* buffer);    // 0x6154a0
-void __cdecl mtx_init(void* criticalSection);              // 0x615ec0
-void __cdecl mtx_term(void* criticalSection);              // 0x615ed0
-void __cdecl mtx_lock(void* criticalSection);              // 0x615ee0
-void __cdecl mtx_unlock(void* criticalSection);            // 0x615ef0
+ios* REB_THISCALL ios_ctor(ios* self);                       // 0x6153b0
+void REB_THISCALL ios_dtor(ios* self);                       // 0x615440
+void REB_THISCALL ios_init(ios* self, streambuf* buffer);    // 0x6154a0
+void REB_CDECL mtx_init(void* criticalSection);              // 0x615ec0
+void REB_CDECL mtx_term(void* criticalSection);              // 0x615ed0
+void REB_CDECL mtx_lock(void* criticalSection);              // 0x615ee0
+void REB_CDECL mtx_unlock(void* criticalSection);            // 0x615ef0
 
 // The out-of-line copies of ios::lock(), unlock(), unsetf() and setf() the game's own code carries (0x4f90b0-0x4f9130).
-void __cdecl ios_lock(ios* stream);
-void __cdecl ios_unlock(ios* stream);
-ios* __cdecl ios_unsetf(ios* stream, unsigned mask);
-ios* __cdecl ios_setf(ios* stream, unsigned mask);
+void REB_CDECL ios_lock(ios* stream);
+void REB_CDECL ios_unlock(ios* stream);
+ios* REB_CDECL ios_unsetf(ios* stream, unsigned mask);
+ios* REB_CDECL ios_setf(ios* stream, unsigned mask);
 
 // ---- streambuf -------------------------------------------------------------------------------------------------
-streambuf* __thiscall streambuf_ctor(streambuf* self);                             // 0x617d60
-void __thiscall streambuf_dtor(streambuf* self);                                   // 0x617dd0
-int __thiscall streambuf_sync(streambuf* self);                                    // 0x617fa0
-streambuf* __thiscall streambuf_setbuf(streambuf* self, char* buffer, int size);   // 0x617e10
-int __thiscall streambuf_seekoff(streambuf* self, long offset, int dir, int mode);  // 0x618060
-int __thiscall streambuf_seekpos(streambuf* self, long position, int mode);        // 0x618070
-int __thiscall streambuf_xsputn(streambuf* self, const char* text, int count);     // 0x617e50
-int __thiscall streambuf_xsgetn(streambuf* self, char* buffer, int count);         // 0x617eb0
-int __thiscall streambuf_pbackfail(streambuf* self, int c);                        // 0x618090
-int __thiscall streambuf_doallocate(streambuf* self);                              // 0x617fe0
-int __thiscall streambuf_allocate(streambuf* self);                                // 0x617fc0
-void __thiscall streambuf_setb(streambuf* self, char* begin, char* end, int owned);  // 0x618020
-int __thiscall streambuf_snextc(streambuf* self);                                  // 0x6183e0
-int __thiscall streambuf_sbumpc(streambuf* self);                                  // 0x618440
-void __thiscall streambuf_stossc(streambuf* self);                                 // 0x618490
-int __thiscall streambuf_sgetc(streambuf* self);                                   // 0x6184e0
+streambuf* REB_THISCALL streambuf_ctor(streambuf* self);                             // 0x617d60
+void REB_THISCALL streambuf_dtor(streambuf* self);                                   // 0x617dd0
+int REB_THISCALL streambuf_sync(streambuf* self);                                    // 0x617fa0
+streambuf* REB_THISCALL streambuf_setbuf(streambuf* self, char* buffer, int size);   // 0x617e10
+int REB_THISCALL streambuf_seekoff(streambuf* self, long offset, int dir, int mode);  // 0x618060
+int REB_THISCALL streambuf_seekpos(streambuf* self, long position, int mode);        // 0x618070
+int REB_THISCALL streambuf_xsputn(streambuf* self, const char* text, int count);     // 0x617e50
+int REB_THISCALL streambuf_xsgetn(streambuf* self, char* buffer, int count);         // 0x617eb0
+int REB_THISCALL streambuf_pbackfail(streambuf* self, int c);                        // 0x618090
+int REB_THISCALL streambuf_doallocate(streambuf* self);                              // 0x617fe0
+int REB_THISCALL streambuf_allocate(streambuf* self);                                // 0x617fc0
+void REB_THISCALL streambuf_setb(streambuf* self, char* begin, char* end, int owned);  // 0x618020
+int REB_THISCALL streambuf_snextc(streambuf* self);                                  // 0x6183e0
+int REB_THISCALL streambuf_sbumpc(streambuf* self);                                  // 0x618440
+void REB_THISCALL streambuf_stossc(streambuf* self);                                 // 0x618490
+int REB_THISCALL streambuf_sgetc(streambuf* self);                                   // 0x6184e0
 
 // ---- strstreambuf ----------------------------------------------------------------------------------------------
-strstreambuf* __thiscall strstreambuf_ctor(strstreambuf* self);                                            // 0x6154e0
-strstreambuf* __thiscall strstreambuf_ctor_buf(strstreambuf* self, char* buffer, int size, char* start);  // 0x615530
-void __thiscall strstreambuf_dtor(strstreambuf* self);                                                     // 0x6155f0
-void __thiscall strstreambuf_freeze(streambuf* self, int frozen);                                          // 0x615660
-char* __thiscall strstreambuf_str(streambuf* self);                                                        // 0x615680
-int __thiscall strstreambuf_doallocate(strstreambuf* self);                                                // 0x615690
-streambuf* __thiscall strstreambuf_setbuf(strstreambuf* self, char* buffer, int size);                     // 0x6157c0
-int __thiscall strstreambuf_overflow(strstreambuf* self, int c);                                           // 0x6157d0
-int __thiscall strstreambuf_underflow(strstreambuf* self);                                                 // 0x615860
-int __thiscall strstreambuf_seekoff(strstreambuf* self, long offset, int dir, int mode);                   // 0x6158c0
+strstreambuf* REB_THISCALL strstreambuf_ctor(strstreambuf* self);                                            // 0x6154e0
+strstreambuf* REB_THISCALL strstreambuf_ctor_buf(strstreambuf* self, char* buffer, int size, char* start);  // 0x615530
+void REB_THISCALL strstreambuf_dtor(strstreambuf* self);                                                     // 0x6155f0
+void REB_THISCALL strstreambuf_freeze(streambuf* self, int frozen);                                          // 0x615660
+char* REB_THISCALL strstreambuf_str(streambuf* self);                                                        // 0x615680
+int REB_THISCALL strstreambuf_doallocate(strstreambuf* self);                                                // 0x615690
+streambuf* REB_THISCALL strstreambuf_setbuf(strstreambuf* self, char* buffer, int size);                     // 0x6157c0
+int REB_THISCALL strstreambuf_overflow(strstreambuf* self, int c);                                           // 0x6157d0
+int REB_THISCALL strstreambuf_underflow(strstreambuf* self);                                                 // 0x615860
+int REB_THISCALL strstreambuf_seekoff(strstreambuf* self, long offset, int dir, int mode);                   // 0x6158c0
 
 // ---- istream / ostream / iostream construction -----------------------------------------------------------------
-istream* __thiscall istream_ctor(istream* self, streambuf* buffer, int constructVirtualBase);   // 0x6179e0
-void __thiscall istream_dtor(void* istreamEnd);                                                 // 0x617a80: ECX = istream part + 0xc
-ostream* __thiscall ostream_ctor(ostream* self, streambuf* buffer, int constructVirtualBase);   // 0x616210
-void __thiscall ostream_dtor(void* ostreamEnd);                                                // 0x6162a0: ECX = ostream part + 8
-iostream* __thiscall iostream_ctor(iostream* self, streambuf* buffer, int constructVirtualBase);  // 0x618130
-void __thiscall iostream_dtor(ios* iosBase);                                                    // 0x6181d0
+istream* REB_THISCALL istream_ctor(istream* self, streambuf* buffer, int constructVirtualBase);   // 0x6179e0
+void REB_THISCALL istream_dtor(void* istreamEnd);                                                 // 0x617a80: ECX = istream part + 0xc
+ostream* REB_THISCALL ostream_ctor(ostream* self, streambuf* buffer, int constructVirtualBase);   // 0x616210
+void REB_THISCALL ostream_dtor(void* ostreamEnd);                                                // 0x6162a0: ECX = ostream part + 8
+iostream* REB_THISCALL iostream_ctor(iostream* self, streambuf* buffer, int constructVirtualBase);  // 0x618130
+void REB_THISCALL iostream_dtor(ios* iosBase);                                                    // 0x6181d0
 
-istrstream* __thiscall istrstream_ctor_str(istrstream* self, char* text, int constructVirtualBase);                // 0x6159e0
-istrstream* __thiscall istrstream_ctor_str_len(istrstream* self, char* text, int length, int constructVirtualBase);  // 0x615ad0
-void __thiscall istrstream_dtor(ios* iosBase);                                                                      // 0x615b90
-ostrstream* __thiscall ostrstream_ctor(ostrstream* self, int constructVirtualBase);                                 // 0x615bb0
-ostrstream* __thiscall ostrstream_ctor_buf(ostrstream* self, char* buffer, int length, int mode, int constructVirtualBase);  // 0x615c90
-void __thiscall ostrstream_vbase_dtor(ios* iosBase);                                                                // 0x615d70
-void __thiscall ostrstream_dtor(ios* iosBase);                                                                      // 0x615d90
-strstream* __thiscall strstream_ctor(strstream* self, int constructVirtualBase);                                    // 0x615db0
-void __thiscall strstream_dtor(ios* iosBase);                                                                       // 0x615ea0
+istrstream* REB_THISCALL istrstream_ctor_str(istrstream* self, char* text, int constructVirtualBase);                // 0x6159e0
+istrstream* REB_THISCALL istrstream_ctor_str_len(istrstream* self, char* text, int length, int constructVirtualBase);  // 0x615ad0
+void REB_THISCALL istrstream_dtor(ios* iosBase);                                                                      // 0x615b90
+ostrstream* REB_THISCALL ostrstream_ctor(ostrstream* self, int constructVirtualBase);                                 // 0x615bb0
+ostrstream* REB_THISCALL ostrstream_ctor_buf(ostrstream* self, char* buffer, int length, int mode, int constructVirtualBase);  // 0x615c90
+void REB_THISCALL ostrstream_vbase_dtor(ios* iosBase);                                                                // 0x615d70
+void REB_THISCALL ostrstream_dtor(ios* iosBase);                                                                      // 0x615d90
+strstream* REB_THISCALL strstream_ctor(strstream* self, int constructVirtualBase);                                    // 0x615db0
+void REB_THISCALL strstream_dtor(ios* iosBase);                                                                       // 0x615ea0
 
 // ---- ostream ---------------------------------------------------------------------------------------------------
-ostream* __thiscall ostream_operator_ls_char(ostream* out, char value);                   // 0x615f00
-int __thiscall ostream_opfx(ostream* out);                                                // 0x615fc0
-void __thiscall ostream_osfx(ostream* out);                                               // 0x616040
-ostream* __thiscall ostream_operator_ls_cstr(ostream* out, const char* text);             // 0x616110
-ostream* __thiscall ostream_flush(ostream* out);                                          // 0x616140
-void __thiscall ostream_outstr(ostream* out, const char* prefix, const char* text);       // 0x6162b0
-ostream* __thiscall ostream_seekp_pos(ostream* out, long position);                       // 0x616900
-ostream* __thiscall ostream_seekp_off(ostream* out, long offset, int dir);                // 0x6169a0
-long __thiscall ostream_tellp(ostream* out);                                              // 0x616a40
-ostream* __thiscall ostream_operator_ls_streambuf(ostream* out, streambuf* buffer);       // 0x616ae0
-ostream* __thiscall ostream_operator_ls_long(ostream* out, long value);                   // 0x616e10
-ostream* __thiscall ostream_write(ostream* out, const void* buffer, int count);           // 0x617430
-ostream* __thiscall ostream_operator_ls_ulong(ostream* out, unsigned long value);         // 0x617480
-ostream* __thiscall ostream_operator_ls_int(ostream* out, int value);                     // 0x617540
+ostream* REB_THISCALL ostream_operator_ls_char(ostream* out, char value);                   // 0x615f00
+int REB_THISCALL ostream_opfx(ostream* out);                                                // 0x615fc0
+void REB_THISCALL ostream_osfx(ostream* out);                                               // 0x616040
+ostream* REB_THISCALL ostream_operator_ls_cstr(ostream* out, const char* text);             // 0x616110
+ostream* REB_THISCALL ostream_flush(ostream* out);                                          // 0x616140
+void REB_THISCALL ostream_outstr(ostream* out, const char* prefix, const char* text);       // 0x6162b0
+ostream* REB_THISCALL ostream_seekp_pos(ostream* out, long position);                       // 0x616900
+ostream* REB_THISCALL ostream_seekp_off(ostream* out, long offset, int dir);                // 0x6169a0
+long REB_THISCALL ostream_tellp(ostream* out);                                              // 0x616a40
+ostream* REB_THISCALL ostream_operator_ls_streambuf(ostream* out, streambuf* buffer);       // 0x616ae0
+ostream* REB_THISCALL ostream_operator_ls_long(ostream* out, long value);                   // 0x616e10
+ostream* REB_THISCALL ostream_write(ostream* out, const void* buffer, int count);           // 0x617430
+ostream* REB_THISCALL ostream_operator_ls_ulong(ostream* out, unsigned long value);         // 0x617480
+ostream* REB_THISCALL ostream_operator_ls_int(ostream* out, int value);                     // 0x617540
 
 // ---- istream ---------------------------------------------------------------------------------------------------
-istream* __thiscall istream_operator_rs_streambuf(istream* in, streambuf* buffer);        // 0x616b70
-istream* __thiscall istream_seekg_pos(istream* in, long position);                        // 0x616c30
-istream* __thiscall istream_seekg_off(istream* in, long offset, int dir);                 // 0x616cd0
-long __thiscall istream_tellg(istream* in);                                               // 0x616d70
-int __thiscall istream_get(istream* in);                                                  // 0x617330
-istream* __thiscall istream_read(istream* in, void* buffer, int count);                   // 0x6173b0
-istream* __thiscall istream_operator_rs_long(istream* in, int* value);                    // 0x617610
-istream* __thiscall istream_operator_rs_ushort(istream* in, unsigned short* value);       // 0x6176a0
-istream* __thiscall istream_operator_rs_ulong(istream* in, unsigned int* value);          // 0x617760
-istream* __thiscall istream_getline(istream* in, char* buffer, int limit, int delimiter);  // 0x617800
-istream* __thiscall istream_operator_rs_short(istream* in, short* value);                 // 0x617900
-int __thiscall istream_ipfx(istream* in, int need);                                       // 0x617a90
-istream* __thiscall istream_operator_rs_charptr(istream* in, char* value);                // 0x617b90
-void __thiscall istream_eatwhite(istream* in);                                            // 0x617cb0
-int __thiscall istream_getint(istream* in, char* buffer);                                 // 0x618510
+istream* REB_THISCALL istream_operator_rs_streambuf(istream* in, streambuf* buffer);        // 0x616b70
+istream* REB_THISCALL istream_seekg_pos(istream* in, long position);                        // 0x616c30
+istream* REB_THISCALL istream_seekg_off(istream* in, long offset, int dir);                 // 0x616cd0
+long REB_THISCALL istream_tellg(istream* in);                                               // 0x616d70
+int REB_THISCALL istream_get(istream* in);                                                  // 0x617330
+istream* REB_THISCALL istream_read(istream* in, void* buffer, int count);                   // 0x6173b0
+istream* REB_THISCALL istream_operator_rs_long(istream* in, int* value);                    // 0x617610
+istream* REB_THISCALL istream_operator_rs_ushort(istream* in, unsigned short* value);       // 0x6176a0
+istream* REB_THISCALL istream_operator_rs_ulong(istream* in, unsigned int* value);          // 0x617760
+istream* REB_THISCALL istream_getline(istream* in, char* buffer, int limit, int delimiter);  // 0x617800
+istream* REB_THISCALL istream_operator_rs_short(istream* in, short* value);                 // 0x617900
+int REB_THISCALL istream_ipfx(istream* in, int need);                                       // 0x617a90
+istream* REB_THISCALL istream_operator_rs_charptr(istream* in, char* value);                // 0x617b90
+void REB_THISCALL istream_eatwhite(istream* in);                                            // 0x617cb0
+int REB_THISCALL istream_getint(istream* in, char* buffer);                                 // 0x618510
 
 // ---- filebuf / fstream -----------------------------------------------------------------------------------------
-filebuf* __thiscall filebuf_ctor(filebuf* self);                                           // 0x616ed0
-void __thiscall filebuf_dtor(filebuf* self);                                               // 0x616f10
-filebuf* __thiscall filebuf_close(filebuf* self);                                          // 0x616f90
-int __thiscall filebuf_overflow(filebuf* self, int c);                                     // 0x617010
-int __thiscall filebuf_underflow(filebuf* self);                                           // 0x6170a0
-int __thiscall filebuf_seekoff(filebuf* self, long offset, int dir, int mode);             // 0x617160
-int __thiscall filebuf_sync(filebuf* self);                                                // 0x6171b0
-streambuf* __thiscall filebuf_setbuf(filebuf* self, char* buffer, int size);               // 0x6172b0
-filebuf* __thiscall filebuf_open(filebuf* self, const char* name, int mode, int protection);  // 0x618240
+filebuf* REB_THISCALL filebuf_ctor(filebuf* self);                                           // 0x616ed0
+void REB_THISCALL filebuf_dtor(filebuf* self);                                               // 0x616f10
+filebuf* REB_THISCALL filebuf_close(filebuf* self);                                          // 0x616f90
+int REB_THISCALL filebuf_overflow(filebuf* self, int c);                                     // 0x617010
+int REB_THISCALL filebuf_underflow(filebuf* self);                                           // 0x6170a0
+int REB_THISCALL filebuf_seekoff(filebuf* self, long offset, int dir, int mode);             // 0x617160
+int REB_THISCALL filebuf_sync(filebuf* self);                                                // 0x6171b0
+streambuf* REB_THISCALL filebuf_setbuf(filebuf* self, char* buffer, int size);               // 0x6172b0
+filebuf* REB_THISCALL filebuf_open(filebuf* self, const char* name, int mode, int protection);  // 0x618240
 
-ofstream* __thiscall ofstream_ctor(ofstream* self, int constructVirtualBase);              // 0x6164b0
-void __thiscall ofstream_dtor(ios* iosBase);                                               // 0x616590
-void __thiscall ofstream_open(ofstream* self, const char* name, int mode, int protection);  // 0x6165b0
-ifstream* __thiscall ifstream_ctor(ifstream* self, int constructVirtualBase);              // 0x616620
-ifstream* __thiscall ifstream_ctor_open(ifstream* self, const char* name, int mode, int protection, int constructVirtualBase);  // 0x616700
-void __thiscall ifstream_vbase_dtor(ios* iosBase);                                         // 0x6167f0
-void __thiscall ifstream_dtor(ios* iosBase);                                               // 0x616810
-void __thiscall ifstream_open(ifstream* self, const char* name, int mode, int protection);  // 0x616830
-void __thiscall fstreambase_close(void* stream);                                           // 0x6168a0
+ofstream* REB_THISCALL ofstream_ctor(ofstream* self, int constructVirtualBase);              // 0x6164b0
+void REB_THISCALL ofstream_dtor(ios* iosBase);                                               // 0x616590
+void REB_THISCALL ofstream_open(ofstream* self, const char* name, int mode, int protection);  // 0x6165b0
+ifstream* REB_THISCALL ifstream_ctor(ifstream* self, int constructVirtualBase);              // 0x616620
+ifstream* REB_THISCALL ifstream_ctor_open(ifstream* self, const char* name, int mode, int protection, int constructVirtualBase);  // 0x616700
+void REB_THISCALL ifstream_vbase_dtor(ios* iosBase);                                         // 0x6167f0
+void REB_THISCALL ifstream_dtor(ios* iosBase);                                               // 0x616810
+void REB_THISCALL ifstream_open(ifstream* self, const char* name, int mode, int protection);  // 0x616830
+void REB_THISCALL fstreambase_close(void* stream);                                           // 0x6168a0
 
 // ---- helpers the game's inlined iostream code and the library share --------------------------------------------
 namespace iostream_access {

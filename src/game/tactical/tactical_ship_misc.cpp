@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <new>
 
 #include "tactical/tactical_groups.h"
@@ -129,7 +130,7 @@ uint32_t TacticalFighter::SquadsMax() {
     return count < 1 ? 1 : count;
 }
 
-void __cdecl TacticalFighterStatusEvent(TacticalEvent* event) {
+void REB_CDECL TacticalFighterStatusEvent(TacticalEvent* event) {
     if (event == nullptr) return;
     FightSquadResult* record = reinterpret_cast<FightSquadResult*>(reinterpret_cast<char*>(event->m_args) + 8);
     if (record == nullptr) return;

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <new>
 
 #include "character/character.h"
@@ -6,14 +7,14 @@
 #include "data/sd_records.h"
 #include "gameobj/object_family.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyCharacterEventKinds();
 
 extern int g_characterEventKindsBuilt;       // 0x6b2938
 extern EventKindSet g_characterEventKinds;   // 0x6b2940
 
 // The kind-name formatter shared with GameObj (0x4f6030).
-void __thiscall AppendGameObjName(ObjectBase* base, String* out, int kind);
+void REB_THISCALL AppendGameObjName(ObjectBase* base, String* out, int kind);
 
 namespace {
 
@@ -81,7 +82,7 @@ Character::Character()
 Character::~Character() { REB_KEEP_VPTR_STORE(); }
 
 // The secondary vtable slot is entered with `this` pointing at the ObjectBase subobject.
-void __thiscall AppendCharacterName(ObjectBase* base, String* out, int kind) {
+void REB_THISCALL AppendCharacterName(ObjectBase* base, String* out, int kind) {
     if (kind != kNameKindForceTitle) {
         AppendGameObjName(base, out, kind);
         return;
@@ -214,7 +215,7 @@ int Character::CheckActivity2(const ActivityRequest* request, StatusCode* out) {
     return result;
 }
 
-int Character::Virtual179(int a, int* out) {
+int Character::Virtual179(intptr_t a, int* out) {
     const ActivityRequest* request = reinterpret_cast<const ActivityRequest*>(a);
     int result = 1;
     *out = 0;

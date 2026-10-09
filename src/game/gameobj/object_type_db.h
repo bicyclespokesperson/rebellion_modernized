@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -95,7 +96,7 @@ void DescribeDataKey(const SeedKey* key, String* out);        // 0x51ccc0
 int ForEachDataFamily(Crc32* crc);                             // 0x51cce0
 
 // The kind range of a record (copies record+0x24).
-IntPair* __thiscall GetRecordKindRange(DatRecord* record, IntPair* out);
+IntPair* REB_THISCALL GetRecordKindRange(DatRecord* record, IntPair* out);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

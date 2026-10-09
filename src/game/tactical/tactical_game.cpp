@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "tactical/tactical_game.h"
 #include "audio/sound_manager.h"
 
@@ -87,7 +88,7 @@ void DestroyTacticalGame() {
 
 HeadlessSimulator* GetHeadlessSimulator() {
     if (!g_headlessSimulator) {
-        void* memory = ::operator new(0x274);
+        void* memory = ::operator new(sizeof(HeadlessSimulator));
         g_headlessSimulator = memory ? new (memory) HeadlessSimulator() : nullptr;
     }
     return g_headlessSimulator;
@@ -171,7 +172,7 @@ void TacticalGame::CallClientSlot1() {
     g_tacticalClient->Virtual01();
 }
 
-int __thiscall TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name, float sideAValue,
+int REB_THISCALL TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name, float sideAValue,
                               float sideBValue, int sideAC, int sideBC, GameTime timeA, GameTime timeB,
                               int battleKindNotAlliance, int systemFlag8, int controlIsEmpire, int controlIsAlliance,
                               int abstractFlag) {
@@ -206,7 +207,7 @@ int __thiscall TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAllianc
     return 1;
 }
 
-int __thiscall TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name, float sideAValue,
+int REB_THISCALL TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name, float sideAValue,
                                    float sideBValue, int sideAC, int sideBC, int battleKindNotAlliance,
                                    int systemFlag8, int controlIsEmpire, int controlIsAlliance, int abstractFlag) {
     destroysSimulatorIfAny();

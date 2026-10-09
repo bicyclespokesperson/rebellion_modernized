@@ -1,3 +1,5 @@
+#include "fleet/fleet.h"
+#include "core/reb_abi.h"
 #include <new>
 
 #include "character/character.h"
@@ -10,7 +12,7 @@
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroySystemEventKinds4();
 void DestroySystemEventKinds8();
 void DestroySystemEventKinds10();
@@ -105,13 +107,13 @@ int System::Validate() {
         GameObj* fleet = static_cast<GameObj*>(fleets.Current());
         const uint32_t expectedBlockade =
             (fleet->m_stateFlags & kUsableState) ? ((m_flags & system_flag::kBlockade) != 0 ? 1 : 0) : 0;
-        const uint32_t fleetFlags = *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(fleet) + 0x58);  // foreign class offset
+        const uint32_t fleetFlags = static_cast<Fleet*>(fleet)->m_fleetFlags;
         ok = ((fleetFlags & kFleetBlockadeFlag) != 0 ? 1 : 0) == expectedBlockade;
     }
     return ok;
 }
 
-int __stdcall ReapplySystemCharacterViews(GameObj* self, NotifyContext* ctx) {
+int REB_STDCALL ReapplySystemCharacterViews(GameObj* self, NotifyContext* ctx) {
     ObjectKey ownKey;
     self->GetKey(&ownKey);
     if (GameObjNotifier* master = GetMasterInFamilies_01_ff(&ownKey)) {

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "ai/ai_common.h"
@@ -46,8 +47,6 @@ enum SavedWindowType : uint32_t {
     kTypeEleven = 11,
 };
 
-constexpr size_t kSectorWindowSize = 0x1a4;
-
 int GridScaled(int value, int gridSize, double scale) {
     return static_cast<int>(static_cast<double>(value) / static_cast<double>(gridSize + 1) * scale);
 }
@@ -66,9 +65,9 @@ void AddSideOffset(int side, int* x, int* y) {
 
 void GalaxyWindow::SaveState(ostream* out) {
     uint32_t packed = (static_cast<uint8_t>(m_alternateDisplayMode) << 8) | static_cast<uint8_t>(m_displayMode);
-    WriteValue16(out, &packed);
+    WriteValue16(out, reinterpret_cast<const uint16_t*>(&packed));
     uint32_t count = m_children.Count();
-    WriteValue16(out, &count);
+    WriteValue16(out, reinterpret_cast<const uint16_t*>(&count));
     for (HWND hwnd = LastChildWindow(); hwnd; hwnd = GetWindow(hwnd, GW_HWNDPREV)) {
         if (CoolWindow* child = FindChildByHwnd(hwnd)) SaveChildWindow(out, child);
     }
@@ -96,13 +95,14 @@ CoolWindow* GalaxyWindow::FindChildByHwnd(HWND hwnd) {
 
 void GalaxyWindow::LoadState(istream* in) {
     m_mouseMode |= kMouseModeRestoring;
-    uint32_t packed = reinterpret_cast<uint32_t>(this);
-    ReadValue16(in, &packed);
+    // BUG(original): only the low half is read; the upper half keeps whatever the stack slot held, here the object address.
+    uint32_t packed = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this));
+    ReadValue16(in, reinterpret_cast<uint16_t*>(&packed));
     const uint32_t modeBits = packed & 0xffff;
     packed &= kDisplayModeMask;
     m_alternateDisplayMode = modeBits >> 8;
-    uint32_t count = reinterpret_cast<uint32_t>(in);
-    ReadValue16(in, &count);
+    uint32_t count = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(in));
+    ReadValue16(in, reinterpret_cast<uint16_t*>(&count));
     for (uint16_t i = 0; i < static_cast<uint16_t>(count); ++i) LoadChildWindow(in);
     InitializeGameDisplay();
     if (static_cast<int16_t>(packed) != static_cast<int16_t>(m_displayMode)) {
@@ -119,7 +119,7 @@ void GalaxyWindow::LoadState(istream* in) {
     UiSetHumanDispatchFlag(0);
 }
 
-void __stdcall GalaxyWindow::SaveChildWindow(ostream* out, CoolWindow* window) {
+void REB_STDCALL GalaxyWindow::SaveChildWindow(ostream* out, CoolWindow* window) {
     ChildWindowState state(window);
     if (state.m_valid) {
         state.Write(out);
@@ -140,7 +140,7 @@ CoolWindow* GalaxyWindow::OpenChildWindow(istream* in, ChildWindowState* state) 
     if (state) {
         switch (state->m_type) {
         case kTypeSector: {
-            void* memory = ::operator new(kSectorWindowSize);
+            void* memory = ::operator new(sizeof(SectorWindow));
             window = memory ? static_cast<CoolWindow*>(new (memory) SectorWindow(m_instance, state->m_x, state->m_y, state->m_width, state->m_height, this, GetBackground(), 0, nullptr))
                             : nullptr;
             tracked = true;
@@ -154,13 +154,13 @@ CoolWindow* GalaxyWindow::OpenChildWindow(istream* in, ChildWindowState* state) 
             break;
         }
         case kTypeSide: {
-            void* memory = ::operator new(0x118);
+            void* memory = ::operator new(sizeof(BattleInProgressWindow));
             window = memory ? static_cast<CoolWindow*>(new (memory) BattleInProgressWindow(m_instance, this, 0)) : nullptr;
             minimizable = false;
             break;
         }
         case kTypeSystem: {
-            void* memory = ::operator new(0x26c);
+            void* memory = ::operator new(sizeof(SystemWindow));
             tracked = true;
             window = memory ? static_cast<CoolWindow*>(new (memory) SystemWindow(m_instance, state->m_x, state->m_y, state->m_width, state->m_height, this, 0, 0))
                             : nullptr;

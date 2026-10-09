@@ -30,6 +30,14 @@ public:
     int m_field20;  // +0x20
 };
 
+// The entries of the parameter tables that carry values: the first value follows the base at +0x24 (GNPRTB entries hold
+// 8 difficulty values from there, SDPRTB entries 8 x 2 per side, the other tables a key or a count). Overlay for the
+// callers that only read the first value; the concrete entry classes derive from TableEntry directly.
+class TableEntryWithValue : public TableEntry {
+public:
+    int m_firstValue;  // +0x24
+};
+
 // The registry of entry classes by name (at most 9; names are truncated to 39 characters). Registering a name that
 // is already registered, or beyond the limit, does nothing. Both lookups compare names case-sensitively.
 // CreateTableEntryByClassName returns a new entry of the class, or null if the class is unknown or its factory
@@ -43,4 +51,5 @@ int IsTableEntryClassRegistered(const char* className);
 REB_ASSERT_SIZE(TableEntry, 0x24);
 REB_ASSERT_OFFSET(TableEntry, m_field1c, 0x1c);
 REB_ASSERT_OFFSET(TableEntry, m_field20, 0x20);
+REB_ASSERT_OFFSET(TableEntryWithValue, m_firstValue, 0x24);
 #pragma clang diagnostic pop

@@ -226,7 +226,7 @@ int MissionMgr::CreateMission(int userId, int userId2, int side, ObjectKey* obje
         chain = mission->SetImpliedTeam(impliedTeam, &missionContext) && chain;
         chain = mission->SetMandatory(mandatory, &missionContext) && chain;
         if (levels) chain = mission->Mission::AssignPhaseLevels(levels) && chain;
-        result = CallMissionSlot120(mission, team, decoys, &missionContext) && chain;
+        result = mission->AddInitialMembers(team, decoys, &missionContext) && chain;
     }
     return result;
 }

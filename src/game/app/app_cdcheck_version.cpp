@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "app/app_cdcheck_version.h"
 #include "app/app_strings.h"
 
@@ -9,10 +10,10 @@
 #include <winver.h>
 
 extern "C" {
-__declspec(dllimport) DWORD __stdcall GetFileVersionInfoSizeA(LPCSTR fileName, LPDWORD handle);
-__declspec(dllimport) BOOL __stdcall GetFileVersionInfoA(LPCSTR fileName, DWORD handle, DWORD length, LPVOID data);
-__declspec(dllimport) DWORD __stdcall VerLanguageNameA(DWORD language, LPSTR buffer, DWORD size);
-__declspec(dllimport) BOOL __stdcall VerQueryValueA(LPCVOID block, LPCSTR subBlock, LPVOID* buffer, PUINT length);
+__declspec(dllimport) DWORD REB_STDCALL GetFileVersionInfoSizeA(LPCSTR fileName, LPDWORD handle);
+__declspec(dllimport) BOOL REB_STDCALL GetFileVersionInfoA(LPCSTR fileName, DWORD handle, DWORD length, LPVOID data);
+__declspec(dllimport) DWORD REB_STDCALL VerLanguageNameA(DWORD language, LPSTR buffer, DWORD size);
+__declspec(dllimport) BOOL REB_STDCALL VerQueryValueA(LPCVOID block, LPCSTR subBlock, LPVOID* buffer, PUINT length);
 }
 
 extern char g_languageName[0x100];       // 0x6b06f8

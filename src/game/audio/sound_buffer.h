@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -74,7 +75,7 @@ public:
     int QueryNotify();                            // IDirectSoundNotify of the buffer; nonzero means unsupported
     HRESULT StartRefillThread();
     void StopRefillThread();
-    static void __cdecl RefillThread(SoundBuffer* buffer);
+    static void REB_CDECL RefillThread(SoundBuffer* buffer);
 
     uint32_t m_sourceKey;              // +0x1c
     DSBUFFERDESC1 m_description;       // +0x20 (dwSize, dwFlags, dwBufferBytes, dwReserved, lpwfxFormat)

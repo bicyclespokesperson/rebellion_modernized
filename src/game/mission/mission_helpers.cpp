@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <new>
 
 #include "character/character.h"
@@ -262,7 +263,7 @@ int SplitPersonRecord(ObjectKey* key, DatRecord** person, DatRecord** specialFor
 
 // ---- member summaries -------------------------------------------------------------------------------------
 
-int __cdecl AddPersonToMemberSummary(GameObj* person, int a, int b, MissionMemberSummary* summary, StatusCode* status) {
+int REB_CDECL AddPersonToMemberSummary(GameObj* person, int a, int b, MissionMemberSummary* summary, StatusCode* status) {
     int result = 1;
     *status = StatusCode(kStatusCategory, kStatusOk);
     const uint32_t control = person->m_flags & kSideControlBits;
@@ -300,7 +301,7 @@ int addKeysToSummary(ObjectKeyValueSet* set, int a, MissionMemberSummary* summar
 
 }  // namespace
 
-int __cdecl FillMemberSummaryForMission(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, ObjectKeyValueSet* captured,
+int REB_CDECL FillMemberSummaryForMission(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, ObjectKeyValueSet* captured,
                                         MissionMemberSummary* summary, StatusCode* status) {
     summary->CopyAllButFirst(MissionMemberSummary{});
     *status = StatusCode(kStatusCategory, kStatusOk);
@@ -329,7 +330,7 @@ int __cdecl FillMemberSummaryForMission(ObjectKeyValueSet* team, ObjectKeyValueS
     return ok;
 }
 
-int __cdecl CheckSummaryAgainstRecord(DatRecord* record, MissionMemberSummary* summary, StatusCode* status) {
+int REB_CDECL CheckSummaryAgainstRecord(DatRecord* record, MissionMemberSummary* summary, StatusCode* status) {
     auto* mission = static_cast<MissionSD*>(record);
     *status = StatusCode(kStatusCategory, kStatusOk);
     if (summary->m_specialForceMissionBits != (mission->m_specialForceEligibility & summary->m_specialForceMissionBits) ||

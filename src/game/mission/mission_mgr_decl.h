@@ -11,7 +11,5 @@
 // ---- the mission manager (family 0xf8, key 0xf8000006), reached through the game root's cached master --------------
 
 class MissionMgr;
-// Slot 111 of the mission manager creates a mission; 0x5429e0 / 0x542b60 are the two checks that precede it.
-constexpr int kMissionMgrCreateMissionSlot = 111;
 
 class Mission;

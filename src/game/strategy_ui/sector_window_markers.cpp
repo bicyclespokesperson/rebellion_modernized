@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <cstdint>
 #include <new>
 
@@ -69,7 +70,7 @@ int SectorSystemPictureId(int index) {
     }
 }
 
-uint32_t __stdcall SectorMarkerImageId(uint32_t kind, int state, int selected) {
+uint32_t REB_STDCALL SectorMarkerImageId(uint32_t kind, int state, int selected) {
     uint32_t normal = 0;
     uint32_t picked = 0;
     uint32_t hovered = 0;
@@ -115,7 +116,7 @@ uint32_t __stdcall SectorMarkerImageId(uint32_t kind, int state, int selected) {
     }
 }
 
-RECT* __stdcall SectorMarkerLabelRect(RECT* out, ObjectListItem* item) {
+RECT* REB_STDCALL SectorMarkerLabelRect(RECT* out, ObjectListItem* item) {
     int x = item->m_x;
     int y = item->m_y;
     if (item->m_selectedImage == nullptr) {
@@ -199,7 +200,7 @@ CoolWindow* SectorWindow::OpenMarkerWindow(ObjectListItem* item, int x, int y) {
         int advisorMask = 0;
         switch (kind) {
         case 4: {
-            void* memory = ::operator new(0x26c);
+            void* memory = ::operator new(sizeof(SystemWindow));
             window = memory ? static_cast<CoolWindow*>(new (memory) SystemWindow(instance, position.x, position.y, 0xe2, 0x130, m_galaxy, childId, system))
                             : nullptr;
             advisorMask = 2;

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/cool_button.h"
 
 #include "core/checked_new.h"
@@ -456,7 +457,7 @@ havePicture:
     m_state &= ~kButtonNeverDrawn;
 }
 
-LRESULT __stdcall CoolStrobeButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL CoolStrobeButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
     case WM_PAINT: {
         PAINTSTRUCT paint;
@@ -557,7 +558,7 @@ CoolFrameButton::~CoolFrameButton() {
     REB_KEEP_VPTR_STORE();
 }
 
-LRESULT __stdcall CoolFrameButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL CoolFrameButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_CREATE) {
         m_normal = m_currentFrame ? static_cast<StrobeFrame*>(m_currentFrame)->m_bitmap : nullptr;
         return CoolStrobeButton::WindowProc(WM_CREATE, wParam, lParam);
@@ -663,7 +664,7 @@ CoolCycleButton::~CoolCycleButton() {
     REB_KEEP_VPTR_STORE();
 }
 
-LRESULT __stdcall CoolCycleButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL CoolCycleButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_LBUTTONDOWN) {
         DibBitmap* saved = m_normal;
         const uint32_t position = m_position & 3;

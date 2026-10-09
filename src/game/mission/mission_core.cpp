@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "mission/mission.h"
 
 #include <new>
@@ -6,7 +7,7 @@
 #include "gameobj/object_database.h"
 #include "gameobj/object_queries.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyMissionEventKinds();
 
 extern int g_missionEventKindsBuilt;     // 0x6b8fe0

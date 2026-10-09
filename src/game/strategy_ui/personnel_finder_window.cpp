@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/personnel_finder_window.h"
 
 #include <new>
@@ -421,7 +422,7 @@ void PersonnelFinderWindow::OnCommand(int, int command, int) {
     }
 }
 
-LRESULT __stdcall PersonnelFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL PersonnelFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     LRESULT result = 0;
     if (message < 0x11) {
         if (message == WM_CLOSE) {

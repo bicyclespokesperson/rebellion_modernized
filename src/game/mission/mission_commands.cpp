@@ -112,7 +112,7 @@ int MissionOrderCommand::Execute() {
         ok = manager->MissionMgr::CheckMissionOrder(&m_request, m_unk50, m_unk54, &m_missionKey, &m_resultKey, &m_team, &m_characters, &status);
     }
     if (ok && succeeded(status)) {
-        events::callVirtualSlot<int>(manager, kMissionMgrCreateMissionSlot, &m_request, m_unk50, m_unk54, m_side, &m_missionKey,
+        manager->CreateMissionForRequest(&m_request, m_unk50, m_unk54, m_side, &m_missionKey,
                                    &m_resultKey, &m_team, &m_characters, &ctx);
     }
     return 0;
@@ -148,9 +148,8 @@ int MissionActivityCommand::Execute() {
     NotifyContext ctx(m_context);
     Mission* mission = nullptr;
     StatusCode status;
-    constexpr int kMissionSlot117 = 117;
     if (resolveMission(&m_key, &mission, &status) && succeeded(status)) {
-        events::callVirtualSlot<int>(mission, kMissionSlot117, &m_request, &ctx);
+        mission->TryComplete(&m_request, &ctx);
     }
     return 0;
 }

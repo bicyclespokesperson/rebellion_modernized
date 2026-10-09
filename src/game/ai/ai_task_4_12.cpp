@@ -8,22 +8,6 @@
 
 namespace {
 
-// The planner slots 10 and 11 are named by the planner part of the module; only their arity matters here.
-constexpr int kPlannerWantsToRunSlot = 10;
-constexpr int kPlannerStepSlot = 11;
-
-void** VirtualTableOf(void* object) { return *reinterpret_cast<void***>(object); }
-
-int PlannerWantsToRun(AiMissionPlanner* planner) {
-    using Slot = int(__thiscall*)(AiMissionPlanner*);
-    return reinterpret_cast<Slot>(VirtualTableOf(planner)[kPlannerWantsToRunSlot])(planner);
-}
-
-OrderBase* StepPlanner(AiMissionPlanner* planner, int* done) {
-    using Slot = OrderBase*(__thiscall*)(AiMissionPlanner*, int*);
-    return reinterpret_cast<Slot>(VirtualTableOf(planner)[kPlannerStepSlot])(planner, done);
-}
-
 template <class Record>
 Record* NextAfter(Record* node) {
     return static_cast<Record*>(node->m_successor);
@@ -175,7 +159,7 @@ int AiTask4::NextPlanner() {
     if (planner) {
         do {
             if (found) break;
-            found = PlannerWantsToRun(planner);
+            found = planner->IsActive();
             if (!found) planner = NextAfter(planner);
         } while (planner);
         if (planner) {
@@ -192,7 +176,7 @@ int AiTask4::NextPlanner() {
 
 OrderBase* AiTask4::RunPlanner(int* done) {
     AiMissionPlanner* planner = static_cast<AiMissionPlanner*>(m_owner->m_planners.FindById(m_plannerId));
-    if (planner) return StepPlanner(planner, done);
+    if (planner) return planner->Step(done);
     *done = 1;
     return nullptr;
 }

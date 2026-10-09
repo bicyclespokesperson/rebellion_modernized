@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <cstdint>
 #include <new>
 
@@ -26,7 +27,7 @@
 #include "ui/sprite_stage.h"
 
 // The Galactic Information Display menu (0x451130, window_type6_and_panel).
-CoolGameWindow* __thiscall FUN_00451130(void* memory, HINSTANCE instance, int x, int y, int width, int height,
+CoolGameWindow* REB_THISCALL FUN_00451130(void* memory, HINSTANCE instance, int x, int y, int width, int height,
                                         int side, CoolWindow* parent, uint32_t childId, DibBitmap* background);
 
 namespace {
@@ -48,7 +49,7 @@ int HighWord(LPARAM value) { return static_cast<int>(static_cast<uint32_t>(value
 
 ResourceStringId StringId(uint16_t id) { return ResourceStringId{static_cast<int16_t>(id), kStringGroup}; }
 
-HWND SendToBottom() { return reinterpret_cast<HWND>(1); }
+HWND SendToBottom() { return HWND_BOTTOM; }
 
 bool InputBlocked() { return static_cast<uint32_t>(GameHookTickCount()) < kTickCountReady; }
 
@@ -82,7 +83,7 @@ constexpr uint32_t kDateTipCommand = 0x14f;
 
 }  // namespace
 
-LRESULT __stdcall GalaxyWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL GalaxyWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_PAINT:
             return OnPaint();

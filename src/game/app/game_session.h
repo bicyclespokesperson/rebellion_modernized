@@ -46,7 +46,7 @@ public:
     void RouteNotice(PlayerNotice* notice);
     void DeliverQueuedMessage(int id);
     AvlNode* GetFirstMessage();
-    void SendNotificationToSide(int side, int argument);
+    void SendNotificationToSide(int side, intptr_t argument);
 
     // Sync points between the two sides.
     int BeginSync(unsigned requested);
@@ -71,8 +71,8 @@ public:
     void HumanConfirmVote(PlayerMessage* reply);
     void SetHumanUiTarget(int a, int b);
     void HumanRequestUpdate();
-    void HumanRefreshMenus(int value);
-    void HumanRefreshOrderMenus(int value);
+    void HumanRefreshMenus(intptr_t value);
+    void HumanRefreshOrderMenus(intptr_t value);
     int HumanHasPending();
     int HumanNextAdvice();
     void HumanSetAdvisorMask(unsigned mask);
@@ -86,7 +86,7 @@ public:
     unsigned GetHumanStateValue(int key);
     int GetHumanDefaultState();
     void SetHumanDefaultState(int state);
-    void QueueHumanPopup(int a, int b);
+    void QueueHumanPopup(intptr_t a, int b);
     int HumanDispatchIdle();
     void ClearHumanAlerts(unsigned mask);
 

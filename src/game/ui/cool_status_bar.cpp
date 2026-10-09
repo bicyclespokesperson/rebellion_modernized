@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/cool_status_bar.h"
 
 #include "core/vptr_store.h"
@@ -83,7 +84,7 @@ void CoolwinStatusBar::SetPosition(uint32_t position) {
     if (m_hwnd) InvalidateRect(m_hwnd, nullptr, FALSE);
 }
 
-LRESULT __stdcall CoolwinStatusBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL CoolwinStatusBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message != WM_PAINT) return DefWindowProcA(m_hwnd, message, wParam, lParam);
 
     PAINTSTRUCT paint;

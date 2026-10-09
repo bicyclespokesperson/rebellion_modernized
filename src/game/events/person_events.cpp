@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "events/person_events.h"
 
 #include "character/role.h"
@@ -237,6 +238,6 @@ int LockTransferEvent::Execute() {
 
 // ---- shared slot forwarders -------------------------------------------------------------------------------
 
-void __thiscall SourceEventRead(SourceEvent* event, istream* in) { event->ReadSource(in); }
+void REB_THISCALL SourceEventRead(SourceEvent* event, istream* in) { event->ReadSource(in); }
 
-void __thiscall SourceEventChecksum(SourceEvent* event, Crc32* crc) { event->ChecksumSource(crc); }
+void REB_THISCALL SourceEventChecksum(SourceEvent* event, Crc32* crc) { event->ChecksumSource(crc); }

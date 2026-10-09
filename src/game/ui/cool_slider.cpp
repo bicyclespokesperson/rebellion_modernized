@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/cool_slider.h"
 
 #include "core/checked_new.h"
@@ -141,7 +142,7 @@ void CoolSlider::Draw(HDC dc) {
     }
 }
 
-LRESULT __stdcall CoolSlider::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL CoolSlider::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     if (message < WM_PAINT + 1 && message != WM_PAINT) {
         if (message != WM_CREATE) return CoolWindow::WindowProc(message, wParam, lParam);

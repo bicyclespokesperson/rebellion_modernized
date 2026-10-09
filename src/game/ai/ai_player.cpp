@@ -178,7 +178,7 @@ void AiPlayer::Virtual21() {
     }
 }
 
-void AiPlayer::Virtual25(int value) { m_model.NoteValueA(reinterpret_cast<const int*>(static_cast<intptr_t>(value))); }
+void AiPlayer::Virtual25(intptr_t value) { m_model.NoteValueA(reinterpret_cast<const int*>(static_cast<intptr_t>(value))); }
 
 void AiPlayer::Virtual26(int value) { m_model.NoteValueB(value); }
 
@@ -192,7 +192,7 @@ void AiPlayer::Virtual75(const ObjectKey* key, int argument) {
     m_model.NotePlannerSlot3(reinterpret_cast<const int*>(key), argument);
 }
 
-void AiPlayer::Virtual76(const ObjectKey* key, int, const ObjectKey* system) {
+void AiPlayer::Virtual76(const ObjectKey* key, intptr_t, const ObjectKey* system) {
     m_model.NoteObject(key);
     m_model.NoteSystemTouched(system);
 }

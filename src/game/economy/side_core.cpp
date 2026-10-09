@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
@@ -348,7 +349,7 @@ int Side::RefineryStateMatches() {
     return stateMatchesSum(this, GetFirstMasterInFamilies_2d_2e(), FamilyRange(0x2d, 0x2e), m_refineryState);
 }
 
-GameObjNotifier* __thiscall FindNextUnit(GameObjNotifier* unit) {
+GameObjNotifier* REB_THISCALL FindNextUnit(GameObjNotifier* unit) {
     const FamilyRange units(0x10, 0x40);
     return static_cast<GameObj*>(unit)->FindNextSibling(&units, 1);
 }
@@ -478,7 +479,7 @@ constexpr int kArticleAResource = 0x4da2;
 
 }  // namespace
 
-void __thiscall AppendSideName(ObjectBase* base, String* out, int kind) {
+void REB_THISCALL AppendSideName(ObjectBase* base, String* out, int kind) {
     const int baseResource = nameResourceFor(kind);
     if (baseResource == 0) return;
     const uint32_t flags = static_cast<GameObj*>(base)->m_flags;

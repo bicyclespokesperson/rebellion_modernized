@@ -1,3 +1,5 @@
+#include "data/sd_record_bases.h"
+#include "core/reb_abi.h"
 #include "rules/rules_mgr.h"
 
 #include <new>
@@ -24,13 +26,13 @@
 #include "rules/event_rules.h"
 #include "rules/loyalty_params.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyRulesMgrEventKinds();
 
 extern int g_rulesMgrEventKindsBuilt;     // 0x6bb344
 extern EventKindSet g_rulesMgrEventKinds;  // 0x6bb348
 
-ObjectKey* __thiscall GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
+ObjectKey* REB_THISCALL GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
 
 namespace {
 
@@ -56,12 +58,10 @@ constexpr FamilyRange kTroopFamilies(0x10, 0x14);
 constexpr FamilyRange kShipLikeFamilies(0x14, 0x20);
 constexpr FamilyRange kSectorFamilies(0x80, 0x90);
 constexpr FamilyRange kUnitFamilies(0x10, 0x40);
-constexpr size_t kRecordSpeedOffset = 0x6c;
 constexpr int kMaxResidualPercentForIncident = 0x1e;
 
 using namespace event_rules;
 using events::succeeded;
-using events::callVirtualSlot;
 
 int both(int result, int ok) { return result != 0 && ok != 0 ? 1 : 0; }
 
@@ -580,7 +580,7 @@ int RulesMgr::ComputeRecordTravelDays(DatRecord* record, uint32_t viewSide, cons
     ObjectKey recordKey;
     GetAiRecordKey(record, &recordKey);
     if (recordKey.Family() >= kShipLikeFamilies.m_first && recordKey.Family() < kShipLikeFamilies.m_second)
-        speed = *reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(record) + kRecordSpeedOffset);
+        speed = static_cast<int>(static_cast<SdRecordGrid*>(record)->m_field6c);
     if (speed == 0) speed = g_gnprtbDefault;
     return ComputeTravelDays(speed, viewSide, from, to, days) != 0;
 }

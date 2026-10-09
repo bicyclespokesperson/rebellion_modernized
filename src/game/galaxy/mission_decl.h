@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -35,5 +36,5 @@ REB_ASSERT_SIZE(MissionTypeBase, 0xa8);
 #pragma clang diagnostic pop
 
 // Bodies of the mission base's persistence slots, called by the leaf types' second-level forwarders.
-int __thiscall MissionTypeWriteForward(MissionTypeBase* self, ostream* out);        // 0x56ec40: Write (shared by several mission types)
-int __thiscall MissionTypeApplyAllForward(MissionTypeBase* self, NotifyContext* ctx);  // 0x56ec50: ApplyAll body (shared)
+int REB_THISCALL MissionTypeWriteForward(MissionTypeBase* self, ostream* out);        // 0x56ec40: Write (shared by several mission types)
+int REB_THISCALL MissionTypeApplyAllForward(MissionTypeBase* self, NotifyContext* ctx);  // 0x56ec50: ApplyAll body (shared)

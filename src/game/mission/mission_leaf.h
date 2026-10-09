@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "character/role.h"
@@ -13,7 +14,7 @@
 // Declarations shared by the concrete mission types (MissionSubdue, MissionSabotage, ...): the functions of the mission
 // bases and of the rules code that every type calls, known by address only (the bases' owner may give them names).
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 
 namespace mission_status {
 constexpr int kCategory = 1;
@@ -66,8 +67,8 @@ inline int CheckOrderAgainstKinds(BuildFn build, EventKindSet* kinds, int orderK
 
 // Slot 160 body shared by Subdue, Rescue, Recruit, Pickup, Jedi Training and Incite (0x576700): a mission that is
 // still in TaskStatus 0 starts (TaskStatus 2).
-int __thiscall MissionStartIfIdle(Mission* mission, NotifyContext* ctx);
+int REB_THISCALL MissionStartIfIdle(Mission* mission, NotifyContext* ctx);
 
 // Slot 160 body shared by Sabotage and DS Sabotage (0x5746e0): start when idle; once the task has succeeded the object the
 // mission started from is destroyed (reason 6).
-int __thiscall MissionDestroyOriginOnSuccess(Mission* mission, NotifyContext* ctx);
+int REB_THISCALL MissionDestroyOriginOnSuccess(Mission* mission, NotifyContext* ctx);

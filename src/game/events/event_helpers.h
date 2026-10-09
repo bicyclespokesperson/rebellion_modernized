@@ -61,7 +61,7 @@ void fireOnTimerOwner(TimerEvent* timer, Resolve resolve, Method method) {
 }
 
 // The int-typed argument slots of the object virtuals that really carry a pointer (TryRename's name).
-inline int asIntArg(const void* pointer) { return static_cast<int>(reinterpret_cast<intptr_t>(pointer)); }
+inline intptr_t asIntArg(const void* pointer) { return reinterpret_cast<intptr_t>(pointer); }
 
 // The checks of commands: set *status to success, look the command's target up, and ask it. `ask` gets the target and
 // returns the check's result; it only runs for a found, live target.
@@ -89,14 +89,6 @@ int executeOnTarget(Command* command, Resolve resolve, Act act) {
     const int ok = resolve(&command->m_key, &target, &missing, &status);
     if (ok && succeeded(status)) act(static_cast<GameObj*>(target), &ctx);
     return 0;
-}
-
-// Calls the virtual in `slot` of an object whose class is not reconstructed.
-template <typename Result, typename... Args>
-Result callVirtualSlot(void* object, int slot, Args... args) {
-    using Method = Result(__thiscall*)(void*, Args...);
-    Method* vtable = *reinterpret_cast<Method**>(object);
-    return vtable[slot](object, args...);
 }
 
 }  // namespace events

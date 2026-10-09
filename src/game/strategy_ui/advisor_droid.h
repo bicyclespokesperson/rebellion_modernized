@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "ai/ai_advisor_tasks.h"
@@ -55,7 +56,7 @@ public:
     void FlushPending();                    // 0x439f20
     void SpeakNow();                        // 0x439fb0
     void SpeakTopic(unsigned topic);        // 0x43a0b0
-    void SetAiHelperFlag(int value);        // 0x43a210
+    void SetAiHelperFlag(intptr_t value);        // 0x43a210
     void ClearAiHelperFlag(int value);      // 0x43a220
     void ResetTasks();                      // 0x43a230
     int PickAdvice();                       // 0x43a250
@@ -63,7 +64,7 @@ public:
     void SetRefusedOrder(const void* order);    // 0x43a290
     void OnOrderSubmitted(const void* order);   // 0x43a2a0
 
-    uint32_t& CueDue(unsigned byteOffset) { return *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(m_cueDue) + byteOffset); }
+    uint32_t& CueDue(unsigned byteOffset) { return m_cueDue[byteOffset / sizeof(uint32_t)]; }
 
     IdAvlTree* Tasks() { return &m_taskTree; }
     IdAvlTree* Cues() { return &m_cueTree; }
@@ -158,7 +159,7 @@ public:
 void AdvisorInitStatics();                    // 0x4392b0
 void AdvisorInitFlags();                      // 0x4392c0
 void AdvisorRegisterFlagsAtExit();            // 0x4392d0
-void __stdcall AdvisorToggleUiFlag(int command);        // 0x439e80
+void REB_STDCALL AdvisorToggleUiFlag(int command);        // 0x439e80
 void AdvisorSetPendingCommand(int mode, int argument);  // 0x439eb0
 void AdvisorNoteNag();                        // 0x439ed0
 void AdvisorAllowSpeech();                    // 0x439ef0

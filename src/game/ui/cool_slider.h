@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -25,7 +26,7 @@ public:
     virtual ~CoolSlider();  // 0x604850 (scalar deleting destructor 0x604830)
 
     // BUG(original): WM_CREATE is answered without calling CoolWindow::WindowProc.
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x604b80
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x604b80
 
     int IsCursorOverTrack();  // 0x6048f0
     void TrackCursor();        // 0x604950: moves the knob to the cursor if the cursor is inside the track

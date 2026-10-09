@@ -1,3 +1,5 @@
+#include "economy/side.h"
+#include "core/reb_abi.h"
 #include <new>
 
 #include "app/rebapp_globals.h"
@@ -15,7 +17,7 @@
 #include "strategy_ui/advisor_sides.h"
 #include "strategy_ui/game_ui_facade.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyEmpireChoices();
 
 extern IdAvlTree g_empireChoices;      // 0x6b2918 the list the display-mode switches show
@@ -85,8 +87,8 @@ void EmpireScheduleFallback(AdvisorBase* advisor) { static_cast<EmpireAdvisor*>(
 EmpireAdvisor::EmpireAdvisor(int side, HumanPlayer* player) : AdvisorBase(side, player) {
     m_cueCount = kCueCount;
     g_humanUiFlags.m_value |= kUiFlagChatty;
-    m_cueDue = static_cast<uint32_t*>(::operator new(m_cueCount << 2));
-    m_cueCooldown = static_cast<uint32_t*>(::operator new(m_cueCount << 2));
+    m_cueDue = static_cast<uint32_t*>(::operator new(m_cueCount * sizeof(uint32_t)));
+    m_cueCooldown = static_cast<uint32_t*>(::operator new(m_cueCount * sizeof(uint32_t)));
     for (uint32_t i = 0; i < m_cueCount; ++i) {
         m_cueDue[i] = 0;
         m_cueCooldown[i] = 0;
@@ -286,7 +288,7 @@ void EmpireAdvisor::RunPendingCommand() {
             if (!side) {
                 UiSetAlternateDisplayMode(static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this)));
             } else {
-                UiSetAlternateDisplayMode(*reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(side) + 0xbc));
+                UiSetAlternateDisplayMode(static_cast<uint32_t>(static_cast<Side*>(side)->m_victoryConditions));
             }
         }
     }

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <new>
 
 #include "character/character_data.h"
@@ -6,7 +7,7 @@
 #include "data/probability_table.h"
 #include "gameobj/object_family.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyRoleEventKinds();
 
 extern EventKindSet g_roleEventKinds;  // 0x6b9028
@@ -198,11 +199,11 @@ int Role::CheckActivityStatus2(const ActivityRequest* request, int unused, Statu
 
 // ---- mission handling ------------------------------------------------------------------------------------------
 
-int Role::Virtual47(int a) { return UnitObjBase::Virtual47(a); }
+int Role::Virtual47(intptr_t a) { return UnitObjBase::Virtual47(a); }
 
-int Role::Virtual48(int a) { return UnitObjBase::Virtual47(a); }
+int Role::Virtual48(intptr_t a) { return UnitObjBase::Virtual47(a); }
 
-int Role::Virtual55(int a) {
+int Role::Virtual55(intptr_t a) {
     NotifyContext* ctx = reinterpret_cast<NotifyContext*>(a);
     int result = UnitObjBase::Virtual55(a) != 0;
     Role* master = ViewAsRole(0);

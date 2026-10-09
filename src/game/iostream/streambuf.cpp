@@ -1,8 +1,9 @@
+#include "core/reb_abi.h"
 #include <cstring>
 
 #include "iostream/iostream.h"
 
-streambuf* __thiscall streambuf_ctor(streambuf* self) {
+streambuf* REB_THISCALL streambuf_ctor(streambuf* self) {
     self->m_allocated = 0;
     self->m_unbuffered = 0;
     self->m_base = nullptr;
@@ -20,14 +21,14 @@ streambuf* __thiscall streambuf_ctor(streambuf* self) {
     return self;
 }
 
-void __thiscall streambuf_dtor(streambuf* self) {
+void REB_THISCALL streambuf_dtor(streambuf* self) {
     self->m_vftable = &streambuf::vftable;
     mtx_term(self->m_lock);
     streambuf_sync(self);
     if (self->m_allocated != 0 && self->m_base != nullptr) ::operator delete(self->m_base);
 }
 
-streambuf* __thiscall streambuf_setbuf(streambuf* self, char* buffer, int size) {
+streambuf* REB_THISCALL streambuf_setbuf(streambuf* self, char* buffer, int size) {
     if (self->m_base != nullptr) return nullptr;
     if (buffer != nullptr && size != 0) {
         self->m_base = buffer;
@@ -39,7 +40,7 @@ streambuf* __thiscall streambuf_setbuf(streambuf* self, char* buffer, int size) 
     return self;
 }
 
-int __thiscall streambuf_xsputn(streambuf* self, const char* text, int count) {
+int REB_THISCALL streambuf_xsputn(streambuf* self, const char* text, int count) {
     int written = 0;
     while (count != 0) {
         --count;
@@ -54,7 +55,7 @@ int __thiscall streambuf_xsputn(streambuf* self, const char* text, int count) {
     return written;
 }
 
-int __thiscall streambuf_xsgetn(streambuf* self, char* buffer, int count) {
+int REB_THISCALL streambuf_xsgetn(streambuf* self, char* buffer, int count) {
     int total = 0;
     if (self->m_unbuffered == 0) {
         while (count != 0) {
@@ -83,12 +84,12 @@ int __thiscall streambuf_xsgetn(streambuf* self, char* buffer, int count) {
     return total;
 }
 
-int __thiscall streambuf_sync(streambuf* self) {
+int REB_THISCALL streambuf_sync(streambuf* self) {
     if (self->m_egptr <= self->m_gptr && self->m_pptr <= self->m_pbase) return 0;
     return -1;
 }
 
-int __thiscall streambuf_allocate(streambuf* self) {
+int REB_THISCALL streambuf_allocate(streambuf* self) {
     if (self->m_unbuffered == 0 && self->m_base == nullptr) {
         const int result = self->m_vftable->m_doallocate(self);
         return result != -1 ? 1 : -1;
@@ -96,7 +97,7 @@ int __thiscall streambuf_allocate(streambuf* self) {
     return 0;
 }
 
-int __thiscall streambuf_doallocate(streambuf* self) {
+int REB_THISCALL streambuf_doallocate(streambuf* self) {
     constexpr int kDefaultBufferSize = 0x200;
     char* buffer = static_cast<char*>(::operator new(kDefaultBufferSize));
     if (buffer == nullptr) return -1;
@@ -104,18 +105,18 @@ int __thiscall streambuf_doallocate(streambuf* self) {
     return 1;
 }
 
-void __thiscall streambuf_setb(streambuf* self, char* begin, char* end, int owned) {
+void REB_THISCALL streambuf_setb(streambuf* self, char* begin, char* end, int owned) {
     if (self->m_allocated != 0 && self->m_base != nullptr) ::operator delete(self->m_base);
     self->m_base = begin;
     self->m_allocated = owned;
     self->m_ebuf = end;
 }
 
-int __thiscall streambuf_seekoff(streambuf*, long, int, int) { return -1; }
+int REB_THISCALL streambuf_seekoff(streambuf*, long, int, int) { return -1; }
 
-int __thiscall streambuf_seekpos(streambuf* self, long position, int mode) { return self->m_vftable->m_seekoff(self, position, 0, mode); }
+int REB_THISCALL streambuf_seekpos(streambuf* self, long position, int mode) { return self->m_vftable->m_seekoff(self, position, 0, mode); }
 
-int __thiscall streambuf_pbackfail(streambuf* self, int c) {
+int REB_THISCALL streambuf_pbackfail(streambuf* self, int c) {
     if (self->m_eback < self->m_gptr) {
         *--self->m_gptr = static_cast<char>(c);
         return static_cast<char>(c);
@@ -128,7 +129,7 @@ int __thiscall streambuf_pbackfail(streambuf* self, int c) {
     return c;
 }
 
-int __thiscall streambuf_snextc(streambuf* self) {
+int REB_THISCALL streambuf_snextc(streambuf* self) {
     if (self->m_unbuffered != 0) {
         if (self->m_lastc == -1) self->m_vftable->m_underflow(self);
         self->m_lastc = self->m_vftable->m_underflow(self);
@@ -140,7 +141,7 @@ int __thiscall streambuf_snextc(streambuf* self) {
     return self->m_vftable->m_underflow(self);
 }
 
-int __thiscall streambuf_sbumpc(streambuf* self) {
+int REB_THISCALL streambuf_sbumpc(streambuf* self) {
     if (self->m_unbuffered == 0) {
         if (self->m_gptr < self->m_egptr) return static_cast<unsigned char>(*self->m_gptr++);
         const int result = self->m_vftable->m_underflow(self);
@@ -153,7 +154,7 @@ int __thiscall streambuf_sbumpc(streambuf* self) {
     return pending;
 }
 
-void __thiscall streambuf_stossc(streambuf* self) {
+void REB_THISCALL streambuf_stossc(streambuf* self) {
     if (self->m_unbuffered == 0) {
         if (self->m_egptr <= self->m_gptr) self->m_vftable->m_underflow(self);
         if (self->m_gptr < self->m_egptr) ++self->m_gptr;
@@ -166,7 +167,7 @@ void __thiscall streambuf_stossc(streambuf* self) {
     self->m_lastc = -1;
 }
 
-int __thiscall streambuf_sgetc(streambuf* self) {
+int REB_THISCALL streambuf_sgetc(streambuf* self) {
     if (self->m_unbuffered != 0) {
         if (self->m_lastc == -1) self->m_lastc = self->m_vftable->m_underflow(self);
         return self->m_lastc;

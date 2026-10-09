@@ -63,9 +63,9 @@ void InitFlowScaleC() { g_flowScaleCSquared = g_flowScaleC * g_flowScaleC; }
 
 // ---- hook callbacks ---------------------------------------------------------------------------------------------
 
-void RouteNoticeToSession(int notice) {
+void RouteNoticeToSession(HookArg notice) {
     GameSession* session = GetGameSession();
-    if (session) session->RouteNotice(reinterpret_cast<PlayerNotice*>(static_cast<intptr_t>(notice)));
+    if (session) session->RouteNotice(reinterpret_cast<PlayerNotice*>(notice));
 }
 
 const char* GetStepDriverDataDirectory() { return g_gameStepDriver ? g_gameStepDriver->m_dataLocation : nullptr; }

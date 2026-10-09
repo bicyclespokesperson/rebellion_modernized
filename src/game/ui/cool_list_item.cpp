@@ -35,7 +35,7 @@ CoolListItem::CoolListItem(uint32_t id) : LinkNode(), m_text(), m_state(0) {
     m_textOffsetY = 0;
     m_textFormat = 0;
     m_fontSlot = 0;
-    m_userData = 0;
+    m_userPointer = 0;
     m_ownColors = 0;
     m_selectedColor = kWhite;
     m_color = kWhite;
@@ -53,7 +53,7 @@ CoolListItem::CoolListItem(const CoolListItem& other) : LinkNode(), m_text(), m_
     m_fontSlot = other.m_fontSlot;
     m_textFormat = other.m_textFormat;
     m_state.m_value = other.m_state.m_value;
-    m_userData = other.m_userData;
+    m_userPointer = other.m_userPointer;
     m_ownColors = other.m_ownColors;
     m_selectedColor = other.m_selectedColor;
     m_color = other.m_color;

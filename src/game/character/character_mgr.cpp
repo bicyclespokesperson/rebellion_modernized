@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "character/character_mgr.h"
 
 #include "character/role.h"
@@ -17,13 +18,13 @@
 #include "story/story_common.h"
 
 void DestroyCharacterMgrEventKinds();
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 
 extern int g_characterMgrEventKindsReady;      // 0x6bb7a0
 extern EventKindSet g_characterMgrEventKinds;  // 0x6bb798
 
 DatRecord* GetFirstRecordOfType(int type);  // 0x51cad0
-ObjectKey* __thiscall GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
+ObjectKey* REB_THISCALL GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
 // The starting number of minor characters of `side` for a galaxy of `size` (1-3); kind 1 is the Alliance's, 2 the Empire's.
 
 namespace {
@@ -91,8 +92,8 @@ int CharacterMgr::UpdateObservedByAlliance(NotifyContext* ctx) { return SetObser
 
 int CharacterMgr::UpdateObservedByEmpire(NotifyContext* ctx) { return SetObservedByEmpire(1, ctx) != 0 ? 1 : 0; }
 
-int CharacterMgr::Virtual48(int ctxArg) {
-    NotifyContext* ctx = reinterpret_cast<NotifyContext*>(static_cast<intptr_t>(ctxArg));
+int CharacterMgr::Virtual48(intptr_t ctxArg) {
+    NotifyContext* ctx = reinterpret_cast<NotifyContext*>(ctxArg);
     const int stub = Virtual47(ctxArg);
     return UpdateSeatOfPower(ctx) && stub ? 1 : 0;
 }

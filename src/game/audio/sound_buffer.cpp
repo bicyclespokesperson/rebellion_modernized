@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "audio/sound_buffer.h"
 
 #include <cstring>
@@ -430,7 +431,7 @@ void SoundBuffer::StopRefillThread() {
     }
 }
 
-void __cdecl SoundBuffer::RefillThread(SoundBuffer* buffer) {
+void REB_CDECL SoundBuffer::RefillThread(SoundBuffer* buffer) {
     if (!buffer) return;
     if (buffer->m_failed != 0) {
         PostSoundEvent(kSoundBufferFinishedMessage, buffer->m_sourceKey, buffer->m_key);
@@ -445,7 +446,7 @@ void __cdecl SoundBuffer::RefillThread(SoundBuffer* buffer) {
         }
         if (signalled == WAIT_OBJECT_0 + kStopEvent) ExitThread(0);
         if (InterlockedExchange(&buffer->m_refillBusy, 1) != 0) continue;
-        __try {
+        REB_TRY {
             if (signalled <= WAIT_OBJECT_0 + 1) {
                 if (buffer->m_mode == kBufferStreamed && buffer->m_wrapped != 0) {
                     buffer->m_wrapped = 0;
@@ -455,8 +456,8 @@ void __cdecl SoundBuffer::RefillThread(SoundBuffer* buffer) {
                     buffer->Refill(buffer->m_stream, buffer->m_loopStart);
                 }
             }
-        } __finally {
-            if (AbnormalTermination()) {
+        } REB_FINALLY {
+            if (REB_ABNORMAL_TERMINATION()) {
                 InterlockedExchange(&buffer->m_refillBusy, 0);
                 ExitThread(99);
             }

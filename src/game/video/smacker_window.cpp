@@ -1,8 +1,10 @@
 // SmackerWindow: a child window that plays a Smacker (.smk) movie from a dedicated thread.
+#include "core/reb_abi.h"
 #include <cmath>
 #include <cstring>
 
 #include "audio/sound_manager.h"
+#include "core/reb_x87.h"
 #include "core/vptr_store.h"
 #include "video/video_manager.h"
 
@@ -22,13 +24,6 @@ constexpr double kHundredthsToDecibels = 0.01;
 constexpr double kDecibelsToLog10Amplitude = 0.05;
 constexpr double kSmackFullVolume = 32768.0;
 constexpr uint32_t kSmackPanCentre = 0x8000;
-
-// The CRT's x87 pow: ST(1) = base, ST(0) = exponent, result in ST(0).
-double CallCiPow(double base, double exponent) {
-    double result;
-    __asm__ volatile("call _CIpow" : "=t"(result) : "0"(exponent), "u"(base) : "st(1)", "eax", "ecx", "edx", "cc", "memory");
-    return result;
-}
 
 uint32_t LowWord(uint32_t value) { return static_cast<uint16_t>(value); }
 }  // namespace
@@ -66,7 +61,7 @@ SmackerWindow::~SmackerWindow() {
     }
 }
 
-LRESULT __stdcall SmackerWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL SmackerWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND window = m_hwnd;
     switch (message) {
         case WM_CREATE:
@@ -226,7 +221,7 @@ void SmackerWindow::SetVolume(int volume) {
     const int scaled = (volume * 3) / 4;
     int smackVolume = 0;
     if (scaled >= kVolumeFloor) {
-        const double amplitude = CallCiPow(10.0, scaled * kHundredthsToDecibels * kDecibelsToLog10Amplitude);
+        const double amplitude = reb_pow(10.0, scaled * kHundredthsToDecibels * kDecibelsToLog10Amplitude);
         smackVolume = static_cast<int>(floor(amplitude * kSmackFullVolume));
     }
     if (m_smack) SmackVolumePan(m_smack, kSmackAllAudioTracks, smackVolume, kSmackPanCentre);

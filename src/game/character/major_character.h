@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include "character/character.h"
 #include "core/layout.h"
 
@@ -97,16 +98,16 @@ public:
 
 // First-level forwarders shared by Character38 and the major characters: they call the Character bodies of the
 // persistence slots and of CreateViews (all thiscall).
-int __thiscall CharacterLeafRead(Character* self, istream* in);            // 0x56f2c0
-int __thiscall CharacterLeafWrite(Character* self, ostream* out);          // 0x56f2d0
-int __thiscall CharacterLeafApplyAll(Character* self, NotifyContext* ctx);  // 0x56f2e0
-int __thiscall CharacterLeafChecksum(Character* self, Crc32* crc);         // 0x56f2f0
-int __thiscall CharacterLeafCreateViews(Character* self, int controlKind, NotifyContext* ctx);  // 0x56f2a0
+int REB_THISCALL CharacterLeafRead(Character* self, istream* in);            // 0x56f2c0
+int REB_THISCALL CharacterLeafWrite(Character* self, ostream* out);          // 0x56f2d0
+int REB_THISCALL CharacterLeafApplyAll(Character* self, NotifyContext* ctx);  // 0x56f2e0
+int REB_THISCALL CharacterLeafChecksum(Character* self, Crc32* crc);         // 0x56f2f0
+int REB_THISCALL CharacterLeafCreateViews(Character* self, int controlKind, NotifyContext* ctx);  // 0x56f2a0
 // Second level, owned by MajorChar30's range and used by Character38's slots as well: forward to the above.
-int __thiscall MajorLeafRead(Character* self, istream* in);            // 0x56ef50
-int __thiscall MajorLeafWrite(Character* self, ostream* out);          // 0x56ef60
-int __thiscall MajorLeafApplyAll(Character* self, NotifyContext* ctx);  // 0x56ef70
-int __thiscall MajorLeafChecksum(Character* self, Crc32* crc);         // 0x56ef80
+int REB_THISCALL MajorLeafRead(Character* self, istream* in);            // 0x56ef50
+int REB_THISCALL MajorLeafWrite(Character* self, ostream* out);          // 0x56ef60
+int REB_THISCALL MajorLeafApplyAll(Character* self, NotifyContext* ctx);  // 0x56ef70
+int REB_THISCALL MajorLeafChecksum(Character* self, Crc32* crc);         // 0x56ef80
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

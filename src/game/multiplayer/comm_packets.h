@@ -35,14 +35,14 @@ constexpr uint32_t kCommMessageMagic = 0xabcddcba;
 class ServiceProviderInfo : public IdNode {
 public:
     ServiceProviderInfo(const GUID* guid, const char* name, DWORD majorVersion, DWORD minorVersion,
-                        DWORD context);                       // 0x5f79b0
+                        DWORD_PTR context);                       // 0x5f79b0
     explicit ServiceProviderInfo(const ServiceProviderInfo& other);  // 0x5f7a50
     virtual ~ServiceProviderInfo();                           // 0x5f7ae0 (deleting 0x5f7a30)
 
     const GUID* m_guid;    // +0x1c
     DWORD m_majorVersion;  // +0x20
     DWORD m_minorVersion;  // +0x24
-    DWORD m_context;       // +0x28
+    DWORD_PTR m_context;   // +0x28
     String m_name;         // +0x2c
 };
 

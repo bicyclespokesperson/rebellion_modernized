@@ -42,7 +42,7 @@ int Notice31::GetKind() { return 31; }
 
 UiNotice* Notice31::Virtual10() { return NewOrNull<Notice31>(); }
 
-void Notice31::Virtual08(int kind, int a, int b) {
+void Notice31::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind == 0x128 && (b & 1) != 0) {
         m_unk40 = 1;
         m_unk28 = 0x11;
@@ -79,7 +79,7 @@ int Notice32::GetKind() { return 32; }
 
 UiNotice* Notice32::Virtual10() { return NewOrNull<Notice32>(); }
 
-void Notice32::OnMessage(int kind, int a, int b) {
+void Notice32::OnMessage(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x302) {
         UiNotice::OnMessage(kind, a, b);
         return;
@@ -92,7 +92,7 @@ void Notice32::OnMessage(int kind, int a, int b) {
     }
 }
 
-void Notice32::Virtual08(int kind, int a, int b) {
+void Notice32::Virtual08(int kind, intptr_t a, intptr_t b) {
     const ObjectKey* key = reinterpret_cast<const ObjectKey*>(a);
     if (kind != 2) {
         if (kind == 0x154) {
@@ -158,7 +158,7 @@ void Notice32::Virtual08(int kind, int a, int b) {
     m_unk28 = 0x1c;
 }
 
-void Notice32::Virtual09(int kind, int a, int b, int c) {
+void Notice32::Virtual09(int kind, intptr_t a, intptr_t b, intptr_t c) {
     if (kind == 0x141) {
         if (c < b) m_state.m_value |= 1;
         m_state.m_value |= 4;
@@ -197,7 +197,7 @@ int Notice29::GetKind() { return 29; }
 
 UiNotice* Notice29::Virtual10() { return NewOrNull<Notice29>(); }
 
-void Notice29::Virtual05(int kind, int payload) {
+void Notice29::Virtual05(int kind, intptr_t payload) {
     if (kind != 0x1e1) return;
     const IntPairPayload* notif = reinterpret_cast<const IntPairPayload*>(payload);
     ObjectKey characterKey(notif->m_key);
@@ -268,7 +268,7 @@ int Notice28::GetKind() { return 28; }
 
 UiNotice* Notice28::Virtual10() { return NewOrNull<Notice28>(); }
 
-void Notice28::Virtual05(int kind, int payload) {
+void Notice28::Virtual05(int kind, intptr_t payload) {
     if (kind != 0x362) return;
     KeyPairPayload* notif = reinterpret_cast<KeyPairPayload*>(payload);
     ObjectKey nameKey(notif->m_key);
@@ -348,7 +348,7 @@ int Notice30::GetKind() { return 30; }
 
 UiNotice* Notice30::Virtual10() { return NewOrNull<Notice30>(); }
 
-void Notice30::Virtual08(int kind, int a, int b) {
+void Notice30::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind == 0x128) {
         ObjectKey systemKey;
         systemKey.m_value = 0x90000109;
@@ -386,7 +386,7 @@ int Notice26a::GetKind() { return 26; }
 
 UiNotice* Notice26a::Virtual10() { return NewOrNull<Notice26a>(); }
 
-void Notice26a::Virtual08(int kind, int a, int b) {
+void Notice26a::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind == 0x212 && b == 0) {
         ObjectKey characterKey;
         characterKey.m_value = 0x33000243;
@@ -443,7 +443,7 @@ Notice26b::~Notice26b() { REB_KEEP_VPTR_STORE(); }
 
 UiNotice* Notice26b::Virtual10() { return NewOrNull<Notice26b>(); }
 
-void Notice26b::Virtual08(int kind, int a, int b) {
+void Notice26b::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x106) return;
     const ObjectKey* key = reinterpret_cast<const ObjectKey*>(a);
     GameObj* object = static_cast<GameObj*>(GetObjectInFamilies_01_ff(m_owner, key));

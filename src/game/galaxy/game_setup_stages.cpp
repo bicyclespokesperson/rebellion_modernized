@@ -37,14 +37,11 @@ int ApplyEvent315(ObjectKey* key, int kind, int value, NotifyContext* ctx);
 
 namespace {
 
-constexpr int kVirtual48Slot = 48;
-constexpr int kInitializeSlot = 115;
-constexpr int kFacilityOutputSlot = 114;
+constexpr size_t kPastAllFacilityOffset = 0x58;
+
 constexpr uint32_t kViewSideShift = 6;
 constexpr uint32_t kYavinKey = 0x92000121;
 constexpr uint32_t kCoruscantKey = 0x90000109;
-constexpr size_t kCharacterManagerGalaxySizeOffset = 0x5c;
-constexpr size_t kFacilityLevelOffset = 0x58;
 constexpr FamilyRange kSectorFamilies(0x80, 0x90);
 constexpr FamilyRange kSystemFamilies(0x90, 0x98);
 constexpr FamilyRange kSystemFamily90(0x90, 0x92);
@@ -54,12 +51,6 @@ constexpr FamilyRange kFleetFamilies(0x08, 0x10);
 constexpr FamilyRange kCapitalShipFamilies(0x14, 0x1c);
 constexpr FamilyRange kAllFamilies(1, 0xff);
 constexpr FamilyRange kStationFamilies(0x28, 0x30);
-
-template <typename R, typename... A>
-R callVirtual(void* object, int slot, A... args) {
-    using Function = R(__thiscall*)(void*, A...);
-    return reinterpret_cast<Function**>(object)[0][slot](object, args...);
-}
 
 int bothTrue(int result, int ok) { return result != 0 && ok != 0 ? 1 : 0; }
 
@@ -93,7 +84,7 @@ int totalMineOutput(GameObjNotifier* system) {
     int total = 0;
     ChildIterator mines(system, controlSideOf(system), &kMineFamilies, 3);
     for (mines.Begin(); mines.Current() != nullptr; mines.Advance())
-        total += callVirtual<int>(mines.Current(), kFacilityOutputSlot);
+        total += static_cast<Facility*>(mines.Current())->Virtual114();
     return total;
 }
 
@@ -147,8 +138,7 @@ int GameRoot::CreateRootChildren(NotifyContext* ctx) {
                            m_master_f300000f && m_master_f3000010 && m_master_98000440 && m_master_98000441 &&
                            m_master_98000442 && m_master_98000480 && m_master_98000481;
     if (allCreated) {
-        *reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(m_master_fa000008) + kCharacterManagerGalaxySizeOffset) =
-            m_settings.m_field04;
+        static_cast<CharacterMgr*>(m_master_fa000008)->m_galaxySize = m_settings.m_field04;
     }
     return allCreated;
 }
@@ -372,7 +362,7 @@ int GameRoot::InitializeNextSystem(int* done, NotifyContext* ctx) {
     int ok = 1;
     *done = m_nextSystem == nullptr;
     if (*done == 0) {
-        ok = callVirtual<int>(m_nextSystem, kInitializeSlot, ctx) != 0;
+        ok = static_cast<System*>(m_nextSystem)->Virtual115(ctx) != 0;
         m_nextSystem = nextSystem(m_nextSystem);
     }
     return ok;
@@ -529,8 +519,8 @@ int GameRoot::SeedSideReserves(int side, NotifyContext* ctx) {
     int budget = 0;
     int result = sideObject != nullptr;
     if (sideObject != nullptr) {
-        const int available = reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(sideObject) + 0x58)[0] -
-                              reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(sideObject) + 0x58)[1];
+        const Side* sideState = static_cast<Side*>(sideObject);
+        const int available = sideState->m_maintState.m_first - sideState->m_maintState.m_second;
         result = side == 2 ? ScaleEmpireReserveBudget(available, m_settings.m_field04, &budget)
                            : ScaleAllianceReserveBudget(available, m_settings.m_field04, &budget);
     }
@@ -634,10 +624,11 @@ int GameRoot::InitializeAllObjects(NotifyContext* ctx) {
     for (GameObjNotifier* object = GetFirstMasterInFamilies_01_ff(); object != nullptr;
          object = asGameObj(object)->FindNextSibling(&kAllFamilies, 1)) {
         ok = bothTrue(NumberUnitName(static_cast<GameObj*>(object), ctx), ok);
-        ok = bothTrue(callVirtual<int>(object, kVirtual48Slot, ctx), ok);
+        ok = bothTrue(static_cast<GameObj*>(object)->Virtual48(reinterpret_cast<intptr_t>(ctx)), ok);
         const uint32_t objectFamily = object->GetFamily();
         if (objectFamily >= kStationFamilies.m_first && objectFamily < kStationFamilies.m_second) {
-            const int level = *reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(object) + kFacilityLevelOffset);
+            // BUG(original): AllFacility is 0x58 bytes, so this reads the word after the object (heap contents); the offset is the original's, not sizeof(AllFacility).
+            const int level = *reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(object) + kPastAllFacilityOffset);
             ObjectKey key;
             object->GetKey(&key);
             ok = bothTrue(ApplyEvent315(&key, 4, level, ctx), ok);

@@ -83,7 +83,7 @@ constexpr DragButtonSpec kEmpireDragButton = {0x71, 0x32, {0x78, 0x28, 600, 0x18
 
 constexpr uint32_t kConsoleTooltips[kConsoleButtonCount] = {0x1501, 0x1502, 0x1503, 0x1504, 0x1505, 0x1506, 0x1500};
 
-HWND SendToBottom() { return reinterpret_cast<HWND>(1); }
+HWND SendToBottom() { return HWND_BOTTOM; }
 
 }  // namespace
 

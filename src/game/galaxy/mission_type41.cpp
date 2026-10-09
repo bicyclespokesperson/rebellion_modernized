@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "galaxy/mission_type41.h"
 
 #include "core/checked_new.h"
@@ -6,7 +7,7 @@
 #include "mission/mission_bases.h"
 #include "mission/mission_forwarders.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 
 extern int g_mission41EventKindsReady;      // 0x6bb9b0
 extern EventKindSet g_mission41EventKinds;  // 0x6bb9b8

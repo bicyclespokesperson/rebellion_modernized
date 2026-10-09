@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "economy/manu_mgr_leaves.h"
 
 #include <new>
@@ -5,7 +6,7 @@
 #include "core/vptr_store.h"
 #include "gameobj/object_family.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyTrainingFacilManuMgrEventKinds();
 void DestroyConstructionYardManuMgrEventKinds();
 void DestroyShipyardManuMgrEventKinds();
@@ -34,19 +35,19 @@ int applyAllOnSideView(ManuMgr* manager, NotifyContext* ctx) {
 
 // ---- shared bodies and stubs ----------------------------------------------------------------------------------------
 
-int __thiscall ManuMgrReadBody(ManuMgr* self, istream* in) { return self->ManuMgr::Read(in); }
+int REB_THISCALL ManuMgrReadBody(ManuMgr* self, istream* in) { return self->ManuMgr::Read(in); }
 
-int __thiscall ManuMgrWriteBody(ManuMgr* self, ostream* out) { return self->ManuMgr::Write(out); }
+int REB_THISCALL ManuMgrWriteBody(ManuMgr* self, ostream* out) { return self->ManuMgr::Write(out); }
 
-int __thiscall ManuMgrApplyAllBody(ManuMgr* self, NotifyContext* ctx) { return self->ManuMgr::ApplyAll(ctx); }
+int REB_THISCALL ManuMgrApplyAllBody(ManuMgr* self, NotifyContext* ctx) { return self->ManuMgr::ApplyAll(ctx); }
 
-int __thiscall ManuMgrChecksumBody(ManuMgr* self, Crc32* crc) { return self->ManuMgr::Checksum(crc); }
+int REB_THISCALL ManuMgrChecksumBody(ManuMgr* self, Crc32* crc) { return self->ManuMgr::Checksum(crc); }
 
-int __thiscall CreateViewsStubShared(GameObj* self, int controlKind, NotifyContext* ctx) {
+int REB_THISCALL CreateViewsStubShared(GameObj* self, int controlKind, NotifyContext* ctx) {
     return self->GameObj::CreateViews(controlKind, ctx);
 }
 
-int __thiscall CreateViewsStubDefense(GameObj* self, int controlKind, NotifyContext* ctx) {
+int REB_THISCALL CreateViewsStubDefense(GameObj* self, int controlKind, NotifyContext* ctx) {
     return self->GameObj::CreateViews(controlKind, ctx);
 }
 

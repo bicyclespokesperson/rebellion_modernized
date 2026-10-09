@@ -109,7 +109,7 @@ void GalaxyWindow::UpdateMinimizedIcon(CoolWindow* window) {
     DibBitmap picture(CoolAppGetResourceModule(7), static_cast<uint32_t>(iconId), 2);
     DibBitmap* background = GetBackground();
     if (!slot.m_icon) {
-        void* memory = ::operator new(0x28);
+        void* memory = ::operator new(sizeof(DibBitmap));
         slot.m_icon = memory ? new (memory) DibBitmap(area.right - area.left, area.bottom - area.top, background,
                                                       memoryDc)
                              : nullptr;

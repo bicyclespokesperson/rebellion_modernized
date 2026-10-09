@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/mission_selection_window.h"
 
 #include <new>
@@ -159,7 +160,7 @@ MissionSelectionWindow::~MissionSelectionWindow() {
     if (m_tabs) delete m_tabs;
     if (m_missionItems) {
         for (CoolListItem* item = m_missionItems->First(); item; item = item->Next()) {
-            if (item->m_userData) operator delete(reinterpret_cast<void*>(item->m_userData));
+            if (item->m_userPointer) operator delete(reinterpret_cast<void*>(item->m_userPointer));
         }
         if (m_missionItems) delete m_missionItems;
     }
@@ -350,7 +351,7 @@ void MissionSelectionWindow::OnCreate1() {
         item->m_text = nameNode->m_name.m_text;
         item->m_ownColors = 1;
         item->m_color = 0x808080;
-        item->m_userData = reinterpret_cast<uint32_t>(NewOrNull<ObjectKey>(candidateKey));
+        item->m_userPointer = reinterpret_cast<uintptr_t>(NewOrNull<ObjectKey>(candidateKey));
         m_missionItems->Insert(item);
     }
     CoolListItem* firstMission = m_missionItems->First();
@@ -426,11 +427,11 @@ void MissionSelectionWindow::OnCreate1() {
 
 // ---- Commands -------------------------------------------------------------------------------------------------
 
-ObjectKeyValueSet* __thiscall MissionOrderCopyTeam(MissionOrder240* order, ObjectKeyValueSet* out) {
+ObjectKeyValueSet* REB_THISCALL MissionOrderCopyTeam(MissionOrder240* order, ObjectKeyValueSet* out) {
     return new (out) ObjectKeyValueSet(*order->GetTeam());
 }
 
-ObjectKeyValueSet* __thiscall MissionOrderCopyCharacters(MissionOrder240* order, ObjectKeyValueSet* out) {
+ObjectKeyValueSet* REB_THISCALL MissionOrderCopyCharacters(MissionOrder240* order, ObjectKeyValueSet* out) {
     return new (out) ObjectKeyValueSet(order->m_characters);
 }
 
@@ -522,7 +523,7 @@ void MissionSelectionWindow::OnCommand(int a, int b, int c) {
     switch (command) {
     case 0x66: {
         CoolListItem* selection = m_missionBox->GetSelection();
-        m_order->m_missionKey = *reinterpret_cast<NullableKey*>(selection->m_userData);
+        m_order->m_missionKey = *reinterpret_cast<NullableKey*>(selection->m_userPointer);
         UiHumanReceiveMessage(reinterpret_cast<PlayerMessage*>(m_order), 0);
         m_order = nullptr;
     }
@@ -537,7 +538,7 @@ void MissionSelectionWindow::OnCommand(int a, int b, int c) {
         break;
     case 0x67: {
         CoolListItem* selection = m_missionBox->GetSelection();
-        ObjectKey type(*reinterpret_cast<ObjectKey*>(selection->m_userData));
+        ObjectKey type(*reinterpret_cast<ObjectKey*>(selection->m_userPointer));
         ObjectKey object;
         UiOpenEncyclopedia(&object, reinterpret_cast<NullableKey*>(&type));
         break;
@@ -595,7 +596,7 @@ void MissionSelectionWindow::OnCommand(int a, int b, int c) {
     }
 }
 
-int __stdcall MissionKindItemId(DatRecord* record) {
+int REB_STDCALL MissionKindItemId(DatRecord* record) {
     switch (record->m_third) {
     case 0x51:
         return 7;

@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -20,7 +21,7 @@ public:
                       int state);  // 0x406950
     virtual ~GameOptionsWindow();  // 0x406ac0 (scalar deleting destructor 0x406aa0)
 
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x406b80
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x406b80
     virtual void DrawOverlay(HDC dc) override;                                                   // slot 14, 0x408bc0
 
     // Sets up the background picture and its palette.

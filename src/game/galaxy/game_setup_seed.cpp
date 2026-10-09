@@ -1,8 +1,10 @@
+#include "core/reb_abi.h"
 #include "galaxy/game_setup_seed.h"
 
 #include <new>
 
 #include "data/probability_table.h"
+#include "data/seed_table_entry.h"
 #include "data/sd_records.h"
 #include "events/command_classes.h"
 #include "events/event_post.h"
@@ -25,16 +27,9 @@ namespace {
 constexpr uint32_t kViewSideShift = 6;
 constexpr uint32_t kPopulated = 0x1;
 constexpr uint32_t kNeverBeenControlled = 0x8;
-constexpr int kVirtual47Slot = 47;
 constexpr int kStageDone = 0x1a;
 constexpr FamilyRange kSystemFamilies(0x90, 0x98);
 constexpr FamilyRange kSectorFamilies(0x80, 0x90);
-
-template <typename R, typename... A>
-R callVirtual(void* object, int slot, A... args) {
-    using Function = R(__thiscall*)(void*, A...);
-    return reinterpret_cast<Function**>(object)[0][slot](object, args...);
-}
 
 int bothTrue(int result, int ok) { return result != 0 && ok != 0 ? 1 : 0; }
 
@@ -74,7 +69,7 @@ uint32_t ApplyLoyaltyRuleToSystem(System* system, const LoyaltyRule* rule, Notif
         const int target = rule->m_threshold;
         if ((system->m_flags & kPopulated) != 0 && (system->m_flags & kNeverBeenControlled) == 0 &&
             system->System::GetLoyaltyFor(rule->m_unitSide) < target) {
-            void* memory = ::operator new(0x44);
+            void* memory = ::operator new(sizeof(LoyaltyEvent373));
             LoyaltyEvent373* command = memory ? new (memory) LoyaltyEvent373() : nullptr;
             result = command != nullptr;
             if (result != 0) {
@@ -97,11 +92,11 @@ uint32_t ApplyLoyaltyRuleToSystem(System* system, const LoyaltyRule* rule, Notif
     return result;
 }
 
-GameObjNotifier* __thiscall GetNextSectorMaster(GameObjNotifier* sector) {
+GameObjNotifier* REB_THISCALL GetNextSectorMaster(GameObjNotifier* sector) {
     return static_cast<GameObj*>(sector)->FindNextSibling(&kSectorFamilies, 1);
 }
 
-GameObjNotifier* __thiscall NextSystemMaster(GameObjNotifier* system) {
+GameObjNotifier* REB_THISCALL NextSystemMaster(GameObjNotifier* system) {
     return static_cast<GameObj*>(system)->FindNextSibling(&kSystemFamilies, 1);
 }
 
@@ -125,7 +120,7 @@ int GameRoot::PlaceSystem(ObjectKey* systemKey, int unusedA, int initArg, int le
     if (system != nullptr) {
         const int levelSet = (static_cast<System*>(system))->System::SetDataFlag1(level);
         const int firstOk = bothTrue(levelSet, ok);
-        const int announced = callVirtual<int>(system, kVirtual47Slot, ctx);
+        const int announced = static_cast<GameObj*>(system)->Virtual47(reinterpret_cast<intptr_t>(ctx));
         const int secondOk = bothTrue(announced, firstOk);
         const int flagged = (static_cast<System*>(system))->System::SetDataFlag2(1);
         ok = bothTrue(flagged, secondOk);
@@ -164,7 +159,7 @@ int GameRoot::SeedFromTableRows(GameObjNotifier* parent, int tableType, int firs
         TableEntry* row = FindTableRecord(tableType, first);
         ok = bothTrue(row != nullptr, ok);
         if (row != nullptr && row->m_field20 == first) {
-            ObjectRefList* list = reinterpret_cast<ObjectRefList*>(reinterpret_cast<uint8_t*>(row) + 0x28);
+            ObjectRefList* list = &static_cast<SeedTableEntry*>(row)->m_units;
             ok = bothTrue(CreateChildrenFromList(parent, TableRecordFirstValue(row), list, ctx), ok);
         }
     }

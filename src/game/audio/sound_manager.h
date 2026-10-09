@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "audio/cd_audio.h"
@@ -66,7 +67,7 @@ REB_ASSERT_SIZE(SoundRequest, 0x14);
 REB_ASSERT_OFFSET(SoundRequest, m_soundId, 0x04);
 REB_ASSERT_OFFSET(SoundRequest, m_handle, 0x0c);
 
-typedef void(__cdecl* SoundEventCallback)(uint32_t message, uint32_t first, uint32_t second);
+typedef void(REB_CDECL* SoundEventCallback)(uint32_t message, uint32_t first, uint32_t second);
 
 extern HWND g_soundWindow;                  // 0x6be664
 extern IDirectSound* g_directSound;         // 0x6be668
@@ -129,7 +130,7 @@ public:
     static int CreateResourceSource(SoundRequest* request, HMODULE module, SoundSource** source);  // 0x611890
     static int CreateFileSource(SoundRequest* request, const char* fileName, long seekPosition, SoundSource** source);  // 0x611960
 
-    static void __cdecl EventThreadProc();                                       // 0x6119f0
+    static void REB_CDECL EventThreadProc();                                       // 0x6119f0
     static int QueueEvent(uint32_t message, uint32_t first, uint32_t second);    // 0x611b00
     static int StartEventThread();                                               // 0x611bf0
     static void StopEventThread();                                               // 0x611cb0

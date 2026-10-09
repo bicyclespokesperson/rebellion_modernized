@@ -1,3 +1,5 @@
+#include "data/sd_records.h"
+#include "core/reb_abi.h"
 #include <cstdint>
 #include <new>
 
@@ -73,6 +75,9 @@ void PlayMinimizeSound(int side, int firstSoundId) {
 
 bool IsInRange(uint32_t value, uint32_t first, uint32_t end) { return value >= first && value < end; }
 
+// The record's two 16-bit name ids (+0x30, +0x32) read as one word.
+uint32_t RecordNameBits(const DatRecord* record) { return record->m_small | (static_cast<uint32_t>(record->m_small2) << 16); }
+
 // Which records the encyclopedia lists: the unit, facility and character families, and the 0x50-0x7f families
 // whose record does not carry the "hidden" value at +0x5c.
 bool IsListedRecord(const ObjectKey* key) {
@@ -81,7 +86,7 @@ bool IsListedRecord(const ObjectKey* key) {
                   IsInRange(family, 0x10, 0x14) || IsInRange(family, 0x30, 0x40) || IsInRange(family, 8, 0x10);
     if (IsInRange(family, 0x50, 0x80)) {
         DatRecord* record = FindDataRecord(AsLookupKey(key));
-        if (record) listed = *reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(record) + 0x5c) == 0;
+        if (record) listed = static_cast<MissionSD*>(record)->m_hidden == 0;
     }
     return listed;
 }
@@ -102,12 +107,12 @@ void LoadEncyclopediaTitle(String* title, uint32_t recordBits) {
 
 }  // namespace
 
-IntPair* __thiscall Side::GetMineStateCopy(IntPair* out) {
+IntPair* REB_THISCALL Side::GetMineStateCopy(IntPair* out) {
     new (out) IntPair(m_mineState);
     return out;
 }
 
-IntPair* __thiscall Side::GetRefineryStateCopy(IntPair* out) {
+IntPair* REB_THISCALL Side::GetRefineryStateCopy(IntPair* out) {
     new (out) IntPair(m_refineryState);
     return out;
 }
@@ -198,7 +203,7 @@ GalaxyWindow::GalaxyWindow(HINSTANCE instance, int x, int y, int width, int heig
     HMODULE textComm = LoadResourceModule(dllLocation, g_textcommDllName, kTextCommSlot);
     HACCEL accelerators = LoadAcceleratorsA(textComm, MAKEINTRESOURCEA(0xb));
     if (accelerators != nullptr && g_app != nullptr) {
-        g_app->m_unknown98 = static_cast<int>(reinterpret_cast<uintptr_t>(accelerators));
+        g_app->m_unknown98 = reinterpret_cast<uintptr_t>(accelerators);
     }
     if (dllLocation) ::operator delete(dllLocation);
 }
@@ -311,13 +316,13 @@ void GalaxyWindow::InitializeGameDisplay() {
     if (!m_encyclopediaItems) {
         ObjectRefList records;
         ListAllDataRecordKeys(&records);
-        void* memory = ::operator new(0x10);
+        void* memory = ::operator new(sizeof(CoolListItemList));
         m_encyclopediaItems = memory ? new (memory) CoolListItemList(2) : nullptr;
         for (AvlNode* node = records.First(); node; node = node->m_successor) {
             const ObjectKey* recordKey = &static_cast<ObjectRefNode*>(node)->m_key;
             if (!IsListedRecord(recordKey)) continue;
             DatRecord* record = FindDataRecord(AsLookupKey(recordKey));
-            const uint32_t recordBits = *reinterpret_cast<uint32_t*>(reinterpret_cast<uint8_t*>(record) + 0x30);
+            const uint32_t recordBits = RecordNameBits(record);
             const uint32_t itemId = (recordBits & kEncyclopediaIdMask) + kEncyclopediaIdBase;
             if (m_encyclopediaItems->FindById(itemId)) continue;
             String title;
@@ -330,7 +335,7 @@ void GalaxyWindow::InitializeGameDisplay() {
         FamilyRange systemFamilies(0x90, 0x98);
         for (GameObjNotifier* system = GetFirstObjectInFamilies_90_98(m_side); system;
              system = static_cast<GameObj*>(system)->FindNextSibling(&systemFamilies, 1)) {
-            const uint32_t recordBits = *reinterpret_cast<uint32_t*>(reinterpret_cast<uint8_t*>(system->m_record) + 0x30);
+            const uint32_t recordBits = RecordNameBits(system->m_record);
             const uint32_t itemId = (recordBits & kEncyclopediaIdMask) + kEncyclopediaIdBase;
             if (m_encyclopediaItems->FindById(itemId)) continue;
             String title;

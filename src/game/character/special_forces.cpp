@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "character/special_forces.h"
 
 #include "core/checked_new.h"
@@ -6,7 +7,7 @@
 #include "economy/manu_mgr_leaves.h"
 #include "gameobj/object_family.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroySpecialForcesEventKinds();
 
 extern int g_specialForcesEventKindsReady;       // 0x6b2b50

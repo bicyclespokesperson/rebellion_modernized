@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "events/event_post.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
@@ -8,7 +9,7 @@
 #include "story/story_common.h"
 
 // The strategic rules object (game root member +0xbc, family 0xf9): 0x556c70 is the call the Han and Palace steps make.
-ObjectKey* __thiscall GetOwnerKeyValue(GameObjNotifier* self, ObjectKey* out);
+ObjectKey* REB_THISCALL GetOwnerKeyValue(GameObjNotifier* self, ObjectKey* out);
 
 
 // The story of the game: Luke is trained on Dagobah, meets Han on the Palace, Darth Vader takes the heroes captive and the final
@@ -37,9 +38,9 @@ constexpr uint32_t kFamilySystemEnd = 0x98;
 constexpr uint32_t kRoleOnMission = role_flag::kOnMission;
 constexpr uint32_t kRoleBusyMask = role_flag::kOnMission | role_flag::kAdrift;
 
-int contextAsArgument(NotifyContext* ctx) { return static_cast<int>(reinterpret_cast<intptr_t>(ctx)); }
+intptr_t contextAsArgument(NotifyContext* ctx) { return reinterpret_cast<intptr_t>(ctx); }
 
-int keyAsArgument(ObjectKey* key) { return static_cast<int>(reinterpret_cast<intptr_t>(key)); }
+intptr_t keyAsArgument(ObjectKey* key) { return reinterpret_cast<intptr_t>(key); }
 
 // One named story character as the finders report it: the master, the object that holds it and that object's key.
 struct StoryActor {
@@ -126,20 +127,20 @@ int MissionMgr::FindEmperor(GameObjNotifier** character, GameObjNotifier** locat
     return locate(GetMaster_34000280(), character, location, locationKey);
 }
 
-int __stdcall MissionMgr::IsStoryCharacterKey(const ObjectKey* key) {
+int REB_STDCALL MissionMgr::IsStoryCharacterKey(const ObjectKey* key) {
     const uint32_t value = key->m_value;
     return value == kKeyLuke || value == kKeyLeia || value == kKeyHan || value == kKeyChewbacca || value == kKeyDarth ||
            value == kKeyEmperor;
 }
 
-int __stdcall MissionMgr::IsStoryCharacterFree(Character* character) {
+int REB_STDCALL MissionMgr::IsStoryCharacterFree(Character* character) {
     return !(character->m_flagsAc & 1) && (character->m_stateFlags & 1) && !(character->m_stateFlags & 0x1000) &&
                    !(character->m_flags78 & role_flag::kAdrift)
                ? 1
                : 0;
 }
 
-int __stdcall MissionMgr::IsStoryCharacterIdle(Character* character) {
+int REB_STDCALL MissionMgr::IsStoryCharacterIdle(Character* character) {
     return IsStoryCharacterFree(character) && !(character->m_flags78 & kRoleOnMission) ? 1 : 0;
 }
 

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <cstddef>
 #include <cstdlib>
 
@@ -5,14 +6,14 @@
 // partitions of at most 8 elements finished by a selection sort (__shortsort 0x61a270). The order of elements that
 // compare equal is part of the game's behaviour (it sorts systems by distance), so this is the algorithm, not "a sort".
 
-using Compare = int(__cdecl*)(const void*, const void*);
+using Compare = int(REB_CDECL*)(const void*, const void*);
 
 namespace {
 constexpr unsigned kCutoff = 8;
 constexpr int kStackSize = 30;
 }  // namespace
 
-extern "C" void __cdecl _swap(char* a, char* b, unsigned width) {
+extern "C" void REB_CDECL _swap(char* a, char* b, unsigned width) {
     if (a == b) return;
     while (width--) {
         const char t = *a;
@@ -21,7 +22,7 @@ extern "C" void __cdecl _swap(char* a, char* b, unsigned width) {
     }
 }
 
-extern "C" void __cdecl _shortsort(char* lo, char* hi, unsigned width, Compare comp) {
+extern "C" void REB_CDECL _shortsort(char* lo, char* hi, unsigned width, Compare comp) {
     while (hi > lo) {
         char* max = lo;
         for (char* p = lo + width; p <= hi; p += width)
@@ -31,7 +32,7 @@ extern "C" void __cdecl _shortsort(char* lo, char* hi, unsigned width, Compare c
     }
 }
 
-extern "C" void __cdecl qsort(void* base, size_t num, size_t width, Compare comp) {
+extern "C" void REB_CDECL qsort(void* base, size_t num, size_t width, Compare comp) {
     if (num < 2 || width == 0) return;
     char* lostk[kStackSize];
     char* histk[kStackSize];

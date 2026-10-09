@@ -1,5 +1,6 @@
 #include <algorithm>
 
+#include "economy/manu_mgr.h"
 #include "ai/ai_character_records.h"
 #include "ai/ai_class_records.h"
 #include "ai/ai_common.h"
@@ -77,8 +78,9 @@ void AiSystemEval::Load(istream* in) {
     ReadValue32(in, &m_dirty);
     ReadValue32(in, &m_touchedDay);
     ReadValue32(in, &m_combatDay);
-    ReadValue16(in, &m_position);
-    ReadValue16(in, reinterpret_cast<uint8_t*>(&m_position) + 2);
+    uint16_t* positionHalves = reinterpret_cast<uint16_t*>(&m_position);
+    ReadValue16(in, &positionHalves[0]);
+    ReadValue16(in, &positionHalves[1]);
     m_flags28.Read(in);
     m_flags30.Read(in);
     m_flags2c.Read(in);
@@ -93,8 +95,9 @@ void AiSystemEval::Save(ostream* out) {
     WriteValue32(out, &m_dirty);
     WriteValue32(out, &m_touchedDay);
     WriteValue32(out, &m_combatDay);
-    WriteValue16(out, &m_position);
-    WriteValue16(out, reinterpret_cast<uint8_t*>(&m_position) + 2);
+    const uint16_t* positionHalves = reinterpret_cast<const uint16_t*>(&m_position);
+    WriteValue16(out, &positionHalves[0]);
+    WriteValue16(out, &positionHalves[1]);
     m_flags28.Write(out);
     m_flags30.Write(out);
     m_flags2c.Write(out);
@@ -314,7 +317,7 @@ void AiSystemEval::Refresh() {
         f28 |= 0x1000;
         if (0 < Stat(0x58) && (f28 & 3) == 0) {
             GameObjNotifier* manager = system->FindManufacturingManagerBySlot123(0);
-            if (manager && *reinterpret_cast<const int*>(reinterpret_cast<const uint8_t*>(manager) + 0x58) == 0)
+            if (manager && static_cast<const ManuMgr*>(manager)->m_remainingGameObjCount == 0)
                 f28 |= 0x200;
         }
     }
@@ -336,7 +339,7 @@ void AiSystemEval::Refresh() {
         f28 |= 0x1000;
         if (0 < Stat(0x5c) && (f28 & 3) == 0) {
             GameObjNotifier* manager = system->FindManufacturingManagerBySlot123(2);
-            if (manager && *reinterpret_cast<const int*>(reinterpret_cast<const uint8_t*>(manager) + 0x58) == 0)
+            if (manager && static_cast<const ManuMgr*>(manager)->m_remainingGameObjCount == 0)
                 f28 |= 0x400;
         }
     }
@@ -358,7 +361,7 @@ void AiSystemEval::Refresh() {
         f28 |= 0x1000;
         if (0 < Stat(0x60) && (f28 & 3) == 0) {
             GameObjNotifier* manager = system->FindManufacturingManagerBySlot123(1);
-            if (manager && *reinterpret_cast<const int*>(reinterpret_cast<const uint8_t*>(manager) + 0x58) == 0)
+            if (manager && static_cast<const ManuMgr*>(manager)->m_remainingGameObjCount == 0)
                 f28 |= 0x800;
         }
     }

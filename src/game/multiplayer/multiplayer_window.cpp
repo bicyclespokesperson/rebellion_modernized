@@ -1,6 +1,7 @@
 // MultiPlayerWindow, part 1: construction, the window procedure, the command handler and the creation of the pages'
 // texts and controls. The pages and the network handling are in multiplayer_window_pages.cpp and
 // multiplayer_lobby.cpp.
+#include "core/reb_abi.h"
 #include "multiplayer/multiplayer_window.h"
 
 #include "app/app_control_cmds.h"
@@ -62,12 +63,12 @@ CoolStrobeButton* MultiPlayerWindow::*const kButtonMembers[] = {
 
 void DeleteProviderData(CoolDragList* list) {
     for (CoolListItem* item = list->m_items->First(); item; item = item->Next())
-        if (item->m_userData) delete reinterpret_cast<ServiceProviderInfo*>(item->m_userData);
+        if (item->m_userPointer) delete reinterpret_cast<ServiceProviderInfo*>(item->m_userPointer);
 }
 
 void DeleteSessionData(CoolDragList* list) {
     for (CoolListItem* item = list->m_items->First(); item; item = item->Next())
-        if (item->m_userData) delete reinterpret_cast<SessionInfo*>(item->m_userData);
+        if (item->m_userPointer) delete reinterpret_cast<SessionInfo*>(item->m_userPointer);
 }
 
 void DrawPageText(MultiPlayerWindow* window, UINT stringId, const RECT& area, UINT format) {
@@ -175,7 +176,7 @@ MultiPlayerWindow::~MultiPlayerWindow() {
 
 // ---- window procedure and commands ------------------------------------------------------------------------------
 
-LRESULT __stdcall MultiPlayerWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL MultiPlayerWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     LRESULT result = 0;
     if (m_ready == 1) {
         ProcessNetwork();

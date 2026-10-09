@@ -30,7 +30,7 @@ CommMgr* TraceTarget() { return GetCommMgr(); }
 // ---- ServiceProviderInfo / SessionInfo ------------------------------------------------------------------------
 
 ServiceProviderInfo::ServiceProviderInfo(const GUID* guid, const char* name, DWORD majorVersion, DWORD minorVersion,
-                                         DWORD context)
+                                         DWORD_PTR context)
     : IdNode(), m_name() {
     m_guid = guid;
     m_name = name;

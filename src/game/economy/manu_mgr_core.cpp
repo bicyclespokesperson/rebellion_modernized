@@ -1,13 +1,14 @@
+#include "core/reb_abi.h"
 #include <new>
 
 #include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "economy/manu_mgr.h"
-#include "economy/manu_mgr_decl.h"
+#include "economy/manufacturing_facility.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_type_db.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyManuMgrEmptyQueue();
 void DestroyManuMgrEventKinds();
 
@@ -60,7 +61,7 @@ GameObjData* ManuMgr::CreateData() {
 
 // ---- names ---------------------------------------------------------------------------------------------------
 
-void __thiscall AppendManuMgrName(ObjectBase* base, String* out, int kind) {
+void REB_THISCALL AppendManuMgrName(ObjectBase* base, String* out, int kind) {
     ManuMgr* self = static_cast<ManuMgr*>(static_cast<GameObj*>(base));
     if (kind == kWriteNameSeedRecord) {
         ObjectKey key;
@@ -177,7 +178,7 @@ int ManuMgr::IsAcceptableProduct(GameObj* product) {
 
 int ManuMgr::IsCompatibleFacility(GameObj* facility) {
     if (!facility) return 0;
-    const int facilityKind = GetFacilityProductKind(facility);
+    const int facilityKind = static_cast<ManufacturingFacility*>(facility)->GetManufacturingKind();
     const int myKind = GetFacilityKind();
     if (facilityKind != myKind || !(facility->m_stateFlags & kUsable)) return 0;
     if (((m_flags ^ facility->m_flags) & kControlBits) != 0) return 0;
@@ -193,7 +194,7 @@ int ManuMgr::CountHostFacilities(int includeOutOfService) {
         while (facilities.Current()) {
             GameObjNotifier* facility = facilities.Current();
             if (IsCompatibleFacility(static_cast<GameObj*>(facility)) &&
-                ((AsFacilityFields(facility)->m_flags & 1) == 0 || includeOutOfService != 0)) {
+                ((AsProcFacil(facility)->m_procFlags & 1) == 0 || includeOutOfService != 0)) {
                 ++count;
             }
             facilities.Advance();
@@ -213,7 +214,7 @@ int ManuMgr::HasHostFacility(int includeOutOfService) {
             GameObjNotifier* facility = facilities.Current();
             if (!IsCompatibleFacility(static_cast<GameObj*>(facility))) {
                 found = 0;
-            } else if ((AsFacilityFields(facilities.Current())->m_flags & 1) != 0 && includeOutOfService == 0) {
+            } else if ((AsProcFacil(facilities.Current())->m_procFlags & 1) != 0 && includeOutOfService == 0) {
                 found = 0;
             } else {
                 found = 1;

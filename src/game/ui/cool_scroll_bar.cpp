@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/cool_scroll_bar.h"
 
 #include "core/checked_new.h"
@@ -9,7 +10,6 @@
 namespace {
 
 constexpr uint32_t kScrollBarStyle = WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN;
-constexpr size_t kStrobeButtonSize = 0x114;
 constexpr int kArrowButtonUnknown = 50;
 constexpr char kBitBltMode = '@';
 constexpr UINT kDragTimerPeriodMs = 50;
@@ -77,7 +77,7 @@ CoolScrollBar::~CoolScrollBar() {
     REB_KEEP_VPTR_STORE();
 }
 
-LRESULT __stdcall CoolScrollBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL CoolScrollBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_PAINT: {
             HWND hwnd = m_hwnd;
@@ -117,7 +117,7 @@ void CoolScrollBar::CreateArrowButton(CoolWindow*& button, HMODULE module, uint1
                                       uint32_t childId) {
     DibBitmap* image = LoadArtBitmap(module, normalId);
     if (image) {
-        void* memory = ::operator new(kStrobeButtonSize);
+        void* memory = ::operator new(sizeof(CoolStrobeButton));
         button = memory ? new (memory) CoolStrobeButton(module, 0, 0, image->Width(), image->Height(), this, childId, normalId, pressedId, m_trackTile, kArrowButtonUnknown, m_buttonFlags)
                         : nullptr;
         delete image;

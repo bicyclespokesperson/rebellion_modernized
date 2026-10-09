@@ -250,14 +250,14 @@ int RebellionApplication::IsSessionActive() {
 }
 
 void RebellionApplication::SendSaveCommand(int a, int b, String name, int d) {
-    void* commandMemory = operator new(0x38);
+    void* commandMemory = operator new(sizeof(MpPlayerInfoMsg));
     AppCommand* command = commandMemory ? reinterpret_cast<AppCommand*>(new (commandMemory) MpPlayerInfoMsg()) : nullptr;
     if (!command) return;
     command->m_unknown24 = b;
     command->m_unknown20 = a;
     command->SetName(name);
     command->m_unknown34 = d;
-    void* executorMemory = operator new(0x1c);
+    void* executorMemory = operator new(sizeof(MessageCodec));
     CommandExecutor* executor = executorMemory ? static_cast<CommandExecutor*>(new (executorMemory) MessageCodec()) : nullptr;
     if (!executor) return;
     static_cast<MessageCodec*>(executor)->MessageCodec::Serialize(reinterpret_cast<MessageBase*>(command));

@@ -62,7 +62,7 @@ Order242::Order242() : OrderBase() {}
 Order242::~Order242() { REB_KEEP_VPTR_STORE(); }
 
 Command* Order242::CreateCommand() {
-    void* memory = ::operator new(0x50);
+    void* memory = ::operator new(sizeof(RoleActivityCommand));
     return memory ? new (memory) RoleActivityCommand() : nullptr;
 }
 

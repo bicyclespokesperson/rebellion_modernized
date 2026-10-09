@@ -89,7 +89,7 @@ Notice1::~Notice1() {
 
 UiNotice* Notice1::Virtual10() { return NewOrNull<Notice1>(); }
 
-void Notice1::Virtual08(int kind, int a, int b) {
+void Notice1::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x14d) return;
     const ObjectKey* key = reinterpret_cast<const ObjectKey*>(a);
     if (!notice::inFamilies(*key, 0x90, 0x98)) return;
@@ -232,7 +232,7 @@ int Notice15::GetClass() { return (m_owner == 1 ? m_f6c != 1 : m_f6c != 2) ? 3 :
 
 UiNotice* Notice15::Virtual10() { return NewOrNull<Notice15>(); }
 
-void Notice15::OnMessage(int kind, int a, int b) {
+void Notice15::OnMessage(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x302) {
         UiNotice::OnMessage(kind, a, b);
         return;

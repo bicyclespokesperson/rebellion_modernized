@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "platform/win32.h"
@@ -17,12 +18,12 @@ public:
     // Slot 5: WM_PAINT draws the background (slot 10) and then the overlay (slot 14); WM_DESTROY returns 0 without
     // reaching the base; WM_ERASEBKGND is claimed; WM_CTLCOLORBTN gives buttons the null brush; the palette
     // messages realize g_palette. Everything else goes to CoolWindow::WindowProc.
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x5ff530
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x5ff530
     virtual void DrawRect(HDC dc, const RECT* area);   // slot 9, 0x5ff4b0: background, clipped to `area`
     virtual void Draw(HDC dc);                         // slot 10, 0x5ff450: whole background
     virtual void Virtual0B();                          // slot 11, 0x619730: does nothing
     virtual void Virtual0C();                          // slot 12, 0x619730: does nothing
-    virtual int Virtual0D(int a, int b, int c, int d, int e);  // slot 13, 0x5ff810: returns 0
+    virtual int Virtual0D(int a, int b, int c, intptr_t d, int e);  // slot 13, 0x5ff810: returns 0
     virtual void DrawOverlay(HDC dc);                  // slot 14, 0x5ae1e0: does nothing; WM_PAINT calls it last
 
     // Gives the window its background. `image` (owned, deleted here) is copied or drawn over the existing

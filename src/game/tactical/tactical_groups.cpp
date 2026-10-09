@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "tactical/tactical_groups.h"
 
 #include <new>
@@ -11,7 +12,6 @@
 
 namespace {
 
-constexpr int kBehaviorSize = 0x3c;
 constexpr float kDefaultBehaviorRange = 5.0f;
 constexpr int kFighterGroupKind = 3;
 constexpr int kCapitalGroupKind = 4;
@@ -105,7 +105,7 @@ ShipGroup::ShipGroup(int seedHandle) {
     m_unkb4 = 0;
     m_unk38 = 2;
     m_unk3c = 2;
-    void* memory = ::operator new(kBehaviorSize);
+    void* memory = ::operator new(sizeof(ShipGroupBehavior));
     m_behavior = memory ? new (memory) ShipGroupBehavior(this) : nullptr;
     m_order = nullptr;
     m_seedHandle = seedHandle;
@@ -131,7 +131,7 @@ ShipGroup::ShipGroup(int seedHandle, int id) {
     m_unkb4 = 0;
     m_unk38 = 2;
     m_unk3c = 2;
-    void* memory = ::operator new(kBehaviorSize);
+    void* memory = ::operator new(sizeof(ShipGroupBehavior));
     m_behavior = memory ? new (memory) ShipGroupBehavior(this) : nullptr;
     m_order = nullptr;
     m_seedHandle = seedHandle;
@@ -282,7 +282,7 @@ CapitalShipGroup::CapitalShipGroup(int seedHandle) : ShipGroup(seedHandle) {
     m_unkc0 = 0;
     TacticalShipBase* seed = shipByHandle(seedHandle);
     if (seed) {
-        void* memory = ::operator new(0x144);
+        void* memory = ::operator new(sizeof(CapitalShipFormation));
         m_formation = memory ? new (memory) CapitalShipFormation(seedHandle, seed->m_position) : nullptr;
         m_formation->AddMember(seedHandle);
     }
@@ -302,7 +302,7 @@ void CapitalShipGroup::SetMode(int mode) { ShipGroup::SetMode(mode); }
 
 FighterGroup::FighterGroup(int seedHandle) : ShipGroup(seedHandle) {
     TacticalShipBase* seed = shipByHandle(seedHandle);
-    void* memory = ::operator new(0x140);
+    void* memory = ::operator new(sizeof(FighterFormation));
     m_formation = memory ? new (memory) FighterFormation(seedHandle, seed->m_position) : nullptr;
     m_formation->AddMember(seedHandle);
     m_unk3c = 2;
@@ -313,16 +313,16 @@ FighterGroup::FighterGroup(int seedHandle) : ShipGroup(seedHandle) {
 
 FighterGroup::~FighterGroup() {}
 
-void __stdcall RemoveMemberFromGroup(ShipGroup* group, int handle) {
+void REB_STDCALL RemoveMemberFromGroup(ShipGroup* group, int handle) {
     if (group) group->RemoveMember(handle);
 }
 
-void __stdcall RegisterFighterGroup(ShipGroup* group) {
+void REB_STDCALL RegisterFighterGroup(ShipGroup* group) {
     group->AssignHandle(group->m_side);
     GetTacticalRegistry()->AddFighterGroup(group);
 }
 
-void __stdcall RegisterCapitalShipGroup(ShipGroup* group) {
+void REB_STDCALL RegisterCapitalShipGroup(ShipGroup* group) {
     group->AssignHandle(group->m_side);
     GetTacticalRegistry()->AddCapitalShipGroup(group);
 }

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "fleet/fight_squad.h"
 
 #include <new>
@@ -11,7 +12,7 @@
 #include "gameobj/object_family.h"
 #include "gameobj/side_bits.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyFightSquadEventKinds();
 
 extern int g_fightSquadEventKindsReady;      // 0x6b2b38

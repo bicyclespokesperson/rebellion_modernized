@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/cool_tab_control.h"
 
 #include "core/checked_new.h"
@@ -68,7 +69,7 @@ void CoolTabControl::SelectTab(uint32_t tabId, int notify) {
     if (notify) SendMessageA(m_parent->m_hwnd, WM_COMMAND, TabCommand(tab, m_childId), 0);
 }
 
-LRESULT __stdcall CoolTabControl::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL CoolTabControl::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     HWND parentHwnd = m_parent->m_hwnd;
     if (message == WM_ERASEBKGND) return 1;

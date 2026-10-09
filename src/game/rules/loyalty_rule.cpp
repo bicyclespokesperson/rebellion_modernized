@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "rules/loyalty_rule.h"
 
 #include <new>
@@ -37,9 +38,9 @@ void LoyaltyRule::CopyFrom(const LoyaltyRule& other) {
     m_amount = other.m_amount;
 }
 
-IntPair* __thiscall LoyaltyRule::GetFamilyRange(IntPair* out) {
+IntPair* REB_THISCALL LoyaltyRule::GetFamilyRange(IntPair* out) {
     new (out) IntPair(m_familyRange);
     return out;
 }
 
-void __thiscall LoyaltyRule::SetFamilyRange(uint32_t first, uint32_t second) { m_familyRange = IntPair(first, second); }
+void REB_THISCALL LoyaltyRule::SetFamilyRange(uint32_t first, uint32_t second) { m_familyRange = IntPair(first, second); }

@@ -208,14 +208,14 @@ void UiSetHumanUiTarget(int a, int b) {
 void UiHumanRefreshMenus(EventKindSet* commands, int requestUpdate) {
     GameSession* session = GetGameSession();
     if (session) {
-        session->HumanRefreshMenus(reinterpret_cast<int>(commands));
+        session->HumanRefreshMenus(reinterpret_cast<intptr_t>(commands));
         if (requestUpdate) session->HumanRequestUpdate();
     }
 }
 
 void UiHumanRefreshOrderMenus(EventKindSet* commands) {
     GameSession* session = GetGameSession();
-    if (session) session->HumanRefreshOrderMenus(reinterpret_cast<int>(commands));
+    if (session) session->HumanRefreshOrderMenus(reinterpret_cast<intptr_t>(commands));
 }
 
 IdAvlTree* UiGetHumanOrderTree() {
@@ -264,7 +264,7 @@ void UiSetHumanDefaultState(int state) {
     if (session) session->SetHumanDefaultState(state);
 }
 
-void UiQueueHumanPopup(int a, int b) {
+void UiQueueHumanPopup(intptr_t a, int b) {
     GameSession* session = GetGameSession();
     if (session) session->QueueHumanPopup(a, b);
 }
@@ -331,7 +331,7 @@ void UiHumanEndHold() {
     if (session) session->HumanEndHold();
 }
 
-void UiSendNotificationToSide(int side, int argument) {
+void UiSendNotificationToSide(int side, intptr_t argument) {
     GameSession* session = GetGameSession();
     if (session) session->SendNotificationToSide(side, argument);
 }

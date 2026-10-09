@@ -44,7 +44,7 @@ int Notice25::GetKind() { return 25; }
 
 UiNotice* Notice25::Virtual10() { return NewOrNull<Notice25>(); }
 
-void Notice25::Virtual05(int kind, int payload) {
+void Notice25::Virtual05(int kind, intptr_t payload) {
     ObjectKey characterKey;
     ObjectKey nameKey;
     if (kind != 0x1e0) return;
@@ -247,7 +247,7 @@ int Notice24::GetKind() { return 24; }
 
 UiNotice* Notice24::Virtual10() { return NewOrNull<Notice24>(); }
 
-void Notice24::Virtual08(int kind, int a, int b) {
+void Notice24::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x153) return;
     const ObjectKey* key = reinterpret_cast<const ObjectKey*>(a);
     GameObjNotifier* system = GetObjectInFamilies_90_98(m_owner, key);

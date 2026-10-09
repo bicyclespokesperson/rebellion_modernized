@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "economy/defense_facility.h"
 
 #include <new>
@@ -7,7 +8,7 @@
 #include "gameobj/game_obj_forwarders.h"
 #include "gameobj/object_family.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyAllFacilityEventKinds();
 
 extern EventKindSet g_allFacilityEventKinds;  // 0x6b8ff8

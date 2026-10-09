@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -48,8 +49,8 @@ public:
 };
 
 // The pair of check callbacks Mission::GetCheckFunctions reports: (0x523670 default) and (0x523450 default).
-typedef int(__cdecl* MissionMemberCheckFn)(int a, int value, int* out, StatusCode* status);
-typedef int(__cdecl* MissionTargetCheckFn)(MissionCheckArgs* args, StatusCode* status, int* code);
+typedef int(REB_CDECL* MissionMemberCheckFn)(int a, int value, int* out, StatusCode* status);
+typedef int(REB_CDECL* MissionTargetCheckFn)(MissionCheckArgs* args, StatusCode* status, int* code);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
@@ -58,12 +59,12 @@ REB_ASSERT_SIZE(MissionCheckArgs, 0x3c);
 #pragma clang diagnostic pop
 
 // Fills `summary` from the team, decoys and captured people (0x5830a0); false and a status in *status on failure.
-int __cdecl FillMemberSummaryForMission(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, ObjectKeyValueSet* captured,
+int REB_CDECL FillMemberSummaryForMission(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, ObjectKeyValueSet* captured,
                                         MissionMemberSummary* summary, StatusCode* status);  // 0x5830a0
 // Adds one person to `summary` (0x582fb0).
-int __cdecl AddPersonToMemberSummary(GameObj* person, int a, int b, MissionMemberSummary* summary, StatusCode* status);  // 0x582fb0
+int REB_CDECL AddPersonToMemberSummary(GameObj* person, int a, int b, MissionMemberSummary* summary, StatusCode* status);  // 0x582fb0
 // Checks the summary against the mission record (0x583320).
-int __cdecl CheckSummaryAgainstRecord(DatRecord* record, MissionMemberSummary* summary, StatusCode* status);  // 0x583320
+int REB_CDECL CheckSummaryAgainstRecord(DatRecord* record, MissionMemberSummary* summary, StatusCode* status);  // 0x583320
 
 // Person lookups used by the mission checks (0x582c30-0x582e90). Resolve a key to a person object (families 0x30-0x3f)
 // or to its data-table record; the Split variants also say whether it is a character or a special force.
@@ -73,4 +74,4 @@ int ResolvePersonRecord(ObjectKey* key, DatRecord** out);                       
 int SplitPersonRecord(ObjectKey* key, DatRecord** person, DatRecord** specialForces, DatRecord** character);  // 0x582e90
 
 // Picks the best leader of a team into *leader and *seed (0x521300, stdcall).
-int __stdcall ChooseMissionLeader(ObjectKeyValueSet* team, ObjectKey* leader, NullableKey* seed);
+int REB_STDCALL ChooseMissionLeader(ObjectKeyValueSet* team, ObjectKey* leader, NullableKey* seed);

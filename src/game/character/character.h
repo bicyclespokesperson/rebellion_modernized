@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "character/character_data.h"
@@ -47,8 +48,8 @@ public:
     virtual int Virtual44(NotifyContext* ctx) override;                // 44, 0x4ef260
     virtual int Virtual45(int a, NotifyContext* ctx) override;         // 45, 0x4ef2e0
     virtual int Virtual46(NotifyContext* ctx) override { return 1; }  // 46
-    virtual int Virtual47(int a) override;                             // 47, 0x4ef250
-    virtual int Virtual48(int a) override;                             // 48, 0x4ef250
+    virtual int Virtual47(intptr_t a) override;                             // 47, 0x4ef250
+    virtual int Virtual48(intptr_t a) override;                             // 48, 0x4ef250
     virtual GameObjData* CreateData() override;                        // 58, 0x4f24e0
     virtual int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x4f11c0
     virtual int OnUsableChanged(int newValue, NotifyContext* ctx) override;       // 68, 0x4f1310
@@ -89,7 +90,7 @@ public:
     virtual int OnOnMissionChanged(int newValue, NotifyContext* ctx) override;  // 154, 0x4f1490
 
     // ---- new non-property virtuals (slots 179-190; names provisional) ----
-    virtual int Virtual179(int a, int* out);                                              // 179, 0x4ed680
+    virtual int Virtual179(intptr_t a, int* out);                                              // 179, 0x4ed680
     virtual int CheckActivity3(const ActivityRequest* request, StatusCode* out);          // 180, 0x4ed750
     virtual int CheckActivityStatus3(const ActivityRequest* request, StatusCode* out);    // 181, 0x4ed950: out = {1,-1}, returns 180's result
     virtual int CheckActivity4(const ActivityRequest* request, StatusCode* out);          // 182, 0x4ed9d0
@@ -325,7 +326,7 @@ void ConstructCharacterEventKinds();        // 0x4f2560
 void RegisterCharacterEventKindsAtExit();   // 0x4f2570
 
 // The AppendCharacterName free function (secondary vtable slot, takes the ObjectBase subobject).
-void __thiscall AppendCharacterName(ObjectBase* base, String* out, int kind);  // 0x4ed060
+void REB_THISCALL AppendCharacterName(ObjectBase* base, String* out, int kind);  // 0x4ed060
 
 // Iterator over the children of a game object in the character families 0x30-0x3b (vtable 0x65ce5c).
 class CharacterIterator : public ChildIterator {

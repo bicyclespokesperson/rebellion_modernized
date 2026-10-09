@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "tactical/tactical_units.h"
 
 #include <new>
@@ -216,7 +217,7 @@ void TacticalSpecialForceTree::Write(ostream* out) { writeRecords<TacticalSpecia
 
 void TacticalSpecialForceTree::Checksum(Crc32* crc) { checksumRecords<TacticalSpecialForceUnit>(this, crc); }
 
-void __cdecl TacticalCharacterStatusEvent(TacticalEvent* event) {
+void REB_CDECL TacticalCharacterStatusEvent(TacticalEvent* event) {
     if (event == nullptr) return;
     int* args = event->m_args + 2;
     TacticalCharacterUnit* character = FUN_005a9430(GetObjectManager(), args[0]);

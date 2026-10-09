@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -90,7 +91,7 @@ public:
     virtual void Hide();                                                     // slot 2, 0x405490: Show(0)
     virtual void Enable();                                                   // slot 3, 0x5ffe60
     virtual void Disable();                                                  // slot 4, 0x5ffe80
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam);  // slot 5, 0x6007b0
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam);  // slot 5, 0x6007b0
     virtual void SetFont(int fontSlot);                                      // slot 6, 0x600290
     virtual int OnRightButtonUp(int x, int y, CoolWindow* sender);           // slot 7, 0x5cd6b0: returns 0
     virtual void Virtual08(int a, int b, int c);                             // slot 8, 0x48b3d0: does nothing
@@ -177,18 +178,18 @@ LRESULT CALLBACK MouseHookProc(int code, WPARAM wParam, LPARAM lParam);    // 0x
 void ShutdownTooltips();                                                   // 0x600e20
 HWND CurrentPopupHwnd();                                                   // 0x601320
 int DismissPopup();                                                       // 0x601340
-PopupEntry* __stdcall FindPopupEntry(HWND hwnd);                           // 0x6012f0
+PopupEntry* REB_STDCALL FindPopupEntry(HWND hwnd);                           // 0x6012f0
 int ReleaseAllCaptures();                                                  // 0x6010a0
-HWND __stdcall SetCaptureWindow(HWND hwnd);  // 0x601080: returns the previous capture window
+HWND REB_STDCALL SetCaptureWindow(HWND hwnd);  // 0x601080: returns the previous capture window
 
 // Drawing helpers.
 void LoadResourceString(UINT id, LPSTR buffer, int size);                  // 0x601060 (LoadStringA on g_stringModule)
-void __stdcall DrawShadowedText(HDC dc, LPCSTR text, LPRECT rect, COLORREF color, COLORREF shadow, UINT format,
+void REB_STDCALL DrawShadowedText(HDC dc, LPCSTR text, LPRECT rect, COLORREF color, COLORREF shadow, UINT format,
                                 int offset, int length);                   // 0x600fd0
 
 // Palette: the identity palette of the display (see docs/platform_layer.md).
-UINT __stdcall SetIdentityPalette(HDC dc, HPALETTE palette);  // 0x600010
-void __stdcall ReleasePalette(HDC dc);              // 0x600230
+UINT REB_STDCALL SetIdentityPalette(HDC dc, HPALETTE palette);  // 0x600010
+void REB_STDCALL ReleasePalette(HDC dc);              // 0x600230
 
 // Resource DLL slots (slot << 16 | id is how resources are named across the game).
 HMODULE FindResourceModule(uint32_t slot);                              // 0x5fefd0

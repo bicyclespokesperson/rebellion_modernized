@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -32,7 +33,7 @@ public:
     FleetFinderWindow(HINSTANCE instance, int x, int y, int width, int height, GalaxyWindow* parent, uint32_t childId);  // 0x461750
     virtual ~FleetFinderWindow();  // 0x461880 (scalar deleting destructor 0x461860)
 
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x462a50
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x462a50
     virtual void OnCreate1() override;                    // slot 14, 0x461960
     virtual void DrawOverlay(HDC dc) override;            // slot 17, 0x462a30
     virtual void OnCommand(int a, int command, int c) override;  // slot 18, 0x462770

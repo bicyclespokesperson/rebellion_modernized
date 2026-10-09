@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -62,7 +63,7 @@ public:
                  int unused38, int lineStep, int vertical, HCURSOR dragCursor);  // 0x607ea0
     virtual ~CoolDragList();  // 0x608160 (scalar deleting destructor 0x608140, thunk 0x60a410)
 
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x6083c0
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x6083c0
     virtual int OnRightButtonUp(int x, int y, CoolWindow* sender) override;  // 0x609fc0: forwards to the parent
 
     virtual int PageUp() override;                    // 0x60a010
@@ -88,9 +89,9 @@ public:
     void SelectRect(POINTS from, POINTS to);                            // 0x609590
     uint32_t SelectByPrefix(const String* prefix, int notify, int caseSensitive);  // 0x609650
     CoolListItem* AddItem(uint32_t id, uint16_t imageId, uint16_t selectedImageId, const char* text, int redraw,
-                          uint32_t userData);  // 0x609790
+                          uintptr_t userData);  // 0x609790
     CoolListItem* AddItemWithImages(uint32_t id, DibBitmap* image, DibBitmap* selectedImage, const char* text,
-                                    int redraw, uint32_t userData);  // 0x609840
+                                    int redraw, uintptr_t userData);  // 0x609840
     CoolListItem* FindItem(uint32_t id);                                // 0x6098f0
     void RemoveAll();                                                   // 0x609920
     void SetSelectedTextColor(COLORREF color);                          // 0x609940

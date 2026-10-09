@@ -24,7 +24,7 @@ ObjectKey keyOf(uint32_t value) {
     return key;
 }
 
-int contextAsInt(NotifyContext* ctx) { return static_cast<int>(reinterpret_cast<intptr_t>(ctx)); }
+intptr_t contextAsInt(NotifyContext* ctx) { return reinterpret_cast<intptr_t>(ctx); }
 
 void collectAdrift(GameObj* parent, uint32_t stateFilter, ObjectKeyValueSet* out) {
     RoleIterator roles(parent, stateFilter);

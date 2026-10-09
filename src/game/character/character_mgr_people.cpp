@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "character/character_mgr.h"
 
 #include "data/dat_record.h"
@@ -22,7 +23,7 @@
 // Setup of the people of a new game, the checks the person queries forward, and the reactions to what happens to people.
 
 DatRecord* GetFirstRecordOfType(int type);  // 0x51cad0
-ObjectKey* __thiscall GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
+ObjectKey* REB_THISCALL GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
 
 namespace {
 
@@ -72,7 +73,7 @@ Character* asCharacter(GameObjNotifier* object) { return static_cast<Character*>
 
 DatRecord* nextRecord(DatRecord* record) { return reinterpret_cast<DatRecord*>(static_cast<AvlNode*>(record)->m_successor); }
 
-int contextAsArgument(NotifyContext* ctx) { return static_cast<int>(reinterpret_cast<intptr_t>(ctx)); }
+intptr_t contextAsArgument(NotifyContext* ctx) { return reinterpret_cast<intptr_t>(ctx); }
 
 }  // namespace
 
@@ -121,7 +122,7 @@ int CharacterMgr::CountUncreatedMinors(int side) {
 
 // ---- forwarded person checks (slots 111-115) ----------------------------------------------------------------------------
 
-int CharacterMgr::ForwardVirtual179(const ObjectKey* key, int a, int* out) {
+int CharacterMgr::ForwardVirtual179(const ObjectKey* key, intptr_t a, int* out) {
     int result = 1;
     GameObjNotifier* object = GetMasterInFamilies_01_ff(key);
     if (object != nullptr) {

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "video/movie_window.h"
 
 #include <cstring>
@@ -16,7 +17,7 @@ extern const char g_registryKeyPath[];  // 0x6a81fc
 extern const char g_musicVolumeName[];  // 0x6a8584
 extern const char g_tooBigLocationName[];  // 0x6a7c74
 
-void __thiscall FUN_0059b100(CoolWindow* window, LPARAM drawItem);  // WM_DRAWITEM of the movie window's text field art
+void REB_THISCALL FUN_0059b100(CoolWindow* window, LPARAM drawItem);  // WM_DRAWITEM of the movie window's text field art
 
 extern const char g_movieFile000[];  // 0x6a8460
 extern const char g_movieFile001[];  // 0x6a8698
@@ -98,7 +99,7 @@ char* BuildMoviePath(MovieWindow* window) {
 }
 }  // namespace
 
-MovieWindow::MovieWindow(int movieId, void (__cdecl* callback)(uint32_t, uint32_t, int), HINSTANCE instance, int x, int y,
+MovieWindow::MovieWindow(int movieId, void (REB_CDECL* callback)(uint32_t, uint32_t, int), HINSTANCE instance, int x, int y,
                          int width, int height, CoolWindow* parent, const String* caption)
     : CoolWindow(instance, "MOVIE_WINDOW", WS_CHILD, x, y, width, height, parent, nullptr,
                  static_cast<HBRUSH>(GetStockObject(kBlackBrush)), nullptr, nullptr, nullptr, 0, 0) {
@@ -107,7 +108,7 @@ MovieWindow::MovieWindow(int movieId, void (__cdecl* callback)(uint32_t, uint32_
     m_callback = callback;
     m_captionBackdrop = nullptr;
     m_path = nullptr;
-    m_fallbackPath = 0;
+    m_fallbackPath = nullptr;
     if (caption) m_caption.Assign(*caption);
     BuildMoviePath(this);
 }
@@ -198,14 +199,14 @@ void MovieWindow::OnCreate() {
     uint32_t smackFlags = kSmackFlagsStandard;
     if (!source) {
         smackFlags = kSmackFlagsFallback;
-        source = reinterpret_cast<const char*>(static_cast<intptr_t>(m_fallbackPath));
+        source = m_fallbackPath;
     }
     PlayMovie(source, 0, 0, this, 1, 1, smackFlags);
     const int volume = static_cast<int>(ReadRegistryDword(g_registryKeyPath, g_musicVolumeName));
     SetMovieVolume(-volume);
 }
 
-LRESULT __stdcall MovieWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL MovieWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND window = m_hwnd;
     LRESULT result = 0;
     UINT notify = 0;

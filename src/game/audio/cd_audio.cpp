@@ -71,7 +71,7 @@ DWORD CdAudio::GetStatus(DWORD item) {
         MCI_STATUS_PARMS status = {};
         status.dwItem = item;
         if (mciSendCommandA(m_device, MCI_STATUS, MCI_STATUS_ITEM, reinterpret_cast<DWORD_PTR>(&status)) == 0)
-            result = status.dwReturn;
+            result = static_cast<DWORD>(status.dwReturn);
         else
             result = kModeNotReady;
     }

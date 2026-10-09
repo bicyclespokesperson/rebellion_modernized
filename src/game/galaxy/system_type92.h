@@ -18,7 +18,7 @@ public:
     virtual int Validate() override;                                            // 8, shared 0x566d30
     virtual int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x56a530
     virtual int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, 0x56a510
-    virtual int Virtual47(int a) override;                                      // 47, 0x56a550
+    virtual int Virtual47(intptr_t a) override;                                      // 47, 0x56a550
     virtual GameObj* CreateViewObject() override;                               // 57, 0x56a800
     virtual int Virtual115(NotifyContext* ctx) override;                        // 115, 0x56a6f0
 

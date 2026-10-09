@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/fleet_finder_window.h"
 
 #include <new>
@@ -344,7 +345,7 @@ void FleetFinderWindow::OnCommand(int, int command, int) {
     }
 }
 
-LRESULT __stdcall FleetFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL FleetFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     LRESULT result = 0;
     if (message == WM_SETFOCUS) {
         SetFocus(m_nameField->m_hwnd);

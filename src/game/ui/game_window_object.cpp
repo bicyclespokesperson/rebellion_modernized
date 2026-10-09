@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/game_window_object.h"
 
 #include <cstring>
@@ -77,7 +78,7 @@ void GameWindowObject::DrawRect(HDC dc, const RECT* area) {
     }
 }
 
-int GameWindowObject::Virtual0D(int, int, int, int, int) { return 0; }
+int GameWindowObject::Virtual0D(int, int, int, intptr_t, int) { return 0; }
 
 // Linker-folded with other do-nothing virtuals.
 void GameWindowObject::Virtual0B() {}
@@ -86,7 +87,7 @@ void GameWindowObject::Virtual0C() {}
 
 void GameWindowObject::DrawOverlay(HDC) {}
 
-LRESULT __stdcall GameWindowObject::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL GameWindowObject::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     LRESULT result = 0;
     if (message == WM_PAINT) {

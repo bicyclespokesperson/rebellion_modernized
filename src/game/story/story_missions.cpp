@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "character/character_mgr.h"
 #include "story/story_missions.h"
 
@@ -32,9 +33,9 @@ extern EventKindSet g_missionBountyEventKinds;  // 0x6bbad8
 
 GameObjNotifier* GetGameRootMember_c0();
 GameObjNotifier* GetMaster_32000242();
-int __cdecl ComputePalaceMissionValue(int espionage, int combat, int* out);
-int __cdecl ComputeDagobahBonusA(int force, int* out);
-int __cdecl ComputeDagobahBonusB(int force, int days, int* out);
+int REB_CDECL ComputePalaceMissionValue(int espionage, int combat, int* out);
+int REB_CDECL ComputeDagobahBonusA(int force, int* out);
+int REB_CDECL ComputeDagobahBonusB(int force, int days, int* out);
 
 namespace {
 
@@ -206,23 +207,23 @@ int constantMissionValue(int* out) {
 
 void* asRef(ObjectKey* key) { return key; }
 
-int keyAsArgument(ObjectKey* key) { return static_cast<int>(reinterpret_cast<intptr_t>(asRef(key))); }
+intptr_t keyAsArgument(ObjectKey* key) { return reinterpret_cast<intptr_t>(asRef(key)); }
 
 }  // namespace
 
 // ---- shared second-level forwarders of the story missions -----------------------------------------------------------
 
-int __thiscall MissionStoryReadForward(Mission* self, istream* in) { return static_cast<MissionRuleBase*>(self)->ReadBody(in); }
+int REB_THISCALL MissionStoryReadForward(Mission* self, istream* in) { return static_cast<MissionRuleBase*>(self)->ReadBody(in); }
 
-int __thiscall MissionStoryWriteForward(Mission* self, ostream* out) {
+int REB_THISCALL MissionStoryWriteForward(Mission* self, ostream* out) {
     return static_cast<MissionRuleBase*>(self)->WriteBody(out);
 }
 
-int __thiscall MissionStoryApplyAllForward(Mission* self, NotifyContext* ctx) {
+int REB_THISCALL MissionStoryApplyAllForward(Mission* self, NotifyContext* ctx) {
     return static_cast<MissionRuleBase*>(self)->ApplyAllBody(ctx);
 }
 
-int __thiscall MissionStoryChecksumForward(Mission* self, Crc32* crc) { return static_cast<MissionTypeBase*>(self)->MissionTypeBase::ChecksumBody(crc); }
+int REB_THISCALL MissionStoryChecksumForward(Mission* self, Crc32* crc) { return static_cast<MissionTypeBase*>(self)->MissionTypeBase::ChecksumBody(crc); }
 
 // ---- MissionPickup ----------------------------------------------------------------------------------------------
 

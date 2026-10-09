@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "events/request_orders.h"
 
 #include "core/checked_new.h"
@@ -46,8 +47,6 @@ ObjectKey keyOfNode(AvlNode* node) {
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     return key;
 }
-
-uint8_t byteAt(GameObjNotifier* object, int offset) { return reinterpret_cast<uint8_t*>(object)[offset]; }
 
 Command* firstCommand(CommandQueue* commands) { return commands->FirstCommand(); }
 
@@ -437,7 +436,7 @@ void* CreateOrder220() { return NewOrNull<Order220>(); }
 
 // ---- the fleet checks ---------------------------------------------------------------------------------------------
 
-int __stdcall CheckFleetsCanInvade(ActivityRequest* request, ObjectKeyValueSet* team, StatusCode* status) {
+int REB_STDCALL CheckFleetsCanInvade(ActivityRequest* request, ObjectKeyValueSet* team, StatusCode* status) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     ObjectKeyValueSet dependencies;
     const int ok = CollectKeyDependencies(request, team, &dependencies, status);
@@ -449,7 +448,7 @@ int __stdcall CheckFleetsCanInvade(ActivityRequest* request, ObjectKeyValueSet* 
             if (!isFleetKey(fleetKey)) continue;
             ObjectKey lookupKey = keyOfNode(node);
             GameObjNotifier* fleet = GetMasterInFamilies_08_10(&lookupKey);
-            if (fleet && (byteAt(fleet, 0x50) & kFleetFlagCreated) != 0 && (byteAt(fleet, 0x58) & kFleetFlagState58Bit5) != 0) {
+            if (fleet && (static_cast<GameObj*>(fleet)->m_stateFlags & kFleetFlagCreated) != 0 && (static_cast<Fleet*>(fleet)->m_fleetFlags & kFleetFlagState58Bit5) != 0) {
                 anyUsableFleet = true;
                 CapShipIterator ships(fleet, kCreatedStateFilter);
                 for (ships.Begin(); regimentsAboard == 0 && ships.Current(); ships.Advance()) {
@@ -466,7 +465,7 @@ int __stdcall CheckFleetsCanInvade(ActivityRequest* request, ObjectKeyValueSet* 
     return ok;
 }
 
-int __stdcall CheckFleetsCanBeUsed(ActivityRequest* request, ObjectKeyValueSet* team, StatusCode* status) {
+int REB_STDCALL CheckFleetsCanBeUsed(ActivityRequest* request, ObjectKeyValueSet* team, StatusCode* status) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     bool anyShips = false;
     int deathStarAboard = 0;
@@ -481,7 +480,7 @@ int __stdcall CheckFleetsCanBeUsed(ActivityRequest* request, ObjectKeyValueSet* 
             if (isFleetKey(fleetKey)) {
                 ObjectKey lookupKey = keyOfNode(node);
                 GameObjNotifier* fleet = GetMasterInFamilies_08_10(&lookupKey);
-                if (fleet && (byteAt(fleet, 0x50) & kFleetFlagCreated) != 0) {
+                if (fleet && (static_cast<GameObj*>(fleet)->m_stateFlags & kFleetFlagCreated) != 0) {
                     anyShips = static_cast<Fleet*>(fleet)->SumUnitStat119() != 0;
                     DeathStarIterator deathStars(fleet, kCreatedStateFilter);
                     deathStarAboard = deathStars.HasCurrent();

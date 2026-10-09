@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "fleet/troop_reg.h"
 
 #include <new>
@@ -9,7 +10,7 @@
 #include "fleet/unit_view_flags.h"
 #include "gameobj/game_obj_iterator.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyTroopRegEventKinds();
 
 extern int g_troopRegEventKindsReady;      // 0x6b2b68

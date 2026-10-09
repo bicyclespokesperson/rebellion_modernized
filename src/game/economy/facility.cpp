@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "economy/facility.h"
 
 #include <new>
@@ -8,7 +9,7 @@
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/object_family.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyFacilityEventKinds();
 
 extern EventKindSet g_facilityEventKinds;  // 0x6b9038

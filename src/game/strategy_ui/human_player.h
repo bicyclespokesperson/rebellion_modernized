@@ -39,7 +39,7 @@ public:
     virtual void Virtual22(int a, int b) override;             // 0x486710
     virtual void Virtual23(int value) override;                // 0x486730: raw materials
     virtual void Virtual24(int value) override;                // 0x486760: refined materials
-    virtual void Virtual25(int value) override;                // 0x486790: maintenance, advisor
+    virtual void Virtual25(intptr_t value) override;                // 0x486790: maintenance, advisor
     virtual void Virtual26(int value) override;                // 0x486800
     virtual void Virtual27(int value) override;                // 0x486870 (shared)
     virtual void Virtual28(int value) override { HumanPlayer::Virtual27(value); }  // slot 28, shared 0x486870

@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "audio/sound_manager.h"
@@ -28,7 +29,7 @@ void PlayAdviceMusic(uint32_t index);           // 0x417610: replaces the curren
 void StopMusic();                               // 0x417640
 void SetMusicVolume(int volume);                // 0x417670
 void SetMusicSwitch(int enabled);               // 0x4176e0
-void __cdecl MusicEventCallback(uint32_t message, uint32_t first, uint32_t second);  // 0x417780
+void REB_CDECL MusicEventCallback(uint32_t message, uint32_t first, uint32_t second);  // 0x417780
 
 void InitMusicFlags();         // 0x4177f0
 void ConstructMusicFlags();    // 0x417800

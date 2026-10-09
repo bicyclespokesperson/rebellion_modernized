@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <new>
 
 #include "core/game_string.h"
@@ -5,6 +6,7 @@
 #include "economy/manu_mgr.h"
 #include "economy/side.h"
 #include "events/event_helpers.h"
+#include "fleet/detector.h"
 #include "events/event_post.h"
 #include "events/game_clock_hooks.h"
 #include "fleet/fleet_iterator.h"
@@ -21,7 +23,7 @@
 
 using namespace event_rules;
 
-ObjectKey* __thiscall GetObjectRecordKey(GameObjNotifier* object, ObjectKey* out);  // 0x402d80
+ObjectKey* REB_THISCALL GetObjectRecordKey(GameObjNotifier* object, ObjectKey* out);  // 0x402d80
 
 namespace {
 
@@ -234,9 +236,9 @@ int ApplyStrengthImbalance(GameObj* object, int side, int valueSide1, int valueS
             if ((strengthUnit->m_stateFlags & kExisting) == 0 || (strengthUnit->m_stateFlags & kCompleted) == 0) continue;
             const uint32_t unitSide = strengthUnit->ControlSide();
             if (unitSide == 1) {
-                totalSide1 += events::callVirtualSlot<int>(strengthUnit, 112);
+                totalSide1 += static_cast<int>(static_cast<Detector*>(strengthUnit)->GetRecordField58());
             } else if (unitSide == 2) {
-                totalSide2 += events::callVirtualSlot<int>(strengthUnit, 112);
+                totalSide2 += static_cast<int>(static_cast<Detector*>(strengthUnit)->GetRecordField58());
             }
         }
         LoyaltyRule rule;

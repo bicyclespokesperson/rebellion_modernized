@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "galaxy/mission_type42.h"
 
 #include "core/checked_new.h"
@@ -6,7 +7,7 @@
 #include "mission/mission_bases.h"
 #include "mission/mission_forwarders.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyMission42EventKinds();
 
 extern int g_mission42EventKindsReady;      // 0x6bb930

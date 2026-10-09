@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/menu_window.h"
 
 #include <cstddef>
@@ -402,7 +403,7 @@ void MenuWindowBase::AttachSubMenu(HMODULE resources, uint32_t itemId, MenuWindo
     }
 }
 
-LRESULT __stdcall MenuWindowBase::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL MenuWindowBase::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     const POINT mouse = {static_cast<LONG>(lParam & 0xffff), static_cast<LONG>(static_cast<uint32_t>(lParam) >> 16)};
     const uint32_t parentId = m_parentMenu ? m_parentMenu->m_childId : m_childId;

@@ -1,3 +1,4 @@
+#include "data/seed_table_entry.h"
 #include "rules/loyalty_params.h"
 
 #include "data/game_math.h"
@@ -14,7 +15,6 @@ constexpr int kReserveTableAlliance = 3;
 constexpr int kReserveTableEmpire = 4;
 constexpr int kReserveRollLow = 1;
 constexpr int kReserveRollHigh = 100;
-constexpr int kReserveUnitListOffset = 0x28;
 constexpr uint32_t kCoreFamiliesFirst = 0x90;
 constexpr uint32_t kCoreFamiliesEnd = 0x92;
 constexpr uint32_t kOuterFamiliesEnd = 0x94;
@@ -38,7 +38,7 @@ int pickReserveUnits(int tableType, int* count, ObjectRefList* list) {
     int result = 0;
     if (record != nullptr) {
         *count = TableRecordFirstValue(record);
-        *list = *reinterpret_cast<ObjectRefList*>(reinterpret_cast<uint8_t*>(record) + kReserveUnitListOffset);
+        *list = static_cast<SeedTableEntry*>(record)->m_units;
         result = list->m_ok;
     }
     return result;

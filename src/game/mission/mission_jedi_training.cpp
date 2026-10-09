@@ -1,3 +1,4 @@
+#include "data/sd_record_bases.h"
 #include "mission/mission_jedi_training.h"
 
 #include "character/character.h"
@@ -47,15 +48,19 @@ constexpr int kReasonNoForce = 5;
 constexpr int kReasonStudentStronger = 0xd;
 
 
-template <class T>
-T FieldAt(void* object, int offset) {
-    return *reinterpret_cast<T*>(static_cast<char*>(object) + offset);
+const SdRecordExt25* AsCharacterRecord(const void* record) { return static_cast<const SdRecordExt25*>(record); }
+
+int RecordForceTotal(const void* record) {
+    return static_cast<int>(AsCharacterRecord(record)->m_moreFields[2]) + static_cast<int>(AsCharacterRecord(record)->m_moreFields[3]);
 }
+
+int RecordFirstForceValue(const void* record) { return static_cast<int>(AsCharacterRecord(record)->m_moreFields[2]); }
 
 bool InCharacterFamilies(uint32_t family) { return family >= 0x30 && family < 0x3c; }
 
 uint32_t RecordKey(void* record) {
-    return (FieldAt<uint32_t>(record, 0x18) & 0xffffff) | (FieldAt<uint32_t>(record, 0x2c) << 24);
+    const DatRecord* datRecord = static_cast<const DatRecord*>(record);
+    return (datRecord->m_id & 0xffffff) | (datRecord->m_third << 24);
 }
 
 void Reject(StatusCode* status, int* out, int reason, int outValue) {
@@ -99,7 +104,7 @@ int FindTrainerInRefList(int side, ObjectRefList* list, void** out) {  // 0x570f
             static_cast<ObjectRefNode*>(node)->GetKey(&lookupKey);
             void* record = FindDataRecord(AsLookupKey(&lookupKey));
             result = record != nullptr;
-            if (result && FieldAt<int>(record, 0xb8) != 0) *out = record;
+            if (result && AsCharacterRecord(record)->m_moreFields[8] != 0) *out = record;
         }
     }
     if (result && *out && side != 1 && side != 2) result = 0;
@@ -124,13 +129,13 @@ int CheckStudentKeySet(ObjectKeySet* set, TrainingOrderCheck* check, StatusCode*
         GameObj* student;
         result = SplitRoleFromKey(&key, &any, &specialForces, &student);
         if (result && student && teacher) {
-            if (FieldAt<int16_t>(student, 0x8c) == 0) Reject(status, out, kReasonNoForce, -1);
+            if (static_cast<Character*>(student)->m_force == 0) Reject(status, out, kReasonNoForce, -1);
             if (status->m_second == static_cast<uint32_t>(mission_status::kOk)) {
                 ObjectKey teacherKey;
                 ObjectKey studentKey;
                 static_cast<GameObjRoot*>(teacher)->GetKey(&teacherKey);
                 static_cast<GameObjRoot*>(student)->GetKey(&studentKey);
-                if (studentKey.m_value != teacherKey.m_value && FieldAt<int16_t>(teacher, 0x8c) <= FieldAt<int16_t>(student, 0x8c))
+                if (studentKey.m_value != teacherKey.m_value && static_cast<Character*>(teacher)->m_force <= static_cast<Character*>(student)->m_force)
                     Reject(status, out, kReasonStudentStronger, -1);
             }
         }
@@ -156,12 +161,12 @@ int CheckStudentRefList(ObjectRefList* list, TrainingOrderCheck* check, StatusCo
         DatRecord* student;
         result = SplitPersonRecord(&key, &any, &specialForces, &student);
         if (result && student && teacher) {
-            if (FieldAt<int>(student, 0xa0) + FieldAt<int>(student, 0xa4) == 0) Reject(status, out, kReasonNoForce, -1);
+            if (RecordForceTotal(student) == 0) Reject(status, out, kReasonNoForce, -1);
             if (status->m_second == static_cast<uint32_t>(mission_status::kOk)) {
                 const uint32_t studentKey = RecordKey(student);
                 const uint32_t teacherKey = RecordKey(teacher);
                 if (studentKey != teacherKey &&
-                    FieldAt<int>(teacher, 0xa0) + FieldAt<int>(teacher, 0xa4) <= FieldAt<int>(student, 0xa0))
+                    RecordForceTotal(teacher) <= RecordFirstForceValue(student))
                     Reject(status, out, kReasonStudentStronger, -1);
             }
         }

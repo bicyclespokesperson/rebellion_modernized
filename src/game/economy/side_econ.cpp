@@ -1,6 +1,8 @@
+#include "core/reb_abi.h"
 #include "core/checked_new.h"
 #include "data/dat_record.h"
 #include "economy/manu_mgr.h"
+#include "economy/manufacturing_facility.h"
 #include "economy/side.h"
 #include "economy/side_decl.h"
 #include "events/plain_events.h"
@@ -21,7 +23,6 @@ constexpr uint32_t kExistingFlag = 0x40;
 constexpr uint32_t kProcFacilExcludedFlag = 0x1;
 constexpr uint32_t kProcFacilWaitingFlag = 0x2;
 constexpr uint32_t kProcFacilReleasableBit = 2;
-constexpr int kFacilityManuSlot = 129;
 constexpr int kStatusCategorySide = 0xf3;
 constexpr int kStatusNotEnoughMaintenance = 1;
 
@@ -51,7 +52,7 @@ void subtractPair(IntPair* from, const IntPair& other) {
 
 // ---- facility helpers ---------------------------------------------------------------------------------------
 
-int __stdcall MarkFacilityWaiting(ProductionFacility* facility, NotifyContext* ctx) {
+int REB_STDCALL MarkFacilityWaiting(ProductionFacility* facility, NotifyContext* ctx) {
     int result = 1;
     if ((facility->m_procFlags & kProcFacilWaitingFlag) == 0) result = facility->SetPointPresent(1, ctx);
     return result;
@@ -72,8 +73,7 @@ int Side::FindFacilityManuMgr(GameObj* facility, ManuMgr** out) {
         if (result != 0 && system != nullptr) {
             const uint32_t systemFamily = system->GetFamily();
             if (systemFamily >= 0x90 && systemFamily < 0x98) {
-                using SlotFn = int(__thiscall*)(GameObj*);
-                const int slot = (*reinterpret_cast<SlotFn**>(facility))[kFacilityManuSlot](facility);
+                const int slot = static_cast<ManufacturingFacility*>(facility)->GetManufacturingKind();
                 ManuMgr* manager = static_cast<ManuMgr*>(static_cast<System*>(system)->System::FindManufacturingManagerBySlot123(slot));
                 *out = manager;
                 result = manager != nullptr;
@@ -542,7 +542,7 @@ int scheduleEvent(Side* side) {
             ObjectKey key;
             side->GetKey(&key);
             event->m_key = key;
-            CallGameHook2AF8(static_cast<int>(reinterpret_cast<intptr_t>(event)));
+            CallGameHook2AF8(reinterpret_cast<HookArg>(event));
         }
     }
     return result;

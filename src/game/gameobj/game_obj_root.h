@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstddef>
 #include <cstdint>
 
@@ -114,7 +115,7 @@ public:
     int ChecksumTree(Crc32* crc);
     int AssignRecord(DatRecord* record);
     int AddChild(GameObjNotifier* child, GameObjNotifier** previousParent);
-    static int __stdcall RemoveFromParent(GameObjNotifier* child);
+    static int REB_STDCALL RemoveFromParent(GameObjNotifier* child);
 
     ChildList* m_children;  // +0x28
     DatRecord* m_record;    // +0x2c

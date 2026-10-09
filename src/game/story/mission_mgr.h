@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "character/character.h"
@@ -193,9 +194,9 @@ public:
     int FindCharacter38(GameObjNotifier** character, GameObjNotifier** location, ObjectKey* locationKey);    // 0x543690
     int FindDarth(GameObjNotifier** character, GameObjNotifier** location, ObjectKey* locationKey);          // 0x543760
     int FindEmperor(GameObjNotifier** character, GameObjNotifier** location, ObjectKey* locationKey);        // 0x543800
-    static int __stdcall IsStoryCharacterKey(const ObjectKey* key);   // 0x5438a0
-    static int __stdcall IsStoryCharacterFree(Character* character);   // 0x5439b0: not captured, usable, not autorouting, not adrift
-    static int __stdcall IsStoryCharacterIdle(Character* character);   // 0x5439e0: free and not on a mission
+    static int REB_STDCALL IsStoryCharacterKey(const ObjectKey* key);   // 0x5438a0
+    static int REB_STDCALL IsStoryCharacterFree(Character* character);   // 0x5439b0: not captured, usable, not autorouting, not adrift
+    static int REB_STDCALL IsStoryCharacterIdle(Character* character);   // 0x5439e0: free and not on a mission
     int UpdateHanCapturedAtPalace(NotifyContext* ctx);        // 0x5442f0
     int UpdateLukeDagobahStep(NotifyContext* ctx);            // 0x544030
     int UpdateLukePalaceStep(NotifyContext* ctx);             // 0x544130
@@ -255,13 +256,13 @@ public:
 
     // ==== SECTION events (0x545180-0x546f80): reactions of the missions to object events ====
     int OnCharacterEvent(ObjectKey* key, int unused, NotifyContext* ctx);                                     // 0x545180
-    int UpdateMissionsForObject(ObjectKey* key, int unused, ObjectKey* location, int skipMissions, NotifyContext* ctx);  // 0x545240
-    int UpdateMissionsForObjective(ObjectKey* key, int unused, int unused2, int skipMissions, NotifyContext* ctx);  // 0x545540
+    int UpdateMissionsForObject(ObjectKey* key, intptr_t unused, ObjectKey* location, int skipMissions, NotifyContext* ctx);  // 0x545240
+    int UpdateMissionsForObjective(ObjectKey* key, intptr_t unused, intptr_t unused2, int skipMissions, NotifyContext* ctx);  // 0x545540
     int UpdateMissionsForTargetOrObjective(ObjectKey* key, int unused, int unused2, NotifyContext* ctx);      // 0x545670
-    int RunStoryPipelineForStoryKey(ObjectKey* key, int unused, int unused2, NotifyContext* ctx);             // 0x5457f0
+    int RunStoryPipelineForStoryKey(ObjectKey* key, intptr_t unused, intptr_t unused2, NotifyContext* ctx);             // 0x5457f0
     int UpdatePersonMission(ObjectKey* key, int unused, NotifyContext* ctx);                                    // 0x545820
     int OnSystemEvent(ObjectKey* key, int unused, NotifyContext* ctx);                                          // 0x545950
-    int OnSystemEventNoop(int a, int b, int c);                                                                // 0x5459d0
+    int OnSystemEventNoop(intptr_t a, int b, intptr_t c);                                                                // 0x5459d0
     int UpdateMissionsAtSystemA(ObjectKey* key, int enabled, NotifyContext* ctx);                               // 0x545a10
     int UpdateMissionsAtSystemB(ObjectKey* key, int enabled, NotifyContext* ctx);                               // 0x545b20
     int UpdateMissionsAtLocation53(ObjectKey* key, int unused, NotifyContext* ctx);                             // 0x545c30

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "gameobj/game_obj.h"
 
 #include <new>
@@ -8,7 +9,7 @@
 #include "gameobj/object_database.h"
 #include "gameobj/object_family.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyEmptyName();
 
 extern uint32_t g_gameObjStaticInitFlags;  // 0x6b2968, bit 0: g_emptyName constructed
@@ -115,7 +116,7 @@ void GameObj::WriteName(String* out, int kind) {
 }
 
 // The secondary vtable slot is entered with `this` pointing at the ObjectBase subobject.
-void __thiscall AppendGameObjName(ObjectBase* base, String* out, int kind) {
+void REB_THISCALL AppendGameObjName(ObjectBase* base, String* out, int kind) {
     static_cast<GameObj*>(base)->GameObj::WriteName(out, kind);
 }
 
@@ -201,7 +202,7 @@ int GameObj::CheckRenameImpl(const ActivityRequest* request, StatusCode* out) {
     return 1;
 }
 
-int GameObj::CheckRename(const ActivityRequest* request, int name, StatusCode* out) {
+int GameObj::CheckRename(const ActivityRequest* request, intptr_t name, StatusCode* out) {
     setStatus(out, kStatusOk);
     return CheckRenameImpl(request, out);
 }
@@ -216,7 +217,7 @@ int GameObj::CheckUnknown(const ActivityRequest* request, StatusCode* out) {
     return CheckUnknownImpl(request, out);
 }
 
-int GameObj::Virtual29(int a, int b, int c, int d, StatusCode* out) {
+int GameObj::Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) {
     setStatus(out, kStatusNotSupported25);
     return 1;
 }
@@ -229,7 +230,7 @@ int GameObj::Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o
     return 1;
 }
 
-int GameObj::Virtual31(int a, int b, int c, int d, StatusCode* out) {
+int GameObj::Virtual31(int a, int b, int c, intptr_t d, StatusCode* out) {
     setStatus(out, kStatusOk);
     return 1;
 }

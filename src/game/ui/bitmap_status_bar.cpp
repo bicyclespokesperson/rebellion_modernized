@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/bitmap_status_bar.h"
 
 #include "core/checked_new.h"
@@ -56,7 +57,7 @@ void BitmapStatusBar::SetPicture(DibBitmap* image) {
     ReleaseDC(m_hwnd, dc);
 }
 
-LRESULT __stdcall BitmapStatusBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL BitmapStatusBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     switch (message) {
     case WM_ERASEBKGND:

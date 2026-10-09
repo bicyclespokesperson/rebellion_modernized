@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/object_menu.h"
 
 #include <cstdint>
@@ -10,7 +11,7 @@
 #include "ui/cool_app.h"
 #include "ui/game_window_object.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 
 extern const char g_gameMenuWindowClassName[];  // 0x6a8718 "Game Menu Window"
 
@@ -29,7 +30,6 @@ constexpr uint32_t kSubMenuParentFlag = 8;
 constexpr uint32_t kSiblingFlag = 4;
 constexpr UINT kClosePopupsMessage = 0x409;
 constexpr UINT kDialogClickedMessage = 0x467;
-constexpr size_t kMenuWindowSize = 0x154;
 constexpr int kMenuLayoutStart = 2;
 constexpr int kHookNoRemove = 3;
 constexpr uint32_t kSwapFlags = SWP_NOSIZE | SWP_NOMOVE;
@@ -57,8 +57,8 @@ int ReadMenuRecord(uint32_t command, uint32_t kind, MenuRecord* out) {
     int status = 0;
     HGLOBAL data = nullptr;
     if (module) {
-        HRSRC info = FindResourceA(module, reinterpret_cast<LPCSTR>(command & 0xffff),
-                                   reinterpret_cast<LPCSTR>(kResourceTypeRcData));
+        HRSRC info = FindResourceA(module, MAKEINTRESOURCEA(command & 0xffff),
+                                   MAKEINTRESOURCEA(kResourceTypeRcData));
         if (!info) {
             status = 1;
         } else {
@@ -149,7 +149,7 @@ PopupMenuWindow* BuildMenuWindow(int x, int y, IdSortedLinkList* list, HMODULE r
         }
         MenuItem* first = FirstItem(list);
         if (first) {
-            void* memory = ::operator new(kMenuWindowSize);
+            void* memory = ::operator new(sizeof(PopupMenuWindow));
             if (memory) {
                 menu = new (memory) PopupMenuWindow(resources, menuX, menuY, menuWidth, menuHeight, parentMenu, window,
                                                     owner, first->m_id, backdrop);
@@ -281,7 +281,7 @@ void PopupMenuWindow::PostCloseRequest() {
     Hide();
 }
 
-LRESULT __stdcall PopupMenuWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL PopupMenuWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message != kCloseChildMessage) return MenuWindowBase::WindowProc(message, wParam, lParam);
     if (m_hwnd == reinterpret_cast<HWND>(wParam)) {
         PostMessageA(m_parent->m_hwnd, kDialogClickedMessage, 0, 0);

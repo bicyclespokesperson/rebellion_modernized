@@ -31,7 +31,7 @@ ObjectKey keyOf(GameObjNotifier* object) {
 // ---- queueing ---------------------------------------------------------------------------------------------
 
 int QueueEvent(EventBase* event) {
-    CallGameHook2AF8(reinterpret_cast<int>(event));
+    CallGameHook2AF8(reinterpret_cast<HookArg>(event));
     return 1;
 }
 
@@ -149,7 +149,7 @@ int ArmTimer(int kind, GameObjNotifier* object, TrackedStat* stat, NotifyContext
             timer->m_key = keyOf(object);
             timer->m_spec = *stat;
             timer->m_context = *ctx;
-            CallGameHook2AD8(reinterpret_cast<int>(timer), timer->RollDelay());
+            CallGameHook2AD8(reinterpret_cast<HookArg>(timer), timer->RollDelay());
         }
     }
     return result;
@@ -200,7 +200,7 @@ int PostPayloadInts(uint32_t kind, GameObjNotifier* object, int valueA, int valu
             auto* ints = static_cast<IntPairPayload*>(payload);
             ints->m_valueA = valueA;
             ints->m_valueB = valueB;
-            CallGameHook2AD4(reinterpret_cast<int>(payload));
+            CallGameHook2AD4(reinterpret_cast<HookArg>(payload));
         }
     }
     return result;
@@ -218,7 +218,7 @@ int PostPayloadFourInts(uint32_t kind, GameObjNotifier* object, int valueA, int 
             ints->m_valueB = valueB;
             ints->m_valueC = valueC;
             ints->m_valueD = valueD;
-            CallGameHook2AD4(reinterpret_cast<int>(payload));
+            CallGameHook2AD4(reinterpret_cast<HookArg>(payload));
         }
     }
     return result;
@@ -233,7 +233,7 @@ int PostPayloadFlag(uint32_t kind, GameObjNotifier* object, int flag, NotifyCont
             auto* ints = static_cast<IntPairPayload*>(payload);
             ints->m_valueA = flag == 0;
             ints->m_valueB = flag;
-            CallGameHook2AD4(reinterpret_cast<int>(payload));
+            CallGameHook2AD4(reinterpret_cast<HookArg>(payload));
         }
     }
     return result;
@@ -249,7 +249,7 @@ int PostPayloadKeysA(uint32_t kind, GameObjNotifier* object, const ObjectKey* ke
             auto* keys = static_cast<KeyPairPayload*>(payload);
             keys->m_keyA = *keyA;
             keys->m_keyB = *keyB;
-            CallGameHook2AD4(reinterpret_cast<int>(payload));
+            CallGameHook2AD4(reinterpret_cast<HookArg>(payload));
         }
     }
     return result;
@@ -265,7 +265,7 @@ int PostPayloadKeysB(uint32_t kind, GameObjNotifier* object, const ObjectKey* ke
             auto* keys = static_cast<KeyPairPayload*>(payload);
             keys->m_keyA = *keyA;
             keys->m_keyB = *keyB;
-            CallGameHook2AD4(reinterpret_cast<int>(payload));
+            CallGameHook2AD4(reinterpret_cast<HookArg>(payload));
         }
     }
     return result;
@@ -281,7 +281,7 @@ int PostPayloadStrings(uint32_t kind, GameObjNotifier* object, const String* tex
             auto* strings = static_cast<StringPairPayload*>(payload);
             strings->m_textA.Assign(*textA);
             strings->m_textB.Assign(*textB);
-            CallGameHook2AD4(reinterpret_cast<int>(payload));
+            CallGameHook2AD4(reinterpret_cast<HookArg>(payload));
         }
     }
     return result;

@@ -1,3 +1,5 @@
+#include "mission/mission.h"
+#include "core/reb_abi.h"
 #include "ai/ai_members.h"
 
 #include <new>
@@ -558,9 +560,9 @@ void AiPlannerSet::NoteMissionObject(const ObjectKey* key) {
     if (!InFamilies(key->Family(), 0x50, 0x80)) return;
     GameObjNotifier* object = GetObjectInFamilies_40_80(m_view, key);
     if (!object) return;
-    const uint8_t* raw = reinterpret_cast<const uint8_t*>(object);
-    if ((raw[0xa4] & 4) != 0) return;
-    const uint32_t plannerId = *reinterpret_cast<const uint32_t*>(raw + 0x58);
+    const Mission* mission = static_cast<const Mission*>(object);
+    if ((mission->m_flagsA4 & 4) != 0) return;
+    const uint32_t plannerId = static_cast<uint32_t>(mission->m_userId);
     if (plannerId == 0) return;
     AiMissionPlanner* planner = static_cast<AiMissionPlanner*>(FindById(plannerId));
     if (planner) planner->SetMissionObject(key);
@@ -1046,6 +1048,6 @@ void AiSystemEvalSet::ReadOne(istream* in) {
     }
 }
 
-ObjectKey* __thiscall GetObjectNameNodeKey(ObjectNameNode* node, ObjectKey* out) {
+ObjectKey* REB_THISCALL GetObjectNameNodeKey(ObjectNameNode* node, ObjectKey* out) {
     return new (out) ObjectKey(*reinterpret_cast<const ObjectKey*>(&node->m_key));
 }

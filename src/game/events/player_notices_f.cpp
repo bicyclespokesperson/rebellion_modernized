@@ -37,7 +37,7 @@ int Notice19::GetKind() { return 19; }
 
 UiNotice* Notice19::Virtual10() { return NewOrNull<Notice19>(); }
 
-void Notice19::OnMessage(int kind, int a, int b) {
+void Notice19::OnMessage(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x340) {
         UiNotice::OnMessage(kind, a, b);
         return;
@@ -91,7 +91,7 @@ Notice7::~Notice7() { REB_KEEP_VPTR_STORE(); }
 
 UiNotice* Notice7::Virtual10() { return NewOrNull<Notice7>(); }
 
-void Notice7::Virtual08(int kind, int a, int b) {
+void Notice7::Virtual08(int kind, intptr_t a, intptr_t b) {
     bool sideMatch = false;
     if (kind != 0x14e) return;
     const ObjectKey* key = reinterpret_cast<const ObjectKey*>(a);

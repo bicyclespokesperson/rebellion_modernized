@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "app/player_controller_decl.h"
@@ -95,7 +96,7 @@ void CreateBattleFlow();      // 0x409280
 void DestroyBattleFlow();     // 0x409370
 
 // Callbacks CreateBattleFlow installs in the object model's hook table (game_hooks.h).
-void RouteNoticeToSession(int notice);          // 0x41d100 (slot 0x6b2ae0)
+void RouteNoticeToSession(HookArg notice);          // 0x41d100 (slot 0x6b2ae0)
 const char* GetStepDriverDataDirectory();       // 0x41dc70 (slot 0x6b2ae8)
 
 // Static initializers of two derived values, like InitFlowScaleA/B and InitFlowRangeSpan below.
@@ -107,7 +108,7 @@ int GetBattleStateName(int state, String* out);  // 0x40a700
 
 // ---- Game step driver lifetime ---------------------------------------------------------------------------------
 int CreateGameStepDriver();                                                     // 0x40ac40: m_ok, or 0
-int __stdcall CreateGameStepDriverFor(GameSettings* settings, int a, int b);              // 0x40adb0: m_ok, or 0
+int REB_STDCALL CreateGameStepDriverFor(GameSettings* settings, int a, int b);              // 0x40adb0: m_ok, or 0
 int DestroyGameStepDriver();                                                    // 0x40af40
 void* AllocateChecked(unsigned size);                                           // 0x40af60
 void InitFlowScaleA();                                                          // 0x40af80

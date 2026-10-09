@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -25,7 +26,7 @@ public:
                           uint32_t childId);  // 0x463500
     virtual ~PersonnelFinderWindow();  // 0x463650 (scalar deleting destructor 0x463630)
 
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x464c20
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x464c20
     virtual void OnCreate1() override;                    // slot 14, 0x4637a0
     virtual void DrawOverlay(HDC dc) override;            // slot 17, 0x464c00
     virtual void OnCommand(int a, int command, int c) override;  // slot 18, 0x464890

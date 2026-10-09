@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "app/saved_game_info_decl.h"
@@ -45,7 +46,7 @@ void AppSetMusicSwitch(int enabled);             // 0x401ab0 (sound module: musi
 void AppSetState(int state);                     // 0x401040
 void AppOpenOptions();                           // 0x4012d0
 void AppForwardToStrategicWindow();              // 0x401030
-void AppPlayMovie(int movieId, const String* caption, void(__cdecl* callback)(uint32_t, uint32_t, int));  // 0x4019a0
+void AppPlayMovie(int movieId, const String* caption, void(REB_CDECL* callback)(uint32_t, uint32_t, int));  // 0x4019a0
 int AppShowHelp();                               // 0x4019c0
 void AppDestroyTacticalWindow();                 // 0x401ad0
 void AppPromptPause();                           // 0x401930

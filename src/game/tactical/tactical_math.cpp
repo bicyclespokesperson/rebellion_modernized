@@ -30,7 +30,7 @@ double TacticalVector::Length() {
     if (bitsOf(m_cachedLength) == kUnknownLength) {
         const double sum = (static_cast<double>(m_y) * m_y + static_cast<double>(m_z) * m_z) +
                            static_cast<double>(m_x) * m_x;
-        m_cachedLength = static_cast<float>(x87Sqrt(sum));
+        m_cachedLength = static_cast<float>(reb_sqrt(sum));
     }
     return m_cachedLength;
 }

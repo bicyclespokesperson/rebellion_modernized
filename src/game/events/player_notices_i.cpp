@@ -58,7 +58,7 @@ int Notice23::GetClass() { return m_class; }
 
 UiNotice* Notice23::Virtual10() { return NewOrNull<Notice23>(); }
 
-void Notice23::OnMessage(int kind, int a, int b) {
+void Notice23::OnMessage(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x302) return;
     ObjectKeyNode* node = NewOrNull<ObjectKeyNode>(*reinterpret_cast<const ObjectKey*>(a));
     m_keys.Add(node);
@@ -126,7 +126,7 @@ Notice22::~Notice22() {
 
 UiNotice* Notice22::Virtual10() { return NewOrNull<Notice22>(); }
 
-void Notice22::OnMessage(int kind, int a, int b) {
+void Notice22::OnMessage(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x302) return;
     ObjectKeyNode* node = NewOrNull<ObjectKeyNode>(*reinterpret_cast<const ObjectKey*>(a));
     m_keys.Add(node);

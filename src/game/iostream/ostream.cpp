@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <cstdio>
 #include <cstring>
 
@@ -96,7 +97,7 @@ ostream* PrintNumber(ostream* out, const char (&decimalSpec)[4], bool isSigned, 
 
 }  // namespace
 
-ostream* __thiscall ostream_operator_ls_char(ostream* out, char value) {
+ostream* REB_THISCALL ostream_operator_ls_char(ostream* out, char value) {
     if (ostream_opfx(out) != 0) {
         ios* stream = IosOf(out);
         if (stream->m_width != 0) {
@@ -114,7 +115,7 @@ ostream* __thiscall ostream_operator_ls_char(ostream* out, char value) {
     return out;
 }
 
-int __thiscall ostream_opfx(ostream* out) {
+int REB_THISCALL ostream_opfx(ostream* out) {
     ios* stream = IosOf(out);
     iostream_access::Lock(stream);
     const int state = stream->m_state;
@@ -128,7 +129,7 @@ int __thiscall ostream_opfx(ostream* out) {
     return 1;
 }
 
-void __thiscall ostream_osfx(ostream* out) {
+void REB_THISCALL ostream_osfx(ostream* out) {
     ios* stream = IosOf(out);
     stream->m_width = 0;
     if ((stream->m_flags & iostream_flags::kUnitBuf) != 0) {
@@ -141,7 +142,7 @@ void __thiscall ostream_osfx(ostream* out) {
     UnlockBufferAndStream(stream);
 }
 
-ostream* __thiscall ostream_operator_ls_cstr(ostream* out, const char* text) {
+ostream* REB_THISCALL ostream_operator_ls_cstr(ostream* out, const char* text) {
     if (ostream_opfx(out) != 0) {
         ostream_outstr(out, g_emptyText, text);
         ostream_osfx(out);
@@ -149,7 +150,7 @@ ostream* __thiscall ostream_operator_ls_cstr(ostream* out, const char* text) {
     return out;
 }
 
-ostream* __thiscall ostream_flush(ostream* out) {
+ostream* REB_THISCALL ostream_flush(ostream* out) {
     ios* stream = IosOf(out);
     iostream_access::Lock(stream);
     iostream_access::LockBuffer(stream->m_bp);
@@ -158,7 +159,7 @@ ostream* __thiscall ostream_flush(ostream* out) {
     return out;
 }
 
-void __thiscall ostream_outstr(ostream* out, const char* prefix, const char* text) {
+void REB_THISCALL ostream_outstr(ostream* out, const char* prefix, const char* text) {
     ios* stream = IosOf(out);
     const int prefixLength = static_cast<int>(strlen(prefix));
     const int textLength = static_cast<int>(strlen(text));
@@ -183,26 +184,26 @@ void __thiscall ostream_outstr(ostream* out, const char* prefix, const char* tex
     if ((stream->m_flags & iostream_flags::kLeft) != 0 && 0 < padding) PutPadding(stream, padding);
 }
 
-ostream* __thiscall ostream_seekp_pos(ostream* out, long position) {
+ostream* REB_THISCALL ostream_seekp_pos(ostream* out, long position) {
     ios* stream = IosOf(out);
     SeekWithFailCheck(stream, [&](streambuf* buffer) { return static_cast<long>(buffer->m_vftable->m_seekpos(buffer, position, iostream_flags::kOut)); });
     return out;
 }
 
-ostream* __thiscall ostream_seekp_off(ostream* out, long offset, int dir) {
+ostream* REB_THISCALL ostream_seekp_off(ostream* out, long offset, int dir) {
     ios* stream = IosOf(out);
     SeekWithFailCheck(stream, [&](streambuf* buffer) { return static_cast<long>(buffer->m_vftable->m_seekoff(buffer, offset, dir, iostream_flags::kOut)); });
     return out;
 }
 
-long __thiscall ostream_tellp(ostream* out) {
+long REB_THISCALL ostream_tellp(ostream* out) {
     ios* stream = IosOf(out);
     return SeekWithFailCheck(stream, [&](streambuf* buffer) {
         return static_cast<long>(buffer->m_vftable->m_seekoff(buffer, 0, iostream_flags::kSeekCur, iostream_flags::kOut));
     });
 }
 
-ostream* __thiscall ostream_operator_ls_streambuf(ostream* out, streambuf* source) {
+ostream* REB_THISCALL ostream_operator_ls_streambuf(ostream* out, streambuf* source) {
     if (ostream_opfx(out) != 0) {
         ios* stream = IosOf(out);
         unsigned c = static_cast<unsigned>(streambuf_sbumpc(source));
@@ -229,9 +230,9 @@ ostream* __thiscall ostream_operator_ls_streambuf(ostream* out, streambuf* sourc
     return out;
 }
 
-ostream* __thiscall ostream_operator_ls_long(ostream* out, long value) { return PrintNumber(out, kLongSpec, true, value, 3); }
+ostream* REB_THISCALL ostream_operator_ls_long(ostream* out, long value) { return PrintNumber(out, kLongSpec, true, value, 3); }
 
-ostream* __thiscall ostream_write(ostream* out, const void* buffer, int count) {
+ostream* REB_THISCALL ostream_write(ostream* out, const void* buffer, int count) {
     if (ostream_opfx(out) != 0) {
         ios* stream = IosOf(out);
         streambuf* target = stream->m_bp;
@@ -241,6 +242,6 @@ ostream* __thiscall ostream_write(ostream* out, const void* buffer, int count) {
     return out;
 }
 
-ostream* __thiscall ostream_operator_ls_ulong(ostream* out, unsigned long value) { return PrintNumber(out, kUnsignedLongSpec, false, static_cast<int>(value), 3); }
+ostream* REB_THISCALL ostream_operator_ls_ulong(ostream* out, unsigned long value) { return PrintNumber(out, kUnsignedLongSpec, false, static_cast<int>(value), 3); }
 
-ostream* __thiscall ostream_operator_ls_int(ostream* out, int value) { return PrintNumber(out, kIntSpec, true, value, 2); }
+ostream* REB_THISCALL ostream_operator_ls_int(ostream* out, int value) { return PrintNumber(out, kIntSpec, true, value, 2); }

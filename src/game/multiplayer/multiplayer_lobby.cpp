@@ -1,4 +1,5 @@
 // MultiPlayerWindow, part 3: the lobby protocol (settings, chat, slot table) and its helpers.
+#include "core/reb_abi.h"
 #include <cstdlib>
 #include <cstring>
 #include <new>
@@ -102,7 +103,7 @@ void LaunchGame(MultiPlayerWindow* window) {
 
 // ---- helpers shared with the other modules ----------------------------------------------------------------------
 
-String* __thiscall GetMessageText(TextMessage* message, String* out) {  // 0x411710
+String* REB_THISCALL GetMessageText(TextMessage* message, String* out) {  // 0x411710
     new (out) String(message->m_text);
     return out;
 }

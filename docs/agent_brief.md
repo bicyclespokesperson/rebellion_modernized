@@ -21,6 +21,12 @@ the relevant parts of docs/code_map.md for your module.
   after your module (e.g. `<scratchpad>/events2/`), never at its root.
 - Do the work yourself: do NOT spawn sub-agents (the account's usage budget allows only 2–3 agents in total).
 - Behaviour must match the original exactly, including quirks; mark original bugs `// BUG(original):`.
+- Keep the sources 64-bit safe (docs/phase3_plan.md, P0b): declare every virtual you call (no `vtable[n]`, no `callVirtualSlot`: add the
+  virtual to the class in vtable order with a placeholder name); allocate with `sizeof(T)` or `NewOrNull<T>(...)`, never a literal size;
+  use named fields instead of `(char*)obj + 0x..`; type globals (`extern Notice2 g_notice2Handler;`, not `uint8_t DAT_...[]`; name them with
+  `tools/sym.py set`); a parameter that carries a pointer in the original's 32-bit slot is `intptr_t`; `ReadValue32(in, &field)` takes a typed
+  field of exactly 4 bytes (a `void*` argument is the raw primitive, for genuine byte blocks only); write calling conventions as
+  `REB_THISCALL`/`REB_STDCALL`/`REB_CDECL` (`core/reb_abi.h`) and x87 operations through `core/reb_x87.h`, never inline asm.
 - Verification: every reconstructed function must PASS difftest on at least one capture, or be listed in your
   report as SKIP (not emulatable) / not captured (not reached by any scenario) with the reason. Use the
   scenarios in tests/scenarios/ (see docs/ui_navigation.md if present for what each reaches). Capture with

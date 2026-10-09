@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "platform/win32.h"
@@ -20,7 +21,7 @@ public:
     void SetScreenSize(int width, int height);  // 0x5fba00
 
     char* m_appName;           // +0x94 heap copy of the class name
-    int m_unknown98;           // +0x98
+    uintptr_t m_unknown98;     // +0x98 the accelerator table handle (HACCEL) of the main window
     int m_unknown9c;           // +0x9c
     int m_unknownA0;           // +0xa0
     int m_unknownA4;           // +0xa4
@@ -30,9 +31,9 @@ public:
 };
 
 // Cool's resource-DLL API (stdcall wrappers kept by the application).
-HMODULE __stdcall CoolGetResourceModule(uint32_t slot);                                           // 0x5fba20
-HMODULE __stdcall CoolRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot);  // 0x5fba30
-void __stdcall CoolUnloadResourceSlot(uint32_t slot);                                            // 0x5fba50
+HMODULE REB_STDCALL CoolGetResourceModule(uint32_t slot);                                           // 0x5fba20
+HMODULE REB_STDCALL CoolRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot);  // 0x5fba30
+void REB_STDCALL CoolUnloadResourceSlot(uint32_t slot);                                            // 0x5fba50
 
 HMODULE CoolAppGetResourceModule(uint32_t slot);   // 0x6037f0: 0 without an application
 void CoolAppRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot);  // 0x603810

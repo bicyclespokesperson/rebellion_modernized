@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/sector_window.h"
 
 #include <cstdint>
@@ -258,7 +259,7 @@ void SectorWindow::OnCreate1() {
 
 // ---- Messages ----------------------------------------------------------------------------------------------
 
-LRESULT __stdcall SectorWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL SectorWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     HWND galaxyWindow = m_galaxy->m_hwnd;
     if (message < 0x10) {

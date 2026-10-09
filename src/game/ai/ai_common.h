@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "gameobj/object_key.h"
@@ -40,20 +41,20 @@ int GetTierRecord2a(int view, int tier, DatRecord** out);  // 0x51cc10
 // Keys that name the story characters (0x4024d0, 0x4025f0, 0x402cf0). The key is passed by value on the stack.
 int IsStoryKeyOf4(uint32_t key);  // 0x4024d0: 0x32000242, 0x30000240, 0x34000280, 0x35000281
 int IsStoryKeyOf6(uint32_t key);  // 0x4025f0: the four above and 0x31000241, 0x33000243
-int __stdcall IsStoryKeyOf2(uint32_t key);  // 0x402cf0: 0x32000242, 0x35000281
+int REB_STDCALL IsStoryKeyOf2(uint32_t key);  // 0x402cf0: 0x32000242, 0x35000281
 
 class ObjectNameNode;
 // The key of an object name node (copies its NullableKey): 0x42ec10.
-ObjectKey* __thiscall GetObjectNameNodeKey(ObjectNameNode* node, ObjectKey* out);
+ObjectKey* REB_THISCALL GetObjectNameNodeKey(ObjectNameNode* node, ObjectKey* out);
 
 // The key of a data record (record type in the family byte, record id): 0x402e40.
-ObjectKey* __thiscall GetAiRecordKey(DatRecord* record, ObjectKey* out);
+ObjectKey* REB_THISCALL GetAiRecordKey(DatRecord* record, ObjectKey* out);
 // The key of the data record of a game object, 0 if it has none: 0x402d80.
-ObjectKey* __thiscall GetObjectRecordKey(GameObjNotifier* object, ObjectKey* out);
+ObjectKey* REB_THISCALL GetObjectRecordKey(GameObjNotifier* object, ObjectKey* out);
 // The key of a game object (family from its class, id from the node): 0x4025b0.
-ObjectKey* __thiscall GetObjectKey(GameObjNotifier* object, ObjectKey* out);
+ObjectKey* REB_THISCALL GetObjectKey(GameObjNotifier* object, ObjectKey* out);
 
 class Side;
 class IntPair;
 // A copy of the side's maintenance state pair (+0x58): 0x41bde0.
-IntPair* __thiscall GetSidePairAt58(Side* side, IntPair* out);
+IntPair* REB_THISCALL GetSidePairAt58(Side* side, IntPair* out);

@@ -1,4 +1,5 @@
 #include "core/vptr_store.h"
+#include "fleet/detector.h"
 #include "galaxy/system.h"
 #include "galaxy/system_rules_1e.h"
 #include "galaxy/system_rules_fun_decl.h"
@@ -53,15 +54,6 @@ bool rangeWithin(const FamilyRange* range, const FamilyRange& outer) {
     return range->m_first >= outer.m_first && range->m_second <= outer.m_second;
 }
 
-// Virtual call of a slot that only the unit subclasses (ships, troops) declare; they are reconstructed elsewhere.
-int callUnitSlot(GameObj* unit, int slot) {
-    using SlotFunction = int(__thiscall*)(GameObj*);
-    void** table = *reinterpret_cast<void***>(unit);
-    return reinterpret_cast<SlotFunction>(table[slot])(unit);
-}
-
-constexpr int kUnitSlotA = 112;
-constexpr int kUnitSlotB = 114;
 
 }  // namespace
 
@@ -123,8 +115,8 @@ int System::CheckSameControl(GameObj* other, StatusCode* out) {
 }
 
 // Whether a unit order may be given here: `rangeArg` is really a FamilyRange* (the base class declares it as an int).
-int System::Virtual29(int sideA, int sideB, int kind, int rangeArg, StatusCode* out) {
-    const FamilyRange* range = reinterpret_cast<const FamilyRange*>(static_cast<intptr_t>(rangeArg));
+int System::Virtual29(int sideA, int sideB, int kind, intptr_t rangeArg, StatusCode* out) {
+    const FamilyRange* range = reinterpret_cast<const FamilyRange*>(rangeArg);
     setStatus(out, kStatusCategory, kStatusOk);
     const bool fleetMove = kind == kOrderMoveKind && rangeWithin(range, kFleetRange);
     const bool troopMove = kind == kOrderMoveKind && rangeWithin(range, kTroopRange);
@@ -272,8 +264,8 @@ int System::ApplyAllToViewOf(int view, int unused, NotifyContext* ctx) {
 
 // ---- reactions to child objects appearing or changing (slots 47-53; `ctx` and `child` arrive as ints) -----------
 
-int System::Virtual47(int ctxArg) {
-    NotifyContext* ctx = reinterpret_cast<NotifyContext*>(static_cast<intptr_t>(ctxArg));
+int System::Virtual47(intptr_t ctxArg) {
+    NotifyContext* ctx = reinterpret_cast<NotifyContext*>(ctxArg);
     int ok = GameObj::Virtual47(ctxArg);
     int applied = SetExplored(1, ctx);
     ok = applied && ok;
@@ -281,8 +273,8 @@ int System::Virtual47(int ctxArg) {
     return applied && ok;
 }
 
-int System::Virtual48(int ctxArg) {
-    NotifyContext* ctx = reinterpret_cast<NotifyContext*>(static_cast<intptr_t>(ctxArg));
+int System::Virtual48(intptr_t ctxArg) {
+    NotifyContext* ctx = reinterpret_cast<NotifyContext*>(ctxArg);
     int ok = GameObj::Virtual48(ctxArg);
     int applied = this->System::RecomputeRawMaterial(ctx);
     ok = applied && ok;
@@ -322,10 +314,10 @@ int System::Virtual48(int ctxArg) {
     return applied && ok;
 }
 
-int System::Virtual49(int childArg, int added, int ctxArg) {
-    GameObj* child = reinterpret_cast<GameObj*>(static_cast<intptr_t>(childArg));
-    NotifyContext* ctx = reinterpret_cast<NotifyContext*>(static_cast<intptr_t>(ctxArg));
-    int ok = GameObj::Virtual49(childArg, added, ctxArg);
+int System::NotifyUnitExisting(intptr_t childArg, int added, intptr_t ctxArg) {
+    GameObj* child = reinterpret_cast<GameObj*>(childArg);
+    NotifyContext* ctx = reinterpret_cast<NotifyContext*>(ctxArg);
+    int ok = GameObj::NotifyUnitExisting(childArg, added, ctxArg);
     const uint32_t family = child->GetFamily();
     int applied;
     if (familyIn(family, kFacilityRange)) {
@@ -351,10 +343,10 @@ int System::Virtual49(int childArg, int added, int ctxArg) {
     return ok;
 }
 
-int System::Virtual50(int childArg, int added, int ctxArg) {
-    GameObj* child = reinterpret_cast<GameObj*>(static_cast<intptr_t>(childArg));
-    NotifyContext* ctx = reinterpret_cast<NotifyContext*>(static_cast<intptr_t>(ctxArg));
-    int ok = GameObj::Virtual50(childArg, added, ctxArg);
+int System::NotifyUnitUsable(intptr_t childArg, int added, intptr_t ctxArg) {
+    GameObj* child = reinterpret_cast<GameObj*>(childArg);
+    NotifyContext* ctx = reinterpret_cast<NotifyContext*>(ctxArg);
+    int ok = GameObj::NotifyUnitUsable(childArg, added, ctxArg);
     const uint32_t family = child->GetFamily();
     int applied;
     if (familyIn(family, kFacilityRange)) {
@@ -428,13 +420,13 @@ int System::Virtual50(int childArg, int added, int ctxArg) {
     return ok;
 }
 
-int System::Virtual52(int childArg, int added, int ctxArg) {
-    GameObj* child = reinterpret_cast<GameObj*>(static_cast<intptr_t>(childArg));
-    int ok = GameObj::Virtual52(childArg, added, ctxArg);
+int System::NotifyOwnerExisting(intptr_t childArg, int added, intptr_t ctxArg) {
+    GameObj* child = reinterpret_cast<GameObj*>(childArg);
+    int ok = GameObj::NotifyOwnerExisting(childArg, added, ctxArg);
     if (added == 0 && (child->m_stateFlags & kDestroyedState)) {
         if (familyIn(child->GetFamily(), kUnitRange)) {
-            int strength = callUnitSlot(child, kUnitSlotA);
-            strength -= callUnitSlot(child, kUnitSlotB);
+            int strength = static_cast<int>(static_cast<Detector*>(child)->GetRecordField58());
+            strength -= static_cast<Detector*>(child)->Virtual114();
             const int reason = static_cast<int>(child->m_packed & 0xff);
             const uint32_t side = child->ControlSide();
             int applied;
@@ -453,10 +445,10 @@ int System::Virtual52(int childArg, int added, int ctxArg) {
     return ok;
 }
 
-int System::Virtual53(int childArg, int added, int ctxArg) {
-    GameObj* child = reinterpret_cast<GameObj*>(static_cast<intptr_t>(childArg));
-    NotifyContext* ctx = reinterpret_cast<NotifyContext*>(static_cast<intptr_t>(ctxArg));
-    int ok = GameObj::Virtual53(childArg, added, ctxArg);
+int System::NotifyOwnerUsable(intptr_t childArg, int added, intptr_t ctxArg) {
+    GameObj* child = reinterpret_cast<GameObj*>(childArg);
+    NotifyContext* ctx = reinterpret_cast<NotifyContext*>(ctxArg);
+    int ok = GameObj::NotifyOwnerUsable(childArg, added, ctxArg);
     const uint32_t family = child->GetFamily();
     int applied;
     if (familyIn(family, kCapitalShipRange)) {

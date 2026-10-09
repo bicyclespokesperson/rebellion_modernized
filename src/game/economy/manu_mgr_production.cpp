@@ -1,7 +1,7 @@
 #include "data/game_math.h"
 #include "data/sd_record_bases.h"
 #include "economy/manu_mgr.h"
-#include "economy/manu_mgr_decl.h"
+#include "economy/manufacturing_facility.h"
 #include "economy/procfacil.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_database.h"
@@ -37,7 +37,7 @@ int facilityRecordWord(GameObjNotifier* facility) {
     return static_cast<int>(static_cast<SdRecordExt2*>(facility->m_record)->m_field5c);
 }
 
-bool isInService(GameObjNotifier* facility) { return (AsFacilityFields(facility)->m_flags & kOutOfService) == 0; }
+bool isInService(GameObjNotifier* facility) { return (AsProcFacil(facility)->m_procFlags & kOutOfService) == 0; }
 
 uint32_t recordKeyOf(DatRecord* record) { return (record->m_third << 24) | (record->m_id & 0xffffff); }
 
@@ -111,8 +111,8 @@ int ManuMgr::GetPointsForTime(int time, int includeProgress, StatusCode* status,
                 GameObjNotifier* facility = facilities.Current();
                 if (IsCompatibleFacility(static_cast<GameObj*>(facility)) && isInService(facilities.Current())) {
                     int turns = time;
-                    if (includeProgress != 0 && AsFacilityFields(facilities.Current())->m_progress != 0) {
-                        const int progress = AsFacilityFields(facilities.Current())->m_progress;
+                    if (includeProgress != 0 && AsProcFacil(facilities.Current())->m_etc != 0) {
+                        const int progress = AsProcFacil(facilities.Current())->m_etc;
                         const int word = facilityRecordWord(facilities.Current());
                         const int clock = CallGameHook2B08();
                         turns = word + clock + (time - progress);
@@ -252,7 +252,7 @@ int ManuMgr::EstimateLastQueuedBuildTime(StatusCode* status, int* turns) {
 
 // ---- queue upkeep --------------------------------------------------------------------------------------------
 
-int ManuMgr::OnProductChanged(const ObjectKey* key, int a, int b, NotifyContext* ctx) {
+int ManuMgr::OnProductChanged(const ObjectKey* key, intptr_t a, intptr_t b, NotifyContext* ctx) {
     int result = 1;
     ObjectKey product(m_productKey);
     if (key->m_value == product.m_value) result = UpdateDeploymentKey(ctx);
@@ -272,7 +272,7 @@ int ManuMgr::MoveOverflowToCompleted(const ObjectKey* key, int unused, NotifyCon
     return result;
 }
 
-int ManuMgr::HandleProductEvent(const ObjectKey* key, int a, int b, int c, NotifyContext* ctx) {
+int ManuMgr::HandleProductEvent(const ObjectKey* key, intptr_t a, intptr_t b, int c, NotifyContext* ctx) {
     int result = UpdateQueueMembership(key, ctx);
     if (result) result = RebalanceFacilities(ctx);
     return result;
@@ -466,7 +466,7 @@ int ManuMgr::DestroyProducts(NotifyContext* ctx) {
     return result;
 }
 
-int ManuMgr::CreateProducts(ObjectKeyValueSet* products, int unused, NotifyContext* ctx) {
+int ManuMgr::CreateProducts(ObjectKeySet* products, int unused, NotifyContext* ctx) {
     int result = 1;
     AvlNode* node = products->First();
     while (node) {
@@ -498,7 +498,7 @@ int ManuMgr::RenameProductIfAny(String* name, NotifyContext* ctx) {
 
 int ManuMgr::ClearReserved(int value, NotifyContext* ctx) { return SetReserved(value, ctx); }
 
-int ManuMgr::ReparentQueue(ObjectKeyValueSet* products, const ObjectKey* target, NotifyContext* ctx) {
+int ManuMgr::ReparentQueue(ObjectKeySet* products, const ObjectKey* target, NotifyContext* ctx) {
     ObjectKey targetCopy(*target);
     int result = SetTargetKey(&targetCopy, ctx);
     if (result) {
@@ -543,7 +543,7 @@ int ManuMgr::RebalanceFacilities(NotifyContext* ctx) {
             if (IsCompatibleFacility(static_cast<GameObj*>(facility))) {
                 ++counts.total;
                 if (isInService(facility)) {
-                    switch (AsFacilityFields(facility)->m_mode) {
+                    switch (AsProcFacil(facility)->m_state) {
                         case 1: ++counts.mode1; break;
                         case 2: ++counts.mode2; break;
                         case 3: ++counts.mode3; break;
@@ -572,7 +572,7 @@ int ManuMgr::RebalanceFacilities(NotifyContext* ctx) {
             while (facilities.Current()) {
                 GameObjNotifier* facility = facilities.Current();
                 if (IsCompatibleFacility(static_cast<GameObj*>(facility)) && isInService(facility) &&
-                    AsFacilityFields(facility)->m_mode == kModeIdle) {
+                    AsProcFacil(facility)->m_state == kModeIdle) {
                     if (!best || facilityRecordWord(best) > facilityRecordWord(facilities.Current())) {
                         best = facilities.Current();
                     }
@@ -599,7 +599,7 @@ int ManuMgr::RebalanceFacilities(NotifyContext* ctx) {
                 while (facilities.Current()) {
                     GameObjNotifier* facility = facilities.Current();
                     if (IsCompatibleFacility(static_cast<GameObj*>(facility)) && isInService(facility) &&
-                        AsFacilityFields(facility)->m_mode == mode) {
+                        AsProcFacil(facility)->m_state == mode) {
                         if (!best || facilityRecordWord(best) < facilityRecordWord(facilities.Current())) {
                             best = facilities.Current();
                         }

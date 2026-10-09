@@ -3,6 +3,7 @@
 
 #include "data/game_math.h"
 #include "data/random.h"
+#include "economy/facility.h"
 #include "galaxy/system_rules_1e.h"
 #include "galaxy/system_rules_decl.h"
 #include "gameobj/object_queries.h"
@@ -84,7 +85,7 @@ int System::RecomputeRawMaterialAllocated(NotifyContext* ctx) {
     int result = 1;
     ChildIterator allocators(this, ControlSide(), &kFacilities2cTo2d, kStateExisting);
     for (allocators.Begin(); allocators.Current(); allocators.Advance())
-        allocated += CallVirtualSlot<int>(allocators.Current(), 114);
+        allocated += static_cast<Facility*>(allocators.Current())->Virtual114();
 
     if (m_rawMaterial < allocated) {
         ChildIterator sites(this, &kFacilities2cTo2d, kStateExisting);

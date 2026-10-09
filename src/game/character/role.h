@@ -70,10 +70,10 @@ public:
     virtual int CheckRenameImpl(const ActivityRequest* request, StatusCode* out) override;                                  // 25, 0x533a00
     virtual int CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) override;                                 // 27, 0x533a70
     virtual int CheckUnknown(const ActivityRequest* request, StatusCode* out) override;                                     // 28, 0x533ae0
-    virtual int Virtual47(int a) override;                                                         // 47, 0x534a50
-    virtual int Virtual48(int a) override;                                                         // 48, 0x534a50
+    virtual int Virtual47(intptr_t a) override;                                                         // 47, 0x534a50
+    virtual int Virtual48(intptr_t a) override;                                                         // 48, 0x534a50
     // `a` is really the NotifyContext*: clears the master's MissionKey, then re-applies it to both side views.
-    virtual int Virtual55(int a) override;                                                         // 55, 0x534a60
+    virtual int Virtual55(intptr_t a) override;                                                         // 55, 0x534a60
     virtual GameObjData* CreateData() override;                                                    // 58, 0x536cc0
     virtual int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x536070
     virtual int OnUsableChanged(int newValue, NotifyContext* ctx) override;                        // 68, 0x536050

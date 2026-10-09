@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "events/event_helpers.h"
@@ -11,29 +12,22 @@ using events::timerStatOfOwner;
 
 namespace {
 
-constexpr int kMissionMgrStatAOffset = 0x5c;
-constexpr int kMissionMgrStatBOffset = 0x64;
-
 constexpr FamilyRange kMissionFamilies(0x40, 0x80);
 constexpr FamilyRange kMissionMgrFamilies(0xf8, 0xf9);
 
-TrackedStat* managerStatA(GameObj* manager) {
-    return reinterpret_cast<TrackedStat*>(reinterpret_cast<uint8_t*>(manager) + kMissionMgrStatAOffset);
-}
-TrackedStat* managerStatB(GameObj* manager) {
-    return reinterpret_cast<TrackedStat*>(reinterpret_cast<uint8_t*>(manager) + kMissionMgrStatBOffset);
-}
+TrackedStat* managerStatA(GameObj* manager) { return &static_cast<MissionMgr*>(manager)->m_statA; }
+TrackedStat* managerStatB(GameObj* manager) { return &static_cast<MissionMgr*>(manager)->m_statB; }
 
 }  // namespace
 
 // ---- shared slot 10 --------------------------------------------------------------------------------------------------
 
-FamilyRange* __stdcall GetMissionFamilyRange(FamilyRange* out) {
+FamilyRange* REB_STDCALL GetMissionFamilyRange(FamilyRange* out) {
     *out = kMissionFamilies;
     return out;
 }
 
-FamilyRange* __stdcall GetMissionMgrFamilyRange(FamilyRange* out) {
+FamilyRange* REB_STDCALL GetMissionMgrFamilyRange(FamilyRange* out) {
     *out = kMissionMgrFamilies;
     return out;
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 // The game manager's side of the object model's hook table (0x4fcd90-0x4fd280). The installer (0x4fcde0) fills the
 // callbacks declared in gameobj/game_hooks.h with the wrappers below; each one forwards to the game manager (0x6b2fcc)
 // and does nothing, or returns its default, while there is none. The remaining wrappers are plain accessors that
@@ -13,25 +14,25 @@
 #include "gameobj/game_settings.h"
 
 // Two more slots of the hook table that only the installer fills (0x6b2adc / 0x6b2ae4).
-extern int (*g_gameHook2ADC)(int);
-extern int (*g_gameHook2AE4)(int);
+extern int (*g_gameHook2ADC)(HookArg);
+extern int (*g_gameHook2AE4)(HookArg);
 
 // 4-byte float values the game manager's clients keep (0x4fcd90, 0x4fcdb0, 0x4fcdd0).
-void __thiscall AssignGameTime(GameTime* self, const GameTime* other);  // 0x4fcd90
-void __thiscall ReadGameTime(GameTime* self, istream* in);              // 0x4fcdb0
-void __thiscall ClearGameTime(GameTime* self);                          // 0x4fcdd0
+void REB_THISCALL AssignGameTime(GameTime* self, const GameTime* other);  // 0x4fcd90
+void REB_THISCALL ReadGameTime(GameTime* self, istream* in);              // 0x4fcdb0
+void REB_THISCALL ClearGameTime(GameTime* self);                          // 0x4fcdd0
 
 void InstallGameManagerHooks();  // 0x4fcde0
 
 // ---- the installed hooks ----
 int GameHookTickCount();                                // 0x4fcee0 (slot 0x6b2b04)
 int GameHookDay();                                      // 0x4fcf00 (slot 0x6b2b08)
-void GameHookScheduleTimer(int timer, int delay);       // 0x4fcfd0 (slot 0x6b2ad8)
-void GameHookScheduleCommand(int event);                // 0x4fcff0 (slot 0x6b2b00)
-void GameHookScheduleEvent(int event);                  // 0x4fd010 (slot 0x6b2af8)
-int GameHookDispatchPostedEvent(int event);             // 0x4fd030 (slot 0x6b2ad4)
+void GameHookScheduleTimer(HookArg timer, int delay);       // 0x4fcfd0 (slot 0x6b2ad8)
+void GameHookScheduleCommand(HookArg event);                // 0x4fcff0 (slot 0x6b2b00)
+void GameHookScheduleEvent(HookArg event);                  // 0x4fd010 (slot 0x6b2af8)
+int GameHookDispatchPostedEvent(HookArg event);             // 0x4fd030 (slot 0x6b2ad4)
 int GameHookIsSetupDone();                              // 0x4fd060 (slot 0x6b2af0)
-int GameHookNoteDispatch(int item);                     // 0x4fd0d0 (slots 0x6b2adc, 0x6b2ae4)
+int GameHookNoteDispatch(HookArg item);                     // 0x4fd0d0 (slots 0x6b2adc, 0x6b2ae4)
 int GameHookNextSerialA();                              // 0x4fd240 (slot 0x6b2af4)
 int GameHookNextSerialB();                              // 0x4fd260 (slot 0x6b2afc)
 

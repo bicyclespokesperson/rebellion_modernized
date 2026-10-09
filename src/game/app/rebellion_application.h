@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "app/saved_game_info_decl.h"
@@ -65,7 +66,7 @@ public:
     virtual ~RebellionApplication();  // 0x413440 (scalar deleting destructor 0x413420)
 
     // Slot 5: the window procedure.
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x4138a0
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x4138a0
 
     // The main loop: creates and shows the window, then pumps messages and steps the game while the queue is empty.
     // Returns WM_QUIT's wParam. `unused` is always 1.
@@ -76,7 +77,7 @@ public:
     // Leaves the current state and enters `state` (an AppState).
     void SetState(int state);  // 0x414330
     // Plays the movie `movieId` (0x65..0x6d) in the movie window; `a`/`b` go to the movie window.
-    void PlayMovie(int movieId, const String* caption, void(__cdecl* callback)(uint32_t, uint32_t, int));  // 0x4146e0
+    void PlayMovie(int movieId, const String* caption, void(REB_CDECL* callback)(uint32_t, uint32_t, int));  // 0x4146e0
     void BeginMovieState();   // 0x414830
     void DoMainChildWindow(int previousState);  // 0x414a80: front-end, lobby or options window for the current state
     void ShowStrategicWindow(int unused);       // 0x414eb0
@@ -184,6 +185,6 @@ REB_ASSERT_OFFSET(RebellionApplication, m_networkSettings, 0x148);
 REB_ASSERT_OFFSET(RebellionApplication, m_mismatchOptions, 0x154);
 #pragma clang diagnostic pop
 
-int __stdcall WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int showCommand);  // 0x4165b0
+int REB_STDCALL WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int showCommand);  // 0x4165b0
 void ChangeToInstalledLocation();   // 0x416820
 int InstalledLocationHasBigData();  // 0x416950

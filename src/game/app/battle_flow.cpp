@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "app/battle_flow.h"
 
 #include <new>
@@ -81,7 +82,7 @@ int GetBattleStateName(int state, String* out) {
 // ---- game step driver lifetime ---------------------------------------------------------------------------------------------
 
 int CreateGameStepDriver() {
-    void* memory = AllocateChecked(0x28);
+    void* memory = AllocateChecked(sizeof(GameStepDriver));
     g_gameStepDriver = memory ? new (memory) GameStepDriver() : nullptr;
     int ok = 0;
     if (g_gameStepDriver && g_gameStepDriver->m_ok != 0) {
@@ -91,8 +92,8 @@ int CreateGameStepDriver() {
     return ok;
 }
 
-int __stdcall CreateGameStepDriverFor(GameSettings* settings, int a, int b) {
-    void* memory = AllocateChecked(0x28);
+int REB_STDCALL CreateGameStepDriverFor(GameSettings* settings, int a, int b) {
+    void* memory = AllocateChecked(sizeof(GameStepDriver));
     g_gameStepDriver = memory ? new (memory) GameStepDriver(a, b) : nullptr;
     int ok = 0;
     if (g_gameStepDriver && g_gameStepDriver->m_ok != 0) {
@@ -236,7 +237,7 @@ void BattleFlow::Step(int* stepped) {
             break;
         case kFlowTacticalToStrategic: {
             int inconclusiveLive = 0;
-            void* memory = AllocateChecked(0x28);
+            void* memory = AllocateChecked(sizeof(GameStepDriver));
             g_gameStepDriver = memory ? new (memory) GameStepDriver() : nullptr;
             if (g_gameStepDriver && g_gameStepDriver->m_ok != 0) {
                 String path;

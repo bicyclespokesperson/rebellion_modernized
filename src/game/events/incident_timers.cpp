@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "events/incident_timers.h"
 
 #include "events/event_helpers.h"
@@ -12,18 +13,14 @@ using events::timerStatOfOwner;
 
 namespace {
 
-TrackedStat* statAt(GameObj* owner, int offset) {
-    return reinterpret_cast<TrackedStat*>(reinterpret_cast<uint8_t*>(owner) + offset);
-}
-
 }  // namespace
 
-FamilyRange* __stdcall GetSystemFamilyRange(FamilyRange* out) {
+FamilyRange* REB_STDCALL GetSystemFamilyRange(FamilyRange* out) {
     *out = FamilyRange(0x90, 0x98);
     return out;
 }
 
-FamilyRange* __stdcall GetFamilyF9Range(FamilyRange* out) {
+FamilyRange* REB_STDCALL GetFamilyF9Range(FamilyRange* out) {
     *out = FamilyRange(0xf9, 0xfa);
     return out;
 }
@@ -146,7 +143,7 @@ SideStatATimer::~SideStatATimer() { REB_KEEP_VPTR_STORE(); }
 SideStatATimer* SideStatATimer::Clone() { return NewOrNull<SideStatATimer>(*this); }
 
 TrackedStat* SideStatATimer::GetTargetSpec() {
-    return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_f9_fa, [](GameObj* o) { return statAt(o, 0x58); });
+    return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_f9_fa, [](GameObj* o) { return &static_cast<RulesMgr*>(o)->m_timerA; });
 }
 
 void SideStatATimer::Fire() {
@@ -164,7 +161,7 @@ SideStatBTimer::~SideStatBTimer() { REB_KEEP_VPTR_STORE(); }
 SideStatBTimer* SideStatBTimer::Clone() { return NewOrNull<SideStatBTimer>(*this); }
 
 TrackedStat* SideStatBTimer::GetTargetSpec() {
-    return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_f9_fa, [](GameObj* o) { return statAt(o, 0x60); });
+    return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_f9_fa, [](GameObj* o) { return &static_cast<RulesMgr*>(o)->m_timerB; });
 }
 
 void SideStatBTimer::Fire() {

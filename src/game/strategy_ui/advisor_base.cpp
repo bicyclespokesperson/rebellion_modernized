@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <new>
 
 #include "app/player_controller_decl.h"
@@ -12,7 +13,7 @@
 #include "strategy_ui/game_ui_facade.h"
 #include "strategy_ui/human_player.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyHumanUiFlags();
 
 namespace {
@@ -123,8 +124,8 @@ void AdvisorBase::Read(istream* in, HumanPlayer* player) {
     if (m_cueDue) ::operator delete(m_cueDue);
     if (m_cueCooldown) ::operator delete(m_cueCooldown);
     if (m_cueCount != 0) {
-        m_cueDue = static_cast<uint32_t*>(::operator new(m_cueCount * 4));
-        m_cueCooldown = static_cast<uint32_t*>(::operator new(m_cueCount * 4));
+        m_cueDue = static_cast<uint32_t*>(::operator new(m_cueCount * sizeof(uint32_t)));
+        m_cueCooldown = static_cast<uint32_t*>(::operator new(m_cueCount * sizeof(uint32_t)));
         for (uint32_t i = 0; i < m_cueCount; ++i) {
             ReadValue32(in, &m_cueDue[i]);
             m_cueCooldown[i] = 0;
@@ -321,7 +322,7 @@ int AdvisorBase::IsTaskReady(int command) {
     return 0;
 }
 
-void __stdcall AdvisorToggleUiFlag(int command) {  // 0x439e80
+void REB_STDCALL AdvisorToggleUiFlag(int command) {  // 0x439e80
     if (command == 0x119) return;
     if (command == 0x11b) {
         g_humanUiFlags.m_value ^= 0x1000;
@@ -440,7 +441,7 @@ void AdvisorBase::SpeakTopic(unsigned topic) {
     }
 }
 
-void AdvisorBase::SetAiHelperFlag(int value) { m_aiHelper.SetFocusKey(reinterpret_cast<const uint32_t*>(static_cast<intptr_t>(value))); }
+void AdvisorBase::SetAiHelperFlag(intptr_t value) { m_aiHelper.SetFocusKey(reinterpret_cast<const uint32_t*>(static_cast<intptr_t>(value))); }
 void AdvisorBase::ClearAiHelperFlag(int value) { m_aiHelper.SetFocusValue(value); }
 
 void AdvisorBase::ResetTasks() {

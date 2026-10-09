@@ -1,6 +1,8 @@
+#include "core/reb_abi.h"
 #include "ui/custom_dialog_box.h"
 
 #include "app/rebapp_globals.h"
+#include "app/rebellion_application.h"
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "gameobj/game_obj.h"
@@ -33,12 +35,7 @@ constexpr uint32_t kMenuEntryDisabled = 1;
 constexpr uint32_t kMenuEntryChecked = 2;
 constexpr int kRenameFieldFontSlot = 10;
 constexpr int kAlliancePlayer = 1;
-constexpr size_t kMainWindowOffset = 0xc0;
-
-// RebellionApplication (0x413000) keeps the main strategy window at +0xc0.
-CoolWindow* AppMainWindow() {
-    return *reinterpret_cast<CoolWindow**>(reinterpret_cast<char*>(g_app) + kMainWindowOffset);
-}
+CoolWindow* AppMainWindow() { return static_cast<RebellionApplication*>(g_app)->m_activeWindow; }
 
 }  // namespace
 
@@ -116,7 +113,7 @@ CustomDialogBox::~CustomDialogBox() {
     if (m_titleLabel) delete m_titleLabel;
 }
 
-LRESULT __stdcall CustomDialogBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL CustomDialogBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
     case WM_PAINT:
         return CoolGameWindow::WindowProc(message, wParam, lParam);

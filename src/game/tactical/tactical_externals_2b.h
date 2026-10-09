@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "tactical/tactical_math.h"
@@ -14,6 +15,6 @@ class TacticalHub;
 
 
 
-void __thiscall FUN_005cb1a0(ShipGroup* group, int a);
-void __thiscall FUN_005a0320(TacticalHub* hub, int groupId);
+void REB_THISCALL FUN_005cb1a0(ShipGroup* group, int a);
+void REB_THISCALL FUN_005a0320(TacticalHub* hub, int groupId);
 TacticalHub* FUN_0059ed70();

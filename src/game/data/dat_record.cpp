@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "data/dat_record.h"
 
 #include <cstring>
@@ -54,7 +55,7 @@ void DatRecord::WriteName(String* out, int kind) {
 }
 
 // The vtable slot at +0x1c is entered with `this` pointing at the ObjectBase subobject.
-void __thiscall AppendRecordName(ObjectBase* source, String* out, int kind) {
+void REB_THISCALL AppendRecordName(ObjectBase* source, String* out, int kind) {
     static_cast<DatRecord*>(source)->DatRecord::WriteName(out, kind);
 }
 

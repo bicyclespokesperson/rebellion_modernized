@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -27,7 +28,7 @@ public:
     SmackerWindow(const char* path, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                   int autoStart, uint32_t smackFlags);
     virtual ~SmackerWindow();
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
 
     // Starts the playback thread (stopping a previous one); `loop` makes the movie restart after its last frame.
     int StartPlayback(int loop);
@@ -63,7 +64,7 @@ public:
     VideoWindow(const char* path, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                 int autoStart);
     virtual ~VideoWindow();
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
 
     int OpenMovie(HWND window, const char* path, MCIDEVICEID* device);
     int Play(int fullScreen);

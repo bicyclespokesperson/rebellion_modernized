@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "tactical/tactical_groups.h"
 #include "tactical/tactical_objmgr.h"
 #include "tactical/tactical_registry.h"
@@ -99,7 +100,7 @@ TacticalCapitalShip::TacticalCapitalShip(uint32_t family, uint32_t id, int notAl
     m_speedCH = speedCH;
     m_shieldCH = shieldCH;
     m_hyperdriveCH = hyperdriveCH;
-    m_scale = static_cast<float>(x87Sin(static_cast<double>(kPi) * 0.49444446f));
+    m_scale = static_cast<float>(reb_sin(static_cast<double>(kPi) * 0.49444446f));
     m_tractoredBy[0] = 0;
     m_tractoredBy[1] = 0;
     m_tractoredBy[2] = 0;
@@ -175,7 +176,7 @@ CapitalShipResult* TacticalCapitalShip::BuildResult(CapitalShipResult* out) {
     return result;
 }
 
-void __thiscall TacticalCapitalShipLaunchPoint(TacticalHangar* hangar, TacticalVector* out) {
+void REB_THISCALL TacticalCapitalShipLaunchPoint(TacticalHangar* hangar, TacticalVector* out) {
     TacticalCapitalShip* ship = static_cast<TacticalCapitalShip*>(hangar);
     const double y = static_cast<double>(ship->m_position.m_y) - ship->m_unk08;
     out->m_x = ship->m_position.m_x;

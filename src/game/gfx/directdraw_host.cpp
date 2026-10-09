@@ -1,4 +1,5 @@
 // DirectDraw host: creation, cooperative level and display mode switching (0x614000-0x615300).
+#include "core/reb_abi.h"
 #include "gfx/directdraw_host.h"
 
 #include <new>
@@ -6,7 +7,7 @@
 #include "core/vptr_store.h"
 #include "iostream/iostream.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 
 extern RECT g_windowedRect;
 extern DisplayModeTree g_displayModes;
@@ -193,13 +194,13 @@ HRESULT DirectDrawHost::RestoreSurfaces() {
     return result;
 }
 
-HRESULT __stdcall RestoreSurfaceCallback(LPDIRECTDRAWSURFACE surface, LPDDSURFACEDESC, void*) {
+HRESULT REB_STDCALL RestoreSurfaceCallback(LPDIRECTDRAWSURFACE surface, LPDDSURFACEDESC, void*) {
     HRESULT result = E_FAIL;
     if (surface) result = surface->Restore();
     return result;
 }
 
-BOOL __stdcall FindAdapterWith3dCallback(GUID* driverGuid, char*, char*, void* context) {
+BOOL REB_STDCALL FindAdapterWith3dCallback(GUID* driverGuid, char*, char*, void* context) {
     BOOL keepSearching = TRUE;
     IDirectDraw* candidate = nullptr;
     if (!driverGuid || DirectDrawCreate(driverGuid, &candidate, nullptr) != 0) return keepSearching;

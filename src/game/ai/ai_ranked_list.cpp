@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ai/ai_ranked_list.h"
 
 #include "ai/ai_session_random.h"
@@ -89,9 +90,9 @@ void AiRankedList::Write(ostream* out) {
     for (AiRankedItem* item = First(); item; item = static_cast<AiRankedItem*>(item->m_next)) item->Write(out);
 }
 
-void __thiscall AiRankedListRead(IdLinkNode* base, istream* in) { static_cast<AiRankedList*>(base)->AiRankedList::Read(in); }
+void REB_THISCALL AiRankedListRead(IdLinkNode* base, istream* in) { static_cast<AiRankedList*>(base)->AiRankedList::Read(in); }
 
-void __thiscall AiRankedListWrite(IdLinkNode* base, ostream* out) {
+void REB_THISCALL AiRankedListWrite(IdLinkNode* base, ostream* out) {
     static_cast<AiRankedList*>(base)->AiRankedList::Write(out);
 }
 

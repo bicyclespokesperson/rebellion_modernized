@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -19,9 +20,9 @@ public:
     void Reset();                                          // 0x562ba0
     void CopyFrom(const LoyaltyRule& other);               // 0x562c30
     // Copies the family range into *out; returns out.
-    IntPair* __thiscall GetFamilyRange(IntPair* out);      // 0x51bf10
+    IntPair* REB_THISCALL GetFamilyRange(IntPair* out);      // 0x51bf10
     // The original takes the range as an IntPair by value: two dwords on the stack.
-    void __thiscall SetFamilyRange(uint32_t first, uint32_t second);  // 0x55de00
+    void REB_THISCALL SetFamilyRange(uint32_t first, uint32_t second);  // 0x55de00
 
     int m_controlSide;      // +0x00, 0 or 1-3
     IntPair m_familyRange;  // +0x04, default the systems 0x90-0x98

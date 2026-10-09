@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/system_forces_window.h"
 
 #include <new>
@@ -251,7 +252,7 @@ void SystemForcesWindow::OnCreate1() {
 
 // ---- Messages -------------------------------------------------------------------------------------------------
 
-LRESULT __stdcall SystemForcesWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL SystemForcesWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message < 0x202) {
         if (message == WM_LBUTTONDOWN) {
             SendMessageA(m_galaxy->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);

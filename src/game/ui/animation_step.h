@@ -27,7 +27,7 @@ public:
 
     virtual void Attach(SpriteAnimator* animator);            // slot 3, 0x403e90
     virtual void SetScript(const uint32_t* sequence);         // slot 4, 0x403ea0
-    virtual void SetStart(int x, int y);                      // slot 5, 0x403ef0 (does nothing)
+    virtual void SetStart(int x, intptr_t y);                      // slot 5, 0x403ef0 (does nothing)
     // Moves the script on one frame; sets *changed and the rectangle that changed; non-zero when the script is over.
     virtual int Advance(RECT* area, int* changed) = 0;        // slot 6
     virtual void Begin() = 0;                                 // slot 7
@@ -80,7 +80,7 @@ public:
 // Waits `m_delay` frames, then ends.
 class TimedStep : public BitmapListStep {
 public:
-    virtual void SetStart(int x, int y) override;             // 0x412900 (x: the delay, y: the callback)
+    virtual void SetStart(int x, intptr_t y) override;             // 0x412900 (x: the delay, y: the callback)
     virtual void Abort() override;                            // 0x404b90
 
     void (*m_callback)(int);  // +0x50 called with the animator's id when the step finishes
@@ -90,7 +90,7 @@ public:
 // Steps that wait a number of frames and remember a position.
 class PositionedStep : public BitmapListStep {
 public:
-    virtual void SetStart(int x, int y) override;                  // 0x4124b0
+    virtual void SetStart(int x, intptr_t y) override;                  // 0x4124b0
     virtual int Advance(RECT* area, int* changed) override;        // 0x412260
     virtual void Abort() override;                                 // 0x412090
 

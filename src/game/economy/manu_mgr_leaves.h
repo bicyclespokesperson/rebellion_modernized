@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -22,15 +23,15 @@
 // the lookup of a system's manager by slot 123; the facility family column is from ManufacturingFacility's slot 129.
 
 // Bodies of slots 5-7 and 9 (thiscall, `this` passed through; the leaves' wrappers forward to them).
-int __thiscall ManuMgrReadBody(ManuMgr* self, istream* in);          // 0x55bce0 (-> ManuMgr::Read)
-int __thiscall ManuMgrWriteBody(ManuMgr* self, ostream* out);        // 0x55bcf0 (-> ManuMgr::Write)
-int __thiscall ManuMgrApplyAllBody(ManuMgr* self, NotifyContext* ctx);  // 0x55bd00 (-> ManuMgr::ApplyAll)
-int __thiscall ManuMgrChecksumBody(ManuMgr* self, Crc32* crc);       // 0x55bd10 (-> ManuMgr::Checksum)
+int REB_THISCALL ManuMgrReadBody(ManuMgr* self, istream* in);          // 0x55bce0 (-> ManuMgr::Read)
+int REB_THISCALL ManuMgrWriteBody(ManuMgr* self, ostream* out);        // 0x55bcf0 (-> ManuMgr::Write)
+int REB_THISCALL ManuMgrApplyAllBody(ManuMgr* self, NotifyContext* ctx);  // 0x55bd00 (-> ManuMgr::ApplyAll)
+int REB_THISCALL ManuMgrChecksumBody(ManuMgr* self, Crc32* crc);       // 0x55bd10 (-> ManuMgr::Checksum)
 
 // The shared CreateViews stubs (thiscall): both end in GameObj's CreateViews through 0x5774f0. 0x55b560 serves the
 // manufacturing facilities and these managers, 0x55ac90 the defense facilities.
-int __thiscall CreateViewsStubShared(GameObj* self, int controlKind, NotifyContext* ctx);   // 0x55b560
-int __thiscall CreateViewsStubDefense(GameObj* self, int controlKind, NotifyContext* ctx);  // 0x55ac90
+int REB_THISCALL CreateViewsStubShared(GameObj* self, int controlKind, NotifyContext* ctx);   // 0x55b560
+int REB_THISCALL CreateViewsStubDefense(GameObj* self, int controlKind, NotifyContext* ctx);  // 0x55ac90
 
 // Family 0xa4.
 class TrainingFacilManuMgr : public ManuMgr {

@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -14,7 +15,7 @@ public:
     virtual ~CoolwinStatusBar();  // 0x60e250 (scalar deleting destructor 0x60e230)
 
     // Paints on WM_PAINT; everything else goes to DefWindowProcA (not to CoolWindow::WindowProc).
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60e460
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60e460
 
     void SetBarColor(COLORREF color);         // 0x60e2d0
     void SetBackgroundColor(COLORREF color);  // 0x60e340

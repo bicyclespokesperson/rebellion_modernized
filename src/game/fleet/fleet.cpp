@@ -70,7 +70,7 @@ int hasReadyShip(Fleet* fleet) {
 }
 
 template <typename T>
-T* asPointer(int value) {
+T* asPointer(intptr_t value) {
     return reinterpret_cast<T*>(static_cast<intptr_t>(value));
 }
 
@@ -350,7 +350,7 @@ int Fleet::CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) {
     return result;
 }
 
-int Fleet::Virtual29(int a, int b, int c, int d, StatusCode* out) {
+int Fleet::Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) {
     setStatus(out, kStatusOk);
     const int needCompleted = (m_fleetFlags & kFlag02Or04) ? 0 : 1;
     return CheckControlAndState(this, a, b, needCompleted, 1, out);
@@ -401,7 +401,7 @@ int Fleet::CheckBombard(const ActivityRequest* request, StatusCode* out) {
     return result;
 }
 
-int Fleet::StartAssault(int request, NotifyContext* ctx) {
+int Fleet::StartAssault(intptr_t request, NotifyContext* ctx) {
     StatusCode status(kStatusCategory, kStatusOk);
     bool ok = CheckAssault(asPointer<const ActivityRequest>(request), &status) != 0;
     if (isOk(&status)) {
@@ -411,7 +411,7 @@ int Fleet::StartAssault(int request, NotifyContext* ctx) {
     return ok;
 }
 
-int Fleet::StartBombard(int request, NotifyContext* ctx) {
+int Fleet::StartBombard(intptr_t request, NotifyContext* ctx) {
     StatusCode status(kStatusCategory, kStatusOk);
     bool ok = CheckBombard(asPointer<const ActivityRequest>(request), &status) != 0;
     if (isOk(&status)) {
@@ -423,15 +423,15 @@ int Fleet::StartBombard(int request, NotifyContext* ctx) {
 
 // ---- events from other objects ----------------------------------------------------------------------------
 
-int Fleet::Virtual48(int ctx) {
+int Fleet::Virtual48(intptr_t ctx) {
     const int shared = GameObj::Virtual55(ctx);
     const bool usable = UpdateUsable(asPointer<NotifyContext>(ctx)) != 0 && shared != 0;
     const int refreshed = RefreshFromShips(asPointer<NotifyContext>(ctx));
     return refreshed != 0 && usable ? 1 : 0;
 }
 
-int Fleet::Virtual49(int other, int b, int ctx) {
-    bool ok = GameObj::Virtual49(other, b, ctx) != 0;
+int Fleet::NotifyUnitExisting(intptr_t other, int b, intptr_t ctx) {
+    bool ok = GameObj::NotifyUnitExisting(other, b, ctx) != 0;
     if (isShipFamily(asPointer<GameObj>(other)->GetFamily())) {
         const int refreshed = RefreshFromShips(asPointer<NotifyContext>(ctx));
         ok = refreshed != 0 && ok;
@@ -439,8 +439,8 @@ int Fleet::Virtual49(int other, int b, int ctx) {
     return ok;
 }
 
-int Fleet::Virtual50(int other, int b, int ctx) {
-    bool ok = GameObj::Virtual50(other, b, ctx) != 0;
+int Fleet::NotifyUnitUsable(intptr_t other, int b, intptr_t ctx) {
+    bool ok = GameObj::NotifyUnitUsable(other, b, ctx) != 0;
     if (isShipFamily(asPointer<GameObj>(other)->GetFamily())) {
         const int updated = UpdateUsable(asPointer<NotifyContext>(ctx));
         ok = updated != 0 && ok;
@@ -448,8 +448,8 @@ int Fleet::Virtual50(int other, int b, int ctx) {
     return ok;
 }
 
-int Fleet::Virtual51(int other, int b, int ctx) {
-    bool ok = GameObj::Virtual51(other, b, ctx) != 0;
+int Fleet::NotifyUnitDamaged(intptr_t other, int b, intptr_t ctx) {
+    bool ok = GameObj::NotifyUnitDamaged(other, b, ctx) != 0;
     if (isShipFamily(asPointer<GameObj>(other)->GetFamily())) {
         const int updated = UpdateDamaged(asPointer<NotifyContext>(ctx));
         ok = updated != 0 && ok;

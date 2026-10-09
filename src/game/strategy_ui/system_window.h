@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -46,7 +47,7 @@ public:
                  GameObjNotifier* system);  // 0x452fc0
     virtual ~SystemWindow();  // 0x4532c0 (scalar deleting destructor 0x4531e0)
 
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4534f0
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4534f0
     virtual void SaveState(ostream* out) override;                  // slot 9, 0x458ea0
     virtual void LoadState(istream* in) override;                   // slot 10, 0x458f50
     virtual void OnCreate1() override;                              // slot 14, 0x455060
@@ -125,7 +126,7 @@ public:
 };
 
 // The picture of a facility or manufacturing manager (0x458fe0): null if none; the caller owns it.
-DibBitmap* __stdcall SystemObjectPicture(GameObjNotifier* object);
+DibBitmap* REB_STDCALL SystemObjectPicture(GameObjNotifier* object);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

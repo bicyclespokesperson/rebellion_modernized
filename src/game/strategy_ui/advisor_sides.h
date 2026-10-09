@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -51,4 +52,4 @@ void RefusedUnits(AdvisorBase* advisor, OrderBase* order, IntPair* status, int v
 }  // namespace advisor_sides
 
 // The location key (+0x7c) of a manufacturing manager, copied into `out`.
-ObjectKey* __thiscall ManagerGetLocationKey(GameObjNotifier* manager, ObjectKey* out);  // 0x4c27b0
+ObjectKey* REB_THISCALL ManagerGetLocationKey(GameObjNotifier* manager, ObjectKey* out);  // 0x4c27b0

@@ -1,3 +1,5 @@
+#include "character/character.h"
+#include "core/reb_abi.h"
 #include "strategy_ui/battle_window.h"
 
 #include <new>
@@ -657,7 +659,7 @@ void BattleWindow::AddRow(GameObj* object, int normal, String* heading) {
     DeleteBitmap(picture);
 }
 
-void __stdcall CollectBattleParticipants(GameObjNotifier* fleet, ObjectKeySet* shown, ObjectKeySet* held, int kind) {
+void REB_STDCALL CollectBattleParticipants(GameObjNotifier* fleet, ObjectKeySet* shown, ObjectKeySet* held, int kind) {
     CapShipIterator ships(fleet, 3);
     for (ships.Begin(); ships.Current(); ships.Advance()) {
         GameObjNotifier* ship = ships.Current();
@@ -689,7 +691,7 @@ void __stdcall CollectBattleParticipants(GameObjNotifier* fleet, ObjectKeySet* s
                 role->GetKey(&roleKey);
                 ObjectKeyNode* node = NewKeyNode(roleKey);
                 ObjectKeySet* target = shown;
-                if (InFamilies(roleKey, 0x30, 0x3c) && (*(reinterpret_cast<uint8_t*>(role) + 0xac) & 1) != 0) target = held;
+                if (InFamilies(roleKey, 0x30, 0x3c) && (static_cast<Character*>(role)->m_flagsAc & 1) != 0) target = held;
                 target->Add(node);
             }
         }

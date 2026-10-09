@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <cstdint>
 #include <new>
 
@@ -49,7 +50,7 @@ extern int g_briefingDllSide;  // 0x6b14d4 the side whose briefing DLL (slot 0xd
 
 // The other strategy windows' constructors (the finders, message index, mission selection, side windows) and helpers
 // of the modules that own them.
-void __thiscall FUN_00457f30(SystemWindow* window, int slot, GameObjNotifier* manager, const ObjectKey* character);
+void REB_THISCALL FUN_00457f30(SystemWindow* window, int slot, GameObjNotifier* manager, const ObjectKey* character);
 
 namespace {
 
@@ -61,7 +62,6 @@ constexpr uint32_t kSectorWindowType = 1;
 constexpr uint32_t kSystemWindowType = 9;
 constexpr uint32_t kSectorWindowWidth = 0xeb;
 constexpr uint32_t kSectorWindowHeight = 0x168;
-constexpr size_t kSectorWindowSize = 0x1a4;
 constexpr int kFinderWidth = 0x1d6;
 constexpr int kFinderHeight = 0x14a;
 constexpr uint32_t kSystemFinderId = 0x14;
@@ -194,7 +194,7 @@ CoolWindow* GalaxyWindow::OpenSectorWindow(const ObjectKey* sectorKey) {
         top = replaced->m_y;
         RemoveFromOpenWindows(this, replaced);
     }
-    void* memory = ::operator new(kSectorWindowSize);
+    void* memory = ::operator new(sizeof(SectorWindow));
     CoolWindow* window =
         memory ? static_cast<CoolWindow*>(new (memory) SectorWindow(m_instance, left, top, kSectorWindowWidth, kSectorWindowHeight, this, GetBackground(), childId, sector))
                : nullptr;
@@ -432,7 +432,7 @@ void StartScript(SpriteStage* stage, uint32_t droidId, uint32_t resourceId, uint
     const uint16_t* script = nullptr;
     HGLOBAL data = nullptr;
     HMODULE module = FindResourceModule(slot);
-    HRSRC info = FindResourceA(module, reinterpret_cast<LPCSTR>(resourceId & 0xffff), reinterpret_cast<LPCSTR>(kResourceTypeRcData));
+    HRSRC info = FindResourceA(module, MAKEINTRESOURCEA(resourceId & 0xffff), MAKEINTRESOURCEA(kResourceTypeRcData));
     if (info) {
         data = LoadResource(module, info);
         if (data) script = static_cast<const uint16_t*>(LockResource(data));

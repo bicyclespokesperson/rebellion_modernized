@@ -29,9 +29,9 @@ public:
     virtual int CanBeControlledBy(int side) override;                                             // 20, 0x4f27d0
     virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                       // 22, 0x4f2860
     virtual int CheckRequestImpl(const ActivityRequest* request, StatusCode* out) override;       // 23, 0x4f28d0
-    virtual int Virtual47(int a) override;                                                        // 47, 0x4f29a0
-    virtual int Virtual48(int a) override;                                                        // 48, 0x4f29a0
-    virtual int Virtual55(int a) override;                                                        // 55, 0x4f29b0
+    virtual int Virtual47(intptr_t a) override;                                                        // 47, 0x4f29a0
+    virtual int Virtual48(intptr_t a) override;                                                        // 48, 0x4f29a0
+    virtual int Virtual55(intptr_t a) override;                                                        // 55, 0x4f29b0
     virtual GameObjData* CreateData() override;                                                   // 58, 0x4f2bf0
     virtual int OnNameChanged(String* oldName, String* newName, NotifyContext* ctx) override;     // 59, 0x4f2a70
     virtual int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;  // 60, 0x4f2a90
