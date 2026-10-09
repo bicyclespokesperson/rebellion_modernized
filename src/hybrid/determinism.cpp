@@ -29,7 +29,17 @@
 //                          the game speed do not move game time by a wall-clock-dependent amount. With the same key as
 //                          REB_QPC_HOLD_UNTIL_KEY it must be released and pressed again.
 // REB_NO_TIMERS=1         timeSetEvent returns a fake id and never calls back (the game's CoolTimer threads).
+// REB_VIRTUAL_SOUND=1     with REB_DETERMINISTIC: the playing state of sound buffers follows the virtual QueryPerformanceCounter
+//                          (src/port/virtual_sound.h). Sounds play in wall-clock time, and the droid animations wait for their
+//                          speech/effect sound to end (AnimationStep04/13 poll IDirectSoundBuffer::GetStatus), so otherwise a
+//                          talking step lasts a wall-clock-dependent number of game ticks, which moves every later advisor draw
+//                          from the session random generator the AI breaks ties with.
 // REB_CLOCK_TRACE=1       logs the first call from every distinct caller of the virtual clocks.
+// REB_CLOCK_TRACE=<n>     (n >= 2) counts the virtual clock calls per caller and logs the counts every n game ticks ("clock
+//                          counts"): a caller in a reconstruction is reported as the original address of the hook that
+//                          contains it, so the tables of an original-code run and a hybrid run compare line by line.
+//                          Once the start key is seen, the first 4,000 calls of every caller are also logged one by one
+//                          ("clock call", with the game tick and the virtual counter): a time series of rare callers.
 // REB_HEAP_PROBE=<bytes>   shifts heap addresses: reserves <bytes> of address space before the game's heap exists
 //                          and, once the CRT heap exists, makes a small allocation of <bytes> % 4093 + 1 bytes
 //                          from it. Test aid for finding address-dependent behaviour; independent of the clocks.
@@ -40,6 +50,15 @@
 #include <cstdint>
 
 #include "hybrid/runtime.h"
+#include "port/virtual_sound.h"
+
+struct HookEntry {
+    uint32_t original;
+    const void* replacement;
+    const char* name;
+    uint32_t return_kind;
+};
+extern "C" const HookEntry reb_hook_table[];
 
 namespace reb {
 
@@ -52,6 +71,8 @@ constexpr uint32_t kIatGetLocalTime = 0x00658210;
 constexpr uint32_t kIatGetSystemTime = 0x00658214;
 constexpr uint32_t kIatTimeGetTime = 0x00658444;
 constexpr uint32_t kIatTimeSetEvent = 0x00658448;
+constexpr uint32_t kIatDirectSoundCreate = 0x00658050;
+constexpr uintptr_t kTextEnd = 0x00657400;
 constexpr uint32_t kGameManagerGlobal = 0x006b2fcc;
 constexpr uint32_t kGameManagerTickOffset = 0x0c;
 constexpr uint32_t kGameTime = 0x0061b120;
@@ -85,6 +106,19 @@ bool g_trace_callers = false;
 uintptr_t g_seen_callers[256];
 LONG g_seen_count = 0;
 
+struct CallerCount {
+    uintptr_t address;
+    char api;
+    uint32_t count;
+    uint32_t logged;
+};
+constexpr uint32_t kLoggedCallsPerCaller = 4000;
+uint32_t g_count_every_ticks = 0;
+CallerCount g_caller_counts[512];
+LONG g_caller_count_size = 0;
+volatile LONG g_caller_lock = 0;
+uint32_t g_count_window_tick = 0;
+
 void trace_caller(const char* api, void* return_address) {
     auto address = reinterpret_cast<uintptr_t>(return_address);
     for (LONG i = 0; i < g_seen_count; ++i)
@@ -95,6 +129,58 @@ void trace_caller(const char* api, void* return_address) {
 }
 
 uint64_t add_counter_ns(uint32_t step_ns);
+uint32_t current_game_tick();
+
+// The hybrid's reconstructed code lives in this DLL; report it as the original function it replaces.
+uint32_t original_function_of(uintptr_t address) {
+    uintptr_t best = 0;
+    uint32_t original = 0;
+    for (const HookEntry* h = reb_hook_table; h->original; ++h) {
+        auto start = reinterpret_cast<uintptr_t>(h->replacement);
+        if (start <= address && start > best) {
+            best = start;
+            original = h->original;
+        }
+    }
+    return original;
+}
+
+void dump_caller_counts(uint32_t from_tick, uint32_t to_tick) {
+    log("clock counts: ticks %u-%u", from_tick, to_tick);
+    for (LONG i = 0; i < g_caller_count_size; ++i) {
+        CallerCount& c = g_caller_counts[i];
+        if (c.count == 0) continue;
+        if (c.address >= kTextEnd)
+            log("clock count %c %08x via hook %08x: %u", c.api, static_cast<unsigned>(c.address), original_function_of(c.address), c.count);
+        else
+            log("clock count %c %08x: %u", c.api, static_cast<unsigned>(c.address), c.count);
+        c.count = 0;
+    }
+}
+
+void count_caller(char api, void* return_address) {
+    auto address = reinterpret_cast<uintptr_t>(return_address);
+    while (InterlockedExchange(&g_caller_lock, 1)) {
+    }
+    const uint32_t tick = current_game_tick();
+    if (tick / g_count_every_ticks != g_count_window_tick / g_count_every_ticks) {
+        if (g_count_window_tick != 0) dump_caller_counts(g_count_window_tick, tick);
+        g_count_window_tick = tick;
+    }
+    LONG i = 0;
+    while (i < g_caller_count_size && (g_caller_counts[i].address != address || g_caller_counts[i].api != api)) ++i;
+    if (i == g_caller_count_size && i < 512) g_caller_counts[g_caller_count_size++] = CallerCount{address, api, 0, 0};
+    if (i < 512) {
+        CallerCount& c = g_caller_counts[i];
+        ++c.count;
+        if (g_start_seen && c.logged < kLoggedCallsPerCaller) {
+            ++c.logged;
+            log("clock call %c %08x tick %u at %u us", api, static_cast<unsigned>(address), tick,
+                static_cast<unsigned>(static_cast<uint64_t>(g_counter_ns) / 1000));
+        }
+    }
+    InterlockedExchange(&g_caller_lock, 0);
+}
 
 uint64_t advance_clock_us() {
     if (g_clock_from_counter) return add_counter_ns(0) / 1000;
@@ -165,7 +251,8 @@ void apply_heap_probe_when_ready() {
 }
 
 BOOL WINAPI fake_query_performance_counter(LARGE_INTEGER* out) {
-    if (g_trace_callers) trace_caller("QueryPerformanceCounter", __builtin_return_address(0));
+    if (g_count_every_ticks) count_caller('Q', __builtin_return_address(0));
+    else if (g_trace_callers) trace_caller("QueryPerformanceCounter", __builtin_return_address(0));
     apply_heap_probe_when_ready();
     if (out) out->QuadPart = advance_counter_us();
     if (g_trace_callers && g_counter_calls % 100000 == 0)
@@ -180,7 +267,8 @@ BOOL WINAPI fake_query_performance_frequency(LARGE_INTEGER* out) {
 }
 
 DWORD WINAPI fake_tick_count() {
-    if (g_trace_callers) trace_caller("tick count", __builtin_return_address(0));
+    if (g_count_every_ticks) count_caller('T', __builtin_return_address(0));
+    else if (g_trace_callers) trace_caller("tick count", __builtin_return_address(0));
     apply_heap_probe_when_ready();
     return kTickBaseMs + static_cast<DWORD>(advance_clock_us() / 1000);
 }
@@ -196,6 +284,17 @@ int __cdecl fake_time(int* out) {
 }
 
 UINT WINAPI fake_time_set_event(UINT, UINT, void*, DWORD_PTR, UINT) { return 1; }
+
+using DirectSoundCreateFn = HRESULT(WINAPI*)(const void*, void**, void*);
+DirectSoundCreateFn g_real_direct_sound_create = nullptr;
+
+uint64_t virtual_now_us() { return add_counter_ns(0) / 1000; }
+
+HRESULT WINAPI virtual_direct_sound_create(const void* device, void** direct_sound, void* outer) {
+    const HRESULT result = g_real_direct_sound_create(device, direct_sound, outer);
+    virtual_sound::Attach(result, direct_sound, virtual_now_us, log);
+    return result;
+}
 
 void patch_iat(uint32_t slot, const void* replacement) {
     auto* p = reinterpret_cast<const void**>(slot);
@@ -231,7 +330,9 @@ void install_clock_shims() {
     g_release_key = static_cast<uint32_t>(env_number("REB_QPC_HOLD_UNTIL_KEY"));
     g_release_armed = g_release_key != g_start_key;
     g_clock_from_counter = env_number("REB_CLOCK_FROM_QPC") != 0;
-    g_trace_callers = env_number("REB_CLOCK_TRACE") != 0;
+    const SIZE_T trace = env_number("REB_CLOCK_TRACE");
+    g_trace_callers = trace != 0;
+    if (trace >= 2) g_count_every_ticks = static_cast<uint32_t>(trace);
     patch_iat(kIatQueryPerformanceCounter, reinterpret_cast<void*>(fake_query_performance_counter));
     patch_iat(kIatQueryPerformanceFrequency, reinterpret_cast<void*>(fake_query_performance_frequency));
     patch_iat(kIatGetTickCount, reinterpret_cast<void*>(fake_tick_count));
@@ -247,6 +348,12 @@ void install_timer_suppression() {
     log("determinism: multimedia timers never fire");
 }
 
+void install_virtual_sound() {
+    g_real_direct_sound_create = *reinterpret_cast<DirectSoundCreateFn*>(kIatDirectSoundCreate);
+    patch_iat(kIatDirectSoundCreate, reinterpret_cast<void*>(virtual_direct_sound_create));
+    log("determinism: sound buffers play in virtual time");
+}
+
 void install_heap_probe() {
     g_probe_bytes = env_number("REB_HEAP_PROBE");
     if (g_probe_bytes == 0) return;
@@ -259,8 +366,10 @@ void install_heap_probe() {
 }  // namespace
 
 void install_determinism() {
-    if (env_number("REB_DETERMINISTIC")) install_clock_shims();
+    const bool deterministic = env_number("REB_DETERMINISTIC") != 0;
+    if (deterministic) install_clock_shims();
     if (env_number("REB_NO_TIMERS")) install_timer_suppression();
+    if (deterministic && env_number("REB_VIRTUAL_SOUND")) install_virtual_sound();
     install_heap_probe();
 }
 
