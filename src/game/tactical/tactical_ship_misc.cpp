@@ -1,4 +1,5 @@
 #include "core/reb_abi.h"
+#include "core/reb_x87.h"
 #include <new>
 
 #include "tactical/tactical_groups.h"
@@ -120,13 +121,13 @@ void TacticalFighter::ApplyStatus(const FightSquadResult* record) {
 }
 
 uint32_t TacticalFighter::SquadsAlive() {
-    const uint32_t count = static_cast<uint32_t>(ScaleByHull(static_cast<float>(m_hullMax / 8.0f)));
+    const uint32_t count = reb_ftou(ScaleByHull(static_cast<float>(m_hullMax / 8.0f)));
     if (count < 1) return 1;
-    return static_cast<uint32_t>(ScaleByHull(static_cast<float>(m_hullMax / 8.0f)));
+    return reb_ftou(ScaleByHull(static_cast<float>(m_hullMax / 8.0f)));
 }
 
 uint32_t TacticalFighter::SquadsMax() {
-    const uint32_t count = static_cast<uint32_t>(m_hullMax / 8.0f);
+    const uint32_t count = reb_ftou(m_hullMax / 8.0f);
     return count < 1 ? 1 : count;
 }
 

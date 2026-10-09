@@ -1,4 +1,5 @@
 #include "core/reb_abi.h"
+#include "core/reb_x87.h"
 #include "tactical/tactical_groups.h"
 #include "tactical/tactical_objmgr.h"
 #include "tactical/tactical_registry.h"
@@ -291,7 +292,7 @@ void TacticalShipBase::ApplyCriticalHit(int kind) {
             break;
         case 4: {
             const uint32_t next = m_hyperdriveCH + 1;
-            const uint32_t limit = static_cast<uint32_t>(m_hyperdriveCount);
+            const uint32_t limit = reb_ftou(m_hyperdriveCount);
             m_hyperdriveCH = next < limit ? next : limit;
             break;
         }

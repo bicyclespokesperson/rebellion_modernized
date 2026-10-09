@@ -222,7 +222,7 @@ void SmackerWindow::SetVolume(int volume) {
     int smackVolume = 0;
     if (scaled >= kVolumeFloor) {
         const double amplitude = reb_pow(10.0, scaled * kHundredthsToDecibels * kDecibelsToLog10Amplitude);
-        smackVolume = static_cast<int>(floor(amplitude * kSmackFullVolume));
+        smackVolume = reb_ftol(floor(amplitude * kSmackFullVolume));
     }
     if (m_smack) SmackVolumePan(m_smack, kSmackAllAudioTracks, smackVolume, kSmackPanCentre);
     if (!m_volumeTouched) m_volumeTouched = 1;

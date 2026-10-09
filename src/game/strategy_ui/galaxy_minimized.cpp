@@ -2,6 +2,7 @@
 #include <new>
 
 #include "audio/sound_manager.h"
+#include "core/reb_x87.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
 #include "gfx/dib_bitmap.h"
@@ -160,7 +161,7 @@ void AnimateZoomRect(HWND hwnd, const RECT* to, const RECT* from) {
     const float slope = deltaLeft == 0 ? 0.0f
                                        : static_cast<float>(static_cast<double>(deltaTop) /
                                                             static_cast<double>(deltaLeft));
-    const int intercept = to->top - static_cast<int>(static_cast<double>(to->left) * slope);
+    const int intercept = to->top - reb_ftol(static_cast<double>(to->left) * slope);
     int width = from->right - from->left;
     int height = from->bottom - from->top;
     const int stepLeft = deltaLeft / 4;
@@ -176,7 +177,7 @@ void AnimateZoomRect(HWND hwnd, const RECT* to, const RECT* from) {
     for (int step = 0; step < kZoomSteps; ++step) {
         Rectangle(dc, left, top, left + width, top + height);
         left += stepLeft;
-        top = slope == 0.0f ? top + stepTop : static_cast<int>(static_cast<double>(left) * slope) + intercept;
+        top = slope == 0.0f ? top + stepTop : reb_ftol(static_cast<double>(left) * slope) + intercept;
         height += stepHeight;
         width += stepWidth;
         Rectangle(dc, left, top, left + width, top + height);

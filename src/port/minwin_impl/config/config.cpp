@@ -6,6 +6,10 @@
 #include <fstream>
 #include <sstream>
 
+#if !defined(_WIN32)
+#include "port/native/platform.h"
+#endif
+
 #if defined(_WIN32)
 #include <direct.h>
 #define MW_MKDIR(p) _mkdir(p)
@@ -55,13 +59,9 @@ std::string Config::DefaultPath() {
 #if defined(_WIN32)
     if (const char* appdata = Env("APPDATA")) return std::string(appdata) + "\\Rebellion\\config.ini";
     return "config.ini";
-#elif defined(__APPLE__)
-    if (const char* home = Env("HOME")) return std::string(home) + "/Library/Application Support/Rebellion/config.ini";
-    return "config.ini";
 #else
-    if (const char* xdg = Env("XDG_CONFIG_HOME")) return std::string(xdg) + "/rebellion/config.ini";
-    if (const char* home = Env("HOME")) return std::string(home) + "/.config/rebellion/config.ini";
-    return "config.ini";
+    const std::string dir = reb::platform::UserConfigDir();
+    return dir.empty() ? "config.ini" : dir + "/config.ini";
 #endif
 }
 

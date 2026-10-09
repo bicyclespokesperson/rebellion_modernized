@@ -97,3 +97,14 @@ inline int32_t reb_ftol(double value) {
     return static_cast<int32_t>(value);
 #endif
 }
+
+// double -> uint32 as the original and x86-64 do it: truncate to 64 bits (the CRT's _ftol, cvttsd2si with a 64-bit destination) and keep
+// the low word, so a negative value wraps and NaN / out-of-range values give 0. arm64 would saturate a negative value to 0 instead.
+inline uint32_t reb_ftou(double value) {
+#if REB_X87_NATIVE
+    return static_cast<uint32_t>(value);
+#else
+    if (!(value > -9223372036854775809.0 && value < 9223372036854775808.0)) return 0;
+    return static_cast<uint32_t>(static_cast<int64_t>(value));
+#endif
+}

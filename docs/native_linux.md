@@ -1,5 +1,7 @@
 # Native Linux x86-64 build (phase 3, P2/P3)
 
+macOS, arm64 and the list of OS differences: see [native.md](native.md).
+
 `build/native/rebellion` is the game built from the same `src/game` sources as the Windows builds, for the host ABI (x86-64, Itanium
 C++ ABI, LP64) and with `src/port/minwin_impl` (SDL3, FreeType) as the platform. No Wine, no i686. The player's licensed game files are read
 in place (`install_dir` in the config file, see `src/port/minwin_impl/config/config.h`).

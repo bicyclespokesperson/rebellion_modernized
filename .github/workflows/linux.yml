@@ -1,0 +1,42 @@
+# Native Linux build on every push: compiles the whole native configuration (game, port layer, SDL3, FreeType) for x86-64, cross-compiles it
+# for aarch64, and runs the unit tests that need no game data. No game data is ever used in CI: the link step (which reads REBEXE.EXE)
+# and the simulation goldens run on a developer machine (docs/native.md).
+name: linux
+on: [push, pull_request]
+
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86_64, arm64]
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Packages
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends clang-19 lld-19 cmake ninja-build python3 pkg-config \
+            libx11-dev libxext-dev libxcursor-dev libxi-dev libxfixes-dev libxrandr-dev libxss-dev libxkbcommon-dev \
+            libwayland-dev wayland-protocols libdecor-0-dev libasound2-dev libpulse-dev libdrm-dev libgbm-dev libgl1-mesa-dev \
+            libegl1-mesa-dev libudev-dev libdbus-1-dev libxcb1-dev libxtst-dev libxrender-dev
+          if [ "${{ matrix.arch }}" = arm64 ]; then
+            sudo apt-get install -y --no-install-recommends gcc-13-aarch64-linux-gnu g++-13-aarch64-linux-gnu \
+              libc6-dev-arm64-cross libstdc++-13-dev-arm64-cross qemu-user
+          fi
+      - name: Dependencies
+        run: tools/fetch_deps.sh freetype liberation sdl3
+      - name: Configure
+        run: |
+          extra=""
+          if [ "${{ matrix.arch }}" = arm64 ]; then extra="-DCMAKE_TOOLCHAIN_FILE=$PWD/cmake/toolchain-linux-aarch64.cmake -DREB_SDL_HEADLESS=ON"; fi
+          cmake -S . -B build/native -G Ninja -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19 $extra \
+            -DCMAKE_BUILD_TYPE=RelWithDebInfo -DREB_NATIVE=ON
+      - name: Build objects
+        run: cmake --build build/native --target reb_native_objects
+      - name: Unit tests (x86-64)
+        if: matrix.arch == 'x86_64'
+        run: |
+          cmake -S src/port/minwin_impl -B build/minwin_impl -G Ninja -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19 -DCMAKE_BUILD_TYPE=Release
+          cmake --build build/minwin_impl
+          (cd build/minwin_impl && ctest --output-on-failure)

@@ -1,4 +1,5 @@
 #include "core/reb_abi.h"
+#include "core/reb_x87.h"
 #include "gameobj/game_root.h"
 #include "app/battle_flow.h"
 
@@ -228,7 +229,7 @@ int BattleResults::ApplyCapitalShip(CapShip* ship, NotifyContext* context) {
     }
     if (ok) {
         const int currentHull = CapShipCurrentHull(ship);
-        const int difference = static_cast<int>(result.m_hull) - currentHull;
+        const int difference = reb_ftol(result.m_hull) - currentHull;
         if (difference > 0) {
             ok = ship->RepairHullDamage(difference, context);
         } else if (difference < 0) {
@@ -255,7 +256,7 @@ int BattleResults::ApplyDeathStar(CapShip* deathStar, NotifyContext* context) {
     }
     if (ok) {
         const int currentHull = CapShipCurrentHull(deathStar);
-        const int difference = static_cast<int>(result.m_hull) - currentHull;
+        const int difference = reb_ftol(result.m_hull) - currentHull;
         if (difference > 0) {
             ok = deathStar->RepairHullDamage(difference, context);
         } else if (difference < 0) {

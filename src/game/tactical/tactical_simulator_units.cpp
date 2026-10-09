@@ -1,4 +1,5 @@
 #include "core/vptr_store.h"
+#include "core/reb_x87.h"
 #include "tactical/tactical_game.h"
 #include "tactical/tactical_groups.h"
 #include "tactical/tactical_objmgr.h"
@@ -214,10 +215,10 @@ void HeadlessSimulator::DeathStarAttackRun(ShipGroup* group) {
             return;
         }
         TacticalShipBase* ship = node->Value();
-        const uint32_t turnRate = static_cast<uint32_t>(static_cast<int>(ship->GetTurnRate()));
+        const uint32_t turnRate = static_cast<uint32_t>(reb_ftol(ship->GetTurnRate()));
         bool retired = false;
         if (static_cast<uint32_t>(GetHeadlessSimulator()->RandomBetween(1, 10)) > turnRate) {
-            const uint32_t steps = static_cast<uint32_t>(static_cast<int>(ship->m_hull / kHullPerDamageStep));
+            const uint32_t steps = static_cast<uint32_t>(reb_ftol(ship->m_hull / kHullPerDamageStep));
             if (steps <= 1) {
                 RetireUnit(ship);
                 retired = true;
@@ -238,7 +239,7 @@ void HeadlessSimulator::DeathStarAttackRun(ShipGroup* group) {
             const float skill = skillB < kBestSkill ? static_cast<float>(GetHeadlessSimulator()->CommanderSkillB(0)) : kBestSkill;
             const float chance = static_cast<float>((ship->TorpedoStrength() + skill) * kStrikeChanceScale);
             const uint32_t strikeRoll = static_cast<uint32_t>(GetHeadlessSimulator()->RandomBetween(1, 100));
-            if (strikeRoll <= static_cast<uint32_t>(static_cast<int>(chance))) {
+            if (strikeRoll <= static_cast<uint32_t>(reb_ftol(chance))) {
                 TacticalDeathStar* deathStar = static_cast<TacticalDeathStar*>(GetTacticalRegistry()->GetDeathStar());
                 if (deathStar != nullptr) {
                     deathStar->ResetCharged();

@@ -5,6 +5,8 @@
 
 #if !defined(_WIN32)
 #include <dirent.h>
+
+#include "port/native/platform.h"
 #else
 #include <windows.h>
 #endif
@@ -44,18 +46,8 @@ std::vector<std::string> SystemDirectories() {
     std::vector<std::string> dirs;
 #if defined(_WIN32)
     if (const char* windir = Env("WINDIR")) dirs.push_back(std::string(windir) + "\\Fonts");
-#elif defined(__APPLE__)
-    dirs.push_back("/System/Library/Fonts/Supplemental");
-    dirs.push_back("/Library/Fonts");
-    if (const char* home = Env("HOME")) dirs.push_back(std::string(home) + "/Library/Fonts");
 #else
-    if (const char* home = Env("HOME")) {
-        dirs.push_back(std::string(home) + "/.fonts");
-        dirs.push_back(std::string(home) + "/.local/share/fonts");
-    }
-    if (const char* xdg = Env("XDG_DATA_HOME")) dirs.push_back(std::string(xdg) + "/fonts");
-    dirs.push_back("/usr/share/fonts");
-    dirs.push_back("/usr/local/share/fonts");
+    dirs = reb::platform::SystemFontDirs();
 #endif
     return dirs;
 }
@@ -170,6 +162,9 @@ FontFiles FindArial() {
     }
     std::vector<std::string> libDirs = dirs;
     if (const char* exe = Env("MW_EXE_DIR")) libDirs.push_back(std::string(exe) + "/fonts");
+#if !defined(_WIN32)
+    libDirs.push_back(reb::platform::BundledFontDir());
+#endif
     libDirs.push_back("third_party/liberation-fonts-ttf-2.1.5");
     libDirs.push_back("../third_party/liberation-fonts-ttf-2.1.5");
     std::string lib = SearchAll(libDirs, "LiberationSans-Regular.ttf");

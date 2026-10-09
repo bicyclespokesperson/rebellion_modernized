@@ -3,11 +3,22 @@
 # clocks (REB_DETERMINISTIC=1) and a comparison of the saves' sha256 with the recorded i686 hashes. A native build uses the host's
 # floating point, so a difference is expected to be float drift (docs/native_linux.md); the script reports the size and the number of
 # differing bytes of each save that differs from the reference run in work/run/sim_goldens/<name>_base_1/ (when that exists).
-#   tools/native_sim.sh [-x EXE] [-k TAG] [name...]
+#   tools/native_sim.sh [-x EXE] [-k TAG] [-a arm64] [name...]
+# -a arm64 runs build/native_arm64/rebellion (tools/build_native.sh --arch arm64) under qemu-user with SDL's dummy video driver
+# (needs a container image with qemu-user: docker/Dockerfile.native; REB_NATIVE_IMAGE selects the image).
 set -uo pipefail
 source "$(dirname "$0")/paths.sh"
-exe="$ROOT/build/native/rebellion"; tag=native
-while getopts "x:k:" opt; do case "$opt" in x) exe="$(realpath "$OPTARG")" ;; k) tag="$OPTARG" ;; *) exit 2 ;; esac; done
+exe="$ROOT/build/native/rebellion"; tag=native; runner=""; display_setup="Xvfb :79 -screen 0 640x480x24 >/dev/null 2>&1 & export DISPLAY=:79; sleep 1;"
+while getopts "x:k:a:" opt; do
+  case "$opt" in
+    x) exe="$(realpath "$OPTARG")" ;;
+    k) tag="$OPTARG" ;;
+    a) [[ "$OPTARG" == arm64 ]] || { echo "unknown -a $OPTARG (arm64)" >&2; exit 2; }
+       exe="$ROOT/build/native_arm64/rebellion"; tag=arm64; runner="qemu-aarch64 -L /usr/aarch64-linux-gnu"
+       display_setup="export SDL_VIDEODRIVER=dummy SDL_AUDIODRIVER=dummy;" ;;
+    *) exit 2 ;;
+  esac
+done
 shift $((OPTIND - 1))
 want=("$@")
 saves="$MAIN/orig_game_files/Star Wars - Rebellion/SaveGame"
@@ -28,7 +39,7 @@ while IFS='|' read -r name file ticks every; do
   cp "$saves/$file" "$out/in.sav"
   spec="load:$out/in.sav,ticks:$ticks,save:$out/sim.sav,every:$every"
   REB_DOCKER_ARGS="-e REBELLION_CONFIG=$out/config.ini -e HOME=$out -e REB_DETERMINISTIC=1 -e REB_SIM=$spec" "$ROOT/tools/container/native_run.sh" \
-    "Xvfb :79 -screen 0 640x480x24 >/dev/null 2>&1 & export DISPLAY=:79; sleep 1; cd '$out/game' && SDL_RENDER_DRIVER=software timeout \${REB_SIM_TIMEOUT:-1500} '$exe' > '$out/game.log' 2>&1; echo exit \$? >> '$out/game.log'" || true
+    "$display_setup cd '$out/game' && SDL_RENDER_DRIVER=software timeout \${REB_SIM_TIMEOUT:-1500} $runner '$exe' > '$out/game.log' 2>&1; echo exit \$? >> '$out/game.log'" || true
   if ! grep -q "^done" "$out/sim.sav.log" 2>/dev/null; then echo "$name: did not finish (see $out/game.log, $out/sim.sav.log)"; status=1; continue; fi
   same=0; diffs=0
   while read -r hash file_name; do

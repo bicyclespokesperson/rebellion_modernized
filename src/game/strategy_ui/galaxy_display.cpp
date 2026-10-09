@@ -2,6 +2,7 @@
 #include <new>
 
 #include "ai/ai_common.h"
+#include "core/reb_x87.h"
 #include "audio/sound_manager.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
@@ -190,9 +191,9 @@ void GalaxyWindow::SetDisplayMode(int mode, IdAvlTree* selection) {
             GameObjNotifier* system = systems.Current();
             uint32_t position;
             static_cast<System*>(system)->GetRecordField4c(&position);
-            int x = static_cast<int>(static_cast<double>(static_cast<int16_t>(position)) /
+            int x = reb_ftol(static_cast<double>(static_cast<int16_t>(position)) /
                                      static_cast<double>(g_displayGridWidth + 1) * kDisplayMapWidth);
-            int y = static_cast<int>(static_cast<double>(static_cast<int16_t>(position >> 16)) /
+            int y = reb_ftol(static_cast<double>(static_cast<int16_t>(position >> 16)) /
                                      static_cast<double>(g_displayGridHeight + 1) * kDisplayMapHeight);
             if (m_side == 1) {
                 x += 0x15;
