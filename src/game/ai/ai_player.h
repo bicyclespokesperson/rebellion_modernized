@@ -23,6 +23,7 @@ public:
     virtual int Virtual04() override;                      // 0x485a50
     // 9: one step of play (m_state 3: a task, 4 and 5: the model's Analyze and the tasks' Evaluate); 1 when a task ran
     virtual int Virtual09() override;                      // 0x485b40
+    virtual int Virtual08(PlayerMessage*) override { return 1; }  // 8: shared 0x51ebb0 (mov eax,1; ret 4)
     virtual void Virtual10() override;                     // 10: 0x485cf0 (deletes the first finished group of notes)
     virtual void Virtual17(int id, ObjectKey* key) override;   // 0x485d50
     virtual void Virtual19(int id, ObjectKey* key) override;   // 0x485db0
