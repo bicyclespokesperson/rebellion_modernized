@@ -10,6 +10,7 @@
 
 #include "app/rebellion_application.h"
 #include "platform/win32.h"
+#include "port/native/native_clock.h"
 
 void RebRunStaticInitializers();
 
@@ -22,9 +23,13 @@ extern "C" {
 DWORD MinwinTimeGetTime(void);
 UINT MinwinTimeSetEvent(UINT delay, UINT resolution, LPTIMECALLBACK callback, DWORD_PTR user, UINT flags);
 
-DWORD timeGetTime(void) { return MinwinTimeGetTime(); }
+DWORD timeGetTime(void) {
+    if (native_clock::Deterministic()) return native_clock::VirtualTickMs();
+    return MinwinTimeGetTime();
+}
 
 UINT timeSetEvent(UINT delay, UINT resolution, LPTIMECALLBACK callback, DWORD_PTR user, UINT flags) {
+    if (native_clock::NoTimers()) return 1;
     return MinwinTimeSetEvent(delay, resolution, callback, user, flags);
 }
 }

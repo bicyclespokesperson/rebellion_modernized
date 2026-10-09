@@ -86,6 +86,7 @@ target_compile_options(reb_minwin_impl PRIVATE ${REB_NATIVE_FLAGS} -include ${CM
 target_compile_definitions(reb_minwin_impl PRIVATE REB_MINWIN=1 MW_IIDS_IN_GAME_DATA=1)
 
 file(GLOB REB_NATIVE_PORT_SOURCES CONFIGURE_DEPENDS src/port/native/*.cpp)
+list(APPEND REB_NATIVE_PORT_SOURCES src/port/sim_harness.cpp)
 add_library(reb_native_port OBJECT ${REB_NATIVE_PORT_SOURCES})
 target_include_directories(reb_native_port PRIVATE src/game src src/port/native/crt ${SDL3_SRC}/include)
 target_compile_options(reb_native_port PRIVATE ${REB_NATIVE_FLAGS})

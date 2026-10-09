@@ -16,7 +16,10 @@
 #include <string>
 
 #include "core/reb_abi.h"
+#include <time.h>
+
 #include "port/minwin_impl/res/path.h"
+#include "port/native/native_clock.h"
 
 namespace {
 
@@ -52,6 +55,12 @@ int _setmode(int, int) { return 0x8000; }
 int _chdir(const char* path) { return chdir(mw::res::ResolvePath(path).c_str()); }
 int _mkdir(const char* path) { return mkdir(mw::res::ResolvePath(path).c_str(), 0755); }
 int _chdrive(int) { return 0; }
+
+long reb_time(long* result) {
+    const long value = native_clock::Deterministic() ? 946728000L : static_cast<long>(time(nullptr));
+    if (result) *result = value;
+    return value;
+}
 
 FILE* reb_fopen(const char* name, const char* mode) { return fopen(mw::res::ResolvePath(name).c_str(), mode); }
 

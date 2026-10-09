@@ -26,6 +26,7 @@ for entry in "$install"/*; do
   ln -s "$entry" "$out/game/$name"
 done
 cp -r "$install/SaveGame" "$out/game/SaveGame"
+[[ -n "${REB_SAVE_OVERLAY:-}" ]] && cp -r "$REB_SAVE_OVERLAY"/. "$out/game/SaveGame/"
 printf 'install_dir=%s\nfont_path=%s\n' "$out/game" "$MAIN/third_party/liberation-fonts-ttf-2.1.5/LiberationSans-Regular.ttf" > "$out/config.ini"
 env_args="-e REBELLION_CONFIG=$out/config.ini -e HOME=$out"
 for v in $(compgen -e | grep -E '^(REB_|ASAN_OPTIONS|UBSAN_OPTIONS|SDL_)'); do env_args+=" -e $v"; done

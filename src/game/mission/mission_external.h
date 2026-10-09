@@ -49,7 +49,7 @@ public:
 };
 
 // The pair of check callbacks Mission::GetCheckFunctions reports: (0x523670 default) and (0x523450 default).
-typedef int(REB_CDECL* MissionMemberCheckFn)(int a, int value, int* out, StatusCode* status);
+typedef int(REB_CDECL* MissionMemberCheckFn)(int a, intptr_t value, intptr_t* out, StatusCode* status);
 typedef int(REB_CDECL* MissionTargetCheckFn)(MissionCheckArgs* args, StatusCode* status, int* code);
 
 #pragma clang diagnostic push

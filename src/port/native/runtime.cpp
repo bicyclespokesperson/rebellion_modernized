@@ -14,9 +14,8 @@ void operator delete[](void* memory) noexcept { free(memory); }
 void operator delete(void* memory, size_t) noexcept { free(memory); }
 void operator delete[](void* memory, size_t) noexcept { free(memory); }
 
-class RebellionApplication;
-bool RebSimRequested() { return false; }
-int RebSimRun(RebellionApplication*) { return 0; }
+int RebHeapProbeMode() { return 0; }
+
 void* operator new(size_t size, const std::nothrow_t&) noexcept { return calloc(size ? size : 1, 1); }
 void* operator new[](size_t size, const std::nothrow_t&) noexcept { return calloc(size ? size : 1, 1); }
 void operator delete(void* memory, const std::nothrow_t&) noexcept { free(memory); }

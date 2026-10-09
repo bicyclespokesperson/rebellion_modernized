@@ -244,7 +244,7 @@ int Mission::CompleteWith(int completionStatus, NotifyContext* ctx) {
     return SetCompletionStatus(completionStatus, &copy) != 0;
 }
 
-int REB_CDECL Mission::CheckMemberDefault(int unused, int value, int* out, StatusCode* status) {
+int REB_CDECL Mission::CheckMemberDefault(int unused, intptr_t value, intptr_t* out, StatusCode* status) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     *out = value;
     return 1;

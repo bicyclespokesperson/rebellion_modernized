@@ -23,6 +23,7 @@ void reb_srand(unsigned int seed);
 void reb_qsort(void* base, size_t count, size_t size, int (*compare)(const void*, const void*));
 int reb_atoi(const char* text);
 FILE* reb_fopen(const char* name, const char* mode);
+long reb_time(long* result);
 long reb_atol(const char* text);
 }
 
@@ -30,6 +31,7 @@ long reb_atol(const char* text);
 #define srand reb_srand
 #define qsort reb_qsort
 #define fopen reb_fopen
+#define time(result) reb_time(result)
 #define atoi reb_atoi
 #define atol reb_atol
 

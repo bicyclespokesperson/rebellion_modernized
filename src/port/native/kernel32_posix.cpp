@@ -21,6 +21,7 @@
 
 #include "port/minwin/minwin.h"
 #include "port/minwin_impl/res/path.h"
+#include "port/native/native_clock.h"
 
 namespace {
 
@@ -82,8 +83,11 @@ thread_local Thread* t_currentThread = nullptr;
 
 void SetLastErrorValue(DWORD error) { t_lastError = error; }
 
+// Small values are file descriptors plus one (src/port/native/win_compat.cpp), not objects.
+constexpr uintptr_t kSmallHandleLimit = 0x10000;
+
 Object* AsObject(HANDLE handle) {
-    if (!handle || handle == INVALID_HANDLE_VALUE) return nullptr;
+    if (!handle || handle == INVALID_HANDLE_VALUE || reinterpret_cast<uintptr_t>(handle) < kSmallHandleLimit) return nullptr;
     return static_cast<Object*>(handle);
 }
 
@@ -214,6 +218,8 @@ extern "C" {
 DWORD REB_STDCALL GetLastError(void) { return t_lastError; }
 
 BOOL REB_STDCALL CloseHandle(HANDLE handle) {
+    if (handle && handle != INVALID_HANDLE_VALUE && reinterpret_cast<uintptr_t>(handle) < kSmallHandleLimit)
+        return close(static_cast<int>(reinterpret_cast<uintptr_t>(handle)) - 1) == 0;
     Object* object = AsObject(handle);
     if (!object) {
         SetLastErrorValue(ERROR_INVALID_HANDLE);
@@ -367,11 +373,15 @@ void REB_STDCALL DeleteCriticalSection(LPCRITICAL_SECTION section) {
 LONG REB_STDCALL InterlockedExchange(LONG volatile* target, LONG value) { return __atomic_exchange_n(target, value, __ATOMIC_SEQ_CST); }
 
 BOOL REB_STDCALL QueryPerformanceFrequency(LARGE_INTEGER* frequency) {
-    frequency->QuadPart = 1000000000;
+    frequency->QuadPart = native_clock::Deterministic() ? 1000000 : 1000000000;
     return TRUE;
 }
 
 BOOL REB_STDCALL QueryPerformanceCounter(LARGE_INTEGER* counter) {
+    if (native_clock::Deterministic()) {
+        counter->QuadPart = static_cast<LONGLONG>(native_clock::AdvanceCounterNs() / 1000);
+        return TRUE;
+    }
     timespec now;
     clock_gettime(CLOCK_MONOTONIC, &now);
     counter->QuadPart = static_cast<LONGLONG>(now.tv_sec) * 1000000000 + now.tv_nsec;
@@ -379,9 +389,8 @@ BOOL REB_STDCALL QueryPerformanceCounter(LARGE_INTEGER* counter) {
 }
 
 DWORD REB_STDCALL GetTickCount(void) {
-    timespec now;
-    clock_gettime(CLOCK_MONOTONIC, &now);
-    return static_cast<DWORD>(static_cast<uint64_t>(now.tv_sec) * 1000 + static_cast<uint64_t>(now.tv_nsec) / 1000000);
+    if (native_clock::Deterministic()) return native_clock::VirtualTickMs();
+    return native_clock::RealTickMs();
 }
 
 void REB_STDCALL OutputDebugStringA(LPCSTR text) {
