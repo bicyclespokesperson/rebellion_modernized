@@ -116,9 +116,17 @@ game_controls, system_forces, save_game_slot. The saves of the sanitized and the
 | a window destroyed by its own procedure, then read | `minwin::CallProc` | port | read before the call |
 | the label shared by two objects, freed, drawn, freed again | `BattleInProgressWindow::OnCreate1` | **original bug** (benign on the NT heap) | `fixedText` gives its string up |
 
-**Original bugs kept** (marked `BUG(original)`): everything the sanitizers did not flag. Candidates not yet proven to matter: 215 call sites with two or
-more calls among the arguments (`tools/find_arg_order.py`; the unspecified evaluation order is right to left in MSVC and clang-cl, left to right in
-the Itanium ABI): none changed the goldens, but a path the goldens do not cover could still differ.
+**Original bugs kept** (marked `BUG(original)`): everything the sanitizers did not flag.
+
+**Argument evaluation order** (unspecified in C++: right to left in MSVC and clang-cl, left to right in the Itanium ABI). `tools/find_arg_order.py`
+finds 282 argument lists in `src/game` with two or more calls (the first version's 215 skipped const methods, lambdas were counted wrongly).
+It proves 248 order-independent by analysis: every call has a visible body that writes nothing but its own locals and calls only such functions
+(virtual calls count when all overriders do). The other 34 were read by hand (callees, not names) and are order-independent too: out-key getters writing
+only their own local key, by-value `String` copies (allocation only), independent Win32 lookups, `++local` next to a getter. They are listed with the reason in
+`tools/arg_order_allow.txt`. No list drew random numbers or advanced a cursor, so nothing needed hoisting and no i686 code changed.
+`tools/check_arg_order.sh` (about 40 s, a CMake configure plus libclang) fails on any new unclassified list; `tools/integrate.sh` runs it.
+Not covered by the gate (informational, `REB_ARGCHECK_ARGS=--reads`): one side-effecting call next to a plain read of memory it might change
+(`f(m_x, Mutate(&m_x))`); 74 lists, all reviewed by their callee names as benign (key getters, Win32, string temporaries).
 
 **Unit tests**: the i686 builds are unchanged: hybrid 10,706 hooks, `check_callee_pop` 0 mismatches, `standalone_check` OK (saves byte-identical to the original's),
 `sim_goldens check` identical. See the end of this section for the difftest numbers. `src/port/minwin_impl` unit tests (`config_test`) pass natively.
