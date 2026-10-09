@@ -1,11 +1,11 @@
-# Native macOS build on every push, arm64 and x86-64: the same cmake/native.cmake as Linux, with the OS differences in
+# Native macOS build, arm64 and x86-64 (run by hand from the Actions tab: macOS runner minutes are billed at 10x on private repos): the same cmake/native.cmake as Linux, with the OS differences in
 # cmake/native_platform.cmake and src/port/native/platform_macos.cpp (docs/native.md). Compiles every object of the native
 # configuration (game, port layer, SDL3 with its Cocoa/Metal backends, FreeType) and runs the unit tests that need no game data
 # (MW_INSTALL_DIR unset: the tests that read the installation skip themselves). No game data in CI: linking needs REBEXE.EXE
 # (tools/gen_native_*.py), so the executable and Rebellion.app are built on a developer's Mac.
 # Runners: macos-14 is Apple silicon; macos-13 (the Intel runner) was retired by GitHub in December 2025, macos-15-intel replaces it.
 name: macos
-on: [push, pull_request]
+on: workflow_dispatch
 
 jobs:
   native:
