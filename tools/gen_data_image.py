@@ -383,8 +383,31 @@ def non_block_pointer_sites(exe: Exe) -> list[tuple[int, str]]:
     return sites
 
 
+INIT_TABLE = (0x6A6004, 0x6A7BD8)  # the original's static-initializer table (_initterm range), 1,781 entries
+
+
+def init_table_asm(image: Image) -> tuple[list[str], list[int]]:
+    """Bring-up stand-in for the generated static-init table: the original order, reconstructed initializers by symbol,
+    the others as 0 (reported)."""
+    lo, hi = INIT_TABLE
+    entries = struct.unpack(f"<{(hi - lo) // 4}I", image.exe.bytes_at(lo, hi - lo))
+    lines = ['.section .rdata,"dr"', ".p2align 2", ".globl _reb_init_table", "_reb_init_table:"]
+    missing = []
+    for value in entries:
+        symbol = image.hook_symbols.get(value)
+        if symbol:
+            lines.append(f"  .long {quote(symbol)}")
+        else:
+            lines.append("  .long 0")
+            missing.append(value)
+    lines += [".globl _reb_init_table_count", f"_reb_init_table_count = {len(entries)}"]
+    return lines, missing
+
+
 def write_standalone(args: argparse.Namespace, image: Image, slots: list[tuple[int, int, str]]) -> int:
-    lines = ['.globl "@feat.00"', '"@feat.00" = 1', ".text", *image.block_asm(slots), *image.rdata_asm(), *image.foreign_asm()]
+    init_lines, init_missing = init_table_asm(image)
+    lines = ['.globl "@feat.00"', '"@feat.00" = 1', ".text", *image.block_asm(slots), *image.rdata_asm(), *image.foreign_asm(),
+             *init_lines]
     args.out_asm.parent.mkdir(parents=True, exist_ok=True)
     args.out_asm.write_text("\n".join(lines) + "\n")
     bad_fixups = {k: v for k, v in image.fixups.items() if k.startswith(("code -> original", "CRT data", "rdata -> original"))}
@@ -392,6 +415,7 @@ def write_standalone(args: argparse.Namespace, image: Image, slots: list[tuple[i
         "block": {"original": f"{own_data.BLOCK_BASE:#x}-{own_data.BLOCK_END:#x}", "bytes": len(image.block)},
         "rdata_copies": {"named_labels": len(image.named_rdata()), "bytes": sum(e - s for s, e in image.rdata_intervals)},
         "foreign_data_labels": len(image.foreign_data()),
+        "init_table": {"entries": (INIT_TABLE[1] - INIT_TABLE[0]) // 4, "unreconstructed": len(init_missing)},
         "pointer_fixups_in_block": dict(image.fixups),
         "unreconstructed_code_pointers": {f"{a:#x}": n for a, n in sorted(image.unreconstructed_code_pointers.items())},
         "unresolved_fixups": bad_fixups,
@@ -399,7 +423,8 @@ def write_standalone(args: argparse.Namespace, image: Image, slots: list[tuple[i
     args.out_report.write_text(json.dumps(report, indent=1) + "\n")
     print(f"gen_data_image --standalone: block {len(image.block):#x} bytes, {len(slots)} pointer fixups {dict(image.fixups)}, "
           f"{len(image.rdata_intervals)} .rdata copies, {len(image.foreign_data())} CRT-data labels, "
-          f"{len(image.unreconstructed_code_pointers)} unreconstructed code pointers (reb_orig_*)")
+          f"{len(image.unreconstructed_code_pointers)} unreconstructed code pointers (reb_orig_*), "
+          f"init table: {len(init_missing)} of {(INIT_TABLE[1] - INIT_TABLE[0]) // 4} entries not reconstructed")
     return 1 if bad_fixups else 0
 
 

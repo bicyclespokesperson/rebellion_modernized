@@ -12,7 +12,7 @@ add_custom_command(
   DEPENDS ${CMAKE_SOURCE_DIR}/tools/gen_import_libs.py ${CMAKE_SOURCE_DIR}/symbols/imports.csv VERBATIM)
 add_custom_target(reb_import_libs DEPENDS ${REB_IMPORT_LIBS})
 
-add_library(reb_standalone_runtime OBJECT src/standalone/entry.cpp src/standalone/crt_shims.cpp src/standalone/iostream_vtable_functions.cpp)
+add_library(reb_standalone_runtime OBJECT src/standalone/entry.cpp src/standalone/crt_shims.cpp src/standalone/iostream_vtable_functions.cpp src/standalone/crash_log.cpp)
 target_include_directories(reb_standalone_runtime PRIVATE src/game src)
 target_compile_options(reb_standalone_runtime PRIVATE ${REB_HYBRID_FLAGS})
 
@@ -46,7 +46,7 @@ add_dependencies(rebellion reb_import_libs)
 set_target_properties(rebellion PROPERTIES LINKER_LANGUAGE CXX OUTPUT_NAME "rebellion")
 target_link_options(rebellion PRIVATE /NODEFAULTLIB /SUBSYSTEM:WINDOWS,4.0 /ENTRY:WinMainCRTStartup /DEBUG /OPT:REF /OPT:NOICF
   /BASE:0x400000 /DYNAMICBASE:NO /ERRORLIMIT:0 /DEMANGLE:NO /MAP:${CMAKE_BINARY_DIR}/rebellion.map
-  /ALTERNATENAME:_WinMain@16=_reb_winmain@16)
+  )
 if(REB_ALLOW_UNRESOLVED)
   target_link_options(rebellion PRIVATE /FORCE:UNRESOLVED)
 endif()
