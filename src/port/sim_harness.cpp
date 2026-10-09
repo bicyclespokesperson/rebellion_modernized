@@ -21,6 +21,8 @@
 
 #include "port/sim_harness.h"
 
+int RebHeapProbeMode();
+
 namespace {
 
 struct SimOptions {
@@ -77,6 +79,24 @@ bool ReadOptions(SimOptions* options) {
     char buffer[1024];
     const DWORD n = GetEnvironmentVariableA("REB_SIM", buffer, sizeof buffer);
     return n != 0 && n < sizeof buffer && ParseOptions(buffer, options);
+}
+
+// Where the heap puts things, for checking that REB_HEAP_PROBE took effect; kept out of the compared log.
+void LogHeapSample(const char* when) {
+    char path[MAX_PATH];
+    if (!GetEnvironmentVariableA("REB_LOG", path, sizeof path - 8)) return;
+    strcat(path, ".heap");
+    HANDLE file = CreateFileA(path, FILE_APPEND_DATA, FILE_SHARE_READ, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (file == INVALID_HANDLE_VALUE) return;
+    void* first = operator new(32);
+    void* second = operator new(32);
+    char line[200];
+    const int n = snprintf(line, sizeof line, "%s: mode %d, driver %p, new %p then %p\n", when, RebHeapProbeMode(), static_cast<void*>(g_gameStepDriver), first, second);
+    DWORD written;
+    WriteFile(file, line, static_cast<DWORD>(n), &written, nullptr);
+    CloseHandle(file);
+    operator delete(second);
+    operator delete(first);
 }
 
 [[noreturn]] void Finish(int code, const char* message) {
@@ -210,6 +230,7 @@ int RebSimRun(RebellionApplication* app) {
     SavedGameInfo header;
     if (!LoadGame(app, options.load, &header)) Finish(3, "REB_SIM: load failed");
     const uint32_t startTick = static_cast<uint32_t>(GetGameTickCount());
+    LogHeapSample("loaded");
     Log("loaded %s: tick %u side %d type %d pause %d", options.load, startTick, app->m_side, app->m_gameType,
         g_gameStepDriver->m_pauseTick);
     g_gameStepDriver->m_pauseTick = 0;  // a loaded game starts paused; the player's un-pause click is not simulated
@@ -231,6 +252,7 @@ int RebSimRun(RebellionApplication* app) {
         if (tick >= endTick) break;
         next = tick + options.every;
     }
+    LogHeapSample("done");
     Log("done: %llu frames, max %u frames per tick", static_cast<unsigned long long>(stats.frames), stats.maxFramesPerTick);
     for (int state = 0; state < 0x18; ++state)
         if (state != 2 && stats.stateEntries[state]) Log("flow state %d entered %u times", state, stats.stateEntries[state]);

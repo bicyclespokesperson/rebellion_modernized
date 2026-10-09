@@ -15,6 +15,7 @@
 
 void* RebAlloc(size_t size);
 void RebFree(void* memory);
+int RebHeapProbeMode();
 
 namespace {
 
@@ -25,7 +26,8 @@ constexpr size_t kClassStep = 16;
 constexpr size_t kSmallLimit = 1024;
 constexpr size_t kSmallClasses = kSmallLimit / kClassStep;
 constexpr size_t kLargeClasses = 14;  // 2 KiB .. 16 MiB
-constexpr size_t kArenaBytes = 640u << 20;
+constexpr size_t kArenaBytesMax = 640u << 20;
+constexpr size_t kArenaBytesMin = 32u << 20;
 constexpr size_t kCommitStep = 1u << 20;
 
 struct FreeBlock {
@@ -35,15 +37,16 @@ struct FreeBlock {
 struct Probe {
     Mode mode = Mode::kOff;
     bool ready = false;
-    CRITICAL_SECTION lock;
+    CRITICAL_SECTION lock = {};
     uint32_t count = 0;
     uint8_t* arenaBase = nullptr;
+    size_t arenaBytes = 0;
     uint8_t* arenaTop = nullptr;
     uint8_t* committedLow = nullptr;
     FreeBlock* freeLists[kSmallClasses + kLargeClasses] = {};
 };
 
-Probe g_probe;
+Probe g_probe __attribute__((require_constant_initialization));
 volatile LONG g_state = 0;  // 0 = not initialised, 1 = initialising, 2 = ready
 
 uint32_t EnvNumber(const char* name) {
@@ -76,9 +79,12 @@ void Initialise() {
     else if (!strcmp(mode, "jitter")) g_probe.mode = Mode::kJitter;
     else if (bytes) g_probe.mode = Mode::kShift;
     if (g_probe.mode == Mode::kReverse) {
-        g_probe.arenaBase = static_cast<uint8_t*>(VirtualAlloc(nullptr, kArenaBytes, MEM_RESERVE, PAGE_NOACCESS));
+        for (size_t bytes = kArenaBytesMax; !g_probe.arenaBase && bytes >= kArenaBytesMin; bytes /= 2) {
+            g_probe.arenaBase = static_cast<uint8_t*>(VirtualAlloc(nullptr, bytes, MEM_RESERVE, PAGE_NOACCESS));
+            g_probe.arenaBytes = bytes;
+        }
         if (g_probe.arenaBase) {
-            g_probe.arenaTop = g_probe.arenaBase + kArenaBytes;
+            g_probe.arenaTop = g_probe.arenaBase + g_probe.arenaBytes;
             g_probe.committedLow = g_probe.arenaTop;
         } else {
             g_probe.mode = Mode::kOff;
@@ -137,7 +143,7 @@ void* ArenaAlloc(size_t size) {
 
 bool InArena(void* memory) {
     return g_probe.arenaBase && static_cast<uint8_t*>(memory) >= g_probe.arenaBase &&
-           static_cast<uint8_t*>(memory) < g_probe.arenaBase + kArenaBytes;
+           static_cast<uint8_t*>(memory) < g_probe.arenaBase + g_probe.arenaBytes;
 }
 
 void ArenaFree(void* memory) {
@@ -173,3 +179,5 @@ void RebFree(void* memory) {
     if (g_state == 2 && InArena(memory)) ArenaFree(memory);
     else free(memory);
 }
+
+int RebHeapProbeMode() { return g_state == 2 ? static_cast<int>(g_probe.mode) : -1; }
