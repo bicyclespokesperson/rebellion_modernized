@@ -281,7 +281,7 @@ def main() -> int:
                 problems.append(f"{name} ({address:#x}): holds pointers (type {info['spelling']}) and has a non-zero initial value in the EXE")
             if string_pointers and any(initial):
                 count = (dims[0] if dims[0] is not None else extent32 // 4) if dims else 1
-                lines = [f"const char* {name.replace('::', '_')}_n[{count}] {raw_symbol} = {{"]
+                lines = [f"alignas({final_align(8, count * 8)}) const char* {name.replace('::', '_')}_n[{count}] {raw_symbol} = {{"]
                 for k in range(count):
                     value = int.from_bytes(exe.read(address + 4 * k, 4), "little")
                     if value == 0:
