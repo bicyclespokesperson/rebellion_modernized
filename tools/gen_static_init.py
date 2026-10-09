@@ -249,10 +249,12 @@ class InitEmulator(Emulator):
         return pages
 
 
-def pristine_images(dll_path: Path, hooks_enabled: bool, wanted: set[int] | None = None):
+def pristine_images(dll_path: Path | None, hooks_enabled: bool, wanted: set[int] | None = None):
     exe = Image.load(EXE_PATH)
-    dll = Image.load(dll_path)
     imports = Imports.load()
+    if dll_path is None:
+        return exe, Image({}, None), imports, []
+    dll = Image.load(dll_path)
     bind_dll_imports(dll, imports)
     hooks = hook_table(dll)
     if hooks_enabled:
@@ -262,7 +264,7 @@ def pristine_images(dll_path: Path, hooks_enabled: bool, wanted: set[int] | None
     return exe, dll, imports, hooks
 
 
-def run_original_sequence(dll_path: Path, entries: list[int], sizes: dict[int, int]) -> tuple[list[EntryResult], dict[int, bytes]]:
+def run_original_sequence(dll_path: Path | None, entries: list[int], sizes: dict[int, int]) -> tuple[list[EntryResult], dict[int, bytes]]:
     exe, dll, imports, _ = pristine_images(dll_path, hooks_enabled=False)
     emu = InitEmulator(exe, dll, imports, sizes)
     emu.prepare()
@@ -393,7 +395,8 @@ def emit(plan: list[Step], tables: InitTables, symbols: dict[int, str], demangle
         "    }", "}", "", "}  // namespace", "",
     ]
     for address, label in sorted(declared.items()):
-        lines.append(f'void __cdecl init_{address:08x}() __asm__("\\x01{label}");')
+        lines.append(f'extern "C" void __cdecl init_{address:08x}();')
+        lines.append(f'#pragma comment(linker, "/alternatename:_init_{address:08x}={label}")')
     unhandled = [s for s in plan if s.kind == "unhandled"]
     for s in unhandled:
         lines.append(f'void __cdecl FUN_{s.address:08x}();')
@@ -430,6 +433,10 @@ def main() -> int:
     ap.add_argument("--dll", type=Path, default=ROOT / "build" / "hybrid" / "smackw32.dll")
     ap.add_argument("--map", type=Path, default=ROOT / "build" / "hybrid" / "smackw32.map")
     ap.add_argument("--report", type=Path, default=ROOT / "build" / "hybrid" / "gen" / "report.json")
+    ap.add_argument("--standalone", type=Path, metavar="GEN_DIR",
+                    help="standalone build: take the reconstructed initializers' symbols from GEN_DIR/data_refs.json and "
+                         "the names from GEN_DIR/report.json, write GEN_DIR/static_init_table.cpp, and validate only "
+                         "when --dll is given explicitly (the hybrid DLL is not needed to generate)")
     ap.add_argument("--out", type=Path, default=ROOT / "build" / "hybrid" / "gen" / "static_init_table.cpp")
     ap.add_argument("--no-validate", action="store_true")
     ap.add_argument("--list-unhandled", action="store_true")
@@ -447,10 +454,19 @@ def main() -> int:
     print(f"C initializers {tables.c_range[0]:#x}..{tables.c_range[1]:#x}: {[hex(e) for e in c_entries]} "
           f"(CRT-owned); FP hook slot {tables.fp_hook_slot:#x} -> {fp_hook:#x}")
 
-    demangled = demangled_names(args.report)
-    dll = Image.load(args.dll)
-    names = mangled_names(args.map)
-    hooks = {h.original: names[h.replacement] for h in hook_table(dll) if h.replacement in names}
+    if args.standalone:
+        gen_dir = args.standalone
+        args.report, args.out = gen_dir / "report.json", gen_dir / "static_init_table.cpp"
+        if "--dll" not in sys.argv:
+            args.dll = None
+            args.no_validate = True
+        hooks = {int(a, 16): raw for a, raw in json.loads((gen_dir / "data_refs.json").read_text())["hooks"].items()}
+        demangled = demangled_names(args.report)
+    else:
+        demangled = demangled_names(args.report)
+        dll = Image.load(args.dll)
+        names = mangled_names(args.map)
+        hooks = {h.original: names[h.replacement] for h in hook_table(dll) if h.replacement in names}
     reconstructed = {e: hooks[e] for e in cpp_entries if e in hooks}
     print(f"{len(reconstructed)} of {len(cpp_entries)} C++ initializers are reconstructed")
 

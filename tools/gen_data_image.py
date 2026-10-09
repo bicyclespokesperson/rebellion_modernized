@@ -366,6 +366,7 @@ class Image:
                 lines.append(f"  .long {self.expression(value, kind)}")
                 cursor += 4
         self.emit_span(lines, bytes(self.block[cursor:size]))
+        lines += [".globl _reb_data_block_end", "_reb_data_block_end:"]
         interior = [o for o in labels if any(s < o < s + 4 for s, _, _ in slots)]
         if interior:
             raise RuntimeError(f"labels inside pointer slots: {[hex(own_data.BLOCK_BASE + o) for o in interior]}")
@@ -408,46 +409,8 @@ def non_block_pointer_sites(exe: Exe) -> list[tuple[int, str]]:
     return sites
 
 
-INIT_TABLE = (0x6A6004, 0x6A7BD8)  # the original's static-initializer table (_initterm range), 1,781 entries
-
-
-def init_table_asm(image: Image) -> tuple[list[str], list[int]]:
-    """Bring-up stand-in for the generated static-init table: the original order, reconstructed initializers by symbol,
-    the others as 0 (reported)."""
-    lo, hi = INIT_TABLE
-    entries = struct.unpack(f"<{(hi - lo) // 4}I", image.exe.bytes_at(lo, hi - lo))
-    lines = ['.section .rdata,"dr"', ".p2align 2", ".globl _reb_init_table", "_reb_init_table:"]
-    missing = []
-
-    def targets(value: int) -> list[int]:
-        """The reconstructed initializers an entry runs: itself, or what its `jmp X` / `call X; jmp Y` thunk reaches."""
-        if value in image.hook_symbols:
-            return [value]
-        code = image.exe.bytes_at(value, 10)
-        if code[0] == 0xE9:
-            return targets((value + 5 + struct.unpack_from("<i", code, 1)[0]) & 0xFFFFFFFF)
-        if code[0] == 0xE8 and code[5] == 0xE9:
-            first = (value + 5 + struct.unpack_from("<i", code, 1)[0]) & 0xFFFFFFFF
-            second = (value + 10 + struct.unpack_from("<i", code, 6)[0]) & 0xFFFFFFFF
-            return [*targets(first), *targets(second)]
-        return []
-
-    for value in entries:
-        found = targets(value)
-        for target in found:
-            lines.append(f"  .long {quote(image.hook_symbols[target])}")
-        if not found:
-            lines.append("  .long 0")
-            missing.append(value)
-    emitted = sum(1 for line in lines if line.startswith("  .long"))
-    lines += [".globl _reb_init_table_count", f"_reb_init_table_count = {emitted}"]
-    return lines, missing
-
-
 def write_standalone(args: argparse.Namespace, image: Image, slots: list[tuple[int, int, str]]) -> int:
-    init_lines, init_missing = init_table_asm(image)
-    lines = ['.globl "@feat.00"', '"@feat.00" = 1', ".text", *image.block_asm(slots), *image.rdata_asm(), *image.foreign_asm(),
-             *init_lines]
+    lines = ['.globl "@feat.00"', '"@feat.00" = 1', ".text", *image.block_asm(slots), *image.rdata_asm(), *image.foreign_asm()]
     args.out_asm.parent.mkdir(parents=True, exist_ok=True)
     args.out_asm.write_text("\n".join(lines) + "\n")
     bad_fixups = {k: v for k, v in image.fixups.items() if k.startswith(("code -> original", "CRT data", "rdata -> original"))}
@@ -455,7 +418,6 @@ def write_standalone(args: argparse.Namespace, image: Image, slots: list[tuple[i
         "block": {"original": f"{own_data.BLOCK_BASE:#x}-{own_data.BLOCK_END:#x}", "bytes": len(image.block)},
         "rdata_copies": {"named_labels": len(image.named_rdata()), "bytes": sum(e - s for s, e in image.rdata_intervals)},
         "foreign_data_labels": len(image.foreign_data()),
-        "init_table": {"entries": (INIT_TABLE[1] - INIT_TABLE[0]) // 4, "unreconstructed": len(init_missing)},
         "pointer_fixups_in_block": dict(image.fixups),
         "unreconstructed_code_pointers": {f"{a:#x}": n for a, n in sorted(image.unreconstructed_code_pointers.items())},
         "unresolved_fixups": bad_fixups,
@@ -464,8 +426,7 @@ def write_standalone(args: argparse.Namespace, image: Image, slots: list[tuple[i
     args.out_report.write_text(json.dumps(report, indent=1) + "\n")
     print(f"gen_data_image --standalone: block {len(image.block):#x} bytes, {len(slots)} pointer fixups {dict(image.fixups)}, "
           f"{len(image.rdata_intervals)} .rdata copies, {len(image.foreign_data())} CRT-data labels, "
-          f"{len(image.unreconstructed_code_pointers)} unreconstructed code pointers (reb_orig_*), "
-          f"init table: {len(init_missing)} of {(INIT_TABLE[1] - INIT_TABLE[0]) // 4} entries not reconstructed")
+          f"{len(image.unreconstructed_code_pointers)} unreconstructed code pointers (reb_orig_*)")
     return 1 if bad_fixups else 0
 
 
