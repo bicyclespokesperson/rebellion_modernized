@@ -39,7 +39,7 @@ public:
     virtual void Virtual18(int id, ObjectKey* key, int state, GameTime* time) override;  // 18: 0x485150
     virtual void Virtual19(int id, ObjectKey* key) override;                           // 19: 0x485300
     virtual void Virtual20(PlayerNotice* notice) override;                             // 20: 0x485340
-    virtual void Virtual87(const ObjectKey* key, int name0, int name1, int name2) override;  // 87: 0x485360
+    virtual void Virtual87(const ObjectKey* key, StringWords name) override;  // 87: 0x485360
     virtual void Virtual93(unsigned target) override;                                  // 93: 0x4853a0
     virtual void Virtual94(int side) override;                                         // 94: 0x4853f0
     virtual void Virtual95() override {}                                               // 95, shared 0x619730 (no vote counting)

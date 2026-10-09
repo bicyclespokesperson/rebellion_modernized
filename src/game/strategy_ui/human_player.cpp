@@ -414,11 +414,11 @@ void HumanPlayer::Virtual83(const ObjectKey* key, const ObjectKey* newParent, co
     m_advisor->m_aiHelper.AiGalaxyAnalysis::NoteMoved(key, newParent, arg);
 }
 
-void HumanPlayer::Virtual87(const ObjectKey* key, int name0, int name1, int name2) {
+void HumanPlayer::Virtual87(const ObjectKey* key, StringWords name) {
     UiBroadcastObjectUpdated(key, nullptr);
     // The String that was passed by value in the argument words is destroyed by the callee.
-    int nameWords[3] = {name0, name1, name2};
-    reinterpret_cast<String*>(nameWords)->String::~String();
+    static_assert(sizeof(String) <= sizeof(StringWords), "a String must fit in the argument words");
+    reinterpret_cast<String*>(&name)->String::~String();
 }
 
 void HumanPlayer::Virtual90(const ObjectKey* key) {

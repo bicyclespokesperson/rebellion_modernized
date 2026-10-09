@@ -207,10 +207,10 @@ void RemotePlayer::Virtual20(PlayerNotice* notice) {
     if (notice) delete notice;
 }
 
-void RemotePlayer::Virtual87(const ObjectKey* key, int name0, int name1, int name2) {
+void RemotePlayer::Virtual87(const ObjectKey* key, StringWords name) {
     // The String that was passed by value in the argument words is destroyed by the callee.
-    int nameWords[3] = {name0, name1, name2};
-    reinterpret_cast<String*>(nameWords)->String::~String();
+    static_assert(sizeof(String) <= sizeof(StringWords), "a String must fit in the argument words");
+    reinterpret_cast<String*>(&name)->String::~String();
 }
 
 void RemotePlayer::Virtual93(unsigned target) {

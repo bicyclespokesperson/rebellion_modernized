@@ -14,16 +14,23 @@ extern int g_missionJediTrainingEventKindsReady;      // 0x6bba14
 extern EventKindSet g_missionJediTrainingEventKinds;  // 0x6bba18
 
 
-// The MissionCheckArgs record as the Jedi Training target check reads it.
+// The MissionCheckArgs record as the Jedi Training target check reads it: the original names its fields by offset (+0x04
+// the team flag, +0x08 the key-set flag, +0x10 the side, +0x18.. the three reference lists, +0x24.. the three key sets);
+// a copy of those fields, so that the check does not depend on the record's memory layout.
 struct TrainingOrderCheck {
-    int m_unk00;                    // +0x00
-    int m_hasTeam;                  // +0x04
-    int m_useKeySets;               // +0x08: 0 = the three object-reference lists, else the three key sets
-    int m_unk0c;                    // +0x0c
-    int m_side;                     // +0x10
-    int m_unk14;                    // +0x14
-    ObjectRefList* m_refLists[3];   // +0x18, +0x1c, +0x20
-    ObjectKeyValueSet* m_keySets[3];  // +0x24, +0x28, +0x2c
+    int m_hasTeam;
+    int m_useKeySets;  // 0 = the three object-reference lists, else the three key sets
+    int m_side;
+    ObjectRefList* m_refLists[3];
+    ObjectKeyValueSet* m_keySets[3];
+
+    explicit TrainingOrderCheck(const MissionCheckArgs* args)
+        : m_hasTeam(args->m_flag04),
+          m_useKeySets(args->m_flag08),
+          m_side(args->m_controlSide),
+          m_refLists{static_cast<ObjectRefList*>(args->m_refs[0]), static_cast<ObjectRefList*>(args->m_refs[1]),
+                     static_cast<ObjectRefList*>(args->m_refs[2])},
+          m_keySets{args->m_team, args->m_decoys, args->m_captured} {}
 };
 
 // BUG(original): Read and Write handle the Teacher key but the checksum skips it (slot 7 is the shared forwarder to the
@@ -295,7 +302,8 @@ int MissionJediTraining::Virtual159(GameObj* person, int roll, int* out, NotifyC
 int MissionJediTraining::Virtual160(NotifyContext* ctx) { return MissionStartIfIdle(this, ctx); }
 
 int MissionJediTraining::CheckTarget(MissionCheckArgs* orderCheck, StatusCode* status, int* out) {
-    TrainingOrderCheck* check = reinterpret_cast<TrainingOrderCheck*>(orderCheck);
+    TrainingOrderCheck checkView(orderCheck);
+    TrainingOrderCheck* check = &checkView;
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
     int result = MissionSystemTargetBase::CheckTarget(orderCheck, status, out);

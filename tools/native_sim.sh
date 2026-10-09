@@ -32,6 +32,11 @@ while IFS='|' read -r name file ticks every; do
   same=0; diffs=0
   while read -r hash file_name; do
     [[ "$hash" == \#* || -z "$hash" ]] && continue
+    if [[ "$file_name" == sim.sav.log ]]; then
+      # the log's first line names the loaded file (a host path here, Z:\in\load.sav in the golden run): compare the rest
+      ref_log="$ROOT/work/run/sim_goldens/${name}_base_1/sim.sav.log"
+      if [[ -f "$ref_log" ]] && diff <(tail -n +2 "$out/sim.sav.log" | sed 's|-> .*||') <(tr -d '\r' < "$ref_log" | tail -n +2 | sed 's|-> .*||') > /dev/null; then same=$((same + 1)); continue; fi
+    fi
     mine="$(cd "$out" && sha256sum "$file_name" 2>/dev/null | cut -d' ' -f1)"
     if [[ "$mine" == "$hash" ]]; then same=$((same + 1)); else
       diffs=$((diffs + 1))
