@@ -1,9 +1,8 @@
 # Long deterministic comparison with an auto-resolved battle: load "JAS1" (SAVEGAME.001, Empire, tick 150,326), run at Fast
 # speed; the Imperial fleet meets the Alliance at Clak'dor VII around tick 152,576 (the simulation waits for the player at the
 # popup), choose Simulate Results, close the report with Escape, and let the game run to the target tick
-# (REB_QPC_FAST_UNTIL_TICK, where the shims hold the clock until Scroll Lock is pressed), then save into the first empty row
-# (SAVEGAME.005). Driven by tools/long_compare.sh, which sets the environment. The waits are generous: the simulation
-# runs 25-190 game ticks per wall second depending on the build.
+# (REB_QPC_FAST_UNTIL_TICK), then save into the first empty row (SAVEGAME.005). Driven by tools/long_compare.sh, which sets the
+# environment. The waits are generous: the simulation runs 25-190 game ticks per wall second depending on the build.
 12 key Escape
 16 key Escape
 20 key Escape
@@ -11,22 +10,27 @@
 27 move 430 248
 29 click 430 248
 33 shot load_list
-# Saved Games screen: row 1 = JAS1 (y=90).
-34 move 300 87
-35 move 305 90
-36 click 305 90
-41 shot load_galaxy
+# Saved Games screen. Turn the music off first: a finished music track calls the advisor (MusicEventCallback ->
+# HumanPlayer::NextAdvice), which draws from the random generator the AI breaks ties with, at a wall-clock moment.
+34 move 360 93
+35 click 362 95
+36 shot music_off
+# Load the saved game (row JAS1, y=90).
+37 move 300 87
+38 move 305 90
+39 click 305 90
+44 shot load_galaxy
 # Speed menu (right-click the box at the top left): Pause 36, Very Slow 56, Slow 76, Medium 96, Fast 116.
-42 move 130 24
-43 move 135 24
-44 rclick 135 24
-45 move 170 112
-46 move 170 116
-47 click 170 116
+45 move 130 24
+46 move 135 24
+47 rclick 135 24
+48 move 170 112
+49 move 170 116
+50 click 170 116
 # Start key: the simulation clock is held (REB_QPC_START_KEY=145) from the moment the game exists, so the idle frames that run
 # while this script sets the speed do not move game time by a wall-clock-dependent amount. Scroll Lock starts it.
-55 keydown Scroll_Lock
-58 keyup Scroll_Lock
+58 keydown Scroll_Lock
+61 keyup Scroll_Lock
 # The battle popup is up well before this and holds the simulation until it is answered: Simulate Results (middle button).
 120 shot battle_popup
 121 move 270 355

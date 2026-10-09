@@ -1,8 +1,7 @@
-# Long deterministic comparison, Alliance game with AI activity: load "Rebels" (SAVEGAME.002, tick 95,075), run at Fast
-# speed until the shims' fast phase ends (REB_QPC_FAST_UNTIL_TICK=<tick>, then REB_QPC_STEP_NS=0 freezes the simulation
-# clock at exactly that tick no matter when this script's input lands), pause through the speed menu, and save into the
-# first empty row (SAVEGAME.005). Driven by tools/long_compare.sh, which sets the environment. The wait before the
-# pause is generous (the fast phase takes ~25-170 game ticks per wall second depending on the build).
+# Long deterministic comparison, Alliance game with AI activity: load "Rebels" (SAVEGAME.002, tick 95,075) and run at Fast speed
+# to the target tick (REB_QPC_FAST_UNTIL_TICK; the Imperial AI plays, no battle), then save into the first empty row
+# (SAVEGAME.005). Driven by tools/long_compare.sh, which sets the environment; see its header for how the run is made
+# reproducible. The waits are generous: the simulation runs 25-190 game ticks per wall second depending on the build.
 12 key Escape
 16 key Escape
 20 key Escape
@@ -10,22 +9,27 @@
 27 move 430 248
 29 click 430 248
 33 shot load_list
-# Saved Games screen: row 2 = Rebels (y=132).
-34 move 300 129
-35 move 305 132
-36 click 305 132
-41 shot load_galaxy
+# Saved Games screen. Turn the music off first: a finished music track calls the advisor (MusicEventCallback ->
+# HumanPlayer::NextAdvice), which draws from the random generator the AI breaks ties with, at a wall-clock moment.
+34 move 360 93
+35 click 362 95
+36 shot music_off
+# Load the saved game (row Rebels, y=132).
+37 move 300 129
+38 move 305 132
+39 click 305 132
+44 shot load_galaxy
 # Speed menu (right-click the box at the top left): Pause 36, Very Slow 56, Slow 76, Medium 96, Fast 116.
-42 move 130 24
-43 move 135 24
-44 rclick 135 24
-45 move 170 112
-46 move 170 116
-47 click 170 116
+45 move 130 24
+46 move 135 24
+47 rclick 135 24
+48 move 170 112
+49 move 170 116
+50 click 170 116
 # Start key: the simulation clock is held (REB_QPC_START_KEY=145) from the moment the game exists, so the idle frames that run
 # while this script sets the speed do not move game time by a wall-clock-dependent amount. Scroll Lock starts it.
-55 keydown Scroll_Lock
-58 keyup Scroll_Lock
+58 keydown Scroll_Lock
+61 keyup Scroll_Lock
 # Screenshots are only taken while the simulation clock stands still (a picture taken while the game runs depends on the moment).
 320 shot before_options
 # The clock stands still at the target tick until Scroll Lock is pressed again (REB_QPC_HOLD_UNTIL_KEY=145), so the ticks
