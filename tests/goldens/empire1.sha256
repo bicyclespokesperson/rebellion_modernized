@@ -1,0 +1,7 @@
+# empire1: tools/sim_run.sh "<install>/SaveGame/SAVEGAME.004" 2000 <out> 500   (REB_DETERMINISTIC=1, standalone rebellion.exe)
+# identical across 5 runs
+c283d727eda628b8b38385976f68adaa0d09eee0f8998ffd2cb25a31304df8ae  sim.sav
+d5e11a0dc9e22be04231837480cdb025a30f2bd8bdc23c1d325a5f3ef33e2ac5  sim.sav.log
+be3f94c884aad2b7b775d8dcd1e5ab1936c058da3545980ff6ad03adb8cdd3fc  sim.sav.t133601
+ad476ef5a07f227de9dc1d68f12ca6d15db09fb08e401ed4b8f27dd312350115  sim.sav.t134101
+d087f69be0642e19be33e1cf05796521c93600387074a2f08b141e0c00a491fd  sim.sav.t134601

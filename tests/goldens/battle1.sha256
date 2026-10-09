@@ -1,0 +1,9 @@
+# battle1: tools/sim_run.sh "<install>/SaveGame/SAVEGAME.001" 3000 <out> 500   (REB_DETERMINISTIC=1, standalone rebellion.exe)
+# identical across 5 runs
+c6e23c3be00619dbe3514452333197c39a598e8e376b24856d5caf71c299ab0b  sim.sav
+37d73c602085b19957fcf30481020782d442a532022bb8b6fd48ceddb723a6b8  sim.sav.log
+11392f7ffa443ad071dc3f4401d74af934c80f2e17c8efc136e9c900418ee89c  sim.sav.t150826
+6eeb8141bac0974a152a864f81957041560bfa98dda005b7b2be73e99bd06f79  sim.sav.t151326
+b82d3bef7a1b7eac181ef0b7a9493d68ebee7dbb24f2f36d13e65dab6ca5d0bc  sim.sav.t151826
+c4520877d6585d3e4f0ff6fc52417f747c1e9007bb01e89bf6fcb03ba19f8c65  sim.sav.t152326
+a1365b3caf92df31721f83c6170a00e66028ec71eaa7d8e0cc74c96e12a9e743  sim.sav.t152826
