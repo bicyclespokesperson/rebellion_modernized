@@ -1,3 +1,4 @@
+#include "core/layout.h"
 #include "core/reb_abi.h"
 #include "gameobj/object_type_db.h"
 
@@ -33,12 +34,15 @@ const ResourceStringId* NameResource(const DatRecord* record) {
 // A name list on the stack (0x52d720 constructs it, 0x52d760 destroys it).
 class NameList {
 public:
-    NameList() { new (storage) ObjectNameList(); }
+    NameList() {
+        static_assert(sizeof(ObjectNameList) <= sizeof(storage), "NameList storage is too small");
+        new (storage) ObjectNameList();
+    }
     ~NameList() { reinterpret_cast<ObjectNameList*>(storage)->ObjectNameList::~ObjectNameList(); }
     IdAvlTree* tree() { return reinterpret_cast<IdAvlTree*>(storage); }
 
 private:
-    alignas(8) char storage[0x10];
+    alignas(8) char storage[REB_LP64_SCALED(0x10)];
 };
 
 bool Available(const SdRecord* record, int view) {

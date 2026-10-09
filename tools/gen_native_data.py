@@ -270,6 +270,9 @@ def main() -> int:
             esize = info["element_size"] or 1
             count = max(1, extent32 // esize)
             size = count * esize
+            if info["pointer_like"]:
+                size = extent32 * 2  # elements of pointer-bearing types grow by at most 2x from ILP32 to LP64
+                align = max(align, 8)
             align = max(align, esize if esize in (1, 2, 4, 8) else 1)
         if info["pointer_like"]:
             initial = exe.read(address, extent32) if not incomplete else exe.read(address, size)

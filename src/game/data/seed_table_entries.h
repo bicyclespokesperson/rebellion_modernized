@@ -5,8 +5,9 @@
 
 // Set of seed item keys (a tree of 0x28-byte key nodes), owned by the game object module (ctor 0x4f3f70, dtor
 // 0x4f3fb0, Read 0x4f40b0, Write 0x4f41c0, Checksum 0x4f4220, add-by-key 0x4f42a0). Opaque here.
+#include "core/layout.h"
 struct SeedItemSet {
-    uint32_t m_words[4];
+    alignas(void*) uint32_t m_words[REB_LP64_SCALED(4)];
 };
 
 // Entry of SYFCCRTB.DAT / SYFCRMTB.DAT: a game object key (family in the top byte, id in the low 24 bits).

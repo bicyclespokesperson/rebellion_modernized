@@ -88,20 +88,22 @@ void showBitmap(AnimationStep* step, int index, DibBitmap* bitmap) {
 }
 
 // An array of `count` frame lists with the element count in front, as the compiler lays out new[] of a class with a destructor.
+constexpr size_t kArrayCookie = alignof(IdAvlTreeElement) > sizeof(int) ? alignof(IdAvlTreeElement) : sizeof(int);
+
 IdAvlTreeElement* newFrameLists(int count) {
-    int* raw = static_cast<int*>(::operator new(count * sizeof(IdAvlTreeElement) + sizeof(int)));
-    if (raw == nullptr) return nullptr;
-    *raw = count;
-    IdAvlTreeElement* lists = reinterpret_cast<IdAvlTreeElement*>(raw + 1);
+    char* block = static_cast<char*>(::operator new(count * sizeof(IdAvlTreeElement) + kArrayCookie));
+    if (block == nullptr) return nullptr;
+    *reinterpret_cast<int*>(block) = count;
+    IdAvlTreeElement* lists = reinterpret_cast<IdAvlTreeElement*>(block + kArrayCookie);
     for (int i = 0; i < count; ++i) new (&lists[i]) IdAvlTreeElement();
     return lists;
 }
 
 // The vector deleting destructor (0x404310) the original reaches through the first element's vtable.
 void deleteFrameLists(IdAvlTreeElement* lists) {
-    int* raw = reinterpret_cast<int*>(lists) - 1;
-    for (int i = *raw - 1; i >= 0; --i) lists[i].~IdAvlTreeElement();
-    ::operator delete(raw);
+    char* block = reinterpret_cast<char*>(lists) - kArrayCookie;
+    for (int i = *reinterpret_cast<int*>(block) - 1; i >= 0; --i) lists[i].~IdAvlTreeElement();
+    ::operator delete(block);
 }
 
 DibBitmap* loadBitmap(HMODULE module, uint32_t resourceId) { return NewOrNull<DibBitmap>(module, resourceId, kBitmapResource); }

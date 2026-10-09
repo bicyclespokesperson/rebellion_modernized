@@ -59,7 +59,10 @@ int SeedTableEntry::ParseText(istream* in) {
 
 // ---- SeedFamilyTableEntry ----------------------------------------------------------------------------------
 
-SeedFamilyTableEntry::SeedFamilyTableEntry() : m_field24(0) { new (&m_items) ObjectRefList(); }
+SeedFamilyTableEntry::SeedFamilyTableEntry() : m_field24(0) {
+    static_assert(sizeof(ObjectRefList) <= sizeof(SeedItemSet), "SeedItemSet is too small for an ObjectRefList");
+    new (&m_items) ObjectRefList();
+}
 
 SeedFamilyTableEntry::~SeedFamilyTableEntry() {
     REB_KEEP_VPTR_STORE();

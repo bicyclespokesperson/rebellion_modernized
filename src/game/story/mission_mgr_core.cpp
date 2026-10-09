@@ -27,7 +27,7 @@ constexpr uint32_t kFamilyMissionTypeBegin = 0x40;
 constexpr uint32_t kFamilyMissionTypeEnd = 0x80;
 constexpr int kEventLukeDagobah = 0x221;
 constexpr int kEventFinalBattle = 0x220;
-constexpr size_t kTypeTableHeader = 4;
+constexpr size_t kTypeTableHeader = alignof(MissionTypeCheckEntry) > 4 ? alignof(MissionTypeCheckEntry) : 4;  // keeps the entries aligned
 
 bool isMaster(const GameObjRoot* object) { return (object->m_flags & kViewSideMask) == 0; }
 

@@ -9,7 +9,7 @@ Xvfb "$display" -screen 0 640x480x24 >/dev/null 2>&1 &
 xvfb=$!
 export DISPLAY="$display"
 export SDL_RENDER_DRIVER="${SDL_RENDER_DRIVER:-software}"
-export ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=0:alloc_dealloc_mismatch=0}"
+export ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=0:alloc_dealloc_mismatch=0:halt_on_error=0}"
 sleep 1
 cd "$out/game"
 if [[ -n "${REB_GDB:-}" ]]; then
