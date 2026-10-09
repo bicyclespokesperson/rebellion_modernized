@@ -24,7 +24,7 @@ docker run --rm -u "$(id -u):$(id -g)" -e HOME=/tmp -v "$root:$root" -w "$root" 
 if [[ "$mode" == native ]]; then
   docker run --rm -u "$(id -u):$(id -g)" -v "$root:$root" -w "$root/$out" rebellion-dev ctest --output-on-failure 2>&1 | tail -n 80
 else
-  docker run --rm -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -v "$root:$root" -w "$root/$out" rebellion-dev bash -c \
-    "for t in \$(find . -maxdepth 2 -name '*_test.exe' | sort); do echo == \$t; xvfb-run -a wine \$t 2>&1 | tr -d '\r' || echo FAILED \$t; done; \
+  docker run --rm -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -v /usr/share/fonts/truetype/liberation:/usr/share/fonts/truetype/liberation:ro -v "$root:$root" -w "$root/$out" rebellion-dev bash -c \
+    "export MW_FONT_DIR='Z:\\usr\\share\\fonts\\truetype\\liberation'; for t in \$(find . -maxdepth 2 -name '*_test.exe' | sort); do echo == \$t; xvfb-run -a wine \$t 2>&1 | tr -d '\r' || echo FAILED \$t; done; \
      chown -R \$HOST_UID:\$HOST_GID . 2>/dev/null; true"
 fi
