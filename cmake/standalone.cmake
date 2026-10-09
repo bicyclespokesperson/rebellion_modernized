@@ -57,3 +57,17 @@ target_link_libraries(rebellion PRIVATE
   libcmt libvcruntime libucrt oldnames legacy_stdio_definitions legacy_stdio_wide_specifiers
   kernel32 user32 gdi32 advapi32 winmm comctl32 version ddraw dsound dxguid avifil32 ole32 uuid
   ${REB_IMPORT_LIBS} ${REB_STANDALONE_RES})
+
+# REB_MINWIN: the game code (reb_game, reb_tactical_stubs) includes the own Win32/DirectX declarations of src/port/minwin
+# through platform/win32.h instead of the Windows SDK headers (docs/phase3_plan.md P0c). The runtime objects and the link
+# (real import libraries) are unchanged, so the executable must come out the same. The hybrid build never reads this option.
+option(REB_MINWIN "Compile the game code against src/port/minwin instead of the Windows SDK headers" OFF)
+if(REB_MINWIN)
+  target_compile_definitions(reb_game PRIVATE REB_MINWIN=1)
+  target_compile_definitions(reb_tactical_stubs PRIVATE REB_MINWIN=1)
+  # static_asserts every minwin struct size, field offset and constant against the values measured on the real SDK.
+  add_library(reb_minwin_layout OBJECT src/port/minwin/layout_check.cpp)
+  target_include_directories(reb_minwin_layout PRIVATE src/game src)
+  target_compile_options(reb_minwin_layout PRIVATE ${REB_HYBRID_FLAGS})
+  add_dependencies(rebellion reb_minwin_layout)
+endif()

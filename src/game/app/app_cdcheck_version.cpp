@@ -7,14 +7,7 @@
 #include <cstdlib>
 #include <new>
 
-#include <winver.h>
-
-extern "C" {
-__declspec(dllimport) DWORD REB_STDCALL GetFileVersionInfoSizeA(LPCSTR fileName, LPDWORD handle);
-__declspec(dllimport) BOOL REB_STDCALL GetFileVersionInfoA(LPCSTR fileName, DWORD handle, DWORD length, LPVOID data);
-__declspec(dllimport) DWORD REB_STDCALL VerLanguageNameA(DWORD language, LPSTR buffer, DWORD size);
-__declspec(dllimport) BOOL REB_STDCALL VerQueryValueA(LPCVOID block, LPCSTR subBlock, LPVOID* buffer, PUINT length);
-}
+#include "platform/win32.h"
 
 extern char g_languageName[0x100];       // 0x6b06f8
 extern char g_versionOlderText[0x200];   // 0x6b07f8

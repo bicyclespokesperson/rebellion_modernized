@@ -144,3 +144,50 @@ and the `int`-typed pointer slots of the not-yet-reconstructed 3D tactical code.
 **Checking virtual slots.** Replacing `vtable[n]` calls is only safe if the declared virtual really sits in slot n. `clang-cl -Xclang -fdump-vtable-layouts`
 prints every class's MSVC-ABI layout with indices; a script that compares `Class:method=slot` pairs against that dump caught nothing wrong this time and is
 cheap to rerun (compile each TU with the flag, merge the dumps, look the pairs up).
+
+## P0c results (measured Oct 9 2026)
+
+**minwin headers** (`src/port/minwin/`, 2,100 lines): `platform/win32.h` includes `port/minwin/minwin.h` instead of `<windows.h>` and the five SDK headers
+when `REB_MINWIN` is defined. The standalone's CMake option is `REB_MINWIN` (`cmake/standalone.cmake`, default OFF; `REB_MINWIN=ON tools/build_standalone.sh`);
+it applies to `reb_game` and `reb_tactical_stubs` only. The runtime objects (`src/standalone`, `src/port`) and the hybrid keep the SDK headers.
+
+| Header | Holds |
+|---|---|
+| `core.h` | calling-convention macros (`WINAPI`... over `REB_STDCALL`), `MINWIN_IMPORT`, scalar and pointer-sized typedefs |
+| `base.h` | handles (`struct HWND__ *`...), `GUID`/`IID`, `IUnknown`, `RECT`/`POINT`/`SIZE`, `HRESULT`, `LARGE_INTEGER`, `CRITICAL_SECTION`, `LOWORD`... |
+| `kernel32.h` `gdi32.h` `user32.h` `winmm.h` `vfw.h` `comctl32.h` `advapi32.h` `version.h` | one per DLL: functions (`extern "C"`, `MINWIN_IMPORT ... REB_STDCALL`), structs, constants |
+| `ddraw.h` `dsound.h` | COM interfaces as C++ structs with the virtuals in the SDK's vtable order, the structs, constants; `IID_*` as `extern const GUID` (linked from dxguid.lib) |
+| `platform/dplay.h`, `platform/smacker.h` | already ours; they now use `REB_DLLIMPORT`/`REB_STDCALL` and plain virtual structs instead of `DECLARE_INTERFACE_`, in both header sets |
+
+Typing rule: on Windows targets the scalar types are spelled exactly as the SDK spells them (`DWORD` = `unsigned long`, tags `tagRECT`, handles `struct HWND__ *`),
+so C++ mangled names, overload resolution and code generation are those of the SDK build; elsewhere `LONG`/`DWORD` are `int32_t`/`uint32_t` and `LONG_PTR`/`WPARAM`/`LPARAM`
+are `intptr_t`/`uintptr_t`, so every struct has the same layout on ILP32 and LP64. `MINWIN_IMPORT` is `__declspec(dllimport)` only on Windows (`REB_DLLIMPORT` in `core/reb_abi.h`);
+the native implementation compiles with `MINWIN_IMPLEMENTATION` to define the functions instead. `GetWindowLongPtrA`/`SetWindowLongPtrA` alias the 32-bit calls on 32-bit Windows
+and are real 64-bit functions elsewhere.
+
+**Inventory** (`tools/minwin_inventory.py` -> `tools/minwin_inventory.txt`, regenerate with the script; needs the dev container): 583 distinct SDK/platform names appear in `src/game`
+(user32 244 [92 functions], gdi32 84 [40], base types 65, kernel32 49 [38], winmm 37, DirectPlay 24, Smacker 20, dsound 17, ddraw 16, comctl32 10, advapi32 6, version 3, AVIFile 3), plus the
+methods of 8 COM interfaces (IDirectDraw/2/Surface, IDirectSound/Buffer/3DListener/Notify, IDirectPlay2A/LobbyA). The declarations needed for them (transitive types, constants the
+macros use) are 214 functions, 181 typedefs, 55 records, 241 constants. The inventory is by identifier name (an over-approximation); a method called through a typedef'd interface
+pointer is not seen by it (`IDirectDrawSurface::Restore` surfaced as a compile error) -- the compile is the real test. `tools/minwin_scaffold.py NAME...` drafts the declarations of a
+missing name (and its dependencies) from the SDK's AST; the headers are hand-maintained after that.
+
+**Checks** (`tools/minwin_check.sh [--objects]`, one verdict line, all in the dev container):
+1. `layout_check.cpp` (built into the standalone when `REB_MINWIN=ON`): `static_assert`s the size of all 40 structs, 312 field offsets and 241 constant values (and, on Windows, their types)
+   listed in `layout_expected.inc`, which `tools/minwin_layout_gen.py` measures on the real SDK (the script also reports a stale table). Sizes/offsets are checked on i686 only; values also compile for x86-64 Linux.
+   It caught: pack(1) of `WAVEFORMATEX`, and `CW_USEDEFAULT` (`-2147483648` is a `long long`, the SDK's is an `int`).
+2. `tools/minwin_compare.py`: the two clang ASTs (SDK vs minwin) agree for every function (mangled name, parameter types, dllimport, noreturn), typedef, record (members in order) and COM
+   interface (methods in vtable order): 214 functions, 181 typedefs, 55 records, 0 differences. It caught `ExitThread`'s `noreturn` (visible only in the generated code).
+3. `tools/minwin_syntax.sh i686`: all 459 TUs of `src/game` compile against minwin.
+4. `tools/minwin_objdiff.sh`: the 462 game objects built with and without `REB_MINWIN` have identical code, data and relocation targets (only debug info differs).
+
+**Exit test** (standalone, `REB_MINWIN=ON`, real import libraries): `tools/pe_compare.py` against the SDK build: `.text .rdata .data .gfids .tls .rsrc .reloc` byte-identical (timestamp
+and debug directory ignored); `tools/standalone_check.sh`: `STANDALONE OK: smoke clean, saves byte-identical to the original's`; `tools/sim_goldens.sh check`: battle1, alliance1, empire1 identical
+to the goldens; smoke and load_game screenshots: `smoke_menu`, `load_galaxy`, `load_list` byte-identical to the SDK build's (the later `load_run_*` frames differ between *any* two runs, ON vs ON included: real-time
+animation). Hybrid: `tools/build_hybrid.sh` unchanged (10,706 hooks); unit difftest over the shared regression store (12,864 captures): 12,318 PASS, 540 SKIP (not emulatable), 0 FAIL.
+
+**LP64 syntax pass** (`tools/minwin_syntax.sh lp64`: `clang++ --target=x86_64-linux-gnu -std=c++20 -fsyntax-only -fms-extensions -fno-exceptions -fno-rtti -fcheck-new -fwrapv -fno-strict-aliasing -fsigned-char -DREB_MINWIN=1`):
+454 of 459 TUs compile, none of the 5 failing is about Win32/DirectX/minwin: `_stricmp`/`_strnicmp` undeclared (`ui/cool_app.cpp`, `ui/cool_drag_list.cpp`, `core/game_string.cpp`) and the MSVC CRT headers
+`<direct.h>` (`app/rebellion_application.cpp`) and `<io.h>` (`iostream/filebuf.cpp`). With `-Wpointer-to-int-cast -Wint-to-pointer-cast -Wshorten-64-to-32 -Wint-conversion -Wformat`: 3 `long`->`int` narrowings
+(`ftell` in `app_cdcheck_version.cpp`, the iostream library's `long` and `atoi` forwarding to `atol`) and 5 `-Wformat-security` notes (`sprintf(buf, text)`), no pointer truncation. Pointer-sized Win32 types
+(`WPARAM`, `LPARAM`, `LRESULT`, `HANDLE`, `GetWindowLongPtr`) are 64-bit there as intended.
