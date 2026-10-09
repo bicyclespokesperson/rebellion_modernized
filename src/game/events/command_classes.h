@@ -1,9 +1,9 @@
 #pragma once
 // The concrete event/command classes at 0x562c70-0x5638e0 (names by kind; their purpose is read from what they call):
 //   LoyaltyEvent373 (VT 0x6632a8)  shifts a system's loyalty by a stored delta toward side 1 (System::AdjustLoyalty)
-//   SystemCommand225 (0x6632d8)    command on a system: checks are System slots 111/112, execution is the helper 0x58c1e0
-//   SystemCommand224 (0x663300)    same with slots 113/114 and the helper 0x58d800
-// plus the helper objects they build (rules/loyalty_rule.h, 0x58b960-0x58e570).
+//   SystemCommand225 (0x6632d8)    the planetary assault: checks are System slots 111/112, execution is AssaultResolver
+//   SystemCommand224 (0x663300)    the planetary bombardment: slots 113/114, execution is BombardResolver
+// (rules/planet_assault.h and rules/planet_bombard.h, 0x58b960-0x58e570).
 #include <cstdint>
 
 #include "core/layout.h"
