@@ -84,3 +84,8 @@ if(WIN32)
   add_executable(text_dump_real text/tests/text_dump.cpp text/tests/text_ops.cpp gdi/tests/dump_io.cpp)
   target_link_libraries(text_dump_real PRIVATE gdi32 user32)
 endif()
+
+# dsound
+add_library(mw_dsound STATIC dsound/mixer.cpp dsound/dsound_api.cpp)
+mw_test(dsound_test dsound/dsound_test.cpp)
+target_link_libraries(dsound_test PRIVATE mw_dsound)
