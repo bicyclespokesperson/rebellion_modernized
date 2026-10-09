@@ -181,6 +181,12 @@ MINWIN_IMPORT BOOL REB_STDCALL WinHelpA(HWND hWndMain, LPCSTR lpszHelp, UINT uCo
 MINWIN_IMPORT BOOL REB_STDCALL SystemParametersInfoA(UINT uiAction, UINT uiParam, PVOID pvParam, UINT fWinIni);
 }
 
+#if defined(REB_MSG_TRACE_SHIM)
+// src/standalone/msg_trace_shim.cpp: registers a logging wrapper around each window procedure (tools/msg_trace_compare.py).
+extern "C" ATOM REB_STDCALL RebTracedRegisterClassA(const WNDCLASSA *lpWndClass);
+#define RegisterClassA RebTracedRegisterClassA
+#endif
+
 #define MAKEINTRESOURCEA(i) ((LPSTR)((ULONG_PTR)((WORD)(i))))
 #define MAKEINTRESOURCE MAKEINTRESOURCEA
 #define RT_RCDATA MAKEINTRESOURCE(10)

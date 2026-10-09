@@ -53,9 +53,15 @@ target_link_options(rebellion PRIVATE /NODEFAULTLIB /SUBSYSTEM:WINDOWS,4.0 /ENTR
 if(REB_ALLOW_UNRESOLVED)
   target_link_options(rebellion PRIVATE /FORCE:UNRESOLVED)
 endif()
+# REB_MINWIN_IMPL (src/port/minwin_impl, docs/phase3_plan.md P1): the native USER32/GDI32/COMCTL32 on SDL3 replaces the real import libraries.
+option(REB_MINWIN_IMPL "Link the native minwin implementation (SDL3) instead of user32/gdi32/comctl32" OFF)
+set(REB_WINDOWS_LIBS kernel32 user32 gdi32 advapi32 winmm comctl32 version ddraw dsound dxguid avifil32 ole32 uuid)
+if(REB_MINWIN_IMPL)
+  list(REMOVE_ITEM REB_WINDOWS_LIBS user32 gdi32 comctl32)
+endif()
 target_link_libraries(rebellion PRIVATE
   libcmt libvcruntime libucrt oldnames legacy_stdio_definitions legacy_stdio_wide_specifiers
-  kernel32 user32 gdi32 advapi32 winmm comctl32 version ddraw dsound dxguid avifil32 ole32 uuid
+  ${REB_WINDOWS_LIBS}
   ${REB_IMPORT_LIBS} ${REB_STANDALONE_RES})
 
 # REB_MINWIN: the game code (reb_game, reb_tactical_stubs) includes the own Win32/DirectX declarations of src/port/minwin
@@ -70,4 +76,60 @@ if(REB_MINWIN)
   target_include_directories(reb_minwin_layout PRIVATE src/game src)
   target_compile_options(reb_minwin_layout PRIVATE ${REB_HYBRID_FLAGS})
   add_dependencies(rebellion reb_minwin_layout)
+endif()
+
+# REB_MSG_TRACE_SHIM: log the real user32's per-window message sequence (needs REB_MINWIN; src/standalone/msg_trace_shim.cpp).
+option(REB_MSG_TRACE_SHIM "Wrap the game's window procedures to log messages when REB_MSG_TRACE is set" OFF)
+if(REB_MSG_TRACE_SHIM)
+  if(NOT REB_MINWIN)
+    message(FATAL_ERROR "REB_MSG_TRACE_SHIM needs REB_MINWIN=ON")
+  endif()
+  target_compile_definitions(reb_game PRIVATE REB_MSG_TRACE_SHIM=1)
+  target_compile_definitions(reb_tactical_stubs PRIVATE REB_MSG_TRACE_SHIM=1)
+  add_library(reb_msg_trace OBJECT src/standalone/msg_trace_shim.cpp src/port/msg_trace.cpp)
+  target_include_directories(reb_msg_trace PRIVATE src/game src)
+  target_compile_options(reb_msg_trace PRIVATE ${REB_HYBRID_FLAGS})
+  target_sources(rebellion PRIVATE $<TARGET_OBJECTS:reb_msg_trace>)
+endif()
+
+if(REB_MINWIN_IMPL)
+  if(NOT REB_MINWIN)
+    message(FATAL_ERROR "REB_MINWIN_IMPL needs REB_MINWIN=ON")
+  endif()
+  set(SDL3_ROOT ${CMAKE_SOURCE_DIR}/third_party/SDL3)
+  if(NOT EXISTS ${SDL3_ROOT}/lib/x86/SDL3.lib)
+    message(FATAL_ERROR "SDL3 is missing: run tools/fetch_deps.sh")
+  endif()
+  # The GDI component (src/port/minwin_impl/gdi) is built by another workstream; until it lands this stand-in provides gdi32.
+  option(REB_GDI_STUB "Use the throwaway GDI stand-in" ON)
+  set(REB_MINWIN_USER_SOURCES
+    src/port/minwin_impl/user/region.cpp src/port/minwin_impl/user/window.cpp src/port/minwin_impl/user/focus.cpp
+    src/port/minwin_impl/user/message.cpp src/port/minwin_impl/user/paint.cpp src/port/minwin_impl/user/input.cpp
+    src/port/minwin_impl/user/platform.cpp src/port/minwin_impl/user/misc.cpp src/port/minwin_impl/user/mmtimer.cpp
+    src/port/minwin_impl/user/cursor.cpp
+    src/port/msg_trace.cpp)
+  if(REB_GDI_STUB)
+    list(APPEND REB_MINWIN_USER_SOURCES src/port/minwin_impl/gdi_stub/gdi_stub.cpp)
+  endif()
+  add_library(reb_minwin_impl OBJECT ${REB_MINWIN_USER_SOURCES})
+  target_include_directories(reb_minwin_impl PRIVATE src/game src ${SDL3_ROOT}/include)
+  target_compile_options(reb_minwin_impl PRIVATE ${REB_HYBRID_FLAGS})
+  target_compile_definitions(reb_standalone_runtime PRIVATE REB_MINWIN_IMPL=1)
+
+  set(REB_MINWIN_IMPORTS ${REB_GEN}/minwin_imports.cpp)
+  add_custom_command(
+    OUTPUT ${REB_MINWIN_IMPORTS}
+    COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/gen_minwin_imports.py --out ${REB_MINWIN_IMPORTS}
+            --header ${CMAKE_SOURCE_DIR}/src/port/minwin/user32.h --header ${CMAKE_SOURCE_DIR}/src/port/minwin/gdi32.h
+            --header ${CMAKE_SOURCE_DIR}/src/port/minwin/comctl32.h
+            --header ${CMAKE_SOURCE_DIR}/src/port/minwin/winmm.h:timeKillEvent
+            --extra "wvsprintfA:12:int __stdcall wvsprintfA(char*, const char*, va_list)"
+    DEPENDS ${CMAKE_SOURCE_DIR}/tools/gen_minwin_imports.py ${CMAKE_SOURCE_DIR}/src/port/minwin/user32.h
+            ${CMAKE_SOURCE_DIR}/src/port/minwin/gdi32.h ${CMAKE_SOURCE_DIR}/src/port/minwin/comctl32.h VERBATIM)
+  add_library(reb_minwin_imports OBJECT ${REB_MINWIN_IMPORTS})
+  target_include_directories(reb_minwin_imports PRIVATE src/game src)
+  target_compile_options(reb_minwin_imports PRIVATE ${REB_HYBRID_FLAGS})
+
+  target_sources(rebellion PRIVATE $<TARGET_OBJECTS:reb_minwin_impl> $<TARGET_OBJECTS:reb_minwin_imports>)
+  target_link_libraries(rebellion PRIVATE ${SDL3_ROOT}/lib/x86/SDL3.lib)
 endif()

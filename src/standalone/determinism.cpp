@@ -13,6 +13,10 @@
 #include <stdint.h>
 #include <time.h>
 
+#if defined(REB_MINWIN_IMPL)
+extern "C" UINT WINAPI MinwinTimeSetEvent(UINT delay, UINT resolution, LPTIMECALLBACK callback, DWORD_PTR user, UINT flags);
+#endif
+
 namespace {
 
 constexpr int64_t kFrequency = 1000000;
@@ -118,8 +122,12 @@ void WINAPI RebGetSystemTime(SYSTEMTIME* out) {
 UINT WINAPI RebTimeSetEvent(UINT delay, UINT resolution, LPTIMECALLBACK callback, DWORD_PTR user, UINT flags) {
     EnsureReady();
     if (g_noTimers) return 1;
+#if defined(REB_MINWIN_IMPL)
+    return MinwinTimeSetEvent(delay, resolution, callback, user, flags);
+#else
     static auto real = RealFunction<UINT(WINAPI*)(UINT, UINT, LPTIMECALLBACK, DWORD_PTR, UINT)>("winmm.dll", "timeSetEvent");
     return real(delay, resolution, callback, user, flags);
+#endif
 }
 
 }  // namespace

@@ -191,3 +191,26 @@ animation). Hybrid: `tools/build_hybrid.sh` unchanged (10,706 hooks); unit difft
 `<direct.h>` (`app/rebellion_application.cpp`) and `<io.h>` (`iostream/filebuf.cpp`). With `-Wpointer-to-int-cast -Wint-to-pointer-cast -Wshorten-64-to-32 -Wint-conversion -Wformat`: 3 `long`->`int` narrowings
 (`ftell` in `app_cdcheck_version.cpp`, the iostream library's `long` and `atoi` forwarding to `atol`) and 5 `-Wformat-security` notes (`sprintf(buf, text)`), no pointer truncation. Pointer-sized Win32 types
 (`WPARAM`, `LPARAM`, `LRESULT`, `HANDLE`, `GetWindowLongPtr`) are 64-bit there as intended.
+
+## P1 results: window manager half (user32 + winmm timers on SDL3; measured Oct 9 2026)
+
+Design, build and deviations: [docs/minwin_user.md](minwin_user.md). `REB_MINWIN_IMPL=ON tools/build_standalone.sh` links `src/port/minwin_impl/user` (+ `gdi_stub`, a throwaway
+stand-in until the GDI component lands) and SDL3 3.4.18 (`tools/fetch_deps.sh`, sha256 pinned): `rebellion.exe` then imports KERNEL32, ADVAPI32, WINMM, VERSION, DDRAW, DSOUND, AVIFIL32, SMACKW32, DPLAYX and SDL3 -- no
+USER32/GDI32/COMCTL32. The scenarios' xdotool input reaches the SDL window under Wine (borderless, at the origin of the Wine desktop). The game boots through the intro movies to the main menu, loads a game and runs
+the whole `ui_tour` (all 19 screenshots taken; pixels are the stub's, text is missing). Default builds are unchanged: hybrid 10,706 hooks, `standalone_check` OK, `sim_goldens check` identical.
+
+**Message-sequence comparison** (`REB_MSG_TRACE`; real-user32 standalone with `REB_MSG_TRACE_SHIM=ON` vs minwin_impl, `tools/msg_trace_compare.py`; the `*_x` scenarios are the stock ones plus extra Escape presses
+in the first 22 s, because the intro movies do not play yet (real SMACKW32 cannot use our window handles)). Lines identical and in order, after dropping the noise kinds (WM_PAINT/ERASEBKGND/NCPAINT/TIMER counts, Wine's
+IME/GETICON/STYLECHANGING, 0x310, WM_NOTIFY): `smoke` 93% (204 of 219), `load_game` 58%, `ui_tour` 16% (one shifted hunk keeps the rest misaligned: after the first 5 s the scenarios drift apart because of timing, so the
+tail comparison is mostly of different game states). Every divergence found in `smoke` and its cause:
+
+| Divergence | Cause |
+|---|---|
+| 9 extra messages on the main window after `WM_ACTIVATEAPP` (`WM_WINDOWPOSCHANGING/CHANGED` x3, `WM_NCCALCSIZE`, `WM_DISPLAYCHANGE`) | the real ddraw `SetCooperativeLevel`/`SetDisplayMode` resizes the real window under Wine; minwin has no ddraw yet |
+| `WM_KEYUP`, `WM_CHAR`, `WM_MOUSEMOVE` order around the movie windows; an extra `WM_NULL` | the intro movie ends at a different time (the real Smack thread cannot draw into our handles) and the SDL window reports an initial pointer position |
+| `WM_SHOWWINDOW` of `CoolStrobeButton` #7-#9 in a different order | `CoolWindow::m_linkedWindows` is an AVL tree keyed by HWND value; Wine's handles and our pointers order differently (a pointer-ordered container in game code) |
+| 3 trailing key messages | scenario timing |
+
+Fixed on the way (all found by the comparison): `WM_NOTIFYFORMAT` comes from the tooltip's `TTM_ADDTOOLA`, not from window creation; `WM_CHILDACTIVATE` after `WM_NCCALCSIZE`; children of hidden parents change only their visibility flag; destroying
+an invisible-by-parent child sends only `WM_SHOWWINDOW`; focus may be set to hidden windows (Wine/Windows only refuse disabled ones); `WM_CANCELMODE` before disabling; top-levels activate before `WM_WINDOWPOSCHANGED`;
+`WM_PALETTEISCHANGING` after the realizing handler returns; synthesized `WM_MOUSEMOVE` when a window appears under the pointer; cross-thread `SendMessage` (the movie thread) marshalled to the owner thread.
