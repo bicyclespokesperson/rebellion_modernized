@@ -26,9 +26,7 @@
 # while this script sets the speed do not move game time by a wall-clock-dependent amount. Scroll Lock starts it.
 55 keydown Scroll_Lock
 58 keyup Scroll_Lock
-100 shot run_100
-200 shot run_200
-300 shot run_300
+# Screenshots are only taken while the simulation clock stands still (a picture taken while the game runs depends on the moment).
 320 shot before_options
 # The clock stands still at the target tick until Scroll Lock is pressed again (REB_QPC_HOLD_UNTIL_KEY=145), so the ticks
 # the save flow needs are counted from this key press, not from when this script's input happens to land. The first

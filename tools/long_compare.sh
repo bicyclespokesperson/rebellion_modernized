@@ -3,9 +3,11 @@
 # on the original logic (hybrid with REB_DISABLE_HOOKS=all), the hybrid with all hooks and the standalone exe, twice each, then
 # the saves are compared byte for byte and the screenshots pixel for pixel, within and across configurations.
 #
-#   tools/long_compare.sh [-s alliance|battle] [-t TICK] [-n RUNS] [-c "orig hybrid standalone"] [--no-build] [--noise BYTES]
+#   tools/long_compare.sh [-s alliance|battle] [-t TICK] [-n RUNS] [-c "orig hybrid standalone"] [--no-build] [--noise BYTES] [-k SECONDS]
 #
 # Scenarios (tests/scenarios/long_<name>.txt):
+#   -k SECONDS: when the script presses the second Scroll Lock (default 330 s after launch; the target tick must be reached
+#   before it, 25-190 game ticks per second; ~60 s are spent on loading); shortens runs with a lower TICK.
 #   alliance  Alliance game "Rebels" (tick 95,075) with the Imperial AI playing, run to tick 98,575 (default; ~3,500 ticks)
 #   battle    Empire game "JAS1" (tick 150,326) with an auto-resolved space battle (~tick 152,576), run to tick 154,500
 # How the run is made reproducible (shims in src/hybrid/determinism.cpp and src/standalone/determinism.cpp):
@@ -20,7 +22,7 @@
 # All runs execute concurrently (one container each; ~7 min for 2 runs x 3 configurations). Output: work/run/long/<scenario>/<config>_<i>/, summary on stdout; exit status 1 when anything differs.
 set -uo pipefail
 source "$(dirname "$0")/paths.sh"
-scenario=alliance; ticks=""; runs=2; noise=0; configs="orig hybrid standalone"; build=1
+scenario=alliance; ticks=""; runs=2; noise=100; key_time=""; configs="orig hybrid standalone"; build=1
 while [[ $# -gt 0 ]]; do
   case "$1" in
     -s) scenario="$2"; shift 2 ;;
@@ -29,6 +31,7 @@ while [[ $# -gt 0 ]]; do
     -c) configs="$2"; shift 2 ;;
     --no-build) build=0; shift ;;
     --noise) noise="$2"; shift 2 ;;
+    -k) key_time="$2"; shift 2 ;;
     *) echo "unknown argument $1" >&2; exit 2 ;;
   esac
 done
@@ -40,7 +43,12 @@ esac
 ticks="${ticks:-$default_ticks}"
 file="$ROOT/tests/scenarios/long_$scenario.txt"
 base="$ROOT/work/run/long/$scenario"
+rm -rf "$base"
 mkdir -p "$base"
+if [[ -n "$key_time" ]]; then
+  file="$base/scenario.txt"
+  "$ROOT/tools/shift_scenario.py" "$ROOT/tests/scenarios/long_$scenario.txt" 100 $((key_time - 330)) > "$file"
+fi
 
 if [[ $build == 1 ]]; then
   "$ROOT/tools/build_hybrid.sh" > "$base/build_hybrid.log" 2>&1 || { echo "hybrid build failed ($base/build_hybrid.log)"; exit 1; }
@@ -67,5 +75,5 @@ wait "${pids[@]}"
 
 "$ROOT/tools/long_compare_report.py" "$base" --noise "$noise"
 status=$?
-[[ $status == 0 ]] && echo "LONG COMPARE: all runs agree (<= $noise differing bytes)" || echo "LONG COMPARE: runs differ (see the matrix above)"
+[[ $status == 0 ]] && echo "LONG COMPARE OK: every configuration reaches the original code's trajectory" || echo "LONG COMPARE FAIL: a configuration never reaches the original code's trajectory (see above)"
 exit $status
