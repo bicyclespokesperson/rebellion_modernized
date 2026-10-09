@@ -119,7 +119,7 @@ Host CRT is fine:
 `tools/gen_static_init.py` reads the tables `__cinit` (0x61d5d0) walks: the C initializers 0x6a7bdc-0x6a7bec (3 entries:
 `__onexitinit`, `__initstdio`, `__CxxSetUnhandledExceptionFilter`) plus the FP hook `__fpmath` through the pointer at 0x6acacc, all
 CRT-owned and left to the host, then the C++ table 0x6a6000-0x6a7bd8 (1,782 slots, the first one empty, 1,781 entries).
-It writes `static_init_table.cpp` (`RunStaticInitializers()`): 111 calls of reconstructed initializers (by linker symbol),
+It writes `static_init_table.cpp` (`RunStaticInitializers()`; the standalone build runs `gen_static_init.py --standalone build/standalone/gen`, which needs no hybrid DLL): 111 calls of reconstructed initializers (by linker symbol),
 1,670 initializers evaluated in Unicorn against the pristine EXE and baked as 1,673 byte-run stores into `reb_data_block`
 (4,822 bytes), 0 unhandled. Two of the baked ones (0x54f7c0, 0x5d8930) also register an unreconstructed destructor with
 `atexit` in the original; the table omits the registration (it would run at process exit only) and says so in a comment.

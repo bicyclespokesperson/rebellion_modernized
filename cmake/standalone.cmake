@@ -37,7 +37,8 @@ if(REB_DATA_IMAGE)
     OUTPUT ${REB_GEN}/data_image.obj
     COMMAND llvm-mc-19 -triple=i686-pc-windows-msvc -filetype=obj -o ${REB_GEN}/data_image.obj ${REB_GEN}/data_image.s
     DEPENDS ${REB_GEN}/data_image.s VERBATIM)
-  set(REB_STANDALONE_DATA ${REB_GEN}/data_image.obj)
+  set_source_files_properties(${REB_GEN}/static_init_table.cpp PROPERTIES GENERATED TRUE COMPILE_OPTIONS "${REB_HYBRID_FLAGS}")
+  set(REB_STANDALONE_DATA ${REB_GEN}/data_image.obj ${REB_GEN}/static_init_table.cpp)
   set(REB_STANDALONE_RES ${REB_GEN}/rebexe.res)
 endif()
 
