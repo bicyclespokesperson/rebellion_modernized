@@ -241,6 +241,7 @@ int GameRoot::ResolveBattle() {
     if (system != nullptr) {
         const int allianceHere = hasFleets(system, kAllianceSide) || hasSquads(system, kAllianceSide);
         const int empireHere = hasFleets(system, kEmpireSide) || hasSquads(system, kEmpireSide);
+        // The battle is reported as failed while both sides still have units (as the original does).
         ok = !(allianceHere != 0 && empireHere != 0) && ok != 0;
         if (allianceHere != 0 && empireHere == 0) {
             winner = kAllianceSide;

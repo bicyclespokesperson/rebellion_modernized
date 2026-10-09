@@ -148,6 +148,7 @@ int RulesMgr::ChecksumBody(Crc32* crc) {
 
 int RulesMgr::ApplyAllBody(NotifyContext* ctx) {
     const int ok = GameObj::ApplyAll(ctx);
+    // BUG(original): the base ApplyAll runs a second time and its result is dropped.
     if (ok != 0) GameObj::ApplyAll(ctx);
     return ok;
 }
