@@ -13,6 +13,7 @@ want=("$@")
 saves="$MAIN/orig_game_files/Star Wars - Rebellion/SaveGame"
 base="$ROOT/work/run_native/sim"
 mkdir -p "$base"
+status=0
 while IFS='|' read -r name file ticks every; do
   name="$(echo "$name" | xargs)"; file="$(echo "$file" | xargs)"; ticks="$(echo "$ticks" | xargs)"; every="$(echo "$every" | xargs)"
   [[ -z "$name" || "$name" == \#* ]] && continue
@@ -28,7 +29,7 @@ while IFS='|' read -r name file ticks every; do
   spec="load:$out/in.sav,ticks:$ticks,save:$out/sim.sav,every:$every"
   REB_DOCKER_ARGS="-e REBELLION_CONFIG=$out/config.ini -e HOME=$out -e REB_DETERMINISTIC=1 -e REB_SIM=$spec" "$ROOT/tools/container/native_run.sh" \
     "Xvfb :79 -screen 0 640x480x24 >/dev/null 2>&1 & export DISPLAY=:79; sleep 1; cd '$out/game' && SDL_RENDER_DRIVER=software timeout \${REB_SIM_TIMEOUT:-1500} '$exe' > '$out/game.log' 2>&1; echo exit \$? >> '$out/game.log'" || true
-  if ! grep -q "^done" "$out/sim.sav.log" 2>/dev/null; then echo "$name: did not finish (see $out/game.log, $out/sim.sav.log)"; continue; fi
+  if ! grep -q "^done" "$out/sim.sav.log" 2>/dev/null; then echo "$name: did not finish (see $out/game.log, $out/sim.sav.log)"; status=1; continue; fi
   same=0; diffs=0
   while read -r hash file_name; do
     [[ "$hash" == \#* || -z "$hash" ]] && continue
@@ -45,4 +46,6 @@ while IFS='|' read -r name file ticks every; do
     fi
   done < "$ROOT/tests/goldens/$name.sha256"
   echo "$name: $same of $((same + diffs)) files identical to the i686 goldens"
+  (( diffs == 0 )) || status=1
 done < <(grep -v "^#" "$ROOT/tests/goldens/sim_goldens.txt" | grep -v "^$")
+exit $status

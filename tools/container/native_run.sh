@@ -6,4 +6,7 @@
 set -euo pipefail
 source "$(dirname "$0")/../paths.sh"
 # shellcheck disable=SC2086
-exec docker run --rm -u "$(id -u):$(id -g)" -v "$ROOT:$ROOT" -v "$MAIN:$MAIN:ro" -w "$ROOT" ${REB_DOCKER_ARGS:-} "${REB_NATIVE_IMAGE:-rebellion-native}" bash -c "$1"
+# In the main checkout ROOT and MAIN are the same directory; mounting it twice is a docker error.
+mounts=(-v "$ROOT:$ROOT")
+[[ "$MAIN" != "$ROOT" ]] && mounts+=(-v "$MAIN:$MAIN:ro")
+exec docker run --rm -u "$(id -u):$(id -g)" "${mounts[@]}" -w "$ROOT" ${REB_DOCKER_ARGS:-} "${REB_NATIVE_IMAGE:-rebellion-native}" bash -c "$1"
