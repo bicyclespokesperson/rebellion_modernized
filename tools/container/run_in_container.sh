@@ -5,7 +5,7 @@
 # Modifier clicks: keydown shift / click ... / keyup shift.
 set -uo pipefail
 scenario="$1"
-Xvfb :1 -screen 0 640x480x24 >/dev/null 2>&1 &
+Xvfb :1 -screen 0 640x480x${REB_XVFB_DEPTH:-24} >/dev/null 2>&1 &
 export DISPLAY=:1
 sleep 1
 key='HKLM\Software\LucasArts Entertainment Company LLC\Star Wars Rebellion'

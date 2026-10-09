@@ -142,6 +142,7 @@ struct Window {
     bool hasUpdate;
     bool needErase;
     bool needNcPaint;
+    uintptr_t handle;     // the HWND value (a small integer, see the handle table in window.cpp)
     uint32_t serial;      // creation order
     bool needSize;        // WM_SIZE/WM_MOVE not yet sent after creation
     bool destroying;
@@ -163,7 +164,7 @@ struct Hook {
 
 // ---- window manager (window.cpp) --------------------------------------------------------------------------------------
 Window* FromHandle(HWND hwnd);                        // null unless a live window
-inline HWND ToHandle(const Window* w) { return reinterpret_cast<HWND>(const_cast<Window*>(w)); }
+inline HWND ToHandle(const Window* w) { return w ? reinterpret_cast<HWND>(w->handle) : nullptr; }
 bool IsLive(const Window* w);
 Window* TopLevelOf(Window* w);
 Window* RootOwner(Window* w);

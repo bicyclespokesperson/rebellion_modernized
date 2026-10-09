@@ -18,6 +18,47 @@ Window* g_topLevelHead = nullptr;  // desktop children, topmost first
 Window* g_topLevelTail = nullptr;
 uint32_t g_serial = 0;
 
+// HWNDs are small integers allocated like the Windows/Wine server does: a slot index (handle = 0x20 + 2 * index, in the low 16
+// bits) and a generation (high 16 bits) that grows each time the slot is reused; freed slots are reused last-in first-out. The
+// game keeps windows in trees keyed by the handle value (CoolWindow::m_linkedWindows), so the order of the values decides the
+// order children are shown and hidden in; Wine's order is recycled slots after fresh ones, with the generation as the major key.
+constexpr unsigned kFirstHandle = 0x20;
+constexpr unsigned kHandleSlots = 0x7fe0;
+struct HandleSlot {
+    Window* window;
+    uint16_t generation;
+    int nextFree;
+};
+HandleSlot g_handleSlots[kHandleSlots];
+int g_firstFree = -1;
+unsigned g_slotHighWater = 0;
+
+uintptr_t AllocateHandle(Window* w) {
+    int index;
+    if (g_firstFree >= 0) {
+        index = g_firstFree;
+        g_firstFree = g_handleSlots[index].nextFree;
+    } else if (g_slotHighWater < kHandleSlots) {
+        index = static_cast<int>(g_slotHighWater++);
+    } else {
+        return 0;
+    }
+    HandleSlot& slot = g_handleSlots[index];
+    if (++slot.generation >= 0xffff) slot.generation = 1;
+    slot.window = w;
+    return (static_cast<uintptr_t>(slot.generation) << 16) | (static_cast<unsigned>(index) * 2 + kFirstHandle);
+}
+
+void ReleaseHandle(const Window* w) {
+    const unsigned low = static_cast<unsigned>(w->handle & 0xffff);
+    if (low < kFirstHandle || (low & 1)) return;
+    const unsigned index = (low - kFirstHandle) / 2;
+    if (index >= kHandleSlots || g_handleSlots[index].window != w) return;
+    g_handleSlots[index].window = nullptr;
+    g_handleSlots[index].nextFree = g_firstFree;
+    g_firstFree = static_cast<int>(index);
+}
+
 constexpr int kLiveSlots = 16384;
 Window* g_live[kLiveSlots];
 Window* const kTombstone = reinterpret_cast<Window*>(1);
@@ -31,6 +72,7 @@ void LiveInsert(Window* w) {
 }
 
 void LiveRemove(Window* w) {
+    ReleaseHandle(w);
     size_t i = Hash(w);
     for (int n = 0; n < kLiveSlots && g_live[i]; ++n, i = (i + 1) % kLiveSlots)
         if (g_live[i] == w) { g_live[i] = kTombstone; return; }
@@ -78,9 +120,13 @@ void NcInsets(DWORD style, int* left, int* top, int* right, int* bottom) {
 }  // namespace
 
 Window* FromHandle(HWND hwnd) {
-    if (!hwnd) return nullptr;
-    const Window* w = reinterpret_cast<const Window*>(hwnd);
-    return IsLive(w) ? const_cast<Window*>(w) : nullptr;
+    const uintptr_t value = reinterpret_cast<uintptr_t>(hwnd);
+    const unsigned low = static_cast<unsigned>(value & 0xffff);
+    if (value > 0xffffffffu || low < kFirstHandle || (low & 1)) return nullptr;
+    const unsigned index = (low - kFirstHandle) / 2;
+    if (index >= kHandleSlots) return nullptr;
+    Window* w = g_handleSlots[index].window;
+    return w && w->handle == value ? w : nullptr;
 }
 
 bool IsLive(const Window* w) {
@@ -371,6 +417,15 @@ HWND REB_STDCALL CreateWindowExA(DWORD exStyle, LPCSTR className, LPCSTR title, 
         for (Window* t = FirstTopLevel(); t && (t->exStyle & kWsExTopmost); t = t->next) after = t;
     LinkAfter(w, isChild ? parent : nullptr, after);
     LiveInsert(w);
+    w->handle = AllocateHandle(w);
+    if (!w->handle) {
+        Unlink(w);
+        LiveRemove(w);
+        Free(w->text);
+        Free(w->extra);
+        Free(w);
+        return nullptr;
+    }
 
     CREATESTRUCTA cs;
     memset(&cs, 0, sizeof cs);
@@ -418,7 +473,7 @@ HWND REB_STDCALL CreateWindowExA(DWORD exStyle, LPCSTR className, LPCSTR title, 
         if (!IsLive(w)) return nullptr;
     }
     if (isChild && !(exStyle & kWsExNoParentNotify)) {
-        Send(parent, kWmParentNotify, MAKEWPARAM(WM_CREATE, static_cast<WORD>(w->id)), reinterpret_cast<LPARAM>(w));
+        Send(parent, kWmParentNotify, MAKEWPARAM(WM_CREATE, static_cast<WORD>(w->id)), reinterpret_cast<LPARAM>(ToHandle(w)));
         if (!IsLive(w)) return nullptr;
     }
     if (wantVisible) ShowWindow(ToHandle(w), kSwShow);
@@ -476,7 +531,7 @@ BOOL REB_STDCALL DestroyWindow(HWND handle) {
         if (t && !IsLive(t)) t = FirstTopLevel();
     }
     if (isChild && !(w->exStyle & kWsExNoParentNotify) && parent && !parent->destroying)
-        Send(parent, kWmParentNotify, MAKEWPARAM(WM_DESTROY, static_cast<WORD>(w->id)), reinterpret_cast<LPARAM>(w));
+        Send(parent, kWmParentNotify, MAKEWPARAM(WM_DESTROY, static_cast<WORD>(w->id)), reinterpret_cast<LPARAM>(ToHandle(w)));
     if (!IsLive(w)) return TRUE;
     if (w->style & WS_VISIBLE) {
         if (IsWindowVisibleTree(w)) {

@@ -2,6 +2,7 @@
 #define MINWIN_IMPLEMENTATION 1
 #include "port/minwin/user32.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -90,6 +91,12 @@ HFONT REB_STDCALL CreateFontIndirectA(const LOGFONTA* lplf) {
     Font* f = new Font;
     f->lf = *lplf;
     f->lf.lfFaceName[31] = 0;
+    if (const char* trace = getenv("MW_TEXT_TRACE"))
+        if (FILE* log = fopen(trace, "a")) {
+        fprintf(log, "CreateFont h=%d w=%d wt=%d it=%d ul=%d cs=%d q=%d pf=%d face=%s\n", static_cast<int>(lplf->lfHeight), static_cast<int>(lplf->lfWidth),
+                static_cast<int>(lplf->lfWeight), lplf->lfItalic, lplf->lfUnderline, lplf->lfCharSet, lplf->lfQuality, lplf->lfPitchAndFamily, lplf->lfFaceName);
+        fclose(log);
+        }
     Register(f);
     return reinterpret_cast<HFONT>(f);
 }

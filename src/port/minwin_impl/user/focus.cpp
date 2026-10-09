@@ -32,12 +32,12 @@ void SetFocusWindow(Window* w, bool) {
     if (w == old) return;
     g_focus = w;
     if (old) {
-        Send(old, WM_KILLFOCUS, reinterpret_cast<WPARAM>(w), 0);
+        Send(old, WM_KILLFOCUS, reinterpret_cast<WPARAM>(ToHandle(w)), 0);
         Send(old, kWmImeSetContext, 0, kImeShowAll);
     }
     if (w && g_focus == w) {
         Send(w, kWmImeSetContext, 1, kImeShowAll);
-        if (g_focus == w) Send(w, WM_SETFOCUS, reinterpret_cast<WPARAM>(old), 0);
+        if (g_focus == w) Send(w, WM_SETFOCUS, reinterpret_cast<WPARAM>(ToHandle(old)), 0);
     }
 }
 
@@ -62,14 +62,14 @@ void ActivateTopLevel(Window* w, bool mouse) {
         if (!IsLive(w)) return;
         old = nullptr;
     } else if (old && IsLive(old)) {
-        Send(old, kWmNcActivate, FALSE, reinterpret_cast<LPARAM>(w));
-        if (IsLive(old)) Send(old, WM_ACTIVATE, kWaInactive, reinterpret_cast<LPARAM>(w));
+        Send(old, kWmNcActivate, FALSE, reinterpret_cast<LPARAM>(ToHandle(w)));
+        if (IsLive(old)) Send(old, WM_ACTIVATE, kWaInactive, reinterpret_cast<LPARAM>(ToHandle(w)));
         if (!IsLive(w)) return;
     }
     g_active = w;
     Send(w, kWmNcActivate, TRUE, 0);
     if (!IsLive(w)) return;
-    Send(w, WM_ACTIVATE, mouse ? kWaClickActive : kWaActive, reinterpret_cast<LPARAM>(old));
+    Send(w, WM_ACTIVATE, mouse ? kWaClickActive : kWaActive, reinterpret_cast<LPARAM>(ToHandle(old)));
 }
 
 // The SDL window lost or regained the system focus: the application is (de)activated like on a task switch.
@@ -149,7 +149,7 @@ HWND REB_STDCALL SetCapture(HWND h) {
     Window* old = CaptureWindow();
     if (!w) return nullptr;
     SetCaptureWindow(w);
-    if (old && old != w && IsLive(old)) Send(old, WM_CAPTURECHANGED, 0, reinterpret_cast<LPARAM>(w));
+    if (old && old != w && IsLive(old)) Send(old, WM_CAPTURECHANGED, 0, reinterpret_cast<LPARAM>(ToHandle(w)));
     return ToHandle(old);
 }
 

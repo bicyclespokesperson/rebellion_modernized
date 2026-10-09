@@ -61,7 +61,7 @@ bool MatchesWindow(const Window* target, const Window* filter) {
 }
 
 LRESULT CallProc(Window* w, UINT msg, WPARAM wp, LPARAM lp) {
-    if (!w->cls->builtin && msgtrace::Enabled()) msgtrace::Log(w->cls->name, reinterpret_cast<uintptr_t>(w), msg, wp, lp, g_depth);
+    if (!w->cls->builtin && msgtrace::Enabled()) msgtrace::Log(w->cls->name, w->handle, msg, wp, lp, g_depth);
     WNDPROC proc = w->proc;
     if (!w->cls->builtin) ++g_depth;
     LRESULT result;

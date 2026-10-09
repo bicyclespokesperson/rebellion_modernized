@@ -41,7 +41,7 @@ if [[ $standalone == 1 ]]; then
   sdl3="$ROOT/third_party/SDL3/lib/x86/SDL3.dll"   # next to the exe (Z:\) for REB_MINWIN_IMPL builds
   [[ -f "$sdl3" ]] && exe_mount+=(-v "$sdl3:/SDL3.dll:ro")
   # The minwin_impl build reads its configuration (install directory, font) from this file; the real-import-library build ignores it.
-  printf 'install_dir=C:\\game\nfont_path=Z:\\fonts\\LiberationSans-Regular.ttf\n' > "$out/config.ini"
+  printf 'install_dir=C:\\game\nfont_path=Z:\\fonts\\LiberationSans-Regular.ttf\n[registry]\nEncyLocation=C:\\game\\EDATA\nEXEPath=C:\\game\\REBEXE.EXE\n' > "$out/config.ini"
   exe_mount+=(-e 'REBELLION_CONFIG=Z:\out\config.ini' -v "$ROOT/third_party/liberation-fonts-ttf-2.1.5:/fonts:ro")
 elif [[ $orig == 1 ]]; then
   dll="$MAIN/orig_game_files/Star Wars - Rebellion/SMACKW32.DLL"
@@ -49,8 +49,11 @@ else
   dll="$ROOT/build/hybrid/smackw32.dll"
   [[ -f "$dll" ]] || { echo "no hybrid build at $dll; run tools/build_hybrid.sh" >&2; exit 1; }
 fi
+# REB_WINE_FONTS=liberation: Wine finds the host's Liberation fonts and substitutes them for Arial (the container only has DejaVu);
+# the text component of the minwin_impl build renders with Liberation Sans, so comparisons against Wine's own gdi32 need this.
+if [[ "${REB_WINE_FONTS:-}" == liberation ]]; then exe_mount+=(-v /usr/share/fonts/truetype/liberation:/usr/share/fonts/truetype/liberation:ro); fi
 if [[ -n "${REB_CAPTURE:-}" ]]; then export REB_DISABLE_HOOKS="${REB_DISABLE_HOOKS:-all}"; fi
-docker run --rm -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -e WINEDEBUG -e REB_CAPTURE -e REB_DISABLE_HOOKS -e REB_DETERMINISTIC -e REB_CLOCK_STEP_US -e REB_QPC_STEP_NS -e REB_CLOCK_TRACE -e REB_NO_TIMERS -e REB_HEAP_PROBE -e REB_HEAP_PROBE_SBH -e REB_DATA_TRIPWIRE -e REB_OWN_DATA_NO_PATCH -e REB_DUMP_INIT_STATE -e REB_MSG_TRACE -e REB_MSG_TRACE_HANDLES -e REB_MINWIN_TRACE -e REB_MINWIN_SCALE -e REB_AUDIO_CAPTURE -e REB_AUDIO_DRIVER \
+docker run --rm -e HOST_UID="$(id -u)" -e HOST_GID="$(id -g)" -e WINEDEBUG -e REB_CAPTURE -e REB_DISABLE_HOOKS -e REB_DETERMINISTIC -e REB_CLOCK_STEP_US -e REB_QPC_STEP_NS -e REB_CLOCK_TRACE -e REB_NO_TIMERS -e REB_HEAP_PROBE -e REB_HEAP_PROBE_SBH -e REB_DATA_TRIPWIRE -e REB_OWN_DATA_NO_PATCH -e REB_DUMP_INIT_STATE -e REB_MSG_TRACE -e REB_MSG_TRACE_HANDLES -e REB_MINWIN_TRACE -e REB_MINWIN_SCALE -e REB_XVFB_DEPTH -e REB_AUDIO_CAPTURE -e MW_TEXT_TRACE -e MW_RES_TRACE -e SDL_AUDIODRIVER \
   -e 'REB_LOG=Z:\out\rebhybrid.log' -e 'REB_CAPTURE_DIR=Z:\out\captures' \
   -v "$game:/game" -v "$dll:/game/SMACKW32.DLL:ro" -v "$out:/out" -v "$out/SaveGame:/game/SaveGame" -v "$ROOT/tools/container:/tools:ro" \
   -v "$scenario:/scenario.txt:ro" "${exe_mount[@]}" "$@" rebellion-dev bash /tools/run_in_container.sh /scenario.txt
