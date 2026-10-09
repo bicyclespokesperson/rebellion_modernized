@@ -64,6 +64,8 @@ Never kill processes by name pattern (it kills your own shell); use the scripts'
      their real names, as the original does. Use pointer-sized types where Win32 does (`LONG_PTR`,
      `WPARAM`/`LPARAM`, `GetWindowLongPtr`/`SetWindowLongPtr`, `DWORD_PTR`) even though the original is
      32-bit — the port is 64-bit (see docs/platform_layer.md).
+   - Argument evaluation order differs between MSVC/clang-cl (right to left) and the native Itanium build (left to right): one side-effecting
+     call per argument list; otherwise hoist the calls into locals in right-to-left order. `tools/check_arg_order.sh` enforces it (see docs/agent_brief.md).
    - No STL, no exceptions, no RTTI, no `dynamic_cast`. `operator new` returns NULL on failure, as in the
      original — keep the original's null checks (the build uses `-fcheck-new` so clang keeps them). Use the CRT the original uses (`malloc`, `sprintf`,
      `strcpy`...); they resolve to the game's own CRT.

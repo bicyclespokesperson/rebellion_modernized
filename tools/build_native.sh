@@ -11,9 +11,6 @@
 #   REB_CMAKE_ARGS (e.g. -DREB_NATIVE_SANITIZE=address,undefined; REB_SANITIZE=1 is shorthand for that with REB_NATIVE_DIR=build/native_asan), REB_NINJA_ARGS, REB_TAIL (build log lines shown).
 set -euo pipefail
 source "$(dirname "$0")/paths.sh"
-# In the main checkout ROOT and MAIN are the same directory; mounting it twice is a docker error.
-mounts=(-v "$ROOT:$ROOT")
-[[ "$MAIN" != "$ROOT" ]] && mounts+=(-v "$MAIN:$MAIN:ro")
 objects_only=0
 arch=x86_64
 args=("$@")
@@ -42,7 +39,7 @@ esac
 bdir="${REB_NATIVE_DIR:-$default_dir}"
 mkdir -p "$ROOT/$bdir/gen"
 container() {
-  docker run --rm -u "$(id -u):$(id -g)" "${mounts[@]}" -w "$ROOT" "$image" bash -c "$1"
+  docker run --rm -u "$(id -u):$(id -g)" "${REB_MOUNTS[@]}" -w "$ROOT" "$image" bash -c "$1"
 }
 exe="$MAIN/orig_game_files/Star Wars - Rebellion/REBEXE.EXE"
 configure="cmake -S . -B $bdir -G Ninja -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19 $cross_args -DCMAKE_BUILD_TYPE=${REB_BUILD_TYPE:-RelWithDebInfo} -DREB_NATIVE=ON ${REB_CMAKE_ARGS:-}"
