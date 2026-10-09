@@ -29,6 +29,10 @@ the relevant parts of docs/code_map.md for your module.
 - Calling conventions: run `tools/check_callee_pop.py` after building — it must report 0 mismatches (a free
   function or static member whose original ends in `RET n` is `__stdcall`). Long runs: soak_fast.txt and
   load_game.txt with all hooks must have no "Unhandled" in wine.log (`tools/bisect_crash.py` finds the culprit).
+- Save fidelity (when your change can affect game state or saves): `tools/determinism_check.sh -n 2` and, in the same
+  session, `tools/determinism_check.sh -n 2 -t orig -e REB_DISABLE_HOOKS=all`; the saves must match. Don't compare
+  against a remembered md5: the tick counter at save time varies with timing (a ~64-byte tick/checksum-only
+  difference at equal size is that known variance, not a logic difference — rerun).
 - Keep capture runs under your worktree's `work/run/` (the default; with `--out`, use `work/run/<name>`): the
   integration imports captures only from there into the shared regression store, so captures saved elsewhere
   (e.g. your scratchpad) never become regression tests.
