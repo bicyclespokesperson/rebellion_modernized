@@ -1,0 +1,108 @@
+movie version=324b4d53 width=640 height=480 frames=259
+setpalette=0
+buffer reversed=1 surface=1 width=640 height=480
+wait-at-open=0
+frame 0 number=0 newpal=1 paltype=0 newpalette=50856004 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=a97bfc0fa513dfb1 audio=47040:6ee50e17d4fe33e0 after=0/1
+wait-after-next=1
+frame 1 number=1 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=92ffa58ad3a8c39f audio=2940:d654581e75925d9a after=1/0
+frame 2 number=2 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=8f8da63f178f2d19 audio=2940:cf6c63bdd61cff88 after=2/0
+frame 3 number=3 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=cc4c3ffa0ba6a430 audio=2940:aea8c29c1143c23d after=3/0
+frame 4 number=4 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=0dcd8b898627be5f audio=2940:a02c7ac325089365 after=4/0
+frame 5 number=5 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=9c8a969f6ec978c9 audio=2940:2eb025d73a6df5b4 after=5/0
+frame 6 number=6 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=ed52f5f8acb7eda9 audio=2940:b98faaace3c42b74 after=6/0
+frame 7 number=7 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=8d5fdfe9a75adb19 audio=2940:cc969cd1f0b97ef3 after=7/0
+frame 8 number=8 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=d0ca2fda6f84a703 audio=2940:7df3bca6f10690cd after=8/0
+frame 9 number=9 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=44d9dda235062148 audio=2940:7323522579454b52 after=9/0
+frame 10 number=10 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=17c3265a036dbca6 audio=2936:7dbbb2b28d787ddf after=10/0
+frame 11 number=11 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=1d0202ef880235a7 audio=2940:01f2dcbba03a27a1 after=11/0
+frame 12 number=12 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=8739ca9eb34f4714 audio=2940:436a9584e83368c4 after=12/0
+frame 13 number=13 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=46fddb75062dc90c audio=2940:a9753ded82a11717 after=13/0
+frame 14 number=14 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=f2f42a806b084c93 audio=2940:eb2ffee205109f30 after=14/0
+frame 15 number=15 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=77f91f725818fb3c audio=2940:4f4d07e5a207012c after=15/0
+frame 16 number=16 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=9f414bff44104e97 audio=2940:471fa9bcc7d84499 after=16/0
+frame 17 number=17 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=f33ca66d60bf3e20 audio=2940:20e2ca5b14a1e2e3 after=17/0
+frame 18 number=18 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=5fefc74047e12c6a audio=2940:2a8fb8818fff975d after=18/0
+frame 19 number=19 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=e8d409ebff436131 audio=2940:e016c6878ea07229 after=19/0
+frame 20 number=20 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=a08874dad8a427cb audio=2940:d6abfae12e430d33 after=20/0
+frame 21 number=21 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=2b106d29d53591d9 audio=2940:5d00b36d9e4dc005 after=21/0
+frame 22 number=22 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=7e05adb4496a332c audio=2940:f070e17b03898ceb after=22/0
+frame 23 number=23 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=8bba5c58c99de813 audio=2936:b5201bb53c95cc45 after=23/0
+frame 24 number=24 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=3db768c848d6fc2c audio=2940:0014c366011ec90d after=24/0
+frame 25 number=25 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=fef32b3a53c4dce8 audio=2940:e4bc7cbaa8cfb69f after=25/0
+frame 26 number=26 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=63473c0462b612f4 audio=2940:3f4c3593ec17ef9f after=26/0
+frame 27 number=27 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=d5d2b56b90ad814c audio=2940:6a2cc5fe86755e6f after=27/0
+frame 28 number=28 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=beafdcb69e2eacab audio=2940:73db44534191cc9f after=28/0
+frame 29 number=29 newpal=0 paltype=0 palbefore=934b5fdc4517e36d ret=0 rects=[0,0,640,480] pal=934b5fdc4517e36d pic=5317560277cd28e2 audio=2940:aed9d435be9b4ad7 after=29/0
+goto1 number=0 newpal=0 pal=934b5fdc4517e36d pic=a97bfc0fa513dfb1
+movie version=324b4d53 width=640 height=324 frames=334
+setpalette=0
+buffer reversed=1 surface=1 width=640 height=324
+wait-at-open=0
+frame 0 number=0 newpal=1 paltype=0 newpalette=67633221 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=5b3eb16ba826565b audio=47040:339759b77e702e95 after=0/1
+wait-after-next=1
+frame 1 number=1 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=257ac5aae75c053e audio=2940:11fb40ab1a2d348c after=1/0
+frame 2 number=2 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=a165763631939ef0 audio=2940:518a5842fe56df65 after=2/0
+frame 3 number=3 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=ab801cd9e5b20579 audio=2940:fe84e4feea2ee582 after=3/0
+frame 4 number=4 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=965965dc59d06231 audio=2940:5e4325569b92f167 after=4/0
+frame 5 number=5 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=398344fbbdb81d36 audio=2940:bd1ae00b557424b5 after=5/0
+frame 6 number=6 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=3ae8242263d70f6a audio=2940:c85bd3e1f1f2c662 after=6/0
+frame 7 number=7 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=730759d287ce918f audio=2940:02b5d066c48e880d after=7/0
+frame 8 number=8 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=0bdd7a43993315dc audio=2940:ba60024448e425dc after=8/0
+frame 9 number=9 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=2eb4e45354b1ccb1 audio=2940:82010768b6346879 after=9/0
+frame 10 number=10 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=7b070d2071e5d72e audio=2936:ef522d3aaa389ac7 after=10/0
+frame 11 number=11 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,16,640,308] pal=81e3b2cb71ba9550 pic=ab5e2431aa8181b1 audio=2940:403bf4ebed219b70 after=11/0
+frame 12 number=12 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,24,640,300] pal=81e3b2cb71ba9550 pic=c13a777ce1a916e3 audio=2940:5cc338acbba21308 after=12/0
+frame 13 number=13 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=d54a23c3f8e32339 audio=2940:72b60546f3ab591c after=13/0
+frame 14 number=14 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=f4e759a7808a42f7 audio=2940:c55ae57b2b355404 after=14/0
+frame 15 number=15 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=76b84a0f9087a6ab audio=2940:4039464579b96343 after=15/0
+frame 16 number=16 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,16,640,308] pal=81e3b2cb71ba9550 pic=567cfd6eb845b961 audio=2940:f570d9ec72ec3568 after=16/0
+frame 17 number=17 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=7df85ceb108207b2 audio=2940:9d4035717dd370b5 after=17/0
+frame 18 number=18 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,0,640,324] pal=81e3b2cb71ba9550 pic=61dbbd204d05435b audio=2940:82334835221233f0 after=18/0
+frame 19 number=19 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,16,640,308] pal=81e3b2cb71ba9550 pic=d2d5187011fb4d38 audio=2940:c429f9cf9c9f91d0 after=19/0
+frame 20 number=20 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[128,20,512,304] pal=81e3b2cb71ba9550 pic=9b5d5e2bf3e193e4 audio=2940:0ee3c62b3820bd82 after=20/0
+frame 21 number=21 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[64,24,576,300] pal=81e3b2cb71ba9550 pic=f50327310ade9147 audio=2940:80808ffe5574fb4b after=21/0
+frame 22 number=22 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[64,20,576,304] pal=81e3b2cb71ba9550 pic=e7b69b8d6cb73200 audio=2940:9e4499de34cc4e19 after=22/0
+frame 23 number=23 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[0,16,640,308] pal=81e3b2cb71ba9550 pic=4cd55c22fd6445cd audio=2936:cafb1f074c3ee2f2 after=23/0
+frame 24 number=24 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[128,24,512,300] pal=81e3b2cb71ba9550 pic=a05362cc91f6773c audio=2940:c5ef95f70a542773 after=24/0
+frame 25 number=25 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[64,24,576,300] pal=81e3b2cb71ba9550 pic=dbc9c45a91aa6d30 audio=2940:67702cdbec564d2e after=25/0
+frame 26 number=26 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[128,20,512,304] pal=81e3b2cb71ba9550 pic=50bb340465c9d740 audio=2940:0c4606871a5d1c34 after=26/0
+frame 27 number=27 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[64,20,576,304] pal=81e3b2cb71ba9550 pic=14201551bb35ccbe audio=2940:b7d800e7260ce74c after=27/0
+frame 28 number=28 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[128,20,512,304] pal=81e3b2cb71ba9550 pic=79ceed04d5a28add audio=2940:5bfee9fd18291a3e after=28/0
+frame 29 number=29 newpal=0 paltype=0 palbefore=81e3b2cb71ba9550 ret=0 rects=[128,20,512,304] pal=81e3b2cb71ba9550 pic=853e8017237d49ab audio=2940:a628603150c2ab80 after=29/0
+goto1 number=0 newpal=0 pal=81e3b2cb71ba9550 pic=5b3eb16ba826565b
+movie version=324b4d53 width=640 height=324 frames=333
+setpalette=0
+buffer reversed=1 surface=1 width=640 height=324
+wait-at-open=0
+frame 0 number=0 newpal=1 paltype=0 newpalette=604504132 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=a2ca3785bf1237a9 audio=47040:3ca15ba0e231c2c6 after=0/1
+wait-after-next=1
+frame 1 number=1 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=03645b65add6f26d audio=2940:a07654c340f1a45f after=1/0
+frame 2 number=2 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=45b3dc312dc27923 audio=2940:81054734fad11247 after=2/0
+frame 3 number=3 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=77f25a13c0eaf525 audio=2940:c05c499f00fb0dea after=3/0
+frame 4 number=4 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=3337ae41bf569031 audio=2940:03c3d1a28f563e1d after=4/0
+frame 5 number=5 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=3bfa9e8ed404692d audio=2940:bb72283acf2a231f after=5/0
+frame 6 number=6 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=c0ee81ef4e228698 audio=2940:7df77a8deb147d4b after=6/0
+frame 7 number=7 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=42d053aa7ddb0b00 audio=2940:ceff76eed59418f2 after=7/0
+frame 8 number=8 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=8a6a78036e2fd499 audio=2940:da9e1171ecc4f9a5 after=8/0
+frame 9 number=9 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=a74d99796ef2277a audio=2940:7b27656a7728c87f after=9/0
+frame 10 number=10 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=464988eb02d83f3f audio=2936:1f4c80428eb9fdbb after=10/0
+frame 11 number=11 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=14b0a0c5cddddc5b audio=2940:3b441489214358df after=11/0
+frame 12 number=12 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=9e306a7b78a4ab00 audio=2940:2e9afba260a7ca1d after=12/0
+frame 13 number=13 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=bb8a8ce9e8e52e78 audio=2940:e0b57ba8df2a2d81 after=13/0
+frame 14 number=14 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=4bd9f35c0253af7e audio=2940:701456b68095b3e6 after=14/0
+frame 15 number=15 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=053920b77873c2d0 audio=2940:c39d55bbee6a658d after=15/0
+frame 16 number=16 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=4657cadd3d4a9b3d audio=2940:d3050e874f8c6bfd after=16/0
+frame 17 number=17 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=f8815159261af060 audio=2940:3f91a09fb73e86fc after=17/0
+frame 18 number=18 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=28e44c66db767778 audio=2940:905dba1dce4d05cd after=18/0
+frame 19 number=19 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=9a1f0dbe5f482387 audio=2940:0dc55cc03c1df4fb after=19/0
+frame 20 number=20 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=5e8afbf679dfd3dc audio=2940:1799c858cadf2169 after=20/0
+frame 21 number=21 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=68b13442f3778ceb audio=2940:e2b2beacf052303e after=21/0
+frame 22 number=22 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=faaa0766f9f5fe61 audio=2940:85e2e7173561fbc4 after=22/0
+frame 23 number=23 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=fd2fcbd144b6daed audio=2936:0de8fe1ced93610f after=23/0
+frame 24 number=24 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=88f76a036dc4f3dd audio=2940:005a8d2cb8f45c87 after=24/0
+frame 25 number=25 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=6f35c89a062c00f6 audio=2940:bca1395b7c6cddb5 after=25/0
+frame 26 number=26 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=cc14e949d3feb7db audio=2940:b98a01c84702d65b after=26/0
+frame 27 number=27 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=31bfff7aab09bc98 audio=2940:3fdbc7479c1b946b after=27/0
+frame 28 number=28 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=551d9f7270561f4a audio=2940:111a7ca4abbe337b after=28/0
+frame 29 number=29 newpal=0 paltype=0 palbefore=d68b46a4cd7efafa ret=0 rects=[0,0,640,324] pal=d68b46a4cd7efafa pic=5cfbf7db169f6b59 audio=2940:4821c58ba43a7d01 after=29/0
+goto1 number=0 newpal=0 pal=d68b46a4cd7efafa pic=a2ca3785bf1237a9
