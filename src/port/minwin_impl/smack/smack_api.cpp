@@ -200,13 +200,15 @@ void REB_STDCALL SmackGoto(Smack* smk, uint32_t frame) {
     SmackState* s = StateOf(smk);
     frame = frame ? frame - 1 : 0;  // the argument is 1-based: SmackGoto(smk, 1) is the first frame
     if (frame >= s->movie->FrameCount()) frame = s->movie->FrameCount() - 1;
+    uint8_t before[768];
+    memcpy(before, smk->m_palette, 768);
     s->movie->Seek(frame);
     s->current = frame;
     for (mwds::Stream* st : s->streams)
         if (st) st->Clear();
     s->nextDue = g_clock();
     PreparePalette(smk, s);
-    smk->m_newPalette = 0;  // the DLL does not announce a palette after a jump
+    smk->m_newPalette = memcmp(before, smk->m_palette, 768) != 0 ? 1 : 0;  // announced after a jump only if it changed
 }
 
 void REB_STDCALL SmackToBuffer(Smack* smk, uint32_t left, uint32_t top, uint32_t pitch, uint32_t destHeight, void* buffer, uint32_t flags) {
