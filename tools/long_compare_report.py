@@ -15,20 +15,48 @@ the reconstructions reach the trajectory the original code reaches most often. T
 equal size (a handful: UI state in the save such as message timestamps; thousands: the simulations diverged), "size" for
 different sizes. Exit status 1 when a configuration never reaches the original code's most common trajectory. Screenshots are
 compared (pixel by pixel) across the runs of that trajectory.
+
+Known uninitialised bytes are not counted as differences (they are listed as "+Nu"): UiNotice::m_unk3c, the 16-bit field at +0x3c
+that UiNotice::Write serialises (right after the 32-bit tick of the notice) and that neither UiNotice constructor (0x4c4ce0, 0x4c4d90)
+ever sets. The original's `operator new` returns recycled heap memory, so it saves leftovers of earlier allocations (ASCII fragments
+of freed strings, pointer halves); the hybrid shares the original's heap and usually the same leftovers (a run of the same code
+reproduces them), the standalone's zero-filling `operator new` saves 0. A notice is recognised by its serialised header: 0, owner
+(0-4), tick, <the field>, unk40 (0 or 1), unk28; a chance match only hides a 2-byte difference, far below --noise.
 """
 from __future__ import annotations
 
 import argparse
+import re
+from functools import cache
 from itertools import combinations
 from pathlib import Path
 
 from PIL import Image, ImageChops
 
 
-def differing_bytes(a: bytes, b: bytes) -> int | None:
+UI_NOTICE_HEADER = re.compile(rb"(?s)\x00\x00\x00\x00[\x00-\x04]\x00\x00\x00....(..)[\x00\x01]\x00\x00\x00.\x00\x00\x00")
+
+
+@cache
+def uninitialised_offsets(data: bytes) -> frozenset[int]:
+    """Offsets of the UiNotice::m_unk3c fields (never initialised, serialised) in a save."""
+    return frozenset(o for m in UI_NOTICE_HEADER.finditer(data) for o in (m.start(1), m.start(1) + 1))
+
+
+def differing_offsets(a: bytes, b: bytes) -> tuple[list[int], list[int]] | None:
+    """(unexplained, masked) offsets of the bytes that differ; None at different sizes."""
     if len(a) != len(b):
         return None
-    return sum(x != y for x, y in zip(a, b))
+    differing = [i for i, (x, y) in enumerate(zip(a, b)) if x != y]
+    if not differing:
+        return [], []
+    mask = uninitialised_offsets(a) | uninitialised_offsets(b)
+    return [i for i in differing if i not in mask], [i for i in differing if i in mask]
+
+
+def differing_bytes(a: bytes, b: bytes) -> int | None:
+    offsets = differing_offsets(a, b)
+    return None if offsets is None else len(offsets[0])
 
 
 def differing_pixels(a: Path, b: Path) -> int | None:
@@ -39,8 +67,11 @@ def differing_pixels(a: Path, b: Path) -> int | None:
     return diff.histogram()[255]
 
 
-def verdict(count: int | None) -> str:
-    return "size" if count is None else "=" if count == 0 else f"~{count}"
+def verdict(count: int | None, masked: int = 0) -> str:
+    if count is None:
+        return "size"
+    text = "=" if count == 0 else f"~{count}"
+    return text + (f"+{masked}u" if masked else "")
 
 
 def trajectories(saves: dict[str, bytes], noise: int) -> list[list[str]]:
@@ -91,13 +122,13 @@ def main() -> int:
     print(f"== {args.save}: sizes ==")
     for n in names:
         print(f"  {n:<{width}} {len(saves[n])}")
-    print(f"\n== {args.save}: pairwise (= identical, ~N bytes differ at equal size, size = different sizes) ==")
+    print(f"\n== {args.save}: pairwise (= identical, ~N bytes differ at equal size, +Nu: N more in known uninitialised fields, size = different sizes) ==")
     print(" " * (width + 2) + "".join(f"{n:>{width + 2}}" for n in names))
     for a in names:
         row = []
         for b in names:
-            count = 0 if a == b else differing_bytes(saves[a], saves[b])
-            row.append(f"{verdict(count):>{width + 2}}")
+            offsets = ([], []) if a == b else differing_offsets(saves[a], saves[b])
+            row.append(f"{verdict(None if offsets is None else len(offsets[0]), 0 if offsets is None else len(offsets[1])):>{width + 2}}")
         print(f"  {a:<{width}}" + "".join(row))
 
     clusters = trajectories(saves, args.noise)

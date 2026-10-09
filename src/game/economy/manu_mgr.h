@@ -53,6 +53,7 @@ public:
 
     virtual int GetEventKinds(int unused, EventKindSet* out) override;  // 15, 0x527c20
     virtual int Virtual16() override { return 1; }                      // 16, 0x40f340
+    virtual void WriteName(String* out, int kind) override;             // ObjectBase slot 0, 0x527b40 (AppendManuMgrName)
     virtual int IsObservable() override { return 0; }                   // 19, 0x6158b0
     virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;  // 22, 0x527c40
     virtual GameObjData* CreateData() override;                          // 58, 0x52c010

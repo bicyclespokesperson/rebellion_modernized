@@ -91,6 +91,7 @@ public:
 
     // ---- overrides of GameObj / GameObjRoot slots ----
     virtual uint32_t GetFamily() override;                         // 1, 0x52e4e0 (0xf3)
+    virtual void WriteName(String* out, int kind) override;       // ObjectBase slot 0, 0x52d920 (AppendSideName)
     virtual int Read(istream* in) override;                        // 5, 0x530d10
     virtual int Write(ostream* out) override;                      // 6, 0x530d20
     virtual int Checksum(Crc32* crc) override;                     // 7, 0x530d50
