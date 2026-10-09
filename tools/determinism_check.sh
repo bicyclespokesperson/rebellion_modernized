@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Run one scenario N times with the hybrid build and compare the resulting SaveGame directories byte for byte.
 #
-# Usage: determinism_check.sh [-n RUNS] [-t TAG] [-e VAR=VALUE]... [scenario.txt]
+# Usage: determinism_check.sh [-n RUNS] [-t TAG] [-s] [-e VAR=VALUE]... [scenario.txt]
+#   -s: run the standalone exe (build/standalone/rebellion.exe) instead of the hybrid
 #   default scenario: tests/scenarios/save_determinism.txt (loads a game, saves SAVEGAME.005)
 #   REB_DETERMINISTIC=1 is always set; add more with -e (e.g. -e REB_HEAP_PROBE=19070976)
 #   runs go to work/run/determinism/<TAG>_<i>/; TAG defaults to "base"
@@ -9,12 +10,13 @@
 # (use `cmp -l a b` for all). Exit status 1 when any file differs.
 set -euo pipefail
 source "$(dirname "$0")/paths.sh"
-runs=3; tag=base; envs=()
-while getopts "n:t:e:" opt; do
+runs=3; tag=base; envs=(); run_args=()
+while getopts "n:t:e:s" opt; do
   case "$opt" in
     n) runs="$OPTARG" ;;
     t) tag="$OPTARG" ;;
     e) envs+=("$OPTARG") ;;
+    s) run_args+=(--standalone) ;;
     *) exit 2 ;;
   esac
 done
@@ -27,7 +29,7 @@ export REB_DETERMINISTIC=1
 for kv in "${envs[@]+"${envs[@]}"}"; do export "$kv"; done
 
 for i in $(seq 1 "$runs"); do
-  "$ROOT/tools/run_game.sh" --out "$base/${tag}_$i" "$scenario" > "$base/${tag}_$i.log" 2>&1
+  "$ROOT/tools/run_game.sh" "${run_args[@]+"${run_args[@]}"}" --out "$base/${tag}_$i" "$scenario" > "$base/${tag}_$i.log" 2>&1
   echo "run $i done: $(grep -c 'Unhandled' "$base/${tag}_$i/wine.log" || true) unhandled"
 done
 
