@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "events/player_notices.h"
 
 #include <new>
@@ -17,7 +18,7 @@
 #include "story/story_characters.h"
 #include "strategy_ui/game_ui_facade.h"
 
-ObjectKey* __thiscall GetObjectRecordKey(GameObjNotifier* object, ObjectKey* out);  // 0x402d80
+ObjectKey* REB_THISCALL GetObjectRecordKey(GameObjNotifier* object, ObjectKey* out);  // 0x402d80
 
 namespace {
 

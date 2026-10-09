@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "events/incident_timers.h"
 
 #include "events/event_helpers.h"
@@ -18,12 +19,12 @@ TrackedStat* statAt(GameObj* owner, int offset) {
 
 }  // namespace
 
-FamilyRange* __stdcall GetSystemFamilyRange(FamilyRange* out) {
+FamilyRange* REB_STDCALL GetSystemFamilyRange(FamilyRange* out) {
     *out = FamilyRange(0x90, 0x98);
     return out;
 }
 
-FamilyRange* __stdcall GetFamilyF9Range(FamilyRange* out) {
+FamilyRange* REB_STDCALL GetFamilyF9Range(FamilyRange* out) {
     *out = FamilyRange(0xf9, 0xfa);
     return out;
 }

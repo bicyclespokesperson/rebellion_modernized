@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "character/character_mgr.h"
 #include "gameobj/object_queries.h"
 #include "events/object_timers.h"
@@ -14,27 +15,27 @@
 using events::fireOnTimerOwner;
 using events::timerStatOfOwner;
 
-FamilyRange* __stdcall GetSideFamilyRange(FamilyRange* out) {
+FamilyRange* REB_STDCALL GetSideFamilyRange(FamilyRange* out) {
     *out = FamilyRange(0xf3, 0xf4);
     return out;
 }
 
-FamilyRange* __stdcall GetProcFacilFamilyRange(FamilyRange* out) {
+FamilyRange* REB_STDCALL GetProcFacilFamilyRange(FamilyRange* out) {
     *out = FamilyRange(0x28, 0x30);
     return out;
 }
 
-FamilyRange* __stdcall GetAnyFamilyRange(FamilyRange* out) {
+FamilyRange* REB_STDCALL GetAnyFamilyRange(FamilyRange* out) {
     *out = FamilyRange(0x1, 0xff);
     return out;
 }
 
-FamilyRange* __stdcall GetFamily14Range(FamilyRange* out) {
+FamilyRange* REB_STDCALL GetFamily14Range(FamilyRange* out) {
     *out = FamilyRange(0x14, 0x20);
     return out;
 }
 
-FamilyRange* __stdcall GetCharacterFamilyRange(FamilyRange* out) {
+FamilyRange* REB_STDCALL GetCharacterFamilyRange(FamilyRange* out) {
     *out = FamilyRange(0x30, 0x3c);
     return out;
 }

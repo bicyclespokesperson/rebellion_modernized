@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/ui_handler_table.h"
 
 #include <cstdint>
@@ -9,7 +10,7 @@
 #include "events/player_notices.h"
 #include "strategy_ui/manufacture_order_window.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 
 // The handler singletons are function-local statics of the original constructor: a guard byte per eight of them,
 // constructed on first use with their destructor registered through atexit. They belong to the player-action modules
@@ -135,7 +136,7 @@ struct HandlerInit {
     uint8_t m_guardBit;
     Constructor m_construct;
     uint8_t* m_object;
-    void(__cdecl* m_destroyAtExit)();
+    void(REB_CDECL* m_destroyAtExit)();
     int m_slot;       // -1: ask m_kindOf
     KindFn m_kindOf;
 };

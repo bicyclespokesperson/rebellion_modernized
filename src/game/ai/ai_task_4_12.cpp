@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ai/ai_agent_bases.h"
 #include "ai/ai_side_controller.h"
 #include "ai/ai_planner.h"
@@ -15,12 +16,12 @@ constexpr int kPlannerStepSlot = 11;
 void** VirtualTableOf(void* object) { return *reinterpret_cast<void***>(object); }
 
 int PlannerWantsToRun(AiMissionPlanner* planner) {
-    using Slot = int(__thiscall*)(AiMissionPlanner*);
+    using Slot = int(REB_THISCALL*)(AiMissionPlanner*);
     return reinterpret_cast<Slot>(VirtualTableOf(planner)[kPlannerWantsToRunSlot])(planner);
 }
 
 OrderBase* StepPlanner(AiMissionPlanner* planner, int* done) {
-    using Slot = OrderBase*(__thiscall*)(AiMissionPlanner*, int*);
+    using Slot = OrderBase*(REB_THISCALL*)(AiMissionPlanner*, int*);
     return reinterpret_cast<Slot>(VirtualTableOf(planner)[kPlannerStepSlot])(planner, done);
 }
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -265,8 +266,8 @@ public:
     int CreateViewsImpl(int controlKind, NotifyContext* ctx);  // 0x5236e0 (body of slot 37)
 
     // The static event kind set of the mission base: kind 0x250 (0x525620 builds it, 0x525670 copies it).
-    static int __cdecl CheckMemberDefault(int unused, int value, int* out, StatusCode* status);  // 0x523670
-    static int __cdecl CheckTargetDefault(class MissionCheckArgs* args, StatusCode* status, int* code);  // 0x523450
+    static int REB_CDECL CheckMemberDefault(int unused, int value, int* out, StatusCode* status);  // 0x523670
+    static int REB_CDECL CheckTargetDefault(class MissionCheckArgs* args, StatusCode* status, int* code);  // 0x523450
     static int BuildEventKinds();                                 // 0x525620
     static int GetBaseEventKinds(int unused, EventKindSet* out);  // 0x525670
     static void InitStatics();                                    // 0x525700
@@ -317,7 +318,7 @@ public:
 //
 // Usage: `Iter it(mission); it.Begin(); while (it.Current()) { ...; it.Advance(); }` (Begin = 0x525930, Advance = 0x5258f0;
 // the constructors do NOT position the iterator).
-void __stdcall NextMemberKey(ObjectKeyValueSet* set, ObjectKey* key);  // 0x525b00
+void REB_STDCALL NextMemberKey(ObjectKeyValueSet* set, ObjectKey* key);  // 0x525b00
 
 class MissionMemberIterator {
 public:

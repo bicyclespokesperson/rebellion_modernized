@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 // Shared building blocks of the concrete event, command and timer classes (system_events.h, incident_timers.h, ...).
 #include <cstdint>
 
@@ -94,7 +95,7 @@ int executeOnTarget(Command* command, Resolve resolve, Act act) {
 // Calls the virtual in `slot` of an object whose class is not reconstructed.
 template <typename Result, typename... Args>
 Result callVirtualSlot(void* object, int slot, Args... args) {
-    using Method = Result(__thiscall*)(void*, Args...);
+    using Method = Result(REB_THISCALL*)(void*, Args...);
     Method* vtable = *reinterpret_cast<Method**>(object);
     return vtable[slot](object, args...);
 }

@@ -1,9 +1,10 @@
+#include "core/reb_abi.h"
 #include <new>
 
 #include "events/event_post.h"
 #include "fleet/fleet.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyFleetEventKinds();
 
 extern EventKindSet g_fleetEventKinds;       // 0x6b2b10

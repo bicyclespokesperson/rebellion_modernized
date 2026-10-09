@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <new>
 
 #include "ai/ai_agent_bases.h"
@@ -508,4 +509,4 @@ void AiSideController::AccumulateCharacter(const ObjectKey*, const int* values, 
     }
 }
 
-IntPair* __thiscall GetSidePairAt58(Side* side, IntPair* out) { return new (out) IntPair(side->m_maintState); }
+IntPair* REB_THISCALL GetSidePairAt58(Side* side, IntPair* out) { return new (out) IntPair(side->m_maintState); }

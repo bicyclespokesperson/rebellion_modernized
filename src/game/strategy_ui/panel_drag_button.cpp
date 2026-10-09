@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/panel_drag_button.h"
 
 #include "core/vptr_store.h"
@@ -55,7 +56,7 @@ PanelDragButton::PanelDragButton(HINSTANCE instance, int x, int y, int width, in
 
 PanelDragButton::~PanelDragButton() { REB_KEEP_VPTR_STORE(); }
 
-LRESULT __stdcall PanelDragButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL PanelDragButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_MOUSEMOVE:
             return OnMouseMove(wParam, lParam);

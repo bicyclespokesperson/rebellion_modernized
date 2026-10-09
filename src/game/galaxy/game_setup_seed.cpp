@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "galaxy/game_setup_seed.h"
 
 #include <new>
@@ -32,7 +33,7 @@ constexpr FamilyRange kSectorFamilies(0x80, 0x90);
 
 template <typename R, typename... A>
 R callVirtual(void* object, int slot, A... args) {
-    using Function = R(__thiscall*)(void*, A...);
+    using Function = R(REB_THISCALL*)(void*, A...);
     return reinterpret_cast<Function**>(object)[0][slot](object, args...);
 }
 
@@ -97,11 +98,11 @@ uint32_t ApplyLoyaltyRuleToSystem(System* system, const LoyaltyRule* rule, Notif
     return result;
 }
 
-GameObjNotifier* __thiscall GetNextSectorMaster(GameObjNotifier* sector) {
+GameObjNotifier* REB_THISCALL GetNextSectorMaster(GameObjNotifier* sector) {
     return static_cast<GameObj*>(sector)->FindNextSibling(&kSectorFamilies, 1);
 }
 
-GameObjNotifier* __thiscall NextSystemMaster(GameObjNotifier* system) {
+GameObjNotifier* REB_THISCALL NextSystemMaster(GameObjNotifier* system) {
     return static_cast<GameObj*>(system)->FindNextSibling(&kSystemFamilies, 1);
 }
 

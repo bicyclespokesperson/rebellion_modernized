@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 // The commands, timers and notification events of the mission system (0x54cd80-0x54ea70). Each class is a leaf of one
 // of the bases in events/event_base.h, events/timer_event.h and orders/command_decl.h and is created by kind through the factory table
 // (0x51ef80); every class has a factory function next to it. The kinds:
@@ -65,8 +66,8 @@ public:
 };
 
 // Shared slot 10 of the mission timers / of the manager timers.
-FamilyRange* __stdcall GetMissionFamilyRange(FamilyRange* out);     // 0x54d920: {0x40, 0x80}
-FamilyRange* __stdcall GetMissionMgrFamilyRange(FamilyRange* out);  // 0x54e880: {0xf8, 0xf9}
+FamilyRange* REB_STDCALL GetMissionFamilyRange(FamilyRange* out);     // 0x54d920: {0x40, 0x80}
+FamilyRange* REB_STDCALL GetMissionMgrFamilyRange(FamilyRange* out);  // 0x54e880: {0xf8, 0xf9}
 
 // The timers over the stat of a mission (0x38b, 0x38c) or of the mission manager (0x392, 0x393). All four live in the
 // mission-manager family ranges: slot 10 of the mission timers returns {0x40, 0x80}, of the manager timers {0xf8, 0xf9}.

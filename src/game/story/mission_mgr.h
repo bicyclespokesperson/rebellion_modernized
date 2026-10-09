@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "character/character.h"
@@ -193,9 +194,9 @@ public:
     int FindCharacter38(GameObjNotifier** character, GameObjNotifier** location, ObjectKey* locationKey);    // 0x543690
     int FindDarth(GameObjNotifier** character, GameObjNotifier** location, ObjectKey* locationKey);          // 0x543760
     int FindEmperor(GameObjNotifier** character, GameObjNotifier** location, ObjectKey* locationKey);        // 0x543800
-    static int __stdcall IsStoryCharacterKey(const ObjectKey* key);   // 0x5438a0
-    static int __stdcall IsStoryCharacterFree(Character* character);   // 0x5439b0: not captured, usable, not autorouting, not adrift
-    static int __stdcall IsStoryCharacterIdle(Character* character);   // 0x5439e0: free and not on a mission
+    static int REB_STDCALL IsStoryCharacterKey(const ObjectKey* key);   // 0x5438a0
+    static int REB_STDCALL IsStoryCharacterFree(Character* character);   // 0x5439b0: not captured, usable, not autorouting, not adrift
+    static int REB_STDCALL IsStoryCharacterIdle(Character* character);   // 0x5439e0: free and not on a mission
     int UpdateHanCapturedAtPalace(NotifyContext* ctx);        // 0x5442f0
     int UpdateLukeDagobahStep(NotifyContext* ctx);            // 0x544030
     int UpdateLukePalaceStep(NotifyContext* ctx);             // 0x544130

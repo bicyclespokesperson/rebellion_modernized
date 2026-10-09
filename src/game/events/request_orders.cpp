@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "events/request_orders.h"
 
 #include "core/checked_new.h"
@@ -437,7 +438,7 @@ void* CreateOrder220() { return NewOrNull<Order220>(); }
 
 // ---- the fleet checks ---------------------------------------------------------------------------------------------
 
-int __stdcall CheckFleetsCanInvade(ActivityRequest* request, ObjectKeyValueSet* team, StatusCode* status) {
+int REB_STDCALL CheckFleetsCanInvade(ActivityRequest* request, ObjectKeyValueSet* team, StatusCode* status) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     ObjectKeyValueSet dependencies;
     const int ok = CollectKeyDependencies(request, team, &dependencies, status);
@@ -466,7 +467,7 @@ int __stdcall CheckFleetsCanInvade(ActivityRequest* request, ObjectKeyValueSet* 
     return ok;
 }
 
-int __stdcall CheckFleetsCanBeUsed(ActivityRequest* request, ObjectKeyValueSet* team, StatusCode* status) {
+int REB_STDCALL CheckFleetsCanBeUsed(ActivityRequest* request, ObjectKeyValueSet* team, StatusCode* status) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     bool anyShips = false;
     int deathStarAboard = 0;

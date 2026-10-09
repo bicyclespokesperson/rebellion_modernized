@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/mission_selection_window.h"
 
 #include <new>
@@ -426,11 +427,11 @@ void MissionSelectionWindow::OnCreate1() {
 
 // ---- Commands -------------------------------------------------------------------------------------------------
 
-ObjectKeyValueSet* __thiscall MissionOrderCopyTeam(MissionOrder240* order, ObjectKeyValueSet* out) {
+ObjectKeyValueSet* REB_THISCALL MissionOrderCopyTeam(MissionOrder240* order, ObjectKeyValueSet* out) {
     return new (out) ObjectKeyValueSet(*order->GetTeam());
 }
 
-ObjectKeyValueSet* __thiscall MissionOrderCopyCharacters(MissionOrder240* order, ObjectKeyValueSet* out) {
+ObjectKeyValueSet* REB_THISCALL MissionOrderCopyCharacters(MissionOrder240* order, ObjectKeyValueSet* out) {
     return new (out) ObjectKeyValueSet(order->m_characters);
 }
 
@@ -595,7 +596,7 @@ void MissionSelectionWindow::OnCommand(int a, int b, int c) {
     }
 }
 
-int __stdcall MissionKindItemId(DatRecord* record) {
+int REB_STDCALL MissionKindItemId(DatRecord* record) {
     switch (record->m_third) {
     case 0x51:
         return 7;

@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 // Functions and classes of other modules that the application shell calls. They are declared here by their
 // original addresses (the owning modules name them); the link step resolves FUN_ names to the original code.
 // Drop a declaration when the owning module's header provides it.
@@ -35,12 +36,12 @@ public:
     uint8_t m_pad9c[0x114 - 0x9c];
 };
 
-void* __thiscall FUN_0059a8d0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
+void* REB_THISCALL FUN_0059a8d0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                               void* directDrawHost);  // tactical window constructor
 
 
-int __thiscall FUN_0059cb60(TacticalWindow* window, void* stream);  // tactical window: save its state
-int __thiscall FUN_0059cb80(TacticalWindow* window, void* stream);  // tactical window: restore its state
+int REB_THISCALL FUN_0059cb60(TacticalWindow* window, void* stream);  // tactical window: save its state
+int REB_THISCALL FUN_0059cb80(TacticalWindow* window, void* stream);  // tactical window: restore its state
 
 // ---- Multiplayer glue (comm2, 0x596fa0-0x597530) ------------------------------------------------------------
 void FUN_00596a00();

@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/game_string.h"
@@ -30,7 +31,7 @@ public:
                     DibBitmap* backdrop, uint32_t extraStyle);  // 0x604cf0
     virtual ~CoolStringField();  // 0x604ed0 (scalar deleting destructor 0x604eb0)
 
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x605160
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x605160
     virtual void SetFont(int fontSlot) override;  // slot 6, 0x604f70
 
     void SetText(const char* text);              // 0x604f90: null clears; truncated to m_maxLength - 1

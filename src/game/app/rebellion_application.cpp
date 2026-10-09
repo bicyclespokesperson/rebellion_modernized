@@ -29,6 +29,7 @@
 //  Deactivation restores the display mode and minimizes the window (unless -W); reactivation switches DirectDraw
 //  back to 640x480x8 and tells the active screen. Movies and child windows report their end with the custom
 //  messages 0x405 / 0x465 (lParam: movie / window id), which select the next state through SetState.
+#include "core/reb_abi.h"
 #include "app/rebellion_application.h"
 
 #include <direct.h>
@@ -478,7 +479,7 @@ LRESULT RebellionApplication::OnSaveAnswer() {
     return 0;
 }
 
-LRESULT __stdcall RebellionApplication::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL RebellionApplication::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_CREATE:
             return OnCreate();
@@ -557,7 +558,7 @@ bool RebSimRequested();
 int RebSimRun(RebellionApplication* app);
 #endif
 
-int __stdcall WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int showCommand) {
+int REB_STDCALL WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int showCommand) {
     WPARAM exitCode = 0;
     HANDLE semaphore = CreateSemaphoreA(nullptr, 0, 1, g_appClassName);
     const DWORD error = GetLastError();

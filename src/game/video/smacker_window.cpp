@@ -1,4 +1,5 @@
 // SmackerWindow: a child window that plays a Smacker (.smk) movie from a dedicated thread.
+#include "core/reb_abi.h"
 #include <cmath>
 #include <cstring>
 
@@ -66,7 +67,7 @@ SmackerWindow::~SmackerWindow() {
     }
 }
 
-LRESULT __stdcall SmackerWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL SmackerWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND window = m_hwnd;
     switch (message) {
         case WM_CREATE:

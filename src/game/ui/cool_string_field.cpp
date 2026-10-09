@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/cool_string_field.h"
 
 #include <cstring>
@@ -8,9 +9,9 @@
 #include "ui/cool_app.h"
 #include "ui/resource_dll.h"
 
-extern "C" int __cdecl _isprint(int c);
-extern "C" int __cdecl _isspace(int c);
-extern "C" int __cdecl _ispunct(int c);
+extern "C" int REB_CDECL _isprint(int c);
+extern "C" int REB_CDECL _isspace(int c);
+extern "C" int REB_CDECL _ispunct(int c);
 
 namespace {
 
@@ -518,7 +519,7 @@ void SelectWordAtCaret(CoolStringField* field) {
 
 }  // namespace
 
-LRESULT __stdcall CoolStringField::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL CoolStringField::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     switch (message) {
     case WM_ACTIVATE: {

@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "character/character_data.h"
@@ -325,7 +326,7 @@ void ConstructCharacterEventKinds();        // 0x4f2560
 void RegisterCharacterEventKindsAtExit();   // 0x4f2570
 
 // The AppendCharacterName free function (secondary vtable slot, takes the ObjectBase subobject).
-void __thiscall AppendCharacterName(ObjectBase* base, String* out, int kind);  // 0x4ed060
+void REB_THISCALL AppendCharacterName(ObjectBase* base, String* out, int kind);  // 0x4ed060
 
 // Iterator over the children of a game object in the character families 0x30-0x3b (vtable 0x65ce5c).
 class CharacterIterator : public ChildIterator {

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <cstddef>
 #include <new>
 
@@ -220,7 +221,7 @@ void RebellionApplication::SetState(int state) {
     }
 }
 
-void RebellionApplication::PlayMovie(int movieId, const String* caption, void(__cdecl* callback)(uint32_t, uint32_t, int)) {
+void RebellionApplication::PlayMovie(int movieId, const String* caption, void(REB_CDECL* callback)(uint32_t, uint32_t, int)) {
     if (m_activeWindow) m_activeWindow->Hide();
     ReleaseOverlayWindow();
     FillWindowBlack();

@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -138,7 +139,7 @@ struct TacticalEvent {
 
 // Event handler of the 3D battle (cdecl; registered in the object manager's event table): a character's ship and
 // injury state. args: 2 character handle, 6 ship handle, 8 / 9 injury flags.
-void __cdecl TacticalCharacterStatusEvent(TacticalEvent* event);  // 0x5bdc30
+void REB_CDECL TacticalCharacterStatusEvent(TacticalEvent* event);  // 0x5bdc30
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ai/ai_system_record.h"
 
 #include "ai/ai_agent_bases.h"
@@ -229,7 +230,7 @@ int AiSystemRecord::ForwardToPosture() { return m_posture->Virtual03(); }
 
 int AiSystemRecord::HasWarships() { return m_xbc != 0 || m_xc4 != 0; }
 
-int __stdcall PlannerClassOf(AiMissionPlanner* planner) {
+int REB_STDCALL PlannerClassOf(AiMissionPlanner* planner) {
     if (!planner) return 0;
     switch (planner->m_missionKey.Family()) {
     case 0x52:
@@ -245,7 +246,7 @@ int __stdcall PlannerClassOf(AiMissionPlanner* planner) {
     return 0;
 }
 
-int __stdcall AgentClassOf(AiAgentTargeted* agent) {
+int REB_STDCALL AgentClassOf(AiAgentTargeted* agent) {
     if (agent) {
         const int kind = agent->GetKind();
         if (kind != 3) {

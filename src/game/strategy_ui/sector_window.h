@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -38,7 +39,7 @@ public:
                  uint32_t childId, GameObjNotifier* sector);  // 0x4591d0
     virtual ~SectorWindow();  // 0x4592e0 (scalar deleting destructor 0x4592c0)
 
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4593e0
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4593e0
     virtual void SaveState(ostream* out) override;   // slot 9, 0x45d2b0
     virtual void LoadState(istream* in) override;    // slot 10, 0x45d360
     virtual void OnCreate1() override;               // slot 14, 0x459e30
@@ -96,9 +97,9 @@ public:
 // The picture (GOKRES id) of a system of the given kind (1-26), 0 for none (0x45c970).
 int SectorSystemPictureId(int index);
 // The picture id of a marker row of kind `kind` (SectorMarkerKind), for the side in control and the highlight (0x45ca80).
-uint32_t __stdcall SectorMarkerImageId(uint32_t kind, int state, int selected);
+uint32_t REB_STDCALL SectorMarkerImageId(uint32_t kind, int state, int selected);
 // The rectangle of the caption below a system icon (0x45c1f0); returns `out`.
-RECT* __stdcall SectorMarkerLabelRect(RECT* out, ObjectListItem* item);
+RECT* REB_STDCALL SectorMarkerLabelRect(RECT* out, ObjectListItem* item);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

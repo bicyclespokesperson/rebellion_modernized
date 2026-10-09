@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "core/checked_new.h"
 #include "core/containers.h"
 #include "platform/win32.h"
@@ -14,7 +15,7 @@ constexpr int kEntryResourceStride = 3;
 
 // Reads the side's list of advisor notices out of the RCDATA resources: the first resource is a count, each of the
 // following ones names a notice (id in the second word, kind in the low nibble of the first byte).
-int __cdecl LoadAdvisorNotices(int side, IdValueTree* notices) {
+int REB_CDECL LoadAdvisorNotices(int side, IdValueTree* notices) {
     UINT first = side == 1 ? kAllianceNoticeList : kEmpireNoticeList;
     int loaded = 0;
     HMODULE module = FindResourceModule(2);

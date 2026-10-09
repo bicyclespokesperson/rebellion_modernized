@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/main_menu_window.h"
 
 #include <cstdint>
@@ -306,7 +307,7 @@ void MainMenuWindow::CreateControls() {
     if (m_strobeTimer) m_strobeTimer->Restart(0, 0);
 }
 
-LRESULT __stdcall MainMenuWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL MainMenuWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     switch (message) {
     case WM_COMMAND:
@@ -454,7 +455,7 @@ void MainMenuWindow::OnCommand(uint32_t commandId) {
         m_leaving = 1;
         m_playingMovie = 1;
         Hide();
-        AppPlayMovie(kMovieQuit, nullptr, reinterpret_cast<void(__cdecl*)(uint32_t, uint32_t, int)>(&MainMenuMovieDone));
+        AppPlayMovie(kMovieQuit, nullptr, reinterpret_cast<void(REB_CDECL*)(uint32_t, uint32_t, int)>(&MainMenuMovieDone));
         return;
     }
 }

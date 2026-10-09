@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -58,8 +59,8 @@ void ConstructDisplayModes();
 void RegisterDisplayModesDestructor();
 void DestroyDisplayModes();
 
-HRESULT __stdcall RestoreSurfaceCallback(LPDIRECTDRAWSURFACE surface, LPDDSURFACEDESC description, void* context);
-BOOL __stdcall FindAdapterWith3dCallback(GUID* driverGuid, char* description, char* name, void* context);
+HRESULT REB_STDCALL RestoreSurfaceCallback(LPDIRECTDRAWSURFACE surface, LPDDSURFACEDESC description, void* context);
+BOOL REB_STDCALL FindAdapterWith3dCallback(GUID* driverGuid, char* description, char* name, void* context);
 
 extern IDirectDraw* g_directDraw;
 extern IDirectDraw2* g_directDraw2;

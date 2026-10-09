@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/game_window_object.h"
 
 #include <cstring>
@@ -86,7 +87,7 @@ void GameWindowObject::Virtual0C() {}
 
 void GameWindowObject::DrawOverlay(HDC) {}
 
-LRESULT __stdcall GameWindowObject::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL GameWindowObject::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     LRESULT result = 0;
     if (message == WM_PAINT) {

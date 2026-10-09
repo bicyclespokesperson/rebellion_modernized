@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "ai/ai_common.h"
@@ -119,7 +120,7 @@ void GalaxyWindow::LoadState(istream* in) {
     UiSetHumanDispatchFlag(0);
 }
 
-void __stdcall GalaxyWindow::SaveChildWindow(ostream* out, CoolWindow* window) {
+void REB_STDCALL GalaxyWindow::SaveChildWindow(ostream* out, CoolWindow* window) {
     ChildWindowState state(window);
     if (state.m_valid) {
         state.Write(out);

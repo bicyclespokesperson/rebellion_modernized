@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/object_status_window.h"
 
 #include <cstdint>
@@ -129,7 +130,7 @@ ObjectStatusWindow::~ObjectStatusWindow() {
     }
 }
 
-LRESULT __stdcall ObjectStatusWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL ObjectStatusWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_CREATE) {
         WPARAM self = reinterpret_cast<WPARAM>(m_hwnd);
         PostMessageA(GetGalaxyWindow()->m_hwnd, kGalaxyActivateChild, self, 0);
@@ -470,7 +471,7 @@ void ObjectStatusWindow::AddCombatValueRow(int row, CoolListItemList* labels, Co
 
 // ---- Layout of the rows -------------------------------------------------------------------------------------
 
-int __stdcall LayoutStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values) {
+int REB_STDCALL LayoutStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values) {
     int total = 0;
     CoolLabel left(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
     CoolLabel right(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
@@ -506,7 +507,7 @@ int __stdcall LayoutStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemL
     return total;
 }
 
-void __stdcall DrawStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values) {
+void REB_STDCALL DrawStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values) {
     CoolLabel left(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
     CoolLabel right(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
     SetRowLabelStyle(&left);

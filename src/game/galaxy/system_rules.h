@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "galaxy/system.h"
@@ -32,7 +33,7 @@ inline T& FieldAt(void* object, int offset) {
 // Calls the virtual in `slot` of an object whose class is not reconstructed yet.
 template <typename Result = int, typename... Args>
 inline Result CallVirtualSlot(void* object, int slot, Args... args) {
-    using Method = Result(__thiscall*)(void*, Args...);
+    using Method = Result(REB_THISCALL*)(void*, Args...);
     Method* vtable = *reinterpret_cast<Method**>(object);
     return vtable[slot](object, args...);
 }
@@ -40,6 +41,6 @@ inline Result CallVirtualSlot(void* object, int slot, Args... args) {
 }  // namespace system_rules
 
 // The key of the object that holds `object` (virtual GetOwnerKey, returned through *out).
-ObjectKey* __thiscall GetOwnerKeyValue(GameObjNotifier* object, ObjectKey* out);  // 0x50c640
+ObjectKey* REB_THISCALL GetOwnerKeyValue(GameObjNotifier* object, ObjectKey* out);  // 0x50c640
 // UpdateChildren over the system families (0x90-0x98) of `parent`.
 int UpdateSystemFamilyChildren(GameObj* parent, NotifyContext* ctx);  // 0x50c8a0

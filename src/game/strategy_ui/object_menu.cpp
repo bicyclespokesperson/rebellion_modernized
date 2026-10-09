@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/object_menu.h"
 
 #include <cstdint>
@@ -10,7 +11,7 @@
 #include "ui/cool_app.h"
 #include "ui/game_window_object.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 
 extern const char g_gameMenuWindowClassName[];  // 0x6a8718 "Game Menu Window"
 
@@ -281,7 +282,7 @@ void PopupMenuWindow::PostCloseRequest() {
     Hide();
 }
 
-LRESULT __stdcall PopupMenuWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL PopupMenuWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message != kCloseChildMessage) return MenuWindowBase::WindowProc(message, wParam, lParam);
     if (m_hwnd == reinterpret_cast<HWND>(wParam)) {
         PostMessageA(m_parent->m_hwnd, kDialogClickedMessage, 0, 0);

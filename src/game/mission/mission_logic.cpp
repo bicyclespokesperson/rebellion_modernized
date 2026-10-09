@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "character/role.h"
 #include "events/event_post.h"
 #include "gameobj/object_database.h"
@@ -172,7 +173,7 @@ int Mission::GetMemberTransitFlags(Role* person, int* a, int* b, int* c) {
     return 1;
 }
 
-int __stdcall ChooseMissionLeader(ObjectKeyValueSet* team, ObjectKey* leader, NullableKey* seed) {
+int REB_STDCALL ChooseMissionLeader(ObjectKeyValueSet* team, ObjectKey* leader, NullableKey* seed) {
     leader->Reset();
     seed->m_value = 0;
     int bestLeadership = 0;
@@ -243,13 +244,13 @@ int Mission::CompleteWith(int completionStatus, NotifyContext* ctx) {
     return SetCompletionStatus(completionStatus, &copy) != 0;
 }
 
-int __cdecl Mission::CheckMemberDefault(int unused, int value, int* out, StatusCode* status) {
+int REB_CDECL Mission::CheckMemberDefault(int unused, int value, int* out, StatusCode* status) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     *out = value;
     return 1;
 }
 
-int __cdecl Mission::CheckTargetDefault(MissionCheckArgs* args, StatusCode* statusOut, int* code) {
+int REB_CDECL Mission::CheckTargetDefault(MissionCheckArgs* args, StatusCode* statusOut, int* code) {
     *statusOut = StatusCode(kStatusCategory, kStatusOk);
     *code = 0;
     int ok = 1;

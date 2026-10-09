@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "app/rebapp_globals.h"
 
 #include <new>
@@ -210,7 +211,7 @@ void AppSetUnknown138(int value) {
     if (g_app) App()->m_unknown138 = value;
 }
 
-void AppPlayMovie(int movieId, const String* caption, void(__cdecl* callback)(uint32_t, uint32_t, int)) {
+void AppPlayMovie(int movieId, const String* caption, void(REB_CDECL* callback)(uint32_t, uint32_t, int)) {
     if (g_app) App()->PlayMovie(movieId, caption, callback);
 }
 

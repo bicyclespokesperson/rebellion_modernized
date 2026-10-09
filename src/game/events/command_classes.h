@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 // The concrete event/command classes at 0x562c70-0x5638e0 (names by kind; their purpose is read from what they call):
 //   LoyaltyEvent373 (VT 0x6632a8)  shifts a system's loyalty by a stored delta toward side 1 (System::AdjustLoyalty)
 //   SystemCommand225 (0x6632d8)    the planetary assault: checks are System slots 111/112, execution is AssaultResolver
@@ -68,7 +69,7 @@ void* CreateSystemCommand225();  // 0x563180
 void* CreateSystemCommand224();  // 0x563580
 
 // The next object after `object` in the character families 0x30-0x3c (0x562a50, a thiscall on the object).
-GameObjNotifier* __thiscall NextCharacterSibling(GameObj* object);
+GameObjNotifier* REB_THISCALL NextCharacterSibling(GameObj* object);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

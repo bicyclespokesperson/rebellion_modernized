@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "character/character_mgr.h"
 
 #include "data/dat_record.h"
@@ -22,7 +23,7 @@
 // Setup of the people of a new game, the checks the person queries forward, and the reactions to what happens to people.
 
 DatRecord* GetFirstRecordOfType(int type);  // 0x51cad0
-ObjectKey* __thiscall GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
+ObjectKey* REB_THISCALL GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
 
 namespace {
 

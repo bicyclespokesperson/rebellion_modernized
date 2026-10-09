@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/cool_app.h"
 
 #include <cstring>
@@ -55,13 +56,13 @@ int CoolApp::FilterMessage(MSG* message) {
     return 1;
 }
 
-HMODULE __stdcall CoolGetResourceModule(uint32_t slot) { return FindResourceModule(slot); }
+HMODULE REB_STDCALL CoolGetResourceModule(uint32_t slot) { return FindResourceModule(slot); }
 
-HMODULE __stdcall CoolRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot) {
+HMODULE REB_STDCALL CoolRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot) {
     return LoadResourceModule(basePath, fileName, slot);
 }
 
-void __stdcall CoolUnloadResourceSlot(uint32_t slot) { g_resourceDlls.UnloadSlot(slot); }
+void REB_STDCALL CoolUnloadResourceSlot(uint32_t slot) { g_resourceDlls.UnloadSlot(slot); }
 
 HMODULE CoolAppGetResourceModule(uint32_t slot) {
     HMODULE module = nullptr;

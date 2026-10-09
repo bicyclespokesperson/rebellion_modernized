@@ -1,10 +1,11 @@
+#include "core/reb_abi.h"
 #include "character/major_character.h"
 
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "story/story_characters.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyMajorCharacterEventKinds();
 void DestroyMajorChar30EventKinds();
 void DestroyMajorChar34EventKinds();
@@ -105,25 +106,25 @@ void MajorCharacter::InitStatics() {
 
 // ---- forwarders -----------------------------------------------------------------------------------------------
 
-int __thiscall CharacterLeafRead(Character* self, istream* in) { return self->Character::Read(in); }
+int REB_THISCALL CharacterLeafRead(Character* self, istream* in) { return self->Character::Read(in); }
 
-int __thiscall CharacterLeafWrite(Character* self, ostream* out) { return self->Character::Write(out); }
+int REB_THISCALL CharacterLeafWrite(Character* self, ostream* out) { return self->Character::Write(out); }
 
-int __thiscall CharacterLeafApplyAll(Character* self, NotifyContext* ctx) { return self->Character::ApplyAll(ctx); }
+int REB_THISCALL CharacterLeafApplyAll(Character* self, NotifyContext* ctx) { return self->Character::ApplyAll(ctx); }
 
-int __thiscall CharacterLeafChecksum(Character* self, Crc32* crc) { return self->Character::Checksum(crc); }
+int REB_THISCALL CharacterLeafChecksum(Character* self, Crc32* crc) { return self->Character::Checksum(crc); }
 
-int __thiscall CharacterLeafCreateViews(Character* self, int controlKind, NotifyContext* ctx) {
+int REB_THISCALL CharacterLeafCreateViews(Character* self, int controlKind, NotifyContext* ctx) {
     return self->CreateViewsImpl(controlKind, ctx);
 }
 
-int __thiscall MajorLeafRead(Character* self, istream* in) { return CharacterLeafRead(self, in); }
+int REB_THISCALL MajorLeafRead(Character* self, istream* in) { return CharacterLeafRead(self, in); }
 
-int __thiscall MajorLeafWrite(Character* self, ostream* out) { return CharacterLeafWrite(self, out); }
+int REB_THISCALL MajorLeafWrite(Character* self, ostream* out) { return CharacterLeafWrite(self, out); }
 
-int __thiscall MajorLeafApplyAll(Character* self, NotifyContext* ctx) { return CharacterLeafApplyAll(self, ctx); }
+int REB_THISCALL MajorLeafApplyAll(Character* self, NotifyContext* ctx) { return CharacterLeafApplyAll(self, ctx); }
 
-int __thiscall MajorLeafChecksum(Character* self, Crc32* crc) { return CharacterLeafChecksum(self, crc); }
+int REB_THISCALL MajorLeafChecksum(Character* self, Crc32* crc) { return CharacterLeafChecksum(self, crc); }
 
 // ---- MajorChar30 ---------------------------------------------------------------------------------------------
 

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ai/ai_members.h"
 
 #include <new>
@@ -1046,6 +1047,6 @@ void AiSystemEvalSet::ReadOne(istream* in) {
     }
 }
 
-ObjectKey* __thiscall GetObjectNameNodeKey(ObjectNameNode* node, ObjectKey* out) {
+ObjectKey* REB_THISCALL GetObjectNameNodeKey(ObjectNameNode* node, ObjectKey* out) {
     return new (out) ObjectKey(*reinterpret_cast<const ObjectKey*>(&node->m_key));
 }

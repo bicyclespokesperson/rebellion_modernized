@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <new>
 
 #include "core/game_string.h"
@@ -21,7 +22,7 @@
 
 using namespace event_rules;
 
-ObjectKey* __thiscall GetObjectRecordKey(GameObjNotifier* object, ObjectKey* out);  // 0x402d80
+ObjectKey* REB_THISCALL GetObjectRecordKey(GameObjNotifier* object, ObjectKey* out);  // 0x402d80
 
 namespace {
 

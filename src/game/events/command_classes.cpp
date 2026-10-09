@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "events/command_classes.h"
 
 #include "core/checked_new.h"
@@ -37,7 +38,7 @@ ObjectKey* ActivityRequest::GetTarget(ObjectKey* out) const {
     return out;
 }
 
-GameObjNotifier* __thiscall NextCharacterSibling(GameObj* object) {
+GameObjNotifier* REB_THISCALL NextCharacterSibling(GameObj* object) {
     const FamilyRange characters(0x30, 0x3c);
     return object->FindNextSibling(&characters, 1);
 }

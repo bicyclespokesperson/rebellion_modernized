@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/text_scroll_field.h"
 
 #include "core/checked_new.h"
@@ -5,7 +6,7 @@
 #include "gfx/dib_bitmap.h"
 #include "ui/resource_dll.h"
 
-extern "C" int __cdecl _isprint(int c);
+extern "C" int REB_CDECL _isprint(int c);
 
 extern const char g_spaceString[];    // 0x6a7f40 " " (shared literal)
 extern const char g_newlineString[];  // 0x6a8170 "\n" (shared literal)
@@ -664,7 +665,7 @@ void TextScrollField::RestoreCaret(HWND hwnd) {
     ShowCaret(hwnd);
 }
 
-LRESULT __stdcall TextScrollField::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL TextScrollField::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     switch (message) {
     case WM_CREATE: {

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "tactical/tactical_groups.h"
 #include "tactical/tactical_objmgr.h"
 #include "tactical/tactical_registry.h"
@@ -312,7 +313,7 @@ int TacticalHangar::ReserveSlot(TacticalShipBase* fighter) {
 
 // ---- event handlers ------------------------------------------------------------------------------------------------
 
-void __cdecl TacticalShipStatusEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipStatusEvent(TacticalEvent* event) {
     if (event == nullptr) return;
     CapitalShipResult* record = reinterpret_cast<CapitalShipResult*>(reinterpret_cast<char*>(event->m_args) + 8);
     if (record == nullptr) return;
@@ -320,7 +321,7 @@ void __cdecl TacticalShipStatusEvent(TacticalEvent* event) {
     if (ship != nullptr) static_cast<TacticalCapitalShip*>(ship)->ApplyStatus(record);
 }
 
-void __cdecl TacticalShipCarrierWaitEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipCarrierWaitEvent(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* ship = findShip(args[0]);
     if (ship != nullptr) {
@@ -329,7 +330,7 @@ void __cdecl TacticalShipCarrierWaitEvent(TacticalEvent* event) {
     }
 }
 
-void __cdecl TacticalShipJumpEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipJumpEvent(TacticalEvent* event) {
     TacticalShipBase* ship = findShip(event->m_args[0]);
     if (ship == nullptr || controlledHere(ship) == 0) return;
     if (ship->UpdateHyperdriveReady() == 1) {
@@ -339,7 +340,7 @@ void __cdecl TacticalShipJumpEvent(TacticalEvent* event) {
     TacticalShipJumpAbortEvent(event);
 }
 
-void __cdecl TacticalShipJumpAbortEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipJumpAbortEvent(TacticalEvent* event) {
     TacticalShipBase* ship = findShip(event->m_args[0]);
     if (ship == nullptr || controlledHere(ship) == 0 || !(ship->m_hull > 0.0f)) return;
     ship->Virtual52();
@@ -353,7 +354,7 @@ void __cdecl TacticalShipJumpAbortEvent(TacticalEvent* event) {
     ship->Destroy();
 }
 
-void __cdecl TacticalShipTractorStatusEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipTractorStatusEvent(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* ship = findShip(args[0]);
     if (ship == nullptr) return;
@@ -367,7 +368,7 @@ void __cdecl TacticalShipTractorStatusEvent(TacticalEvent* event) {
     }
 }
 
-void __cdecl TacticalShipStartTractorEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipStartTractorEvent(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* ship = findShip(args[0]);
     TacticalShipBase* other = findShip(args[1]);
@@ -375,111 +376,111 @@ void __cdecl TacticalShipStartTractorEvent(TacticalEvent* event) {
     if (controlledHere(ship) == 1 && controlledHere(other) == 1) ship->StartTractoring(args[1]);
 }
 
-void __cdecl TacticalShipStopTractorEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipStopTractorEvent(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* ship = findShip(args[0]);
     if (ship != nullptr) ship->StopTractoring(args[1]);
 }
 
-void __cdecl TacticalShipWithdrawEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipWithdrawEvent(TacticalEvent* event) {
     TacticalShipBase* ship = findShip(event->m_args[0]);
     if (ship == nullptr) return;
     if (controlledHere(ship) != 0 || ship->m_state == 7 || ship->m_state == 8) FUN_005a90c0(GetObjectManager(), ship);
 }
 
-void __cdecl TacticalShipAddDelayEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipAddDelayEvent(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* ship = findShip(args[0]);
     if (ship != nullptr) ship->AddTractorDelay(floatArg(args[1]));
 }
 
-void __cdecl TacticalShipClearArcEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipClearArcEvent(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* ship = findShip(args[0]);
     if (ship != nullptr) ship->ClearArcCharge(args[1]);
 }
 
-void __cdecl TacticalShipAddTractorJamEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipAddTractorJamEvent(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* ship = findShip(args[0]);
     if (ship != nullptr) ship->AddTractorJam(floatArg(args[1]));
 }
 
-void __cdecl TacticalShipHitSpeedEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipHitSpeedEvent(TacticalEvent* event) {
     TacticalShipBase* ship = findShip(event->m_args[0]);
     if (ship != nullptr) ship->ApplyCriticalHit(3);
 }
 
-void __cdecl TacticalShipHitTractorEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipHitTractorEvent(TacticalEvent* event) {
     TacticalShipBase* ship = findShip(event->m_args[0]);
     if (ship != nullptr) ship->ApplyCriticalHit(2);
 }
 
-void __cdecl TacticalShipHitWeaponEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipHitWeaponEvent(TacticalEvent* event) {
     TacticalShipBase* ship = findShip(event->m_args[0]);
     if (ship != nullptr) ship->ApplyCriticalHit(1);
 }
 
-void __cdecl TacticalShipHitShieldEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipHitShieldEvent(TacticalEvent* event) {
     TacticalShipBase* ship = findShip(event->m_args[0]);
     if (ship != nullptr) ship->ApplyCriticalHit(0);
 }
 
-void __cdecl TacticalShipHitHyperdriveEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipHitHyperdriveEvent(TacticalEvent* event) {
     TacticalShipBase* ship = findShip(event->m_args[0]);
     if (ship != nullptr) ship->ApplyCriticalHit(4);
 }
 
-void __cdecl TacticalShipRepairSpeedEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipRepairSpeedEvent(TacticalEvent* event) {
     TacticalShipBase* ship = findShip(event->m_args[0]);
     if (ship != nullptr) ship->RepairCriticalHit(3);
 }
 
-void __cdecl TacticalShipRepairTractorEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipRepairTractorEvent(TacticalEvent* event) {
     TacticalShipBase* ship = findShip(event->m_args[0]);
     if (ship != nullptr) ship->RepairCriticalHit(2);
 }
 
-void __cdecl TacticalShipRepairWeaponEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipRepairWeaponEvent(TacticalEvent* event) {
     TacticalShipBase* ship = findShip(event->m_args[0]);
     if (ship != nullptr) ship->RepairCriticalHit(1);
 }
 
-void __cdecl TacticalShipRepairShieldEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipRepairShieldEvent(TacticalEvent* event) {
     TacticalShipBase* ship = findShip(event->m_args[0]);
     if (ship != nullptr) ship->RepairCriticalHit(0);
 }
 
-void __cdecl TacticalShipRepairHyperdriveEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipRepairHyperdriveEvent(TacticalEvent* event) {
     TacticalShipBase* ship = findShip(event->m_args[0]);
     if (ship != nullptr) ship->RepairCriticalHit(4);
 }
 
-void __cdecl TacticalShipHitEvent54(TacticalEvent* event) {
+void REB_CDECL TacticalShipHitEvent54(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* ship = findShip(args[0]);
     if (ship != nullptr && controlledHere(ship) != 0) ship->Virtual54(floatArg(args[2]), args[0], args[1]);
 }
 
-void __cdecl TacticalShipHitEvent55(TacticalEvent* event) {
+void REB_CDECL TacticalShipHitEvent55(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* ship = findShip(args[0]);
     if (ship != nullptr && controlledHere(ship) != 0) ship->Virtual55(floatArg(args[2]), args[0], args[1]);
 }
 
-void __cdecl TacticalShipHitEvent56(TacticalEvent* event) {
+void REB_CDECL TacticalShipHitEvent56(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* ship = findShip(args[0]);
     if (ship != nullptr && controlledHere(ship) != 0) ship->Virtual56(floatArg(args[2]), args[0], args[1]);
 }
 
-void __cdecl TacticalShipHitEvent53(TacticalEvent* event) {
+void REB_CDECL TacticalShipHitEvent53(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* ship = findShip(args[0]);
     if (ship != nullptr && controlledHere(ship) != 0) ship->Virtual53(floatArg(args[2]), args[0], args[1]);
 }
 
-void __cdecl TacticalShipCollisionEvent(TacticalEvent* event) {
+void REB_CDECL TacticalShipCollisionEvent(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* ship = findShip(args[0]);
     TacticalShipBase* other = findShip(args[1]);
@@ -500,7 +501,7 @@ void __cdecl TacticalShipCollisionEvent(TacticalEvent* event) {
     ship->Destroy();
 }
 
-void __cdecl TacticalShipImpactEventB(TacticalEvent* event) {
+void REB_CDECL TacticalShipImpactEventB(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* source = findShip(args[0]);
     TacticalShipBase* target = findShip(args[1]);
@@ -515,7 +516,7 @@ void __cdecl TacticalShipImpactEventB(TacticalEvent* event) {
     }
 }
 
-void __cdecl TacticalShipImpactEventC(TacticalEvent* event) {
+void REB_CDECL TacticalShipImpactEventC(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* source = findShip(args[0]);
     TacticalShipBase* target = findShip(args[1]);
@@ -535,7 +536,7 @@ void __cdecl TacticalShipImpactEventC(TacticalEvent* event) {
     FUN_005c12d0(args[1], args[0], 1, 0.65f, 1);
 }
 
-void __cdecl TacticalShipImpactEventD(TacticalEvent* event) {
+void REB_CDECL TacticalShipImpactEventD(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* source = findShip(args[0]);
     TacticalShipBase* target = findShip(args[1]);
@@ -550,7 +551,7 @@ void __cdecl TacticalShipImpactEventD(TacticalEvent* event) {
     FUN_005c12d0(args[1], args[0], 2, 0.4f, 1);
 }
 
-void __cdecl TacticalShipImpactEventE(TacticalEvent* event) {
+void REB_CDECL TacticalShipImpactEventE(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* source = findShip(args[0]);
     TacticalShipBase* target = findShip(args[1]);
@@ -646,7 +647,7 @@ void TacticalHangar::LaunchNow(TacticalShipBase* fighter) {
     FUN_005a9170(GetObjectManager(), fighter);
 }
 
-void __cdecl TacticalCarrierLaunchEvent(TacticalEvent* event) {
+void REB_CDECL TacticalCarrierLaunchEvent(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* fighter = findShip(args[1]);
     TacticalHangar* hangar = GetTacticalRegistry()->FindLaunchInterface(args[0]);
@@ -662,7 +663,7 @@ void __cdecl TacticalCarrierLaunchEvent(TacticalEvent* event) {
     if (carrier != nullptr && controlledHere(carrier) != 0) hangar->LaunchNow(fighter);
 }
 
-void __cdecl TacticalCarrierLaunchedEvent(TacticalEvent* event) {
+void REB_CDECL TacticalCarrierLaunchedEvent(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* fighter = findShip(args[1]);
     TacticalHangar* hangar = GetTacticalRegistry()->FindLaunchInterface(args[0]);
@@ -691,7 +692,7 @@ void TacticalDeathStar::FireAt(int target) {
     GetObjectManager()->QueueEvent(event, 1);
 }
 
-void __cdecl TacticalDeathStarImpactEvent(TacticalEvent* event) {
+void REB_CDECL TacticalDeathStarImpactEvent(TacticalEvent* event) {
     int* args = event->m_args;
     TacticalShipBase* ship = findShip(args[0]);
     if (ship != nullptr && controlledHere(ship) != 0) {
@@ -702,7 +703,7 @@ void __cdecl TacticalDeathStarImpactEvent(TacticalEvent* event) {
     FUN_005c12d0(args[1], args[0], 0, 1.0f, 1);
 }
 
-void __cdecl TacticalDeathStarStatusEvent(TacticalEvent* event) {
+void REB_CDECL TacticalDeathStarStatusEvent(TacticalEvent* event) {
     TacticalUnit* deathStar = FUN_005a9330(GetObjectManager());
     if (event == nullptr || deathStar == nullptr) return;
     DeathStarResult* record = reinterpret_cast<DeathStarResult*>(reinterpret_cast<char*>(event->m_args) + 8);
@@ -712,7 +713,7 @@ void __cdecl TacticalDeathStarStatusEvent(TacticalEvent* event) {
     ds->m_fired = record->m_unk10;
 }
 
-void __cdecl TacticalDeathStarFiredEvent(TacticalEvent*) {
+void REB_CDECL TacticalDeathStarFiredEvent(TacticalEvent*) {
     TacticalUnit* deathStar = FUN_005a9330(GetObjectManager());
     if (deathStar == nullptr) return;
     TacticalDeathStar* ds = static_cast<TacticalDeathStar*>(deathStar);

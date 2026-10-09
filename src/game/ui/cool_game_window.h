@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -38,7 +39,7 @@ public:
     virtual ~CoolGameWindow();  // 0x606580 (scalar deleting destructor 0x606560)
 
     virtual void Hide() override;                                                       // slot 2, 0x607d30
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x606650
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x606650
     virtual void SaveState(ostream* out);              // slot 9, 0x5ae1e0 (shared): does nothing; the strategy windows write their state
     virtual void LoadState(istream* in);               // slot 10, 0x5ae1e0
     virtual void ShowAndTrack(int command);            // slot 11, 0x607d00: Show that keeps m_shown

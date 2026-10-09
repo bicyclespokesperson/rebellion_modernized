@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -71,7 +72,7 @@ public:
     virtual ~CustomDialogBox();  // 0x4ac2f0 (scalar deleting destructor 0x4ac2d0)
 
     // Escape closes the window; a click ends a rename in progress.
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4ac3a0
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4ac3a0
     // Opens the object pop-up menu for the selection (or the clicked object).
     virtual int OnRightButtonUp(int x, int y, CoolWindow* sender) override;  // slot 7, 0x4ac5c0
     // Hands the selection to the game (game_ui_facade 0x41cdf0) with `a` as the command.

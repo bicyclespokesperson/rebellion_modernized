@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/battle_window.h"
 
 #include <new>
@@ -657,7 +658,7 @@ void BattleWindow::AddRow(GameObj* object, int normal, String* heading) {
     DeleteBitmap(picture);
 }
 
-void __stdcall CollectBattleParticipants(GameObjNotifier* fleet, ObjectKeySet* shown, ObjectKeySet* held, int kind) {
+void REB_STDCALL CollectBattleParticipants(GameObjNotifier* fleet, ObjectKeySet* shown, ObjectKeySet* held, int kind) {
     CapShipIterator ships(fleet, 3);
     for (ships.Begin(); ships.Current(); ships.Advance()) {
         GameObjNotifier* ship = ships.Current();

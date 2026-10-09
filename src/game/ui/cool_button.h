@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "audio/sound_manager.h"
@@ -47,7 +48,7 @@ public:
     virtual void Show(int command) override;   // slot 1, 0x6037c0: a hidden button leaves its parent's linked windows
     virtual void Enable() override;            // slot 3, 0x602880
     virtual void Disable() override;           // slot 4, 0x6028a0
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x6028c0
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x6028c0
     virtual void SetFont(int fontSlot) override;  // slot 6, 0x602ff0: also re-centres the label
     virtual void Draw(HDC dc, char state);     // slot 9, 0x602d30
     virtual int IsHot();                       // slot 10, 0x452fb0 (shared): m_hot
@@ -114,7 +115,7 @@ public:
                      int repeatRate, int pixelHit);  // 0x603870
     virtual ~CoolFrameButton();  // 0x603940 (scalar deleting destructor 0x603920)
 
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x6039a0
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x6039a0
 
     void StepFrame();                                  // 0x603a50: the timer callback shows the next frame
     void LoadFrames(uint32_t firstId, uint32_t count);  // 0x603aa0
@@ -131,7 +132,7 @@ public:
                     int repeatRate);  // 0x603cd0
     virtual ~CoolCycleButton();  // 0x603f10 (scalar deleting destructor 0x603ef0)
 
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x604000
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x604000
     virtual void Draw(HDC dc, char state) override;  // slot 9, 0x604170
 
     DibBitmap* m_image0;        // +0x114 owned images of the three positions (+0x11c middle)

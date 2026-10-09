@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "orders/move_orders.h"
 
 #include <new>
@@ -268,7 +269,7 @@ int MoveOrderBase::BuildMoveOrder(ObjectKeyValueSet* team, ObjectMoveOrder** out
     return built;
 }
 
-int __stdcall TakeCharactersAtOneLocation(ObjectKeyValueSet* team, ObjectKeyValueSet* out, StatusCode* status) {
+int REB_STDCALL TakeCharactersAtOneLocation(ObjectKeyValueSet* team, ObjectKeyValueSet* out, StatusCode* status) {
     int result = 1;
     out->Clear();
     setOk(status);

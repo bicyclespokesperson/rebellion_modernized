@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "economy/production_facility_types.h"
 
 #include "core/checked_new.h"
@@ -32,13 +33,13 @@ int applyAll(ProductionFacility* facility, NotifyContext* ctx) {
 
 }  // namespace
 
-int __thiscall ProductionFacilityReadBody(ProductionFacility* self, istream* in) { return self->ReadImpl(in); }
+int REB_THISCALL ProductionFacilityReadBody(ProductionFacility* self, istream* in) { return self->ReadImpl(in); }
 
-int __thiscall ProductionFacilityWriteBody(ProductionFacility* self, ostream* out) { return self->WriteImpl(out); }
+int REB_THISCALL ProductionFacilityWriteBody(ProductionFacility* self, ostream* out) { return self->WriteImpl(out); }
 
-int __thiscall ProductionFacilityApplyAllBody(ProductionFacility* self, NotifyContext* ctx) { return self->ApplyAllImpl(ctx); }
+int REB_THISCALL ProductionFacilityApplyAllBody(ProductionFacility* self, NotifyContext* ctx) { return self->ApplyAllImpl(ctx); }
 
-int __thiscall ProductionFacilityChecksumBody(ProductionFacility* self, Crc32* crc) { return self->ChecksumImpl(crc); }
+int REB_THISCALL ProductionFacilityChecksumBody(ProductionFacility* self, Crc32* crc) { return self->ChecksumImpl(crc); }
 
 // ---- family 0x2d ---------------------------------------------------------------------------------------------
 

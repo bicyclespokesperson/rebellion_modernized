@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -117,8 +118,8 @@ public:
 // The id of the advice line the advisor says for `adviceId`: one random pick of the RCDATA table (resource module 9).
 uint16_t AdvisorPickAdviceLine(uint32_t adviceId);  // 0x4c4990
 // Plays `adviceId` as a sound effect of the advisor module and returns a copy of the request in `result`.
-SoundRequest* __cdecl AdvisorPlayAdvice(SoundRequest* result, uint32_t adviceId);  // 0x4c4a20
-uint16_t __stdcall AdvisorRecordTypeResource(GameObj* object);  // 0x4c5000
+SoundRequest* REB_CDECL AdvisorPlayAdvice(SoundRequest* result, uint32_t adviceId);  // 0x4c4a20
+uint16_t REB_STDCALL AdvisorRecordTypeResource(GameObj* object);  // 0x4c5000
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

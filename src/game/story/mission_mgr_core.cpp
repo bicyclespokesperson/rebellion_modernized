@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "core/checked_new.h"
 #include "ai/ai_common.h"
 #include "core/vptr_store.h"
@@ -11,8 +12,8 @@
 #include "story/story_common.h"
 
 void DestroyMissionMgrEventKinds();
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void* __cdecl operator_new(size_t size);
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
+extern "C" void* REB_CDECL operator_new(size_t size);
 
 extern int g_missionMgrEventKindsReady;      // 0x6b92e4
 extern EventKindSet g_missionMgrEventKinds;  // 0x6b92e8

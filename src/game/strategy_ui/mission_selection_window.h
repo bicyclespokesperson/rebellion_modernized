@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -49,10 +50,10 @@ public:
 
 // The row id a mission kind gets in the mission combo box (the kinds of the records at +0x2c); an unknown kind gets
 // the next number of a counter (0x6a8794).
-int __stdcall MissionKindItemId(DatRecord* record);  // 0x46cab0
+int REB_STDCALL MissionKindItemId(DatRecord* record);  // 0x46cab0
 // Copies of the order's team (0x46c850) and of its selected characters (0x46c880).
-ObjectKeyValueSet* __thiscall MissionOrderCopyTeam(MissionOrder240* order, ObjectKeyValueSet* out);
-ObjectKeyValueSet* __thiscall MissionOrderCopyCharacters(MissionOrder240* order, ObjectKeyValueSet* out);
+ObjectKeyValueSet* REB_THISCALL MissionOrderCopyTeam(MissionOrder240* order, ObjectKeyValueSet* out);
+ObjectKeyValueSet* REB_THISCALL MissionOrderCopyCharacters(MissionOrder240* order, ObjectKeyValueSet* out);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

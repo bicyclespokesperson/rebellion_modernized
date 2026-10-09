@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <cstdint>
 #include <new>
 
@@ -102,12 +103,12 @@ void LoadEncyclopediaTitle(String* title, uint32_t recordBits) {
 
 }  // namespace
 
-IntPair* __thiscall Side::GetMineStateCopy(IntPair* out) {
+IntPair* REB_THISCALL Side::GetMineStateCopy(IntPair* out) {
     new (out) IntPair(m_mineState);
     return out;
 }
 
-IntPair* __thiscall Side::GetRefineryStateCopy(IntPair* out) {
+IntPair* REB_THISCALL Side::GetRefineryStateCopy(IntPair* out) {
     new (out) IntPair(m_refineryState);
     return out;
 }

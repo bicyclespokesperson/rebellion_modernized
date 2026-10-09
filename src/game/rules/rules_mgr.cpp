@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "rules/rules_mgr.h"
 
 #include <new>
@@ -24,13 +25,13 @@
 #include "rules/event_rules.h"
 #include "rules/loyalty_params.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyRulesMgrEventKinds();
 
 extern int g_rulesMgrEventKindsBuilt;     // 0x6bb344
 extern EventKindSet g_rulesMgrEventKinds;  // 0x6bb348
 
-ObjectKey* __thiscall GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
+ObjectKey* REB_THISCALL GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
 
 namespace {
 

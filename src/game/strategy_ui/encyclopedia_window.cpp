@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/encyclopedia_window.h"
 
 #include <cstring>
@@ -440,7 +441,7 @@ void EncyclopediaWindow::OnCreate1() {
 
 // ---- Messages --------------------------------------------------------------------------------------------------
 
-LRESULT __stdcall EncyclopediaWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL EncyclopediaWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
     case kFieldReturnMessage:
         if (static_cast<int16_t>(wParam) == kSearchFieldId && m_selected) {

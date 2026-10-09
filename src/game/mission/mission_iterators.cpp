@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "core/vptr_store.h"
 #include "gameobj/object_queries.h"
 #include "mission/mission.h"
@@ -7,7 +8,7 @@ namespace {
 }  // namespace
 
 // Advances *key to the key after it in `set` (the first if unset); unset at the end (0x525b00).
-void __stdcall NextMemberKey(ObjectKeyValueSet* set, ObjectKey* key) {
+void REB_STDCALL NextMemberKey(ObjectKeyValueSet* set, ObjectKey* key) {
     const ObjectKey previous = *key;
     key->Reset();
     AvlNode* node = nullptr;

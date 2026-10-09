@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/game_options_window.h"
 
 #include <cmath>
@@ -236,7 +237,7 @@ GameOptionsWindow::~GameOptionsWindow() {
     }
 }
 
-LRESULT __stdcall GameOptionsWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL GameOptionsWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     const bool inBattle = IsBattleState(m_battleFlowState);
     switch (message) {

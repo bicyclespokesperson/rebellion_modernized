@@ -1,6 +1,7 @@
 // MultiPlayerWindow, part 1: construction, the window procedure, the command handler and the creation of the pages'
 // texts and controls. The pages and the network handling are in multiplayer_window_pages.cpp and
 // multiplayer_lobby.cpp.
+#include "core/reb_abi.h"
 #include "multiplayer/multiplayer_window.h"
 
 #include "app/app_control_cmds.h"
@@ -175,7 +176,7 @@ MultiPlayerWindow::~MultiPlayerWindow() {
 
 // ---- window procedure and commands ------------------------------------------------------------------------------
 
-LRESULT __stdcall MultiPlayerWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL MultiPlayerWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     LRESULT result = 0;
     if (m_ready == 1) {
         ProcessNetwork();

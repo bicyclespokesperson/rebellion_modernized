@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "gameobj/game_root.h"
 #include "app/battle_flow.h"
 
@@ -16,9 +17,9 @@
 // facade and applies them to the strategic objects the hand-over registered (battle_handoff.cpp).
 
 GameObjNotifier* GetMasterInFamilies_14_1c(const ObjectKey* key);   // 0x504f70
-uint32_t __thiscall SystemBattleControlKind(System* system);        // 0x40d750
-int __thiscall CapShipCurrentHull(CapShip* ship);                   // 0x40d710
-int __thiscall FightSquadCurrentSize(FightSquad* squad);            // 0x40d730
+uint32_t REB_THISCALL SystemBattleControlKind(System* system);        // 0x40d750
+int REB_THISCALL CapShipCurrentHull(CapShip* ship);                   // 0x40d710
+int REB_THISCALL FightSquadCurrentSize(FightSquad* squad);            // 0x40d730
 
 namespace {
 

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/system_finder_window.h"
 
 #include <new>
@@ -279,7 +280,7 @@ void SystemFinderWindow::OnCommand(int, int command, int) {
     }
 }
 
-LRESULT __stdcall SystemFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL SystemFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     LRESULT result = 0;
     if (message == WM_SETFOCUS) {
         SetFocus(m_nameField->m_hwnd);

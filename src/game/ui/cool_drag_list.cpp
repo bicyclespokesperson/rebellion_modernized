@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/cool_drag_list.h"
 
 #include <cstring>
@@ -938,7 +939,7 @@ LRESULT CancelDrag(CoolDragList* list, HWND hwnd) {
 
 }  // namespace
 
-LRESULT __stdcall CoolDragList::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL CoolDragList::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     switch (message) {
         case WM_CREATE:

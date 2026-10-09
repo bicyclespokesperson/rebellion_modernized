@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <new>
 
 #include "character/character_data.h"
@@ -6,7 +7,7 @@
 #include "data/probability_table.h"
 #include "gameobj/object_family.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyRoleEventKinds();
 
 extern EventKindSet g_roleEventKinds;  // 0x6b9028

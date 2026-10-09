@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "core/vptr_store.h"
 #include "galaxy/system.h"
 #include "galaxy/system_rules_1e.h"
@@ -55,7 +56,7 @@ bool rangeWithin(const FamilyRange* range, const FamilyRange& outer) {
 
 // Virtual call of a slot that only the unit subclasses (ships, troops) declare; they are reconstructed elsewhere.
 int callUnitSlot(GameObj* unit, int slot) {
-    using SlotFunction = int(__thiscall*)(GameObj*);
+    using SlotFunction = int(REB_THISCALL*)(GameObj*);
     void** table = *reinterpret_cast<void***>(unit);
     return reinterpret_cast<SlotFunction>(table[slot])(unit);
 }

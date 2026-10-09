@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "galaxy/role_container.h"
 
 #include <new>
@@ -10,7 +11,7 @@
 #include "gameobj/object_family.h"
 #include "orders/order_checks.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyRoleContainerEventKinds();
 
 extern int g_roleContainerEventKindsReady;      // 0x6bbb38

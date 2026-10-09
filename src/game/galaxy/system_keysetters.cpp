@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <new>
 
 #include "character/character.h"
@@ -10,7 +11,7 @@
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroySystemEventKinds4();
 void DestroySystemEventKinds8();
 void DestroySystemEventKinds10();
@@ -111,7 +112,7 @@ int System::Validate() {
     return ok;
 }
 
-int __stdcall ReapplySystemCharacterViews(GameObj* self, NotifyContext* ctx) {
+int REB_STDCALL ReapplySystemCharacterViews(GameObj* self, NotifyContext* ctx) {
     ObjectKey ownKey;
     self->GetKey(&ownKey);
     if (GameObjNotifier* master = GetMasterInFamilies_01_ff(&ownKey)) {

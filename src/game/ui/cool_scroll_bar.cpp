@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/cool_scroll_bar.h"
 
 #include "core/checked_new.h"
@@ -77,7 +78,7 @@ CoolScrollBar::~CoolScrollBar() {
     REB_KEEP_VPTR_STORE();
 }
 
-LRESULT __stdcall CoolScrollBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL CoolScrollBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_PAINT: {
             HWND hwnd = m_hwnd;

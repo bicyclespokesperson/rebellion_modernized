@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "audio/sound_manager.h"
 #include "core/vptr_store.h"
 
@@ -440,7 +441,7 @@ int SoundManager::CreateFileSource(SoundRequest* request, const char* fileName, 
 
 // ---- event thread -------------------------------------------------------------------------------------------
 
-void __cdecl SoundManager::EventThreadProc() {
+void REB_CDECL SoundManager::EventThreadProc() {
     if (!g_soundThreadReady) ExitThread(99);
     DWORD signalled = WaitForMultipleObjects(kEventCount, g_soundEvents, FALSE, INFINITE);
     while (signalled != WAIT_FAILED) {

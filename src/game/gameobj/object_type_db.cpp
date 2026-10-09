@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "gameobj/object_type_db.h"
 
 #include "ai/ai_common.h"
@@ -302,7 +303,7 @@ void DestroyObjectTypeDb() {
     }
 }
 
-IntPair* __thiscall GetRecordKindRange(DatRecord* record, IntPair* out) {
+IntPair* REB_THISCALL GetRecordKindRange(DatRecord* record, IntPair* out) {
     *out = IntPair(record->m_first, record->m_second);
     return out;
 }

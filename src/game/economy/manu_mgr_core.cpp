@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <new>
 
 #include "core/vptr_store.h"
@@ -7,7 +8,7 @@
 #include "gameobj/object_database.h"
 #include "gameobj/object_type_db.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyManuMgrEmptyQueue();
 void DestroyManuMgrEventKinds();
 
@@ -60,7 +61,7 @@ GameObjData* ManuMgr::CreateData() {
 
 // ---- names ---------------------------------------------------------------------------------------------------
 
-void __thiscall AppendManuMgrName(ObjectBase* base, String* out, int kind) {
+void REB_THISCALL AppendManuMgrName(ObjectBase* base, String* out, int kind) {
     ManuMgr* self = static_cast<ManuMgr*>(static_cast<GameObj*>(base));
     if (kind == kWriteNameSeedRecord) {
         ObjectKey key;

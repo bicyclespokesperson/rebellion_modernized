@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -29,7 +30,7 @@ public:
     ObjectStatusWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childId, const ObjectKey* key);  // 0x442d70
     virtual ~ObjectStatusWindow();  // 0x442f40 (scalar deleting destructor 0x442f20)
 
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x44b250
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x44b250
     virtual void OnCreate1() override;                      // slot 14, 0x443130: backdrop, list, labels and the page
     virtual void OnCreate3() override;                      // slot 16, 0x443020: encyclopedia and close buttons
     virtual void DrawOverlay(HDC dc) override;              // slot 17, 0x444370: the title and the name
@@ -87,13 +88,13 @@ public:
 };
 
 // A row of the status table: item `id` with `text`, inserted in `list`. Callee pops its arguments.
-void __stdcall AddStatusRow(uint32_t id, String* text, CoolListItemList* list);  // 0x44b1d0
+void REB_STDCALL AddStatusRow(uint32_t id, String* text, CoolListItemList* list);  // 0x44b1d0
 
 // Places the label items of `labels` (left column) and `values` (right column at x = 0x67) one row per pair,
 // each row as high as the taller of the two (measured in `dc`); returns the total height.
-int __stdcall LayoutStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values);  // 0x449e00
+int REB_STDCALL LayoutStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values);  // 0x449e00
 // Draws the rows laid out by LayoutStatusLabels into `dc`.
-void __stdcall DrawStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values);  // 0x44a050
+void REB_STDCALL DrawStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values);  // 0x44a050
 
 // One unit type of the picture list: how many units of the type exist (m_count) and their summed record field 0x4c
 // (m_total); the tree key is the record id.

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "tactical/tactical_groups.h"
 #include "tactical/tactical_objmgr.h"
 #include "tactical/tactical_registry.h"
@@ -175,7 +176,7 @@ CapitalShipResult* TacticalCapitalShip::BuildResult(CapitalShipResult* out) {
     return result;
 }
 
-void __thiscall TacticalCapitalShipLaunchPoint(TacticalHangar* hangar, TacticalVector* out) {
+void REB_THISCALL TacticalCapitalShipLaunchPoint(TacticalHangar* hangar, TacticalVector* out) {
     TacticalCapitalShip* ship = static_cast<TacticalCapitalShip*>(hangar);
     const double y = static_cast<double>(ship->m_position.m_y) - ship->m_unk08;
     out->m_x = ship->m_position.m_x;

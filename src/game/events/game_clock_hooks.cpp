@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "events/game_clock_hooks.h"
 
 namespace {
@@ -9,13 +10,13 @@ T* fromHookArgument(int value) {
 
 }  // namespace
 
-void __thiscall AssignGameTime(GameTime* self, const GameTime* other) {
+void REB_THISCALL AssignGameTime(GameTime* self, const GameTime* other) {
     if (self != other) self->m_value = other->m_value;
 }
 
-void __thiscall ReadGameTime(GameTime* self, istream* in) { StreamRead32(in, self); }
+void REB_THISCALL ReadGameTime(GameTime* self, istream* in) { StreamRead32(in, self); }
 
-void __thiscall ClearGameTime(GameTime* self) { self->m_value = 0; }
+void REB_THISCALL ClearGameTime(GameTime* self) { self->m_value = 0; }
 
 void InstallGameManagerHooks() {
     g_gameHook2AF4 = GameHookNextSerialA;

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "fleet/capship.h"
 
 #include <new>
@@ -14,7 +15,7 @@
 #include "gameobj/object_family.h"
 #include "orders/order_checks.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyCapShipEventKinds();
 
 extern int g_capShipEventKindsReady;      // 0x6b2b20
@@ -74,7 +75,7 @@ int16_t characterId(GameObjNotifier* character) {
 
 // The Character class belongs to another module; slot 186 of its vtable takes the notify context.
 int notifyCharacterOfShipLoss(GameObjNotifier* character, NotifyContext* ctx) {
-    using Slot = int(__thiscall*)(GameObjNotifier*, NotifyContext*);
+    using Slot = int(REB_THISCALL*)(GameObjNotifier*, NotifyContext*);
     void** const vtable = *reinterpret_cast<void***>(character);
     return reinterpret_cast<Slot>(vtable[kCharacterShipDestroyedSlot])(character, ctx);
 }

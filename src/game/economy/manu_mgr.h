@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -219,7 +220,7 @@ public:
 int UpdateManuMgrChildren(GameObj* parent, NotifyContext* ctx);
 
 // Secondary-vtable WriteName (ObjectBase slot 0, 0x527b40): kind 5 appends the seed record's name, 6 the queue length.
-void __thiscall AppendManuMgrName(ObjectBase* base, String* out, int kind);
+void REB_THISCALL AppendManuMgrName(ObjectBase* base, String* out, int kind);
 
 // Iterator over the manufacturing managers (families 0xa0-0xaf) below an object; VT 0x65fe54 (destructor only).
 class ManuMgrIterator : public ChildIterator {

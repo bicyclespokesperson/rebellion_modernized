@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/advisor_sides.h"
 
 #include <new>
@@ -19,7 +20,7 @@ constexpr uint8_t kObjectFlagSelected = 8;
 
 int CallVirtual(GameObjNotifier* object, unsigned slot) {
     void** vtable = *reinterpret_cast<void***>(object);
-    return reinterpret_cast<int(__thiscall*)(GameObjNotifier*)>(vtable[slot])(object);
+    return reinterpret_cast<int(REB_THISCALL*)(GameObjNotifier*)>(vtable[slot])(object);
 }
 
 bool TargetIn(OrderBase* order, uint32_t first, uint32_t last) {
@@ -146,6 +147,6 @@ void advisor_sides::RefusedUnits(AdvisorBase* advisor, OrderBase* order, IntPair
     fallback(advisor);
 }
 
-ObjectKey* __thiscall ManagerGetLocationKey(GameObjNotifier* manager, ObjectKey* out) {
+ObjectKey* REB_THISCALL ManagerGetLocationKey(GameObjNotifier* manager, ObjectKey* out) {
     return new (out) ObjectKey(*reinterpret_cast<ObjectKey*>(reinterpret_cast<char*>(manager) + 0x7c));
 }

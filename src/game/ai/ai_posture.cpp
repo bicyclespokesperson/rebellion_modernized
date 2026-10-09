@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ai/ai_posture.h"
 
 #include "ai/ai_agent_bases.h"
@@ -214,7 +215,7 @@ int AiPosture::AgentIsNeeded(uint32_t agentId) {
     return needed;
 }
 
-int __stdcall AiPosture::CanTakeSystem(AiFleetEval* fleet, AiSystemEval* system) {
+int REB_STDCALL AiPosture::CanTakeSystem(AiFleetEval* fleet, AiSystemEval* system) {
     int allowed = 0;
     int enemyStrength = 0;
     int enemyShips = 0;
@@ -299,7 +300,7 @@ int AiPosture::CanOrderFleet(AiFleetEval* fleet, AiSystemEval* system, int* orde
     return allowed;
 }
 
-int __stdcall AiPosture::CanSupportSystem(AiFleetEval* fleet, AiSystemEval* system) {
+int REB_STDCALL AiPosture::CanSupportSystem(AiFleetEval* fleet, AiSystemEval* system) {
     int allowed = 0;
     if (system && fleet) {
         const uint32_t flags = system->m_flags30.m_value;

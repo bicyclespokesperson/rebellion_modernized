@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/fleet_window.h"
 
 #include <new>
@@ -379,7 +380,7 @@ void FleetWindow::OnCreate1() {
 
 // ---- Messages -------------------------------------------------------------------------------------------------
 
-LRESULT __stdcall FleetWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL FleetWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     if (message < 8) {
         if (message == WM_SETFOCUS) {
@@ -1401,7 +1402,7 @@ void FleetWindow::AddShipRow(GameObjNotifier* object) {
     }
 }
 
-uint32_t __stdcall FleetContents(GameObjNotifier* object) {
+uint32_t REB_STDCALL FleetContents(GameObjNotifier* object) {
     FightSquadIterator squadrons(object, 3);
     TroopRegIterator regiments(object, 3);
     RoleIterator roles(object, 3);
@@ -1416,7 +1417,7 @@ uint32_t __stdcall FleetContents(GameObjNotifier* object) {
     return contents;
 }
 
-void __stdcall DrawFleetContentIcons(DibBitmap* target, int side, uint32_t contents, int compact) {
+void REB_STDCALL DrawFleetContentIcons(DibBitmap* target, int side, uint32_t contents, int compact) {
     HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
     const int y = (compact != 0 ? 10 : 0) + 0x17;
     const int skin = SkinOffset(side);

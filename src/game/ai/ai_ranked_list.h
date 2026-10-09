@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -51,8 +52,8 @@ public:
     int m_descending;  // +0x1c
 };
 
-void __thiscall AiRankedListRead(IdLinkNode* base, istream* in);    // 0x41bf50
-void __thiscall AiRankedListWrite(IdLinkNode* base, ostream* out);  // 0x41c010
+void REB_THISCALL AiRankedListRead(IdLinkNode* base, istream* in);    // 0x41bf50
+void REB_THISCALL AiRankedListWrite(IdLinkNode* base, ostream* out);  // 0x41c010
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

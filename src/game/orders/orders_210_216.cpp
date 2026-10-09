@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "orders/orders_210_216.h"
 
 #include <cstddef>
@@ -80,7 +81,7 @@ ObjectKey keyOfNode(AvlNode* node) {
 uint32_t sideIndexOf(uint32_t side) { return side == 1 ? 1 : (side == 2 ? 2 : 0); }
 
 int callManagerVirtual(GameObjNotifier* manager, size_t byteOffset) {
-    using Slot = int(__thiscall*)(void*);
+    using Slot = int(REB_THISCALL*)(void*);
     Slot* vtable = *reinterpret_cast<Slot**>(manager);
     return vtable[byteOffset / sizeof(void*)](manager);
 }

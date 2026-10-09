@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "tactical/tactical_groups.h"
 
 #include <new>
@@ -313,16 +314,16 @@ FighterGroup::FighterGroup(int seedHandle) : ShipGroup(seedHandle) {
 
 FighterGroup::~FighterGroup() {}
 
-void __stdcall RemoveMemberFromGroup(ShipGroup* group, int handle) {
+void REB_STDCALL RemoveMemberFromGroup(ShipGroup* group, int handle) {
     if (group) group->RemoveMember(handle);
 }
 
-void __stdcall RegisterFighterGroup(ShipGroup* group) {
+void REB_STDCALL RegisterFighterGroup(ShipGroup* group) {
     group->AssignHandle(group->m_side);
     GetTacticalRegistry()->AddFighterGroup(group);
 }
 
-void __stdcall RegisterCapitalShipGroup(ShipGroup* group) {
+void REB_STDCALL RegisterCapitalShipGroup(ShipGroup* group) {
     group->AssignHandle(group->m_side);
     GetTacticalRegistry()->AddCapitalShipGroup(group);
 }

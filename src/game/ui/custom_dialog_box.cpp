@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/custom_dialog_box.h"
 
 #include "app/rebapp_globals.h"
@@ -116,7 +117,7 @@ CustomDialogBox::~CustomDialogBox() {
     if (m_titleLabel) delete m_titleLabel;
 }
 
-LRESULT __stdcall CustomDialogBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL CustomDialogBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
     case WM_PAINT:
         return CoolGameWindow::WindowProc(message, wParam, lParam);

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "audio/music.h"
 
 #include <new>
@@ -5,7 +6,7 @@
 #include "app/rebapp_globals.h"
 #include "core/registry.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyMusicFlags();
 void DestroyMusicRequest();
 void DestroyMusicDirectory();
@@ -103,7 +104,7 @@ void SetMusicSwitch(int enabled) {
     }
 }
 
-void __cdecl MusicEventCallback(uint32_t message, uint32_t first, uint32_t second) {
+void REB_CDECL MusicEventCallback(uint32_t message, uint32_t first, uint32_t second) {
     if (message != kBufferFinished) return;
     if ((first & 0xffff) != g_musicRequest.SourceKey()) return;
     SoundManager::Release(&g_musicRequest);

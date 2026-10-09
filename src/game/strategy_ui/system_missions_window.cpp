@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/system_missions_window.h"
 
 #include <new>
@@ -280,7 +281,7 @@ void SystemMissionsWindow::OnCreate1() {
 
 // ---- Messages -------------------------------------------------------------------------------------------------
 
-LRESULT __stdcall SystemMissionsWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL SystemMissionsWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message != WM_LBUTTONDOWN && message != WM_RBUTTONDOWN) {
         if (message != kRedrawHeaderMessage) return CustomDialogBox::WindowProc(message, wParam, lParam);
         InvalidateRect(m_hwnd, &m_titleRect, 0);
@@ -891,12 +892,12 @@ int DominantMissionSide(GameObjNotifier* system, int viewSide) {
 }
 
 // Key getters that the linker folded across classes (the Role and list-node ones among them): copy the key at +0x6c / +0x1c.
-ObjectKey* __thiscall ObjectKeyAtOffset6c(const void* object, ObjectKey* out) {
+ObjectKey* REB_THISCALL ObjectKeyAtOffset6c(const void* object, ObjectKey* out) {
     out->m_value = *reinterpret_cast<const uint32_t*>(static_cast<const char*>(object) + 0x6c);
     return out;
 }
 
-ObjectKey* __thiscall ObjectKeyAtOffset1c(const void* object, ObjectKey* out) {
+ObjectKey* REB_THISCALL ObjectKeyAtOffset1c(const void* object, ObjectKey* out) {
     out->m_value = *reinterpret_cast<const uint32_t*>(static_cast<const char*>(object) + 0x1c);
     return out;
 }

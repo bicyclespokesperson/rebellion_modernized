@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "iostream/iostream.h"
 
 #include "platform/win32.h"
@@ -5,15 +6,15 @@
 extern int g_iosInstanceCount;         // 0x6be740 number of live ios objects
 extern uint8_t g_iosStaticLock[0x18];  // 0x6be708 CRITICAL_SECTION shared by every ios
 
-void __cdecl mtx_init(void* criticalSection) { InitializeCriticalSection(static_cast<LPCRITICAL_SECTION>(criticalSection)); }
+void REB_CDECL mtx_init(void* criticalSection) { InitializeCriticalSection(static_cast<LPCRITICAL_SECTION>(criticalSection)); }
 
-void __cdecl mtx_term(void* criticalSection) { DeleteCriticalSection(static_cast<LPCRITICAL_SECTION>(criticalSection)); }
+void REB_CDECL mtx_term(void* criticalSection) { DeleteCriticalSection(static_cast<LPCRITICAL_SECTION>(criticalSection)); }
 
-void __cdecl mtx_lock(void* criticalSection) { EnterCriticalSection(static_cast<LPCRITICAL_SECTION>(criticalSection)); }
+void REB_CDECL mtx_lock(void* criticalSection) { EnterCriticalSection(static_cast<LPCRITICAL_SECTION>(criticalSection)); }
 
-void __cdecl mtx_unlock(void* criticalSection) { LeaveCriticalSection(static_cast<LPCRITICAL_SECTION>(criticalSection)); }
+void REB_CDECL mtx_unlock(void* criticalSection) { LeaveCriticalSection(static_cast<LPCRITICAL_SECTION>(criticalSection)); }
 
-ios* __thiscall ios_ctor(ios* self) {
+ios* REB_THISCALL ios_ctor(ios* self) {
     self->m_bp = nullptr;
     self->m_ispecial = 0;
     self->m_ospecial = 0;
@@ -31,7 +32,7 @@ ios* __thiscall ios_ctor(ios* self) {
     return self;
 }
 
-void __thiscall ios_dtor(ios* self) {
+void REB_THISCALL ios_dtor(ios* self) {
     self->m_vftable = &ios::vftable;
     self->m_lockCount = -1;
     if (--g_iosInstanceCount == 0) mtx_term(g_iosStaticLock);
@@ -41,7 +42,7 @@ void __thiscall ios_dtor(ios* self) {
     self->m_state = iostream_flags::kBad;
 }
 
-void __thiscall ios_init(ios* self, streambuf* buffer) {
+void REB_THISCALL ios_init(ios* self, streambuf* buffer) {
     if (self->m_delbuf != 0 && self->m_bp != nullptr) self->m_bp->m_vftable->m_scalarDeletingDtor(self->m_bp, 1);
     self->m_bp = buffer;
     if (buffer != nullptr)

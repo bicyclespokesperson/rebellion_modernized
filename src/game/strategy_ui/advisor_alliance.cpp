@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include <new>
 
 #include "app/rebapp_globals.h"
@@ -14,7 +15,7 @@
 #include "strategy_ui/advisor_sides.h"
 #include "strategy_ui/game_ui_facade.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyAllianceChoices();
 
 extern IdAvlTree g_allianceChoices;      // 0x6b2928 the list the display-mode switches show

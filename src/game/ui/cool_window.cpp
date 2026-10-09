@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/cool_window.h"
 
 #include <cstring>
@@ -310,7 +311,7 @@ void CoolWindow::SetTooltipText(const char* text) {
 
 // ---- CoolWindow: default message handling ---------------------------------------------------------------------
 
-LRESULT __stdcall CoolWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL CoolWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_SHOWWINDOW) {
         if (wParam) {
             for (AvlNode* node = m_linkedWindows.First(); node; node = node->m_successor)
@@ -591,7 +592,7 @@ int CoolWindow::BeginPopup() {
     return true;
 }
 
-PopupEntry* __stdcall FindPopupEntry(HWND hwnd) {
+PopupEntry* REB_STDCALL FindPopupEntry(HWND hwnd) {
     PopupEntry* entry = static_cast<PopupEntry*>(g_popupStack.m_top);
     if (!entry) return nullptr;
     while (!entry->m_node || entry->m_node->m_hwnd != hwnd) {
@@ -664,13 +665,13 @@ int ReleaseAllCaptures() {
     return hadCaptures;
 }
 
-HWND __stdcall SetCaptureWindow(HWND hwnd) { return SetCapture(hwnd); }
+HWND REB_STDCALL SetCaptureWindow(HWND hwnd) { return SetCapture(hwnd); }
 
 // ---- Drawing helpers and palette -----------------------------------------------------------------------------------
 
 void LoadResourceString(UINT id, LPSTR buffer, int size) { LoadStringA(g_stringModule, id, buffer, size); }
 
-void __stdcall DrawShadowedText(HDC dc, LPCSTR text, LPRECT rect, COLORREF color, COLORREF shadow, UINT format,
+void REB_STDCALL DrawShadowedText(HDC dc, LPCSTR text, LPRECT rect, COLORREF color, COLORREF shadow, UINT format,
                                 int offset, int length) {
     RECT shadowRect;
     shadowRect.left = rect->left + offset;
@@ -684,7 +685,7 @@ void __stdcall DrawShadowedText(HDC dc, LPCSTR text, LPRECT rect, COLORREF color
     DrawTextA(dc, text, length, rect, format);
 }
 
-UINT __stdcall SetIdentityPalette(HDC dc, HPALETTE palette) {
+UINT REB_STDCALL SetIdentityPalette(HDC dc, HPALETTE palette) {
     struct {
         WORD version;
         WORD entryCount;
@@ -743,7 +744,7 @@ UINT CoolWindow::RealizeCurrentPalette() {
     return realized;
 }
 
-void __stdcall ReleasePalette(HDC dc) {
+void REB_STDCALL ReleasePalette(HDC dc) {
     if (g_savedPalette) {
         SelectPalette(dc, g_savedPalette, FALSE);
         RealizePalette(dc);

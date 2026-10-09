@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/human_player.h"
 
 #include <new>
@@ -24,12 +25,12 @@
 
 // ---- Parts of the player controller (0x488460-0x48aa90) and of the advisor droid (0x4392b0-0x43a2d0) that this class
 // calls; they belong to other modules.
-void __thiscall FUN_0048aa90(PlayerController* player, PlayerMessage* message);
-void __thiscall FUN_00488b50(PlayerDispatch* dispatch, void* message);
-void __thiscall FUN_00488b90(PlayerDispatch* dispatch);
-void __thiscall FUN_00488d20(PlayerDispatch* dispatch, const ObjectKey* key, int flag);
-void __thiscall FUN_0048a340(PlayerDispatch* dispatch, PlayerMessage* message);
-void __thiscall FUN_0048a3b0(PlayerDispatch* dispatch, PlayerMessage* message);
+void REB_THISCALL FUN_0048aa90(PlayerController* player, PlayerMessage* message);
+void REB_THISCALL FUN_00488b50(PlayerDispatch* dispatch, void* message);
+void REB_THISCALL FUN_00488b90(PlayerDispatch* dispatch);
+void REB_THISCALL FUN_00488d20(PlayerDispatch* dispatch, const ObjectKey* key, int flag);
+void REB_THISCALL FUN_0048a340(PlayerDispatch* dispatch, PlayerMessage* message);
+void REB_THISCALL FUN_0048a3b0(PlayerDispatch* dispatch, PlayerMessage* message);
 extern PersistentInt g_humanUiFlags;  // 0x6b28b0
 
 namespace {
@@ -163,7 +164,7 @@ void HumanPlayer::Virtual10() {
     if (void* message = reinterpret_cast<AiNoticeQueue*>(m_alertList)->AiNoticeQueue::DetachFinished()) {
         Dispatch()->HandleNotifications(static_cast<LinkNode*>(message));
         void** vtable = *static_cast<void***>(message);
-        reinterpret_cast<void(__thiscall*)(void*, int)>(vtable[0])(message, 1);
+        reinterpret_cast<void(REB_THISCALL*)(void*, int)>(vtable[0])(message, 1);
     }
     if (m_syncTarget == 0 && !UiIsPauseTick()) Dispatch()->Update();
 }
@@ -178,7 +179,7 @@ void HumanPlayer::Virtual14() {
 void HumanPlayer::Virtual20(PlayerNotice* notice) {
     if (!notice) return;
     void** vtable = *reinterpret_cast<void***>(notice);
-    reinterpret_cast<void(__thiscall*)(void*, HumanPlayer*)>(vtable[6])(notice, this);
+    reinterpret_cast<void(REB_THISCALL*)(void*, HumanPlayer*)>(vtable[6])(notice, this);
     reinterpret_cast<AiNoticeQueue*>(m_alertList)->Add(reinterpret_cast<AiNotice*>(notice));
 }
 

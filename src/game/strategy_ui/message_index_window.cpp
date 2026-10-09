@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/message_index_window.h"
 
 #include <new>
@@ -397,7 +398,7 @@ void MessageIndexWindow::OnCreate1() {
 
 // ---- Messages -------------------------------------------------------------------------------------------------
 
-LRESULT __stdcall MessageIndexWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL MessageIndexWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_SETFOCUS) {
         SetFocus(m_list->m_hwnd);
     } else {

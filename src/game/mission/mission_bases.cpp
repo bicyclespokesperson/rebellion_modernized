@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "mission/mission_bases.h"
 
 #include <new>
@@ -12,7 +13,7 @@
 #include "gameobj/object_queries.h"
 #include "mission/mission_external.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyRuleBaseEventKinds();
 void DestroyObjectTargetBaseEventKinds();
 void DestroyTypeBaseEventKinds();
@@ -144,7 +145,7 @@ int MissionRuleBase::WriteBody(ostream* out) { return WriteImpl(out); }
 
 int MissionRuleBase::ApplyAllBody(NotifyContext* ctx) { return ApplyAllImpl(ctx); }
 
-int __cdecl MissionRuleBase::CheckMember(int side, GameObj* person, GameObj** out, StatusCode* status) {
+int REB_CDECL MissionRuleBase::CheckMember(int side, GameObj* person, GameObj** out, StatusCode* status) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     *out = nullptr;
     int result = 0;
@@ -171,7 +172,7 @@ int __cdecl MissionRuleBase::CheckMember(int side, GameObj* person, GameObj** ou
     return result;
 }
 
-int __cdecl MissionRuleBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
+int REB_CDECL MissionRuleBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     *code = 0;
     int ok = Mission::CheckTargetDefault(args, status, code);
@@ -360,7 +361,7 @@ int MissionSystemTargetBase::GetObjectiveSystem(GameObj** out) {
     return found;
 }
 
-int __cdecl MissionSystemTargetBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
+int REB_CDECL MissionSystemTargetBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     *code = 0;
     const int ok = MissionRuleBase::CheckTarget(args, status, code);
@@ -439,7 +440,7 @@ int MissionCharacterTargetBase::GetObjectiveCharacter(GameObj** out) {
     return found;
 }
 
-int __cdecl MissionCharacterTargetBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
+int REB_CDECL MissionCharacterTargetBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     *code = 0;
     const int ok = MissionRuleBase::CheckTarget(args, status, code);
@@ -504,7 +505,7 @@ int MissionObjectTargetBase::GetCheckFunctions(MissionCheckFunctions* out) {
     return 1;
 }
 
-int __cdecl MissionObjectTargetBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
+int REB_CDECL MissionObjectTargetBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     *code = 0;
     const int ok = MissionRuleBase::CheckTarget(args, status, code);
@@ -565,7 +566,7 @@ int MissionStoryBase::OnPhaseChanged(int oldValue, int newValue, NotifyContext* 
     return MissionRuleBase::OnPhaseChanged(oldValue, newValue, ctx);
 }
 
-int __cdecl MissionStoryBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
+int REB_CDECL MissionStoryBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     *code = 0;
     const int ok = MissionRuleBase::CheckTarget(args, status, code);

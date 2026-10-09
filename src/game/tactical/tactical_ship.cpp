@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "tactical/tactical_groups.h"
 #include "tactical/tactical_objmgr.h"
 #include "tactical/tactical_registry.h"
@@ -450,7 +451,7 @@ double TacticalShipBase::GetSpeed() {
 
 // ---- carrier helpers --------------------------------------------------------------------------------------------
 
-int __stdcall TacticalShipIsInState3(int handle) {
+int REB_STDCALL TacticalShipIsInState3(int handle) {
     TacticalShipBase* ship = GetTacticalRegistry()->FindShip(handle);
     return ship != nullptr && ship->m_state == 3;
 }

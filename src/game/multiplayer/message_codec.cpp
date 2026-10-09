@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "multiplayer/message_codec.h"
 
 #include <cstring>
@@ -22,7 +23,7 @@ uint32_t BytesWritten(OStrStream* stream) { return iostream_access::WrittenBytes
 void DeleteStream(void* stream) {
     void* ios = IosPartOf(stream);
     void** vftable = *static_cast<void***>(ios);
-    reinterpret_cast<void(__thiscall*)(void*, int)>(vftable[0])(ios, 1);
+    reinterpret_cast<void(REB_THISCALL*)(void*, int)>(vftable[0])(ios, 1);
 }
 
 }  // namespace

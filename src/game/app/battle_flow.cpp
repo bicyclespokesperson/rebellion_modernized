@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "app/battle_flow.h"
 
 #include <new>
@@ -91,7 +92,7 @@ int CreateGameStepDriver() {
     return ok;
 }
 
-int __stdcall CreateGameStepDriverFor(GameSettings* settings, int a, int b) {
+int REB_STDCALL CreateGameStepDriverFor(GameSettings* settings, int a, int b) {
     void* memory = AllocateChecked(0x28);
     g_gameStepDriver = memory ? new (memory) GameStepDriver(a, b) : nullptr;
     int ok = 0;

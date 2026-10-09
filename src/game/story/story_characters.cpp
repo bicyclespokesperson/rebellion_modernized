@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "story/story_characters.h"
 
 #include "core/checked_new.h"
@@ -7,7 +8,7 @@
 #include "mission/mission_rules.h"
 #include "story/story_common.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyLukeEventKinds();
 void DestroyLeiaEventKinds();
 void DestroyHanEventKinds();
@@ -33,7 +34,7 @@ constexpr int kEventLukeFinalBattleReady = 0x313;
 
 }  // namespace
 
-int __thiscall StoryCharacterCreateViews(Character* self, int controlKind, NotifyContext* ctx) {
+int REB_THISCALL StoryCharacterCreateViews(Character* self, int controlKind, NotifyContext* ctx) {
     return CharacterLeafCreateViews(self, controlKind, ctx);
 }
 

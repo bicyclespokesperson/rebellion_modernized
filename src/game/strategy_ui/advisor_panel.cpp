@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/advisor_panel.h"
 
 #include <cstdint>
@@ -113,7 +114,7 @@ void AdvisorPanel::OnCommand(int a, int b, int c) {
     if (static_cast<int16_t>(a) == static_cast<int16_t>(kCloseId)) PostCloseRequest();
 }
 
-LRESULT __stdcall AdvisorPanel::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL AdvisorPanel::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_LBUTTONUP) InvalidateRect(m_hwnd, nullptr, FALSE);
     return CoolGameWindow::WindowProc(message, wParam, lParam);
 }

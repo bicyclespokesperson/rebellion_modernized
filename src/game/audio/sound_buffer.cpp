@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "audio/sound_buffer.h"
 
 #include <cstring>
@@ -430,7 +431,7 @@ void SoundBuffer::StopRefillThread() {
     }
 }
 
-void __cdecl SoundBuffer::RefillThread(SoundBuffer* buffer) {
+void REB_CDECL SoundBuffer::RefillThread(SoundBuffer* buffer) {
     if (!buffer) return;
     if (buffer->m_failed != 0) {
         PostSoundEvent(kSoundBufferFinishedMessage, buffer->m_sourceKey, buffer->m_key);

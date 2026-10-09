@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "events/game_manager_state.h"
 
 #include <cstring>
@@ -9,7 +10,7 @@
 #include "core/vptr_store.h"
 #include "events/events_decl.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyLegacyBlockA();
 void DestroyLegacyBlockB();
 void DestroyLegacyTexts();

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "character/character_mgr.h"
 #include "core/icf_stubs.h"
 #include "ai/ai_common.h"
@@ -57,7 +58,7 @@ constexpr FamilyRange kStationFamilies(0x28, 0x30);
 
 template <typename R, typename... A>
 R callVirtual(void* object, int slot, A... args) {
-    using Function = R(__thiscall*)(void*, A...);
+    using Function = R(REB_THISCALL*)(void*, A...);
     return reinterpret_cast<Function**>(object)[0][slot](object, args...);
 }
 

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "events/ui_notifs.h"
 #include "core/atexit_keep.h"
 
@@ -8,7 +9,7 @@
 #include "core/vptr_store.h"
 #include "strategy_ui/game_ui_facade.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 extern uint8_t g_uiNotif2KeyReady;
 extern ObjectKey g_uiNotif2Key;
 void DestroyUiNotif2Key();

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "app/game_session.h"
 
 #include <new>
@@ -8,7 +9,7 @@
 #include "strategy_ui/advisor_droid.h"
 #include "strategy_ui/game_ui_facade.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 
 namespace {
 

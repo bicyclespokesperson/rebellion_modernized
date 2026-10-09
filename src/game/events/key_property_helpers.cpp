@@ -1,9 +1,10 @@
+#include "core/reb_abi.h"
 #include "events/key_property_helpers.h"
 #include "core/atexit_keep.h"
 
 #include <new>
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyEmptyKeyValueSet();
 void DestroyEmptyKey();
 
@@ -21,7 +22,7 @@ ObjectKeyValueSet* GetEmptyKeyValueSet() {
     return &g_emptyKeyValueSet;
 }
 
-ObjectKey* __stdcall ConstructUnsetKey(ObjectKey* key) {
+ObjectKey* REB_STDCALL ConstructUnsetKey(ObjectKey* key) {
     new (key) ObjectKey();
     return key;
 }
@@ -35,9 +36,9 @@ ObjectKey* GetEmptyKey() {
     return &g_emptyKey;
 }
 
-void __stdcall ResetKey(ObjectKey* key) { key->Reset(); }
+void REB_STDCALL ResetKey(ObjectKey* key) { key->Reset(); }
 
-int __stdcall CallSlot1(void* object) {
+int REB_STDCALL CallSlot1(void* object) {
     struct SlotOne {
         virtual void Virtual00() {}
         virtual void Virtual01() {}

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "strategy_ui/manufacture_order_window.h"
 
 #include <cstdlib>
@@ -292,7 +293,7 @@ void ManufactureOrderWindow::OnCreate3() {
     RefreshTotals();
 }
 
-LRESULT __stdcall ManufactureOrderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL ManufactureOrderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == kQuantityEntered) {
         if (wParam == m_quantityField->m_childId) {
             SendOrder();

@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "app/player_controller_decl.h"
@@ -101,11 +102,11 @@ extern TacticalGame* g_tacticalGame;  // 0x6bc248
 // Sets up the battle (a human-vs-AI game; the variant without vote times is for human-vs-human): both sides' fleet figures
 // and the mode, either in the simulator (abstract) or in the object manager (3D). Free functions so that the facade's
 // by-value copy of the name is made before the singleton is fetched, as in the original.
-int __thiscall TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name,
+int REB_THISCALL TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name,
                                        float sideAValue, float sideBValue, int sideAC, int sideBC, GameTime timeA,
                                        GameTime timeB, int battleKindNotAlliance, int systemFlag8, int controlIsEmpire,
                                        int controlIsAlliance, int abstractFlag);  // 0x599c90
-int __thiscall TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name,
+int REB_THISCALL TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name,
                                             float sideAValue, float sideBValue, int sideAC, int sideBC,
                                             int battleKindNotAlliance, int systemFlag8, int controlIsEmpire,
                                             int controlIsAlliance, int abstractFlag);  // 0x59a0b0

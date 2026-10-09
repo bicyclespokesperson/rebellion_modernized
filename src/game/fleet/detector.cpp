@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "fleet/detector.h"
 
 #include <new>
@@ -8,7 +9,7 @@
 #include "fleet/unit_data_decl.h"
 #include "fleet/unit_view_flags.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyDetectorEventKinds();
 
 extern int g_detectorEventKindsReady;      // 0x6bb360

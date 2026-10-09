@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "character/character38.h"
 
 #include "character/major_character.h"
@@ -5,7 +6,7 @@
 #include "core/vptr_store.h"
 #include "data/gnprtb.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyCharacter38EventKinds();
 
 extern int g_character38EventKindsReady;      // 0x6bb9e0

@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/cool_selection_box.h"
 
 #include "core/checked_new.h"
@@ -202,7 +203,7 @@ int CoolSelectionBox::HandleKeyUp(WPARAM key, LPARAM) {
     return 1;
 }
 
-LRESULT __stdcall CoolSelectionBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL CoolSelectionBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_CREATE: {
             HINSTANCE instance = m_instance;
@@ -372,7 +373,7 @@ void CoolSelectionDropDown::BuildBackground() {
     ReleaseDC(hwnd, dc);
 }
 
-LRESULT __stdcall CoolSelectionDropDown::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT REB_STDCALL CoolSelectionDropDown::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_CREATE: {
             HWND hwnd = m_hwnd;

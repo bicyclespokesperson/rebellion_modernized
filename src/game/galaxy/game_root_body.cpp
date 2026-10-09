@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
 #include "data/random.h"
@@ -34,7 +35,7 @@ constexpr FamilyRange kAllFamilies(1, 0xff);
 
 template <typename R, typename... A>
 R callVirtual(void* object, int slot, A... args) {
-    using Function = R(__thiscall*)(void*, A...);
+    using Function = R(REB_THISCALL*)(void*, A...);
     return reinterpret_cast<Function**>(object)[0][slot](object, args...);
 }
 

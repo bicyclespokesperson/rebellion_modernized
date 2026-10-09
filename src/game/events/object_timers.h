@@ -1,15 +1,16 @@
 #pragma once
+#include "core/reb_abi.h"
 // Recurring timers on sides (0x381, 0x382), process facilities (0x394), objects with hyperdrive (0x387), the 0x14-0x1f families (0x380) and characters (0x388-0x38a).
 #include <cstdint>
 
 #include "events/timer_event.h"
 
 // Slot 10 of the timers: the family range of the objects they act on.
-FamilyRange* __stdcall GetSideFamilyRange(FamilyRange* out);  // 0x5782c0: {0xf3, 0xf4}
-FamilyRange* __stdcall GetProcFacilFamilyRange(FamilyRange* out);  // 0x578610: {0x28, 0x30}
-FamilyRange* __stdcall GetAnyFamilyRange(FamilyRange* out);  // 0x57be90: {0x1, 0xff}
-FamilyRange* __stdcall GetFamily14Range(FamilyRange* out);  // 0x57c1d0: {0x14, 0x20}
-FamilyRange* __stdcall GetCharacterFamilyRange(FamilyRange* out);  // 0x57cf00: {0x30, 0x3c}
+FamilyRange* REB_STDCALL GetSideFamilyRange(FamilyRange* out);  // 0x5782c0: {0xf3, 0xf4}
+FamilyRange* REB_STDCALL GetProcFacilFamilyRange(FamilyRange* out);  // 0x578610: {0x28, 0x30}
+FamilyRange* REB_STDCALL GetAnyFamilyRange(FamilyRange* out);  // 0x57be90: {0x1, 0xff}
+FamilyRange* REB_STDCALL GetFamily14Range(FamilyRange* out);  // 0x57c1d0: {0x14, 0x20}
+FamilyRange* REB_STDCALL GetCharacterFamilyRange(FamilyRange* out);  // 0x57cf00: {0x30, 0x3c}
 
 // timer 0x382 on a side: stat at +0xcc; fires Side::ScrapRandomUnit
 class SideScrapTimer : public TimerEvent {

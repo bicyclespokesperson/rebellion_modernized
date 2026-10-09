@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "ui/animation_step.h"
 
 #include <cstring>
@@ -11,7 +12,7 @@
 #include "ui/sprite_animator.h"
 #include "ui/sprite_stage.h"
 
-extern "C" int __cdecl atexit(void(__cdecl* function)(void));
+extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 void DestroyAnimationStep04();
 void DestroyAnimationStep05();
 void DestroyAnimationStep14();

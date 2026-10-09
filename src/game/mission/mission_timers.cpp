@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "events/event_helpers.h"
@@ -28,12 +29,12 @@ TrackedStat* managerStatB(GameObj* manager) {
 
 // ---- shared slot 10 --------------------------------------------------------------------------------------------------
 
-FamilyRange* __stdcall GetMissionFamilyRange(FamilyRange* out) {
+FamilyRange* REB_STDCALL GetMissionFamilyRange(FamilyRange* out) {
     *out = kMissionFamilies;
     return out;
 }
 
-FamilyRange* __stdcall GetMissionMgrFamilyRange(FamilyRange* out) {
+FamilyRange* REB_STDCALL GetMissionMgrFamilyRange(FamilyRange* out) {
     *out = kMissionMgrFamilies;
     return out;
 }

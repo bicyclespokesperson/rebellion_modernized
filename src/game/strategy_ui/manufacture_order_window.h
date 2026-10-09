@@ -1,4 +1,5 @@
 #pragma once
+#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/layout.h"
@@ -26,7 +27,7 @@ public:
                            uint32_t unused);  // 0x437880
     virtual ~ManufactureOrderWindow();  // 0x437cb0 (scalar deleting destructor 0x437c90)
 
-    virtual LRESULT __stdcall WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x438780
+    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x438780
     virtual void OnCreate1() override;                        // slot 14, 0x437f80: selection box, labels, quantity field
     virtual void OnCreate2() override;                        // slot 15, 0x438500: the static artwork and texts
     virtual void OnCreate3() override;                        // slot 16, 0x438620: the buttons

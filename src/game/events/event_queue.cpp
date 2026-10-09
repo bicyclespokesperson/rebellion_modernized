@@ -1,3 +1,4 @@
+#include "core/reb_abi.h"
 #include "events/event_queue.h"
 
 #include "core/utility_classes.h"
@@ -83,7 +84,7 @@ void EventQueue::Add(EventBase* event) {
     if (event) Insert(event);
 }
 
-int __stdcall EventQueue::CountSubtree(AvlNode* node) {
+int REB_STDCALL EventQueue::CountSubtree(AvlNode* node) {
     int count = 1;
     if (node->m_left) count = CountSubtree(node->m_left) + 1;
     if (node->m_right) count += CountSubtree(node->m_right);
