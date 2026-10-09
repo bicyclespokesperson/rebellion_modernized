@@ -132,14 +132,7 @@ struct IUnknown {
     virtual ULONG REB_STDCALL Release() = 0;
 };
 
-#if MINWIN_TARGET_WINDOWS
-extern "C" LONG REB_CDECL _InterlockedExchange(volatile LONG *Target, LONG Value);
-#else
-inline LONG _InterlockedExchange(volatile LONG *Target, LONG Value) { return __atomic_exchange_n(Target, Value, __ATOMIC_SEQ_CST); }
-#endif
-
 #define STATUS_WAIT_0 ((DWORD)0)
-#define InterlockedExchange _InterlockedExchange
 #define READ_CONTROL ((LONG)0x20000)
 #define SYNCHRONIZE ((LONG)0x100000)
 #define STANDARD_RIGHTS_READ ((LONG)0x20000)

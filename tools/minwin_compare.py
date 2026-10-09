@@ -25,6 +25,8 @@ import minwin_layout_gen as gen  # noqa: E402
 
 ROOT = inv.ROOT
 WORK = inv.WORK
+# Functions the SDK has only as an intrinsic macro; the game imports them from the DLL (audio/interlocked_import.h).
+MINWIN_ONLY = {("function", "InterlockedExchange")}
 IGNORED_ATTRS = re.compile(r"\s*__attribute__\(\((?:nothrow|cdecl)\)\)")
 
 
@@ -125,6 +127,8 @@ def main() -> int:
     for key, sig in sorted(mine.items()):
         counts[key[0]] += 1
         theirs = sdk.get(key)
+        if theirs is None and key in MINWIN_ONLY:
+            continue
         if theirs is None:
             print(f"only in minwin: {key[0]} {key[1]}")
             problems += 1

@@ -51,6 +51,7 @@ MINWIN_IMPORT BOOL REB_STDCALL SetThreadPriority(HANDLE hThread, int nPriority);
 [[noreturn]] MINWIN_IMPORT void REB_STDCALL ExitThread(DWORD dwExitCode);
 MINWIN_IMPORT BOOL REB_STDCALL TerminateThread(HANDLE hThread, DWORD dwExitCode);
 MINWIN_IMPORT DWORD REB_STDCALL GetTickCount(void);
+MINWIN_IMPORT LONG REB_STDCALL InterlockedExchange(LONG volatile *Target, LONG Value);
 MINWIN_IMPORT BOOL REB_STDCALL FreeLibrary(HMODULE hLibModule);
 MINWIN_IMPORT BOOL REB_STDCALL FreeResource(HGLOBAL hResData);
 MINWIN_IMPORT HMODULE REB_STDCALL GetModuleHandleA(LPCSTR lpModuleName);
