@@ -59,6 +59,9 @@ struct FamilyParams {
     bool supplyResetsCap;        // PickSupplySystemNear clears *cap first
     bool supplyClaims;           // PickSupplySystemNear adds the target system to the list and claims it
     bool supplyByDistance;       // PickSupplySystemNear ranks the supply systems by their distance to the target
+    // AddTargetSystem takes its first sector from the task's selector instead of the one it just ranked the sectors into
+    // (AiTask3; see the BUG note there).
+    bool firstSectorFromTaskSelector = false;
 };
 
 int Need(const FamilyFields& f, const FamilyParams& p);

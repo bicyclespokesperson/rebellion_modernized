@@ -210,7 +210,8 @@ void AddTargetSystem(const FamilyFields& f, const FamilyParams& p) {
     const int need = NeedForTargets(f, p);
     if (0 < need) {
         sectorSelector.Add(owner->RankSectors(p.sectorRequire, 0, 0, 0, 0, 0, p.sectorStat, 1));
-        sector = *sectorSelector.PickBest(&scratch);
+        // BUG(original): AiTask3's copy picks its first sector from the task's selector, which holds no sectors.
+        sector = *(p.firstSectorFromTaskSelector ? f.selector : &sectorSelector)->PickBest(&scratch);
         for (;;) {
             if (!IsSectorKey(sector) || found) {
                 sectorSelector.Reset();
@@ -232,7 +233,8 @@ void AddTargetSystem(const FamilyFields& f, const FamilyParams& p) {
                 system = *f.selector->PickBest(&scratch);
             }
             f.selector->Reset();
-            sector = *sectorSelector.PickBest(&scratch);
+            // BUG(original): the next sector is picked from the task's selector, just emptied, so only the first sector is tried.
+            sector = *f.selector->PickBest(&scratch);
         }
     }
     if (IsSystemKey(*f.system)) {
