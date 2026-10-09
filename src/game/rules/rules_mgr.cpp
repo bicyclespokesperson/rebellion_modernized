@@ -120,21 +120,30 @@ GameObjNotifier* CreateRulesMgr() { return NewOrNull<RulesMgr>(); }
 int RulesMgr::Validate() { return GameObj::Validate(); }
 
 int RulesMgr::ReadBody(istream* in) {
-    const int ok = GameObj::Read(in);
-    if (ok != 0 && m_timerA.Read(in) != 0) m_timerB.Read(in);
-    return 1;
+    int result = GameObj::Read(in);
+    if (result != 0) {
+        result = m_timerA.Read(in);
+        if (result != 0) result = m_timerB.Read(in);
+    }
+    return result;
 }
 
 int RulesMgr::WriteBody(ostream* out) {
-    const int ok = GameObj::Write(out);
-    if (ok != 0 && m_timerA.Write(out) != 0) m_timerB.Write(out);
-    return 1;
+    int result = GameObj::Write(out);
+    if (result != 0) {
+        result = m_timerA.Write(out);
+        if (result != 0) result = m_timerB.Write(out);
+    }
+    return result;
 }
 
 int RulesMgr::ChecksumBody(Crc32* crc) {
-    const int ok = GameObj::Checksum(crc);
-    if (ok != 0 && m_timerA.Checksum(crc) != 0) m_timerB.Checksum(crc);
-    return 1;
+    int result = GameObj::Checksum(crc);
+    if (result != 0) {
+        result = m_timerA.Checksum(crc);
+        if (result != 0) result = m_timerB.Checksum(crc);
+    }
+    return result;
 }
 
 int RulesMgr::ApplyAllBody(NotifyContext* ctx) {
@@ -164,7 +173,7 @@ int RulesMgr::CreateViewsBody(int controlKind, NotifyContext* ctx) {
     return result;
 }
 
-int RulesMgr::BuildNeighbourTable() {
+int RulesMgr::BuildNeighbourTable(NotifyContext*) {
     if (m_neighbours != nullptr) delete m_neighbours;
     m_neighbours = NewOrNull<SystemNeighbourTable>();
     int built = 0;
@@ -184,7 +193,7 @@ int RulesMgr::GetNeighbours(const ObjectKey* system, SystemNeighbourCursor* out)
     return result;
 }
 
-static int buildRulesEventKinds() {
+int BuildRulesEventKinds() {
     int result = 1;
     if (g_rulesMgrEventKindsBuilt == 0) {
         g_rulesMgrEventKindsBuilt = 1;
@@ -194,14 +203,14 @@ static int buildRulesEventKinds() {
 }
 
 int RulesMgr::GetEventKinds(int, EventKindSet* out) {
-    const int result = buildRulesEventKinds();
+    const int result = BuildRulesEventKinds();
     if (result != 0) *out = g_rulesMgrEventKinds;
     return result;
 }
 
 int RulesMgr::CheckOrder(int, int orderKind, StatusCode* out) {
     setStatus(out, kStatusCategory, kStatusNotSupported);
-    const int result = buildRulesEventKinds();
+    const int result = BuildRulesEventKinds();
     if (result != 0 && g_rulesMgrEventKinds.Contains(orderKind) != 0) setStatus(out, kStatusCategory, kStatusOk);
     return result;
 }

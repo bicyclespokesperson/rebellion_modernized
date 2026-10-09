@@ -45,7 +45,7 @@ public:
     int CreateViewsBody(int controlKind, NotifyContext* ctx);  // 0x556fa0, arms the two timers
 
     // Replaces the neighbour table with a freshly built one. Returns whether it was built.
-    int BuildNeighbourTable();  // 0x5562e0
+    int BuildNeighbourTable(NotifyContext* ctx);  // 0x5562e0 (the context is not used)
     // Points `out` at the neighbours of the system `system` names; 0 without a table.
     int GetNeighbours(const ObjectKey* system, SystemNeighbourCursor* out);  // 0x554150
 

@@ -12,6 +12,7 @@
 #include "gameobj/object_type_db.h"
 #include "galaxy/game_setup_seed.h"
 #include "rules/loyalty_params.h"
+#include "rules/rules_mgr.h"
 
 // The stages of the new-game setup that fill the universe (GameRoot::StepSetup, 0x5136d0, calls them in this order):
 // the root's children (side roots, managers, sides, the singleton rules objects), the sectors, the split of the
@@ -24,7 +25,6 @@ DatRecord* FUN_0051cab0(const ObjectKey* key);  // the data record of a key (via
 DatRecord* FUN_0051cad0(uint32_t family);       // the first data record of a family
 int FUN_005597e0(int side, int which);          // seeding percentages by side
 int __thiscall FUN_005305c0(GameObjNotifier* side, int systemCount);
-int __thiscall FUN_005562e0(GameObjNotifier* rules, NotifyContext* ctx);
 int GetSideObjectForIndex(int side, GameObjNotifier** out);
 int __thiscall FUN_0052fff0(GameObjNotifier* object, NotifyContext* ctx);
 int NumberUnitName(GameObjNotifier* object, NotifyContext* ctx);
@@ -365,7 +365,7 @@ int GameRoot::PlaceNextPooledSystem(int* done, NotifyContext* ctx) {
 
 // ---- stages 0xd-0xf: the rules object and the per-system initialization walk ----------------------------------
 
-int GameRoot::BuildRulesObject(NotifyContext* ctx) { return FUN_005562e0(m_master_f9000007, ctx); }
+int GameRoot::BuildRulesObject(NotifyContext* ctx) { return static_cast<RulesMgr*>(m_master_f9000007)->BuildNeighbourTable(ctx); }
 
 int GameRoot::BeginSystemWalk(NotifyContext* ctx) {
     (void)ctx;

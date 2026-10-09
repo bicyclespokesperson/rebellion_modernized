@@ -7053,6 +7053,7 @@ address,kind,name,signature,size
 0x005570f0,func,RulesMgr::WriteBody,,
 0x00557120,func,RulesMgr::ApplyAllBody,,
 0x00557150,func,RulesMgr::ChecksumBody,,
+0x00557190,func,BuildRulesEventKinds,,
 0x005571c0,func,RulesMgr::TryPlaceUnit,,
 0x005573c0,func,RulesMgrStaticInit,,
 0x005573d0,func,RulesMgrConstructEventKinds,,

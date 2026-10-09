@@ -103,3 +103,19 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   it: `AiGalaxyAnalysis::Load`, `AiSectorScanSet::LoadAll` SKIP), the plan 1-5, 7 `Prepare` functions run only through
   `--entry` on plan 6's capture, `AdvisorTask23` phases 2-3 (they need the advisor droid), and the facility task types'
   `Write` functions.
+
+## combat_strat and saveload (milestone M2)
+- The five `combat_strat` modules are not combat: `event_rules`, `rules_mgr`, `loyalty_params`, `planet_assault`,
+  `planet_bombard` (see docs/code_map.md). `saveload` is `battle_flow_session` + `game_manager_state`.
+- Callers outside the rules module still reach some of the reconstructed `RulesMgr` members through `FUN_005xxxxx`
+  declarations (mission_mgr_checks, game_hooks, orders_210_216, mission_exec_*, character_mgr_people): harmless (the
+  names resolve to the hooked addresses) but they should become `RulesMgr::` calls.
+- Not reached by any scenario, verified by `--entry`/`--poke` on synthetic state only: the assault and bombardment resolvers
+  (a real system with fleets, troops and a garrison taken from a `load_game` capture, sides flipped by poke; DefenseFacility24
+  children retyped to 22/23 to reach `ShipPicker`), the loyalty/Death Star/victory rules, `GameRoot::PrepareBattle`/`ResolveBattle`,
+  the `RulesMgr` search helpers, `BattleFlow::Save` (SKIP: emulator heap).
+- Original quirks kept: `BombardWalker::PickRandomProcFacility` never advances its iterator (always the first facility);
+  `FinishBombard` overwrites the loyalty result of the `AdjustLoyalty` step when the planet was destroyed; a hybrid save file
+  differs in size by ~1 KB from the original game's (888541 vs 887465 bytes), also with the reconstructions of this milestone disabled.
+- Shared one-address functions without symbol rows: `RulesMgr::Validate` (0x569870), `ShipPicker::Visit` (= `UnitPicker::Visit`
+  0x587470), `TickTable::Write` (= `TimerEvent::CheckValid` 0x586290). EH funclets 0x4096e0, 0x4098b0 are not functions.
