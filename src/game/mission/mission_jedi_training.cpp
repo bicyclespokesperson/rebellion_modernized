@@ -25,6 +25,12 @@ struct TrainingOrderCheck {
     ObjectKeyValueSet* m_keySets[3];  // +0x24, +0x28, +0x2c
 };
 
+// BUG(original): Read and Write handle the Teacher key but the checksum skips it (slot 7 is the shared forwarder to the
+// rule-base sum, unlike Espionage's); keep it, multiplayer sync and save checksums depend on it.
+int MissionJediTraining::Checksum(Crc32* crc) {
+    return reinterpret_cast<MissionTypeBase*>(this)->MissionTypeBase::ChecksumBody(crc);
+}
+
 namespace {
 constexpr uint32_t kFamilyMissionJediTraining = 0x58;
 constexpr FamilyRange kJediTrainingFamilies(0x58, 0x59);

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Integrate an agent branch into the main checkout and verify it:
-#   merge -> normalize symbols -> sync Ghidra -> build -> store its captures -> difftest all -> smoke run.
+#   merge -> normalize symbols -> sync Ghidra -> build -> store its captures -> difftest all -> smoke run -> standalone check.
 # Usage: tools/integrate.sh <branch> [worktree path holding the branch's work/run captures]
 #        tools/integrate.sh --verify <branch> [worktree]   # after fixing a failed run by hand: skip the merge
 set -euo pipefail
@@ -29,4 +29,6 @@ tools/run_game.sh --out work/run/soak tests/scenarios/soak_fast.txt >/dev/null
 if grep -q Unhandled work/run/soak/wine.log; then echo "SOAK CRASH: $(grep -m1 Unhandled work/run/soak/wine.log)"; else echo "soak ok"; fi
 echo "== smoke"; tools/run_game.sh tests/scenarios/smoke.txt
 cat work/run/smoke/rebhybrid.log
+echo "== standalone (build, smoke, save fidelity vs the original; one verdict line)"
+tools/standalone_check.sh | tail -n 1 || true
 tools/progress.py
