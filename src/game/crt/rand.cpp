@@ -5,7 +5,7 @@
 // starts at 1. The original keeps it at +0x14 of the thread data block (_tiddata) that __getptd (0x61d430) returns; the
 // hybrid uses exactly that block so the hooks are interchangeable with the original code (difftest compares the
 // memory). Without it (standalone) it is an ordinary thread_local.
-#ifdef REB_HYBRID
+#ifndef REB_STANDALONE  // the shared flags also define REB_HYBRID in the standalone build
 extern "C" uint8_t* __cdecl _getptd();
 
 namespace {

@@ -153,6 +153,72 @@ with other machine code (the AiPlayer slot is one; the others are candidates to 
 only where relative calls differ, otherwise missing overrides), and the rest match. Turning the redirect off by default needs: the 33
 incomplete vtables closed (M2/M3), that candidate list reviewed, and soak/save scenarios green with `REB_OWN_VTABLES=1`.
 
+## M6: the first standalone `rebellion.exe` (measured Oct 8 2026)
+
+`tools/build_standalone.sh` builds `build/standalone/rebellion.exe` (i686 PE, clang-cl + lld-link in the dev container, static UCRT,
+no REBEXE.EXE at run time) from the same sources: CMake `REB_STANDALONE` (`cmake/standalone.cmake`), `REB_NO_TACTICAL_3D` implied.
+`tools/run_game.sh --standalone <scenario>` runs it under Wine with the install directory's game data and the real SMACKW32.DLL.
+`tools/map_lookup.py` turns Wine crash addresses into functions through the link map; the exe writes registers, memory behind the
+registers and the code addresses found on the stack to `REB_LOG` on an unhandled exception (`src/standalone/crash_log.cpp`).
+
+**Stages** (like `build_hybrid.sh --own-data`): (1) container: compile, `gen_link_symbols.py --standalone` writes `gen/data_refs.json`
+(every original global the objects reference, also CRT/LIBCI data and vtables; the hooked-function table); (2) host: `gen_data_image.py
+--standalone` writes `gen/data_image.s` and `gen_resources.py` copies the EXE's resource section into `gen/rebexe.res` (RCDATA animation
+scripts/message templates, the save-file name strings, icons, cursors, version; generated at build time from the install, never
+committed); (3) container: link. A failed link prints the unresolved symbols grouped by category
+(`tools/standalone_link_report.py` -> `gen/link_report.txt`, the categories of `standalone_gaps.py`).
+
+**What the standalone image is made of.** The same 92,920-byte data block as M5 (now the only definition: no run-time patching, no
+`reb_code_refs`), plus: the referenced `.rdata` globals copied *with their pointers relocated* (vtables: slots become our function
+symbols; `const char* const` globals: the pointer target is copied or becomes a block label; unreconstructed targets would be
+`reb_orig_<addr>` link errors), fresh storage for the two LIBCI data globals in the CRT's `.bss`, the original's static-initializer
+table (1,781 entries; reconstructed initializers by symbol, `jmp`/`call;jmp` thunks followed; run from a `.CRT$XCU` entry before the
+game's `WinMain`) and import libraries made by `gen_import_libs.py` for the DLLs the SDK has no `.lib` for (SMACKW32 and DPLAYX: by
+ordinal, as the EXE imports them; D3DRM by name). Our own vtables are used everywhere (no vptr redirect to the EXE).
+
+**Link result: 0 unresolved symbols.** Everything the reconstructed code still referenced by original address was already
+reconstructed, stubbed (the 164 tactical 3D stubs) or provided by a library. What had to be added: the 12 scalar deleting destructors
+of the LIBCI vftables (`src/standalone/iostream_vtable_functions.cpp`: the LIBCI classes are layout structs, nothing defined them),
+`icf_return_zero`/`icf_empty_function`, `_isprint/_isspace/_ispunct` (UCRT), and a bring-up `_CIpow` (calls `pow`; the CRT fidelity
+agent's reconstruction replaces it). `filebuf` reads the text-mode flag of a handle through `_setmode` instead of the old CRT's
+`__pioinfo` (the UCRT's layout differs; the pending-CR flag has no public equivalent and reads as clear). `operator new` zero-fills
+(the original's fresh heap pages were zero; this makes the standalone's uninitialised reads reproducible).
+
+**Bugs the standalone build exposed** (all invisible in the hybrid, whose vptr redirect and original data hide them):
+`System::SetRecord` (slot 10, 0x50e1c0, shared with `Character::SetRecord`: sets the object's id from its record) was not overridden,
+so new games gave systems allocator ids 0x500+ and crashed in `SystemNeighbourTable::Build`; `Fleet::Virtual18` (0x40f340) must
+return 1; `g_coolDragListClassName` is an `.rdata` pointer to a `.data` string that the data image copied unrelocated (the drag list
+window was never created, ui_tour crashed opening the system window). `tools/vtable_gaps.py` skipped every multiple-inheritance vtable
+(`Class::vftable{Base}`, all GameObj classes); it compares them now, which also found the candidates listed below.
+
+**Remaining vtable candidates** (`tools/vtable_gaps.py --exe <EXE> --list`, own vtables differ from the original's and the original slot
+is not a pure forwarder to ours): `MissionJediTraining` slot 7 (checksum: the original forwards to `MissionPalace::Checksum` 0x56dee0, ours
+inherits `MissionExtraKeyBase::Checksum`, which also sums the extra key), `HumanPlayer` slot 28 (0x486870), slot 48 of every
+Facility/CapShip/Fleet/CombatUnit class (our own `return 1` stub; the original 0x4f29a0 forwards to 0x51ebb0, probably the same), slot 133/137
+of two manufacturing classes (forwarders), and tactical-only ones (`CapitalShipFormation`/`FighterFormation` slot 6 return 3/2 in the
+original, `TacticalSpecialForceUnit` slot 1, `GroupOrder*`).
+
+**Scenarios under Wine** (real clocks, `tools/run_game.sh --standalone`): 49 of the 51 scenarios of `tests/scenarios/` (all but `fast_play_missions_long` and `load_game_long`) ran to the
+end of their script without a crash or `Unhandled` in `wine.log`, including main menu (smoke), `load_game` (60 s of play), `save_game_slot`
+(writes `SAVEGAME.005`, same size as the hybrid's), `new_game_rebel`/`new_game_empire` (new game, agent-droid intro, 60 s of play),
+`soak_fast`, `ui_tour`, `space_battle_autoresolve` and `space_battle_tactical_vote` (the stubbed tactical vote falls back to auto-resolve),
+`video_intro` (Smacker movies through the real SMACKW32.DLL) and the multiplayer lobby scenarios (DirectPlay through Wine's dplayx).
+
+**Differential runs against the hybrid.** `src/standalone/determinism.cpp` defines the game's import slots for the clock APIs ahead of the
+import libraries (the hybrid patches the IAT; same switches: `REB_DETERMINISTIC`, `REB_CLOCK_STEP_US`, `REB_QPC_STEP_NS`,
+`REB_NO_TIMERS`), so `REB_DETERMINISTIC=1` runs of both builds see the same virtual time. `tools/compare_runs.py <dirA> <dirB>` compares
+screenshots pixel by pixel and the saves byte by byte; `tools/determinism_check.sh -s` repeats a scenario on the standalone exe.
+`save_determinism` (load, save `SAVEGAME.005`): the saves of two hybrid and two standalone runs are **byte-identical** (887,465 bytes, md5
+`c676b92c...`, the value M5 recorded) and the three screenshots pixel-identical. Screenshots of hybrid vs standalone, one run each:
+`soak_fast` 4/4, `new_game_rebel` 11/11, `load_game` 9/9, `space_battle_autoresolve` 6/7 identical (`battle_closed`: 936 pixels differ, a
+timing artefact until a second hybrid run shows otherwise). Without the shims, hybrid and standalone saves of `save_game_slot` differ in 46
+bytes (tick counters and checksums).
+
+**Not done / differences from the hybrid.** The 1,665 tactical ID initializers of the table are not run (they are 0 entries: the
+generated `static_init_table.cpp` of the CRT/init work replaces the interim table); UCRT replaces the VC5 CRT (`rand`, `qsort`,
+`floor`, `_ftol`, `sprintf`, locale: the fidelity pieces are the CRT agent's); the heap probe of M7 is not implemented for the standalone
+(the heap is the UCRT's); `difftest`/captures are hybrid-only.
+
 ## Milestones
 
 | # | Milestone | Exit criterion |
@@ -163,7 +229,7 @@ incomplete vtables closed (M2/M3), that candidate list reviewed, and soak/save s
 | M3 | Tactical fence (captures, reachable reconstruction, stubs, vote fallback) | Hybrid with stubs: auto-resolve OK; "tactical" resolves abstractly. Done: see docs/code_map.md "Tactical fence (M3)" |
 | M4 | LIBCI + CRT fidelity pieces | difftest PASS; save/load scenarios OK. LIBCI done (src/game/iostream, 0 references left); CRT fidelity pieces done (src/game/crt; decisions for the rest in docs/library_code.md) |
 | M5 | `REB_OWN_DATA=1` hybrid: generated data image, vtable patching off | Scenarios match the normal hybrid. Data image done (above); vtable patching still on |
-| M6 | Standalone `rebellion.exe` (clang-cl/lld-link, static UCRT, real import libs, init table, entry wrapper) | Zero absolute symbols; differential runs pass |
+| M6 | Standalone `rebellion.exe` (clang-cl/lld-link, static UCRT, real import libs, init table, entry wrapper) | Zero absolute symbols; differential runs pass. First exe built and measured, see "M6" above (saves byte-identical on `save_determinism`; the full init table and CRT fidelity pieces are open) |
 | M7 | Determinism harness (can start with M1) | Repeated hybrid runs identical; heap probe recorded |
 
 ## Risks

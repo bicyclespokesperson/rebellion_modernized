@@ -1,0 +1,157 @@
+// Opt-in determinism shims of the standalone exe: the same switches and arithmetic as the hybrid's (src/hybrid/determinism.cpp,
+// docs/phase2_plan.md "Determinism"), so a standalone run and a hybrid run can be compared byte for byte.
+//
+// The hybrid patches the game's import address table; here the game's import slots are *defined* by this file
+// (`__imp__QueryPerformanceCounter@4` ...), ahead of the import libraries in the link, so the wrappers below are what the game
+// (and the UCRT) call. Without REB_DETERMINISTIC / REB_NO_TIMERS they forward to the real APIs.
+//   REB_DETERMINISTIC=1  virtual clock: every timeGetTime/GetTickCount call advances it by REB_CLOCK_STEP_US (default 1000),
+//                        QueryPerformanceCounter by REB_QPC_STEP_NS (default 1000) nanoseconds, the local/system time and
+//                        time() are fixed.
+//   REB_NO_TIMERS=1      timeSetEvent returns a fake id and never calls back.
+#include <windows.h>
+#include <mmsystem.h>
+#include <stdint.h>
+#include <time.h>
+
+namespace {
+
+constexpr int64_t kFrequency = 1000000;
+constexpr uint32_t kTickBaseMs = 100000;
+constexpr int64_t kFixedTime = 946728000;  // 2000-01-01 12:00:00 UTC
+
+bool g_deterministic = false;
+bool g_noTimers = false;
+volatile LONG g_clockCalls = 0;
+volatile LONG g_counterCalls = 0;
+uint32_t g_stepUs = 1000;
+uint32_t g_counterStepNs = 1000;
+volatile LONG g_ready = 0;
+
+uint32_t EnvNumber(const char* name, bool* present = nullptr) {
+    char buffer[32];
+    const DWORD n = GetEnvironmentVariableA(name, buffer, sizeof buffer);
+    if (present) *present = n != 0 && n < sizeof buffer;
+    if (n == 0 || n >= sizeof buffer) return 0;
+    uint32_t value = 0;
+    for (const char* c = buffer; *c >= '0' && *c <= '9'; ++c) value = value * 10 + static_cast<uint32_t>(*c - '0');
+    return value;
+}
+
+void EnsureReady() {
+    if (g_ready) return;
+    g_deterministic = EnvNumber("REB_DETERMINISTIC") != 0;
+    g_noTimers = EnvNumber("REB_NO_TIMERS") != 0;
+    if (const uint32_t step = EnvNumber("REB_CLOCK_STEP_US")) g_stepUs = step;
+    bool present = false;
+    const uint32_t counterStep = EnvNumber("REB_QPC_STEP_NS", &present);
+    if (present) g_counterStepNs = counterStep;
+    g_ready = 1;
+}
+
+template <typename Function>
+Function RealFunction(const char* module, const char* name) {
+    HMODULE handle = GetModuleHandleA(module);
+    if (!handle) handle = LoadLibraryA(module);
+    return reinterpret_cast<Function>(GetProcAddress(handle, name));
+}
+
+uint64_t AdvanceClockUs() { return static_cast<uint64_t>(static_cast<uint32_t>(InterlockedIncrement(&g_clockCalls))) * g_stepUs; }
+
+uint64_t AdvanceCounterUs() {
+    return static_cast<uint64_t>(static_cast<uint32_t>(InterlockedIncrement(&g_counterCalls))) * g_counterStepNs / 1000;
+}
+
+BOOL WINAPI RebQueryPerformanceCounter(LARGE_INTEGER* out) {
+    EnsureReady();
+    if (g_deterministic) {
+        if (out) out->QuadPart = static_cast<LONGLONG>(AdvanceCounterUs());
+        return TRUE;
+    }
+    static auto real = RealFunction<BOOL(WINAPI*)(LARGE_INTEGER*)>("kernel32.dll", "QueryPerformanceCounter");
+    return real(out);
+}
+
+BOOL WINAPI RebQueryPerformanceFrequency(LARGE_INTEGER* out) {
+    EnsureReady();
+    if (g_deterministic) {
+        if (out) out->QuadPart = kFrequency;
+        return TRUE;
+    }
+    static auto real = RealFunction<BOOL(WINAPI*)(LARGE_INTEGER*)>("kernel32.dll", "QueryPerformanceFrequency");
+    return real(out);
+}
+
+DWORD WINAPI RebGetTickCount() {
+    EnsureReady();
+    if (g_deterministic) return kTickBaseMs + static_cast<DWORD>(AdvanceClockUs() / 1000);
+    static auto real = RealFunction<DWORD(WINAPI*)()>("kernel32.dll", "GetTickCount");
+    return real();
+}
+
+DWORD WINAPI RebTimeGetTime() {
+    EnsureReady();
+    if (g_deterministic) return kTickBaseMs + static_cast<DWORD>(AdvanceClockUs() / 1000);
+    static auto real = RealFunction<DWORD(WINAPI*)()>("winmm.dll", "timeGetTime");
+    return real();
+}
+
+void WINAPI RebGetLocalTime(SYSTEMTIME* out) {
+    EnsureReady();
+    if (g_deterministic) {
+        if (out) *out = SYSTEMTIME{2000, 1, 6, 1, 12, 0, 0, 0};
+        return;
+    }
+    static auto real = RealFunction<void(WINAPI*)(SYSTEMTIME*)>("kernel32.dll", "GetLocalTime");
+    real(out);
+}
+
+void WINAPI RebGetSystemTime(SYSTEMTIME* out) {
+    EnsureReady();
+    if (g_deterministic) {
+        if (out) *out = SYSTEMTIME{2000, 1, 6, 1, 12, 0, 0, 0};
+        return;
+    }
+    static auto real = RealFunction<void(WINAPI*)(SYSTEMTIME*)>("kernel32.dll", "GetSystemTime");
+    real(out);
+}
+
+UINT WINAPI RebTimeSetEvent(UINT delay, UINT resolution, LPTIMECALLBACK callback, DWORD_PTR user, UINT flags) {
+    EnsureReady();
+    if (g_noTimers) return 1;
+    static auto real = RealFunction<UINT(WINAPI*)(UINT, UINT, LPTIMECALLBACK, DWORD_PTR, UINT)>("winmm.dll", "timeSetEvent");
+    return real(delay, resolution, callback, user, flags);
+}
+
+}  // namespace
+
+#define REB_DEFINE_IMPORT(symbol, function) \
+    extern "C" void* const reb_import_##function __asm__(symbol); \
+    extern "C" void* const reb_import_##function = reinterpret_cast<void*>(&function)
+
+REB_DEFINE_IMPORT("__imp__QueryPerformanceCounter@4", RebQueryPerformanceCounter);
+REB_DEFINE_IMPORT("__imp__QueryPerformanceFrequency@4", RebQueryPerformanceFrequency);
+REB_DEFINE_IMPORT("__imp__GetTickCount@0", RebGetTickCount);
+REB_DEFINE_IMPORT("__imp__timeGetTime@0", RebTimeGetTime);
+REB_DEFINE_IMPORT("__imp__GetLocalTime@4", RebGetLocalTime);
+REB_DEFINE_IMPORT("__imp__GetSystemTime@4", RebGetSystemTime);
+REB_DEFINE_IMPORT("__imp__timeSetEvent@20", RebTimeSetEvent);
+
+// The game's single time() call (a seed): the UCRT's time() is inline over these.
+extern "C" __time64_t __cdecl _time64(__time64_t* out) {
+    EnsureReady();
+    __time64_t value = kFixedTime;
+    if (!g_deterministic) {
+        FILETIME fileTime;
+        GetSystemTimeAsFileTime(&fileTime);
+        const uint64_t ticks = (static_cast<uint64_t>(fileTime.dwHighDateTime) << 32) | fileTime.dwLowDateTime;
+        value = static_cast<__time64_t>(ticks / 10000000ull - 11644473600ull);
+    }
+    if (out) *out = value;
+    return value;
+}
+
+extern "C" __time32_t __cdecl _time32(__time32_t* out) {
+    const __time32_t value = static_cast<__time32_t>(_time64(nullptr));
+    if (out) *out = value;
+    return value;
+}

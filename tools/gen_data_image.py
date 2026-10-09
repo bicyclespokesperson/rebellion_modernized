@@ -39,6 +39,7 @@ import own_data  # noqa: E402
 STRING_RUN = re.compile(rb"[\x20-\x7e\t\r\n]{3,}\0")
 MAX_STRING = 1024
 MAX_NAMED_RDATA = 0x100
+MAX_NAMED_RDATA_STANDALONE = 0x1000  # the image is the only definition: never truncate a table
 SUSPICIOUS_IMM_MNEMONICS = {"add", "sub", "and", "or", "xor", "imul", "test", "adc", "sbb", "shl", "shr", "sar"}
 
 
@@ -157,8 +158,11 @@ class Owners:
 
 
 class Image:
-    def __init__(self, exe: Exe, symbols_dir: Path, refs: dict):
+    def __init__(self, exe: Exe, symbols_dir: Path, refs: dict, standalone: bool = False):
         self.exe = exe
+        self.standalone = standalone
+        self.unreconstructed_code_pointers: dict[int, int] = {}
+        self.unresolved_rdata_pointers: list[tuple[int, int]] = []
         self.data_refs: dict[str, tuple[int, str]] = {raw: (int(e["address"], 16), e["name"])
                                                       for raw, e in refs["data"].items()}
         self.hook_symbols = {int(a, 16): raw for a, raw in refs["hooks"].items()}
@@ -200,14 +204,81 @@ class Image:
 
     # -- .rdata copies
     def named_rdata(self) -> list[tuple[str, int]]:
+        if self.standalone:  # vtables too: their slots are relocated to our function symbols
+            lo, hi = own_data.RDATA_RANGE
+            return sorted((raw, a) for raw, (a, name) in self.data_refs.items() if lo <= a < hi)
         return sorted((raw, a) for raw, (a, name) in self.data_refs.items() if own_data.is_copied_rdata(a, name))
+
+    def foreign_data(self) -> list[tuple[str, int]]:
+        """Standalone: referenced globals of the EXE's CRT/LIBCI .data/.bss, defined here as fresh storage."""
+        lo, hi = own_data.RDATA_RANGE
+        return sorted((raw, a) for raw, (a, _) in self.data_refs.items()
+                      if not own_data.in_segment(a) and not lo <= a < hi)
+
+    def code_pointer_expression(self, value: int) -> str:
+        symbol = self.hook_symbols.get(value)
+        if symbol:
+            return quote(symbol)
+        self.unreconstructed_code_pointers[value] = self.unreconstructed_code_pointers.get(value, 0) + 1
+        return f"reb_orig_{value:08x}"
+
+    def emit_relocated(self, lines: list[str], address: int, length: int) -> None:
+        """Bytes of the EXE with every aligned dword that is a function start replaced by our symbol for it."""
+        data = self.exe.bytes_at(address, length)
+        cursor = 0
+        for offset in range(0, length - 3, 4):
+            value = struct.unpack_from("<I", data, offset)[0]
+            expression = None
+            if value in self.functions:
+                expression = self.code_pointer_expression(value)
+            elif own_data.in_segment(value):
+                expression = f"_reb_data_block+{value - own_data.BLOCK_BASE:#x}"
+                self.fixups["rdata copy -> block label"] += 1
+            elif own_data.RDATA_RANGE[0] <= value < own_data.RDATA_RANGE[1]:
+                expression = self.rdata_label(value)
+                if expression is None:
+                    self.unresolved_rdata_pointers.append((address + offset, value))
+            if expression:
+                self.emit_bytes(lines, data[cursor:offset])
+                lines.append(f"  .long {expression}")
+                cursor = offset + 4
+        self.emit_bytes(lines, data[cursor:])
+
+    def rdata_pointer_targets(self) -> set[int]:
+        """Standalone: .rdata addresses that the copied .rdata globals point at (strings of `const char* const` globals,
+        tables of string pointers): the targets are copied too and the pointers relocated."""
+        lo, hi = own_data.RDATA_RANGE
+        targets = set()
+        for _, address in self.named_rdata():
+            extent = self.named_extent(address)
+            data = self.exe.bytes_at(address, extent)
+            for offset in range(0, extent - 3, 4):
+                value = struct.unpack_from("<I", data, offset)[0]
+                if lo <= value < hi and not address <= value < address + extent and value not in self.functions:
+                    targets.add(value)
+        return targets
+
+    def foreign_asm(self) -> list[str]:
+        by_address: dict[int, list[str]] = {}
+        for raw, a in self.foreign_data():
+            by_address.setdefault(a, []).append(raw)
+        if not by_address:
+            return []
+        lines = ['.section .data,"dw"', ".p2align 4"]
+        for a, names in sorted(by_address.items()):
+            lines.append(".p2align 2")
+            for raw in sorted(names):
+                lines += [f".globl {quote(raw)}", f"{quote(raw)}:"]
+            self.emit_span(lines, self.exe.bytes_at(a, self.named_extent(a)))
+        return lines
 
     def named_extent(self, address: int) -> int:
         if address in self.symbol_sizes:
             return self.symbol_sizes[address]
         later = [a for a in self.symbol_starts if a > address]
-        next_symbol = later[0] if later else address + MAX_NAMED_RDATA
-        return max(4, min(next_symbol - address, MAX_NAMED_RDATA))
+        limit = MAX_NAMED_RDATA_STANDALONE if self.standalone else MAX_NAMED_RDATA
+        next_symbol = later[0] if later else address + limit
+        return max(4, min(next_symbol - address, limit))
 
     def string_extent(self, address: int) -> int | None:
         raw = self.exe.bytes_at(address, MAX_STRING)
@@ -313,7 +384,10 @@ class Image:
             for a, b in zip(cuts, cuts[1:]):
                 for raw in sorted(names.get(a, ())):
                     lines += [f".globl {quote(raw)}", f"{quote(raw)}:"]
-                self.emit_bytes(lines, self.exe.bytes_at(a, b - a))
+                if self.standalone:
+                    self.emit_relocated(lines, a, b - a)
+                else:
+                    self.emit_bytes(lines, self.exe.bytes_at(a, b - a))
             lines.append(".p2align 2")
         return lines
 
@@ -334,6 +408,67 @@ def non_block_pointer_sites(exe: Exe) -> list[tuple[int, str]]:
     return sites
 
 
+INIT_TABLE = (0x6A6004, 0x6A7BD8)  # the original's static-initializer table (_initterm range), 1,781 entries
+
+
+def init_table_asm(image: Image) -> tuple[list[str], list[int]]:
+    """Bring-up stand-in for the generated static-init table: the original order, reconstructed initializers by symbol,
+    the others as 0 (reported)."""
+    lo, hi = INIT_TABLE
+    entries = struct.unpack(f"<{(hi - lo) // 4}I", image.exe.bytes_at(lo, hi - lo))
+    lines = ['.section .rdata,"dr"', ".p2align 2", ".globl _reb_init_table", "_reb_init_table:"]
+    missing = []
+
+    def targets(value: int) -> list[int]:
+        """The reconstructed initializers an entry runs: itself, or what its `jmp X` / `call X; jmp Y` thunk reaches."""
+        if value in image.hook_symbols:
+            return [value]
+        code = image.exe.bytes_at(value, 10)
+        if code[0] == 0xE9:
+            return targets((value + 5 + struct.unpack_from("<i", code, 1)[0]) & 0xFFFFFFFF)
+        if code[0] == 0xE8 and code[5] == 0xE9:
+            first = (value + 5 + struct.unpack_from("<i", code, 1)[0]) & 0xFFFFFFFF
+            second = (value + 10 + struct.unpack_from("<i", code, 6)[0]) & 0xFFFFFFFF
+            return [*targets(first), *targets(second)]
+        return []
+
+    for value in entries:
+        found = targets(value)
+        for target in found:
+            lines.append(f"  .long {quote(image.hook_symbols[target])}")
+        if not found:
+            lines.append("  .long 0")
+            missing.append(value)
+    emitted = sum(1 for line in lines if line.startswith("  .long"))
+    lines += [".globl _reb_init_table_count", f"_reb_init_table_count = {emitted}"]
+    return lines, missing
+
+
+def write_standalone(args: argparse.Namespace, image: Image, slots: list[tuple[int, int, str]]) -> int:
+    init_lines, init_missing = init_table_asm(image)
+    lines = ['.globl "@feat.00"', '"@feat.00" = 1', ".text", *image.block_asm(slots), *image.rdata_asm(), *image.foreign_asm(),
+             *init_lines]
+    args.out_asm.parent.mkdir(parents=True, exist_ok=True)
+    args.out_asm.write_text("\n".join(lines) + "\n")
+    bad_fixups = {k: v for k, v in image.fixups.items() if k.startswith(("code -> original", "CRT data", "rdata -> original"))}
+    report = {
+        "block": {"original": f"{own_data.BLOCK_BASE:#x}-{own_data.BLOCK_END:#x}", "bytes": len(image.block)},
+        "rdata_copies": {"named_labels": len(image.named_rdata()), "bytes": sum(e - s for s, e in image.rdata_intervals)},
+        "foreign_data_labels": len(image.foreign_data()),
+        "init_table": {"entries": (INIT_TABLE[1] - INIT_TABLE[0]) // 4, "unreconstructed": len(init_missing)},
+        "pointer_fixups_in_block": dict(image.fixups),
+        "unreconstructed_code_pointers": {f"{a:#x}": n for a, n in sorted(image.unreconstructed_code_pointers.items())},
+        "unresolved_fixups": bad_fixups,
+        "rdata_pointers_not_relocated": [f"{a:#x} -> {v:#x}" for a, v in image.unresolved_rdata_pointers],
+    }
+    args.out_report.write_text(json.dumps(report, indent=1) + "\n")
+    print(f"gen_data_image --standalone: block {len(image.block):#x} bytes, {len(slots)} pointer fixups {dict(image.fixups)}, "
+          f"{len(image.rdata_intervals)} .rdata copies, {len(image.foreign_data())} CRT-data labels, "
+          f"{len(image.unreconstructed_code_pointers)} unreconstructed code pointers (reb_orig_*), "
+          f"init table: {len(init_missing)} of {(INIT_TABLE[1] - INIT_TABLE[0]) // 4} entries not reconstructed")
+    return 1 if bad_fixups else 0
+
+
 def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--exe", type=Path, required=True)
@@ -341,15 +476,20 @@ def main() -> int:
     ap.add_argument("--refs", type=Path, required=True, help="data_refs.json from gen_link_symbols.py --own-data")
     ap.add_argument("--out-asm", type=Path, required=True)
     ap.add_argument("--out-report", type=Path, required=True)
+    ap.add_argument("--standalone", action="store_true",
+                    help="REB_STANDALONE: the image is the real definition of all referenced globals (also CRT/LIBCI data "
+                         "and vtables); no run-time patching of the EXE, so no code-reference scan")
     args = ap.parse_args()
 
     exe = Exe(args.exe)
     refs = json.loads(args.refs.read_text())
-    image = Image(exe, args.symbols, refs)
+    image = Image(exe, args.symbols, refs, args.standalone)
     hooked = set(image.hook_symbols)
 
     slots = image.pointer_slots()
-    image.plan_rdata({v for _, v, k in slots if k == "rdata"})
+    image.plan_rdata({v for _, v, k in slots if k == "rdata"} | (image.rdata_pointer_targets() if args.standalone else set()))
+    if args.standalone:
+        return write_standalone(args, image, slots)
 
     scan = CodeScan(exe, sorted(image.functions))
     owners = Owners(args.symbols, hooked)

@@ -14,7 +14,7 @@ wine reg add "$key" /v EncyLocation /d 'C:\game\EDATA' /f >/dev/null 2>&1
 wine reg add "$key" /v EXEPath /d 'C:\game\REBEXE.EXE' /f >/dev/null 2>&1
 ln -sfn /game "$WINEPREFIX/drive_c/game"
 cd /game
-WINEDEBUG="${WINEDEBUG:-err+all}" wine explorer /desktop=reb,640x480 REBEXE.EXE > /out/wine.log 2>&1 &
+WINEDEBUG="${WINEDEBUG:-err+all}" wine explorer /desktop=reb,640x480 "${REB_EXE:-REBEXE.EXE}" > /out/wine.log 2>&1 &
 start=$(date +%s.%N)
 while read -r at action a1 a2 a3 a4; do
   [[ -z "${at:-}" || "$at" == \#* ]] && continue
