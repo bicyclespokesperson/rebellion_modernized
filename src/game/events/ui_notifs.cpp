@@ -1,4 +1,5 @@
 #include "events/ui_notifs.h"
+#include "core/atexit_keep.h"
 
 #include <new>
 
@@ -8,9 +9,9 @@
 #include "strategy_ui/game_ui_facade.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern uint8_t DAT_006b28d8;
-extern ObjectKey DAT_006b28dc;
-void FUN_0043fc40();
+extern uint8_t g_uiNotif2KeyReady;
+extern ObjectKey g_uiNotif2Key;
+void DestroyUiNotif2Key();
 
 // ---- UiNotif340 (kind 0x340) ----
 UiNotif340::UiNotif340() : KeyPairPayload() {}
@@ -1148,12 +1149,12 @@ UiNotif2::~UiNotif2() { REB_KEEP_VPTR_STORE(); }
 int UiNotif2::GetKind() { return 0x2; }
 
 void UiNotif2::DispatchToSink(UiNotice* sink) {
-    if ((DAT_006b28d8 & 1) == 0) {
-        DAT_006b28d8 |= 1;
-        new (&DAT_006b28dc) ObjectKey();
-        atexit(FUN_0043fc40);
+    if ((g_uiNotif2KeyReady & 1) == 0) {
+        g_uiNotif2KeyReady |= 1;
+        new (&g_uiNotif2Key) ObjectKey();
+        atexit(DestroyUiNotif2Key);
     }
-    if (sink) sink->Virtual08(GetKind(), asArg(&DAT_006b28dc), 1);
+    if (sink) sink->Virtual08(GetKind(), asArg(&g_uiNotif2Key), 1);
 }
 
 void* CreateUiNotif2() { return NewOrNull<UiNotif2>(); }
@@ -1243,3 +1244,8 @@ UiNotif1::~UiNotif1() { REB_KEEP_VPTR_STORE(); }
 void UiNotif1::Dispatch(PlayerController* controller) { controller->Virtual22(m_valueC, m_valueD); }
 
 void* CreateUiNotif1() { return NewOrNull<UiNotif1>(); }
+
+void DestroyUiNotif2Key() {
+    REB_KEEP_ATEXIT_TARGET();
+    g_uiNotif2Key.~ObjectKey();
+}

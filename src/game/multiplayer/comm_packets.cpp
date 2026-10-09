@@ -10,10 +10,10 @@
 #include "core/vptr_store.h"
 #include "multiplayer/comm_mgr.h"
 
-extern "C" void __cdecl LAB_005fa7f0();
-extern "C" void __cdecl LAB_005fa840();
-extern "C" void __cdecl LAB_005fa890();
-extern "C" void __cdecl LAB_005fa8e0();
+void DestroyCommSettings();
+void DestroyServiceProviderList();
+void DestroySessionList();
+void DestroyLobbyConnection();
 
 // The shared empty function the release build left in place of the debug trace (it pops one argument).
 void __thiscall FUN_005ae1e0(void* self, const char* text);
@@ -78,28 +78,28 @@ LobbyConnection::~LobbyConnection() { REB_KEEP_VPTR_STORE(); }
 // The static initializers of the four lobby/communication globals: the constructor call (a tiny stub per object)
 // and the registration of the matching destructor with atexit.
 void CommSettingsConstruct() { new (&g_commSettings) StringMap(); }                       // 0x5fa7c0
-void CommSettingsRegisterAtExit() { atexit(LAB_005fa7f0); }                               // 0x5fa7e0
+void CommSettingsRegisterAtExit() { atexit(DestroyCommSettings); }                               // 0x5fa7e0
 void CommSettingsStaticInit() {                                                           // 0x5fa7b0
     CommSettingsConstruct();
     CommSettingsRegisterAtExit();
 }
 
 void ServiceProviderListConstruct() { new (&g_serviceProviderList) ServiceProviderList(); }  // 0x5fa820
-void ServiceProviderListRegisterAtExit() { atexit(LAB_005fa840); }                           // 0x5fa830
+void ServiceProviderListRegisterAtExit() { atexit(DestroyServiceProviderList); }                           // 0x5fa830
 void ServiceProviderListStaticInit() {                                                       // 0x5fa810
     ServiceProviderListConstruct();
     ServiceProviderListRegisterAtExit();
 }
 
 void SessionListConstruct() { new (&g_sessionList) SessionList(); }  // 0x5fa870
-void SessionListRegisterAtExit() { atexit(LAB_005fa890); }           // 0x5fa880
+void SessionListRegisterAtExit() { atexit(DestroySessionList); }           // 0x5fa880
 void SessionListStaticInit() {                                       // 0x5fa860
     SessionListConstruct();
     SessionListRegisterAtExit();
 }
 
 void LobbyConnectionConstruct() { new (&g_lobbyConnection) LobbyConnection(); }  // 0x5fa8c0
-void LobbyConnectionRegisterAtExit() { atexit(LAB_005fa8e0); }                   // 0x5fa8d0
+void LobbyConnectionRegisterAtExit() { atexit(DestroyLobbyConnection); }                   // 0x5fa8d0
 void LobbyConnectionStaticInit() {                                               // 0x5fa8b0
     LobbyConnectionConstruct();
     LobbyConnectionRegisterAtExit();
@@ -414,3 +414,37 @@ void ReceiveBuffer::Reset() {
 }
 
 ReceiveBuffer::~ReceiveBuffer() { REB_KEEP_VPTR_STORE(); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_commSettingsDestroyedGuard;  // 0x6be394
+
+void DestroyCommSettings() {
+    if (!(g_commSettingsDestroyedGuard & 0x1)) {
+        g_commSettingsDestroyedGuard |= 0x1;
+        g_commSettings.~StringMap();
+    }
+}
+
+extern uint8_t g_serviceProviderListDestroyedGuard;  // 0x6be390
+
+void DestroyServiceProviderList() {
+    if (!(g_serviceProviderListDestroyedGuard & 0x1)) {
+        g_serviceProviderListDestroyedGuard |= 0x1;
+        g_serviceProviderList.~ServiceProviderList();
+    }
+}
+
+void DestroySessionList() {
+    if (!(g_serviceProviderListDestroyedGuard & 0x2)) {
+        g_serviceProviderListDestroyedGuard |= 0x2;
+        g_sessionList.~SessionList();
+    }
+}
+
+void DestroyLobbyConnection() {
+    if (!(g_serviceProviderListDestroyedGuard & 0x4)) {
+        g_serviceProviderListDestroyedGuard |= 0x4;
+        g_lobbyConnection.~LobbyConnection();
+    }
+}

@@ -5,10 +5,10 @@
 #include "story/story_characters.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_00594780();
-extern "C" void __cdecl LAB_0056f000();
-extern "C" void __cdecl LAB_00573c70();
-extern "C" void __cdecl LAB_00575690();
+void DestroyMajorCharacterEventKinds();
+void DestroyMajorChar30EventKinds();
+void DestroyMajorChar34EventKinds();
+void DestroyMajorChar35EventKinds();
 
 extern int g_majorCharacterEventKindsReady;      // 0x6bc070
 extern EventKindSet g_majorCharacterEventKinds;  // 0x6bc068
@@ -96,7 +96,7 @@ int MajorCharacter::InitEventKinds(int unused, EventKindSet* out) {
 
 void ConstructMajorCharacterEventKinds() { new (&g_majorCharacterEventKinds) EventKindSet(); }
 
-void RegisterMajorCharacterEventKindsAtExit() { atexit(LAB_00594780); }
+void RegisterMajorCharacterEventKindsAtExit() { atexit(DestroyMajorCharacterEventKinds); }
 
 void MajorCharacter::InitStatics() {
     ConstructMajorCharacterEventKinds();
@@ -168,7 +168,7 @@ int MajorChar30::BuildEventKinds() {
 
 void ConstructMajorChar30EventKinds() { new (&g_majorChar30EventKinds) EventKindSet(); }
 
-void RegisterMajorChar30EventKindsAtExit() { atexit(LAB_0056f000); }
+void RegisterMajorChar30EventKindsAtExit() { atexit(DestroyMajorChar30EventKinds); }
 
 void MajorChar30::InitStatics() {
     ConstructMajorChar30EventKinds();
@@ -221,7 +221,7 @@ int MajorChar34::BuildEventKinds() {
 
 void ConstructMajorChar34EventKinds() { new (&g_majorChar34EventKinds) EventKindSet(); }
 
-void RegisterMajorChar34EventKindsAtExit() { atexit(LAB_00573c70); }
+void RegisterMajorChar34EventKindsAtExit() { atexit(DestroyMajorChar34EventKinds); }
 
 void MajorChar34::InitStatics() {
     ConstructMajorChar34EventKinds();
@@ -274,9 +274,47 @@ int MajorChar35::BuildEventKinds() {
 
 void ConstructMajorChar35EventKinds() { new (&g_majorChar35EventKinds) EventKindSet(); }
 
-void RegisterMajorChar35EventKindsAtExit() { atexit(LAB_00575690); }
+void RegisterMajorChar35EventKindsAtExit() { atexit(DestroyMajorChar35EventKinds); }
 
 void MajorChar35::InitStatics() {
     ConstructMajorChar35EventKinds();
     RegisterMajorChar35EventKindsAtExit();
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_majorChar30EventKindsDestroyedGuard;  // 0x6bb9d4
+
+void DestroyMajorChar30EventKinds() {
+    if (!(g_majorChar30EventKindsDestroyedGuard & 0x1)) {
+        g_majorChar30EventKindsDestroyedGuard |= 0x1;
+        g_majorChar30EventKinds.~EventKindSet();
+    }
+}
+
+extern uint8_t g_majorChar34EventKindsDestroyedGuard;  // 0x6bba7c
+
+void DestroyMajorChar34EventKinds() {
+    if (!(g_majorChar34EventKindsDestroyedGuard & 0x1)) {
+        g_majorChar34EventKindsDestroyedGuard |= 0x1;
+        g_majorChar34EventKinds.~EventKindSet();
+    }
+}
+
+extern uint8_t g_majorChar35EventKindsDestroyedGuard;  // 0x6bbac8
+
+void DestroyMajorChar35EventKinds() {
+    if (!(g_majorChar35EventKindsDestroyedGuard & 0x1)) {
+        g_majorChar35EventKindsDestroyedGuard |= 0x1;
+        g_majorChar35EventKinds.~EventKindSet();
+    }
+}
+
+extern uint8_t g_majorCharacterEventKindsDestroyedGuard;  // 0x6bc074
+
+void DestroyMajorCharacterEventKinds() {
+    if (!(g_majorCharacterEventKindsDestroyedGuard & 0x1)) {
+        g_majorCharacterEventKindsDestroyedGuard |= 0x1;
+        g_majorCharacterEventKinds.~EventKindSet();
+    }
 }

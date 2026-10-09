@@ -19,7 +19,7 @@ extern HHOOK g_menuHook;               // 0x6b28f8
 extern HWND g_menuPreviousFocus;       // 0x6b28fc
 extern HWND g_menuClickFocus;          // 0x6b2900
 
-void FUN_004422d0();
+void DestroyMenuRoot();
 
 namespace {
 
@@ -328,4 +328,15 @@ void StaticInitMenuList() {
 
 void InitMenuList() { new (&g_menuRoot) MenuItemList(); }
 
-void RegisterMenuListDestructor() { atexit(FUN_004422d0); }
+void RegisterMenuListDestructor() { atexit(DestroyMenuRoot); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_menuRootDestroyedGuard;  // 0x6b28f0
+
+void DestroyMenuRoot() {
+    if (!(g_menuRootDestroyedGuard & 0x1)) {
+        g_menuRootDestroyedGuard |= 0x1;
+        g_menuRoot.~MenuItemList();
+    }
+}

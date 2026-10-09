@@ -7,7 +7,7 @@
 #include "gameobj/object_family.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_004f2580();
+void DestroyCharacterEventKinds();
 
 extern int g_characterEventKindsBuilt;       // 0x6b2938
 extern EventKindSet g_characterEventKinds;   // 0x6b2940
@@ -324,7 +324,7 @@ int Character::InitEventKinds(int unused, EventKindSet* out) {
 
 void ConstructCharacterEventKinds() { new (&g_characterEventKinds) EventKindSet(); }
 
-void RegisterCharacterEventKindsAtExit() { atexit(LAB_004f2580); }
+void RegisterCharacterEventKindsAtExit() { atexit(DestroyCharacterEventKinds); }
 
 void Character::InitStatics() {
     ConstructCharacterEventKinds();
@@ -338,3 +338,14 @@ CharacterIterator::CharacterIterator(GameObjNotifier* parent, uint32_t stateFilt
     : ChildIterator(parent, side, &family::kCharacters, stateFilter) {}
 
 CharacterIterator::~CharacterIterator() { REB_KEEP_VPTR_STORE(); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_characterEventKindsDestroyedGuard;  // 0x6b2948
+
+void DestroyCharacterEventKinds() {
+    if (!(g_characterEventKindsDestroyedGuard & 0x1)) {
+        g_characterEventKindsDestroyedGuard |= 0x1;
+        g_characterEventKinds.~EventKindSet();
+    }
+}

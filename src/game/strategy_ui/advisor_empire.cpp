@@ -16,7 +16,7 @@
 #include "strategy_ui/game_ui_facade.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_004c1540();
+void DestroyEmpireChoices();
 
 extern IdAvlTree g_empireChoices;      // 0x6b2918 the list the display-mode switches show
 extern uint32_t g_empireChoicesGuard;  // 0x6b2924
@@ -39,7 +39,7 @@ IdAvlTree* ChoicesTree() {
     if ((g_empireChoicesGuard & 1) == 0) {
         g_empireChoicesGuard |= 1;
         new (&g_empireChoices) IdAvlTree();
-        atexit(LAB_004c1540);
+        atexit(DestroyEmpireChoices);
     }
     return &g_empireChoices;
 }
@@ -569,3 +569,7 @@ int EmpireAdvisor::PickMoodCue() {
         return UiSessionRandom(3) + 1;
     }
 }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+void DestroyEmpireChoices() { g_empireChoices.~IdAvlTree(); }

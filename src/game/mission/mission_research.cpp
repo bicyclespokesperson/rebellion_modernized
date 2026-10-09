@@ -13,7 +13,7 @@
 #include "mission/mission_external.h"
 #include "mission/mission_rules.h"
 
-extern "C" void __cdecl LAB_0056d190();  // the atexit destructor of the event kind set
+void DestroyMissionResearchEventKinds();  // the atexit destructor of the event kind set
 
 extern int g_missionResearchEventKindsReady;      // 0x6bb984
 extern EventKindSet g_missionResearchEventKinds;  // 0x6bb988
@@ -377,9 +377,20 @@ int MissionResearch::BuildEventKinds() {
 
 void ConstructMissionResearchEventKinds() { new (&g_missionResearchEventKinds) EventKindSet(); }
 
-void RegisterMissionResearchEventKindsAtExit() { atexit(LAB_0056d190); }
+void RegisterMissionResearchEventKindsAtExit() { atexit(DestroyMissionResearchEventKinds); }
 
 void MissionResearch::InitStatics() {
     ConstructMissionResearchEventKinds();
     RegisterMissionResearchEventKindsAtExit();
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_missionResearchEventKindsDestroyedGuard;  // 0x6bb980
+
+void DestroyMissionResearchEventKinds() {
+    if (!(g_missionResearchEventKindsDestroyedGuard & 0x1)) {
+        g_missionResearchEventKindsDestroyedGuard |= 0x1;
+        g_missionResearchEventKinds.~EventKindSet();
+    }
 }

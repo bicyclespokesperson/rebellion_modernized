@@ -13,7 +13,7 @@
 #include "strategy_ui/human_player.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_004392e0();
+void DestroyHumanUiFlags();
 
 namespace {
 
@@ -39,7 +39,7 @@ int NoticeKind(IdValueNode* notice) { return notice->m_value & kNoticeKindMask; 
 // ---- Static initialisation of g_humanUiFlags ------------------------------------------------------------------
 
 void AdvisorInitFlags() { new (&g_humanUiFlags) PersistentInt(0); }  // 0x4392c0
-void AdvisorRegisterFlagsAtExit() { atexit(LAB_004392e0); }          // 0x4392d0
+void AdvisorRegisterFlagsAtExit() { atexit(DestroyHumanUiFlags); }          // 0x4392d0
 void AdvisorInitStatics() {                                          // 0x4392b0
     AdvisorInitFlags();
     AdvisorRegisterFlagsAtExit();
@@ -461,4 +461,15 @@ void AdvisorBase::SetRefusedOrder(const void* order) { m_refusedOrder = order; }
 void AdvisorBase::OnOrderSubmitted(const void* order) {
     if ((g_humanUiFlags.m_value & kFlagNoticesCollected) != 0 && order == m_refusedOrder) g_humanUiFlags.m_value |= 1;
     g_humanUiFlags.m_value &= ~kFlagNoticesCollected;
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_humanUiFlagsDestroyedGuard;  // 0x6b28b4
+
+void DestroyHumanUiFlags() {
+    if (!(g_humanUiFlagsDestroyedGuard & 0x1)) {
+        g_humanUiFlagsDestroyedGuard |= 0x1;
+        g_humanUiFlags.~PersistentInt();
+    }
 }

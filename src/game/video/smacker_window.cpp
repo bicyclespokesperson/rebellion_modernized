@@ -9,9 +9,6 @@
 // BUG(original): the playback thread procedure is cdecl, not stdcall as CreateThread expects.
 #pragma clang diagnostic ignored "-Wcast-calling-convention"
 
-// SoundManager (0x610b20-0x611e90) entry points the window uses to leave the primary buffer volume as it found it.
-int FUN_00610cf0();                                // primary buffer volume
-
 namespace {
 constexpr int kFirstSkipKey = VK_ESCAPE;
 constexpr int kSecondSkipKey = VK_LBUTTON;
@@ -55,7 +52,7 @@ SmackerWindow::SmackerWindow(const char* path, HINSTANCE instance, int x, int y,
     m_volumeTouched = 0;
     m_savedVolume = 0;
     if (!SoundManager::GetDirectSound()) SoundManager::Initialize(m_hwnd, 1, 0);
-    m_savedVolume = FUN_00610cf0();
+    m_savedVolume = SoundManager::GetMasterVolume();
     SoundManager::Shutdown(0);
 }
 

@@ -8,9 +8,9 @@
 #include "story/story_common.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_0056fd20();
-extern "C" void __cdecl LAB_005701b0();
-extern "C" void __cdecl LAB_00572c30();
+void DestroyLukeEventKinds();
+void DestroyLeiaEventKinds();
+void DestroyHanEventKinds();
 
 extern int g_lukeEventKindsReady;      // 0x6bb9e8
 extern EventKindSet g_lukeEventKinds;  // 0x6bb9f0
@@ -202,7 +202,7 @@ int Luke::BuildEventKinds() {
 
 void ConstructLukeEventKinds() { new (&g_lukeEventKinds) EventKindSet(); }
 
-void RegisterLukeEventKindsAtExit() { atexit(LAB_0056fd20); }
+void RegisterLukeEventKindsAtExit() { atexit(DestroyLukeEventKinds); }
 
 void Luke::InitStatics() {
     ConstructLukeEventKinds();
@@ -279,7 +279,7 @@ int Leia::BuildEventKinds() {
 
 void ConstructLeiaEventKinds() { new (&g_leiaEventKinds) EventKindSet(); }
 
-void RegisterLeiaEventKindsAtExit() { atexit(LAB_005701b0); }
+void RegisterLeiaEventKindsAtExit() { atexit(DestroyLeiaEventKinds); }
 
 void Leia::InitStatics() {
     ConstructLeiaEventKinds();
@@ -388,7 +388,7 @@ int Han::BuildEventKinds() {
 
 void ConstructHanEventKinds() { new (&g_hanEventKinds) EventKindSet(); }
 
-void RegisterHanEventKindsAtExit() { atexit(LAB_00572c30); }
+void RegisterHanEventKindsAtExit() { atexit(DestroyHanEventKinds); }
 
 void Han::InitStatics() {
     ConstructHanEventKinds();
@@ -410,3 +410,32 @@ MinorCharacterIterator::MinorCharacterIterator(GameObjNotifier* parent, uint32_t
     : ChildIterator(parent, side, &kMinorCharacters, stateFilter) {}
 
 MinorCharacterIterator::~MinorCharacterIterator() { REB_KEEP_VPTR_STORE(); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_lukeEventKindsDestroyedGuard;  // 0x6bb9f8
+
+void DestroyLukeEventKinds() {
+    if (!(g_lukeEventKindsDestroyedGuard & 0x1)) {
+        g_lukeEventKindsDestroyedGuard |= 0x1;
+        g_lukeEventKinds.~EventKindSet();
+    }
+}
+
+extern uint8_t g_leiaEventKindsDestroyedGuard;  // 0x6bba0c
+
+void DestroyLeiaEventKinds() {
+    if (!(g_leiaEventKindsDestroyedGuard & 0x1)) {
+        g_leiaEventKindsDestroyedGuard |= 0x1;
+        g_leiaEventKinds.~EventKindSet();
+    }
+}
+
+extern uint8_t g_hanEventKindsDestroyedGuard;  // 0x6bba5c
+
+void DestroyHanEventKinds() {
+    if (!(g_hanEventKindsDestroyedGuard & 0x1)) {
+        g_hanEventKindsDestroyedGuard |= 0x1;
+        g_hanEventKinds.~EventKindSet();
+    }
+}

@@ -166,6 +166,9 @@ void BattleFlow::Step(int* stepped) {
         case kFlowBattleWaitForType:
             g_gameStepDriver->Step(reinterpret_cast<uint32_t*>(stepped));
             UiExchangeVotesTimed(&allVoted, &unanimous, &m_voteTimeA, &m_voteTimeB);
+#ifdef REB_NO_TACTICAL_3D
+            unanimous = 1;  // no 3D engine: a "tactical" vote (2) is resolved like auto-resolve (1)
+#endif
             if (allVoted != 0) m_state = (unanimous != 0) + kFlowConvertToTactical;
             break;
         case kFlowConvertToTactical: {

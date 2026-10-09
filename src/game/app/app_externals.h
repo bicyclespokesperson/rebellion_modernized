@@ -71,7 +71,6 @@ public:
 };
 
 // ---- Appended by the save/load slice -------------------------------------------------------------------------
-void FUN_00401b50();       // thunk to FUN_00409280: create the battle-flow object
 extern const char* g_autosaveName;  // 0x6a81d8: pointer to the "Autosave" text
 
 // ---- Added by the screens slice (app_screens.cpp) --------------------------------------------------------------

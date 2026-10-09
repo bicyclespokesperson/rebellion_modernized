@@ -7,7 +7,7 @@
 #include "gameobj/object_family.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_00536d60();
+void DestroyRoleEventKinds();
 
 extern EventKindSet g_roleEventKinds;  // 0x6b9028
 extern int g_roleEventKindsBuilt;      // 0x6b9030, set by the first BuildEventKinds
@@ -80,7 +80,7 @@ int Role::GetEventKinds(int unused, EventKindSet* out) {
 
 void Role::ConstructEventKinds() { new (&g_roleEventKinds) EventKindSet(); }
 
-void Role::RegisterEventKindsAtExit() { atexit(LAB_00536d60); }
+void Role::RegisterEventKindsAtExit() { atexit(DestroyRoleEventKinds); }
 
 void Role::InitStatics() {
     ConstructEventKinds();
@@ -371,3 +371,14 @@ RoleIterator::RoleIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32
     : ChildIterator(parent, side, &kRoleFamilies, stateFilter) {}
 
 RoleIterator::~RoleIterator() { REB_KEEP_VPTR_STORE(); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_roleEventKindsDestroyedGuard;  // 0x6b9034
+
+void DestroyRoleEventKinds() {
+    if (!(g_roleEventKindsDestroyedGuard & 0x1)) {
+        g_roleEventKindsDestroyedGuard |= 0x1;
+        g_roleEventKinds.~EventKindSet();
+    }
+}

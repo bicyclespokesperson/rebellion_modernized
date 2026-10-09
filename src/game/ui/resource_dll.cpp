@@ -28,6 +28,12 @@ FontTable::FontTable(const char* faceName) {
     std::memset(m_fonts, 0, sizeof(m_fonts));
 }
 
+FontTable::~FontTable() {
+    for (HFONT font : m_fonts) {
+        if (font) DeleteObject(font);
+    }
+}
+
 HFONT FontTable::GetFont(uint32_t slot) {
     if (slot >= kFontSlotCount) return nullptr;
     if (!m_fonts[slot]) CreateSlotFont(static_cast<int>(slot));

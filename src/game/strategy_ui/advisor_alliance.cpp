@@ -15,7 +15,7 @@
 #include "strategy_ui/game_ui_facade.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_004c3740();
+void DestroyAllianceChoices();
 
 extern IdAvlTree g_allianceChoices;      // 0x6b2928 the list the display-mode switches show
 extern uint32_t g_allianceChoicesGuard;  // 0x6b2934
@@ -37,7 +37,7 @@ IdAvlTree* ChoicesTree() {
     if ((g_allianceChoicesGuard & 1) == 0) {
         g_allianceChoicesGuard |= 1;
         new (&g_allianceChoices) IdAvlTree();
-        atexit(LAB_004c3740);
+        atexit(DestroyAllianceChoices);
     }
     return &g_allianceChoices;
 }
@@ -595,3 +595,7 @@ int AllianceAdvisor::PickMoodCue() {
         return UiSessionRandom(3) + 1;
     }
 }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+void DestroyAllianceChoices() { g_allianceChoices.~IdAvlTree(); }

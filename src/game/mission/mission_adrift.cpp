@@ -1,6 +1,6 @@
 #include "mission/mission_adrift.h"
 
-extern "C" void __cdecl LAB_00576b20();
+void DestroyMissionAdriftEventKinds();
 
 extern int g_missionAdriftEventKindsReady;      // 0x6bbb18
 extern EventKindSet g_missionAdriftEventKinds;  // 0x6bbb10
@@ -18,13 +18,13 @@ uint32_t MissionAdrift::GetFamily() { return kFamilyMissionAdrift; }
 
 int MissionAdrift::Read(istream* in) { return reinterpret_cast<MissionRuleBase*>(this)->MissionRuleBase::ReadBody(in); }
 
-int MissionAdrift::Write(ostream* out) { return FUN_0056ec40(this, out); }
+int MissionAdrift::Write(ostream* out) { return MissionTypeWriteForward(this, out); }
 
 int MissionAdrift::Checksum(Crc32* crc) { return this->MissionTypeBase::ChecksumBody(crc); }
 
 int MissionAdrift::Validate() { return static_cast<Mission*>(this)->Mission::ValidateImpl(); }
 
-int MissionAdrift::ApplyAll(NotifyContext* ctx) { return IsSideView() ? FUN_0056ec50(this, ctx) : 0; }
+int MissionAdrift::ApplyAll(NotifyContext* ctx) { return IsSideView() ? MissionTypeApplyAllForward(this, ctx) : 0; }
 
 int MissionAdrift::CreateViews(int controlKind, NotifyContext* ctx) { return CreateViewsImpl(controlKind, ctx); }
 
@@ -59,9 +59,20 @@ int MissionAdrift::BuildEventKinds() {
 
 void ConstructMissionAdriftEventKinds() { new (&g_missionAdriftEventKinds) EventKindSet(); }
 
-void RegisterMissionAdriftEventKindsAtExit() { atexit(LAB_00576b20); }
+void RegisterMissionAdriftEventKindsAtExit() { atexit(DestroyMissionAdriftEventKinds); }
 
 void MissionAdrift::InitStatics() {
     ConstructMissionAdriftEventKinds();
     RegisterMissionAdriftEventKindsAtExit();
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_missionAdriftEventKindsDestroyedGuard;  // 0x6bbb1c
+
+void DestroyMissionAdriftEventKinds() {
+    if (!(g_missionAdriftEventKindsDestroyedGuard & 0x1)) {
+        g_missionAdriftEventKindsDestroyedGuard |= 0x1;
+        g_missionAdriftEventKinds.~EventKindSet();
+    }
 }

@@ -3,7 +3,9 @@
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "events/event_helpers.h"
+#include "economy/side.h"
 #include "events/game_clock_hooks.h"
+#include "gameobj/object_queries.h"
 #include "gameobj/side_bits.h"
 
 using events::succeedWithoutChecks;
@@ -66,6 +68,38 @@ int NetMsg2::CheckValid(StatusCode* status) { return succeedWithoutChecks(status
 int NetMsg2::Execute(StatusCode* status) { return succeedWithoutChecks(status); }
 
 void* CreateNetMsg2() { return NewOrNull<NetMsg2>(); }
+
+// ---- NetMsg280 ------------------------------------------------------------------------------------------------
+
+NetMsg280::NetMsg280() : SidedMessage() {}
+
+NetMsg280::~NetMsg280() { REB_KEEP_VPTR_STORE(); }
+
+int NetMsg280::Read(istream* in) {
+    int result = SidedMessage::Read(in);
+    if (result) StreamRead32(in, &m_value);
+    return result;
+}
+
+int NetMsg280::Write(ostream* out) {
+    int result = SidedMessage::Write(out);
+    if (result) StreamWrite32(out, &m_value);
+    return result;
+}
+
+int NetMsg280::GetKind() { return 0x280; }
+
+int NetMsg280::CheckEnabled(StatusCode* status) { return succeedWithoutChecks(status); }
+
+int NetMsg280::CheckValid(StatusCode* status) { return succeedWithoutChecks(status); }
+
+int NetMsg280::Execute(StatusCode* status) {
+    succeedWithoutChecks(status);
+    Side* side = static_cast<Side*>(GetGameRootSideMemberThunk(m_side));
+    return side ? side->SetUnknownC4(m_value) : 0;
+}
+
+void* CreateNetMsg280() { return NewOrNull<NetMsg280>(); }
 
 // ---- NetMsg4 --------------------------------------------------------------------------------------------------
 

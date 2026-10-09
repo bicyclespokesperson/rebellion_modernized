@@ -1,4 +1,6 @@
 #include "character/character_mgr.h"
+#include "events/net_messages.h"
+#include "galaxy/mission_type41.h"
 #include "gameobj/factory_registries.h"
 
 #include "character/character38.h"
@@ -56,7 +58,6 @@
 
 // The factories themselves live in the modules of the classes they build; only their addresses are needed here.
 // Taking the address of a function declared by its original name yields the original address.
-GameObjNotifier* FUN_0056ebd0();
 
 
 void* CreateMoveOrder();
@@ -66,7 +67,6 @@ void* CreateReadyForDeleteOrder();
 void* CreateRenameOrder();
 void* CreateRenameOrder215();
 void* CreateScrapOrder();
-void* FUN_00628e60();
 
 constexpr int kMaxKeyedFactories = 0x800;
 
@@ -111,7 +111,7 @@ void RegisterGameObjFactories() {
     GameObjRoot::RegisterFactory(0x38, Character38::Create);
     GameObjRoot::RegisterFactory(0xf8, MissionMgr::Create);
     GameObjRoot::RegisterFactory(0x30, MajorChar30::Create);
-    GameObjRoot::RegisterFactory(0x41, FUN_0056ebd0);
+    GameObjRoot::RegisterFactory(0x41, Mission41::Create);
     GameObjRoot::RegisterFactory(0x64, MissionPalace::Create);
     GameObjRoot::RegisterFactory(0x73, MissionPickup::Create);
     GameObjRoot::RegisterFactory(0x24, CreateDefenseFacility24);
@@ -245,7 +245,7 @@ void RegisterOrderFactories() {
     RegisterOrderFactory(0x241, CreateMissionOrder241);
     RegisterOrderFactory(0x242, CreateOrder242);
     RegisterOrderFactory(0x200, CreateScrapOrder);
-    RegisterOrderFactory(0x280, FUN_00628e60);
+    RegisterOrderFactory(0x280, CreateNetMsg280);
 }
 
 void* CreateKeyedObject(int key) {

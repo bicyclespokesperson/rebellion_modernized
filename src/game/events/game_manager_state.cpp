@@ -10,9 +10,9 @@
 #include "events/events_decl.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_00568610();
-extern "C" void __cdecl LAB_00568670();
-extern "C" void __cdecl LAB_00568b10();
+void DestroyLegacyBlockA();
+void DestroyLegacyBlockB();
+void DestroyLegacyTexts();
 
 extern const char g_emptyText[];  // 0x6b120c
 void* CreateKeyedObject(int key);  // 0x51f730
@@ -76,7 +76,7 @@ int WriteLegacyBlocks(ostream* out) {
 }
 
 void LegacyBlockAConstruct() { g_legacyBlockA.Reset(); }
-void LegacyBlockARegisterAtExit() { atexit(LAB_00568610); }
+void LegacyBlockARegisterAtExit() { atexit(DestroyLegacyBlockA); }
 void LegacyBlockAStaticInit() {
     LegacyBlockAConstruct();
     LegacyBlockARegisterAtExit();
@@ -85,7 +85,7 @@ void LegacyBlockAStaticInit() {
 void LegacyBlockBConstruct() {
     for (LegacyBlockB& block : g_legacyBlockB) new (&block) LegacyBlockB();
 }
-void LegacyBlockBRegisterAtExit() { atexit(LAB_00568670); }
+void LegacyBlockBRegisterAtExit() { atexit(DestroyLegacyBlockB); }
 void LegacyBlockBStaticInit() {
     LegacyBlockBConstruct();
     LegacyBlockBRegisterAtExit();
@@ -117,7 +117,7 @@ void WriteLegacyTexts(ostream* out) {
 void LegacyTextsConstruct() {
     for (String& text : g_legacyTexts) new (&text) String();
 }
-void LegacyTextsRegisterAtExit() { atexit(LAB_00568b10); }
+void LegacyTextsRegisterAtExit() { atexit(DestroyLegacyTexts); }
 void LegacyTextsStaticInit() {
     LegacyTextsConstruct();
     LegacyTextsRegisterAtExit();
@@ -293,4 +293,31 @@ SeedKeyCountNode* TickTable::Create(SeedKey* key) {
 
 void TickTable::AddNode(SeedKeyCountNode* node) {
     if (node) Insert(node);
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_legacyBlockADestroyedGuard;  // 0x6bb820
+
+void DestroyLegacyBlockA() {
+    if (!(g_legacyBlockADestroyedGuard & 0x1)) {
+        g_legacyBlockADestroyedGuard |= 0x1;
+        g_legacyBlockA.~LegacyBlockA();
+    }
+}
+
+void DestroyLegacyBlockB() {
+    if (!(g_legacyBlockADestroyedGuard & 0x2)) {
+        g_legacyBlockADestroyedGuard |= 0x2;
+        for (int i = 3; i-- > 0;) g_legacyBlockB[i].~LegacyBlockB();
+    }
+}
+
+extern uint8_t g_legacyTextsDestroyedGuard;  // 0x6bb878
+
+void DestroyLegacyTexts() {
+    if (!(g_legacyTextsDestroyedGuard & 0x1)) {
+        g_legacyTextsDestroyedGuard |= 0x1;
+        for (int i = 10; i-- > 0;) g_legacyTexts[i].~String();
+    }
 }

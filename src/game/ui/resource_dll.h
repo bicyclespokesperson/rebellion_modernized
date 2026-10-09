@@ -32,6 +32,7 @@ constexpr int kFontSlotCount = 14;
 class FontTable {
 public:
     explicit FontTable(const char* faceName);  // 0x60ee20
+    ~FontTable();                              // 0x60ee70: deletes the fonts that were created
     HFONT GetFont(uint32_t slot);              // 0x60eea0: null for slot >= kFontSlotCount
     void CreateSlotFont(int slot);             // 0x60eed0 (not CreateFont: windows.h defines that name as a macro)
 

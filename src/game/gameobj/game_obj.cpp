@@ -9,7 +9,7 @@
 #include "gameobj/object_family.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_004f6320();
+void DestroyEmptyName();
 
 extern uint32_t g_gameObjStaticInitFlags;  // 0x6b2968, bit 0: g_emptyName constructed
 extern String g_emptyName;                 // 0x6b2ac8
@@ -136,7 +136,7 @@ String* GameObj::GetName() {
     if ((g_gameObjStaticInitFlags & 1) == 0) {
         g_gameObjStaticInitFlags |= 1;
         new (&g_emptyName) String(g_emptyText);
-        atexit(LAB_004f6320);
+        atexit(DestroyEmptyName);
     }
     if (m_name) return m_name;
     if (m_record) return &static_cast<DatRecord*>(m_record)->m_name;
@@ -286,3 +286,7 @@ uint32_t GameObj::MatchesStateFilter(uint32_t mode) {
 }
 
 GameObjData* GameObj::CreateData() { return new GameObjData(); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+void DestroyEmptyName() { g_emptyName.~String(); }

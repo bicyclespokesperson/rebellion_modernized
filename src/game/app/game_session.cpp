@@ -5,6 +5,7 @@
 #include "ai/ai_player.h"
 #include "core/checked_new.h"
 #include "multiplayer/remote_player.h"
+#include "strategy_ui/advisor_droid.h"
 #include "strategy_ui/game_ui_facade.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
@@ -463,6 +464,6 @@ void GameSession::ClearHumanAlerts(unsigned mask) {
     if (m_human) m_human->Dispatch()->ClearAlerts(mask);
 }
 
-void GameSession::RequestRedraw(int value) { FUN_004878b0(value); }
+void GameSession::RequestRedraw(int value) { AdvisorAllowSpeech(); }
 
-void GameSession::RequestRedrawAlt(int value) { FUN_004878c0(value); }
+void GameSession::RequestRedrawAlt(int value) { AdvisorSetFlag0(); }

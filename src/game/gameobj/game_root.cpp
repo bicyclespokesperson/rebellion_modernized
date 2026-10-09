@@ -1,4 +1,5 @@
 #include "gameobj/game_root.h"
+#include "core/icf_stubs.h"
 
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
@@ -11,7 +12,6 @@
 
 // ---- helpers the game root shares with the rest of the setup code ----------------------------------------------
 
-int FUN_0040f340(GameRoot*);                      // shared stub: returns 1
 
 extern int g_setupComplete;  // 0x6b90e0
 
@@ -224,7 +224,7 @@ int GameRoot::StepSetup(int* status) {
             *status = FinishSideViews(&m_ctx15c);
             break;
         case kStageNoHelper:
-            *status = FUN_0040f340(this);
+            *status = ReturnOne();
             break;
         default:
             advance = false;

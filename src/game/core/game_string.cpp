@@ -1,4 +1,5 @@
 #include "core/game_string.h"
+#include "core/icf_stubs.h"
 
 #include <cstdio>
 #include <cstring>
@@ -8,7 +9,6 @@
 #include "core/stream_io.h"
 #include "iostream/iostream.h"
 
-int16_t FUN_00479ac0();  // returns 1: bytes reserved for the terminator
 
 
 extern char g_stringResourceBuffer[0x100];
@@ -27,7 +27,7 @@ char* allocateChars(size_t size) {
     return static_cast<char*>(memory);
 }
 
-int terminatorBytes() { return static_cast<uint16_t>(FUN_00479ac0()); }
+int terminatorBytes() { return static_cast<uint16_t>(ReturnOneShort()); }
 
 int length16(const char* text) { return static_cast<uint16_t>(SafeStrlen(text)); }
 
@@ -58,7 +58,7 @@ int DuplicateString(const char* text, char** out) {
     if (!text) return 1;
     // The original truncates both terms to 16 bits.
     const uint16_t length = static_cast<uint16_t>(SafeStrlen(text));
-    const uint16_t terminator = static_cast<uint16_t>(FUN_00479ac0());
+    const uint16_t terminator = static_cast<uint16_t>(ReturnOneShort());
     char* copy = allocateChars(length + terminator);
     *out = copy;
     if (!copy) return 0;
@@ -138,7 +138,7 @@ unsigned short String::Length() const {
 
 short String::GetBufferSize() const {
     if (!m_text) return 0;
-    return static_cast<short>(static_cast<int16_t>(SafeStrlen(m_text)) + FUN_00479ac0());
+    return static_cast<short>(static_cast<int16_t>(SafeStrlen(m_text)) + ReturnOneShort());
 }
 
 char* String::CopyText() const {

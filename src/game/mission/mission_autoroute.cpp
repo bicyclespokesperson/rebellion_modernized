@@ -1,6 +1,6 @@
 #include "mission/mission_autoroute.h"
 
-extern "C" void __cdecl LAB_005762d0();
+void DestroyMissionAutorouteEventKinds();
 
 extern int g_missionAutorouteEventKindsReady;      // 0x6bbae0
 extern EventKindSet g_missionAutorouteEventKinds;  // 0x6bbae8
@@ -17,13 +17,13 @@ uint32_t MissionAutoroute::GetFamily() { return kFamilyMissionAutoroute; }
 
 int MissionAutoroute::Read(istream* in) { return reinterpret_cast<MissionRuleBase*>(this)->MissionRuleBase::ReadBody(in); }
 
-int MissionAutoroute::Write(ostream* out) { return FUN_0056ec40(this, out); }
+int MissionAutoroute::Write(ostream* out) { return MissionTypeWriteForward(this, out); }
 
 int MissionAutoroute::Checksum(Crc32* crc) { return this->MissionTypeBase::ChecksumBody(crc); }
 
 int MissionAutoroute::Validate() { return static_cast<Mission*>(this)->Mission::ValidateImpl(); }
 
-int MissionAutoroute::ApplyAll(NotifyContext* ctx) { return IsSideView() ? FUN_0056ec50(this, ctx) : 0; }
+int MissionAutoroute::ApplyAll(NotifyContext* ctx) { return IsSideView() ? MissionTypeApplyAllForward(this, ctx) : 0; }
 
 int MissionAutoroute::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
@@ -50,9 +50,20 @@ int MissionAutoroute::BuildEventKinds() {
 
 void ConstructMissionAutorouteEventKinds() { new (&g_missionAutorouteEventKinds) EventKindSet(); }
 
-void RegisterMissionAutorouteEventKindsAtExit() { atexit(LAB_005762d0); }
+void RegisterMissionAutorouteEventKindsAtExit() { atexit(DestroyMissionAutorouteEventKinds); }
 
 void MissionAutoroute::InitStatics() {
     ConstructMissionAutorouteEventKinds();
     RegisterMissionAutorouteEventKindsAtExit();
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_missionAutorouteEventKindsDestroyedGuard;  // 0x6bbaf0
+
+void DestroyMissionAutorouteEventKinds() {
+    if (!(g_missionAutorouteEventKindsDestroyedGuard & 0x1)) {
+        g_missionAutorouteEventKindsDestroyedGuard |= 0x1;
+        g_missionAutorouteEventKinds.~EventKindSet();
+    }
 }

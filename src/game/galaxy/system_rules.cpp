@@ -1,4 +1,5 @@
 #include "galaxy/system_rules.h"
+#include "core/icf_stubs.h"
 
 #include "data/game_math.h"
 #include "data/random.h"
@@ -32,7 +33,7 @@ int System::RecomputeRawMaterial(NotifyContext* ctx) {
 int System::RecomputeEnergyAllocated(NotifyContext* ctx) {
     int allocated = 0;
     ChildIterator allocators(this, ControlSide(), &family::kFacilities, kStateExisting);
-    for (allocators.Begin(); allocators.Current(); allocators.Advance()) allocated += FUN_0040f340(allocators.Current());
+    for (allocators.Begin(); allocators.Current(); allocators.Advance()) allocated += ReturnOne();
 
     if (m_energy < allocated) {
         ChildIterator facilities(this, &family::kFacilities, kStateExisting);

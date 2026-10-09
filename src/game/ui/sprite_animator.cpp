@@ -1,16 +1,16 @@
 #include "ui/sprite_animator.h"
 
 #include <cstdint>
+#include <new>
 
 #include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/sprite.h"
 #include "ui/sprite_stage.h"
 
-// The queue of waiting steps (a NodeQueue subclass, 0x4ad770 / 0x4ad7b0, of the AI posture module) and the factory of
-// the script steps (0x403ed0).
-void* __thiscall FUN_004ad770(void* queue);
-void __thiscall FUN_004ad7b0(void* queue);
+AnimationStepQueue::AnimationStepQueue() {}
+
+AnimationStepQueue::~AnimationStepQueue() { REB_KEEP_VPTR_STORE(); }
 
 namespace {
 
@@ -19,7 +19,7 @@ NodeQueue* QueueOf(SpriteAnimator* animator) { return reinterpret_cast<NodeQueue
 }  // namespace
 
 SpriteAnimator::SpriteAnimator(int spriteCount) {
-    FUN_004ad770(m_steps);
+    new (m_steps) AnimationStepQueue();
     *reinterpret_cast<int16_t*>(&m_endSequence) = 0;
     *(reinterpret_cast<int16_t*>(&m_endSequence) + 1) = 0;
     if (spriteCount < 1) spriteCount = 1;
@@ -41,7 +41,7 @@ SpriteAnimator::~SpriteAnimator() {
         delete m_current;
         m_current = nullptr;
     }
-    FUN_004ad7b0(m_steps);
+    reinterpret_cast<AnimationStepQueue*>(m_steps)->~AnimationStepQueue();
     REB_KEEP_VPTR_STORE();
 }
 

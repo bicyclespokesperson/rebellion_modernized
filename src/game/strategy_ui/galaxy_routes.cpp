@@ -50,7 +50,6 @@ extern int g_briefingDllSide;  // 0x6b14d4 the side whose briefing DLL (slot 0xd
 // The other strategy windows' constructors (the finders, message index, mission selection, side windows) and helpers
 // of the modules that own them.
 void __thiscall FUN_00457f30(SystemWindow* window, int slot, GameObjNotifier* manager, const ObjectKey* character);
-void* __thiscall FUN_0042dbe0(void* self);
 
 namespace {
 

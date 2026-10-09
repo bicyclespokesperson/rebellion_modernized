@@ -11,7 +11,7 @@
 #include "orders/order_checks.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_005777a0();
+void DestroyRoleContainerEventKinds();
 
 extern int g_roleContainerEventKindsReady;      // 0x6bbb38
 extern EventKindSet g_roleContainerEventKinds;  // 0x6bbb40
@@ -42,7 +42,7 @@ bool coversOnlyRoleFamilies(const FamilyRange* range) {
 
 void ConstructRoleContainerEventKinds() { new (&g_roleContainerEventKinds) EventKindSet(); }
 
-void RegisterRoleContainerEventKindsAtExit() { atexit(LAB_005777a0); }
+void RegisterRoleContainerEventKindsAtExit() { atexit(DestroyRoleContainerEventKinds); }
 
 RoleContainer::RoleContainer() : GameObj() {}
 
@@ -168,4 +168,15 @@ int RoleContainer::BuildEventKinds() {
 void RoleContainer::InitStatics() {
     ConstructRoleContainerEventKinds();
     RegisterRoleContainerEventKindsAtExit();
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_roleContainerEventKindsDestroyedGuard;  // 0x6bbb3c
+
+void DestroyRoleContainerEventKinds() {
+    if (!(g_roleContainerEventKindsDestroyedGuard & 0x1)) {
+        g_roleContainerEventKindsDestroyedGuard |= 0x1;
+        g_roleContainerEventKinds.~EventKindSet();
+    }
 }

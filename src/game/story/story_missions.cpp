@@ -13,11 +13,11 @@
 #include "mission/mission_rules.h"
 #include "story/story_common.h"
 
-extern "C" void __cdecl LAB_0056dcd0();
-extern "C" void __cdecl LAB_0056e9e0();
-extern "C" void __cdecl LAB_00572510();
-extern "C" void __cdecl LAB_005753c0();
-extern "C" void __cdecl LAB_00575fe0();
+void DestroyMissionPickupEventKinds();
+void DestroyMissionPalaceEventKinds();
+void DestroyMissionVacationEventKinds();
+void DestroyDagobahMissionEventKinds();
+void DestroyMissionBountyEventKinds();
 
 extern int g_missionPickupEventKindsReady;      // 0x6bb994
 extern EventKindSet g_missionPickupEventKinds;  // 0x6bb998
@@ -320,7 +320,7 @@ int MissionPickup::BuildEventKinds() {
 
 void ConstructMissionPickupEventKinds() { new (&g_missionPickupEventKinds) EventKindSet(); }
 
-void RegisterMissionPickupEventKindsAtExit() { atexit(LAB_0056dcd0); }
+void RegisterMissionPickupEventKindsAtExit() { atexit(DestroyMissionPickupEventKinds); }
 
 void MissionPickup::InitStatics() {
     ConstructMissionPickupEventKinds();
@@ -448,7 +448,7 @@ int MissionPalace::BuildEventKinds() {
 
 void ConstructMissionPalaceEventKinds() { new (&g_missionPalaceEventKinds) EventKindSet(); }
 
-void RegisterMissionPalaceEventKindsAtExit() { atexit(LAB_0056e9e0); }
+void RegisterMissionPalaceEventKindsAtExit() { atexit(DestroyMissionPalaceEventKinds); }
 
 void MissionPalace::InitStatics() {
     ConstructMissionPalaceEventKinds();
@@ -531,7 +531,7 @@ int MissionVacation::BuildEventKinds() {
 
 void ConstructMissionVacationEventKinds() { new (&g_missionVacationEventKinds) EventKindSet(); }
 
-void RegisterMissionVacationEventKindsAtExit() { atexit(LAB_00572510); }
+void RegisterMissionVacationEventKindsAtExit() { atexit(DestroyMissionVacationEventKinds); }
 
 void MissionVacation::InitStatics() {
     ConstructMissionVacationEventKinds();
@@ -693,7 +693,7 @@ int DagobahMission::BuildEventKinds() {
 
 void ConstructDagobahMissionEventKinds() { new (&g_dagobahMissionEventKinds) EventKindSet(); }
 
-void RegisterDagobahMissionEventKindsAtExit() { atexit(LAB_005753c0); }
+void RegisterDagobahMissionEventKindsAtExit() { atexit(DestroyDagobahMissionEventKinds); }
 
 void DagobahMission::InitStatics() {
     ConstructDagobahMissionEventKinds();
@@ -822,9 +822,56 @@ int MissionBounty::BuildEventKinds() {
 
 void ConstructMissionBountyEventKinds() { new (&g_missionBountyEventKinds) EventKindSet(); }
 
-void RegisterMissionBountyEventKindsAtExit() { atexit(LAB_00575fe0); }
+void RegisterMissionBountyEventKindsAtExit() { atexit(DestroyMissionBountyEventKinds); }
 
 void MissionBounty::InitStatics() {
     ConstructMissionBountyEventKinds();
     RegisterMissionBountyEventKindsAtExit();
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_missionPickupEventKindsDestroyedGuard;  // 0x6bb990
+
+void DestroyMissionPickupEventKinds() {
+    if (!(g_missionPickupEventKindsDestroyedGuard & 0x1)) {
+        g_missionPickupEventKindsDestroyedGuard |= 0x1;
+        g_missionPickupEventKinds.~EventKindSet();
+    }
+}
+
+extern uint8_t g_missionPalaceEventKindsDestroyedGuard;  // 0x6bb9a0
+
+void DestroyMissionPalaceEventKinds() {
+    if (!(g_missionPalaceEventKindsDestroyedGuard & 0x1)) {
+        g_missionPalaceEventKindsDestroyedGuard |= 0x1;
+        g_missionPalaceEventKinds.~EventKindSet();
+    }
+}
+
+extern uint8_t g_missionVacationEventKindsDestroyedGuard;  // 0x6bba38
+
+void DestroyMissionVacationEventKinds() {
+    if (!(g_missionVacationEventKindsDestroyedGuard & 0x1)) {
+        g_missionVacationEventKindsDestroyedGuard |= 0x1;
+        g_missionVacationEventKinds.~EventKindSet();
+    }
+}
+
+extern uint8_t g_dagobahMissionEventKindsDestroyedGuard;  // 0x6bbab0
+
+void DestroyDagobahMissionEventKinds() {
+    if (!(g_dagobahMissionEventKindsDestroyedGuard & 0x1)) {
+        g_dagobahMissionEventKindsDestroyedGuard |= 0x1;
+        g_dagobahMissionEventKinds.~EventKindSet();
+    }
+}
+
+extern uint8_t g_missionBountyEventKindsDestroyedGuard;  // 0x6bbad0
+
+void DestroyMissionBountyEventKinds() {
+    if (!(g_missionBountyEventKindsDestroyedGuard & 0x1)) {
+        g_missionBountyEventKindsDestroyedGuard |= 0x1;
+        g_missionBountyEventKinds.~EventKindSet();
+    }
 }

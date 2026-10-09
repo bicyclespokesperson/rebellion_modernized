@@ -2,7 +2,7 @@
 #include "data/random.h"
 #include "mission/mission_rules.h"
 
-extern "C" void __cdecl LAB_00574230();
+void DestroyMissionDiplomacyEventKinds();
 
 extern int g_missionDiplomacyEventKindsReady;      // 0x6bba90
 extern EventKindSet g_missionDiplomacyEventKinds;  // 0x6bba88
@@ -121,9 +121,20 @@ int MissionDiplomacy::BuildEventKinds() {
 
 void ConstructMissionDiplomacyEventKinds() { new (&g_missionDiplomacyEventKinds) EventKindSet(); }
 
-void RegisterMissionDiplomacyEventKindsAtExit() { atexit(LAB_00574230); }
+void RegisterMissionDiplomacyEventKindsAtExit() { atexit(DestroyMissionDiplomacyEventKinds); }
 
 void MissionDiplomacy::InitStatics() {
     ConstructMissionDiplomacyEventKinds();
     RegisterMissionDiplomacyEventKindsAtExit();
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_missionDiplomacyEventKindsDestroyedGuard;  // 0x6bba80
+
+void DestroyMissionDiplomacyEventKinds() {
+    if (!(g_missionDiplomacyEventKindsDestroyedGuard & 0x1)) {
+        g_missionDiplomacyEventKindsDestroyedGuard |= 0x1;
+        g_missionDiplomacyEventKinds.~EventKindSet();
+    }
 }

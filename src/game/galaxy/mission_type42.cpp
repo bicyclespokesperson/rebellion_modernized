@@ -7,7 +7,7 @@
 #include "mission/mission_forwarders.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_0056ab30();
+void DestroyMission42EventKinds();
 
 extern int g_mission42EventKindsReady;      // 0x6bb930
 extern EventKindSet g_mission42EventKinds;  // 0x6bb938
@@ -29,14 +29,14 @@ uint32_t Mission42::GetFamily() { return kFamilyMission42; }
 
 int Mission42::Read(istream* in) { return ReadImpl(in); }
 
-int Mission42::Write(ostream* out) { return FUN_0056ec40(this, out); }
+int Mission42::Write(ostream* out) { return MissionTypeWriteForward(this, out); }
 
 int Mission42::Checksum(Crc32* crc) { return ChecksumImpl(crc); }
 
 int Mission42::Validate() { return ValidateImpl(); }
 
 int Mission42::ApplyAll(NotifyContext* ctx) {
-    if (IsSideView()) return FUN_0056ec50(this, ctx);
+    if (IsSideView()) return MissionTypeApplyAllForward(this, ctx);
     return 0;
 }
 
@@ -76,9 +76,20 @@ int Mission42::BuildEventKinds() {
 
 void ConstructMission42EventKinds() { new (&g_mission42EventKinds) EventKindSet(); }
 
-void RegisterMission42EventKindsAtExit() { atexit(LAB_0056ab30); }
+void RegisterMission42EventKindsAtExit() { atexit(DestroyMission42EventKinds); }
 
 void Mission42::InitStatics() {
     ConstructMission42EventKinds();
     RegisterMission42EventKindsAtExit();
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_mission42EventKindsDestroyedGuard;  // 0x6bb940
+
+void DestroyMission42EventKinds() {
+    if (!(g_mission42EventKindsDestroyedGuard & 0x1)) {
+        g_mission42EventKindsDestroyedGuard |= 0x1;
+        g_mission42EventKinds.~EventKindSet();
+    }
 }

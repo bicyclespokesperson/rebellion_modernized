@@ -12,7 +12,7 @@
 #include "gameobj/side_bits.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_00503990();
+void DestroyFightSquadEventKinds();
 
 extern int g_fightSquadEventKindsReady;      // 0x6b2b38
 extern EventKindSet g_fightSquadEventKinds;  // 0x6b2b40
@@ -318,4 +318,15 @@ void FightSquadStaticInit() {
 
 void ConstructFightSquadEventKinds() { new (&g_fightSquadEventKinds) EventKindSet(); }
 
-void RegisterFightSquadEventKindsAtExit() { atexit(LAB_00503990); }
+void RegisterFightSquadEventKindsAtExit() { atexit(DestroyFightSquadEventKinds); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_fightSquadEventKindsDestroyedGuard;  // 0x6b2b48
+
+void DestroyFightSquadEventKinds() {
+    if (!(g_fightSquadEventKindsDestroyedGuard & 0x1)) {
+        g_fightSquadEventKindsDestroyedGuard |= 0x1;
+        g_fightSquadEventKinds.~EventKindSet();
+    }
+}

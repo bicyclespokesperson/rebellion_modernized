@@ -9,7 +9,7 @@
 #include "fleet/unit_view_flags.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_00558440();
+void DestroyDetectorEventKinds();
 
 extern int g_detectorEventKindsReady;      // 0x6bb360
 extern EventKindSet g_detectorEventKinds;  // 0x6bb368
@@ -144,4 +144,15 @@ void DetectorStaticInit() {
 
 void ConstructDetectorEventKinds() { new (&g_detectorEventKinds) EventKindSet(); }
 
-void RegisterDetectorEventKindsAtExit() { atexit(LAB_00558440); }
+void RegisterDetectorEventKindsAtExit() { atexit(DestroyDetectorEventKinds); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_detectorEventKindsDestroyedGuard;  // 0x6bb370
+
+void DestroyDetectorEventKinds() {
+    if (!(g_detectorEventKindsDestroyedGuard & 0x1)) {
+        g_detectorEventKindsDestroyedGuard |= 0x1;
+        g_detectorEventKinds.~EventKindSet();
+    }
+}

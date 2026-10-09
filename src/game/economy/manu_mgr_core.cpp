@@ -8,8 +8,8 @@
 #include "gameobj/object_type_db.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_00528880();
-extern "C" void __cdecl LAB_0052c0b0();
+void DestroyManuMgrEmptyQueue();
+void DestroyManuMgrEventKinds();
 
 extern const char g_emptyText[];            // 0x6b120c
 extern int g_manuMgrEventKindsReady;        // 0x6b9008
@@ -117,7 +117,7 @@ int ManuMgr::CheckOrder(int a, int orderKind, StatusCode* out) {
 
 void ManuMgr::ConstructEventKinds() { new (&g_manuMgrEventKinds) EventKindSet(); }
 
-void ManuMgr::RegisterEventKindsAtExit() { atexit(LAB_0052c0b0); }
+void ManuMgr::RegisterEventKindsAtExit() { atexit(DestroyManuMgrEventKinds); }
 
 void ManuMgr::StaticInit() {
     ConstructEventKinds();
@@ -131,7 +131,7 @@ ObjectKeyValueSet* ManuMgr::GetQueue() {
     if ((g_manuMgrEmptyQueueGuard & 1) == 0) {
         g_manuMgrEmptyQueueGuard |= 1;
         new (&g_manuMgrEmptyQueue) ObjectKeyValueSet();
-        atexit(LAB_00528880);
+        atexit(DestroyManuMgrEmptyQueue);
     }
     if ((flags & kViewBits) == 0) return &static_cast<ManuMgrData*>(m_data)->m_queue;
     return &g_manuMgrEmptyQueue;
@@ -238,3 +238,16 @@ ManuMgrIterator::ManuMgrIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &family::kManufacturingManagers, stateFilter) {}
 
 ManuMgrIterator::~ManuMgrIterator() { REB_KEEP_VPTR_STORE(); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+void DestroyManuMgrEmptyQueue() { g_manuMgrEmptyQueue.~ObjectKeyValueSet(); }
+
+extern uint8_t g_manuMgrEventKindsDestroyedGuard;  // 0x6b9024
+
+void DestroyManuMgrEventKinds() {
+    if (!(g_manuMgrEventKindsDestroyedGuard & 0x1)) {
+        g_manuMgrEventKindsDestroyedGuard |= 0x1;
+        g_manuMgrEventKinds.~EventKindSet();
+    }
+}
