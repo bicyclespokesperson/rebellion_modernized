@@ -67,3 +67,20 @@ tests). Both fetch dependencies with `tools/fetch_deps.sh`. Neither uses game da
 
 osxcross / the Apple SDK was not set up: the Xcode and Apple SDKs agreement licenses the SDK for use on Apple-branded hardware, so extracting
 it to cross-compile on Linux is not permitted. macOS builds therefore happen on macOS runners or a Mac.
+
+## Results (Oct 9 2026)
+
+* aarch64 Linux cross build: all 504 objects compile, generators run (0 problems), link. `tools/native_sim.sh -a arm64` under qemu-user: all three
+  sim goldens identical to the i686 goldens (17/17 files), same as x86-64 native.
+* Float to int: `tools/find_float_casts.py` lists 29 conversions (25 in game code, now `reb_ftol` / new `reb_ftou`; 4 in the port: mouse
+  coordinates and two bounded volume curves in dsound/smack, left alone). The `float-cast-overflow` build reported 0 overflows on the three sims
+  and 15 UI scenarios (smoke, load_game, ui_tour, new_game_*, space_battle_autoresolve, ...), so the routing is protective, not a bug fix.
+  `reb_ftol` returns INT32_MIN out of range (cvttsd2si); the original's `_ftol` truncates to 64 bits, so values in 2^31..2^63 wrap there;
+  `reb_ftou` follows the 64-bit form.
+* Unchanged: hybrid 10,706 hooks, difftest unit and integration 12,988 captures no FAIL, standalone_check OK, arg-order check clean, x86-64 sims 17/17.
+
+## Needs a real Mac / arm64 hardware
+
+The macOS build has never been compiled: Apple clang vs clang-19 diagnostics, SDL3's Cocoa flags and link frameworks in the static build,
+`Rebellion.app` packaging and codesign, the generator step on macOS (libclang), the unit tests next to a system Arial, and the
+`TerminateThread` cancellation behaviour. arm64 memory ordering (see above) needs hardware.
