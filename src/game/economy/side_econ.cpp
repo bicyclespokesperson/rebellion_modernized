@@ -8,6 +8,7 @@
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
 #include "gameobj/object_type_db.h"
+#include "rules/rules_mgr.h"
 
 extern int g_setupComplete;  // 0x6b90e0
 
@@ -67,7 +68,7 @@ int Side::FindFacilityManuMgr(GameObj* facility, ManuMgr** out) {
     int result = valid ? 1 : 0;
     if (valid) {
         GameObjNotifier* system = nullptr;
-        result = FUN_00555540(root, facility, &system);
+        result = static_cast<RulesMgr*>(root)->RulesMgr::GetOwnerObject(facility, &system);
         if (result != 0 && system != nullptr) {
             const uint32_t systemFamily = system->GetFamily();
             if (systemFamily >= 0x90 && systemFamily < 0x98) {
@@ -82,13 +83,15 @@ int Side::FindFacilityManuMgr(GameObj* facility, ManuMgr** out) {
     return result;
 }
 
-void Side::ReleaseFacilityToManager(ProductionFacility* facility, NotifyContext* ctx) {
+int Side::ReleaseFacilityToManager(ProductionFacility* facility, NotifyContext* ctx) {
     int result = 0;
     if (isReleasable(facility)) result = facility->SetPointPresent(0, ctx);
     if (result) {
         ManuMgr* manager = nullptr;
-        if (FindFacilityManuMgr(facility, &manager) && manager != nullptr) reinterpret_cast<ManuMgr*>(manager)->ManuMgr::AdvanceProgress(ctx);
+        const int found = FindFacilityManuMgr(facility, &manager) && manager != nullptr;
+        result = found ? manager->ManuMgr::AdvanceProgress(ctx) : 0;
     }
+    return result;
 }
 
 // ---- queries ------------------------------------------------------------------------------------------------

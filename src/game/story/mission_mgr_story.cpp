@@ -2,12 +2,12 @@
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
 #include "mission/mission_rules.h"
+#include "rules/rules_mgr.h"
 #include "story/mission_mgr.h"
 #include "story/story_characters.h"
 #include "story/story_common.h"
 
 // The strategic rules object (game root member +0xbc, family 0xf9): 0x556c70 is the call the Han and Palace steps make.
-int __thiscall FUN_00556c70(GameObjNotifier* rules, ObjectKey* key, int a, NotifyContext* ctx);
 ObjectKey* __thiscall GetOwnerKeyValue(GameObjNotifier* self, ObjectKey* out);
 
 
@@ -365,7 +365,7 @@ int MissionMgr::OnHanCapturedAtPalaceChanged(int on, NotifyContext* ctx) {
     int ok = rules != nullptr;
     if (rules) {
         ObjectKey han = keyFor(kKeyHan);
-        ok = FUN_00556c70(rules, &han, 1, ctx) && ok ? 1 : 0;
+        ok = static_cast<RulesMgr*>(rules)->RulesMgr::SyncUnitView(&han, 1, ctx) && ok ? 1 : 0;
     }
     return ok;
 }

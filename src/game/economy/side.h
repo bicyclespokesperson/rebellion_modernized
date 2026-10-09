@@ -265,7 +265,7 @@ public:
     // 0x28-0x2b); *out is null if there is none. Does not use `this`.
     int FindFacilityManuMgr(GameObj* facility, ManuMgr** out);  // 0x52eb60
     // Clears a releasable facility's waiting flag and lets its manager continue.
-    void ReleaseFacilityToManager(ProductionFacility* facility, NotifyContext* ctx);  // 0x530950
+    int ReleaseFacilityToManager(ProductionFacility* facility, NotifyContext* ctx);  // 0x530950, the result of the last step
     int ReleaseRawMaterial(ProductionFacility* facility, NotifyContext* ctx);       // 0x530670
     int AcquireRawMaterial(ProductionFacility* facility, NotifyContext* ctx);        // 0x5306b0
     int ReleaseRefinedMaterial(ProductionFacility* facility, NotifyContext* ctx);   // 0x5307e0

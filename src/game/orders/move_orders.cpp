@@ -11,6 +11,8 @@
 #include "orders/mission_orders.h"
 #include "orders/order_checks.h"
 #include "orders/route_context.h"
+#include "rules/rules_mgr.h"
+#include "mission/mission_external.h"
 
 namespace {
 
@@ -373,7 +375,7 @@ int ObjectMoveOrder::CollectTransitDays(StatusCode* status, ObjectKeyValueSet* o
                 ObjectKey* targetKey = GetTarget(&target);
                 ObjectKey memberKey;
                 node->GetKey(&memberKey);
-                if (FUN_00555d30(object, &memberKey, targetKey, &days) == 0) ok = false;
+                if (GetRulesMgr()->RulesMgr::ComputeUnitTravelDays(static_cast<GameObj*>(object), &memberKey, targetKey, &days) == 0) ok = false;
             }
             node->m_value = days;
         }

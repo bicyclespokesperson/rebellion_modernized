@@ -15,5 +15,3 @@ class DatRecord;
 
 // Manufacturing manager (family 0xa0-0xaf) pieces.
 // The set of objects the manager's facility list holds (a static empty one for a sided object).
-int __stdcall FUN_00555f00(GameObjNotifier* manager, const ObjectKey* item, int count, StatusCode* status, int* out);
-int __stdcall FUN_00555f90(GameObjNotifier* manager, const ObjectKey* item, StatusCode* status, int* out);

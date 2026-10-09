@@ -32,7 +32,4 @@ inline int CallMissionSlot120(Mission* mission, ObjectKeyValueSet* team, ObjectK
 }
 
 // ---- the rules object (game root member +0xbc, type 0xf9, 0x554020-0x557410) ----
-int __thiscall FUN_00556710(GameObjNotifier* rules, GameObj* person, NotifyContext* ctx);
-int __thiscall FUN_00556390(GameObjNotifier* rules, ObjectKey* personKey, ObjectKey* locationKey, NotifyContext* ctx);
-int __thiscall FUN_00556c70(GameObjNotifier* rules, ObjectKey* key, int a, NotifyContext* ctx);
 

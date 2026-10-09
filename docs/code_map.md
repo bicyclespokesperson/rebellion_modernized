@@ -90,7 +90,7 @@ The link order (= address order) is roughly:
 - **Game session singleton:** `DAT_006b14e4`, at 0x4359f0, creates the human, AI and remote side controllers (0x4861b0 / 0x4857a0 / 0x484e70).
 - **Frame step:** 0x41dff0 (`game_step_driver`).
 - **`battle_flow`:** state machine 0x40a050 (state names at 0x40a700) and the strategic↔tactical converters. Details are in the tactical section below.
-- **`saveload`:** the session save/load driver (0x409690 save, 0x409700 load, 0x409480 restore) writes through MSVC `ofstream`/`ifstream` (0x5f4a60/0x5f4b10). Serialization itself is spread across all game classes as virtual Read/Write pairs over the stream helpers 0x5f4d90/0x5f4db0. So "save/load" is a cross-cutting interface, not a module.
+- **`saveload`:** the session save/load driver (0x409690 save, 0x409700 load, 0x409480 restore) writes through MSVC `ofstream`/`ifstream` (0x5f4a60/0x5f4b10). Serialization itself is spread across all game classes as virtual Read/Write pairs over the stream helpers 0x5f4d90/0x5f4db0. So "save/load" is a cross-cutting interface, not a module. The two `saveload` modules are `battle_flow_session` (0x409230-0x40a050: the `BattleFlow` object's lifetime, `StartGame`/`Restore`/`Save` and the pre-battle autosave files) and `game_manager_state` (0x568160-0x568fe0: the `GameManager`'s own saved state: legacy save blocks and texts, the posted-event queue and the tick table).
 
 ### gameobj, galaxy, fleet, character, economy
 
@@ -177,14 +177,12 @@ The reference notes' "space combat auto-resolve" chain (0x514a60 → 0x5457f0 �
 
 notes:space-combat, notes:COMBAT-SUMMARY and the related parts of notes:annotated-functions should be treated as wrong for these addresses.
 
-The `combat_strat` modules hold the real strategic battle-related rules:
-- pending-battle queue 0x516d50 and post-battle work 0x516ef0/0x517270;
-- GNPRTB 0x14 combat/transit formulas 0x55cb60;
-- ground combat 0x560d50, which sits inside the CharacterMgr file;
-- the type-0xf9 manager (bombardment-style 0x555b30/0x556430);
-- command 0x224/0x225 resolvers (planetary assault?).
-
-Labels and boundaries in this subsystem are low to medium confidence.
+The `combat_strat` modules were reconstructed in full (milestone M2) and are not combat code at all. What they really are:
+- `event_rules` (0x513f70-0x518b20): what the game does around an object event (a unit moving, being destroyed, a system changing hands), the events 0x300-0x320 handlers, the loyalty/Death Star/victory rules they share, and the `GameRoot` methods of the pending strategic battle (0x516710-0x517270: retreat query, start, prepare, resolve);
+- `rules_mgr` (0x554020-0x557410): `RulesMgr`, the family-0xf9 singleton manager next to `MissionMgr` and `CharacterMgr` (move capacity checks, travel days, where a unit that lost its container goes, random system incidents);
+- `loyalty_params` (0x55cb60-0x55e290): the GNPRTB/SDPRTB 0x1400-0x1445 block, the `LoyaltyRule` builders and the galaxy seeding parameters;
+- `planet_assault` (0x58b960-0x58c960) and `planet_bombard` (0x58c960-0x58e570): the resolvers behind commands 0x225 (planetary assault, troop against troop) and 0x224 (bombardment, request kinds 0x220-0x223);
+- ground combat 0x560d50 sits inside the CharacterMgr file.
 
 ## Tactical combat (out of scope)
 

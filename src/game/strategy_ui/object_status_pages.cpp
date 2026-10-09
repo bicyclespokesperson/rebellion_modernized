@@ -56,7 +56,7 @@ void ObjectStatusWindow::FillFleetPage(CoolListItemList* labels, CoolListItemLis
 
     StatusCode status(1, static_cast<uint32_t>(-1));
     int ruleValue = 0;
-    QueryRuleValueB(reinterpret_cast<int>(m_object), reinterpret_cast<int>(&status), &ruleValue);
+    QueryRuleValueB(static_cast<GameObj*>(m_object), &status, &ruleValue);
     if (status.m_second == static_cast<uint32_t>(-1) && ruleValue != 0) {
         const ResourceStringId ruleLabelId = StringId(0x3814);
         String ruleLabel(&ruleLabelId);

@@ -273,46 +273,46 @@ int AppGetNetworkMode() {
 }
 
 void AppRestoreGame(void* stream) {
-    void* battleFlow = FUN_00409270();
-    if (battleFlow) FUN_00409480(battleFlow, stream);
+    BattleFlow* battleFlow = GetBattleFlow();
+    if (battleFlow) battleFlow->Restore(static_cast<istream*>(stream));
 }
 
 void AppStartGame(void* setup, int gameType, int side) {
-    void* battleFlow = FUN_00409270();
-    if (battleFlow) FUN_00409fe0(battleFlow, setup, gameType, side);
+    BattleFlow* battleFlow = GetBattleFlow();
+    if (battleFlow) battleFlow->StartGame(static_cast<GameSettings*>(setup), gameType, side);
 }
 
 void AppSaveGame(void* stream) {
-    void* battleFlow = FUN_00409270();
-    if (battleFlow) FUN_004095b0(battleFlow, stream);
+    BattleFlow* battleFlow = GetBattleFlow();
+    if (battleFlow) battleFlow->Save(static_cast<ostream*>(stream));
 }
 
 void AppStepGame(int* stepped) {
-    void* battleFlow = FUN_00409270();
+    BattleFlow* battleFlow = GetBattleFlow();
     *stepped = 1;
-    if (battleFlow) static_cast<BattleFlow*>(battleFlow)->BattleFlow::Step(stepped);
+    if (battleFlow) battleFlow->Step(stepped);
 }
 
 void AppReleaseBattleFlow() {
-    void* battleFlow = FUN_00409270();
-    if (battleFlow) FUN_00409bd0(battleFlow);
+    BattleFlow* battleFlow = GetBattleFlow();
+    if (battleFlow) battleFlow->DeletePreBattleSave();
 }
 
 int AppGetBattleFlowState() {
     int state = 0;
-    uint8_t* battleFlow = static_cast<uint8_t*>(FUN_00409270());
-    if (battleFlow) state = *reinterpret_cast<int*>(battleFlow + 8);
+    BattleFlow* battleFlow = GetBattleFlow();
+    if (battleFlow) state = battleFlow->m_state;
     return state;
 }
 
 int AppIsGameRunning() {
     int running = 0;
-    void* battleFlow = FUN_00409270();
-    if (battleFlow) running = FUN_00409390(battleFlow);
+    BattleFlow* battleFlow = GetBattleFlow();
+    if (battleFlow) running = battleFlow->GetAutosaveFlag();
     return running;
 }
 
 void AppSetAutosaveFlag(int value) {
-    void* battleFlow = FUN_00409270();
-    if (battleFlow) FUN_004093b0(battleFlow, value);
+    BattleFlow* battleFlow = GetBattleFlow();
+    if (battleFlow) battleFlow->SetAutosaveFlag(value);
 }

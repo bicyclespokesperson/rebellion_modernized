@@ -29,7 +29,7 @@ int MissionMgr::OnCharacterEvent(ObjectKey* key, int unused, NotifyContext* ctx)
             CreateMissionType41ForCharacter(person, ctx);
             GameObjNotifier* rules = GetGameRootMember_bc();
             ok = rules != nullptr;
-            if (rules && !(person->m_stateFlags & kStateEnrouteActive)) ok = FUN_00556710(rules, person, ctx) && ok;
+            if (rules && !(person->m_stateFlags & kStateEnrouteActive)) ok = static_cast<RulesMgr*>(rules)->RulesMgr::EnforceLocation(person, ctx) && ok;
         }
     }
     return ok;
@@ -187,7 +187,7 @@ int MissionMgr::OnPersonRemoved(ObjectKey* key, int unused, NotifyContext* ctx) 
             GameObjNotifier* rules = GetGameRootMember_bc();
             ok = rules != nullptr;
             if (rules && !(person->m_flags78 & role_flag::kOnMission)) {
-                ok = FUN_00556710(rules, person, ctx) && ok;
+                ok = static_cast<RulesMgr*>(rules)->RulesMgr::EnforceLocation(person, ctx) && ok;
                 if (person->m_stateFlags & kStateExisting) {
                     ObjectKey recordKey;
                     GetObjectRecordKey(person, &recordKey);
@@ -394,7 +394,7 @@ int MissionMgr::OnPersonArrived(ObjectKey* key, int unused, int expectedState, N
                 }
             }
             ObjectKey personKey;
-            if (moveBefore) ok = FUN_00556390(rules, person->GetKey(&personKey), &holderParentKey, ctx) && ok;
+            if (moveBefore) ok = static_cast<RulesMgr*>(rules)->RulesMgr::MoveUnitTo(person->GetKey(&personKey), &holderParentKey, ctx) && ok;
 
             const int holderHasMission = holderMissionKey.IsSet();
             if (personMissionKey.OrNull())
@@ -404,7 +404,7 @@ int MissionMgr::OnPersonArrived(ObjectKey* key, int unused, int expectedState, N
                 const int added = holderMission->AddMember(person->GetKey(&personKey), 0, ctx) && ok;
                 ok = person->SetParentAtMissionCompletionKey(&holderCompletionParent, ctx) && added;
             }
-            if (moveAfter) ok = FUN_00556390(rules, person->GetKey(&personKey), &holderParentKey, ctx) && ok;
+            if (moveAfter) ok = static_cast<RulesMgr*>(rules)->RulesMgr::MoveUnitTo(person->GetKey(&personKey), &holderParentKey, ctx) && ok;
 
             GameObjNotifier* parent = person->m_parent;
             if (holderMissionKey.OrNull() && (person->m_flagsAc & mission_exec::kCharacterCaptured) && parent &&

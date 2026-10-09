@@ -1,6 +1,8 @@
 #include <cstddef>
 #include <new>
 
+#include "app/app_strings.h"
+#include "app/battle_flow.h"
 #include "app/app_externals.h"
 #include "app/app_strings.h"
 #include "app/rebapp_globals.h"
@@ -194,7 +196,7 @@ void RebellionApplication::SetState(int state) {
             ReleaseOverlayWindow();
             DestroyAllWindows();
             CommShutdown();
-            FUN_00409370();
+            DestroyBattleFlow();
             SoundManager::Shutdown(0);
             g_directDrawHost.ReleaseAll();
             PostQuitMessage(0);
@@ -208,7 +210,7 @@ void RebellionApplication::SetState(int state) {
             DestroyStrategicWindow();
             DestroyTacticalWindow();
             CommCleanUp();
-            FUN_00409370();
+            DestroyBattleFlow();
             BeginMovieState();
             return;
         default:
@@ -251,7 +253,7 @@ void RebellionApplication::BeginMovieState() {
         char* dllLocation = GetDllLocation();
         CoolRegisterResourceDll(dllLocation, g_textstraDllName, kTextStraSlot);
         DeleteHeapString(dllLocation);
-        FUN_00409280();
+        CreateBattleFlow();
         GameSetup setup;
         new (&setup) GameSettings();
         setup.m_unknown08 = m_param10;
@@ -315,7 +317,7 @@ void RebellionApplication::DoMainChildWindow(int previousState) {
         DestroyStrategicWindow();
         DestroyTacticalWindow();
         CommCleanUp();
-        FUN_00409370();
+        DestroyBattleFlow();
         UiSetPausePending(0);
         DibBitmap* backdrop = nullptr;
         if (void* memory = ::operator new(kDibBitmapSize)) {

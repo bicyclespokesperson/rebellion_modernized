@@ -52,11 +52,11 @@
 #include "story/mission_mgr.h"
 #include "story/story_characters.h"
 #include "story/story_missions.h"
+#include "rules/rules_mgr.h"
 
 // The factories themselves live in the modules of the classes they build; only their addresses are needed here.
 // Taking the address of a function declared by its original name yields the original address.
 GameObjNotifier* FUN_0056ebd0();
-GameObjNotifier* FUN_00556f30();
 
 
 void* CreateMoveOrder();
@@ -130,7 +130,7 @@ void RegisterGameObjFactories() {
     GameObjRoot::RegisterFactory(0x3c, SpecialForces::Create);
     GameObjRoot::RegisterFactory(0x14, CreateCapitalShip);
     GameObjRoot::RegisterFactory(0x57, MissionSubdue::Create);
-    GameObjRoot::RegisterFactory(0xf9, FUN_00556f30);
+    GameObjRoot::RegisterFactory(0xf9, CreateRulesMgr);
     GameObjRoot::RegisterFactory(0xfa, CharacterMgr::Create);
     GameObjRoot::RegisterFactory(0x29, CreateManufacturingFacility29);
     GameObjRoot::RegisterFactory(0xa4, CreateTrainingFacilManuMgr);

@@ -12,7 +12,6 @@
 #include "gameobj/unit_obj_base.h"
 
 // Member of the game root's object at +0xbc: finds the master that owns `object`.
-int __thiscall FUN_00555540(GameObjNotifier* self, GameObj* object, GameObjNotifier** owner);
 
 // A manufacturing manager (family 0xa0-0xaf, ManuMgr module).
 class ManuMgr;

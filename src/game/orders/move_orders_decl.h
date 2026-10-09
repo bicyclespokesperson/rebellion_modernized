@@ -13,4 +13,3 @@
 #include "orders/order_base.h"
 
 // Order checks (0x555d30).
-int __stdcall FUN_00555d30(GameObjNotifier* object, ObjectKey* key, ObjectKey* target, int* days);

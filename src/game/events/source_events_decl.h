@@ -7,15 +7,15 @@
 #include "gameobj/object_key.h"
 
 
-int FUN_00514510(ObjectKey*, ObjectKey*, ObjectKey*, int, NotifyContext*);
-int FUN_00514820(ObjectKey*, ObjectKey*, ObjectKey*, int, NotifyContext*);
-int FUN_005140c0(ObjectKey*, ObjectKey*, ObjectKey*, int, NotifyContext*);
-int FUN_005150c0(ObjectKey*, int, NotifyContext*);
-int FUN_00515a50(ObjectKey*, int, NotifyContext*);
-int FUN_00515bb0(ObjectKey*, int, NotifyContext*);
-int FUN_00515480(ObjectKey*, int, NotifyContext*);
-int FUN_00514890(ObjectKey*, int, int, NotifyContext*);
-int FUN_00514a20(ObjectKey*, int, int, NotifyContext*);
-int FUN_00516360(ObjectKey*, int, int, NotifyContext*);
-int FUN_00516220(ObjectKey*, int, int, NotifyContext*);
-int FUN_00514a60(ObjectKey*, ObjectKey*, ObjectKey*, NotifyContext*);
+int ApplyEvent301(ObjectKey*, ObjectKey*, ObjectKey*, int, NotifyContext*);
+int ApplyEvent31d(ObjectKey*, ObjectKey*, ObjectKey*, int, NotifyContext*);
+int ApplyEvent300(ObjectKey*, ObjectKey*, ObjectKey*, int, NotifyContext*);
+int ApplyEvent308(ObjectKey*, int, NotifyContext*);
+int ApplyEvent306(ObjectKey*, int, NotifyContext*);
+int ApplyEvent316(ObjectKey*, int, NotifyContext*);
+int ApplyEvent307(ObjectKey*, int, NotifyContext*);
+int ApplyEvent302(ObjectKey*, int, int, NotifyContext*);
+int ApplyEvent318(ObjectKey*, int, int, NotifyContext*);
+int ApplyEvent315(ObjectKey*, int, int, NotifyContext*);
+int ApplyEvent30a(ObjectKey*, int, int, NotifyContext*);
+int ApplyEvent320(ObjectKey*, ObjectKey*, ObjectKey*, NotifyContext*);

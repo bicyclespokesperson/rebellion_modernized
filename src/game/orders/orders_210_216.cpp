@@ -17,7 +17,9 @@
 #include "orders/order_checks.h"
 #include "orders/order_route_decl.h"
 #include "orders/route_context.h"
+#include "rules/rules_mgr.h"
 #include "strategy_ui/advisor_sides.h"
+#include "mission/mission_external.h"
 
 
 namespace {
@@ -355,11 +357,11 @@ int ManufactureOrderBase::ComputeTotals(int* out1, int* out2, int* out3, int* ou
             int second = 0;
             if (isOk(status)) {
                 ObjectKey firstItem;
-                int accepted = FUN_00555f00(manager, GetItemKey(&firstItem), perUnit, status, &first);
+                int accepted = GetRulesMgr()->RulesMgr::EstimateBuildDays(manager, reinterpret_cast<const NullableKey*>(GetItemKey(&firstItem)), perUnit, status, &first);
                 result = (accepted != 0 && result != 0) ? 1 : 0;
                 if (isOk(status)) {
                     ObjectKey secondItem;
-                    accepted = FUN_00555f90(manager, GetItemKey(&secondItem), status, &second);
+                    accepted = GetRulesMgr()->RulesMgr::EstimateDeploymentDays(manager, GetItemKey(&secondItem), status, &second);
                     result = (accepted != 0 && result != 0) ? 1 : 0;
                     if (isOk(status)) {
                         peakFirst = MaxInt(peakFirst, first);

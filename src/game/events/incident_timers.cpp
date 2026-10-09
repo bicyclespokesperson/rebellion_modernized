@@ -4,6 +4,7 @@
 #include "events/incident_timers_decl.h"
 #include "galaxy/system.h"
 #include "mission/mission.h"
+#include "rules/rules_mgr.h"
 
 using events::findTimerOwner;
 using events::fireOnTimerOwner;
@@ -149,7 +150,7 @@ TrackedStat* SideStatATimer::GetTargetSpec() {
 }
 
 void SideStatATimer::Fire() {
-    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_f9_fa, [](GameObj* o, NotifyContext* ctx) { return FUN_00556b50(o, ctx); });
+    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_f9_fa, [](GameObj* o, NotifyContext* ctx) { return static_cast<RulesMgr*>(o)->RulesMgr::FireDisasterTimer(ctx); });
 }
 
 SideStatATimer* CreateSideStatATimer() { return NewOrNull<SideStatATimer>(); }
@@ -167,7 +168,7 @@ TrackedStat* SideStatBTimer::GetTargetSpec() {
 }
 
 void SideStatBTimer::Fire() {
-    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_f9_fa, [](GameObj* o, NotifyContext* ctx) { return FUN_00556be0(o, ctx); });
+    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_f9_fa, [](GameObj* o, NotifyContext* ctx) { return static_cast<RulesMgr*>(o)->RulesMgr::FireResourceTimer(ctx); });
 }
 
 SideStatBTimer* CreateSideStatBTimer() { return NewOrNull<SideStatBTimer>(); }

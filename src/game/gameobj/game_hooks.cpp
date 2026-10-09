@@ -3,20 +3,19 @@
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
 #include "gameobj/object_queries.h"
+#include "rules/rules_mgr.h"
 
 // 0x506e60 returns the rules object (field +0xbc of the game-state global 0x6b2bb0), or null.
-void __thiscall FUN_00555e60(void* rules, int a, int b, int* out);
-void __thiscall FUN_005560b0(void* rules, int a, int b, int* out);
 
-int QueryRuleValueA(int a, int b, int* out) {
+int QueryRuleValueA(GameObjNotifier* manager, StatusCode* status, int* out) {
     *out = 0;
-    if (void* rules = GetGameRootMember_bc()) FUN_00555e60(rules, a, b, out);
+    if (void* rules = GetGameRootMember_bc()) static_cast<RulesMgr*>(rules)->RulesMgr::QueryLastBuildDay(manager, status, out);
     return 1;
 }
 
-int QueryRuleValueB(int a, int b, int* out) {
+int QueryRuleValueB(GameObj* unit, StatusCode* status, int* out) {
     *out = 0;
-    if (void* rules = GetGameRootMember_bc()) FUN_005560b0(rules, a, b, out);
+    if (void* rules = GetGameRootMember_bc()) static_cast<RulesMgr*>(rules)->RulesMgr::QueryArrivalDay(unit, status, out);
     return 1;
 }
 

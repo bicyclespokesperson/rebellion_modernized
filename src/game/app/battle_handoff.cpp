@@ -1,3 +1,4 @@
+#include "gameobj/game_root.h"
 #include "app/battle_flow.h"
 #include "app/battle_handoff.h"
 
@@ -22,7 +23,6 @@
 // ship, squadron, character and ground unit with the tactical engine through the facade, then remembers the returned
 // tactical handle in the strategic object's data block.
 
-NotifyContext* __thiscall FUN_00516ee0(GameObjNotifier* gameRoot);  // the game root's notify context (+0x90)
 
 extern int g_characterScaleDivisorA;  // 0x6a80e4
 extern int g_characterScaleDivisorB;  // 0x6a80e8
@@ -110,7 +110,7 @@ unsigned BattleSetup::Convert() {
     GameObjNotifier* root = GetGameRootObjectCached();
     unsigned result = root != nullptr;
     if (result) {
-        context = *FUN_00516ee0(root);
+        context = *static_cast<GameRoot*>(root)->GetBattleContext();
         ObjectKey rootKey;
         m_driver->GetRootKey(&rootKey);
         m_system = static_cast<System*>(GetMasterInFamilies_90_98(&rootKey));

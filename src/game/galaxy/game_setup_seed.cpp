@@ -46,39 +46,34 @@ int isSideNumber(int value) { return value >= 1 && value <= 3; }
 
 // ---- seed rules ----------------------------------------------------------------------------------------------
 
-IntPair* __thiscall SeedRule::GetFamilyRange(IntPair* out) {
-    new (out) IntPair(m_familyRange);
-    return out;
-}
-
-int ApplySeedRuleToSector(GameObjNotifier* sector, const SeedRule* rule, NotifyContext* ctx) {
+int ApplyLoyaltyRuleToSector(GameObjNotifier* sector, const LoyaltyRule* rule, NotifyContext* ctx) {
     int ok = 1;
     if (rule->m_amount != 0) {
         ChildIterator systems(sector, &kSystemFamilies, 1);
         for (systems.Begin(); systems.Current() != nullptr; systems.Advance()) {
-            const uint32_t result = ApplySeedRuleToSystem(static_cast<System*>(systems.Current()), rule, ctx);
+            const uint32_t result = ApplyLoyaltyRuleToSystem(static_cast<System*>(systems.Current()), rule, ctx);
             ok = bothTrue(result != 0, ok);
         }
     }
     return ok;
 }
 
-uint32_t ApplySeedRuleToSystem(System* system, const SeedRule* rule, NotifyContext* ctx) {
+uint32_t ApplyLoyaltyRuleToSystem(System* system, const LoyaltyRule* rule, NotifyContext* ctx) {
     uint32_t result = 1;
     const int sideOk = rule->m_controlSide == 0 || isSideNumber(rule->m_controlSide);
-    const int kindOk = isSideNumber(rule->m_unitKind) && rule->m_unitKind != 3;
+    const int kindOk = isSideNumber(rule->m_unitSide) && rule->m_unitSide != 3;
     const int directionOk = isSideNumber(rule->m_direction);
     if (!(sideOk && kindOk && directionOk && rule->m_amount != 0)) return result;
     IntPair range;
-    const_cast<SeedRule*>(rule)->GetFamilyRange(&range);
+    const_cast<LoyaltyRule*>(rule)->GetFamilyRange(&range);
     const uint32_t systemFamily = system->GetFamily();
     const int inRange = !(systemFamily < range.m_first || range.m_second <= systemFamily);
     if (inRange && (controlSideOf(system) == static_cast<uint32_t>(rule->m_controlSide) || rule->m_controlSide == 0)) {
         int amount = rule->m_amount;
         if (rule->m_direction != 1) amount = -amount;
-        const int target = rule->m_target;
+        const int target = rule->m_threshold;
         if ((system->m_flags & kPopulated) != 0 && (system->m_flags & kNeverBeenControlled) == 0 &&
-            system->System::GetLoyaltyFor(rule->m_unitKind) < target) {
+            system->System::GetLoyaltyFor(rule->m_unitSide) < target) {
             void* memory = ::operator new(0x44);
             LoyaltyEvent373* command = memory ? new (memory) LoyaltyEvent373() : nullptr;
             result = command != nullptr;

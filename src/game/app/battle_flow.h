@@ -41,19 +41,66 @@ enum BattleFlowState {
     kFlowAbstractToStrategic = 0x17,
 };
 
-// The battle-flow object (0x14 bytes, VT 0x658644, created by 0x409280). Its constructor, destructor and the
-// save/load members (0x409230-0x40a050) are not reconstructed yet; only the frame step is.
+// The battle-flow object (0x14 bytes, VT 0x658644, global g_battleFlow 0x6b1214, created by CreateBattleFlow). It
+// owns the application's game session: the frame step, the start of a new game and the save and restore of the whole
+// game (the saved form is the flow's state followed by the strategic game, or, in a 3D battle, the tactical game and
+// the strategic autosave that was written when the battle started).
 class BattleFlow {
 public:
+    // Inlined into CreateBattleFlow: starts in state 1 (STRAT_INIT) with no pending vote.
+    BattleFlow();
+    virtual ~BattleFlow();  // 0x4093f0 (scalar deleting destructor 0x4093d0); drops the game and the tactical game
+
     // One frame. *stepped is set by the game step driver's frame phase; the state advances on its own conditions.
     void Step(int* stepped);  // 0x40a050
 
-    void* m_vftable;       // +0x00
+    // Creates the game step driver for a new game (galaxy size 1-3 in the settings). Returns its m_ok, or 0.
+    int StartGame(GameSettings* settings, int a, int b);  // 0x409fe0
+
+    // Reads a saved game: the flow's state and votes, then the strategic game (state 2) or the tactical game plus the
+    // embedded autosave (state 0x14). m_ok tells whether it worked.
+    void Restore(istream* in);  // 0x409480
+    // Writes the saved form that Restore reads; returns m_ok.
+    int Save(ostream* out);  // 0x4095b0
+
+    // The strategic part of a save: the game step driver and the application's strategic window state.
+    int SaveStrategic(ostream* out);  // 0x409690
+    // Restores the game from the pre-battle autosave file, if there is one. Returns whether it did.
+    int LoadPreBattleSave();  // 0x409700
+    // Appends the autosave file to a stream / writes the autosave file from a stream. Return whether the file opened.
+    int AppendPreBattleSave(ostream* out);  // 0x4098d0
+    int ExtractPreBattleSave(istream* in);  // 0x409a50
+    void DeletePreBattleSave();             // 0x409bd0
+
+    // *out = the installed location + "\" ; + the saved-games directory ; + the pre-battle save's file name.
+    void BuildInstalledPrefix(String* out);    // 0x409d20
+    void BuildSaveDirectory(String* out);      // 0x409dd0
+    void BuildPreBattleSavePath(String* out);  // 0x409ec0
+
+    // The step driver's +0x1c flag while the strategic game runs (state 2); 0 / ignored otherwise.
+    int GetAutosaveFlag();               // 0x409390
+    void SetAutosaveFlag(int value);     // 0x4093b0
+
     int m_ok;              // +0x04
     int m_state;           // +0x08
     GameTime m_voteTimeA;  // +0x0c, filled by the battle-type vote
     GameTime m_voteTimeB;  // +0x10
 };
+
+extern BattleFlow* g_battleFlow;  // 0x6b1214, null before CreateBattleFlow
+
+BattleFlow* GetBattleFlow();  // 0x409270
+// Replaces the battle flow (and drops the tactical game); an object whose m_ok is 0 is dropped again at once.
+void CreateBattleFlow();      // 0x409280
+void DestroyBattleFlow();     // 0x409370
+
+// Callbacks CreateBattleFlow installs in the object model's hook table (game_hooks.h).
+void RouteNoticeToSession(int notice);          // 0x41d100 (slot 0x6b2ae0)
+const char* GetStepDriverDataDirectory();       // 0x41dc70 (slot 0x6b2ae8)
+
+// Static initializers of two derived values, like InitFlowScaleA/B and InitFlowRangeSpan below.
+void InitFlowRange2Span();  // 0x409230
+void InitFlowScaleC();      // 0x409250
 
 // Writes the name of battle-flow state `state` into *out ("STRAT_INIT"...); returns 0 ("Invalid ") for an unknown state.
 int GetBattleStateName(int state, String* out);  // 0x40a700
@@ -124,6 +171,7 @@ public:
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
 REB_ASSERT_SIZE(BattleFlow, 0x14);
+REB_ASSERT_OFFSET(BattleFlow, m_ok, 0x04);
 REB_ASSERT_OFFSET(BattleFlow, m_state, 0x08);
 REB_ASSERT_OFFSET(BattleFlow, m_voteTimeB, 0x10);
 REB_ASSERT_SIZE(BattleSetup, 0x28);

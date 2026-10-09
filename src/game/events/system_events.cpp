@@ -26,7 +26,7 @@ int SystemEvent303::CheckValid(StatusCode* status) {
 
 int SystemEvent303::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00515cd0(&m_key, m_valueB, &ctx);
+    ApplySystemEvent303(&m_key, m_valueB, &ctx);
     return 0;
 }
 
@@ -50,7 +50,7 @@ int SystemEvent304::CheckValid(StatusCode* status) {
 
 int SystemEvent304::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00515dc0(&m_key, m_valueB, &ctx);
+    ApplySystemEvent304(&m_key, m_valueB, &ctx);
     return 0;
 }
 
@@ -74,7 +74,7 @@ int SystemEvent305::CheckValid(StatusCode* status) {
 
 int SystemEvent305::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00515f40(&m_key, m_valueB, &ctx);
+    ApplySystemEvent305(&m_key, m_valueB, &ctx);
     return 0;
 }
 
@@ -98,7 +98,7 @@ int SystemEvent309::CheckValid(StatusCode* status) {
 
 int SystemEvent309::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00515e30(&m_key, m_valueB, &ctx);
+    ApplySystemEvent309(&m_key, m_valueB, &ctx);
     return 0;
 }
 
@@ -122,7 +122,7 @@ int SystemEvent310::CheckValid(StatusCode* status) {
 
 int SystemEvent310::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00515e70(&m_key, m_valueB, &ctx);
+    ApplySystemEvent310(&m_key, m_valueB, &ctx);
     return 0;
 }
 
@@ -146,7 +146,7 @@ int SystemEvent30f::CheckValid(StatusCode* status) {
 
 int SystemEvent30f::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00515eb0(&m_key, m_valueB, &ctx);
+    ApplySystemEvent30f(&m_key, m_valueB, &ctx);
     return 0;
 }
 
@@ -174,7 +174,7 @@ int SystemEvent31b::Execute() {
     SideBits second;
     new (&first) SideBits(m_valueA);
     new (&second) SideBits(m_valueB);
-    FUN_00515c00(&m_key, &first, &second, &ctx);
+    ApplySystemEvent31b(&m_key, &first, &second, &ctx);
     return 0;
 }
 
@@ -198,7 +198,7 @@ int SystemEvent311::CheckValid(StatusCode* status) {
 
 int SystemEvent311::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00515ef0(&m_key, m_valueB, &ctx);
+    ApplySystemEvent311(&m_key, m_valueB, &ctx);
     return 0;
 }
 

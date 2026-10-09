@@ -45,17 +45,6 @@ int __thiscall FUN_0059cb80(TacticalWindow* window, void* stream);  // tactical 
 // ---- Multiplayer glue (comm2, 0x596fa0-0x597530) ------------------------------------------------------------
 void FUN_00596a00();
 
-// ---- Battle flow / session (0x409230-0x40a050) --------------------------------------------------------------
-void* FUN_00409270();            // the battle-flow object, null before a game is created
-void FUN_00409280();             // create the battle-flow object
-void FUN_00409370();             // destroy it
-void __thiscall FUN_00409480(void* battleFlow, void* stream);   // restore a saved game
-void __thiscall FUN_004095b0(void* battleFlow, void* stream);   // write a saved game
-void __thiscall FUN_00409fe0(void* battleFlow, void* setup, int gameType, int side);
-void __thiscall FUN_00409bd0(void* battleFlow);
-int __thiscall FUN_00409390(void* battleFlow);
-void __thiscall FUN_004093b0(void* battleFlow, int value);
-
 // Setup record handed to the battle-flow object when a game is created (0x14 bytes, ctor 0x51c740, vtable 0x65ece0).
 struct GameSetup {
     void* m_vftable;  // +0x00

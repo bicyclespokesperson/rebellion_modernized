@@ -6,6 +6,7 @@
 #include "data/random.h"
 #include "data/sd_records.h"
 #include "economy/side.h"
+#include "rules/loyalty_params.h"
 #include "events/command_classes.h"
 #include "fleet/capship.h"
 #include "fleet/fleet.h"
@@ -15,14 +16,13 @@
 #include "gameobj/object_lookup.h"
 #include "gameobj/object_queries.h"
 #include "mission/mission_rules.h"
+#include "rules/rules_mgr.h"
 #include "story/story_characters.h"
 
 // Setup of the people of a new game, the checks the person queries forward, and the reactions to what happens to people.
 
 DatRecord* GetFirstRecordOfType(int type);  // 0x51cad0
 ObjectKey* __thiscall GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
-int FUN_0055d7d0(int kind, int size, int* count);
-int __thiscall FUN_00556c70(GameObjNotifier* rules, ObjectKey* key, int side, NotifyContext* ctx);
 
 namespace {
 
@@ -378,7 +378,7 @@ int CharacterMgr::PlaceStartingCharacters(NotifyContext* ctx) {
         ok = PlaceAtRandomSystem(&key, ctx) && ok;
     }
     int count = 0;
-    ok = FUN_0055d7d0(2, m_galaxySize, &count) && ok;
+    ok = GetStartingCharacterCount(2, m_galaxySize, &count) && ok;
     for (int i = 0; i < count; ++i) ok = RecruitMinorAtRandomPlace(2, &recruited, ctx) && ok;
 
     key = keyOf(kMonMothmaKey);
@@ -387,7 +387,7 @@ int CharacterMgr::PlaceStartingCharacters(NotifyContext* ctx) {
         key = keyOf(heroKey);
         ok = PlaceCharacter(&key, yavin, ctx) && ok;
     }
-    ok = FUN_0055d7d0(1, m_galaxySize, &count) && ok;
+    ok = GetStartingCharacterCount(1, m_galaxySize, &count) && ok;
     for (int i = 0; i < count; ++i) ok = RecruitMinorAtRandomPlace(1, &recruited, ctx) && ok;
     return ok;
 }
@@ -804,7 +804,7 @@ int CharacterMgr::ReportTarget(const ObjectKey* personKey, const ActivityRequest
             if (rules != nullptr) {
                 ObjectKey target;
                 request->GetTarget(&target);
-                result = FUN_00556c70(rules, &target, static_cast<int>(object->ControlSide()), ctx) && result;
+                result = static_cast<RulesMgr*>(rules)->RulesMgr::SyncUnitView(&target, static_cast<int>(object->ControlSide()), ctx) && result;
             }
         }
     }

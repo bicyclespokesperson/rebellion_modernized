@@ -47,7 +47,7 @@ int MissionMgr::CreateStoryMissionAtRandom(NotifyContext* ctx) {
         result = rules != nullptr;
         if (rules) {
             ObjectKey target = keyOf(kStoryTargetKey);
-            result = FUN_00556c70(rules, &target, 2, ctx) && result;
+            result = static_cast<RulesMgr*>(rules)->RulesMgr::SyncUnitView(&target, 2, ctx) && result;
         }
         if (person) {
             ObjectKey personKey;

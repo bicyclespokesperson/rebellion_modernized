@@ -8,7 +8,10 @@
 #include "gameobj/object_type_db.h"
 #include "orders/route_capacity.h"
 #include "orders/route_context.h"
+#include "rules/event_rules.h"
+#include "rules/rules_mgr.h"
 #include "strategy_ui/advisor_sides.h"
+#include "mission/mission_external.h"
 
 using events::asIntArg;
 using events::callVirtualSlot;
@@ -61,7 +64,7 @@ int MoveCommand::CheckEnabled(StatusCode* status) {
         int ok = object->CheckUnknownImpl(&m_request, status);
         if (ok && succeeded(*status)) {
             ObjectKey key;
-            ok = FUN_005152e0(object->GetKey(&key), status);
+            ok = CheckMoveEnabled(object->GetKey(&key), status);
         }
         return ok;
     });
@@ -88,11 +91,11 @@ int MoveCommand::CheckValid(StatusCode* status) {
         if (succeeded(*status)) ok = static_cast<GameObj*>(object)->CheckUnknown(&m_request, status);
         if (ok) {
             ObjectKey destinationKey;
-            if (succeeded(*status)) ok = FUN_005542f0(object, destination->GetKey(&destinationKey), &m_request, status);
+            if (succeeded(*status)) ok = GetRulesMgr()->RulesMgr::CheckRequestMove(static_cast<GameObj*>(object), destination->GetKey(&destinationKey), &m_request, status);
             if (ok && succeeded(*status)) {
                 ObjectKey objectKey;
                 ObjectKey target;
-                ok = FUN_00515390(object->GetKey(&objectKey), destination->GetKey(&target), status);
+                ok = CheckMoveValid(object->GetKey(&objectKey), destination->GetKey(&target), status);
             }
         }
     }
@@ -119,7 +122,7 @@ int MoveCommand::Execute() {
             if (ok && succeeded(status)) {
                 ObjectKey destinationKey;
                 ObjectKey objectKey;
-                FUN_00515440(object->GetKey(&objectKey), destination->GetKey(&destinationKey), &ctx);
+                ExecuteMove(object->GetKey(&objectKey), destination->GetKey(&destinationKey), &ctx);
             }
         }
     }
@@ -558,7 +561,7 @@ int ManufactureCommand::CheckValid(StatusCode* status) {
                 }
                 if (ok && succeeded(*status)) {
                     void* sideObject = nullptr;
-                    ok = FUN_00518750(manager, &sideObject);
+                    ok = GetControlSideObject(manager, reinterpret_cast<GameObjNotifier**>(&sideObject));
                     if (total != 0 && fieldAt<int>(sideObject, 0x58) - fieldAt<int>(sideObject, 0x5c) < total)
                         *status = StatusCode(kStatusNoRoom, kStatusRefused);
                 }

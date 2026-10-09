@@ -8,9 +8,8 @@
 #include "gameobj/game_obj_root.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
+#include "rules/loyalty_params.h"
 
-// Straight-line distance of two map positions.
-int __cdecl FUN_0055d860(const MapPosition* a, const MapPosition* b);
 
 namespace {
 
@@ -21,9 +20,9 @@ int DistanceBetween(GameObjNotifier* from, GameObjNotifier* to) {
     MapPosition fromPosition;
     MapPosition* target = reinterpret_cast<MapPosition*>(
         static_cast<System*>(to)->System::GetRecordField4c(reinterpret_cast<uint32_t*>(&toPosition)));
-    return FUN_0055d860(reinterpret_cast<MapPosition*>(static_cast<System*>(from)->System::GetRecordField4c(
-                            reinterpret_cast<uint32_t*>(&fromPosition))),
-                        target);
+    return MapDistance(reinterpret_cast<MapPosition*>(static_cast<System*>(from)->System::GetRecordField4c(
+                           reinterpret_cast<uint32_t*>(&fromPosition))),
+                       target);
 }
 
 int SystemIndex(const GameObjNotifier* system) { return static_cast<int>(system->m_id) - SystemNeighbourTable::kFirstSystemId; }

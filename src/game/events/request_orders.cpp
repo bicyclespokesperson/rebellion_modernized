@@ -15,7 +15,7 @@
 #include "orders/route_context.h"
 
 // Collects what the team of a request depends on and the people on board (0x5187f0, combat_strat module).
-int FUN_005187f0(ActivityRequest* request, ObjectKeyValueSet* team, ObjectKeyValueSet* out, StatusCode* status);
+int CollectTeamSystems(ActivityRequest* request, ObjectKeyValueSet* team, ObjectKeyValueSet* out, StatusCode* status);
 
 namespace {
 
@@ -298,7 +298,7 @@ int Order234::CheckCommand(StatusCode* status) {
             BuildRequest(&commandRequest);
             prototype.SetRequest(&commandRequest);
             ObjectKeyValueSet dependencies;
-            ok = FUN_005187f0(&commandRequest, GetTeam(), &dependencies, status);
+            ok = CollectTeamSystems(&commandRequest, GetTeam(), &dependencies, status);
             if (ok != 0 && isOk(status)) ok = CheckCommandForTeam(&prototype, &dependencies, m_queue, status);
         }
         if (ok != 0) return ok;
@@ -395,7 +395,7 @@ int FleetCommandOrder::CheckCommand(StatusCode* status) {
             BuildRequest(&commandRequest);
             prototype.SetRequest(&commandRequest);
             ObjectKeyValueSet dependencies;
-            ok = FUN_005187f0(&commandRequest, GetTeam(), &dependencies, status);
+            ok = CollectTeamSystems(&commandRequest, GetTeam(), &dependencies, status);
             if (ok != 0 && isOk(status)) ok = CheckCommandForTeam(&prototype, &dependencies, m_queue, status);
         }
         if (ok != 0) return ok;

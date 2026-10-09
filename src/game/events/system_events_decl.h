@@ -8,11 +8,11 @@
 
 class NotifyContext;
 
-int FUN_00515c00(ObjectKey* key, SideBits* first, SideBits* second, NotifyContext* ctx);
-int FUN_00515cd0(ObjectKey* key, int value, NotifyContext* ctx);
-int FUN_00515dc0(ObjectKey* key, int value, NotifyContext* ctx);
-int FUN_00515e30(ObjectKey* key, int value, NotifyContext* ctx);
-int FUN_00515e70(ObjectKey* key, int value, NotifyContext* ctx);
-int FUN_00515eb0(ObjectKey* key, int value, NotifyContext* ctx);
-int FUN_00515ef0(ObjectKey* key, int value, NotifyContext* ctx);
-int FUN_00515f40(ObjectKey* key, int value, NotifyContext* ctx);
+int ApplySystemEvent31b(ObjectKey* key, SideBits* first, SideBits* second, NotifyContext* ctx);
+int ApplySystemEvent303(ObjectKey* key, int value, NotifyContext* ctx);
+int ApplySystemEvent304(ObjectKey* key, int value, NotifyContext* ctx);
+int ApplySystemEvent309(ObjectKey* key, int value, NotifyContext* ctx);
+int ApplySystemEvent310(ObjectKey* key, int value, NotifyContext* ctx);
+int ApplySystemEvent30f(ObjectKey* key, int value, NotifyContext* ctx);
+int ApplySystemEvent311(ObjectKey* key, int value, NotifyContext* ctx);
+int ApplySystemEvent305(ObjectKey* key, int value, NotifyContext* ctx);

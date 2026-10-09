@@ -18,12 +18,6 @@
 // members, the decoys, the captured ones and the union of all.
 
 // The rules object (game root member +0xbc, family 0xf9).
-int __thiscall FUN_00554170(GameObjNotifier* rules, GameObj* person, StatusCode* status);
-int __thiscall FUN_005543c0(GameObjNotifier* rules, GameObj* person, ObjectKey* key, StatusCode* status);
-int __thiscall FUN_005545e0(GameObjNotifier* rules, GameObj* person, ObjectKey* from, ObjectKey* to, int flag, int mode,
-                            ObjectKey* out, StatusCode* status);
-int __thiscall FUN_00555b30(GameObjNotifier* rules, int modifier, int unused, ObjectKey* origin, ObjectKey* resultKey,
-                            int* travelMode);
 
 namespace {
 
@@ -411,7 +405,7 @@ int MissionMgr::ResolveMissionTravel(const ActivityRequest* request, ObjectKey* 
         const int modified = GetMissionHyperdriveModifier(hasHan, hasForces, &modifier) && ok ? 1 : 0;
         GameObjNotifier* rules = GetGameRootMember_bc();
         ok = rules && modified ? 1 : 0;
-        if (rules) ok = FUN_00555b30(rules, modifier, kRulesMode, &origin, resultKey, &travelMode) && modified ? 1 : 0;
+        if (rules) ok = static_cast<RulesMgr*>(rules)->RulesMgr::ComputeTravelDays(modifier, kRulesMode, &origin, resultKey, &travelMode) && modified ? 1 : 0;
     }
     for (ObjectKeyNode* node = everyone->First(); node; node = nextKey(node))
         static_cast<ObjectKeyValueNode*>(node)->m_value = travelMode;
@@ -458,7 +452,7 @@ int MissionMgr::FindPersonDestination(GameObj* person, int flag, ObjectKey* out)
     if (ok) ok = FindPersonSourceKey(person, &source);
     if (ok) {
         ok = FindPersonOriginKey(person, &origin);
-        if (ok) ok = FUN_005545e0(rules, person, &source, &origin, flag, 1, out, &status);
+        if (ok) ok = static_cast<RulesMgr*>(rules)->RulesMgr::FindDestination(person, &source, &origin, flag, 1, out, &status);
     } else {
         ok = 0;
     }
@@ -481,11 +475,11 @@ int MissionMgr::FindPersonMissionPoint(Role* person, Mission* mission, int flag,
         StatusCode status(1, 1);
         if (rules) {
             if (flag != 0) {
-                ok = FUN_00554170(rules, person, &status);
+                ok = static_cast<RulesMgr*>(rules)->RulesMgr::CheckParentCapacity(person, &status);
                 if (ok && statusOk(&status)) ok = person->GetValidParentKey(out);
             }
             if (ok && !statusOk(&status)) {
-                ok = FUN_005543c0(rules, person, &person->m_parentAtMissionCompletionKey, &status);
+                ok = static_cast<RulesMgr*>(rules)->RulesMgr::CheckUnitMove(person, &person->m_parentAtMissionCompletionKey, &status);
                 if (ok && statusOk(&status)) *out = person->m_parentAtMissionCompletionKey;
             }
         }
