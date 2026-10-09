@@ -41,6 +41,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--build", type=Path, default=ROOT / "build" / "hybrid")
     ap.add_argument("--list", action="store_true", help="list every vtable with unreconstructed slots")
+    ap.add_argument("--exe", type=Path, help="the original EXE: also compare every slot with the original vtable's")
     args = ap.parse_args()
 
     pe = pefile.PE(str(args.build / "smackw32.dll"))
@@ -62,6 +63,21 @@ def main() -> int:
         subsystem = next((n for s, e, n in modules if s <= address < e), "")
         return "tactical" if subsystem == "tactical" else "other game code"
 
+    originals = {r["name"]: int(r["address"], 16) for r in csv.DictReader(open(ROOT / "symbols" / "symbols.csv"))
+                 if r["kind"] == "data" and r["name"].endswith("::vftable")}
+    exe = pefile.PE(str(args.exe)) if args.exe else None
+    differing: list[str] = []
+    sizes = {int(r["address"], 16): int(r["size"]) for r in csv.DictReader(open(ROOT / "symbols" / "functions.csv"))}
+
+    def same_machine_code(a: int, b: int) -> bool:
+        """ICF folded identical functions to one address in the original; a slot that names a different function
+        with different bytes is a real difference (a missing override)."""
+        n = sizes.get(a, 0)
+        if n == 0 or n != sizes.get(b, -1) or exe is None:
+            return False
+        eb = exe.OPTIONAL_HEADER.ImageBase
+        return exe.get_data(a - eb, n) == exe.get_data(b - eb, n)
+    genuine: list[str] = []
     rows = []
     slot_kinds: Counter = Counter()
     for name, va in sorted(vtables.items(), key=lambda kv: kv[1]):
@@ -75,6 +91,17 @@ def main() -> int:
             if not (ours or original or (value == 0 and slots)):
                 break
             slots.append(value)
+        label = class_name(name)
+        original_va = None if "(base" in label else originals.get(label + "::vftable")
+        if exe is not None and original_va is not None:
+            exe_base = exe.OPTIONAL_HEADER.ImageBase
+            for i, ours_slot in enumerate(slots):
+                theirs = struct.unpack("<I", exe.get_data(original_va + 4 * i - exe_base, 4))[0]
+                if ours_slot != theirs and ours_slot != 0:
+                    kind = "own copy" if ours_slot >= base else "different original function"
+                    differing.append(f"{label} slot {i}: reconstruction {ours_slot:#x} ({kind}), original {theirs:#x}")
+                    if ours_slot < base and not same_machine_code(ours_slot, theirs):
+                        genuine.append(differing[-1])
         missing = [v for v in slots if TEXT[0] <= v < TEXT[1] and v not in hooked and v != PURECALL]
         for v in missing:
             slot_kinds[origin(v)] += 1
@@ -88,6 +115,15 @@ def main() -> int:
           f"({sum(len(m) for _, _, m in rows)} slots, {len({v for _, _, m in rows for v in m})} distinct functions)")
     print(f"    of which only tactical/library slots: {only_unreachable}")
     print(f"  unreconstructed slots by origin: {dict(slot_kinds)}")
+    if exe is not None:
+        kinds = Counter(d.split("(")[1].split(")")[0] for d in differing)
+        print(f"  slots that differ from the original vtable: {len(differing)} {dict(kinds)} in "
+              f"{len({d.split(' slot ')[0] for d in differing})} vtables (ICF-folded originals show up here; a missing "
+              "override shows as 'different original function')")
+        print(f"  of the 'different original function' slots, {len(genuine)} name a function with other machine code "
+              f"(candidates for a missing override, in {len({d.split(' slot ')[0] for d in genuine})} vtables)")
+        if args.list:
+            print("\n".join(genuine))
     if args.list:
         for name, n, missing in rows:
             if missing:

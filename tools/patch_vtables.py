@@ -156,9 +156,11 @@ def main() -> int:
     ap.add_argument("--dll", type=Path, required=True)
     ap.add_argument("--map", type=Path, required=True)
     ap.add_argument("--csv", type=Path, required=True)
+    ap.add_argument("--keep-own-vtables", action="store_true",
+                    help="experiment (REB_OWN_VTABLES): leave the vptr stores pointing at our vtable copies")
     args = ap.parse_args()
 
-    originals = load_original_vtables(args.csv)
+    originals = {} if args.keep_own_vtables else load_original_vtables(args.csv)
     ours = our_vtables(args.map)
     redirect = {ours[n]: originals[n] for n in ours if n in originals}
     pe = Pe(bytearray(args.dll.read_bytes()))
@@ -178,7 +180,7 @@ def main() -> int:
             patched_functions += 1
     pe.strip_relocations()
     args.dll.write_bytes(pe.data)
-    unmapped = sorted(n for n in ours if n not in originals)
+    unmapped = [] if args.keep_own_vtables else sorted(n for n in ours if n not in originals)
     print(f"patch_vtables: {len(redirect)} vtables redirected ({patched_vtables} vptr stores), "
           f"{patched_functions} function-address references redirected"
           + (f"; no original address for: {', '.join(unmapped)}" if unmapped else ""))

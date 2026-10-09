@@ -19,6 +19,12 @@ set(REB_HYBRID_FLAGS /O2 /Zi /GS- /GR- /EHs-c- /Zl /Zc:sizedDealloc- /arch:IA32 
 # REB_OWN_DATA: the game's globals live in the DLL (tools/gen_data_image.py, docs/phase2_plan.md M5) instead of being
 # bound to their addresses in REBEXE.EXE. tools/build_hybrid.sh --own-data drives the stages (the generator needs the EXE).
 option(REB_OWN_DATA "Hybrid DLL owns the game's data (generated data image)" OFF)
+# Experiment: objects built by reconstructed code keep our vtable copies instead of the originals' (needs complete vtables).
+option(REB_OWN_VTABLES "Do not redirect vptr stores to the original vtables" OFF)
+set(REB_PATCH_VTABLES_ARGS)
+if(REB_OWN_VTABLES)
+  set(REB_PATCH_VTABLES_ARGS --keep-own-vtables)
+endif()
 
 add_library(reb_game OBJECT ${REB_GAME_SOURCES})
 target_include_directories(reb_game PRIVATE src/game src)
@@ -70,7 +76,7 @@ target_link_options(rebhybrid PRIVATE /NODEFAULTLIB /ENTRY:DllMain /DEBUG /BASE:
   /MAP:${CMAKE_BINARY_DIR}/smackw32.map)
 add_custom_command(TARGET rebhybrid POST_BUILD
   COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/patch_vtables.py --dll $<TARGET_FILE:rebhybrid>
-          --map ${CMAKE_BINARY_DIR}/smackw32.map --csv ${CMAKE_SOURCE_DIR}/symbols/symbols.csv
+          --map ${CMAKE_BINARY_DIR}/smackw32.map --csv ${CMAKE_SOURCE_DIR}/symbols/symbols.csv ${REB_PATCH_VTABLES_ARGS}
   VERBATIM)
 # Win32 calls normally bind to REBEXE.EXE's own import table (gen_link_symbols.py); these import libraries only
 # serve the hybrid runtime and any API the original never imported.
