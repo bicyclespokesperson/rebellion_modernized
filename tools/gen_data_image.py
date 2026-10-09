@@ -162,6 +162,7 @@ class Image:
         self.exe = exe
         self.standalone = standalone
         self.unreconstructed_code_pointers: dict[int, int] = {}
+        self.unresolved_rdata_pointers: list[tuple[int, int]] = []
         self.data_refs: dict[str, tuple[int, str]] = {raw: (int(e["address"], 16), e["name"])
                                                       for raw, e in refs["data"].items()}
         self.hook_symbols = {int(a, 16): raw for a, raw in refs["hooks"].items()}
@@ -227,11 +228,35 @@ class Image:
         cursor = 0
         for offset in range(0, length - 3, 4):
             value = struct.unpack_from("<I", data, offset)[0]
+            expression = None
             if value in self.functions:
+                expression = self.code_pointer_expression(value)
+            elif own_data.in_segment(value):
+                expression = f"_reb_data_block+{value - own_data.BLOCK_BASE:#x}"
+                self.fixups["rdata copy -> block label"] += 1
+            elif own_data.RDATA_RANGE[0] <= value < own_data.RDATA_RANGE[1]:
+                expression = self.rdata_label(value)
+                if expression is None:
+                    self.unresolved_rdata_pointers.append((address + offset, value))
+            if expression:
                 self.emit_bytes(lines, data[cursor:offset])
-                lines.append(f"  .long {self.code_pointer_expression(value)}")
+                lines.append(f"  .long {expression}")
                 cursor = offset + 4
         self.emit_bytes(lines, data[cursor:])
+
+    def rdata_pointer_targets(self) -> set[int]:
+        """Standalone: .rdata addresses that the copied .rdata globals point at (strings of `const char* const` globals,
+        tables of string pointers): the targets are copied too and the pointers relocated."""
+        lo, hi = own_data.RDATA_RANGE
+        targets = set()
+        for _, address in self.named_rdata():
+            extent = self.named_extent(address)
+            data = self.exe.bytes_at(address, extent)
+            for offset in range(0, extent - 3, 4):
+                value = struct.unpack_from("<I", data, offset)[0]
+                if lo <= value < hi and not address <= value < address + extent and value not in self.functions:
+                    targets.add(value)
+        return targets
 
     def foreign_asm(self) -> list[str]:
         by_address: dict[int, list[str]] = {}
@@ -434,6 +459,7 @@ def write_standalone(args: argparse.Namespace, image: Image, slots: list[tuple[i
         "pointer_fixups_in_block": dict(image.fixups),
         "unreconstructed_code_pointers": {f"{a:#x}": n for a, n in sorted(image.unreconstructed_code_pointers.items())},
         "unresolved_fixups": bad_fixups,
+        "rdata_pointers_not_relocated": [f"{a:#x} -> {v:#x}" for a, v in image.unresolved_rdata_pointers],
     }
     args.out_report.write_text(json.dumps(report, indent=1) + "\n")
     print(f"gen_data_image --standalone: block {len(image.block):#x} bytes, {len(slots)} pointer fixups {dict(image.fixups)}, "
@@ -461,7 +487,7 @@ def main() -> int:
     hooked = set(image.hook_symbols)
 
     slots = image.pointer_slots()
-    image.plan_rdata({v for _, v, k in slots if k == "rdata"})
+    image.plan_rdata({v for _, v, k in slots if k == "rdata"} | (image.rdata_pointer_targets() if args.standalone else set()))
     if args.standalone:
         return write_standalone(args, image, slots)
 
