@@ -137,7 +137,7 @@ DibBitmap* NewResourceBitmap(HMODULE module, uint32_t id, uint32_t kind) {
     return memory ? new (memory) DibBitmap(module, id, kind) : nullptr;
 }
 
-HWND SendToBottom() { return reinterpret_cast<HWND>(1); }
+HWND SendToBottom() { return HWND_BOTTOM; }
 
 }  // namespace
 

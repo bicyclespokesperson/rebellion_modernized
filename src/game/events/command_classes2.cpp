@@ -1,9 +1,13 @@
+#include "economy/side.h"
 #include "events/command_classes2.h"
 #include "events/command_classes2_decl.h"
 
+#include "character/character_mgr.h"
 #include "data/dat_record.h"
+#include "economy/manu_mgr.h"
 #include "events/event_helpers.h"
 #include "events/event_post.h"
+#include "fleet/fleet.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/object_type_db.h"
 #include "orders/route_capacity.h"
@@ -14,7 +18,6 @@
 #include "mission/mission_external.h"
 
 using events::asIntArg;
-using events::callVirtualSlot;
 using events::checkOnTarget;
 using events::executeOnTarget;
 using events::kStatusCategory;
@@ -28,17 +31,6 @@ using events::succeedWithoutChecks;
 
 namespace {
 
-constexpr int kManagerStateOffset = 0x58;
-
-template <class T>
-T& fieldAt(void* object, int offset) {
-    return *reinterpret_cast<T*>(static_cast<char*>(object) + offset);
-}
-
-template <class T>
-T& fieldAt(GameObjNotifier* object, int offset) {
-    return *reinterpret_cast<T*>(reinterpret_cast<char*>(object) + offset);
-}
 
 // An entry of a manufacture command's item set: the destination key at +0x18 and the item key at +0x1c.
 struct ObjectKeyNodeView {
@@ -220,42 +212,42 @@ RootCommand240* RootCommand240::Clone() { return NewOrNull<RootCommand240>(*this
 
 int RootCommand240::IsChecked() {
     int result = 0;
-    void* manager = GetGameRootMember_c0();
+    CharacterMgr* manager = GetCharacterManager();
     if (manager) {
         ObjectKey key = m_key;
-        callVirtualSlot<int>(manager, 111, &key, &m_request, &result);
+        manager->ForwardVirtual179(&key, events::asIntArg(&m_request), &result);
     }
     return result;
 }
 
 int RootCommand240::CheckEnabled(StatusCode* status) {
     *status = StatusCode(kStatusCategory, kStatusRefused);
-    void* manager = GetGameRootMember_c0();
+    CharacterMgr* manager = GetCharacterManager();
     int ok = 0;
     if (manager) {
         ObjectKey key = m_key;
-        ok = callVirtualSlot<int>(manager, 112, &key, &m_request, status);
+        ok = manager->ForwardCheckActivity3(&key, &m_request, status);
     }
     return ok;
 }
 
 int RootCommand240::CheckValid(StatusCode* status) {
     *status = StatusCode(kStatusCategory, kStatusRefused);
-    void* manager = GetGameRootMember_c0();
+    CharacterMgr* manager = GetCharacterManager();
     int ok = 0;
     if (manager) {
         ObjectKey key = m_key;
-        ok = callVirtualSlot<int>(manager, 113, &key, &m_request, status);
+        ok = manager->ForwardCheckActivityStatus3(&key, &m_request, status);
     }
     return ok;
 }
 
 int RootCommand240::Execute() {
     NotifyContext ctx(m_context);
-    void* manager = GetGameRootMember_c0();
+    CharacterMgr* manager = GetCharacterManager();
     if (manager) {
         ObjectKey key = m_key;
-        callVirtualSlot<int>(manager, 116, &key, &m_request, &ctx);
+        manager->AssignCommand(&key, &m_request, &ctx);
     }
     return 0;
 }
@@ -272,32 +264,32 @@ RootCommand242* RootCommand242::Clone() { return NewOrNull<RootCommand242>(*this
 
 int RootCommand242::CheckEnabled(StatusCode* status) {
     *status = StatusCode(kStatusCategory, kStatusRefused);
-    void* manager = GetGameRootMember_c0();
+    CharacterMgr* manager = GetCharacterManager();
     int ok = 0;
     if (manager) {
         ObjectKey key = m_key;
-        ok = callVirtualSlot<int>(manager, 114, &key, &m_request, status);
+        ok = manager->ForwardCheckActivity4(&key, &m_request, status);
     }
     return ok;
 }
 
 int RootCommand242::CheckValid(StatusCode* status) {
     *status = StatusCode(kStatusCategory, kStatusRefused);
-    void* manager = GetGameRootMember_c0();
+    CharacterMgr* manager = GetCharacterManager();
     int ok = 0;
     if (manager) {
         ObjectKey key = m_key;
-        ok = callVirtualSlot<int>(manager, 115, &key, &m_request, status);
+        ok = manager->ForwardCheckActivityStatus4(&key, &m_request, status);
     }
     return ok;
 }
 
 int RootCommand242::Execute() {
     NotifyContext ctx(m_context);
-    void* manager = GetGameRootMember_c0();
+    CharacterMgr* manager = GetCharacterManager();
     if (manager) {
         ObjectKey key = m_key;
-        callVirtualSlot<int>(manager, 117, &key, &m_request, &ctx);
+        manager->ReportTarget(&key, &m_request, &ctx);
     }
     return 0;
 }
@@ -328,7 +320,7 @@ void DestinationCommand::Checksum(Crc32* crc) {
 }
 
 int DestinationCommand::CheckEnabled(StatusCode* status) {
-    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return callVirtualSlot<int>(object, 120, &m_request, status); });
+    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return static_cast<ManuMgr*>(object)->CheckPlain2(&m_request, status); });
 }
 
 int DestinationCommand::CheckValid(StatusCode* status) {
@@ -349,8 +341,8 @@ int DestinationCommand::CheckValid(StatusCode* status) {
         if (!destination) *status = destinationStatus;
     }
     if (!ok || !succeeded(*status)) return ok;
-    ok = callVirtualSlot<int>(manager, 121, &m_request, &m_pairs, status);
-    if (!ok || !succeeded(*status) || fieldAt<int>(manager, kManagerStateOffset) == 0) return ok;
+    ok = static_cast<ManuMgr*>(manager)->CheckRequestedObject(&m_request, events::asIntArg(&m_pairs), status);
+    if (!ok || !succeeded(*status) || static_cast<ManuMgr*>(manager)->m_remainingGameObjCount == 0) return ok;
     RouteContext route;
     if (succeeded(*status)) {
         int mode = 3;
@@ -380,7 +372,7 @@ int DestinationCommand::CheckValid(StatusCode* status) {
 }
 
 int DestinationCommand::Execute() {
-    return executeOnTarget(this, ResolveMasterInFamilies_a0_b0, [this](GameObj* object, NotifyContext* ctx) { callVirtualSlot<int>(object, 128, &m_request, &m_pairs, ctx); });
+    return executeOnTarget(this, ResolveMasterInFamilies_a0_b0, [this](GameObj* object, NotifyContext* ctx) { static_cast<ManuMgr*>(object)->ReparentProducts(&m_request, &m_pairs, ctx); });
 }
 
 DestinationCommand* CreateDestinationCommand() { return NewOrNull<DestinationCommand>(); }
@@ -404,15 +396,15 @@ void ManagerRenameCommand::Write(ostream* out) {
 }
 
 int ManagerRenameCommand::CheckEnabled(StatusCode* status) {
-    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return callVirtualSlot<int>(object, 113, &m_request, status); });
+    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return static_cast<ManuMgr*>(object)->CheckProductActionImpl(&m_request, status); });
 }
 
 int ManagerRenameCommand::CheckValid(StatusCode* status) {
-    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return callVirtualSlot<int>(object, 114, &m_request, &m_name, status); });
+    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return static_cast<ManuMgr*>(object)->CheckProductAction(&m_request, events::asIntArg(&m_name), status); });
 }
 
 int ManagerRenameCommand::Execute() {
-    return executeOnTarget(this, ResolveMasterInFamilies_a0_b0, [this](GameObj* object, NotifyContext* ctx) { callVirtualSlot<int>(object, 125, &m_request, &m_name, ctx); });
+    return executeOnTarget(this, ResolveMasterInFamilies_a0_b0, [this](GameObj* object, NotifyContext* ctx) { static_cast<ManuMgr*>(object)->RenameProduct(&m_request, &m_name, ctx); });
 }
 
 ManagerRenameCommand* CreateManagerRenameCommand() { return NewOrNull<ManagerRenameCommand>(); }
@@ -426,15 +418,15 @@ ManagerCommand213::~ManagerCommand213() { REB_KEEP_VPTR_STORE(); }
 ManagerCommand213* ManagerCommand213::Clone() { return NewOrNull<ManagerCommand213>(*this); }
 
 int ManagerCommand213::CheckEnabled(StatusCode* status) {
-    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return callVirtualSlot<int>(object, 115, &m_request, status); });
+    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return static_cast<ManuMgr*>(object)->CheckHasProductImpl(&m_request, status); });
 }
 
 int ManagerCommand213::CheckValid(StatusCode* status) {
-    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return callVirtualSlot<int>(object, 116, &m_request, status); });
+    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return static_cast<ManuMgr*>(object)->CheckHasProduct(&m_request, status); });
 }
 
 int ManagerCommand213::Execute() {
-    return executeOnTarget(this, ResolveMasterInFamilies_a0_b0, [this](GameObj* object, NotifyContext* ctx) { callVirtualSlot<int>(object, 126, &m_request, ctx); });
+    return executeOnTarget(this, ResolveMasterInFamilies_a0_b0, [this](GameObj* object, NotifyContext* ctx) { static_cast<ManuMgr*>(object)->CancelProducts(&m_request, ctx); });
 }
 
 ManagerCommand213* CreateManagerCommand213() { return NewOrNull<ManagerCommand213>(); }
@@ -468,20 +460,20 @@ int ManagerCommand216::IsChecked() {
     StatusCode status(kStatusCategory, kStatusOk);
     const StatusCode missing(kStatusCategory, kStatusMissingTarget);
     const int ok = ResolveMasterInFamilies_a0_b0(&m_key, &manager, &missing, &status);
-    if (ok && succeeded(status)) callVirtualSlot<int>(manager, 117, &m_request, &result);
+    if (ok && succeeded(status)) static_cast<ManuMgr*>(manager)->GetReserved(events::asIntArg(&m_request), &result);
     return result;
 }
 
 int ManagerCommand216::CheckEnabled(StatusCode* status) {
-    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return callVirtualSlot<int>(object, 118, &m_request, m_value, status); });
+    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return static_cast<ManuMgr*>(object)->CheckPlainImpl(&m_request, m_value, status); });
 }
 
 int ManagerCommand216::CheckValid(StatusCode* status) {
-    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return callVirtualSlot<int>(object, 119, &m_request, m_value, status); });
+    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return static_cast<ManuMgr*>(object)->CheckPlain(&m_request, m_value, status); });
 }
 
 int ManagerCommand216::Execute() {
-    return executeOnTarget(this, ResolveMasterInFamilies_a0_b0, [this](GameObj* object, NotifyContext* ctx) { callVirtualSlot<int>(object, 127, &m_request, m_value, ctx); });
+    return executeOnTarget(this, ResolveMasterInFamilies_a0_b0, [this](GameObj* object, NotifyContext* ctx) { static_cast<ManuMgr*>(object)->ReserveChecked(&m_request, m_value, ctx); });
 }
 
 ManagerCommand216* CreateManagerCommand216() { return NewOrNull<ManagerCommand216>(); }
@@ -510,7 +502,7 @@ void ManufactureCommand::Checksum(Crc32* crc) {
 }
 
 int ManufactureCommand::CheckEnabled(StatusCode* status) {
-    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return callVirtualSlot<int>(object, 111, &m_request, status); });
+    return checkOnTarget(this, ResolveMasterInFamilies_a0_b0, status, [this, status](GameObj* object) { return static_cast<ManuMgr*>(object)->CheckFacilityAvailableImpl(&m_request, status); });
 }
 
 int ManufactureCommand::CheckValid(StatusCode* status) {
@@ -523,7 +515,7 @@ int ManufactureCommand::CheckValid(StatusCode* status) {
     }
     if (ok) {
         if (succeeded(*status)) {
-            ok = callVirtualSlot<int>(manager, 112, &m_request, &m_items, status);
+            ok = static_cast<ManuMgr*>(manager)->CheckFacilityAvailable(&m_request, events::asIntArg(&m_items), status);
             if (ok && succeeded(*status)) {
                 RouteContext route;
                 ObjectKey managerKey;
@@ -560,9 +552,9 @@ int ManufactureCommand::CheckValid(StatusCode* status) {
                     }
                 }
                 if (ok && succeeded(*status)) {
-                    void* sideObject = nullptr;
+                    Side* sideObject = nullptr;
                     ok = GetControlSideObject(manager, reinterpret_cast<GameObjNotifier**>(&sideObject));
-                    if (total != 0 && fieldAt<int>(sideObject, 0x58) - fieldAt<int>(sideObject, 0x5c) < total)
+                    if (total != 0 && sideObject->m_maintState.m_first - sideObject->m_maintState.m_second < total)
                         *status = StatusCode(kStatusNoRoom, kStatusRefused);
                 }
             }
@@ -574,7 +566,7 @@ int ManufactureCommand::CheckValid(StatusCode* status) {
 }
 
 int ManufactureCommand::Execute() {
-    return executeOnTarget(this, ResolveMasterInFamilies_a0_b0, [this](GameObj* object, NotifyContext* ctx) { callVirtualSlot<int>(object, 124, &m_request, &m_items, ctx); });
+    return executeOnTarget(this, ResolveMasterInFamilies_a0_b0, [this](GameObj* object, NotifyContext* ctx) { static_cast<ManuMgr*>(object)->ReplaceQueue(&m_request, &m_items, ctx); });
 }
 
 ManufactureCommand* CreateManufactureCommand() { return NewOrNull<ManufactureCommand>(); }
@@ -588,15 +580,15 @@ FleetCommand221::~FleetCommand221() { REB_KEEP_VPTR_STORE(); }
 FleetCommand221* FleetCommand221::Clone() { return NewOrNull<FleetCommand221>(*this); }
 
 int FleetCommand221::CheckEnabled(StatusCode* status) {
-    return checkOnTarget(this, ResolveMasterInFamilies_08_10, status, [this, status](GameObj* object) { return callVirtualSlot<int>(object, 111, &m_request, status); });
+    return checkOnTarget(this, ResolveMasterInFamilies_08_10, status, [this, status](GameObj* object) { return static_cast<Fleet*>(object)->CheckAssaultImpl(&m_request, status); });
 }
 
 int FleetCommand221::CheckValid(StatusCode* status) {
-    return checkOnTarget(this, ResolveMasterInFamilies_08_10, status, [this, status](GameObj* object) { return callVirtualSlot<int>(object, 112, &m_request, status); });
+    return checkOnTarget(this, ResolveMasterInFamilies_08_10, status, [this, status](GameObj* object) { return static_cast<Fleet*>(object)->CheckAssault(&m_request, status); });
 }
 
 int FleetCommand221::Execute() {
-    return executeOnTarget(this, ResolveMasterInFamilies_08_10, [this](GameObj* object, NotifyContext* ctx) { callVirtualSlot<int>(object, 116, &m_request, ctx); });
+    return executeOnTarget(this, ResolveMasterInFamilies_08_10, [this](GameObj* object, NotifyContext* ctx) { static_cast<Fleet*>(object)->StartAssault(events::asIntArg(&m_request), ctx); });
 }
 
 FleetCommand221* CreateFleetCommand221() { return NewOrNull<FleetCommand221>(); }
@@ -610,15 +602,15 @@ FleetCommand220::~FleetCommand220() { REB_KEEP_VPTR_STORE(); }
 FleetCommand220* FleetCommand220::Clone() { return NewOrNull<FleetCommand220>(*this); }
 
 int FleetCommand220::CheckEnabled(StatusCode* status) {
-    return checkOnTarget(this, ResolveMasterInFamilies_08_10, status, [this, status](GameObj* object) { return callVirtualSlot<int>(object, 113, &m_request, status); });
+    return checkOnTarget(this, ResolveMasterInFamilies_08_10, status, [this, status](GameObj* object) { return static_cast<Fleet*>(object)->CheckBombardImpl(&m_request, status); });
 }
 
 int FleetCommand220::CheckValid(StatusCode* status) {
-    return checkOnTarget(this, ResolveMasterInFamilies_08_10, status, [this, status](GameObj* object) { return callVirtualSlot<int>(object, 114, &m_request, status); });
+    return checkOnTarget(this, ResolveMasterInFamilies_08_10, status, [this, status](GameObj* object) { return static_cast<Fleet*>(object)->CheckBombard(&m_request, status); });
 }
 
 int FleetCommand220::Execute() {
-    return executeOnTarget(this, ResolveMasterInFamilies_08_10, [this](GameObj* object, NotifyContext* ctx) { callVirtualSlot<int>(object, 117, &m_request, ctx); });
+    return executeOnTarget(this, ResolveMasterInFamilies_08_10, [this](GameObj* object, NotifyContext* ctx) { static_cast<Fleet*>(object)->StartBombard(events::asIntArg(&m_request), ctx); });
 }
 
 FleetCommand220* CreateFleetCommand220() { return NewOrNull<FleetCommand220>(); }

@@ -93,7 +93,7 @@ public:
         const String addressNewline(kNewline);
         const String addressLabel(kTextAddress);
         m_text += addressLabel;
-        m_text.AppendUnsigned(reinterpret_cast<uint32_t>(&buffer.m_count));
+        m_text.AppendUnsigned(static_cast<uint32_t>(reinterpret_cast<uintptr_t>(&buffer.m_count)));
         m_text += addressNewline;
     }
 
@@ -115,7 +115,7 @@ private:
 
 BOOL REB_STDCALL CommEnumServiceProviderCallback(GUID* guid, LPSTR name, DWORD majorVersion, DWORD minorVersion,
                                                LPVOID context) {  // 0x5f88d0
-    auto* info = NewOrNull<ServiceProviderInfo>(guid, name, majorVersion, minorVersion, reinterpret_cast<DWORD>(context));
+    auto* info = NewOrNull<ServiceProviderInfo>(guid, name, majorVersion, minorVersion, reinterpret_cast<DWORD_PTR>(context));
     g_serviceProviderList.AddWithId(info);
     return TRUE;
 }

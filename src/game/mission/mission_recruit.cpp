@@ -24,18 +24,22 @@ constexpr int kStatusNotACharacter = 6;
 constexpr int kStatusRecruitmentDone = 0x35;
 constexpr int kOutBlockedByRecruitmentDone = 0x10;
 
-constexpr int kRefSetOffsets[] = {0x18, 0x1c, 0x20};
-constexpr int kKeySetOffsets[] = {0x24, 0x28, 0x2c};
-
 int ControlSideIndex(uint32_t controlSide) {
     if (controlSide == 3) return 3;
     return controlSide == 1 ? 2 : 1;
 }
 
-template <class T>
-T& FieldAt(MissionCheckArgs* check, int offset) {
-    return *reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(check) + offset);
+template <class Set>
+struct ThreeSets {
+    Set* m_set[3];
+};
+
+ThreeSets<ObjectRefList> RefSetsOf(MissionCheckArgs* check) {
+    return {{static_cast<ObjectRefList*>(check->m_refs[0]), static_cast<ObjectRefList*>(check->m_refs[1]),
+             static_cast<ObjectRefList*>(check->m_refs[2])}};
 }
+
+ThreeSets<ObjectKeySet> KeySetsOf(MissionCheckArgs* check) { return {{check->m_team, check->m_decoys, check->m_captured}}; }
 
 int CheckedSideOf(int kind) { return kind == 1 ? 1 : (kind == 2 ? 2 : 0); }
 
@@ -50,12 +54,12 @@ bool StatusIsOk(const StatusCode* status) { return status->m_second == static_ca
 
 // Runs the three set checks of one target flavour in order; each runs only while the status is still ok.
 template <class Set, int (*Check)(Set*, MissionCheckArgs*, StatusCode*, int*)>
-int CheckThreeSets(MissionCheckArgs* check, StatusCode* status, int* out, const int (&offsets)[3], int result) {
+int CheckThreeSets(MissionCheckArgs* check, StatusCode* status, int* out, ThreeSets<Set> sets, int result) {
     if (!result) return result;
-    if (StatusIsOk(status)) result = Check(FieldAt<Set*>(check, offsets[0]), check, status, out);
+    if (StatusIsOk(status)) result = Check(sets.m_set[0], check, status, out);
     if (!result) return result;
-    if (StatusIsOk(status)) result = Check(FieldAt<Set*>(check, offsets[1]), check, status, out);
-    if (result && StatusIsOk(status)) result = Check(FieldAt<Set*>(check, offsets[2]), check, status, out);
+    if (StatusIsOk(status)) result = Check(sets.m_set[1], check, status, out);
+    if (result && StatusIsOk(status)) result = Check(sets.m_set[2], check, status, out);
     return result;
 }
 }  // namespace
@@ -169,14 +173,14 @@ int MissionRecruit::CheckTarget(MissionCheckArgs* check, StatusCode* status, int
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
     int result = MissionSystemTargetBase::CheckTarget(check, status, out);
-    if (FieldAt<int>(check, 4) != 0) {
-        if (FieldAt<int>(check, 8) == 0)
-            result = CheckThreeSets<ObjectRefList, CheckCandidateRefs>(check, status, out, kRefSetOffsets, result);
+    if (check->m_flag04 != 0) {
+        if (check->m_flag08 == 0)
+            result = CheckThreeSets<ObjectRefList, CheckCandidateRefs>(check, status, out, RefSetsOf(check), result);
         else
-            result = CheckThreeSets<ObjectKeySet, CheckCandidateKeys>(check, status, out, kKeySetOffsets, result);
+            result = CheckThreeSets<ObjectKeySet, CheckCandidateKeys>(check, status, out, KeySetsOf(check), result);
     }
-    if (FieldAt<int>(check, 0xc) != 0 && result && StatusIsOk(status)) {
-        const int side = CheckedSideOf(FieldAt<int>(check, 0x10));
+    if (check->m_flag0c != 0 && result && StatusIsOk(status)) {
+        const int side = CheckedSideOf(check->m_controlSide);
         result = 0;
         if (side != 0) {
             Side* sideObject = static_cast<Side*>(GetGameRootSideMemberThunk(side));

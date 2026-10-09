@@ -47,7 +47,7 @@ int REB_THISCALL MissionTypeCreateViewsForward5(void* self, int controlKind, Not
 
 int REB_STDCALL ReturnOneThreeArgs(int, int, int) { return 1; }  // 0x524b10
 
-int REB_STDCALL ReturnOneTwoArgs(int, NotifyContext*) { return 1; }  // 0x524fb0
+int REB_STDCALL ReturnOneTwoArgs(intptr_t, NotifyContext*) { return 1; }  // 0x524fb0
 
 int REB_STDCALL ReturnOneSevenArgs(int, int, int, int, int, int, int) { return 1; }  // 0x5897b0
 

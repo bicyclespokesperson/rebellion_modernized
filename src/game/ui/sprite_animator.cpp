@@ -50,7 +50,7 @@ void SpriteAnimator::SetOrigin(int x, int y) {
     m_originY = y;
 }
 
-int SpriteAnimator::Start(int kind, const uint32_t* sequence, SpriteStage* stage, int b, int c, int noStep) {
+int SpriteAnimator::Start(int kind, const uint32_t* sequence, SpriteStage* stage, int b, intptr_t c, int noStep) {
     AnimationStep* step = CreateAnimationStep(kind);
     if (step) {
         step->Attach(this);
@@ -80,7 +80,7 @@ void SpriteAnimator::Step(RECT* area, int* changed) {
     if (m_current) return;
     m_current = static_cast<AnimationStep*>(QueueOf(this)->Dequeue());
     if (!m_current && m_hasEndAction) {
-        Start(m_endKind, &m_endSequence, m_endStage, m_endFrames, static_cast<int>(m_endCallback), 1);
+        Start(m_endKind, &m_endSequence, m_endStage, m_endFrames, static_cast<intptr_t>(m_endCallback), 1);
         m_current = static_cast<AnimationStep*>(QueueOf(this)->Dequeue());
     }
     if (!m_current) return;
@@ -114,7 +114,7 @@ void SpriteAnimator::SetEndAction(int kind, const uint32_t* sequence, SpriteStag
     m_endSequence = *sequence;
     m_endStage = stage;
     m_endFrames = frames;
-    m_endCallback = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(callback));
+    m_endCallback = reinterpret_cast<uintptr_t>(callback);
     m_hasEndAction = 1;
 }
 

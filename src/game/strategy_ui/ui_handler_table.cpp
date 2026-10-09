@@ -16,56 +16,56 @@ extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 // constructed on first use with their destructor registered through atexit. They belong to the player-action modules
 // (0x48aac0-0x49bda0), which are not reconstructed yet, so objects, constructors and the atexit stubs are declared by address.
 
-extern uint8_t DAT_006b169c;
-extern uint8_t DAT_006b1af8;
-extern uint8_t DAT_006b1c2c;
-extern uint8_t DAT_006b1ed4;
-extern uint8_t DAT_006b22ec;
-extern uint8_t DAT_006b24ec;
+extern uint8_t g_noticeHandlerGuardB;  // 0x006b169c
+extern uint8_t g_noticeHandlerGuardC;  // 0x006b1af8
+extern uint8_t g_noticeHandlerGuardD;  // 0x006b1c2c
+extern uint8_t g_noticeHandlerGuardF;  // 0x006b1ed4
+extern uint8_t g_noticeHandlerGuardE;  // 0x006b22ec
+extern uint8_t g_noticeHandlerGuardA;  // 0x006b24ec
 
-extern uint8_t DAT_006b24f0[];
-extern uint8_t DAT_006b2358[];
-extern uint8_t DAT_006b1b68[];
-extern uint8_t DAT_006b16a0[];
-extern uint8_t DAT_006b1bc8[];
-extern uint8_t DAT_006b2060[];
-extern uint8_t DAT_006b21b0[];
-extern uint8_t DAT_006b2830[];
-extern uint8_t DAT_006b2570[];
-extern uint8_t DAT_006b1e70[];
-extern uint8_t DAT_006b1878[];
-extern uint8_t DAT_006b2218[];
-extern uint8_t DAT_006b1770[];
-extern uint8_t DAT_006b14e8[];
-extern uint8_t DAT_006b2788[];
-extern uint8_t DAT_006b1950[];
-extern uint8_t DAT_006b1a20[];
-extern uint8_t DAT_006b2130[];
-extern uint8_t DAT_006b1d98[];
-extern uint8_t DAT_006b1c30[];
-extern uint8_t DAT_006b17e0[];
-extern uint8_t DAT_006b2720[];
-extern uint8_t DAT_006b1708[];
-extern uint8_t DAT_006b2488[];
-extern uint8_t DAT_006b26b8[];
-extern uint8_t DAT_006b20c8[];
-extern uint8_t DAT_006b1e08[];
-extern uint8_t DAT_006b1b00[];
-extern uint8_t DAT_006b25d8[];
-extern uint8_t DAT_006b1a90[];
-extern uint8_t DAT_006b18e0[];
-extern uint8_t DAT_006b1d30[];
-extern uint8_t DAT_006b2650[];
-extern uint8_t DAT_006b19b8[];
-extern uint8_t DAT_006b2288[];
-extern uint8_t DAT_006b1630[];
-extern uint8_t DAT_006b15c0[];
-extern uint8_t DAT_006b1cc8[];
-extern uint8_t DAT_006b2420[];
-extern uint8_t DAT_006b22f0[];
-extern uint8_t DAT_006b1ff8[];
-extern uint8_t DAT_006b1ed8[];
-extern uint8_t DAT_006b1558[];
+extern Notice2 g_notice2Handler;  // 0x006b24f0
+extern Notice1 g_notice1Handler;  // 0x006b2358
+extern Notice8 g_notice8Handler;  // 0x006b1b68
+extern Notice6 g_notice6Handler;  // 0x006b16a0
+extern Notice5 g_notice5Handler;  // 0x006b1bc8
+extern Notice4 g_notice4Handler;  // 0x006b2060
+extern Notice3 g_notice3Handler;  // 0x006b21b0
+extern Notice9 g_notice9Handler;  // 0x006b2830
+extern Notice10 g_notice10Handler;  // 0x006b2570
+extern Notice11 g_notice11Handler;  // 0x006b1e70
+extern Notice12 g_notice12Handler;  // 0x006b1878
+extern Notice13 g_notice13Handler;  // 0x006b2218
+extern Notice14 g_notice14Handler;  // 0x006b1770
+extern Notice16 g_notice16Handler;  // 0x006b14e8
+extern Notice15 g_notice15Handler;  // 0x006b2788
+extern Notice7 g_notice7Handler;  // 0x006b1950
+extern Notice19 g_notice19Handler;  // 0x006b1a20
+extern Notice20 g_notice20Handler;  // 0x006b2130
+extern Notice21 g_notice21Handler;  // 0x006b1d98
+extern Notice22 g_notice22Handler;  // 0x006b1c30
+extern Notice23 g_notice23Handler;  // 0x006b17e0
+extern Notice24 g_notice24Handler;  // 0x006b2720
+extern Notice25 g_notice25Handler;  // 0x006b1708
+extern Notice26b g_notice26bHandler;  // 0x006b2488
+extern Notice26a g_notice26aHandler;  // 0x006b26b8
+extern Notice30 g_notice30Handler;  // 0x006b20c8
+extern Notice28 g_notice28Handler;  // 0x006b1e08
+extern Notice29 g_notice29Handler;  // 0x006b1b00
+extern Notice32 g_notice32Handler;  // 0x006b25d8
+extern Notice31 g_notice31Handler;  // 0x006b1a90
+extern Notice36 g_notice36Handler;  // 0x006b18e0
+extern Notice35 g_notice35Handler;  // 0x006b1d30
+extern Notice37 g_notice37Handler;  // 0x006b2650
+extern Notice38 g_notice38Handler;  // 0x006b19b8
+extern Notice39 g_notice39Handler;  // 0x006b2288
+extern Notice40 g_notice40Handler;  // 0x006b1630
+extern Notice33 g_notice33Handler;  // 0x006b15c0
+extern Notice34 g_notice34Handler;  // 0x006b1cc8
+extern Notice41 g_notice41Handler;  // 0x006b2420
+extern Notice42 g_notice42Handler;  // 0x006b22f0
+extern Notice43 g_notice43Handler;  // 0x006b1ff8
+extern Notice45 g_notice45Handler;  // 0x006b1ed8
+extern Notice44 g_notice44Handler;  // 0x006b1558
 
 
 void DestroyNotice2Handler();
@@ -135,56 +135,56 @@ struct HandlerInit {
     uint8_t* m_guard;
     uint8_t m_guardBit;
     Constructor m_construct;
-    uint8_t* m_object;
+    void* m_object;
     void(REB_CDECL* m_destroyAtExit)();
     int m_slot;       // -1: ask m_kindOf
     KindFn m_kindOf;
 };
 
 const HandlerInit kHandlerInits[] = {
-    {&DAT_006b24ec, 0x01, Construct<Notice2>, DAT_006b24f0, DestroyNotice2Handler, 2, nullptr},
-    {&DAT_006b24ec, 0x02, Construct<Notice1>, DAT_006b2358, DestroyNotice1Handler, 1, nullptr},
-    {&DAT_006b24ec, 0x04, Construct<Notice8>, DAT_006b1b68, DestroyNotice8Handler, -1, KindOf<Notice8>},
-    {&DAT_006b24ec, 0x08, Construct<Notice6>, DAT_006b16a0, DestroyNotice6Handler, 6, nullptr},
-    {&DAT_006b24ec, 0x10, Construct<Notice5>, DAT_006b1bc8, DestroyNotice5Handler, 5, nullptr},
-    {&DAT_006b24ec, 0x20, Construct<Notice4>, DAT_006b2060, DestroyNotice4Handler, 4, nullptr},
-    {&DAT_006b24ec, 0x40, Construct<Notice3>, DAT_006b21b0, DestroyNotice3Handler, 3, nullptr},
-    {&DAT_006b24ec, 0x80, Construct<Notice9>, DAT_006b2830, DestroyNotice9Handler, 9, nullptr},
-    {&DAT_006b169c, 0x01, Construct<Notice10>, DAT_006b2570, DestroyNotice10Handler, 10, nullptr},
-    {&DAT_006b169c, 0x02, Construct<Notice11>, DAT_006b1e70, DestroyNotice11Handler, 11, nullptr},
-    {&DAT_006b169c, 0x04, Construct<Notice12>, DAT_006b1878, DestroyNotice12Handler, 12, nullptr},
-    {&DAT_006b169c, 0x08, Construct<Notice13>, DAT_006b2218, DestroyNotice13Handler, 13, nullptr},
-    {&DAT_006b169c, 0x10, Construct<Notice14>, DAT_006b1770, DestroyNotice14Handler, 14, nullptr},
-    {&DAT_006b169c, 0x20, Construct<Notice16>, DAT_006b14e8, DestroyNotice16Handler, 16, nullptr},
-    {&DAT_006b169c, 0x40, Construct<Notice15>, DAT_006b2788, DestroyNotice15Handler, 15, nullptr},
-    {&DAT_006b169c, 0x80, Construct<Notice7>, DAT_006b1950, DestroyNotice7Handler, 7, nullptr},
-    {&DAT_006b1af8, 0x01, Construct<Notice19>, DAT_006b1a20, DestroyNotice19Handler, 19, nullptr},
-    {&DAT_006b1af8, 0x02, Construct<Notice20>, DAT_006b2130, DestroyNotice20Handler, 20, nullptr},
-    {&DAT_006b1af8, 0x04, Construct<Notice21>, DAT_006b1d98, DestroyNotice21Handler, 21, nullptr},
-    {&DAT_006b1af8, 0x08, Construct<Notice22>, DAT_006b1c30, DestroyNotice22Handler, -1, KindOf<Notice22>},
-    {&DAT_006b1af8, 0x10, Construct<Notice23>, DAT_006b17e0, DestroyNotice23Handler, -1, KindOf<Notice23>},
-    {&DAT_006b1af8, 0x20, Construct<Notice24>, DAT_006b2720, DestroyNotice24Handler, 24, nullptr},
-    {&DAT_006b1af8, 0x40, Construct<Notice25>, DAT_006b1708, DestroyNotice25Handler, 25, nullptr},
-    {&DAT_006b1af8, 0x80, Construct<Notice26b>, DAT_006b2488, DestroyNotice26bHandler, 26, nullptr},
-    {&DAT_006b1c2c, 0x01, Construct<Notice26a>, DAT_006b26b8, DestroyNotice26aHandler, 26, nullptr},
-    {&DAT_006b1c2c, 0x02, Construct<Notice30>, DAT_006b20c8, DestroyNotice30Handler, 30, nullptr},
-    {&DAT_006b1c2c, 0x04, Construct<Notice28>, DAT_006b1e08, DestroyNotice28Handler, 28, nullptr},
-    {&DAT_006b1c2c, 0x08, Construct<Notice29>, DAT_006b1b00, DestroyNotice29Handler, 29, nullptr},
-    {&DAT_006b1c2c, 0x10, Construct<Notice32>, DAT_006b25d8, DestroyNotice32Handler, 32, nullptr},
-    {&DAT_006b1c2c, 0x20, Construct<Notice31>, DAT_006b1a90, DestroyNotice31Handler, 31, nullptr},
-    {&DAT_006b1c2c, 0x40, Construct<Notice36>, DAT_006b18e0, DestroyNotice36Handler, 36, nullptr},
-    {&DAT_006b1c2c, 0x80, Construct<Notice35>, DAT_006b1d30, DestroyNotice35Handler, 35, nullptr},
-    {&DAT_006b22ec, 0x01, Construct<Notice37>, DAT_006b2650, DestroyNotice37Handler, 37, nullptr},
-    {&DAT_006b22ec, 0x02, Construct<Notice38>, DAT_006b19b8, DestroyNotice38Handler, 38, nullptr},
-    {&DAT_006b22ec, 0x04, Construct<Notice39>, DAT_006b2288, DestroyNotice39Handler, 39, nullptr},
-    {&DAT_006b22ec, 0x08, Construct<Notice40>, DAT_006b1630, DestroyNotice40Handler, 40, nullptr},
-    {&DAT_006b22ec, 0x10, Construct<Notice33>, DAT_006b15c0, DestroyNotice33Handler, 33, nullptr},
-    {&DAT_006b22ec, 0x20, Construct<Notice34>, DAT_006b1cc8, DestroyNotice34Handler, 34, nullptr},
-    {&DAT_006b22ec, 0x40, Construct<Notice41>, DAT_006b2420, DestroyNotice41Handler, 41, nullptr},
-    {&DAT_006b22ec, 0x80, Construct<Notice42>, DAT_006b22f0, DestroyNotice42Handler, 42, nullptr},
-    {&DAT_006b1ed4, 0x01, Construct<Notice43>, DAT_006b1ff8, DestroyNotice43Handler, 43, nullptr},
-    {&DAT_006b1ed4, 0x02, Construct<Notice45>, DAT_006b1ed8, DestroyNotice45Handler, 45, nullptr},
-    {&DAT_006b1ed4, 0x04, Construct<Notice44>, DAT_006b1558, DestroyNotice44Handler, 44, nullptr},
+    {&g_noticeHandlerGuardA, 0x01, Construct<Notice2>, &g_notice2Handler, DestroyNotice2Handler, 2, nullptr},
+    {&g_noticeHandlerGuardA, 0x02, Construct<Notice1>, &g_notice1Handler, DestroyNotice1Handler, 1, nullptr},
+    {&g_noticeHandlerGuardA, 0x04, Construct<Notice8>, &g_notice8Handler, DestroyNotice8Handler, -1, KindOf<Notice8>},
+    {&g_noticeHandlerGuardA, 0x08, Construct<Notice6>, &g_notice6Handler, DestroyNotice6Handler, 6, nullptr},
+    {&g_noticeHandlerGuardA, 0x10, Construct<Notice5>, &g_notice5Handler, DestroyNotice5Handler, 5, nullptr},
+    {&g_noticeHandlerGuardA, 0x20, Construct<Notice4>, &g_notice4Handler, DestroyNotice4Handler, 4, nullptr},
+    {&g_noticeHandlerGuardA, 0x40, Construct<Notice3>, &g_notice3Handler, DestroyNotice3Handler, 3, nullptr},
+    {&g_noticeHandlerGuardA, 0x80, Construct<Notice9>, &g_notice9Handler, DestroyNotice9Handler, 9, nullptr},
+    {&g_noticeHandlerGuardB, 0x01, Construct<Notice10>, &g_notice10Handler, DestroyNotice10Handler, 10, nullptr},
+    {&g_noticeHandlerGuardB, 0x02, Construct<Notice11>, &g_notice11Handler, DestroyNotice11Handler, 11, nullptr},
+    {&g_noticeHandlerGuardB, 0x04, Construct<Notice12>, &g_notice12Handler, DestroyNotice12Handler, 12, nullptr},
+    {&g_noticeHandlerGuardB, 0x08, Construct<Notice13>, &g_notice13Handler, DestroyNotice13Handler, 13, nullptr},
+    {&g_noticeHandlerGuardB, 0x10, Construct<Notice14>, &g_notice14Handler, DestroyNotice14Handler, 14, nullptr},
+    {&g_noticeHandlerGuardB, 0x20, Construct<Notice16>, &g_notice16Handler, DestroyNotice16Handler, 16, nullptr},
+    {&g_noticeHandlerGuardB, 0x40, Construct<Notice15>, &g_notice15Handler, DestroyNotice15Handler, 15, nullptr},
+    {&g_noticeHandlerGuardB, 0x80, Construct<Notice7>, &g_notice7Handler, DestroyNotice7Handler, 7, nullptr},
+    {&g_noticeHandlerGuardC, 0x01, Construct<Notice19>, &g_notice19Handler, DestroyNotice19Handler, 19, nullptr},
+    {&g_noticeHandlerGuardC, 0x02, Construct<Notice20>, &g_notice20Handler, DestroyNotice20Handler, 20, nullptr},
+    {&g_noticeHandlerGuardC, 0x04, Construct<Notice21>, &g_notice21Handler, DestroyNotice21Handler, 21, nullptr},
+    {&g_noticeHandlerGuardC, 0x08, Construct<Notice22>, &g_notice22Handler, DestroyNotice22Handler, -1, KindOf<Notice22>},
+    {&g_noticeHandlerGuardC, 0x10, Construct<Notice23>, &g_notice23Handler, DestroyNotice23Handler, -1, KindOf<Notice23>},
+    {&g_noticeHandlerGuardC, 0x20, Construct<Notice24>, &g_notice24Handler, DestroyNotice24Handler, 24, nullptr},
+    {&g_noticeHandlerGuardC, 0x40, Construct<Notice25>, &g_notice25Handler, DestroyNotice25Handler, 25, nullptr},
+    {&g_noticeHandlerGuardC, 0x80, Construct<Notice26b>, &g_notice26bHandler, DestroyNotice26bHandler, 26, nullptr},
+    {&g_noticeHandlerGuardD, 0x01, Construct<Notice26a>, &g_notice26aHandler, DestroyNotice26aHandler, 26, nullptr},
+    {&g_noticeHandlerGuardD, 0x02, Construct<Notice30>, &g_notice30Handler, DestroyNotice30Handler, 30, nullptr},
+    {&g_noticeHandlerGuardD, 0x04, Construct<Notice28>, &g_notice28Handler, DestroyNotice28Handler, 28, nullptr},
+    {&g_noticeHandlerGuardD, 0x08, Construct<Notice29>, &g_notice29Handler, DestroyNotice29Handler, 29, nullptr},
+    {&g_noticeHandlerGuardD, 0x10, Construct<Notice32>, &g_notice32Handler, DestroyNotice32Handler, 32, nullptr},
+    {&g_noticeHandlerGuardD, 0x20, Construct<Notice31>, &g_notice31Handler, DestroyNotice31Handler, 31, nullptr},
+    {&g_noticeHandlerGuardD, 0x40, Construct<Notice36>, &g_notice36Handler, DestroyNotice36Handler, 36, nullptr},
+    {&g_noticeHandlerGuardD, 0x80, Construct<Notice35>, &g_notice35Handler, DestroyNotice35Handler, 35, nullptr},
+    {&g_noticeHandlerGuardE, 0x01, Construct<Notice37>, &g_notice37Handler, DestroyNotice37Handler, 37, nullptr},
+    {&g_noticeHandlerGuardE, 0x02, Construct<Notice38>, &g_notice38Handler, DestroyNotice38Handler, 38, nullptr},
+    {&g_noticeHandlerGuardE, 0x04, Construct<Notice39>, &g_notice39Handler, DestroyNotice39Handler, 39, nullptr},
+    {&g_noticeHandlerGuardE, 0x08, Construct<Notice40>, &g_notice40Handler, DestroyNotice40Handler, 40, nullptr},
+    {&g_noticeHandlerGuardE, 0x10, Construct<Notice33>, &g_notice33Handler, DestroyNotice33Handler, 33, nullptr},
+    {&g_noticeHandlerGuardE, 0x20, Construct<Notice34>, &g_notice34Handler, DestroyNotice34Handler, 34, nullptr},
+    {&g_noticeHandlerGuardE, 0x40, Construct<Notice41>, &g_notice41Handler, DestroyNotice41Handler, 41, nullptr},
+    {&g_noticeHandlerGuardE, 0x80, Construct<Notice42>, &g_notice42Handler, DestroyNotice42Handler, 42, nullptr},
+    {&g_noticeHandlerGuardF, 0x01, Construct<Notice43>, &g_notice43Handler, DestroyNotice43Handler, 43, nullptr},
+    {&g_noticeHandlerGuardF, 0x02, Construct<Notice45>, &g_notice45Handler, DestroyNotice45Handler, 45, nullptr},
+    {&g_noticeHandlerGuardF, 0x04, Construct<Notice44>, &g_notice44Handler, DestroyNotice44Handler, 44, nullptr},
 };
 
 void InitializeHandler(const HandlerInit& init) {
@@ -289,52 +289,52 @@ void DestroyLastFacilityType() {
 namespace {
 
 template <class T>
-void DestroyHandler(uint8_t* object) {
-    reinterpret_cast<T*>(object)->~T();
+void DestroyHandler(T& object) {
+    object.~T();
 }
 
 }  // namespace
 
-void DestroyNotice44Handler() { DestroyHandler<Notice44>(DAT_006b1558); }
-void DestroyNotice45Handler() { DestroyHandler<Notice45>(DAT_006b1ed8); }
-void DestroyNotice43Handler() { DestroyHandler<Notice43>(DAT_006b1ff8); }
-void DestroyNotice42Handler() { DestroyHandler<Notice42>(DAT_006b22f0); }
-void DestroyNotice41Handler() { DestroyHandler<Notice41>(DAT_006b2420); }
-void DestroyNotice34Handler() { DestroyHandler<Notice34>(DAT_006b1cc8); }
-void DestroyNotice33Handler() { DestroyHandler<Notice33>(DAT_006b15c0); }
-void DestroyNotice40Handler() { DestroyHandler<Notice40>(DAT_006b1630); }
-void DestroyNotice39Handler() { DestroyHandler<Notice39>(DAT_006b2288); }
-void DestroyNotice38Handler() { DestroyHandler<Notice38>(DAT_006b19b8); }
-void DestroyNotice37Handler() { DestroyHandler<Notice37>(DAT_006b2650); }
-void DestroyNotice35Handler() { DestroyHandler<Notice35>(DAT_006b1d30); }
-void DestroyNotice36Handler() { DestroyHandler<Notice36>(DAT_006b18e0); }
-void DestroyNotice31Handler() { DestroyHandler<Notice31>(DAT_006b1a90); }
-void DestroyNotice32Handler() { DestroyHandler<Notice32>(DAT_006b25d8); }
-void DestroyNotice29Handler() { DestroyHandler<Notice29>(DAT_006b1b00); }
-void DestroyNotice28Handler() { DestroyHandler<Notice28>(DAT_006b1e08); }
-void DestroyNotice30Handler() { DestroyHandler<Notice30>(DAT_006b20c8); }
-void DestroyNotice26aHandler() { DestroyHandler<Notice26a>(DAT_006b26b8); }
-void DestroyNotice26bHandler() { DestroyHandler<Notice26b>(DAT_006b2488); }
-void DestroyNotice25Handler() { DestroyHandler<Notice25>(DAT_006b1708); }
-void DestroyNotice24Handler() { DestroyHandler<Notice24>(DAT_006b2720); }
-void DestroyNotice23Handler() { DestroyHandler<Notice23>(DAT_006b17e0); }
-void DestroyNotice22Handler() { DestroyHandler<Notice22>(DAT_006b1c30); }
-void DestroyNotice21Handler() { DestroyHandler<Notice21>(DAT_006b1d98); }
-void DestroyNotice20Handler() { DestroyHandler<Notice20>(DAT_006b2130); }
-void DestroyNotice19Handler() { DestroyHandler<Notice19>(DAT_006b1a20); }
-void DestroyNotice7Handler() { DestroyHandler<Notice7>(DAT_006b1950); }
-void DestroyNotice15Handler() { DestroyHandler<Notice15>(DAT_006b2788); }
-void DestroyNotice16Handler() { DestroyHandler<Notice16>(DAT_006b14e8); }
-void DestroyNotice14Handler() { DestroyHandler<Notice14>(DAT_006b1770); }
-void DestroyNotice13Handler() { DestroyHandler<Notice13>(DAT_006b2218); }
-void DestroyNotice12Handler() { DestroyHandler<Notice12>(DAT_006b1878); }
-void DestroyNotice11Handler() { DestroyHandler<Notice11>(DAT_006b1e70); }
-void DestroyNotice10Handler() { DestroyHandler<Notice10>(DAT_006b2570); }
-void DestroyNotice9Handler() { DestroyHandler<Notice9>(DAT_006b2830); }
-void DestroyNotice3Handler() { DestroyHandler<Notice3>(DAT_006b21b0); }
-void DestroyNotice4Handler() { DestroyHandler<Notice4>(DAT_006b2060); }
-void DestroyNotice5Handler() { DestroyHandler<Notice5>(DAT_006b1bc8); }
-void DestroyNotice6Handler() { DestroyHandler<Notice6>(DAT_006b16a0); }
-void DestroyNotice8Handler() { DestroyHandler<Notice8>(DAT_006b1b68); }
-void DestroyNotice1Handler() { DestroyHandler<Notice1>(DAT_006b2358); }
-void DestroyNotice2Handler() { DestroyHandler<Notice2>(DAT_006b24f0); }
+void DestroyNotice44Handler() { DestroyHandler(g_notice44Handler); }
+void DestroyNotice45Handler() { DestroyHandler(g_notice45Handler); }
+void DestroyNotice43Handler() { DestroyHandler(g_notice43Handler); }
+void DestroyNotice42Handler() { DestroyHandler(g_notice42Handler); }
+void DestroyNotice41Handler() { DestroyHandler(g_notice41Handler); }
+void DestroyNotice34Handler() { DestroyHandler(g_notice34Handler); }
+void DestroyNotice33Handler() { DestroyHandler(g_notice33Handler); }
+void DestroyNotice40Handler() { DestroyHandler(g_notice40Handler); }
+void DestroyNotice39Handler() { DestroyHandler(g_notice39Handler); }
+void DestroyNotice38Handler() { DestroyHandler(g_notice38Handler); }
+void DestroyNotice37Handler() { DestroyHandler(g_notice37Handler); }
+void DestroyNotice35Handler() { DestroyHandler(g_notice35Handler); }
+void DestroyNotice36Handler() { DestroyHandler(g_notice36Handler); }
+void DestroyNotice31Handler() { DestroyHandler(g_notice31Handler); }
+void DestroyNotice32Handler() { DestroyHandler(g_notice32Handler); }
+void DestroyNotice29Handler() { DestroyHandler(g_notice29Handler); }
+void DestroyNotice28Handler() { DestroyHandler(g_notice28Handler); }
+void DestroyNotice30Handler() { DestroyHandler(g_notice30Handler); }
+void DestroyNotice26aHandler() { DestroyHandler(g_notice26aHandler); }
+void DestroyNotice26bHandler() { DestroyHandler(g_notice26bHandler); }
+void DestroyNotice25Handler() { DestroyHandler(g_notice25Handler); }
+void DestroyNotice24Handler() { DestroyHandler(g_notice24Handler); }
+void DestroyNotice23Handler() { DestroyHandler(g_notice23Handler); }
+void DestroyNotice22Handler() { DestroyHandler(g_notice22Handler); }
+void DestroyNotice21Handler() { DestroyHandler(g_notice21Handler); }
+void DestroyNotice20Handler() { DestroyHandler(g_notice20Handler); }
+void DestroyNotice19Handler() { DestroyHandler(g_notice19Handler); }
+void DestroyNotice7Handler() { DestroyHandler(g_notice7Handler); }
+void DestroyNotice15Handler() { DestroyHandler(g_notice15Handler); }
+void DestroyNotice16Handler() { DestroyHandler(g_notice16Handler); }
+void DestroyNotice14Handler() { DestroyHandler(g_notice14Handler); }
+void DestroyNotice13Handler() { DestroyHandler(g_notice13Handler); }
+void DestroyNotice12Handler() { DestroyHandler(g_notice12Handler); }
+void DestroyNotice11Handler() { DestroyHandler(g_notice11Handler); }
+void DestroyNotice10Handler() { DestroyHandler(g_notice10Handler); }
+void DestroyNotice9Handler() { DestroyHandler(g_notice9Handler); }
+void DestroyNotice3Handler() { DestroyHandler(g_notice3Handler); }
+void DestroyNotice4Handler() { DestroyHandler(g_notice4Handler); }
+void DestroyNotice5Handler() { DestroyHandler(g_notice5Handler); }
+void DestroyNotice6Handler() { DestroyHandler(g_notice6Handler); }
+void DestroyNotice8Handler() { DestroyHandler(g_notice8Handler); }
+void DestroyNotice1Handler() { DestroyHandler(g_notice1Handler); }
+void DestroyNotice2Handler() { DestroyHandler(g_notice2Handler); }

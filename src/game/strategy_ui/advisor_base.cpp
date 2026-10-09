@@ -124,8 +124,8 @@ void AdvisorBase::Read(istream* in, HumanPlayer* player) {
     if (m_cueDue) ::operator delete(m_cueDue);
     if (m_cueCooldown) ::operator delete(m_cueCooldown);
     if (m_cueCount != 0) {
-        m_cueDue = static_cast<uint32_t*>(::operator new(m_cueCount * 4));
-        m_cueCooldown = static_cast<uint32_t*>(::operator new(m_cueCount * 4));
+        m_cueDue = static_cast<uint32_t*>(::operator new(m_cueCount * sizeof(uint32_t)));
+        m_cueCooldown = static_cast<uint32_t*>(::operator new(m_cueCount * sizeof(uint32_t)));
         for (uint32_t i = 0; i < m_cueCount; ++i) {
             ReadValue32(in, &m_cueDue[i]);
             m_cueCooldown[i] = 0;
@@ -441,7 +441,7 @@ void AdvisorBase::SpeakTopic(unsigned topic) {
     }
 }
 
-void AdvisorBase::SetAiHelperFlag(int value) { m_aiHelper.SetFocusKey(reinterpret_cast<const uint32_t*>(static_cast<intptr_t>(value))); }
+void AdvisorBase::SetAiHelperFlag(intptr_t value) { m_aiHelper.SetFocusKey(reinterpret_cast<const uint32_t*>(static_cast<intptr_t>(value))); }
 void AdvisorBase::ClearAiHelperFlag(int value) { m_aiHelper.SetFocusValue(value); }
 
 void AdvisorBase::ResetTasks() {

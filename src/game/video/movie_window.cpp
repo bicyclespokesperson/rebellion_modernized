@@ -108,7 +108,7 @@ MovieWindow::MovieWindow(int movieId, void (REB_CDECL* callback)(uint32_t, uint3
     m_callback = callback;
     m_captionBackdrop = nullptr;
     m_path = nullptr;
-    m_fallbackPath = 0;
+    m_fallbackPath = nullptr;
     if (caption) m_caption.Assign(*caption);
     BuildMoviePath(this);
 }
@@ -199,7 +199,7 @@ void MovieWindow::OnCreate() {
     uint32_t smackFlags = kSmackFlagsStandard;
     if (!source) {
         smackFlags = kSmackFlagsFallback;
-        source = reinterpret_cast<const char*>(static_cast<intptr_t>(m_fallbackPath));
+        source = m_fallbackPath;
     }
     PlayMovie(source, 0, 0, this, 1, 1, smackFlags);
     const int volume = static_cast<int>(ReadRegistryDword(g_registryKeyPath, g_musicVolumeName));

@@ -12,18 +12,11 @@ using events::timerStatOfOwner;
 
 namespace {
 
-constexpr int kMissionMgrStatAOffset = 0x5c;
-constexpr int kMissionMgrStatBOffset = 0x64;
-
 constexpr FamilyRange kMissionFamilies(0x40, 0x80);
 constexpr FamilyRange kMissionMgrFamilies(0xf8, 0xf9);
 
-TrackedStat* managerStatA(GameObj* manager) {
-    return reinterpret_cast<TrackedStat*>(reinterpret_cast<uint8_t*>(manager) + kMissionMgrStatAOffset);
-}
-TrackedStat* managerStatB(GameObj* manager) {
-    return reinterpret_cast<TrackedStat*>(reinterpret_cast<uint8_t*>(manager) + kMissionMgrStatBOffset);
-}
+TrackedStat* managerStatA(GameObj* manager) { return &static_cast<MissionMgr*>(manager)->m_statA; }
+TrackedStat* managerStatB(GameObj* manager) { return &static_cast<MissionMgr*>(manager)->m_statB; }
 
 }  // namespace
 

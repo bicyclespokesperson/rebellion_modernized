@@ -483,7 +483,7 @@ void finishLeader(Notice22* n, GameObjNotifier* leader, bool outcomeIsThree) {
 }  // namespace
 
 // Event 0x1f0: a mission of the side's character has started; each kind of mission has its own set of texts.
-void Notice22::Virtual05(int kind, int payload) {
+void Notice22::Virtual05(int kind, intptr_t payload) {
     ObjectKeyValueSet stash;
     ObjectKey missionKey;
     bool outcomeIsThree = false;

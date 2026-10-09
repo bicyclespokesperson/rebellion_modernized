@@ -89,9 +89,9 @@ public:
     void SelectRect(POINTS from, POINTS to);                            // 0x609590
     uint32_t SelectByPrefix(const String* prefix, int notify, int caseSensitive);  // 0x609650
     CoolListItem* AddItem(uint32_t id, uint16_t imageId, uint16_t selectedImageId, const char* text, int redraw,
-                          uint32_t userData);  // 0x609790
+                          uintptr_t userData);  // 0x609790
     CoolListItem* AddItemWithImages(uint32_t id, DibBitmap* image, DibBitmap* selectedImage, const char* text,
-                                    int redraw, uint32_t userData);  // 0x609840
+                                    int redraw, uintptr_t userData);  // 0x609840
     CoolListItem* FindItem(uint32_t id);                                // 0x6098f0
     void RemoveAll();                                                   // 0x609920
     void SetSelectedTextColor(COLORREF color);                          // 0x609940

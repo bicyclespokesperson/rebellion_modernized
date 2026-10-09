@@ -207,7 +207,7 @@ int constantMissionValue(int* out) {
 
 void* asRef(ObjectKey* key) { return key; }
 
-int keyAsArgument(ObjectKey* key) { return static_cast<int>(reinterpret_cast<intptr_t>(asRef(key))); }
+intptr_t keyAsArgument(ObjectKey* key) { return reinterpret_cast<intptr_t>(asRef(key)); }
 
 }  // namespace
 

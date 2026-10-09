@@ -21,13 +21,13 @@ void ReadValueString(istream* in, String* value) { ReadString(in, value); }
 void WriteValueString(ostream* out, String* value) { WriteString(out, value); }
 
 int CheckPositionMarker(istream* in) {
-    const long position = istream_tellg(in);
-    int stored;
+    const int32_t position = static_cast<int32_t>(istream_tellg(in));
+    int32_t stored;
     StreamRead32(in, &stored);
     return position == stored;
 }
 
 void WritePositionMarker(ostream* out) {
-    int position = ostream_tellp(out);
+    int32_t position = static_cast<int32_t>(ostream_tellp(out));
     StreamWrite32(out, &position);
 }

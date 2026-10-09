@@ -35,7 +35,7 @@ int MissionMgr::OnCharacterEvent(ObjectKey* key, int unused, NotifyContext* ctx)
     return ok;
 }
 
-int MissionMgr::UpdateMissionsForObject(ObjectKey* key, int unused, ObjectKey* location, int skipMissions,
+int MissionMgr::UpdateMissionsForObject(ObjectKey* key, intptr_t unused, ObjectKey* location, int skipMissions,
                                         NotifyContext* ctx) {
     int ok = 1;
     if (IsStoryCharacterKey(key)) ok = RunStoryPipeline(ctx) != 0;
@@ -61,7 +61,7 @@ int MissionMgr::UpdateMissionsForObject(ObjectKey* key, int unused, ObjectKey* l
     return ok;
 }
 
-int MissionMgr::UpdateMissionsForObjective(ObjectKey* key, int unused, int unused2, int skipMissions,
+int MissionMgr::UpdateMissionsForObjective(ObjectKey* key, intptr_t unused, intptr_t unused2, int skipMissions,
                                            NotifyContext* ctx) {
     int ok = 1;
     if (IsStoryCharacterKey(key)) ok = RunStoryPipeline(ctx) != 0;
@@ -87,7 +87,7 @@ int MissionMgr::UpdateMissionsForTargetOrObjective(ObjectKey* key, int unused, i
     return ok;
 }
 
-int MissionMgr::RunStoryPipelineForStoryKey(ObjectKey* key, int unused, int unused2, NotifyContext* ctx) {
+int MissionMgr::RunStoryPipelineForStoryKey(ObjectKey* key, intptr_t unused, intptr_t unused2, NotifyContext* ctx) {
     int result = 1;
     if (IsStoryCharacterKey(key)) result = RunStoryPipeline(ctx);
     return result;
@@ -121,7 +121,7 @@ int MissionMgr::OnSystemEvent(ObjectKey* key, int unused, NotifyContext* ctx) {
     return ok;
 }
 
-int MissionMgr::OnSystemEventNoop(int a, int b, int c) { return 1; }
+int MissionMgr::OnSystemEventNoop(intptr_t a, int b, intptr_t c) { return 1; }
 
 int MissionMgr::UpdateMissionsAtSystemA(ObjectKey* key, int enabled, NotifyContext* ctx) {
     int ok = 1;

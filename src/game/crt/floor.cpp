@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <cstring>
 
+#if defined(__i386__) || defined(_M_IX86)
 // VC5 floor (0x619610): the x87 rounds toward minus infinity (control word 0x173f, kept in DAT_006acac0) around
 // FRNDINT, then the caller's control word comes back. Infinities and NaNs return unchanged; the original also reports
 // NaNs through _matherr/errno, which nothing in the game looks at.
@@ -31,3 +32,4 @@ extern "C" double __cdecl floor(double x) {
         : "m"(roundDown), "0"(x));
     return result;
 }
+#endif  // i386: other targets use the C library floor

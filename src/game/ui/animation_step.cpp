@@ -124,7 +124,7 @@ void AnimationStep::Attach(SpriteAnimator* animator) { m_animator = animator; }
 
 void AnimationStep::SetScript(const uint32_t* sequence) { m_script = *sequence; }
 
-void AnimationStep::SetStart(int x, int y) {}
+void AnimationStep::SetStart(int x, intptr_t y) {}
 
 void AnimationStep::Abort() {}
 
@@ -186,16 +186,16 @@ void BitmapListStep::Attach(SpriteAnimator* animator) {
 
 void BitmapListStep::ShowBitmap(int index, DibBitmap* bitmap) { showBitmap(this, index, bitmap); }
 
-void TimedStep::SetStart(int x, int y) {
+void TimedStep::SetStart(int x, intptr_t y) {
     m_delay = static_cast<uint32_t>(x);
-    m_callback = reinterpret_cast<void (*)(int)>(static_cast<intptr_t>(y));
+    m_callback = reinterpret_cast<void (*)(int)>(y);
 }
 
 void TimedStep::Abort() { m_delay = 0; }
 
-void PositionedStep::SetStart(int x, int y) {
+void PositionedStep::SetStart(int x, intptr_t y) {
     m_x = x;
-    m_y = y;
+    m_y = static_cast<int>(y);
 }
 
 int PositionedStep::Advance(RECT* area, int* changed) {
@@ -241,9 +241,9 @@ int AnimationStep05::Advance(RECT* area, int* changed) {
     if (m_hold > 0) {
         --m_hold;
         *changed = 1;
-        area->left = *reinterpret_cast<int*>(reinterpret_cast<char*>(m_animator) + 0x28);
+        area->left = m_animator->m_originX;
         area->right = area->left + (m_bitmaps[0] != nullptr ? m_bitmaps[0]->Width() : 0);
-        area->top = *reinterpret_cast<int*>(reinterpret_cast<char*>(m_animator) + 0x2c);
+        area->top = m_animator->m_originY;
         area->bottom = area->top + (m_bitmaps[0] != nullptr ? m_bitmaps[0]->Height() : 0);
     }
     return done;

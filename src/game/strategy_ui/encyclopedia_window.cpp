@@ -1,3 +1,4 @@
+#include "economy/manu_mgr.h"
 #include "core/reb_abi.h"
 #include "strategy_ui/encyclopedia_window.h"
 
@@ -105,10 +106,7 @@ IntPair FilterRange(int tabId) {
     }
 }
 
-// The manufacturing manager class is not declared yet: non-zero +0x58 means its own owner key (+0x74) is set.
-int ManagerHasOwnerKey(GameObjNotifier* manager) {
-    return *reinterpret_cast<int*>(reinterpret_cast<char*>(manager) + 0x58);
-}
+int ManagerHasOwnerKey(GameObjNotifier* manager) { return static_cast<ManuMgr*>(manager)->m_remainingGameObjCount; }
 
 uint32_t EntryIdOf(GameObjNotifier* object) {
     return (object->m_record->m_small & kRecordIdMask) + kEntryIdBase;

@@ -36,7 +36,7 @@ strstreambuf* REB_THISCALL strstreambuf_ctor_buf(strstreambuf* self, char* buffe
     if (size == 0)
         end = buffer + strlen(buffer);
     else if (size < 0)
-        end = reinterpret_cast<char*>(-1);
+        end = reinterpret_cast<char*>(static_cast<intptr_t>(-1));
     else
         end = buffer + size;
     streambuf_setb(self, buffer, end, 0);

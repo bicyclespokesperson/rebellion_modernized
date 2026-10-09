@@ -1,3 +1,4 @@
+#include "character/character.h"
 #include "core/reb_abi.h"
 #include "strategy_ui/battle_window.h"
 
@@ -690,7 +691,7 @@ void REB_STDCALL CollectBattleParticipants(GameObjNotifier* fleet, ObjectKeySet*
                 role->GetKey(&roleKey);
                 ObjectKeyNode* node = NewKeyNode(roleKey);
                 ObjectKeySet* target = shown;
-                if (InFamilies(roleKey, 0x30, 0x3c) && (*(reinterpret_cast<uint8_t*>(role) + 0xac) & 1) != 0) target = held;
+                if (InFamilies(roleKey, 0x30, 0x3c) && (static_cast<Character*>(role)->m_flagsAc & 1) != 0) target = held;
                 target->Add(node);
             }
         }

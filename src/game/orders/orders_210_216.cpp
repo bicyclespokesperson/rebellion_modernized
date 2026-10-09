@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "orders/orders_210_216.h"
 
 #include <cstddef>
@@ -35,10 +34,6 @@ constexpr int kStatusBadDestinationKind = 0x25;
 constexpr int kStatusNotRecruited = 0x20;
 constexpr int kStatusBusy = 0x21;
 
-constexpr size_t kManagerStateOffset = 0x58;
-constexpr size_t kUnitFlagsOffset = 0x50;
-constexpr size_t kCommandPayloadOffset = 0x50;
-constexpr size_t kManagerChoicesSlotOffset = 0x1ec;
 
 constexpr uint32_t kUnitFlagRecruited = 4;
 constexpr uint32_t kUnitFlagUntraced = 8;
@@ -51,11 +46,6 @@ void setStatus(StatusCode* status, int code) { *status = StatusCode(kStatusCateg
 bool inFamilies(uint32_t family, uint32_t first, uint32_t end) { return family >= first && family < end; }
 
 bool inFamilies(const ObjectKey& key, uint32_t first, uint32_t end) { return inFamilies(key.Family(), first, end); }
-
-template <class T>
-T& fieldAt(void* object, size_t offset) {
-    return *reinterpret_cast<T*>(static_cast<char*>(object) + offset);
-}
 
 Command* firstCommand(CommandQueue* commands) { return static_cast<Command*>(commands->m_first); }
 
@@ -80,12 +70,6 @@ ObjectKey keyOfNode(AvlNode* node) {
 
 uint32_t sideIndexOf(uint32_t side) { return side == 1 ? 1 : (side == 2 ? 2 : 0); }
 
-int callManagerVirtual(GameObjNotifier* manager, size_t byteOffset) {
-    using Slot = int(REB_THISCALL*)(void*);
-    Slot* vtable = *reinterpret_cast<Slot**>(manager);
-    return vtable[byteOffset / sizeof(void*)](manager);
-}
-
 bool isCapitalShip(const ObjectKey& key) { return inFamilies(key, 0x14, 0x1c); }
 
 bool isSystem(GameObjNotifier* object) { return inFamilies(object->GetFamily(), 0x90, 0x98); }
@@ -105,7 +89,7 @@ DestinationOrder::~DestinationOrder() { REB_KEEP_VPTR_STORE(); }
 int DestinationOrder::GetKind() { return 0x214; }
 
 Command* DestinationOrder::CreateCommand() {
-    void* memory = ::operator new(0x58);
+    void* memory = ::operator new(sizeof(DestinationCommand));
     return memory ? new (memory) DestinationCommand() : nullptr;
 }
 
@@ -156,7 +140,7 @@ int DestinationOrder::CheckDestination(StatusCode* status) {
                      command = nextCommand(command)) {
                     GameObjNotifier* manager = managerOfCommand(command);
                     // BUG(original): a command whose object is not a manager is dereferenced unchecked.
-                    if (fieldAt<int>(manager, kManagerStateOffset) == 0) {
+                    if (static_cast<ManuMgr*>(manager)->m_remainingGameObjCount == 0) {
                         GameObjNotifier* target = nullptr;
                         StatusCode missing(kStatusCategory, kStatusNoDestination);
                         ok = ResolveMasterInFamilies_01_ff(&request.m_target, &target, &missing, status);
@@ -168,7 +152,7 @@ int DestinationOrder::CheckDestination(StatusCode* status) {
                                 if (isOk(status) && !isSystem(target)) setStatus(status, kStatusBadDestinationKind);
                             } else {
                                 if (isOk(status)) {
-                                    uint32_t flags = fieldAt<uint32_t>(target, kUnitFlagsOffset);
+                                    uint32_t flags = static_cast<GameObj*>(target)->m_stateFlags;
                                     if ((flags & kUnitFlagRecruited) == 0) {
                                         setStatus(status, kStatusNotRecruited);
                                     } else if ((flags & kUnitFlagEnroute) != 0) {
@@ -199,7 +183,7 @@ int DestinationOrder::CheckDestination(StatusCode* status) {
                             }
                             if (ok != 0 && isOk(status)) {
                                 ObjectKey unitKey = keyOfNode(node);
-                                ok = fieldAt<ObjectKeyPairSet>(command, kCommandPayloadOffset).AddPair(&legKey, &unitKey);
+                                ok = static_cast<DestinationCommand*>(command)->m_pairs.AddPair(&legKey, &unitKey);
                             }
                         }
                     }
@@ -232,7 +216,7 @@ int RenameOrder215::CheckEnabled(StatusCode* status) {
 }
 
 Command* RenameOrder215::CreateCommand() {
-    void* memory = ::operator new(0x5c);
+    void* memory = ::operator new(sizeof(ManagerRenameCommand));
     return memory ? new (memory) ManagerRenameCommand() : nullptr;
 }
 
@@ -243,7 +227,7 @@ int RenameOrder215::CheckDestination(StatusCode* status) {
     int ok = OrderBase::CheckDestination(status);
     if (ok != 0) {
         for (Command* command = firstCommand(m_commands); command && isOk(status); command = nextCommand(command))
-            fieldAt<String>(command, kCommandPayloadOffset).Assign(m_text);
+            static_cast<ManagerRenameCommand*>(command)->m_name.Assign(m_text);
     }
     if (ok == 0) setStatus(status, kStatusRefused);
     return ok;
@@ -277,7 +261,7 @@ int ManufactureOrderBase::Write(ostream* out) {
 }
 
 Command* ManufactureOrderBase::CreateCommand() {
-    void* memory = ::operator new(0x58);
+    void* memory = ::operator new(sizeof(ManufactureCommand));
     return memory ? new (memory) ManufactureCommand() : nullptr;
 }
 
@@ -299,7 +283,7 @@ uint32_t ManufactureOrderBase::FillChoices(AvlTree* choices) {
                 result = manager != nullptr;
                 if (result != 0 && first) {
                     side = manager->ControlSide();
-                    item = callManagerVirtual(manager, kManagerChoicesSlotOffset);
+                    item = static_cast<ManuMgr*>(manager)->GetFacilityKind();
                     first = false;
                 }
             }
@@ -353,7 +337,7 @@ int ManufactureOrderBase::ComputeTotals(int* out1, int* out2, int* out3, int* ou
         for (Command* command = firstCommand(m_commands); command && isOk(status); command = nextCommand(command)) {
             GameObjNotifier* manager = managerOfCommand(command);
             if (!manager) continue;
-            int perUnit = static_cast<uint16_t>(fieldAt<AvlTree>(command, kCommandPayloadOffset).Count());
+            int perUnit = static_cast<uint16_t>(static_cast<ManufactureCommand*>(command)->m_items.Count());
             int first = 0;
             int second = 0;
             if (isOk(status)) {
@@ -464,7 +448,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
                 }
                 if (ok != 0 && isOk(status)) {
                     ObjectKey itemKey;
-                    ok = reinterpret_cast<ObjectKeyIntSet*>(&fieldAt<char>(command, kCommandPayloadOffset))->ObjectKeyIntSet::AddPair(legKey, reinterpret_cast<const int&>(GetItemKey(&itemKey)->m_value));
+                    ok = static_cast<ManufactureCommand*>(command)->m_items.ObjectKeyIntSet::AddPair(legKey, reinterpret_cast<const int&>(GetItemKey(&itemKey)->m_value));
                 }
             }
         }
@@ -499,7 +483,7 @@ Order213::~Order213() { REB_KEEP_VPTR_STORE(); }
 int Order213::GetKind() { return 0x213; }
 
 Command* Order213::CreateCommand() {
-    void* memory = ::operator new(0x50);
+    void* memory = ::operator new(sizeof(ManagerCommand213));
     return memory ? new (memory) ManagerCommand213() : nullptr;
 }
 
@@ -514,7 +498,7 @@ Order216::~Order216() { REB_KEEP_VPTR_STORE(); }
 int Order216::GetKind() { return 0x216; }
 
 Command* Order216::CreateCommand() {
-    void* memory = ::operator new(0x54);
+    void* memory = ::operator new(sizeof(ManagerCommand216));
     return memory ? new (memory) ManagerCommand216() : nullptr;
 }
 
@@ -530,7 +514,7 @@ int Order216::CheckDestination(StatusCode* status) {
         if (isOk(status)) flag = IsChecked() == 0;
         if (isOk(status)) {
             for (Command* command = firstCommand(m_commands); command && isOk(status); command = nextCommand(command))
-                fieldAt<int>(command, kCommandPayloadOffset) = flag;
+                static_cast<ManagerCommand216*>(command)->m_value = flag;
         }
     }
     if (ok == 0) setStatus(status, kStatusRefused);

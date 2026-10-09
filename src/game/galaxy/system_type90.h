@@ -20,7 +20,7 @@ public:
     virtual int Validate() override;                                                        // 8, 0x566d30 (jump thunk)
     virtual int ApplyAll(NotifyContext* ctx) override;                                      // 9, 0x566d00
     virtual int CreateViews(int controlKind, NotifyContext* ctx) override;                  // 37, shared 0x56a510 (SystemType92)
-    virtual int Virtual47(int a) override;                                                  // 47, 0x566d40
+    virtual int Virtual47(intptr_t a) override;                                                  // 47, 0x566d40
     virtual int ApplyAllToViewOf(int view, int unused, NotifyContext* ctx) override;        // 54, 0x566eb0
     virtual GameObj* CreateViewObject() override;                                           // 57, 0x566fd0
     virtual int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;  // 60, 0x567040

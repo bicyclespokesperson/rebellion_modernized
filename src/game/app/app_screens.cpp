@@ -48,16 +48,17 @@ constexpr int kQuitDialogText = 0x1202;
 constexpr int kQuitDialogX = 500;
 constexpr int kQuitDialogY = 0x50;
 
-constexpr size_t kMovieWindowSize = 0xb8;
-constexpr size_t kStrategicWindowSize = 0x49c;
 constexpr size_t kTacticalWindowSize = 0x114;
-constexpr size_t kFrontEndWindowSize = 0x108;
-constexpr size_t kLobbyWindowSize = 0x194;
-constexpr size_t kOptionsWindowSize = 0x11c;
-constexpr size_t kDibBitmapSize = 0x28;
 
+template <class Window, class Construct>
+CoolWindow* ConstructWindow(Construct construct) {
+    void* memory = ::operator new(sizeof(Window));
+    return memory ? static_cast<CoolWindow*>(construct(memory)) : nullptr;
+}
+
+// The 3D tactical window class is not reconstructed (out of scope), so its size stays the original's.
 template <class Construct>
-CoolWindow* ConstructWindow(size_t size, Construct construct) {
+CoolWindow* ConstructOpaqueWindow(size_t size, Construct construct) {
     void* memory = ::operator new(size);
     return memory ? static_cast<CoolWindow*>(construct(memory)) : nullptr;
 }
@@ -225,7 +226,7 @@ void RebellionApplication::PlayMovie(int movieId, const String* caption, void(RE
     if (m_activeWindow) m_activeWindow->Hide();
     ReleaseOverlayWindow();
     FillWindowBlack();
-    m_overlayWindow = ConstructWindow(kMovieWindowSize, [&](void* memory) {
+    m_overlayWindow = ConstructWindow<MovieWindow>( [&](void* memory) {
         return new (memory) MovieWindow(movieId, callback, m_instance, m_unknownA0, m_unknownA4, m_screenWidth, m_screenHeight, this, caption);
     });
     if (m_overlayWindow) {
@@ -321,7 +322,7 @@ void RebellionApplication::DoMainChildWindow(int previousState) {
         DestroyBattleFlow();
         UiSetPausePending(0);
         DibBitmap* backdrop = nullptr;
-        if (void* memory = ::operator new(kDibBitmapSize)) {
+        if (void* memory = ::operator new(sizeof(DibBitmap))) {
             backdrop = new (memory) DibBitmap(commonModule, kFrontEndBackdropId, 2u);
         }
         if (backdrop) {
@@ -331,21 +332,21 @@ void RebellionApplication::DoMainChildWindow(int previousState) {
             backdrop->~DibBitmap();
             ::operator delete(backdrop);
         }
-        m_activeWindow = ConstructWindow(kFrontEndWindowSize, [&](void* memory) {
+        m_activeWindow = ConstructWindow<MainMenuWindow>( [&](void* memory) {
             return new (memory) MainMenuWindow(m_instance, x, y, width, height, this);
         });
         break;
     }
     case kStateLobbyHost:
     case kStateLobbyJoin:
-        m_activeWindow = ConstructWindow(kLobbyWindowSize, [&](void* memory) {
+        m_activeWindow = ConstructWindow<MultiPlayerWindow>( [&](void* memory) {
             return new (memory) MultiPlayerWindow(m_instance, x, y, width, height, this, 1, 8, 0x2774, 0xe, 0, 0, 1, 1);
         });
         m_networkMode = kNetworkModeConnected;
         break;
     case kStateOptionsMenu:
     case kStateOptionsInGame:
-        m_activeWindow = ConstructWindow(kOptionsWindowSize, [&](void* memory) {
+        m_activeWindow = ConstructWindow<GameOptionsWindow>( [&](void* memory) {
             return new (memory) GameOptionsWindow(m_instance, x, y, width, height, this, previousState);
         });
         break;
@@ -371,7 +372,7 @@ void RebellionApplication::ShowStrategicWindow(int unused) {
         int height = m_screenHeight;
         if (m_side != 0) {
             int firstGame = m_previousState == kStateBattleSwitch || m_previousState == kStateTactical;
-            m_strategicWindow = ConstructWindow(kStrategicWindowSize, [&](void* memory) {
+            m_strategicWindow = ConstructWindow<GalaxyWindow>( [&](void* memory) {
                 return new (memory) GalaxyWindow(m_instance, x, y, width, height, this, m_side, firstGame);
             });
         }
@@ -404,7 +405,7 @@ void RebellionApplication::ShowTacticalWindow() {
         int width = m_screenWidth;
         int height = m_screenHeight;
         if (m_side != 0) {
-            m_tacticalWindow = ConstructWindow(kTacticalWindowSize, [&](void* memory) {
+            m_tacticalWindow = ConstructOpaqueWindow(kTacticalWindowSize,  [&](void* memory) {
                 return FUN_0059a8d0(memory, m_instance, x, y, width, height, this, &g_directDrawHost);
             });
         }

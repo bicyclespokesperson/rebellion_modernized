@@ -74,7 +74,7 @@ TacticalFighter::TacticalFighter(uint32_t family, uint32_t id, int notAlliance, 
     m_unk3dc = m_firepowerTotal;
     m_shieldRecharge = 1.0f;
     m_unk3f4 = 0;
-    m_scale = static_cast<float>(x87Sin(static_cast<double>(kPi) * 0.49444446f));
+    m_scale = static_cast<float>(reb_sin(static_cast<double>(kPi) * 0.49444446f));
     m_unk08 = 0.3f;
     const double unk0c = static_cast<double>(0.3f) * 4.0f;
     m_weaponCH = 0;

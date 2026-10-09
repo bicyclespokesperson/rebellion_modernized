@@ -104,6 +104,8 @@ int CountManufacturingFacility2AChildren(GameObj* parent, uint32_t side, uint32_
 int CountManufacturingFacility29Children(GameObj* parent, uint32_t side, uint32_t filter);  // 0x52c5a0, family 0x29
 int CountManufacturingFacility28Children(GameObj* parent, uint32_t side, uint32_t filter);  // 0x52c8c0, family 0x28
 
+inline ProcFacil* AsProcFacil(GameObjNotifier* facility) { return static_cast<ProcFacil*>(facility); }
+
 // Iterator over families [0x28,0x2c) (VT 0x660698, destructor only). The one-argument form uses state filter 1.
 class ManufacturingFacilityIterator : public ChildIterator {
 public:

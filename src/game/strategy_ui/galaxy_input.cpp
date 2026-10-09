@@ -66,7 +66,7 @@ int HighWord(LPARAM value) { return static_cast<int>(static_cast<uint32_t>(value
 int LowWordSigned(LPARAM value) { return static_cast<int16_t>(static_cast<uint32_t>(value) & 0xffff); }
 int HighWordSigned(LPARAM value) { return static_cast<int16_t>(static_cast<uint32_t>(value) >> 16); }
 
-HWND SendToBottom() { return reinterpret_cast<HWND>(1); }
+HWND SendToBottom() { return HWND_BOTTOM; }
 
 bool InputBlocked() { return static_cast<uint32_t>(GameHookTickCount()) < 2; }
 

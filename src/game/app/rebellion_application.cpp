@@ -127,7 +127,7 @@ String BuildGameRegistryKey() {
 }
 
 HACCEL AcceleratorTableOf(RebellionApplication* app) {
-    return reinterpret_cast<HACCEL>(static_cast<uintptr_t>(app->m_unknown98));
+    return reinterpret_cast<HACCEL>(app->m_unknown98);
 }
 
 }  // namespace

@@ -129,12 +129,12 @@ bool SameGuid(const GUID& a, const GUID& b) {
 
 void DeleteProviderData(CoolDragList* list) {
     for (CoolListItem* item = list->m_items->First(); item; item = item->Next())
-        if (item->m_userData) delete reinterpret_cast<ServiceProviderInfo*>(item->m_userData);
+        if (item->m_userPointer) delete reinterpret_cast<ServiceProviderInfo*>(item->m_userPointer);
 }
 
 void DeleteSessionData(CoolDragList* list) {
     for (CoolListItem* item = list->m_items->First(); item; item = item->Next())
-        if (item->m_userData) delete reinterpret_cast<SessionInfo*>(item->m_userData);
+        if (item->m_userPointer) delete reinterpret_cast<SessionInfo*>(item->m_userPointer);
 }
 
 CoolDragList* CreateList(MultiPlayerWindow* window, const RECT& area, uint32_t overlayId, uint32_t childId,
@@ -275,7 +275,7 @@ void MultiPlayerWindow::FillProviderList() {
     for (auto* node = static_cast<ServiceProviderInfo*>(providers->First()); node;
          node = static_cast<ServiceProviderInfo*>(node->m_successor)) {
         auto* copy = NewOrNull<ServiceProviderInfo>(*node);
-        m_providerList->AddItem(0, 0, 0, node->m_name.m_text, 1, reinterpret_cast<uint32_t>(copy));
+        m_providerList->AddItem(0, 0, 0, node->m_name.m_text, 1, reinterpret_cast<uintptr_t>(copy));
     }
     if (CoolListItem* first = m_providerList->FirstItem()) m_providerList->SelectById(first->m_id, 1);
 }
@@ -294,7 +294,7 @@ int MultiPlayerWindow::RefreshSessionList() {
     for (auto* node = static_cast<SessionInfo*>(sessions->First()); node;
          node = static_cast<SessionInfo*>(node->m_successor)) {
         auto* copy = NewOrNull<SessionInfo>(*node);
-        m_sessionList->AddItem(0, 0, 0, node->m_name.m_text, 1, reinterpret_cast<uint32_t>(copy));
+        m_sessionList->AddItem(0, 0, 0, node->m_name.m_text, 1, reinterpret_cast<uintptr_t>(copy));
     }
     if (CoolListItem* first = m_sessionList->FirstItem()) m_sessionList->SelectById(first->m_id, 1);
     if (m_nextButton) {
@@ -315,7 +315,7 @@ int MultiPlayerWindow::SessionListUpToDate(SessionList* sessions) {
          node = static_cast<SessionInfo*>(node->m_successor)) {
         int found = 0;
         for (CoolListItem* item = m_sessionList->FirstItem(); item && !found; item = item->Next()) {
-            const auto* known = reinterpret_cast<const SessionInfo*>(item->m_userData);
+            const auto* known = reinterpret_cast<const SessionInfo*>(item->m_userPointer);
             found = SameGuid(known->m_instance, node->m_instance);
         }
         differs = !found;
@@ -332,7 +332,7 @@ void MultiPlayerWindow::RememberSelectedProvider() {
     CoolListItemList selection(1);
     m_providerList->CopySelectionTo(&selection);
     if (auto* item = static_cast<CoolListItem*>(selection.m_head)) {
-        const auto* source = reinterpret_cast<const ServiceProviderInfo*>(item->m_userData);
+        const auto* source = reinterpret_cast<const ServiceProviderInfo*>(item->m_userPointer);
         m_selectedProvider = NewOrNull<ServiceProviderInfo>(*source);
     }
 }
@@ -346,7 +346,7 @@ void MultiPlayerWindow::RememberSelectedSession() {
     CoolListItemList selection(1);
     m_sessionList->CopySelectionTo(&selection);
     if (auto* item = static_cast<CoolListItem*>(selection.m_head)) {
-        const auto* source = reinterpret_cast<const SessionInfo*>(item->m_userData);
+        const auto* source = reinterpret_cast<const SessionInfo*>(item->m_userPointer);
         m_selectedSession = NewOrNull<SessionInfo>(*source);
     }
 }

@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "multiplayer/message_codec.h"
 
 #include <cstring>
@@ -19,11 +18,10 @@ constexpr int kOutputMode = 2;
 
 uint32_t BytesWritten(OStrStream* stream) { return iostream_access::WrittenBytes(StreambufOf(stream->Out())); }
 
-// delete through a stream pointer: the scalar deleting destructor sits in slot 0 of the virtual base's vftable.
+// delete through a stream pointer: the scalar deleting destructor sits in the virtual base's vftable.
 void DeleteStream(void* stream) {
-    void* ios = IosPartOf(stream);
-    void** vftable = *static_cast<void***>(ios);
-    reinterpret_cast<void(REB_THISCALL*)(void*, int)>(vftable[0])(ios, 1);
+    ios* base = iostream_access::IosOf(stream);
+    base->m_vftable->m_scalarDeletingDtor(base, 1);
 }
 
 }  // namespace

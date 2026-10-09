@@ -62,11 +62,11 @@ int UnitObjBase::CheckRequestImpl(const ActivityRequest* request, StatusCode* ou
     return result;
 }
 
-int UnitObjBase::Virtual47(int a) { return GameObj::Virtual47(a); }
+int UnitObjBase::Virtual47(intptr_t a) { return GameObj::Virtual47(a); }
 
-int UnitObjBase::Virtual48(int a) { return GameObj::Virtual47(a); }
+int UnitObjBase::Virtual48(intptr_t a) { return GameObj::Virtual47(a); }
 
-int UnitObjBase::Virtual55(int a) { return GameObj::Virtual55(a) != 0; }
+int UnitObjBase::Virtual55(intptr_t a) { return GameObj::Virtual55(a) != 0; }
 
 GameObjData* UnitObjBase::CreateData() { return new UnitObjData(); }
 

@@ -33,7 +33,7 @@ int REB_CDECL CommInit(uint32_t guid0, uint32_t guid1, uint32_t guid2, uint32_t 
             memcpy(&application, words, sizeof(application));
             return comm->Init(window, application, maxPlayers);
         }
-        result = reinterpret_cast<GameWindowObject*>(comm)->GameWindowObject::Virtual0D(unused9, unused10, unused11, reinterpret_cast<int>(window), unused12);
+        result = reinterpret_cast<GameWindowObject*>(comm)->GameWindowObject::Virtual0D(unused9, unused10, unused11, reinterpret_cast<intptr_t>(window), unused12);
     }
     return result;
 }
@@ -175,7 +175,7 @@ void REB_CDECL CommSetSessionFlags(int flags) {
 
 void* REB_THISCALL CommCloseSessionToNewPlayers(void* self) {
     CommMgr* comm = GetCommMgr();
-    if (comm) return reinterpret_cast<void*>(comm->CloseSessionToNewPlayers());
+    if (comm) return reinterpret_cast<void*>(static_cast<intptr_t>(comm->CloseSessionToNewPlayers()));
     return self;
 }
 

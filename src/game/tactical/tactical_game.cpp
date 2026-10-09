@@ -88,7 +88,7 @@ void DestroyTacticalGame() {
 
 HeadlessSimulator* GetHeadlessSimulator() {
     if (!g_headlessSimulator) {
-        void* memory = ::operator new(0x274);
+        void* memory = ::operator new(sizeof(HeadlessSimulator));
         g_headlessSimulator = memory ? new (memory) HeadlessSimulator() : nullptr;
     }
     return g_headlessSimulator;

@@ -4,7 +4,7 @@
 #include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "economy/manu_mgr.h"
-#include "economy/manu_mgr_decl.h"
+#include "economy/manufacturing_facility.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_type_db.h"
 
@@ -178,7 +178,7 @@ int ManuMgr::IsAcceptableProduct(GameObj* product) {
 
 int ManuMgr::IsCompatibleFacility(GameObj* facility) {
     if (!facility) return 0;
-    const int facilityKind = GetFacilityProductKind(facility);
+    const int facilityKind = static_cast<ManufacturingFacility*>(facility)->GetManufacturingKind();
     const int myKind = GetFacilityKind();
     if (facilityKind != myKind || !(facility->m_stateFlags & kUsable)) return 0;
     if (((m_flags ^ facility->m_flags) & kControlBits) != 0) return 0;
@@ -194,7 +194,7 @@ int ManuMgr::CountHostFacilities(int includeOutOfService) {
         while (facilities.Current()) {
             GameObjNotifier* facility = facilities.Current();
             if (IsCompatibleFacility(static_cast<GameObj*>(facility)) &&
-                ((AsFacilityFields(facility)->m_flags & 1) == 0 || includeOutOfService != 0)) {
+                ((AsProcFacil(facility)->m_procFlags & 1) == 0 || includeOutOfService != 0)) {
                 ++count;
             }
             facilities.Advance();
@@ -214,7 +214,7 @@ int ManuMgr::HasHostFacility(int includeOutOfService) {
             GameObjNotifier* facility = facilities.Current();
             if (!IsCompatibleFacility(static_cast<GameObj*>(facility))) {
                 found = 0;
-            } else if ((AsFacilityFields(facilities.Current())->m_flags & 1) != 0 && includeOutOfService == 0) {
+            } else if ((AsProcFacil(facilities.Current())->m_procFlags & 1) != 0 && includeOutOfService == 0) {
                 found = 0;
             } else {
                 found = 1;

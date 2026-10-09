@@ -38,7 +38,7 @@ void say(String* text, uint32_t id, GameObjNotifier* a = nullptr, GameObjNotifie
 
 // Notices of kind 15 file the objects of a fleet or system into sets (the ones that left, and the captured characters
 // apart) and then compose the text out of the two sides' names.
-void Notice15::Virtual08(int kind, int a, int b) {
+void Notice15::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind == 2) {
         GameObjNotifier* controller = GetSideObject(m_owner, m_f6c == 1 ? 1 : 2);
         GameObjNotifier* other = nullptr;
@@ -99,7 +99,7 @@ void Notice15::Virtual08(int kind, int a, int b) {
         m_f6c = fleet->ControlSide();
 }
 
-void Notice15::Virtual09(int kind, int a, int b, int c) {
+void Notice15::Virtual09(int kind, intptr_t a, intptr_t b, intptr_t c) {
     if (kind != kEventSystemTaken && kind != kEventSystemLost) return;
     const bool lost = kind == kEventSystemLost;
     GameObjNotifier* system = GetObjectInFamilies_90_98(m_owner, reinterpret_cast<const ObjectKey*>(a));
@@ -128,5 +128,5 @@ void Notice15::Virtual09(int kind, int a, int b, int c) {
         }
         return;
     }
-    m_f68 = c;
+    m_f68 = static_cast<int>(c);
 }

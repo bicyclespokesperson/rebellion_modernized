@@ -202,7 +202,7 @@ int GameObj::CheckRenameImpl(const ActivityRequest* request, StatusCode* out) {
     return 1;
 }
 
-int GameObj::CheckRename(const ActivityRequest* request, int name, StatusCode* out) {
+int GameObj::CheckRename(const ActivityRequest* request, intptr_t name, StatusCode* out) {
     setStatus(out, kStatusOk);
     return CheckRenameImpl(request, out);
 }
@@ -217,7 +217,7 @@ int GameObj::CheckUnknown(const ActivityRequest* request, StatusCode* out) {
     return CheckUnknownImpl(request, out);
 }
 
-int GameObj::Virtual29(int a, int b, int c, int d, StatusCode* out) {
+int GameObj::Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) {
     setStatus(out, kStatusNotSupported25);
     return 1;
 }
@@ -230,7 +230,7 @@ int GameObj::Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o
     return 1;
 }
 
-int GameObj::Virtual31(int a, int b, int c, int d, StatusCode* out) {
+int GameObj::Virtual31(int a, int b, int c, intptr_t d, StatusCode* out) {
     setStatus(out, kStatusOk);
     return 1;
 }

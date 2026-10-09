@@ -90,11 +90,11 @@ int System::RecomputeFleetExploredFlags(NotifyContext* ctx) {
     for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
         GameObjNotifier* fleet = fleets.Current();
         const uint32_t side = fleet->ControlSide();
-        const uint32_t fleetFlags = FieldAt<uint32_t>(fleet, 0x58);
+        const uint32_t fleetFlags = static_cast<Fleet*>(fleet)->m_fleetFlags;
         if ((!((fleetFlags >> 1) & 1) || !((fleetFlags >> 2) & 1)) && ok) ok = 1;
         else ok = 0;
-        if (ok && ((FieldAt<uint32_t>(fleet, 0x58) >> 1) & 1)) {
-            if (((FieldAt<uint32_t>(fleet, 0x50) >> 3) & 1) == 0) {
+        if (ok && ((static_cast<Fleet*>(fleet)->m_fleetFlags >> 1) & 1)) {
+            if (((static_cast<GameObj*>(fleet)->m_stateFlags >> 3) & 1) == 0) {
                 alliance += side == 1;
                 empire += side == 2;
             } else {
@@ -117,12 +117,12 @@ int System::RecomputeFleetEmptyFlags(NotifyContext* ctx) {
     for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
         GameObjNotifier* fleet = fleets.Current();
         const uint32_t side = fleet->ControlSide();
-        const uint32_t fleetFlags = FieldAt<uint32_t>(fleet, 0x58);
+        const uint32_t fleetFlags = static_cast<Fleet*>(fleet)->m_fleetFlags;
         if ((!((fleetFlags >> 1) & 1) || !((fleetFlags >> 2) & 1)) && ok) ok = 1;
         else ok = 0;
-        if (ok && ((FieldAt<uint32_t>(fleet, 0x58) >> 2) & 1)) {
+        if (ok && ((static_cast<Fleet*>(fleet)->m_fleetFlags >> 2) & 1)) {
             ChildIterator contents(fleet, &kEveryFamily, kStateAny);
-            if (!contents.HasCurrent() && ((FieldAt<uint32_t>(fleet, 0x50) >> 3) & 1) == 0) {
+            if (!contents.HasCurrent() && ((static_cast<GameObj*>(fleet)->m_stateFlags >> 3) & 1) == 0) {
                 alliance += side == 1;
                 empire += side == 2;
             } else {
@@ -142,7 +142,7 @@ int System::RecomputeFleetBattleFlags(NotifyContext* ctx) {
     ChildIterator fleets(this, &family::kFleets, kStateAny);
     for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
         uint32_t inBattle = 0;
-        if (FieldAt<uint32_t>(fleets.Current(), 0x50) & 1) inBattle = (m_flags >> 4) & 1;
+        if (static_cast<GameObj*>(fleets.Current())->m_stateFlags & 1) inBattle = (m_flags >> 4) & 1;
         const int ok = static_cast<Fleet*>(fleets.Current())->Fleet::SetBattle(inBattle, ctx);
         result = ok && result;
     }
@@ -154,7 +154,7 @@ int System::RecomputeFleetBlockadeFlags(NotifyContext* ctx) {
     ChildIterator fleets(this, &family::kFleets, kStateExisting);
     for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
         uint32_t blockaded = 0;
-        if (FieldAt<uint32_t>(fleets.Current(), 0x50) & 1) blockaded = (m_flags >> 5) & 1;
+        if (static_cast<GameObj*>(fleets.Current())->m_stateFlags & 1) blockaded = (m_flags >> 5) & 1;
         const int ok = static_cast<Fleet*>(fleets.Current())->Fleet::SetBlockade(blockaded, ctx);
         result = ok && result;
     }
@@ -249,7 +249,7 @@ int System::NoteWithdrawingUnit(GameObjNotifier* unit, int mustBeIdle, NotifyCon
     if (family < 8 || family > 0xf) candidate = unit->GetFamily() > 0x1b && unit->GetFamily() < 0x20;
     else candidate = true;
     if (candidate) {
-        const uint32_t unitState = FieldAt<uint32_t>(unit, 0x50);
+        const uint32_t unitState = static_cast<GameObj*>(unit)->m_stateFlags;
         candidate = mustBeIdle == 0 && (m_flags & system_flag::kBattlePending) && (unitState & 0x10) && (unitState & 0x40) &&
                     unit->ControlSide() != static_cast<uint32_t>(this->System::GetDataWord64());
     }

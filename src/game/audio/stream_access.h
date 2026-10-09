@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/stream_io.h"
@@ -31,9 +30,8 @@ inline uint32_t LastReadCount(istream* in) { return *reinterpret_cast<uint32_t*>
 
 // Calls the virtual deleting destructor of the ios part (slot 0), which frees the whole stream object.
 inline void DeleteStream(void* stream) {
-    char* ios = IosPart(stream);
-    using Deleter = void*(REB_THISCALL*)(void*, int);
-    (*reinterpret_cast<Deleter**>(ios))[0](ios, 1);
+    ios* base = iostream_access::IosOf(stream);
+    base->m_vftable->m_scalarDeletingDtor(base, 1);
 }
 
 inline void Read(istream* in, void* buffer, uint32_t count) { istream_read(in, buffer, static_cast<int>(count)); }

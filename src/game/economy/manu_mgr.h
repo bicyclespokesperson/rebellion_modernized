@@ -71,31 +71,31 @@ public:
     // to {1,1}); names are provisional ----
     // Ok only if the system has a usable manufacturing facility for this kind of product; else {0xa0,3}.
     virtual int CheckFacilityAvailableImpl(const ActivityRequest* request, StatusCode* out);              // 111, 0x527d00
-    virtual int CheckFacilityAvailable(const ActivityRequest* request, int unused, StatusCode* out);      // 112, 0x527e90
+    virtual int CheckFacilityAvailable(const ActivityRequest* request, intptr_t unused, StatusCode* out);      // 112, 0x527e90
     // Master only: forwards the request, with kind 0x203, to the current product (its slot 25); {0xa0,1} without one.
     virtual int CheckProductActionImpl(const ActivityRequest* request, StatusCode* out);                  // 113, 0x527f40
-    virtual int CheckProductAction(const ActivityRequest* request, int unused, StatusCode* out);          // 114, 0x5281c0
+    virtual int CheckProductAction(const ActivityRequest* request, intptr_t unused, StatusCode* out);          // 114, 0x5281c0
     // Master only: {0xa0,1} unless there is a current product.
     virtual int CheckHasProductImpl(const ActivityRequest* request, StatusCode* out);                     // 115, 0x528270
     virtual int CheckHasProduct(const ActivityRequest* request, StatusCode* out);                         // 116, 0x528360
-    virtual int GetReserved(int unused, int* out);                                                        // 117, 0x528410
+    virtual int GetReserved(intptr_t unused, int* out);                                                        // 117, 0x528410
     virtual int CheckPlainImpl(const ActivityRequest* request, int unused, StatusCode* out);              // 118, 0x528430
     virtual int CheckPlain(const ActivityRequest* request, int unused, StatusCode* out);                  // 119, 0x5284e0
     virtual int CheckPlain2(const ActivityRequest* request, StatusCode* out);                             // 120, 0x5285a0
     // As 120, and the request's key must name an object (any view).
-    virtual int CheckRequestedObject(const ActivityRequest* request, int unused, StatusCode* out);        // 121, 0x528650
+    virtual int CheckRequestedObject(const ActivityRequest* request, intptr_t unused, StatusCode* out);        // 121, 0x528650
     virtual int Virtual122() = 0;                                                                         // 122
     // The kind of product this manager builds; a facility serves it if its slot 129 returns the same value.
     virtual int GetFacilityKind() = 0;                                                                    // 123
     // ---- slots 124-128: orders ----
     // Destroys the current queue, then creates the products listed in `products` (location key -> record key).
-    virtual int ReplaceQueue(const ActivityRequest* request, ObjectKeyValueSet* products, NotifyContext* ctx);  // 124, 0x529ab0
+    virtual int ReplaceQueue(const ActivityRequest* request, ObjectKeySet* products, NotifyContext* ctx);  // 124, 0x529ab0
     // Rename check (slot 114), then renames the current product (if any) to `name`.
     virtual int RenameProduct(const ActivityRequest* request, String* name, NotifyContext* ctx);  // 125, 0x529b00
     virtual int CancelProducts(const ActivityRequest* request, NotifyContext* ctx);              // 126, 0x529ba0
     virtual int ReserveChecked(const ActivityRequest* request, int value, NotifyContext* ctx);   // 127, 0x529c30
     // Sets the target key to the request's key and moves every product of `products` below its listed parent.
-    virtual int ReparentProducts(const ActivityRequest* request, ObjectKeyValueSet* products, NotifyContext* ctx);  // 128, 0x529cd0
+    virtual int ReparentProducts(const ActivityRequest* request, ObjectKeySet* products, NotifyContext* ctx);  // 128, 0x529cd0
 
     // ---- slots 129-139: OnXChanged (old, new, ctx) ----
     virtual int OnRemainingGameObjCountChanged(int oldValue, int newValue, NotifyContext* ctx);       // 129, 0x52b8c0
@@ -182,15 +182,15 @@ public:
     int EstimateBuildTimeFresh(const NullableKey* seed, int count, StatusCode* status, int* turns);  // 0x529090
     int EstimateQueuedBuildTime(const ObjectKey* queued, StatusCode* status, int* turns);  // 0x529120
     int EstimateLastQueuedBuildTime(StatusCode* status, int* turns);  // 0x529360
-    int OnProductChanged(const ObjectKey* key, int a, int b, NotifyContext* ctx);  // 0x529d20
+    int OnProductChanged(const ObjectKey* key, intptr_t a, intptr_t b, NotifyContext* ctx);  // 0x529d20
     int MoveOverflowToCompleted(const ObjectKey* key, int unused, NotifyContext* ctx);  // 0x529d70
-    int HandleProductEvent(const ObjectKey* key, int a, int b, int c, NotifyContext* ctx);  // 0x529cf0
+    int HandleProductEvent(const ObjectKey* key, intptr_t a, intptr_t b, int c, NotifyContext* ctx);  // 0x529cf0
     int RebalanceFacilities(NotifyContext* ctx);  // 0x529dd0
     int DestroyProducts(NotifyContext* ctx);     // 0x52a2c0
-    int CreateProducts(ObjectKeyValueSet* products, int unused, NotifyContext* ctx);  // 0x52a140
+    int CreateProducts(ObjectKeySet* products, int unused, NotifyContext* ctx);  // 0x52a140
     int RenameProductIfAny(String* name, NotifyContext* ctx);  // 0x52a240
     int ClearReserved(int value, NotifyContext* ctx);          // 0x52a360
-    int ReparentQueue(ObjectKeyValueSet* products, const ObjectKey* target, NotifyContext* ctx);  // 0x52a380
+    int ReparentQueue(ObjectKeySet* products, const ObjectKey* target, NotifyContext* ctx);  // 0x52a380
     int AdvanceProgress(NotifyContext* ctx);                   // 0x52a430
     int UpdateQueueMembership(const ObjectKey* key, NotifyContext* ctx);  // 0x52a710
     int UpdateRemainingCount(NotifyContext* ctx);              // 0x52a7d0

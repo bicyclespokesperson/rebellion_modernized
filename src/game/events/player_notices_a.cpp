@@ -38,15 +38,15 @@ int Notice44::Virtual11() { return 8; }
 
 UiNotice* Notice44::Virtual10() { return NewOrNull<Notice44>(); }
 
-void Notice44::Virtual06(int kind, int a, int b, int c) {
+void Notice44::Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) {
 
 }
 
-void Notice44::OnMessage(int kind, int a, int b) {
+void Notice44::OnMessage(int kind, intptr_t a, intptr_t b) {
     UiNotice::OnMessage(kind, a, b);
 }
 
-void Notice44::Virtual08(int kind, int a, int b) {
+void Notice44::Virtual08(int kind, intptr_t a, intptr_t b) {
     m_unk28 = 4;
     m_sound[0] = 0x459;
     m_picture[1] = 0x3f9;
@@ -96,7 +96,7 @@ int Notice45::Virtual11() { return 16; }
 
 UiNotice* Notice45::Virtual10() { return NewOrNull<Notice45>(); }
 
-void Notice45::Virtual08(int kind, int a, int b) {
+void Notice45::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind == 300 && m_f64 == 0 && b != 0) {
         m_picture[1] = (m_owner != 1) + 0x412;
         m_f64 = 1;
@@ -127,7 +127,7 @@ int Notice43::GetKind() { return 43; }
 
 UiNotice* Notice43::Virtual10() { return NewOrNull<Notice43>(); }
 
-void Notice43::OnMessage(int kind, int a, int b) {
+void Notice43::OnMessage(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x306) return;
     GameObjNotifier* first = GetObjectInFamilies_01_ff(m_owner, reinterpret_cast<const ObjectKey*>(a));
     GameObjNotifier* second = GetObjectInFamilies_01_ff(m_owner, reinterpret_cast<const ObjectKey*>(b));
@@ -215,7 +215,7 @@ int Notice41::GetKind() { return 41; }
 
 UiNotice* Notice41::Virtual10() { return NewOrNull<Notice41>(); }
 
-void Notice41::Virtual08(int kind, int a, int b) {
+void Notice41::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind == 0x231 && m_f64 == 0 && b != 0) {
         m_f64 = 1;
         m_unk40 = 1;
@@ -260,7 +260,7 @@ int Notice34::Virtual11() { return 256; }
 
 UiNotice* Notice34::Virtual10() { return NewOrNull<Notice34>(); }
 
-void Notice34::OnMessage(int kind, int a, int b) {
+void Notice34::OnMessage(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x305) return;
     GameObjNotifier* first = GetObjectInFamilies_01_ff(m_owner, reinterpret_cast<const ObjectKey*>(a));
     GameObjNotifier* second = GetObjectInFamilies_01_ff(m_owner, reinterpret_cast<const ObjectKey*>(b));
@@ -328,7 +328,7 @@ int Notice33::GetKind() { return 33; }
 
 UiNotice* Notice33::Virtual10() { return NewOrNull<Notice33>(); }
 
-void Notice33::Virtual08(int kind, int a, int b) {
+void Notice33::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x160) return;
     const ObjectKey* key = reinterpret_cast<const ObjectKey*>(a);
     ManuMgr* manager = nullptr;

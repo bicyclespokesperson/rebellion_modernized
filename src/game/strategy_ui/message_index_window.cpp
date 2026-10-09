@@ -1083,7 +1083,7 @@ void MessageIndexWindow::OnCommand(int a, int b, int c) {
                 opened = true;
             }
         } else if (recordClass == 4) {
-            ObjectKey type(*reinterpret_cast<ObjectKey*>(reinterpret_cast<char*>(record) + 0x60));
+            ObjectKey type(record->m_target);
             UiOpenEncyclopedia(&target, reinterpret_cast<NullableKey*>(&type));
             opened = true;
         }
@@ -1167,7 +1167,7 @@ void MessageIndexWindow::OnCommand(int a, int b, int c) {
             if (m_mode != kIndexModeCompose) return;
             if (m_text->m_text.GetBufferSize() == 0) return;
             String message(m_text->m_text);
-            UiQueueHumanPopup(static_cast<int>(reinterpret_cast<intptr_t>(&message)), 1);
+            UiQueueHumanPopup(reinterpret_cast<intptr_t>(&message), 1);
             OnCommand(kBackButtonId, 0, 0);
             SetFocus(m_text->m_hwnd);
             return;

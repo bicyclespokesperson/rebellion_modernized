@@ -338,7 +338,7 @@ int ObjectMoveOrder::GetKind() { return 0x204; }
 void* CreateObjectMoveOrder() { return NewOrNull<ObjectMoveOrder>(); }
 
 Command* ObjectMoveOrder::CreateCommand() {
-    void* memory = ::operator new(0x50);
+    void* memory = ::operator new(sizeof(MoveCommand));
     return memory ? new (memory) MoveCommand() : nullptr;
 }
 
@@ -500,7 +500,7 @@ ScrapOrder::~ScrapOrder() { REB_KEEP_VPTR_STORE(); }
 void* CreateScrapOrder() { return NewOrNull<ScrapOrder>(); }
 
 Command* ScrapOrder::CreateCommand() {
-    void* memory = ::operator new(0x50);
+    void* memory = ::operator new(sizeof(ScrapCommand));
     return memory ? new (memory) ScrapCommand() : nullptr;
 }
 
@@ -510,7 +510,7 @@ int ReadyForDeleteOrder::GetKind() { return 0x205; }
 void* CreateReadyForDeleteOrder() { return NewOrNull<ReadyForDeleteOrder>(); }
 
 Command* ReadyForDeleteOrder::CreateCommand() {
-    void* memory = ::operator new(0x50);
+    void* memory = ::operator new(sizeof(ReadyForDeleteCommand));
     return memory ? new (memory) ReadyForDeleteCommand() : nullptr;
 }
 

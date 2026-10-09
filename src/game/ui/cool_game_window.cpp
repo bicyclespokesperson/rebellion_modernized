@@ -414,12 +414,11 @@ DibBitmap* CoolGameWindow::SetPaintBackgroundById(uint32_t overlayId) {
 
 uint32_t CoolGameWindow::AddOverlay(DibBitmap* bitmap, uint32_t overlayId) {
     uint32_t result = 0;
-    void* memory = operator new(0x28);
+    void* memory = operator new(sizeof(BitmapOverlay));
     void* node = memory ? new (memory) BitmapOverlay() : nullptr;
     if (bitmap && node && bitmap->IsLoaded()) {
         static_cast<IdNode*>(node)->SetId(overlayId);
-        using SetBitmap = void(REB_THISCALL*)(void*, DibBitmap*);
-        reinterpret_cast<SetBitmap*>(*static_cast<void***>(node))[2](node, bitmap);
+        static_cast<BitmapOverlay*>(node)->SetBitmap(bitmap);
         result = reinterpret_cast<IdAvlTree*>(m_overlays)->AddWithId(static_cast<IdNode*>(node));
     }
     return result;
@@ -429,8 +428,7 @@ DibBitmap* CoolGameWindow::FindOverlayBitmap(uint32_t overlayId) {
     DibBitmap* bitmap = nullptr;
     void* node = reinterpret_cast<BitmapOverlayTree*>(m_overlays)->BitmapOverlayTree::FindOverlay(overlayId);
     if (node) {
-        using GetBitmap = DibBitmap*(REB_THISCALL*)(void*);
-        bitmap = reinterpret_cast<GetBitmap*>(*static_cast<void***>(node))[1](node);
+        bitmap = static_cast<BitmapOverlay*>(node)->GetBitmap();
     }
     return bitmap;
 }

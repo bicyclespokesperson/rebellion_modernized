@@ -7,6 +7,7 @@
 #include "ai/ai_common.h"
 #include "app/game_session.h"
 #include "app/rebapp_globals.h"
+#include "app/rebellion_application.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/iostream_lib.h"
@@ -151,7 +152,7 @@ ManufactureOrderWindow::ManufactureOrderWindow(HINSTANCE instance, int x, int y,
             picture->DrawKeyed(normal, left, top);
             picture->DrawKeyed(selected, left, top);
             item->SetImages(normal, selected);
-            item->m_userData = reinterpret_cast<uint32_t>(keyCopy);
+            item->m_userPointer = reinterpret_cast<uintptr_t>(keyCopy);
             item->m_text = name.m_text;
             item->m_textOffsetY = picture->Height();
             item->m_ownColors = 1;
@@ -167,7 +168,7 @@ ManufactureOrderWindow::ManufactureOrderWindow(HINSTANCE instance, int x, int y,
 ManufactureOrderWindow::~ManufactureOrderWindow() {
     REB_KEEP_VPTR_STORE();
     for (CoolListItem* item = m_choices.First(); item; item = item->Next()) {
-        if (item->m_userData) operator delete(reinterpret_cast<void*>(item->m_userData));
+        if (item->m_userPointer) operator delete(reinterpret_cast<void*>(item->m_userPointer));
     }
     ReleaseCapture();
     if (m_selector) delete m_selector;
@@ -180,7 +181,7 @@ ManufactureOrderWindow::~ManufactureOrderWindow() {
 
 int ManufactureOrderWindow::Open(ManufactureOrderBase* order, uint32_t unused) {
     if (!g_app) return 0;
-    GalaxyWindow* main = reinterpret_cast<GalaxyWindow*>(*reinterpret_cast<CoolWindow**>(reinterpret_cast<char*>(g_app) + 0xc0));
+    GalaxyWindow* main = static_cast<GalaxyWindow*>(static_cast<RebellionApplication*>(g_app)->m_activeWindow);
     if (!main || !order) return 0;
     ManufactureOrderWindow* window = NewOrNull<ManufactureOrderWindow>(main->m_instance, 0, 0, 0xd2, 0x105, main, 2u, 7u,
                                                                        0x2a30u, 0x62u, 0u, 5u, order, unused);
@@ -217,7 +218,7 @@ void ManufactureOrderWindow::OnCreate1() {
         m_selector->m_textColor = kWhite;
         const NullableKey none = {0};
         if (CoolListItem* first = m_choices.First()) {
-            const uint32_t family = reinterpret_cast<ObjectKey*>(first->m_userData)->Family();
+            const uint32_t family = reinterpret_cast<ObjectKey*>(first->m_userPointer)->Family();
             const NullableKey* remember = nullptr;
             if (IsFacilityFamily(family) && g_lastFacilityType.m_value != none.m_value) {
                 remember = &g_lastFacilityType;
@@ -232,7 +233,7 @@ void ManufactureOrderWindow::OnCreate1() {
             if (m_remembered.m_value != none.m_value) {
                 const uint16_t wanted = FindDataRecord(AsLookupKey(&m_remembered))->m_small;
                 for (CoolListItem* item = first; item; item = item->Next()) {
-                    if (wanted == FindDataRecord(AsLookupKey(reinterpret_cast<NullableKey*>(item->m_userData)))->m_small) {
+                    if (wanted == FindDataRecord(AsLookupKey(reinterpret_cast<NullableKey*>(item->m_userPointer)))->m_small) {
                         m_selector->Select(item->m_id);
                         break;
                     }
@@ -331,7 +332,7 @@ void ManufactureOrderWindow::OnCommand(int a, int b, int c) {
     case kInfoButton:
         if (CoolListItem* selection = m_selector->GetSelection()) {
             ObjectKey none;
-            UiOpenEncyclopedia(&none, reinterpret_cast<const NullableKey*>(selection->m_userData));
+            UiOpenEncyclopedia(&none, reinterpret_cast<const NullableKey*>(selection->m_userPointer));
         }
         return;
     case kMoreButton:
@@ -369,7 +370,7 @@ int ManufactureOrderWindow::Virtual14() { return m_choices.First() && m_order ? 
 void ManufactureOrderWindow::SendOrder() {
     CoolListItem* selection = m_selector->GetSelection();
     if (!m_order || !selection) return;
-    ObjectKey* type = reinterpret_cast<ObjectKey*>(selection->m_userData);
+    ObjectKey* type = reinterpret_cast<ObjectKey*>(selection->m_userPointer);
     ReadQuantityField();
     if (m_quantity < 1) {
         m_quantity = 1;
@@ -496,7 +497,7 @@ void ManufactureOrderWindow::ShowUnitLabels(int ok, int cost, int available) {
 void ManufactureOrderWindow::RefreshTotals() {
     CoolListItem* selection = m_selector->GetSelection();
     if (!selection) return;
-    ObjectKey* type = reinterpret_cast<ObjectKey*>(selection->m_userData);
+    ObjectKey* type = reinterpret_cast<ObjectKey*>(selection->m_userPointer);
     int totalA = 0;
     int totalB = 0;
     int largestA = 0;

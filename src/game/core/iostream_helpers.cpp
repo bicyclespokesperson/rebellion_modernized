@@ -3,7 +3,7 @@
 
 namespace {
 
-unsigned& formatFlags(ios* stream) { return *reinterpret_cast<unsigned*>(reinterpret_cast<char*>(stream) + 0x24); }
+unsigned& formatFlags(ios* stream) { return stream->m_flags; }
 
 }  // namespace
 

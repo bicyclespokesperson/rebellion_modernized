@@ -96,7 +96,7 @@ int ExecuteCommands(ActivityRequest* request, CommandQueue* commands) {
         copy.m_unk04 = request->m_unk04;
         command->SetRequest(&copy);
         command->StampContext();
-        CallGameHook2B00(static_cast<int>(reinterpret_cast<intptr_t>(command)));
+        CallGameHook2B00(reinterpret_cast<HookArg>(command));
     }
     return 1;
 }

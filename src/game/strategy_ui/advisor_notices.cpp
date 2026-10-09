@@ -90,15 +90,15 @@ void UiNotice::Write(ostream* out) {
 
 int UiNotice::IsStale() { return m_created + kStaleTicks < static_cast<uint32_t>(GameHookTickCount()); }
 
-void UiNotice::OnMessage(int message, int a, int b) {
+void UiNotice::OnMessage(int message, intptr_t a, intptr_t b) {
     if (message == kUiMessageForward) UiSendNotificationToSide(m_owner, a);
 }
 
 // ---- UiTextNotice / UiKeyNotice --------------------------------------------------------------------------------
 
-UiTextNotice::UiTextNotice() : UiNotice() { m_target = 0; }
+UiTextNotice::UiTextNotice() : UiNotice() { m_target.m_value = 0; }
 
-UiTextNotice::UiTextNotice(int owner) : UiNotice(owner) { m_target = 0; }
+UiTextNotice::UiTextNotice(int owner) : UiNotice(owner) { m_target.m_value = 0; }
 
 UiTextNotice::~UiTextNotice() { REB_KEEP_VPTR_STORE(); }
 
@@ -107,7 +107,7 @@ void UiTextNotice::Read(istream* in) {
     m_text0.Read(in);
     m_text1.Read(in);
     m_key.Read(in);
-    reinterpret_cast<ObjectKey*>(&m_target)->Read(in);
+    m_target.Read(in);
 }
 
 void UiTextNotice::Write(ostream* out) {
@@ -115,7 +115,7 @@ void UiTextNotice::Write(ostream* out) {
     m_text0.Write(out);
     m_text1.Write(out);
     m_key.Write(out);
-    reinterpret_cast<ObjectKey*>(&m_target)->Write(out);
+    m_target.Write(out);
 }
 
 void UiTextNotice::Virtual15() { Virtual13(); }
@@ -172,7 +172,7 @@ void DroidScript::Read(istream* in) {
     ReadValue32(in, &m_unk1c);
     ReadValue32(in, &m_entryCount);
     ReadValue32(in, &m_cursor);
-    m_entries = static_cast<DroidScriptEntry*>(::operator new(m_entryCount << 4));
+    m_entries = static_cast<DroidScriptEntry*>(::operator new(m_entryCount * sizeof(DroidScriptEntry)));
     for (uint32_t i = 0; i < m_entryCount; ++i) {
         ReadValue16(in, &m_entries[i].m_id);
         ReadValue32(in, &m_entries[i].m_flags);
@@ -206,8 +206,8 @@ uint16_t AdvisorPickAdviceLine(uint32_t adviceId) {
     const uint16_t* table = nullptr;
     uint16_t line = 0;
     HMODULE module = FindResourceModule(kAdviceResourceModule);
-    HRSRC info = FindResourceA(module, reinterpret_cast<LPCSTR>(adviceId & 0xffff), reinterpret_cast<LPCSTR>(kRcdata));
-    HGLOBAL resource = reinterpret_cast<HGLOBAL>(adviceId);
+    HRSRC info = FindResourceA(module, MAKEINTRESOURCEA(adviceId & 0xffff), MAKEINTRESOURCEA(kRcdata));
+    HGLOBAL resource = reinterpret_cast<HGLOBAL>(static_cast<uintptr_t>(adviceId));
     if (info && (resource = LoadResource(module, info)) != nullptr) table = static_cast<const uint16_t*>(LockResource(resource));
     if (!table) return line;
     const uint16_t count = table[0];

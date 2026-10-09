@@ -119,7 +119,7 @@ float TacticalShipBase::DistanceTo(TacticalShipBase* other) {
     const double dy = static_cast<double>(m_position.m_y) - other->m_position.m_y;
     const double dx = static_cast<double>(m_position.m_x) - other->m_position.m_x;
     const double yz = dy * dy + dz * static_cast<float>(dz);
-    return static_cast<float>(x87Sqrt(yz + dx * static_cast<float>(dx)));
+    return static_cast<float>(reb_sqrt(yz + dx * static_cast<float>(dx)));
 }
 
 void TacticalShipBase::ConsiderTractoring(int target) {

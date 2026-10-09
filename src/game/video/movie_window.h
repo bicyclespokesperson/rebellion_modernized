@@ -31,7 +31,7 @@ public:
     int m_notifyWParam;                                   // +0x94, 0xf: wParam of the notifications
     int m_movieId;                                        // +0x98
     char* m_path;                                         // +0x9c heap copy of the full path of the movie file
-    int m_fallbackPath;                                   // +0xa0, never set (a path pointer used when m_path is null)
+    const char* m_fallbackPath;                                   // +0xa0, never set (a path pointer used when m_path is null)
     String m_caption;                                     // +0xa4
     DibBitmap* m_captionBackdrop;                         // +0xb0 owned
     void (REB_CDECL* m_callback)(uint32_t, uint32_t, int);  // +0xb4

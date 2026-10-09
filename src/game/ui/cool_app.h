@@ -21,7 +21,7 @@ public:
     void SetScreenSize(int width, int height);  // 0x5fba00
 
     char* m_appName;           // +0x94 heap copy of the class name
-    int m_unknown98;           // +0x98
+    uintptr_t m_unknown98;     // +0x98 the accelerator table handle (HACCEL) of the main window
     int m_unknown9c;           // +0x9c
     int m_unknownA0;           // +0xa0
     int m_unknownA4;           // +0xa4

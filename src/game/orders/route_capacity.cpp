@@ -32,7 +32,7 @@ bool inAnyBucket(uint32_t family) {
     return found;
 }
 
-int rangeArgument(const FamilyRange* range) { return static_cast<int>(reinterpret_cast<intptr_t>(range)); }
+intptr_t rangeArgument(const FamilyRange* range) { return reinterpret_cast<intptr_t>(range); }
 
 }  // namespace
 

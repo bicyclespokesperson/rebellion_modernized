@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "character/character.h"
@@ -25,12 +24,6 @@
 
 #include "mission/mission_rules.h"
 #include "story/mission_mgr.h"
-
-// ---- slot 120 of Mission is a pure virtual that takes (team, decoys, ctx); mission.h declares it without arguments ----
-inline int CallMissionSlot120(Mission* mission, ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, NotifyContext* ctx) {
-    using Slot = int(REB_THISCALL*)(Mission*, ObjectKeyValueSet*, ObjectKeyValueSet*, NotifyContext*);
-    return reinterpret_cast<Slot*>(*reinterpret_cast<void***>(mission))[120](mission, team, decoys, ctx) ? 1 : 0;
-}
 
 // ---- the rules object (game root member +0xbc, type 0xf9, 0x554020-0x557410) ----
 

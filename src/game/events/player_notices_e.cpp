@@ -51,7 +51,7 @@ int Notice21::GetClass() { return 6; }
 
 UiNotice* Notice21::Virtual10() { return NewOrNull<Notice21>(); }
 
-void Notice21::Virtual08(int kind, int a, int b) {
+void Notice21::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind != 2) {
         if (kind != 0x182) return;
         GameObjNotifier* fleet = GetObjectInFamilies_08_10(m_owner, reinterpret_cast<const ObjectKey*>(a));
@@ -82,7 +82,7 @@ void Notice21::Virtual08(int kind, int a, int b) {
     m_value = 0x6f;
 }
 
-void Notice21::Virtual09(int kind, int a, int b, int c) {
+void Notice21::Virtual09(int kind, intptr_t a, intptr_t b, intptr_t c) {
     if (kind != 0x14f) return;
     GameObjNotifier* system = GetObjectInFamilies_90_98(m_owner, reinterpret_cast<const ObjectKey*>(a));
     if (!system) return;
@@ -93,7 +93,7 @@ void Notice21::Virtual09(int kind, int a, int b, int c) {
         m_unk40 = 1;
         return;
     }
-    m_f64 = c;
+    m_f64 = static_cast<int>(c);
 }
 
 void Notice21::Read(istream* in) {
@@ -131,7 +131,7 @@ int Notice20::GetKind() { return 20; }
 
 UiNotice* Notice20::Virtual10() { return NewOrNull<Notice20>(); }
 
-void Notice20::Virtual05(int kind, int payload) {
+void Notice20::Virtual05(int kind, intptr_t payload) {
     ObjectKey characterKey;
     if (kind != 0x200) return;
     const UiNotif200* notif = reinterpret_cast<const UiNotif200*>(payload);

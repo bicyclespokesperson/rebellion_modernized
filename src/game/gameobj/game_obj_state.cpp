@@ -284,7 +284,7 @@ int GameObj::DestroyIfAllowed(const ActivityRequest* request, NotifyContext* ctx
     return result;
 }
 
-int GameObj::TryRename(const ActivityRequest* request, int name, NotifyContext* ctx) {
+int GameObj::TryRename(const ActivityRequest* request, intptr_t name, NotifyContext* ctx) {
     StatusCode status(1, -1);
     int result = CheckRename(request, name, &status);
     if (result && status.m_second == static_cast<uint32_t>(-1)) result = Rename(reinterpret_cast<String*>(name), ctx);

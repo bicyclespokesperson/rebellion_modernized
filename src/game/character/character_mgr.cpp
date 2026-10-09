@@ -92,8 +92,8 @@ int CharacterMgr::UpdateObservedByAlliance(NotifyContext* ctx) { return SetObser
 
 int CharacterMgr::UpdateObservedByEmpire(NotifyContext* ctx) { return SetObservedByEmpire(1, ctx) != 0 ? 1 : 0; }
 
-int CharacterMgr::Virtual48(int ctxArg) {
-    NotifyContext* ctx = reinterpret_cast<NotifyContext*>(static_cast<intptr_t>(ctxArg));
+int CharacterMgr::Virtual48(intptr_t ctxArg) {
+    NotifyContext* ctx = reinterpret_cast<NotifyContext*>(ctxArg);
     const int stub = Virtual47(ctxArg);
     return UpdateSeatOfPower(ctx) && stub ? 1 : 0;
 }

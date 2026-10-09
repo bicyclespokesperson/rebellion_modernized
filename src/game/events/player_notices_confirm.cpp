@@ -9,7 +9,7 @@
 #include "orders/move_orders.h"
 #include "ui/message_template.h"
 
-extern const char DAT_006a8798[];
+extern const char g_transitDaysSeparator[];  // 0x6a8798 ":  "
 
 namespace {
 
@@ -119,7 +119,7 @@ void Notice8::AppendOrderLines() {
             static_cast<GameObj*>(object)->GetNameCopy(&name);
             ostream* out = ostream_operator_ls_char(stream.Out(), '\n');
             out = ostream_operator_ls_cstr(out, name.m_text);
-            out = ostream_operator_ls_cstr(out, DAT_006a8798);
+            out = ostream_operator_ls_cstr(out, g_transitDaysSeparator);
             ostream_operator_ls_long(out, days);
         }
         ostream_operator_ls_char(stream.Out(), 0);

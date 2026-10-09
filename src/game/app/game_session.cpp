@@ -275,7 +275,7 @@ void GameSession::DeliverQueuedMessage(int id) {
 
 AvlNode* GameSession::GetFirstMessage() { return m_messages.First(); }
 
-void GameSession::SendNotificationToSide(int side, int argument) {
+void GameSession::SendNotificationToSide(int side, intptr_t argument) {
     if (side == 1)
         m_controllers[0]->SendKeyRequest(reinterpret_cast<const ObjectKey*>(argument));
     else if (side == 2)
@@ -405,12 +405,12 @@ void GameSession::HumanRequestUpdate() {
     if (m_human) m_human->AdvisorReset();
 }
 
-void GameSession::HumanRefreshMenus(int value) {
-    if (m_human) m_human->FillCommandMenu(reinterpret_cast<EventKindSet*>(static_cast<uintptr_t>(static_cast<uint32_t>(value))));
+void GameSession::HumanRefreshMenus(intptr_t value) {
+    if (m_human) m_human->FillCommandMenu(reinterpret_cast<EventKindSet*>(value));
 }
 
-void GameSession::HumanRefreshOrderMenus(int value) {
-    if (m_human) m_human->FillOrderMenu(reinterpret_cast<EventKindSet*>(static_cast<uintptr_t>(static_cast<uint32_t>(value))));
+void GameSession::HumanRefreshOrderMenus(intptr_t value) {
+    if (m_human) m_human->FillOrderMenu(reinterpret_cast<EventKindSet*>(value));
 }
 
 int GameSession::HumanHasPending() { return m_human ? m_human->HasPendingMessages() : 0; }
@@ -455,7 +455,7 @@ void GameSession::SetHumanDefaultState(int state) {
     if (m_human) m_human->Dispatch()->SetDefaultState(state);
 }
 
-void GameSession::QueueHumanPopup(int a, int b) {
+void GameSession::QueueHumanPopup(intptr_t a, int b) {
     if (m_human) m_human->Dispatch()->QueueChat(reinterpret_cast<String*>(a), b);
 }
 

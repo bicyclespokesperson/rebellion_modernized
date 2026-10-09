@@ -30,7 +30,6 @@ constexpr uint32_t kSubMenuParentFlag = 8;
 constexpr uint32_t kSiblingFlag = 4;
 constexpr UINT kClosePopupsMessage = 0x409;
 constexpr UINT kDialogClickedMessage = 0x467;
-constexpr size_t kMenuWindowSize = 0x154;
 constexpr int kMenuLayoutStart = 2;
 constexpr int kHookNoRemove = 3;
 constexpr uint32_t kSwapFlags = SWP_NOSIZE | SWP_NOMOVE;
@@ -58,8 +57,8 @@ int ReadMenuRecord(uint32_t command, uint32_t kind, MenuRecord* out) {
     int status = 0;
     HGLOBAL data = nullptr;
     if (module) {
-        HRSRC info = FindResourceA(module, reinterpret_cast<LPCSTR>(command & 0xffff),
-                                   reinterpret_cast<LPCSTR>(kResourceTypeRcData));
+        HRSRC info = FindResourceA(module, MAKEINTRESOURCEA(command & 0xffff),
+                                   MAKEINTRESOURCEA(kResourceTypeRcData));
         if (!info) {
             status = 1;
         } else {
@@ -150,7 +149,7 @@ PopupMenuWindow* BuildMenuWindow(int x, int y, IdSortedLinkList* list, HMODULE r
         }
         MenuItem* first = FirstItem(list);
         if (first) {
-            void* memory = ::operator new(kMenuWindowSize);
+            void* memory = ::operator new(sizeof(PopupMenuWindow));
             if (memory) {
                 menu = new (memory) PopupMenuWindow(resources, menuX, menuY, menuWidth, menuHeight, parentMenu, window,
                                                     owner, first->m_id, backdrop);

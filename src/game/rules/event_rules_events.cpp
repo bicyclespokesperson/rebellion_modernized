@@ -22,7 +22,6 @@
 
 using namespace event_rules;
 using events::asIntArg;
-using events::callVirtualSlot;
 
 // The event handlers (see event_rules.h). Every handler looks the object up by key and then runs its steps in a fixed order;
 // a step that fails does not stop the ones after it.
@@ -62,17 +61,17 @@ MissionMgr* missionMgr() { return static_cast<MissionMgr*>(GetGameRootMember_b8(
 RulesMgr* rulesMgr() { return static_cast<RulesMgr*>(GetGameRootMember_bc()); }
 CharacterMgr* characterMgr() { return static_cast<CharacterMgr*>(GetGameRootMember_c0()); }
 
-int notifyContainer(GameObjNotifier* container, int slot, GameObj* object, int value, NotifyContext* ctx) {
-    return callVirtualSlot<int>(container, slot, asIntArg(object), value, asIntArg(ctx));
+using ContainerNotify = int (GameObj::*)(intptr_t, int, intptr_t);
+
+int notifyContainer(GameObjNotifier* container, ContainerNotify notify, GameObj* object, int value, NotifyContext* ctx) {
+    return (static_cast<GameObj*>(container)->*notify)(asIntArg(object), value, asIntArg(ctx));
 }
 
-constexpr int kSlotUnitExisting = 49;
-constexpr int kSlotUnitUsable = 50;
-constexpr int kSlotUnitDamaged = 51;
-constexpr int kSlotOwnerExisting = 52;
-constexpr int kSlotOwnerUsable = 53;
-constexpr int kSlotApplyAllToViewOf = 54;
-constexpr int kSlotChangeDestroyedReason = 43;
+constexpr ContainerNotify kNotifyUnitExisting = &GameObj::NotifyUnitExisting;
+constexpr ContainerNotify kNotifyUnitUsable = &GameObj::NotifyUnitUsable;
+constexpr ContainerNotify kNotifyUnitDamaged = &GameObj::NotifyUnitDamaged;
+constexpr ContainerNotify kNotifyOwnerExisting = &GameObj::NotifyOwnerExisting;
+constexpr ContainerNotify kNotifyOwnerUsable = &GameObj::NotifyOwnerUsable;
 
 }  // namespace
 
@@ -96,11 +95,11 @@ int ApplyEvent300(ObjectKey* key, ObjectKey* from, ObjectKey* to, int value, Not
     }
     GameObj* fromObject = asObject(GetMasterInFamilies_01_ff(from));
     ok = both(fromObject != nullptr, ok);
-    if (fromObject != nullptr) ok = both(notifyContainer(fromObject, kSlotUnitDamaged, object, value, ctx), ok);
-    if (fromObject != nullptr) ok = both(notifyContainer(fromObject, kSlotUnitExisting, object, value, ctx), ok);
+    if (fromObject != nullptr) ok = both(notifyContainer(fromObject, kNotifyUnitDamaged, object, value, ctx), ok);
+    if (fromObject != nullptr) ok = both(notifyContainer(fromObject, kNotifyUnitExisting, object, value, ctx), ok);
     GameObj* toObject = nullptr;
     if (to->IsSet()) toObject = asObject(GetMasterInFamilies_01_ff(to));
-    if (toObject != nullptr) ok = both(notifyContainer(toObject, kSlotOwnerExisting, object, value, ctx), ok);
+    if (toObject != nullptr) ok = both(notifyContainer(toObject, kNotifyOwnerExisting, object, value, ctx), ok);
     ok = both(NumberUnitName(object, ctx), ok);
     if (inFamilies(object, kUnitFamilies)) {
         GameObjNotifier* sideObject = nullptr;
@@ -129,10 +128,10 @@ int ApplyEvent301(ObjectKey* key, ObjectKey* from, ObjectKey* to, int value, Not
     if (characters != nullptr) ok = both(characters->OnEmperorMoved(key, from, to, value, ctx), ok);
     GameObj* fromObject = asObject(GetMasterInFamilies_01_ff(from));
     result = both(fromObject != nullptr, ok);
-    if (fromObject != nullptr) result = both(notifyContainer(fromObject, kSlotUnitUsable, object, value, ctx), result);
+    if (fromObject != nullptr) result = both(notifyContainer(fromObject, kNotifyUnitUsable, object, value, ctx), result);
     GameObj* toObject = nullptr;
     if (to->IsSet()) toObject = asObject(GetMasterInFamilies_01_ff(to));
-    if (toObject != nullptr) result = both(notifyContainer(toObject, kSlotOwnerUsable, object, value, ctx), result);
+    if (toObject != nullptr) result = both(notifyContainer(toObject, kNotifyOwnerUsable, object, value, ctx), result);
     if (inFamilies(object, kUnitFamilies)) {
         GameObjNotifier* sideObject = nullptr;
         result = both(GetControlSideObject(object, &sideObject), result);
@@ -151,7 +150,7 @@ int ApplyEvent31d(ObjectKey* key, ObjectKey* from, ObjectKey*, int value, Notify
         GameObj* fromObject = asObject(GetMasterInFamilies_01_ff(from));
         result = fromObject != nullptr;
         if (fromObject != nullptr) {
-            if (notifyContainer(fromObject, kSlotUnitDamaged, object, value, ctx) != 0 && result != 0) return 1;
+            if (notifyContainer(fromObject, kNotifyUnitDamaged, object, value, ctx) != 0 && result != 0) return 1;
             result = 0;
         }
     }
@@ -181,7 +180,7 @@ int ApplyEvent302(ObjectKey* key, int valueA, int valueB, NotifyContext* ctx) {
 int ApplyEvent318(ObjectKey* key, int valueA, int valueB, NotifyContext* ctx) {
     int result = 1;
     GameObj* object = asObject(GetMasterInFamilies_01_ff(key));
-    if (object != nullptr) result = callVirtualSlot<int>(object, kSlotApplyAllToViewOf, valueA, valueB, asIntArg(ctx)) != 0;
+    if (object != nullptr) result = object->ApplyAllToViewOf(valueA, valueB, ctx) != 0;
     return result;
 }
 
@@ -208,16 +207,16 @@ int ApplyEvent320(ObjectKey* key, ObjectKey* keyC, ObjectKey* keyD, NotifyContex
     ok = both(rules != nullptr, ok);
     if (rules != nullptr) ok = both(rules->BeginTravel(object, keyC, keyD, ctx), ok);
     if ((object->m_stateFlags & kExisting) != 0) {
-        if (fromObject != nullptr) ok = both(notifyContainer(fromObject, kSlotUnitExisting, object, 0, ctx), ok);
-        if (toObject != nullptr) ok = both(notifyContainer(toObject, kSlotUnitExisting, object, 1, ctx), ok);
+        if (fromObject != nullptr) ok = both(notifyContainer(fromObject, kNotifyUnitExisting, object, 0, ctx), ok);
+        if (toObject != nullptr) ok = both(notifyContainer(toObject, kNotifyUnitExisting, object, 1, ctx), ok);
     }
     if ((object->m_stateFlags & kUsable) != 0) {
-        if (fromObject != nullptr) ok = both(notifyContainer(fromObject, kSlotUnitUsable, object, 0, ctx), ok);
-        if (toObject != nullptr) ok = both(notifyContainer(toObject, kSlotUnitUsable, object, 1, ctx), ok);
+        if (fromObject != nullptr) ok = both(notifyContainer(fromObject, kNotifyUnitUsable, object, 0, ctx), ok);
+        if (toObject != nullptr) ok = both(notifyContainer(toObject, kNotifyUnitUsable, object, 1, ctx), ok);
     }
     if ((object->m_stateFlags & kDamaged) != 0) {
-        if (fromObject != nullptr) ok = both(notifyContainer(fromObject, kSlotUnitDamaged, object, 0, ctx), ok);
-        if (toObject != nullptr) ok = both(notifyContainer(toObject, kSlotUnitDamaged, object, 1, ctx), ok);
+        if (fromObject != nullptr) ok = both(notifyContainer(fromObject, kNotifyUnitDamaged, object, 0, ctx), ok);
+        if (toObject != nullptr) ok = both(notifyContainer(toObject, kNotifyUnitDamaged, object, 1, ctx), ok);
     }
     GameObjNotifier* fromOwner = nullptr;
     GameObjNotifier* toOwner = nullptr;
@@ -233,12 +232,12 @@ int ApplyEvent320(ObjectKey* key, ObjectKey* keyC, ObjectKey* keyD, NotifyContex
     }
     if (!sameOwner) {
         if ((object->m_stateFlags & kExisting) != 0) {
-            if (fromOwner != nullptr) ok = both(notifyContainer(fromOwner, kSlotOwnerExisting, object, 0, ctx), ok);
-            if (toOwner != nullptr) ok = both(notifyContainer(toOwner, kSlotOwnerExisting, object, 1, ctx), ok);
+            if (fromOwner != nullptr) ok = both(notifyContainer(fromOwner, kNotifyOwnerExisting, object, 0, ctx), ok);
+            if (toOwner != nullptr) ok = both(notifyContainer(toOwner, kNotifyOwnerExisting, object, 1, ctx), ok);
         }
         if ((object->m_stateFlags & kUsable) != 0) {
-            if (fromOwner != nullptr) ok = both(notifyContainer(fromOwner, kSlotOwnerUsable, object, 0, ctx), ok);
-            if (toOwner != nullptr) ok = both(notifyContainer(toOwner, kSlotOwnerUsable, object, 1, ctx), ok);
+            if (fromOwner != nullptr) ok = both(notifyContainer(fromOwner, kNotifyOwnerUsable, object, 0, ctx), ok);
+            if (toOwner != nullptr) ok = both(notifyContainer(toOwner, kNotifyOwnerUsable, object, 1, ctx), ok);
         }
     }
     GameObjNotifier* afterFrom = fromObject;
@@ -386,7 +385,7 @@ int ApplyEvent307(ObjectKey* key, int value, NotifyContext* ctx) {
             StatusCode status;
             GetOwnerKeyValue(object, &ownerKeyValue);
             result = both(rules->FindDestination(object, &ownerKeyValue, &destinationKey, 0, 1, &placedKey, &status), result);
-            if (status.m_second != 0xffffffff) result = both(callVirtualSlot<int>(object, kSlotChangeDestroyedReason, kDestroyedReasonLostLocation, asIntArg(ctx)), result);
+            if (status.m_second != 0xffffffff) result = both(object->ChangeDestroyedReason(kDestroyedReasonLostLocation, ctx), result);
         }
         if ((object->m_stateFlags & kDestroyed) == 0 && (object->m_stateFlags & kCompleted) != 0) {
             uint32_t sameOwner = 1;
@@ -394,7 +393,7 @@ int ApplyEvent307(ObjectKey* key, int value, NotifyContext* ctx) {
             object->GetKey(&objectKey);
             result = both(rules->AreKeysInSameOwner(&objectKey, &placedKey, &sameOwner), result);
             if (sameOwner == 0 && object->GetTransitSpeed((object->m_stateFlags & kEnrouteActive) != 0) == 0)
-                result = both(callVirtualSlot<int>(object, kSlotChangeDestroyedReason, kDestroyedReasonStranded, asIntArg(ctx)), result);
+                result = both(object->ChangeDestroyedReason(kDestroyedReasonStranded, ctx), result);
         }
         if ((object->m_stateFlags & kDestroyed) == 0) {
             ObjectKey objectKey;

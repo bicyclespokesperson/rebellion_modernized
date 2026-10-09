@@ -78,7 +78,7 @@ void GameWindowObject::DrawRect(HDC dc, const RECT* area) {
     }
 }
 
-int GameWindowObject::Virtual0D(int, int, int, int, int) { return 0; }
+int GameWindowObject::Virtual0D(int, int, int, intptr_t, int) { return 0; }
 
 // Linker-folded with other do-nothing virtuals.
 void GameWindowObject::Virtual0B() {}

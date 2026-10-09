@@ -76,16 +76,16 @@ public:
     virtual int Virtual16() override { return 1; }                                          // 16
     virtual int CheckSameControl(GameObj* other, StatusCode* out) override;                 // 21, 0x5072d0
     virtual int CheckOrder(int a, int b, StatusCode* out) override;                         // 22, 0x507c30
-    virtual int Virtual29(int a, int b, int c, int d, StatusCode* out) override;            // 29, 0x5073d0
+    virtual int Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) override;            // 29, 0x5073d0
     virtual int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 30, 0x507750
     virtual int Virtual32(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 32, 0x507ab0
     virtual int ChangeDestroyedReason(int reason, NotifyContext* ctx) override;             // 43, 0x5080d0
-    virtual int Virtual47(int a) override;                                                  // 47, 0x5081f0
-    virtual int Virtual48(int a) override;                                                  // 48, 0x508250
-    virtual int Virtual49(int a, int b, int c) override;                                    // 49, 0x508440
-    virtual int Virtual50(int a, int b, int c) override;                                    // 50, 0x508660
-    virtual int Virtual52(int a, int b, int c) override;                                    // 52, 0x508c60
-    virtual int Virtual53(int a, int b, int c) override;                                    // 53, 0x508da0
+    virtual int Virtual47(intptr_t a) override;                                                  // 47, 0x5081f0
+    virtual int Virtual48(intptr_t a) override;                                                  // 48, 0x508250
+    virtual int NotifyUnitExisting(intptr_t a, int b, intptr_t c) override;                                    // 49, 0x508440
+    virtual int NotifyUnitUsable(intptr_t a, int b, intptr_t c) override;                                    // 50, 0x508660
+    virtual int NotifyOwnerExisting(intptr_t a, int b, intptr_t c) override;                                    // 52, 0x508c60
+    virtual int NotifyOwnerUsable(intptr_t a, int b, intptr_t c) override;                                    // 53, 0x508da0
     virtual int ApplyAllToViewOf(int view, int unused, NotifyContext* ctx) override;        // 54, 0x508f90
     virtual GameObjData* CreateData() override;                                             // 58, 0x512c90
     virtual int OnNameChanged(String* oldName, String* newName, NotifyContext* ctx) override;  // 59, 0x510800

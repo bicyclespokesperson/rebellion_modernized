@@ -47,7 +47,7 @@ Notice16::~Notice16() { REB_KEEP_VPTR_STORE(); }
 
 UiNotice* Notice16::Virtual10() { return NewOrNull<Notice16>(); }
 
-void Notice16::OnMessage(int kind, int a, int b) {
+void Notice16::OnMessage(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x303) return;
     const ObjectKey* keyA = reinterpret_cast<const ObjectKey*>(a);
     GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, keyA);
@@ -102,7 +102,7 @@ Notice14::~Notice14() { REB_KEEP_VPTR_STORE(); }
 
 UiNotice* Notice14::Virtual10() { return NewOrNull<Notice14>(); }
 
-void Notice14::Virtual08(int kind, int a, int b) {
+void Notice14::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x107) return;
     const ObjectKey* key = reinterpret_cast<const ObjectKey*>(a);
     GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, key);
@@ -220,7 +220,7 @@ Notice13::~Notice13() { REB_KEEP_VPTR_STORE(); }
 
 UiNotice* Notice13::Virtual10() { return NewOrNull<Notice13>(); }
 
-void Notice13::Virtual08(int kind, int a, int b) {
+void Notice13::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x105) return;
     const ObjectKey* key = reinterpret_cast<const ObjectKey*>(a);
     GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, key);
@@ -334,7 +334,7 @@ int Notice12::GetKind() { return 12; }
 
 UiNotice* Notice12::Virtual10() { return NewOrNull<Notice12>(); }
 
-void Notice12::OnMessage(int kind, int a, int b) {
+void Notice12::OnMessage(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x304) return;
     GameObjNotifier* first = GetObjectInFamilies_01_ff(m_owner, reinterpret_cast<const ObjectKey*>(a));
     GameObjNotifier* second = GetObjectInFamilies_01_ff(m_owner, reinterpret_cast<const ObjectKey*>(b));
@@ -398,7 +398,7 @@ int Notice11::GetKind() { return 11; }
 
 UiNotice* Notice11::Virtual10() { return NewOrNull<Notice11>(); }
 
-void Notice11::Virtual09(int kind, int a, int b, int c) {
+void Notice11::Virtual09(int kind, intptr_t a, intptr_t b, intptr_t c) {
     if (kind != 0x148) return;
     GameObjNotifier* system = GetObjectInFamilies_90_98(m_owner, reinterpret_cast<const ObjectKey*>(a));
     m_key = ObjectKey(*reinterpret_cast<const ObjectKey*>(a));
@@ -487,7 +487,7 @@ int Notice9::GetKind() { return 9; }
 
 UiNotice* Notice9::Virtual10() { return NewOrNull<Notice9>(); }
 
-void Notice9::Virtual09(int kind, int a, int b, int c) {
+void Notice9::Virtual09(int kind, intptr_t a, intptr_t b, intptr_t c) {
     if (kind != 0x145) return;
     if (b != 0 && c != 0) {
         m_unk40 = 0;
@@ -558,7 +558,7 @@ Notice3::~Notice3() { REB_KEEP_VPTR_STORE(); }
 
 UiNotice* Notice3::Virtual10() { return NewOrNull<Notice3>(); }
 
-void Notice3::Virtual08(int kind, int a, int b) {
+void Notice3::Virtual08(int kind, intptr_t a, intptr_t b) {
     GameObjNotifier* other = nullptr;
     uint32_t sameSide = 0;
     if (kind != 0x14b) return;
@@ -622,7 +622,7 @@ Notice4::~Notice4() { REB_KEEP_VPTR_STORE(); }
 
 UiNotice* Notice4::Virtual10() { return NewOrNull<Notice4>(); }
 
-void Notice4::Virtual09(int kind, int a, int b, int c) {
+void Notice4::Virtual09(int kind, intptr_t a, intptr_t b, intptr_t c) {
     if (kind != 0x100) return;
     const ObjectKey* key = reinterpret_cast<const ObjectKey*>(a);
     GameObjNotifier* system = nullptr;
@@ -636,7 +636,7 @@ void Notice4::Virtual09(int kind, int a, int b, int c) {
     if (m_unk40 == 0 || !system) return;
     GameObjNotifier* ownSide = nullptr;
     bool sameSide = false;
-    m_f64 = b;
+    m_f64 = static_cast<int>(b);
     if (b == 1) {
         ownSide = GetSideObject(m_owner, 1);
         sameSide = m_owner == 1;
@@ -690,30 +690,30 @@ int Notice5::GetKind() { return 5; }
 
 UiNotice* Notice5::Virtual10() { return NewOrNull<Notice5>(); }
 
-void Notice5::Virtual08(int kind, int a, int b) {
+void Notice5::Virtual08(int kind, intptr_t a, intptr_t b) {
     DatRecord* record = nullptr;
     if (kind == 0x125) {
         m_unk40 = 1;
-        GetTierRecord28(m_owner, b, &record);
+        GetTierRecord28(m_owner, static_cast<int>(b), &record);
         if (!record) return;
         ExpandMessageTemplate(&m_text0, 0x7048, static_cast<ObjectBase*>(record), nullptr, nullptr, nullptr);
         ExpandMessageTemplate(&m_text1, 0x7049, static_cast<ObjectBase*>(record), nullptr, nullptr, nullptr);
     } else if (kind == 0x126) {
         m_unk40 = 1;
-        GetTierRecord29(m_owner, b, &record);
+        GetTierRecord29(m_owner, static_cast<int>(b), &record);
         if (!record) return;
         ExpandMessageTemplate(&m_text0, 0x7048, static_cast<ObjectBase*>(record), nullptr, nullptr, nullptr);
         ExpandMessageTemplate(&m_text1, 0x7049, static_cast<ObjectBase*>(record), nullptr, nullptr, nullptr);
     } else if (kind == 0x127) {
         m_unk40 = 1;
-        GetTierRecord2a(m_owner, b, &record);
+        GetTierRecord2a(m_owner, static_cast<int>(b), &record);
         if (!record) return;
         ExpandMessageTemplate(&m_text0, 0x7048, static_cast<ObjectBase*>(record), nullptr, nullptr, nullptr);
         ExpandMessageTemplate(&m_text1, 0x7049, static_cast<ObjectBase*>(record), nullptr, nullptr, nullptr);
     }
     if (record && m_unk40 != 0) {
         ObjectKey scratch;
-        m_target = GetAiRecordKey(record, &scratch)->m_value;
+        m_target.m_value = GetAiRecordKey(record, &scratch)->m_value;
         m_unk28 = 4;
         m_sound[0] = 0x459;
         m_picture[1] = 0x3f9;
@@ -735,7 +735,7 @@ Notice6::~Notice6() { REB_KEEP_VPTR_STORE(); }
 
 UiNotice* Notice6::Virtual10() { return NewOrNull<Notice6>(); }
 
-void Notice6::Virtual08(int kind, int a, int b) {
+void Notice6::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x106) return;
     const ObjectKey* key = reinterpret_cast<const ObjectKey*>(a);
     GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, key);

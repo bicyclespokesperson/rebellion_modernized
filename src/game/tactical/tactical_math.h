@@ -2,6 +2,7 @@
 #include <cstdint>
 
 #include "core/layout.h"
+#include "core/reb_x87.h"
 
 // The four-float record the tactical engine uses for positions and directions: x, y, z and a fourth component that
 // caches the vector's length (-1 while unknown). Default constructor 0x59faf0, copy 0x5a33b0.
@@ -23,20 +24,3 @@ struct TacticalVector {
 };
 
 REB_ASSERT_SIZE(TacticalVector, 0x10);
-
-// The x87 instructions the engine uses for its trigonometry and square roots (the original has no library call; the C
-// library would round differently).
-inline double x87Cos(double angle) {
-    __asm__("fcos" : "+t"(angle));
-    return angle;
-}
-
-inline double x87Sin(double angle) {
-    __asm__("fsin" : "+t"(angle));
-    return angle;
-}
-
-inline double x87Sqrt(double value) {
-    __asm__("fsqrt" : "+t"(value));
-    return value;
-}

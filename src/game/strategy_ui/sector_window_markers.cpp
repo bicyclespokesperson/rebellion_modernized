@@ -200,7 +200,7 @@ CoolWindow* SectorWindow::OpenMarkerWindow(ObjectListItem* item, int x, int y) {
         int advisorMask = 0;
         switch (kind) {
         case 4: {
-            void* memory = ::operator new(0x26c);
+            void* memory = ::operator new(sizeof(SystemWindow));
             window = memory ? static_cast<CoolWindow*>(new (memory) SystemWindow(instance, position.x, position.y, 0xe2, 0x130, m_galaxy, childId, system))
                             : nullptr;
             advisorMask = 2;

@@ -48,7 +48,12 @@ public:
     PersistentInt m_state;       // +0x3c CoolListItemState
     RECT m_rect;                 // +0x40 not initialised by the constructor
     UINT m_textFormat;           // +0x50 DrawText format, 0: the list's
-    uint32_t m_userData;         // +0x54 also a sort key of the drag list
+    // +0x54 also a sort key of the drag list. A row that owns an object keeps the pointer in the same slot; the pointer
+    // view is pointer-sized, the value view stays 32 bits wide.
+    union {
+        uint32_t m_userData;
+        uintptr_t m_userPointer;
+    };
     int m_ownColors;             // +0x58 non-zero: draw with the colours below
     COLORREF m_selectedColor;    // +0x5c white
     COLORREF m_color;            // +0x60 white

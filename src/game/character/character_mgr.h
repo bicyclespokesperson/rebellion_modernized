@@ -46,12 +46,12 @@ public:
     virtual int UpdateObservedByAlliance(NotifyContext* ctx) override;           // 35, 0x5620a0
     virtual int UpdateObservedByEmpire(NotifyContext* ctx) override;             // 36, 0x5620c0
     virtual int CreateViews(int controlKind, NotifyContext* ctx) override;       // 37, shared stub 0x5774f0 (own copy 0x562190)
-    virtual int Virtual48(int ctxArg) override;                                  // 48, 0x5620e0: the NotifyContext* of the setup
+    virtual int Virtual48(intptr_t ctxArg) override;                                  // 48, 0x5620e0: the NotifyContext* of the setup
     virtual GameObj* CreateViewObject() override;                                // 57, 0x561fd0
 
     // ---- new virtuals ----
     // Forwarders to the person named by `key` (null or non-person keys fail): slot 179 of Character.
-    virtual int ForwardVirtual179(const ObjectKey* key, int a, int* out);                                 // 111, 0x55f0b0
+    virtual int ForwardVirtual179(const ObjectKey* key, intptr_t a, int* out);                                 // 111, 0x55f0b0
     // Slot 180 of Character after the checks that depend on where the person is (see FindLocation); *out starts as {1,-1}.
     virtual int ForwardCheckActivity3(const ObjectKey* key, const ActivityRequest* request, StatusCode* out);       // 112, 0x55f160
     virtual int ForwardCheckActivityStatus3(const ObjectKey* key, const ActivityRequest* request, StatusCode* out);  // 113, 0x55f320

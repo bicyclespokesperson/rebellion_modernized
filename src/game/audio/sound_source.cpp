@@ -13,7 +13,6 @@ namespace {
 
 constexpr HRESULT kFailure = static_cast<HRESULT>(0x80004005);
 constexpr int kBinaryInputMode = 0xa1;
-constexpr size_t kIfstreamSize = 0x5c;
 constexpr uint32_t kFirstBufferKey = 1;
 constexpr uint32_t kBufferSeconds = 2;
 constexpr uint32_t kMillisecondsPerSecond = 1000;
@@ -108,7 +107,7 @@ void SoundSource::Reset() {
 void SoundSource::LoadFromFile(const char* fileName, long seekPosition, int mode, SoundRequest* request) {
     if (!fileName) return;
     istream* stream = nullptr;
-    if (void* memory = ::operator new(kIfstreamSize))
+    if (void* memory = ::operator new(sizeof(ifstream)))
         stream = reinterpret_cast<istream*>(ifstream_ctor_open(static_cast<ifstream*>(memory), fileName, kBinaryInputMode, g_filebufOpenprot, 1));
     if (!stream) return;
     AttachFile(stream, seekPosition, mode, request);

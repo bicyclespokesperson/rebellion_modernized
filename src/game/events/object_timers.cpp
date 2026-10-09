@@ -8,6 +8,7 @@
 #include "economy/procfacil.h"
 #include "economy/side.h"
 #include "events/event_helpers.h"
+#include "fleet/combat_unit.h"
 #include "galaxy/system.h"
 #include "gameobj/game_obj.h"
 #include "mission/mission.h"
@@ -126,7 +127,7 @@ TrackedStat* FleetSlot138Timer::GetTargetSpec() {
 }
 
 void FleetSlot138Timer::Fire() {
-    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_14_20, [](GameObj* o, NotifyContext* ctx) { return events::callVirtualSlot<int>(o, 138, ctx); });
+    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_14_20, [](GameObj* o, NotifyContext* ctx) { return static_cast<CombatUnit*>(o)->RepairStep(ctx); });
 }
 
 FleetSlot138Timer* CreateFleetSlot138Timer() { return NewOrNull<FleetSlot138Timer>(); }

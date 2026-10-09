@@ -50,17 +50,17 @@ public:
     virtual int CheckRequestImpl(const ActivityRequest* request, StatusCode* out) override;  // 23, 0x4fdbc0
     virtual int CheckRenameImpl(const ActivityRequest* request, StatusCode* out) override;   // 25, 0x4fdd20
     virtual int CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) override;  // 27, 0x4fdc70
-    virtual int Virtual29(int a, int b, int c, int d, StatusCode* out) override;  // 29, 0x4fe0d0
+    virtual int Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) override;  // 29, 0x4fe0d0
     virtual int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 30, 0x4fe160
     virtual int UpdateUsable(NotifyContext* ctx) override;           // 33, 0x4fe540
     virtual int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, 0x4fe790
     virtual int Reparent(ObjectKey* key, NotifyContext* ctx) override;      // 42, 0x4feca0
     virtual int Virtual44(NotifyContext* ctx) override { return 1; }        // 44, 0x51ebb0 (shared)
     virtual int Virtual45(int a, NotifyContext* ctx) override { return 1; } // 45, 0x524fb0 (shared)
-    virtual int Virtual48(int ctx) override;                         // 48, 0x4fe810 (ctx is a NotifyContext*)
-    virtual int Virtual49(int other, int b, int ctx) override;       // 49, 0x4fe870 (other is a GameObj*)
-    virtual int Virtual50(int other, int b, int ctx) override;       // 50, 0x4fe930
-    virtual int Virtual51(int other, int b, int ctx) override;       // 51, 0x4fe9f0
+    virtual int Virtual48(intptr_t ctx) override;                         // 48, 0x4fe810 (ctx is a NotifyContext*)
+    virtual int NotifyUnitExisting(intptr_t other, int b, intptr_t ctx) override;       // 49, 0x4fe870 (other is a GameObj*)
+    virtual int NotifyUnitUsable(intptr_t other, int b, intptr_t ctx) override;       // 50, 0x4fe930
+    virtual int NotifyUnitDamaged(intptr_t other, int b, intptr_t ctx) override;       // 51, 0x4fe9f0
     virtual GameObj* CreateViewObject() override;                    // 57, 0x4fe710
     virtual int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x4ff570
     virtual int OnUsableChanged(int newValue, NotifyContext* ctx) override;       // 68, 0x4ff5e0
@@ -74,8 +74,8 @@ public:
     virtual int CheckBombardImpl(const ActivityRequest* request, StatusCode* out);   // 113, 0x4fdf70: CheckFleetRequest
     virtual int CheckBombard(const ActivityRequest* request, StatusCode* out);       // 114, 0x4fe020: out = {1,-1}, then 113
     virtual int UpdateDamaged(NotifyContext* ctx);                   // 115, 0x4feab0: Damaged follows the first ship's bit
-    virtual int StartAssault(int request, NotifyContext* ctx);       // 116, 0x4feb60: CheckAssault, then SetAssault(1)
-    virtual int StartBombard(int request, NotifyContext* ctx);       // 117, 0x4fec00: CheckBombard, then SetBombard(1)
+    virtual int StartAssault(intptr_t request, NotifyContext* ctx);       // 116, 0x4feb60: CheckAssault, then SetAssault(1)
+    virtual int StartBombard(intptr_t request, NotifyContext* ctx);       // 117, 0x4fec00: CheckBombard, then SetBombard(1)
     virtual int OnFlag01Changed(int value, NotifyContext* ctx) { return 1; }    // 118, 0x524fb0
     virtual int OnFlag02Changed(int value, NotifyContext* ctx) { return 1; }    // 119
     virtual int OnFlag04Changed(int value, NotifyContext* ctx) { return 1; }    // 120

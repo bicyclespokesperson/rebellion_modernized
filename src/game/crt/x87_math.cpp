@@ -16,6 +16,7 @@
 //
 // Callers: smacker_window.cpp and strategy_ui/game_options_window.cpp (`call _CIpow` in inline assembly); everything
 // else in the original goes through the hooks.
+#if defined(__i386__) || defined(_M_IX86)
 asm(R"REBASM(
     .intel_syntax noprefix
     .section .rdata,"dr"
@@ -917,3 +918,4 @@ __ftol:
     ret
     .att_syntax
 )REBASM");
+#endif  // i386: other targets use core/reb_x87.h and the C library

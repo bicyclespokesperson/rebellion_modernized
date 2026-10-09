@@ -88,12 +88,12 @@ public:
     virtual int CheckRequestImpl(const ActivityRequest* request, StatusCode* out);           // 23
     virtual int CheckRequest(const ActivityRequest* request, StatusCode* out);           // 24: out = {1,-1}, then Virtual23
     virtual int CheckRenameImpl(const ActivityRequest* request, StatusCode* out);           // 25
-    virtual int CheckRename(const ActivityRequest* request, int name, StatusCode* out);    // 26
+    virtual int CheckRename(const ActivityRequest* request, intptr_t name, StatusCode* out);    // 26
     virtual int CheckUnknownImpl(const ActivityRequest* request, StatusCode* out);           // 27
     virtual int CheckUnknown(const ActivityRequest* request, StatusCode* out);           // 28
-    virtual int Virtual29(int a, int b, int c, int d, StatusCode* out);               // 29
+    virtual int Virtual29(int a, int b, int c, intptr_t d, StatusCode* out);               // 29
     virtual int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out);  // 30
-    virtual int Virtual31(int a, int b, int c, int d, StatusCode* out);               // 31
+    virtual int Virtual31(int a, int b, int c, intptr_t d, StatusCode* out);               // 31
     virtual int Virtual32(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out);  // 32
     virtual int UpdateUsable(NotifyContext* ctx);               // 33: derives Usable from Existing/Completed/Enroute
     virtual int UpdateExisting(NotifyContext* ctx);               // 34: derives Existing from Created/Destroyed
@@ -101,7 +101,7 @@ public:
     virtual int UpdateObservedByEmpire(NotifyContext* ctx);               // 36
     virtual int CreateViews(int controlKind, NotifyContext* ctx) = 0;  // body 0x4f9190           // 37
     virtual int DestroyIfAllowed(const ActivityRequest* request, NotifyContext* ctx);        // 38
-    virtual int TryRename(const ActivityRequest* request, int name, NotifyContext* ctx);  // 39
+    virtual int TryRename(const ActivityRequest* request, intptr_t name, NotifyContext* ctx);  // 39
     virtual int Destroy(NotifyContext* ctx);               // 40
     virtual int Rename(String* name, NotifyContext* ctx);  // 41: SetName
     virtual int Reparent(ObjectKey* key, NotifyContext* ctx);  // 42
@@ -109,15 +109,15 @@ public:
     virtual int Virtual44(NotifyContext* ctx);               // 44
     virtual int Virtual45(int a, NotifyContext* ctx);        // 45
     virtual int Virtual46(NotifyContext* ctx);               // 46
-    virtual int Virtual47(int a) { return 1; }                            // 47: 1
-    virtual int Virtual48(int a) { return 1; }                            // 48: 1
-    virtual int Virtual49(int a, int b, int c) { return 1; }              // 49: 1
-    virtual int Virtual50(int a, int b, int c) { return 1; }              // 50: 1
-    virtual int Virtual51(int a, int b, int c) { return 1; }              // 51: 1
-    virtual int Virtual52(int a, int b, int c) { return 1; }              // 52: 1
-    virtual int Virtual53(int a, int b, int c) { return 1; }              // 53: 1
+    virtual int Virtual47(intptr_t a) { return 1; }                            // 47: 1
+    virtual int Virtual48(intptr_t a) { return 1; }                            // 48: 1
+    virtual int NotifyUnitExisting(intptr_t object, int value, intptr_t ctx) { return 1; }              // 49: 1
+    virtual int NotifyUnitUsable(intptr_t object, int value, intptr_t ctx) { return 1; }              // 50: 1
+    virtual int NotifyUnitDamaged(intptr_t object, int value, intptr_t ctx) { return 1; }              // 51: 1
+    virtual int NotifyOwnerExisting(intptr_t object, int value, intptr_t ctx) { return 1; }              // 52: 1
+    virtual int NotifyOwnerUsable(intptr_t object, int value, intptr_t ctx) { return 1; }              // 53: 1
     virtual int ApplyAllToViewOf(int view, int unused, NotifyContext* ctx);  // 54
-    virtual int Virtual55(int a) { return 1; }                            // 55: 1
+    virtual int Virtual55(intptr_t a) { return 1; }                            // 55: 1
     virtual int AutoscrapIfRequested(NotifyContext* ctx);               // 56
     virtual GameObj* CreateViewObject() = 0;                 // 57: allocates an empty object of the leaf class
 
@@ -256,16 +256,16 @@ public:
     // ==== SECTION notif (0x4f8880-0x4fcd90): see game_obj_notif.cpp ====
     // Notification debug log (dead in the shipped game: guarded by a call that always returns 0). All return 1 when
     // logging is off. `unused` is passed through as the formatter's `extra` text.
-    int LogFlag(const char* tag, const char* property, int value, int unused, NotifyContext* ctx);  // 0x4f8880
-    int LogSide(const char* tag, const char* property, uint32_t newSide, uint32_t oldSide, int unused,
+    int LogFlag(const char* tag, const char* property, int value, intptr_t unused, NotifyContext* ctx);  // 0x4f8880
+    int LogSide(const char* tag, const char* property, uint32_t newSide, uint32_t oldSide, intptr_t unused,
                 NotifyContext* ctx);  // 0x4f88d0
-    int LogInt(const char* tag, const char* property, int newValue, int oldValue, int unused,
+    int LogInt(const char* tag, const char* property, int newValue, int oldValue, intptr_t unused,
                NotifyContext* ctx);  // 0x4f8980
-    int LogString(const char* tag, const char* property, String* newValue, String* oldValue, int unused,
+    int LogString(const char* tag, const char* property, String* newValue, String* oldValue, intptr_t unused,
                   NotifyContext* ctx);  // 0x4f8a50
-    int LogKey(const char* tag, const char* property, ObjectKey* newKey, ObjectKey* oldKey, int unused,
+    int LogKey(const char* tag, const char* property, ObjectKey* newKey, ObjectKey* oldKey, intptr_t unused,
                NotifyContext* ctx);  // 0x4f8aa0
-    int LogTypeKey(const char* tag, const char* property, ObjectKey* newKey, ObjectKey* oldKey, int unused,
+    int LogTypeKey(const char* tag, const char* property, ObjectKey* newKey, ObjectKey* oldKey, intptr_t unused,
                    NotifyContext* ctx);  // 0x4f8b80
     // The formatter itself (0x4f8c60): not reconstructed, never reached.
     int LogChange(const char* tag, const char* property, const char* newText, const char* oldText, const char* extra,

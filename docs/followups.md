@@ -126,6 +126,19 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
 - Shared one-address functions without symbol rows: `RulesMgr::Validate` (0x569870), `ShipPicker::Visit` (= `UnitPicker::Visit`
   0x587470), `TickTable::Write` (= `TimerEvent::CheckValid` 0x586290). EH funclets 0x4096e0, 0x4098b0 are not functions.
 
+## Portability leftovers (P0b, see docs/phase3_plan.md)
+- `crt/rand.cpp`, `qsort.cpp`, `atoi.cpp` define libc symbols (`rand`, `qsort`, `atol`): native builds need `reb_`-prefixed names and call
+  sites, because the game's LCG `rand` and its `qsort` order are behaviour.
+- The iostream model (`iostream/iostream.h`) has `streambuf*` and `long` fields at 32-bit offsets and reads 32-bit vbtable offsets; it needs a
+  portable replacement (or a small byte-stream class with the same save format) before an LP64 build.
+- Byte-offset reads that stay on purpose: `GameRoot::InitializeAllObjects` (word after an `AllFacility`), `Notice41::Virtual08` and
+  `HumanPlayer::SpeakOrderAdvice` (byte `0xb0` after a `Character`; both read past the 0xb0-byte object, the original does too),
+  `AreaOf` in `menu_window.cpp` (a null item's rectangle at 0x60: a crash outside Windows), the ICF-folded cross-class accessors
+  `SetDword30`/`ObjectKeyAtOffset6c`/`ObjectKeyAtOffset1c`, and the 3D tactical code.
+- `HumanPlayer::m_alertList` is an opaque 0x10-byte array holding an `AiNoticeQueue` built by 0x4bee50; type it when that constructor is reconstructed.
+- `FUN_005ce500` (tactical event, 0x220 bytes), `FUN_005d0820` (group order, 0x84) and the 3D tactical window (0x114) are still allocated by size.
+- Add a script that checks every `Class:method=slot` use against `clang-cl -Xclang -fdump-vtable-layouts` to tools/ (it was a throwaway in P0b).
+
 ## Tactical fence (M3)
 - No scenario has a Death Star in the battle, so `HeadlessSimulator::DeathStarAttackRun` (0x5aefc0) is verified with `difftest --entry`
   over simulator captures only (its branch that fires the Death Star at a non-null `TacticalDeathStar` is not executed). A save with a

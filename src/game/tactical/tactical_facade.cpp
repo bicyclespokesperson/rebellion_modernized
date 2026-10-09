@@ -60,7 +60,7 @@ int REB_CDECL TacticalRegisterCapitalShip(
     int grid31, int grid00, int grid10, int grid20, int grid30, int speedCH, int shieldCH, int weaponCH,
     int hyperdriveCH, int tractorCH, float a42, float a41, float a40) {
     const uint32_t typeIndex = GetTacticalGame()->FindShipTypeIndex(typeBits);
-    void* memory = ::operator new(0x448);
+    void* memory = ::operator new(sizeof(TacticalCapitalShip));
     TacticalCapitalShip* ship = nullptr;
     if (memory) {
         ship = new (memory) TacticalCapitalShip(family, id, notAlliance, typeIndex, name, hull, currentHull,
@@ -90,7 +90,7 @@ int REB_CDECL TacticalRegisterDeathStar(uint32_t family, uint32_t id, int notCom
 int REB_CDECL TacticalRegisterSpecialForce(uint32_t family, uint32_t id, uint32_t typeBits, String name, int notAlliance,
                                          int shipHandle) {
     const uint16_t spriteId = GetTacticalGame()->LookupTypeSprite(static_cast<int16_t>(typeBits));
-    void* memory = ::operator new(0x4c);
+    void* memory = ::operator new(sizeof(TacticalSpecialForceUnit));
     TacticalSpecialForceUnit* unit = nullptr;
     if (memory) unit = new (memory) TacticalSpecialForceUnit(family, id, spriteId, name, notAlliance, shipHandle);
     TacticalUnit* base = unit;
@@ -106,7 +106,7 @@ int REB_CDECL TacticalRegisterCharacter(uint32_t family, uint32_t id, String nam
                                       int isFirstCommander, int isSecondCommander, float scaleA,
                                       float scaleB, int shipHandle, int injured, uint32_t typeBits) {
     const uint16_t spriteId = GetTacticalGame()->LookupTypeSprite(static_cast<int16_t>(typeBits));
-    void* memory = ::operator new(0x64);
+    void* memory = ::operator new(sizeof(TacticalCharacterUnit));
     TacticalCharacterUnit* unit = nullptr;
     if (memory) {
         unit = new (memory) TacticalCharacterUnit(family, id, spriteId, name, notAlliance, isMajor, isFirstCommander,
@@ -128,7 +128,7 @@ int REB_CDECL TacticalRegisterFightSquad(
     int grid31, int grid00, int grid10, int grid20, int grid30, float a42, float a41, float a40, int totalTorpedoes,
     float torpedoRange) {
     const uint32_t typeIndex = GetTacticalGame()->FindShipTypeIndex(typeBits);
-    void* memory = ::operator new(0x418);
+    void* memory = ::operator new(sizeof(TacticalFighter));
     TacticalFighter* fighter = nullptr;
     if (memory) {
         fighter = new (memory) TacticalFighter(family, id, notAlliance, typeIndex, name, carrierHandle, field64,
@@ -208,7 +208,7 @@ BattleOutcome* REB_CDECL TacticalGetBattleOutcome(BattleOutcome* out, int unused
 
 TacticalRegistry* GetTacticalRegistry() {
     if (!g_tacticalRegistry) {
-        void* memory = ::operator new(0x48);
+        void* memory = ::operator new(sizeof(TacticalRegistry));
         g_tacticalRegistry = memory ? new (memory) TacticalRegistry() : nullptr;
     }
     return g_tacticalRegistry;

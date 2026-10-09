@@ -49,7 +49,7 @@ int HighWord(LPARAM value) { return static_cast<int>(static_cast<uint32_t>(value
 
 ResourceStringId StringId(uint16_t id) { return ResourceStringId{static_cast<int16_t>(id), kStringGroup}; }
 
-HWND SendToBottom() { return reinterpret_cast<HWND>(1); }
+HWND SendToBottom() { return HWND_BOTTOM; }
 
 bool InputBlocked() { return static_cast<uint32_t>(GameHookTickCount()) < kTickCountReady; }
 

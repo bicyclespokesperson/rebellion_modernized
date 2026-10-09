@@ -387,7 +387,7 @@ int UiNotif600::GetKind() { return 0x600; }
 
 void UiNotif600::Dispatch(PlayerController* controller) {
     IntPair range;
-    controller->Virtual25(reinterpret_cast<int>(GetRange(&range)));
+    controller->Virtual25(reinterpret_cast<intptr_t>(GetRange(&range)));
 }
 
 IntPair* UiNotif600::GetRange(IntPair* out) {
@@ -569,7 +569,7 @@ UiNotif370::UiNotif370() : KeyPairPayload() {}
 
 UiNotif370::~UiNotif370() { REB_KEEP_VPTR_STORE(); }
 
-void UiNotif370::Dispatch(PlayerController* controller) { controller->Virtual76(&m_key, reinterpret_cast<int>(&m_keyA), &m_keyB); }
+void UiNotif370::Dispatch(PlayerController* controller) { controller->Virtual76(&m_key, reinterpret_cast<intptr_t>(&m_keyA), &m_keyB); }
 
 void* CreateUiNotif370() { return NewOrNull<UiNotif370>(); }
 
@@ -927,7 +927,7 @@ UiNotif302::~UiNotif302() { REB_KEEP_VPTR_STORE(); }
 void UiNotif302::Dispatch(PlayerController* controller) {
     ObjectKey keyA;
     controller->Virtual91(&m_key, copyFirstKey(this, &keyA));
-    if (m_value0c == 0) UiSendNotificationToSide(m_value18, reinterpret_cast<int>(&m_key));
+    if (m_value0c == 0) UiSendNotificationToSide(m_value18, reinterpret_cast<intptr_t>(&m_key));
 }
 
 void UiNotif302::DispatchToSink(UiNotice* sink) {
@@ -969,7 +969,7 @@ UiNotif305::~UiNotif305() { REB_KEEP_VPTR_STORE(); }
 
 void UiNotif305::Dispatch(PlayerController* controller) {
     ObjectKey keyA;
-    controller->Virtual92(reinterpret_cast<int>(&m_key), copyFirstKey(this, &keyA));
+    controller->Virtual92(reinterpret_cast<intptr_t>(&m_key), copyFirstKey(this, &keyA));
 }
 
 void UiNotif305::DispatchToSink(UiNotice* sink) {

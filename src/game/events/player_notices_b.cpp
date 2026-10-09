@@ -45,7 +45,7 @@ int Notice40::GetKind() { return 40; }
 
 UiNotice* Notice40::Virtual10() { return NewOrNull<Notice40>(); }
 
-void Notice40::Virtual05(int kind, int payload) {
+void Notice40::Virtual05(int kind, intptr_t payload) {
     if (kind != 0x200) return;
     const UiNotif200* notif = reinterpret_cast<const UiNotif200*>(payload);
     ObjectKey characterKey(notif->m_key);
@@ -134,7 +134,7 @@ int Notice39::GetKind() { return 39; }
 
 UiNotice* Notice39::Virtual10() { return NewOrNull<Notice39>(); }
 
-void Notice39::Virtual06(int kind, int a, int b, int c) {
+void Notice39::Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) {
     if (kind != 0x361) return;
     const ObjectKey* keyA = reinterpret_cast<const ObjectKey*>(a);
     const ObjectKey* keyC = reinterpret_cast<const ObjectKey*>(c);
@@ -212,7 +212,7 @@ int Notice38::GetKind() { return 38; }
 
 UiNotice* Notice38::Virtual10() { return NewOrNull<Notice38>(); }
 
-void Notice38::Virtual08(int kind, int a, int b) {
+void Notice38::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind == 0x230 && m_f64 == 0 && b != 0) {
         m_f64 = 1;
         if (m_owner == 2) m_unk40 = 1;
@@ -249,7 +249,7 @@ int Notice37::GetKind() { return 37; }
 
 UiNotice* Notice37::Virtual10() { return NewOrNull<Notice37>(); }
 
-void Notice37::Virtual05(int kind, int payload) {
+void Notice37::Virtual05(int kind, intptr_t payload) {
     if (kind == 0x221 && m_f64 == 0) {
         m_f64 = 1;
         if (m_owner == 1) {
@@ -268,7 +268,7 @@ void Notice37::Virtual05(int kind, int payload) {
     }
 }
 
-void Notice37::Virtual08(int kind, int a, int b) {
+void Notice37::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind == 0x210 && b != 0 && m_owner == 1) {
         m_f64 = 1;
         GameObjNotifier* luke = GetObject_32000242(1);
@@ -304,7 +304,7 @@ int Notice35::GetClass() { return 6; }
 
 UiNotice* Notice35::Virtual10() { return NewOrNull<Notice35>(); }
 
-void Notice35::OnMessage(int kind, int a, int b) {
+void Notice35::OnMessage(int kind, intptr_t a, intptr_t b) {
     if (kind != 0x305) {
         UiNotice::OnMessage(kind, a, b);
         return;
@@ -353,7 +353,7 @@ int Notice36::GetKind() { return 36; }
 
 UiNotice* Notice36::Virtual10() { return NewOrNull<Notice36>(); }
 
-void Notice36::Virtual05(int kind, int payload) {
+void Notice36::Virtual05(int kind, intptr_t payload) {
     if (kind != 0x360) return;
     ObjectKey characterKey(reinterpret_cast<const KeyedNotifPayload*>(payload)->m_key);
     GameObjNotifier* character = GetObjectInFamilies_01_ff(m_owner, &characterKey);
@@ -378,7 +378,7 @@ void Notice36::Virtual05(int kind, int payload) {
     m_state.m_value |= 0x10000000;
 }
 
-void Notice36::Virtual08(int kind, int a, int b) {
+void Notice36::Virtual08(int kind, intptr_t a, intptr_t b) {
     if (kind != 2) {
         if (kind == 0x211) {
             m_state.m_value |= 1;

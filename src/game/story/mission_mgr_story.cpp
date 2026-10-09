@@ -38,9 +38,9 @@ constexpr uint32_t kFamilySystemEnd = 0x98;
 constexpr uint32_t kRoleOnMission = role_flag::kOnMission;
 constexpr uint32_t kRoleBusyMask = role_flag::kOnMission | role_flag::kAdrift;
 
-int contextAsArgument(NotifyContext* ctx) { return static_cast<int>(reinterpret_cast<intptr_t>(ctx)); }
+intptr_t contextAsArgument(NotifyContext* ctx) { return reinterpret_cast<intptr_t>(ctx); }
 
-int keyAsArgument(ObjectKey* key) { return static_cast<int>(reinterpret_cast<intptr_t>(key)); }
+intptr_t keyAsArgument(ObjectKey* key) { return reinterpret_cast<intptr_t>(key); }
 
 // One named story character as the finders report it: the master, the object that holds it and that object's key.
 struct StoryActor {

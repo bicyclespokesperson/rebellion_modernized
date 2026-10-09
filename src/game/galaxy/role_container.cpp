@@ -92,11 +92,11 @@ int RoleContainer::CheckOrder(int a, int orderKind, StatusCode* out) {
     return result;
 }
 
-int RoleContainer::Virtual29(int a, int b, int c, int d, StatusCode* out) {
+int RoleContainer::Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) {
     int result = 1;
     *out = StatusCode(kStatusCategory, kStatusOk);
     const bool rangeIsRoles =
-        c == kOrderCheckKind && coversOnlyRoleFamilies(reinterpret_cast<const FamilyRange*>(static_cast<intptr_t>(d)));
+        c == kOrderCheckKind && coversOnlyRoleFamilies(reinterpret_cast<const FamilyRange*>(d));
     if (out->m_second == static_cast<uint32_t>(kStatusOk)) {
         result = CheckControlAndState(this, a, b, 1, 1, out);
         if (result && out->m_second != static_cast<uint32_t>(kStatusOk) && rangeIsRoles) {

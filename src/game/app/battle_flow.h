@@ -96,7 +96,7 @@ void CreateBattleFlow();      // 0x409280
 void DestroyBattleFlow();     // 0x409370
 
 // Callbacks CreateBattleFlow installs in the object model's hook table (game_hooks.h).
-void RouteNoticeToSession(int notice);          // 0x41d100 (slot 0x6b2ae0)
+void RouteNoticeToSession(HookArg notice);          // 0x41d100 (slot 0x6b2ae0)
 const char* GetStepDriverDataDirectory();       // 0x41dc70 (slot 0x6b2ae8)
 
 // Static initializers of two derived values, like InitFlowScaleA/B and InitFlowRangeSpan below.

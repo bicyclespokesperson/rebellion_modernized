@@ -3,6 +3,7 @@
 
 #include <new>
 
+#include "character/character.h"
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
 #include "data/game_math.h"
@@ -42,8 +43,6 @@ constexpr int kEveryChild = 4;
 constexpr int kExistingChildren = 3;
 constexpr uint32_t kMaxRepairedDestroyedReason = 0x10;
 constexpr int kHullRepairDivisor = 10;
-constexpr int kCharacterIdOffset = 0x96;
-constexpr int kCharacterShipDestroyedSlot = 186;
 constexpr int kHitTypeNone = 1;
 constexpr int kHitTypeShield = 2;
 constexpr int kHitTypeWeapon = 3;
@@ -69,15 +68,10 @@ bool rangeWithin(const FamilyRange* range, uint32_t first, uint32_t last) {
 
 GameObj* asObject(GameObjNotifier* notifier) { return static_cast<GameObj*>(notifier); }
 
-int16_t characterId(GameObjNotifier* character) {
-    return *reinterpret_cast<const int16_t*>(reinterpret_cast<const char*>(character) + kCharacterIdOffset);
-}
+int16_t characterId(GameObjNotifier* character) { return static_cast<Character*>(character)->m_commandKind; }
 
-// The Character class belongs to another module; slot 186 of its vtable takes the notify context.
 int notifyCharacterOfShipLoss(GameObjNotifier* character, NotifyContext* ctx) {
-    using Slot = int(REB_THISCALL*)(GameObjNotifier*, NotifyContext*);
-    void** const vtable = *reinterpret_cast<void***>(character);
-    return reinterpret_cast<Slot>(vtable[kCharacterShipDestroyedSlot])(character, ctx);
+    return static_cast<Character*>(character)->Virtual186(ctx);
 }
 
 int setStatusAndCheckRequest(GameObj* object, const ActivityRequest* request, StatusCode* out) {
@@ -182,7 +176,7 @@ int CapShip::CheckRequestImpl2(const ActivityRequest* request, StatusCode* out) 
     return setStatusAndCheckRequest(this, request, out);
 }
 
-int CapShip::Virtual29(int a, int b, int c, int d, StatusCode* out) {
+int CapShip::Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) {
     *out = StatusCode(kStatusCategory, kStatusNotSupported);
     return CheckControlAndState(this, a, b, 1, 1, out);
 }

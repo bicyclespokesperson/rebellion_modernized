@@ -29,7 +29,7 @@ public:
     virtual int GetEventKinds(int unused, EventKindSet* out) override;      // 15, 0x577190
     virtual int Virtual16() override { return 1; }                          // 16, shared 0x40f340
     virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;  // 22, 0x5771b0
-    virtual int Virtual29(int a, int b, int c, int d, StatusCode* out) override;  // 29, 0x577270
+    virtual int Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) override;  // 29, 0x577270
     virtual int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 30, 0x5773b0
     virtual int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, 0x5774f0
     virtual GameObj* CreateViewObject() override;                           // 57, 0x577480

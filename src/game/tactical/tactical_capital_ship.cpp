@@ -100,7 +100,7 @@ TacticalCapitalShip::TacticalCapitalShip(uint32_t family, uint32_t id, int notAl
     m_speedCH = speedCH;
     m_shieldCH = shieldCH;
     m_hyperdriveCH = hyperdriveCH;
-    m_scale = static_cast<float>(x87Sin(static_cast<double>(kPi) * 0.49444446f));
+    m_scale = static_cast<float>(reb_sin(static_cast<double>(kPi) * 0.49444446f));
     m_tractoredBy[0] = 0;
     m_tractoredBy[1] = 0;
     m_tractoredBy[2] = 0;

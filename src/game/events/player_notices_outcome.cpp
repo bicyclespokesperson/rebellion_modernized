@@ -57,7 +57,7 @@ GameObjNotifier* findTeamLocation(int owner, ObjectKeyValueSet& members) {
 }  // namespace
 
 // Event 0x1f1: how a mission of the side's character ended.
-void Notice23::Virtual05(int kind, int payload) {
+void Notice23::Virtual05(int kind, intptr_t payload) {
     if (kind != 0x1f1) return;
     const IntPairPayload* outcome = reinterpret_cast<const IntPairPayload*>(payload);
     ObjectKey missionKey(outcome->m_key);

@@ -67,7 +67,7 @@ void UiSetHumanStateValue(int key, int value);               // 0x41d230
 unsigned UiGetHumanStateValue(int key);                      // 0x41d250
 int UiGetHumanDefaultState();                                // 0x41d270
 void UiSetHumanDefaultState(int state);                      // 0x41d290
-void UiQueueHumanPopup(int a, int b);                        // 0x41d2b0
+void UiQueueHumanPopup(intptr_t a, int b);                        // 0x41d2b0
 void UiHumanSetAdvisorMask(unsigned mask);                   // 0x41d2d0
 int UiBeginSync(unsigned requested);                         // 0x41d2f0
 void UiAckSync(int side);                                    // 0x41d310
@@ -79,7 +79,7 @@ int UiHumanNextAdvice();                                     // 0x41d3b0
 void UiClearHumanAlerts(unsigned mask);                      // 0x41d3d0
 void UiHumanBeginHold();                                     // 0x41d3f0
 void UiHumanEndHold();                                       // 0x41d410
-void UiSendNotificationToSide(int side, int argument);       // 0x41dc80
+void UiSendNotificationToSide(int side, intptr_t argument);       // 0x41dc80
 
 // ---- Game step driver (g_gameStepDriver, null outside a game) -------------------------------------------------
 void UiAddManagerNotice(void* notice);                       // 0x41db80

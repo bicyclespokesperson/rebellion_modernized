@@ -76,7 +76,7 @@ TacticalShipBase::TacticalShipBase() {
     m_tractorCH = 0;
     m_weaponCH = 0;
     m_hitCount = 0;
-    m_scale = static_cast<float>(x87Sin(static_cast<double>(3.1415927f) * static_cast<double>(0.49444446f)));
+    m_scale = static_cast<float>(reb_sin(static_cast<double>(3.1415927f) * static_cast<double>(0.49444446f)));
     m_tractoredBy[0] = 0;
     m_tractoredBy[1] = 0;
     m_tractoredBy[2] = 0;

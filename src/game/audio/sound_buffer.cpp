@@ -446,7 +446,7 @@ void REB_CDECL SoundBuffer::RefillThread(SoundBuffer* buffer) {
         }
         if (signalled == WAIT_OBJECT_0 + kStopEvent) ExitThread(0);
         if (InterlockedExchange(&buffer->m_refillBusy, 1) != 0) continue;
-        __try {
+        REB_TRY {
             if (signalled <= WAIT_OBJECT_0 + 1) {
                 if (buffer->m_mode == kBufferStreamed && buffer->m_wrapped != 0) {
                     buffer->m_wrapped = 0;
@@ -456,8 +456,8 @@ void REB_CDECL SoundBuffer::RefillThread(SoundBuffer* buffer) {
                     buffer->Refill(buffer->m_stream, buffer->m_loopStart);
                 }
             }
-        } __finally {
-            if (AbnormalTermination()) {
+        } REB_FINALLY {
+            if (REB_ABNORMAL_TERMINATION()) {
                 InterlockedExchange(&buffer->m_refillBusy, 0);
                 ExitThread(99);
             }

@@ -26,9 +26,9 @@ constexpr int kStateThird = 3;
 
 // ---- slots 44-48, 117 ----------------------------------------------------------------------------------------
 
-int Character::Virtual47(int a) { return Role::Virtual47(a); }
+int Character::Virtual47(intptr_t a) { return Role::Virtual47(a); }
 
-int Character::Virtual48(int a) { return Role::Virtual47(a); }
+int Character::Virtual48(intptr_t a) { return Role::Virtual47(a); }
 
 int Character::Virtual44(NotifyContext* ctx) {
     int result = 1;
@@ -64,7 +64,7 @@ int Character::Virtual130(NotifyContext* ctx) {
 }
 
 int Character::Virtual131(const ObjectKey* opponent, NotifyContext* ctx) {
-    int ok = ReturnOneTwoArgs(static_cast<int>(reinterpret_cast<intptr_t>(opponent)), ctx) != 0;
+    int ok = ReturnOneTwoArgs(reinterpret_cast<intptr_t>(opponent), ctx) != 0;
     if (!(m_stateFlags & kDestroyedState)) {
         ok = Virtual185(ctx) && ok;
         if (!(m_stateFlags & kDestroyedState)) {
@@ -76,7 +76,7 @@ int Character::Virtual131(const ObjectKey* opponent, NotifyContext* ctx) {
 }
 
 int Character::Virtual132(const ObjectKey* holder, NotifyContext* ctx) {
-    const int stub = ReturnOneTwoArgs(static_cast<int>(reinterpret_cast<intptr_t>(holder)), ctx);
+    const int stub = ReturnOneTwoArgs(reinterpret_cast<intptr_t>(holder), ctx);
     int ok = SetState(kStateThird, ctx) && stub;
     ok = SetHolderKey(holder) && ok;
     return ok;

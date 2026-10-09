@@ -162,7 +162,7 @@ public:
     virtual void Virtual22(int a, int b) {}
     virtual void Virtual23(int value) {}
     virtual void Virtual24(int value) {}
-    virtual void Virtual25(int value) {}
+    virtual void Virtual25(intptr_t value) {}
     virtual void Virtual26(int value) {}
     virtual void Virtual27(int value) {}
     virtual void Virtual28(int value) {}
@@ -213,7 +213,7 @@ public:
     virtual void Virtual73(const ObjectKey* key, int arg) {}
     virtual void Virtual74(const ObjectKey* key, int arg) {}
     virtual void Virtual75(const ObjectKey* key, int arg) {}
-    virtual void Virtual76(const ObjectKey* key, int arg, const ObjectKey* system) {}
+    virtual void Virtual76(const ObjectKey* key, intptr_t arg, const ObjectKey* system) {}
     virtual void Virtual77(const ObjectKey* key, int arg) {}
     virtual void Virtual78(const ObjectKey* key, int arg) {}
     virtual void Virtual79(const ObjectKey* key, int arg) {}
@@ -229,7 +229,7 @@ public:
     virtual void Virtual89(const ObjectKey* key, int arg) {}
     virtual void Virtual90(const ObjectKey* key) {}
     virtual void Virtual91(const ObjectKey* key, const ObjectKey* newParent) {}
-    virtual void Virtual92(int a, const ObjectKey* key) {}
+    virtual void Virtual92(intptr_t a, const ObjectKey* key) {}
     virtual void Virtual93(unsigned target) {}
     virtual void Virtual94(int side) {}
     virtual void Virtual95();  // 0x4888e0

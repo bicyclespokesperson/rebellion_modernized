@@ -23,9 +23,9 @@ public:
     virtual int GetClass() override;  // 0x48ad30
     virtual int Virtual11() override;  // 0x48c2a0
     virtual UiNotice* Virtual10() override;  // 0x48acc0
-    virtual void Virtual06(int kind, int a, int b, int c) override;  // 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override;  // 0x49c0b0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x48abc0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override;  // 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override;  // 0x49c0b0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x48abc0
     virtual void Read(istream* in) override;  // 0x499dc0
     virtual void Write(ostream* out) override;  // 0x499dd0
 
@@ -43,8 +43,8 @@ public:
     virtual int GetClass() override { return 8; }  // shared 0x48ad30
     virtual int Virtual11() override;  // 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x48aed0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x48ae40
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x48ae40
 
     int m_f64;  // +0x64
 };
@@ -60,9 +60,9 @@ public:
     virtual int GetClass() override { return 8; }  // shared 0x48ad30
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x48b200
-    virtual void Virtual06(int kind, int a, int b, int c) override {}  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override;  // 0x48b050
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {}  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override;  // 0x48b050
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
     virtual void Read(istream* in) override;  // 0x48b960
     virtual void Write(ostream* out) override;  // 0x48b980
 
@@ -80,9 +80,9 @@ public:
     virtual int GetClass() override { return 8; }  // shared 0x48ad30
     virtual int Virtual11() override { return 512; }  // shared 0x48b450
     virtual UiNotice* Virtual10() override;  // 0x48b3e0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
     virtual int IsStale() override { return 0; }  // shared 0x6158b0
     virtual int Virtual16(const LinkNode* payloads) override { return 0; }  // shared 0x48b440
 
@@ -99,8 +99,8 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x48b7f0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x48b6e0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x48b6e0
 
     int m_f64;  // +0x64
 };
@@ -116,9 +116,9 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override;  // 0x48bc60
     virtual UiNotice* Virtual10() override;  // 0x48bb90
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override;  // 0x48b9a0
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override;  // 0x48b9a0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
     virtual int Virtual16(const LinkNode* payloads) override;  // 0x48bbf0
     virtual void Read(istream* in) override { UiTextNotice::Read(in);
     ReadValue32(in, &m_f64); }  // shared 0x48b960
@@ -139,9 +139,9 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 8; }  // shared 0x48c2a0
     virtual UiNotice* Virtual10() override;  // 0x48c240
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x48be60
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x48be60
     virtual int IsStale() override;  // 0x48c2b0
     virtual void Read(istream* in) override;  // 0x48bde0
     virtual void Write(ostream* out) override;  // 0x48be20
@@ -162,10 +162,10 @@ public:
     virtual int GetClass() override { return 8; }  // shared 0x48ad30
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x48c850
-    virtual void Virtual05(int kind, int payload) override;  // 0x48c4c0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual05(int kind, intptr_t payload) override;  // 0x48c4c0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
     virtual void Read(istream* in) override;  // 0x48c460
     virtual void Write(ostream* out) override;  // 0x48c490
 
@@ -184,9 +184,9 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x48cd10
-    virtual void Virtual06(int kind, int a, int b, int c) override;  // 0x48c9c0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override;  // 0x48c9c0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
 
 };
 
@@ -201,8 +201,8 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x48cf80
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x48ce80
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x48ce80
 
     int m_f64;  // +0x64
 };
@@ -218,9 +218,9 @@ public:
     virtual int GetClass() override { return 8; }  // shared 0x48ad30
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x48d300
-    virtual void Virtual05(int kind, int payload) override;  // 0x48d190
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x48d0f0
+    virtual void Virtual05(int kind, intptr_t payload) override;  // 0x48d190
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x48d0f0
 
     int m_f64;  // +0x64
 };
@@ -236,9 +236,9 @@ public:
     virtual int GetClass() override;  // 0x48d640
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x48d5d0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override;  // 0x48d470
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override;  // 0x48d470
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
     virtual void Read(istream* in) override;  // 0x48d450
     virtual void Write(ostream* out) override;  // 0x48d460
 
@@ -255,10 +255,10 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x48dad0
-    virtual void Virtual05(int kind, int payload) override;  // 0x48d9a0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x48d7f0
+    virtual void Virtual05(int kind, intptr_t payload) override;  // 0x48d9a0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x48d7f0
     void SetPriority();  // 0x48db30
     void FillFinalDuel();  // 0x48dc50
     void FillStoryPair();  // 0x48df20
@@ -281,8 +281,8 @@ public:
     virtual int GetClass() override { return 6; }  // shared 0x48d640
     virtual int Virtual11() override { return 0x400; }  // shared 0x48e670
     virtual UiNotice* Virtual10() override;  // 0x48e610
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x48e5a0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x48e5a0
     virtual void Read(istream* in) override;  // 0x48e580
     virtual void Write(ostream* out) override;  // 0x48f770
 
@@ -300,10 +300,10 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 4; }  // shared 0x4047d0
     virtual UiNotice* Virtual10() override;  // 0x48ec10
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override;  // 0x48e890
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x48e940
-    virtual void Virtual09(int kind, int a, int b, int c) override;  // 0x48e840
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override;  // 0x48e890
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x48e940
+    virtual void Virtual09(int kind, intptr_t a, intptr_t b, intptr_t c) override;  // 0x48e840
     virtual void Read(istream* in) override;  // 0x48e800
     virtual void Write(ostream* out) override;  // 0x48e820
 
@@ -322,10 +322,10 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x48f070
-    virtual void Virtual05(int kind, int payload) override;  // 0x48ed80
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual05(int kind, intptr_t payload) override;  // 0x48ed80
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
 
 };
 
@@ -340,10 +340,10 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x48f600
-    virtual void Virtual05(int kind, int payload) override;  // 0x48f1e0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual05(int kind, intptr_t payload) override;  // 0x48f1e0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
     virtual int IsStale() override { return 0; }  // shared 0x6158b0
 
 };
@@ -359,8 +359,8 @@ public:
     virtual int GetClass() override { return 6; }  // shared 0x48d640
     virtual int Virtual11() override { return 1; }  // shared 0x40f340
     virtual UiNotice* Virtual10() override;  // 0x48f8a0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x48f790
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x48f790
     virtual void Read(istream* in) override { UiKeyNotice::Read(in); ReadValue32(in, &m_f64); }  // shared 0x48e580
     virtual void Write(ostream* out) override { UiKeyNotice::Write(out); WriteValue32(out, &m_f64); }  // shared 0x48f770
 
@@ -378,9 +378,9 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x48fc90
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x48fa00
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x48fa00
 
 };
 
@@ -395,9 +395,9 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x4901f0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x48fdf0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x48fdf0
 
 };
 
@@ -412,10 +412,10 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x490ed0
-    virtual void Virtual05(int kind, int payload) override;  // 0x490340
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual05(int kind, intptr_t payload) override;  // 0x490340
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
 
     int m_f64;  // +0x64 which of the five texts
 };
@@ -431,9 +431,9 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 1; }  // shared 0x40f340
     virtual UiNotice* Virtual10() override;  // 0x491120
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x491060
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x491060
 
 };
 
@@ -448,9 +448,9 @@ public:
     virtual int GetClass() override;  // 0x4953a0
     virtual int Virtual11() override { return 0x400; }  // shared 0x48e670
     virtual UiNotice* Virtual10() override;  // 0x495340
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x4950d0
-    virtual void Virtual09(int kind, int a, int b, int c) override;  // 0x4952a0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x4950d0
+    virtual void Virtual09(int kind, intptr_t a, intptr_t b, intptr_t c) override;  // 0x4952a0
     virtual void Read(istream* in) override;  // 0x495050
     virtual void Write(ostream* out) override;  // 0x495090
 
@@ -470,10 +470,10 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x495b90
-    virtual void Virtual05(int kind, int payload) override;  // 0x4955b0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual05(int kind, intptr_t payload) override;  // 0x4955b0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
     virtual int Virtual16(const LinkNode* payloads) override;  // 0x495bf0
     int CountUnscheduled(const LinkNode* payloads);  // 0x495d00
     virtual void Read(istream* in) override;  // 0x495550
@@ -496,9 +496,9 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 256; }  // shared 0x48bc60
     virtual UiNotice* Virtual10() override;  // 0x495fa0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override;  // 0x495e90
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override;  // 0x495e90
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
     virtual void Read(istream* in) override;  // 0x495e50
     virtual void Write(ostream* out) override;  // 0x495e70
 
@@ -517,8 +517,8 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 256; }  // shared 0x48bc60
     virtual UiNotice* Virtual10() override;  // 0x496320
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x4960f0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x4960f0
 
 };
 
@@ -533,9 +533,9 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 8; }  // shared 0x48c2a0
     virtual UiNotice* Virtual10() override;  // 0x4977b0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override;  // 0x497690
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override;  // 0x497690
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
     virtual void Read(istream* in) override;  // 0x497660
     virtual void Write(ostream* out) override;  // 0x497910
 
@@ -554,9 +554,9 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 8; }  // shared 0x48c2a0
     virtual UiNotice* Virtual10() override;  // 0x498060
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x497940
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x497940
     virtual void Read(istream* in) override { UiTextNotice::Read(in);
     ReadValue32(in, &m_f64);
     ReadValue32(in, &m_f68); }  // shared 0x497660
@@ -579,9 +579,9 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 128; }  // shared 0x526670
     virtual UiNotice* Virtual10() override;  // 0x498810
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x4981c0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x4981c0
     virtual void Read(istream* in) override { UiTextNotice::Read(in);
     ReadValue32(in, &m_f64);
     ReadValue32(in, &m_f68); }  // shared 0x497660
@@ -604,9 +604,9 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 8; }  // shared 0x48c2a0
     virtual UiNotice* Virtual10() override;  // 0x498b40
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override;  // 0x498970
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override;  // 0x498970
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
     virtual int Virtual16(const LinkNode* payloads) override;  // shared 0x48bbf0
     virtual void Read(istream* in) override { UiTextNotice::Read(in);
     ReadValue32(in, &m_f64); }  // shared 0x48b960
@@ -627,10 +627,10 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 1; }  // shared 0x40f340
     virtual UiNotice* Virtual10() override;  // 0x498db0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual09(int kind, int a, int b, int c) override;  // 0x498cb0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual09(int kind, intptr_t a, intptr_t b, intptr_t c) override;  // 0x498cb0
 
 };
 
@@ -645,9 +645,9 @@ public:
     virtual int GetClass() override { return 8; }  // shared 0x48ad30
     virtual int Virtual11() override { return 32; }  // shared 0x526bd0
     virtual UiNotice* Virtual10() override;  // 0x498fb0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
     virtual int IsStale() override { return 0; }  // shared 0x6158b0
     virtual int Virtual16(const LinkNode* payloads) override { return 0; }  // shared 0x48b440
     void SetSecondText(const char* text);  // 0x499010
@@ -665,10 +665,10 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 1; }  // shared 0x40f340
     virtual UiNotice* Virtual10() override;  // 0x4992f0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual09(int kind, int a, int b, int c) override;  // 0x499130
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual09(int kind, intptr_t a, intptr_t b, intptr_t c) override;  // 0x499130
     virtual void Read(istream* in) override { UiTextNotice::Read(in);
     ReadValue32(in, &m_f64);
     ReadValue32(in, &m_f68); }  // shared 0x497660
@@ -691,9 +691,9 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 1; }  // shared 0x40f340
     virtual UiNotice* Virtual10() override;  // 0x499620
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x499460
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x499460
     virtual void Read(istream* in) override { UiTextNotice::Read(in);
     ReadValue32(in, &m_f64); }  // shared 0x48b960
     virtual void Write(ostream* out) override { UiTextNotice::Write(out);
@@ -713,10 +713,10 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 1; }  // shared 0x40f340
     virtual UiNotice* Virtual10() override;  // 0x499960
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual09(int kind, int a, int b, int c) override;  // 0x499760
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual09(int kind, intptr_t a, intptr_t b, intptr_t c) override;  // 0x499760
     virtual void Read(istream* in) override { UiTextNotice::Read(in);
     ReadValue32(in, &m_f64); }  // shared 0x48b960
     virtual void Write(ostream* out) override { UiTextNotice::Write(out);
@@ -736,9 +736,9 @@ public:
     virtual int GetClass() override { return 4; }  // shared 0x5a6700
     virtual int Virtual11() override { return 8; }  // shared 0x48c2a0
     virtual UiNotice* Virtual10() override;  // 0x499c70
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x499aa0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x499aa0
 
 };
 
@@ -753,9 +753,9 @@ public:
     virtual int GetClass() override { return 3; }  // shared 0x5a6730
     virtual int Virtual11() override { return 128; }  // shared 0x526670
     virtual UiNotice* Virtual10() override;  // 0x49a0c0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x499de0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x499de0
 
 };
 
@@ -770,9 +770,9 @@ public:
     virtual int GetClass() override { return 5; }  // shared 0x404c20
     virtual int Virtual11() override { return 0; }  // shared 0x6158b0
     virtual UiNotice* Virtual10() override;  // 0x49a2f0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
     void BuildText();  // 0x49a350
     void AppendName(GameObjNotifier* object);  // 0x49a880
     void AppendOrderLines();  // 0x49a8b0
@@ -797,9 +797,9 @@ public:
     virtual int GetClass() override { return 1; }  // shared 0x5a66f0
     virtual int Virtual11() override { return 256; }  // shared 0x48bc60
     virtual UiNotice* Virtual10() override;  // 0x49b6c0
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override {  }  // shared 0x48b3d0
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x49b060
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x49b060
     int DispatchAndFill(const LinkNode* payloads);  // 0x49b0f0
     void FillNeutral();  // 0x49b150
     void FillOwnSide();  // 0x49b330
@@ -838,9 +838,9 @@ public:
     virtual int GetClass() override { return 2; }  // shared 0x4e8740
     virtual int Virtual11() override { return 256; }  // shared 0x48bc60
     virtual UiNotice* Virtual10() override;  // 0x49c570
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override { UiNotice::OnMessage(kind, a, b); }  // shared 0x49c0b0
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override { UiNotice::OnMessage(kind, a, b); }  // shared 0x49c0b0
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
     int FillText();  // 0x49c0d0
     void AddObjectKeys(GameObjNotifier* object);  // 0x49c5d0
     virtual void Read(istream* in) override;  // 0x49bfd0
@@ -867,10 +867,10 @@ public:
     virtual int GetClass() override;  // 0x497530
     virtual int Virtual11() override { return 256; }  // shared 0x48bc60
     virtual UiNotice* Virtual10() override;  // 0x497490
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override;  // 0x497380
-    virtual void Virtual08(int kind, int a, int b) override;  // 0x496770, not reconstructed yet
-    virtual void Virtual09(int kind, int a, int b, int c) override;  // 0x496f50, not reconstructed yet
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override;  // 0x497380
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override;  // 0x496770, not reconstructed yet
+    virtual void Virtual09(int kind, intptr_t a, intptr_t b, intptr_t c) override;  // 0x496f50, not reconstructed yet
     virtual int IsStale() override { return 0; }  // shared 0x6158b0
     virtual void Read(istream* in) override;  // 0x496670
     virtual void Write(ostream* out) override;  // 0x4966f0
@@ -898,10 +898,10 @@ public:
     virtual int GetClass() override;  // 0x492390
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x4922d0
-    virtual void Virtual05(int kind, int payload) override;  // 0x491500, not reconstructed yet
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override;  // 0x492250
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual05(int kind, intptr_t payload) override;  // 0x491500, not reconstructed yet
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override;  // 0x492250
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
     virtual int Virtual16(const LinkNode* payloads) override;  // 0x492330
     virtual void Read(istream* in) override;  // 0x4913f0
     virtual void Write(ostream* out) override;  // 0x4914a0
@@ -928,10 +928,10 @@ public:
     virtual int GetClass() override { return m_class; }  // shared 0x492390
     virtual int Virtual11() override { return 16; }  // shared 0x48af30
     virtual UiNotice* Virtual10() override;  // 0x494cc0
-    virtual void Virtual05(int kind, int payload) override;  // 0x4927c0, not reconstructed yet
-    virtual void Virtual06(int kind, int a, int b, int c) override {  }  // shared 0x48acb0
-    virtual void OnMessage(int kind, int a, int b) override;  // 0x494c40
-    virtual void Virtual08(int kind, int a, int b) override {  }  // shared 0x48b3d0
+    virtual void Virtual05(int kind, intptr_t payload) override;  // 0x4927c0, not reconstructed yet
+    virtual void Virtual06(int kind, intptr_t a, intptr_t b, intptr_t c) override {  }  // shared 0x48acb0
+    virtual void OnMessage(int kind, intptr_t a, intptr_t b) override;  // 0x494c40
+    virtual void Virtual08(int kind, intptr_t a, intptr_t b) override {  }  // shared 0x48b3d0
     virtual void Virtual14() override;  // 0x494d70
     virtual void Virtual15() override;  // 0x494d90
     virtual int Virtual16(const LinkNode* payloads) override;  // 0x494d20

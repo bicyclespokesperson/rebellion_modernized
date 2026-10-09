@@ -4,8 +4,8 @@
 namespace {
 
 template <class T>
-T* fromHookArgument(int value) {
-    return reinterpret_cast<T*>(static_cast<intptr_t>(value));
+T* fromHookArgument(HookArg value) {
+    return reinterpret_cast<T*>(value);
 }
 
 }  // namespace
@@ -67,19 +67,19 @@ int QueryBattleState(int side, uint32_t* a, uint32_t* b, int* c, uint32_t* d) {
     return result;
 }
 
-void GameHookScheduleTimer(int timer, int delay) {
+void GameHookScheduleTimer(HookArg timer, int delay) {
     if (GameManager* manager = GetGameManager()) manager->ScheduleTimer(fromHookArgument<TimedEvent>(timer), delay);
 }
 
-void GameHookScheduleCommand(int event) {
+void GameHookScheduleCommand(HookArg event) {
     if (GameManager* manager = GetGameManager()) manager->ScheduleCommand(fromHookArgument<EventBase>(event));
 }
 
-void GameHookScheduleEvent(int event) {
+void GameHookScheduleEvent(HookArg event) {
     if (GameManager* manager = GetGameManager()) manager->ScheduleEvent(fromHookArgument<EventBase>(event));
 }
 
-int GameHookDispatchPostedEvent(int event) {
+int GameHookDispatchPostedEvent(HookArg event) {
     int result = 1;
     if (GameManager* manager = GetGameManager())
         result = manager->DispatchPostedEvent(fromHookArgument<PostedEvent>(event));
@@ -102,7 +102,7 @@ int SetSideSnapshot(GameStateSnapshot* snapshot, int which) {
     return result;
 }
 
-int GameHookNoteDispatch(int item) {
+int GameHookNoteDispatch(HookArg item) {
     int result = 1;
     if (GameManager* manager = GetGameManager()) result = manager->NoteDispatch(fromHookArgument<void>(item));
     return result;

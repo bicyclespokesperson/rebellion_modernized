@@ -12,11 +12,6 @@
 
 namespace {
 
-constexpr size_t kEntryOkOffset = 0x1c;
-constexpr size_t kEntryLoaderOffset = 0x20;
-constexpr size_t kEntryRecordsOffset = 0x30;
-constexpr size_t kEntrySize = 0x3c;
-constexpr size_t kNameNodeSize = 0x30;
 constexpr uint32_t kFirstLevelKind = 0x28;
 constexpr uint32_t kEndLevelKind = 0x2c;
 constexpr uint32_t kUnitFamilyFirst = 0x10;
@@ -25,27 +20,7 @@ constexpr uint32_t kFamilyResourceBase = 0x642;
 constexpr int kFamilyNameResources[] = {0x6b4, 0x6a9, 0x6ac, 0x6a8, 0x6ab, 0x6b2, 0x6ad, 0x6a7, 0x6b5,
                                         0x6ae, 0x6b0, 0x6a6, 0x6a4, 0x6af, 0x6a5, 0x6aa, 0x6b3};
 
-// Embedded at +0x20 of a family entry: owns the family range and loads its records.
-class FamilyLoader {
-public:
-    virtual ~FamilyLoader();
-    virtual void Virtual01() = 0;
-    virtual void Virtual02() = 0;
-    virtual void Virtual03() = 0;
-    virtual int Load(Crc32* crc) = 0;
-};
-
-template <class T>
-T* At(void* base, size_t offset) {
-    return reinterpret_cast<T*>(reinterpret_cast<char*>(base) + offset);
-}
-
-template <class T>
-const T& Field(const void* base, size_t offset) {
-    return *reinterpret_cast<const T*>(reinterpret_cast<const char*>(base) + offset);
-}
-
-IdAvlTree* RecordsOf(void* entry) { return At<IdAvlTree>(entry, kEntryRecordsOffset); }
+IdAvlTree* RecordsOf(void* entry) { return &static_cast<SeedListFile*>(entry)->m_list.m_records; }
 
 AvlNode* NextNode(AvlNode* node) { return node->m_successor; }
 
@@ -117,11 +92,11 @@ int ObjectTypeDb::LoadFamilies() {
 }
 
 int ObjectTypeDb::AddFamily(int a, int b) {
-    void* memory = ::operator new(kEntrySize);
+    void* memory = ::operator new(sizeof(SeedListFile));
     void* entry = memory ? new (memory) SeedListFile() : nullptr;
     int ok = entry != nullptr;
     if (ok) {
-        ok = Field<int>(entry, kEntryOkOffset);
+        ok = static_cast<SeedListFile*>(entry)->m_version;
         if (ok) ok = static_cast<SeedListFile*>(entry)->Load(a, b);
     }
     if (entry) {
@@ -137,7 +112,7 @@ int ObjectTypeDb::AddFamily(int a, int b) {
 int ObjectTypeDb::ForEachFamily(Crc32* crc) {
     int ok = 1;
     for (AvlNode* entry = m_families->First(); entry && ok; entry = NextNode(entry)) {
-        ok = At<FamilyLoader>(entry, kEntryLoaderOffset)->Load(crc);
+        ok = static_cast<SeedListFile*>(entry)->m_list.Checksum(crc);
     }
     return ok;
 }
@@ -192,7 +167,7 @@ int ObjectTypeDb::CollectRecords(int view, uint32_t kind, int level, int whenBel
             if (level <= recordLevel) wanted = recordLevel == level ? whenEqual : whenAbove;
             if (!wanted) continue;
 
-            void* memory = ::operator new(kNameNodeSize);
+            void* memory = ::operator new(sizeof(RecordNameNode));
             void* nameNode = memory ? new (memory) RecordNameNode() : nullptr;
             ok = nameNode != nullptr;
             if (nameNode) {

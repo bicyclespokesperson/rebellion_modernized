@@ -30,7 +30,7 @@ public:
     virtual void Virtual20(PlayerNotice* notice) override;     // 0x485d10
     virtual void Virtual21() override;                         // 0x485de0 (counts a turn of the order budget)
 
-    virtual void Virtual25(int value) override;   // 0x485e60: NoteValueA (a pointer to the maintenance pair in the original)
+    virtual void Virtual25(intptr_t value) override;   // 0x485e60: NoteValueA (a pointer to the maintenance pair in the original)
     virtual void Virtual26(int value) override;   // 0x485e80: NoteValueB
     virtual void Virtual29(unsigned flags) override;  // 0x485ea0: NoteMask
 
@@ -82,13 +82,13 @@ public:
     virtual void Virtual65(const ObjectKey* key, int redraw) override { if (redraw != 0) m_model.NoteObject(key); }
     virtual void Virtual74(const ObjectKey* key, int argument) override;   // 0x485f60: NotePlannerSlot12
     virtual void Virtual75(const ObjectKey* key, int argument) override;   // 0x485f80: NotePlannerSlot3
-    virtual void Virtual76(const ObjectKey* key, int unused, const ObjectKey* system) override;  // 0x485fa0
+    virtual void Virtual76(const ObjectKey* key, intptr_t unused, const ObjectKey* system) override;  // 0x485fa0
     virtual void Virtual80(const ObjectKey* key, int) override { m_model.NoteCharacterChanged(key); }   // 0x485fd0
     virtual void Virtual83(const ObjectKey* key, const ObjectKey* from, const ObjectKey* to) override;   // 0x486030: NoteMoved
     virtual void Virtual84(const ObjectKey* key, int) override;                             // 0x486050
     virtual void Virtual87(const ObjectKey* key, int name0, int name1, int name2) override;  // 0x486080
     virtual void Virtual91(const ObjectKey* key, const ObjectKey* newParent) override;      // 0x4860d0
-    virtual void Virtual92(int unused, const ObjectKey* key) override { m_model.NoteCombat(key); }       // 0x486100
+    virtual void Virtual92(intptr_t unused, const ObjectKey* key) override { m_model.NoteCombat(key); }       // 0x486100
     virtual void Virtual93(unsigned target) override;   // 0x485e10
     virtual void Virtual94(int side) override;          // 0x485e30
 

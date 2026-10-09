@@ -15,7 +15,7 @@ int System::OnLoyaltyNotified(int oldValue, int newValue, NotifyContext* ctx) {
         const String delta("Delta=");
         text += delta;
         text.AppendSigned(newValue - oldValue);
-        LogInt("SystemLoyaltyNotif", "Loyalty", newValue, oldValue, static_cast<int>(reinterpret_cast<intptr_t>(text.m_text)), ctx);
+        LogInt("SystemLoyaltyNotif", "Loyalty", newValue, oldValue, reinterpret_cast<intptr_t>(text.m_text), ctx);
         int shownOld = oldValue;
         int shownNew = newValue;
         if (ViewSide() == kEmpireSide) {

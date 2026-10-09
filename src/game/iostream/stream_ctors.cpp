@@ -20,8 +20,7 @@ streambuf* NewStrstreambuf() {
 }
 
 streambuf* NewFilebuf() {
-    constexpr int kFilebufSize = 0x54;
-    void* memory = ::operator new(kFilebufSize);
+    void* memory = ::operator new(sizeof(filebuf));
     return memory ? filebuf_ctor(static_cast<filebuf*>(memory)) : nullptr;
 }
 

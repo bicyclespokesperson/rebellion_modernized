@@ -199,11 +199,11 @@ int Role::CheckActivityStatus2(const ActivityRequest* request, int unused, Statu
 
 // ---- mission handling ------------------------------------------------------------------------------------------
 
-int Role::Virtual47(int a) { return UnitObjBase::Virtual47(a); }
+int Role::Virtual47(intptr_t a) { return UnitObjBase::Virtual47(a); }
 
-int Role::Virtual48(int a) { return UnitObjBase::Virtual47(a); }
+int Role::Virtual48(intptr_t a) { return UnitObjBase::Virtual47(a); }
 
-int Role::Virtual55(int a) {
+int Role::Virtual55(intptr_t a) {
     NotifyContext* ctx = reinterpret_cast<NotifyContext*>(a);
     int result = UnitObjBase::Virtual55(a) != 0;
     Role* master = ViewAsRole(0);

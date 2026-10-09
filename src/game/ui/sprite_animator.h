@@ -30,7 +30,7 @@ public:
     virtual void SetOrigin(int x, int y);  // slot 1, 0x472ae0
     // Queues the script `kind` (the factory's index) for `sequence`, started at (b, c); starts playing it if no step is
     // playing, and (unless `noStep`) steps once at once.
-    virtual int Start(int kind, const uint32_t* sequence, SpriteStage* stage, int b, int c, int noStep);  // slot 2, 0x472930
+    virtual int Start(int kind, const uint32_t* sequence, SpriteStage* stage, int b, intptr_t c, int noStep);  // slot 2, 0x472930
     // Advances one frame; sets *changed and the area that changed when the sprites moved or changed.
     virtual void Step(RECT* area, int* changed);  // slot 3, 0x4729c0
     // Hands the animator the sprite of slot `index`.
@@ -53,7 +53,7 @@ public:
     uint32_t m_endSequence;    // +0x48 (a copy of the first word of the script's sequence)
     SpriteStage* m_endStage;   // +0x4c
     int m_endFrames;           // +0x50
-    uint32_t m_endCallback;    // +0x54 the completion hook (a function address)
+    uintptr_t m_endCallback;   // +0x54 the completion hook (a function address)
 };
 
 #pragma clang diagnostic push

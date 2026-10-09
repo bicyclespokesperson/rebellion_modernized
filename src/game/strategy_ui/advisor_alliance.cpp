@@ -1,3 +1,4 @@
+#include "economy/side.h"
 #include "core/reb_abi.h"
 #include <new>
 
@@ -78,8 +79,8 @@ void ShowFirstSystemChoice(AllianceAdvisor* advisor, IdAvlTree* tree, ObjectKey 
 AllianceAdvisor::AllianceAdvisor(int side, HumanPlayer* player) : AdvisorBase(side, player) {
     g_humanUiFlags.m_value |= kUiFlagChatty;
     m_cueCount = kCueCount;
-    m_cueDue = static_cast<uint32_t*>(::operator new(0x160));
-    m_cueCooldown = static_cast<uint32_t*>(::operator new(m_cueCount << 2));
+    m_cueDue = static_cast<uint32_t*>(::operator new(kCueCount * sizeof(uint32_t)));
+    m_cueCooldown = static_cast<uint32_t*>(::operator new(m_cueCount * sizeof(uint32_t)));
     for (uint32_t i = 0; i < m_cueCount; ++i) {
         m_cueDue[i] = 0;
         m_cueCooldown[i] = 0;
@@ -290,7 +291,7 @@ void AllianceAdvisor::RunPendingCommand() {
             if (!side) {
                 UiSetAlternateDisplayMode(static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this)));
             } else {
-                UiSetAlternateDisplayMode(*reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(side) + 0xbc));
+                UiSetAlternateDisplayMode(static_cast<uint32_t>(static_cast<Side*>(side)->m_victoryConditions));
             }
         }
     }
@@ -318,7 +319,7 @@ void AllianceAdvisor::RunCommand(int command) {
             break;
         }
         ObjectKey parentKey;
-        void* memory = ::operator new(0x1c);
+        void* memory = ::operator new(sizeof(IdNode));
         IdNode* node = nullptr;
         if (memory) node = new (memory) IdNode(object->m_parent->GetKey(&parentKey)->Id());
         choices->AddWithId(node);

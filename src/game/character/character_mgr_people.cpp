@@ -73,7 +73,7 @@ Character* asCharacter(GameObjNotifier* object) { return static_cast<Character*>
 
 DatRecord* nextRecord(DatRecord* record) { return reinterpret_cast<DatRecord*>(static_cast<AvlNode*>(record)->m_successor); }
 
-int contextAsArgument(NotifyContext* ctx) { return static_cast<int>(reinterpret_cast<intptr_t>(ctx)); }
+intptr_t contextAsArgument(NotifyContext* ctx) { return reinterpret_cast<intptr_t>(ctx); }
 
 }  // namespace
 
@@ -122,7 +122,7 @@ int CharacterMgr::CountUncreatedMinors(int side) {
 
 // ---- forwarded person checks (slots 111-115) ----------------------------------------------------------------------------
 
-int CharacterMgr::ForwardVirtual179(const ObjectKey* key, int a, int* out) {
+int CharacterMgr::ForwardVirtual179(const ObjectKey* key, intptr_t a, int* out) {
     int result = 1;
     GameObjNotifier* object = GetMasterInFamilies_01_ff(key);
     if (object != nullptr) {

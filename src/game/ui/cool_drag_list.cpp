@@ -257,10 +257,10 @@ uint32_t CoolDragList::SelectByPrefix(const String* prefix, int notify, int case
 }
 
 CoolListItem* CoolDragList::AddItem(uint32_t id, uint16_t imageId, uint16_t selectedImageId, const char* text,
-                                    int redraw, uint32_t userData) {
+                                    int redraw, uintptr_t userData) {
     CoolListItem* item = NewOrNull<CoolListItem>(id);
     // BUG(original): a failed allocation is dereferenced here.
-    item->m_userData = userData;
+    item->m_userPointer = userData;
     item->SetImageIds(imageId, selectedImageId, m_instance);
     item->m_text = text;
     m_items->Insert(item);
@@ -270,10 +270,10 @@ CoolListItem* CoolDragList::AddItem(uint32_t id, uint16_t imageId, uint16_t sele
 }
 
 CoolListItem* CoolDragList::AddItemWithImages(uint32_t id, DibBitmap* image, DibBitmap* selectedImage,
-                                              const char* text, int redraw, uint32_t userData) {
+                                              const char* text, int redraw, uintptr_t userData) {
     CoolListItem* item = NewOrNull<CoolListItem>(id);
     // BUG(original): a failed allocation is dereferenced here.
-    item->m_userData = userData;
+    item->m_userPointer = userData;
     item->SetImages(image, selectedImage);
     item->m_text = text;
     m_items->Insert(item);

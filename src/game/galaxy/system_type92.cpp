@@ -46,7 +46,7 @@ GameObj* SystemType92::CreateViewObject() { return NewOrNull<SystemType92>(); }
 
 GameObjNotifier* SystemType92::Create() { return NewOrNull<SystemType92>(); }
 
-int SystemType92::Virtual47(int a) {
+int SystemType92::Virtual47(intptr_t a) {
     NotifyContext* ctx = reinterpret_cast<NotifyContext*>(a);
     const int result = System::Virtual47(a);
     if (!result) return 0;

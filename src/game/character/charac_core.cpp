@@ -215,7 +215,7 @@ int Character::CheckActivity2(const ActivityRequest* request, StatusCode* out) {
     return result;
 }
 
-int Character::Virtual179(int a, int* out) {
+int Character::Virtual179(intptr_t a, int* out) {
     const ActivityRequest* request = reinterpret_cast<const ActivityRequest*>(a);
     int result = 1;
     *out = 0;

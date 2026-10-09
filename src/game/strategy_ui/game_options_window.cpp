@@ -10,6 +10,7 @@
 #include "app/saved_game_info_decl.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
+#include "core/reb_x87.h"
 #include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "multiplayer/multiplayer_window.h"
@@ -96,12 +97,7 @@ int SliderPositionToVolume(int position) {
     if (position == 0) return kMinVolume;
     const double hundredth = 0.01;
     const double scale = 2000.0;
-    double scaled;
-    __asm__ volatile("fldlg2\n\tfildl %1\n\tfmull %2\n\tfyl2x\n\tfmull %3\n\tfstpl %0"
-                     : "=m"(scaled)
-                     : "m"(position), "m"(hundredth), "m"(scale)
-                     : "st", "st(1)", "cc");
-    return static_cast<int>(floor(scaled));
+    return static_cast<int>(floor(reb_scaled_log10(position, hundredth, scale)));
 }
 
 // The inverse: floor(10 ^ (volume / 2000) * 100), through the CRT's x87 pow like the original.
@@ -111,12 +107,7 @@ int VolumeToSliderPosition(int volume) {
     const double hundredth = 0.01;
     const double twentieth = 0.05;
     const double hundred = 100.0;
-    double scaled;
-    __asm__ volatile("fldl %1\n\tfildl %2\n\tfmull %3\n\tfmull %4\n\tcall _CIpow\n\tfmull %5\n\tfstpl %0"
-                     : "=m"(scaled)
-                     : "m"(ten), "m"(volume), "m"(hundredth), "m"(twentieth), "m"(hundred)
-                     : "st", "st(1)", "eax", "ecx", "edx", "cc", "memory");
-    return static_cast<int>(floor(scaled));
+    return static_cast<int>(floor(reb_scaled_pow(ten, volume, hundredth, twentieth, hundred)));
 }
 
 uint32_t LabelColor(uint32_t options, uint32_t bit) { return (options & bit ? kOnOffDelta : 0) + kLabelOff; }
@@ -301,13 +292,13 @@ LRESULT REB_STDCALL GameOptionsWindow::WindowProc(UINT message, WPARAM wParam, L
         }
         switch (id) {
         case kMusicSlider: {
-            const int volume = static_cast<int>(lParam) == 0 ? kMinVolume : SliderPositionToVolume(lParam);
-            if (inBattle) TacticalNotifySyncQuiet(lParam);
+            const int volume = static_cast<int>(lParam) == 0 ? kMinVolume : SliderPositionToVolume(static_cast<int>(lParam));
+            if (inBattle) TacticalNotifySyncQuiet(static_cast<int>(lParam));
             AppSetMusicVolume(volume);
             return 0;
         }
         case kVolumeSlider:
-            AppSetVolume(lParam == 0 ? kMinVolume : SliderPositionToVolume(lParam));
+            AppSetVolume(lParam == 0 ? kMinVolume : SliderPositionToVolume(static_cast<int>(lParam)));
             return 0;
         case kBackButton:
             AppSetState(kStateOptionsScreen);

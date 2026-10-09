@@ -29,7 +29,7 @@ int CallGameHook2AFC() {
     return 0;
 }
 
-void CallGameHook2AE0(int arg) {
+void CallGameHook2AE0(HookArg arg) {
     if (g_gameHook2AE0) g_gameHook2AE0(arg);
 }
 
@@ -48,19 +48,19 @@ int CallGameHook2B08() {
     return 0;
 }
 
-void CallGameHook2AD8(int a, int b) {
+void CallGameHook2AD8(HookArg a, int b) {
     if (g_gameHook2AD8) g_gameHook2AD8(a, b);
 }
 
-void CallGameHook2B00(int arg) {
+void CallGameHook2B00(HookArg arg) {
     if (g_gameHook2B00) g_gameHook2B00(arg);
 }
 
-void CallGameHook2AF8(int arg) {
+void CallGameHook2AF8(HookArg arg) {
     if (g_gameHook2AF8) g_gameHook2AF8(arg);
 }
 
-int CallGameHook2AD4(int arg) {
+int CallGameHook2AD4(HookArg arg) {
     if (g_gameHook2AD4) return g_gameHook2AD4(arg);
     return 1;
 }

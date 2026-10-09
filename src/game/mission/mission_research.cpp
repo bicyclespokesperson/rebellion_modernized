@@ -33,13 +33,17 @@ constexpr int kStatusResearchDone = 0x32;
 constexpr int kOutNoHostFacility = 0xc;
 constexpr int kOutResearchDone = 0xe;
 
-constexpr int kRefSetOffsets[] = {0x18, 0x1c, 0x20};
-constexpr int kKeySetOffsets[] = {0x24, 0x28, 0x2c};
+template <class Set>
+struct ThreeSets {
+    Set* m_set[3];
+};
 
-template <class T>
-T& FieldAt(MissionCheckArgs* check, int offset) {
-    return *reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(check) + offset);
+ThreeSets<ObjectRefList> RefSetsOf(MissionCheckArgs* check) {
+    return {{static_cast<ObjectRefList*>(check->m_refs[0]), static_cast<ObjectRefList*>(check->m_refs[1]),
+             static_cast<ObjectRefList*>(check->m_refs[2])}};
 }
+
+ThreeSets<ObjectKeySet> KeySetsOf(MissionCheckArgs* check) { return {{check->m_team, check->m_decoys, check->m_captured}}; }
 
 bool StatusIsOk(const StatusCode* status) { return status->m_second == static_cast<uint32_t>(mission_status::kOk); }
 
@@ -50,16 +54,16 @@ int ControlSideAsSideIndex(uint32_t controlSide) {
 
 int ResearchKindOfCheck(MissionCheckArgs* check, int* kind) {
     ObjectKey key;
-    return MissionResearch::ResearchKindFromKey(GetAiRecordKey(FieldAt<DatRecord*>(check, 0x14), &key), kind);
+    return MissionResearch::ResearchKindFromKey(GetAiRecordKey(check->m_record, &key), kind);
 }
 
 template <class Set, int (*Check)(Set*, MissionCheckArgs*, StatusCode*, int*)>
-int CheckThreeSets(MissionCheckArgs* check, StatusCode* status, int* out, const int (&offsets)[3], int result) {
+int CheckThreeSets(MissionCheckArgs* check, StatusCode* status, int* out, ThreeSets<Set> sets, int result) {
     if (!result) return result;
-    if (StatusIsOk(status)) result = Check(FieldAt<Set*>(check, offsets[0]), check, status, out);
+    if (StatusIsOk(status)) result = Check(sets.m_set[0], check, status, out);
     if (!result) return result;
-    if (StatusIsOk(status)) result = Check(FieldAt<Set*>(check, offsets[1]), check, status, out);
-    if (result && StatusIsOk(status)) result = Check(FieldAt<Set*>(check, offsets[2]), check, status, out);
+    if (StatusIsOk(status)) result = Check(sets.m_set[1], check, status, out);
+    if (result && StatusIsOk(status)) result = Check(sets.m_set[2], check, status, out);
     return result;
 }
 
@@ -278,18 +282,18 @@ int MissionResearch::CheckTarget(MissionCheckArgs* check, StatusCode* status, in
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
     int result = MissionSystemTargetBase::CheckTarget(check, status, out);
-    if (FieldAt<int>(check, 4) != 0) {
-        if (FieldAt<int>(check, 8) == 0)
-            result = CheckThreeSets<ObjectRefList, CheckCandidateRefs>(check, status, out, kRefSetOffsets, result);
+    if (check->m_flag04 != 0) {
+        if (check->m_flag08 == 0)
+            result = CheckThreeSets<ObjectRefList, CheckCandidateRefs>(check, status, out, RefSetsOf(check), result);
         else
-            result = CheckThreeSets<ObjectKeySet, CheckCandidateKeys>(check, status, out, kKeySetOffsets, result);
+            result = CheckThreeSets<ObjectKeySet, CheckCandidateKeys>(check, status, out, KeySetsOf(check), result);
     }
-    if (FieldAt<int>(check, 0xc) == 0 || !result) return result;
+    if (check->m_flag0c == 0 || !result) return result;
     if (StatusIsOk(status)) {
         int kind = 0;
         result = ResearchKindOfCheck(check, &kind);
         GameObjNotifier* manager = nullptr;
-        if (result) manager = FieldAt<System*>(check, 0x38)->FindManufacturingManagerBySlot123(kind);
+        if (result) manager = static_cast<System*>(check->m_objective)->FindManufacturingManagerBySlot123(kind);
         if (!manager || !static_cast<ManuMgr*>(manager)->HasHostFacility(0)) {
             *status = StatusCode(kStatusCategoryBlocked, kStatusNoHostFacility);
             *out = kOutNoHostFacility;
@@ -298,7 +302,7 @@ int MissionResearch::CheckTarget(MissionCheckArgs* check, StatusCode* status, in
     if (result && StatusIsOk(status)) {
         int kind = 0;
         result = ResearchKindOfCheck(check, &kind);
-        const int sideIndex = result ? ControlSideAsSideIndex(FieldAt<int>(check, 0x10)) : 0;
+        const int sideIndex = result ? ControlSideAsSideIndex(check->m_controlSide) : 0;
         Side* sideObject = sideIndex ? static_cast<Side*>(GetGameRootSideMemberThunk(sideIndex)) : nullptr;
         result = sideObject != nullptr;
         int done = 0;

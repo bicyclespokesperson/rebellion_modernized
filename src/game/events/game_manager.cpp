@@ -677,7 +677,7 @@ int GameManager::PostToFirstQueue(PostedEvent* event) {
 int GameManager::FlushFirstQueue() {
     const int ok = m_firstQueue != nullptr;
     if (ok) {
-        while (m_firstQueue->m_head) CallGameHook2AE0(reinterpret_cast<int>(m_firstQueue->Dequeue()));
+        while (m_firstQueue->m_head) CallGameHook2AE0(reinterpret_cast<HookArg>(m_firstQueue->Dequeue()));
     }
     return ok;
 }
@@ -685,7 +685,7 @@ int GameManager::FlushFirstQueue() {
 int GameManager::FlushSecondQueue() {
     const int ok = m_secondQueue != nullptr;
     if (ok) {
-        while (m_secondQueue->m_head) CallGameHook2AE0(reinterpret_cast<int>(m_secondQueue->Dequeue()));
+        while (m_secondQueue->m_head) CallGameHook2AE0(reinterpret_cast<HookArg>(m_secondQueue->Dequeue()));
     }
     return ok;
 }

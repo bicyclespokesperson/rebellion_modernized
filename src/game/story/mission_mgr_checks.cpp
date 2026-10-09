@@ -62,7 +62,7 @@ int viewOfSummary(const MissionMemberSummary& summary) {
     return summary.m_kind == 2 ? 2 : 0;
 }
 
-int asArgument(const void* pointer) { return static_cast<int>(reinterpret_cast<intptr_t>(pointer)); }
+intptr_t asArgument(const void* pointer) { return reinterpret_cast<intptr_t>(pointer); }
 
 }  // namespace
 

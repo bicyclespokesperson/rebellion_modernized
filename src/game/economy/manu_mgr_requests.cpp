@@ -1,5 +1,5 @@
 #include "economy/manu_mgr.h"
-#include "economy/manu_mgr_decl.h"
+#include "economy/manufacturing_facility.h"
 #include "gameobj/object_lookup.h"
 
 // The request checks (slots 111-121) and the orders (slots 124-128). A check fills a StatusCode; the "Impl" variants
@@ -44,7 +44,7 @@ int ManuMgr::CheckFacilityAvailableImpl(const ActivityRequest* request, StatusCo
             while (facilities.Current()) {
                 int usable = 0;
                 if (IsCompatibleFacility(static_cast<GameObj*>(facilities.Current())) &&
-                    (AsFacilityFields(facilities.Current())->m_flags & kOutOfService) == 0) {
+                    (AsProcFacil(facilities.Current())->m_procFlags & kOutOfService) == 0) {
                     usable = 1;
                 }
                 available += usable;
@@ -58,7 +58,7 @@ int ManuMgr::CheckFacilityAvailableImpl(const ActivityRequest* request, StatusCo
     return 0;
 }
 
-int ManuMgr::CheckFacilityAvailable(const ActivityRequest* request, int unused, StatusCode* out) {
+int ManuMgr::CheckFacilityAvailable(const ActivityRequest* request, intptr_t unused, StatusCode* out) {
     setOk(out);
     const int result = CheckFacilityAvailableImpl(request, out);
     if (!result) setRefused(out);
@@ -81,7 +81,7 @@ int ManuMgr::CheckProductActionImpl(const ActivityRequest* request, StatusCode* 
     return result;
 }
 
-int ManuMgr::CheckProductAction(const ActivityRequest* request, int unused, StatusCode* out) {
+int ManuMgr::CheckProductAction(const ActivityRequest* request, intptr_t unused, StatusCode* out) {
     setOk(out);
     const int result = CheckProductActionImpl(request, out);
     if (!result) setRefused(out);
@@ -103,7 +103,7 @@ int ManuMgr::CheckHasProduct(const ActivityRequest* request, StatusCode* out) {
     return result;
 }
 
-int ManuMgr::GetReserved(int unused, int* out) {
+int ManuMgr::GetReserved(intptr_t unused, int* out) {
     *out = m_reserved;
     return 1;
 }
@@ -129,7 +129,7 @@ int ManuMgr::CheckPlain2(const ActivityRequest* request, StatusCode* out) {
     return result;
 }
 
-int ManuMgr::CheckRequestedObject(const ActivityRequest* request, int unused, StatusCode* out) {
+int ManuMgr::CheckRequestedObject(const ActivityRequest* request, intptr_t unused, StatusCode* out) {
     setOk(out);
     int result = CheckPlain2(request, out);
     if (result) {
@@ -149,7 +149,7 @@ int ManuMgr::CheckProductEvent215(int unused, int side, StatusCode* out) {
     return CheckProductActionImpl(&request, out);
 }
 
-int ManuMgr::ReplaceQueue(const ActivityRequest* request, ObjectKeyValueSet* products, NotifyContext* ctx) {
+int ManuMgr::ReplaceQueue(const ActivityRequest* request, ObjectKeySet* products, NotifyContext* ctx) {
     const int destroyed = DestroyProducts(ctx) != 0;
     const int created = CreateProducts(products, 0, ctx);
     return created && destroyed;
@@ -157,7 +157,7 @@ int ManuMgr::ReplaceQueue(const ActivityRequest* request, ObjectKeyValueSet* pro
 
 int ManuMgr::RenameProduct(const ActivityRequest* request, String* name, NotifyContext* ctx) {
     StatusCode status(kStatusCategory, kStatusOk);
-    int result = CheckProductAction(request, static_cast<int>(reinterpret_cast<intptr_t>(name)), &status);
+    int result = CheckProductAction(request, reinterpret_cast<intptr_t>(name), &status);
     if (result && isOk(&status)) result = RenameProductIfAny(name, ctx);
     return result;
 }
@@ -176,6 +176,6 @@ int ManuMgr::ReserveChecked(const ActivityRequest* request, int value, NotifyCon
     return result;
 }
 
-int ManuMgr::ReparentProducts(const ActivityRequest* request, ObjectKeyValueSet* products, NotifyContext* ctx) {
+int ManuMgr::ReparentProducts(const ActivityRequest* request, ObjectKeySet* products, NotifyContext* ctx) {
     return ReparentQueue(products, requestKey(request), ctx);
 }

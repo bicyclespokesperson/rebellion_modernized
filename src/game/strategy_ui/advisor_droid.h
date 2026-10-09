@@ -56,7 +56,7 @@ public:
     void FlushPending();                    // 0x439f20
     void SpeakNow();                        // 0x439fb0
     void SpeakTopic(unsigned topic);        // 0x43a0b0
-    void SetAiHelperFlag(int value);        // 0x43a210
+    void SetAiHelperFlag(intptr_t value);        // 0x43a210
     void ClearAiHelperFlag(int value);      // 0x43a220
     void ResetTasks();                      // 0x43a230
     int PickAdvice();                       // 0x43a250
@@ -64,7 +64,7 @@ public:
     void SetRefusedOrder(const void* order);    // 0x43a290
     void OnOrderSubmitted(const void* order);   // 0x43a2a0
 
-    uint32_t& CueDue(unsigned byteOffset) { return *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(m_cueDue) + byteOffset); }
+    uint32_t& CueDue(unsigned byteOffset) { return m_cueDue[byteOffset / sizeof(uint32_t)]; }
 
     IdAvlTree* Tasks() { return &m_taskTree; }
     IdAvlTree* Cues() { return &m_cueTree; }

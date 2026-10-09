@@ -15,7 +15,7 @@ TableEntry* FindTableRecord(int tableType, int id) {
     return registry->Lookup(tableType, id);
 }
 
-int TableRecordFirstValue(const TableEntry* record) { return *reinterpret_cast<const int*>(record + 1); }
+int TableRecordFirstValue(const TableEntry* record) { return static_cast<const TableEntryWithValue*>(record)->m_firstValue; }
 
 void ChecksumTables(Crc32* crc) {
     TableRegistry* registry = GetTableRegistry();

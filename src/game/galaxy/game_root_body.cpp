@@ -1,8 +1,9 @@
-#include "core/reb_abi.h"
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
 #include "data/random.h"
+#include "character/role.h"
 #include "economy/manu_mgr.h"
+#include "mission/mission.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/game_root.h"
 #include "gameobj/object_database.h"
@@ -23,28 +24,14 @@ int BindRuleTables(int difficulty);
 namespace {
 
 constexpr uint32_t kViewSideMask = 0x30;
-constexpr int kGameSettingsChecksumSlot = 3;
 constexpr uint32_t kCreatedFlag = 0x2;
 constexpr uint32_t kUnfinishedMask = 0x1c;
-constexpr size_t kMissionKeyOffset = 0x70;
-constexpr size_t kCharacterMissionKeyOffset = 0x68;
 constexpr FamilyRange kUnitFamilies(0x10, 0x40);
 constexpr FamilyRange kMissionFamilies(0x40, 0x80);
 constexpr FamilyRange kCharacterFamilies(0x30, 0x40);
 constexpr FamilyRange kAllFamilies(1, 0xff);
 
-template <typename R, typename... A>
-R callVirtual(void* object, int slot, A... args) {
-    using Function = R(REB_THISCALL*)(void*, A...);
-    return reinterpret_cast<Function**>(object)[0][slot](object, args...);
-}
-
 GameObj* asGameObj(GameObjNotifier* object) { return static_cast<GameObj*>(object); }
-
-// The object key stored at `offset` of a mission or character (their classes are declared elsewhere).
-ObjectKey* keyAt(GameObjNotifier* object, size_t offset) {
-    return reinterpret_cast<ObjectKey*>(reinterpret_cast<uint8_t*>(object) + offset);
-}
 
 // Adds one to the counter of `key` in `counts`, creating the counter first. Returns 0 if it could not be created.
 int countKey(ObjectKeyValueSet* counts, ObjectKey* key, int ok) {
@@ -128,7 +115,7 @@ int GameRoot::ChecksumBody(Crc32* crc) {
     if (ok != 0 && (m_flags & kViewSideMask) == 0) {
         ok = HasRandomGenerator();
         if (ok != 0) {
-            ok = callVirtual<int>(&m_settings, kGameSettingsChecksumSlot, crc);
+            ok = m_settings.Checksum(crc);
             if (ok != 0) {
                 crc->AddInt(m_unk6c);
                 crc->AddInt(m_unk70);
@@ -226,14 +213,14 @@ int GameRoot::ValidateLocks() {
     ObjectKeyValueSet counts;
     GameObjNotifier* mission = GetFirstMasterInFamilies_40_80();
     while (ok != 0 && mission != nullptr) {
-        ObjectKey key(*keyAt(mission, kMissionKeyOffset));
+        ObjectKey key(static_cast<Mission*>(mission)->m_objectiveKey);
         ok = countKey(&counts, &key, ok);
         mission = asGameObj(mission)->FindNextSibling(&kMissionFamilies, 1);
     }
     for (int view = 1; ok != 0 && view <= 2; ++view) {
         GameObjNotifier* character = GetFirstObjectInRangeForSide(view, &kCharacterFamilies, 0);
         while (character != nullptr && ok != 0) {
-            ObjectKey key(*keyAt(character, kCharacterMissionKeyOffset));
+            ObjectKey key(static_cast<Role*>(character)->m_missionKey);
             ok = countKey(&counts, &key, ok);
             character = asGameObj(character)->FindNextSibling(&kCharacterFamilies, 0);
         }

@@ -34,13 +34,13 @@ int GameObj::LogChange(const char* tag, const char* property, const char* newTex
     return 1;
 }
 
-int GameObj::LogFlag(const char* tag, const char* property, int value, int unused, NotifyContext* ctx) {
+int GameObj::LogFlag(const char* tag, const char* property, int value, intptr_t unused, NotifyContext* ctx) {
     int result = 1;
     if (icf_return_zero()) result = LogChange(tag, property, value ? "TRUE " : "FALSE", "", reinterpret_cast<const char*>(unused), ctx);
     return result;
 }
 
-int GameObj::LogSide(const char* tag, const char* property, uint32_t newSide, uint32_t oldSide, int unused,
+int GameObj::LogSide(const char* tag, const char* property, uint32_t newSide, uint32_t oldSide, intptr_t unused,
                      NotifyContext* ctx) {
     int result = 1;
     if (icf_return_zero()) {
@@ -49,7 +49,7 @@ int GameObj::LogSide(const char* tag, const char* property, uint32_t newSide, ui
     return result;
 }
 
-int GameObj::LogInt(const char* tag, const char* property, int newValue, int oldValue, int unused, NotifyContext* ctx) {
+int GameObj::LogInt(const char* tag, const char* property, int newValue, int oldValue, intptr_t unused, NotifyContext* ctx) {
     int result = 1;
     if (icf_return_zero()) {
         String newText;
@@ -61,7 +61,7 @@ int GameObj::LogInt(const char* tag, const char* property, int newValue, int old
     return result;
 }
 
-int GameObj::LogString(const char* tag, const char* property, String* newValue, String* oldValue, int unused,
+int GameObj::LogString(const char* tag, const char* property, String* newValue, String* oldValue, intptr_t unused,
                        NotifyContext* ctx) {
     int result = 1;
     if (icf_return_zero()) {
@@ -70,7 +70,7 @@ int GameObj::LogString(const char* tag, const char* property, String* newValue, 
     return result;
 }
 
-int GameObj::LogKey(const char* tag, const char* property, ObjectKey* newKey, ObjectKey* oldKey, int unused,
+int GameObj::LogKey(const char* tag, const char* property, ObjectKey* newKey, ObjectKey* oldKey, intptr_t unused,
                     NotifyContext* ctx) {
     int result = 1;
     if (icf_return_zero()) {
@@ -83,7 +83,7 @@ int GameObj::LogKey(const char* tag, const char* property, ObjectKey* newKey, Ob
     return result;
 }
 
-int GameObj::LogTypeKey(const char* tag, const char* property, ObjectKey* newKey, ObjectKey* oldKey, int unused,
+int GameObj::LogTypeKey(const char* tag, const char* property, ObjectKey* newKey, ObjectKey* oldKey, intptr_t unused,
                         NotifyContext* ctx) {
     int result = 1;
     if (icf_return_zero()) {

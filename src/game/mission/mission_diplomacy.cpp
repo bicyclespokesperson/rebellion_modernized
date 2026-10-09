@@ -23,11 +23,6 @@ int ControlSideIndex(uint32_t controlSide) {
     return controlSide == 1 ? 2 : 1;
 }
 
-template <class T>
-T& FieldAt(MissionCheckArgs* check, int offset) {
-    return *reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(check) + offset);
-}
-
 int CheckedSideOf(int kind) { return kind == 1 ? 1 : (kind == 2 ? 2 : 0); }
 }  // namespace
 
@@ -61,12 +56,12 @@ int MissionDiplomacy::CheckTarget(MissionCheckArgs* check, StatusCode* status, i
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
     int result = MissionSystemTargetBase::CheckTarget(check, status, out);
-    if (FieldAt<int>(check, 0xc) == 0 || result == 0 || status->m_second != static_cast<uint32_t>(mission_status::kOk))
+    if (check->m_flag0c == 0 || result == 0 || status->m_second != static_cast<uint32_t>(mission_status::kOk))
         return result;
-    const int side = CheckedSideOf(FieldAt<int>(check, 0x10));
+    const int side = CheckedSideOf(check->m_controlSide);
     result = side != 0;
     if (result) {
-        if (FieldAt<System*>(check, 0x38)->GetLoyaltyFor(side) == kLoyaltyFullyWon) {
+        if (static_cast<System*>(check->m_objective)->GetLoyaltyFor(side) == kLoyaltyFullyWon) {
             *status = StatusCode(kStatusCategoryBlocked, kStatusCodeLoyaltyMaxed);
             *out = kOutBlockedByLoyalty;
         }
