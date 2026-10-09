@@ -15,6 +15,13 @@ if ! tools/sym.py normalize; then
 fi
 git diff --quiet symbols/symbols.csv || git commit -qm "Normalize symbols.csv after merging $branch" symbols/symbols.csv
 tools/gq -f tools/py/apply_symbols.py && tools/gq --save
+echo "== argument evaluation order (MSVC right to left, native left to right)"
+if ! tools/check_arg_order.sh > work/arg_order.txt 2>&1; then
+  cat work/arg_order.txt
+  echo "ARG-ORDER FAIL: hoist the calls (docs/agent_brief.md) or review into tools/arg_order_allow.txt, then: tools/integrate.sh --verify $branch $worktree"
+  exit 1
+fi
+tail -n 1 work/arg_order.txt
 tools/build_hybrid.sh | tail -3
 if [[ -n "$worktree" && -d "$worktree/work" ]]; then
   find "$worktree/work" -name '*.cap' -printf '%h\n' | sort -u | while read -r d; do
