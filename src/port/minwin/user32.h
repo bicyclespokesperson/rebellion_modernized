@@ -278,7 +278,7 @@ MINWIN_IMPORT BOOL REB_STDCALL SystemParametersInfoA(UINT uiAction, UINT uiParam
 #define PM_NOREMOVE 0
 #define PM_REMOVE 1
 #define SendMessage SendMessageA
-#define CW_USEDEFAULT -2147483648
+#define CW_USEDEFAULT ((int)0x80000000)
 #define SWP_NOSIZE 1
 #define SWP_NOMOVE 2
 #define SWP_NOZORDER 4

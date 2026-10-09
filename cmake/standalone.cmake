@@ -65,4 +65,9 @@ option(REB_MINWIN "Compile the game code against src/port/minwin instead of the 
 if(REB_MINWIN)
   target_compile_definitions(reb_game PRIVATE REB_MINWIN=1)
   target_compile_definitions(reb_tactical_stubs PRIVATE REB_MINWIN=1)
+  # static_asserts every minwin struct size, field offset and constant against the values measured on the real SDK.
+  add_library(reb_minwin_layout OBJECT src/port/minwin/layout_check.cpp)
+  target_include_directories(reb_minwin_layout PRIVATE src/game src)
+  target_compile_options(reb_minwin_layout PRIVATE ${REB_HYBRID_FLAGS})
+  add_dependencies(rebellion reb_minwin_layout)
 endif()

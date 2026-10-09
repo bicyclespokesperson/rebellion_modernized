@@ -403,6 +403,8 @@ def format_constant(typ: str, value: str) -> str:
     typ = typ.replace("const ", "")
     hexed = f"0x{n:x}" if n >= 10 else str(n)
     if typ == "int":
+        if n < -0x7fffffff:
+            return f"((int)0x{n & 0xffffffff:x})"
         return str(n) if n < 10 else hexed
     if typ == "unsigned int":
         return f"{hexed}u"
