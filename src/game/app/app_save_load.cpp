@@ -3,6 +3,7 @@
 #include "app/app_control_cmds.h"
 #include "app/app_externals.h"
 #include "app/app_save_strings.h"
+#include "app/battle_flow.h"
 #include "app/rebapp_globals.h"
 #include "app/rebellion_application.h"
 #include "audio/music.h"
@@ -185,7 +186,7 @@ int RebellionApplication::LoadPendingGame() {
             CoolRegisterResourceDll(dllLocation, g_textstraDllName, kResourceDllSlot);
             if (dllLocation) operator delete(dllLocation);
         }
-        FUN_00401b50();
+        CreateBattleFlow();
         AppRestoreGame(file.get());
         loaded = 1;
         SetCursor(previousCursor);

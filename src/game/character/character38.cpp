@@ -6,7 +6,7 @@
 #include "data/gnprtb.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_0056f390();
+void DestroyCharacter38EventKinds();
 
 extern int g_character38EventKindsReady;      // 0x6bb9e0
 extern EventKindSet g_character38EventKinds;  // 0x6bb9d8
@@ -80,9 +80,20 @@ int Character38::BuildEventKinds() {
 
 void ConstructCharacter38EventKinds() { new (&g_character38EventKinds) EventKindSet(); }
 
-void RegisterCharacter38EventKindsAtExit() { atexit(LAB_0056f390); }
+void RegisterCharacter38EventKindsAtExit() { atexit(DestroyCharacter38EventKinds); }
 
 void Character38::InitStatics() {
     ConstructCharacter38EventKinds();
     RegisterCharacter38EventKindsAtExit();
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_character38EventKindsDestroyedGuard;  // 0x6bb9e4
+
+void DestroyCharacter38EventKinds() {
+    if (!(g_character38EventKindsDestroyedGuard & 0x1)) {
+        g_character38EventKindsDestroyedGuard |= 0x1;
+        g_character38EventKinds.~EventKindSet();
+    }
 }

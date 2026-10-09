@@ -485,3 +485,20 @@ TacticalShipBase* TacticalShipBase::GetNextShip() {
     AvlNode* next = TacticalUnit::m_successor;
     return next != nullptr ? static_cast<TacticalShipBase*>(static_cast<TacticalUnit*>(next)) : nullptr;
 }
+
+TacticalShipBase* TacticalShipBase::GetNextShip2() {
+    AvlNode* next = TacticalUnit::m_successor;
+    return next != nullptr ? static_cast<TacticalShipBase*>(static_cast<TacticalUnit*>(next)) : nullptr;
+}
+
+double TacticalShipBase::GetValue394() { return m_value394; }
+
+double TacticalShipBase::GetValue398() { return m_value398; }
+
+double TacticalShipBase::GetValue3a0() { return m_value3a0; }
+
+double TacticalShipBase::GetTractorRange() { return m_tractorRange; }
+
+int TacticalShipBase::Virtual01() { return 1; }
+
+uint32_t TacticalCapitalShip::GetTypeIndex() { return m_typeIndex; }

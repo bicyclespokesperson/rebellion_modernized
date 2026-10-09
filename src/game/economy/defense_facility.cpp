@@ -8,7 +8,7 @@
 #include "gameobj/object_family.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_00526cb0();
+void DestroyAllFacilityEventKinds();
 
 extern EventKindSet g_allFacilityEventKinds;  // 0x6b8ff8
 extern int g_allFacilityEventKindsReady;      // 0x6b9000
@@ -99,7 +99,7 @@ int AllFacility::BuildEventKinds() {
 
 void AllFacility::ConstructEventKinds() { new (&g_allFacilityEventKinds) EventKindSet(); }
 
-void AllFacility::RegisterEventKindsAtExit() { atexit(LAB_00526cb0); }
+void AllFacility::RegisterEventKindsAtExit() { atexit(DestroyAllFacilityEventKinds); }
 
 void AllFacility::InitStatics() {
     ConstructEventKinds();
@@ -230,3 +230,14 @@ int CountDefenseFacilities25(GameObj* parent, uint32_t side, uint32_t filter) {
 DefenseFacility25Iterator::DefenseFacility25Iterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kDefenseFacility25Families, stateFilter) {}
 DefenseFacility25Iterator::~DefenseFacility25Iterator() { REB_KEEP_VPTR_STORE(); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_allFacilityEventKindsDestroyedGuard;  // 0x6b9004
+
+void DestroyAllFacilityEventKinds() {
+    if (!(g_allFacilityEventKindsDestroyedGuard & 0x1)) {
+        g_allFacilityEventKindsDestroyedGuard |= 0x1;
+        g_allFacilityEventKinds.~EventKindSet();
+    }
+}

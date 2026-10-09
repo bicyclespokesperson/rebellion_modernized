@@ -12,13 +12,13 @@
 #include "ui/sprite_stage.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_004040c0();
-extern "C" void __cdecl LAB_00404800();
-extern "C" void __cdecl LAB_00411a00();
-extern "C" void __cdecl LAB_00411df0();
-extern "C" void __cdecl LAB_00412150();
-extern "C" void __cdecl LAB_004124f0();
-extern "C" void __cdecl LAB_00412940();
+void DestroyAnimationStep04();
+void DestroyAnimationStep05();
+void DestroyAnimationStep14();
+void DestroyAnimationStep15();
+void DestroyAnimationStep11();
+void DestroyAnimationStep12();
+void DestroyAnimationStep13();
 
 extern AnimationStep04 g_animationStep04;  // 0x6b0628
 extern int g_animationStep04Registered;    // 0x6b0620
@@ -619,49 +619,65 @@ int AnimationStep13::GetKind() { return kKindDelta13; }
 
 void InitAnimationStep04() {
     new (&g_animationStep04) AnimationStep04();
-    atexit(LAB_004040c0);
+    atexit(DestroyAnimationStep04);
 }
 
 void RegisterAnimationStep04() { g_animationStep04Registered = RegisterAnimationStep(&g_animationStep04); }
 
 void InitAnimationStep05() {
     new (&g_animationStep05) AnimationStep05();
-    atexit(LAB_00404800);
+    atexit(DestroyAnimationStep05);
 }
 
 void RegisterAnimationStep05() { g_animationStep05Registered = RegisterAnimationStep(&g_animationStep05); }
 
 void InitAnimationStep14() {
     new (&g_animationStep14) AnimationStep14();
-    atexit(LAB_00411a00);
+    atexit(DestroyAnimationStep14);
 }
 
 void RegisterAnimationStep14() { g_animationStep14Registered = RegisterAnimationStep(&g_animationStep14); }
 
 void InitAnimationStep15() {
     new (&g_animationStep15) AnimationStep15();
-    atexit(LAB_00411df0);
+    atexit(DestroyAnimationStep15);
 }
 
 void RegisterAnimationStep15() { g_animationStep15Registered = RegisterAnimationStep(&g_animationStep15); }
 
 void InitAnimationStep11() {
     new (&g_animationStep11) AnimationStep11();
-    atexit(LAB_00412150);
+    atexit(DestroyAnimationStep11);
 }
 
 void RegisterAnimationStep11() { g_animationStep11Registered = RegisterAnimationStep(&g_animationStep11); }
 
 void InitAnimationStep12() {
     new (&g_animationStep12) AnimationStep12();
-    atexit(LAB_004124f0);
+    atexit(DestroyAnimationStep12);
 }
 
 void RegisterAnimationStep12() { g_animationStep12Registered = RegisterAnimationStep(&g_animationStep12); }
 
 void InitAnimationStep13() {
     new (&g_animationStep13) AnimationStep13();
-    atexit(LAB_00412940);
+    atexit(DestroyAnimationStep13);
 }
 
 void RegisterAnimationStep13() { g_animationStep13Registered = RegisterAnimationStep(&g_animationStep13); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+void DestroyAnimationStep04() { g_animationStep04.~AnimationStep04(); }
+
+void DestroyAnimationStep05() { g_animationStep05.~AnimationStep05(); }
+
+void DestroyAnimationStep14() { g_animationStep14.~AnimationStep14(); }
+
+void DestroyAnimationStep15() { g_animationStep15.~AnimationStep15(); }
+
+void DestroyAnimationStep11() { g_animationStep11.~AnimationStep11(); }
+
+void DestroyAnimationStep12() { g_animationStep12.~AnimationStep12(); }
+
+void DestroyAnimationStep13() { g_animationStep13.~AnimationStep13(); }

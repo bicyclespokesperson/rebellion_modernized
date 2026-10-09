@@ -21,7 +21,7 @@ class TacticalUnit : public IdNode {
 public:
     TacticalUnit();           // 0x5a6210
     virtual ~TacticalUnit();  // 0x5a6280 (scalar deleting destructor 0x5a6260)
-    virtual void Virtual01() = 0;  // pure
+    virtual int Virtual01() = 0;  // the unit's kind: 1 ship, 3 fighter group, 4 capital-ship group, 5 Death Star, 7 character / special force
 
     void AssignHandle(int side);    // 0x5a6660 takes the next unit handle of the side
     void AssignGroupId(int side);   // 0x5a6680 takes the next group id of the side
@@ -52,7 +52,7 @@ public:
         m_channelB.m_data = nullptr;
     }
     virtual ~TacticalCharacterUnit();  // 0x596d80 (scalar deleting destructor 0x596d60)
-    virtual void Virtual01() override;  // 0x5bd880
+    virtual int Virtual01() override;  // 0x5bd880: 7
 
     void Checksum(Crc32* crc);  // 0x5bd7d0
     void Read(istream* in);     // 0x5bd890
@@ -84,7 +84,7 @@ public:
         m_channelB.m_data = nullptr;
     }
     virtual ~TacticalSpecialForceUnit();  // 0x596ec0 (scalar deleting destructor 0x596ea0)
-    virtual void Virtual01() override;    // 0x5bd880
+    virtual int Virtual01() override { return 7; }  // 0x5bd880 (shared with TacticalCharacterUnit)
 
     void Checksum(Crc32* crc);  // 0x5bdd40
     void Read(istream* in);     // 0x5bddb0
@@ -106,7 +106,7 @@ class TacticalCharacterTree : public IdAvlTree {
 public:
     TacticalCharacterTree() {}
     virtual ~TacticalCharacterTree() { REB_KEEP_VPTR_STORE(); }  // 0x5bdaa0 (scalar deleting destructor 0x5a8860)
-    virtual IdNode* FirstItem();                                 // 0x5f6590
+    virtual IdNode* FirstItem();                                 // 0x5f6590 (shared stub; the special-force tree has an inline copy)
 
     int CountItems();           // 0x5bdf20 (shared with TacticalSpecialForceTree)
     void Read(istream* in);     // 0x5bdab0 replaces the contents with the records of the stream
@@ -118,9 +118,13 @@ class TacticalSpecialForceTree : public IdAvlTree {
 public:
     TacticalSpecialForceTree() {}
     virtual ~TacticalSpecialForceTree() { REB_KEEP_VPTR_STORE(); }  // 0x5bdf10 (scalar deleting destructor 0x5a8880)
-    virtual IdNode* FirstItem();                                    // 0x5f6590
+    virtual IdNode* FirstItem() { return static_cast<IdNode*>(First()); }  // 0x5f6590 (shared stub)
 
-    int CountItems();           // 0x5bdf20 (shared with TacticalCharacterTree)
+    int CountItems() {          // 0x5bdf20 (the code of TacticalCharacterTree::CountItems)
+        int count = 0;
+        for (IdNode* node = FirstItem(); node != nullptr; node = static_cast<IdNode*>(node->m_successor)) ++count;
+        return count;
+    }
     void Read(istream* in);     // 0x5bdf40
     void Write(ostream* out);   // 0x5be030
     void Checksum(Crc32* crc);  // 0x5be080

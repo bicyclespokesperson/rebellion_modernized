@@ -58,7 +58,7 @@ enum GalaxyMessage : UINT {
 
 // One slot of the bar of minimised windows: the window's icon, drawn at m_area.
 struct MinimizedWindowSlot {
-    MinimizedWindowSlot() : m_icon(nullptr) {}  // 0x42dbe0 (linker-folded "zero the first dword")
+    MinimizedWindowSlot();  // 0x42dbe0 (linker-folded "zero the first dword")
 
     DibBitmap* m_icon;   // +0x00 owned, the area's background with the icon drawn over it
     uint32_t m_iconId;   // +0x04 bitmap id of the icon m_icon shows, 0 if none

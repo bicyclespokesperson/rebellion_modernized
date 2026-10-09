@@ -1,4 +1,5 @@
 #include "events/game_step_driver.h"
+#include "core/icf_stubs.h"
 
 #include "app/app_control_cmds.h"
 #include "app/game_session.h"
@@ -14,7 +15,6 @@
 #include "strategy_ui/game_ui_facade.h"
 
 // Forwarders of the game session (0x41cc00-0x41d3a0 call into 0x435a40's object) and UI glue, declared by address.
-int FUN_0040f340();
 
 extern int g_strategicFactoriesRegistered;  // 0x6b14c0
 
@@ -292,7 +292,7 @@ int GameStepDriver::PausePhase() { return UiSyncAllPlayers(GetGameTickCount()); 
 
 int IdlePhase() {
     int result = 1;
-    if (GameManagerExists()) result = FUN_0040f340();
+    if (GameManagerExists()) result = ReturnOne();
     return result;
 }
 

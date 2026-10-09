@@ -7,7 +7,7 @@
 #include "gameobj/object_queries.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_00525730();
+void DestroyMissionEventKinds();
 
 extern int g_missionEventKindsBuilt;     // 0x6b8fe0
 extern EventKindSet g_missionEventKinds;  // 0x6b8fe8
@@ -65,7 +65,7 @@ int Mission::CheckOrder(int a, int orderKind, StatusCode* out) {
 
 void ConstructMissionEventKinds() { new (&g_missionEventKinds) EventKindSet(); }  // 0x525710
 
-void RegisterMissionEventKindsAtExit() { atexit(LAB_00525730); }  // 0x525720
+void RegisterMissionEventKindsAtExit() { atexit(DestroyMissionEventKinds); }  // 0x525720
 
 void Mission::InitStatics() {
     ConstructMissionEventKinds();
@@ -130,3 +130,14 @@ MissionIterator::MissionIterator(GameObjNotifier* parent)
     : ChildIterator(parent, &family::kMissions, 1) {}
 
 MissionIterator::~MissionIterator() { REB_KEEP_VPTR_STORE(); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_missionEventKindsDestroyedGuard;  // 0x6b8ff0
+
+void DestroyMissionEventKinds() {
+    if (!(g_missionEventKindsDestroyedGuard & 0x1)) {
+        g_missionEventKindsDestroyedGuard |= 0x1;
+        g_missionEventKinds.~EventKindSet();
+    }
+}

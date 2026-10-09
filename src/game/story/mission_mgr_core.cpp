@@ -10,8 +10,7 @@
 #include "story/mission_mgr.h"
 #include "story/story_common.h"
 
-extern "C" void __cdecl LAB_0054cd60();
-extern "C" void __cdecl LAB_0054cb60();
+void DestroyMissionMgrEventKinds();
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
 extern "C" void* __cdecl operator_new(size_t size);
 
@@ -260,7 +259,7 @@ int MissionMgr::CheckOrder(int a, int orderKind, StatusCode* out) {
 
 void ConstructMissionMgrEventKinds() { new (&g_missionMgrEventKinds) EventKindSet(); }
 
-void RegisterMissionMgrEventKindsAtExit() { atexit(LAB_0054cd60); }
+void RegisterMissionMgrEventKindsAtExit() { atexit(DestroyMissionMgrEventKinds); }
 
 void MissionMgr::InitStatics() {
     ConstructMissionMgrEventKinds();
@@ -375,4 +374,15 @@ int MissionMgr::OnBountyHuntersActiveNotified(int on, NotifyContext* ctx) {
     const int result = IsSideView();
     if (result) LogFlag("(MissionMgrBountyHuntersActiveNotif)", "BountyHuntersActive", on, 0, ctx);
     return result;
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_missionMgrEventKindsDestroyedGuard;  // 0x6b92e0
+
+void DestroyMissionMgrEventKinds() {
+    if (!(g_missionMgrEventKindsDestroyedGuard & 0x1)) {
+        g_missionMgrEventKindsDestroyedGuard |= 0x1;
+        g_missionMgrEventKinds.~EventKindSet();
+    }
 }

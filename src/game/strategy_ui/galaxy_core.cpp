@@ -344,3 +344,5 @@ void GalaxyWindow::InitializeGameDisplay() {
     m_inModalLoop = 0;
     EnableControls();
 }
+
+MinimizedWindowSlot::MinimizedWindowSlot() : m_icon(nullptr) {}

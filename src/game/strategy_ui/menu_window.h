@@ -148,7 +148,7 @@ public:
 };
 
 // The transformation of a menu background colour (0x4ac550).
-uint32_t LAB_004ac550(uint32_t color);
+uint32_t DimMenuColor(uint32_t color);
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"

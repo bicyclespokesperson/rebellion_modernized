@@ -47,6 +47,7 @@ public:
     TacticalShipBase* FirstUnit();                 // 0x5c6070
     IdNode* Find(int handle);             // 0x5ca4b0
     int CountNodes();                     // 0x5c5eb0
+    UnitRefTree* CopyFrom(UnitRefTree* other);  // 0x5c6090 adds a node for each of the other tree's units
 };
 
 // Tree whose nodes are never "less" than each other, so insertion order is kept (ids are not unique per se).

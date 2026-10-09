@@ -211,7 +211,7 @@ int FormationEvaluator::Assign(TacticalSideBase* side, GroupRefTree* groups, Tar
         if (!first) return 0;
         const bool oneChoice = !differs(first->m_priority, last->m_priority) && first->m_group.SameGroup(&last->m_group);
         if (oneChoice) {
-            FUN_005afa00(GetHeadlessSimulator(), target->m_unit.m_unit, first->m_group.m_group);
+            GetHeadlessSimulator()->AssignTarget(target->m_unit.m_unit, first->m_group.m_group);
             remaining.DeleteById(static_cast<ScoredGroupNode*>(scored.First())->m_group.m_group->m_id);
             return 1;
         }
@@ -225,7 +225,7 @@ int FormationEvaluator::Assign(TacticalSideBase* side, GroupRefTree* groups, Tar
             for (ScoredGroupNode* assigned = static_cast<ScoredGroupNode*>(scored.Last()); assigned;
                  assigned = previousScored(assigned)) {
                 TacticalShipBase* targetUnit = target->m_unit.m_unit;
-                FUN_005afa00(GetHeadlessSimulator(), targetUnit, assigned->m_group.m_group);
+                GetHeadlessSimulator()->AssignTarget(targetUnit, assigned->m_group.m_group);
                 remaining.DeleteById(assigned->m_group.m_group->m_id);
                 if (!differs(assigned->m_priority, candidate->m_priority) && assigned->m_group.SameGroup(&candidate->m_group)) break;
             }
@@ -242,7 +242,7 @@ int FormationEvaluator::Assign(TacticalSideBase* side, GroupRefTree* groups, Tar
             } while (pick);
         }
         TacticalShipBase* chosen = pick ? pick->m_unit.m_unit : firstTarget(targets)->m_unit.m_unit;
-        FUN_005afa00(GetHeadlessSimulator(), chosen, leftover->Value());
+        GetHeadlessSimulator()->AssignTarget(chosen, leftover->Value());
     }
     return 1;
 }

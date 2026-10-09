@@ -169,3 +169,6 @@ FightSquadResult* TacticalFighter::BuildResult(FightSquadResult* out) {
     out->m_unk1c = m_state;
     return out;
 }
+
+// The same code as the capital ship's slot 50 (0x5b00c0), shared by the linker.
+void TacticalFighter::Virtual50() { FUN_005ba980(FUN_005ba8b0(), 1, 1); }

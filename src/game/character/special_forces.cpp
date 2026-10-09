@@ -7,7 +7,7 @@
 #include "gameobj/object_family.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_00504000();
+void DestroySpecialForcesEventKinds();
 
 extern int g_specialForcesEventKindsReady;       // 0x6b2b50
 extern EventKindSet g_specialForcesEventKinds;   // 0x6b2b58
@@ -32,7 +32,7 @@ constexpr int kDestroyedReasonSpecial = 9;
 // initializer 0x503fd0.
 void ConstructSpecialForcesEventKinds() { new (&g_specialForcesEventKinds) EventKindSet(); }
 
-void RegisterSpecialForcesEventKindsAtExit() { atexit(LAB_00504000); }
+void RegisterSpecialForcesEventKindsAtExit() { atexit(DestroySpecialForcesEventKinds); }
 
 SpecialForces::SpecialForces() {}
 
@@ -162,3 +162,14 @@ SpecialForceIterator::SpecialForceIterator(GameObjNotifier* parent, uint32_t sta
     : ChildIterator(parent, side, &family::kSpecialForces, stateFilter) {}
 
 SpecialForceIterator::~SpecialForceIterator() { REB_KEEP_VPTR_STORE(); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_specialForcesEventKindsDestroyedGuard;  // 0x6b2b60
+
+void DestroySpecialForcesEventKinds() {
+    if (!(g_specialForcesEventKindsDestroyedGuard & 0x1)) {
+        g_specialForcesEventKindsDestroyedGuard |= 0x1;
+        g_specialForcesEventKinds.~EventKindSet();
+    }
+}

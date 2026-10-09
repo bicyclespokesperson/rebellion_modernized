@@ -17,6 +17,7 @@ here was verified against the original game; the screenshots land in `work/run/<
 | `save_game_slot.txt` | loads "RebelsFastStart", opens the in-game Saved Games screen (monitor at 15,372) and saves into the first empty row (left icon at 50,258); creates `work/game/SaveGame/SAVEGAME.005` (delete it before re-running: a second save asks to overwrite) | ~65 s |
 | `scroll_bar.txt` | loaded game, System Finder (F2), clicks on its vertical scroll bar (track below the thumb, thumb, arrow buttons): CoolScrollBar mouse/timer/capture paths | ~85 s |
 | `space_battle_autoresolve.txt` | loaded game; the "Battle at Ando" window pops up; chooses *Simulate Results* (auto-resolve) | ~130 s |
+| `space_battle_tactical_vote.txt` | as above but clicks *Take Command*; only for a `-DREB_NO_TACTICAL_3D=ON` hybrid, where the vote is resolved as auto-resolve (default build: enters the 3D mode) | ~130 s |
 | `message_index.txt` | Message Index (F6): tabs, rows, buttons | ~100 s |
 | `mission_dialog.txt` | the mission selection dialog (target a mission, choose characters) | ~100 s |
 | `battle_window.txt` | the battle result window after "Simulate Results": summary, forces pages, kind tabs, go-to page | ~150 s |
@@ -150,6 +151,8 @@ Right-hand icons: Battle Summary (493,88), Alliance Forces (493,152), Imperial F
 Simulate Results shows the outcome immediately and deterministically ("The Alliance fleet is defeated. Ando is now
 under blockade by Imperial forces. The Alliance fleet has withdrawn to Delaya."). The result window closes with
 the top-right button (498,90) and the clock resumes. See `space_battle_autoresolve.txt`.
+With `REB_NO_TACTICAL_3D` (CMake option, off by default) the battle flow treats a *Take Command* vote like *Simulate Results*;
+`space_battle_tactical_vote.txt` clicks the right button and expects the same result window.
 
 ## Pitfalls summary
 

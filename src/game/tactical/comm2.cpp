@@ -1,4 +1,5 @@
 #include "tactical/comm2.h"
+#include "core/icf_stubs.h"
 
 #include <cstring>
 
@@ -6,7 +7,6 @@
 #include "ui/game_window_object.h"
 
 // The shared empty function that stands where the debug build traced (it pops one argument).
-void __thiscall FUN_005ae1e0(void* self, const char* text);
 
 namespace {
 
@@ -150,7 +150,7 @@ void CommSyncState() {
 }
 
 void __cdecl CommTrace(const char* text) {
-    if (CommMgr* comm = GetCommMgr()) FUN_005ae1e0(comm, text);
+    if (CommMgr* comm = GetCommMgr()) IgnoreOneArgument(comm, reinterpret_cast<uintptr_t>(text));
 }
 
 void CommSendPlayerQuit() {

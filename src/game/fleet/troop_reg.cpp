@@ -10,7 +10,7 @@
 #include "gameobj/game_obj_iterator.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_00504c00();
+void DestroyTroopRegEventKinds();
 
 extern int g_troopRegEventKindsReady;      // 0x6b2b68
 extern EventKindSet g_troopRegEventKinds;  // 0x6b2b70
@@ -250,4 +250,15 @@ void TroopRegStaticInit() {
 
 void ConstructTroopRegEventKinds() { new (&g_troopRegEventKinds) EventKindSet(); }
 
-void RegisterTroopRegEventKindsAtExit() { atexit(LAB_00504c00); }
+void RegisterTroopRegEventKindsAtExit() { atexit(DestroyTroopRegEventKinds); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_troopRegEventKindsDestroyedGuard;  // 0x6b2b78
+
+void DestroyTroopRegEventKinds() {
+    if (!(g_troopRegEventKindsDestroyedGuard & 0x1)) {
+        g_troopRegEventKindsDestroyedGuard |= 0x1;
+        g_troopRegEventKinds.~EventKindSet();
+    }
+}

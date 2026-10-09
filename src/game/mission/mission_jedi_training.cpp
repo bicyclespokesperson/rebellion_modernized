@@ -7,7 +7,7 @@
 #include "mission/mission_external.h"
 #include "mission/mission_rules.h"
 
-extern "C" void __cdecl LAB_00571630();
+void DestroyMissionJediTrainingEventKinds();
 
 extern int g_missionJediTrainingEventKindsReady;      // 0x6bba14
 extern EventKindSet g_missionJediTrainingEventKinds;  // 0x6bba18
@@ -338,7 +338,7 @@ int MissionJediTraining::BuildEventKinds() {
 
 void ConstructMissionJediTrainingEventKinds() { new (&g_missionJediTrainingEventKinds) EventKindSet(); }
 
-void RegisterMissionJediTrainingEventKindsAtExit() { atexit(LAB_00571630); }
+void RegisterMissionJediTrainingEventKindsAtExit() { atexit(DestroyMissionJediTrainingEventKinds); }
 
 void MissionJediTraining::InitStatics() {
     ConstructMissionJediTrainingEventKinds();
@@ -349,3 +349,14 @@ MissionJediTrainingIterator::MissionJediTrainingIterator(GameObjNotifier* parent
     : ChildIterator(parent, &kJediTrainingFamilies, 1) {}
 
 MissionJediTrainingIterator::~MissionJediTrainingIterator() { REB_KEEP_VPTR_STORE(); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_missionJediTrainingEventKindsDestroyedGuard;  // 0x6bba10
+
+void DestroyMissionJediTrainingEventKinds() {
+    if (!(g_missionJediTrainingEventKindsDestroyedGuard & 0x1)) {
+        g_missionJediTrainingEventKindsDestroyedGuard |= 0x1;
+        g_missionJediTrainingEventKinds.~EventKindSet();
+    }
+}

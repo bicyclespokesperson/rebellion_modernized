@@ -12,7 +12,7 @@
 #include "ui/cool_label.h"
 #include "ui/cool_window.h"
 
-uint32_t LAB_004ac550(uint32_t color);
+uint32_t DimMenuColor(uint32_t color);
 
 namespace {
 
@@ -93,7 +93,7 @@ void AdvisorPanel::DrawOverlay(HDC dc) {
 void AdvisorPanel::OnCreate1() {
     HMODULE art = CoolAppGetResourceModule(kArtSlot);
     m_paintBackground = NewOrNull<DibBitmap>(m_clientWidth, m_clientHeight, m_galaxy->m_offscreen);
-    m_remapTable = m_paintBackground->BuildRemapTable(LAB_004ac550);
+    m_remapTable = m_paintBackground->BuildRemapTable(DimMenuColor);
     const uint32_t resourceId = ResourceOfKind(m_kind, m_galaxy->m_side);
     if (resourceId == 0) return;
     BuildFromResource(art, resourceId);
@@ -134,7 +134,7 @@ void AdvisorPanel::BuildFromResource(HMODULE module, uint32_t resourceId) {
             DeleteBitmap(m_paintBackground);
             if (m_remapTable) ::operator delete(m_remapTable);
             m_paintBackground = NewOrNull<DibBitmap>(m_clientWidth, m_clientHeight, m_galaxy->m_offscreen);
-            m_remapTable = m_paintBackground->BuildRemapTable(LAB_004ac550);
+            m_remapTable = m_paintBackground->BuildRemapTable(DimMenuColor);
         }
         HDC window = GetDC(m_hwnd);
         m_layer = NewOrNull<DibBitmap>(static_cast<LONG>(width), static_cast<LONG>(height), m_paintBackground, window);

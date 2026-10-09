@@ -6,6 +6,14 @@
 #include "platform/win32.h"
 #include "ui/animation_step.h"
 
+// The queue of waiting steps: a NodeQueue with its own vtable (0x65c0a4), built by 0x4ad770 and destroyed by 0x4ad7b0.
+class AnimationStepQueue : public NodeQueue {
+public:
+    AnimationStepQueue();           // 0x4ad770
+    virtual ~AnimationStepQueue();  // 0x4ad790 (deleting), 0x4ad7b0
+};
+REB_ASSERT_SIZE(AnimationStepQueue, 0x10);
+
 class Sprite;
 class SpriteAnimator;
 class SpriteStage;

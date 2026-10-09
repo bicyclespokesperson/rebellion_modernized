@@ -2,7 +2,7 @@
 #include "data/random.h"
 #include "mission/mission_rules.h"
 
-extern "C" void __cdecl LAB_00571c00();
+void DestroyMissionInciteEventKinds();
 
 extern int g_missionInciteEventKindsReady;      // 0x6bba30
 extern EventKindSet g_missionInciteEventKinds;  // 0x6bba28
@@ -96,9 +96,20 @@ int MissionIncite::BuildEventKinds() {
 
 void ConstructMissionInciteEventKinds() { new (&g_missionInciteEventKinds) EventKindSet(); }
 
-void RegisterMissionInciteEventKindsAtExit() { atexit(LAB_00571c00); }
+void RegisterMissionInciteEventKindsAtExit() { atexit(DestroyMissionInciteEventKinds); }
 
 void MissionIncite::InitStatics() {
     ConstructMissionInciteEventKinds();
     RegisterMissionInciteEventKindsAtExit();
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_missionInciteEventKindsDestroyedGuard;  // 0x6bba20
+
+void DestroyMissionInciteEventKinds() {
+    if (!(g_missionInciteEventKindsDestroyedGuard & 0x1)) {
+        g_missionInciteEventKindsDestroyedGuard |= 0x1;
+        g_missionInciteEventKinds.~EventKindSet();
+    }
 }

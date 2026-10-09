@@ -27,7 +27,7 @@ extern HPALETTE g_palette;
 extern const int16_t g_sectorGridWidth;   // 0x659ef8
 extern const int16_t g_sectorGridHeight;  // 0x659efa
 
-uint32_t LAB_004ac550(uint32_t color);
+uint32_t DimMenuColor(uint32_t color);
 
 namespace {
 
@@ -104,7 +104,7 @@ void SectorWindow::OnCreate1() {
     DibBitmap* surface = NewOrNull<DibBitmap>(static_cast<LONG>(m_width), static_cast<LONG>(m_height),
                                               m_galaxy->m_offscreen, window);
     SetPaintBackground(surface, 1);
-    m_remapTable = surface->BuildRemapTable(LAB_004ac550);
+    m_remapTable = surface->BuildRemapTable(DimMenuColor);
     g_stringModule = strings;
     m_dragImage = NewOrNull<CoolDragImage>(m_galaxy);
     m_dragLayer = NewOrNull<DibBitmap>(static_cast<LONG>(m_clientWidth), static_cast<LONG>(m_clientHeight),

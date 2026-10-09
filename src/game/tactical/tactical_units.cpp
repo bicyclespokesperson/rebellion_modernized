@@ -228,3 +228,11 @@ void __cdecl TacticalCharacterStatusEvent(TacticalEvent* event) {
     }
     character->m_injured = args[7] != 0 ? 1 : 0;
 }
+
+int TacticalCharacterUnit::Virtual01() { return 7; }
+
+IdNode* TacticalCharacterTree::FirstItem() { return static_cast<IdNode*>(First()); }
+
+TurnSyncChannelA::~TurnSyncChannelA() { REB_KEEP_VPTR_STORE(); }
+
+TurnSyncChannelB::~TurnSyncChannelB() { REB_KEEP_VPTR_STORE(); }

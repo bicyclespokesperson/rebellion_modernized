@@ -20,7 +20,7 @@ class BehaviorLink : public AvlNode {
 public:
     BehaviorLink() {}
     virtual ~BehaviorLink();  // 0x5b8240 (scalar deleting destructor 0x5b8220)
-    virtual void Virtual01();  // 0x5b7dc0
+    virtual void Virtual01(int a);  // 0x5b7dc0
     virtual void Virtual02();  // 0x5b7e30
     virtual void Virtual03();  // 0x5b7e40
 };
@@ -32,13 +32,13 @@ class GroupBehavior {
 public:
     explicit GroupBehavior(ShipGroup* group);  // 0x5cbd20
     virtual ~GroupBehavior();                  // 0x5cbd90 (scalar deleting destructor 0x5cbd70)
-    virtual void Virtual01() = 0;
-    virtual void Virtual02() = 0;
+    virtual void Virtual01(int a) = 0;
+    virtual void Virtual02(int a) = 0;
     virtual void Virtual03() = 0;
-    virtual void Virtual04() = 0;
-    virtual void Virtual05();  // 0x5edd50
-    virtual void Virtual06();  // 0x5eddf0
-    virtual void Virtual07();  // 0x5ede90
+    virtual void Virtual04(int a) = 0;
+    virtual void Virtual05(int a);  // 0x5edd50
+    virtual void Virtual06(int a, int b);  // 0x5eddf0
+    virtual void Virtual07(int a);  // 0x5ede90
 
     int m_unk04;            // +0x04
     ShipGroup* m_group;     // +0x08
@@ -55,10 +55,10 @@ class ShipGroupBehavior : public GroupBehavior {
 public:
     explicit ShipGroupBehavior(ShipGroup* group);
     virtual ~ShipGroupBehavior();
-    virtual void Virtual01() override;  // 0x5edf80
-    virtual void Virtual02() override;  // 0x5ee250
+    virtual void Virtual01(int a) override;  // 0x5edf80
+    virtual void Virtual02(int a) override;  // 0x5ee250
     virtual void Virtual03() override;  // 0x5ee280
-    virtual void Virtual04() override;  // 0x5ee290
+    virtual void Virtual04(int a) override;  // 0x5ee290
 };
 
 // ---- orders -------------------------------------------------------------------------------------------------------
@@ -123,32 +123,32 @@ public:
     explicit ShipGroup(int seedHandle);  // 0x5c9db0
     virtual ~ShipGroup();                // 0x5ca1e0 (scalar deleting destructor 0x5c9f90)
     virtual void SetSeedHandle(int handle);  // 0x5ca1a0 slot 2
-    virtual void Virtual03();                // 0x5c9bd0
-    virtual void Virtual04();                // 0x5c65e0
-    virtual void Virtual05() = 0;            // capital ships 0x5c6610, fighters 0x5cc300
-    virtual void Virtual06();                // 0x5cb050
-    virtual void Virtual07();                // 0x5cb600
-    virtual void Virtual08();                // 0x5cb430
-    virtual void Virtual09();                // 0x5cb490
+    virtual void Virtual03(int a);                // 0x5c9bd0
+    virtual void Virtual04(int a);                // 0x5c65e0
+    virtual void Virtual05(int a) = 0;            // capital ships 0x5c6610, fighters 0x5cc300
+    virtual void Virtual06(int a, int b);                // 0x5cb050
+    virtual void Virtual07(int a);                // 0x5cb600
+    virtual void Virtual08(int a);                // 0x5cb430
+    virtual void Virtual09(int a);                // 0x5cb490
     virtual void AddMember(int handle);      // 0x5cb3e0 slot 10
-    virtual void Virtual11();                // 0x5cb460
+    virtual void Virtual11(int a);                // 0x5cb460
     virtual void RemoveMember(int handle);   // 0x5cb510 slot 12
-    virtual void Virtual13();                // 0x5cb4d0
-    virtual void Virtual14();                // 0x5cb5b0
-    virtual void Virtual15();                // 0x5cb8e0
+    virtual void Virtual13(int a);                // 0x5cb4d0
+    virtual void Virtual14(int a);                // 0x5cb5b0
+    virtual void Virtual15(int a);                // 0x5cb8e0
     virtual TacticalVector* GetPosition(TacticalVector* out);  // 0x5cafa0 slot 16
     virtual void Virtual17();                // 0x5cb990
     virtual void SetMode(int mode);          // 0x5ca6d0 slot 18
-    virtual void Virtual19();                // 0x5cb770
-    virtual void Virtual20();                // 0x5cb7b0
+    virtual void Virtual19(int a);                // 0x5cb770
+    virtual void Virtual20(int a);                // 0x5cb7b0
     virtual void Virtual21(int handle);      // 0x5cb870
-    virtual void Virtual22();                // 0x5cb840
-    virtual void Virtual23();                // 0x5cb7e0
-    virtual void Virtual24();                // 0x5cb810
-    virtual void Virtual25();                // 0x5ca530
-    virtual void Virtual26();                // 0x5c9940
-    virtual void Virtual27();                // 0x5c9780
-    virtual void Virtual28();                // 0x5c9ae0
+    virtual void Virtual22(int a);                // 0x5cb840
+    virtual void Virtual23(int a);                // 0x5cb7e0
+    virtual void Virtual24(int a);                // 0x5cb810
+    virtual void Virtual25(int a);                // 0x5ca530
+    virtual void Virtual26(int a);                // 0x5c9940
+    virtual void Virtual27(int a);                // 0x5c9780
+    virtual void Virtual28(int a);                // 0x5c9ae0
 
     float MemberStrengthAgainst(TacticalShipBase* target);  // 0x5cb650
 
@@ -183,12 +183,12 @@ class CapitalShipGroup : public ShipGroup {
 public:
     explicit CapitalShipGroup(int seedHandle);  // 0x5c62b0
     virtual ~CapitalShipGroup();                // scalar deleting destructor 0x5a6710
-    virtual void Virtual01() override;          // 0x5a6700 returns 4
-    virtual void Virtual05() override;          // 0x5c6610
-    virtual void Virtual06() override;          // 0x5c7060
+    virtual int Virtual01() override;           // 0x5a6700 returns 4
+    virtual void Virtual05(int a) override;          // 0x5c6610
+    virtual void Virtual06(int a, int b) override;          // 0x5c7060
     virtual void SetMode(int mode) override;    // 0x5c7130
-    virtual void Virtual26() override;          // 0x5c6270
-    virtual void Virtual27() override;          // 0x5c6230
+    virtual void Virtual26(int a) override;          // 0x5c6270
+    virtual void Virtual27(int a) override;          // 0x5c6230
 
     void SetRole(int role);  // 0x5c7140
 
@@ -200,8 +200,8 @@ class FighterGroup : public ShipGroup {
 public:
     explicit FighterGroup(int seedHandle);  // 0x5cbf50
     virtual ~FighterGroup();                // scalar deleting destructor 0x5a6740
-    virtual void Virtual01() override;      // 0x5a6730 returns 3
-    virtual void Virtual05() override;      // 0x5cc300
+    virtual int Virtual01() override;       // 0x5a6730 returns 3
+    virtual void Virtual05(int a) override;      // 0x5cc300
 };
 
 // The group an id-tree node of the registry stands for (a group starts with its TacticalUnit, which is the node).

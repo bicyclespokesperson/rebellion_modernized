@@ -1,0 +1,33 @@
+# Like space_battle_autoresolve.txt, but chooses "Take Command" (a tactical vote). Only for a hybrid built with
+# -DREB_NO_TACTICAL_3D=ON: the battle flow then resolves the vote as auto-resolve and the result window appears
+# (shot battle_result_a). With the default build this enters the 3D tactical mode. Runtime ~130 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+33 shot load_list
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot load_galaxy
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 112
+46 move 170 116
+47 click 170 116
+# The popup appears ~85-90 s after launch. Right button = Take Command (the tactical vote).
+95 shot battle_popup
+97 move 405 350
+98 move 410 354
+99 click 410 354
+102 shot battle_result_a
+108 shot battle_result_b
+110 move 495 85
+111 move 498 90
+112 click 498 90
+115 shot battle_closed
+120 shot battle_after_20s
+121 end

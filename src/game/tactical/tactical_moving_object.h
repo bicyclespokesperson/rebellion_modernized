@@ -15,7 +15,7 @@ public:
     virtual ~MovingObject();  // 0x5cd2c0 (scalar deleting destructor 0x5b2420)
     virtual double Turn(float step, float rate);                // 0x5cd460
     virtual void Advance(float milliseconds);                   // 0x5cd640
-    virtual int Virtual03(int a, int b, int c);                 // 0x5cd6b0: returns 0 (shared stub, pops 12 bytes)
+    virtual int Virtual03(int a, int b, int c) { return 0; }    // 0x5cd6b0 (shared stub, pops 12 bytes)
     virtual void Read(istream* in);                             // 0x5cd000
     virtual void Write(ostream* out);                           // 0x5cd0f0
     virtual void Checksum(Crc32* crc);                          // 0x5cd1e0

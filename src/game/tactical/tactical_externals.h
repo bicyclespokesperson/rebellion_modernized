@@ -24,6 +24,7 @@ class TacticalShipBase;
 class TacticalCharacterUnit;
 class ShipGroup;
 class TacticalSoundManager;
+class TacticalTurnSync;
 
 // ---- Ship-group module: the hub (DAT_006bc468, 0x188 bytes) and the registry (DAT_006bc470, 0x48 bytes) ----
 TacticalHub* FUN_0059ed70();                                    // creates the hub on first use
@@ -42,7 +43,7 @@ void FUN_005a0240();
 
 
 // ---- Capital ship / fighter / Death Star modules ----
-void FUN_005ba920();
+void DestroyTacticalSoundManager();  // 0x5ba920
 
 // ---- Headless simulator (DAT_006bc4a8, 0x274 bytes) ----
 
@@ -54,10 +55,10 @@ int __thiscall FUN_005ae1d0(TacticalObjectManager* manager, int side);
 void __thiscall FUN_0059e840(TacticalHub* hub);
 void FUN_005bf320();
 void FUN_005c1020(int a);
-void FUN_005bbee0();
+void DestroyTurnSync();  // 0x5bbee0
+void __thiscall FUN_005bbe20(TacticalTurnSync* sync);  // the turn-sync object's destructor body
 void* FUN_005bbe70(int handle);
 void __thiscall FUN_005bbd90(void* syncObject, int handle);
-void __thiscall FUN_005ae1e0(void* self, int argument);  // shared empty stub (pops one argument)
 void FUN_005c1470(float seconds);
 int FUN_005c1490();
 
@@ -67,6 +68,24 @@ public:
     virtual void Virtual00();
     virtual void Virtual01();
 };
+// A sound the tactical sound manager is playing: only the handle is read.
+struct TacticalSoundNode {
+    uint8_t m_pad00[0x18];
+    int m_handle;  // +0x18
+};
+
+// The 3D battle's sound manager (singleton g_tacticalSoundManager, 0x1420 bytes, built by FUN_005ba8b0); only its teardown
+// is reconstructed.
+class TacticalSoundManager {
+public:
+    virtual ~TacticalSoundManager();            // slot 0 (the deleting destructor)
+    virtual void Virtual01();
+    virtual void Virtual02();
+    virtual TacticalSoundNode* FirstSound();    // slot 3
+};
+extern TacticalSoundManager* g_tacticalSoundManager;    // 0x6bc4c8
+extern TacticalTurnSync* g_tacticalTurnSync;            // 0x6bc6dc
+void __thiscall FUN_005bab10(TacticalSoundManager* manager, int soundHandle);  // stops a sound
 extern TacticalClient* g_tacticalClient;                // 0x6bc464
 extern TacticalObjectManager* g_tacticalObjectManager;  // 0x6bc4a0
 extern TacticalHub* g_tacticalHub;                      // 0x6bc468

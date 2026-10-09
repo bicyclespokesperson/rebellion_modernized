@@ -335,3 +335,7 @@ void DestroyTacticalHub() {
     }
     g_tacticalHub = nullptr;
 }
+
+int CapitalShipGroup::Virtual01() { return 4; }
+
+int FighterGroup::Virtual01() { return 3; }

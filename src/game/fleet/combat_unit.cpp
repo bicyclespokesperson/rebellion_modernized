@@ -10,7 +10,7 @@
 #include "fleet/unit_view_flags.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_00557e40();
+void DestroyCombatUnitEventKinds();
 
 extern int g_combatUnitEventKindsReady;      // 0x6bb358
 extern EventKindSet g_combatUnitEventKinds;  // 0x6bb350
@@ -233,4 +233,15 @@ void CombatUnitStaticInit() {
 
 void ConstructCombatUnitEventKinds() { new (&g_combatUnitEventKinds) EventKindSet(); }
 
-void RegisterCombatUnitEventKindsAtExit() { atexit(LAB_00557e40); }
+void RegisterCombatUnitEventKindsAtExit() { atexit(DestroyCombatUnitEventKinds); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_combatUnitEventKindsDestroyedGuard;  // 0x6bb35c
+
+void DestroyCombatUnitEventKinds() {
+    if (!(g_combatUnitEventKindsDestroyedGuard & 0x1)) {
+        g_combatUnitEventKindsDestroyedGuard |= 0x1;
+        g_combatUnitEventKinds.~EventKindSet();
+    }
+}

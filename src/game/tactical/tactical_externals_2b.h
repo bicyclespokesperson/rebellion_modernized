@@ -13,8 +13,6 @@ class TacticalHub;
 
 
 
-void __thiscall FUN_005aefc0(HeadlessSimulator* simulator, ShipGroup* group);
-void __thiscall FUN_005afa00(HeadlessSimulator* simulator, TacticalShipBase* target, ShipGroup* group);  // the group's target becomes `target`
 
 void __thiscall FUN_005cb1a0(ShipGroup* group, int a);
 void __thiscall FUN_005a0320(TacticalHub* hub, int groupId);

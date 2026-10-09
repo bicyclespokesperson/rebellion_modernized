@@ -458,3 +458,5 @@ LRESULT __stdcall CoolSelectionDropDown::WindowProc(UINT message, WPARAM wParam,
             return DefWindowProcA(m_hwnd, message, wParam, lParam);
     }
 }
+
+uint32_t LightGreyColor(uint32_t color) { return (color & 0xff000000) | 0xc0c0c0; }

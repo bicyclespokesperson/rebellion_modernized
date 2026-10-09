@@ -30,7 +30,6 @@ void __thiscall FUN_00488b90(PlayerDispatch* dispatch);
 void __thiscall FUN_00488d20(PlayerDispatch* dispatch, const ObjectKey* key, int flag);
 void __thiscall FUN_0048a340(PlayerDispatch* dispatch, PlayerMessage* message);
 void __thiscall FUN_0048a3b0(PlayerDispatch* dispatch, PlayerMessage* message);
-int FUN_0041dcb0(int speed);
 extern PersistentInt g_humanUiFlags;  // 0x6b28b0
 
 namespace {
@@ -171,7 +170,7 @@ void HumanPlayer::Virtual10() {
 
 void HumanPlayer::Virtual14() {
     UiRefreshChildWindows();
-    const int day = FUN_0041dcb0(m_speed);
+    const int day = GameHookDay();
     UiSetDateAndSpeed(day, m_speed);
     m_advisor->SpeakIfIdle();
 }

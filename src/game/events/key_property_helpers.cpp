@@ -1,10 +1,11 @@
 #include "events/key_property_helpers.h"
+#include "core/atexit_keep.h"
 
 #include <new>
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_004f5d50();
-extern "C" void __cdecl LAB_004f5dc0();
+void DestroyEmptyKeyValueSet();
+void DestroyEmptyKey();
 
 extern ObjectKeyValueSet g_emptyKeyValueSet;  // 0x6b2960
 extern uint8_t g_emptyKeyValueSetBuilt;       // 0x6b2954, bit 0
@@ -15,7 +16,7 @@ ObjectKeyValueSet* GetEmptyKeyValueSet() {
     if ((g_emptyKeyValueSetBuilt & 1) == 0) {
         g_emptyKeyValueSetBuilt |= 1;
         new (&g_emptyKeyValueSet) ObjectKeyValueSet();
-        atexit(LAB_004f5d50);
+        atexit(DestroyEmptyKeyValueSet);
     }
     return &g_emptyKeyValueSet;
 }
@@ -29,7 +30,7 @@ ObjectKey* GetEmptyKey() {
     if ((g_emptyKeyBuilt & 1) == 0) {
         g_emptyKeyBuilt |= 1;
         new (&g_emptyKey) ObjectKey();
-        atexit(LAB_004f5dc0);
+        atexit(DestroyEmptyKey);
     }
     return &g_emptyKey;
 }
@@ -43,4 +44,13 @@ int __stdcall CallSlot1(void* object) {
     };
     static_cast<SlotOne*>(object)->Virtual01();
     return 1;
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+void DestroyEmptyKeyValueSet() { g_emptyKeyValueSet.~ObjectKeyValueSet(); }
+
+void DestroyEmptyKey() {
+    REB_KEEP_ATEXIT_TARGET();
+    g_emptyKey.~ObjectKey();
 }

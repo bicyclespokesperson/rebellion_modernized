@@ -35,5 +35,5 @@ REB_ASSERT_SIZE(MissionTypeBase, 0xa8);
 #pragma clang diagnostic pop
 
 // Bodies of the mission base's persistence slots, called by the leaf types' second-level forwarders.
-int __thiscall FUN_0056ec40(MissionTypeBase* self, ostream* out);    // Write (shared by several mission types)
-int __thiscall FUN_0056ec50(MissionTypeBase* self, NotifyContext* ctx);  // ApplyAll body (shared)
+int __thiscall MissionTypeWriteForward(MissionTypeBase* self, ostream* out);        // 0x56ec40: Write (shared by several mission types)
+int __thiscall MissionTypeApplyAllForward(MissionTypeBase* self, NotifyContext* ctx);  // 0x56ec50: ApplyAll body (shared)

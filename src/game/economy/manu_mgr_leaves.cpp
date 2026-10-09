@@ -6,9 +6,9 @@
 #include "gameobj/object_family.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_0055b670();
-extern "C" void __cdecl LAB_0055b9f0();
-extern "C" void __cdecl LAB_0055be80();
+void DestroyTrainingFacilManuMgrEventKinds();
+void DestroyConstructionYardManuMgrEventKinds();
+void DestroyShipyardManuMgrEventKinds();
 
 extern EventKindSet g_trainingFacilManuMgrEventKinds;  // 0x6bb4d0
 extern int g_trainingFacilManuMgrEventKindsReady;  // 0x6bb4d8
@@ -92,7 +92,7 @@ int TrainingFacilManuMgr::BuildEventKinds() {
 
 void TrainingFacilManuMgr::ConstructEventKinds() { new (&g_trainingFacilManuMgrEventKinds) EventKindSet(); }
 
-void TrainingFacilManuMgr::RegisterEventKindsAtExit() { atexit(LAB_0055b670); }
+void TrainingFacilManuMgr::RegisterEventKindsAtExit() { atexit(DestroyTrainingFacilManuMgrEventKinds); }
 
 void TrainingFacilManuMgr::InitStatics() {
     ConstructEventKinds();
@@ -147,7 +147,7 @@ int ConstructionYardManuMgr::BuildEventKinds() {
 
 void ConstructionYardManuMgr::ConstructEventKinds() { new (&g_constructionYardManuMgrEventKinds) EventKindSet(); }
 
-void ConstructionYardManuMgr::RegisterEventKindsAtExit() { atexit(LAB_0055b9f0); }
+void ConstructionYardManuMgr::RegisterEventKindsAtExit() { atexit(DestroyConstructionYardManuMgrEventKinds); }
 
 void ConstructionYardManuMgr::InitStatics() {
     ConstructEventKinds();
@@ -203,7 +203,7 @@ int ShipyardManuMgr::BuildEventKinds() {
 
 void ShipyardManuMgr::ConstructEventKinds() { new (&g_shipyardManuMgrEventKinds) EventKindSet(); }
 
-void ShipyardManuMgr::RegisterEventKindsAtExit() { atexit(LAB_0055be80); }
+void ShipyardManuMgr::RegisterEventKindsAtExit() { atexit(DestroyShipyardManuMgrEventKinds); }
 
 void ShipyardManuMgr::InitStatics() {
     ConstructEventKinds();
@@ -224,4 +224,33 @@ int ShipyardManuMgr::OnRemainingGameObjCountChanged(int oldValue, int newValue, 
 
 int ShipyardManuMgr::OnSeedKeyChanged(NullableKey* oldKey, NullableKey* newKey, NotifyContext* ctx) {
     return ManuMgr::OnSeedKeyChanged(oldKey, newKey, ctx);
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_trainingFacilManuMgrEventKindsDestroyedGuard;  // 0x6bb4dc
+
+void DestroyTrainingFacilManuMgrEventKinds() {
+    if (!(g_trainingFacilManuMgrEventKindsDestroyedGuard & 0x1)) {
+        g_trainingFacilManuMgrEventKindsDestroyedGuard |= 0x1;
+        g_trainingFacilManuMgrEventKinds.~EventKindSet();
+    }
+}
+
+extern uint8_t g_constructionYardManuMgrEventKindsDestroyedGuard;  // 0x6bb4f0
+
+void DestroyConstructionYardManuMgrEventKinds() {
+    if (!(g_constructionYardManuMgrEventKindsDestroyedGuard & 0x1)) {
+        g_constructionYardManuMgrEventKindsDestroyedGuard |= 0x1;
+        g_constructionYardManuMgrEventKinds.~EventKindSet();
+    }
+}
+
+extern uint8_t g_shipyardManuMgrEventKindsDestroyedGuard;  // 0x6bb4fc
+
+void DestroyShipyardManuMgrEventKinds() {
+    if (!(g_shipyardManuMgrEventKindsDestroyedGuard & 0x1)) {
+        g_shipyardManuMgrEventKindsDestroyedGuard |= 0x1;
+        g_shipyardManuMgrEventKinds.~EventKindSet();
+    }
 }

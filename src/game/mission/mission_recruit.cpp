@@ -8,7 +8,7 @@
 #include "gameobj/object_queries.h"
 #include "mission/mission_rules.h"
 
-extern "C" void __cdecl LAB_0056bbb0();
+void DestroyMissionRecruitEventKinds();
 
 extern int g_missionRecruitEventKindsReady;      // 0x6bb968
 extern EventKindSet g_missionRecruitEventKinds;  // 0x6bb960
@@ -238,9 +238,20 @@ int MissionRecruit::BuildEventKinds() {
 
 void ConstructMissionRecruitEventKinds() { new (&g_missionRecruitEventKinds) EventKindSet(); }
 
-void RegisterMissionRecruitEventKindsAtExit() { atexit(LAB_0056bbb0); }
+void RegisterMissionRecruitEventKindsAtExit() { atexit(DestroyMissionRecruitEventKinds); }
 
 void MissionRecruit::InitStatics() {
     ConstructMissionRecruitEventKinds();
     RegisterMissionRecruitEventKindsAtExit();
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_missionRecruitEventKindsDestroyedGuard;  // 0x6bb958
+
+void DestroyMissionRecruitEventKinds() {
+    if (!(g_missionRecruitEventKindsDestroyedGuard & 0x1)) {
+        g_missionRecruitEventKindsDestroyedGuard |= 0x1;
+        g_missionRecruitEventKinds.~EventKindSet();
+    }
 }

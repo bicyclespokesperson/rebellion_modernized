@@ -145,7 +145,7 @@ double TacticalCapitalShip::GetShieldRecharge() {
     return power;
 }
 
-double TacticalCapitalShip::GetTurnRate() {
+double TacticalShipBase::GetTurnRate() {
     if (GetSpeed() == 0.0f) return 1.0f;
     const double skill = GetTacticalGame()->m_abstract != 0 ? GetHeadlessSimulator()->CommanderSkillA(m_side)
                                                              : FUN_005ad750(GetObjectManager(), m_side);

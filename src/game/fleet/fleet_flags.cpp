@@ -4,7 +4,7 @@
 #include "fleet/fleet.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_004ffdb0();
+void DestroyFleetEventKinds();
 
 extern EventKindSet g_fleetEventKinds;       // 0x6b2b10
 extern uint32_t g_fleetEventKindsReady;      // 0x6b2b18, set once the set has been filled
@@ -166,9 +166,20 @@ int Fleet::InitEventKinds() {
 
 void FleetEventKindsConstruct() { new (&g_fleetEventKinds) EventKindSet(); }
 
-void FleetEventKindsRegisterAtExit() { atexit(LAB_004ffdb0); }
+void FleetEventKindsRegisterAtExit() { atexit(DestroyFleetEventKinds); }
 
 void FleetStaticInit() {
     FleetEventKindsConstruct();
     FleetEventKindsRegisterAtExit();
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_fleetEventKindsDestroyedGuard;  // 0x6b2b1c
+
+void DestroyFleetEventKinds() {
+    if (!(g_fleetEventKindsDestroyedGuard & 0x1)) {
+        g_fleetEventKindsDestroyedGuard |= 0x1;
+        g_fleetEventKinds.~EventKindSet();
+    }
 }

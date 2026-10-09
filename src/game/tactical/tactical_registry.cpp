@@ -7,14 +7,6 @@
 #include "tactical/tactical_ship.h"
 #include "tactical/tactical_simulator.h"
 
-// TacticalUnit::Virtual01 returns the unit's kind; the declared signature in tactical_units.h is void, so the call goes
-// through this view of the same vtable.
-class UnitKindView {
-public:
-    virtual void Slot00();
-    virtual int Kind();
-};
-
 namespace {
 
 constexpr int kFighterGroupKind = 3;
@@ -33,7 +25,7 @@ TacticalHangar* hangarOfDeathStar(TacticalUnit* deathStar) {
 
 }  // namespace
 
-int TacticalUnitKind(TacticalUnit* unit) { return reinterpret_cast<UnitKindView*>(unit)->Kind(); }
+int TacticalUnitKind(TacticalUnit* unit) { return unit->Virtual01(); }
 
 TacticalRegistry::TacticalRegistry() {
     m_deathStar = nullptr;

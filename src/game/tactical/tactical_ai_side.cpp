@@ -263,7 +263,7 @@ int TacticalAiSide::StepSide(float step) {
             if (enemyHangars < m_hangars.CountNodes()) {
                 for (GroupRefNode* node = firstGroupNode(m_groups); node; node = nextGroupNode(node)) {
                     if (kindOfGroup(node->Value()) == kCapitalGroupKind) {
-                        FUN_005aefc0(simulator, node->Value());
+                        simulator->DeathStarAttackRun(node->Value());
                         break;
                     }
                 }

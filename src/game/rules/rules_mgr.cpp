@@ -25,7 +25,7 @@
 #include "rules/loyalty_params.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_005573f0();
+void DestroyRulesMgrEventKinds();
 
 extern int g_rulesMgrEventKindsBuilt;     // 0x6bb344
 extern EventKindSet g_rulesMgrEventKinds;  // 0x6bb348
@@ -217,7 +217,7 @@ int RulesMgr::CheckOrder(int, int orderKind, StatusCode* out) {
 }
 
 void RulesMgrConstructEventKinds() { new (&g_rulesMgrEventKinds) EventKindSet(); }  // 0x5573d0
-void RulesMgrRegisterEventKindsAtExit() { atexit(LAB_005573f0); }                    // 0x5573e0
+void RulesMgrRegisterEventKindsAtExit() { atexit(DestroyRulesMgrEventKinds); }                    // 0x5573e0
 void RulesMgrStaticInit() {                                                          // 0x5573c0
     RulesMgrConstructEventKinds();
     RulesMgrRegisterEventKindsAtExit();
@@ -916,4 +916,15 @@ int RulesMgr::SyncUnitView(const ObjectKey* key, int side, NotifyContext* ctx) {
         if (side == 1 || side == 2) result = unit->ApplyAllToView(side, &viewCtx);
     }
     return result;
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_rulesMgrEventKindsDestroyedGuard;  // 0x6bb340
+
+void DestroyRulesMgrEventKinds() {
+    if (!(g_rulesMgrEventKindsDestroyedGuard & 0x1)) {
+        g_rulesMgrEventKindsDestroyedGuard |= 0x1;
+        g_rulesMgrEventKinds.~EventKindSet();
+    }
 }

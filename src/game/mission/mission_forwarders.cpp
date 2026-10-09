@@ -49,3 +49,11 @@ int __stdcall ReturnOneThreeArgs(int, int, int) { return 1; }  // 0x524b10
 int __stdcall ReturnOneTwoArgs(int, NotifyContext*) { return 1; }  // 0x524fb0
 
 int __stdcall ReturnOneSevenArgs(int, int, int, int, int, int, int) { return 1; }  // 0x5897b0
+
+int __thiscall MissionTypeWriteForward(MissionTypeBase* self, ostream* out) {  // 0x56ec40
+    return reinterpret_cast<MissionRuleBase*>(self)->MissionRuleBase::WriteBody(out);
+}
+
+int __thiscall MissionTypeApplyAllForward(MissionTypeBase* self, NotifyContext* ctx) {  // 0x56ec50
+    return self->MissionTypeBase::ApplyAllBody(ctx);
+}

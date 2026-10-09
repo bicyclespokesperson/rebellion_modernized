@@ -103,12 +103,30 @@ public:
     int m_valueC;  // +0x28
 };
 
+// Kind 0x280 (code at 0x628e10, among the library functions): tells every machine to store a value in a side's
+// unknown field +0xc4 (Side::SetUnknownC4, ignored when zero).
+class NetMsg280 : public SidedMessage {
+public:
+    NetMsg280();           // 0x628e10
+    virtual ~NetMsg280();  // 0x628e50 (deleting 0x628e30)
+
+    virtual int Read(istream* in) override;                       // 1: shared 0x628ee0 (NetMsg2::Read)
+    virtual int Write(ostream* out) override;                     // 2: shared 0x440d20 (NetMsg2::Write)
+    virtual int GetKind() override;                               // 3: 0x628ed0
+    virtual int CheckEnabled(StatusCode* status) override;        // 6: 0x628f10
+    virtual int CheckValid(StatusCode* status) override;          // 7: 0x628f80
+    virtual int Execute(StatusCode* status) override;             // 8: 0x628ff0
+
+    int m_value;  // +0x2c
+};
+
 void* CreateNetMsg1();   // 0x440a30
 void* CreateNetMsg2();   // 0x440cb0
 void* CreateNetMsg4();   // 0x440720
 void* CreateNetMsg5();   // 0x440410
 void* CreateNetMsg13();  // 0x440880
 void* CreateNetMsg15();  // 0x440540
+void* CreateNetMsg280(); // 0x628e60
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
@@ -118,6 +136,7 @@ REB_ASSERT_SIZE(NetMsg4, 0x30);
 REB_ASSERT_SIZE(NetMsg5, 0x30);
 REB_ASSERT_SIZE(NetMsg13, 0x20);
 REB_ASSERT_SIZE(NetMsg15, 0x2c);
+REB_ASSERT_SIZE(NetMsg280, 0x30);
 REB_ASSERT_OFFSET(NetMsg1, m_checksums, 0x30);
 REB_ASSERT_OFFSET(NetMsg4, m_voteKey, 0x2c);
 #pragma clang diagnostic pop

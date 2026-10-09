@@ -9,7 +9,7 @@
 #include "gameobj/object_family.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_00539d30();
+void DestroyFacilityEventKinds();
 
 extern EventKindSet g_facilityEventKinds;  // 0x6b9038
 extern int g_facilityEventKindsReady;      // 0x6b9040
@@ -100,7 +100,7 @@ int Facility::BuildEventKinds() {
 
 void Facility::ConstructEventKinds() { new (&g_facilityEventKinds) EventKindSet(); }
 
-void Facility::RegisterEventKindsAtExit() { atexit(LAB_00539d30); }
+void Facility::RegisterEventKindsAtExit() { atexit(DestroyFacilityEventKinds); }
 
 void Facility::InitStatics() {
     ConstructEventKinds();
@@ -116,3 +116,14 @@ FacilityIterator::FacilityIterator(GameObjNotifier* parent, uint32_t stateFilter
     : ChildIterator(parent, side, &kFacilityFamilies, stateFilter) {}
 
 FacilityIterator::~FacilityIterator() { REB_KEEP_VPTR_STORE(); }
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_facilityEventKindsDestroyedGuard;  // 0x6b9044
+
+void DestroyFacilityEventKinds() {
+    if (!(g_facilityEventKindsDestroyedGuard & 0x1)) {
+        g_facilityEventKindsDestroyedGuard |= 0x1;
+        g_facilityEventKinds.~EventKindSet();
+    }
+}

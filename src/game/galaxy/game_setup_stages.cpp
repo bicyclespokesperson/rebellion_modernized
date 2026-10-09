@@ -1,4 +1,5 @@
 #include "character/character_mgr.h"
+#include "core/icf_stubs.h"
 #include "ai/ai_common.h"
 #include "core/utility_classes.h"
 #include "data/game_math.h"
@@ -33,7 +34,6 @@
 
 int GetSideObjectForIndex(int side, GameObjNotifier** out);
 int ApplyEvent315(ObjectKey* key, int kind, int value, NotifyContext* ctx);
-int FUN_0040f340();
 
 namespace {
 
@@ -85,7 +85,7 @@ GameObjNotifier* nextSystem(GameObjNotifier* system) { return NextSystemMaster(s
 int totalFacilityCount(GameObjNotifier* system) {
     int total = 0;
     ChildIterator facilities(system, controlSideOf(system), &kFacilityFamilies, 3);
-    for (facilities.Begin(); facilities.Current() != nullptr; facilities.Advance()) total += FUN_0040f340();
+    for (facilities.Begin(); facilities.Current() != nullptr; facilities.Advance()) total += ReturnOne();
     return total;
 }
 

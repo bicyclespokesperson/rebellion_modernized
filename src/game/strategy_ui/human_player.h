@@ -105,10 +105,8 @@ public:
     PlayerDispatch* Dispatch() { return reinterpret_cast<PlayerDispatch*>(m_dispatchStorage); }
 };
 
-// Static helpers of the human player that only set UI globals: the two thunks jump to 0x439ef0 / 0x43a1f0 (not
-// reconstructed here); HumanSetUiTarget forwards to AdvisorSetPendingCommand (0x439eb0).
-void __cdecl FUN_004878b0(int value);
-void __cdecl FUN_004878c0(int value);
+// Static helper of the human player: HumanSetUiTarget forwards to AdvisorSetPendingCommand (0x439eb0). The static
+// thunks 0x4878b0 / 0x4878c0 jump to AdvisorAllowSpeech / AdvisorSetFlag0.
 void HumanSetUiTarget(int a, int b);  // 0x4878d0
 
 #pragma clang diagnostic push

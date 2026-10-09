@@ -20,7 +20,6 @@ DESCRIPTIONS = {
     "game_function": "unreconstructed non-tactical game functions",
     "tactical_function": "unreconstructed tactical functions",
     "stale_declaration": "reconstructed functions still reached through FUN_/stale declarations",
-    "alias_standin": "aliases.csv stand-in names for original addresses",
     "win32_import": "Win32 imports (game IAT slots)",
     "libci": "LIBCI iostream functions",
     "crt": "CRT / EH / C++ runtime functions",

@@ -125,3 +125,14 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   byte-identical to `REB_DISABLE_HOOKS=all`, Oct 8, 10,506 hooks.)
 - Shared one-address functions without symbol rows: `RulesMgr::Validate` (0x569870), `ShipPicker::Visit` (= `UnitPicker::Visit`
   0x587470), `TickTable::Write` (= `TimerEvent::CheckValid` 0x586290). EH funclets 0x4096e0, 0x4098b0 are not functions.
+
+## Tactical fence (M3)
+- No scenario has a Death Star in the battle, so `HeadlessSimulator::DeathStarAttackRun` (0x5aefc0) is verified with `difftest --entry`
+  over simulator captures only (its branch that fires the Death Star at a non-null `TacticalDeathStar` is not executed). A save with a
+  Death Star in a fleet that meets an Imperial/Alliance fleet would settle it.
+- `DimMenuColor` (0x4ac550) returns the caller's ECX top byte in the original (uninitialised stack slot); the reconstruction returns 0
+  there, so a difftest of it fails on EAX (nothing reads the byte: `DibBitmap::BuildRemapTable` compares three bytes).
+- The atexit thunk of `g_soundEventQueue` (`DestroySoundEventQueue`, 0x611120) ends in a tail call, so the original leaves the
+  destructor's EAX; ours leaves the guard mask. atexit ignores it; entry-poke difftests report the EAX difference.
+- The tactical stubs' parameters are placeholder `int`s sized by the original's `ret n` (`ShipGroup::Virtual27(int a)`): type them
+  when a 3D class is reconstructed or ported.

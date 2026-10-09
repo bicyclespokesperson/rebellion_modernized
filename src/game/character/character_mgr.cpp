@@ -16,7 +16,7 @@
 #include "story/story_characters.h"
 #include "story/story_common.h"
 
-extern "C" void __cdecl LAB_00562a30();
+void DestroyCharacterMgrEventKinds();
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
 
 extern int g_characterMgrEventKindsReady;      // 0x6bb7a0
@@ -113,7 +113,7 @@ int CharacterMgr::CheckOrder(int a, int orderKind, StatusCode* out) {
 
 void ConstructCharacterMgrEventKinds() { new (&g_characterMgrEventKinds) EventKindSet(); }
 
-void RegisterCharacterMgrEventKindsAtExit() { atexit(LAB_00562a30); }
+void RegisterCharacterMgrEventKindsAtExit() { atexit(DestroyCharacterMgrEventKinds); }
 
 void CharacterMgr::InitStatics() {
     ConstructCharacterMgrEventKinds();
@@ -246,4 +246,15 @@ int CharacterMgr::UpdateLeadershipAdjustment(Character* person, NotifyContext* c
     int adjustment = 0;
     if ((m_flags58 & character_mgr_flag::kSeatOfPower) && person->GetRecordSide() == 2) adjustment = g_gnprtb0C04;
     return person->SetLeadershipAdjustment(adjustment, ctx) != 0;
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_characterMgrEventKindsDestroyedGuard;  // 0x6bb790
+
+void DestroyCharacterMgrEventKinds() {
+    if (!(g_characterMgrEventKindsDestroyedGuard & 0x1)) {
+        g_characterMgrEventKindsDestroyedGuard |= 0x1;
+        g_characterMgrEventKinds.~EventKindSet();
+    }
 }

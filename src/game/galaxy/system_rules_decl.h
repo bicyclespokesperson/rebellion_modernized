@@ -11,4 +11,3 @@ class ChildIterator;
 // drop this header when they do.
 
 // ---- units of other modules ----
-int __thiscall FUN_0040f340(GameObjNotifier* self);

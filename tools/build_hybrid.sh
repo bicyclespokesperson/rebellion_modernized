@@ -2,6 +2,8 @@
 # Build the hybrid proxy DLL (build/hybrid/smackw32.dll) of this checkout in the dev container.
 #   --own-data (or REB_OWN_DATA=1): the DLL owns the game's globals (docs/phase2_plan.md, M5). The data image is
 #   generated from the original EXE on the host, between two container stages.
+#   REB_NO_TACTICAL_3D=ON: the variant that stubs out the 3D tactical code and always auto-resolves battles
+#   (passed on every run, so a later plain build is the default hybrid again).
 set -euo pipefail
 source "$(dirname "$0")/paths.sh"
 own_data="${REB_OWN_DATA:-0}"
@@ -19,7 +21,7 @@ fi
 container() {
   docker run --rm -u "$(id -u):$(id -g)" -v "$ROOT:$ROOT" -w "$ROOT" rebellion-dev bash -c "$1"
 }
-configure="cmake -S . -B build/hybrid -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-win32-clangcl.cmake -DCMAKE_BUILD_TYPE=Release -DREB_OWN_DATA=$cmake_option -DREB_OWN_VTABLES=$cmake_vtables >/dev/null"
+configure="cmake -S . -B build/hybrid -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-win32-clangcl.cmake -DCMAKE_BUILD_TYPE=Release -DREB_OWN_DATA=$cmake_option -DREB_OWN_VTABLES=$cmake_vtables -DREB_NO_TACTICAL_3D=${REB_NO_TACTICAL_3D:-OFF} >/dev/null"
 if [[ "$own_data" == 1 ]]; then
   container "$configure && cmake --build build/hybrid --target reb_link_symbols"
   "$ROOT/tools/gen_data_image.py" --exe "$MAIN/orig_game_files/Star Wars - Rebellion/REBEXE.EXE" \

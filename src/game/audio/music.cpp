@@ -6,9 +6,9 @@
 #include "core/registry.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-extern "C" void __cdecl LAB_00417820();
-extern "C" void __cdecl LAB_00417880();
-extern "C" void __cdecl LAB_004178d0();
+void DestroyMusicFlags();
+void DestroyMusicRequest();
+void DestroyMusicDirectory();
 
 int UiHumanNextAdvice();  // 0x41d3b0
 
@@ -116,7 +116,7 @@ void __cdecl MusicEventCallback(uint32_t message, uint32_t first, uint32_t secon
 
 void ConstructMusicFlags() { new (&g_musicFlags) PersistentInt(0); }
 
-void RegisterMusicFlagsAtExit() { atexit(LAB_00417820); }
+void RegisterMusicFlagsAtExit() { atexit(DestroyMusicFlags); }
 
 void InitMusicFlags() {
     ConstructMusicFlags();
@@ -125,7 +125,7 @@ void InitMusicFlags() {
 
 void ConstructMusicRequest() { new (&g_musicRequest) SoundRequest(1, 0, 0, 0, 0, 0); }
 
-void RegisterMusicRequestAtExit() { atexit(LAB_00417880); }
+void RegisterMusicRequestAtExit() { atexit(DestroyMusicRequest); }
 
 void InitMusicRequest() {
     ConstructMusicRequest();
@@ -134,9 +134,34 @@ void InitMusicRequest() {
 
 void ConstructMusicDirectory() { new (&g_musicDirectory) String(); }
 
-void RegisterMusicDirectoryAtExit() { atexit(LAB_004178d0); }
+void RegisterMusicDirectoryAtExit() { atexit(DestroyMusicDirectory); }
 
 void InitMusicDirectory() {
     ConstructMusicDirectory();
     RegisterMusicDirectoryAtExit();
+}
+
+// ---- destructors registered with atexit ----------------------------------------------------
+
+extern uint8_t g_musicFlagsDestroyedGuard;  // 0x6b14a4
+
+void DestroyMusicFlags() {
+    if (!(g_musicFlagsDestroyedGuard & 0x1)) {
+        g_musicFlagsDestroyedGuard |= 0x1;
+        g_musicFlags.~PersistentInt();
+    }
+}
+
+void DestroyMusicDirectory() {
+    if (!(g_musicFlagsDestroyedGuard & 0x4)) {
+        g_musicFlagsDestroyedGuard |= 0x4;
+        g_musicDirectory.~String();
+    }
+}
+
+void DestroyMusicRequest() {
+    if (!(g_musicFlagsDestroyedGuard & 0x2)) {
+        g_musicFlagsDestroyedGuard |= 0x2;
+        g_musicRequest.~SoundRequest();
+    }
 }

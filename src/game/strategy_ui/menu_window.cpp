@@ -361,7 +361,7 @@ void MenuWindowBase::OnCreate1() {
     m_dc = CreateCompatibleDC(windowDc);
     DibBitmap* background = NewOrNull<DibBitmap>(static_cast<LONG>(m_clientWidth), static_cast<LONG>(m_clientHeight),
                                                  m_backdrop, m_dc);
-    m_remapTable = background->BuildRemapTable(LAB_004ac550);
+    m_remapTable = background->BuildRemapTable(DimMenuColor);
     SetPaintBackground(background, 1);
     ReleaseDC(m_hwnd, windowDc);
 }
@@ -535,4 +535,12 @@ LRESULT __stdcall MenuWindowBase::WindowProc(UINT message, WPARAM wParam, LPARAM
         message = WM_LBUTTONUP;
     }
     return CoolGameWindow::WindowProc(message, wParam, lParam);
+}
+
+uint32_t DimMenuColor(uint32_t color) {
+    constexpr uint32_t kRedBlueMask = 0xff;
+    const auto dim = [](uint32_t channel) { return static_cast<uint8_t>((channel & kRedBlueMask) / 6 + 0x32); };
+    // BUG(original): the fourth byte of the result is whatever the caller left in ECX; it is never read
+    // (BuildRemapTable compares three bytes).
+    return dim(color) | dim(color >> 8) << 8 | dim(color >> 16) << 16;
 }
