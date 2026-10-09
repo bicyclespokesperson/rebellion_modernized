@@ -15,7 +15,7 @@ void Write(HANDLE file, const char* format, ...) {
 }
 
 bool InImageCode(DWORD address) {
-    const auto base = reinterpret_cast<const BYTE*>(GetModuleHandleA(nullptr));
+    const auto base = reinterpret_cast<const BYTE*>(GetModuleHandleW(nullptr));
     const auto* dos = reinterpret_cast<const IMAGE_DOS_HEADER*>(base);
     const auto* nt = reinterpret_cast<const IMAGE_NT_HEADERS*>(base + dos->e_lfanew);
     const DWORD begin = reinterpret_cast<DWORD>(base) + nt->OptionalHeader.BaseOfCode;

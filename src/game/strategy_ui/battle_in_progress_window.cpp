@@ -54,9 +54,12 @@ void BattleInProgressWindow::OnCreate1() {
         text.SetTextFromResource(&resourceText);
     } else {
         CoolLabel fixedText(g_battleInProgressText, 0, 0, 0, 0, 0u, 0u);
-        // BUG(original): the label is copied bit for bit, so `text` and `fixedText` share the String that
-        // `fixedText`'s destructor deletes.
+        // BUG(original): the label is copied bit for bit, so `text` and `fixedText` share one String, which the original
+        // deletes twice (and draws after the first delete). The original's small-block heap leaves a freed block
+        // intact, so that is invisible there; any heap that reuses or poisons freed memory crashes in the second
+        // delete. Only the first delete is dropped (`fixedText` lets go of the String), the sharing is kept.
         std::memcpy(static_cast<void*>(&text), static_cast<const void*>(&fixedText), sizeof(CoolLabel));
+        fixedText.m_text = nullptr;
     }
     DibBitmap* banner = NewOrNull<DibBitmap>(art, kBannerBitmapId, kHelperBitmapKind);
     HDC windowDc = GetDC(m_hwnd);
