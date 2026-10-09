@@ -103,3 +103,8 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   it: `AiGalaxyAnalysis::Load`, `AiSectorScanSet::LoadAll` SKIP), the plan 1-5, 7 `Prepare` functions run only through
   `--entry` on plan 6's capture, `AdvisorTask23` phases 2-3 (they need the advisor droid), and the facility task types'
   `Write` functions.
+
+## Multiplayer (src/game/multiplayer)
+- Untested by choice (user, Oct 8): the packet, `RemotePlayer`, chat-receive and vote-window paths are verified by
+  reading only; only what single-player and the `mp_lobby*` scenarios reach is capture-verified. To test them later: a
+  fake `dplayx` that loops packets between two game instances (or two sessions in one Wine prefix), then capture as usual.
