@@ -32,3 +32,11 @@ enable_testing()
 add_library(mw_config STATIC config/config.cpp config/advapi32_api.cpp)
 mw_test(config_test config/config_test.cpp)
 target_link_libraries(config_test PRIVATE mw_config)
+
+# res
+add_library(mw_res STATIC res/pe_module.cpp res/mapped_file.cpp res/formats.cpp res/path.cpp res/modules.cpp res/res_api.cpp)
+target_link_libraries(mw_res PUBLIC mw_config)
+mw_test(res_test res/res_test.cpp)
+target_link_libraries(res_test PRIVATE mw_res)
+add_executable(res_dump res/tests/res_dump.cpp)
+target_link_libraries(res_dump PRIVATE mw_res)
