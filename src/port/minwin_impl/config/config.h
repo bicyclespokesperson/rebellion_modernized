@@ -12,8 +12,8 @@
 // install_dir/data_dir when absent.
 //
 // Location of the file (first that applies): $REBELLION_CONFIG; then
-//   Linux    $XDG_CONFIG_HOME/rebellion/config.ini, else ~/.config/rebellion/config.ini
-//   macOS    ~/Library/Application Support/Rebellion/config.ini
+//   Linux    $XDG_CONFIG_HOME/rebellion/config.ini, else ~/.config/rebellion/config.ini  (src/port/native/platform_linux.cpp)
+//   macOS    ~/Library/Application Support/Rebellion/config.ini  (src/port/native/platform_macos.cpp)
 //   Windows  %APPDATA%\Rebellion\config.ini
 #pragma once
 #include <stdint.h>

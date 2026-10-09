@@ -1,4 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
+# macOS: one deployment target for arm64 and x86-64 (must be set before project(); docs/native.md)
+if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin" AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0 CACHE STRING "Minimum macOS version")
+endif()
 project(rebellion LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)

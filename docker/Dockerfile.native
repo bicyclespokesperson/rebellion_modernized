@@ -14,3 +14,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends libxtst-dev lib
 # layout of the game's globals, and emulate the original's initializers.
 RUN apt-get update && apt-get install -y --no-install-recommends python3-pefile python3-capstone python3-unicorn python3-clang-19 libclang-19-dev git \
     && rm -rf /var/lib/apt/lists/*
+# aarch64 cross build and qemu-user (docs/native.md): the arm64 readiness check of the native build (tools/build_native.sh --arch arm64).
+RUN apt-get update && apt-get install -y --no-install-recommends gcc-13-aarch64-linux-gnu g++-13-aarch64-linux-gnu \
+      libc6-dev-arm64-cross libstdc++-13-dev-arm64-cross qemu-user \
+    && rm -rf /var/lib/apt/lists/*

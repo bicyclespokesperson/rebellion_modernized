@@ -4,8 +4,10 @@
 #   1. objects: the game, minwin_impl (SDL3, FreeType) and the POSIX port layer;
 #   2. generators (tools/gen_native_data.py, tools/gen_native_init.py) read REBEXE.EXE and the objects and write build/native/gen/*.cpp;
 #   3. link.
-#   tools/build_native.sh [--image] [--objects-only]
-# Environment: REB_NATIVE_DIR (build directory, default build/native), REB_BUILD_TYPE (default RelWithDebInfo),
+#   tools/build_native.sh [--image] [--objects-only] [--arch arm64]
+#   --arch arm64 cross-builds for aarch64 Linux (cmake/toolchain-linux-aarch64.cmake, SDL3 with only its dummy drivers, build/native_arm64);
+#   run it with tools/native_sim.sh -a arm64 (qemu-user). docs/native.md.
+# Environment: REB_NATIVE_IMAGE (container image, default rebellion-native), REB_NATIVE_DIR (build directory, default build/native), REB_BUILD_TYPE (default RelWithDebInfo),
 #   REB_CMAKE_ARGS (e.g. -DREB_NATIVE_SANITIZE=address,undefined; REB_SANITIZE=1 is shorthand for that with REB_NATIVE_DIR=build/native_asan), REB_NINJA_ARGS, REB_TAIL (build log lines shown).
 set -euo pipefail
 source "$(dirname "$0")/paths.sh"
@@ -13,11 +15,15 @@ source "$(dirname "$0")/paths.sh"
 mounts=(-v "$ROOT:$ROOT")
 [[ "$MAIN" != "$ROOT" ]] && mounts+=(-v "$MAIN:$MAIN:ro")
 objects_only=0
-for arg in "$@"; do
+arch=x86_64
+args=("$@")
+for ((i = 0; i < ${#args[@]}; i++)); do
+  arg="${args[$i]}"
   case "$arg" in
     --image) DOCKER_BUILDKIT=0 docker build -t rebellion-native -f "$ROOT/docker/Dockerfile.native" "$ROOT/docker" ;;
     --objects-only) objects_only=1 ;;
-    *) echo "usage: $0 [--image] [--objects-only]" >&2; exit 2 ;;
+    --arch) arch="${args[$((++i))]}" ;;
+    *) echo "usage: $0 [--image] [--objects-only] [--arch arm64]" >&2; exit 2 ;;
   esac
 done
 if [[ "${REB_SANITIZE:-}" == 1 ]]; then
@@ -25,13 +31,21 @@ if [[ "${REB_SANITIZE:-}" == 1 ]]; then
   REB_CMAKE_ARGS="-DREB_NATIVE_SANITIZE=address,undefined ${REB_CMAKE_ARGS:-}"
   REB_BUILD_TYPE="${REB_BUILD_TYPE:-RelWithDebInfo}"
 fi
-bdir="${REB_NATIVE_DIR:-build/native}"
+image="${REB_NATIVE_IMAGE:-rebellion-native}"
+cross_args=""
+case "$arch" in
+  x86_64) default_dir=build/native ;;
+  arm64) default_dir=build/native_arm64
+         cross_args="-DCMAKE_TOOLCHAIN_FILE=$ROOT/cmake/toolchain-linux-aarch64.cmake -DREB_SDL_HEADLESS=ON" ;;
+  *) echo "unknown --arch $arch (x86_64, arm64)" >&2; exit 2 ;;
+esac
+bdir="${REB_NATIVE_DIR:-$default_dir}"
 mkdir -p "$ROOT/$bdir/gen"
 container() {
-  docker run --rm -u "$(id -u):$(id -g)" "${mounts[@]}" -w "$ROOT" rebellion-native bash -c "$1"
+  docker run --rm -u "$(id -u):$(id -g)" "${mounts[@]}" -w "$ROOT" "$image" bash -c "$1"
 }
 exe="$MAIN/orig_game_files/Star Wars - Rebellion/REBEXE.EXE"
-configure="cmake -S . -B $bdir -G Ninja -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19 -DCMAKE_BUILD_TYPE=${REB_BUILD_TYPE:-RelWithDebInfo} -DREB_NATIVE=ON ${REB_CMAKE_ARGS:-}"
+configure="cmake -S . -B $bdir -G Ninja -DCMAKE_C_COMPILER=clang-19 -DCMAKE_CXX_COMPILER=clang++-19 $cross_args -DCMAKE_BUILD_TYPE=${REB_BUILD_TYPE:-RelWithDebInfo} -DREB_NATIVE=ON ${REB_CMAKE_ARGS:-}"
 build() {  # build <target> <gen: ON|OFF>
   container "$configure -DREB_NATIVE_GEN=$2 > $bdir/gen/configure.log 2>&1 || { tail -20 $bdir/gen/configure.log; exit 1; }; cmake --build $bdir --target $1 -- ${REB_NINJA_ARGS:-} > $bdir/gen/build.log 2>&1; rc=\$?; grep -E 'error|undefined reference' $bdir/gen/build.log | sort -u | head -${REB_TAIL:-30}; exit \$rc"
 }

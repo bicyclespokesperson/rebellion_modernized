@@ -17,6 +17,11 @@ else()
   add_compile_options(-fms-extensions -fno-rtti -fno-exceptions -fwrapv -fno-strict-aliasing -fsigned-char -ffp-contract=off
                       -Wall -Wno-unused-function -Wno-microsoft-anon-tag -Wno-ignored-attributes)
 endif()
+if(APPLE)
+  set(REB_PLATFORM_NAME macos)
+else()
+  set(REB_PLATFORM_NAME linux)
+endif()
 include_directories(${REPO}/src ${REPO}/src/game ${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(mw_testmain STATIC tests/mw_test_main.cpp)
@@ -30,6 +35,9 @@ enable_testing()
 
 # config
 add_library(mw_config STATIC config/config.cpp config/advapi32_api.cpp)
+if(NOT WIN32)
+  target_sources(mw_config PRIVATE ${REPO}/src/port/native/platform_${REB_PLATFORM_NAME}.cpp)
+endif()
 mw_test(config_test config/config_test.cpp)
 target_link_libraries(config_test PRIVATE mw_config)
 

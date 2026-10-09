@@ -13,7 +13,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <sys/syscall.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -23,6 +22,7 @@
 #include "port/minwin/minwin.h"
 #include "port/minwin_impl/res/path.h"
 #include "port/native/native_clock.h"
+#include "port/native/platform.h"
 
 namespace {
 
@@ -183,7 +183,8 @@ DWORD WaitForAny(DWORD count, const HANDLE* handles, bool waitAll, DWORD millise
 void* ThreadMain(void* argument) {
     Thread* thread = static_cast<Thread*>(argument);
     t_currentThread = thread;
-    thread->tid = static_cast<DWORD>(syscall(SYS_gettid));
+    thread->tid = reb::platform::CurrentThreadId();
+    reb::platform::SetCurrentThreadName("rebellion-worker");
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, nullptr);
     const DWORD code = thread->start(thread->parameter);
     pthread_mutex_lock(&Sync().mutex);
@@ -334,7 +335,7 @@ HANDLE REB_STDCALL CreateThread(LPSECURITY_ATTRIBUTES, SIZE_T stackSize, LPTHREA
     return thread;
 }
 
-DWORD REB_STDCALL GetCurrentThreadId(void) { return static_cast<DWORD>(syscall(SYS_gettid)); }
+DWORD REB_STDCALL GetCurrentThreadId(void) { return reb::platform::CurrentThreadId(); }
 
 BOOL REB_STDCALL SetThreadPriority(HANDLE, int) { return TRUE; }
 

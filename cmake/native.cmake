@@ -1,4 +1,4 @@
-# Native x86-64 build (docs/phase3_plan.md P3; docs/native_linux.md). Included from CMakeLists.txt when REB_NATIVE is on.
+# Native build for Linux and macOS, x86-64 and arm64 (docs/native.md, docs/phase3_plan.md P3/P4); OS differences: native_platform.cmake. Included from CMakeLists.txt when REB_NATIVE is on.
 # Driven by tools/build_native.sh, which generates gen/*.cpp (data image, static-init table, resources) on the host
 # before the second configure (REB_NATIVE_GEN=ON).
 #
@@ -8,6 +8,7 @@
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(REB_GEN ${CMAKE_BINARY_DIR}/gen)
 set(MW ${CMAKE_SOURCE_DIR}/src/port/minwin_impl)
+include(${CMAKE_SOURCE_DIR}/cmake/native_platform.cmake)
 set(REB_NATIVE_SANITIZE "" CACHE STRING "address;undefined: sanitizers for the game, port and runtime objects")
 option(REB_NATIVE_GEN "Link the generated gen/*.cpp (data image, static-init table); stage 2 of tools/build_native.sh" OFF)
 
@@ -59,9 +60,10 @@ set(SDL_DBUS OFF CACHE BOOL "" FORCE)
 set(SDL_IBUS OFF CACHE BOOL "" FORCE)
 set(SDL_LIBURING OFF CACHE BOOL "" FORCE)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+reb_native_platform_sdl_options()
 add_subdirectory(${SDL3_SRC} ${CMAKE_BINARY_DIR}/sdl3 EXCLUDE_FROM_ALL)
-# SDL's X11 clipboard code has a global function named GetWindow, which is also a Win32 name minwin defines.
-target_compile_definitions(SDL3-static PRIVATE GetWindow=SDL_X11_GetWindow )
+# SDL's X11 clipboard code has a global function named GetWindow, which is also a Win32 name minwin defines (harmless elsewhere).
+target_compile_definitions(SDL3-static PRIVATE GetWindow=SDL_X11_GetWindow)
 set(FT_DISABLE_ZLIB ON CACHE BOOL "" FORCE)
 set(FT_DISABLE_BZIP2 ON CACHE BOOL "" FORCE)
 set(FT_DISABLE_PNG ON CACHE BOOL "" FORCE)
@@ -86,6 +88,8 @@ target_compile_options(reb_minwin_impl PRIVATE ${REB_NATIVE_FLAGS} -include ${CM
 target_compile_definitions(reb_minwin_impl PRIVATE REB_MINWIN=1 MW_IIDS_IN_GAME_DATA=1)
 
 file(GLOB REB_NATIVE_PORT_SOURCES CONFIGURE_DEPENDS src/port/native/*.cpp)
+list(FILTER REB_NATIVE_PORT_SOURCES EXCLUDE REGEX "platform_(linux|macos)\\.cpp$")
+list(APPEND REB_NATIVE_PORT_SOURCES ${REB_PLATFORM_SOURCE})
 list(APPEND REB_NATIVE_PORT_SOURCES src/port/sim_harness.cpp)
 add_library(reb_native_port OBJECT ${REB_NATIVE_PORT_SOURCES})
 target_include_directories(reb_native_port PRIVATE src/game src src/port/native/crt ${SDL3_SRC}/include)
@@ -107,4 +111,5 @@ add_executable(rebellion
   $<TARGET_OBJECTS:reb_game> $<TARGET_OBJECTS:reb_tactical_stubs> $<TARGET_OBJECTS:reb_minwin_impl>
   $<TARGET_OBJECTS:reb_native_port> ${REB_NATIVE_GEN_OBJECTS})
 set_target_properties(rebellion PROPERTIES LINKER_LANGUAGE CXX)
-target_link_libraries(rebellion PRIVATE freetype SDL3-static pthread dl m ${REB_NATIVE_LINK_FLAGS})
+target_link_libraries(rebellion PRIVATE freetype SDL3-static ${REB_PLATFORM_LIBS} ${REB_NATIVE_LINK_FLAGS})
+reb_native_platform_package(rebellion)
