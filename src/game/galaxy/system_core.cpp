@@ -277,41 +277,41 @@ int System::Virtual47(int ctxArg) {
 int System::Virtual48(int ctxArg) {
     NotifyContext* ctx = reinterpret_cast<NotifyContext*>(static_cast<intptr_t>(ctxArg));
     int ok = GameObj::Virtual48(ctxArg);
-    int applied = this->RecomputeRawMaterial(ctx);
+    int applied = this->System::RecomputeRawMaterial(ctx);
     ok = applied && ok;
-    applied = this->RecomputeEnergyAllocated(ctx);
+    applied = this->System::RecomputeEnergyAllocated(ctx);
     ok = applied && ok;
-    applied = this->RecomputeRawMaterialAllocated(ctx);
+    applied = this->System::RecomputeRawMaterialAllocated(ctx);
     ok = applied && ok;
-    applied = this->RecomputeSmugglingPercent(ctx);
+    applied = this->System::RecomputeSmugglingPercent(ctx);
     ok = applied && ok;
-    applied = this->RecomputeProductionModifier(ctx);
+    applied = this->System::RecomputeProductionModifier(ctx);
     ok = applied && ok;
-    applied = this->RecomputeTroopRegWithdrawPercent(ctx);
+    applied = this->System::RecomputeTroopRegWithdrawPercent(ctx);
     ok = applied && ok;
-    applied = this->RecomputeControlData(ctx);
+    applied = this->System::RecomputeControlData(ctx);
     ok = applied && ok;
-    applied = this->RecomputeTroopRegRequired(ctx);
+    applied = this->System::RecomputeTroopRegRequired(ctx);
     ok = applied && ok;
-    applied = this->RecomputeTroopRegSurplus(ctx);
+    applied = this->System::RecomputeTroopRegSurplus(ctx);
     ok = applied && ok;
-    applied = this->RecomputeGarrisoned(ctx);
+    applied = this->System::RecomputeGarrisoned(ctx);
     ok = applied && ok;
-    applied = this->RecomputeCombatUnitFastRepair(ctx);
+    applied = this->System::RecomputeCombatUnitFastRepair(ctx);
     ok = applied && ok;
-    applied = this->RecomputeFleetExploredFlags(ctx);
+    applied = this->System::RecomputeFleetExploredFlags(ctx);
     ok = applied && ok;
-    applied = this->RecomputeFleetEmptyFlags(ctx);
+    applied = this->System::RecomputeFleetEmptyFlags(ctx);
     ok = applied && ok;
-    applied = this->RecomputeFastRepair(ctx);
+    applied = this->System::RecomputeFastRepair(ctx);
     ok = applied && ok;
-    applied = this->RecomputeBlockadeAndBattlePending(ctx);
+    applied = this->System::RecomputeBlockadeAndBattlePending(ctx);
     ok = applied && ok;
     applied = GameObj::Virtual48(ctxArg);
     ok = applied && ok;
-    applied = this->RecomputeUprising(ctx);
+    applied = this->System::RecomputeUprising(ctx);
     ok = applied && ok;
-    applied = this->RecomputeSuppressing(ctx);
+    applied = this->System::RecomputeSuppressing(ctx);
     return applied && ok;
 }
 
@@ -322,23 +322,23 @@ int System::Virtual49(int childArg, int added, int ctxArg) {
     const uint32_t family = child->GetFamily();
     int applied;
     if (familyIn(family, kFacilityRange)) {
-        applied = this->RecomputeEnergyAllocated(ctx);
+        applied = this->System::RecomputeEnergyAllocated(ctx);
         ok = applied && ok;
     }
     if (family == 0x2c) {
-        applied = this->RecomputeRawMaterialAllocated(ctx);
+        applied = this->System::RecomputeRawMaterialAllocated(ctx);
         ok = applied && ok;
     }
     if (familyIn(family, kFacilityKindCRange) && added != 0) {
-        applied = this->RecomputeFacilityBattleFlags(ctx);
+        applied = this->System::RecomputeFacilityBattleFlags(ctx);
         ok = applied && ok;
     }
     if (familyIn(family, kFleetRange)) {
-        applied = this->RecomputeFleetExploredFlags(ctx);
+        applied = this->System::RecomputeFleetExploredFlags(ctx);
         ok = applied && ok;
-        applied = this->RecomputeFleetEmptyFlags(ctx);
+        applied = this->System::RecomputeFleetEmptyFlags(ctx);
         ok = applied && ok;
-        applied = this->RecomputeFleetBlockadeFlags(ctx);
+        applied = this->System::RecomputeFleetBlockadeFlags(ctx);
         ok = applied && ok;
     }
     return ok;
@@ -351,46 +351,46 @@ int System::Virtual50(int childArg, int added, int ctxArg) {
     const uint32_t family = child->GetFamily();
     int applied;
     if (familyIn(family, kFacilityRange)) {
-        applied = this->RecomputePopulated(ctx);
+        applied = this->System::RecomputePopulated(ctx);
         ok = applied && ok;
     }
     if (familyIn(family, FamilyRange(0x20, 0x22))) {
-        applied = this->AdjustLoyalty(SignedParameter1E1A(added), 1, ctx);
+        applied = this->System::AdjustLoyalty(SignedParameter1E1A(added), 1, ctx);
         ok = applied && ok;
     }
     if (family == 0x22) {
-        applied = this->RecomputeTroopRegWithdrawPercent(ctx);
+        applied = this->System::RecomputeTroopRegWithdrawPercent(ctx);
         ok = applied && ok;
     }
     if (familyIn(family, FamilyRange(0x2c, 0x30)) && added != 0) {
-        applied = this->PushProductionModifier(child, ctx);
+        applied = this->System::PushProductionModifier(child, ctx);
         ok = applied && ok;
     }
     if (family == 0x28) {
-        applied = this->RecomputeCombatUnitFastRepair(ctx);
+        applied = this->System::RecomputeCombatUnitFastRepair(ctx);
         ok = applied && ok;
-        applied = this->RefreshSiteKind0(ctx);
+        applied = this->System::RefreshSiteKind0(ctx);
         ok = applied && ok;
     }
     if (family == 0x29) {
-        applied = this->RefreshSiteKind2(ctx);
+        applied = this->System::RefreshSiteKind2(ctx);
         ok = applied && ok;
     }
     if (ok) {
-        if (family == 0x2a) ok = this->RefreshSiteKind1(ctx) != 0;
+        if (family == 0x2a) ok = this->System::RefreshSiteKind1(ctx) != 0;
         if (ok && familyIn(family, kFleetRange)) {
-            const int first = this->RecomputeObservation(ctx);
-            applied = this->RecomputeFleetExploredFlags(ctx);
+            const int first = this->System::RecomputeObservation(ctx);
+            applied = this->System::RecomputeFleetExploredFlags(ctx);
             ok = applied && first;
-            applied = this->RecomputeFleetEmptyFlags(ctx);
+            applied = this->System::RecomputeFleetEmptyFlags(ctx);
             ok = applied && ok;
             if (added != 0) {
                 applied = SetControlKindBattleReady(child->ControlSide(), ctx);
                 ok = applied && ok;
             }
-            applied = this->RecomputeFleetBlockadeFlags(ctx);
+            applied = this->System::RecomputeFleetBlockadeFlags(ctx);
             ok = applied && ok;
-            applied = this->NoteWithdrawingUnit(child, added, ctx);
+            applied = this->System::NoteWithdrawingUnit(child, added, ctx);
             ok = applied && ok;
             applied = SetBlockadeAndBattlePendingManagementRequired(1, ctx);
             ok = applied && ok;
@@ -401,20 +401,20 @@ int System::Virtual50(int childArg, int added, int ctxArg) {
             applied = SetControlKindBattleReady(child->ControlSide(), ctx);
             ok = applied && ok;
         }
-        applied = this->NoteWithdrawingUnit(child, added, ctx);
+        applied = this->System::NoteWithdrawingUnit(child, added, ctx);
         ok = applied && ok;
         applied = SetBlockadeAndBattlePendingManagementRequired(1, ctx);
         ok = applied && ok;
     }
     if (familyIn(family, kTroopRange)) {
-        applied = this->RecomputeControlData(ctx);
+        applied = this->System::RecomputeControlData(ctx);
         ok = applied && ok;
-        applied = this->RecomputeGarrisoned(ctx);
+        applied = this->System::RecomputeGarrisoned(ctx);
         ok = applied && ok;
-        applied = this->RecomputeTroopRegSurplus(ctx);
+        applied = this->System::RecomputeTroopRegSurplus(ctx);
         ok = applied && ok;
         if (added != 0) {
-            applied = this->PushTroopWithdrawPercent(child, ctx);
+            applied = this->System::PushTroopWithdrawPercent(child, ctx);
             ok = applied && ok;
         }
     }
@@ -432,11 +432,11 @@ int System::Virtual52(int childArg, int added, int ctxArg) {
             const uint32_t side = child->ControlSide();
             int applied;
             if (reason == kDestroyedByCapture) {
-                applied = this->SetData68(GetDataWord68(static_cast<int>(side)) + strength, side);
+                applied = this->System::SetData68(GetDataWord68(static_cast<int>(side)) + strength, side);
             } else if (reason == kDestroyedByRetreat) {
-                applied = this->SetData48(GetDataWord48(static_cast<int>(side)) + strength, side);
+                applied = this->System::SetData48(GetDataWord48(static_cast<int>(side)) + strength, side);
             } else if (reason == kDestroyedByLoss) {
-                applied = this->SetData54(GetDataWord54(static_cast<int>(side)) + strength, side);
+                applied = this->System::SetData54(GetDataWord54(static_cast<int>(side)) + strength, side);
             } else {
                 return ok;
             }
@@ -453,26 +453,26 @@ int System::Virtual53(int childArg, int added, int ctxArg) {
     const uint32_t family = child->GetFamily();
     int applied;
     if (familyIn(family, kCapitalShipRange)) {
-        applied = this->RecomputeSmugglingPercent(ctx);
+        applied = this->System::RecomputeSmugglingPercent(ctx);
         const int first = applied && ok;
-        applied = this->RecomputeTroopRegWithdrawPercent(ctx);
+        applied = this->System::RecomputeTroopRegWithdrawPercent(ctx);
         ok = applied && first;
         if (added != 0) {
-            applied = this->PushFastRepair(child, ctx);
+            applied = this->System::PushFastRepair(child, ctx);
             ok = applied && ok;
         }
     }
     if (familyIn(family, kTroopRange)) {
-        applied = this->RecomputeSmugglingPercent(ctx);
+        applied = this->System::RecomputeSmugglingPercent(ctx);
         ok = applied && ok;
     }
     if (familyIn(family, kFleetRange)) {
-        applied = this->RecomputeSmugglingPercent(ctx);
+        applied = this->System::RecomputeSmugglingPercent(ctx);
         const int first = applied && ok;
-        applied = this->RecomputeTroopRegWithdrawPercent(ctx);
+        applied = this->System::RecomputeTroopRegWithdrawPercent(ctx);
         ok = applied && first;
         if (added != 0) {
-            applied = this->RecomputeFastRepair(ctx);
+            applied = this->System::RecomputeFastRepair(ctx);
             ok = applied && ok;
         }
     }

@@ -19,7 +19,7 @@ int System::EndUprisingIfQuelled(NotifyContext* ctx) {
             const int troopCount = troops.Count();
             const uint32_t flags = GameObjRoot::m_flags;
             const int deathStar = (m_flags >> 11) & 1;
-            const int share = this->GetLoyaltyFor(player);
+            const int share = this->System::GetLoyaltyFor(player);
             const int strength = ComputeRemainingSupport((flags >> 6) & 3, share, deathStar, 1, 0, troopCount);
             if (strength >= 0) result = SetUprising(0, ctx);
         }
@@ -34,8 +34,8 @@ int System::AdjustLoyalty(int delta, int side, NotifyContext* ctx) {
         result = 0;
         if (player != 0) {
             const int shift = DampenFavourableShift(delta, player, (m_flags >> 11) & 1);
-            const int target = ClampPercent(this->GetLoyaltyFor(player) + shift);
-            result = this->SetLoyaltyFor(target, player, ctx) != 0;
+            const int target = ClampPercent(this->System::GetLoyaltyFor(player) + shift);
+            result = this->System::SetLoyaltyFor(target, player, ctx) != 0;
         }
     }
     return result;
@@ -59,10 +59,10 @@ void System::AdjustLoyaltyForAssault(NotifyContext* ctx) {
 void System::AdjustLoyaltyForBlockade(NotifyContext* ctx) {
     uint32_t flag = 0;
     int blockaded = 0;
-    if ((m_flags >> 5) & 1) blockaded = this->IsBlockaderMoreLoyal(&flag);
+    if ((m_flags >> 5) & 1) blockaded = this->System::IsBlockaderMoreLoyal(&flag);
     if (blockaded) {
         uint32_t blockaderSide;
-        if (this->GetBlockadingSide(&blockaderSide)) AdjustLoyalty(flag ? g_gnprtb1E0D : g_gnprtb1E0F, blockaderSide, ctx);
+        if (this->System::GetBlockadingSide(&blockaderSide)) AdjustLoyalty(flag ? g_gnprtb1E0D : g_gnprtb1E0F, blockaderSide, ctx);
     }
 }
 
@@ -77,7 +77,7 @@ int System::RollInformantIncident(NotifyContext* ctx) {
     int result = 0;
     if (ControlSide() != 3) {
         int occurs = 0;
-        result = RollFailure(this->GetLoyaltyFor(ControlSide()), &occurs);
+        result = RollFailure(this->System::GetLoyaltyFor(ControlSide()), &occurs);
         if (result && occurs) {
             const int raised = SetInformantIncident(1, ctx);
             const int cleared = SetInformantIncident(0, ctx);
@@ -202,15 +202,15 @@ int System::ResolveUprisingTurn(NotifyContext* ctx) {
     int firstEvent = 0;
     int secondEvent = 0;
     const int deathStar = (m_flags >> 11) & 1;
-    const int v7 = this->GetDataWord78();
-    const int v6 = this->GetDataWord74();
-    const int v5 = this->CountEmpireRegimentsOfKey6();
-    const int troops = this->CountTroopRegiments(side, 1);
-    const int share = this->GetLoyaltyFor(player);
+    const int v7 = this->System::GetDataWord78();
+    const int v6 = this->System::GetDataWord74();
+    const int v5 = this->System::CountEmpireRegimentsOfKey6();
+    const int troops = this->System::CountTroopRegiments(side, 1);
+    const int share = this->System::GetLoyaltyFor(player);
     RollUprisingIncident(side, share, deathStar, troops, v5, v6, v7, &firstEvent, &secondEvent);
     ApplyUprisingEvent(firstEvent, side, ctx);
     ApplyUprisingEvent(secondEvent, side, ctx);
-    return AdjustLoyalty(this->GetDataWord7c(), side, ctx);
+    return AdjustLoyalty(this->System::GetDataWord7c(), side, ctx);
 }
 
 int System::ApplyUprisingEvent(int event, int side, NotifyContext* ctx) {

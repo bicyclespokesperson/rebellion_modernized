@@ -229,7 +229,7 @@ void AddKindTab(FleetWindow* window, HMODULE art, CoolTabControl* tabs, const Ki
 }  // namespace
 
 void FleetWindow::OnCreate1() {
-    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return;
     HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
     DibBitmap* shape = LoadBitmap(art, 0x2a12);
@@ -434,7 +434,7 @@ LRESULT __stdcall FleetWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lP
 
 LRESULT FleetWindow::OnWmCommand(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND galaxyWindow = m_galaxy->m_hwnd;
-    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return 0;
     LRESULT result = 0;
     const uint32_t code = static_cast<uint32_t>(wParam) >> 16;
@@ -718,7 +718,7 @@ void FleetWindow::ShowObjectPage(const ObjectKey* key) {
 }
 
 int FleetWindow::Virtual29() {
-    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return 0;
     uint32_t side = static_cast<uint32_t>(ViewSideOf(m_galaxy->m_side));
     if (CountFleets(static_cast<GameObj*>(system), side, 3) == 0) {
@@ -735,7 +735,7 @@ int FleetWindow::Virtual29() {
 // ---- The fleet rows -------------------------------------------------------------------------------------------
 
 void FleetWindow::SyncFleetRows() {
-    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return;
     HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
     FleetIterator fleets(system, 3);

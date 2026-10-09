@@ -53,7 +53,7 @@ int MissionIncite::CheckTarget(MissionCheckArgs* check, StatusCode* status, int*
 
 int MissionIncite::Virtual157(GameObj* person, int* out) {
     System* system = nullptr;
-    const int found = static_cast<MissionSystemTargetBase*>(this)->GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
+    const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     int ok = found != 0;
     if (!system) return ok;
     const int side = ControlSideIndex(ControlSide());
@@ -69,12 +69,12 @@ int MissionIncite::Virtual160(NotifyContext* ctx) { return MissionStartIfIdle(th
 
 int MissionIncite::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     System* system = nullptr;
-    const int found = static_cast<MissionSystemTargetBase*>(this)->GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
+    const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     int ok = found != 0;
     if (!system) return ok;
     if (!PercentChance(roll)) return ok;
     *out = 1;
-    ok = system->ResolveUprisingTurn(ctx) && ok ? 1 : 0;
+    ok = system->System::ResolveUprisingTurn(ctx) && ok ? 1 : 0;
     const uint32_t side = ControlSideIndex(ControlSide());
     const bool sideHoldsLoyalty = system->m_controlData.Loyalty() == side;
     const bool uprisingContained = sideHoldsLoyalty || system->CountTroopRegiments(system->ControlSide(), 1) != 0;

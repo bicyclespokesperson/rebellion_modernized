@@ -78,7 +78,7 @@ uint32_t ApplySeedRuleToSystem(System* system, const SeedRule* rule, NotifyConte
         if (rule->m_direction != 1) amount = -amount;
         const int target = rule->m_target;
         if ((system->m_flags & kPopulated) != 0 && (system->m_flags & kNeverBeenControlled) == 0 &&
-            system->GetLoyaltyFor(rule->m_unitKind) < target) {
+            system->System::GetLoyaltyFor(rule->m_unitKind) < target) {
             void* memory = ::operator new(0x44);
             LoyaltyEvent373* command = memory ? new (memory) LoyaltyEvent373() : nullptr;
             result = command != nullptr;
@@ -128,11 +128,11 @@ int GameRoot::PlaceSystem(ObjectKey* systemKey, int unusedA, int initArg, int le
         ok = bothTrue(system != nullptr, ok);
     }
     if (system != nullptr) {
-        const int levelSet = (static_cast<System*>(system))->SetDataFlag1(level);
+        const int levelSet = (static_cast<System*>(system))->System::SetDataFlag1(level);
         const int firstOk = bothTrue(levelSet, ok);
         const int announced = callVirtual<int>(system, kVirtual47Slot, ctx);
         const int secondOk = bothTrue(announced, firstOk);
-        const int flagged = (static_cast<System*>(system))->SetDataFlag2(1);
+        const int flagged = (static_cast<System*>(system))->System::SetDataFlag2(1);
         ok = bothTrue(flagged, secondOk);
         ObjectKey recordKey;
         if (system->m_record == nullptr) {

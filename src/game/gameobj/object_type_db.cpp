@@ -143,7 +143,7 @@ int ObjectTypeDb::ForEachFamily(Crc32* crc) {
 
 DatRecord* ObjectTypeDb::FindRecord(const SeedKey* key) {
     DatRecord* record = nullptr;
-    if (void* entry = reinterpret_cast<SeedListFileTree*>(m_families)->FindByFamily(key->m_key >> 24)) {
+    if (void* entry = reinterpret_cast<SeedListFileTree*>(m_families)->SeedListFileTree::FindByFamily(key->m_key >> 24)) {
         record = AsRecord(RecordsOf(entry)->FindById(key->m_key & 0xffffff));
     }
     return record;
@@ -151,7 +151,7 @@ DatRecord* ObjectTypeDb::FindRecord(const SeedKey* key) {
 
 DatRecord* ObjectTypeDb::FirstRecordOfFamily(uint32_t family) {
     DatRecord* record = nullptr;
-    if (void* entry = reinterpret_cast<SeedListFileTree*>(m_families)->FindByFamily(family)) record = AsRecord(RecordsOf(entry)->First());
+    if (void* entry = reinterpret_cast<SeedListFileTree*>(m_families)->SeedListFileTree::FindByFamily(family)) record = AsRecord(RecordsOf(entry)->First());
     return record;
 }
 
@@ -183,7 +183,7 @@ int ObjectTypeDb::CollectRecords(int view, uint32_t kind, int level, int whenBel
             IntPair range;
             GetRecordKindRange(record, &range);
             const bool kindMatches = kind >= range.m_first && kind < range.m_second;
-            if (!(kindMatches && static_cast<SdRecord*>(record)->GetField48() && Available(record, view))) continue;
+            if (!(kindMatches && static_cast<SdRecord*>(record)->SdRecord::GetField48() && Available(record, view))) continue;
 
             const int recordLevel = static_cast<int>(record->m_field50);
             if (*maxLevel < recordLevel) *maxLevel = recordLevel;
@@ -195,7 +195,7 @@ int ObjectTypeDb::CollectRecords(int view, uint32_t kind, int level, int whenBel
             void* nameNode = memory ? new (memory) RecordNameNode() : nullptr;
             ok = nameNode != nullptr;
             if (nameNode) {
-                ok = static_cast<RecordNameNode*>(nameNode)->SetFromRecord(record);
+                ok = static_cast<RecordNameNode*>(nameNode)->RecordNameNode::SetFromRecord(record);
                 if (!ok || !(ok = static_cast<ObjectRefList*>(out)->Add(reinterpret_cast<ObjectRefNode*>(nameNode)))) delete static_cast<IdNode*>(nameNode);
             }
         }
@@ -255,7 +255,7 @@ int ObjectTypeDb::AreLevelsUnique(int view, uint32_t kind, int* unique) {
         NameList atLevel;
         ok = CollectRecords(view, kind, level, 0, 1, 0, atLevel.tree(), &maxLevel);
         if (ok) {
-            const int count = static_cast<ObjectRefList*>(atLevel.tree())->Size();
+            const int count = static_cast<ObjectRefList*>(atLevel.tree())->ObjectRefList::Size();
             if (count != 0 && count != 1) *unique = 0;
         }
     }

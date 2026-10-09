@@ -55,7 +55,7 @@ UprisingLoyaltyTimer::~UprisingLoyaltyTimer() { REB_KEEP_VPTR_STORE(); }
 UprisingLoyaltyTimer* UprisingLoyaltyTimer::Clone() { return NewOrNull<UprisingLoyaltyTimer>(*this); }
 
 TrackedStat* UprisingLoyaltyTimer::GetTargetSpec() {
-    return timerStatOfOwner<System>(this, ResolveMasterInFamilies_90_98, [](System* s) { return reinterpret_cast<Mission*>(s)->GetStatA(); });
+    return timerStatOfOwner<System>(this, ResolveMasterInFamilies_90_98, [](System* s) { return reinterpret_cast<Mission*>(s)->Mission::GetStatA(); });
 }
 
 void UprisingLoyaltyTimer::Fire() {
@@ -73,7 +73,7 @@ AssaultLoyaltyTimer::~AssaultLoyaltyTimer() { REB_KEEP_VPTR_STORE(); }
 AssaultLoyaltyTimer* AssaultLoyaltyTimer::Clone() { return NewOrNull<AssaultLoyaltyTimer>(*this); }
 
 TrackedStat* AssaultLoyaltyTimer::GetTargetSpec() {
-    return timerStatOfOwner<System>(this, ResolveMasterInFamilies_90_98, [](System* s) { return reinterpret_cast<Mission*>(s)->GetStatB(); });
+    return timerStatOfOwner<System>(this, ResolveMasterInFamilies_90_98, [](System* s) { return reinterpret_cast<Mission*>(s)->Mission::GetStatB(); });
 }
 
 void AssaultLoyaltyTimer::Fire() {

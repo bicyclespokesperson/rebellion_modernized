@@ -49,7 +49,7 @@ int MissionAbduction::CheckTarget(MissionCheckArgs* check, StatusCode* status, i
 
 int MissionAbduction::Virtual157(GameObj* person, int* out) {
     Character* target = nullptr;
-    const int found = static_cast<MissionCharacterTargetBase*>(this)->GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target));
+    const int found = static_cast<MissionCharacterTargetBase*>(this)->MissionCharacterTargetBase::GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target));
     bool ok = found != 0;
     if (!target) return ok;
     const int targetCombat = target->GetCombat();
@@ -69,7 +69,7 @@ int MissionAbduction::Virtual159(GameObj* personObject, int roll, int* out, Noti
     bool ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
     if (person->Virtual118()) ok = person->SetBaseCombat(person->m_baseCombat + g_gnprtb1813, ctx) && ok;
     Character* target = nullptr;
-    ok = static_cast<MissionCharacterTargetBase*>(this)->GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target)) && ok;
+    ok = static_cast<MissionCharacterTargetBase*>(this)->MissionCharacterTargetBase::GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target)) && ok;
     if (target) {
         ObjectKey key;
         person->GetKey(&key);

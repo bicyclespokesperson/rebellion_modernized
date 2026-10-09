@@ -61,7 +61,7 @@ int ChildIterator::Accepts() {
     if (m_current) {
         const uint32_t family = m_current->GetFamily();
         if (family < m_range.m_first || family >= m_range.m_second) accepted = 0;
-        if (!static_cast<GameObj*>(m_current)->MatchesStateFilter(m_stateFilter)) accepted = 0;
+        if (!static_cast<GameObj*>(m_current)->GameObj::MatchesStateFilter(m_stateFilter)) accepted = 0;
         if (m_hasSideFilter && m_current->ControlSide() != m_side) accepted = 0;
     }
     return accepted;

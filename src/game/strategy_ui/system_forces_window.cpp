@@ -153,7 +153,7 @@ SystemForcesWindow::~SystemForcesWindow() {
 }
 
 void SystemForcesWindow::OnCreate1() {
-    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return;
     m_side = static_cast<int>(system->ControlSide());
     HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
@@ -294,7 +294,7 @@ void SystemForcesWindow::OnCommand(int, int command, int lParam) {
         PostMessageA(galaxyWindow, kCommandMessage, (m_childId & 0xffff) | (kRedrawHeaderCommand << 16), 0);
         return;
     case kSectorId: {
-        GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+        GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
         if (system && m_galaxy) {
             ObjectKey sectorKey;
             if (static_cast<GameObj*>(system)->GetValidParentKey(&sectorKey) != 0) m_galaxy->OpenSectorWindow(&sectorKey);
@@ -378,7 +378,7 @@ ObjectKey SystemForcesWindow::GetKeyAt(int x, int y) {
 ObjectKey SystemForcesWindow::GetDropKeyAt(int, int) { return m_systemKey; }
 
 int SystemForcesWindow::Virtual29() {
-    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return 0;
     const uint32_t side = system->ControlSide();
     if (side != 1) {
@@ -419,7 +419,7 @@ void SystemForcesWindow::GetSelection(ObjectKeyValueSet* out, CoolWindow*) {
 }
 
 void SystemForcesWindow::OnChildAdded(const ObjectKey* key, GameObjNotifier* object) {
-    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return;
     ObjectKey unused;
     const bool isNew = m_objects.Find(key) == nullptr;
@@ -463,7 +463,7 @@ void SystemForcesWindow::OnChildMoved(const ObjectKey* key, GameObjNotifier* obj
 }
 
 void SystemForcesWindow::OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object) {
-    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return;
     DibBitmap* overlay = m_rowOverlay;
     int tabToRefresh = m_tab;
@@ -595,7 +595,7 @@ void SystemForcesWindow::AddRow(GameObjNotifier* object, DibBitmap* overlay) {
 
 int SystemForcesWindow::ShowTab(int tab) {
     CoolAppGetResourceModule(kBitmapSlot);
-    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return 0;
     if (m_tab == tab) return 0;
     m_items->Clear();
@@ -662,7 +662,7 @@ int SystemForcesWindow::ShowTab(int tab) {
 void SystemForcesWindow::LoadHeaderBitmaps() {
     ObjectKey unused;
     HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
-    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return;
     DeleteBitmap(m_headerActive);
     DeleteBitmap(m_headerInactive);

@@ -106,11 +106,11 @@ int System::RecomputeSmugglingPercent(NotifyContext* ctx) {
     const int player = PlayerSide(side);
     if (player != 0) {
         const int deathStar = (m_flags >> 11) & 1;
-        const int a = this->CountDeathStars(side, 1);
-        const int b = this->CountTroopRegiments(side, 1);
-        const int c = this->CountFighterSquadrons(side, 1);
-        const int d = this->CountCapitalShips(side, 1);
-        const int share = this->GetLoyaltyFor(player);
+        const int a = this->System::CountDeathStars(side, 1);
+        const int b = this->System::CountTroopRegiments(side, 1);
+        const int c = this->System::CountFighterSquadrons(side, 1);
+        const int d = this->System::CountCapitalShips(side, 1);
+        const int share = this->System::GetLoyaltyFor(player);
         percent = ComputeUprisingPercent(side, share, deathStar, d, c, b, a);
     }
     return SetSmugglingPercent(percent, ctx);
@@ -119,7 +119,7 @@ int System::RecomputeSmugglingPercent(NotifyContext* ctx) {
 int System::RecomputeProductionModifier(NotifyContext* ctx) {
     int modifier = 100;
     const int player = PlayerSide(ControlSide());
-    if (player != 0) modifier = ScaleByRatio1E53(this->GetLoyaltyFor(player));
+    if (player != 0) modifier = ScaleByRatio1E53(this->System::GetLoyaltyFor(player));
     return SetProductionModifier(modifier, ctx);
 }
 
@@ -166,7 +166,7 @@ int System::RecomputeTroopRegRequired(NotifyContext* ctx) {
     if (player != 0 && (m_flags & system_flag::kPopulated)) {
         const int uprising = (m_flags >> 2) & 1;
         const int deathStar = (m_flags >> 11) & 1;
-        required = ComputeSupportCost(side, this->GetLoyaltyFor(player), deathStar, uprising, 1);
+        required = ComputeSupportCost(side, this->System::GetLoyaltyFor(player), deathStar, uprising, 1);
     }
     return SetTroopRegRequired(required, ctx);
 }

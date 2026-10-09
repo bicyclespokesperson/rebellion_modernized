@@ -226,7 +226,7 @@ int RebellionApplication::SavePendingGame() {
     }
     CloseFileStream(file.get());
     if ((m_state == kStateOptionsMenu || m_state == kStateOptionsInGame) && m_activeWindow)
-        static_cast<GameOptionsWindow*>(m_activeWindow)->OnSaveResult(saved, slot);
+        static_cast<GameOptionsWindow*>(m_activeWindow)->GameOptionsWindow::OnSaveResult(saved, slot);
     return saved;
 }
 
@@ -259,7 +259,7 @@ void RebellionApplication::SendSaveCommand(int a, int b, String name, int d) {
     void* executorMemory = operator new(0x1c);
     CommandExecutor* executor = executorMemory ? static_cast<CommandExecutor*>(new (executorMemory) MessageCodec()) : nullptr;
     if (!executor) return;
-    static_cast<MessageCodec*>(executor)->Serialize(reinterpret_cast<MessageBase*>(command));
+    static_cast<MessageCodec*>(executor)->MessageCodec::Serialize(reinterpret_cast<MessageBase*>(command));
     if (executor->m_valid) {
         CommSendMessage(executor->m_buffer, executor->m_size, 4, 1);
         CommFlushAll();

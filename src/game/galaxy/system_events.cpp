@@ -62,14 +62,14 @@ int System::OnNameChanged(String* oldName, String* newName, NotifyContext* ctx) 
 int System::OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) {
     int ok = GameObj::OnControlKindChanged(oldKind, newKind, ctx) != 0;
     if (g_setupComplete != 0) {
-        ok = this->RecomputeObservation(ctx) && ok;
-        ok = this->RecomputeNeverBeenControlled(ctx) && ok;
-        ok = this->RecomputeFastRepair(ctx) && ok;
+        ok = this->System::RecomputeObservation(ctx) && ok;
+        ok = this->System::RecomputeNeverBeenControlled(ctx) && ok;
+        ok = this->System::RecomputeFastRepair(ctx) && ok;
         ok = SetUprising(0, ctx) && ok;
         ok = SetSmugglingPercent(0, ctx) && ok;
-        ok = this->RecomputeSmugglingPercent(ctx) && ok;
-        ok = this->RecomputeTroopRegRequired(ctx) && ok;
-        ok = this->CheckHyperspaceBlocked(oldKind, newKind, ctx) && ok;
+        ok = this->System::RecomputeSmugglingPercent(ctx) && ok;
+        ok = this->System::RecomputeTroopRegRequired(ctx) && ok;
+        ok = this->System::CheckHyperspaceBlocked(oldKind, newKind, ctx) && ok;
         ok = SetBlockadeAndBattlePendingManagementRequired(1, ctx) && ok;
     }
     return ok;
@@ -83,18 +83,18 @@ int System::OnDestroyedChanged(int newValue, NotifyContext* ctx) {
 
 int System::OnExistingChanged(int newValue, NotifyContext* ctx) {
     int ok = GameObj::OnExistingChanged(newValue, ctx) != 0;
-    if (g_setupComplete != 0) ok = this->RecomputePopulated(ctx) && ok;
+    if (g_setupComplete != 0) ok = this->System::RecomputePopulated(ctx) && ok;
     return ok;
 }
 
 int System::OnLoyaltyChanged(int oldValue, int newValue, NotifyContext* ctx) {
     int result = 1;
     if (g_setupComplete != 0) {
-        const int first = this->RecomputeControlData(ctx);
-        const int second = this->RecomputeTroopRegRequired(ctx);
+        const int first = this->System::RecomputeControlData(ctx);
+        const int second = this->System::RecomputeTroopRegRequired(ctx);
         int ok = second && first;
-        ok = this->RecomputeSmugglingPercent(ctx) && ok;
-        result = this->RecomputeProductionModifier(ctx) && ok;
+        ok = this->System::RecomputeSmugglingPercent(ctx) && ok;
+        result = this->System::RecomputeProductionModifier(ctx) && ok;
         if (m_flags & system_flag::kBlockade) {
             uint32_t fleetSide;
             ok = IsBlockaderMoreLoyal(&fleetSide) && result;
@@ -107,24 +107,24 @@ int System::OnLoyaltyChanged(int oldValue, int newValue, NotifyContext* ctx) {
 }
 
 int System::OnEnergyChanged(int oldValue, int newValue, NotifyContext* ctx) {
-    const int first = this->RecomputeRawMaterial(ctx);
-    const int second = this->RecomputeEnergyAllocated(ctx);
+    const int first = this->System::RecomputeRawMaterial(ctx);
+    const int second = this->System::RecomputeEnergyAllocated(ctx);
     return second && first ? 1 : 0;
 }
 
 int System::OnRawMaterialChanged(int oldValue, int newValue, NotifyContext* ctx) {
-    const int first = this->RecomputeRawMaterial(ctx);
-    const int second = this->RecomputeRawMaterialAllocated(ctx);
+    const int first = this->System::RecomputeRawMaterial(ctx);
+    const int second = this->System::RecomputeRawMaterialAllocated(ctx);
     return second && first ? 1 : 0;
 }
 
 int System::OnProductionModifierChanged(int oldValue, int newValue, NotifyContext* ctx) {
-    return this->RecomputeProductionModifiers(ctx) != 0;
+    return this->System::RecomputeProductionModifiers(ctx) != 0;
 }
 
 int System::OnTroopRegWithdrawPercentChanged(int oldValue, int newValue, NotifyContext* ctx) {
     int ok = 1;
-    if (g_setupComplete != 0) ok = this->RecomputeTroopWithdrawPercents(ctx) != 0;
+    if (g_setupComplete != 0) ok = this->System::RecomputeTroopWithdrawPercents(ctx) != 0;
     return ok;
 }
 
@@ -147,8 +147,8 @@ int System::OnControlKindBattleWithdrewChanged(int oldValue, int newValue, Notif
 int System::OnTroopRegSurplusChanged(int oldValue, int newValue, NotifyContext* ctx) {
     int result = 1;
     if (g_setupComplete != 0) {
-        const int first = this->RecomputeUprising(ctx);
-        const int second = this->RecomputeSuppressing(ctx);
+        const int first = this->System::RecomputeUprising(ctx);
+        const int second = this->System::RecomputeSuppressing(ctx);
         result = second && first ? 1 : 0;
     }
     return result;
@@ -156,7 +156,7 @@ int System::OnTroopRegSurplusChanged(int oldValue, int newValue, NotifyContext* 
 
 int System::OnTroopRegRequiredChanged(int oldValue, int newValue, NotifyContext* ctx) {
     int ok = 1;
-    if (g_setupComplete != 0) ok = this->RecomputeTroopRegSurplus(ctx) != 0;
+    if (g_setupComplete != 0) ok = this->System::RecomputeTroopRegSurplus(ctx) != 0;
     return ok;
 }
 
@@ -190,10 +190,10 @@ int System::OnPopulatedChanged(int newValue, NotifyContext* ctx) {
             }
             ok = SetLoyaltyFor(loyalty, side, ctx) != 0;
         }
-        ok = this->RecomputeControlData(ctx) && ok;
-        ok = this->RecomputeTroopRegRequired(ctx) && ok;
+        ok = this->System::RecomputeControlData(ctx) && ok;
+        ok = this->System::RecomputeTroopRegRequired(ctx) && ok;
         ok = SetBlockadeAndBattlePendingManagementRequired(1, ctx) && ok;
-        ok = this->RecomputeNeverBeenControlled(ctx) && ok;
+        ok = this->System::RecomputeNeverBeenControlled(ctx) && ok;
     }
     return ok;
 }
@@ -201,15 +201,15 @@ int System::OnPopulatedChanged(int newValue, NotifyContext* ctx) {
 int System::OnUprisingChanged(int newValue, NotifyContext* ctx) {
     int result = 1;
     if (g_setupComplete != 0) {
-        const int first = this->RecomputeFacilityBattleFlags(ctx);
-        const int second = this->RefreshSiteKind0(ctx);
+        const int first = this->System::RecomputeFacilityBattleFlags(ctx);
+        const int second = this->System::RefreshSiteKind0(ctx);
         int ok = second && first;
-        ok = this->RefreshSiteKind2(ctx) && ok;
-        ok = this->RefreshSiteKind1(ctx) && ok;
-        ok = this->RecomputeTroopRegRequired(ctx) && ok;
-        ok = this->RecomputeGarrisoned(ctx) && ok;
-        ok = this->RecomputeControlKindUprising(ctx) && ok;
-        ok = this->RecomputeSuppressing(ctx) && ok;
+        ok = this->System::RefreshSiteKind2(ctx) && ok;
+        ok = this->System::RefreshSiteKind1(ctx) && ok;
+        ok = this->System::RecomputeTroopRegRequired(ctx) && ok;
+        ok = this->System::RecomputeGarrisoned(ctx) && ok;
+        ok = this->System::RecomputeControlKindUprising(ctx) && ok;
+        ok = this->System::RecomputeSuppressing(ctx) && ok;
         ok = PostSourceEventFlag(0x303, this, newValue, ctx) && ok;
         ok = ArmTimerAfterSetFlag(900, newValue, this, &dataOf(this)->m_stats[1], ctx) && ok;
         ok = ArmTimerAfterSetFlag(0x38d, newValue, this, &dataOf(this)->m_stats[4], ctx) && ok;
@@ -222,12 +222,12 @@ int System::OnBattleChanged(int newValue, NotifyContext* ctx) {
     int result = 1;
     if (g_setupComplete != 0) {
         if (newValue != 0) {
-            const int first = this->SetData68(0, 1);
-            const int second = this->SetData68(0, 2);
+            const int first = this->System::SetData68(0, 1);
+            const int second = this->System::SetData68(0, 2);
             int ok = second && first;
-            result = this->SetData68(0, 3) && ok;
+            result = this->System::SetData68(0, 3) && ok;
         }
-        int ok = this->RecomputeFleetBattleFlags(ctx) && result;
+        int ok = this->System::RecomputeFleetBattleFlags(ctx) && result;
         result = PostSourceEventFlag(0x309, this, newValue, ctx) && ok;
 
         NotifyContext allViews(*ctx);
@@ -251,25 +251,25 @@ int System::OnBattleChanged(int newValue, NotifyContext* ctx) {
 int System::OnBlockadeChanged(int newValue, NotifyContext* ctx) {
     int result = 1;
     if (g_setupComplete != 0) {
-        const int first = this->RecomputeFleetBlockadeFlags(ctx);
-        const int second = this->RecomputeFacilityBattleFlags(ctx);
+        const int first = this->System::RecomputeFleetBlockadeFlags(ctx);
+        const int second = this->System::RecomputeFacilityBattleFlags(ctx);
         int ok = second && first;
-        ok = this->RefreshSiteKind0(ctx) && ok;
-        ok = this->RefreshSiteKind2(ctx) && ok;
-        ok = this->RefreshSiteKind1(ctx) && ok;
-        ok = this->RecomputeTroopRegWithdrawPercent(ctx) && ok;
+        ok = this->System::RefreshSiteKind0(ctx) && ok;
+        ok = this->System::RefreshSiteKind2(ctx) && ok;
+        ok = this->System::RefreshSiteKind1(ctx) && ok;
+        ok = this->System::RecomputeTroopRegWithdrawPercent(ctx) && ok;
         if (ok && newValue != 0) {
-            const int firstSide = this->SetData48(0, 1);
-            const int secondSide = this->SetData48(0, 2);
+            const int firstSide = this->System::SetData48(0, 1);
+            const int secondSide = this->System::SetData48(0, 2);
             ok = secondSide && firstSide;
-            ok = this->SetData48(0, 3) && ok;
-            ok = this->SetData54(0, 1) && ok;
-            ok = this->SetData54(0, 2) && ok;
-            ok = this->SetData54(0, 3) && ok;
+            ok = this->System::SetData48(0, 3) && ok;
+            ok = this->System::SetData54(0, 1) && ok;
+            ok = this->System::SetData54(0, 2) && ok;
+            ok = this->System::SetData54(0, 3) && ok;
             if (ok && (m_flags & system_flag::kBlockade)) {
                 uint32_t fleetSide;
                 const int found = GetBlockadingSide(&fleetSide);
-                const int adjusted = this->SetData60(fleetSide);
+                const int adjusted = this->System::SetData60(fleetSide);
                 ok = adjusted && found;
             }
         }
@@ -314,7 +314,7 @@ int System::OnGarrisonedChanged(int newValue, NotifyContext* ctx) {
         const int loyalty = GetLoyaltyFor(loyaltySide);
         const uint32_t side = ControlSide();
         const int strength = ThresholdBonus(loyalty);
-        ok = this->AdjustLoyalty(strength, side, ctx) && sideKnown;
+        ok = this->System::AdjustLoyalty(strength, side, ctx) && sideKnown;
     }
     const int hub = ArmTimerAfterSetFlag(0x385, newValue, this, &dataOf(this)->m_stats[2], ctx);
     return hub && ok ? 1 : 0;
@@ -328,23 +328,23 @@ int System::OnSuppressingChanged(int newValue, NotifyContext* ctx) {
 
 int System::OnCombatUnitFastRepairChanged(int newValue, NotifyContext* ctx) {
     int ok = 1;
-    if (g_setupComplete != 0) ok = this->RecomputeFastRepair(ctx) != 0;
+    if (g_setupComplete != 0) ok = this->System::RecomputeFastRepair(ctx) != 0;
     return ok;
 }
 
 int System::OnDeathStarNearbyChanged(int newValue, NotifyContext* ctx) {
-    const int first = this->RecomputeTroopRegRequired(ctx);
-    const int second = this->RecomputeSmugglingPercent(ctx);
+    const int first = this->System::RecomputeTroopRegRequired(ctx);
+    const int second = this->System::RecomputeSmugglingPercent(ctx);
     return second && first ? 1 : 0;
 }
 
 int System::OnBattlePendingChanged(int newValue, NotifyContext* ctx) {
     int ok = 1;
     if (newValue != 0) {
-        const int first = this->SetDataFlag8(newValue);
-        const int second = this->SetData64(0);
+        const int first = this->System::SetDataFlag8(newValue);
+        const int second = this->System::SetData64(0);
         ok = second && first;
-        ok = this->SetDataFlag4(0) && ok;
+        ok = this->System::SetDataFlag4(0) && ok;
         ok = SetControlKindBattleWon(0, ctx) && ok;
         ok = SetControlKindBattleWithdrew(0, ctx) && ok;
     }
@@ -354,7 +354,7 @@ int System::OnBattlePendingChanged(int newValue, NotifyContext* ctx) {
 
 int System::OnUprisingIncidentChanged(int newValue, NotifyContext* ctx) {
     int ok = 1;
-    if (newValue != 0) ok = this->ResolveUprisingTurn(ctx) != 0;
+    if (newValue != 0) ok = this->System::ResolveUprisingTurn(ctx) != 0;
     return ok;
 }
 
@@ -364,7 +364,7 @@ int System::OnInformantIncidentChanged(int newValue, NotifyContext* ctx) {
     const int first = ViewAsSystem(kAllianceView)->ApplyInformantIncident(&allViews);
     const int second = ViewAsSystem(kEmpireView)->ApplyInformantIncident(&allViews);
     int result = second && first ? 1 : 0;
-    if (newValue != 0) result = this->RollAndSyncEvent(ctx) && result;
+    if (newValue != 0) result = this->System::RollAndSyncEvent(ctx) && result;
     return result;
 }
 

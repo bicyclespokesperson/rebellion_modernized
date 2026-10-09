@@ -122,7 +122,7 @@ void HumanPlayer::Write(ostream* out) {
     PlayerController::Write(out);
     WriteValue32(out, &m_unk50);
     WriteValue32(out, &m_speed);
-    reinterpret_cast<AiNoticeQueue*>(m_alertList)->Save(out);
+    reinterpret_cast<AiNoticeQueue*>(m_alertList)->AiNoticeQueue::Save(out);
     Dispatch()->Write(out);
     if (m_advisor) m_advisor->Write(out);
 }
@@ -133,7 +133,7 @@ int HumanPlayer::Virtual04() {
     int result = 1;
     if (m_advisor) result = m_advisor->StepStartup();
     if (result) {
-        Dispatch()->ClearRecords();
+        Dispatch()->PlayerDispatch::ClearRecords();
         SetSpeed(2);
     }
     return result;
@@ -161,7 +161,7 @@ int HumanPlayer::Virtual09() {
 
 void HumanPlayer::Virtual10() {
     if (m_advisor && !HasPendingMessages()) m_advisor->Tick();
-    if (void* message = reinterpret_cast<AiNoticeQueue*>(m_alertList)->DetachFinished()) {
+    if (void* message = reinterpret_cast<AiNoticeQueue*>(m_alertList)->AiNoticeQueue::DetachFinished()) {
         Dispatch()->HandleNotifications(static_cast<LinkNode*>(message));
         void** vtable = *static_cast<void***>(message);
         reinterpret_cast<void(__thiscall*)(void*, int)>(vtable[0])(message, 1);
@@ -310,41 +310,41 @@ void HumanPlayer::Virtual29(unsigned flags) {
 void HumanPlayer::Virtual30(const ObjectKey* key, int arg) {
     UiOnSystemChangedKind2(key, arg, 0);
     UiBroadcastObjectUpdated(key, nullptr);
-    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->AiGalaxyAnalysis::NoteChanged(key, 0);
 }
 
 void HumanPlayer::Virtual31(const ObjectKey* key, int arg) {
     UiOnSystemChangedKind1(key, -1, arg);
-    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->AiGalaxyAnalysis::NoteChanged(key, 0);
 }
 
 void HumanPlayer::Virtual32(const ObjectKey* key, int arg) {
     UiOnSystemChangedKind1(key, arg, -1);
-    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->AiGalaxyAnalysis::NoteChanged(key, 0);
 }
 
 void HumanPlayer::Virtual33(const ObjectKey* key, int) {
     UiBroadcastObjectUpdated(key, nullptr);
-    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->AiGalaxyAnalysis::NoteChanged(key, 0);
 }
 
 void HumanPlayer::Virtual43(const ObjectKey* key, int sound) {
     UiBroadcastObjectUpdated(key, nullptr);
-    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->AiGalaxyAnalysis::NoteChanged(key, 0);
     if (sound) PlayEffect(kTargetRequestSound);
 }
 
 void HumanPlayer::Virtual44(const ObjectKey* key, int sound) {
     UiBroadcastObjectUpdated(key, nullptr);
-    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->AiGalaxyAnalysis::NoteChanged(key, 0);
     if (sound) PlayEffect(kBlockedRequestSound);
 }
 
-void HumanPlayer::Virtual45(const ObjectKey* key, int) { reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0); }
+void HumanPlayer::Virtual45(const ObjectKey* key, int) { reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->AiGalaxyAnalysis::NoteChanged(key, 0); }
 
 void HumanPlayer::Virtual51(const ObjectKey* manager, int unused) {
     UiOnManagerProductionChanged(manager, unused);
-    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(manager, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->AiGalaxyAnalysis::NoteChanged(manager, 0);
 }
 
 void HumanPlayer::Virtual52(const ObjectKey* manager, int position) { UiOnManagerProgressChanged(manager, position); }
@@ -356,7 +356,7 @@ void HumanPlayer::Virtual53(const ObjectKey* manager, const ObjectKey* character
 void HumanPlayer::Virtual54(const ObjectKey* manager, String* text) { UiOnManagerStatusTextChanged(manager, text); }
 
 void HumanPlayer::Virtual62(const ObjectKey* key, int redraw) {
-    if (redraw) reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
+    if (redraw) reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->AiGalaxyAnalysis::NoteChanged(key, 0);
 }
 
 void HumanPlayer::Virtual80(const ObjectKey* key, int) { UiBroadcastObjectUpdated(key, nullptr); }
@@ -393,12 +393,12 @@ void HumanPlayer::Virtual81(const ObjectKey* key, const ObjectKey* oldKey, const
         UiBroadcastObjectMoved(key, nullptr, &parentKey, nullptr);
         UiBroadcastObjectChanged(key, nullptr);
     }
-    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->AiGalaxyAnalysis::NoteChanged(key, 0);
 }
 
 void HumanPlayer::Virtual82(const ObjectKey* key) {
     UiBroadcastObjectChanged(key, nullptr);
-    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->AiGalaxyAnalysis::NoteChanged(key, 0);
 }
 
 void HumanPlayer::Virtual83(const ObjectKey* key, const ObjectKey* newParent, const ObjectKey* arg) {
@@ -413,7 +413,7 @@ void HumanPlayer::Virtual83(const ObjectKey* key, const ObjectKey* newParent, co
     }
     UiBroadcastObjectMoved(key, nullptr, newParent, nullptr);
     UiBroadcastObjectChanged(key, nullptr);
-    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteMoved(key, newParent, arg);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->AiGalaxyAnalysis::NoteMoved(key, newParent, arg);
 }
 
 void HumanPlayer::Virtual87(const ObjectKey* key, int name0, int name1, int name2) {
@@ -425,13 +425,13 @@ void HumanPlayer::Virtual87(const ObjectKey* key, int name0, int name1, int name
 
 void HumanPlayer::Virtual90(const ObjectKey* key) {
     UiBroadcastObjectUpdated(key, nullptr);
-    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->AiGalaxyAnalysis::NoteChanged(key, 0);
 }
 
 void HumanPlayer::Virtual91(const ObjectKey* key, const ObjectKey* newParent) {
     UiBroadcastObjectMoved(key, nullptr, newParent, nullptr);
-    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChangedAlt(key);
-    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(newParent, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->AiGalaxyAnalysis::NoteChangedAlt(key);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->AiGalaxyAnalysis::NoteChanged(newParent, 0);
 }
 
 // ---- Commands and orders (0x486fb0-0x488460) ----------------------------------------------------------------
@@ -640,7 +640,7 @@ void HumanPlayer::SubmitOrder(PlayerMessage* order, int flag) {
     } else if (flag == 0 && IsQueuedOrder(order)) {
         Dispatch()->QueueConfirmation(reinterpret_cast<MessageBase*>(order));
     } else {
-        this->SpeakOrderAdvice(order);
+        this->HumanPlayer::SpeakOrderAdvice(order);
         Send(reinterpret_cast<MessageBase*>(order));
         m_advisor->ResetSpeech();
         m_advisor->OnOrderSubmitted(order);

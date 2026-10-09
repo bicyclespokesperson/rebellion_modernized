@@ -15,17 +15,17 @@ MissionAutoroute::~MissionAutoroute() { REB_KEEP_VPTR_STORE(); }
 
 uint32_t MissionAutoroute::GetFamily() { return kFamilyMissionAutoroute; }
 
-int MissionAutoroute::Read(istream* in) { return reinterpret_cast<MissionRuleBase*>(this)->ReadBody(in); }
+int MissionAutoroute::Read(istream* in) { return reinterpret_cast<MissionRuleBase*>(this)->MissionRuleBase::ReadBody(in); }
 
 int MissionAutoroute::Write(ostream* out) { return FUN_0056ec40(this, out); }
 
-int MissionAutoroute::Checksum(Crc32* crc) { return this->ChecksumBody(crc); }
+int MissionAutoroute::Checksum(Crc32* crc) { return this->MissionTypeBase::ChecksumBody(crc); }
 
-int MissionAutoroute::Validate() { return static_cast<Mission*>(this)->ValidateImpl(); }
+int MissionAutoroute::Validate() { return static_cast<Mission*>(this)->Mission::ValidateImpl(); }
 
 int MissionAutoroute::ApplyAll(NotifyContext* ctx) { return IsSideView() ? FUN_0056ec50(this, ctx) : 0; }
 
-int MissionAutoroute::CreateViews(int controlKind, NotifyContext* ctx) { return this->CreateViewsImpl(controlKind, ctx); }
+int MissionAutoroute::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
 int MissionAutoroute::GetEventKinds(int unused, EventKindSet* out) {
     return CopyEventKinds(BuildEventKinds, &g_missionAutorouteEventKinds, out);

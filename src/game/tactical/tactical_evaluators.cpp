@@ -120,9 +120,9 @@ float AttackEvaluator::Evaluate(int a, TacticalShipBase* unit) {
     score = static_cast<float>(countAboard<TacticalSpecialForceUnit>(simulator->m_specialForces, static_cast<int>(unit->m_id))) * kAboardWeight + score;
     simulator = GetHeadlessSimulator();
     score = static_cast<float>(countAboard<TacticalCharacterUnit>(simulator->m_characters, static_cast<int>(unit->m_id))) * kAboardWeight + score;
-    score = unit->AttackRatingVsClass(a, 0) * kStrengthWeight + score;
-    score = score - unit->ShieldRechargeFraction() * kPenaltyWeight;
-    score = score - unit->ScaleByHullFull() * kPenaltyWeight;
+    score = unit->TacticalShipBase::AttackRatingVsClass(a, 0) * kStrengthWeight + score;
+    score = score - unit->TacticalShipBase::ShieldRechargeFraction() * kPenaltyWeight;
+    score = score - unit->TacticalShipBase::ScaleByHullFull() * kPenaltyWeight;
     if (unit->m_state == kStateDocked || unit->m_state == kStateLanding) score = score - kPenaltyWeight;
     const int side = unit->m_side;
     SideOrderTree& orders = reinterpret_cast<TacticalSideBase*>(GetHeadlessSimulator()->m_sides[side])->m_orders;

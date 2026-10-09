@@ -320,7 +320,7 @@ int Event313::CheckValid(StatusCode* status) {
 int Event313::Execute() {
     NotifyContext ctx(m_context);
     GameObjNotifier* manager = GetGameRootMember_b8();
-    if (manager) static_cast<MissionMgr*>(manager)->RunStoryPipelineForStoryKey2(&m_key, m_valueB, &ctx);
+    if (manager) static_cast<MissionMgr*>(manager)->MissionMgr::RunStoryPipelineForStoryKey2(&m_key, m_valueB, &ctx);
     return 0;
 }
 

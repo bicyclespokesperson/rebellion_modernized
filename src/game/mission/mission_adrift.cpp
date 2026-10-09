@@ -16,20 +16,20 @@ MissionAdrift::~MissionAdrift() { REB_KEEP_VPTR_STORE(); }
 
 uint32_t MissionAdrift::GetFamily() { return kFamilyMissionAdrift; }
 
-int MissionAdrift::Read(istream* in) { return reinterpret_cast<MissionRuleBase*>(this)->ReadBody(in); }
+int MissionAdrift::Read(istream* in) { return reinterpret_cast<MissionRuleBase*>(this)->MissionRuleBase::ReadBody(in); }
 
 int MissionAdrift::Write(ostream* out) { return FUN_0056ec40(this, out); }
 
-int MissionAdrift::Checksum(Crc32* crc) { return this->ChecksumBody(crc); }
+int MissionAdrift::Checksum(Crc32* crc) { return this->MissionTypeBase::ChecksumBody(crc); }
 
-int MissionAdrift::Validate() { return static_cast<Mission*>(this)->ValidateImpl(); }
+int MissionAdrift::Validate() { return static_cast<Mission*>(this)->Mission::ValidateImpl(); }
 
 int MissionAdrift::ApplyAll(NotifyContext* ctx) { return IsSideView() ? FUN_0056ec50(this, ctx) : 0; }
 
 int MissionAdrift::CreateViews(int controlKind, NotifyContext* ctx) { return CreateViewsImpl(controlKind, ctx); }
 
 int MissionAdrift::CreateViewsImpl(int controlKind, NotifyContext* ctx) {
-    const int created = this->CreateViewsImpl(controlKind, ctx);
+    const int created = this->Mission::CreateViewsImpl(controlKind, ctx);
     MissionPhaseLevels levels;
     levels.m_levels = kInitialPhaseLevels;
     AssignPhaseLevels(&levels);

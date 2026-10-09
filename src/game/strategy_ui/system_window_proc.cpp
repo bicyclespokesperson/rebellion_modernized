@@ -107,7 +107,7 @@ LRESULT __stdcall SystemWindow::WindowProc(UINT message, WPARAM wParam, LPARAM l
             SetFocus(m_page == static_cast<int>(kFirstPage) ? m_hwnd : m_list->m_hwnd);
             return 0;
         case kSectorId: {
-            GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+            GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
             if (!system || !m_galaxy) return 0;
             ObjectKey sectorKey;
             if (static_cast<GameObj*>(system)->GetValidParentKey(&sectorKey)) m_galaxy->OpenSectorWindow(&sectorKey);
@@ -273,7 +273,7 @@ LRESULT __stdcall SystemWindow::WindowProc(UINT message, WPARAM wParam, LPARAM l
 // ---- Painting ----------------------------------------------------------------------------------------------
 
 void SystemWindow::DrawContents(RECT paintRect, HDC dc) {
-    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return;
     const int left = m_titleRect.left;
     const int top = m_titleRect.top;
@@ -398,7 +398,7 @@ void SystemWindow::LoadTabArt() {
 }
 
 void SystemWindow::OnCreate1() {
-    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     m_controlSide = (ControlBits(system) >> 6) & 3;
     String unusedText;
     ObjectKey unusedKeyA;
@@ -583,7 +583,7 @@ void SystemWindow::OnCreate1() {
 
 int SystemWindow::SelectPage(int page) {
     HMODULE art = CoolAppGetResourceModule(kArtSlot);
-    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return 0;
     if (m_page == page) return 0;
     (void)m_children.First();

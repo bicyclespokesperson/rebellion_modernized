@@ -22,10 +22,10 @@ int __thiscall MissionExtraKeyWriteForward(void* self, ostream* out) { return st
 
 int __thiscall MissionExtraKeyChecksumForward(void* self, Crc32* crc) { return static_cast<MissionExtraKeyBase*>(self)->MissionExtraKeyBase::Checksum(crc); }  // 0x572f80
 
-int __thiscall MissionRuleBaseApplyAllForward(void* self, NotifyContext* ctx) { return static_cast<MissionRuleBase*>(self)->ApplyAllBody(ctx); }  // 0x586ac0
+int __thiscall MissionRuleBaseApplyAllForward(void* self, NotifyContext* ctx) { return static_cast<MissionRuleBase*>(self)->MissionRuleBase::ApplyAllBody(ctx); }  // 0x586ac0
 
 int __thiscall MissionTypeCreateViewsForward(void* self, int controlKind, NotifyContext* ctx) {  // 0x576250
-    return static_cast<MissionTypeBase*>(self)->CreateViewsBody(controlKind, ctx);
+    return static_cast<MissionTypeBase*>(self)->MissionTypeBase::CreateViewsBody(controlKind, ctx);
 }
 
 int __thiscall MissionTypeCreateViewsForward2(void* self, int controlKind, NotifyContext* ctx) {  // 0x574080

@@ -692,7 +692,7 @@ void EncyclopediaWindow::LoadArticle() {
     uint32_t pictureId;
     if (family >= 0x90 && family < 0x98) {
         GameObjNotifier* system = GetObjectInFamilies_90_98(m_galaxy->m_side, &key);
-        pictureId = static_cast<uint32_t>(SystemPictureId(static_cast<System*>(system)->GetRecordField44()));
+        pictureId = static_cast<uint32_t>(SystemPictureId(static_cast<System*>(system)->System::GetRecordField44()));
     } else if ((family >= 0x40 && family < 0x80) || (family >= 0x08 && family < 0x10)) {
         // Missions and fleets have one picture per side.
         uint32_t recordId = m_selected->m_id & kRecordIdMask;

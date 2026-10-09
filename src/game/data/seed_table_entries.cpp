@@ -99,7 +99,7 @@ int SeedFamilyTableEntry::ParseText(istream* in) {
         ParseLongField(in, token.get(), &endOfLine, &m_field24);
         ParseUnsignedField(in, token.get(), &endOfLine, &family);
         ParseUnsignedField(in, token.get(), &endOfLine, &id);
-        ok = reinterpret_cast<ObjectRefList*>(&m_items)->AddKey(ObjectKey::Make(family, id)) != nullptr;
+        ok = reinterpret_cast<ObjectRefList*>(&m_items)->ObjectRefList::AddKey(ObjectKey::Make(family, id)) != nullptr;
     }
     for (int group = 0; ok && group < kSeedGroupCount; ++group) {
         unsigned int family;
@@ -108,7 +108,7 @@ int SeedFamilyTableEntry::ParseText(istream* in) {
         ParseUnsignedField(in, token.get(), &endOfLine, &family);
         ParseUnsignedField(in, token.get(), &endOfLine, &id);
         ParseLongField(in, token.get(), &endOfLine, &count);
-        for (int i = 0; ok && i < count; ++i) ok = reinterpret_cast<ObjectRefList*>(&m_items)->AddKey(ObjectKey::Make(family, id)) != nullptr;
+        for (int i = 0; ok && i < count; ++i) ok = reinterpret_cast<ObjectRefList*>(&m_items)->ObjectRefList::AddKey(ObjectKey::Make(family, id)) != nullptr;
     }
     SkipRestOfLine(in, &endOfLine);
     return ok;

@@ -392,7 +392,7 @@ void SystemWindow::EndSlotRename(SystemSlot* slot) {
 
 void SystemWindow::SaveState(ostream* out) {
     ObjectKey key;
-    if (GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem()) {
+    if (GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem()) {
         ObjectKey systemKey;
         GetObjectKey(system, &systemKey);
         key = systemKey;
@@ -452,7 +452,7 @@ ObjectKey SystemWindow::GetKeyAt(int x, int y) {
 ObjectKey SystemWindow::GetDropKeyAt(int, int) { return m_systemKey; }
 
 int SystemWindow::Virtual29() {
-    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return 0;
     const uint32_t side = (static_cast<GameObjRoot*>(system)->m_flags >> 6) & 3;
     if (side == 1) return 0x2d0a;

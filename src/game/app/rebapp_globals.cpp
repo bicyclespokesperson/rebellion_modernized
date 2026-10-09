@@ -290,7 +290,7 @@ void AppSaveGame(void* stream) {
 void AppStepGame(int* stepped) {
     void* battleFlow = FUN_00409270();
     *stepped = 1;
-    if (battleFlow) static_cast<BattleFlow*>(battleFlow)->Step(stepped);
+    if (battleFlow) static_cast<BattleFlow*>(battleFlow)->BattleFlow::Step(stepped);
 }
 
 void AppReleaseBattleFlow() {

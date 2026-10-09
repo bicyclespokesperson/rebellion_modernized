@@ -76,7 +76,7 @@ int MissionDiplomacy::CheckTarget(MissionCheckArgs* check, StatusCode* status, i
 
 int MissionDiplomacy::Virtual157(GameObj* person, int* out) {
     System* system = nullptr;
-    const int found = static_cast<MissionSystemTargetBase*>(this)->GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
+    const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     const bool ok = found != 0;
     if (!system) return ok;
     const int side = ControlSideIndex(ControlSide());
@@ -103,7 +103,7 @@ int MissionDiplomacy::Virtual160(NotifyContext* ctx) {
     if (m_taskStatus == kTaskIdle) ok = SetTaskStatus(kTaskStarted, ctx) != 0;
     if (m_taskStatus != kTaskSucceeded) return ok;
     System* system = nullptr;
-    const int found = static_cast<MissionSystemTargetBase*>(this)->GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
+    const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     ok = found != 0 && ok;
     if (!system) return ok;
     const int bonus = ComputeDiplomacyBonus(ControlSide(), system->ControlSide());

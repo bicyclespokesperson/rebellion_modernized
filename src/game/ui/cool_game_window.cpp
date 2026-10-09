@@ -426,7 +426,7 @@ uint32_t CoolGameWindow::AddOverlay(DibBitmap* bitmap, uint32_t overlayId) {
 
 DibBitmap* CoolGameWindow::FindOverlayBitmap(uint32_t overlayId) {
     DibBitmap* bitmap = nullptr;
-    void* node = reinterpret_cast<BitmapOverlayTree*>(m_overlays)->FindOverlay(overlayId);
+    void* node = reinterpret_cast<BitmapOverlayTree*>(m_overlays)->BitmapOverlayTree::FindOverlay(overlayId);
     if (node) {
         using GetBitmap = DibBitmap*(__thiscall*)(void*);
         bitmap = reinterpret_cast<GetBitmap*>(*static_cast<void***>(node))[1](node);

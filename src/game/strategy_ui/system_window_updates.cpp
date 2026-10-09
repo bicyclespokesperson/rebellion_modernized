@@ -127,7 +127,7 @@ void SystemWindow::OnChildAdded(const ObjectKey* key, GameObjNotifier* object) {
     uint16_t tabBitmap = 0;
     DibBitmap* picture = nullptr;
     ObjectListItem* item = nullptr;
-    if (!reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem()) return;
+    if (!reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem()) return;
     const uint32_t family = key->Family();
     for (const FacilityPage& page : kFacilityPages) {
         if (family != page.m_family) continue;
@@ -196,7 +196,7 @@ void SystemWindow::OnChildMoved(const ObjectKey* key, GameObjNotifier* object, c
     CoolWindow* tab = nullptr;
     uint16_t tabBitmap = 0;
     String unusedText;
-    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return;
     GameObj* systemObject = static_cast<GameObj*>(system);
     const uint32_t family = key->Family();

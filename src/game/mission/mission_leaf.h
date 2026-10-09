@@ -49,9 +49,9 @@ inline int CheckOrderAgainstKinds(BuildFn build, EventKindSet* kinds, int orderK
 // The slot 5-9 and 37 bodies shared (identical-code-folded) by almost all concrete types. A type that has its own
 // second-level forwarders still ends in the same rule-base bodies.
 #define REB_MISSION_SHARED_PERSISTENCE(CLASS)                                                                      \
-    int CLASS::Read(istream* in) { return reinterpret_cast<MissionRuleBase*>(this)->ReadBody(in); }                                               \
+    int CLASS::Read(istream* in) { return reinterpret_cast<MissionRuleBase*>(this)->MissionRuleBase::ReadBody(in); }                                               \
     int CLASS::Write(ostream* out) { return WriteImpl(out); }                                            \
-    int CLASS::Checksum(Crc32* crc) { return reinterpret_cast<MissionTypeBase*>(this)->ChecksumBody(crc); }                                           \
+    int CLASS::Checksum(Crc32* crc) { return reinterpret_cast<MissionTypeBase*>(this)->MissionTypeBase::ChecksumBody(crc); }                                           \
     int CLASS::Validate() { return Mission::ValidateImpl(); }                                                          \
     int CLASS::ApplyAll(NotifyContext* ctx) { return IsSideView() ? ApplyAllImpl(ctx) : 0; }                \
     int CLASS::CreateViews(int controlKind, NotifyContext* ctx) { return Mission::CreateViewsImpl(controlKind, ctx); }

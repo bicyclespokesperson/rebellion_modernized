@@ -306,7 +306,7 @@ void GalaxyWindow::OpenType8Window(LPARAM argument) {
 }
 
 void GalaxyWindow::ForwardToType6Window(int a, int b) {
-    if (CoolWindow* window = m_children.FindById(kType6Id)) static_cast<VoteWindow*>(window)->ShowButtons(a, b);
+    if (CoolWindow* window = m_children.FindById(kType6Id)) static_cast<VoteWindow*>(window)->VoteWindow::ShowButtons(a, b);
 }
 
 // ---- Manufacturing manager changes shown in the system window ----------------------------------------

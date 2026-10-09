@@ -250,7 +250,7 @@ void RebellionApplication::PollMultiplayerSync(int quit) {
     if (m_state == kStateStrategic) {
         if (static_cast<StrategicWindow*>(m_strategicWindow)->m_unknownAc != 0) return;
     } else if (m_state == kStateLobbyHost || m_state == kStateLobbyJoin) {
-        static_cast<MultiPlayerWindow*>(m_activeWindow)->UpdateStartButtons();
+        static_cast<MultiPlayerWindow*>(m_activeWindow)->MultiPlayerWindow::UpdateStartButtons();
     }
     AppShowNoticeDialog(0x46d, 0, 0x1204, 0x190e, kDialogX, kDialogY);
     CommCleanUp();
@@ -276,7 +276,7 @@ void RebellionApplication::ReportOpponentTrouble() {
     SetManagerUnk3c(1);
     SetManagerUnk44(1);
     UiBeginPause();
-    if (m_state == kStateLobbyHost || m_state == kStateLobbyJoin) static_cast<MultiPlayerWindow*>(m_activeWindow)->UpdateStartButtons();
+    if (m_state == kStateLobbyHost || m_state == kStateLobbyJoin) static_cast<MultiPlayerWindow*>(m_activeWindow)->MultiPlayerWindow::UpdateStartButtons();
     if (opponentLeft) {
         if (m_mismatchOptions)
             AppShowQuestionDialog(0x47d, 0x120b, 0x120c, kDialogX, kDialogY);

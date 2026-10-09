@@ -22,8 +22,8 @@ int System::RecomputeBlockadeAndBattlePending(NotifyContext* ctx) {
     uint32_t blockade = 0;
     uint32_t causedByBattle = 0;
     int battlePending = 0;
-    const int alliancePresent = this->HasFleetsOrFighterSquadrons(1);
-    const int empirePresent = this->HasFleetsOrFighterSquadrons(2);
+    const int alliancePresent = this->System::HasFleetsOrFighterSquadrons(1);
+    const int empirePresent = this->System::HasFleetsOrFighterSquadrons(2);
     const uint32_t side = ControlSide();
     const bool known = side != 0 && side <= 3;
     if (known) {
@@ -68,9 +68,9 @@ int System::RecomputeSuppressing(NotifyContext* ctx) {
 }
 
 int System::RecomputeCombatUnitFastRepair(NotifyContext* ctx) {
-    GameObjNotifier* site = this->FindManufacturingManagerBySlot123(0);
+    GameObjNotifier* site = this->System::FindManufacturingManagerBySlot123(0);
     if (!site) return 0;
-    return SetCombatUnitFastRepair(static_cast<ManuMgr*>(site)->CountHostFacilities(0) != 0, ctx);
+    return SetCombatUnitFastRepair(static_cast<ManuMgr*>(site)->ManuMgr::CountHostFacilities(0) != 0, ctx);
 }
 
 int System::RecomputeFacilityBattleFlags(NotifyContext* ctx) {
@@ -78,7 +78,7 @@ int System::RecomputeFacilityBattleFlags(NotifyContext* ctx) {
     const int disrupted = (m_flags & (system_flag::kUprising | system_flag::kBlockade)) != 0;
     ChildIterator facilities(this, &kFacilities28To30, kStateExisting);
     for (facilities.Begin(); facilities.Current(); facilities.Advance())
-        result = static_cast<ProcFacil*>(facilities.Current())->SetSuspended(disrupted, ctx);
+        result = static_cast<ProcFacil*>(facilities.Current())->ProcFacil::SetSuspended(disrupted, ctx);
     return result;
 }
 
@@ -98,14 +98,14 @@ int System::RecomputeFleetExploredFlags(NotifyContext* ctx) {
                 alliance += side == 1;
                 empire += side == 2;
             } else {
-                static_cast<Fleet*>(fleet)->SetFlag02(0, ctx);
+                static_cast<Fleet*>(fleet)->Fleet::SetFlag02(0, ctx);
             }
         }
     }
     int result = 0;
     if (ok) result = alliance < 2 && empire < 2;
-    if (alliance == 0) result = this->CreateDefaultFleet(1, 1, ctx) && result;
-    if (empire == 0) result = this->CreateDefaultFleet(2, 1, ctx) && result;
+    if (alliance == 0) result = this->System::CreateDefaultFleet(1, 1, ctx) && result;
+    if (empire == 0) result = this->System::CreateDefaultFleet(2, 1, ctx) && result;
     return result;
 }
 
@@ -126,14 +126,14 @@ int System::RecomputeFleetEmptyFlags(NotifyContext* ctx) {
                 alliance += side == 1;
                 empire += side == 2;
             } else {
-                static_cast<Fleet*>(fleet)->SetFlag04(0, ctx);
+                static_cast<Fleet*>(fleet)->Fleet::SetFlag04(0, ctx);
             }
         }
     }
     int result = 0;
     if (ok) result = alliance < 2 && empire < 2;
-    if (alliance == 0) result = this->CreateDefaultFleet(1, 0, ctx) && result;
-    if (empire == 0) result = this->CreateDefaultFleet(2, 0, ctx) && result;
+    if (alliance == 0) result = this->System::CreateDefaultFleet(1, 0, ctx) && result;
+    if (empire == 0) result = this->System::CreateDefaultFleet(2, 0, ctx) && result;
     return result;
 }
 
@@ -143,7 +143,7 @@ int System::RecomputeFleetBattleFlags(NotifyContext* ctx) {
     for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
         uint32_t inBattle = 0;
         if (FieldAt<uint32_t>(fleets.Current(), 0x50) & 1) inBattle = (m_flags >> 4) & 1;
-        const int ok = static_cast<Fleet*>(fleets.Current())->SetBattle(inBattle, ctx);
+        const int ok = static_cast<Fleet*>(fleets.Current())->Fleet::SetBattle(inBattle, ctx);
         result = ok && result;
     }
     return result;
@@ -155,25 +155,25 @@ int System::RecomputeFleetBlockadeFlags(NotifyContext* ctx) {
     for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
         uint32_t blockaded = 0;
         if (FieldAt<uint32_t>(fleets.Current(), 0x50) & 1) blockaded = (m_flags >> 5) & 1;
-        const int ok = static_cast<Fleet*>(fleets.Current())->SetBlockade(blockaded, ctx);
+        const int ok = static_cast<Fleet*>(fleets.Current())->Fleet::SetBlockade(blockaded, ctx);
         result = ok && result;
     }
     return result;
 }
 
 int System::RefreshSiteKind0(NotifyContext* ctx) {
-    GameObjNotifier* site = this->FindManufacturingManagerBySlot123(0);
-    return site ? static_cast<ManuMgr*>(site)->RebalanceFacilities(ctx) : 0;
+    GameObjNotifier* site = this->System::FindManufacturingManagerBySlot123(0);
+    return site ? static_cast<ManuMgr*>(site)->ManuMgr::RebalanceFacilities(ctx) : 0;
 }
 
 int System::RefreshSiteKind2(NotifyContext* ctx) {
-    GameObjNotifier* site = this->FindManufacturingManagerBySlot123(2);
-    return site ? static_cast<ManuMgr*>(site)->RebalanceFacilities(ctx) : 0;
+    GameObjNotifier* site = this->System::FindManufacturingManagerBySlot123(2);
+    return site ? static_cast<ManuMgr*>(site)->ManuMgr::RebalanceFacilities(ctx) : 0;
 }
 
 int System::RefreshSiteKind1(NotifyContext* ctx) {
-    GameObjNotifier* site = this->FindManufacturingManagerBySlot123(1);
-    return site ? static_cast<ManuMgr*>(site)->RebalanceFacilities(ctx) : 0;
+    GameObjNotifier* site = this->System::FindManufacturingManagerBySlot123(1);
+    return site ? static_cast<ManuMgr*>(site)->ManuMgr::RebalanceFacilities(ctx) : 0;
 }
 
 int System::RecomputeTroopWithdrawPercents(NotifyContext* ctx) {
@@ -215,11 +215,11 @@ int System::RecomputeFastRepair(NotifyContext* ctx) {
 }
 
 int System::PushTroopWithdrawPercent(GameObjNotifier* troops, NotifyContext* ctx) {
-    return static_cast<TroopReg*>(troops)->SetWithdrawPercent(m_troopRegWithdrawPercent, ctx);
+    return static_cast<TroopReg*>(troops)->TroopReg::SetWithdrawPercent(m_troopRegWithdrawPercent, ctx);
 }
 
 int System::PushProductionModifier(GameObjNotifier* facility, NotifyContext* ctx) {
-    return static_cast<ProductionFacility*>(facility)->SetProductionModifier(m_productionModifier, ctx);
+    return static_cast<ProductionFacility*>(facility)->ProductionFacility::SetProductionModifier(m_productionModifier, ctx);
 }
 
 int System::PushFastRepair(GameObjNotifier* unit, NotifyContext* ctx) {
@@ -230,7 +230,7 @@ int System::PushFastRepair(GameObjNotifier* unit, NotifyContext* ctx) {
     int result = 1;
     if (ownerKey.m_value == ownKey.m_value) {
         const int repair = (m_flags & system_flag::kCombatUnitFastRepair) && ((GameObjRoot::m_flags ^ unit->m_flags) & 0xc0) == 0;
-        result = static_cast<CombatUnit*>(unit)->SetFastRepair(repair, ctx);
+        result = static_cast<CombatUnit*>(unit)->CombatUnit::SetFastRepair(repair, ctx);
     }
     return result;
 }
@@ -251,7 +251,7 @@ int System::NoteWithdrawingUnit(GameObjNotifier* unit, int mustBeIdle, NotifyCon
     if (candidate) {
         const uint32_t unitState = FieldAt<uint32_t>(unit, 0x50);
         candidate = mustBeIdle == 0 && (m_flags & system_flag::kBattlePending) && (unitState & 0x10) && (unitState & 0x40) &&
-                    unit->ControlSide() != static_cast<uint32_t>(this->GetDataWord64());
+                    unit->ControlSide() != static_cast<uint32_t>(this->System::GetDataWord64());
     }
     if (candidate) {
         const uint32_t unitSide = unit->ControlSide();

@@ -105,11 +105,11 @@ void HeadlessSimulator::FormBattleGroups(int) {
     for (UnitRefNode* node = firstNode(&m_units); node; node = node->Next()) {
         TacticalShipBase* unit = node->Value();
         if (unit->GetUnitClass() == kFighterClass) {
-            if (unit->IsState1() == 0) sideOf(this, unit->m_side)->m_hangars.AddUnit(unit);
+            if (unit->TacticalShipBase::IsState1() == 0) sideOf(this, unit->m_side)->m_hangars.AddUnit(unit);
         } else {
             sideOf(this, unit->m_side)->m_fleet.AddUnit(unit);
         }
-        if (unit->IsState1() == 0) m_active.AddUnit(unit);
+        if (unit->TacticalShipBase::IsState1() == 0) m_active.AddUnit(unit);
     }
     formCapitalGroups(this, 0, 0x1d);
     splitFighters(sideOf(this, 0));

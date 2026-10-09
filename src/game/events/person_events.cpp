@@ -102,7 +102,7 @@ int RemoveRequestEvent::CheckValid(StatusCode* status) {
 
 int RemoveRequestEvent::Execute() {
     NotifyContext ctx(m_context);
-    if (GameObjNotifier* manager = GetGameRootMember_b8()) static_cast<MissionMgr*>(manager)->ProcessRemoveRequest(&m_key, m_valueB, &ctx);
+    if (GameObjNotifier* manager = GetGameRootMember_b8()) static_cast<MissionMgr*>(manager)->MissionMgr::ProcessRemoveRequest(&m_key, m_valueB, &ctx);
     return 0;
 }
 
@@ -164,7 +164,7 @@ int PersonRemovedEvent::CheckValid(StatusCode* status) {
 
 int PersonRemovedEvent::Execute() {
     NotifyContext ctx(m_context);
-    if (GameObjNotifier* manager = GetGameRootMember_b8()) static_cast<MissionMgr*>(manager)->OnPersonRemoved(&m_key, m_valueB, &ctx);
+    if (GameObjNotifier* manager = GetGameRootMember_b8()) static_cast<MissionMgr*>(manager)->MissionMgr::OnPersonRemoved(&m_key, m_valueB, &ctx);
     return 0;
 }
 
@@ -196,7 +196,7 @@ int ResignRequestEvent::CheckValid(StatusCode* status) {
 
 int ResignRequestEvent::Execute() {
     NotifyContext ctx(m_context);
-    if (GameObjNotifier* manager = GetGameRootMember_b8()) static_cast<MissionMgr*>(manager)->ProcessResignRequest(&m_key, m_valueB, &ctx);
+    if (GameObjNotifier* manager = GetGameRootMember_b8()) static_cast<MissionMgr*>(manager)->MissionMgr::ProcessResignRequest(&m_key, m_valueB, &ctx);
     return 0;
 }
 

@@ -85,7 +85,7 @@ ProcFacilTimer::~ProcFacilTimer() { REB_KEEP_VPTR_STORE(); }
 ProcFacilTimer* ProcFacilTimer::Clone() { return NewOrNull<ProcFacilTimer>(*this); }
 
 TrackedStat* ProcFacilTimer::GetTargetSpec() {
-    return timerStatOfOwner<ProcFacil>(this, ResolveMasterInFamilies_28_30, [](ProcFacil* p) { return reinterpret_cast<System*>(p)->GetStat0(); });
+    return timerStatOfOwner<ProcFacil>(this, ResolveMasterInFamilies_28_30, [](ProcFacil* p) { return reinterpret_cast<System*>(p)->System::GetStat0(); });
 }
 
 void ProcFacilTimer::Fire() {
@@ -121,7 +121,7 @@ FleetSlot138Timer::~FleetSlot138Timer() { REB_KEEP_VPTR_STORE(); }
 FleetSlot138Timer* FleetSlot138Timer::Clone() { return NewOrNull<FleetSlot138Timer>(*this); }
 
 TrackedStat* FleetSlot138Timer::GetTargetSpec() {
-    return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_14_20, [](GameObj* o) { return static_cast<System*>(o)->GetStat0(); });
+    return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_14_20, [](GameObj* o) { return static_cast<System*>(o)->System::GetStat0(); });
 }
 
 void FleetSlot138Timer::Fire() {
@@ -139,7 +139,7 @@ CharacterInjuryTimer::~CharacterInjuryTimer() { REB_KEEP_VPTR_STORE(); }
 CharacterInjuryTimer* CharacterInjuryTimer::Clone() { return NewOrNull<CharacterInjuryTimer>(*this); }
 
 TrackedStat* CharacterInjuryTimer::GetTargetSpec() {
-    return timerStatOfOwner<Character>(this, ResolveMasterInFamilies_30_3c, [](Character* c) { return reinterpret_cast<System*>(c)->GetStat0(); });
+    return timerStatOfOwner<Character>(this, ResolveMasterInFamilies_30_3c, [](Character* c) { return reinterpret_cast<System*>(c)->System::GetStat0(); });
 }
 
 void CharacterInjuryTimer::Fire() {
@@ -157,7 +157,7 @@ CharacterTimer389::~CharacterTimer389() { REB_KEEP_VPTR_STORE(); }
 CharacterTimer389* CharacterTimer389::Clone() { return NewOrNull<CharacterTimer389>(*this); }
 
 TrackedStat* CharacterTimer389::GetTargetSpec() {
-    return timerStatOfOwner<Character>(this, ResolveMasterInFamilies_30_3c, [](Character* c) { return reinterpret_cast<Mission*>(c)->GetStatA(); });
+    return timerStatOfOwner<Character>(this, ResolveMasterInFamilies_30_3c, [](Character* c) { return reinterpret_cast<Mission*>(c)->Mission::GetStatA(); });
 }
 
 void CharacterTimer389::Fire() {
@@ -179,7 +179,7 @@ CharacterEscapeTimer::~CharacterEscapeTimer() { REB_KEEP_VPTR_STORE(); }
 CharacterEscapeTimer* CharacterEscapeTimer::Clone() { return NewOrNull<CharacterEscapeTimer>(*this); }
 
 TrackedStat* CharacterEscapeTimer::GetTargetSpec() {
-    return timerStatOfOwner<Character>(this, ResolveMasterInFamilies_30_3c, [](Character* c) { return reinterpret_cast<Mission*>(c)->GetStatB(); });
+    return timerStatOfOwner<Character>(this, ResolveMasterInFamilies_30_3c, [](Character* c) { return reinterpret_cast<Mission*>(c)->Mission::GetStatB(); });
 }
 
 void CharacterEscapeTimer::Fire() {

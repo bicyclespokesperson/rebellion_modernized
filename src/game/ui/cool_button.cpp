@@ -593,7 +593,7 @@ void CoolFrameButton::LoadFrames(uint32_t firstId, uint32_t count) {
             if (bitmap && bitmap->IsLoaded()) {
                 void* memory = operator new(sizeof(StrobeFrame));
                 void* node = memory ? new (memory) BitmapFrame(bitmap) : nullptr;
-                reinterpret_cast<BitmapFrameList*>(m_frames)->Append(reinterpret_cast<BitmapFrame*>(node));
+                reinterpret_cast<BitmapFrameList*>(m_frames)->BitmapFrameList::Append(reinterpret_cast<BitmapFrame*>(node));
             }
             ++index;
         } while ((index & 0xffff) < count);

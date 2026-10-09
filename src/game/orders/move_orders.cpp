@@ -147,7 +147,7 @@ int MoveOrderBase::CollectTransitDays(StatusCode* status, ObjectKeyValueSet* out
                 int collected = static_cast<ObjectMoveOrder*>(order)->CollectTransitDays(status, &days);
                 result = collected != 0 && result != 0;
             } else if (kind == kMissionOrderKind) {
-                int collected = (static_cast<MissionOrder*>(order))->CollectCandidates(status, &days);
+                int collected = (static_cast<MissionOrder*>(order))->MissionOrder::CollectCandidates(status, &days);
                 result = collected != 0 && result != 0;
             }
             if (isOk(status)) {

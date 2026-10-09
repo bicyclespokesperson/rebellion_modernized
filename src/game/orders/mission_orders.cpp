@@ -115,7 +115,7 @@ int MissionOrder::CollectCandidates(StatusCode* status, ObjectKeyValueSet* out) 
     BuildRequest(&request);
     if (ok && manager && usable && isOk(status)) {
         ObjectKey* resultKey = &static_cast<MissionOrderCommand*>(usable)->m_resultKey;
-        ok = manager->ResolveMissionTravel(&request, resultKey, GetTeam(), &m_characters, out, status);
+        ok = manager->MissionMgr::ResolveMissionTravel(&request, resultKey, GetTeam(), &m_characters, out, status);
     }
     return ok;
 }
@@ -199,7 +199,7 @@ int MissionOrder::CheckDestination(StatusCode* status) {
         if (isOk(status)) {
             MissionMgr* manager = getMissionMgr();
             ok = manager != nullptr;
-            if (ok) ok = manager->FindMissionForTarget(side, &m_missionKey, target, &mission, status);
+            if (ok) ok = manager->MissionMgr::FindMissionForTarget(side, &m_missionKey, target, &mission, status);
         }
         if (ok && isOk(status) && isMissionTypeKey(m_missionKey) && controlSideOf(mission) != side) {
             setStatus(status, kStatusWrongSide);
@@ -265,7 +265,7 @@ int MissionOrder240::CollectCandidatesA(ObjectKeyValueSet* out) {
     ActivityRequest request;
     initRequest(&request);
     BuildRequest(&request);
-    if (ok) ok = manager->CollectMissionTypesForTeam(&request, GetTeam(), &m_characters, reinterpret_cast<ObjectRefList*>(out), &status);
+    if (ok) ok = manager->MissionMgr::CollectMissionTypesForTeam(&request, GetTeam(), &m_characters, reinterpret_cast<ObjectRefList*>(out), &status);
     return ok;
 }
 
@@ -277,7 +277,7 @@ int MissionOrder240::CollectCandidatesB(ObjectKeyValueSet* out) {
     ActivityRequest request;
     initRequest(&request);
     BuildRequest(&request);
-    if (ok) ok = manager->CollectMissionTypeNamesAtTarget(&request, GetTeam(), &m_characters, reinterpret_cast<ObjectRefList*>(out), &status);
+    if (ok) ok = manager->MissionMgr::CollectMissionTypeNamesAtTarget(&request, GetTeam(), &m_characters, reinterpret_cast<ObjectRefList*>(out), &status);
     return ok;
 }
 

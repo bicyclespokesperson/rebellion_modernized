@@ -225,7 +225,7 @@ int MissionMgr::CreateMission(int userId, int userId2, int side, ObjectKey* obje
         int chain = mission->SetTargetLocationKey(&targetLocationKey, &missionContext) && targetSet;
         chain = mission->SetImpliedTeam(impliedTeam, &missionContext) && chain;
         chain = mission->SetMandatory(mandatory, &missionContext) && chain;
-        if (levels) chain = mission->AssignPhaseLevels(levels) && chain;
+        if (levels) chain = mission->Mission::AssignPhaseLevels(levels) && chain;
         result = CallMissionSlot120(mission, team, decoys, &missionContext) && chain;
     }
     return result;

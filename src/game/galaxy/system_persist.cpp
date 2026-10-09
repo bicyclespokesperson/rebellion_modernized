@@ -81,7 +81,7 @@ int System::ApplyAll(NotifyContext* ctx) {
         if (ctx->m_flag04 == 1) {
             ApplyLoyalty(ctx);
             ApplyEnergy(ctx);
-            reinterpret_cast<FightSquad*>(this)->ApplySquadSizeDamage(ctx);
+            reinterpret_cast<FightSquad*>(this)->FightSquad::ApplySquadSizeDamage(ctx);
             ApplyRawMaterial(ctx);
             ApplyRawMaterialAllocated(ctx);
             ApplySmugglingPercent(ctx);

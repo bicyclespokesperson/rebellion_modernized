@@ -105,14 +105,14 @@ void TacticalSideBase::RecordFleetPriorities() {
     m_unitCount = count;
     for (UnitRefNode* node = firstUnitNode(m_fleet); node; node = node->Next()) {
         const float strength = node->Value()->GetSpeed();
-        const float spare = node->Value()->MaxWeaponRange();
+        const float spare = node->Value()->TacticalShipBase::MaxWeaponRange();
         const float priority = strength - spare * kFleetPriorityScale;
         TargetPriorityNode* entry = nullptr;
         void* memory = ::operator new(sizeof(TargetPriorityNode));
         if (memory) entry = new (memory) TargetPriorityNode(-priority, node->Value());
-        if (node->Value()->HasOnlyKind1Weapons() == 1) {
+        if (node->Value()->TacticalShipBase::HasOnlyKind1Weapons() == 1) {
             m_targets[3].Insert(entry);
-        } else if (node->Value()->HasKind1Weapons() != 0) {
+        } else if (node->Value()->TacticalShipBase::HasKind1Weapons() != 0) {
             m_targets[2].Insert(entry);
         } else {
             m_targets[1].Insert(entry);
@@ -182,7 +182,7 @@ void TacticalSideBase::ReprioritiseTargets(float) {
          node = static_cast<GroupRefNode*>(node->Next())) {
         if (EvaluateUnit3(node->Value()) != 0) continue;
         TacticalShipBase* first = node->Value()->FirstUnit();
-        if (first && first->HasKind1Weapons() != 0) {
+        if (first && first->TacticalShipBase::HasKind1Weapons() != 0) {
             flaggedGroups.AddGroup(node->Value());
         } else {
             plainGroups.AddGroup(node->Value());

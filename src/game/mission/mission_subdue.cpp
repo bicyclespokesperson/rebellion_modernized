@@ -53,7 +53,7 @@ int MissionSubdue::CheckTarget(MissionCheckArgs* check, StatusCode* status, int*
 
 int MissionSubdue::Virtual157(GameObj* person, int* out) {
     System* system = nullptr;
-    const int found = static_cast<MissionSystemTargetBase*>(this)->GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
+    const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     bool ok = found != 0;
     if (!system) return ok;
     const int side = ControlSideIndex(ControlSide());
@@ -70,7 +70,7 @@ int MissionSubdue::Virtual160(NotifyContext* ctx) { return MissionStartIfIdle(th
 
 int MissionSubdue::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     System* system = nullptr;
-    const int found = static_cast<MissionSystemTargetBase*>(this)->GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
+    const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     if (!system) return found != 0;
     const bool inUprising = (system->m_flags & 4) != 0;
     bool ok = inUprising && found;

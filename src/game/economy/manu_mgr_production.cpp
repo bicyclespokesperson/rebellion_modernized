@@ -580,7 +580,7 @@ int ManuMgr::RebalanceFacilities(NotifyContext* ctx) {
                 facilities.Advance();
             }
             if (best) {
-                const int started = static_cast<ProcFacil*>(best)->Restart(ctx);
+                const int started = static_cast<ProcFacil*>(best)->ProcFacil::Restart(ctx);
                 result = started && previous;
                 --toStart;
             }
@@ -607,7 +607,7 @@ int ManuMgr::RebalanceFacilities(NotifyContext* ctx) {
                     facilities.Advance();
                 }
                 if (best) {
-                    const int released = static_cast<ProcFacil*>(best)->ResetToIdle(ctx);
+                    const int released = static_cast<ProcFacil*>(best)->ProcFacil::ResetToIdle(ctx);
                     result = released && previous;
                     --excess;
                 }

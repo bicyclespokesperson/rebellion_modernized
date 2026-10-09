@@ -77,7 +77,7 @@ MissionResearch::MissionResearch() {
 MissionResearch::~MissionResearch() { REB_KEEP_VPTR_STORE(); }
 
 int MissionResearch::Read(istream* in) {
-    const int result = static_cast<MissionRuleBase*>(this)->ReadBody(in);
+    const int result = static_cast<MissionRuleBase*>(this)->MissionRuleBase::ReadBody(in);
     if (result) {
         ReadValue32(in, &m_rdPoints);
         ReadValue32(in, &m_rdOrders);
@@ -95,7 +95,7 @@ int MissionResearch::Write(ostream* out) {
 }
 
 int MissionResearch::Checksum(Crc32* crc) {
-    const int result = reinterpret_cast<MissionTypeBase*>(this)->ChecksumBody(crc);
+    const int result = reinterpret_cast<MissionTypeBase*>(this)->MissionTypeBase::ChecksumBody(crc);
     if (result) {
         crc->AddInt(m_rdPoints);
         crc->AddInt(m_rdOrders);
@@ -103,11 +103,11 @@ int MissionResearch::Checksum(Crc32* crc) {
     return result;
 }
 
-int MissionResearch::Validate() { return this->ValidateImpl(); }
+int MissionResearch::Validate() { return this->Mission::ValidateImpl(); }
 
 int MissionResearch::ApplyAll(NotifyContext* ctx) { return IsSideView() ? ApplyAllBody(ctx) : 0; }
 
-int MissionResearch::CreateViews(int controlKind, NotifyContext* ctx) { return this->CreateViewsImpl(controlKind, ctx); }
+int MissionResearch::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
 int MissionResearch::ApplyAllBody(NotifyContext* ctx) {
     const int result = ApplyAllImpl(ctx);
@@ -327,7 +327,7 @@ int MissionResearch::Virtual158(NotifyContext* ctx) {
 int MissionResearch::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     *out = 0;
     System* system = nullptr;
-    const int found = static_cast<MissionSystemTargetBase*>(this)->GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
+    const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     int kind = 0;
     int ok = GetResearchKind(&kind) != 0 && found != 0;
     if (!system) return ok;

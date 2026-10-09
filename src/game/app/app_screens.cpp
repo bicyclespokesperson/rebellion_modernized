@@ -434,6 +434,6 @@ void RebellionApplication::ForwardToStrategicWindow() {
     CoolWindow* window = m_activeWindow;
     if (!window) return;
     if (window->m_childId == kModalChildStrategic || window->m_childId == kModalChildStrategicAlt) {
-        static_cast<GalaxyWindow*>(window)->InitializeGameDisplay();
+        static_cast<GalaxyWindow*>(window)->GalaxyWindow::InitializeGameDisplay();
     }
 }

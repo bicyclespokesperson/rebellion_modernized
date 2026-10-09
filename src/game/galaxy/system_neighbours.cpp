@@ -20,8 +20,8 @@ int DistanceBetween(GameObjNotifier* from, GameObjNotifier* to) {
     MapPosition toPosition;
     MapPosition fromPosition;
     MapPosition* target = reinterpret_cast<MapPosition*>(
-        static_cast<System*>(to)->GetRecordField4c(reinterpret_cast<uint32_t*>(&toPosition)));
-    return FUN_0055d860(reinterpret_cast<MapPosition*>(static_cast<System*>(from)->GetRecordField4c(
+        static_cast<System*>(to)->System::GetRecordField4c(reinterpret_cast<uint32_t*>(&toPosition)));
+    return FUN_0055d860(reinterpret_cast<MapPosition*>(static_cast<System*>(from)->System::GetRecordField4c(
                             reinterpret_cast<uint32_t*>(&fromPosition))),
                         target);
 }

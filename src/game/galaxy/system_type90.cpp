@@ -70,7 +70,7 @@ int SystemType90::Virtual47(int a) {
         int loyalty = 0;
         if (populated && m_id != kSystemIdWithoutLoyaltyRoll) {
             const uint32_t side = ControlSide();
-            loyalty = RollInitialLoyalty(side, this->GetDataFlagBit0());
+            loyalty = RollInitialLoyalty(side, this->System::GetDataFlagBit0());
         }
         SetPopulated(populated, ctx);
         if (populated) SetLoyalty(loyalty, ctx);
@@ -83,10 +83,10 @@ int SystemType90::Virtual47(int a) {
 
 int SystemType90::ApplyAllToViewOf(int view, int unused, NotifyContext* ctx) {
     int ok = System::ApplyAllToViewOf(view, unused, ctx) != 0;
-    ok = this->SyncViewForEvent(0xc, 1, ctx) && ok;
-    ok = this->SyncViewForEvent(0xc, 2, ctx) && ok;
-    ok = this->SyncViewForEvent(4, 1, ctx) && ok;
-    return this->SyncViewForEvent(4, 2, ctx) && ok ? 1 : 0;
+    ok = this->System::SyncViewForEvent(0xc, 1, ctx) && ok;
+    ok = this->System::SyncViewForEvent(0xc, 2, ctx) && ok;
+    ok = this->System::SyncViewForEvent(4, 1, ctx) && ok;
+    return this->System::SyncViewForEvent(4, 2, ctx) && ok ? 1 : 0;
 }
 
 int SystemType90::Virtual115(NotifyContext* ctx) {

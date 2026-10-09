@@ -123,7 +123,7 @@ int System::CreateDefaultFleet(int initArg, int arrived, NotifyContext* ctx) {
     key.m_value = kDefaultFleetKey;
     GameObj* fleet = CreateChild(&key, initArg, ctx, 0, 0);
     int result = 0;
-    if (fleet && static_cast<Fleet*>(fleet)->SetFlag01(0, ctx)) result = arrived ? static_cast<Fleet*>(fleet)->SetFlag02(1, ctx) : static_cast<Fleet*>(fleet)->SetFlag04(1, ctx);
+    if (fleet && static_cast<Fleet*>(fleet)->Fleet::SetFlag01(0, ctx)) result = arrived ? static_cast<Fleet*>(fleet)->Fleet::SetFlag02(1, ctx) : static_cast<Fleet*>(fleet)->Fleet::SetFlag04(1, ctx);
     return result;
 }
 

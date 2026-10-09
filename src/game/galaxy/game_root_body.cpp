@@ -211,7 +211,7 @@ int GameRoot::ValidateBuilders() {
                 if (manager != nullptr) {
                     ObjectKey unitKey;
                     object->GetKey(&unitKey);
-                    ok = static_cast<ManuMgr*>(manager)->IsQueued(&unitKey);
+                    ok = static_cast<ManuMgr*>(manager)->ManuMgr::IsQueued(&unitKey);
                 }
             }
         }

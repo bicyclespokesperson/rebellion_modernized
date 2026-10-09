@@ -222,7 +222,7 @@ int __thiscall MissionStoryApplyAllForward(Mission* self, NotifyContext* ctx) {
     return static_cast<MissionRuleBase*>(self)->ApplyAllBody(ctx);
 }
 
-int __thiscall MissionStoryChecksumForward(Mission* self, Crc32* crc) { return static_cast<MissionTypeBase*>(self)->ChecksumBody(crc); }
+int __thiscall MissionStoryChecksumForward(Mission* self, Crc32* crc) { return static_cast<MissionTypeBase*>(self)->MissionTypeBase::ChecksumBody(crc); }
 
 // ---- MissionPickup ----------------------------------------------------------------------------------------------
 
@@ -238,11 +238,11 @@ int MissionPickup::Write(ostream* out) { return MissionStoryWriteForward(this, o
 
 int MissionPickup::Checksum(Crc32* crc) { return MissionStoryChecksumForward(this, crc); }
 
-int MissionPickup::Validate() { return this->ValidateImpl(); }
+int MissionPickup::Validate() { return this->Mission::ValidateImpl(); }
 
 int MissionPickup::ApplyAll(NotifyContext* ctx) { return IsSideView() ? MissionStoryApplyAllForward(this, ctx) : 0; }
 
-int MissionPickup::CreateViews(int controlKind, NotifyContext* ctx) { return this->CreateViewsImpl(controlKind, ctx); }
+int MissionPickup::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
 int MissionPickup::GetEventKinds(int unused, EventKindSet* out) {
     return CopyEventKinds(BuildEventKinds, &g_missionPickupEventKinds, out);
@@ -341,11 +341,11 @@ int MissionPalace::Write(ostream* out) { return MissionStoryWriteForward(this, o
 
 int MissionPalace::Checksum(Crc32* crc) { return MissionStoryChecksumForward(this, crc); }
 
-int MissionPalace::Validate() { return this->ValidateImpl(); }
+int MissionPalace::Validate() { return this->Mission::ValidateImpl(); }
 
 int MissionPalace::ApplyAll(NotifyContext* ctx) { return IsSideView() ? MissionStoryApplyAllForward(this, ctx) : 0; }
 
-int MissionPalace::CreateViews(int controlKind, NotifyContext* ctx) { return this->CreateViewsImpl(controlKind, ctx); }
+int MissionPalace::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
 int MissionPalace::GetEventKinds(int unused, EventKindSet* out) {
     return CopyEventKinds(BuildEventKinds, &g_missionPalaceEventKinds, out);
@@ -469,11 +469,11 @@ int MissionVacation::Write(ostream* out) { return MissionStoryWriteForward(this,
 
 int MissionVacation::Checksum(Crc32* crc) { return MissionStoryChecksumForward(this, crc); }
 
-int MissionVacation::Validate() { return this->ValidateImpl(); }
+int MissionVacation::Validate() { return this->Mission::ValidateImpl(); }
 
 int MissionVacation::ApplyAll(NotifyContext* ctx) { return IsSideView() ? MissionStoryApplyAllForward(this, ctx) : 0; }
 
-int MissionVacation::CreateViews(int controlKind, NotifyContext* ctx) { return this->CreateViewsImpl(controlKind, ctx); }
+int MissionVacation::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
 int MissionVacation::GetEventKinds(int unused, EventKindSet* out) {
     return CopyEventKinds(BuildEventKinds, &g_missionVacationEventKinds, out);
@@ -552,11 +552,11 @@ int DagobahMission::Write(ostream* out) { return WriteBody(out); }
 
 int DagobahMission::Checksum(Crc32* crc) { return ChecksumBody(crc); }
 
-int DagobahMission::Validate() { return this->ValidateImpl(); }
+int DagobahMission::Validate() { return this->Mission::ValidateImpl(); }
 
 int DagobahMission::ApplyAll(NotifyContext* ctx) { return IsSideView() ? ApplyAllBody(ctx) : 0; }
 
-int DagobahMission::CreateViews(int controlKind, NotifyContext* ctx) { return this->CreateViewsImpl(controlKind, ctx); }
+int DagobahMission::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
 int DagobahMission::ReadBody(istream* in) {
     const int result = MissionStoryReadForward(this, in);
@@ -714,11 +714,11 @@ int MissionBounty::Write(ostream* out) { return MissionStoryWriteForward(this, o
 
 int MissionBounty::Checksum(Crc32* crc) { return MissionStoryChecksumForward(this, crc); }
 
-int MissionBounty::Validate() { return this->ValidateImpl(); }
+int MissionBounty::Validate() { return this->Mission::ValidateImpl(); }
 
 int MissionBounty::ApplyAll(NotifyContext* ctx) { return IsSideView() ? MissionStoryApplyAllForward(this, ctx) : 0; }
 
-int MissionBounty::CreateViews(int controlKind, NotifyContext* ctx) { return this->CreateViewsImpl(controlKind, ctx); }
+int MissionBounty::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
 int MissionBounty::GetEventKinds(int unused, EventKindSet* out) {
     return CopyEventKinds(BuildEventKinds, &g_missionBountyEventKinds, out);

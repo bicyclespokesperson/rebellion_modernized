@@ -29,7 +29,7 @@ int MissionMgrEvent30c::CheckValid(StatusCode* status) { return succeedWithoutCh
 
 int MissionMgrEvent30c::Execute() {
     NotifyContext ctx(m_context);
-    if (MissionMgr* manager = getMissionMgr()) manager->AdvanceMissionPhase(&m_key, m_valueB, &ctx);
+    if (MissionMgr* manager = getMissionMgr()) manager->MissionMgr::AdvanceMissionPhase(&m_key, m_valueB, &ctx);
     return 0;
 }
 
@@ -51,7 +51,7 @@ int MissionMgrEvent30d::CheckValid(StatusCode* status) { return succeedWithoutCh
 
 int MissionMgrEvent30d::Execute() {
     NotifyContext ctx(m_context);
-    if (MissionMgr* manager = getMissionMgr()) manager->RunMissionPhase(&m_key, m_valueA, m_valueB, &ctx);
+    if (MissionMgr* manager = getMissionMgr()) manager->MissionMgr::RunMissionPhase(&m_key, m_valueA, m_valueB, &ctx);
     return 0;
 }
 

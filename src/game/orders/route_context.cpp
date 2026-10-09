@@ -281,7 +281,7 @@ int RouteContext::FreeCarriedParents(GameObj* object, StatusCode* status) {
     UnitCountTable unusedCounts;
     ObjectKeyValueSet carried;
     int result = 0;
-    if (static_cast<ManuMgr*>(object)->GetQueueCopy(&carried)) result = FreeParentsOf(&carried, status);
+    if (static_cast<ManuMgr*>(object)->ManuMgr::GetQueueCopy(&carried)) result = FreeParentsOf(&carried, status);
     return result;
 }
 

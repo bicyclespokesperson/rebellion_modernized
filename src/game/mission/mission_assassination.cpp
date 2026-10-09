@@ -50,7 +50,7 @@ int MissionAssassination::CheckTarget(MissionCheckArgs* check, StatusCode* statu
 
 int MissionAssassination::Virtual157(GameObj* person, int* out) {
     Character* target = nullptr;
-    const int found = static_cast<MissionCharacterTargetBase*>(this)->GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target));
+    const int found = static_cast<MissionCharacterTargetBase*>(this)->MissionCharacterTargetBase::GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target));
     bool ok = found != 0;
     if (!target) return ok;
     const int targetCombat = target->GetCombat();
@@ -67,7 +67,7 @@ int MissionAssassination::Virtual159(GameObj* personObject, int roll, int* out, 
     if (!PercentChance(roll)) return 1;
     *out = 1;
     Character* target = nullptr;
-    const int found = static_cast<MissionCharacterTargetBase*>(this)->GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target));
+    const int found = static_cast<MissionCharacterTargetBase*>(this)->MissionCharacterTargetBase::GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target));
     bool ok = found != 0;
     if (target) ok = target->Virtual187(ctx) && ok;
     if (!target || !(target->m_stateFlags & kDestroyedState)) return ok;

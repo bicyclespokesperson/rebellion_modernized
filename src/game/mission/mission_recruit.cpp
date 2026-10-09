@@ -65,7 +65,7 @@ MissionRecruit::MissionRecruit() {}
 MissionRecruit::~MissionRecruit() { REB_KEEP_VPTR_STORE(); }
 
 int MissionRecruit::Read(istream* in) {
-    if (!static_cast<MissionRuleBase*>(this)->ReadBody(in)) return 0;
+    if (!static_cast<MissionRuleBase*>(this)->MissionRuleBase::ReadBody(in)) return 0;
     return m_recruitedCharacter.Read(in);
 }
 
@@ -75,15 +75,15 @@ int MissionRecruit::Write(ostream* out) {
 }
 
 int MissionRecruit::Checksum(Crc32* crc) {
-    if (!reinterpret_cast<MissionTypeBase*>(this)->ChecksumBody(crc)) return 0;
+    if (!reinterpret_cast<MissionTypeBase*>(this)->MissionTypeBase::ChecksumBody(crc)) return 0;
     return reinterpret_cast<SideBits*>(&m_recruitedCharacter)->Checksum(crc);
 }
 
-int MissionRecruit::Validate() { return this->ValidateImpl(); }
+int MissionRecruit::Validate() { return this->Mission::ValidateImpl(); }
 
 int MissionRecruit::ApplyAll(NotifyContext* ctx) { return IsSideView() ? ApplyAllBody(ctx) : 0; }
 
-int MissionRecruit::CreateViews(int controlKind, NotifyContext* ctx) { return this->CreateViewsImpl(controlKind, ctx); }
+int MissionRecruit::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
 int MissionRecruit::ApplyAllBody(NotifyContext* ctx) {
     const int result = ApplyAllImpl(ctx);
@@ -192,7 +192,7 @@ int MissionRecruit::CheckTarget(MissionCheckArgs* check, StatusCode* status, int
 
 int MissionRecruit::Virtual157(GameObj* person, int* out) {
     System* system = nullptr;
-    const int found = static_cast<MissionSystemTargetBase*>(this)->GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
+    const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     const bool ok = found != 0;
     if (!system) return ok;
     const int side = ControlSideIndex(ControlSide());
@@ -212,7 +212,7 @@ int MissionRecruit::Virtual159(GameObj* person, int roll, int* out, NotifyContex
     if (!PercentChance(roll)) return 1;
     *out = 1;
     System* system = nullptr;
-    const int found = static_cast<MissionSystemTargetBase*>(this)->GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
+    const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     CharacterMgr* root = GetCharacterManager();
     int ok = root != nullptr && found != 0;
     if (!system || !root) return ok;

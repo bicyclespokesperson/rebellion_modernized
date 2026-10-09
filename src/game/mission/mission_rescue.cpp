@@ -62,7 +62,7 @@ int MissionRescue::Virtual159(GameObj* person, int roll, int* out, NotifyContext
     Role* role = static_cast<Role*>(person);
     if (role->Virtual118()) role->SetBaseCombat(role->m_baseCombat + g_gnprtb1812, ctx);
     Role* target = nullptr;
-    ok = static_cast<MissionCharacterTargetBase*>(this)->GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target));
+    ok = static_cast<MissionCharacterTargetBase*>(this)->MissionCharacterTargetBase::GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target));
     if (target) {
         ObjectKey key;
         role->GetKey(&key);

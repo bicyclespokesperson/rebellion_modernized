@@ -481,7 +481,7 @@ void ReportWindow::OnCommand(int a, int b, int c) {
             if (static_cast<int16_t>(a) == kPreviousId) {
                 ObjectKey reportedKey;
                 GetObjectKey(reported, &reportedKey);
-                static_cast<SectorWindow*>(sectorWindow)->OpenWindowOfType(&reportedKey, 4);
+                static_cast<SectorWindow*>(sectorWindow)->SectorWindow::OpenWindowOfType(&reportedKey, 4);
             }
         }
         ModalReportReset(m_commandId);

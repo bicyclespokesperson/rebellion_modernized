@@ -83,12 +83,12 @@ int Character::Virtual132(const ObjectKey* holder, NotifyContext* ctx) {
 }
 
 int Character::Virtual133(NotifyContext* ctx) {
-    const int stub = reinterpret_cast<GameManager*>(this)->NoteDispatch(ctx);
+    const int stub = reinterpret_cast<GameManager*>(this)->GameManager::NoteDispatch(ctx);
     return SetState(kStateFree, ctx) && stub ? 1 : 0;
 }
 
 int Character::Virtual134(NotifyContext* ctx) {
-    const int stub = reinterpret_cast<GameManager*>(this)->NoteDispatch(ctx);
+    const int stub = reinterpret_cast<GameManager*>(this)->GameManager::NoteDispatch(ctx);
     return SetState(kStateSecond, ctx) && stub ? 1 : 0;
 }
 
