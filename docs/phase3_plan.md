@@ -298,3 +298,38 @@ droid animation progress per game tick depends on wall-clock rate (paint/idle ca
 reconstruction, so its animations advance further per tick; this would explain a stable orig-vs-reconstruction split with no logic difference.
 Not tested: pinning animation to virtual time (the standalone/hybrid would need to suppress or virtualise WM_PAINT/SpriteStage cadence).
 No reconstruction bug was identified, and none is excluded.
+
+**Follow-up (Oct 9, later): the split was sound timing plus two reconstruction bugs.**
+
+- *Clock calls are not the cause.* `REB_CLOCK_TRACE=<n>` (n >= 2) logs the virtual-clock calls per caller every n ticks (callers in the
+  DLL are reported as the original address of their hook) and the first 4,000 calls of every caller after the start key. Per 250
+  ticks the original code and the hybrid make exactly the same calls: 251 `Stopwatch::ElapsedSeconds` + 1 `Stopwatch::Reset` QPC calls
+  per tick, and identical `SpriteStage::Tick` timeGetTime counts (= main-loop iterations). A per-iteration clock mode is therefore not
+  needed and was not built.
+- *Sound was the wall-clock leak.* The droids' talking steps (`AnimationStep04/13`, `advanceDeltaFrames`) end when
+  `IDirectSoundBuffer::GetStatus` stops reporting PLAYING, and DirectSound plays in wall-clock time (the container's ALSA null device),
+  so a talking step lasted 36-43 ticks depending on how fast the build ran; every later advisor draw moved with it. `REB_VIRTUAL_SOUND=1`
+  (`src/port/virtual_sound.h`, both shims, on in `long_compare.sh`) patches the driver's DirectSound/buffer vtables so the playing
+  state follows the virtual counter (a one-shot buffer plays (bytes - position) / nAvgBytesPerSec, a looping one until Stop). Failing
+  DirectSoundCreate instead is not an option: `SoundManager::SetPrimaryBufferFormat` dereferences the device unchecked (original bug).
+  With it, every configuration reproduces itself byte for byte (3/3 orig, 3/3 hybrid, 3/3 standalone, both scenarios).
+- *Logic bugs, found with `tools/bisect_save.py --enable-only`* (install only one chunk of hooks per run; with the plain
+  disable-one-chunk mode no chunk restored the original because reconstructed callers call DLL functions directly, so several chunks
+  each reached the same buggy function): `RulesMgr::ResumeTrip` passed BeginTravel's from/to keys swapped (battle);
+  `AiSystemPlanner::MoveTeams` did not clear its in-place flag for travelling or unavailable members, and the shared
+  `aitask::AddTargetSystem` picked sectors from the wrong selector (every original copy takes the *next* sector from the task's
+  just-emptied selector, AiTask3's also the first one; BUG(original)) (alliance). To find the call:
+  bisect the save tick with `REB_ENABLE_HOOKS=<culprit>` vs the original, capture the culprit with a skip that lands in that window,
+  and look for the failing capture with difftest. A mixed run also exposed `IntPair::Set` (0x51c900, really the constructor) not
+  returning `this`.
+
+| Scenario / config (REB_VIRTUAL_SOUND) | runs | outcome |
+|---|---|---|
+| battle, before the fixes | 3 x 3 | each configuration byte-identical across its runs; orig 1,366,554 vs hybrid/standalone 1,367,450 bytes |
+| alliance, before the fixes | 3 x 3 | each configuration byte-identical across its runs; orig 1,275,468 vs hybrid/standalone 1,272,066 bytes |
+| alliance, MoveTeams + AddTargetSystem fixed | 3 x 3 | **one trajectory, all nine runs**; hybrid byte-identical to the original; standalone ~55 bytes apart (zero-filled `new`); all screenshots identical |
+| battle, ResumeTrip fixed | 3 x 3 | **one trajectory, all nine runs** (1,366,554 bytes); orig vs hybrid/standalone differ in 9-11 bytes of uninitialised heap memory near the end of the save (the standalone writes zeros there: zero-filled `new`); screenshots identical except the standalone's battle popup (2,884 px). Rerun after all fixes (2 x 3): same |
+
+Remaining: the 9-11 bytes near the end of the battle save are uninitialised memory that the game serialises (orig, hybrid and
+standalone each write different garbage there; not traced to its record yet). Under heavy machine load (load average ~28) the
+wall-clock-scripted clicks can miss the main menu and a run writes no save; rerun with fewer runs.
