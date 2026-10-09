@@ -26,8 +26,8 @@ Goal: the same sources link into an executable that runs without REBEXE.EXE (i68
 ## Decisions
 
 - **Data:** generate, don't hand-write. `tools/gen_data_image.py` emits the game-owned .data/.bss as one block at the
-  original relative layout, with a label for every mangled name (covers the 18 two-type globals) and ~560 pointer
-  fixups (code → function symbols, .rdata → copied blocks, data → labels). CRT/LIBCI ranges excluded. Vtables and EH
+  original relative layout, with a label for every mangled name (covers the 19 two-type globals) and the pointer
+  fixups (code → function symbols, .rdata → copied blocks, data → labels; 18 in the data as measured, see M5). CRT/LIBCI ranges excluded. Vtables and EH
   tables are compiler-generated.
 - **Static init:** generated `static_init_table.cpp` calling the initializers in the original table order (0x6a6004,
   1,781 entries) from an entry wrapper. Tactical ID initializers (1,667, pure constant arithmetic) are evaluated in
@@ -86,6 +86,71 @@ saves varies run to run.
   beyond tick boundaries. Remaining gap: input is still injected by wall-clock xdotool (iteration-keyed injection was
   tried: iteration rates differ by an order of magnitude between intro and menus, so it was dropped).
 
+## M5: the hybrid that owns its data (measured Oct 8 2026)
+
+`tools/build_hybrid.sh --own-data` (CMake `REB_OWN_DATA=ON`) puts the game's globals in the DLL instead of binding them to
+REBEXE.EXE addresses. Stages: container builds the objects and `gen_link_symbols.py --own-data` (which then leaves game-owned
+globals unbound and writes `gen/data_refs.json`); the host runs `tools/gen_data_image.py` (needs the original EXE: capstone +
+pefile via uv) to write `gen/data_image.s`; the container assembles and links it. `tools/check_data_image.py --exe <EXE>` validates the
+result (every label at its original offset, block bytes equal to the EXE's except the relocated pointers, every patch site holds a
+block address). `REB_DATA_TRIPWIRE=1` (run-time) is the leak detector described below. The default build is unchanged.
+
+**What is owned.** `tools/own_data.py` holds the boundaries, found from the references of the library functions: the EXE's
+.data/.bss are `[0x6a6000-0x6a7c10)` static-initializer tables (the CRT's `_initterm` walks them until M6), `[0x6a7c10-0x6ac970)` game
+.data, `[0x6ac970-0x6b059c)` LIBCI RTTI + LIBCMT .data (RTTI descriptors, locale tables, `_iob`, small-block-heap state, math tables),
+`[0x6b059c-0x6be708)` game .bss and `[0x6be708-0x6bfe50)` LIBCMT/LIBCI .bss. The two game segments (77,516 bytes) become one 92,920-byte
+block in the original relative layout (the CRT gap is zero-filled, so one displacement relocates any original address). Pooled
+literals (`""` at 0x6a8714/0x6a8f48 and the `%ld`/`%lu` formats at 0x6ac1c0/c4) are game data that the CRT code also reads; they are
+owned like the rest and the CRT's references are shifted too.
+
+**Image contents.** 823 labels (790 in the block at 772 distinct addresses, 33 for `.rdata` globals; covers the 19 two-type
+addresses), 17 `.rdata` copies (692 bytes: float tables, rects, GUIDs; vtables/vbtables stay in the EXE because vtable patching points at
+them) and 18 pointer fixups, all block-to-block (the static data holds almost no pointers: the 560 estimated earlier counted
+printable-string bytes; strings are told apart by a printable-run mask). No static
+data points at code or `.rdata` strings (those tables are built at run time by the static initializers), so the "hooked function symbol /
+copied string" fixup paths exist but fire 0 times today.
+
+**Original code that is not reconstructed (step 2).** REBEXE.EXE has no `.reloc` section, so references are found by disassembly:
+`gen_data_image.py` sweeps `.text` per function partition and lists every `imm32`/`disp32` that holds a block address:
+8,174 sites (5,775 displacements, 2,399 immediates; 4,968 distinct targets) plus one pointer in `.rdata`. By owner: 4,173 in
+reconstructed functions (dead once hooked, but patched too so `REB_DISABLE_HOOKS` still works), 3,982 in tactical code (3,386 distinct
+globals; stays original), 15 in other unreconstructed game code, 4 in CRT. The alternative, limiting M5 to globals that no
+unreconstructed code references, would own only 1,575 of the 4,968 referenced addresses (32%) and leave the whole tactical and
+DirectDraw-init data behind, so it was not chosen.
+
+Chosen: **shift the references at load.** `src/hybrid/own_data.cpp` adds `block - 0x6a7c10` to each listed dword (`reb_code_refs`, 8,175
+entries) in `DllMain`, before hooks are installed; the EXE's copy of the block becomes dead. The block's initial bytes are the EXE's file
+contents, and the static initializers run later in the EXE's CRT start-up, so nothing is copied at run time. Cost: 8,175 four-byte
+writes (about 1 ms); the DLL loads at a fixed base anyway. Weakness: a reference the disassembly cannot see (an address built by
+arithmetic from something outside the block, or a data-in-code misparse) would silently read the stale EXE copy. Evidence against: every
+site's bytes were checked, every one of the 4,968 targets lies inside a defined Ghidra data item, and the **tripwire** (`REB_DATA_TRIPWIRE=1`)
+marks the 17 whole pages of the EXE copy (68 KB of the 77.5 KB; the 3 edge pages share space with the CRT) `PAGE_NOACCESS` and logs the
+instruction that touches one. Negative control: `REB_OWN_DATA_NO_PATCH=1` skips the shifts and the tripwire fires within the smoke
+scenario (write from DLL code, from `0x59b41c`, `0x5dda66`); with the shifts it never fires.
+Limits of this mode: `difftest`/`REB_CAPTURE` snapshots assume the original layout, so they stay on the default build.
+
+**Verification (own-data build).** smoke (menu screenshot correct), load_game and soak_fast: no `Unhandled`, no tripwire hit;
+`tools/determinism_check.sh -n 4`: four byte-identical `SAVEGAME.005` files with md5 `c676b92c...` (the original-logic save; one
+earlier pair gave the known tick-boundary variant `d0f0adea...`, which the default build produced in the same session too).
+
+**Vtables (step 3).** `tools/vtable_gaps.py` reads the built DLL: 1,018 reconstructed vtables, 24,034 slots. 985 are complete (every slot
+a hooked reconstruction or a pure virtual, whose slot is `_purecall`); 33 have unreconstructed slots (242 slots, 103 distinct functions):
+28 of them only tactical (231 slots, the fenced-off 3D classes: `MovingObject`, `FormationBase`, ...) or `icf_return_zero` (5), and 5
+with game-code slots (6 slots, 2 functions: 0x40f340, 0x5f6590). Slots left unreconstructed are still valid in the hybrid (they hold
+the original's address), so a DLL vtable works for original code that calls through it; what the redirection protects is pointer
+identity (original code comparing a vptr with a vtable address) and objects the unreconstructed constructors build with the original
+vtable. `REB_OWN_VTABLES=1` (experiment: `patch_vtables.py --keep-own-vtables`, combine with `--own-data`) leaves every vptr store on our
+copies. Result: smoke, load_game and soak_fast still run clean, but `save_determinism` fails (the Options screen never opens, no save is
+written). A bisect over the 1,013 vtables (keep own copies for a range, rebuild, run) shows that keeping every vtable except `AiPlayer::vftable` works
+and keeping only `AiPlayer::vftable` breaks it: the original's slot 8 is 0x51ebb0 (`mov eax,1; ret 4`, ICF-shared with
+`GameManager::NoteDispatch`), `AiPlayer` does not override it, and the inherited `PlayerController` slot (0x48b440) returns 0. The vptr
+redirect hides gaps of exactly this kind (an override the reconstruction never declared, or declared with the wrong body). So vtable
+patching stays on. `tools/vtable_gaps.py --exe <EXE> [--list]` also compares every slot with the original vtable's: of 24,034 slots,
+5,571 are our own copies of ICF-folded stubs (equivalence not checkable by address), 131 in 70 vtables name a different original function
+with other machine code (the AiPlayer slot is one; the others are candidates to review: expected to be ICF aliases with different bytes
+only where relative calls differ, otherwise missing overrides), and the rest match. Turning the redirect off by default needs: the 33
+incomplete vtables closed (M2/M3), that candidate list reviewed, and soak/save scenarios green with `REB_OWN_VTABLES=1`.
+
 ## Milestones
 
 | # | Milestone | Exit criterion |
@@ -95,7 +160,7 @@ saves varies run to run.
 | M2 | combat_strat, saveload, the remaining large non-tactical functions, named ICF stubs, atexit thunks | No reference to non-tactical game code; difftest PASS |
 | M3 | Tactical fence (captures, reachable reconstruction, stubs, vote fallback) | Hybrid with stubs: auto-resolve OK; "tactical" resolves abstractly |
 | M4 | LIBCI + CRT fidelity pieces | difftest PASS; save/load scenarios OK. LIBCI done (src/game/iostream, 0 references left); CRT pieces open |
-| M5 | `REB_OWN_DATA=1` hybrid: generated data image, vtable patching off | Scenarios match the normal hybrid |
+| M5 | `REB_OWN_DATA=1` hybrid: generated data image, vtable patching off | Scenarios match the normal hybrid. Data image done (above); vtable patching still on |
 | M6 | Standalone `rebellion.exe` (clang-cl/lld-link, static UCRT, real import libs, init table, entry wrapper) | Zero absolute symbols; differential runs pass |
 | M7 | Determinism harness (can start with M1) | Repeated hybrid runs identical; heap probe recorded |
 

@@ -21,6 +21,9 @@ import sys
 from dataclasses import dataclass
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import own_data  # noqa: E402
+
 CALLING_CONVENTIONS = ("__cdecl", "__thiscall", "__stdcall", "__fastcall", "__vectorcall")
 DEFAULT_NAME = re.compile(r"^(?:FUN|DAT|LAB|PTR_FUN|PTR_DAT)_([0-9a-fA-F]{8})$")
 TEXT_TYPES = {"T", "t"}
@@ -312,7 +315,13 @@ def main() -> int:
     ap.add_argument("--game", nargs="+", type=Path, required=True, help="reconstructed game objects")
     ap.add_argument("--runtime", nargs="+", type=Path, required=True,
                     help="hybrid runtime objects: their definitions never become hooks")
+    ap.add_argument("--own-data", action="store_true",
+                    help="REB_OWN_DATA: do not bind game-owned globals to original addresses (tools/gen_data_image.py "
+                         "defines them); write --out-data-refs for that tool")
+    ap.add_argument("--out-data-refs", type=Path, help="with --own-data: JSON of the globals the data image must define")
     args = ap.parse_args()
+    if args.own_data and args.out_data_refs is None:
+        ap.error("--own-data needs --out-data-refs")
 
     table, ambiguous = load_csv(args.csv)
     # aliases.csv: extra names for original addresses (stand-in declarations); they resolve references only and
@@ -337,6 +346,7 @@ def main() -> int:
             s.key = s.signature_key = c_symbol_key(s.raw)
 
     absolute: list[tuple[str, int]] = []
+    owned_data: dict[str, OriginalSymbol] = {}
     gap_refs: list[tuple[str, str, OriginalSymbol]] = []
     unresolved: list[str] = []
     defined_anywhere = {s.raw for s in symbols if s.defined}
@@ -363,7 +373,10 @@ def main() -> int:
                 unresolved.append(s.raw)
             continue
         if not s.defined:
-            absolute.append((s.raw, orig.address))
+            if args.own_data and orig.kind != "func" and own_data.owns(orig.address, orig.name):
+                owned_data[s.raw] = orig
+            else:
+                absolute.append((s.raw, orig.address))
             gap_refs.append((s.raw, "alias" if via_alias else "csv", orig))
         elif s.nm_type in TEXT_TYPES:
             if orig.kind != "func":
@@ -397,7 +410,13 @@ def main() -> int:
         "referenced_originals": len(absolute),
         "gaps": gaps,
     }, indent=1) + "\n")
-    print(f"gen_link_symbols: {len(hooks)} hooks, {len(absolute)} original references")
+    if args.own_data:
+        args.out_data_refs.write_text(json.dumps({
+            "data": {raw: {"address": f"{o.address:#010x}", "name": o.name} for raw, o in sorted(owned_data.items())},
+            "hooks": {f"{a:#010x}": raw for a, raw, _, _ in sorted(hooks)},
+        }, indent=1) + "\n")
+    print(f"gen_link_symbols: {len(hooks)} hooks, {len(absolute)} original references"
+          + (f", {len(owned_data)} globals left to the data image" if args.own_data else ""))
     return 0
 
 

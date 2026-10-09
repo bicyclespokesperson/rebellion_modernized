@@ -13,4 +13,6 @@ int install_hooks();
 bool patch_jump(uint32_t from, const void* to);
 // Opt-in determinism shims and heap probe (REB_DETERMINISTIC, REB_HEAP_PROBE); see determinism.cpp.
 void install_determinism();
+// REB_OWN_DATA builds only: shifts the original code's references to game data onto the DLL's copy (own_data.cpp).
+void install_own_data();
 }  // namespace reb
