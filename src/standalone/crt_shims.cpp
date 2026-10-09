@@ -18,18 +18,11 @@ int __cdecl _ispunct(int c) { return ispunct(c); }
 }
 
 #ifdef REB_ZERO_NEW
-#include <stdlib.h>
-#include <string.h>
-void* operator new(size_t size) {
-    void* memory = malloc(size);
-    if (memory) memset(memory, 0, size);
-    return memory;
-}
-void* operator new[](size_t size) {
-    void* memory = malloc(size);
-    if (memory) memset(memory, 0, size);
-    return memory;
-}
-void operator delete(void* memory) { free(memory); }
-void operator delete[](void* memory) { free(memory); }
+#include <stddef.h>
+void* RebAlloc(size_t size);  // src/port/heap_probe.cpp: zeroed memory, optionally with the REB_HEAP_PROBE address perturbation
+void RebFree(void* memory);
+void* operator new(size_t size) { return RebAlloc(size); }
+void* operator new[](size_t size) { return RebAlloc(size); }
+void operator delete(void* memory) { RebFree(memory); }
+void operator delete[](void* memory) { RebFree(memory); }
 #endif

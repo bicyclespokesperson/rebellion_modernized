@@ -16,6 +16,8 @@
 #include "core/iostream_lib.h"
 #include "events/game_clock_hooks.h"
 #include "events/game_step_driver.h"
+#include "app/game_session.h"
+#include "strategy_ui/human_player.h"
 
 #include "port/sim_harness.h"
 
@@ -136,7 +138,25 @@ bool SaveGame(RebellionApplication* app, const SavedGameInfo& source, const char
 struct StepStats {
     uint64_t frames = 0;
     uint32_t maxFramesPerTick = 0;
+    uint32_t stateEntries[0x18] = {};
+    int lastState = -1;
 };
+
+// The human side's answers to the battle votes, in place of the vote and battle windows: "resolve" (auto-resolve,
+// HumanPlayer::SetVote(1, 1)) to the battle-type vote, then "confirmed" (HumanPlayer::ConfirmVote) to the done vote.
+// The UI notices those calls would queue for the windows are not created.
+void AnswerHumanVotes(const BattleFlow* flow) {
+    GameSession* session = GetGameSession();
+    HumanPlayer* human = session ? session->m_human : nullptr;
+    if (!human) return;
+    if (flow->m_state == kFlowBattleWaitForType && human->m_voteState == 0) {
+        ClearGameTime(&human->m_voteTime);
+        human->m_voteState = 1;
+        human->m_voteTime.m_value = 10000.0f;
+    } else if (flow->m_state == kFlowBattleWaitForDone && human->m_voteState != 3) {
+        human->m_voteState = 3;
+    }
+}
 
 bool FrameSettled(const BattleFlow* flow) {
     return flow->m_state == kFlowStrategic && g_gameStepDriver && g_gameStepDriver->m_phase == 0;
@@ -157,9 +177,13 @@ bool RunToTick(RebellionApplication* app, uint32_t target, StepStats* stats) {
             return false;
         }
         app->m_waitElapsed = 1;
+        AnswerHumanVotes(flow);
         int stepped = 1;
         AppStepGame(&stepped);
         ++stats->frames;
+        const int state = flow->m_state;
+        if (state != stats->lastState && state >= 0 && state < 0x18) ++stats->stateEntries[state];
+        stats->lastState = state;
     }
     if (frames > stats->maxFramesPerTick) stats->maxFramesPerTick = frames;
     return true;
@@ -201,10 +225,14 @@ int RebSimRun(RebellionApplication* app) {
         if (tick >= endTick) snprintf(path, sizeof path, "%s", options.save);
         else snprintf(path, sizeof path, "%s.t%u", options.save, tick);
         if (!SaveGame(app, header, path)) Finish(5, "REB_SIM: save failed");
-        Log("saved tick %u frames %llu -> %s", tick, static_cast<unsigned long long>(stats.frames), path);
+        GameSession* session = GetGameSession();
+        Log("saved tick %u frames %llu messages sent (side1 %d, side2 %d) -> %s", tick, static_cast<unsigned long long>(stats.frames),
+            session ? session->m_controllers[0]->m_nextVoteId : -1, session ? session->m_controllers[1]->m_nextVoteId : -1, path);
         if (tick >= endTick) break;
         next = tick + options.every;
     }
     Log("done: %llu frames, max %u frames per tick", static_cast<unsigned long long>(stats.frames), stats.maxFramesPerTick);
+    for (int state = 0; state < 0x18; ++state)
+        if (state != 2 && stats.stateEntries[state]) Log("flow state %d entered %u times", state, stats.stateEntries[state]);
     Finish(0, "ok");
 }
