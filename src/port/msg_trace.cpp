@@ -34,6 +34,7 @@ FILE* g_file = nullptr;
 int g_state = 0;  // 0 unknown, 1 enabled, -1 disabled
 
 int Serial(uintptr_t handle) {
+    if (!handle) return 0;
     for (int i = 0; i < g_windowCount; ++i)
         if (g_windows[i] == handle) return i + 1;
     return 0;
@@ -44,6 +45,11 @@ int SerialOrNew(uintptr_t handle) {
     if (g_windowCount == kMaxWindows) return 0;
     g_windows[g_windowCount] = handle;
     return ++g_windowCount;
+}
+
+void Forget(uintptr_t handle) {
+    for (int i = 0; i < g_windowCount; ++i)
+        if (g_windows[i] == handle) g_windows[i] = 0;  // the serial stays reserved: handles can be reused, serials are not
 }
 
 void Init() {
@@ -63,7 +69,7 @@ void FormatValue(char* out, size_t size, uintptr_t value, bool pointerLike) {
 
 bool CarriesPointer(unsigned message, bool lParam) {
     switch (message) {
-        case 0x01: case 0x81: case 0x0c: case 0x0d: case 0x24: case 0x46: case 0x47: case 0x83: case 0x2b: return lParam;
+        case 0x01: case 0x81: case 0x0c: case 0x0d: case 0x24: case 0x46: case 0x47: case 0x83: case 0x2b: case 0x7c: case 0x7d: return lParam;
         default: return message >= 0x400 && message < 0xc000;
     }
 }
@@ -86,8 +92,13 @@ void Log(const char* windowClass, uintptr_t window, unsigned message, uintptr_t 
     char w[24], l[24];
     FormatValue(w, sizeof w, wParam, CarriesPointer(message, false));
     FormatValue(l, sizeof l, static_cast<uintptr_t>(lParam), CarriesPointer(message, true));
-    fprintf(g_file, "%d %s #%d %s %s %s\n", depth, windowClass, serial, name, w, l);
+    char cls[64];
+    snprintf(cls, sizeof cls, "%s", windowClass);
+    for (char* c = cls; *c; ++c)
+        if (*c == ' ') *c = '_';
+    fprintf(g_file, "%d %s #%d %s %s %s\n", depth, cls, serial, name, w, l);
     fflush(g_file);
+    if (message == 0x82) Forget(window);
 }
 
 void Note(const char* text) {

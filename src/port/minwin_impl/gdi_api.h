@@ -49,8 +49,8 @@ void DestroyWindowDc(HDC dc);                  // ReleaseDC, EndPaint
 // Window manager services the GDI side may call (src/port/minwin_impl/user/user_api.h declares the rest).
 namespace minwin_user {
 
-// RealizePalette changed the system palette: sends WM_PALETTEISCHANGING/WM_PALETTECHANGED to the top-level windows the way
-// Windows does (`realizer` is the window whose DC realized the palette; it receives wParam = its own handle).
+// RealizePalette changed the system palette: sends WM_PALETTEISCHANGING (0x310, wParam = `realizer`) to the top-level windows,
+// which is all the real user32 does under Wine for the game's first realization (call it only when the palette really changed).
 void NotifyPaletteChanged(HWND realizer);
 
 }  // namespace minwin_user
