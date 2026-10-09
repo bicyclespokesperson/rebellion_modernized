@@ -77,6 +77,8 @@ void REB_THISCALL AppendManuMgrName(ObjectBase* base, String* out, int kind) {
     out->AppendSigned(self->m_remainingGameObjCount);
 }
 
+void ManuMgr::WriteName(String* out, int kind) { AppendManuMgrName(this, out, kind); }
+
 ObjectKey* ManuMgr::GetSeedKey(ObjectKey* out) {
     out->m_value = m_seedKey.m_value;
     return out;

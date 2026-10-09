@@ -14,9 +14,13 @@
 //   REB_QPC_START_KEY=<vk>: the counter stands still from the moment a game exists until the key is seen down (same key as the
 //                        hold key: released and pressed again).
 //   REB_NO_TIMERS=1      timeSetEvent returns a fake id and never calls back.
+//   REB_CLOCK_TRACE=<n>  (n >= 1) counts the virtual clock calls per caller address (return address, 'q' QueryPerformanceCounter,
+//                        't' timeGetTime/GetTickCount) and appends the counts to Z:\\out\\clock_trace.log every n game ticks; the
+//                        hybrid's REB_CLOCK_TRACE reports the same totals, so a standalone run can be compared with an original run.
 //   REB_VIRTUAL_SOUND=1  with REB_DETERMINISTIC: the playing state of sound buffers follows the virtual counter
-//                        (src/port/virtual_sound.h; not in REB_MINWIN_IMPL builds, whose dsound is the port's own).
+//                        (src/port/virtual_sound.h; in REB_MINWIN_IMPL builds the port's own dsound does the same, minwin_impl/dsound/dsound_api.cpp).
 #include <windows.h>
+#include <intrin.h>
 #include <mmsystem.h>
 #include <stdint.h>
 #include <time.h>
@@ -27,6 +31,7 @@
 #if defined(REB_MINWIN_IMPL)
 extern "C" UINT WINAPI MinwinTimeSetEvent(UINT delay, UINT resolution, LPTIMECALLBACK callback, DWORD_PTR user, UINT flags);
 extern "C" DWORD WINAPI MinwinTimeGetTime();
+extern "C" void MinwinDirectSoundSetVirtualClock(uint64_t (*nowUs)());
 #endif
 
 namespace {
@@ -54,6 +59,79 @@ int64_t g_counterNs = 0;
 volatile LONG g_counterLock = 0;
 volatile LONG g_ready = 0;
 
+uint32_t g_traceEveryTicks = 0;
+uint32_t g_traceNextTick = 0;
+volatile LONG g_traceLock = 0;
+struct CallerCount {
+    char api;
+    uintptr_t address;
+    uint32_t count;
+    uint32_t logged;
+};
+constexpr uint32_t kLoggedCallsPerCaller = 4000;
+char g_traceBuffer[1 << 16];
+int g_traceBufferLength = 0;
+constexpr int kCallerTableSize = 256;
+CallerCount g_callerCounts[kCallerTableSize];
+
+void FlushTrace() {
+    if (g_traceBufferLength == 0) return;
+    const HANDLE file = CreateFileA("Z:\\out\\clock_trace.log", FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE, nullptr, OPEN_ALWAYS,
+                                    FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (file != INVALID_HANDLE_VALUE) {
+        DWORD written;
+        WriteFile(file, g_traceBuffer, static_cast<DWORD>(g_traceBufferLength), &written, nullptr);
+        CloseHandle(file);
+    }
+    g_traceBufferLength = 0;
+}
+
+void AppendTraceLine(const char* text, int length) {
+    if (length > static_cast<int>(sizeof g_traceBuffer) - g_traceBufferLength) FlushTrace();
+    for (int i = 0; i < length; ++i) g_traceBuffer[g_traceBufferLength++] = text[i];
+}
+
+uint32_t CurrentGameTick();
+uint64_t AddCounterNs(uint32_t stepNs);
+
+void DumpCallerCounts(uint32_t tick) {
+    char line[96];
+    AppendTraceLine(line, wsprintfA(line, "clock counts at tick %u\r\n", tick));
+    for (CallerCount& caller : g_callerCounts) {
+        if (!caller.count) continue;
+        AppendTraceLine(line, wsprintfA(line, "clock count %c %08x: %u\r\n", caller.api, static_cast<unsigned>(caller.address), caller.count));
+        caller.count = 0;
+    }
+    FlushTrace();
+}
+
+void CountCaller(char api, void* returnAddress) {
+    if (!g_traceEveryTicks) return;
+    const uintptr_t address = reinterpret_cast<uintptr_t>(returnAddress);
+    while (InterlockedExchange(&g_traceLock, 1)) {
+    }
+    int slot = 0;
+    while (slot < kCallerTableSize && g_callerCounts[slot].count && !(g_callerCounts[slot].api == api && g_callerCounts[slot].address == address)) ++slot;
+    const uint32_t tick = CurrentGameTick();
+    if (slot < kCallerTableSize) {
+        CallerCount& caller = g_callerCounts[slot];
+        caller.api = api;
+        caller.address = address;
+        ++caller.count;
+        if (g_startSeen && caller.logged < kLoggedCallsPerCaller) {
+            ++caller.logged;
+            char line[96];
+            AppendTraceLine(line, wsprintfA(line, "clock call %c %08x tick %u at %u us\r\n", api, static_cast<unsigned>(address), tick,
+                                            static_cast<unsigned>(AddCounterNs(0) / 1000)));
+        }
+    }
+    if (tick >= g_traceNextTick) {
+        if (g_traceNextTick) DumpCallerCounts(tick);
+        g_traceNextTick = (tick / g_traceEveryTicks + 1) * g_traceEveryTicks;
+    }
+    InterlockedExchange(&g_traceLock, 0);
+}
+
 uint32_t EnvNumber(const char* name, bool* present = nullptr) {
     char buffer[32];
     const DWORD n = GetEnvironmentVariableA(name, buffer, sizeof buffer);
@@ -63,6 +141,10 @@ uint32_t EnvNumber(const char* name, bool* present = nullptr) {
     for (const char* c = buffer; *c >= '0' && *c <= '9'; ++c) value = value * 10 + static_cast<uint32_t>(*c - '0');
     return value;
 }
+
+uint64_t AddCounterNs(uint32_t stepNs);
+
+uint64_t VirtualNowUs() { return AddCounterNs(0) / 1000; }
 
 void EnsureReady() {
     if (g_ready) return;
@@ -79,7 +161,11 @@ void EnsureReady() {
     g_releaseKey = EnvNumber("REB_QPC_HOLD_UNTIL_KEY");
     g_releaseArmed = g_releaseKey != g_startKey;
     g_clockFromCounter = EnvNumber("REB_CLOCK_FROM_QPC") != 0;
+    g_traceEveryTicks = EnvNumber("REB_CLOCK_TRACE");
     g_ready = 1;
+#if defined(REB_MINWIN_IMPL)
+    if (g_deterministic && g_virtualSound) MinwinDirectSoundSetVirtualClock(VirtualNowUs);
+#endif
 }
 
 template <typename Function>
@@ -99,8 +185,6 @@ Function RealFunction(const char* module, const char* name) {
 #endif
     return reinterpret_cast<Function>(GetProcAddress(handle, name));
 }
-
-uint64_t AddCounterNs(uint32_t stepNs);
 
 uint64_t AdvanceClockUs() {
     if (g_clockFromCounter) return AddCounterNs(0) / 1000;
@@ -158,6 +242,7 @@ uint64_t AdvanceCounterUs() {
 BOOL WINAPI RebQueryPerformanceCounter(LARGE_INTEGER* out) {
     EnsureReady();
     if (g_deterministic) {
+        CountCaller('q', _ReturnAddress());
         if (out) out->QuadPart = static_cast<LONGLONG>(AdvanceCounterUs());
         return TRUE;
     }
@@ -177,14 +262,20 @@ BOOL WINAPI RebQueryPerformanceFrequency(LARGE_INTEGER* out) {
 
 DWORD WINAPI RebGetTickCount() {
     EnsureReady();
-    if (g_deterministic) return kTickBaseMs + static_cast<DWORD>(AdvanceClockUs() / 1000);
+    if (g_deterministic) {
+        CountCaller('t', _ReturnAddress());
+        return kTickBaseMs + static_cast<DWORD>(AdvanceClockUs() / 1000);
+    }
     static auto real = RealFunction<DWORD(WINAPI*)()>("kernel32.dll", "GetTickCount");
     return real();
 }
 
 DWORD WINAPI RebTimeGetTime() {
     EnsureReady();
-    if (g_deterministic) return kTickBaseMs + static_cast<DWORD>(AdvanceClockUs() / 1000);
+    if (g_deterministic) {
+        CountCaller('t', _ReturnAddress());
+        return kTickBaseMs + static_cast<DWORD>(AdvanceClockUs() / 1000);
+    }
 #if defined(REB_MINWIN_IMPL)
     return MinwinTimeGetTime();
 #else
@@ -225,8 +316,6 @@ UINT WINAPI RebTimeSetEvent(UINT delay, UINT resolution, LPTIMECALLBACK callback
 }
 
 #if !defined(REB_MINWIN_IMPL)
-uint64_t VirtualNowUs() { return AddCounterNs(0) / 1000; }
-
 void NoLog(const char*, ...) {}
 
 HRESULT WINAPI RebDirectSoundCreate(const GUID* device, void** directSound, void* outer) {

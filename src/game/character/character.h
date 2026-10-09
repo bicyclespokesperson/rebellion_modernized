@@ -40,6 +40,7 @@ public:
 
     // ---- overrides of GameObj / UnitObjBase / Role slots ----
     virtual int SetRecord(DatRecord* record) override;                 // 10, 0x50e1c0
+    virtual void WriteName(String* out, int kind) override;            // ObjectBase slot 0, 0x4ed060 (AppendCharacterName)
     virtual int GetTransitSpeed(int arg) override;                     // 13, 0x4ed370: the hyperdrive modifier while existing
     virtual int GetEventKinds(int unused, EventKindSet* out) override;  // 15, 0x4ed350
     virtual int Virtual17() override { return 0; }                     // 17

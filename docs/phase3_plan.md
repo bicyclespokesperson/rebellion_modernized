@@ -366,3 +366,46 @@ Details, findings and how to build: [docs/native_linux.md](native_linux.md). `bu
 i686 goldens** (no float drift measured); ASan/UBSan are clean on those and on 15 UI scenarios after fixing 15 findings, most of them classes that mirror the 32-bit layout (two of which changed simulation results). The data image and the static-initializer
 table are generated from the EXE as typed C++ definitions (`tools/gen_native_data.py`, `tools/gen_native_init.py`). P2 (i686 Linux) was skipped.
 
+**Residual bytes, standalone differences, minwin dsound (Oct 9, later).**
+
+- *Every residual save byte is one field.* The 55 (alliance) and 9-11 (battle) differing bytes are `UiNotice::m_unk3c`, the 16-bit field at +0x3c
+  that `UiNotice::Write` serialises right after the notice's 32-bit creation tick (`UiNotice::Read/Write`, 0x4c4e80/0x4c4f30). Neither constructor
+  (0x4c4ce0, 0x4c4d90) ever sets it, and the original's `operator new` hands out recycled heap memory, so the original saves leftovers of earlier
+  allocations: ASCII fragments of freed strings (`ry`, `ti`, `ed`: texts of earlier messages) and pointer halves. The hybrid shares the original's
+  heap and mostly reproduces the leftovers (alliance: byte-identical to the original in 6 of 7 hybrid alliance runs measured, one run differed in 65 of
+  these fields, so they are not a function of the trajectory alone), the standalone's zero-filling `operator new` saves 0. Classification:
+  uninitialised memory the original writes, XFAIL class; it cannot be reproduced without reproducing the original's heap, so it is not.
+  `tools/long_compare_report.py` finds a notice by its serialised header (0, owner 0-4, tick, the field, unk40 0/1, unk28) and reports these bytes
+  as `+Nu` instead of counting them; every other differing byte is still counted.
+- *The standalone's battle popup said "The Side fleet ... Side forces" (2,884 px).* `Side`, `Character` and `ManuMgr` (and their subclasses)
+  replace `ObjectBase` slot 0 (`WriteName`) with `AppendSideName` (0x52d920), `AppendCharacterName` (0x4ed060) and `AppendManuMgrName` (0x527b40);
+  only the hybrid, which keeps the original vtables, ever reached them. The standalone's compiled vtables fell back to `GameObj::WriteName` (the
+  record's name, "Side"; no force title for characters; no queue length for managers). The three classes now declare the override, and the popup is
+  identical to the original's. The hybrid is unaffected.
+- *REB_VIRTUAL_SOUND in the minwin dsound* (`minwin_impl/dsound/dsound_api.cpp`): `MinwinDirectSoundSetVirtualClock(now_us)`, called by the
+  standalone shim when `REB_DETERMINISTIC` and `REB_VIRTUAL_SOUND` are set, switches a secondary buffer's `GetStatus` to the model of
+  `src/port/virtual_sound.h` (one-shot: (bytes - position) / nAvgBytesPerSec of virtual time from the last Play, looping: until Stop;
+  SetCurrentPosition and Stop keep the position). The mixer still renders in real time, and `GetCurrentPosition` and the notification events stay
+  real, as in the Wine runs. The native port only has to call the same function with its virtual clock. On the impl build the alliance run
+  reproduces itself with it (five runs: one size and one save) and not without it (a different save).
+- *The impl build also needed the Smack clock.* `SmackWait`, polled by the game while a movie plays, read `QueryPerformanceCounter`, which in the
+  standalone is the shim's virtual counter (one step per call): the intro movies ran the virtual counter 186 s ahead before the game existed,
+  the first game tick fired at game creation, and the impl's simulation was one tick out of phase with the original from the start (first differing
+  event at tick 95,080: a timer event ran before instead of after a type-queue event; found with `REB_CLOCK_TRACE` and the RUN/random trace of
+  `tools/trace_divergence.patch`, whose event_queue hunk no longer applies). `smack_clock.cpp` now reads the real counter through `GetProcAddress`.
+  With it the impl build's alliance save equals the original's (same size, same serial counters) apart from the same 55 uninitialised bytes.
+  `REB_CLOCK_TRACE=<n>` exists in the standalone shim too (per caller, `Z:\out\clock_trace.log`, comparable with the hybrid's totals).
+- *BattleInProgressWindow::OnCreate1 crashed in the impl build* (the Empire long_battle never saved): the original copies a `CoolLabel` bit for
+  bit and deletes its `String` twice (original bug, invisible in the original's small-block heap, which leaves freed blocks intact). The impl's UCRT
+  heap overwrites the freed String's vptr; the first delete is now skipped (`fixedText.m_text = nullptr`), the sharing is kept.
+- `sim_goldens check` reports battle1 as different, with and without this branch's `src/game` changes (identical hashes built without them): the
+  golden predates the `RulesMgr::ResumeTrip` fix and needs re-recording (`sim_goldens.sh record`).
+- Not fixed: the impl build's screenshots differ from the Wine runs' (its own GDI text and palette, 7k-60k px per shot), by design of the impl.
+
+| Scenario / config (Oct 9, after these fixes) | runs | outcome |
+|---|---|---|
+| alliance, default builds | 3 x 3 | one trajectory; hybrid = original (byte-identical in 2 of 3, +65u in one), standalone +55u; all screenshots identical |
+| battle, default builds | 3 x 3 | one trajectory (1,366,554 bytes); hybrid +11u, standalone +9u/+10u against the original; **all screenshots identical, the popup too** |
+| alliance, minwin_impl standalone (`REB_STANDALONE_DIR=build/impl`) | 3 + 3 (orig) | one trajectory, standalone +55u; one run lost its save under load; Wine-vs-impl screenshots differ (impl's own GDI) |
+| battle, minwin_impl standalone | 3 + 3 (orig) | one trajectory (1,366,554 bytes), standalone +10u in all three runs |
+

@@ -94,6 +94,8 @@ void REB_THISCALL AppendCharacterName(ObjectBase* base, String* out, int kind) {
     *out += text;
 }
 
+void Character::WriteName(String* out, int kind) { AppendCharacterName(this, out, kind); }
+
 int Character::SetRecord(DatRecord* record) {
     if (!record) return 0;
     const int familyMatches = AssignRecord(record);

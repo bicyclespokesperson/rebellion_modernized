@@ -44,6 +44,50 @@ constexpr int kMinVolume = -10000, kMaxPan = 10000;
 
 bool SameGuid(const GUID& a, const GUID& b) { return memcmp(&a, &b, sizeof(GUID)) == 0; }
 
+using VirtualClock = uint64_t (*)();
+VirtualClock g_virtualClock = nullptr;
+
+Mutex& VirtualSoundMutex() {
+    static Mutex mutex;
+    return mutex;
+}
+
+// REB_VIRTUAL_SOUND (src/port/virtual_sound.h): the playing state a secondary buffer reports follows a virtual microsecond clock
+// instead of the mixer's wall-clock playback. A one-shot buffer plays (bytes - position) / bytes-per-second of virtual time, a looping
+// one until Stop. The mixer still renders as usual; only GetStatus changes.
+struct VirtualPlayback {
+    uint32_t bytes = 0, bytesPerSecond = 0, position = 0;
+    bool playing = false, looping = false;
+    uint64_t startUs = 0;
+
+    uint64_t DurationUs() const {
+        if (bytesPerSecond == 0 || position >= bytes) return 0;
+        return static_cast<uint64_t>(bytes - position) * 1000000u / bytesPerSecond;
+    }
+    void Expire() {
+        if (!playing || looping || g_virtualClock() - startUs < DurationUs()) return;
+        playing = false;
+        position = 0;
+    }
+    uint32_t Elapsed() const { return static_cast<uint32_t>((g_virtualClock() - startUs) * bytesPerSecond / 1000000u); }
+    void Play(bool loop) {
+        Expire();
+        if (playing) position += Elapsed();
+        playing = true;
+        looping = loop;
+        startUs = g_virtualClock();
+    }
+    void Stop() {
+        Expire();
+        if (playing && !looping) position += Elapsed();
+        playing = false;
+    }
+    void SetPosition(uint32_t where) {
+        position = where;
+        startUs = g_virtualClock();
+    }
+};
+
 struct BufferCaps {  // DSBCAPS
     DWORD dwSize, dwFlags, dwBufferBytes, dwUnlockTransferRate, dwPlayCpuOverhead;
 };
@@ -119,6 +163,11 @@ public:
     bool IsPrimary() const { return (m_flags & kCapsPrimary) != 0; }
     DWORD Flags() const { return m_flags; }
     Voice* GetVoice() { return m_voice.get(); }
+    void InitVirtualPlayback(uint32_t bytes, uint32_t bytesPerSecond) {
+        m_virtual.bytes = bytes;
+        m_virtual.bytesPerSecond = bytesPerSecond;
+    }
+    const VirtualPlayback& Virtual() const { return m_virtual; }
     void SetPrimaryFormat(const Format& f) { m_primaryFormat = f; }
 
     std::atomic<int> m_refs{1};
@@ -133,6 +182,7 @@ private:
     int m_primaryVolume = 0;
     int m_primaryPan = 0;
     bool m_primaryPlaying = false, m_primaryLooping = false;
+    VirtualPlayback m_virtual;
 };
 
 class DirectSoundImpl final : public IDirectSound {
@@ -290,6 +340,10 @@ HRESULT BufferImpl::GetStatus(LPDWORD status) {
     DWORD s = 0;
     if (IsPrimary()) {
         if (m_primaryPlaying) s |= kStatusPlaying | (m_primaryLooping ? kStatusLooping : 0);
+    } else if (g_virtualClock) {
+        Guard guard(VirtualSoundMutex());
+        m_virtual.Expire();
+        if (m_virtual.playing) s |= kStatusPlaying | (m_virtual.looping ? kStatusLooping : 0);
     } else if (m_voice->IsPlaying()) {
         s |= kStatusPlaying | (m_voice->IsLooping() ? kStatusLooping : 0);
     }
@@ -332,12 +386,21 @@ HRESULT BufferImpl::Play(DWORD reserved1, DWORD, DWORD flags) {
         return kDsOk;
     }
     m_voice->Play((flags & kPlayLooping) != 0);
+    if (g_virtualClock) {
+        Guard guard(VirtualSoundMutex());
+        m_virtual.Play((flags & kPlayLooping) != 0);
+    }
     return kDsOk;
 }
 
 HRESULT BufferImpl::SetCurrentPosition(DWORD position) {
     if (IsPrimary()) return kErrInvalidCall;
-    return m_voice->SetPlayCursor(position) ? kDsOk : kErrInvalidParam;
+    if (!m_voice->SetPlayCursor(position)) return kErrInvalidParam;
+    if (g_virtualClock) {
+        Guard guard(VirtualSoundMutex());
+        m_virtual.SetPosition(position);
+    }
+    return kDsOk;
 }
 
 HRESULT BufferImpl::SetFormat(LPCWAVEFORMATEX wf) {
@@ -383,6 +446,10 @@ HRESULT BufferImpl::Stop() {
         return kDsOk;
     }
     m_voice->Stop();
+    if (g_virtualClock) {
+        Guard guard(VirtualSoundMutex());
+        m_virtual.Stop();
+    }
     return kDsOk;
 }
 
@@ -445,7 +512,9 @@ HRESULT DirectSoundImpl::CreateSoundBuffer(LPCDSBUFFERDESC pDesc, LPDIRECTSOUNDB
     if (!ReadFormat(desc->lpwfxFormat, &f)) return desc->lpwfxFormat ? kErrBadFormat : kErrInvalidParam;
     if (desc->dwBufferBytes < kSizeMin || desc->dwBufferBytes > kSizeMax) return kErrInvalidParam;
     auto voice = std::make_unique<Voice>(&Mixer::Global(), f, desc->dwBufferBytes);
-    *out = new BufferImpl(this, flags, std::move(voice), f);
+    BufferImpl* buffer = new BufferImpl(this, flags, std::move(voice), f);
+    buffer->InitVirtualPlayback(desc->dwBufferBytes, desc->lpwfxFormat->nAvgBytesPerSec);
+    *out = buffer;
     return kDsOk;
 }
 
@@ -455,7 +524,9 @@ HRESULT DirectSoundImpl::DuplicateSoundBuffer(LPDIRECTSOUNDBUFFER original, LPDI
     BufferImpl* src = static_cast<BufferImpl*>(original);
     if (!src || src->IsPrimary()) return kErrInvalidParam;
     auto voice = std::make_unique<Voice>(&Mixer::Global(), *src->GetVoice());
-    *out = new BufferImpl(this, src->Flags(), std::move(voice), src->GetVoice()->GetFormat());
+    BufferImpl* buffer = new BufferImpl(this, src->Flags(), std::move(voice), src->GetVoice()->GetFormat());
+    buffer->InitVirtualPlayback(src->Virtual().bytes, src->Virtual().bytesPerSecond);
+    *out = buffer;
     return kDsOk;
 }
 
@@ -469,3 +540,6 @@ extern "C" HRESULT REB_STDCALL DirectSoundCreate(LPCGUID, LPDIRECTSOUND* ppDS, L
     *ppDS = new DirectSoundImpl;
     return kDsOk;
 }
+
+// The determinism shim (src/standalone/determinism.cpp) calls this with its virtual clock when REB_VIRTUAL_SOUND is set.
+extern "C" void MinwinDirectSoundSetVirtualClock(uint64_t (*nowUs)()) { g_virtualClock = nowUs; }

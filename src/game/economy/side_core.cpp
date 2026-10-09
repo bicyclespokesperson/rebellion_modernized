@@ -479,6 +479,9 @@ constexpr int kArticleAResource = 0x4da2;
 
 }  // namespace
 
+// The standalone's own vtables reach the free function through the override; the hybrid's original vtables point at it directly.
+void Side::WriteName(String* out, int kind) { AppendSideName(this, out, kind); }
+
 void REB_THISCALL AppendSideName(ObjectBase* base, String* out, int kind) {
     const int baseResource = nameResourceFor(kind);
     if (baseResource == 0) return;
