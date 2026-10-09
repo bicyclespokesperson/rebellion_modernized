@@ -9,6 +9,9 @@
 #include "port/minwin/user32.h"
 #include "port/minwin/version.h"
 
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #include <map>
@@ -32,7 +35,19 @@ std::map<const uint8_t*, ResourceRecord*>& Records() {
     return records;
 }
 
-Module* ModuleOf(HMODULE h) { return h ? reinterpret_cast<Module*>(h) : MainModule(); }
+#if defined(_WIN32)
+extern "C" const char __ImageBase;
+#endif
+
+// HMODULE is a Module*, except for the instance handle the C runtime hands WinMain on Windows (the real image base of the process):
+// that one stands for the main module as well.
+Module* ModuleOf(HMODULE h) {
+    if (!h) return MainModule();
+#if defined(_WIN32)
+    if (reinterpret_cast<const char*>(h) == &__ImageBase) return MainModule();
+#endif
+    return reinterpret_cast<Module*>(h);
+}
 
 std::map<std::pair<const Module*, std::string>, CursorObject*>& CursorCache() {
     static std::map<std::pair<const Module*, std::string>, CursorObject*> cache;
@@ -105,8 +120,31 @@ std::set<const uint8_t*>& ConvertedValues() {
 
 extern "C" {
 
+namespace {
+#if defined(_WIN32)
+extern "C" __declspec(dllimport) unsigned long long __stdcall GetTickCount64(void);
+#endif
+
+void Trace(const char* format, ...) {
+    static const char* path = getenv("MW_RES_TRACE");
+    if (!path) return;
+    FILE* log = fopen(path, "a");
+    if (!log) return;
+#if defined(_WIN32)
+    fprintf(log, "[%llu] ", GetTickCount64());
+#endif
+    va_list args;
+    va_start(args, format);
+    vfprintf(log, format, args);
+    va_end(args);
+    fclose(log);
+}
+}  // namespace
+
 HMODULE REB_STDCALL LoadLibraryA(LPCSTR lpLibFileName) {
-    return reinterpret_cast<HMODULE>(LoadModule(lpLibFileName ? lpLibFileName : ""));
+    HMODULE m = reinterpret_cast<HMODULE>(LoadModule(lpLibFileName ? lpLibFileName : ""));
+    Trace("LoadLibraryA(%s) -> %p\n", lpLibFileName ? lpLibFileName : "(null)", static_cast<void*>(m));
+    return m;
 }
 
 BOOL REB_STDCALL FreeLibrary(HMODULE hLibModule) { return FreeModule(reinterpret_cast<Module*>(hLibModule)) ? TRUE : FALSE; }
@@ -118,9 +156,16 @@ HMODULE REB_STDCALL GetModuleHandleA(LPCSTR lpModuleName) {
 
 HRSRC REB_STDCALL FindResourceA(HMODULE hModule, LPCSTR lpName, LPCSTR lpType) {
     Module* module = ModuleOf(hModule);
-    if (!module) return nullptr;
+    if (!module) {
+        Trace("FindResourceA(null module %p)\n", static_cast<void*>(hModule));
+        return nullptr;
+    }
     Entry entry;
-    if (!module->Find(ResId::FromPointer(lpType), ResId::FromPointer(lpName), &entry)) return nullptr;
+    Trace("FindResourceA(%p, %p, %p)\n", static_cast<void*>(hModule), static_cast<const void*>(lpName), static_cast<const void*>(lpType));
+    if (!module->Find(ResId::FromPointer(lpType), ResId::FromPointer(lpName), &entry)) {
+        Trace("FindResourceA(%p, %p, %p) not found\n", static_cast<void*>(hModule), static_cast<const void*>(lpName), static_cast<const void*>(lpType));
+        return nullptr;
+    }
     auto& records = Records();
     auto it = records.find(entry.data);
     if (it != records.end() && it->second->module == module && it->second->entry.size == entry.size)

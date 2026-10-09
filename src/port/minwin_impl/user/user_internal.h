@@ -59,11 +59,6 @@ struct StyleStruct {  // STYLESTRUCT
 struct MinMaxInfo {  // MINMAXINFO
     POINT ptReserved, ptMaxSize, ptMaxPosition, ptMinTrackSize, ptMaxTrackSize;
 };
-struct AccelEntry {  // ACCEL as stored in an RT_ACCELERATOR resource
-    uint8_t flags;
-    uint16_t key;
-    uint16_t command;
-};
 
 // ---- rectangles and regions (rect lists: everything the game draws is rectangular) ------------------------------------
 inline int Width(const RECT& r) { return r.right - r.left; }
@@ -147,6 +142,7 @@ struct Window {
     bool hasUpdate;
     bool needErase;
     bool needNcPaint;
+    uintptr_t handle;     // the HWND value (a small integer, see the handle table in window.cpp)
     uint32_t serial;      // creation order
     bool needSize;        // WM_SIZE/WM_MOVE not yet sent after creation
     bool destroying;
@@ -168,7 +164,7 @@ struct Hook {
 
 // ---- window manager (window.cpp) --------------------------------------------------------------------------------------
 Window* FromHandle(HWND hwnd);                        // null unless a live window
-inline HWND ToHandle(const Window* w) { return reinterpret_cast<HWND>(const_cast<Window*>(w)); }
+inline HWND ToHandle(const Window* w) { return w ? reinterpret_cast<HWND>(w->handle) : nullptr; }
 bool IsLive(const Window* w);
 Window* TopLevelOf(Window* w);
 Window* RootOwner(Window* w);

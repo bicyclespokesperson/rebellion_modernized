@@ -6,6 +6,12 @@
 
 void InstallCrashLog();
 
+#if defined(REB_MINWIN_IMPL)
+namespace minwin_wiring {
+void Install();
+}
+#endif
+
 void RunStaticInitializers();
 
 extern "C" {
@@ -32,6 +38,9 @@ void DumpInitState() {
 
 void __cdecl RunStaticInitializersEntry() {
     InstallCrashLog();
+#if defined(REB_MINWIN_IMPL)
+    minwin_wiring::Install();
+#endif
     RunStaticInitializers();
     DumpInitState();
 }

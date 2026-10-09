@@ -66,7 +66,7 @@ void HandleEvent(const SDL_Event& original) {
         case SDL_EVENT_MOUSE_BUTTON_UP: {
             SDL_ConvertEventToRenderCoordinates(g_renderer, &e);
             const int button = e.button.button == SDL_BUTTON_LEFT ? 1 : e.button.button == SDL_BUTTON_RIGHT ? 2 : 3;
-            InputMouseButton(button, e.button.down, e.button.clicks, static_cast<int>(e.button.x), static_cast<int>(e.button.y));
+            InputMouseButton(button, e.button.down, static_cast<unsigned>(e.button.timestamp / 1000000u), static_cast<int>(e.button.x), static_cast<int>(e.button.y));
             break;
         }
         case SDL_EVENT_KEY_DOWN:

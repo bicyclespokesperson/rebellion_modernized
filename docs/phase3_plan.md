@@ -298,3 +298,25 @@ droid animation progress per game tick depends on wall-clock rate (paint/idle ca
 reconstruction, so its animations advance further per tick; this would explain a stable orig-vs-reconstruction split with no logic difference.
 Not tested: pinning animation to virtual time (the standalone/hybrid would need to suppress or virtualise WM_PAINT/SpriteStage cadence).
 No reconstruction bug was identified, and none is excluded.
+
+
+
+## P1 integration results (measured Oct 9 2026)
+
+`REB_MINWIN=ON REB_STANDALONE_DIR=build/impl REB_CMAKE_ARGS=-DREB_MINWIN_IMPL=ON tools/build_standalone.sh` (needs `tools/fetch_deps.sh`; the incremental build is `cmake --build build/impl` in the dev container).
+**Imports: KERNEL32 (120 functions) and SDL3 (37) only**; no USER32/GDI32/COMCTL32/ADVAPI32/VERSION/WINMM/DDRAW/DSOUND/SMACKW32/AVIFIL32/DPLAYX.
+Wiring: `gen_minwin_imports.py` defines the `__imp__` slots of every implemented function (also the Smack and DirectPlay ones); `glue/wiring.cpp` connects dsound->SetEvent, smack->GetDC/ReleaseDC and the SDL audio backend;
+the data image's own `IID_IDirectDraw2/IDirectSoundNotify/IDirectSound3DListener` are used (`MW_IIDS_IN_GAME_DATA`); the C++ library is the static libcpmt (the game objects only need `_ALLOW_RUNTIME_LIBRARY_MISMATCH`).
+DirectDraw: `ddraw/ddraw_api.cpp` (IDirectDraw/IDirectDraw2, exclusive mode covers the display with the same window-position messages and `WM_DISPLAYCHANGE` as Wine's ddraw); MCI, AVIFile and DirectPlay answer "unavailable" (no providers);
+`timeGetTime`/`timeSetEvent` are the determinism shims', backed by `user/mmtimer.cpp`.
+HWNDs are small integers allocated like Wine's server does (slot = 0x20 + 2*index, generation in the high word, LIFO reuse), see window.cpp.
+Finding: Wine's handle order is *not* creation order (recycled slots carry a higher generation and sort after fresh ones; the pre-history of the wineserver shifts the slot numbers by a run-dependent constant), so exact equality with Wine's values is impossible; the model reproduces the pattern (fresh before recycled).
+
+Scenarios under Wine with `REB_MINWIN_IMPL` (no "Unhandled" in any): smoke, ui_tour (20 shots), load_game, new_game_rebel, space_battle_autoresolve, video_intro (movies play with sound). Screenshot comparison against the real-Win32 standalone, `REB_DETERMINISTIC=1`, Xvfb depth 8 and Liberation fonts for both
+(`work/s/bin`-style tooling: per-pixel differences): the text areas are pixel-identical (0 of 2,750 px in the main menu label; with a 24-bit display Wine anti-aliases text and differs, a Wine artefact the original 8-bit mode does not have). What remains is animation and timing:
+smoke 2.6k px (animated cockpit icons), load_game 2.2-2.3k px (blinking map markers, a hover label), ui_tour 250-1,700 px for 15 of 20 shots (plus one shot of a double-click, fixed by our own double-click detection: Windows' 500 ms / 4x4 rule, not SDL's count),
+`tour_04`/`tour_17`: the Game Controls screen appears about two seconds later than under Wine (creating it is slower in the impl build; not profiled).
+Message traces (smoke): 91% of lines identical and in order; open divergences: Wine broadcasts `WM_PALETTECHANGED` on every palette-changing `RealizePalette` (movie windows) while ours does so only after the first (the gdi component reports "unchanged" for the movie palette, cause not found),
+one extra `WM_WINDOWPOSCHANGING` after `WM_DISPLAYCHANGE`, movie/key timing.
+Audio: `REB_AUDIO_CAPTURE` of video_intro: non-silent, peak 32765; the menu music (MDATA.300) in the capture correlates 1.000 with the file resampled 11,025 -> 44,100 Hz (exact). No capture of Wine's own DirectSound output was possible in the container.
+Save fidelity: `REB_STANDALONE_DIR=build/impl tools/standalone_check.sh --no-build`: STANDALONE OK, saves differ from the original-logic run in 64 bytes (the tick/checksum tolerance of that script; the default build is byte-identical). Default builds: `standalone_check` OK (byte-identical), `sim_goldens check` identical (battle1, alliance1, empire1).

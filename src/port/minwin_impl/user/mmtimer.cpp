@@ -64,6 +64,10 @@ using namespace minwin;
 
 extern "C" {
 
+// timeGetTime and timeSetEvent are reached through the determinism shims of the standalone (src/standalone/determinism.cpp), which
+// owns their import slots; the shims call these when no virtual clock is requested.
+DWORD REB_STDCALL MinwinTimeGetTime(void) { return PlatformTicksMs(); }
+
 UINT REB_STDCALL MinwinTimeSetEvent(UINT delay, UINT, LPTIMECALLBACK proc, DWORD_PTR user, UINT flags) {
     if (!proc) return 0;
     MmTimer* t = static_cast<MmTimer*>(Alloc(sizeof(MmTimer)));

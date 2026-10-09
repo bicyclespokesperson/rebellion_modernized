@@ -16,8 +16,11 @@ REB_STANDALONE_DIR=build/impl tools/run_game.sh --standalone tests/scenarios/smo
 P1 results in `docs/phase3_plan.md`). The game objects are the same as in the `REB_MINWIN` build: they still call through
 `__imp__Name@N` slots. `tools/gen_minwin_imports.py` generates the slots for the implemented functions from the minwin headers
 (`gen/minwin_imports.cpp`), with a `static_assert` of every stack size; an implemented-nowhere function is an unresolved `_Name@N` at link time.
-`REB_GDI_STUB=ON` (default while the GDI component is not merged) links `src/port/minwin_impl/gdi_stub/`, a throwaway stand-in
-for `gdi_api.h` and the gdi32 entry points: DIB sections, memory DCs, `SRCCOPY` blits, palettes. Delete it with the real component.
+With `REB_MINWIN_IMPL=ON` the executable links every component of `src/port/minwin_impl` (config, res, gdi, text + FreeType, dsound, smack, ddraw,
+`stubs/unavailable.cpp`, `audio/sdl_audio.cpp`, `glue/wiring.cpp`) and imports only KERNEL32 and SDL3 (`tools/exe_imports.py build/impl/rebellion.exe`).
+The gdi stub is gone. Set the game up with a config file (`REBELLION_CONFIG`, see config/config.h); `tools/run_game.sh --standalone` writes one.
+`REB_AUDIO_CAPTURE=<file>` writes the mixed audio (s16le stereo 44100) instead of using a device; `REB_XVFB_DEPTH=8` and `REB_WINE_FONTS=liberation`
+make Wine's own gdi32 draw like ours (8-bit display, Liberation Sans for Arial), which is what pixel comparisons against the real-Win32 standalone need.
 
 Environment: `REB_MINWIN_SCALE=n` (window size multiple), `REB_MINWIN_TRACE=outlines` (draw every window's rectangle into the presented
 frame), `=stacks` (nested message loops note the game code addresses on the stack in the message trace; `tools/map_lookup.py` resolves them).

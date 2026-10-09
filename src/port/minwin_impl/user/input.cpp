@@ -201,7 +201,29 @@ void InputMouseMotion(int x, int y) {
     QueueInputEvent(e);
 }
 
-void InputMouseButton(int button, bool down, int clicks, int x, int y) {
+namespace {
+
+// Windows' rule (the system's double-click time and rectangle, 500 ms and 4x4 pixels): a second press of the same button close to
+// the previous one in time and place is a double click; the press after a double click starts over.
+int CountClicks(int button, int x, int y, unsigned timeMs) {
+    constexpr unsigned kDoubleClickMs = 500;
+    constexpr int kHalfRectangle = 2;
+    static int lastButton = 0, lastX = 0, lastY = 0, count = 0;
+    static unsigned lastTime = 0;
+    const bool again = count == 1 && button == lastButton && timeMs - lastTime <= kDoubleClickMs && x >= lastX - kHalfRectangle &&
+                       x <= lastX + kHalfRectangle && y >= lastY - kHalfRectangle && y <= lastY + kHalfRectangle;
+    count = again ? 2 : 1;
+    lastButton = button;
+    lastX = x;
+    lastY = y;
+    lastTime = timeMs;
+    return count;
+}
+
+}  // namespace
+
+void InputMouseButton(int button, bool down, unsigned timeMs, int x, int y) {
+    const int clicks = down ? CountClicks(button, x, y, timeMs) : 1;
     g_cursorPos.x = x;
     g_cursorPos.y = y;
     const unsigned flag = button == 1 ? MK_LBUTTON : button == 2 ? 2u : 0x10u;
