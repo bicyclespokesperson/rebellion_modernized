@@ -200,6 +200,7 @@ def jump(src: int, dst: int) -> bytes:
     return b"\xE9" + struct.pack("<i", dst - (src + 5))
 
 
+DEFAULT_QPC = 0x123456789A
 HEAP_BASE = 0x70000000
 HEAP_SIZE = 0x4000000
 FILE_HANDLE_BASE = 0x100
@@ -448,8 +449,8 @@ class Emulator:
         if function == "GetTimeZoneInformation":
             self.write_guest(args[0], bytes(172))
             return 0
-        if function == "QueryPerformanceCounter" and CFG.qpc is not None:
-            self.write_guest(args[0], CFG.qpc.to_bytes(8, "little"))
+        if function == "QueryPerformanceCounter":  # a fixed value: an unwritten out-parameter is stack garbage that differs per build
+            self.write_guest(args[0], (DEFAULT_QPC if CFG.qpc is None else CFG.qpc).to_bytes(8, "little"))
             return 1
         if function == "QueryPerformanceFrequency" and CFG.qpf is not None:
             self.write_guest(args[0], CFG.qpf.to_bytes(8, "little"))
