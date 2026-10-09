@@ -55,8 +55,8 @@ class ManufactureOrderBase : public OrderBase {
 public:
     ManufactureOrderBase();  // 0x537ea0
     virtual ~ManufactureOrderBase();  // 0x537f20 (scalar deleting destructor 0x537f00)
-    virtual int Read(istream* in) override;    // 0x537f70
-    virtual int Write(ostream* out) override;  // 0x537fb0
+    virtual int Read(istream* in) override = 0;    // body 0x537f70
+    virtual int Write(ostream* out) override = 0;  // body 0x537fb0
     virtual Command* CreateCommand() override;  // 0x538580
     virtual int CheckDestination(StatusCode* status) override;  // 0x5385f0
 

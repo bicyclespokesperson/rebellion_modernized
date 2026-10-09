@@ -158,6 +158,14 @@ void ObjectStatusWindow::DrawOverlay(HDC dc) {
     m_nameLabel.Draw(dc);
 }
 
+void ObjectStatusWindow::OnKeyDown(WPARAM key, LPARAM lParam) {
+    if (key != VK_ESCAPE) {
+        m_parent->WindowProc(WM_KEYDOWN, key, lParam);
+        return;
+    }
+    PostCloseRequest();
+}
+
 void ObjectStatusWindow::OnCommand(int a, int b, int c) {
     const uint32_t command = static_cast<uint32_t>(a) & 0xffff;
     if (command == kCloseButton) {

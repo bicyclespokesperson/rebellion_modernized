@@ -1,7 +1,7 @@
 #!/usr/bin/env -S uv run --script
 # /// script
 # requires-python = ">=3.10"
-# dependencies = ["pefile"]
+# dependencies = ["pefile", "capstone"]
 # ///
 """How complete are the reconstructed vtables? (M5: vtable patching can only go once they are.)
 
@@ -20,8 +20,10 @@ import json
 import re
 import struct
 from collections import Counter
+from collections.abc import Callable
 from pathlib import Path
 
+import capstone
 import pefile
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -69,14 +71,113 @@ def main() -> int:
     differing: list[str] = []
     sizes = {int(r["address"], 16): int(r["size"]) for r in csv.DictReader(open(ROOT / "symbols" / "functions.csv"))}
 
+    disassembler = capstone.Cs(capstone.CS_ARCH_X86, capstone.CS_MODE_32)
+    disassembler.detail = True
+
+    def forwards_to(thunk: int, target: int) -> bool:
+        """The original function at `thunk` only hands its own arguments, unchanged and in order, to `target`
+        (a derived class that overrides a slot just to call the base: `push args; call base; ret n`, or `jmp base`).
+        Our vtable inherits `target` directly, which behaves the same."""
+        if exe is None:
+            return False
+        eb = exe.OPTIONAL_HEADER.ImageBase
+        loaded: dict[int, int] = {}
+        pushed: list[int] = []
+        called = False
+        for ins in disassembler.disasm(exe.get_data(thunk - eb, 48), thunk):
+            ops = ins.operands
+            if ins.mnemonic == "jmp" and ops[0].type == capstone.x86.X86_OP_IMM:
+                return not pushed and not called and ops[0].imm == target and not loaded
+            if ins.mnemonic == "mov" and ops[1].type == capstone.x86.X86_OP_MEM and ops[1].mem.base == capstone.x86.X86_REG_ESP \
+                    and ops[0].type == capstone.x86.X86_OP_REG and ops[1].mem.index == 0 and not called:
+                loaded[ops[0].reg] = (ops[1].mem.disp - 4) // 4 - len(pushed)
+            elif ins.mnemonic == "push" and ops[0].type == capstone.x86.X86_OP_REG and ops[0].reg in loaded and not called:
+                pushed.append(loaded[ops[0].reg])
+            elif ins.mnemonic == "call" and ops[0].type == capstone.x86.X86_OP_IMM and not called:
+                if ops[0].imm != target:
+                    return False
+                called = True
+            elif ins.mnemonic == "ret" and called:
+                count = len(pushed)
+                return pushed == list(range(count - 1, -1, -1)) and (ops[0].imm if ops else 0) == 4 * count
+            else:
+                return False
+        return False
+
+    def trivial_behaviour(code_at: Callable[[int], bytes], address: int, follow_jumps: bool = True) -> tuple[int | None, int] | None:
+        """(the low 16 bits of the constant returned in eax or None if eax is untouched, bytes popped by ret) for a
+        body that is only `[xor eax,eax | mov eax,imm | mov ax,imm] ; ret [n]`, following `jmp` thunks; None for
+        anything else."""
+        value: int | None = None
+        for _ in range(8):
+            for ins in disassembler.disasm(code_at(address), address):
+                ops = ins.operands
+                if ins.mnemonic == "jmp" and ops[0].type == capstone.x86.X86_OP_IMM:
+                    if not follow_jumps:
+                        return None
+                    address = ops[0].imm
+                    break
+                if ins.mnemonic == "xor" and ops[0].reg == ops[1].reg and \
+                        ops[0].reg in (capstone.x86.X86_REG_EAX, capstone.x86.X86_REG_AX):
+                    value = 0
+                elif ins.mnemonic == "mov" and ops[0].type == capstone.x86.X86_OP_REG and \
+                        ops[0].reg in (capstone.x86.X86_REG_EAX, capstone.x86.X86_REG_AX) and \
+                        ops[1].type == capstone.x86.X86_OP_IMM:
+                    value = ops[1].imm & 0xffff
+                elif ins.mnemonic == "ret":
+                    return value, (ops[0].imm if ops else 0)
+                else:
+                    return None
+            else:
+                return None
+        return None
+
+    def exe_code(address: int) -> bytes:
+        return exe.get_data(address - exe.OPTIONAL_HEADER.ImageBase, 16)
+
+    def dll_code(address: int) -> bytes:
+        return pe.get_data(address - base, 16)
+
+    def own_copy_differs(ours_va: int, original_slot: int) -> bool:
+        """Our own copy of a trivial stub returns something else than the original function in this slot does."""
+        if exe is None:
+            return False
+        ours_behaviour = trivial_behaviour(dll_code, ours_va, follow_jumps=False)
+        if ours_behaviour is None:
+            return False
+        return trivial_behaviour(exe_code, original_slot) != ours_behaviour
+
+    def normalized_listing(start: int, size: int) -> list[str]:
+        """The function's instructions with branch targets inside it made relative and those outside absolute: equal
+        bytes are not enough, a relative call to another address has the same bytes at a different place."""
+        eb = exe.OPTIONAL_HEADER.ImageBase
+        listing = []
+        for ins in disassembler.disasm(exe.get_data(start - eb, size), start):
+            text = ins.op_str
+            if ins.group(capstone.CS_GRP_JUMP) or ins.group(capstone.CS_GRP_CALL):
+                if ins.operands and ins.operands[0].type == capstone.x86.X86_OP_IMM:
+                    target = ins.operands[0].imm
+                    text = f"+{target - start:#x}" if start <= target < start + size else f"{target:#x}"
+            listing.append(f"{ins.mnemonic} {text}")
+        return listing
+
     def same_machine_code(a: int, b: int) -> bool:
         """ICF folded identical functions to one address in the original; a slot that names a different function
-        with different bytes is a real difference (a missing override)."""
+        with different bytes is a real difference (a missing override), unless the original's function only
+        forwards to ours."""
+        if forwards_to(b, a):
+            return True
         n = sizes.get(a, 0)
         if n == 0 or n != sizes.get(b, -1) or exe is None:
             return False
-        eb = exe.OPTIONAL_HEADER.ImageBase
-        return exe.get_data(a - eb, n) == exe.get_data(b - eb, n)
+        return normalized_listing(a, n) == normalized_listing(b, n)
+
+    all_vtable_symbols = sorted(int(r["address"], 16) for r in csv.DictReader(open(ROOT / "symbols" / "symbols.csv"))
+                                if r["kind"] == "data" and "vftable" in r["name"])
+
+    def original_slot_count(original_va: int) -> int:
+        following = [a for a in all_vtable_symbols if a > original_va]
+        return ((following[0] if following else original_va + 0x400) - original_va) // 4
     genuine: list[str] = []
     rows = []
     slot_kinds: Counter = Counter()
@@ -95,13 +196,20 @@ def main() -> int:
         original_va = None if "(base" in label else originals.get(label + "::vftable")
         if exe is not None and original_va is not None:
             exe_base = exe.OPTIONAL_HEADER.ImageBase
+            original_count = original_slot_count(original_va)
             for i, ours_slot in enumerate(slots):
+                if i >= original_count:
+                    continue  # declared past the end of the original vtable: no original function to compare with
                 theirs = struct.unpack("<I", exe.get_data(original_va + 4 * i - exe_base, 4))[0]
                 if ours_slot != theirs and ours_slot != 0:
                     kind = "own copy" if ours_slot >= base else "different original function"
                     differing.append(f"{label} slot {i}: reconstruction {ours_slot:#x} ({kind}), original {theirs:#x}")
                     if ours_slot < base and not same_machine_code(ours_slot, theirs):
                         genuine.append(differing[-1])
+                    if ours_slot >= base and TEXT[0] <= theirs < TEXT[1] and theirs != PURECALL and own_copy_differs(ours_slot, theirs):
+                        mine = trivial_behaviour(dll_code, ours_slot, follow_jumps=False)
+                        orig = trivial_behaviour(exe_code, theirs)
+                        genuine.append(differing[-1] + f" [own stub body differs: ours {mine}, original {orig or 'not a trivial stub'}]")
         missing = [v for v in slots if TEXT[0] <= v < TEXT[1] and v not in hooked and v != PURECALL]
         for v in missing:
             slot_kinds[origin(v)] += 1

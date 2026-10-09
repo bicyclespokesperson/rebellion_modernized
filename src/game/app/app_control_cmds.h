@@ -51,6 +51,8 @@ public:
     virtual int Read(istream* in) override;
     virtual int Write(ostream* out) override;
     virtual int GetKind() override;
+    virtual int CheckEnabled(StatusCode* status) override { return 1; }  // shared 0x51ebb0
+    virtual int CheckValid(StatusCode* status) override { return 1; }    // shared 0x51ebb0
     // Always reports success: {1, -1}.
     virtual int Execute(StatusCode* status) override;
 };

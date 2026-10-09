@@ -1,6 +1,8 @@
 #include "events/misc_helpers.h"
 
 #include "core/checked_new.h"
+#include "core/stream_io.h"
+#include "core/utility_classes.h"
 #include "core/vptr_store.h"
 
 namespace {
@@ -22,3 +24,22 @@ ObjectKeyPairNode::ObjectKeyPairNode(const ObjectKeyPairNode& other) : ObjectKey
 ObjectKeyPairNode::~ObjectKeyPairNode() { REB_KEEP_VPTR_STORE(); }
 
 ObjectKeyNode* ObjectKeyPairNode::Clone() { return NewOrNull<ObjectKeyPairNode>(*this); }
+
+void ObjectKeyPairNode::Read(istream* in) {
+    ObjectKeyNode::Read(in);
+    StreamRead32(in, &m_second.m_value);
+}
+
+void ObjectKeyPairNode::Write(ostream* out) {
+    ObjectKeyNode::Write(out);
+    StreamWrite32(out, &m_second.m_value);
+}
+
+int ObjectKeyPairNode::Checksum(Crc32* crc) {
+    int ok = ObjectKeyNode::Checksum(crc);
+    if (ok) {
+        crc->AddInt(m_second.m_value);
+        ok = 1;
+    }
+    return ok;
+}

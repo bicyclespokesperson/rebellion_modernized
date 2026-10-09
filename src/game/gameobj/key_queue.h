@@ -4,6 +4,7 @@
 #include "core/containers.h"
 #include "core/layout.h"
 #include "core/stream_io.h"
+#include "events/misc_helpers.h"
 #include "gameobj/object_key.h"
 
 // Small serializable containers of object keys used by the side/role code (0x52e-0x53b).
@@ -44,16 +45,6 @@ public:
     int m_ok;  // +0x10
 };
 
-// Node of an ObjectKeyPairSet: a key and a second key. The class belongs to the data-record module (0x594850); only
-// what the set needs is declared.
-class ObjectKeyPairNode : public ObjectKeyNode {
-public:
-    ObjectKeyPairNode();
-    ObjectKeyPairNode(const ObjectKey& key, const ObjectKey& second);
-
-    ObjectKey m_second;  // +0x1c
-};
-
 // ObjectKeySet whose entries carry a second key.
 class ObjectKeyPairSet : public ObjectKeySet {
 public:
@@ -74,6 +65,5 @@ REB_ASSERT_SIZE(KeyQueueNode, 0x18);
 REB_ASSERT_OFFSET(KeyQueueNode, m_key, 0x10);
 REB_ASSERT_SIZE(KeyQueue, 0x14);
 REB_ASSERT_OFFSET(KeyQueue, m_ok, 0x10);
-REB_ASSERT_SIZE(ObjectKeyPairNode, 0x20);
 REB_ASSERT_SIZE(ObjectKeyPairSet, 0x08);
 #pragma clang diagnostic pop

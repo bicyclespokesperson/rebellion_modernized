@@ -70,6 +70,7 @@ public:
     virtual ~MissionOrder241();  // 0x4f5480 (deleting 0x4f5460, a second copy at 0x4f5454)
 
     virtual int GetKind() override { return 0x241; }  // 3, 0x4f5500
+    virtual int IsListed() override { return 0; }     // 4, shared 0x6158b0
 };
 
 Order242* CreateOrder242();              // 0x4f45b0
