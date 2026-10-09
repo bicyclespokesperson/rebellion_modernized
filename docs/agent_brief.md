@@ -27,6 +27,12 @@ the relevant parts of docs/code_map.md for your module.
   `tools/sym.py set`); a parameter that carries a pointer in the original's 32-bit slot is `intptr_t`; `ReadValue32(in, &field)` takes a typed
   field of exactly 4 bytes (a `void*` argument is the raw primitive, for genuine byte blocks only); write calling conventions as
   `REB_THISCALL`/`REB_STDCALL`/`REB_CDECL` (`core/reb_abi.h`) and x87 operations through `core/reb_x87.h`, never inline asm.
+- Argument evaluation order: MSVC and clang-cl evaluate call arguments right to left, the native (Itanium ABI) build left to right. Write at most
+  one side-effecting call per argument list. When two arguments contain calls, hoist them into named locals in right-to-left order (the last
+  argument's call first), then call. Read-only calls (getters, pure helpers) may share a list; a list the checker cannot prove read-only but
+  that you reviewed goes into `tools/arg_order_allow.txt` with the reason. `tools/check_arg_order.sh` (about 40 s, runs in the container) must
+  report 0 unclassified; `tools/integrate.sh` runs it. The same hazard exists for a plain read next to a side-effecting call
+  (`f(m_count, Next(&m_count))`): hoist the read too (`REB_ARGCHECK_ARGS=--reads tools/check_arg_order.sh` lists such lists; informational, about 70 benign ones today).
 - Verification: every reconstructed function must PASS difftest on at least one capture, or be listed in your
   report as SKIP (not emulatable) / not captured (not reached by any scenario) with the reason. Use the
   scenarios in tests/scenarios/ (see docs/ui_navigation.md if present for what each reaches). Capture with

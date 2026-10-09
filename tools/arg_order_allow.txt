@@ -1,0 +1,37 @@
+# Argument lists with two or more calls whose order was reviewed and does not matter (tools/find_arg_order.py).
+# key = file:Class::function:hash of the call text (changing the call asks for a new review); reason after two spaces.
+# Prefer hoisting the calls into locals in right-to-left order over adding an entry here.
+src/game/ai/ai_side_controller_queries.cpp:AiSideController::RankSectorsByDistance:1df924c704  KeyOf copies the record's key into a local; DistanceSquared is pure
+src/game/ai/ai_side_controller_queries.cpp:AiSideController::RankFleetsBySectorDistance:4d0438bfeb  KeyOf copies the record's key into a local; DistanceSquared is pure
+src/game/ai/ai_side_controller_queries.cpp:AiSideController::RankFleetsBySystemDistance:4d0438bfeb  KeyOf copies the record's key into a local; DistanceSquared is pure
+src/game/ai/ai_side_controller_queries.cpp:AiSideController::RankFleetsByTargetAndSystemDistance:4d0438bfeb  KeyOf copies the record's key into a local; DistanceSquared is pure
+src/game/app/battle_handoff.cpp:BattleSetup::Convert:cca2dfa14d  by-value String/GameTime copies (allocation only); every other argument is a read-only getter
+src/game/app/battle_handoff.cpp:BattleSetup::AddCapitalShip:671a4d4bbc  by-value String/GameTime copies (allocation only); every other argument is a read-only getter
+src/game/app/battle_handoff.cpp:BattleSetup::AddFightSquad:12dd4725d3  by-value String/GameTime copies (allocation only); every other argument is a read-only getter
+src/game/app/battle_handoff.cpp:BattleSetup::AddCharacter:7c91ed6eef  by-value String/GameTime copies (allocation only); every other argument is a read-only getter
+src/game/app/battle_handoff.cpp:BattleSetup::AddSpecialForce:cb690a4d12  by-value String/GameTime copies (allocation only); every other argument is a read-only getter
+src/game/app/battle_handoff.cpp:BattleSetup::AddTroopRegiment:524b46a203  by-value String/GameTime copies (allocation only); every other argument is a read-only getter
+src/game/app/rebellion_application.cpp:RebellionApplication::RebellionApplication:97de325a98  independent Win32 lookups (GetStockObject, LoadIconA, LoadCursorA) and pure size helpers
+src/game/data/table.cpp:TableBase::Open:f5bf46fad0  file.get() reads a smart pointer; strstreambuf_str only touches the other object's buffer
+src/game/economy/side_core.cpp:Side::MineStateMatches:3cdf06c9b2  FamilyRange is a value constructor; the master lookup only reads
+src/game/economy/side_core.cpp:Side::RefineryStateMatches:d2dfe9c170  FamilyRange is a value constructor; the master lookup only reads
+src/game/events/command_classes2.cpp:MoveCommand::CheckValid:2955d15db6  GetKey writes only its own local out-key; the other arguments are read-only
+src/game/events/command_classes2.cpp:MoveCommand::Execute:3d53c3586e  GetKey writes only its own local out-key; the other arguments are read-only
+src/game/events/ui_notifs.cpp:UiNotif302::DispatchToSink:052b364ccf  copyFirstKey writes only the local keyA; GetKind returns a constant
+src/game/events/ui_notifs.cpp:UiNotif304::DispatchToSink:052b364ccf  copyFirstKey writes only the local keyA; GetKind returns a constant
+src/game/events/ui_notifs.cpp:UiNotif305::DispatchToSink:052b364ccf  copyFirstKey writes only the local keyA; GetKind returns a constant
+src/game/events/ui_notifs.cpp:UiNotif306::DispatchToSink:052b364ccf  copyFirstKey writes only the local keyA; GetKind returns a constant
+src/game/multiplayer/comm_dplay.cpp:FlushReport::FlushReport:b11ad12245  String temporaries (allocation only); GetPlayerId/GetLocalIndex are read-only
+src/game/multiplayer/comm_dplay.cpp:FlushReport::FlushReport:323804b857  String temporaries (allocation only); GetPlayerId/GetLocalIndex are read-only
+src/game/multiplayer/comm_dplay.cpp:FlushReport::FlushReport:1bc68be8af  String temporaries (allocation only); GetPlayerId/GetLocalIndex are read-only
+src/game/multiplayer/comm_dplay.cpp:FlushReport::FlushReport:72ddd00846  String temporaries (allocation only); GetPlayerId/GetLocalIndex are read-only
+src/game/orders/mission_orders.cpp:MissionOrder::CheckDestination:9bae0176e5  GetKey writes only its own local out-key; the other arguments are read-only
+src/game/strategy_ui/advisor_alliance.cpp:AllianceAdvisor::LoadCueScripts:ea755ea02c  file.get() reads a smart pointer; strstreambuf_str only touches the other object's buffer
+src/game/strategy_ui/advisor_empire.cpp:EmpireAdvisor::LoadCueScripts:ea755ea02c  file.get() reads a smart pointer; strstreambuf_str only touches the other object's buffer
+src/game/strategy_ui/object_menu.cpp:::AddMenuEntry:a303eb7fd2  DwordAt memcpy's from the record into a local; CoolAppGetResourceModule reads
+src/game/strategy_ui/troop_finder_window.cpp:TroopFinderWindow::SetFilter:d5ae919dde  ++rowCount is a local no other argument reads; GetKey writes only its out-key
+src/game/tactical/tactical_facade.cpp:::TacticalBeginBattle:2c2770994b  by-value String/GameTime copies (allocation only); every other argument is a read-only getter
+src/game/tactical/tactical_facade.cpp:::TacticalBeginBattle:98dcf2a2b8  by-value String/GameTime copies (allocation only); every other argument is a read-only getter
+src/game/ui/text_scroll_field.cpp:TextScrollField::TextScrollField:627c272217  independent Win32 lookups (GetStockObject, LoadIconA, LoadCursorA) and pure size helpers
+src/game/video/avi_window.cpp:VideoWindow::VideoWindow:9bf7a0516e  independent Win32 lookups (GetStockObject, LoadIconA, LoadCursorA) and pure size helpers
+src/game/video/smacker_window.cpp:SmackerWindow::SmackerWindow:893df4a3f4  independent Win32 lookups (GetStockObject, LoadIconA, LoadCursorA) and pure size helpers
