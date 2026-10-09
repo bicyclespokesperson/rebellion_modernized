@@ -120,7 +120,8 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   children retyped to 22/23 to reach `ShipPicker`), the loyalty/Death Star/victory rules, `GameRoot::PrepareBattle`/`ResolveBattle`,
   the `RulesMgr` search helpers, `BattleFlow::Save` (SKIP: emulator heap).
 - Original quirks kept: `BombardWalker::PickRandomProcFacility` never advances its iterator (always the first facility);
-  `FinishBombard` overwrites the loyalty result of the `AdjustLoyalty` step when the planet was destroyed; a hybrid save file
-  differs in size by ~1 KB from the original game's (888541 vs 887465 bytes), also with the reconstructions of this milestone disabled.
+  `FinishBombard` overwrites the loyalty result of the `AdjustLoyalty` step when the planet was destroyed. (A reported ~1 KB
+  save-size difference was a non-deterministic comparison: under `tools/determinism_check.sh` the all-hooks save is
+  byte-identical to `REB_DISABLE_HOOKS=all`, Oct 8, 10,506 hooks.)
 - Shared one-address functions without symbol rows: `RulesMgr::Validate` (0x569870), `ShipPicker::Visit` (= `UnitPicker::Visit`
   0x587470), `TickTable::Write` (= `TimerEvent::CheckValid` 0x586290). EH funclets 0x4096e0, 0x4098b0 are not functions.
