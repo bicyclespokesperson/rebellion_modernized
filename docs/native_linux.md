@@ -76,6 +76,59 @@ The classes that mirror the original layout by size and padding were the main so
   Itanium vtables give a virtual destructor two entries;
 * the ICF-folded accessor `GameObj::GetDepartureKey` applied to a `Command` (`EventBase::m_key` at the same offset).
 
-## Results
+## Results (measured Oct 9 2026)
 
-See the end of this file (updated with each measurement).
+**State: the native executable runs the game.** Boots through the intro movies (Smacker decoder, audio through SDL: `REB_AUDIO_CAPTURE` of
+`video_intro` peaks at 32765), main menu, Saved Games, loading each shipped save (SAVEGAME.001-.004), the galaxy screen with the game
+clock running, a new Rebel and a new Empire game, saving (SAVEGAME.005 written natively; loading it back gives the same galaxy), the
+auto-resolve battle flow, and the UI tour (all windows). Not available: the 3D tactical battle (stubbed everywhere, as in the Wine
+standalone), multiplayer (DirectPlay answers "unavailable"), AVI playback.
+
+**Simulation goldens (`tools/native_sim.sh`; the 3 goldens of `tests/goldens`: 3,000 + 2,000 + 2,000 ticks, 500-tick checkpoints, one auto-resolved space
+battle through flow states 3-12, 21, 23): every save (checkpoints and final) is byte-identical to the i686 goldens, and so are the logs
+(frame counts, message counters, flow states) except the first line, which names the loaded file.** No float drift showed up at all in these
+7,000 ticks of AI, economy and mission logic. Native floats (SSE, `-ffp-contract=off`) give the same results as the x87 build here; the
+earlier divergences were all port bugs (below), found by comparing against the i686 run tick by tick (saves every tick, then a trace of
+random draws, executed events and a checksum of all game objects after every event, then function-entry traces of the divergent tick).
+A native run is deterministic run to run (ASLR does not matter: no pointer-ordered container influences the saves), and independent of the
+virtual clock's step.
+
+**Sanitizers** (`REB_SANITIZE=1`: ASan + UBSan with recovery, `-fno-sanitize=function` because the game stores function pointers under other types and the
+iostream tables cast slots): clean (0 reports) on the three simulations above (7,000 ticks, 5 min) and on these scenarios: smoke, load_game, ui_tour,
+new_game_rebel, new_game_empire, space_battle_autoresolve, encyclopedia, fleet_window, battle_window, object_menu, mission_dialog, manufacture_explore,
+game_controls, system_forces, save_game_slot. The saves of the sanitized and the plain build are identical. Everything the sanitizers reported on the way, with its fix:
+
+| Finding | Where | Kind | Fix |
+|---|---|---|---|
+| a `ptrdiff_t` truncated to `int` between two allocations | `strstreambuf_doallocate` | game, 64-bit | `ptrdiff_t` |
+| embedded objects in byte arrays sized for 32 bits (6 sites) | `CoolFrameButton::m_frames`, `HumanPlayer::m_alertList`, `SpriteAnimator::m_steps`, `CoolGameWindow::m_overlays`, `SeedItemSet`, `NameList` | game, 64-bit | `REB_LP64_SCALED` + `static_assert` at the construction |
+| raw offsets into those objects and into `ios`/`filebuf` | `m_frames + 8`, `ios + 0x2c/0x30`, `filebuf + 0x4c` | game, 64-bit | named fields |
+| 4-byte array cookies in front of 8-aligned elements | `MissionMgr` type table, `AnimationStep` frame lists | game, 64-bit | cookie = alignment |
+| `LARGE_INTEGER*` over two `uint32_t` fields | `Stopwatch::Reset` | game, 64-bit | local (32-bit build keeps the original call: difftest compares the API arguments) |
+| pointers in `int` parameters/outputs | `Mission::CheckMemberDefault` | game, 64-bit | `intptr_t` |
+| a String passed by value in three `int` argument words | `PlayerController::Virtual87` and overrides | game, 64-bit | `StringWords` (three pointer-sized words; the same stack bytes on i686) |
+| object layouts described twice (`PlayerNotice` stub vs the real `PostedEvent`/`AiNotice`; `TrainingOrderCheck`/`StoryOrderCheck` vs `MissionCheckArgs`) | notice routing, Jedi training and story mission checks | game, 64-bit: **changed simulation results** (notices never reached the AI; a mission completed too early) | derive from the real base; field copies |
+| fake leading virtual slots (`ForeignSlots`) | `System::FindManufacturingManagerBySlot123` and two siblings | game, ABI: Itanium vtables differ | call the declared virtual |
+| ICF-folded cross-class accessors (`GameObj::GetDepartureKey` on a `Command`, `ObjectRefNode::GetKey` on a payload) | orders, UI notifications | game, 64-bit | named field |
+| LP64 size of `CRITICAL_SECTION`, iostream `ios` offsets | `iostream.h`, `ios.cpp` | game, 64-bit | computed |
+| alignment of globals (16 for arrays of 16+ bytes; the compiler emits aligned SSE stores) | generated data | port | `alignas` |
+| a Win32 handle used after `CloseHandle` (the mixer signals a closed notification event) | `kernel32_posix.cpp` | port (the game does it on Windows too) | live-object registry |
+| a window destroyed by its own procedure, then read | `minwin::CallProc` | port | read before the call |
+| the label shared by two objects, freed, drawn, freed again | `BattleInProgressWindow::OnCreate1` | **original bug** (benign on the NT heap) | `fixedText` gives its string up |
+
+**Original bugs kept** (marked `BUG(original)`): everything the sanitizers did not flag. Candidates not yet proven to matter: 215 call sites with two or
+more calls among the arguments (`tools/find_arg_order.py`; the unspecified evaluation order is right to left in MSVC and clang-cl, left to right in
+the Itanium ABI): none changed the goldens, but a path the goldens do not cover could still differ.
+
+**Unit tests**: the i686 builds are unchanged: hybrid 10,706 hooks, `check_callee_pop` 0 mismatches, `standalone_check` OK (saves byte-identical to the original's),
+`sim_goldens check` identical. See the end of this section for the difftest numbers. `src/port/minwin_impl` unit tests (`config_test`) pass natively.
+
+## Remaining
+
+* No i686 Linux verification build (P2): not needed for any result above.
+* 3D tactical stays out of scope; the multiplayer lobby shows no providers.
+* ASan/UBSan runs cover the scenarios above, not every UI path (the long scenarios `long_*`, `mp_lobby*`, `soak_*`).
+* macOS (P4) needs the SDL3 build flags (`cmake/native.cmake` already avoids Linux-only pieces except the container), the CRT names of `crt_posix.cpp`,
+  and `-fsanitize=function` decisions.
+* `TerminateThread` is `pthread_cancel` (asynchronous): fine for the game's two threads at shutdown, not a general implementation.
+* The pointer-order test (`REB_HEAP_PROBE`-like) is not ported; ASLR gives it for free (two native runs agree).

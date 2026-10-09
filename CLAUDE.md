@@ -21,6 +21,8 @@ The game files are the user's licensed copy. Never commit them, or raw Ghidra ou
 | `REB_CAPTURE=0x5f35b0:3:10:50 tools/run_game.sh <scenario>` | Capture 3 calls of an original function — after skipping 10, every 50th — into `work/run/<scenario>/captures/` (fields after the address are optional) |
 | `tools/difftest.py [-j N] <captures>/*.cap` | Replay captures: original vs reconstruction (`-j` in parallel). `--orig-only` shows what the original does; `--help` lists --poke/--entry/... overrides |
 | `REB_DISABLE_HOOKS=all\|0x..,0x..` | Run with some reconstructions disabled (bisecting) |
+| `tools/build_native.sh [--image]` / `REB_SANITIZE=1 ...` | Native Linux x86-64 `rebellion` (build/native, ASan+UBSan in build/native_asan), docs/native_linux.md |
+| `tools/run_native.sh <scenario>` / `tools/native_sim.sh` | Scenarios (Xvfb + xdotool) and the simulation goldens on the native build; `tools/native_triage.py` summarises sanitizer reports |
 
 Never kill processes by name pattern (it kills your own shell); use the scripts' stop commands.
 

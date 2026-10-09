@@ -320,3 +320,12 @@ Message traces (smoke): 91% of lines identical and in order; open divergences: W
 one extra `WM_WINDOWPOSCHANGING` after `WM_DISPLAYCHANGE`, movie/key timing.
 Audio: `REB_AUDIO_CAPTURE` of video_intro: non-silent, peak 32765; the menu music (MDATA.300) in the capture correlates 1.000 with the file resampled 11,025 -> 44,100 Hz (exact). No capture of Wine's own DirectSound output was possible in the container.
 Save fidelity: `REB_STANDALONE_DIR=build/impl tools/standalone_check.sh --no-build`: STANDALONE OK, saves differ from the original-logic run in 64 bytes (the tick/checksum tolerance of that script; the default build is byte-identical). Default builds: `standalone_check` OK (byte-identical), `sim_goldens check` identical (battle1, alliance1, empire1).
+
+
+## P3 results: native Linux x86-64 (measured Oct 9 2026)
+
+Details, findings and how to build: [docs/native_linux.md](native_linux.md). `build/native/rebellion` (clang-19, SDL3 and FreeType from `third_party/`, `src/port/minwin_impl`, POSIX kernel32/CRT in
+`src/port/native`) runs the game to the main menu, loads and saves games, runs new games and the UI tour. The three simulation goldens (7,000 ticks incl. an auto-resolved battle) are **byte-identical to the
+i686 goldens** (no float drift measured); ASan/UBSan are clean on those and on 15 UI scenarios after fixing 15 findings, most of them classes that mirror the 32-bit layout (two of which changed simulation results). The data image and the static-initializer
+table are generated from the EXE as typed C++ definitions (`tools/gen_native_data.py`, `tools/gen_native_init.py`). P2 (i686 Linux) was skipped.
+
