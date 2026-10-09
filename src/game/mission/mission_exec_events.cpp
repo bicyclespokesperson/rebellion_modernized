@@ -1,5 +1,7 @@
 #include "mission/mission_encounter.h"
+#include "ai/ai_common.h"
 #include "mission/mission_exec_decl.h"
+#include "mission/mission_jedi_training.h"
 
 using namespace mission_exec;
 
@@ -27,7 +29,7 @@ int MissionMgr::OnCharacterEvent(ObjectKey* key, int unused, NotifyContext* ctx)
             CreateMissionType41ForCharacter(person, ctx);
             GameObjNotifier* rules = GetGameRootMember_bc();
             ok = rules != nullptr;
-            if (rules && !(person->m_stateFlags & kStateEnrouteActive)) ok = FUN_00556710(rules, person, ctx) && ok;
+            if (rules && !(person->m_stateFlags & kStateEnrouteActive)) ok = static_cast<RulesMgr*>(rules)->RulesMgr::EnforceLocation(person, ctx) && ok;
         }
     }
     return ok;
@@ -50,9 +52,9 @@ int MissionMgr::UpdateMissionsForObject(ObjectKey* key, int unused, ObjectKey* l
         }
     }
     if (InFamilies(key, 0x28, 0x2c)) {
-        MissionIteratorFam53 missions(this);
-        for (missions.get()->Begin(); missions.get()->Current(); missions.get()->Advance()) {
-            Mission* mission = missions.Current();
+        MissionResearchIterator missions(this);
+        for (missions.Begin(); missions.Current(); missions.Advance()) {
+            Mission* mission = static_cast<Mission*>(missions.Current());
             if (mission->TargetLocationKeyIs(location)) ok = mission->UpdatePhaseForTeam(ctx) && ok;
         }
     }
@@ -124,10 +126,10 @@ int MissionMgr::OnSystemEventNoop(int a, int b, int c) { return 1; }
 int MissionMgr::UpdateMissionsAtSystemA(ObjectKey* key, int enabled, NotifyContext* ctx) {
     int ok = 1;
     if (InFamilies(key, kFamilySystemBegin, kFamilySystemEnd) && enabled != 0) {
-        MissionIteratorFam58 missions(this);
-        for (missions.get()->Begin(); missions.get()->Current(); missions.get()->Advance()) {
-            Mission* mission = missions.Current();
-            if (mission->TargetLocationKeyIs(key)) ok = FUN_00570470(mission, ctx) && ok;
+        MissionJediTrainingIterator missions(this);
+        for (missions.Begin(); missions.Current(); missions.Advance()) {
+            Mission* mission = static_cast<Mission*>(missions.Current());
+            if (mission->TargetLocationKeyIs(key)) ok = static_cast<MissionJediTraining*>(mission)->MissionJediTraining::RequestPhase9(ctx) && ok;
         }
     }
     return ok;
@@ -136,10 +138,10 @@ int MissionMgr::UpdateMissionsAtSystemA(ObjectKey* key, int enabled, NotifyConte
 int MissionMgr::UpdateMissionsAtSystemB(ObjectKey* key, int enabled, NotifyContext* ctx) {
     int ok = 1;
     if (InFamilies(key, kFamilySystemBegin, kFamilySystemEnd) && enabled != 0) {
-        MissionIteratorFam58 missions(this);
-        for (missions.get()->Begin(); missions.get()->Current(); missions.get()->Advance()) {
-            Mission* mission = missions.Current();
-            if (mission->TargetLocationKeyIs(key)) ok = FUN_005704b0(mission, ctx) && ok;
+        MissionJediTrainingIterator missions(this);
+        for (missions.Begin(); missions.Current(); missions.Advance()) {
+            Mission* mission = static_cast<Mission*>(missions.Current());
+            if (mission->TargetLocationKeyIs(key)) ok = static_cast<MissionJediTraining*>(mission)->MissionJediTraining::RequestPhase10(ctx) && ok;
         }
     }
     return ok;
@@ -148,9 +150,9 @@ int MissionMgr::UpdateMissionsAtSystemB(ObjectKey* key, int enabled, NotifyConte
 int MissionMgr::UpdateMissionsAtLocation53(ObjectKey* key, int unused, NotifyContext* ctx) {
     int ok = 1;
     if (InFamilies(key, kFamilySystemBegin, kFamilySystemEnd)) {
-        MissionIteratorFam53 missions(this);
-        for (missions.get()->Begin(); missions.get()->Current(); missions.get()->Advance()) {
-            Mission* mission = missions.Current();
+        MissionResearchIterator missions(this);
+        for (missions.Begin(); missions.Current(); missions.Advance()) {
+            Mission* mission = static_cast<Mission*>(missions.Current());
             if (mission->TargetLocationKeyIs(key)) ok = mission->UpdatePhaseForTeam(ctx) && ok;
         }
     }
@@ -159,9 +161,9 @@ int MissionMgr::UpdateMissionsAtLocation53(ObjectKey* key, int unused, NotifyCon
 
 int MissionMgr::UpdateMissionsAtLocation50to60(ObjectKey* key, int unused, NotifyContext* ctx) {
     int ok = 1;
-    MissionIteratorFam50to60 missions(this);
-    for (missions.get()->Begin(); missions.get()->Current(); missions.get()->Advance()) {
-        Mission* mission = missions.Current();
+    MissionTargetKindIterator missions(this);
+    for (missions.Begin(); missions.Current(); missions.Advance()) {
+        Mission* mission = static_cast<Mission*>(missions.Current());
         if (mission->TargetLocationKeyIs(key)) ok = mission->UpdatePhaseForTeam(ctx) && ok;
     }
     return ok;
@@ -185,10 +187,10 @@ int MissionMgr::OnPersonRemoved(ObjectKey* key, int unused, NotifyContext* ctx) 
             GameObjNotifier* rules = GetGameRootMember_bc();
             ok = rules != nullptr;
             if (rules && !(person->m_flags78 & role_flag::kOnMission)) {
-                ok = FUN_00556710(rules, person, ctx) && ok;
+                ok = static_cast<RulesMgr*>(rules)->RulesMgr::EnforceLocation(person, ctx) && ok;
                 if (person->m_stateFlags & kStateExisting) {
                     ObjectKey recordKey;
-                    FUN_00402d80(person, &recordKey);
+                    GetObjectRecordKey(person, &recordKey);
                     if (recordKey.m_value == 0x3c000009) ok = person->SetDestroyedReason(0x14, ctx) && ok;
                 }
             }
@@ -216,7 +218,7 @@ int MissionMgr::ProcessResignRequest(ObjectKey* key, int enabled, NotifyContext*
             MissionPersonTeamIterator team(mission);
             team.Begin();
             while (team.Current()) {
-                ok = FUN_00521220(mission, static_cast<Role*>(team.Current()), &resigning, &unusedB, &unusedC) && ok;
+                ok = mission->Mission::GetMemberTransitFlags(static_cast<Role*>(team.Current()), &resigning, &unusedB, &unusedC) && ok;
                 if (resigning == 0) someoneStays = true;
                 team.Advance();
             }
@@ -392,7 +394,7 @@ int MissionMgr::OnPersonArrived(ObjectKey* key, int unused, int expectedState, N
                 }
             }
             ObjectKey personKey;
-            if (moveBefore) ok = FUN_00556390(rules, person->GetKey(&personKey), &holderParentKey, ctx) && ok;
+            if (moveBefore) ok = static_cast<RulesMgr*>(rules)->RulesMgr::MoveUnitTo(person->GetKey(&personKey), &holderParentKey, ctx) && ok;
 
             const int holderHasMission = holderMissionKey.IsSet();
             if (personMissionKey.OrNull())
@@ -402,7 +404,7 @@ int MissionMgr::OnPersonArrived(ObjectKey* key, int unused, int expectedState, N
                 const int added = holderMission->AddMember(person->GetKey(&personKey), 0, ctx) && ok;
                 ok = person->SetParentAtMissionCompletionKey(&holderCompletionParent, ctx) && added;
             }
-            if (moveAfter) ok = FUN_00556390(rules, person->GetKey(&personKey), &holderParentKey, ctx) && ok;
+            if (moveAfter) ok = static_cast<RulesMgr*>(rules)->RulesMgr::MoveUnitTo(person->GetKey(&personKey), &holderParentKey, ctx) && ok;
 
             GameObjNotifier* parent = person->m_parent;
             if (holderMissionKey.OrNull() && (person->m_flagsAc & mission_exec::kCharacterCaptured) && parent &&

@@ -19,4 +19,3 @@ int ApplyEvent318(ObjectKey*, int, int, NotifyContext*);
 int ApplyEvent315(ObjectKey*, int, int, NotifyContext*);
 int ApplyEvent30a(ObjectKey*, int, int, NotifyContext*);
 int ApplyEvent320(ObjectKey*, ObjectKey*, ObjectKey*, NotifyContext*);
-int __thiscall FUN_00546e30(GameObjNotifier* manager, ObjectKey* key, int value, NotifyContext* ctx);

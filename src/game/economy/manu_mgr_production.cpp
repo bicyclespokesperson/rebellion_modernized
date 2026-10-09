@@ -2,15 +2,11 @@
 #include "data/sd_record_bases.h"
 #include "economy/manu_mgr.h"
 #include "economy/manu_mgr_decl.h"
+#include "economy/procfacil.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_queries.h"
-
-// The production logic of a manufacturing manager: which facilities serve it, how fast they work, how long the queue
-// takes, and how the queue and the current product are kept in step with the objects.
-
-// Data-table record lookup by key (0x51cab0).
-DatRecord* FUN_0051cab0(ObjectKey* key);
+#include "gameobj/object_type_db.h"
 
 namespace {
 
@@ -137,7 +133,7 @@ int ManuMgr::EstimateBuildTime(const NullableKey* seed, int count, int subtractP
     *turns = 0;
     ObjectKey seedKey;
     seedKey.m_value = seed->m_value;
-    DatRecord* record = FUN_0051cab0(&seedKey);
+    DatRecord* record = FindDataRecord(AsLookupKey(&seedKey));
     int cost = 0;
     if (record) {
         const uint32_t family = recordKeyOf(record) >> 24;
@@ -348,7 +344,7 @@ int ManuMgr::UpdateRequiredFromSeed(NotifyContext* ctx) {
     if (reinterpret_cast<NullableKey*>(&seed)->OrNull() != nullptr) {
         ObjectKey lookup;
         GetSeedKey(&lookup);
-        DatRecord* record = FUN_0051cab0(&lookup);
+        DatRecord* record = FindDataRecord(AsLookupKey(&lookup));
         ok = record != nullptr;
         if (!ok) return 0;
         cost = static_cast<int>(static_cast<SdRecord*>(record)->GetField48());
@@ -369,7 +365,7 @@ int ManuMgr::UpdateTotalRequired(NotifyContext* ctx) {
         ok = 0;
         if (product) {
             ObjectKey recordKey = objectRecordKey(product);
-            DatRecord* record = FUN_0051cab0(&recordKey);
+            DatRecord* record = FindDataRecord(AsLookupKey(&recordKey));
             ok = record != nullptr;
             if (ok) total += static_cast<int>(static_cast<SdRecord*>(record)->GetField48());
         }
@@ -584,7 +580,7 @@ int ManuMgr::RebalanceFacilities(NotifyContext* ctx) {
                 facilities.Advance();
             }
             if (best) {
-                const int started = FUN_0053aac0(best, ctx);
+                const int started = static_cast<ProcFacil*>(best)->ProcFacil::Restart(ctx);
                 result = started && previous;
                 --toStart;
             }
@@ -611,7 +607,7 @@ int ManuMgr::RebalanceFacilities(NotifyContext* ctx) {
                     facilities.Advance();
                 }
                 if (best) {
-                    const int released = FUN_0053ab10(best, ctx);
+                    const int released = static_cast<ProcFacil*>(best)->ProcFacil::ResetToIdle(ctx);
                     result = released && previous;
                     --excess;
                 }

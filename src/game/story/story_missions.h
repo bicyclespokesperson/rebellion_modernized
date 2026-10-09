@@ -36,9 +36,9 @@ public:
     virtual int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x56da80
     virtual int Virtual160(NotifyContext* ctx) override;                        // 160, shared 0x576700
 
-    static int CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out);  // 0x56d4f0
-    static int CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out);  // 0x56d6d0
-    static int CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out);  // 0x56d910
+    static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56d4f0
+    static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56d6d0
+    static int CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56d910
     static int BuildEventKinds();      // 0x56dc70, g_missionPickupEventKinds at 0x6bb998
     static void InitStatics();         // 0x56dca0
     static GameObjNotifier* Create();  // 0x56d480
@@ -67,9 +67,9 @@ public:
     virtual int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x56e650
     virtual int Virtual160(NotifyContext* ctx) override;                        // 160, 0x56e870
 
-    static int CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out);  // 0x56df70
-    static int CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out);  // 0x56e1f0
-    static int CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out);  // 0x56e4b0
+    static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56df70
+    static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56e1f0
+    static int CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56e4b0
     static int BuildEventKinds();      // 0x56e980, g_missionPalaceEventKinds at 0x6bb9a8
     static void InitStatics();         // 0x56e9b0
     static GameObjNotifier* Create();  // 0x56df00
@@ -98,9 +98,9 @@ public:
     virtual int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x572470
     virtual int Virtual160(NotifyContext* ctx) override;                        // 160, 0x572490
 
-    static int CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out);  // 0x571f20
-    static int CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out);  // 0x572100
-    static int CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out);  // 0x572340
+    static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x571f20
+    static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x572100
+    static int CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x572340
     static int BuildEventKinds();      // 0x5724b0, g_missionVacationEventKinds at 0x6bba40
     static void InitStatics();         // 0x5724e0
     static GameObjNotifier* Create();  // 0x571eb0
@@ -141,9 +141,9 @@ public:
     int WriteBody(ostream* out);                             // 0x5750b0
     int ChecksumBody(Crc32* crc);                            // 0x575110
 
-    static int CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out);  // 0x574b10
-    static int CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out);  // 0x574cf0
-    static int CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out);  // 0x574f30
+    static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x574b10
+    static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x574cf0
+    static int CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x574f30
     static int BuildEventKinds();      // 0x575360, g_dagobahMissionEventKinds at 0x6bbab8
     static void InitStatics();         // 0x575390
     static GameObjNotifier* Create();  // 0x574aa0
@@ -174,9 +174,9 @@ public:
     virtual int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x575de0
     virtual int Virtual160(NotifyContext* ctx) override;                        // 160, stub 0x51ebb0
 
-    static int CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out);  // 0x575900
-    static int CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out);  // 0x575ae0
-    static int CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out);  // 0x575cc0
+    static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x575900
+    static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x575ae0
+    static int CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x575cc0
     static int BuildEventKinds();      // 0x575f80, g_missionBountyEventKinds at 0x6bbad8
     static void InitStatics();         // 0x575fb0
     static GameObjNotifier* Create();  // 0x575890

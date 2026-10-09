@@ -157,6 +157,9 @@ public:
 };
 
 // Globals of the lobby.
+// The session list rectangle (0x658778); the battle flow reads its left and right edges as the flow range.
+extern const RECT g_rectSessionList;  // 0x658778
+
 extern uint32_t g_lobbySlotTable[7];  // 0x6b1220, indexed 1..6: the saved game ids the players announced
 extern uint32_t g_lobbyFlags;         // 0x6b123c bit 0: version message shown, bit 1: slot table received
 extern uint32_t g_lobbySlotPollTime;  // 0x6b1248 timeGetTime() of the last slot table broadcast (-1: send now)

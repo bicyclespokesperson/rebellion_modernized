@@ -4,15 +4,10 @@
 #include "core/containers.h"
 #include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
+#include "ui/bitmap_overlay.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
 #include "ui/resource_dll.h"
-
-// Overlay registry of the miscellaneous controls (0x60f420 range): an IdAvlTree subclass and its nodes.
-void* __thiscall FUN_0060f420(void* registry);
-void __thiscall FUN_0060f460(void* registry);
-void* __thiscall FUN_0060f470(void* registry, uint32_t id);
-void* __thiscall FUN_0060f4f0(void* memory);
 
 namespace {
 
@@ -47,7 +42,7 @@ CoolGameWindow::CoolGameWindow(HINSTANCE instance, int x, int y, int width, int 
                                uint32_t style, uint32_t flags, uint32_t unknownB0, uint32_t unknownB4)
     : CoolWindow(instance, "CoolGameWindow", style, x, y, width, height, parent, nullptr,
                  static_cast<HBRUSH>(GetStockObject(NULL_BRUSH)), nullptr, nullptr, nullptr, 0, 0) {
-    FUN_0060f420(m_overlays);
+    new (m_overlays) BitmapOverlayTree();
     m_stringSlot = stringSlot;
     m_bitmapSlot = bitmapSlot;
     m_backgroundId = backgroundId;
@@ -98,7 +93,7 @@ CoolGameWindow::~CoolGameWindow() {
         m_frame = nullptr;
     }
     if (m_previousFocus) SetFocus(m_previousFocus);
-    FUN_0060f460(m_overlays);
+    reinterpret_cast<BitmapOverlayTree*>(m_overlays)->BitmapOverlayTree::~BitmapOverlayTree();
     REB_KEEP_VPTR_STORE();
 }
 
@@ -419,7 +414,7 @@ DibBitmap* CoolGameWindow::SetPaintBackgroundById(uint32_t overlayId) {
 uint32_t CoolGameWindow::AddOverlay(DibBitmap* bitmap, uint32_t overlayId) {
     uint32_t result = 0;
     void* memory = operator new(0x28);
-    void* node = memory ? FUN_0060f4f0(memory) : nullptr;
+    void* node = memory ? new (memory) BitmapOverlay() : nullptr;
     if (bitmap && node && bitmap->IsLoaded()) {
         static_cast<IdNode*>(node)->SetId(overlayId);
         using SetBitmap = void(__thiscall*)(void*, DibBitmap*);
@@ -431,7 +426,7 @@ uint32_t CoolGameWindow::AddOverlay(DibBitmap* bitmap, uint32_t overlayId) {
 
 DibBitmap* CoolGameWindow::FindOverlayBitmap(uint32_t overlayId) {
     DibBitmap* bitmap = nullptr;
-    void* node = FUN_0060f470(m_overlays, overlayId);
+    void* node = reinterpret_cast<BitmapOverlayTree*>(m_overlays)->BitmapOverlayTree::FindOverlay(overlayId);
     if (node) {
         using GetBitmap = DibBitmap*(__thiscall*)(void*);
         bitmap = reinterpret_cast<GetBitmap*>(*static_cast<void***>(node))[1](node);

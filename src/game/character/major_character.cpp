@@ -2,15 +2,13 @@
 
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
+#include "story/story_characters.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
 extern "C" void __cdecl LAB_00594780();
 extern "C" void __cdecl LAB_0056f000();
 extern "C" void __cdecl LAB_00573c70();
 extern "C" void __cdecl LAB_00575690();
-
-// The story characters' shared CreateViews stub (0x56f950, in the Luke code).
-int __thiscall FUN_0056f950(Character* self, int controlKind, NotifyContext* ctx);
 
 extern int g_majorCharacterEventKindsReady;      // 0x6bc070
 extern EventKindSet g_majorCharacterEventKinds;  // 0x6bc068
@@ -157,7 +155,7 @@ int MajorChar30::CheckOrder(int a, int orderKind, StatusCode* out) {
     return checkOrder(BuildEventKinds(), g_majorChar30EventKinds, orderKind, out);
 }
 
-int MajorChar30::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_0056f950(this, controlKind, ctx); }
+int MajorChar30::CreateViews(int controlKind, NotifyContext* ctx) { return StoryCharacterCreateViews(this, controlKind, ctx); }
 
 GameObj* MajorChar30::CreateViewObject() { return NewOrNull<MajorChar30>(); }
 
@@ -210,7 +208,7 @@ int MajorChar34::CheckOrder(int a, int orderKind, StatusCode* out) {
     return checkOrder(BuildEventKinds(), g_majorChar34EventKinds, orderKind, out);
 }
 
-int MajorChar34::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_0056f950(this, controlKind, ctx); }
+int MajorChar34::CreateViews(int controlKind, NotifyContext* ctx) { return StoryCharacterCreateViews(this, controlKind, ctx); }
 
 GameObj* MajorChar34::CreateViewObject() { return NewOrNull<MajorChar34>(); }
 
@@ -263,7 +261,7 @@ int MajorChar35::CheckOrder(int a, int orderKind, StatusCode* out) {
     return checkOrder(BuildEventKinds(), g_majorChar35EventKinds, orderKind, out);
 }
 
-int MajorChar35::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_0056f950(this, controlKind, ctx); }
+int MajorChar35::CreateViews(int controlKind, NotifyContext* ctx) { return StoryCharacterCreateViews(this, controlKind, ctx); }
 
 GameObj* MajorChar35::CreateViewObject() { return NewOrNull<MajorChar35>(); }
 

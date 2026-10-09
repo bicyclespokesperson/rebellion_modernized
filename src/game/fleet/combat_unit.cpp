@@ -5,6 +5,7 @@
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
 #include "data/sd_record_bases.h"
+#include "events/event_post.h"
 #include "fleet/unit_data_decl.h"
 #include "fleet/unit_view_flags.h"
 
@@ -14,8 +15,6 @@ extern "C" void __cdecl LAB_00557e40();
 extern int g_combatUnitEventKindsReady;      // 0x6bb358
 extern EventKindSet g_combatUnitEventKinds;  // 0x6bb350
 
-int FUN_0053fa60(int eventId, int a, GameObj* object, void* data, NotifyContext* ctx);
-int FUN_0053fab0(int eventId, int a, GameObj* object, void* data, NotifyContext* ctx);
 
 namespace {
 constexpr int kStatusCategory = 1;
@@ -158,11 +157,11 @@ uint32_t CombatUnit::GetRecordColumnTotal(int column) {
 uint32_t CombatUnit::GetRecordTotal() { return m_record ? gridRecordOf(this)->m_total : 0; }
 
 int CombatUnit::OnUnderRepairChanged(int newValue, NotifyContext* ctx) {
-    return FUN_0053fa60(kRepairStatEvent, newValue, this, &static_cast<CombatUnitData*>(m_data)->m_repairStat, ctx);
+    return ArmTimerAfterSetFlag(kRepairStatEvent, newValue, this, &static_cast<CombatUnitData*>(m_data)->m_repairStat, ctx);
 }
 
 int CombatUnit::OnFastRepairChanged(int newValue, NotifyContext* ctx) {
-    return FUN_0053fab0(kRepairStatEvent, GetRepairLevel(), this, &static_cast<CombatUnitData*>(m_data)->m_repairStat,
+    return ArmTimerAfterSetLevel(kRepairStatEvent, GetRepairLevel(), this, &static_cast<CombatUnitData*>(m_data)->m_repairStat,
                         ctx);
 }
 

@@ -1,4 +1,5 @@
 #include "data/gnprtb.h"
+#include "ai/ai_common.h"
 #include "mission/mission_encounter.h"
 #include "mission/mission_exec_decl.h"
 #include "mission/mission_rules.h"
@@ -67,7 +68,7 @@ int MissionMgr::DetachMissionMembers(Mission* mission, NotifyContext* ctx) {
             int resigning = 0;
             int stays = 0;
             int unusedC = 0;
-            ok = FUN_00521220(mission, person, &resigning, &stays, &unusedC) && ok;
+            ok = mission->Mission::GetMemberTransitFlags(person, &resigning, &stays, &unusedC) && ok;
             if (resigning == 0 || stays != 0 || (person->m_flags78 & role_flag::kMissionRemoveRequest)) continue;
 
             ObjectKey personKey;
@@ -126,18 +127,18 @@ int MissionMgr::UpdateSystemMissionScores(Mission* mission, int fromPhase, int t
     int secondScore = 0;
     int bonus = 0;
     bool found = false;
-    MissionIteratorFam56 firstGroup(this);
-    for (firstGroup.get()->Begin(); firstGroup.get()->Current(); firstGroup.get()->Advance()) {
-        Mission* other = firstGroup.Current();
+    MissionInciteIterator firstGroup(this);
+    for (firstGroup.Begin(); firstGroup.Current(); firstGroup.Advance()) {
+        Mission* other = static_cast<Mission*>(firstGroup.Current());
         ObjectKey leaderKey;
         if (other->IsPhase8() && leader->GetKey(&leaderKey)->m_value == other->m_targetLocationKey.m_value) {
             found = true;
             firstScore += DivideByMissionDivisor(other->AverageMemberSkill());
         }
     }
-    MissionIteratorFam57 secondGroup(this);
-    for (secondGroup.get()->Begin(); secondGroup.get()->Current(); secondGroup.get()->Advance()) {
-        Mission* other = secondGroup.Current();
+    MissionSubdueIterator secondGroup(this);
+    for (secondGroup.Begin(); secondGroup.Current(); secondGroup.Advance()) {
+        Mission* other = static_cast<Mission*>(secondGroup.Current());
         ObjectKey leaderKey;
         if (other->IsPhase8() && leader->GetKey(&leaderKey)->m_value == other->m_targetLocationKey.m_value)
             secondScore += NegatedDivideByMissionDivisor(other->AverageMemberSkill());
@@ -153,7 +154,7 @@ int MissionMgr::UpdateSystemMissionScores(Mission* mission, int fromPhase, int t
 int MissionMgr::OnMissionPhaseStory(Mission* mission, int fromPhase, int toPhase, NotifyContext* ctx) {
     int ok = 1;
     ObjectKey recordKey;
-    FUN_00402d80(mission, &recordKey);
+    GetObjectRecordKey(mission, &recordKey);
     if (recordKey.m_value == kRecordKeyStoryMission) {
         if (toPhase == kPhaseResolved) {
             if (mission->GetDataField1c() >= kLevelThreshold) ok = SetLukeDagobahRequired(0, ctx) != 0;

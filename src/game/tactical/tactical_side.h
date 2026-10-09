@@ -136,12 +136,12 @@ public:
     int m_unitCount;                   // +0x44
     int m_unk48;                       // +0x48
     int m_unk4c;                       // +0x4c
-    int m_unk50;                       // +0x50
+    float m_unk50;                     // +0x50, 1 / -1 in the simulator's two sides
     float m_unk54;                     // +0x54 -1
     UnitRefTree m_fleet;               // +0x58 the side's units on the field
     UnitRefTree m_hangars;             // +0x64 the side's units still in hangars
     GroupRefTree m_groups;             // +0x70
-    int m_unk7c;                       // +0x7c
+    float m_unk7c;                     // +0x7c the side's fleet value (set by the facade)
     int m_unk80;                       // +0x80
     int m_state;                       // +0x84 5 while the side is withdrawing
     SideOrderTree m_orders;            // +0x88

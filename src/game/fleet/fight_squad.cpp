@@ -6,6 +6,7 @@
 #include "core/vptr_store.h"
 #include "data/game_math.h"
 #include "data/sd_records.h"
+#include "events/event_post.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/object_family.h"
 #include "gameobj/side_bits.h"
@@ -17,8 +18,6 @@ extern int g_fightSquadEventKindsReady;      // 0x6b2b38
 extern EventKindSet g_fightSquadEventKinds;  // 0x6b2b40
 
 
-int FUN_0053fc90(int value, int low, int high, const char* message);
-int FUN_0053fcf0(int eventId, GameObj* object, int a, int b, NotifyContext* ctx);
 
 namespace {
 constexpr int kStatusCategory = 1;
@@ -228,7 +227,7 @@ int FightSquad::OnSquadSizeDamageNotified(int oldValue, int newValue, NotifyCont
     int result = IsSideView();
     if (result) {
         LogInt("FightSquadSquadSizeDamageNotif", "SquadSizeDamage", newValue, oldValue, 0, ctx);
-        result = FUN_0053fcf0(kSquadSizeDamageEvent, this, oldValue, newValue, ctx);
+        result = PostPayloadInts(kSquadSizeDamageEvent, this, oldValue, newValue, ctx);
     }
     return result;
 }
@@ -238,7 +237,7 @@ uint32_t FightSquad::GetRecordTorpedoes() { return m_record ? fighterRecordOf(th
 int FightSquad::SetSquadSizeDamage(int value, NotifyContext* ctx) {
     const int master = IsMasterView();
     int result = 0;
-    if (master) result = FUN_0053fc90(value, 0, static_cast<int>(GetSquadSize()), " Invalid SquadSizeDamage value!");
+    if (master) result = IsInRange(value, 0, static_cast<int>(GetSquadSize()), " Invalid SquadSizeDamage value!");
     if (result && m_squadSizeDamage != value) {
         const int oldValue = m_squadSizeDamage;
         m_squadSizeDamage = value;

@@ -190,7 +190,7 @@ float ShipGroup::MemberStrengthAgainst(TacticalShipBase* target) {
     for (UnitRefNode* node = firstUnitNode(*this); node; node = node->Next()) {
         if (node->Value()->m_state == kMemberStateActive || node->Value()->m_state == kMemberStateReturning ||
             node->Value()->m_state == kMemberStateEngaging) {
-            total = FUN_005b7780(node->Value(), target, 0) + total;
+            total = node->Value()->TacticalShipBase::AttackRating(target, 0) + total;
         }
     }
     return total;

@@ -132,3 +132,5 @@ REB_ASSERT_SIZE(RulesMgr, 0x6c);
 REB_ASSERT_OFFSET(RulesMgr, m_timerA, 0x58);
 REB_ASSERT_OFFSET(RulesMgr, m_neighbours, 0x68);
 #pragma clang diagnostic pop
+
+GameObjNotifier* CreateRulesMgr();  // 0x556f30, the factory of family 0xf9

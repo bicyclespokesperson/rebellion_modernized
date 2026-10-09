@@ -1,8 +1,6 @@
 #include "character/character.h"
 #include "data/game_math.h"
-
-// Range check helper of the notification hub (0x53fc90); the message is ignored by the release build.
-int FUN_0053fc90(int value, int low, int high, const char* message);
+#include "events/event_post.h"
 
 // Validated setters of the Character properties: master view only; each stores the value, has both side views copy it
 // (ApplyX) and finally raises the virtual OnXChanged event. The 13 value setters other than the range-checked ones call
@@ -120,7 +118,7 @@ int Character::SetEnhancedLoyalty(int value, NotifyContext* ctx) {
     int result = IsMasterView();
     int valid = 0;
     if (result) {
-        valid = FUN_0053fc90(value, 0, 100, "charac.cpp: Invalid EnhancedLoyalty value!");
+        valid = IsInRange(value, 0, 100, "charac.cpp: Invalid EnhancedLoyalty value!");
         Clamp(value, 0, 0x7fff);
     }
     if (valid && m_enhancedLoyalty != value) {
@@ -201,7 +199,7 @@ int Character::SetInjury(int value, NotifyContext* ctx) {
 int Character::SetCommandKind(int value, NotifyContext* ctx) {
     int result = IsMasterView();
     int valid = 0;
-    if (result) valid = FUN_0053fc90(value, 0, value, "Invalid CommandKind value!");
+    if (result) valid = IsInRange(value, 0, value, "Invalid CommandKind value!");
     if (valid && m_commandKind != value) {
         const int oldValue = m_commandKind;
         m_commandKind = static_cast<int16_t>(value);
@@ -215,7 +213,7 @@ int Character::SetCommandKind(int value, NotifyContext* ctx) {
 int Character::SetState(int value, NotifyContext* ctx) {
     int result = IsMasterView();
     int valid = 0;
-    if (result) valid = FUN_0053fc90(value, 0, 4, "Invalid State value!");
+    if (result) valid = IsInRange(value, 0, 4, "Invalid State value!");
     if (valid && m_state != value) {
         const int oldValue = m_state;
         m_state = static_cast<int16_t>(value);
@@ -229,7 +227,7 @@ int Character::SetState(int value, NotifyContext* ctx) {
 int Character::SetMissionHyperdriveModifier(int value, NotifyContext* ctx) {
     int result = IsMasterView();
     int valid = 0;
-    if (result) valid = FUN_0053fc90(value, 0, value, "Invalid MissionHyperdriveModifier value!");
+    if (result) valid = IsInRange(value, 0, value, "Invalid MissionHyperdriveModifier value!");
     if (valid && m_missionHyperdriveModifier != value) {
         const int oldValue = m_missionHyperdriveModifier;
         m_missionHyperdriveModifier = static_cast<int16_t>(value);

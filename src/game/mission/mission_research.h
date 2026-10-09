@@ -42,9 +42,9 @@ public:
     int GetResearchKind(int* out);                    // 0x56c0e0: 0 shipyard, 1 training facility, 2 construction yard
 
     static int ResearchKindFromKey(ObjectKey* key, int* out);  // 0x56c460
-    static int CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out);  // 0x56c510
-    static int CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out);  // 0x56c820
-    static int CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out);  // 0x56c990
+    static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56c510
+    static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56c820
+    static int CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56c990
     static int BuildEventKinds();      // 0x56d130
     static void InitStatics();         // 0x56d160
     static GameObjNotifier* Create();  // 0x56c3f0

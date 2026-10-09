@@ -58,7 +58,7 @@ public:
     virtual void Virtual80(const ObjectKey* key, int arg) override;                // 0x486d30
     virtual void Virtual81(const ObjectKey* key, const ObjectKey* oldKey, const ObjectKey* newKey) override;  // 0x486b60
     virtual void Virtual82(const ObjectKey* key) override;                          // 0x486d50
-    virtual void Virtual83(const ObjectKey* key, const ObjectKey* newParent, int arg) override;  // 0x486d80
+    virtual void Virtual83(const ObjectKey* key, const ObjectKey* newParent, const ObjectKey* arg) override;  // 0x486d80
     virtual void Virtual87(const ObjectKey* key, int name0, int name1, int name2) override;  // 0x486eb0
     virtual void Virtual90(const ObjectKey* key) override;                          // 0x486f30
     virtual void Virtual91(const ObjectKey* key, const ObjectKey* newParent) override;  // 0x486f60

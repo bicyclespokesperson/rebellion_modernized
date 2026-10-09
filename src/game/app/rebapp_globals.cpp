@@ -2,22 +2,17 @@
 
 #include <new>
 
+#include "app/app_dialogs.h"
 #include "app/app_externals.h"
 #include "app/app_save_strings.h"
 #include "app/battle_flow.h"
 #include "app/rebellion_application.h"
+#include "audio/music.h"
 #include "core/iostream_lib.h"
 #include "core/registry.h"
 #include "ui/cool_app.h"
 
-// The app dialog family (app_dialogs): question box, notice box and acknowledge box factories.
-int FUN_00416c50(int message, CoolWindow* app, int textA, int textB, int x, int y);
-int FUN_00417020(int message, CoolWindow* app, int a, int textA, int textB, int x, int y);
-int FUN_00417260(CoolWindow* app, int a, int textA, int x, int y);
-
 // Sound module internals reached through the app helpers.
-void FUN_00417670(int volume);
-void FUN_004176e0(int enabled);
 extern int g_musicVolume;
 
 namespace {
@@ -100,11 +95,11 @@ void AppResetWaitTimer() {
 }
 
 void AppShowQuestionDialog(int message, int textA, int textB, int x, int y) {
-    if (g_app) FUN_00416c50(message, g_app, textA, textB, x, y);
+    if (g_app) ShowAppDialog(message, g_app, textA, textB, x, y);
 }
 
 void AppShowNoticeDialog(int message, int a, int textA, int textB, int x, int y) {
-    if (g_app) FUN_00417020(message, g_app, a, textA, textB, x, y);
+    if (g_app) ShowAppNoticeDialog(message, g_app, a, textA, textB, x, y);
 }
 
 void AppPostDialogResult(int accepted, CoolWindow* app) {
@@ -116,7 +111,7 @@ void AppPostDialogResult(int accepted, CoolWindow* app) {
 }
 
 void AppShowAckDialog(int a, int textA, int x, int y) {
-    if (g_app) FUN_00417260(g_app, a, textA, x, y);
+    if (g_app) ShowAppWaitDialog(g_app, a, textA, x, y);
 }
 
 void AppEnableSpeedAfterDialog() {
@@ -215,8 +210,8 @@ void AppSetUnknown138(int value) {
     if (g_app) App()->m_unknown138 = value;
 }
 
-void AppPlayMovie(int movieId, int a, int b) {
-    if (g_app) App()->PlayMovie(movieId, a, b);
+void AppPlayMovie(int movieId, const String* caption, void(__cdecl* callback)(uint32_t, uint32_t, int)) {
+    if (g_app) App()->PlayMovie(movieId, caption, callback);
 }
 
 int AppShowHelp() {
@@ -255,9 +250,9 @@ int AppGetVolume() {
     return volume;
 }
 
-void AppSetMusicVolume(int volume) { FUN_00417670(volume); }
+void AppSetMusicVolume(int volume) { SetMusicVolume(volume); }
 
-void AppSetMusicSwitch(int enabled) { FUN_004176e0(enabled); }
+void AppSetMusicSwitch(int enabled) { SetMusicSwitch(enabled); }
 
 int AppGetMusicVolume() { return g_musicVolume; }
 

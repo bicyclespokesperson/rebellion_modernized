@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <new>
 
+#include "ai/ai_common.h"
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
@@ -10,6 +11,7 @@
 #include "gameobj/object_lookup.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
+#include "strategy_ui/sector_window.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
 #include "ui/cool_drag_list.h"
@@ -23,10 +25,8 @@
 extern const char g_gokresDllName[];       // 0x6a8708 "gokres.dll"
 extern const int16_t g_stringGroup65d424;  // 0x65d424
 
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
 DibBitmap* CreateObjectPicture(HMODULE module, const ObjectKey* key, GameObjNotifier* object, int a, int b);
 // The sector window selects the unit of the given key (the report's object).
-void __thiscall FUN_0045c8e0(CoolWindow* sectorWindow, const ObjectKey* key, int mode);
 // The modal state of the report (the id of the window and of the message it shows).
 void ModalReportClose(int windowId, int messageId);
 void ModalReportReset(int windowId);
@@ -476,12 +476,12 @@ void ReportWindow::OnCommand(int a, int b, int c) {
         GameObjNotifier* reported = GetObjectInFamilies_01_ff(m_galaxy->m_side, &m_report->m_objectKey);
         if (reported) {
             ObjectKey sectorKey;
-            FUN_004025b0(reported->m_parent, &sectorKey);
+            GetObjectKey(reported->m_parent, &sectorKey);
             CoolWindow* sectorWindow = m_galaxy->OpenSectorWindow(&sectorKey);
             if (static_cast<int16_t>(a) == kPreviousId) {
                 ObjectKey reportedKey;
-                FUN_004025b0(reported, &reportedKey);
-                FUN_0045c8e0(sectorWindow, &reportedKey, 4);
+                GetObjectKey(reported, &reportedKey);
+                static_cast<SectorWindow*>(sectorWindow)->SectorWindow::OpenWindowOfType(&reportedKey, 4);
             }
         }
         ModalReportReset(m_commandId);
@@ -645,7 +645,7 @@ void ReportWindow::AddListItem(GameObjNotifier* object, int flag, String* headin
         return;
     }
     ObjectKey objectKey;
-    FUN_004025b0(object, &objectKey);
+    GetObjectKey(object, &objectKey);
     DibBitmap* picture = CreateObjectPicture(m_gokres, &objectKey, object, flag == 0, 1);
     DibBitmap* surface = NewOrNull<DibBitmap>(width, height, picture);
     surface->FillRect(0, 0, width, height, picture->m_colorKey);
@@ -657,7 +657,7 @@ void ReportWindow::AddListItem(GameObjNotifier* object, int flag, String* headin
     ObjectListItem* item = nullptr;
     if (memory) {
         ObjectKey itemKey;
-        FUN_004025b0(object, &itemKey);
+        GetObjectKey(object, &itemKey);
         const uint32_t itemId = static_cast<uint32_t>(m_nextItemId++);
         item = new (memory) ObjectListItem(itemId, &itemKey);
     }

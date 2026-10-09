@@ -4,6 +4,8 @@
 
 #include "data/probability_table.h"
 #include "data/sd_records.h"
+#include "events/command_classes.h"
+#include "events/event_post.h"
 #include "gameobj/child_iterator.h"
 #include "gameobj/game_root.h"
 #include "gameobj/object_database.h"
@@ -14,14 +16,6 @@
 // The helpers the setup stages share: rule rows applied to the systems of a sector, the creation of the objects a row
 // names, and the setup stage counter.
 
-DatRecord* FUN_0051cab0(const ObjectKey* key);  // the data record of a key (via the object-type database)
-// The command class posted by a seed rule (ctor 0x562c70, VT 0x6632a8, 0x44 bytes) and the hook that queues it.
-class SeedCommand;
-SeedCommand* __thiscall FUN_00562c70(SeedCommand* command);
-int FUN_0053fcd0(SeedCommand* command);
-int __thiscall FUN_00507270(System* system, int side);
-int __thiscall FUN_0050cf70(System* system, int value);
-int __thiscall FUN_0050cfa0(System* system, int value);
 
 extern int g_setupStage;  // 0x6b2bb4, the setup stage
 extern int g_setupComplete;  // 0x6b90e0
@@ -49,17 +43,6 @@ uint32_t controlSideOf(GameObjNotifier* object) { return (object->m_flags >> kVi
 int isSideNumber(int value) { return value >= 1 && value <= 3; }
 
 }  // namespace
-
-// The command object as far as the seeding fills it in: id (+0x18, from its constructor), the context it runs with
-// (+0x20), the system (+0x3c) and the signed amount (+0x40).
-class SeedCommand : public IdNode {
-public:
-    virtual ~SeedCommand();
-    uint8_t m_unk1c[4];
-    NotifyContext m_context;  // +0x20
-    ObjectKey m_system;       // +0x3c
-    int m_amount;             // +0x40
-};
 
 // ---- seed rules ----------------------------------------------------------------------------------------------
 
@@ -90,12 +73,12 @@ uint32_t ApplyLoyaltyRuleToSystem(System* system, const LoyaltyRule* rule, Notif
         if (rule->m_direction != 1) amount = -amount;
         const int target = rule->m_threshold;
         if ((system->m_flags & kPopulated) != 0 && (system->m_flags & kNeverBeenControlled) == 0 &&
-            FUN_00507270(system, rule->m_unitSide) < target) {
+            system->System::GetLoyaltyFor(rule->m_unitSide) < target) {
             void* memory = ::operator new(0x44);
-            SeedCommand* command = memory ? FUN_00562c70(static_cast<SeedCommand*>(memory)) : nullptr;
+            LoyaltyEvent373* command = memory ? new (memory) LoyaltyEvent373() : nullptr;
             result = command != nullptr;
             if (result != 0) {
-                result = command->m_id;
+                result = command->m_flag;
                 if (result == 0) {
                     // BUG(original): the command is deleted but still filled in and queued below.
                     delete command;
@@ -104,10 +87,10 @@ uint32_t ApplyLoyaltyRuleToSystem(System* system, const LoyaltyRule* rule, Notif
             if (command != nullptr) {
                 ObjectKey systemKey;
                 system->GetKey(&systemKey);
-                command->m_system = ObjectKey(systemKey);
-                command->m_amount = amount;
+                command->m_key = ObjectKey(systemKey);
+                command->m_delta = amount;
                 new (&command->m_context) NotifyContext(*ctx);
-                FUN_0053fcd0(command);
+                QueueEvent(command);
             }
         }
     }
@@ -126,7 +109,7 @@ GameObjNotifier* __thiscall NextSystemMaster(GameObjNotifier* system) {
 
 int GameRoot::PlaceSystem(ObjectKey* systemKey, int unusedA, int initArg, int level, NotifyContext* ctx) {
     (void)unusedA;
-    DatRecord* record = FUN_0051cab0(systemKey);
+    DatRecord* record = FindDataRecord(AsLookupKey(systemKey));
     GameObjNotifier* sector = nullptr;
     int ok = 0;
     if (record != nullptr) {
@@ -140,11 +123,11 @@ int GameRoot::PlaceSystem(ObjectKey* systemKey, int unusedA, int initArg, int le
         ok = bothTrue(system != nullptr, ok);
     }
     if (system != nullptr) {
-        const int levelSet = FUN_0050cf70(static_cast<System*>(system), level);
+        const int levelSet = (static_cast<System*>(system))->System::SetDataFlag1(level);
         const int firstOk = bothTrue(levelSet, ok);
         const int announced = callVirtual<int>(system, kVirtual47Slot, ctx);
         const int secondOk = bothTrue(announced, firstOk);
-        const int flagged = FUN_0050cfa0(static_cast<System*>(system), 1);
+        const int flagged = (static_cast<System*>(system))->System::SetDataFlag2(1);
         ok = bothTrue(flagged, secondOk);
         ObjectKey recordKey;
         if (system->m_record == nullptr) {
@@ -167,7 +150,7 @@ int GameRoot::SumSeedValues(int factor, ObjectRefList* list, int* total) {
     *total = 0;
     for (AvlNode* node = list->First(); node != nullptr; node = node->m_successor) {
         const ObjectKey key = static_cast<ObjectRefNode*>(node)->m_key;
-        DatRecord* record = FUN_0051cab0(&key);
+        DatRecord* record = FindDataRecord(AsLookupKey(&key));
         ok = bothTrue(record != nullptr, ok);
         if (record != nullptr) *total += static_cast<SdRecord*>(record)->GetField4c();
     }

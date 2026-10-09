@@ -76,7 +76,7 @@ public:
     // Leaves the current state and enters `state` (an AppState).
     void SetState(int state);  // 0x414330
     // Plays the movie `movieId` (0x65..0x6d) in the movie window; `a`/`b` go to the movie window.
-    void PlayMovie(int movieId, int a, int b);  // 0x4146e0
+    void PlayMovie(int movieId, const String* caption, void(__cdecl* callback)(uint32_t, uint32_t, int));  // 0x4146e0
     void BeginMovieState();   // 0x414830
     void DoMainChildWindow(int previousState);  // 0x414a80: front-end, lobby or options window for the current state
     void ShowStrategicWindow(int unused);       // 0x414eb0

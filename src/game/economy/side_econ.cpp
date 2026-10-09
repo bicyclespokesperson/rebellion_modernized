@@ -1,9 +1,14 @@
 #include "core/checked_new.h"
 #include "data/dat_record.h"
+#include "economy/manu_mgr.h"
 #include "economy/side.h"
 #include "economy/side_decl.h"
+#include "events/plain_events.h"
+#include "galaxy/game_setup_seed.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
+#include "gameobj/object_type_db.h"
+#include "rules/rules_mgr.h"
 
 extern int g_setupComplete;  // 0x6b90e0
 
@@ -52,7 +57,7 @@ int __stdcall MarkFacilityWaiting(ProductionFacility* facility, NotifyContext* c
     return result;
 }
 
-int Side::FindFacilityManuMgr(GameObj* facility, ManuMgrDecl** out) {
+int Side::FindFacilityManuMgr(GameObj* facility, ManuMgr** out) {
     *out = nullptr;
     GameObjNotifier* root = GetGameRootMember_bc();
     bool valid = root != nullptr;
@@ -63,13 +68,13 @@ int Side::FindFacilityManuMgr(GameObj* facility, ManuMgrDecl** out) {
     int result = valid ? 1 : 0;
     if (valid) {
         GameObjNotifier* system = nullptr;
-        result = FUN_00555540(root, facility, &system);
+        result = static_cast<RulesMgr*>(root)->RulesMgr::GetOwnerObject(facility, &system);
         if (result != 0 && system != nullptr) {
             const uint32_t systemFamily = system->GetFamily();
             if (systemFamily >= 0x90 && systemFamily < 0x98) {
                 using SlotFn = int(__thiscall*)(GameObj*);
                 const int slot = (*reinterpret_cast<SlotFn**>(facility))[kFacilityManuSlot](facility);
-                ManuMgrDecl* manager = FUN_00509670(system, slot);
+                ManuMgr* manager = static_cast<ManuMgr*>(static_cast<System*>(system)->System::FindManufacturingManagerBySlot123(slot));
                 *out = manager;
                 result = manager != nullptr;
             }
@@ -82,9 +87,9 @@ int Side::ReleaseFacilityToManager(ProductionFacility* facility, NotifyContext* 
     int result = 0;
     if (isReleasable(facility)) result = facility->SetPointPresent(0, ctx);
     if (result) {
-        ManuMgrDecl* manager = nullptr;
+        ManuMgr* manager = nullptr;
         const int found = FindFacilityManuMgr(facility, &manager) && manager != nullptr;
-        result = found ? FUN_0052a430(manager, ctx) : 0;
+        result = found ? manager->ManuMgr::AdvanceProgress(ctx) : 0;
     }
     return result;
 }
@@ -118,7 +123,7 @@ int Side::CollectRdRecords(int kind, IdAvlTree* out) {
         int maxLevel = 0;
         ObjectKey key;
         GetKey(&key);
-        result = FUN_0051cb20(SideNumberFromKey(&key), kind, level, 1, 1, 0, out, &maxLevel);
+        result = CollectDataRecords(SideNumberFromKey(&key), kind, level, 1, 1, 0, out, &maxLevel);
     }
     return result;
 }
@@ -128,7 +133,7 @@ int Side::CheckMaintCapacity(const ObjectKey* key, int count, StatusCode* status
     bool result = true;
     const uint32_t keyFamily = key->m_value >> 24;
     if (keyFamily >= 0x10 && keyFamily < 0x40) {
-        SdRecord* record = FUN_0051cab0(key);
+        SdRecord* record = static_cast<SdRecord*>(FindDataRecord(AsLookupKey(key)));
         result = record != nullptr;
         if (result) {
             const int needed = static_cast<int>(record->GetField4c()) * count;
@@ -299,18 +304,18 @@ int Side::UpdateRdProgress(NotifyContext* ctx) {
     int shipyardPoints = 0;
     int trainingPoints = 0;
     int constructionPoints = 0;
-    for (GameObjNotifier* object = GetFirstMasterInFamilies_90_98(); object; object = FUN_0051a5d0(object)) {
+    for (GameObjNotifier* object = GetFirstMasterInFamilies_90_98(); object; object = NextSystemMaster(object)) {
         if (result == 0) break;
         if (!sameControlSide(this, object)) continue;
         GameObjNotifier* system = object;
-        ManuMgrDecl* shipyards = FUN_00509670(system, rd_kind::kShipyard);
-        ManuMgrDecl* trainers = FUN_00509670(system, rd_kind::kTrainingFacil);
-        ManuMgrDecl* builders = FUN_00509670(system, rd_kind::kConstructionYard);
+        ManuMgr* shipyards = static_cast<ManuMgr*>(static_cast<System*>(system)->System::FindManufacturingManagerBySlot123(rd_kind::kShipyard));
+        ManuMgr* trainers = static_cast<ManuMgr*>(static_cast<System*>(system)->System::FindManufacturingManagerBySlot123(rd_kind::kTrainingFacil));
+        ManuMgr* builders = static_cast<ManuMgr*>(static_cast<System*>(system)->System::FindManufacturingManagerBySlot123(rd_kind::kConstructionYard));
         result = (shipyards != nullptr && trainers != nullptr && builders != nullptr) ? 1 : 0;
         if (result != 0) {
-            shipyardPoints += FUN_00528040(shipyards, 0);
-            trainingPoints += FUN_00528040(trainers, 0);
-            constructionPoints += FUN_00528040(builders, 0);
+            shipyardPoints += reinterpret_cast<ManuMgr*>(shipyards)->ManuMgr::CountHostFacilities(0);
+            trainingPoints += reinterpret_cast<ManuMgr*>(trainers)->ManuMgr::CountHostFacilities(0);
+            constructionPoints += reinterpret_cast<ManuMgr*>(builders)->ManuMgr::CountHostFacilities(0);
         }
     }
     if (result != 0) result = SetShipyardRdProgress(m_shipyardRdProgress + shipyardPoints, ctx);
@@ -524,18 +529,19 @@ int Side::ServeManufacturerQueue(int* more, NotifyContext* ctx) {
 
 namespace {
 
-int scheduleEvent(Side* side, SideTimedEvent* (__thiscall* construct)(void*)) {
-    void* memory = ::operator new(sizeof(SideTimedEvent));
-    SideTimedEvent* event = memory ? construct(memory) : nullptr;
+template <class Event>
+int scheduleEvent(Side* side) {
+    void* memory = ::operator new(sizeof(Event));
+    Event* event = memory ? new (memory) Event() : nullptr;
     int result = 0;
     if (event) {
-        result = event->m_ok;
+        result = event->m_flag;
         if (result == 0) {
             delete event;
         } else {
             ObjectKey key;
             side->GetKey(&key);
-            event->m_targetKey = key;
+            event->m_key = key;
             CallGameHook2AF8(static_cast<int>(reinterpret_cast<intptr_t>(event)));
         }
     }
@@ -544,6 +550,6 @@ int scheduleEvent(Side* side, SideTimedEvent* (__thiscall* construct)(void*)) {
 
 }  // namespace
 
-int Side::ScheduleRefineryEvent() { return scheduleEvent(this, FUN_005777c0); }
+int Side::ScheduleRefineryEvent() { return scheduleEvent<RefineryQueueEvent>(this); }
 
-int Side::ScheduleManufacturerEvent() { return scheduleEvent(this, FUN_00577b00); }
+int Side::ScheduleManufacturerEvent() { return scheduleEvent<ManufacturerQueueEvent>(this); }

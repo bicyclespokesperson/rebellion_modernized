@@ -1,14 +1,12 @@
 #include "mission/mission_dssabotage.h"
+#include "data/random.h"
+#include "mission/mission_rules.h"
 
 extern "C" void __cdecl LAB_005747d0();
 
 extern int g_missionDSSabotageEventKindsReady;      // 0x6bbaa8
 extern EventKindSet g_missionDSSabotageEventKinds;  // 0x6bbaa0
 
-int __cdecl FUN_0055c8d0(int espionage, int combat, int* out);  // LookupDSSabotageMissionTable
-int FUN_0053e2f0(int threshold);
-extern int DAT_006bb5c0;
-extern int DAT_006bb57c;
 
 namespace {
 constexpr uint32_t kFamilyMissionDSSabotage = 0x6a;
@@ -35,7 +33,7 @@ int MissionDSSabotage::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionDSSabotage::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -44,11 +42,11 @@ GameObj* MissionDSSabotage::CreateViewObject() { return NewOrNull<MissionDSSabot
 
 GameObjNotifier* MissionDSSabotage::Create() { return NewOrNull<MissionDSSabotage>(); }
 
-int MissionDSSabotage::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionDSSabotage::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
-    const int result = FUN_00593500(check, status, out);
-    const bool targetKnown = check->m_unk04 && check->m_unk0c;
+    const int result = MissionObjectTargetBase::CheckTarget(check, status, out);
+    const bool targetKnown = check->m_flag04 && check->m_flag0c;
     if (targetKnown && result && status->m_second == static_cast<uint32_t>(mission_status::kOk)) {
         if (!FamilyInRange(check->m_target->GetFamily(), kDeathStars)) {
             *status = StatusCode(kStatusCategoryOrder, kStatusTargetNotDeathStar);
@@ -62,7 +60,7 @@ int MissionDSSabotage::Virtual157(GameObj* person, int* out) {
     Role* role = static_cast<Role*>(person);
     const int combat = role->GetCombat();
     const int espionage = role->GetEspionage();
-    return FUN_0055c8d0(espionage, combat, out);
+    return LookupDSSabotageMissionTable(espionage, combat, out);
 }
 
 int MissionDSSabotage::Virtual158(NotifyContext* ctx) { return 1; }
@@ -72,20 +70,20 @@ int MissionDSSabotage::Virtual160(NotifyContext* ctx) { return MissionDestroyOri
 int MissionDSSabotage::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     int ok = 1;
     *out = 0;
-    if (!FUN_0053e2f0(roll)) return ok;
+    if (!PercentChance(roll)) return ok;
     *out = 1;
     ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
     Role* role = static_cast<Role*>(person);
     if (!role->Virtual118()) return ok;
-    ok = role->SetBaseEspionage(role->m_baseEspionage + DAT_006bb5c0, ctx) && ok;
-    ok = role->SetBaseCombat(role->m_baseCombat + DAT_006bb57c, ctx) && ok;
+    ok = role->SetBaseEspionage(role->m_baseEspionage + g_gnprtb1817, ctx) && ok;
+    ok = role->SetBaseCombat(role->m_baseCombat + g_gnprtb1818, ctx) && ok;
     return ok;
 }
 
 int MissionDSSabotage::BuildEventKinds() {
     if (!g_missionDSSabotageEventKindsReady) {
         g_missionDSSabotageEventKindsReady = 1;
-        return FUN_005936c0(0, &g_missionDSSabotageEventKinds);
+        return MissionObjectTargetBase::InitEventKinds(0, &g_missionDSSabotageEventKinds);
     }
     return 1;
 }

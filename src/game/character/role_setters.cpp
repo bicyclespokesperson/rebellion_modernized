@@ -1,9 +1,9 @@
 #include "character/role.h"
 
+#include "events/event_post.h"
 #include "gameobj/game_obj_root.h"
 
 // Range check helper of the notification hub (0x53fc90); the message is ignored by the release build.
-int FUN_0053fc90(int value, int low, int high, const char* message);
 // Pure clamp (0x53e0f0); the setters call it and ignore the result.
 int Clamp(int value, int low, int high);
 
@@ -124,7 +124,7 @@ int Role::SetBaseLeadership(int value, NotifyContext* ctx) {
 int Role::SetBaseLoyalty(int value, NotifyContext* ctx) {
     int result = 0;
     if (IsMasterView()) {
-        result = FUN_0053fc90(value, 0, kMaxLoyalty, "Invalid BaseLoyalty value!");
+        result = IsInRange(value, 0, kMaxLoyalty, "Invalid BaseLoyalty value!");
         Clamp(value, 0, kMaxSkillValue);
     }
     if (result && m_baseLoyalty != value) {

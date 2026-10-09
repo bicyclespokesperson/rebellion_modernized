@@ -27,7 +27,7 @@ void leaveGroup(HeadlessSimulator* simulator, TacticalShipBase* unit) {
     ShipGroup* group = findGroup(unit->m_groupHandle);
     if (group == nullptr) return;
     RemoveMemberFromGroup(group, unit->m_id);
-    if (group->m_firstMember == 0) simulator->m_sides[group->m_side]->m_retired.RemoveById(group->m_id);
+    if (group->m_firstMember == 0) reinterpret_cast<UnitRefTree*>(&simulator->m_sides[group->m_side]->m_groups)->RemoveById(group->m_id);
 }
 
 void removeFromStateList(HeadlessSimulator* simulator, TacticalShipBase* unit) {
@@ -91,9 +91,9 @@ double HeadlessSimulator::OpponentStrength(int side) {
     return m_sides[0]->m_strength;
 }
 
-void HeadlessSimulator::SetSideFlag(int side, int value) { m_sides[side]->m_flag80 = value; }
+void HeadlessSimulator::SetSideFlag(int side, int value) { m_sides[side]->m_unk80 = value; }
 
-void HeadlessSimulator::SetSideValue(int side, float value) { m_sides[side]->m_value = value; }
+void HeadlessSimulator::SetSideValue(int side, float value) { m_sides[side]->m_unk7c = value; }
 
 double HeadlessSimulator::CommanderSkillA(int side) {
     const int handle = m_firstCommander[side];

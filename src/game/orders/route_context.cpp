@@ -2,14 +2,12 @@
 
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
+#include "economy/manu_mgr.h"
 #include "fleet/capship.h"
 #include "fleet/fleet_iterator.h"
 #include "galaxy/system.h"
 #include "galaxy/system_rules.h"
 #include "gameobj/object_lookup.h"
-
-// The key set the object keeps for its carried units (economy module).
-int __thiscall FUN_005287f0(GameObjNotifier* object, ObjectKeyValueSet* out);
 
 namespace {
 
@@ -283,7 +281,7 @@ int RouteContext::FreeCarriedParents(GameObj* object, StatusCode* status) {
     UnitCountTable unusedCounts;
     ObjectKeyValueSet carried;
     int result = 0;
-    if (FUN_005287f0(object, &carried)) result = FreeParentsOf(&carried, status);
+    if (static_cast<ManuMgr*>(object)->ManuMgr::GetQueueCopy(&carried)) result = FreeParentsOf(&carried, status);
     return result;
 }
 

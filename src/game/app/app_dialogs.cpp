@@ -1,5 +1,6 @@
 #include "app/app_dialogs.h"
 
+#include "app/rebapp_globals.h"
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 
@@ -79,19 +80,19 @@ void AppDialog::OnCreate3() {
 void AppDialog::OnCommand(int a, int, int) {
     switch (static_cast<uint16_t>(a)) {
     case kYesButtonId:
-        FUN_004011a0(1, m_parent);
+        AppPostDialogResult(1, m_parent);
         break;
     case kNoButtonId:
-        FUN_004011a0(0, m_parent);
+        AppPostDialogResult(0, m_parent);
         break;
     }
 }
 
 void AppDialog::OnKeyDown(WPARAM key, LPARAM) {
     if (key == VK_RETURN)
-        FUN_004011a0(1, m_parent);
+        AppPostDialogResult(1, m_parent);
     else if (key == VK_ESCAPE)
-        FUN_004011a0(0, m_parent);
+        AppPostDialogResult(0, m_parent);
 }
 
 int AppDialog::Virtual14() { return m_enabled; }
@@ -115,11 +116,11 @@ void AppNoticeDialog::OnCreate3() {
 }
 
 void AppNoticeDialog::OnCommand(int a, int, int) {
-    if (static_cast<uint16_t>(a) == kAcknowledgeButtonId) FUN_004011a0(1, nullptr);
+    if (static_cast<uint16_t>(a) == kAcknowledgeButtonId) AppPostDialogResult(1, nullptr);
 }
 
 void AppNoticeDialog::OnKeyDown(WPARAM key, LPARAM) {
-    if (key == VK_RETURN) FUN_004011a0(1, nullptr);
+    if (key == VK_RETURN) AppPostDialogResult(1, nullptr);
 }
 
 // ---- AppWaitDialog ---------------------------------------------------------------------------------------------
@@ -136,7 +137,7 @@ AppWaitDialog::~AppWaitDialog() { REB_KEEP_VPTR_STORE(); }
 void AppWaitDialog::OnCreate3() {}
 
 void AppWaitDialog::OnCommand(int a, int, int) {
-    if (static_cast<uint16_t>(a) == kAcknowledgeButtonId) FUN_004011a0(0, nullptr);
+    if (static_cast<uint16_t>(a) == kAcknowledgeButtonId) AppPostDialogResult(0, nullptr);
 }
 
 void AppWaitDialog::OnKeyDown(WPARAM, LPARAM) {}

@@ -213,7 +213,7 @@ public:
     int SetDataKey(const ObjectKey* key);  // 0x4f7fa0
     int IncrementLock(NotifyContext* ctx);  // 0x4f8040, sets Locked
     int DecrementLock(NotifyContext* ctx);  // 0x4f8090, clears Locked at zero
-    int NotifyDataEvent387(int a, int b);   // 0x4f8010
+    int NotifyDataEvent387(int level, NotifyContext* ctx);   // 0x4f8010
     // Creates the object for `key` as a child of this one: Initialize, Reparent, SetCreated, SetCompleted.
     GameObj* CreateChild(const ObjectKey* key, int initArg, NotifyContext* ctx, int created, int completed);  // 0x4f7d50
     int CreateChildren(int count, const ObjectKey* key, int initArg, NotifyContext* ctx, int created, int completed);  // 0x4f7cf0

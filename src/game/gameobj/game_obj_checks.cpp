@@ -4,7 +4,6 @@
 #include "gameobj/game_obj.h"
 #include "gameobj/object_database.h"
 
-int FUN_0053fc90(int value, int low, int high, const char* message);
 
 namespace {
 

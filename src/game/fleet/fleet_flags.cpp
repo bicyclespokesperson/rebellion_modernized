@@ -1,12 +1,10 @@
 #include <new>
 
+#include "events/event_post.h"
 #include "fleet/fleet.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
 extern "C" void __cdecl LAB_004ffdb0();
-
-// Event hub of the strategic notification layer (cdecl).
-int FUN_0053fdd0(int eventId, GameObj* object, int value, NotifyContext* ctx);
 
 extern EventKindSet g_fleetEventKinds;       // 0x6b2b10
 extern uint32_t g_fleetEventKindsReady;      // 0x6b2b18, set once the set has been filled
@@ -64,7 +62,7 @@ int notifyFleetFlag(Fleet* fleet, const char* tag, const char* property, int eve
     int result = fleet->IsSideView();
     if (result) {
         fleet->LogFlag(tag, property, value, 0, ctx);
-        result = FUN_0053fdd0(eventId, fleet, value, ctx);
+        result = PostPayloadFlag(eventId, fleet, value, ctx);
     }
     return result;
 }

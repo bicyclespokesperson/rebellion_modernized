@@ -1,11 +1,12 @@
 #include "core/checked_new.h"
+#include "ai/ai_common.h"
 #include "core/vptr_store.h"
 #include "events/event_post.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
-#include "mission/mission_rules.h"
 #include "mission/mission_external.h"
+#include "mission/mission_rules.h"
 #include "story/mission_mgr.h"
 #include "story/story_common.h"
 
@@ -16,10 +17,6 @@ extern "C" void* __cdecl operator_new(size_t size);
 
 extern int g_missionMgrEventKindsReady;      // 0x6b92e4
 extern EventKindSet g_missionMgrEventKinds;  // 0x6b92e8
-
-// The first data-table record of the families from `family` on (0x51cad0); records are IdNodes chained by m_successor.
-DatRecord* __cdecl FUN_0051cad0(int family);
-ObjectKey* __thiscall FUN_00402e40(DatRecord* self, ObjectKey* out);
 
 namespace {
 
@@ -85,7 +82,7 @@ int MissionMgr::FreeTypeTable() {
 int MissionMgr::BuildTypeTable() {
     const int cleared = FreeTypeTable();
     if (cleared) {
-        for (DatRecord* record = FUN_0051cad0(kFamilyMissionTypeBegin); record; record = nextRecord(record)) ++m_typeCount;
+        for (DatRecord* record = GetFirstRecordOfType(kFamilyMissionTypeBegin); record; record = nextRecord(record)) ++m_typeCount;
         if (cleared && m_typeCount != 0) {
             const int count = m_typeCount;
             void* block = ::operator new(count * sizeof(MissionTypeCheckEntry) + kTypeTableHeader);
@@ -97,17 +94,17 @@ int MissionMgr::BuildTypeTable() {
             }
             m_typeTable = entries;
             if (entries) {
-                DatRecord* record = FUN_0051cad0(kFamilyMissionTypeBegin);
+                DatRecord* record = GetFirstRecordOfType(kFamilyMissionTypeBegin);
                 if (!record) return 1;
                 bool ok = true;
                 MissionTypeCheckEntry* entry = entries;
                 do {
                     ObjectKey recordKey;
-                    GameObj* mission = static_cast<GameObj*>(CreateObjectForKey(FUN_00402e40(record, &recordKey)));
+                    GameObj* mission = static_cast<GameObj*>(CreateObjectForKey(GetAiRecordKey(record, &recordKey)));
                     ok = mission != nullptr && ok;
                     if (mission) {
                         ObjectKey storedKey;
-                        entry->m_recordKey = *FUN_00402e40(record, &storedKey);
+                        entry->m_recordKey = *GetAiRecordKey(record, &storedKey);
                         const int reported = static_cast<Mission*>(mission)->GetCheckFunctions(
                             reinterpret_cast<MissionCheckFunctions*>(&entry->m_checkMember));
                         ok = reported != 0 && ok;

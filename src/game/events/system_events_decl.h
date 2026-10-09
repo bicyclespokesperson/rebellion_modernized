@@ -16,6 +16,3 @@ int ApplySystemEvent310(ObjectKey* key, int value, NotifyContext* ctx);
 int ApplySystemEvent30f(ObjectKey* key, int value, NotifyContext* ctx);
 int ApplySystemEvent311(ObjectKey* key, int value, NotifyContext* ctx);
 int ApplySystemEvent305(ObjectKey* key, int value, NotifyContext* ctx);
-
-// 0x558880 as a call on an already constructed SideBits: resets it, then takes `value` if it is a valid side set.
-void __thiscall FUN_00558880(SideBits* bits, uint32_t value);

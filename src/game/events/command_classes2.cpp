@@ -5,8 +5,13 @@
 #include "events/event_helpers.h"
 #include "events/event_post.h"
 #include "gameobj/object_lookup.h"
+#include "gameobj/object_type_db.h"
 #include "orders/route_capacity.h"
 #include "orders/route_context.h"
+#include "rules/event_rules.h"
+#include "rules/rules_mgr.h"
+#include "strategy_ui/advisor_sides.h"
+#include "mission/mission_external.h"
 
 using events::asIntArg;
 using events::callVirtualSlot;
@@ -86,7 +91,7 @@ int MoveCommand::CheckValid(StatusCode* status) {
         if (succeeded(*status)) ok = static_cast<GameObj*>(object)->CheckUnknown(&m_request, status);
         if (ok) {
             ObjectKey destinationKey;
-            if (succeeded(*status)) ok = FUN_005542f0(object, destination->GetKey(&destinationKey), &m_request, status);
+            if (succeeded(*status)) ok = GetRulesMgr()->RulesMgr::CheckRequestMove(static_cast<GameObj*>(object), destination->GetKey(&destinationKey), &m_request, status);
             if (ok && succeeded(*status)) {
                 ObjectKey objectKey;
                 ObjectKey target;
@@ -526,7 +531,7 @@ int ManufactureCommand::CheckValid(StatusCode* status) {
                     int mode = 3;
                     ok = route.InitFromRequest(&m_request, manager->ControlSide(), &mode);
                     if (ok) {
-                        ok = route.AddContainerLegs(FUN_004c27b0(manager, &managerKey));
+                        ok = route.AddContainerLegs(ManagerGetLocationKey(manager, &managerKey));
                         if (ok) ok = route.FreeCarriedParents(static_cast<GameObj*>(manager), status);
                     }
                 }
@@ -545,7 +550,7 @@ int ManufactureCommand::CheckValid(StatusCode* status) {
                             if (item.unit()->m_value != previous.m_value) {
                                 previous = *item.unit();
                                 if (previous.Family() >= 0x10 && previous.Family() < 0x40) {
-                                    SdRecord* record = static_cast<SdRecord*>(FUN_0051cab0(&previous));
+                                    SdRecord* record = static_cast<SdRecord*>(FindDataRecord(AsLookupKey(&previous)));
                                     ok = record != nullptr;
                                     if (ok) count = static_cast<int>(record->GetField4c());
                                 }
@@ -556,7 +561,7 @@ int ManufactureCommand::CheckValid(StatusCode* status) {
                 }
                 if (ok && succeeded(*status)) {
                     void* sideObject = nullptr;
-                    ok = FUN_00518750(manager, &sideObject);
+                    ok = GetControlSideObject(manager, reinterpret_cast<GameObjNotifier**>(&sideObject));
                     if (total != 0 && fieldAt<int>(sideObject, 0x58) - fieldAt<int>(sideObject, 0x5c) < total)
                         *status = StatusCode(kStatusNoRoom, kStatusRefused);
                 }

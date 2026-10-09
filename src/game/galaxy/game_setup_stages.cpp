@@ -1,8 +1,17 @@
 #include "character/character_mgr.h"
+#include "ai/ai_common.h"
 #include "core/utility_classes.h"
 #include "data/game_math.h"
 #include "data/random.h"
 #include "data/sd_records.h"
+#include "economy/facility.h"
+#include "economy/manu_mgr.h"
+#include "economy/side.h"
+#include "galaxy/game_setup_seed.h"
+#include "galaxy/sector.h"
+#include "galaxy/system_rules.h"
+#include "galaxy/system_rules_1e.h"
+#include "galaxy/system_type90.h"
 #include "gameobj/child_iterator.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/game_root.h"
@@ -13,6 +22,7 @@
 #include "galaxy/game_setup_seed.h"
 #include "rules/loyalty_params.h"
 #include "rules/rules_mgr.h"
+#include "rules/event_rules.h"
 
 // The stages of the new-game setup that fill the universe (GameRoot::StepSetup, 0x5136d0, calls them in this order):
 // the root's children (side roots, managers, sides, the singleton rules objects), the sectors, the split of the
@@ -21,24 +31,9 @@
 
 // ---- helpers and classes of other modules ------------------------------------------------------------------
 
-DatRecord* FUN_0051cab0(const ObjectKey* key);  // the data record of a key (via the object-type database)
-DatRecord* FUN_0051cad0(uint32_t family);       // the first data record of a family
-int FUN_005597e0(int side, int which);          // seeding percentages by side
-int __thiscall FUN_005305c0(GameObjNotifier* side, int systemCount);
 int GetSideObjectForIndex(int side, GameObjNotifier** out);
-int __thiscall FUN_0052fff0(GameObjNotifier* object, NotifyContext* ctx);
-int NumberUnitName(GameObjNotifier* object, NotifyContext* ctx);
 int ApplyEvent315(ObjectKey* key, int kind, int value, NotifyContext* ctx);
 int FUN_0040f340();
-int __thiscall FUN_00526550(GameObjNotifier* sector);
-int __thiscall FUN_005092f0(System* system);
-int __thiscall FUN_00507270(System* system, int side);
-int FUN_0050c8a0(GameObjNotifier* sector, NotifyContext* ctx);
-int FUN_00529a40(GameObjNotifier* system, NotifyContext* ctx);
-int FUN_00566c00(GameObjNotifier* sector, NotifyContext* ctx);
-int FUN_00539ac0(GameObjNotifier* system, NotifyContext* ctx);
-int __thiscall FUN_0050d5a0(GameObjNotifier* system, int a, int b, NotifyContext* ctx);
-int FUN_0055a050(int value);
 
 namespace {
 
@@ -121,7 +116,7 @@ int seedHeadquarters(GameRoot* root, GameObjNotifier* headquarters, int tableTyp
 
 int GameRoot::SetupRootObject(NotifyContext* ctx) {
     const ObjectKey rootKey = ObjectKey::Make(family::kGameRoot, 1);
-    DatRecord* record = FUN_0051cab0(&rootKey);
+    DatRecord* record = FindDataRecord(AsLookupKey(&rootKey));
     int ok = record != nullptr;
     if (record != nullptr) {
         ok = bothTrue(SetRecord(record), ok);
@@ -165,7 +160,7 @@ int GameRoot::CreateSectors(int galaxySize, NotifyContext* ctx) {
     NotifyContext sectorContext(*ctx);
     sectorContext.m_flag04 = 1;
     sectorContext.m_flag08 = 2;
-    for (DatRecord* record = FUN_0051cad0(0x80); record != nullptr; record = static_cast<DatRecord*>(record->m_successor)) {
+    for (DatRecord* record = GetFirstRecordOfType(0x80); record != nullptr; record = static_cast<DatRecord*>(record->m_successor)) {
         if (static_cast<SectorSD*>(record)->m_galaxySize <= galaxySize) {
             const ObjectKey key = keyOfRecord(record);
             ok = bothTrue(CreateChild(&key, 3, &sectorContext, 1, 1) != nullptr, ok);
@@ -193,13 +188,13 @@ int GameRoot::DistributeSystems(NotifyContext* ctx) {
     }
 
     ObjectRefList core;
-    for (DatRecord* record = FUN_0051cad0(0x90); record != nullptr; record = static_cast<DatRecord*>(record->m_successor)) {
+    for (DatRecord* record = GetFirstRecordOfType(0x90); record != nullptr; record = static_cast<DatRecord*>(record->m_successor)) {
         const ObjectKey sectorKey = ObjectKey::Make(family::kSector, static_cast<SystemSD*>(record)->m_sectorId);
         GameObjNotifier* sector = nullptr;
         if (sectorKeys.Find(&sectorKey) != nullptr) sector = GetMasterInFamilies_80_90(&sectorKey);
         if (sector == nullptr) continue;
         ++systemsPlaced;
-        ObjectRefList& pool = FUN_00526550(sector) == 1 ? core : m_refLists[5];
+        ObjectRefList& pool = static_cast<Sector*>(sector)->Sector::GetGroup() == 1 ? core : m_refLists[5];
         const ObjectKey systemKey = keyOfRecord(record);
         ObjectRefNode* node = pool.AddKey(systemKey);
         if (systemKey.m_value == kYavinKey) {
@@ -210,10 +205,10 @@ int GameRoot::DistributeSystems(NotifyContext* ctx) {
     }
 
     const int coreCount = core.Size();
-    const int percentA = FUN_005597e0(1, 0);
-    const int percentC = FUN_005597e0(2, 0);
-    const int percentB = FUN_005597e0(1, 1);
-    const int percentD = FUN_005597e0(2, 1);
+    const int percentA = SideSharePercent(1, 0);
+    const int percentC = SideSharePercent(2, 0);
+    const int percentB = SideSharePercent(1, 1);
+    const int percentD = SideSharePercent(2, 1);
     int toPool0x100 = ScalePercent(coreCount, percentA);
     int toPool0x110 = ScalePercent(coreCount, percentB);
     int toPool0xe0 = ScalePercent(coreCount, percentC);
@@ -291,8 +286,8 @@ int GameRoot::DistributeSystems(NotifyContext* ctx) {
     result = 0;
     if (toPool0x100 == 0 && toPool0x110 == 0 && toPool0xe0 == 0 && toPool0xf0 == 0 && toPool0x120 == 0)
         result = pooled == systemsPlaced ? 1 : 0;
-    result = bothTrue(FUN_005305c0(m_master_f300000f, systemsPlaced), result);
-    result = bothTrue(FUN_005305c0(m_master_f3000010, systemsPlaced), result);
+    result = bothTrue(static_cast<Side*>(m_master_f300000f)->Side::SetRdScalePercent(systemsPlaced), result);
+    result = bothTrue(static_cast<Side*>(m_master_f3000010)->Side::SetRdScalePercent(systemsPlaced), result);
     return result;
 }
 
@@ -436,7 +431,7 @@ int GameRoot::SeedSystemTroops(NotifyContext* ctx) {
     for (GameObjNotifier* object = GetFirstMasterInFamilies_90_92(); object != nullptr;
          object = asGameObj(object)->FindNextSibling(&kSystemFamily90, 1)) {
         System* system = asSystem(object);
-        if (FUN_005092f0(system) == 0) continue;
+        if (system->System::GetDataFlagBit0() == 0) continue;
         const uint32_t side = controlSideOf(system);
         const int owned = side == 1 || side == 2;
         ok = bothTrue(owned, ok);
@@ -448,7 +443,7 @@ int GameRoot::SeedSystemTroops(NotifyContext* ctx) {
             troopKey = ObjectKey::Make(family::kTroopRegiment, 8);
         }
         const int unitSide = side == 1 ? 1 : side == 2 ? 2 : 0;
-        const int count = FUN_0055a050(FUN_00507270(system, unitSide));
+        const int count = ComputeShortfallUnits(system->System::GetLoyaltyFor(unitSide));
         if (count != 0) ok = bothTrue(system->CreateChildren(count, &troopKey, side, ctx, 1, 1), ok);
     }
     return ok;
@@ -605,10 +600,10 @@ int GameRoot::SeedSideReserves(int side, NotifyContext* ctx) {
 int GameRoot::SetupSideObjects(NotifyContext* ctx) {
     GameObjNotifier* side = nullptr;
     int ok = GetSideObjectForIndex(1, &side) != 0;
-    if (side != nullptr) ok = bothTrue(FUN_0052fff0(side, ctx), ok);
+    if (side != nullptr) ok = bothTrue(static_cast<Side*>(side)->Side::RecomputeMaintenance(ctx), ok);
     ok = bothTrue(GetSideObjectForIndex(2, &side), ok);
     if (side != nullptr) {
-        if (FUN_0052fff0(side, ctx) == 0 || ok == 0) return 0;
+        if (static_cast<Side*>(side)->Side::RecomputeMaintenance(ctx) == 0 || ok == 0) return 0;
         return 1;
     }
     return ok;
@@ -638,7 +633,7 @@ int GameRoot::InitializeAllObjects(NotifyContext* ctx) {
     int ok = 1;
     for (GameObjNotifier* object = GetFirstMasterInFamilies_01_ff(); object != nullptr;
          object = asGameObj(object)->FindNextSibling(&kAllFamilies, 1)) {
-        ok = bothTrue(NumberUnitName(object, ctx), ok);
+        ok = bothTrue(NumberUnitName(static_cast<GameObj*>(object), ctx), ok);
         ok = bothTrue(callVirtual<int>(object, kVirtual48Slot, ctx), ok);
         const uint32_t objectFamily = object->GetFamily();
         if (objectFamily >= kStationFamilies.m_first && objectFamily < kStationFamilies.m_second) {
@@ -669,17 +664,17 @@ int GameRoot::FinishSideView(NotifyContext* ctx) {
     int ok = UpdateAllChildren(this, &updateContext) != 0;
     ChildIterator sectors(this, &kSectorFamilies, 4);
     for (sectors.Begin(); sectors.Current() != nullptr; sectors.Advance()) {
-        ok = bothTrue(FUN_0050c8a0(sectors.Current(), &sideContext), ok);
+        ok = bothTrue(UpdateSystemFamilyChildren(static_cast<GameObj*>(sectors.Current()), &sideContext), ok);
         ChildIterator systems(sectors.Current(), &kSystemFamilies, 4);
         for (systems.Begin(); systems.Current() != nullptr; systems.Advance())
-            ok = bothTrue(FUN_00529a40(systems.Current(), &sideContext), ok);
-        ok = bothTrue(FUN_00566c00(sectors.Current(), &updateContext), ok);
+            ok = bothTrue(UpdateManuMgrChildren(static_cast<GameObj*>(systems.Current()), &sideContext), ok);
+        ok = bothTrue(UpdateSystemType90Children(static_cast<GameObj*>(sectors.Current()), &updateContext), ok);
         ChildIterator firstSystems(sectors.Current(), &kSystemFamily90, 4);
         for (firstSystems.Begin(); firstSystems.Current() != nullptr; firstSystems.Advance())
-            ok = bothTrue(FUN_00539ac0(firstSystems.Current(), &updateContext), ok);
+            ok = bothTrue(UpdateFacilityChildren(static_cast<GameObj*>(firstSystems.Current()), &updateContext), ok);
     }
     GameObjNotifier* yavin = masterSystem(kYavinKey);
     int result = bothTrue(yavin != nullptr, ok);
-    if (yavin != nullptr) result = bothTrue(FUN_0050d5a0(yavin, 10, 2, ctx), result);
+    if (yavin != nullptr) result = bothTrue(static_cast<System*>(yavin)->System::SyncViewForEvent(10, 2, ctx), result);
     return result;
 }

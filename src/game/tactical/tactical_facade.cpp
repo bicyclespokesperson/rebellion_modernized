@@ -207,7 +207,7 @@ BattleOutcome* __cdecl TacticalGetBattleOutcome(BattleOutcome* out, int unused) 
 TacticalRegistry* GetTacticalRegistry() {
     if (!g_tacticalRegistry) {
         void* memory = ::operator new(0x48);
-        g_tacticalRegistry = memory ? FUN_005a6290(memory) : nullptr;
+        g_tacticalRegistry = memory ? new (memory) TacticalRegistry() : nullptr;
     }
     return g_tacticalRegistry;
 }
@@ -308,7 +308,7 @@ uint32_t __cdecl TacticalGetCarrierStat68(void* ship) {
     if (ship) {
         const int carrierHandle = *reinterpret_cast<int*>(static_cast<char*>(ship) + 0x178);
         if (carrierHandle) {
-            TacticalUnit* carrier = FUN_005a6480(GetTacticalRegistry(), carrierHandle);
+            TacticalUnit* carrier = reinterpret_cast<TacticalUnit*>(GetTacticalRegistry()->TacticalRegistry::FindShipGroup(carrierHandle));
             if (carrier) return *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(carrier) + 0x68);
         }
     }
@@ -323,7 +323,7 @@ uint32_t __cdecl TacticalGetCarrierStat38(void* ship) {
     if (ship) {
         const int carrierHandle = *reinterpret_cast<int*>(static_cast<char*>(ship) + 0x178);
         if (carrierHandle) {
-            TacticalUnit* carrier = FUN_005a6480(GetTacticalRegistry(), carrierHandle);
+            TacticalUnit* carrier = reinterpret_cast<TacticalUnit*>(GetTacticalRegistry()->TacticalRegistry::FindShipGroup(carrierHandle));
             if (carrier) return *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(carrier) + 0x38);
         }
     }

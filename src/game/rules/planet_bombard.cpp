@@ -14,6 +14,7 @@
 #include "galaxy/system.h"
 #include "galaxy/system_rules_1e.h"
 #include "gameobj/game_hooks.h"
+#include "mission/mission.h"
 #include "mission/mission_rules.h"
 #include "rules/event_rules.h"
 #include "rules/loyalty_params.h"
@@ -47,9 +48,6 @@ int commanderLeadership(GameObjNotifier* commander) {
 
 }  // namespace
 
-int __thiscall FUN_00520b70(GameObjNotifier* self);
-int __thiscall FUN_00520b80(GameObjNotifier* self);
-int __thiscall FUN_0053a6e0(GameObjNotifier* self);
 
 // ---- visitors ----------------------------------------------------------------------------------------------------
 
@@ -108,7 +106,7 @@ int ShipDamager::Visit(GameObj* shipObject, GameObj*, uint32_t* stop, NotifyCont
     *stop = 0;
     CapShip* ship = static_cast<CapShip*>(shipObject);
     int engineDamage = ship->GetDataWord20();
-    int weaponDamage = FUN_0053a6e0(ship);
+    int weaponDamage = reinterpret_cast<ProcFacil*>(ship)->ProcFacil::GetCycleCount();
     const int shield = ship->GetField60() - ship->GetDamageField60();
     int shieldLeft = shield;
     const int hull = ship->GetHull() - ship->GetHullValueDamage();
@@ -472,7 +470,7 @@ int BombardResolver::DefensesFireAtShips(NotifyContext* ctx) {
             ok = m_walker.ForEachBombardingShip(&picker, ctx);
             GameObj* ship = picker.m_ship;
             if (ok != 0 && ship != nullptr) {
-                const int rating = FUN_00520b70(turrets.Current());
+                const int rating = static_cast<Mission*>(turrets.Current())->Mission::GetRecordHidden();
                 GameObjNotifier* commander = nullptr;
                 ok = m_walker.m_system->FindCharacterByCommandKind(kCommanderNumber, &commander);
                 const int leadership = ok != 0 ? commanderLeadership(commander) : 0;
@@ -495,14 +493,14 @@ int BombardResolver::DefensesFireAtShips(NotifyContext* ctx) {
             ok = m_walker.ForEachBombardingShip(&picker, ctx);
             GameObj* ship = picker.m_ship;
             if (ok != 0 && ship != nullptr) {
-                const int rating = FUN_00520b70(cannons.Current());
+                const int rating = static_cast<Mission*>(cannons.Current())->Mission::GetRecordHidden();
                 GameObjNotifier* commander = nullptr;
                 ok = m_walker.m_system->FindCharacterByCommandKind(kCommanderNumber, &commander);
                 const int leadership = ok != 0 ? commanderLeadership(commander) : 0;
                 if (ok != 0) {
                     int damage = 0;
                     ok = ComputeScaledByGnprtb0600(rating, leadership, &damage);
-                    if (ok != 0) static_cast<CapShip*>(ship)->SetDataWord24(FUN_0053a6e0(ship) + damage);
+                    if (ok != 0) static_cast<CapShip*>(ship)->SetDataWord24(reinterpret_cast<ProcFacil*>(ship)->ProcFacil::GetCycleCount() + damage);
                 }
             }
         }
@@ -549,7 +547,7 @@ int BombardResolver::ShipsFireAtDefenders(NotifyContext* ctx) {
     DefenseFacility24Iterator shields(m_walker.m_system, kUsableFilter, m_walker.m_system->ControlSide());
     shields.Begin();
     while (ok != 0 && shields.Current() != nullptr) {
-        shielding += FUN_00520b80(shields.Current());
+        shielding += static_cast<Mission*>(shields.Current())->Mission::GetRecordDetectionPhases();
         shields.Advance();
     }
     int remaining = 0;

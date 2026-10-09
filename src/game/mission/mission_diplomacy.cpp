@@ -1,14 +1,12 @@
 #include "mission/mission_diplomacy.h"
+#include "data/random.h"
+#include "mission/mission_rules.h"
 
 extern "C" void __cdecl LAB_00574230();
 
 extern int g_missionDiplomacyEventKindsReady;      // 0x6bba90
 extern EventKindSet g_missionDiplomacyEventKinds;  // 0x6bba88
 
-int __cdecl FUN_0055c680(int diplomacy, int loyalty, int regiments, int* out);  // LookupDiplomacyMissionTable
-int __cdecl FUN_0055cac0(int controlSide, int targetSide);                      // ComputeDiplomacyBonus
-int FUN_0053e2f0(int threshold);
-extern int DAT_006bb588;  // g_gnprtb1822
 
 namespace {
 constexpr uint32_t kFamilyMissionDiplomacy = 0x51;
@@ -26,7 +24,7 @@ int ControlSideIndex(uint32_t controlSide) {
 }
 
 template <class T>
-T& FieldAt(MissionOrderCheck* check, int offset) {
+T& FieldAt(MissionCheckArgs* check, int offset) {
     return *reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(check) + offset);
 }
 
@@ -50,7 +48,7 @@ int MissionDiplomacy::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionDiplomacy::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -59,10 +57,10 @@ GameObj* MissionDiplomacy::CreateViewObject() { return NewOrNull<MissionDiplomac
 
 GameObjNotifier* MissionDiplomacy::Create() { return NewOrNull<MissionDiplomacy>(); }
 
-int MissionDiplomacy::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionDiplomacy::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
-    int result = FUN_005868c0(check, status, out);
+    int result = MissionSystemTargetBase::CheckTarget(check, status, out);
     if (FieldAt<int>(check, 0xc) == 0 || result == 0 || status->m_second != static_cast<uint32_t>(mission_status::kOk))
         return result;
     const int side = CheckedSideOf(FieldAt<int>(check, 0x10));
@@ -78,25 +76,25 @@ int MissionDiplomacy::CheckTarget(MissionOrderCheck* check, StatusCode* status, 
 
 int MissionDiplomacy::Virtual157(GameObj* person, int* out) {
     System* system = nullptr;
-    const int found = FUN_00586720(this, &system);
+    const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     const bool ok = found != 0;
     if (!system) return ok;
     const int side = ControlSideIndex(ControlSide());
     const int regiments = system->CountEmpireRegimentsOfKey6();
     const int loyalty = system->GetLoyaltyFor(side);
     const int diplomacy = static_cast<Role*>(person)->GetDiplomacy();
-    return FUN_0055c680(diplomacy, loyalty, regiments, out) != 0 && ok ? 1 : 0;
+    return LookupDiplomacyMissionTable(diplomacy, loyalty, regiments, out) != 0 && ok ? 1 : 0;
 }
 
 int MissionDiplomacy::Virtual158(NotifyContext* ctx) { return 1; }
 
 int MissionDiplomacy::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
-    if (!FUN_0053e2f0(roll)) return 1;
+    if (!PercentChance(roll)) return 1;
     *out = 1;
     const bool ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
     Role* role = static_cast<Role*>(person);
     if (!role->Virtual118()) return ok;
-    const int updated = role->SetBaseDiplomacy(role->m_baseDiplomacy + DAT_006bb588, ctx);
+    const int updated = role->SetBaseDiplomacy(role->m_baseDiplomacy + g_gnprtb180C, ctx);
     return updated != 0 && ok ? 1 : 0;
 }
 
@@ -105,10 +103,10 @@ int MissionDiplomacy::Virtual160(NotifyContext* ctx) {
     if (m_taskStatus == kTaskIdle) ok = SetTaskStatus(kTaskStarted, ctx) != 0;
     if (m_taskStatus != kTaskSucceeded) return ok;
     System* system = nullptr;
-    const int found = FUN_00586720(this, &system);
+    const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     ok = found != 0 && ok;
     if (!system) return ok;
-    const int bonus = FUN_0055cac0(ControlSide(), system->ControlSide());
+    const int bonus = ComputeDiplomacyBonus(ControlSide(), system->ControlSide());
     const int adjusted = system->AdjustLoyalty(bonus, ControlSide(), ctx);
     return adjusted != 0 && ok ? 1 : 0;
 }
@@ -116,7 +114,7 @@ int MissionDiplomacy::Virtual160(NotifyContext* ctx) {
 int MissionDiplomacy::BuildEventKinds() {
     if (!g_missionDiplomacyEventKindsReady) {
         g_missionDiplomacyEventKindsReady = 1;
-        return FUN_00586b00(0, &g_missionDiplomacyEventKinds);
+        return MissionSystemTargetBase::InitEventKinds(0, &g_missionDiplomacyEventKinds);
     }
     return 1;
 }

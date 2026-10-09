@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <new>
 
+#include "ai/ai_common.h"
 #include "core/checked_new.h"
 #include "economy/manufacturing_facility.h"
 #include "economy/production_facility_types.h"
@@ -8,6 +9,7 @@
 #include "gameobj/object_lookup.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
+#include "strategy_ui/system_missions_window.h"
 #include "strategy_ui/system_window.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
@@ -16,8 +18,6 @@
 #include "ui/cool_tab_control.h"
 #include "ui/object_list_item.h"
 
-ObjectKey* __thiscall FUN_00402d80(GameObjNotifier* object, ObjectKey* out);
-GameObjNotifier* __thiscall FUN_004a25c0(void* window);
 
 namespace {
 
@@ -65,7 +65,7 @@ DibBitmap* __stdcall SystemObjectPicture(GameObjNotifier* object) {
     DibBitmap* result = nullptr;
     if (object) {
         ObjectKey recordKey;
-        FUN_00402d80(object, &recordKey);
+        GetObjectRecordKey(object, &recordKey);
         if (InFamily(recordKey.Family(), 0x28, 0x2c)) {
             switch (object->GetRecordId()) {
             case 1: base = 0x232e; break;
@@ -77,7 +77,7 @@ DibBitmap* __stdcall SystemObjectPicture(GameObjNotifier* object) {
             }
         } else {
             ObjectKey secondKey;
-            FUN_00402d80(object, &secondKey);
+            GetObjectRecordKey(object, &secondKey);
             if (InFamily(secondKey.Family(), 0x2c, 0x30)) {
                 const uint32_t recordId = object->GetRecordId();
                 if (recordId == 1) {
@@ -127,7 +127,7 @@ void SystemWindow::OnChildAdded(const ObjectKey* key, GameObjNotifier* object) {
     uint16_t tabBitmap = 0;
     DibBitmap* picture = nullptr;
     ObjectListItem* item = nullptr;
-    if (!FUN_004a25c0(this)) return;
+    if (!reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem()) return;
     const uint32_t family = key->Family();
     for (const FacilityPage& page : kFacilityPages) {
         if (family != page.m_family) continue;
@@ -196,7 +196,7 @@ void SystemWindow::OnChildMoved(const ObjectKey* key, GameObjNotifier* object, c
     CoolWindow* tab = nullptr;
     uint16_t tabBitmap = 0;
     String unusedText;
-    GameObjNotifier* system = FUN_004a25c0(this);
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return;
     GameObj* systemObject = static_cast<GameObj*>(system);
     const uint32_t family = key->Family();

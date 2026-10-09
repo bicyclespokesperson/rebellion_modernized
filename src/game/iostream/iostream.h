@@ -363,7 +363,7 @@ istream* __thiscall istream_read(istream* in, void* buffer, int count);         
 istream* __thiscall istream_operator_rs_long(istream* in, int* value);                    // 0x617610
 istream* __thiscall istream_operator_rs_ushort(istream* in, unsigned short* value);       // 0x6176a0
 istream* __thiscall istream_operator_rs_ulong(istream* in, unsigned int* value);          // 0x617760
-istream* __thiscall istream_getline(istream* in, char* buffer, int limit, char delimiter);  // 0x617800
+istream* __thiscall istream_getline(istream* in, char* buffer, int limit, int delimiter);  // 0x617800
 istream* __thiscall istream_operator_rs_short(istream* in, short* value);                 // 0x617900
 int __thiscall istream_ipfx(istream* in, int need);                                       // 0x617a90
 istream* __thiscall istream_operator_rs_charptr(istream* in, char* value);                // 0x617b90

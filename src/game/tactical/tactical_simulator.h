@@ -7,6 +7,7 @@
 #include "core/layout.h"
 #include "core/utility_classes.h"
 #include "tactical/tactical_lists.h"
+#include "tactical/tactical_side.h"
 #include "tactical/tactical_types.h"
 #include "tactical/tactical_units.h"
 
@@ -25,65 +26,32 @@ enum SimUnitState {
     kUnitDeathStarPresent = 9,
 };
 
-// One side's state inside the simulator (the object at +0x24c / +0x250; class and vtable live in the capital-ship module).
-class SimulatorSide {
-public:
-    SimulatorSide();                 // 0x5c7cb0 (AI module)
-    virtual ~SimulatorSide();        // slot 0: 0x5c7a90
-    virtual void Slot01();
-    virtual void Slot02();
-    virtual int HasNoShipsAtAll();   // slot 3 (+0x0c)
-    virtual void Slot04();
-    virtual void Refresh(int a);     // slot 5 (+0x14)
-    virtual void Slot06();
-    virtual void Slot07();
-    virtual void Slot08();
-    virtual void Slot09();
-    virtual int StepSide(float step);  // slot 10 (+0x28)
-    virtual void Slot11();
-
-    uint8_t m_pad04[0x20];
-    GameTime m_battleTime;           // +0x24 vote time of this side's controller
-    uint8_t m_pad28[0x3c - 0x28];
-    float m_strength;                // +0x3c
-    uint8_t m_pad40[8];
-    int m_unk48;                     // +0x48
-    int m_unk4c;                     // +0x4c
-    float m_sign50;                  // +0x50 1.0 for the first side, -1.0 for the second
-    float m_unk54;                   // +0x54 -1.0
-    UnitRefTree m_fleet;             // +0x58 the side's units on the field
-    UnitRefTree m_hangars;           // +0x64 the side's units still in hangars
-    UnitRefTree m_retired;           // +0x70 the side's units that are out of the battle
-    float m_value;                   // +0x7c the side's fleet value (set by the facade)
-    int m_flag80;                    // +0x80
-    int m_unk84;                     // +0x84 5 while the side is withdrawing
-    uint8_t m_pad88[0xb0 - 0x88];
-    int m_unkB0;                     // +0xb0
-};
-
-// The two concrete sides (VT 0x66c428 / 0x66c3f8); their vtables differ only in a few slots of the AI module.
-class SimulatorSideA : public SimulatorSide {
+// The two concrete sides of the simulator (VT 0x66c428 / 0x66c3f8): the AI side with its index (slot 1 is an ICF-shared
+// `return 0` / `return 1`, 0x5a5b60 / 0x5a66f0).
+class SimulatorSideA : public TacticalAiSide {
 public:
     virtual ~SimulatorSideA();  // 0x5d14a0 (scalar deleting destructor 0x5affd0)
     SimulatorSideA() {
-        m_unkB0 = 0;
+        m_unkb0 = 0;
         m_unk48 = 0;
         m_unk4c = 0;
-        m_sign50 = 1.0f;
+        m_unk50 = 1.0f;
         m_unk54 = -1.0f;
     }
+    virtual int SideIndex() override { return 0; }
 };
 
-class SimulatorSideB : public SimulatorSide {
+class SimulatorSideB : public TacticalAiSide {
 public:
     virtual ~SimulatorSideB();  // 0x5d14b0 (scalar deleting destructor 0x5afff0)
     SimulatorSideB() {
-        m_unkB0 = 0;
+        m_unkb0 = 0;
         m_unk48 = 0;
         m_unk4c = 0;
-        m_sign50 = -1.0f;
+        m_unk50 = -1.0f;
         m_unk54 = -1.0f;
     }
+    virtual int SideIndex() override { return 1; }
 };
 
 class CapitalShipGroup;
@@ -106,7 +74,7 @@ struct HeadlessSimulator {
     UnitRefTree m_retired;      // +0x70 units that left the battle (state 0xb)
     String m_strings[0x26];     // +0x7c
     uint8_t m_pad244[8];
-    SimulatorSide* m_sides[2];  // +0x24c
+    TacticalAiSide* m_sides[2];  // +0x24c
     int m_secondCommander[2];   // +0x254 handle of each side's second-best commander
     int m_firstCommander[2];    // +0x25c handle of each side's best commander
     float m_bestStrength[2];    // +0x264 the lowest strength each side has reached
@@ -145,7 +113,6 @@ struct HeadlessSimulator {
 
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SimulatorSide, 0xb4);
 REB_ASSERT_SIZE(HeadlessSimulator, 0x274);
 REB_ASSERT_OFFSET(HeadlessSimulator, m_strings, 0x7c);
 REB_ASSERT_OFFSET(HeadlessSimulator, m_outcome, 0x10);
@@ -159,10 +126,4 @@ REB_ASSERT_OFFSET(HeadlessSimulator, m_firstCommander, 0x25c);
 REB_ASSERT_OFFSET(HeadlessSimulator, m_sides, 0x24c);
 REB_ASSERT_OFFSET(HeadlessSimulator, m_bestStrength, 0x264);
 REB_ASSERT_OFFSET(HeadlessSimulator, m_stagnantTime, 0x26c);
-REB_ASSERT_OFFSET(SimulatorSide, m_battleTime, 0x24);
-REB_ASSERT_OFFSET(SimulatorSide, m_strength, 0x3c);
-REB_ASSERT_OFFSET(SimulatorSide, m_fleet, 0x58);
-REB_ASSERT_OFFSET(SimulatorSide, m_hangars, 0x64);
-REB_ASSERT_OFFSET(SimulatorSide, m_unk84, 0x84);
-REB_ASSERT_OFFSET(SimulatorSide, m_unkB0, 0xb0);
 #pragma clang diagnostic pop

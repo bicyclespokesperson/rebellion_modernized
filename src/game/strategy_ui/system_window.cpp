@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <new>
 
+#include "ai/ai_common.h"
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
 #include "core/stream_io.h"
@@ -14,6 +15,7 @@
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
+#include "strategy_ui/system_missions_window.h"
 #include "ui/bitmap_status_bar.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
@@ -28,10 +30,6 @@
 #include "ui/resource_dll.h"
 
 extern const char g_gokresDllName[];  // 0x6a8708 "gokres.dll"
-
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
-// The system the window shows (null, and the window closes itself, when it is gone).
-GameObjNotifier* __thiscall FUN_004a25c0(void* window);
 
 namespace {
 
@@ -60,7 +58,7 @@ SystemWindow::SystemWindow(HINSTANCE instance, int x, int y, int width, int heig
                            uint32_t childId, GameObjNotifier* system)
     : CustomDialogBox(instance, x, y, width, height, parent, childId, nullptr) {
     ObjectKey key;
-    if (system) FUN_004025b0(system, &key);
+    if (system) GetObjectKey(system, &key);
     m_systemKey = key;
     m_galaxy = parent;
     CoolGameWindow::m_flags |= 4;
@@ -172,7 +170,7 @@ void SystemWindow::InitSlot(int slot, GameObjNotifier* manager) {
     SystemSlot& panel = Slot(slot);
     const ObjectKey unset;
     ObjectKey managerKey;
-    FUN_004025b0(manager, &managerKey);
+    GetObjectKey(manager, &managerKey);
     panel.m_managerKey = managerKey;
     panel.m_productKey = unset;
     panel.m_characterKey = unset;
@@ -394,9 +392,9 @@ void SystemWindow::EndSlotRename(SystemSlot* slot) {
 
 void SystemWindow::SaveState(ostream* out) {
     ObjectKey key;
-    if (GameObjNotifier* system = FUN_004a25c0(this)) {
+    if (GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem()) {
         ObjectKey systemKey;
-        FUN_004025b0(system, &systemKey);
+        GetObjectKey(system, &systemKey);
         key = systemKey;
     }
     uint32_t childId = m_childId;
@@ -454,7 +452,7 @@ ObjectKey SystemWindow::GetKeyAt(int x, int y) {
 ObjectKey SystemWindow::GetDropKeyAt(int, int) { return m_systemKey; }
 
 int SystemWindow::Virtual29() {
-    GameObjNotifier* system = FUN_004a25c0(this);
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return 0;
     const uint32_t side = (static_cast<GameObjRoot*>(system)->m_flags >> 6) & 3;
     if (side == 1) return 0x2d0a;

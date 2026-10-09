@@ -4,14 +4,8 @@
 #include "core/game_string.h"
 #include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
+#include "ui/cool_button_parts.h"
 #include "ui/resource_dll.h"
-
-// The frame ring and the button repeat timer are classes of the miscellaneous controls (0x60f020 range).
-void* __thiscall FUN_0060f2d0(void* list);                           // frame ring constructor
-void __thiscall FUN_0060f310(void* list);                            // frame ring destructor
-void __thiscall FUN_0060f320(void* list, void* node);                // append a node
-void* __thiscall FUN_0060f3c0(void* memory, DibBitmap* bitmap);      // frame node constructor (0x10 bytes)
-void* __thiscall FUN_0060f1e0(void* memory, int rate, void* target);  // CoolRepeatTimer constructor (0x3c bytes)
 
 
 namespace {
@@ -522,7 +516,7 @@ LRESULT __stdcall CoolStrobeButton::WindowProc(UINT message, WPARAM wParam, LPAR
         DiscardRepeatTimer(this);
         {
             void* memory = operator new(sizeof(CoolTimer) + sizeof(void*));
-            m_repeatTimer = memory ? static_cast<CoolTimer*>(FUN_0060f1e0(memory, m_repeatRate, this)) : nullptr;
+            m_repeatTimer = memory ? static_cast<CoolTimer*>(new (memory) ButtonRepeatTimer(m_repeatRate, this)) : nullptr;
         }
         return 0;
     case WM_LBUTTONUP:
@@ -553,13 +547,13 @@ CoolFrameButton::CoolFrameButton(HINSTANCE instance, int x, int y, int width, in
                                    uint32_t childId, uint32_t firstFrameId, uint32_t pressedBitmapId,
                                    uint16_t frameCount, DibBitmap* backdrop, int repeatRate, int pixelHit)
     : CoolStrobeButton(instance, x, y, width, height, parent, childId, 0, pressedBitmapId, backdrop, repeatRate, pixelHit) {
-    FUN_0060f2d0(m_frames);
+    new (m_frames) BitmapFrameList();
     LoadFrames(firstFrameId, frameCount);
 }
 
 CoolFrameButton::~CoolFrameButton() {
     m_normal = nullptr;
-    FUN_0060f310(m_frames);
+    reinterpret_cast<BitmapFrameList*>(m_frames)->BitmapFrameList::~BitmapFrameList();
     REB_KEEP_VPTR_STORE();
 }
 
@@ -598,8 +592,8 @@ void CoolFrameButton::LoadFrames(uint32_t firstId, uint32_t count) {
             // BUG(original): a frame that fails to load is leaked.
             if (bitmap && bitmap->IsLoaded()) {
                 void* memory = operator new(sizeof(StrobeFrame));
-                void* node = memory ? FUN_0060f3c0(memory, bitmap) : nullptr;
-                FUN_0060f320(m_frames, node);
+                void* node = memory ? new (memory) BitmapFrame(bitmap) : nullptr;
+                reinterpret_cast<BitmapFrameList*>(m_frames)->BitmapFrameList::Append(reinterpret_cast<BitmapFrame*>(node));
             }
             ++index;
         } while ((index & 0xffff) < count);

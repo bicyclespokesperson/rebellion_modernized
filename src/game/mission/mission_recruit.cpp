@@ -1,19 +1,18 @@
 #include "character/character_mgr.h"
 #include "mission/mission_recruit.h"
 
+#include "data/random.h"
 #include "economy/side.h"
+#include "galaxy/mission_decl.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_queries.h"
+#include "mission/mission_rules.h"
 
 extern "C" void __cdecl LAB_0056bbb0();
 
 extern int g_missionRecruitEventKindsReady;      // 0x6bb968
 extern EventKindSet g_missionRecruitEventKinds;  // 0x6bb960
 
-int __cdecl FUN_0055c700(int leadership, int loyalty, int* out);  // LookupRecruitMissionTable
-int FUN_0053e2f0(int threshold);
-int __thiscall FUN_005589b0(ObjectKey* self, Crc32* crc);
-extern int DAT_006bb5b0;  // g_gnprtb1824
 
 namespace {
 constexpr uint32_t kFamilyMissionRecruit = 0x55;
@@ -34,7 +33,7 @@ int ControlSideIndex(uint32_t controlSide) {
 }
 
 template <class T>
-T& FieldAt(MissionOrderCheck* check, int offset) {
+T& FieldAt(MissionCheckArgs* check, int offset) {
     return *reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(check) + offset);
 }
 
@@ -50,8 +49,8 @@ void RejectNonCharacter(StatusCode* status, int* out) {
 bool StatusIsOk(const StatusCode* status) { return status->m_second == static_cast<uint32_t>(mission_status::kOk); }
 
 // Runs the three set checks of one target flavour in order; each runs only while the status is still ok.
-template <class Set, int (*Check)(Set*, MissionOrderCheck*, StatusCode*, int*)>
-int CheckThreeSets(MissionOrderCheck* check, StatusCode* status, int* out, const int (&offsets)[3], int result) {
+template <class Set, int (*Check)(Set*, MissionCheckArgs*, StatusCode*, int*)>
+int CheckThreeSets(MissionCheckArgs* check, StatusCode* status, int* out, const int (&offsets)[3], int result) {
     if (!result) return result;
     if (StatusIsOk(status)) result = Check(FieldAt<Set*>(check, offsets[0]), check, status, out);
     if (!result) return result;
@@ -66,7 +65,7 @@ MissionRecruit::MissionRecruit() {}
 MissionRecruit::~MissionRecruit() { REB_KEEP_VPTR_STORE(); }
 
 int MissionRecruit::Read(istream* in) {
-    if (!FUN_00592c50(this, in)) return 0;
+    if (!static_cast<MissionRuleBase*>(this)->MissionRuleBase::ReadBody(in)) return 0;
     return m_recruitedCharacter.Read(in);
 }
 
@@ -76,15 +75,15 @@ int MissionRecruit::Write(ostream* out) {
 }
 
 int MissionRecruit::Checksum(Crc32* crc) {
-    if (!FUN_00593ad0(this, crc)) return 0;
-    return FUN_005589b0(&m_recruitedCharacter, crc);
+    if (!reinterpret_cast<MissionTypeBase*>(this)->MissionTypeBase::ChecksumBody(crc)) return 0;
+    return reinterpret_cast<SideBits*>(&m_recruitedCharacter)->Checksum(crc);
 }
 
-int MissionRecruit::Validate() { return FUN_00523c60(this); }
+int MissionRecruit::Validate() { return this->Mission::ValidateImpl(); }
 
 int MissionRecruit::ApplyAll(NotifyContext* ctx) { return IsSideView() ? ApplyAllBody(ctx) : 0; }
 
-int MissionRecruit::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_005236e0(this, controlKind, ctx); }
+int MissionRecruit::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
 int MissionRecruit::ApplyAllBody(NotifyContext* ctx) {
     const int result = ApplyAllImpl(ctx);
@@ -103,7 +102,7 @@ int MissionRecruit::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionRecruit::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -143,7 +142,7 @@ int MissionRecruit::OnRecruitedCharacterNotified(ObjectKey* oldKey, ObjectKey* n
     return result;
 }
 
-int MissionRecruit::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionRecruit::CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out) {
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
     for (ObjectKeyNode* node = keys->First(); node && StatusIsOk(status);
@@ -155,7 +154,7 @@ int MissionRecruit::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* ch
     return 1;
 }
 
-int MissionRecruit::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionRecruit::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out) {
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
     for (AvlNode* node = refs->First(); node && StatusIsOk(status); node = node->m_successor) {
@@ -166,10 +165,10 @@ int MissionRecruit::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* c
     return 1;
 }
 
-int MissionRecruit::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionRecruit::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
-    int result = FUN_005868c0(check, status, out);
+    int result = MissionSystemTargetBase::CheckTarget(check, status, out);
     if (FieldAt<int>(check, 4) != 0) {
         if (FieldAt<int>(check, 8) == 0)
             result = CheckThreeSets<ObjectRefList, CheckCandidateRefs>(check, status, out, kRefSetOffsets, result);
@@ -193,13 +192,13 @@ int MissionRecruit::CheckTarget(MissionOrderCheck* check, StatusCode* status, in
 
 int MissionRecruit::Virtual157(GameObj* person, int* out) {
     System* system = nullptr;
-    const int found = FUN_00586720(this, &system);
+    const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     const bool ok = found != 0;
     if (!system) return ok;
     const int side = ControlSideIndex(ControlSide());
     const int loyalty = system->GetLoyaltyFor(side);
     const int leadership = static_cast<Role*>(person)->GetLeadership();
-    return FUN_0055c700(leadership, loyalty, out) != 0 && ok ? 1 : 0;
+    return LookupRecruitMissionTable(leadership, loyalty, out) != 0 && ok ? 1 : 0;
 }
 
 int MissionRecruit::Virtual158(NotifyContext* ctx) {
@@ -210,10 +209,10 @@ int MissionRecruit::Virtual158(NotifyContext* ctx) {
 
 int MissionRecruit::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     *out = 0;
-    if (!FUN_0053e2f0(roll)) return 1;
+    if (!PercentChance(roll)) return 1;
     *out = 1;
     System* system = nullptr;
-    const int found = FUN_00586720(this, &system);
+    const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     CharacterMgr* root = GetCharacterManager();
     int ok = root != nullptr && found != 0;
     if (!system || !root) return ok;
@@ -223,7 +222,7 @@ int MissionRecruit::Virtual159(GameObj* person, int roll, int* out, NotifyContex
     ok = SetRecruitedCharacter(&recruit, ctx) != 0 && ok;
     ok = SetTaskStatus(kTaskSucceeded, ctx) != 0 && ok;
     Role* role = static_cast<Role*>(person);
-    if (role->Virtual118()) ok = role->SetBaseLeadership(role->m_baseLeadership + DAT_006bb5b0, ctx) != 0 && ok;
+    if (role->Virtual118()) ok = role->SetBaseLeadership(role->m_baseLeadership + g_gnprtb180F, ctx) != 0 && ok;
     return ok;
 }
 
@@ -232,7 +231,7 @@ int MissionRecruit::Virtual160(NotifyContext* ctx) { return MissionStartIfIdle(t
 int MissionRecruit::BuildEventKinds() {
     if (!g_missionRecruitEventKindsReady) {
         g_missionRecruitEventKindsReady = 1;
-        return FUN_00586b00(0, &g_missionRecruitEventKinds);
+        return MissionSystemTargetBase::InitEventKinds(0, &g_missionRecruitEventKinds);
     }
     return 1;
 }

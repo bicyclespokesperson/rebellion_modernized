@@ -4,9 +4,7 @@
 #include "core/game_string.h"
 #include "core/vptr_store.h"
 #include "gameobj/object_family.h"
-
-// Data-table record for a key (0x51cab0).
-DatRecord* FUN_0051cab0(ObjectKey* key);
+#include "gameobj/object_type_db.h"
 
 namespace {
 constexpr uint32_t kGameRootId = 3;
@@ -341,7 +339,7 @@ GameObjNotifier* FindNextObjectInRange(GameObjNotifier* object, const FamilyRang
 GameObjNotifier* CreateObjectForKey(const ObjectKey* key) {
     GameObjNotifier* object = nullptr;
     if (key->Family() != 0) {
-        DatRecord* record = FUN_0051cab0(const_cast<ObjectKey*>(key));
+        DatRecord* record = FindDataRecord(AsLookupKey(const_cast<ObjectKey*>(key)));
         if (record) {
             object = GameObjRoot::CreateObjectOfFamily(key->Family());
             if (object) object->SetRecord(record);

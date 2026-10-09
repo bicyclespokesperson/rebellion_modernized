@@ -36,8 +36,5 @@ public:
     ObjectKey m_key20;  // +0x20
 };
 
-// The three checksum sources the per-tick snapshot folds in (0x51cce0, 0x55bef0 is NotifyTables).
-void FUN_0051cce0(Crc32* crc);
-
 // Battle / follow-up code run on the game root (0x516710-0x518460).
 int PublishVictoryState();

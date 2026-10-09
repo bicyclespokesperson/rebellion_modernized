@@ -196,10 +196,10 @@ int __thiscall TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAllianc
         GetHeadlessSimulator()->SetSideValue(1, sideBValue);
         GetHeadlessSimulator()->SetSideFlag(0, sideAC);
         GetHeadlessSimulator()->SetSideFlag(1, sideBC);
-        GetHeadlessSimulator()->m_sides[0]->m_unkB0 = 0;
-        GetHeadlessSimulator()->m_sides[1]->m_unkB0 = 0;
-        GetHeadlessSimulator()->m_sides[0]->m_battleTime = timeA;
-        GetHeadlessSimulator()->m_sides[1]->m_battleTime = timeB;
+        GetHeadlessSimulator()->m_sides[0]->m_unkb0 = 0;
+        GetHeadlessSimulator()->m_sides[1]->m_unkb0 = 0;
+        GetHeadlessSimulator()->m_sides[0]->m_unk24 = timeA.m_value;
+        GetHeadlessSimulator()->m_sides[1]->m_unk24 = timeB.m_value;
         GetHeadlessSimulator()->m_battleKind = battleKindNotAlliance;
     }
     return 1;
@@ -227,8 +227,8 @@ int __thiscall TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAl
         GetHeadlessSimulator()->SetSideValue(1, sideBValue);
         GetHeadlessSimulator()->SetSideFlag(0, sideAC);
         GetHeadlessSimulator()->SetSideFlag(1, sideBC);
-        GetHeadlessSimulator()->m_sides[0]->m_unkB0 = 0;
-        GetHeadlessSimulator()->m_sides[1]->m_unkB0 = 0;
+        GetHeadlessSimulator()->m_sides[0]->m_unkb0 = 0;
+        GetHeadlessSimulator()->m_sides[1]->m_unkb0 = 0;
         GetHeadlessSimulator()->m_battleKind = battleKindNotAlliance;
     }
     return 1;

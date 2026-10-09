@@ -1,10 +1,12 @@
 #include "core/checked_new.h"
+#include "ai/ai_common.h"
 #include "data/gnprtb.h"
 #include "data/sd_records.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/object_name_node.h"
 #include "gameobj/object_queries.h"
+#include "gameobj/object_type_db.h"
 #include "mission/mission_external.h"
 #include "story/mission_mgr.h"
 #include "story/story_characters.h"
@@ -16,15 +18,6 @@
 // members, the decoys, the captured ones and the union of all.
 
 // The rules object (game root member +0xbc, family 0xf9).
-int __thiscall FUN_00554170(GameObjNotifier* rules, GameObj* person, StatusCode* status);
-int __thiscall FUN_005543c0(GameObjNotifier* rules, GameObj* person, ObjectKey* key, StatusCode* status);
-int __thiscall FUN_005545e0(GameObjNotifier* rules, GameObj* person, ObjectKey* from, ObjectKey* to, int flag, int mode,
-                            ObjectKey* out, StatusCode* status);
-int __thiscall FUN_00555b30(GameObjNotifier* rules, int modifier, int unused, ObjectKey* origin, ObjectKey* resultKey,
-                            int* travelMode);
-ObjectKey* __thiscall FUN_00402e40(DatRecord* self, ObjectKey* out);
-DatRecord* __cdecl FUN_0051cad0(int family);
-DatRecord* __cdecl FUN_0051cab0(const ObjectKey* key);
 
 namespace {
 
@@ -212,7 +205,7 @@ int MissionMgr::CheckMissionTypeForTeam(int side, ObjectKeyValueSet* members, Ob
                                         StatusCode* status) {
     setStatus(status, kStatusCategory, kStatusOk);
     ObjectKey recordKey;
-    FUN_00402e40(record, &recordKey);
+    GetAiRecordKey(record, &recordKey);
     MissionCheckFunctions checks;
     int result = 0;
     if (FindTypeChecks(&recordKey, &checks)) {
@@ -229,7 +222,7 @@ int MissionMgr::CheckMissionTypeAtTarget(int side, ObjectKeyValueSet* members, O
                                          GameObjNotifier* target, DatRecord* record, StatusCode* status) {
     setStatus(status, kStatusCategory, kStatusOk);
     ObjectKey recordKey;
-    FUN_00402e40(record, &recordKey);
+    GetAiRecordKey(record, &recordKey);
     MissionCheckFunctions checks;
     GameObj* resolved = nullptr;
     int result = 0;
@@ -271,14 +264,14 @@ int MissionMgr::CollectMissionTypesForTeam(const ActivityRequest* request, Objec
     if (statusOk(status)) {
         ok = FillMemberSummaryForMission(&members, &decoys, &captured, &summary, status) && ok ? 1 : 0;
         if (statusOk(status)) {
-            for (DatRecord* record = FUN_0051cad0(kRecordFamilyMissions); record; record = nextRecord(record)) {
+            for (DatRecord* record = GetFirstRecordOfType(kRecordFamilyMissions); record; record = nextRecord(record)) {
                 if (static_cast<MissionSD*>(record)->m_hidden != 0) continue;
                 StatusCode recordStatus(kStatusCategory, kStatusOk);
                 ok = CheckMissionTypeForTeam(summary.m_kind, &members, &decoys, &captured, &summary, record,
                                              &recordStatus) && ok ? 1 : 0;
                 if (recordStatus.m_second == static_cast<uint32_t>(kStatusOk)) {
                     ObjectKey recordKey;
-                    FUN_00402e40(record, &recordKey);
+                    GetAiRecordKey(record, &recordKey);
                     ok = out->AddKey(recordKey) != nullptr;
                 }
             }
@@ -307,7 +300,7 @@ int MissionMgr::CollectMissionTypeNamesAtTarget(const ActivityRequest* request, 
         GameObjNotifier* target = GetObjectInFamilies_01_ff(viewOfSummary(summary), &request->m_target);
         if (!target) setStatus(status, kMissionStatus, kReasonTargetNotFound);
         if (statusOk(status)) {
-            for (DatRecord* record = FUN_0051cad0(kRecordFamilyMissions); record; record = nextRecord(record)) {
+            for (DatRecord* record = GetFirstRecordOfType(kRecordFamilyMissions); record; record = nextRecord(record)) {
                 if (static_cast<MissionSD*>(record)->m_hidden != 0) continue;
                 StatusCode recordStatus(kStatusCategory, kStatusOk);
                 ok = CheckMissionTypeAtTarget(summary.m_kind, &members, &decoys, &captured, &summary, target, record,
@@ -347,7 +340,7 @@ int MissionMgr::CheckMissionOrder(const ActivityRequest* request, int a, int b, 
         GameObjNotifier* target = GetObjectInFamilies_01_ff(viewOfSummary(summary), &request->m_target);
         if (!target) setStatus(status, kMissionStatus, kReasonTargetNotFound);
         if (statusOk(status)) {
-            DatRecord* record = FUN_0051cab0(missionKey);
+            DatRecord* record = FindDataRecord(AsLookupKey(missionKey));
             ok = record != nullptr;
             if (record)
                 ok = CheckMissionTypeAtTarget(summary.m_kind, &members, &decoys, &captured, &summary, target, record, status) &&
@@ -412,7 +405,7 @@ int MissionMgr::ResolveMissionTravel(const ActivityRequest* request, ObjectKey* 
         const int modified = GetMissionHyperdriveModifier(hasHan, hasForces, &modifier) && ok ? 1 : 0;
         GameObjNotifier* rules = GetGameRootMember_bc();
         ok = rules && modified ? 1 : 0;
-        if (rules) ok = FUN_00555b30(rules, modifier, kRulesMode, &origin, resultKey, &travelMode) && modified ? 1 : 0;
+        if (rules) ok = static_cast<RulesMgr*>(rules)->RulesMgr::ComputeTravelDays(modifier, kRulesMode, &origin, resultKey, &travelMode) && modified ? 1 : 0;
     }
     for (ObjectKeyNode* node = everyone->First(); node; node = nextKey(node))
         static_cast<ObjectKeyValueNode*>(node)->m_value = travelMode;
@@ -459,7 +452,7 @@ int MissionMgr::FindPersonDestination(GameObj* person, int flag, ObjectKey* out)
     if (ok) ok = FindPersonSourceKey(person, &source);
     if (ok) {
         ok = FindPersonOriginKey(person, &origin);
-        if (ok) ok = FUN_005545e0(rules, person, &source, &origin, flag, 1, out, &status);
+        if (ok) ok = static_cast<RulesMgr*>(rules)->RulesMgr::FindDestination(person, &source, &origin, flag, 1, out, &status);
     } else {
         ok = 0;
     }
@@ -482,11 +475,11 @@ int MissionMgr::FindPersonMissionPoint(Role* person, Mission* mission, int flag,
         StatusCode status(1, 1);
         if (rules) {
             if (flag != 0) {
-                ok = FUN_00554170(rules, person, &status);
+                ok = static_cast<RulesMgr*>(rules)->RulesMgr::CheckParentCapacity(person, &status);
                 if (ok && statusOk(&status)) ok = person->GetValidParentKey(out);
             }
             if (ok && !statusOk(&status)) {
-                ok = FUN_005543c0(rules, person, &person->m_parentAtMissionCompletionKey, &status);
+                ok = static_cast<RulesMgr*>(rules)->RulesMgr::CheckUnitMove(person, &person->m_parentAtMissionCompletionKey, &status);
                 if (ok && statusOk(&status)) *out = person->m_parentAtMissionCompletionKey;
             }
         }

@@ -7,6 +7,7 @@
 #include "core/stream_io.h"
 #include "core/vptr_store.h"
 #include "events/player_notices.h"
+#include "strategy_ui/manufacture_order_window.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
 
@@ -235,9 +236,6 @@ UiRecord* CreateUiRecord(int kind) { return g_uiHandlers[kind]->CreateRecord(); 
 // ---- Static initializers of three UI globals (a zeroed pointer each, destroyed at exit) -----------------------
 
 void __thiscall FUN_0042dbe0(void* self);
-extern uint8_t DAT_006b28a4[];
-extern uint8_t DAT_006b28a0[];
-extern uint8_t DAT_006b289c[];
 void FUN_004377c0();
 void FUN_00437810();
 void FUN_00437860();
@@ -246,17 +244,17 @@ void StaticInitGlobalA() {
     InitGlobalA();
     RegisterGlobalADestructor();
 }
-void InitGlobalA() { FUN_0042dbe0(DAT_006b28a4); }
+void InitGlobalA() { FUN_0042dbe0(&g_lastShipType); }
 void RegisterGlobalADestructor() { atexit(FUN_004377c0); }
 void StaticInitGlobalB() {
     InitGlobalB();
     RegisterGlobalBDestructor();
 }
-void InitGlobalB() { FUN_0042dbe0(DAT_006b28a0); }
+void InitGlobalB() { FUN_0042dbe0(&g_lastTroopType); }
 void RegisterGlobalBDestructor() { atexit(FUN_00437810); }
 void StaticInitGlobalC() {
     InitGlobalC();
     RegisterGlobalCDestructor();
 }
-void InitGlobalC() { FUN_0042dbe0(DAT_006b289c); }
+void InitGlobalC() { FUN_0042dbe0(&g_lastFacilityType); }
 void RegisterGlobalCDestructor() { atexit(FUN_00437860); }

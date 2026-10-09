@@ -1,23 +1,13 @@
 #include "gameobj/object_type_db.h"
 
+#include "ai/ai_common.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/vptr_store.h"
 #include "data/dat_record.h"
-
-// Pieces owned by the data-table module (0x58e5a0-0x58eda0, 0x52d720, 0x53b860), used through their addresses.
-void* __thiscall FUN_0058ec40(void* storage);
-void* __thiscall FUN_0058eb60(void* storage);
-int __thiscall FUN_0058ec20(void* entry, int a, int b);
-void* __thiscall FUN_0058ec90(FamilyTable* table, uint32_t family);
-void* __thiscall FUN_0058ecc0(void* storage);
-int __thiscall FUN_0058eda0(void* node, DatRecord* record);
-void __thiscall FUN_0052d720(void* storage);
-void __thiscall FUN_0052d760(void* list);
-int __thiscall FUN_0053b860(DatRecord* record);
-ObjectKey* __thiscall FUN_0042ec10(void* node, ObjectKey* out);
-int __thiscall FUN_004f4270(IdAvlTree* list, void* node);
-uint16_t __thiscall FUN_004f4290(IdAvlTree* list);
+#include "data/seed_list.h"
+#include "economy/side.h"
+#include "gameobj/object_name_node.h"
 
 namespace {
 
@@ -41,7 +31,7 @@ public:
     virtual void Virtual01() = 0;
     virtual void Virtual02() = 0;
     virtual void Virtual03() = 0;
-    virtual int Load(int arg) = 0;
+    virtual int Load(Crc32* crc) = 0;
 };
 
 template <class T>
@@ -67,8 +57,8 @@ const ResourceStringId* NameResource(const DatRecord* record) {
 // A name list on the stack (0x52d720 constructs it, 0x52d760 destroys it).
 class NameList {
 public:
-    NameList() { FUN_0052d720(storage); }
-    ~NameList() { FUN_0052d760(storage); }
+    NameList() { new (storage) ObjectNameList(); }
+    ~NameList() { reinterpret_cast<ObjectNameList*>(storage)->ObjectNameList::~ObjectNameList(); }
     IdAvlTree* tree() { return reinterpret_cast<IdAvlTree*>(storage); }
 
 private:
@@ -99,7 +89,7 @@ int ObjectTypeDb::BuildFamilies() {
         m_families = nullptr;
     }
     void* memory = ::operator new(sizeof(FamilyTable));
-    m_families = memory ? static_cast<FamilyTable*>(FUN_0058ec40(memory)) : nullptr;
+    m_families = memory ? reinterpret_cast<FamilyTable*>(new (memory) SeedListFileTree()) : nullptr;
     return m_families ? m_families->m_ok : 0;
 }
 
@@ -127,11 +117,11 @@ int ObjectTypeDb::LoadFamilies() {
 
 int ObjectTypeDb::AddFamily(int a, int b) {
     void* memory = ::operator new(kEntrySize);
-    void* entry = memory ? FUN_0058eb60(memory) : nullptr;
+    void* entry = memory ? new (memory) SeedListFile() : nullptr;
     int ok = entry != nullptr;
     if (ok) {
         ok = Field<int>(entry, kEntryOkOffset);
-        if (ok) ok = FUN_0058ec20(entry, a, b);
+        if (ok) ok = static_cast<SeedListFile*>(entry)->Load(a, b);
     }
     if (entry) {
         for (AvlNode* record = RecordsOf(entry)->First(); record && ok; record = NextNode(record)) {
@@ -143,17 +133,17 @@ int ObjectTypeDb::AddFamily(int a, int b) {
     return ok;
 }
 
-int ObjectTypeDb::ForEachFamily(int arg) {
+int ObjectTypeDb::ForEachFamily(Crc32* crc) {
     int ok = 1;
     for (AvlNode* entry = m_families->First(); entry && ok; entry = NextNode(entry)) {
-        ok = At<FamilyLoader>(entry, kEntryLoaderOffset)->Load(arg);
+        ok = At<FamilyLoader>(entry, kEntryLoaderOffset)->Load(crc);
     }
     return ok;
 }
 
 DatRecord* ObjectTypeDb::FindRecord(const SeedKey* key) {
     DatRecord* record = nullptr;
-    if (void* entry = FUN_0058ec90(m_families, key->m_key >> 24)) {
+    if (void* entry = reinterpret_cast<SeedListFileTree*>(m_families)->SeedListFileTree::FindByFamily(key->m_key >> 24)) {
         record = AsRecord(RecordsOf(entry)->FindById(key->m_key & 0xffffff));
     }
     return record;
@@ -161,7 +151,7 @@ DatRecord* ObjectTypeDb::FindRecord(const SeedKey* key) {
 
 DatRecord* ObjectTypeDb::FirstRecordOfFamily(uint32_t family) {
     DatRecord* record = nullptr;
-    if (void* entry = FUN_0058ec90(m_families, family)) record = AsRecord(RecordsOf(entry)->First());
+    if (void* entry = reinterpret_cast<SeedListFileTree*>(m_families)->SeedListFileTree::FindByFamily(family)) record = AsRecord(RecordsOf(entry)->First());
     return record;
 }
 
@@ -193,7 +183,7 @@ int ObjectTypeDb::CollectRecords(int view, uint32_t kind, int level, int whenBel
             IntPair range;
             GetRecordKindRange(record, &range);
             const bool kindMatches = kind >= range.m_first && kind < range.m_second;
-            if (!(kindMatches && FUN_0053b860(record) && Available(record, view))) continue;
+            if (!(kindMatches && static_cast<SdRecord*>(record)->SdRecord::GetField48() && Available(record, view))) continue;
 
             const int recordLevel = static_cast<int>(record->m_field50);
             if (*maxLevel < recordLevel) *maxLevel = recordLevel;
@@ -202,11 +192,11 @@ int ObjectTypeDb::CollectRecords(int view, uint32_t kind, int level, int whenBel
             if (!wanted) continue;
 
             void* memory = ::operator new(kNameNodeSize);
-            void* nameNode = memory ? FUN_0058ecc0(memory) : nullptr;
+            void* nameNode = memory ? new (memory) RecordNameNode() : nullptr;
             ok = nameNode != nullptr;
             if (nameNode) {
-                ok = FUN_0058eda0(nameNode, record);
-                if (!ok || !(ok = FUN_004f4270(out, nameNode))) delete static_cast<IdNode*>(nameNode);
+                ok = static_cast<RecordNameNode*>(nameNode)->RecordNameNode::SetFromRecord(record);
+                if (!ok || !(ok = static_cast<ObjectRefList*>(out)->Add(reinterpret_cast<ObjectRefNode*>(nameNode)))) delete static_cast<IdNode*>(nameNode);
             }
         }
     }
@@ -221,7 +211,7 @@ int ObjectTypeDb::FindRecordAtLevel(int view, uint32_t kind, int level, DatRecor
     if (ok) {
         if (AvlNode* first = names.tree()->First()) {
             ObjectKey key;
-            FUN_0042ec10(first, &key);
+            GetObjectNameNodeKey(static_cast<ObjectNameNode*>(first), &key);
             const uint32_t family = key.Family();
             ok = 0;
             if (family >= kUnitFamilyFirst && family < kUnitFamilyEnd) {
@@ -265,7 +255,7 @@ int ObjectTypeDb::AreLevelsUnique(int view, uint32_t kind, int* unique) {
         NameList atLevel;
         ok = CollectRecords(view, kind, level, 0, 1, 0, atLevel.tree(), &maxLevel);
         if (ok) {
-            const int count = FUN_004f4290(atLevel.tree());
+            const int count = static_cast<ObjectRefList*>(atLevel.tree())->ObjectRefList::Size();
             if (count != 0 && count != 1) *unique = 0;
         }
     }
@@ -374,7 +364,7 @@ void DescribeDataKey(const SeedKey* key, String* out) {
     if (db) db->DescribeKey(key, out);
 }
 
-int ForEachDataFamily(int arg) {
+int ForEachDataFamily(Crc32* crc) {
     ObjectTypeDb* db = GetObjectTypeDb();
-    return db ? db->ForEachFamily(arg) : 0;
+    return db ? db->ForEachFamily(crc) : 0;
 }

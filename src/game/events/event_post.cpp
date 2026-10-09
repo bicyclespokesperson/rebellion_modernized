@@ -40,7 +40,7 @@ int QueueEventConfirmed(EventBase* event) {
     return 1;
 }
 
-int IsInRange(int value, int first, int last) { return first <= value && value <= last; }
+int IsInRange(int value, int first, int last, const char*) { return first <= value && value <= last; }
 
 // ---- events -----------------------------------------------------------------------------------------------
 

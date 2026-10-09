@@ -4,6 +4,11 @@
 #include "core/layout.h"
 #include "core/stream_io.h"
 
+#include "gameobj/status_code.h"
+
+class GameObj;
+class GameObjNotifier;
+
 // Hooks through which the object model reaches the strategic game layer. GameObj's setup code (0x4fcde0) installs
 // the callbacks; until then every wrapper does nothing and returns its default. The table's contents are only known by
 // address (the callbacks are tiny strategic-layer helpers), so the globals and wrappers are named after it.
@@ -37,8 +42,8 @@ int CallGameHook2AF0();
 int CallIdHook();
 
 // Asks the rules object for a value (0x555e60 / 0x5560b0 on the object at g_gameState+0xbc); *out is 0 if there is none.
-int QueryRuleValueA(int a, int b, int* out);
-int QueryRuleValueB(int a, int b, int* out);
+int QueryRuleValueA(GameObjNotifier* manager, StatusCode* status, int* out);
+int QueryRuleValueB(GameObj* unit, StatusCode* status, int* out);
 
 // The "who gets told" settings every setter receives (the `context` argument of the validated setters): per-view
 // notify switches plus two reserved ints. GetViewFlag/SetViewFlag take the object's ViewSide (1 or 2).

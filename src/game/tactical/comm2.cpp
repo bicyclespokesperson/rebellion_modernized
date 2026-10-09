@@ -3,11 +3,10 @@
 #include <cstring>
 
 #include "multiplayer/comm_mgr.h"
+#include "ui/game_window_object.h"
 
 // The shared empty function that stands where the debug build traced (it pops one argument).
 void __thiscall FUN_005ae1e0(void* self, const char* text);
-// The alternative transport of CommInit: GameWindowObject slot 13's shared "return 0" body.
-int __thiscall FUN_005ff810(CommMgr* comm, int a, int b, int c, int d, int e);
 
 namespace {
 
@@ -33,7 +32,7 @@ int __cdecl CommInit(uint32_t guid0, uint32_t guid1, uint32_t guid2, uint32_t gu
             memcpy(&application, words, sizeof(application));
             return comm->Init(window, application, maxPlayers);
         }
-        result = FUN_005ff810(comm, unused9, unused10, unused11, reinterpret_cast<int>(window), unused12);
+        result = reinterpret_cast<GameWindowObject*>(comm)->GameWindowObject::Virtual0D(unused9, unused10, unused11, reinterpret_cast<int>(window), unused12);
     }
     return result;
 }

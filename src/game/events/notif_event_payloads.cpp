@@ -144,6 +144,6 @@ int ChecksumRecord::Save(ostream* out) {
     return 1;
 }
 
-void ChecksumRecord::Read(istream* in) { Load(in); }
+int ChecksumRecord::Read(istream* in) { return Load(in); }
 
-void ChecksumRecord::Write(ostream* out) { Save(out); }
+int ChecksumRecord::Write(ostream* out) { return Save(out); }

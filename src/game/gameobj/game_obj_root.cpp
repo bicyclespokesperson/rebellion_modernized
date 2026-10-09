@@ -6,6 +6,7 @@
 #include "data/dat_record.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_database.h"
+#include "gameobj/object_type_db.h"
 
 // The game's table of object factories, filled by the registration function at 0x51ebf0.
 struct GameObjFactoryEntry {
@@ -14,9 +15,6 @@ struct GameObjFactoryEntry {
 };
 extern int g_gameObjFactoryCount;
 extern GameObjFactoryEntry g_gameObjFactories[];
-
-// Data-table record lookup by key (0x51cab0).
-DatRecord* FUN_0051cab0(ObjectKey* key);
 
 namespace {
 
@@ -200,7 +198,7 @@ int GameObjNotifier::ReadObject(istream* in) {
         ReadValue32(in, &id);
         if (id != 0) {
             ObjectKey key = ObjectKey::Make(GetFamily(), id);
-            m_record = FUN_0051cab0(&key);
+            m_record = FindDataRecord(AsLookupKey(&key));
         }
     }
     return ok;

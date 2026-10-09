@@ -1,12 +1,8 @@
 #include "core/game_string.h"
+#include "events/event_post.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/object_database.h"
-
-// Range check helper of the notification hub (0x53fc90); the message is ignored by the release build.
-int FUN_0053fc90(int value, int low, int high, const char* message);
-// Event hub (0x53fab0).
-int FUN_0053fab0(int eventId, int a, GameObj* object, void* data, int b);
 
 namespace {
 
@@ -110,7 +106,7 @@ int GameObj::SetDepartureKey(ObjectKey* value, NotifyContext* ctx) {
 
 int GameObj::SetDestroyedReason(uint32_t value, NotifyContext* ctx) {
     int result = IsMasterView();
-    if (result) result = FUN_0053fc90(value, 0, value, "Invalid DestroyedReason value!");
+    if (result) result = IsInRange(value, 0, value, "Invalid DestroyedReason value!");
     if (result) {
         const uint32_t oldPacked = m_packed;
         if ((oldPacked & 0xff) != value) {
@@ -125,7 +121,7 @@ int GameObj::SetDestroyedReason(uint32_t value, NotifyContext* ctx) {
 
 int GameObj::SetDeploymentCount(uint32_t value, NotifyContext* ctx) {
     int result = IsMasterView();
-    if (result) result = FUN_0053fc90(value, 0, value, "capshp.cpp: Invalid DeploymentCount value!");
+    if (result) result = IsInRange(value, 0, value, "capshp.cpp: Invalid DeploymentCount value!");
     if (result) {
         const uint32_t oldPacked = m_packed;
         const uint32_t oldCount = (oldPacked >> 8) & 0xff;
@@ -141,7 +137,7 @@ int GameObj::SetDeploymentCount(uint32_t value, NotifyContext* ctx) {
 
 int GameObj::SetDestinationCount(uint32_t value, NotifyContext* ctx) {
     int result = IsMasterView();
-    if (result) result = FUN_0053fc90(value, 0, value, "capshp.cpp: Invalid DestinationCount value!");
+    if (result) result = IsInRange(value, 0, value, "capshp.cpp: Invalid DestinationCount value!");
     if (result) {
         const uint32_t oldCount = (m_packed >> 16) & 0xff;
         if (oldCount != value) {
@@ -156,7 +152,7 @@ int GameObj::SetDestinationCount(uint32_t value, NotifyContext* ctx) {
 
 int GameObj::SetEta(int value, NotifyContext* ctx) {
     int result = IsMasterView();
-    if (result) result = FUN_0053fc90(value, 0, value, "Invalid ETA value!");
+    if (result) result = IsInRange(value, 0, value, "Invalid ETA value!");
     if (result && m_eta != value) {
         const int oldEta = m_eta;
         m_eta = value;

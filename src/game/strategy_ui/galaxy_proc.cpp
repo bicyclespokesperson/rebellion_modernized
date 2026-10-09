@@ -2,6 +2,7 @@
 #include <new>
 
 #include "app/rebapp_globals.h"
+#include "audio/music.h"
 #include "audio/sound_manager.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
@@ -24,7 +25,6 @@
 #include "ui/object_list_item.h"
 #include "ui/sprite_stage.h"
 
-void FUN_004173c0();
 // The Galactic Information Display menu (0x451130, window_type6_and_panel).
 CoolGameWindow* __thiscall FUN_00451130(void* memory, HINSTANCE instance, int x, int y, int width, int height,
                                         int side, CoolWindow* parent, uint32_t childId, DibBitmap* background);
@@ -187,7 +187,7 @@ LRESULT GalaxyWindow::OnCreate() {
         m_latencyLabel.m_drawFlags = 0x25;
         m_latencyLabel.SetColor(bar.m_color, nullptr);
     }
-    FUN_004173c0();
+    InitMusic();
     if (m_restoring == 0) {
         StartMusic();
         m_restoring = 0;
@@ -331,7 +331,7 @@ LRESULT GalaxyWindow::OnMovieDone() {
     m_pendingMovie = 0;
     AppSetVolume(AppGetVolume());
     SoundManager::Initialize(parentHwnd, 1, 0);
-    FUN_004173c0();
+    InitMusic();
     m_musicPending = 1;
     StartMusic();
     return 0;

@@ -2,10 +2,8 @@
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "data/gnprtb.h"
-
-// Shared stubs that return 1.
-int __stdcall FUN_00524fb0(int a, NotifyContext* ctx);
-int __stdcall FUN_0051ebb0(int ctx);
+#include "events/game_manager.h"
+#include "mission/mission_forwarders.h"
 
 namespace {
 
@@ -66,7 +64,7 @@ int Character::Virtual130(NotifyContext* ctx) {
 }
 
 int Character::Virtual131(const ObjectKey* opponent, NotifyContext* ctx) {
-    int ok = FUN_00524fb0(static_cast<int>(reinterpret_cast<intptr_t>(opponent)), ctx) != 0;
+    int ok = ReturnOneTwoArgs(static_cast<int>(reinterpret_cast<intptr_t>(opponent)), ctx) != 0;
     if (!(m_stateFlags & kDestroyedState)) {
         ok = Virtual185(ctx) && ok;
         if (!(m_stateFlags & kDestroyedState)) {
@@ -78,19 +76,19 @@ int Character::Virtual131(const ObjectKey* opponent, NotifyContext* ctx) {
 }
 
 int Character::Virtual132(const ObjectKey* holder, NotifyContext* ctx) {
-    const int stub = FUN_00524fb0(static_cast<int>(reinterpret_cast<intptr_t>(holder)), ctx);
+    const int stub = ReturnOneTwoArgs(static_cast<int>(reinterpret_cast<intptr_t>(holder)), ctx);
     int ok = SetState(kStateThird, ctx) && stub;
     ok = SetHolderKey(holder) && ok;
     return ok;
 }
 
 int Character::Virtual133(NotifyContext* ctx) {
-    const int stub = FUN_0051ebb0(static_cast<int>(reinterpret_cast<intptr_t>(ctx)));
+    const int stub = reinterpret_cast<GameManager*>(this)->GameManager::NoteDispatch(ctx);
     return SetState(kStateFree, ctx) && stub ? 1 : 0;
 }
 
 int Character::Virtual134(NotifyContext* ctx) {
-    const int stub = FUN_0051ebb0(static_cast<int>(reinterpret_cast<intptr_t>(ctx)));
+    const int stub = reinterpret_cast<GameManager*>(this)->GameManager::NoteDispatch(ctx);
     return SetState(kStateSecond, ctx) && stub ? 1 : 0;
 }
 

@@ -1,27 +1,24 @@
 #include "mission/mission_research.h"
 
+#include "ai/ai_common.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
+#include "data/random.h"
 #include "data/sd_record_bases.h"
 #include "economy/manu_mgr.h"
 #include "economy/side.h"
+#include "galaxy/mission_decl.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_queries.h"
+#include "mission/mission_external.h"
+#include "mission/mission_rules.h"
 
-extern "C" void __cdecl LAB_0056d180();
+extern "C" void __cdecl LAB_0056d190();  // the atexit destructor of the event kind set
 
-extern int DAT_006bb568;  // g_gnprtb1816
 extern int g_missionResearchEventKindsReady;      // 0x6bb984
 extern EventKindSet g_missionResearchEventKinds;  // 0x6bb988
 
-int __cdecl FUN_0055c6f0(int base, int* out);  // research mission table: the chance (percent) equals the input
-int __cdecl FUN_0055c9f0(int* out);            // RollResearchBonus
-int FUN_0053e2f0(int threshold);
 class DatRecord;
-ObjectKey* __thiscall FUN_00402e40(DatRecord* self, ObjectKey* out);  // DatRecord::GetKey
-ObjectKey* __thiscall FUN_00402d80(GameObj* self, ObjectKey* out);    // key of the object's record, 0 if it has none
-int __cdecl FUN_00582c30(ObjectKey* key, GameObjNotifier** out);      // the character master of a key
-int __cdecl FUN_00582dd0(ObjectKey* key, SdRecordExt16** out);        // the character record of a key
 
 namespace {
 constexpr uint32_t kFamilyMissionResearch = 0x53;
@@ -40,7 +37,7 @@ constexpr int kRefSetOffsets[] = {0x18, 0x1c, 0x20};
 constexpr int kKeySetOffsets[] = {0x24, 0x28, 0x2c};
 
 template <class T>
-T& FieldAt(MissionOrderCheck* check, int offset) {
+T& FieldAt(MissionCheckArgs* check, int offset) {
     return *reinterpret_cast<T*>(reinterpret_cast<uint8_t*>(check) + offset);
 }
 
@@ -51,13 +48,13 @@ int ControlSideAsSideIndex(uint32_t controlSide) {
     return controlSide == 2 ? 2 : 0;
 }
 
-int ResearchKindOfCheck(MissionOrderCheck* check, int* kind) {
+int ResearchKindOfCheck(MissionCheckArgs* check, int* kind) {
     ObjectKey key;
-    return MissionResearch::ResearchKindFromKey(FUN_00402e40(FieldAt<DatRecord*>(check, 0x14), &key), kind);
+    return MissionResearch::ResearchKindFromKey(GetAiRecordKey(FieldAt<DatRecord*>(check, 0x14), &key), kind);
 }
 
-template <class Set, int (*Check)(Set*, MissionOrderCheck*, StatusCode*, int*)>
-int CheckThreeSets(MissionOrderCheck* check, StatusCode* status, int* out, const int (&offsets)[3], int result) {
+template <class Set, int (*Check)(Set*, MissionCheckArgs*, StatusCode*, int*)>
+int CheckThreeSets(MissionCheckArgs* check, StatusCode* status, int* out, const int (&offsets)[3], int result) {
     if (!result) return result;
     if (StatusIsOk(status)) result = Check(FieldAt<Set*>(check, offsets[0]), check, status, out);
     if (!result) return result;
@@ -80,7 +77,7 @@ MissionResearch::MissionResearch() {
 MissionResearch::~MissionResearch() { REB_KEEP_VPTR_STORE(); }
 
 int MissionResearch::Read(istream* in) {
-    const int result = FUN_00592c50(this, in);
+    const int result = static_cast<MissionRuleBase*>(this)->MissionRuleBase::ReadBody(in);
     if (result) {
         ReadValue32(in, &m_rdPoints);
         ReadValue32(in, &m_rdOrders);
@@ -98,7 +95,7 @@ int MissionResearch::Write(ostream* out) {
 }
 
 int MissionResearch::Checksum(Crc32* crc) {
-    const int result = FUN_00593ad0(this, crc);
+    const int result = reinterpret_cast<MissionTypeBase*>(this)->MissionTypeBase::ChecksumBody(crc);
     if (result) {
         crc->AddInt(m_rdPoints);
         crc->AddInt(m_rdOrders);
@@ -106,11 +103,11 @@ int MissionResearch::Checksum(Crc32* crc) {
     return result;
 }
 
-int MissionResearch::Validate() { return FUN_00523c60(this); }
+int MissionResearch::Validate() { return this->Mission::ValidateImpl(); }
 
 int MissionResearch::ApplyAll(NotifyContext* ctx) { return IsSideView() ? ApplyAllBody(ctx) : 0; }
 
-int MissionResearch::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_005236e0(this, controlKind, ctx); }
+int MissionResearch::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
 int MissionResearch::ApplyAllBody(NotifyContext* ctx) {
     const int result = ApplyAllImpl(ctx);
@@ -135,7 +132,7 @@ int MissionResearch::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionResearch::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -229,10 +226,10 @@ int MissionResearch::ResearchKindFromKey(ObjectKey* key, int* out) {
 
 int MissionResearch::GetResearchKind(int* out) {
     ObjectKey key;
-    return ResearchKindFromKey(FUN_00402d80(this, &key), out);
+    return ResearchKindFromKey(GetObjectRecordKey(this, &key), out);
 }
 
-int MissionResearch::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionResearch::CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out) {
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
     int kind = 0;
@@ -242,9 +239,9 @@ int MissionResearch::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* c
          node = static_cast<ObjectKeyNode*>(node->m_successor)) {
         ObjectKey key;
         node->GetKey(&key);
-        GameObjNotifier* character = nullptr;
+        GameObj* character = nullptr;
         result = 0;
-        if (FUN_00582c30(&key, &character)) {
+        if (ResolveRoleFromKey(&key, &character)) {
             int skill = 0;
             result = static_cast<Role*>(character)->GetEffectiveRdForKind(kind, &skill);
             if (result && skill == 0) RejectMissingSkill(status, out);
@@ -253,7 +250,7 @@ int MissionResearch::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* c
     return result;
 }
 
-int MissionResearch::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionResearch::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out) {
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
     int kind = 0;
@@ -262,9 +259,10 @@ int MissionResearch::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* 
     for (AvlNode* node = refs->First(); node && result && StatusIsOk(status); node = node->m_successor) {
         ObjectKey key;
         static_cast<ObjectRefNode*>(node)->GetKey(&key);
-        SdRecordExt16* record = nullptr;
+        DatRecord* person = nullptr;
         result = 0;
-        if (FUN_00582dd0(&key, &record)) {
+        if (ResolvePersonRecord(&key, &person)) {
+            SdRecordExt16* record = static_cast<SdRecordExt16*>(person);
             uint32_t first = 0;
             uint32_t second = 0;
             if (record->GetPairFirst(kind, &first)) {
@@ -276,10 +274,10 @@ int MissionResearch::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* 
     return result;
 }
 
-int MissionResearch::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionResearch::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
-    int result = FUN_005868c0(check, status, out);
+    int result = MissionSystemTargetBase::CheckTarget(check, status, out);
     if (FieldAt<int>(check, 4) != 0) {
         if (FieldAt<int>(check, 8) == 0)
             result = CheckThreeSets<ObjectRefList, CheckCandidateRefs>(check, status, out, kRefSetOffsets, result);
@@ -329,7 +327,7 @@ int MissionResearch::Virtual158(NotifyContext* ctx) {
 int MissionResearch::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     *out = 0;
     System* system = nullptr;
-    const int found = FUN_00586720(this, &system);
+    const int found = static_cast<MissionSystemTargetBase*>(this)->MissionSystemTargetBase::GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     int kind = 0;
     int ok = GetResearchKind(&kind) != 0 && found != 0;
     if (!system) return ok;
@@ -337,16 +335,16 @@ int MissionResearch::Virtual159(GameObj* person, int roll, int* out, NotifyConte
     int skill = 0;
     ok = role->GetEffectiveRdForKind(kind, &skill) != 0 && ok;
     int chance = 0;
-    ok = FUN_0055c6f0(skill, &chance) != 0 && ok;
-    if (!FUN_0053e2f0(chance)) return ok;
+    ok = CopyMissionValue(skill, &chance) != 0 && ok;
+    if (!PercentChance(chance)) return ok;
     int bonus = 0;
-    ok = FUN_0055c9f0(&bonus) != 0 && ok;
+    ok = RollResearchBonus(&bonus) != 0 && ok;
     if (bonus == 0) return ok;
     ok = SetRdPoints(m_rdPoints + bonus, ctx) != 0 && ok;
     if (!role->Virtual118()) return ok;
     int baseSkill = 0;
     ok = role->GetBaseRdForKind(kind, &baseSkill) != 0 && ok;
-    ok = role->SetBaseRdForKind(kind, baseSkill + DAT_006bb568, ctx) != 0 && ok;
+    ok = role->SetBaseRdForKind(kind, baseSkill + g_gnprtb180E, ctx) != 0 && ok;
     return ok;
 }
 
@@ -372,14 +370,14 @@ int MissionResearch::Virtual160(NotifyContext* ctx) {
 int MissionResearch::BuildEventKinds() {
     if (!g_missionResearchEventKindsReady) {
         g_missionResearchEventKindsReady = 1;
-        return FUN_00586b00(0, &g_missionResearchEventKinds);
+        return MissionSystemTargetBase::InitEventKinds(0, &g_missionResearchEventKinds);
     }
     return 1;
 }
 
 void ConstructMissionResearchEventKinds() { new (&g_missionResearchEventKinds) EventKindSet(); }
 
-void RegisterMissionResearchEventKindsAtExit() { atexit(LAB_0056d180); }
+void RegisterMissionResearchEventKindsAtExit() { atexit(LAB_0056d190); }
 
 void MissionResearch::InitStatics() {
     ConstructMissionResearchEventKinds();

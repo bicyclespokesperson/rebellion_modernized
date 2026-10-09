@@ -22,8 +22,7 @@ public:
 };
 
 class System;
-class ManuMgrDecl;
-class SideTimedEvent;
+class ManuMgr;
 
 // Notification event ids the Side raises (FUN_0053fa60 / 0x53fcf0 / 0x53fd60 / 0x53fdd0).
 namespace side_event {
@@ -264,7 +263,7 @@ public:
     int UpdateRdProgress(NotifyContext* ctx);  // 0x530460
     // The manufacturing manager (in the facility's system) responsible for a manufacturing facility (families
     // 0x28-0x2b); *out is null if there is none. Does not use `this`.
-    int FindFacilityManuMgr(GameObj* facility, ManuMgrDecl** out);  // 0x52eb60
+    int FindFacilityManuMgr(GameObj* facility, ManuMgr** out);  // 0x52eb60
     // Clears a releasable facility's waiting flag and lets its manager continue.
     int ReleaseFacilityToManager(ProductionFacility* facility, NotifyContext* ctx);  // 0x530950, the result of the last step
     int ReleaseRawMaterial(ProductionFacility* facility, NotifyContext* ctx);       // 0x530670

@@ -4,12 +4,23 @@
 #include "app/app_strings.h"
 #include "app/battle_flow.h"
 #include "app/app_externals.h"
+#include "app/app_strings.h"
 #include "app/rebapp_globals.h"
 #include "app/rebellion_application.h"
 #include "audio/sound_manager.h"
 #include "core/layout.h"
+#include "gameobj/game_settings.h"
 #include "gfx/dib_bitmap.h"
+#include "gfx/directdraw_host.h"
+#include "multiplayer/multiplayer_window.h"
+#include "strategy_ui/galaxy_window.h"
+#include "strategy_ui/game_options_window.h"
+#include "strategy_ui/game_ui_facade.h"
+#include "strategy_ui/main_menu_window.h"
+#include "tactical/comm2.h"
+#include "tactical/tactical_game.h"
 #include "ui/game_window_object.h"
+#include "video/movie_window.h"
 
 namespace {
 
@@ -131,8 +142,8 @@ void RebellionApplication::SetState(int state) {
             m_peersReady = 0;
             m_networkMode = 0;
             m_gameType = 0;
-            FUN_005974c0();
-            FUN_00597050();
+            CommClearLobbyLaunch();
+            CommCleanUp();
             [[fallthrough]];
         case kStateLobbyHost:
         case kStateLobbyJoin:
@@ -177,17 +188,17 @@ void RebellionApplication::SetState(int state) {
             return;
         case kStateQuit:
             WinHelpA(m_hwnd, nullptr, HELP_QUIT, 0);
-            FUN_00597340(
+            CommTrace(
                 "RebellionApplication::QuitRebellion(): REBAPP_UI_PHASE_COCKPIT_SCREEN: About to call "
                 "PlayerQuitSession()!\n");
-            FUN_00597360();
-            FUN_005975a0();
+            CommSendPlayerQuit();
+            DestroyTacticalGame();
             ReleaseOverlayWindow();
             DestroyAllWindows();
-            FUN_00597030();
+            CommShutdown();
             DestroyBattleFlow();
             SoundManager::Shutdown(0);
-            FUN_00614290();
+            g_directDrawHost.ReleaseAll();
             PostQuitMessage(0);
             return;
         case kStateVictoryMovieEmpire:
@@ -198,7 +209,7 @@ void RebellionApplication::SetState(int state) {
             DestroyAppDialog();
             DestroyStrategicWindow();
             DestroyTacticalWindow();
-            FUN_00597050();
+            CommCleanUp();
             DestroyBattleFlow();
             BeginMovieState();
             return;
@@ -209,13 +220,12 @@ void RebellionApplication::SetState(int state) {
     }
 }
 
-void RebellionApplication::PlayMovie(int movieId, int a, int b) {
+void RebellionApplication::PlayMovie(int movieId, const String* caption, void(__cdecl* callback)(uint32_t, uint32_t, int)) {
     if (m_activeWindow) m_activeWindow->Hide();
     ReleaseOverlayWindow();
     FillWindowBlack();
     m_overlayWindow = ConstructWindow(kMovieWindowSize, [&](void* memory) {
-        return FUN_004213e0(memory, movieId, b, m_instance, m_unknownA0, m_unknownA4, m_screenWidth, m_screenHeight,
-                            this, a);
+        return new (memory) MovieWindow(movieId, callback, m_instance, m_unknownA0, m_unknownA4, m_screenWidth, m_screenHeight, this, caption);
     });
     if (m_overlayWindow) {
         m_overlayWindow->Create(0);
@@ -245,15 +255,15 @@ void RebellionApplication::BeginMovieState() {
         DeleteHeapString(dllLocation);
         CreateBattleFlow();
         GameSetup setup;
-        FUN_0051c740(&setup);
+        new (&setup) GameSettings();
         setup.m_unknown08 = m_param10;
         setup.m_unknown04 = m_param8;
         setup.m_unknown10 = m_paramF0;
         setup.m_networkMode = m_networkMode;
         g_isNetworkGame = m_networkMode == kNetworkModeConnected;
         AppStartGame(&setup, m_gameType, m_side);
-        PlayMovie((m_side != 1) + kMovieNewGameEmpire, 0, 0);
-        FUN_0051c780(&setup);
+        PlayMovie((m_side != 1) + kMovieNewGameEmpire, nullptr, nullptr);
+        reinterpret_cast<GameSettings*>(&setup)->GameSettings::~GameSettings();
         return;
     }
     case kStateVictoryMovieEmpire:
@@ -271,7 +281,7 @@ void RebellionApplication::BeginMovieState() {
     default:
         return;
     }
-    PlayMovie(movieId, 0, 0);
+    PlayMovie(movieId, nullptr, nullptr);
 }
 
 void RebellionApplication::DoMainChildWindow(int previousState) {
@@ -300,15 +310,15 @@ void RebellionApplication::DoMainChildWindow(int previousState) {
     switch (m_state) {
     case kStateMainMenu: {
         ShowCursorCounter(true);
-        FUN_00597340(
+        CommTrace(
             "RebellionApplication::DoMainChildWindow(): REBAPP_UI_PHASE_COCKPIT_SCREEN: About to call "
             "PlayerQuitSession()!\n");
-        FUN_00597360();
+        CommSendPlayerQuit();
         DestroyStrategicWindow();
         DestroyTacticalWindow();
-        FUN_00597050();
+        CommCleanUp();
         DestroyBattleFlow();
-        FUN_0041dae0(0);
+        UiSetPausePending(0);
         DibBitmap* backdrop = nullptr;
         if (void* memory = ::operator new(kDibBitmapSize)) {
             backdrop = new (memory) DibBitmap(commonModule, kFrontEndBackdropId, 2u);
@@ -321,21 +331,21 @@ void RebellionApplication::DoMainChildWindow(int previousState) {
             ::operator delete(backdrop);
         }
         m_activeWindow = ConstructWindow(kFrontEndWindowSize, [&](void* memory) {
-            return FUN_00404c30(memory, m_instance, x, y, width, height, this);
+            return new (memory) MainMenuWindow(m_instance, x, y, width, height, this);
         });
         break;
     }
     case kStateLobbyHost:
     case kStateLobbyJoin:
         m_activeWindow = ConstructWindow(kLobbyWindowSize, [&](void* memory) {
-            return FUN_0040d7a0(memory, m_instance, x, y, width, height, this, 1, 8, 0x2774, 0xe, 0, 0, 1, 1);
+            return new (memory) MultiPlayerWindow(m_instance, x, y, width, height, this, 1, 8, 0x2774, 0xe, 0, 0, 1, 1);
         });
         m_networkMode = kNetworkModeConnected;
         break;
     case kStateOptionsMenu:
     case kStateOptionsInGame:
         m_activeWindow = ConstructWindow(kOptionsWindowSize, [&](void* memory) {
-            return FUN_00406950(memory, m_instance, x, y, width, height, this, previousState);
+            return new (memory) GameOptionsWindow(m_instance, x, y, width, height, this, previousState);
         });
         break;
     default:
@@ -361,7 +371,7 @@ void RebellionApplication::ShowStrategicWindow(int unused) {
         if (m_side != 0) {
             int firstGame = m_previousState == kStateBattleSwitch || m_previousState == kStateTactical;
             m_strategicWindow = ConstructWindow(kStrategicWindowSize, [&](void* memory) {
-                return FUN_00421c70(memory, m_instance, x, y, width, height, this, m_side, firstGame);
+                return new (memory) GalaxyWindow(m_instance, x, y, width, height, this, m_side, firstGame);
             });
         }
         if (m_strategicWindow) ShowNewWindow(m_strategicWindow);
@@ -426,6 +436,6 @@ void RebellionApplication::ForwardToStrategicWindow() {
     CoolWindow* window = m_activeWindow;
     if (!window) return;
     if (window->m_childId == kModalChildStrategic || window->m_childId == kModalChildStrategicAlt) {
-        FUN_00422620(window);
+        static_cast<GalaxyWindow*>(window)->GalaxyWindow::InitializeGameDisplay();
     }
 }

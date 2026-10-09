@@ -21,6 +21,7 @@
 
 class DatRecord;
 class String;
+class Crc32;
 class ObjectRefList;
 
 // The table of family entries (0x58ec40, data-table module): an IdAvlTree keyed by family-entry id.
@@ -44,7 +45,7 @@ public:
     // Creates a family entry for the resource pair (a, b), names its records and adds it. Returns the entry's id.
     int AddFamily(int a, int b);
     // Calls the loader object of every family entry with `arg`; stops at the first failure.
-    int ForEachFamily(int arg);
+    int ForEachFamily(Crc32* crc);
     DatRecord* FindRecord(const SeedKey* key);
     DatRecord* FirstRecordOfFamily(uint32_t family);
     // Adds a key node for every record of every family to `out` (cleared first).
@@ -75,6 +76,8 @@ void DestroyObjectTypeDb();
 
 // Wrappers over the object-type database (0x51cab0-0x51cce0): all do nothing and return 0 while there is no database.
 DatRecord* FindDataRecord(const SeedKey* key);                // 0x51cab0
+// Callers hold the key as an ObjectKey or NullableKey; the lookup reads only the first field of the SeedKey.
+inline const SeedKey* AsLookupKey(const void* key) { return static_cast<const SeedKey*>(key); }
 DatRecord* GetFirstRecordOfType(int family);                  // 0x51cad0
 int ListAllDataRecordKeys(ObjectRefList* out);                // 0x51caf0: clears `out` first
 int CollectDataRecords(int view, uint32_t kind, int level, int whenBelow, int whenEqual, int whenAbove, IdAvlTree* out,
@@ -89,7 +92,7 @@ int FindNextTier28(int view, int level, int* found, int* foundLevel, int* extraV
 int FindNextTier29(int view, int level, int* found, int* foundLevel, int* extraValue);   // 0x51cc60
 int FindNextTier2a(int view, int level, int* found, int* foundLevel, int* extraValue);   // 0x51cc90
 void DescribeDataKey(const SeedKey* key, String* out);        // 0x51ccc0
-int ForEachDataFamily(int arg);                               // 0x51cce0
+int ForEachDataFamily(Crc32* crc);                             // 0x51cce0
 
 // The kind range of a record (copies record+0x24).
 IntPair* __thiscall GetRecordKindRange(DatRecord* record, IntPair* out);

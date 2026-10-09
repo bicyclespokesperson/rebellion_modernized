@@ -2,16 +2,11 @@
 
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
+#include "economy/production_facility_types.h"
+#include "galaxy/system_rules_1e.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_key.h"
-
-// GNPRTB rules that roll the starting values of a populated system.
-int FUN_005596f0();                       // is the system populated
-int FUN_00559700(int side, int dataFlag);  // starting loyalty
-int FUN_00559670();                       // starting energy
-int FUN_005596a0(int energy);             // starting raw material
-int FUN_00559850(int rawMaterial, int a, int* created, ObjectKey* key);
 
 namespace {
 
@@ -47,21 +42,21 @@ int SystemType90::ApplyAll(NotifyContext* ctx) {
     return isSideView;
 }
 
-int SystemType90::ReadImpl(istream* in) { return FUN_0050e410(this, in); }
+int SystemType90::ReadImpl(istream* in) { return this->System::Read(in); }
 
-int SystemType90::WriteImpl(ostream* out) { return FUN_0050e4e0(this, out); }
+int SystemType90::WriteImpl(ostream* out) { return this->System::Write(out); }
 
 int SystemType90::ApplyAllImpl(NotifyContext* ctx) {
     const int isSideView = IsSideView();
-    if (isSideView) FUN_0050e5b0(this, ctx);
+    if (isSideView) this->System::ApplyAll(ctx);
     return isSideView;
 }
 
-int SystemType90::ChecksumImpl(Crc32* crc) { return FUN_0050e730(this, crc); }
+int SystemType90::ChecksumImpl(Crc32* crc) { return this->System::Checksum(crc); }
 
-int SystemType90::ValidateImpl() { return FUN_0050e820(this); }
+int SystemType90::ValidateImpl() { return this->System::Validate(); }
 
-int SystemType90::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_0050e200(this, controlKind, ctx); }
+int SystemType90::CreateViews(int controlKind, NotifyContext* ctx) { return this->System::CreateViews(controlKind, ctx); }
 
 GameObj* SystemType90::CreateViewObject() { return NewOrNull<SystemType90>(); }
 
@@ -71,16 +66,16 @@ int SystemType90::Virtual47(int a) {
     NotifyContext* ctx = reinterpret_cast<NotifyContext*>(a);
     const int result = System::Virtual47(a);
     if (result) {
-        const int populated = FUN_005596f0();
+        const int populated = RollSystemPopulated();
         int loyalty = 0;
         if (populated && m_id != kSystemIdWithoutLoyaltyRoll) {
             const uint32_t side = ControlSide();
-            loyalty = FUN_00559700(side, FUN_005092f0(this));
+            loyalty = RollInitialLoyalty(side, this->System::GetDataFlagBit0());
         }
         SetPopulated(populated, ctx);
         if (populated) SetLoyalty(loyalty, ctx);
-        SetEnergy(FUN_00559670(), ctx);
-        SetRawMaterial(FUN_005596a0(m_energy), ctx);
+        SetEnergy(RollSystemEnergy(), ctx);
+        SetRawMaterial(RollSystemRawMaterial(m_energy), ctx);
         SetNeverBeenControlled(0, ctx);
     }
     return result;
@@ -88,10 +83,10 @@ int SystemType90::Virtual47(int a) {
 
 int SystemType90::ApplyAllToViewOf(int view, int unused, NotifyContext* ctx) {
     int ok = System::ApplyAllToViewOf(view, unused, ctx) != 0;
-    ok = FUN_0050d5a0(this, 0xc, 1, ctx) && ok;
-    ok = FUN_0050d5a0(this, 0xc, 2, ctx) && ok;
-    ok = FUN_0050d5a0(this, 4, 1, ctx) && ok;
-    return FUN_0050d5a0(this, 4, 2, ctx) && ok ? 1 : 0;
+    ok = this->System::SyncViewForEvent(0xc, 1, ctx) && ok;
+    ok = this->System::SyncViewForEvent(0xc, 2, ctx) && ok;
+    ok = this->System::SyncViewForEvent(4, 1, ctx) && ok;
+    return this->System::SyncViewForEvent(4, 2, ctx) && ok ? 1 : 0;
 }
 
 int SystemType90::Virtual115(NotifyContext* ctx) {
@@ -101,7 +96,7 @@ int SystemType90::Virtual115(NotifyContext* ctx) {
     const int rawMaterial = m_rawMaterial;
     for (int i = 0; i < count; ++i) {
         int created;
-        result = FUN_00559850(rawMaterial, FUN_0052d370(this, ControlSide(), 1), &created, &key);
+        result = RollStartingUnitA(rawMaterial, CountProductionFacilityType2C(this, ControlSide(), 1), &created, reinterpret_cast<NullableKey*>(&key));
         if (result && created) result = CreateChild(&key, ControlSide(), ctx, 1, 1) != 0;
         if (!result) break;
     }

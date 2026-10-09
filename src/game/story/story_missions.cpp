@@ -1,12 +1,16 @@
 #include "character/character_mgr.h"
 #include "story/story_missions.h"
 
+#include "ai/ai_common.h"
 #include "character/character.h"
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
+#include "data/random.h"
+#include "galaxy/mission_decl.h"
 #include "gameobj/object_family.h"
-#include "mission/mission_rules.h"
 #include "gameobj/object_key.h"
+#include "mission/mission_external.h"
+#include "mission/mission_rules.h"
 #include "story/story_common.h"
 
 extern "C" void __cdecl LAB_0056dcd0();
@@ -26,9 +30,6 @@ extern EventKindSet g_dagobahMissionEventKinds;  // 0x6bbab8
 extern int g_missionBountyEventKindsReady;      // 0x6bbad4
 extern EventKindSet g_missionBountyEventKinds;  // 0x6bbad8
 
-int FUN_0053e2f0(int threshold);
-int __cdecl FUN_00582cd0(ObjectKey* key, void** any, void** specialForces, void** character);
-ObjectKey* __thiscall FUN_00402e40(DatRecord* self, ObjectKey* out);
 GameObjNotifier* GetGameRootMember_c0();
 GameObjNotifier* GetMaster_32000242();
 int __cdecl ComputePalaceMissionValue(int espionage, int combat, int* out);
@@ -93,7 +94,7 @@ struct StoryOrderCheck {
     GameObjRoot* m_target;             // +0x38
 };
 
-StoryOrderCheck* asStory(MissionOrderCheck* check) { return reinterpret_cast<StoryOrderCheck*>(check); }
+StoryOrderCheck* asStory(MissionCheckArgs* check) { return reinterpret_cast<StoryOrderCheck*>(check); }
 
 bool statusOk(const StatusCode* status) { return status->m_second == static_cast<uint32_t>(story::kStatusOk); }
 
@@ -126,10 +127,10 @@ int checkMemberKeys(ObjectKeySet* keys, StatusCode* status, int* out) {
         if (statusOk(status)) {
             ObjectKey lookupKey;
             static_cast<ObjectKeyNode*>(node)->GetKey(&lookupKey);
-            void* any;
-            void* specialForces;
-            void* character;
-            result = FUN_00582cd0(&lookupKey, &any, &specialForces, &character);
+            GameObj* any;
+            GameObj* specialForces;
+            GameObj* character;
+            result = SplitRoleFromKey(&lookupKey, &any, &specialForces, &character);
             if (!result) continue;
             result = character != nullptr;
             if (result) rejectCapturedOrDecoy(static_cast<Character*>(character), status, out);
@@ -151,8 +152,8 @@ int checkMemberRefs(ObjectRefList* refs, StatusCode* status, int* out) {
 }
 
 // The three candidate sets of a check run in order, each only while the status is still ok.
-template <class Set, int (*Check)(Set*, MissionOrderCheck*, StatusCode*, int*)>
-int checkThreeSets(MissionOrderCheck* check, Set* const (&sets)[3], StatusCode* status, int* out, int result) {
+template <class Set, int (*Check)(Set*, MissionCheckArgs*, StatusCode*, int*)>
+int checkThreeSets(MissionCheckArgs* check, Set* const (&sets)[3], StatusCode* status, int* out, int result) {
     if (!result) return result;
     if (statusOk(status)) result = Check(sets[0], check, status, out);
     if (!result) return result;
@@ -161,9 +162,9 @@ int checkThreeSets(MissionOrderCheck* check, Set* const (&sets)[3], StatusCode* 
     return result;
 }
 
-template <int (*CheckRefs)(ObjectRefList*, MissionOrderCheck*, StatusCode*, int*),
-          int (*CheckKeys)(ObjectKeySet*, MissionOrderCheck*, StatusCode*, int*)>
-int checkCandidates(MissionOrderCheck* check, StatusCode* status, int* out, int result) {
+template <int (*CheckRefs)(ObjectRefList*, MissionCheckArgs*, StatusCode*, int*),
+          int (*CheckKeys)(ObjectKeySet*, MissionCheckArgs*, StatusCode*, int*)>
+int checkCandidates(MissionCheckArgs* check, StatusCode* status, int* out, int result) {
     StoryOrderCheck* fields = asStory(check);
     if (fields->m_useKeySets == 0) return checkThreeSets<ObjectRefList, CheckRefs>(check, fields->m_refLists, status, out, result);
     return checkThreeSets<ObjectKeySet, CheckKeys>(check, fields->m_keySets, status, out, result);
@@ -221,7 +222,7 @@ int __thiscall MissionStoryApplyAllForward(Mission* self, NotifyContext* ctx) {
     return static_cast<MissionRuleBase*>(self)->ApplyAllBody(ctx);
 }
 
-int __thiscall MissionStoryChecksumForward(Mission* self, Crc32* crc) { return FUN_00593ad0(self, crc); }
+int __thiscall MissionStoryChecksumForward(Mission* self, Crc32* crc) { return static_cast<MissionTypeBase*>(self)->MissionTypeBase::ChecksumBody(crc); }
 
 // ---- MissionPickup ----------------------------------------------------------------------------------------------
 
@@ -237,11 +238,11 @@ int MissionPickup::Write(ostream* out) { return MissionStoryWriteForward(this, o
 
 int MissionPickup::Checksum(Crc32* crc) { return MissionStoryChecksumForward(this, crc); }
 
-int MissionPickup::Validate() { return FUN_00523c60(this); }
+int MissionPickup::Validate() { return this->Mission::ValidateImpl(); }
 
 int MissionPickup::ApplyAll(NotifyContext* ctx) { return IsSideView() ? MissionStoryApplyAllForward(this, ctx) : 0; }
 
-int MissionPickup::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_005236e0(this, controlKind, ctx); }
+int MissionPickup::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
 int MissionPickup::GetEventKinds(int unused, EventKindSet* out) {
     return CopyEventKinds(BuildEventKinds, &g_missionPickupEventKinds, out);
@@ -252,7 +253,7 @@ int MissionPickup::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionPickup::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -291,15 +292,15 @@ int MissionPickup::Virtual159(GameObj* person, int roll, int* out, NotifyContext
     return manager->SetPickupInProgress(0, ctx) && ok ? 1 : 0;
 }
 
-int MissionPickup::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionPickup::CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out) {
     return checkMemberKeys<isPassengerKey, kReasonWrongPassenger>(keys, status, out);
 }
 
-int MissionPickup::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionPickup::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out) {
     return checkMemberRefs<isPassengerKey, kReasonWrongPassenger>(refs, status, out);
 }
 
-int MissionPickup::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionPickup::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     beginCheck(status, out);
     int result = MissionStoryBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
     StoryOrderCheck* fields = asStory(check);
@@ -340,11 +341,11 @@ int MissionPalace::Write(ostream* out) { return MissionStoryWriteForward(this, o
 
 int MissionPalace::Checksum(Crc32* crc) { return MissionStoryChecksumForward(this, crc); }
 
-int MissionPalace::Validate() { return FUN_00523c60(this); }
+int MissionPalace::Validate() { return this->Mission::ValidateImpl(); }
 
 int MissionPalace::ApplyAll(NotifyContext* ctx) { return IsSideView() ? MissionStoryApplyAllForward(this, ctx) : 0; }
 
-int MissionPalace::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_005236e0(this, controlKind, ctx); }
+int MissionPalace::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
 int MissionPalace::GetEventKinds(int unused, EventKindSet* out) {
     return CopyEventKinds(BuildEventKinds, &g_missionPalaceEventKinds, out);
@@ -355,7 +356,7 @@ int MissionPalace::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionPalace::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -376,7 +377,7 @@ int MissionPalace::Virtual157(GameObj* person, int* out) {
 int MissionPalace::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     int result = 1;
     *out = 0;
-    if (!FUN_0053e2f0(roll)) return result;
+    if (!PercentChance(roll)) return result;
     *out = 1;
     int ok = SetTaskStatus(kTaskSucceeded, ctx) ? 1 : 0;
     Role* role = static_cast<Role*>(person);
@@ -417,15 +418,15 @@ int MissionPalace::Virtual160(NotifyContext* ctx) {
     return result;
 }
 
-int MissionPalace::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionPalace::CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out) {
     return checkMemberKeys<isPalaceCharacterKey, kReasonWrongStoryCharacter>(keys, status, out);
 }
 
-int MissionPalace::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionPalace::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out) {
     return checkMemberRefs<isPalaceCharacterId, kReasonWrongStoryCharacter>(refs, status, out);
 }
 
-int MissionPalace::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionPalace::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     beginCheck(status, out);
     int result = MissionCharacterTargetBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
     StoryOrderCheck* fields = asStory(check);
@@ -468,11 +469,11 @@ int MissionVacation::Write(ostream* out) { return MissionStoryWriteForward(this,
 
 int MissionVacation::Checksum(Crc32* crc) { return MissionStoryChecksumForward(this, crc); }
 
-int MissionVacation::Validate() { return FUN_00523c60(this); }
+int MissionVacation::Validate() { return this->Mission::ValidateImpl(); }
 
 int MissionVacation::ApplyAll(NotifyContext* ctx) { return IsSideView() ? MissionStoryApplyAllForward(this, ctx) : 0; }
 
-int MissionVacation::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_005236e0(this, controlKind, ctx); }
+int MissionVacation::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
 int MissionVacation::GetEventKinds(int unused, EventKindSet* out) {
     return CopyEventKinds(BuildEventKinds, &g_missionVacationEventKinds, out);
@@ -483,7 +484,7 @@ int MissionVacation::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionVacation::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -502,15 +503,15 @@ int MissionVacation::Virtual159(GameObj* person, int roll, int* out, NotifyConte
 
 int MissionVacation::Virtual160(NotifyContext* ctx) { return startMissionIfIdle(this, ctx); }
 
-int MissionVacation::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionVacation::CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out) {
     return checkMemberKeys<isTravellerKey, kReasonWrongTraveller>(keys, status, out);
 }
 
-int MissionVacation::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionVacation::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out) {
     return checkMemberRefs<isTravellerKey, kReasonWrongTraveller>(refs, status, out);
 }
 
-int MissionVacation::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionVacation::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     beginCheck(status, out);
     int result = MissionStoryBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
     StoryOrderCheck* fields = asStory(check);
@@ -551,11 +552,11 @@ int DagobahMission::Write(ostream* out) { return WriteBody(out); }
 
 int DagobahMission::Checksum(Crc32* crc) { return ChecksumBody(crc); }
 
-int DagobahMission::Validate() { return FUN_00523c60(this); }
+int DagobahMission::Validate() { return this->Mission::ValidateImpl(); }
 
 int DagobahMission::ApplyAll(NotifyContext* ctx) { return IsSideView() ? ApplyAllBody(ctx) : 0; }
 
-int DagobahMission::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_005236e0(this, controlKind, ctx); }
+int DagobahMission::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
 int DagobahMission::ReadBody(istream* in) {
     const int result = MissionStoryReadForward(this, in);
@@ -590,7 +591,7 @@ int DagobahMission::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int DagobahMission::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -664,15 +665,15 @@ int DagobahMission::OnPhaseChanged(int oldValue, int newValue, NotifyContext* ct
     return luke->SetDagobahCompleted(1, ctx) && ok ? 1 : 0;
 }
 
-int DagobahMission::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out) {
+int DagobahMission::CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out) {
     return checkMemberKeys<isTravellerKey, kReasonWrongTraveller>(keys, status, out);
 }
 
-int DagobahMission::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out) {
+int DagobahMission::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out) {
     return checkMemberRefs<isTravellerKey, kReasonWrongTraveller>(refs, status, out);
 }
 
-int DagobahMission::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int DagobahMission::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     beginCheck(status, out);
     int result = MissionStoryBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
     StoryOrderCheck* fields = asStory(check);
@@ -713,11 +714,11 @@ int MissionBounty::Write(ostream* out) { return MissionStoryWriteForward(this, o
 
 int MissionBounty::Checksum(Crc32* crc) { return MissionStoryChecksumForward(this, crc); }
 
-int MissionBounty::Validate() { return FUN_00523c60(this); }
+int MissionBounty::Validate() { return this->Mission::ValidateImpl(); }
 
 int MissionBounty::ApplyAll(NotifyContext* ctx) { return IsSideView() ? MissionStoryApplyAllForward(this, ctx) : 0; }
 
-int MissionBounty::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_005236e0(this, controlKind, ctx); }
+int MissionBounty::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }
 
 int MissionBounty::GetEventKinds(int unused, EventKindSet* out) {
     return CopyEventKinds(BuildEventKinds, &g_missionBountyEventKinds, out);
@@ -728,7 +729,7 @@ int MissionBounty::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionBounty::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -772,16 +773,16 @@ bool isBountyUnitKey(const ObjectKey& key) { return key.m_value == kKeyBountyHun
 
 }  // namespace
 
-int MissionBounty::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionBounty::CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out) {
     int result = 1;
     beginCheck(status, out);
     for (AvlNode* node = keys->First(); node && result && statusOk(status); node = node->m_successor) {
         ObjectKey key;
         static_cast<ObjectKeyNode*>(node)->GetKey(&key);
-        void* any;
-        void* specialForces;
-        void* character;
-        const int found = FUN_00582cd0(&key, &any, &specialForces, &character);
+        GameObj* any;
+        GameObj* specialForces;
+        GameObj* character;
+        const int found = SplitRoleFromKey(&key, &any, &specialForces, &character);
         result = found && specialForces ? 1 : 0;
         if (!result) continue;
         if (statusOk(status)) {
@@ -789,7 +790,7 @@ int MissionBounty::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* che
             result = record != nullptr;
             if (!result) continue;
             ObjectKey recordKey;
-            if (!isBountyUnitKey(*FUN_00402e40(record, &recordKey))) reject(status, out, kReasonWrongBountyUnit);
+            if (!isBountyUnitKey(*GetAiRecordKey(record, &recordKey))) reject(status, out, kReasonWrongBountyUnit);
         }
         if (statusOk(status) && (static_cast<Role*>(specialForces)->m_flags78 & role_flag::kDecoy))
             reject(status, out, kReasonDecoy);
@@ -797,11 +798,11 @@ int MissionBounty::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* che
     return result;
 }
 
-int MissionBounty::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionBounty::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out) {
     return checkMemberRefs<isBountyUnitKey, kReasonWrongBountyUnit>(refs, status, out);
 }
 
-int MissionBounty::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionBounty::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     beginCheck(status, out);
     int result = MissionCharacterTargetBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
     StoryOrderCheck* fields = asStory(check);

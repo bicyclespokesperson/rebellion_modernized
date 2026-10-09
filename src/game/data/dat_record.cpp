@@ -4,6 +4,7 @@
 #include <new>
 
 #include "core/utility_classes.h"
+#include "iostream/iostream.h"
 #include "core/vptr_store.h"
 
 extern int g_recordFactoryCount;

@@ -738,7 +738,7 @@ int RulesMgr::BeginTravel(GameObj* unit, const ObjectKey* from, const ObjectKey*
                 result = ComputeUnitTravelDays(unit, from, to, &days);
                 if (result != 0) {
                     result = 0;
-                    if (unit->SetEnrouteActive(1, ctx) != 0 && unit->NotifyDataEvent387(days, events::asIntArg(ctx)) != 0) {
+                    if (unit->SetEnrouteActive(1, ctx) != 0 && unit->NotifyDataEvent387(days, ctx) != 0) {
                         ObjectKey destination;
                         toOwner->GetKey(&destination);
                         if (unit->SetDepartureKey(&destination, ctx) != 0 && unit->SetHyperdriveActive(1, ctx) != 0) {

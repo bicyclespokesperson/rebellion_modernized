@@ -171,6 +171,11 @@ public:
 
 // Factory table (DAT_006b92f0): id -> function that builds an empty event of that class.
 int RegisterEventFactory(int kind, void* (*factory)());   // 0x54f140
+// The factories return the class they build; the table stores plain pointers.
+template <class T>
+int RegisterEventFactory(int kind, T* (*factory)()) {
+    return RegisterEventFactory(kind, reinterpret_cast<void* (*)()>(factory));
+}
 void* CreateEventById(int kind);                          // 0x54f100
 
 #pragma clang diagnostic push

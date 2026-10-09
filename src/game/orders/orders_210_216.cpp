@@ -6,14 +6,21 @@
 #include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "data/game_math.h"
+#include "economy/manu_mgr.h"
+#include "economy/side.h"
+#include "events/command_classes2.h"
+#include "gameobj/key_int_set.h"
 #include "gameobj/key_queue.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_queries.h"
+#include "gameobj/object_type_db.h"
 #include "orders/order_checks.h"
 #include "orders/order_route_decl.h"
 #include "orders/route_context.h"
+#include "rules/rules_mgr.h"
+#include "strategy_ui/advisor_sides.h"
+#include "mission/mission_external.h"
 
-DatRecord* FUN_0051cab0(const ObjectKey* key);  // the data record of a key (via the object-type database)
 
 namespace {
 
@@ -55,7 +62,7 @@ Command* nextCommand(Command* command) { return static_cast<Command*>(command->m
 
 ObjectKey commandKey(Command* command) {
     ObjectKey key;
-    FUN_004fa150(command, &key);
+    reinterpret_cast<GameObj*>(command)->GameObj::GetDepartureKey(&key);
     return key;
 }
 
@@ -98,7 +105,7 @@ int DestinationOrder::GetKind() { return 0x214; }
 
 Command* DestinationOrder::CreateCommand() {
     void* memory = ::operator new(0x58);
-    return memory ? FUN_0057ddc0(memory) : nullptr;
+    return memory ? new (memory) DestinationCommand() : nullptr;
 }
 
 void* CreateDestinationOrder() { return NewOrNull<DestinationOrder>(); }
@@ -125,7 +132,7 @@ int DestinationOrder::CheckDestination(StatusCode* status) {
                  command && isOk(status) && onlyCapitalShips; command = nextCommand(command)) {
                 GameObjNotifier* manager = managerOfCommand(command);
                 if (!manager) continue;
-                ObjectKeyValueSet* children = FUN_00528820(manager);
+                ObjectKeyValueSet* children = static_cast<ManuMgr*>(manager)->ManuMgr::GetQueue();
                 for (AvlNode* node = children->First(); isOk(status) && node && onlyCapitalShips;
                      node = node->m_successor) {
                     if (!isCapitalShip(keyOfNode(node))) onlyCapitalShips = false;
@@ -180,7 +187,7 @@ int DestinationOrder::CheckDestination(StatusCode* status) {
                         }
                     } else {
                         ok = route.FreeCarriedParents(static_cast<GameObj*>(manager), status);
-                        ObjectKeyValueSet* children = FUN_00528820(manager);
+                        ObjectKeyValueSet* children = static_cast<ManuMgr*>(manager)->ManuMgr::GetQueue();
                         for (AvlNode* node = children->First(); ok != 0 && isOk(status) && node;
                              node = node->m_successor) {
                             ObjectKey legKey;
@@ -225,7 +232,7 @@ int RenameOrder215::CheckEnabled(StatusCode* status) {
 
 Command* RenameOrder215::CreateCommand() {
     void* memory = ::operator new(0x5c);
-    return memory ? FUN_0057e460(memory) : nullptr;
+    return memory ? new (memory) ManagerRenameCommand() : nullptr;
 }
 
 int RenameOrder215::CheckDestination(StatusCode* status) {
@@ -270,7 +277,7 @@ int ManufactureOrderBase::Write(ostream* out) {
 
 Command* ManufactureOrderBase::CreateCommand() {
     void* memory = ::operator new(0x58);
-    return memory ? FUN_0057f230(memory) : nullptr;
+    return memory ? new (memory) ManufactureCommand() : nullptr;
 }
 
 uint32_t ManufactureOrderBase::FillChoices(AvlTree* choices) {
@@ -311,7 +318,7 @@ uint32_t ManufactureOrderBase::FillChoices(AvlTree* choices) {
                     kind = 0x29;
                 else
                     known = false;
-                result = known ? FUN_0052e580(sideObject, kind, choices) : 0;
+                result = known ? static_cast<Side*>(sideObject)->Side::CollectRdRecords(kind, reinterpret_cast<IdAvlTree*>(choices)) : 0;
             }
         }
     }
@@ -329,7 +336,7 @@ int ManufactureOrderBase::ComputeTotals(int* out1, int* out2, int* out3, int* ou
     GetItemKey(&item);
     if (inFamilies(item, 0x10, 0x40)) {
         ObjectKey recordKey;
-        DatRecord* record = FUN_0051cab0(GetItemKey(&recordKey));
+        DatRecord* record = FindDataRecord(AsLookupKey(GetItemKey(&recordKey)));
         ok = record != nullptr;
         if (record) {
             *out1 = static_cast<SdRecord*>(record)->GetField4c() * m_count;
@@ -350,11 +357,11 @@ int ManufactureOrderBase::ComputeTotals(int* out1, int* out2, int* out3, int* ou
             int second = 0;
             if (isOk(status)) {
                 ObjectKey firstItem;
-                int accepted = FUN_00555f00(manager, GetItemKey(&firstItem), perUnit, status, &first);
+                int accepted = GetRulesMgr()->RulesMgr::EstimateBuildDays(manager, reinterpret_cast<const NullableKey*>(GetItemKey(&firstItem)), perUnit, status, &first);
                 result = (accepted != 0 && result != 0) ? 1 : 0;
                 if (isOk(status)) {
                     ObjectKey secondItem;
-                    accepted = FUN_00555f90(manager, GetItemKey(&secondItem), status, &second);
+                    accepted = GetRulesMgr()->RulesMgr::EstimateDeploymentDays(manager, GetItemKey(&secondItem), status, &second);
                     result = (accepted != 0 && result != 0) ? 1 : 0;
                     if (isOk(status)) {
                         peakFirst = MaxInt(peakFirst, first);
@@ -390,7 +397,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
             if (isOk(status)) {
                 StatusCode missing(kStatusCategory, kStatusNoDestination);
                 ObjectKey locationKey;
-                FUN_004c27b0(manager, &locationKey);
+                ManagerGetLocationKey(manager, &locationKey);
                 ok = ResolveMasterInFamilies_01_ff(&locationKey, &destination, &missing, &resolveStatus);
                 if (ok != 0 && destination == nullptr) *status = resolveStatus;
             }
@@ -411,7 +418,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
         if (ok != 0 && isOk(status)) {
             GameObjNotifier* sideObject = GetGameRootSideMember(sideIndexOf(side));
             ok = sideObject != nullptr;
-            if (ok != 0) ok = FUN_0052e970(sideObject, &m_item, m_count, status);
+            if (ok != 0) ok = static_cast<Side*>(sideObject)->Side::CheckMaintCapacity(reinterpret_cast<const ObjectKey*>(&m_item), m_count, status);
         }
     }
 
@@ -419,9 +426,9 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
     if (ok != 0 && isOk(status)) {
         for (Command* command = firstCommand(m_commands); command && ok != 0; command = nextCommand(command)) {
             GameObjNotifier* manager = managerOfCommand(command);
-            capacity += FUN_00528040(manager, 1);
+            capacity += static_cast<ManuMgr*>(manager)->ManuMgr::CountHostFacilities(1);
             ObjectKey locationKey;
-            ok = route.AddContainerLegs(FUN_004c27b0(manager, &locationKey));
+            ok = route.AddContainerLegs(ManagerGetLocationKey(manager, &locationKey));
         }
     }
 
@@ -439,7 +446,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
             ok = route.FreeCarriedParents(static_cast<GameObj*>(manager), status);
             int toBuild = 0;
             if (ok != 0) {
-                int managerCapacity = FUN_00528040(manager, 1);
+                int managerCapacity = static_cast<ManuMgr*>(manager)->ManuMgr::CountHostFacilities(1);
                 int extra = managerCapacity < remainder ? managerCapacity : remainder;
                 toBuild = managerCapacity * share + extra;
                 remainder -= extra;
@@ -449,14 +456,14 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
                 CapacityScratch leg;
                 if (isOk(status)) {
                     ObjectKey originKey;
-                    FUN_004c27b0(manager, &originKey);
+                    ManagerGetLocationKey(manager, &originKey);
                     ObjectKey itemKey;
                     GetItemKey(&itemKey);
                     ok = route.CheckArrivalOfFamily(&itemKey, &originKey, status, &leg, &legKey);
                 }
                 if (ok != 0 && isOk(status)) {
                     ObjectKey itemKey;
-                    ok = FUN_0053e020(&fieldAt<char>(command, kCommandPayloadOffset), &legKey, GetItemKey(&itemKey));
+                    ok = reinterpret_cast<ObjectKeyIntSet*>(&fieldAt<char>(command, kCommandPayloadOffset))->ObjectKeyIntSet::AddPair(legKey, reinterpret_cast<const int&>(GetItemKey(&itemKey)->m_value));
                 }
             }
         }
@@ -492,7 +499,7 @@ int Order213::GetKind() { return 0x213; }
 
 Command* Order213::CreateCommand() {
     void* memory = ::operator new(0x50);
-    return memory ? FUN_0057e950(memory) : nullptr;
+    return memory ? new (memory) ManagerCommand213() : nullptr;
 }
 
 void* CreateOrder213() { return NewOrNull<Order213>(); }
@@ -507,7 +514,7 @@ int Order216::GetKind() { return 0x216; }
 
 Command* Order216::CreateCommand() {
     void* memory = ::operator new(0x54);
-    return memory ? FUN_0057ed20(memory) : nullptr;
+    return memory ? new (memory) ManagerCommand216() : nullptr;
 }
 
 void* CreateOrder216() { return NewOrNull<Order216>(); }

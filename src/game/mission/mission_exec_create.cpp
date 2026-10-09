@@ -1,4 +1,6 @@
 #include "mission/mission_exec_decl.h"
+#include "galaxy/system_rules.h"
+#include "mission/mission_rules.h"
 
 using namespace mission_exec;
 
@@ -26,7 +28,7 @@ ObjectKey keyOf(uint32_t value) {
 
 int MissionMgr::CreateStoryMissionAtRandom(NotifyContext* ctx) {
     int result = 1;
-    if (!PercentChance(DAT_006bb5b8)) return result;
+    if (!PercentChance(g_gnprtb1806)) return result;
 
     ObjectKey parentKey;
     GameObjNotifier* first = nullptr;
@@ -45,7 +47,7 @@ int MissionMgr::CreateStoryMissionAtRandom(NotifyContext* ctx) {
         result = rules != nullptr;
         if (rules) {
             ObjectKey target = keyOf(kStoryTargetKey);
-            result = FUN_00556c70(rules, &target, 2, ctx) && result;
+            result = static_cast<RulesMgr*>(rules)->RulesMgr::SyncUnitView(&target, 2, ctx) && result;
         }
         if (person) {
             ObjectKey personKey;
@@ -171,7 +173,7 @@ int MissionMgr::CreateMissionForCharacter(ObjectKey* objectiveKey, ObjectKey* ty
     ObjectKey personLocation;
     if (person) {
         ObjectKey scratch;
-        personLocation = *FUN_0050c640(person, &scratch);
+        personLocation = *GetOwnerKeyValue(person, &scratch);
     }
     ObjectKey objectiveLocation;
     if (person) {
@@ -179,7 +181,7 @@ int MissionMgr::CreateMissionForCharacter(ObjectKey* objectiveKey, ObjectKey* ty
         ok = objective != nullptr;
         if (objective) {
             ObjectKey scratch;
-            objectiveLocation = *FUN_0050c640(objective, &scratch);
+            objectiveLocation = *GetOwnerKeyValue(objective, &scratch);
         }
     }
     ObjectKeyValueSet team;
@@ -223,7 +225,7 @@ int MissionMgr::CreateMission(int userId, int userId2, int side, ObjectKey* obje
         int chain = mission->SetTargetLocationKey(&targetLocationKey, &missionContext) && targetSet;
         chain = mission->SetImpliedTeam(impliedTeam, &missionContext) && chain;
         chain = mission->SetMandatory(mandatory, &missionContext) && chain;
-        if (levels) chain = FUN_00522a60(mission, levels) && chain;
+        if (levels) chain = mission->Mission::AssignPhaseLevels(levels) && chain;
         result = CallMissionSlot120(mission, team, decoys, &missionContext) && chain;
     }
     return result;

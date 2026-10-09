@@ -3,15 +3,21 @@
 #include <cstring>
 #include <new>
 
+#include "ai/ai_common.h"
+#include "app/battle_handoff.h"
+#include "app/rebapp_globals.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/registry.h"
 #include "core/vptr_store.h"
 #include "data/dat_record.h"
+#include "galaxy/system.h"
 #include "gameobj/game_obj_root.h"
 #include "gameobj/object_lookup.h"
+#include "gameobj/object_type_db.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
+#include "strategy_ui/game_ui_facade.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
 #include "ui/cool_drag_list.h"
@@ -25,22 +31,6 @@ extern const char g_encyBitmapDllName[];         // 0x6a8750 "encybmap.dll"
 extern const char g_encyTextDllName[];           // 0x6a8760 "encytext.dll"
 extern const char g_encyDefaultDataDirectory[];  // 0x6a8770 "EDATA\\"
 extern const char g_encyLocationValueName[];     // 0x6a8778 "EncyLocation"
-
-// Heap copy of the registry value DllLocation (registry paths, 0x401440-0x401760).
-char* FUN_00401440();
-// Pause / resume the game while a modal panel is open (game UI facade, 0x41d3f0 range).
-void FUN_0041d3f0();
-void FUN_0041d410();
-// *out = the ObjectKey of a game-object list row (+0x68).
-ObjectKey* __thiscall FUN_0042d170(CoolListItem* item, ObjectKey* out);
-// The data-table record of a type key, null without an object-type database.
-DatRecord* FUN_0051cab0(const NullableKey* key);
-// Picture index of a star system's type record (record +0x44), 0 without a record.
-int __thiscall FUN_00509610(GameObjNotifier* system);
-// Manufacturing manager (families 0xa0-0xaf): the key of the object it belongs to (+0x74).
-ObjectKey* __thiscall FUN_0040d760(GameObjNotifier* manager, ObjectKey* out);
-// GameObjRoot::GetKey (family << 24 | id), out of line.
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
 
 namespace {
 
@@ -167,7 +157,7 @@ EncyclopediaWindow::EncyclopediaWindow(HINSTANCE instance, int x, int y, int wid
     }
     DatRecord* record = nullptr;
     if (type.OrNull() && type.m_value != none.m_value && object.m_value == unset.m_value) {
-        record = FUN_0051cab0(&type);
+        record = FindDataRecord(AsLookupKey(&type));
         if (!record) type = none;
     }
 
@@ -190,7 +180,7 @@ EncyclopediaWindow::EncyclopediaWindow(HINSTANCE instance, int x, int y, int wid
     if (!m_selected) m_mode = kEncyclopediaList;
 
     m_text = NewOrNull<String>();
-    char* dllLocation = FUN_00401440();
+    char* dllLocation = GetDllLocation();
     CoolAppRegisterResourceDll(dllLocation, g_encyTextDllName, kEncyTextSlot);
     CoolAppRegisterResourceDll(dllLocation, g_encyBitmapDllName, kEncyBitmapSlot);
     if (dllLocation) operator delete(dllLocation);
@@ -231,10 +221,10 @@ ObjectKey* EncyclopediaWindow::ResolveEntryKey(ObjectKey* out, const ObjectKey* 
         return out;
     }
     if (ManagerHasOwnerKey(manager)) {
-        FUN_0040d760(manager, out);
+        ManufacturingManagerProductKey(reinterpret_cast<ManuMgr*>(manager), out);
         return out;
     }
-    FUN_004025b0(manager->m_parent, out);
+    GetObjectKey(manager->m_parent, out);
     return out;
 }
 
@@ -445,7 +435,7 @@ void EncyclopediaWindow::OnCreate1() {
     AddToolFromString(m_previousButton, &previousTip);
 
     m_pageTabs->SelectTab(m_mode == kEncyclopediaArticle && m_selected ? kArticleTabId : kListTabId, 1);
-    FUN_0041d3f0();
+    UiHumanBeginHold();
 }
 
 // ---- Messages --------------------------------------------------------------------------------------------------
@@ -593,7 +583,7 @@ void EncyclopediaWindow::OnKeyDown(WPARAM key, LPARAM lParam) {
 }
 
 void EncyclopediaWindow::PostCloseRequest() {
-    FUN_0041d410();
+    UiHumanEndHold();
     CoolGameWindow::PostCloseRequest();
 }
 
@@ -622,11 +612,11 @@ void EncyclopediaWindow::SetFilter(int tabId, uint32_t reload) {
         m_filteredItems->Clear();
         for (; item; item = item->Next()) {
             ObjectKey key;
-            FUN_0042d170(item, &key);
+            static_cast<ObjectListItem*>(item)->GetKey(&key);
             uint32_t family = Family(key);
             if (range.m_first <= family && family < range.m_second) {
                 ObjectKey itemKey;
-                ObjectListItem* copy = NewOrNull<ObjectListItem>(item->m_id, FUN_0042d170(item, &itemKey));
+                ObjectListItem* copy = NewOrNull<ObjectListItem>(item->m_id, static_cast<ObjectListItem*>(item)->GetKey(&itemKey));
                 // BUG(original): no null check after a failed allocation.
                 copy->m_text = item->m_text.m_text;
                 m_filteredItems->Insert(copy);
@@ -697,12 +687,12 @@ void EncyclopediaWindow::LoadArticle() {
         m_picture = nullptr;
     }
     ObjectKey key;
-    FUN_0042d170(m_selected, &key);
+    static_cast<ObjectListItem*>(m_selected)->GetKey(&key);
     uint32_t family = Family(key);
     uint32_t pictureId;
     if (family >= 0x90 && family < 0x98) {
         GameObjNotifier* system = GetObjectInFamilies_90_98(m_galaxy->m_side, &key);
-        pictureId = static_cast<uint32_t>(SystemPictureId(FUN_00509610(system)));
+        pictureId = static_cast<uint32_t>(SystemPictureId(static_cast<System*>(system)->System::GetRecordField44()));
     } else if ((family >= 0x40 && family < 0x80) || (family >= 0x08 && family < 0x10)) {
         // Missions and fleets have one picture per side.
         uint32_t recordId = m_selected->m_id & kRecordIdMask;

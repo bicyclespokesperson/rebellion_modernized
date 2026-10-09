@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <new>
 
+#include "ai/ai_common.h"
 #include "app/app_cdcheck_version.h"
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
@@ -13,8 +14,8 @@
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/unit_obj_base.h"
-#include "mission/mission.h"
 #include "gfx/dib_bitmap.h"
+#include "mission/mission.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "ui/cool_app.h"
@@ -30,8 +31,6 @@ extern const char g_statusText[];        // 0x6a8744 "Status:"
 extern const char g_tallySeparator[];    // 0x6a874c "  "
 
 // The record key of an object (0x402d80) and its key (0x4025b0, GameObjRoot::GetKey out of line).
-ObjectKey* __thiscall FUN_00402d80(GameObjNotifier* object, ObjectKey* out);
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
 // The picture of an object for its status window (galaxy view routes, 0x42c3b0).
 DibBitmap* CreateObjectPicture(HMODULE module, const ObjectKey* key, GameObjNotifier* object, int a, int b);
 
@@ -107,7 +106,7 @@ ObjectStatusWindow::ObjectStatusWindow(HINSTANCE instance, GalaxyWindow* parent,
     m_object = GetObjectInFamilies_01_ff(m_galaxy->m_side, &m_key);
     if (m_object) {
         ObjectKey recordKey;
-        m_typeKey.m_value = FUN_00402d80(m_object, &recordKey)->m_value;
+        m_typeKey.m_value = GetObjectRecordKey(m_object, &recordKey)->m_value;
     }
     m_gokres = FindResourceModule(kGokresSlot);
     if (!m_gokres) {
@@ -451,7 +450,7 @@ void ObjectStatusWindow::AddCombatValueRow(int row, CoolListItemList* labels, Co
     AddRowText(NewRowItem(row), text, labels);
     text.Clear();
     ObjectKey key;
-    FUN_004025b0(m_object, &key);
+    GetObjectKey(m_object, &key);
     const FamilyRange units(0x10, 0x40);
     uint32_t value = 0;
     if (key.Family() >= units.m_first && key.Family() < units.m_second) {
@@ -529,13 +528,13 @@ void ObjectStatusWindow::TallyUnitsByType(IdAvlTree* tally, GameObjNotifier* fir
     ObjectKey lastKey;
     GameObjNotifier* object = first;
     if (!object) return;
-    FUN_004025b0(object, &lastKey);
+    GetObjectKey(object, &lastKey);
     do {
         if (static_cast<GameObj*>(object)->m_stateFlags & 0x40) {
             const int side = m_galaxy->m_side;
             const uint32_t sideView = side == 1 ? 1 : (side == 2 ? 2 : 0);
             if (sideView == ((object->m_flags >> 6) & 3)) {
-                FUN_004025b0(object, &lastKey);
+                GetObjectKey(object, &lastKey);
                 const uint32_t recordId = object->m_record->m_small & 0xffff;
                 StatusTallyNode* node = static_cast<StatusTallyNode*>(tally->FindById(recordId));
                 if (!node) {
@@ -563,7 +562,7 @@ void ObjectStatusWindow::AddTallyItems(AvlTree* tally) {
         const uint32_t typeBits = static_cast<GameObj*>(object)->GetRecordTypeBits();
         DibBitmap* image = NewOrNull<DibBitmap>(m_gokres, (typeBits & 0xfff) + 0x4000, 10u);
         ObjectKey key;
-        FUN_004025b0(object, &key);
+        GetObjectKey(object, &key);
         CoolListItem* item = NewRowItem(key.Family());
         item->m_state.m_value = 4;
         item->SetImages(image, nullptr);

@@ -6,6 +6,7 @@
 #include "core/file_util.h"
 #include "core/iostream_lib.h"
 #include "events/game_clock_hooks.h"
+#include "multiplayer/multiplayer_window.h"
 #include "platform/win32.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "tactical/tactical_facade.h"
@@ -16,8 +17,6 @@ extern float g_flowScaleA;                 // 0x65863c
 extern float g_flowScaleASquared;          // 0x6b1210
 extern float g_flowScaleB;                 // 0x658648
 extern float g_flowScaleBSquared;          // 0x6b121c
-extern int g_flowRangeEnd;                 // 0x658780
-extern int g_flowRangeStart;               // 0x658778
 extern int g_flowRangeSpan;                // 0x6b1240
 
 namespace {
@@ -118,7 +117,7 @@ void InitFlowScaleA() { g_flowScaleASquared = g_flowScaleA * g_flowScaleA; }
 
 void InitFlowScaleB() { g_flowScaleBSquared = g_flowScaleB * g_flowScaleB; }
 
-void InitFlowRangeSpan() { g_flowRangeSpan = g_flowRangeEnd - g_flowRangeStart - kRangeSlack; }
+void InitFlowRangeSpan() { g_flowRangeSpan = g_rectSessionList.right - g_rectSessionList.left - kRangeSlack; }
 
 // ---- the state machine ----------------------------------------------------------------------------------------------------
 

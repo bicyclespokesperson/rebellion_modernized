@@ -1,22 +1,19 @@
 #include "mission/mission_jedi_training.h"
 
 #include "character/character.h"
+#include "data/random.h"
 #include "gameobj/object_queries.h"
+#include "gameobj/object_type_db.h"
+#include "mission/mission_external.h"
+#include "mission/mission_rules.h"
 
 extern "C" void __cdecl LAB_00571630();
 
 extern int g_missionJediTrainingEventKindsReady;      // 0x6bba14
 extern EventKindSet g_missionJediTrainingEventKinds;  // 0x6bba18
 
-int __cdecl FUN_0055c7c0(int studentForce, int teacherForce, int* out);  // ComputeJediTrainingDifference, always 1
-int __cdecl FUN_0055ca20(int studentForce, int teacherForce, int* out);  // ComputeJediTrainingGain, always 1
-int FUN_0053e2f0(int threshold);
-int FUN_0053fe40(int eventId, GameObj* object, ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx);
-int __cdecl FUN_00582cd0(ObjectKey* key, void** any, void** specialForces, void** character);
-int __cdecl FUN_00582e90(ObjectKey* key, void** any, void** specialForces, void** character);
-void* __cdecl FUN_0051cab0(ObjectKey* key);
 
-// The MissionOrderCheck record as the Jedi Training target check reads it.
+// The MissionCheckArgs record as the Jedi Training target check reads it.
 struct TrainingOrderCheck {
     int m_unk00;                    // +0x00
     int m_hasTeam;                  // +0x04
@@ -94,7 +91,7 @@ int FindTrainerInRefList(int side, ObjectRefList* list, void** out) {  // 0x570f
         if (InCharacterFamilies(key.Family())) {
             ObjectKey lookupKey;
             static_cast<ObjectRefNode*>(node)->GetKey(&lookupKey);
-            void* record = FUN_0051cab0(&lookupKey);
+            void* record = FindDataRecord(AsLookupKey(&lookupKey));
             result = record != nullptr;
             if (result && FieldAt<int>(record, 0xb8) != 0) *out = record;
         }
@@ -116,10 +113,10 @@ int CheckStudentKeySet(ObjectKeySet* set, TrainingOrderCheck* check, StatusCode*
          node = node->m_successor) {
         ObjectKey key;
         static_cast<ObjectKeyNode*>(node)->GetKey(&key);
-        void* any;
-        void* specialForces;
-        void* student;
-        result = FUN_00582cd0(&key, &any, &specialForces, &student);
+        GameObj* any;
+        GameObj* specialForces;
+        GameObj* student;
+        result = SplitRoleFromKey(&key, &any, &specialForces, &student);
         if (result && student && teacher) {
             if (FieldAt<int16_t>(student, 0x8c) == 0) Reject(status, out, kReasonNoForce, -1);
             if (status->m_second == static_cast<uint32_t>(mission_status::kOk)) {
@@ -148,10 +145,10 @@ int CheckStudentRefList(ObjectRefList* list, TrainingOrderCheck* check, StatusCo
          node = node->m_successor) {
         ObjectKey key;
         static_cast<ObjectRefNode*>(node)->GetKey(&key);
-        void* any;
-        void* specialForces;
-        void* student;
-        result = FUN_00582e90(&key, &any, &specialForces, &student);
+        DatRecord* any;
+        DatRecord* specialForces;
+        DatRecord* student;
+        result = SplitPersonRecord(&key, &any, &specialForces, &student);
         if (result && student && teacher) {
             if (FieldAt<int>(student, 0xa0) + FieldAt<int>(student, 0xa4) == 0) Reject(status, out, kReasonNoForce, -1);
             if (status->m_second == static_cast<uint32_t>(mission_status::kOk)) {
@@ -185,7 +182,7 @@ int MissionJediTraining::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionJediTraining::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -257,7 +254,7 @@ int MissionJediTraining::Virtual157(GameObj* person, int* out) {
     Character* teacher = static_cast<Character*>(GetMasterInFamilies_30_3c(&m_extraKey));
     int result = teacher && isCharacter ? 1 : 0;
     if (teacher && student) {
-        const int computed = FUN_0055c7c0(student->m_force, teacher->m_force, out);
+        const int computed = ComputeJediTrainingDifference(student->m_force, teacher->m_force, out);
         result = computed && result ? 1 : 0;
     }
     return result;
@@ -268,7 +265,7 @@ int MissionJediTraining::Virtual158(NotifyContext* ctx) { return 1; }
 int MissionJediTraining::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     int result = 1;
     *out = 0;
-    if (!FUN_0053e2f0(roll)) return result;
+    if (!PercentChance(roll)) return result;
     if (!InCharacterFamilies(person->GetFamily())) result = 0;
     Character* student = result ? static_cast<Character*>(person) : nullptr;
     Character* teacher = static_cast<Character*>(GetMasterInFamilies_30_3c(&m_extraKey));
@@ -276,7 +273,7 @@ int MissionJediTraining::Virtual159(GameObj* person, int roll, int* out, NotifyC
     if (!student || !teacher) return result;
 
     int gain;
-    const int computed = FUN_0055ca20(student->m_force, teacher->m_force, &gain);
+    const int computed = ComputeJediTrainingGain(student->m_force, teacher->m_force, &gain);
     result = computed && result ? 1 : 0;
     if (student->m_force == gain) return result;
     const int trained = student->SetForceTraining(gain + (student->m_forceTraining - student->m_force), ctx);
@@ -286,11 +283,11 @@ int MissionJediTraining::Virtual159(GameObj* person, int roll, int* out, NotifyC
 
 int MissionJediTraining::Virtual160(NotifyContext* ctx) { return MissionStartIfIdle(this, ctx); }
 
-int MissionJediTraining::CheckTarget(MissionOrderCheck* orderCheck, StatusCode* status, int* out) {
+int MissionJediTraining::CheckTarget(MissionCheckArgs* orderCheck, StatusCode* status, int* out) {
     TrainingOrderCheck* check = reinterpret_cast<TrainingOrderCheck*>(orderCheck);
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
-    int result = FUN_005868c0(orderCheck, status, out);
+    int result = MissionSystemTargetBase::CheckTarget(orderCheck, status, out);
     if (!check->m_hasTeam) return result;
     const int ok = static_cast<uint32_t>(mission_status::kOk);
 
@@ -334,7 +331,7 @@ int MissionJediTraining::CheckTarget(MissionOrderCheck* orderCheck, StatusCode* 
 int MissionJediTraining::BuildEventKinds() {
     if (!g_missionJediTrainingEventKindsReady) {
         g_missionJediTrainingEventKindsReady = 1;
-        return FUN_00586b00(0, &g_missionJediTrainingEventKinds);
+        return MissionSystemTargetBase::InitEventKinds(0, &g_missionJediTrainingEventKinds);
     }
     return 1;
 }

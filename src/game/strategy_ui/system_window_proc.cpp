@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <new>
 
+#include "ai/ai_common.h"
 #include "audio/sound_manager.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
@@ -12,15 +13,16 @@
 #include "gameobj/object_lookup.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
+#include "strategy_ui/system_missions_window.h"
 #include "strategy_ui/system_window.h"
 #include "ui/bitmap_status_bar.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
 #include "ui/cool_drag_image.h"
 #include "ui/cool_drag_list.h"
-#include "ui/cool_string_field.h"
 #include "ui/cool_label.h"
 #include "ui/cool_list_item.h"
+#include "ui/cool_string_field.h"
 #include "ui/cool_tab_control.h"
 #include "ui/cool_window.h"
 #include "ui/object_list_item.h"
@@ -28,8 +30,6 @@
 extern HPALETTE g_palette;
 extern const char g_statusSeparator[];  // 0x6a872c ":"
 
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
-GameObjNotifier* __thiscall FUN_004a25c0(void* window);
 
 namespace {
 
@@ -107,7 +107,7 @@ LRESULT __stdcall SystemWindow::WindowProc(UINT message, WPARAM wParam, LPARAM l
             SetFocus(m_page == static_cast<int>(kFirstPage) ? m_hwnd : m_list->m_hwnd);
             return 0;
         case kSectorId: {
-            GameObjNotifier* system = FUN_004a25c0(this);
+            GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
             if (!system || !m_galaxy) return 0;
             ObjectKey sectorKey;
             if (static_cast<GameObj*>(system)->GetValidParentKey(&sectorKey)) m_galaxy->OpenSectorWindow(&sectorKey);
@@ -273,7 +273,7 @@ LRESULT __stdcall SystemWindow::WindowProc(UINT message, WPARAM wParam, LPARAM l
 // ---- Painting ----------------------------------------------------------------------------------------------
 
 void SystemWindow::DrawContents(RECT paintRect, HDC dc) {
-    GameObjNotifier* system = FUN_004a25c0(this);
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return;
     const int left = m_titleRect.left;
     const int top = m_titleRect.top;
@@ -398,7 +398,7 @@ void SystemWindow::LoadTabArt() {
 }
 
 void SystemWindow::OnCreate1() {
-    GameObjNotifier* system = FUN_004a25c0(this);
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     m_controlSide = (ControlBits(system) >> 6) & 3;
     String unusedText;
     ObjectKey unusedKeyA;
@@ -507,7 +507,7 @@ void SystemWindow::OnCreate1() {
         GameObjNotifier* manager = static_cast<System*>(system)->FindManufacturingManagerBySlot123(setup.m_managerValue);
         ObjectKeyIdNode* node = NewOrNull<ObjectKeyIdNode>();
         ObjectKey managerKey;
-        FUN_004025b0(manager, &managerKey);
+        GetObjectKey(manager, &managerKey);
         node->m_key = managerKey;
         node->AddId(m_childId);
         m_objects.Add(node, 0);
@@ -583,7 +583,7 @@ void SystemWindow::OnCreate1() {
 
 int SystemWindow::SelectPage(int page) {
     HMODULE art = CoolAppGetResourceModule(kArtSlot);
-    GameObjNotifier* system = FUN_004a25c0(this);
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return 0;
     if (m_page == page) return 0;
     (void)m_children.First();
@@ -603,7 +603,7 @@ int SystemWindow::SelectPage(int page) {
         uint8_t colorKey = 0;
         auto addFacility = [&](GameObjNotifier* facility) {
             ObjectKey key;
-            FUN_004025b0(facility, &key);
+            GetObjectKey(facility, &key);
             ObjectListItem* item = NewOrNull<ObjectListItem>(&key);
             DibBitmap* picture = SystemObjectPicture(facility);
             DibBitmap* normal = NewOrNull<DibBitmap>(kItemWidth, kItemHeight, picture);

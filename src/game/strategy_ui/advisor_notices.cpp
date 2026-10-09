@@ -9,8 +9,8 @@
 #include "gameobj/notif_payload.h"
 #include "platform/win32.h"
 #include "strategy_ui/game_ui_facade.h"
+#include "ui/cool_window.h"
 
-HMODULE FUN_005fefd0(int moduleIndex);  // resource DLL by index (ui_framework)
 
 namespace {
 
@@ -204,7 +204,7 @@ DroidScriptEntry* DroidScript::NextEntry() {
 uint16_t AdvisorPickAdviceLine(uint32_t adviceId) {
     const uint16_t* table = nullptr;
     uint16_t line = 0;
-    HMODULE module = FUN_005fefd0(kAdviceResourceModule);
+    HMODULE module = FindResourceModule(kAdviceResourceModule);
     HRSRC info = FindResourceA(module, reinterpret_cast<LPCSTR>(adviceId & 0xffff), reinterpret_cast<LPCSTR>(kRcdata));
     HGLOBAL resource = reinterpret_cast<HGLOBAL>(adviceId);
     if (info && (resource = LoadResource(module, info)) != nullptr) table = static_cast<const uint16_t*>(LockResource(resource));

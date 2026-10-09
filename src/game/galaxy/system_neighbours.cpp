@@ -4,15 +4,12 @@
 #include <cstring>
 
 #include "core/vptr_store.h"
+#include "galaxy/game_setup_seed.h"
 #include "gameobj/game_obj_root.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
 #include "rules/loyalty_params.h"
 
-// The system's map position (its data record's +0x4c), 0,0 without a record; returns `out`.
-MapPosition* __thiscall FUN_00509620(GameObjNotifier* system, MapPosition* out);
-// The next master system after `system`.
-GameObjNotifier* __thiscall FUN_0051a5d0(GameObjNotifier* system);
 
 namespace {
 
@@ -21,8 +18,11 @@ bool IsSystemFamily(uint32_t family) { return family >= family::kSystems.m_first
 int DistanceBetween(GameObjNotifier* from, GameObjNotifier* to) {
     MapPosition toPosition;
     MapPosition fromPosition;
-    MapPosition* target = FUN_00509620(to, &toPosition);
-    return MapDistance(FUN_00509620(from, &fromPosition), target);
+    MapPosition* target = reinterpret_cast<MapPosition*>(
+        static_cast<System*>(to)->System::GetRecordField4c(reinterpret_cast<uint32_t*>(&toPosition)));
+    return MapDistance(reinterpret_cast<MapPosition*>(static_cast<System*>(from)->System::GetRecordField4c(
+                           reinterpret_cast<uint32_t*>(&fromPosition))),
+                       target);
 }
 
 int SystemIndex(const GameObjNotifier* system) { return static_cast<int>(system->m_id) - SystemNeighbourTable::kFirstSystemId; }
@@ -50,10 +50,10 @@ int SystemNeighbourTable::GetNeighbours(const ObjectKey* key, SystemNeighbourCur
 }
 
 int SystemNeighbourTable::Build() {
-    for (GameObjNotifier* from = GetFirstMasterInFamilies_90_98(); from; from = FUN_0051a5d0(from)) {
+    for (GameObjNotifier* from = GetFirstMasterInFamilies_90_98(); from; from = NextSystemMaster(from)) {
         SystemDistance distances[kSystemCount];
         std::memset(distances, 0, sizeof(distances));
-        for (GameObjNotifier* to = GetFirstMasterInFamilies_90_98(); to; to = FUN_0051a5d0(to)) {
+        for (GameObjNotifier* to = GetFirstMasterInFamilies_90_98(); to; to = NextSystemMaster(to)) {
             SystemDistance& slot = distances[SystemIndex(to)];
             slot.m_system = to;
             slot.m_distance = DistanceBetween(from, to);

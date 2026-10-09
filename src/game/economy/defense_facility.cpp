@@ -3,6 +3,8 @@
 #include <new>
 
 #include "core/vptr_store.h"
+#include "economy/manu_mgr_leaves.h"
+#include "gameobj/game_obj_forwarders.h"
 #include "gameobj/object_family.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
@@ -10,11 +12,6 @@ extern "C" void __cdecl LAB_00526cb0();
 
 extern EventKindSet g_allFacilityEventKinds;  // 0x6b8ff8
 extern int g_allFacilityEventKindsReady;      // 0x6b9000
-
-// Other slot wrappers these ones delegate to (the originals are reconstructed below under their class names).
-int __thiscall FUN_0051c1d0(void* self, istream* in);
-int __thiscall FUN_005277f0(void* self, ostream* out);
-int __thiscall FUN_00527810(void* self, Crc32* crc);
 
 namespace {
 constexpr int kStatusCategory = 1;
@@ -81,15 +78,15 @@ int AllFacility::CheckUnknownImpl(const ActivityRequest* request, StatusCode* ou
     return result;
 }
 
-int AllFacility::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_0055ac90(this, controlKind, ctx); }
+int AllFacility::CreateViews(int controlKind, NotifyContext* ctx) { return CreateViewsStubDefense(this, controlKind, ctx); }
 
 GameObj* AllFacility::CreateViewObject() { return new AllFacility(); }
 
-int AllFacility::ReadStep(istream* in) { return FUN_00569840(this, in); }
+int AllFacility::ReadStep(istream* in) { return LeafReadForward(this, in); }
 
-int AllFacility::WriteStep(ostream* out) { return FUN_00569850(this, out); }
+int AllFacility::WriteStep(ostream* out) { return LeafWriteForward(this, out); }
 
-int AllFacility::ChecksumStep(Crc32* crc) { return FUN_00569860(this, crc); }
+int AllFacility::ChecksumStep(Crc32* crc) { return LeafChecksumForward(this, crc); }
 
 int AllFacility::ApplyAllStep(NotifyContext* ctx) { return ApplyAllImpl(ctx); }
 
@@ -129,18 +126,18 @@ DefenseFacility::DefenseFacility() {}
 
 DefenseFacility::~DefenseFacility() { REB_KEEP_VPTR_STORE(); }
 
-int DefenseFacility::Read(istream* in) { return FUN_0051c1d0(this, in); }
+int DefenseFacility::Read(istream* in) { return reinterpret_cast<AllFacility*>(this)->AllFacility::Read(in); }
 
-int DefenseFacility::Write(ostream* out) { return FUN_005277f0(this, out); }
+int DefenseFacility::Write(ostream* out) { return reinterpret_cast<AllFacility*>(this)->AllFacility::Write(out); }
 
-int DefenseFacility::Checksum(Crc32* crc) { return FUN_00527810(this, crc); }
+int DefenseFacility::Checksum(Crc32* crc) { return reinterpret_cast<AllFacility*>(this)->AllFacility::Checksum(crc); }
 
 int DefenseFacility::ApplyAll(NotifyContext* ctx) {
     if (IsSideView()) return ApplyAllLeafStep(ctx);
     return 0;
 }
 
-int DefenseFacility::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_0055ac90(this, controlKind, ctx); }
+int DefenseFacility::CreateViews(int controlKind, NotifyContext* ctx) { return CreateViewsStubDefense(this, controlKind, ctx); }
 
 int DefenseFacility::Virtual46(NotifyContext* ctx) {
     GameObjNotifier* parent;

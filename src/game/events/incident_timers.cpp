@@ -3,6 +3,8 @@
 #include "events/event_helpers.h"
 #include "events/incident_timers_decl.h"
 #include "galaxy/system.h"
+#include "mission/mission.h"
+#include "rules/rules_mgr.h"
 
 using events::findTimerOwner;
 using events::fireOnTimerOwner;
@@ -54,7 +56,7 @@ UprisingLoyaltyTimer::~UprisingLoyaltyTimer() { REB_KEEP_VPTR_STORE(); }
 UprisingLoyaltyTimer* UprisingLoyaltyTimer::Clone() { return NewOrNull<UprisingLoyaltyTimer>(*this); }
 
 TrackedStat* UprisingLoyaltyTimer::GetTargetSpec() {
-    return timerStatOfOwner<System>(this, ResolveMasterInFamilies_90_98, [](System* s) { return FUN_00520aa0(s); });
+    return timerStatOfOwner<System>(this, ResolveMasterInFamilies_90_98, [](System* s) { return reinterpret_cast<Mission*>(s)->Mission::GetStatA(); });
 }
 
 void UprisingLoyaltyTimer::Fire() {
@@ -72,7 +74,7 @@ AssaultLoyaltyTimer::~AssaultLoyaltyTimer() { REB_KEEP_VPTR_STORE(); }
 AssaultLoyaltyTimer* AssaultLoyaltyTimer::Clone() { return NewOrNull<AssaultLoyaltyTimer>(*this); }
 
 TrackedStat* AssaultLoyaltyTimer::GetTargetSpec() {
-    return timerStatOfOwner<System>(this, ResolveMasterInFamilies_90_98, [](System* s) { return FUN_00520ab0(s); });
+    return timerStatOfOwner<System>(this, ResolveMasterInFamilies_90_98, [](System* s) { return reinterpret_cast<Mission*>(s)->Mission::GetStatB(); });
 }
 
 void AssaultLoyaltyTimer::Fire() {
@@ -148,7 +150,7 @@ TrackedStat* SideStatATimer::GetTargetSpec() {
 }
 
 void SideStatATimer::Fire() {
-    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_f9_fa, [](GameObj* o, NotifyContext* ctx) { return FUN_00556b50(o, ctx); });
+    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_f9_fa, [](GameObj* o, NotifyContext* ctx) { return static_cast<RulesMgr*>(o)->RulesMgr::FireDisasterTimer(ctx); });
 }
 
 SideStatATimer* CreateSideStatATimer() { return NewOrNull<SideStatATimer>(); }
@@ -166,7 +168,7 @@ TrackedStat* SideStatBTimer::GetTargetSpec() {
 }
 
 void SideStatBTimer::Fire() {
-    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_f9_fa, [](GameObj* o, NotifyContext* ctx) { return FUN_00556be0(o, ctx); });
+    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_f9_fa, [](GameObj* o, NotifyContext* ctx) { return static_cast<RulesMgr*>(o)->RulesMgr::FireResourceTimer(ctx); });
 }
 
 SideStatBTimer* CreateSideStatBTimer() { return NewOrNull<SideStatBTimer>(); }

@@ -1,6 +1,7 @@
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
 #include "data/random.h"
+#include "economy/manu_mgr.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/game_root.h"
 #include "gameobj/object_database.h"
@@ -17,8 +18,6 @@
 
 // Loads the rule tables for the game's difficulty (0x513f70).
 int BindRuleTables(int difficulty);
-// The manufacturing manager's confirmation that it knows `unit` (0x528930).
-int __thiscall FUN_00528930(GameObjNotifier* manager, ObjectKey* unit);
 
 namespace {
 
@@ -212,7 +211,7 @@ int GameRoot::ValidateBuilders() {
                 if (manager != nullptr) {
                     ObjectKey unitKey;
                     object->GetKey(&unitKey);
-                    ok = FUN_00528930(manager, &unitKey);
+                    ok = static_cast<ManuMgr*>(manager)->ManuMgr::IsQueued(&unitKey);
                 }
             }
         }

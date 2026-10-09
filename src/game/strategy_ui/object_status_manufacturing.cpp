@@ -87,7 +87,7 @@ void ObjectStatusWindow::FillManufacturingPage(CoolListItemList* labels, CoolLis
             AddStatusRow(5, &text, labels);
             StatusCode status(1, static_cast<uint32_t>(-1));
             int ruleValue = 0;
-            QueryRuleValueA(reinterpret_cast<int>(m_object), reinterpret_cast<int>(&status), &ruleValue);
+            QueryRuleValueA(m_object, &status, &ruleValue);
             text.Clear();
             text.AppendSigned(ruleValue);
             AddStatusRow(5, &text, values);

@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <new>
 
+#include "ai/ai_common.h"
 #include "audio/sound_manager.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
@@ -21,7 +22,6 @@
 extern const int16_t g_displayGridWidth;   // 0x658bd8
 extern const int16_t g_displayGridHeight;  // 0x658bda
 
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
 
 namespace {
 
@@ -203,7 +203,7 @@ void GalaxyWindow::SetDisplayMode(int mode, IdAvlTree* selection) {
             }
             ObjectKey key;
             void* memory = ::operator new(sizeof(ObjectListItem));
-            ObjectListItem* item = memory ? new (memory) ObjectListItem(FUN_004025b0(system, &key)) : nullptr;
+            ObjectListItem* item = memory ? new (memory) ObjectListItem(GetObjectKey(system, &key)) : nullptr;
             item->m_x = x;
             item->m_y = y;
             RECT marker;
@@ -217,7 +217,7 @@ void GalaxyWindow::SetDisplayMode(int mode, IdAvlTree* selection) {
             item->SetImages(nullptr, image);
             m_systemItems.Insert(item);
             ObjectKey markerKey;
-            UpdateSystemMarker(FUN_004025b0(system, &markerKey), system, 0);
+            UpdateSystemMarker(GetObjectKey(system, &markerKey), system, 0);
         }
         RedrawSectorMarkers(sector);
     }

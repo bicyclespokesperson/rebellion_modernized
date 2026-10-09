@@ -16,13 +16,13 @@
 #include "gameobj/object_lookup.h"
 #include "gameobj/object_queries.h"
 #include "mission/mission_rules.h"
+#include "rules/rules_mgr.h"
 #include "story/story_characters.h"
 
 // Setup of the people of a new game, the checks the person queries forward, and the reactions to what happens to people.
 
 DatRecord* GetFirstRecordOfType(int type);  // 0x51cad0
 ObjectKey* __thiscall GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
-int __thiscall FUN_00556c70(GameObjNotifier* rules, ObjectKey* key, int side, NotifyContext* ctx);
 
 namespace {
 
@@ -804,7 +804,7 @@ int CharacterMgr::ReportTarget(const ObjectKey* personKey, const ActivityRequest
             if (rules != nullptr) {
                 ObjectKey target;
                 request->GetTarget(&target);
-                result = FUN_00556c70(rules, &target, static_cast<int>(object->ControlSide()), ctx) && result;
+                result = static_cast<RulesMgr*>(rules)->RulesMgr::SyncUnitView(&target, static_cast<int>(object->ControlSide()), ctx) && result;
             }
         }
     }

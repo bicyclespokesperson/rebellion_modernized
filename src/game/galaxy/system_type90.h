@@ -57,15 +57,3 @@ REB_ASSERT_SIZE(SystemType90Iterator, 0x20);
 
 // A side view (1 or 2) of a system, as the OnXChanged events push values into them.
 inline System* SystemView(System* system, int view) { return static_cast<System*>(system->GetViewObject(view)); }
-
-// System bodies and rule functions (galaxy rules, 0x50e200-0x50e820 and 0x559670-0x559a60) that the leaf classes call;
-// they belong to System's owner and are declared here only until it names them.
-int __thiscall FUN_0050e200(System* self, int controlKind, NotifyContext* ctx);   // CreateViews body
-int __thiscall FUN_0050e410(System* self, istream* in);                           // Read body
-int __thiscall FUN_0050e4e0(System* self, ostream* out);                          // Write body
-int __thiscall FUN_0050e5b0(System* self, NotifyContext* ctx);                    // ApplyAll body
-int __thiscall FUN_0050e730(System* self, Crc32* crc);                            // Checksum body
-int __thiscall FUN_0050e820(System* self);                                        // Validate body
-int __thiscall FUN_0050d5a0(System* self, int a, int b, NotifyContext* ctx);
-int __thiscall FUN_005092f0(System* self);                                        // data flag 0x80 bit 0 (0 without data)
-int FUN_0052d370(GameObj* object, int side, int filter);                          // number of children of the rule family

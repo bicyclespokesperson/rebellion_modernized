@@ -1,8 +1,10 @@
 #include <cstdint>
 #include <new>
 
+#include "ai/ai_common.h"
 #include "app/player_controller_decl.h"
 #include "app/rebapp_globals.h"
+#include "audio/music.h"
 #include "audio/sound_manager.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
@@ -12,10 +14,11 @@
 #include "gameobj/game_obj.h"
 #include "gameobj/object_key.h"
 #include "gameobj/object_lookup.h"
+#include "gameobj/object_type_db.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
-#include "strategy_ui/panel_drag_button.h"
 #include "strategy_ui/game_ui_facade.h"
+#include "strategy_ui/panel_drag_button.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
 #include "ui/cool_drag_list.h"
@@ -31,11 +34,6 @@
 extern const char g_strategyDllName[];  // 0x6a86a8 "strategy.dll"
 extern const char g_textcommDllName[];  // 0x6a7edc "textcomm.dll"
 
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
-DatRecord* FUN_0051cab0(const ObjectKey* key);
-void FUN_0051caf0(ObjectRefList* list);
-IntPair* __thiscall FUN_0041bde0(Side* side, IntPair* out);
-void FUN_00417520(uint32_t index);
 
 namespace {
 
@@ -82,7 +80,7 @@ bool IsListedRecord(const ObjectKey* key) {
     bool listed = IsInRange(family, 0x14, 0x20) || IsInRange(family, 0x28, 0x30) || IsInRange(family, 0x22, 0x28) ||
                   IsInRange(family, 0x10, 0x14) || IsInRange(family, 0x30, 0x40) || IsInRange(family, 8, 0x10);
     if (IsInRange(family, 0x50, 0x80)) {
-        DatRecord* record = FUN_0051cab0(key);
+        DatRecord* record = FindDataRecord(AsLookupKey(key));
         if (record) listed = *reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(record) + 0x5c) == 0;
     }
     return listed;
@@ -245,7 +243,7 @@ GalaxyWindow* GetGalaxyWindow() { return g_galaxyWindow; }
 void GalaxyWindow::StartMusic() {
     if (!m_musicPending) return;
     m_musicPending = 0;
-    FUN_00417520(UiHumanNextAdvice());
+    StartMusicTrack(UiHumanNextAdvice());
 }
 
 void GalaxyWindow::SetAlternateDisplayMode(uint32_t flags) {
@@ -304,21 +302,21 @@ void GalaxyWindow::InitializeGameDisplay() {
     SetResourceCounter(kGalaxyRawMaterials, side->m_rawMaterials, 0);
     side->GetRefineryStateCopy(&state);
     SetResourceCounter(kGalaxyRefinedMaterials, side->m_refinedMaterials, 0);
-    FUN_0041bde0(side, &state);
+    GetSidePairAt58(side, &state);
     IntPair maintenance;
-    FUN_0041bde0(side, &maintenance);
+    GetSidePairAt58(side, &maintenance);
     SetResourceCounter(kGalaxyMaintenance, static_cast<int>(maintenance.m_first) - side->m_maintRequiredB,
                        static_cast<int>(state.m_first));
 
     if (!m_encyclopediaItems) {
         ObjectRefList records;
-        FUN_0051caf0(&records);
+        ListAllDataRecordKeys(&records);
         void* memory = ::operator new(0x10);
         m_encyclopediaItems = memory ? new (memory) CoolListItemList(2) : nullptr;
         for (AvlNode* node = records.First(); node; node = node->m_successor) {
             const ObjectKey* recordKey = &static_cast<ObjectRefNode*>(node)->m_key;
             if (!IsListedRecord(recordKey)) continue;
-            DatRecord* record = FUN_0051cab0(recordKey);
+            DatRecord* record = FindDataRecord(AsLookupKey(recordKey));
             const uint32_t recordBits = *reinterpret_cast<uint32_t*>(reinterpret_cast<uint8_t*>(record) + 0x30);
             const uint32_t itemId = (recordBits & kEncyclopediaIdMask) + kEncyclopediaIdBase;
             if (m_encyclopediaItems->FindById(itemId)) continue;
@@ -339,7 +337,7 @@ void GalaxyWindow::InitializeGameDisplay() {
             LoadEncyclopediaTitle(&title, recordBits);
             if (title.Length() == 0) title.Assign(*static_cast<GameObj*>(system)->GetName());
             ObjectKey itemKey;
-            FUN_004025b0(system, &itemKey);
+            GetObjectKey(system, &itemKey);
             m_encyclopediaItems->Insert(NewEncyclopediaItem(itemId, &itemKey, title));
         }
     }

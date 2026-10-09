@@ -58,7 +58,7 @@ inline int AddRuleValueRows(String* text, GameObjNotifier* object, int nextRow, 
                             CoolListItemList* values) {
     StatusCode status(1, static_cast<uint32_t>(-1));
     int ruleValue = 0;
-    QueryRuleValueB(reinterpret_cast<int>(object), reinterpret_cast<int>(&status), &ruleValue);
+    QueryRuleValueB(static_cast<GameObj*>(object), &status, &ruleValue);
     if (status.m_second != static_cast<uint32_t>(-1) || ruleValue == 0) return nextRow - 1;
     const ResourceStringId ruleLabelId = StringId(0x3814);
     String ruleLabel(&ruleLabelId);

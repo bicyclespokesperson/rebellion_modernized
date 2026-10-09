@@ -70,6 +70,10 @@ public:
     static GameObjNotifier* CreateObjectOfFamily(uint32_t family);
     // Registers a factory for `family` (ignored if there is one already or the table is full).
     static int RegisterFactory(uint32_t family, GameObjNotifier* (*factory)());
+    template <class T>
+    static int RegisterFactory(uint32_t family, T* (*factory)()) {
+        return RegisterFactory(family, reinterpret_cast<GameObjNotifier* (*)()>(factory));
+    }
 
     GameObjNotifier* m_parent;  // +0x1c
     ObjectEntry* m_entry;       // +0x20, set by ObjectEntry::AddObject

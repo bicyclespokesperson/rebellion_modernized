@@ -8,8 +8,11 @@
 #include "gameobj/object_database.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
+#include "orders/mission_orders.h"
 #include "orders/order_checks.h"
 #include "orders/route_context.h"
+#include "rules/rules_mgr.h"
+#include "mission/mission_external.h"
 
 namespace {
 
@@ -146,7 +149,7 @@ int MoveOrderBase::CollectTransitDays(StatusCode* status, ObjectKeyValueSet* out
                 int collected = static_cast<ObjectMoveOrder*>(order)->CollectTransitDays(status, &days);
                 result = collected != 0 && result != 0;
             } else if (kind == kMissionOrderKind) {
-                int collected = FUN_004f4850(static_cast<MissionOrder*>(order), status, &days);
+                int collected = (static_cast<MissionOrder*>(order))->MissionOrder::CollectCandidates(status, &days);
                 result = collected != 0 && result != 0;
             }
             if (isOk(status)) {
@@ -215,8 +218,8 @@ int MoveOrderBase::BuildMissionOrder(ObjectKeyValueSet* team, MissionOrder** out
     ObjectKeyValueSet characters;
     int result = TakeCharactersAtOneLocation(team, &characters, status);
     if (result != 0 && isOk(status) && characters.Count() != 0) {
-        void* memory = ::operator new(sizeof(MissionOrder));
-        MissionOrder* order = memory ? FUN_004f5440(memory) : nullptr;
+        void* memory = ::operator new(sizeof(MissionOrder241));
+        MissionOrder241* order = memory ? new (memory) MissionOrder241() : nullptr;
         *out = order;
         result = order != nullptr;
         if (result != 0) {
@@ -227,7 +230,7 @@ int MoveOrderBase::BuildMissionOrder(ObjectKeyValueSet* team, MissionOrder** out
             order->m_unk48 = 0;
             ObjectKey target;
             order->SetTarget(GetTargetInto(&target));
-            order->m_missionKey = ObjectKey::Make(kMissionKeyFamily, 1);
+            order->m_missionKey.m_value = ObjectKey::Make(kMissionKeyFamily, 1).m_value;
             order->SetTeam(&characters);
             order->m_characters = ObjectKeyValueSet();
         }
@@ -335,7 +338,7 @@ void* CreateObjectMoveOrder() { return NewOrNull<ObjectMoveOrder>(); }
 
 Command* ObjectMoveOrder::CreateCommand() {
     void* memory = ::operator new(0x50);
-    return memory ? FUN_00578ab0(memory) : nullptr;
+    return memory ? new (memory) MoveCommand() : nullptr;
 }
 
 int ObjectMoveOrder::CheckValid(StatusCode* status) {
@@ -372,7 +375,7 @@ int ObjectMoveOrder::CollectTransitDays(StatusCode* status, ObjectKeyValueSet* o
                 ObjectKey* targetKey = GetTarget(&target);
                 ObjectKey memberKey;
                 node->GetKey(&memberKey);
-                if (FUN_00555d30(object, &memberKey, targetKey, &days) == 0) ok = false;
+                if (GetRulesMgr()->RulesMgr::ComputeUnitTravelDays(static_cast<GameObj*>(object), &memberKey, targetKey, &days) == 0) ok = false;
             }
             node->m_value = days;
         }
@@ -468,7 +471,7 @@ int RenameOrder::CheckEnabled(StatusCode* status) {
 
 Command* RenameOrder::CreateCommand() {
     void* memory = ::operator new(sizeof(RenameCommand));
-    return memory ? FUN_005790f0(memory) : nullptr;
+    return memory ? new (memory) RenameCommand() : nullptr;
 }
 
 int RenameOrder::CheckDestination(StatusCode* status) {
@@ -497,7 +500,7 @@ void* CreateScrapOrder() { return NewOrNull<ScrapOrder>(); }
 
 Command* ScrapOrder::CreateCommand() {
     void* memory = ::operator new(0x50);
-    return memory ? FUN_00579570(memory) : nullptr;
+    return memory ? new (memory) ScrapCommand() : nullptr;
 }
 
 ReadyForDeleteOrder::ReadyForDeleteOrder() : OrderBase() {}
@@ -507,7 +510,7 @@ void* CreateReadyForDeleteOrder() { return NewOrNull<ReadyForDeleteOrder>(); }
 
 Command* ReadyForDeleteOrder::CreateCommand() {
     void* memory = ::operator new(0x50);
-    return memory ? FUN_00579940(memory) : nullptr;
+    return memory ? new (memory) ReadyForDeleteCommand() : nullptr;
 }
 
 // ---- ObjectKeyIntSet ------------------------------------------------------------------------------------------

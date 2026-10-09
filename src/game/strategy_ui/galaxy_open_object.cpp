@@ -1,5 +1,6 @@
 #include <cstdint>
 
+#include "ai/ai_common.h"
 #include "character/role.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_key.h"
@@ -9,7 +10,6 @@
 #include "strategy_ui/sector_window.h"
 #include "ui/custom_dialog_box.h"
 
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
 
 namespace {
 
@@ -41,12 +41,12 @@ bool InRange(uint32_t family, const FamilyRange& range) { return family >= range
 
 uint32_t FamilyOf(GameObjNotifier* object) {
     ObjectKey key;
-    return FUN_004025b0(object, &key)->Family();
+    return GetObjectKey(object, &key)->Family();
 }
 
 ObjectKey KeyOf(GameObjNotifier* object) {
     ObjectKey key;
-    FUN_004025b0(object, &key);
+    GetObjectKey(object, &key);
     return key;
 }
 

@@ -3,6 +3,8 @@
 #include "character/character.h"
 #include "character/role.h"
 #include "data/game_math.h"
+#include "economy/manu_mgr_leaves.h"
+#include "events/event_post.h"
 #include "galaxy/system.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/object_family.h"
@@ -13,12 +15,6 @@ extern "C" void __cdecl LAB_00512de0();
 extern "C" void __cdecl LAB_00512e30();
 extern "C" void __cdecl LAB_00512e80();
 extern "C" void __cdecl LAB_00512ed0();
-
-int FUN_0053fc90(int value, int low, int high, const char* message);
-// Rule checks of the galaxy setup code (0x55bba0, 0x55b820, 0x55b480): 1 when the system is consistent for the side.
-int FUN_0055bba0(System* system, uint32_t side, int kind);
-int FUN_0055b820(System* system, uint32_t side, int kind);
-int FUN_0055b480(System* system, uint32_t side, int kind);
 
 extern int g_systemEventKindsBuilt;        // 0x6b2ba0
 extern EventKindSet g_systemEventKinds4;   // 0x6b2b90
@@ -71,15 +67,15 @@ int System::Validate() {
     int result = GameObj::Validate();
     if (result) {
         if (!(m_stateFlags & kDestroyedState)) {
-            const int first = FUN_0055bba0(this, ControlSide(), 4);
-            const int second = FUN_0055b820(this, ControlSide(), 4);
-            const int third = FUN_0055b480(this, ControlSide(), 4);
+            const int first = CountShipyardManuMgrChildren(this, ControlSide(), 4);
+            const int second = CountConstructionYardManuMgrChildren(this, ControlSide(), 4);
+            const int third = CountTrainingFacilManuMgrChildren(this, ControlSide(), 4);
             result = first == 1 && second == 1 && third == 1 ? 1 : 0;
         }
         if (result) {
-            result = FUN_0053fc90(m_energyAllocated, 0, m_energy, "Invalid SystemEnergyAllocated value!");
+            result = IsInRange(m_energyAllocated, 0, m_energy, "Invalid SystemEnergyAllocated value!");
             if (result)
-                result = FUN_0053fc90(m_rawMaterialAllocated, 0, m_rawMaterial, "Invalid SystemRawMaterialAllocated value!");
+                result = IsInRange(m_rawMaterialAllocated, 0, m_rawMaterial, "Invalid SystemRawMaterialAllocated value!");
         }
     }
 
@@ -115,7 +111,7 @@ int System::Validate() {
     return ok;
 }
 
-int __stdcall ReapplySystemCharacterViews(System* self, NotifyContext* ctx) {
+int __stdcall ReapplySystemCharacterViews(GameObj* self, NotifyContext* ctx) {
     ObjectKey ownKey;
     self->GetKey(&ownKey);
     if (GameObjNotifier* master = GetMasterInFamilies_01_ff(&ownKey)) {

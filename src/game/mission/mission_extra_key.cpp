@@ -1,11 +1,12 @@
 #include "mission/mission_extra_key.h"
+#include "galaxy/mission_decl.h"
 
 MissionExtraKeyBase::MissionExtraKeyBase() {}
 
 MissionExtraKeyBase::~MissionExtraKeyBase() { REB_KEEP_VPTR_STORE(); }
 
 int MissionExtraKeyBase::Read(istream* in) {
-    if (!FUN_00592c50(this, in)) return 0;
+    if (!static_cast<MissionRuleBase*>(this)->MissionRuleBase::ReadBody(in)) return 0;
     return m_extraKey.Read(in);
 }
 
@@ -15,10 +16,10 @@ int MissionExtraKeyBase::Write(ostream* out) {
 }
 
 int MissionExtraKeyBase::Checksum(Crc32* crc) {
-    if (!FUN_00593ad0(this, crc)) return 0;
+    if (!reinterpret_cast<MissionTypeBase*>(this)->MissionTypeBase::ChecksumBody(crc)) return 0;
     return m_extraKey.Checksum(crc);
 }
 
-int MissionExtraKeyBase::Validate() { return FUN_00523c60(this); }
+int MissionExtraKeyBase::Validate() { return this->Mission::ValidateImpl(); }
 
-int MissionExtraKeyBase::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_005236e0(this, controlKind, ctx); }
+int MissionExtraKeyBase::CreateViews(int controlKind, NotifyContext* ctx) { return this->Mission::CreateViewsImpl(controlKind, ctx); }

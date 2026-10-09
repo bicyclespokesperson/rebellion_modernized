@@ -39,16 +39,21 @@
 
 #include "app/app_cdcheck_version.h"
 #include "app/app_dialogs.h"
-#include "app/app_strings.h"
 #include "app/app_externals.h"
+#include "app/app_strings.h"
 #include "app/rebapp_globals.h"
 #include "core/registry.h"
 #include "core/vptr_store.h"
+#include "events/game_clock_hooks.h"
 #include "gfx/dib_bitmap.h"
 #include "gfx/directdraw_host.h"
+#include "multiplayer/multiplayer_window.h"
+#include "strategy_ui/game_ui_facade.h"
+#include "tactical/comm2.h"
 #include "ui/cool_environment.h"
 #include "ui/cool_window.h"
 #include "ui/game_window_object.h"
+#include "video/movie_window.h"
 #include "video/video_manager.h"
 
 extern int g_directDrawHostDestroyedGuard;   // 0x6b1458
@@ -229,8 +234,8 @@ void RebellionApplication::PumpMessages(MSG* message, int* quit) {
 }
 
 void RebellionApplication::PollMultiplayerSync(int quit) {
-    FUN_00597310();
-    m_syncState = FUN_00597090();
+    CommSyncState();
+    m_syncState = CommGetPlayerCount();
     if (!m_connected) return;
     if (m_syncState == 2) {
         m_pauseRequested = 0;
@@ -241,37 +246,37 @@ void RebellionApplication::PollMultiplayerSync(int quit) {
     if (!m_peersReady || m_pauseRequested || quit) return;
     if (m_state < 8 || m_state >= 0x10) return;
     m_pauseRequested = 1;
-    FUN_00597050();
+    CommCleanUp();
     if (m_state == kStateStrategic) {
         if (static_cast<StrategicWindow*>(m_strategicWindow)->m_unknownAc != 0) return;
     } else if (m_state == kStateLobbyHost || m_state == kStateLobbyJoin) {
-        FUN_004109e0(m_activeWindow);
+        static_cast<MultiPlayerWindow*>(m_activeWindow)->MultiPlayerWindow::UpdateStartButtons();
     }
     AppShowNoticeDialog(0x46d, 0, 0x1204, 0x190e, kDialogX, kDialogY);
-    FUN_00597050();
+    CommCleanUp();
 }
 
 void RebellionApplication::ReportOpponentTrouble() {
     bool trigger = false;
     bool opponentLeft = false;
-    if (FUN_004fd160() && !FUN_004fd180()) {
+    if (GetManagerUnk38() && !GetManagerUnk3c()) {
         trigger = true;
         opponentLeft = true;
     }
-    if (!trigger && FUN_004fd1c0() && !FUN_004fd1e0()) {
+    if (!trigger && GetManagerUnk40() && !GetManagerUnk44()) {
         trigger = true;
         opponentLeft = false;
     }
-    if (!trigger && FUN_004fd100() && !FUN_004fd120()) {
+    if (!trigger && GetManagerStateDiffers() && !GetManagerUnk34()) {
         trigger = true;
         opponentLeft = false;
     }
     if (!trigger) return;
-    FUN_004fd140(1);
-    FUN_004fd1a0(1);
-    FUN_004fd200(1);
-    FUN_0041dbc0();
-    if (m_state == kStateLobbyHost || m_state == kStateLobbyJoin) FUN_004109e0(m_activeWindow);
+    SetManagerUnk34(1);
+    SetManagerUnk3c(1);
+    SetManagerUnk44(1);
+    UiBeginPause();
+    if (m_state == kStateLobbyHost || m_state == kStateLobbyJoin) static_cast<MultiPlayerWindow*>(m_activeWindow)->MultiPlayerWindow::UpdateStartButtons();
     if (opponentLeft) {
         if (m_mismatchOptions)
             AppShowQuestionDialog(0x47d, 0x120b, 0x120c, kDialogX, kDialogY);
@@ -290,7 +295,7 @@ WPARAM RebellionApplication::Run(int showCommand, int unused) {
     int quit = 0;
     int stepped = 1;
     MSG message = {};
-    FUN_00597460();
+    CommQueryLobbyConnection();
     Create(0);
     Show(showCommand);
     for (;;) {
@@ -326,7 +331,7 @@ LRESULT RebellionApplication::OnCreate() {
 
 void RebellionApplication::EnterFrontEndAfterFirstActivation() {
     int nextState = kStateIntroMovie;
-    if (FUN_00597480()) {
+    if (CommLaunchedFromLobby()) {
         char* dllLocation = GetDllLocation();
         LoadResourceModule(dllLocation, g_textcommDllName, 1);
         LoadResourceModule(dllLocation, g_commonDllName, 8);
@@ -449,7 +454,7 @@ LRESULT RebellionApplication::OnDialogAnswer(WPARAM wParam) {
         case 0x46d:
         case 0x47c:
         case 0x47d:
-            FUN_005974c0();
+            CommClearLobbyLaunch();
             SetState(kStateMainMenu);
             return 0;
         case 0x470:
@@ -462,13 +467,13 @@ LRESULT RebellionApplication::OnDialogAnswer(WPARAM wParam) {
 LRESULT RebellionApplication::OnSaveAnswer() {
     if (m_gameType != 2) {
         if (m_gameType != 1) return 0;
-        FUN_0041d310(FUN_0041cdb0());
+        UiAckSync(UiGetHumanSide());
         return 0;
     }
     if (m_state != kStateStrategic) return 0;
-    FUN_0041d310(FUN_0041cdb0());
+    UiAckSync(UiGetHumanSide());
     if (static_cast<StrategicWindow*>(m_strategicWindow)->m_unknownAc != 0) return 0;
-    const bool ready = (!FUN_0041cf80() && FUN_0041dc10()) || FUN_0041dc30();
+    const bool ready = (!UiAreAllSynced() && UiIsPauseTick()) || UiGetHold();
     if (ready) AppShowAckDialog(0, 0x1206, kDialogX, kDialogY);
     return 0;
 }
@@ -479,7 +484,7 @@ LRESULT __stdcall RebellionApplication::WindowProc(UINT message, WPARAM wParam, 
             return OnCreate();
         case WM_DESTROY:
         case WM_CLOSE:
-            if (!FUN_00421380()) SetState(kStateConfirmQuit);
+            if (!IsMoviePlaying()) SetState(kStateConfirmQuit);
             return 0;
         case WM_SETFOCUS:
             if (!m_activeWindow) return 0;
@@ -515,7 +520,7 @@ LRESULT __stdcall RebellionApplication::WindowProc(UINT message, WPARAM wParam, 
             }
             return CoolWindow::WindowProc(message, wParam, lParam);
         case WM_PALETTECHANGED:
-            FUN_00421360(wParam);
+            NotifyMoviePaletteChanged(reinterpret_cast<HWND>(wParam));
             if (RealizeCurrentPalette()) InvalidateRect(m_hwnd, nullptr, FALSE);
             return 0;
         case kMsgChildDone:
@@ -536,7 +541,7 @@ LRESULT __stdcall RebellionApplication::WindowProc(UINT message, WPARAM wParam, 
         case kMsgDialogAnswer:
             return OnDialogAnswer(wParam);
         case kMsgDialogEnded:
-            if (wParam == 0x47c || wParam == 0x47d) FUN_0041dbf0();
+            if (wParam == 0x47c || wParam == 0x47d) UiEndPause();
             return 0;
         case kMsgDeactivated:
         case kMsgActivated:
@@ -587,7 +592,7 @@ int __stdcall WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR comm
     if (!(flags & 0x1000)) dataFound = InstalledLocationHasBigData();
     if (!dataFound) {
         ShowCdNotFoundError();
-        FUN_00597050();
+        CommCleanUp();
         CloseHandle(semaphore);
         return 0;
     }

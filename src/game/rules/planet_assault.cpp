@@ -12,6 +12,7 @@
 #include "fleet/troop_reg.h"
 #include "galaxy/system.h"
 #include "galaxy/system_rules_1e.h"
+#include "mission/mission.h"
 #include "mission/mission_rules.h"
 
 namespace {
@@ -33,9 +34,6 @@ int commanderLeadership(GameObjNotifier* commander) {
 }  // namespace
 
 // Record getters shared (ICF) between the unit classes; the garrison and attacking troops use them for their odds.
-int __thiscall FUN_00520b70(GameObjNotifier* self);
-int __thiscall FUN_00520b90(GameObjNotifier* self);
-int __thiscall FUN_00520ba0(GameObjNotifier* self);
 
 // ---- visitors and walker ----------------------------------------------------------------------------------------
 
@@ -168,8 +166,8 @@ int AssaultCombat::Visit(GameObj* troop, GameObj* ship, GameObj* fleet, uint32_t
     unsigned defenderLost = 0;
     int result = 0;
     if (found != 0) {
-        const int attackerRating = FUN_00520b90(troop);
-        const int defenderRating = FUN_00520ba0(defender);
+        const int attackerRating = static_cast<Mission*>(troop)->Mission::GetRecordCanResign();
+        const int defenderRating = static_cast<Mission*>(defender)->Mission::GetRecordField68();
         result = ComputeCompareFlags0200(attackerRating, attackerLeadership, defenderRating, defenderLeadership,
                                          &attackerLost, &defenderLost);
     }
@@ -248,7 +246,7 @@ int AssaultResolver::DefensesFire(NotifyContext* ctx) {
     while (facilities.Current() != nullptr && done == 0) {
         GameObjNotifier* facility = facilities.Current();
         int hit = 0;
-        ok = RollChanceFromGnprtb0200(FUN_00520b70(facility), &hit);
+        ok = RollChanceFromGnprtb0200(static_cast<Mission*>(facility)->Mission::GetRecordHidden(), &hit);
         if (ok != 0 && hit != 0) {
             TroopPicker picker(&m_walker);
             picker.m_target = GameRandom(m_walker.m_attackersAtStart - 1);

@@ -5,6 +5,7 @@
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
 #include "data/random.h"
+#include "events/event_post.h"
 #include "fleet/unit_view_flags.h"
 #include "gameobj/game_obj_iterator.h"
 
@@ -14,8 +15,6 @@ extern "C" void __cdecl LAB_00504c00();
 extern int g_troopRegEventKindsReady;      // 0x6b2b68
 extern EventKindSet g_troopRegEventKinds;  // 0x6b2b70
 
-int FUN_0053fc90(int value, int low, int high, const char* message);
-int FUN_0053fe40(int eventId, GameObj* object, ObjectKey* a, ObjectKey* b, NotifyContext* ctx);
 
 namespace {
 constexpr int kStatusCategory = 1;
@@ -164,7 +163,7 @@ int TroopReg::OnDestroyedRunningBlockadeNotified(int value, NotifyContext* ctx) 
             LogKey("(TroopRegDestroyedRunningBlockadeNotif)", "TroopRegDestroyedRunningBlockade", &parentKey, &logKey,
                    0, ctx);
             ObjectKey eventKey;
-            result = FUN_0053fe40(kRunningBlockadeEvent, this, &parentKey, &eventKey, ctx);
+            result = PostPayloadKeysA(kRunningBlockadeEvent, this, &parentKey, &eventKey, ctx);
         }
     }
     return result;
@@ -189,7 +188,7 @@ int TroopReg::SetDestroyedRunningBlockade(int on, NotifyContext* ctx) {
 int TroopReg::SetWithdrawPercent(int value, NotifyContext* ctx) {
     const int master = IsMasterView();
     int result = 0;
-    if (master) result = FUN_0053fc90(value, 0, 100, "TroopReg.cpp: Invalid WithdrawPercent value!");
+    if (master) result = IsInRange(value, 0, 100, "TroopReg.cpp: Invalid WithdrawPercent value!");
     if (result && m_withdrawPercent != value) {
         const int oldValue = m_withdrawPercent;
         m_withdrawPercent = value;

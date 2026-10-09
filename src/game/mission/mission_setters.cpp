@@ -1,4 +1,5 @@
 #include "mission/mission.h"
+#include "events/event_post.h"
 #include "mission/mission_hub.h"
 
 namespace {
@@ -14,7 +15,7 @@ constexpr int kCompletionStatusMax = 0x10;
 int Mission::SetUserId(int value, NotifyContext* ctx) {
     const int master = IsMasterView();
     int valid = 0;
-    if (master) valid = FUN_0053fc90(value, 0, value, "Invalid UserID value!");
+    if (master) valid = IsInRange(value, 0, value, "Invalid UserID value!");
     if (valid && m_userId != value) {
         const int oldValue = m_userId;
         m_userId = value;
@@ -28,7 +29,7 @@ int Mission::SetUserId(int value, NotifyContext* ctx) {
 int Mission::SetUserId2(int value, NotifyContext* ctx) {
     const int master = IsMasterView();
     int valid = 0;
-    if (master) valid = FUN_0053fc90(value, 0, value, "Invalid UserID2 value!");
+    if (master) valid = IsInRange(value, 0, value, "Invalid UserID2 value!");
     if (valid && m_userId2 != value) {
         const int oldValue = m_userId2;
         m_userId2 = value;
@@ -42,7 +43,7 @@ int Mission::SetUserId2(int value, NotifyContext* ctx) {
 int Mission::SetTaskStatus(int value, NotifyContext* ctx) {
     const int master = IsMasterView();
     int valid = 0;
-    if (master) valid = FUN_0053fc90(value, 0, kTaskStatusMax, "Invalid TaskStatus value!");
+    if (master) valid = IsInRange(value, 0, kTaskStatusMax, "Invalid TaskStatus value!");
     if (valid && m_taskStatus != value) {
         const int oldValue = m_taskStatus;
         m_taskStatus = value;
@@ -56,7 +57,7 @@ int Mission::SetTaskStatus(int value, NotifyContext* ctx) {
 int Mission::SetCompletionStatus(int value, NotifyContext* ctx) {
     const int master = IsMasterView();
     int valid = 0;
-    if (master) valid = FUN_0053fc90(value, kCompletionStatusMin, kCompletionStatusMax, "Invalid CompletionStatus value!");
+    if (master) valid = IsInRange(value, kCompletionStatusMin, kCompletionStatusMax, "Invalid CompletionStatus value!");
     if (valid && m_completionStatus != value) {
         const int oldValue = m_completionStatus;
         m_completionStatus = value;
@@ -70,7 +71,7 @@ int Mission::SetCompletionStatus(int value, NotifyContext* ctx) {
 int Mission::SetPhase(int value, NotifyContext* ctx) {
     const int master = IsMasterView();
     int valid = 0;
-    if (master) valid = FUN_0053fc90(value, mission_phase::kMin, mission_phase::kMax, "Invalid Phase value!");
+    if (master) valid = IsInRange(value, mission_phase::kMin, mission_phase::kMax, "Invalid Phase value!");
     if (valid && m_phase != value) {
         const int oldValue = m_phase;
         m_phase = value;

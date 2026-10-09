@@ -8,6 +8,7 @@
 #include "data/probability_table.h"
 #include "data/random.h"
 #include "data/sd_records.h"
+#include "events/event_post.h"
 #include "fleet/capship_data.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/object_family.h"
@@ -19,8 +20,6 @@ extern "C" void __cdecl LAB_00502cf0();
 extern int g_capShipEventKindsReady;      // 0x6b2b20
 extern EventKindSet g_capShipEventKinds;  // 0x6b2b28
 
-int FUN_0053fc90(int value, int low, int high, const char* message);
-int FUN_0053fcf0(uint32_t eventId, GameObj* object, int oldValue, int newValue, NotifyContext* ctx);
 
 namespace {
 constexpr int kStatusCategory = 1;
@@ -97,7 +96,7 @@ using ChangedFn = int (CapShip::*)(int, int, NotifyContext*);
 int setCriticalHit(CapShip* self, int shift, uint32_t value, int maxValue, const char* message, ApplyFn apply,
                    ChangedFn changed, NotifyContext* ctx) {
     int result = 0;
-    if (self->IsMasterView()) result = FUN_0053fc90(value, 0, maxValue, message);
+    if (self->IsMasterView()) result = IsInRange(value, 0, maxValue, message);
     if (result) {
         const uint32_t oldBits = self->m_criticalHits;
         if (self->GetCriticalHit(shift) != value) {
@@ -134,7 +133,7 @@ int notifyCriticalHit(CapShip* self, uint32_t eventId, const char* tag, const ch
     const int result = self->IsSideView();
     if (result) {
         self->LogInt(tag, property, newValue, oldValue, 0, ctx);
-        FUN_0053fcf0(eventId, self, oldValue, newValue, ctx);
+        PostPayloadInts(eventId, self, oldValue, newValue, ctx);
     }
     return result;
 }
@@ -385,7 +384,7 @@ int CapShip::OnHullValueDamageNotified(int oldValue, int newValue, NotifyContext
     const int result = IsSideView();
     if (result) {
         LogInt("CapShipHullValueDamageNotif", "HullValueDamage", newValue, oldValue, 0, ctx);
-        FUN_0053fcf0(kHullEventId, this, oldValue, newValue, ctx);
+        PostPayloadInts(kHullEventId, this, oldValue, newValue, ctx);
     }
     return result;
 }
@@ -460,7 +459,7 @@ int CapShip::CountCharacters(int* out, int unused1, int unused2) {
 
 int CapShip::SetHullValueDamage(int value, NotifyContext* ctx) {
     int result = IsMasterView();
-    if (result) result = FUN_0053fc90(value, 0, GetHull(), "Invalid HullValueDamage value!");
+    if (result) result = IsInRange(value, 0, GetHull(), "Invalid HullValueDamage value!");
     if (result && m_hullValueDamage != value) {
         const int oldValue = m_hullValueDamage;
         m_hullValueDamage = value;

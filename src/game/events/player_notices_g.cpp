@@ -2,21 +2,21 @@
 
 #include <new>
 
-#include "core/checked_new.h"
-#include "core/vptr_store.h"
-#include "ui/message_template.h"
 #include "ai/ai_common.h"
 #include "character/character.h"
+#include "core/checked_new.h"
 #include "core/game_string.h"
+#include "core/vptr_store.h"
 #include "events/player_notice_util.h"
 #include "events/ui_notifs_ext.h"
 #include "fleet/fleet_iterator.h"
 #include "galaxy/system.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
+#include "gameobj/object_type_db.h"
 #include "strategy_ui/game_ui_facade.h"
+#include "ui/message_template.h"
 
-int FUN_0051cbf0(int view, int tier, DatRecord** out);  // 0x51cbf0, GetTierRecord29
 
 namespace {
 
@@ -700,7 +700,7 @@ void Notice5::Virtual08(int kind, int a, int b) {
         ExpandMessageTemplate(&m_text1, 0x7049, static_cast<ObjectBase*>(record), nullptr, nullptr, nullptr);
     } else if (kind == 0x126) {
         m_unk40 = 1;
-        FUN_0051cbf0(m_owner, b, &record);
+        GetTierRecord29(m_owner, b, &record);
         if (!record) return;
         ExpandMessageTemplate(&m_text0, 0x7048, static_cast<ObjectBase*>(record), nullptr, nullptr, nullptr);
         ExpandMessageTemplate(&m_text1, 0x7049, static_cast<ObjectBase*>(record), nullptr, nullptr, nullptr);

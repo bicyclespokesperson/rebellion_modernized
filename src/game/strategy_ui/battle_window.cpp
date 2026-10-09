@@ -3,6 +3,7 @@
 #include <new>
 
 #include "app/rebapp_globals.h"
+#include "audio/music.h"
 #include "character/role.h"
 #include "core/checked_new.h"
 #include "core/containers.h"
@@ -25,9 +26,6 @@
 
 extern const char g_gokresDllName[];  // 0x6a8708 "gokres.dll"
 
-void __cdecl FUN_00417610(unsigned adviceId);  // plays advice `adviceId` (music resource slot) and marks it playing
-void __cdecl FUN_00417640();                   // stops the advice
-void __cdecl FUN_00417520(unsigned adviceId);
 
 namespace {
 
@@ -460,14 +458,14 @@ void BattleWindow::OnCreate1() {
 
 void BattleWindow::StopAdvice() {
     if (m_advicePlaying != 0) {
-        FUN_00417610(m_adviceId);
+        PlayAdviceMusic(m_adviceId);
         m_advicePlaying = 0;
     }
 }
 
 void BattleWindow::PostCloseRequest() {
-    FUN_00417640();
-    FUN_00417520(static_cast<unsigned>(UiHumanNextAdvice()));
+    StopMusic();
+    StartMusicTrack(static_cast<unsigned>(UiHumanNextAdvice()));
     CoolGameWindow::PostCloseRequest();
 }
 
