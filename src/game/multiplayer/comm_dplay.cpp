@@ -5,11 +5,11 @@
 #include <new>
 
 #include "core/checked_new.h"
+#include "core/icf_stubs.h"
 #include "core/game_string.h"
 #include "multiplayer/comm_mgr.h"
 
 // The shared empty function that stands where the debug build traced; every call keeps its argument.
-void __thiscall FUN_005ae1e0(void* self, const char* text);
 
 namespace {
 
@@ -61,7 +61,7 @@ constexpr DWORD kSessionClosedFlags = DPSESSION_NEWPLAYERSDISABLED | DPSESSION_J
 constexpr int kIdTextBuffer = 100;
 constexpr uint32_t kPingIdLowBits = 0xffffff;
 
-void Trace(CommMgr* comm, const char* text) { FUN_005ae1e0(comm, text); }
+void Trace(CommMgr* comm, const char* text) { IgnoreOneArgument(comm, reinterpret_cast<uintptr_t>(text)); }
 
 void NotifyOwner(CommMgr* comm, int code, uint32_t player) {
     PostMessageA(comm->m_notifyWindow, kCommNotifyMessage, code, player);

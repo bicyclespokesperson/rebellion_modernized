@@ -86,6 +86,8 @@ struct HeadlessSimulator {
     int AddSpecialForce(TacticalUnit* force);        // 0x5af490
     int AddLaunchedFighter(TacticalShipBase* fighter);   // 0x5af4b0
     void RecordSurvivors();                   // 0x5aee90
+    void DeathStarAttackRun(ShipGroup* group);                    // 0x5aefc0
+    void AssignTarget(TacticalShipBase* target, ShipGroup* group);  // 0x5afa00: the group's target becomes `target`
 
     // ---- units (capital-ship module) -----------------------------------------------------------------------
     int ActivateUnit(TacticalShipBase* ship);                 // 0x5af5c0

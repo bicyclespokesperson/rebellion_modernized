@@ -3,8 +3,15 @@ project(rebellion LANGUAGES C CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-# Reconstructed game code: every .cpp under src/game.
+# Reconstructed game code: every .cpp under src/game, except the stubs of the 3D tactical code (below).
 file(GLOB_RECURSE REB_GAME_SOURCES CONFIGURE_DEPENDS src/game/*.cpp)
+list(FILTER REB_GAME_SOURCES EXCLUDE REGEX "tactical_3d_absent\\.cpp$")
+
+# With REB_NO_TACTICAL_3D the hybrid replaces the original 3D tactical code that reconstructed code still references by
+# logged-nothing stubs (src/game/tactical/tactical_3d_absent.cpp: they carry the original names, so they become hooks), and
+# the battle flow resolves a "tactical" vote as auto-resolve. Off by default: the hybrid then runs the original 3D code.
+# The stubs are compiled either way (reb_tactical_stubs) so they cannot rot; they are linked only when the option is on.
+option(REB_NO_TACTICAL_3D "Stub out the 3D tactical code; battles are always auto-resolved" OFF)
 
 # ---- Hybrid build -------------------------------------------------------------------------------
 # A proxy SMACKW32.DLL loaded by the original REBEXE.EXE. Reimplemented functions are patched over the
@@ -20,6 +27,14 @@ add_library(reb_game OBJECT ${REB_GAME_SOURCES})
 target_include_directories(reb_game PRIVATE src/game src)
 target_compile_options(reb_game PRIVATE ${REB_HYBRID_FLAGS})
 
+add_library(reb_tactical_stubs OBJECT src/game/tactical/tactical_3d_absent.cpp)
+target_include_directories(reb_tactical_stubs PRIVATE src/game src)
+target_compile_options(reb_tactical_stubs PRIVATE ${REB_HYBRID_FLAGS})
+if(REB_NO_TACTICAL_3D)
+  target_compile_definitions(reb_game PRIVATE REB_NO_TACTICAL_3D=1)
+  set(REB_STUB_OBJECTS $<TARGET_OBJECTS:reb_tactical_stubs>)
+endif()
+
 add_library(reb_runtime OBJECT src/hybrid/dllmain.cpp src/hybrid/hook.cpp src/hybrid/capture.cpp src/hybrid/runtime_mem.cpp src/hybrid/determinism.cpp)
 set_source_files_properties(src/hybrid/runtime_mem.cpp PROPERTIES COMPILE_OPTIONS "-fno-builtin;/Oi-")
 target_include_directories(reb_runtime PRIVATE src)
@@ -31,15 +46,16 @@ add_custom_command(
   COMMAND python3 ${CMAKE_SOURCE_DIR}/tools/gen_link_symbols.py
           --csv ${CMAKE_SOURCE_DIR}/symbols/symbols.csv
           --out-asm ${REB_GEN}/link_symbols.s --out-report ${REB_GEN}/report.json
-          --runtime $<TARGET_OBJECTS:reb_runtime> --game $<TARGET_OBJECTS:reb_game>
+          --runtime $<TARGET_OBJECTS:reb_runtime> --game $<TARGET_OBJECTS:reb_game> ${REB_STUB_OBJECTS}
   COMMAND llvm-mc-19 -triple=i686-pc-windows-msvc -filetype=obj -o ${REB_GEN}/link_symbols.obj ${REB_GEN}/link_symbols.s
-  DEPENDS $<TARGET_OBJECTS:reb_game> $<TARGET_OBJECTS:reb_runtime>
-          ${CMAKE_SOURCE_DIR}/symbols/symbols.csv ${CMAKE_SOURCE_DIR}/symbols/aliases.csv ${CMAKE_SOURCE_DIR}/tools/gen_link_symbols.py
+  DEPENDS $<TARGET_OBJECTS:reb_game> $<TARGET_OBJECTS:reb_runtime> ${REB_STUB_OBJECTS}
+          ${CMAKE_SOURCE_DIR}/symbols/symbols.csv ${CMAKE_SOURCE_DIR}/tools/gen_link_symbols.py
   COMMAND_EXPAND_LISTS VERBATIM)
 
 add_library(rebhybrid SHARED
-  $<TARGET_OBJECTS:reb_game> $<TARGET_OBJECTS:reb_runtime>
+  $<TARGET_OBJECTS:reb_game> $<TARGET_OBJECTS:reb_runtime> ${REB_STUB_OBJECTS}
   ${REB_GEN}/link_symbols.obj src/hybrid/smackw32.def)
+add_dependencies(rebhybrid reb_tactical_stubs)
 set_target_properties(rebhybrid PROPERTIES OUTPUT_NAME "smackw32" PREFIX "" LINKER_LANGUAGE CXX)
 target_link_options(rebhybrid PRIVATE /NODEFAULTLIB /ENTRY:DllMain /DEBUG /BASE:0x20000000 /DYNAMICBASE:NO
   /MAP:${CMAKE_BINARY_DIR}/smackw32.map)

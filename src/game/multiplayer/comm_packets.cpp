@@ -1,4 +1,5 @@
 #include "multiplayer/comm_packets.h"
+#include "core/icf_stubs.h"
 
 #include <cstdio>
 #include <cstdlib>
@@ -16,7 +17,6 @@ void DestroySessionList();
 void DestroyLobbyConnection();
 
 // The shared empty function the release build left in place of the debug trace (it pops one argument).
-void __thiscall FUN_005ae1e0(void* self, const char* text);
 
 namespace {
 
@@ -330,7 +330,7 @@ CommBuffer* PartialMessage::Assemble() {
     if (total >= kLongMessageLength) {
         char text[100];
         sprintf(text, kLongMessageFormat, total);
-        FUN_005ae1e0(TraceTarget(), text);
+        IgnoreOneArgument(TraceTarget(), reinterpret_cast<uintptr_t>(text));
     }
     CommBuffer* buffer = static_cast<CommBuffer*>(::operator new(sizeof(CommBuffer)));
     if (buffer) {

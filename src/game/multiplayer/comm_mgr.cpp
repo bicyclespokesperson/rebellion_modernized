@@ -1,4 +1,5 @@
 #include "multiplayer/comm_mgr.h"
+#include "core/icf_stubs.h"
 
 #include <cstdio>
 #include <cstring>
@@ -8,7 +9,6 @@
 #include "core/vptr_store.h"
 
 // The shared empty function that stands where the debug build traced; every call keeps its argument.
-void __thiscall FUN_005ae1e0(void* self, const char* text);
 
 namespace {
 
@@ -41,7 +41,7 @@ constexpr char kTracePingStart[] = "CommMgr::PingOpponents 2188 Sending Ping -";
 constexpr char kTracePingResult[] = " Pinging Players %u Return Code %u\n";
 constexpr char kTraceNewline[] = "\n";
 
-void Trace(CommMgr* comm, const char* text) { FUN_005ae1e0(comm, text); }
+void Trace(CommMgr* comm, const char* text) { IgnoreOneArgument(comm, reinterpret_cast<uintptr_t>(text)); }
 
 void NotifyOwner(CommMgr* comm, int code, uint32_t player) {
     PostMessageA(comm->m_notifyWindow, kCommNotifyMessage, code, player);

@@ -1,4 +1,5 @@
 #include "tactical/tactical_game.h"
+#include "audio/sound_manager.h"
 
 #include <new>
 
@@ -116,7 +117,7 @@ TacticalGame::~TacticalGame() {
     if (m_unk08) delete m_unk08;
     m_unk08 = nullptr;
     ShutDownBattle();
-    FUN_005ba920();
+    DestroyTacticalSoundManager();
     if (g_tacticalRegistry) delete g_tacticalRegistry;
     g_tacticalRegistry = nullptr;
 }
@@ -148,7 +149,7 @@ int TacticalGame::ShutDownBattle() {
     destroysSimulatorIfAny();
     DestroyObjectManager();
     DestroyTacticalHub();
-    FUN_005bbee0();
+    DestroyTurnSync();
     AppDestroyTacticalWindow();
     --m_busy;
     if (m_busy < 0) m_busy = 0;
@@ -325,4 +326,26 @@ int TacticalGame::AddDeathStar(int family, int id, int notCompleted, int hasFaci
         return GetHeadlessSimulator()->AddDeathStar(family, id, notCompleted, hasFacility, hull, hullNow, hangarFree);
     }
     return GetObjectManager()->AddDeathStar(family, id, notCompleted, hasFacility, hull, hullNow, hangarFree);
+}
+
+// ---- teardown of the 3D battle's sound manager and turn-sync object (neither exists in an auto-resolved battle) ---------
+
+void DestroyTacticalSoundManager() {
+    if (g_tacticalSoundManager == nullptr) return;
+    for (TacticalSoundNode* sound = g_tacticalSoundManager->FirstSound(); sound != nullptr;
+         sound = g_tacticalSoundManager->FirstSound()) {
+        FUN_005bab10(g_tacticalSoundManager, sound->m_handle);
+    }
+    SoundManager::Shutdown(0);
+    delete g_tacticalSoundManager;
+    g_tacticalSoundManager = nullptr;
+}
+
+void DestroyTurnSync() {
+    TacticalTurnSync* sync = g_tacticalTurnSync;
+    if (sync != nullptr) {
+        FUN_005bbe20(sync);
+        ::operator delete(sync);
+    }
+    g_tacticalTurnSync = nullptr;
 }

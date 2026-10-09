@@ -43,15 +43,15 @@ public:
     virtual void Virtual06() = 0;
     virtual int AddMember(int handle);                      // 0x5ea250 slot 7
     virtual int RemoveMember(int handle);                   // 0x5ea630 slot 8
-    virtual void Virtual09();                               // 0x5eb040
-    virtual void Virtual10();                               // 0x5ebdf0
-    virtual void Virtual11();                               // 0x5ea500
+    virtual void Virtual09(int a, int b);                               // 0x5eb040
+    virtual void Virtual10(int a, int b);                               // 0x5ebdf0
+    virtual void Virtual11(int a, int b);                               // 0x5ea500
     virtual TacticalVector* SlotOffset(TacticalVector* out, TacticalShipBase* unit) = 0;  // slot 12
     virtual float Virtual13();                              // 0x5ea4e0 (the formation's speed)
-    virtual void Virtual14();                               // 0x5c7310
+    virtual void Virtual14(int a);                               // 0x5c7310
     virtual void Virtual15();                               // 0x5c7350
     virtual void Virtual16();                               // 0x5ea740
-    virtual void Virtual17();                               // 0x5eb190
+    virtual void Virtual17(int a);                               // 0x5eb190
     virtual double Turn(float step, float rate) override;   // 0x5eae40
     virtual int Virtual03(int a, int b, int c) override;  // 0x5eb540
     virtual void Read(istream* in) override;                  // 0x5e9e00
@@ -78,7 +78,7 @@ public:
     CapitalShipFormation(int groupHandle, TacticalVector position);  // 0x5c72b0
     virtual ~CapitalShipFormation();                               // 0x5ebdd0 (scalar deleting destructor 0x5c7360)
     virtual void Virtual06() override;                             // 0x526f00
-    virtual void Virtual09() override;                             // 0x5ebe30
+    virtual void Virtual09(int a, int b) override;                             // 0x5ebe30
     virtual TacticalVector* SlotOffset(TacticalVector* out, TacticalShipBase* unit) override;  // 0x5ebee0
     virtual float Virtual13() override;                            // 0x5ec0b0
     virtual int Virtual03(int a, int b, int c) override;     // 0x5ec0d0

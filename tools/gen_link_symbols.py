@@ -32,7 +32,7 @@ RDATA_RANGE = (0x658000, 0x6a6000)
 DATA_RANGE = (0x6a6000, 0x6b0600)
 BSS_RANGE = (0x6b0600, 0x6c0000)
 GAP_CATEGORIES = (
-    "game_function", "tactical_function", "stale_declaration", "alias_standin", "win32_import", "libci", "crt",
+    "game_function", "tactical_function", "stale_declaration", "win32_import", "libci", "crt",
     "data_bss", "data_data", "data_rdata", "unresolved_other",
 )
 
@@ -275,7 +275,7 @@ def data_category(address: int) -> str:
 
 
 def build_gap_report(refs: list[tuple[str, str, OriginalSymbol]], hooked: set[int], classifier: GapClassifier) -> dict:
-    """refs: (raw symbol, how it resolved: 'csv' | 'alias' | 'import', original symbol)."""
+    """refs: (raw symbol, how it resolved: 'csv' | 'import', original symbol)."""
     categories: dict[str, list[dict]] = {c: [] for c in GAP_CATEGORIES}
     raw_by_data_address: dict[int, set[str]] = {}
     for raw, how, orig in refs:
@@ -285,8 +285,6 @@ def build_gap_report(refs: list[tuple[str, str, OriginalSymbol]], hooked: set[in
         elif orig.kind != "func":
             category = data_category(orig.address)
             raw_by_data_address.setdefault(orig.address, set()).add(raw)
-        elif how == "alias":
-            category = "alias_standin"
         elif orig.address in hooked:
             category = "stale_declaration"
         else:
@@ -315,10 +313,6 @@ def main() -> int:
     args = ap.parse_args()
 
     table, ambiguous = load_csv(args.csv)
-    # aliases.csv: extra names for original addresses (stand-in declarations); they resolve references only and
-    # never produce hooks, so symbols.csv can keep one canonical name per address.
-    alias_path = args.csv.parent / "aliases.csv"
-    aliases, _ = load_csv(alias_path) if alias_path.exists() else ({}, set())
     game_imports = load_game_imports(args.csv.parent / "imports.csv")
     runtime_defined = {s.raw for s in run_nm(args.runtime) if s.defined}
     symbols = [s for s in run_nm(args.game + args.runtime)
@@ -354,17 +348,13 @@ def main() -> int:
         except LookupError as e:
             errors.append(str(e))
             continue
-        via_alias = False
-        if orig is None and not s.defined:
-            orig = resolve(s, aliases, set())
-            via_alias = orig is not None
         if orig is None:
             if not s.defined and s.raw not in defined_anywhere:
                 unresolved.append(s.raw)
             continue
         if not s.defined:
             absolute.append((s.raw, orig.address))
-            gap_refs.append((s.raw, "alias" if via_alias else "csv", orig))
+            gap_refs.append((s.raw, "csv", orig))
         elif s.nm_type in TEXT_TYPES:
             if orig.kind != "func":
                 errors.append(f"{s.key}: defined as code but {orig.name} at {orig.address:#x} is data")

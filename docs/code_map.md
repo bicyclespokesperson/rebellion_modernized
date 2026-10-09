@@ -309,6 +309,25 @@ Code lives in `src/game/app/battle_flow*.cpp|battle_handoff.cpp|battle_results.c
   destructors 0x5d14a0/0x5d14b0.
 - Calling-convention traps found: 0x5ae1e0 (shared empty stub) and 0x5bbd90 pop one argument; several stubs the decompiler shows
   as `void f(void)` take arguments. `tools/check_callee_pop.py` catches these.
+- **Tactical fence (M3, Oct 2026).** Count-1 captures of every tactical function that reconstructed code still referenced (152
+  addresses, plus the 3D slots of the ship classes) over `space_battle_autoresolve` and `_retry` hit only 12: the ICF getters
+  `TacticalShipBase::GetValue3a0` (0x5a66d0) / `Virtual01` (0x5a66f0) / `TacticalCapitalShip::GetTypeIndex` (0x5a6760), the group
+  kind getters 0x5a6700 / 0x5a6730, the shared `IgnoreOneArgument` (0x5ae1e0), `TacticalCharacterTree::FirstItem` (0x5f6590), the
+  turn-sync channel destructors (0x5bdcc0 / 0x5bdd00), the target assignment `HeadlessSimulator::AssignTarget` (0x5afa00) and the
+  null-singleton teardown of the sound manager and the turn-sync object (0x5ba920 / 0x5bbee0). All are reconstructed. The Death
+  Star strike `HeadlessSimulator::DeathStarAttackRun` (0x5aefc0, called by `TacticalAiSide::StepSide` when a ready Death Star
+  faces fewer hangars) is not reached by either scenario (no Death Star in the save); it is reconstructed anyway and verified
+  with `difftest --entry` over simulator captures (80 random seeds, both sides; the branch that fires the Death Star while a
+  Death Star object exists is read, not executed).
+  Everything else (164 addresses: the tactical window, 3D view, sound, 3D object manager and lockstep streaming, 3D ship movement
+  and weapon hits, the groups', formations' and 3D side's behaviour) is a do-nothing stub carrying the original name in
+  `src/game/tactical/tactical_3d_absent.cpp`. The file is compiled into the hybrid only with `-DREB_NO_TACTICAL_3D=ON`
+  (`REB_NO_TACTICAL_3D=ON tools/build_hybrid.sh`); then the stubs are hooks (so they replace the original 3D code) and
+  `BattleFlow` resolves a "tactical" vote as auto-resolve. The default hybrid still runs the original 3D code.
+  The stub signatures must pop what the original pops: header declarations such as `ShipGroup::Virtual27(int a)` carry a
+  placeholder `int` per stack slot for that reason (`tools/check_callee_pop.py` in an ON build reports mismatches).
+  The vtable slots that the original has as `_purecall` are pure virtuals now (`TacticalShipBase` slots 8, 9, 24-30, 39, 44-46,
+  49-52); the ICF-shared tiny bodies of the others are in-class definitions, and `aliases.csv` is gone.
 
 ### Battle lifecycle: strategic → tactical → strategic
 

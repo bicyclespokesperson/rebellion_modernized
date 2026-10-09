@@ -109,7 +109,7 @@ public:
     virtual int Refresh(int a);                     // 0x5c7f70 slot 5
     virtual int Slot06();                           // 0x5c8300
     virtual int SplitIntoGroups(TargetPriorityTree* targets, int least, int most);  // 0x5c83c0
-    virtual int Slot08();                           // 0x5c8660
+    virtual int Slot08(int a, int b, int c);                           // 0x5c8660
 
     int HasDisabledUnit();                     // 0x5c7e40 (a fleet unit with +0x150 set)
     void RecordFleetPriorities();              // 0x5c81d0 notes the strength and sorts the fleet into the target lists
@@ -158,7 +158,7 @@ public:
     virtual int Refresh(int a) override;                      // 0x5d0ce0
     virtual int Slot06() override;                            // 0x5d1410
     virtual int SplitIntoGroups(TargetPriorityTree* targets, int least, int most) override;  // 0x5d1240
-    virtual int Slot08() override;                            // 0x5d1080
+    virtual int Slot08(int a, int b, int c) override;                            // 0x5d1080
     virtual int RecordFleet(UnitRefTree* unused);             // 0x5d14c0 slot 9
     virtual int StepSide(float step);                         // 0x5d14d0 slot 10
     virtual int Virtual11();                                  // 0x5d19a0

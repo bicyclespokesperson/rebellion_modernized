@@ -108,7 +108,7 @@ void TacticalShipBase::BuildStatusRecord(TacticalShipStatusRecord* out) {
 
 double TacticalCapitalShip::Virtual43() { return 3.0f; }
 
-double TacticalFighter::Virtual43() { return 3.0f; }
+double TacticalShipBase::Virtual43() { return 3.0f; }
 
 // ---- fighter squadrons ----------------------------------------------------------------------------------------------
 
@@ -137,3 +137,7 @@ void __cdecl TacticalFighterStatusEvent(TacticalEvent* event) {
         static_cast<TacticalFighter*>(GetTacticalRegistry()->FindShip(record->m_unk00));
     if (fighter != nullptr) fighter->ApplyStatus(record);
 }
+
+void TacticalShipFacetC::Write(ostream* out) { WriteValue32(out, &m_fC_04); }
+
+void TacticalShipFacetC::Read(istream* in) { ReadValue32(in, &m_fC_04); }

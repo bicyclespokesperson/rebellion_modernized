@@ -1,4 +1,5 @@
 #include "core/vptr_store.h"
+#include "tactical/tactical_game.h"
 #include "tactical/tactical_groups.h"
 #include "tactical/tactical_objmgr.h"
 #include "tactical/tactical_registry.h"
@@ -174,4 +175,85 @@ HeadlessSimulator::~HeadlessSimulator() {
     m_sides[0] = nullptr;
     delete m_sides[1];
     m_sides[1] = nullptr;
+}
+
+// ---- the Death Star's strike on a capital-ship group (0x5aefc0) and target assignment (0x5afa00) ----------------------
+
+namespace {
+
+constexpr float kHullPerDamageStep = 8.0f;
+constexpr float kBestSkill = 9.0f;
+constexpr float kStrikeChanceScale = 0.5f;
+constexpr uint32_t kMaxVisits = 100;
+
+void retireAll(HeadlessSimulator* simulator, UnitRefTree* units, bool clearAfterwards) {
+    for (UnitRefNode* node = units->FirstNode(); node;) {
+        UnitRefNode* next = node->Next();
+        simulator->RetireUnit(node->Value());
+        node = next;
+    }
+    if (clearAfterwards) units->Clear();
+}
+
+}  // namespace
+
+// Walks (cyclically, at most 100 visits) over a copy of the group's ships. A ship that out-rolls its turn rate loses hull
+// or is retired; one with hull left may then be picked by the Death Star: its weapon strike removes the ships docked in and
+// launched from the Death Star and ends the run.
+void HeadlessSimulator::DeathStarAttackRun(ShipGroup* group) {
+    UnitRefTree units;
+    units.CopyFrom(static_cast<UnitRefTree*>(group));
+    uint32_t visits = 0;
+    UnitRefNode* node = units.FirstNode();
+    if (node == nullptr) return;
+    for (;;) {
+        UnitRefNode* next = node->Next();
+        if (next == nullptr) next = units.FirstNode();
+        if (++visits > kMaxVisits) {
+            retireAll(this, &units, false);
+            return;
+        }
+        TacticalShipBase* ship = node->Value();
+        const uint32_t turnRate = static_cast<uint32_t>(static_cast<int>(ship->GetTurnRate()));
+        bool retired = false;
+        if (static_cast<uint32_t>(GetHeadlessSimulator()->RandomBetween(1, 10)) > turnRate) {
+            const uint32_t steps = static_cast<uint32_t>(static_cast<int>(ship->m_hull / kHullPerDamageStep));
+            if (steps <= 1) {
+                RetireUnit(ship);
+                retired = true;
+            } else {
+                const uint32_t roll = static_cast<uint32_t>(GetHeadlessSimulator()->RandomBetween(1, static_cast<int>(steps)));
+                ship->TakeDamage(static_cast<float>(static_cast<double>(roll) * kHullPerDamageStep));
+                if (!(ship->m_hull > 0.0f)) {
+                    RetireUnit(ship);
+                    retired = true;
+                }
+            }
+            if (retired) units.RemoveById(static_cast<int>(ship->m_id));
+        }
+        if (retired) {
+            if (units.FirstNode() == nullptr) return;
+        } else if (ship->m_hull > 0.0f) {
+            const double skillB = GetHeadlessSimulator()->CommanderSkillB(0);
+            const float skill = skillB < kBestSkill ? static_cast<float>(GetHeadlessSimulator()->CommanderSkillB(0)) : kBestSkill;
+            const float chance = static_cast<float>((ship->TorpedoStrength() + skill) * kStrikeChanceScale);
+            const uint32_t strikeRoll = static_cast<uint32_t>(GetHeadlessSimulator()->RandomBetween(1, 100));
+            if (strikeRoll <= static_cast<uint32_t>(static_cast<int>(chance))) {
+                TacticalDeathStar* deathStar = static_cast<TacticalDeathStar*>(GetTacticalRegistry()->GetDeathStar());
+                if (deathStar != nullptr) {
+                    deathStar->ResetCharged();
+                    retireAll(this, deathStar->m_docked, true);
+                    retireAll(this, deathStar->m_launched, true);
+                }
+                return;
+            }
+        }
+        node = next;
+        if (units.FirstNode() == nullptr) return;
+    }
+}
+
+void HeadlessSimulator::AssignTarget(TacticalShipBase* target, ShipGroup* group) {
+    group->m_formationA.Clear();
+    group->m_formationA.AddUnitLinear(target);
 }

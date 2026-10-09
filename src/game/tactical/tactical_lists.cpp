@@ -205,3 +205,10 @@ int TargetPriorityTree::IsLess(AvlNode* a, AvlNode* b) {
     if (left->m_priority == right->m_priority) return left->m_unit.UnitBefore(&right->m_unit);
     return left->m_priority < right->m_priority;
 }
+
+UnitRefTree* UnitRefTree::CopyFrom(UnitRefTree* other) {
+    if (other != this) {
+        for (UnitRefNode* node = other->FirstNode(); node; node = node->Next()) AddUnit(node->Value());
+    }
+    return this;
+}
