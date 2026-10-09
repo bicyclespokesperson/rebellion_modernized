@@ -8,6 +8,7 @@
 #include "gameobj/object_database.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
+#include "orders/mission_orders.h"
 #include "orders/order_checks.h"
 #include "orders/route_context.h"
 
@@ -146,7 +147,7 @@ int MoveOrderBase::CollectTransitDays(StatusCode* status, ObjectKeyValueSet* out
                 int collected = static_cast<ObjectMoveOrder*>(order)->CollectTransitDays(status, &days);
                 result = collected != 0 && result != 0;
             } else if (kind == kMissionOrderKind) {
-                int collected = FUN_004f4850(static_cast<MissionOrder*>(order), status, &days);
+                int collected = (static_cast<MissionOrder*>(order))->CollectCandidates(status, &days);
                 result = collected != 0 && result != 0;
             }
             if (isOk(status)) {
@@ -215,8 +216,8 @@ int MoveOrderBase::BuildMissionOrder(ObjectKeyValueSet* team, MissionOrder** out
     ObjectKeyValueSet characters;
     int result = TakeCharactersAtOneLocation(team, &characters, status);
     if (result != 0 && isOk(status) && characters.Count() != 0) {
-        void* memory = ::operator new(sizeof(MissionOrder));
-        MissionOrder* order = memory ? FUN_004f5440(memory) : nullptr;
+        void* memory = ::operator new(sizeof(MissionOrder241));
+        MissionOrder241* order = memory ? new (memory) MissionOrder241() : nullptr;
         *out = order;
         result = order != nullptr;
         if (result != 0) {
@@ -227,7 +228,7 @@ int MoveOrderBase::BuildMissionOrder(ObjectKeyValueSet* team, MissionOrder** out
             order->m_unk48 = 0;
             ObjectKey target;
             order->SetTarget(GetTargetInto(&target));
-            order->m_missionKey = ObjectKey::Make(kMissionKeyFamily, 1);
+            order->m_missionKey.m_value = ObjectKey::Make(kMissionKeyFamily, 1).m_value;
             order->SetTeam(&characters);
             order->m_characters = ObjectKeyValueSet();
         }

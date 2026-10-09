@@ -13,6 +13,7 @@
 #include "gameobj/object_lookup.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
+#include "strategy_ui/system_missions_window.h"
 #include "strategy_ui/system_window.h"
 #include "ui/bitmap_status_bar.h"
 #include "ui/cool_app.h"
@@ -29,7 +30,6 @@
 extern HPALETTE g_palette;
 extern const char g_statusSeparator[];  // 0x6a872c ":"
 
-GameObjNotifier* __thiscall FUN_004a25c0(void* window);
 
 namespace {
 
@@ -107,7 +107,7 @@ LRESULT __stdcall SystemWindow::WindowProc(UINT message, WPARAM wParam, LPARAM l
             SetFocus(m_page == static_cast<int>(kFirstPage) ? m_hwnd : m_list->m_hwnd);
             return 0;
         case kSectorId: {
-            GameObjNotifier* system = FUN_004a25c0(this);
+            GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
             if (!system || !m_galaxy) return 0;
             ObjectKey sectorKey;
             if (static_cast<GameObj*>(system)->GetValidParentKey(&sectorKey)) m_galaxy->OpenSectorWindow(&sectorKey);
@@ -273,7 +273,7 @@ LRESULT __stdcall SystemWindow::WindowProc(UINT message, WPARAM wParam, LPARAM l
 // ---- Painting ----------------------------------------------------------------------------------------------
 
 void SystemWindow::DrawContents(RECT paintRect, HDC dc) {
-    GameObjNotifier* system = FUN_004a25c0(this);
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
     if (!system) return;
     const int left = m_titleRect.left;
     const int top = m_titleRect.top;
@@ -398,7 +398,7 @@ void SystemWindow::LoadTabArt() {
 }
 
 void SystemWindow::OnCreate1() {
-    GameObjNotifier* system = FUN_004a25c0(this);
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
     m_controlSide = (ControlBits(system) >> 6) & 3;
     String unusedText;
     ObjectKey unusedKeyA;
@@ -583,7 +583,7 @@ void SystemWindow::OnCreate1() {
 
 int SystemWindow::SelectPage(int page) {
     HMODULE art = CoolAppGetResourceModule(kArtSlot);
-    GameObjNotifier* system = FUN_004a25c0(this);
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
     if (!system) return 0;
     if (m_page == page) return 0;
     (void)m_children.First();

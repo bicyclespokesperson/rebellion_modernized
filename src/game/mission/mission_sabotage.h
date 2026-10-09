@@ -19,7 +19,7 @@ public:
     virtual int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x56a300
     virtual int Virtual160(NotifyContext* ctx) override;                        // 160, shared 0x5746e0
 
-    static int CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out);  // 0x56a110
+    static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56a110
     static int BuildEventKinds();      // 0x56a3b0
     static void InitStatics();         // 0x56a3e0
     static GameObjNotifier* Create();  // 0x56a0a0

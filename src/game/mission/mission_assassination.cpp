@@ -34,7 +34,7 @@ int MissionAssassination::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionAssassination::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -43,15 +43,15 @@ GameObj* MissionAssassination::CreateViewObject() { return NewOrNull<MissionAssa
 
 GameObjNotifier* MissionAssassination::Create() { return NewOrNull<MissionAssassination>(); }
 
-int MissionAssassination::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionAssassination::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
-    return FUN_00586e20(check, status, out);
+    return MissionCharacterTargetBase::CheckTarget(check, status, out);
 }
 
 int MissionAssassination::Virtual157(GameObj* person, int* out) {
     Character* target = nullptr;
-    const int found = FUN_00586c80(this, &target);
+    const int found = static_cast<MissionCharacterTargetBase*>(this)->GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target));
     bool ok = found != 0;
     if (!target) return ok;
     const int targetCombat = target->GetCombat();
@@ -68,7 +68,7 @@ int MissionAssassination::Virtual159(GameObj* personObject, int roll, int* out, 
     if (!PercentChance(roll)) return 1;
     *out = 1;
     Character* target = nullptr;
-    const int found = FUN_00586c80(this, &target);
+    const int found = static_cast<MissionCharacterTargetBase*>(this)->GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target));
     bool ok = found != 0;
     if (target) ok = target->Virtual187(ctx) && ok;
     if (!target || !(target->m_stateFlags & kDestroyedState)) return ok;
@@ -81,7 +81,7 @@ int MissionAssassination::Virtual159(GameObj* personObject, int roll, int* out, 
 int MissionAssassination::BuildEventKinds() {
     if (!g_missionAssassinationEventKindsReady) {
         g_missionAssassinationEventKindsReady = 1;
-        return FUN_00587090(0, &g_missionAssassinationEventKinds);
+        return MissionCharacterTargetBase::InitEventKinds(0, &g_missionAssassinationEventKinds);
     }
     return 1;
 }

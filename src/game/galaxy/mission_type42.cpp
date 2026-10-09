@@ -3,6 +3,7 @@
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "gameobj/game_hooks.h"
+#include "mission/mission_bases.h"
 #include "mission/mission_forwarders.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
@@ -41,11 +42,11 @@ int Mission42::ApplyAll(NotifyContext* ctx) {
 
 int Mission42::CreateViews(int controlKind, NotifyContext* ctx) { return MissionTypeCreateViewsForward(this, controlKind, ctx); }
 
-int Mission42::ReadImpl(istream* in) { return FUN_00592c50(this, in); }
+int Mission42::ReadImpl(istream* in) { return reinterpret_cast<MissionRuleBase*>(this)->ReadBody(in); }
 
-int Mission42::ChecksumImpl(Crc32* crc) { return FUN_00593ad0(this, crc); }
+int Mission42::ChecksumImpl(Crc32* crc) { return this->ChecksumBody(crc); }
 
-int Mission42::ValidateImpl() { return FUN_00523c60(this); }
+int Mission42::ValidateImpl() { return static_cast<Mission*>(this)->ValidateImpl(); }
 
 int Mission42::GetEventKinds(int unused, EventKindSet* out) {
     const int result = BuildEventKinds();

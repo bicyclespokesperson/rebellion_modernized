@@ -15,12 +15,7 @@
 int __thiscall FUN_00555540(GameObjNotifier* self, GameObj* object, GameObjNotifier** owner);
 
 // A manufacturing manager (family 0xa0-0xaf, ManuMgr module).
-class ManuMgrDecl;
-int __thiscall FUN_00528040(ManuMgrDecl* manager, int includeFlagged);
-void __thiscall FUN_0052a430(ManuMgrDecl* manager, NotifyContext* ctx);
-
-// System::FindManufacturingManagerBySlot123 (galaxy module, 0x509670): the manager of a system whose slot value is `slot`.
-ManuMgrDecl* __thiscall FUN_00509670(GameObjNotifier* system, int slot);
+class ManuMgr;
 
 // Rules/object-type database wrappers (0x51c-0x51d).
 class SdRecord;

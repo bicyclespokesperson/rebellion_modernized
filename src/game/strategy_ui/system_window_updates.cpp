@@ -9,6 +9,7 @@
 #include "gameobj/object_lookup.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
+#include "strategy_ui/system_missions_window.h"
 #include "strategy_ui/system_window.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
@@ -17,7 +18,6 @@
 #include "ui/cool_tab_control.h"
 #include "ui/object_list_item.h"
 
-GameObjNotifier* __thiscall FUN_004a25c0(void* window);
 
 namespace {
 
@@ -127,7 +127,7 @@ void SystemWindow::OnChildAdded(const ObjectKey* key, GameObjNotifier* object) {
     uint16_t tabBitmap = 0;
     DibBitmap* picture = nullptr;
     ObjectListItem* item = nullptr;
-    if (!FUN_004a25c0(this)) return;
+    if (!reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem()) return;
     const uint32_t family = key->Family();
     for (const FacilityPage& page : kFacilityPages) {
         if (family != page.m_family) continue;
@@ -196,7 +196,7 @@ void SystemWindow::OnChildMoved(const ObjectKey* key, GameObjNotifier* object, c
     CoolWindow* tab = nullptr;
     uint16_t tabBitmap = 0;
     String unusedText;
-    GameObjNotifier* system = FUN_004a25c0(this);
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
     if (!system) return;
     GameObj* systemObject = static_cast<GameObj*>(system);
     const uint32_t family = key->Family();

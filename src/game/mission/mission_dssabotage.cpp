@@ -35,7 +35,7 @@ int MissionDSSabotage::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionDSSabotage::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -44,11 +44,11 @@ GameObj* MissionDSSabotage::CreateViewObject() { return NewOrNull<MissionDSSabot
 
 GameObjNotifier* MissionDSSabotage::Create() { return NewOrNull<MissionDSSabotage>(); }
 
-int MissionDSSabotage::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionDSSabotage::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
-    const int result = FUN_00593500(check, status, out);
-    const bool targetKnown = check->m_unk04 && check->m_unk0c;
+    const int result = MissionObjectTargetBase::CheckTarget(check, status, out);
+    const bool targetKnown = check->m_flag04 && check->m_flag0c;
     if (targetKnown && result && status->m_second == static_cast<uint32_t>(mission_status::kOk)) {
         if (!FamilyInRange(check->m_target->GetFamily(), kDeathStars)) {
             *status = StatusCode(kStatusCategoryOrder, kStatusTargetNotDeathStar);
@@ -85,7 +85,7 @@ int MissionDSSabotage::Virtual159(GameObj* person, int roll, int* out, NotifyCon
 int MissionDSSabotage::BuildEventKinds() {
     if (!g_missionDSSabotageEventKindsReady) {
         g_missionDSSabotageEventKindsReady = 1;
-        return FUN_005936c0(0, &g_missionDSSabotageEventKinds);
+        return MissionObjectTargetBase::InitEventKinds(0, &g_missionDSSabotageEventKinds);
     }
     return 1;
 }

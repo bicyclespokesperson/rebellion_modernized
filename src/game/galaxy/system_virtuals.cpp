@@ -1,14 +1,9 @@
 #include "character/role.h"
 #include "core/vptr_store.h"
+#include "fleet/fleet.h"
 #include "galaxy/system.h"
 #include "gameobj/object_family.h"
 #include "orders/order_checks.h"
-
-// Adds the (side-matching) children an iterator yields to the key set (0x553350); 0 if an insertion failed.
-// Fleet::SetFlag01/02/04 (0x4fe230, 0x4fe2a0, 0x4fe310): the fleet code is reconstructed elsewhere.
-int __thiscall FUN_004fe230(GameObj* fleet, int on, NotifyContext* ctx);
-int __thiscall FUN_004fe2a0(GameObj* fleet, int on, NotifyContext* ctx);
-int __thiscall FUN_004fe310(GameObj* fleet, int on, NotifyContext* ctx);
 
 namespace {
 
@@ -128,7 +123,7 @@ int System::CreateDefaultFleet(int initArg, int arrived, NotifyContext* ctx) {
     key.m_value = kDefaultFleetKey;
     GameObj* fleet = CreateChild(&key, initArg, ctx, 0, 0);
     int result = 0;
-    if (fleet && FUN_004fe230(fleet, 0, ctx)) result = arrived ? FUN_004fe2a0(fleet, 1, ctx) : FUN_004fe310(fleet, 1, ctx);
+    if (fleet && static_cast<Fleet*>(fleet)->SetFlag01(0, ctx)) result = arrived ? static_cast<Fleet*>(fleet)->SetFlag02(1, ctx) : static_cast<Fleet*>(fleet)->SetFlag04(1, ctx);
     return result;
 }
 

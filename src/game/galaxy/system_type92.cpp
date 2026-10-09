@@ -23,24 +23,24 @@ SystemType92::~SystemType92() { REB_KEEP_VPTR_STORE(); }
 
 uint32_t SystemType92::GetFamily() { return kFamilySystemType92; }
 
-int SystemType92::Read(istream* in) { return FUN_0050e410(this, in); }
+int SystemType92::Read(istream* in) { return this->System::Read(in); }
 
-int SystemType92::Write(ostream* out) { return FUN_0050e4e0(this, out); }
+int SystemType92::Write(ostream* out) { return this->System::Write(out); }
 
-int SystemType92::Checksum(Crc32* crc) { return FUN_0050e730(this, crc); }
+int SystemType92::Checksum(Crc32* crc) { return this->System::Checksum(crc); }
 
-int SystemType92::Validate() { return FUN_0050e820(this); }
+int SystemType92::Validate() { return this->System::Validate(); }
 
 int SystemType92::ApplyAll(NotifyContext* ctx) {
     if (IsSideView()) return ApplyAllImpl(ctx);
     return 0;
 }
 
-int SystemType92::ApplyAllImpl(NotifyContext* ctx) { return FUN_0050e5b0(this, ctx); }
+int SystemType92::ApplyAllImpl(NotifyContext* ctx) { return this->System::ApplyAll(ctx); }
 
 int SystemType92::CreateViews(int controlKind, NotifyContext* ctx) { return CreateViewsImpl(controlKind, ctx); }
 
-int SystemType92::CreateViewsImpl(int controlKind, NotifyContext* ctx) { return FUN_0050e200(this, controlKind, ctx); }
+int SystemType92::CreateViewsImpl(int controlKind, NotifyContext* ctx) { return this->System::CreateViews(controlKind, ctx); }
 
 GameObj* SystemType92::CreateViewObject() { return NewOrNull<SystemType92>(); }
 

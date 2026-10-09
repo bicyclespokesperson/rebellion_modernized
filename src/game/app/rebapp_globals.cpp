@@ -5,6 +5,7 @@
 #include "app/app_dialogs.h"
 #include "app/app_externals.h"
 #include "app/app_save_strings.h"
+#include "app/battle_flow.h"
 #include "app/rebellion_application.h"
 #include "audio/music.h"
 #include "core/iostream_lib.h"
@@ -289,7 +290,7 @@ void AppSaveGame(void* stream) {
 void AppStepGame(int* stepped) {
     void* battleFlow = FUN_00409270();
     *stepped = 1;
-    if (battleFlow) FUN_0040a050(battleFlow, stepped);
+    if (battleFlow) static_cast<BattleFlow*>(battleFlow)->Step(stepped);
 }
 
 void AppReleaseBattleFlow() {

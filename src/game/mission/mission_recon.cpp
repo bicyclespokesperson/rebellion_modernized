@@ -30,7 +30,7 @@ int MissionRecon::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionRecon::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -39,10 +39,10 @@ GameObj* MissionRecon::CreateViewObject() { return NewOrNull<MissionRecon>(); }
 
 GameObjNotifier* MissionRecon::Create() { return NewOrNull<MissionRecon>(); }
 
-int MissionRecon::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionRecon::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
-    return FUN_005868c0(check, status, out);
+    return MissionSystemTargetBase::CheckTarget(check, status, out);
 }
 
 int MissionRecon::Virtual157(GameObj* person, int* out) {
@@ -77,7 +77,7 @@ int MissionRecon::Virtual160(NotifyContext* ctx) {
 int MissionRecon::BuildEventKinds() {
     if (!g_missionReconEventKindsReady) {
         g_missionReconEventKindsReady = 1;
-        return FUN_00586b00(0, &g_missionReconEventKinds);
+        return MissionSystemTargetBase::InitEventKinds(0, &g_missionReconEventKinds);
     }
     return 1;
 }

@@ -1,6 +1,7 @@
 #include "mission/mission_encounter.h"
 #include "ai/ai_common.h"
 #include "mission/mission_exec_decl.h"
+#include "mission/mission_jedi_training.h"
 
 using namespace mission_exec;
 
@@ -128,7 +129,7 @@ int MissionMgr::UpdateMissionsAtSystemA(ObjectKey* key, int enabled, NotifyConte
         MissionIteratorFam58 missions(this);
         for (missions.get()->Begin(); missions.get()->Current(); missions.get()->Advance()) {
             Mission* mission = missions.Current();
-            if (mission->TargetLocationKeyIs(key)) ok = FUN_00570470(mission, ctx) && ok;
+            if (mission->TargetLocationKeyIs(key)) ok = static_cast<MissionJediTraining*>(mission)->RequestPhase9(ctx) && ok;
         }
     }
     return ok;
@@ -140,7 +141,7 @@ int MissionMgr::UpdateMissionsAtSystemB(ObjectKey* key, int enabled, NotifyConte
         MissionIteratorFam58 missions(this);
         for (missions.get()->Begin(); missions.get()->Current(); missions.get()->Advance()) {
             Mission* mission = missions.Current();
-            if (mission->TargetLocationKeyIs(key)) ok = FUN_005704b0(mission, ctx) && ok;
+            if (mission->TargetLocationKeyIs(key)) ok = static_cast<MissionJediTraining*>(mission)->RequestPhase10(ctx) && ok;
         }
     }
     return ok;
@@ -217,7 +218,7 @@ int MissionMgr::ProcessResignRequest(ObjectKey* key, int enabled, NotifyContext*
             MissionPersonTeamIterator team(mission);
             team.Begin();
             while (team.Current()) {
-                ok = FUN_00521220(mission, static_cast<Role*>(team.Current()), &resigning, &unusedB, &unusedC) && ok;
+                ok = mission->GetMemberTransitFlags(static_cast<Role*>(team.Current()), &resigning, &unusedB, &unusedC) && ok;
                 if (resigning == 0) someoneStays = true;
                 team.Advance();
             }

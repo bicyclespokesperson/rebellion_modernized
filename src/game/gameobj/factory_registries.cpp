@@ -1,6 +1,9 @@
 #include "character/character_mgr.h"
 #include "gameobj/factory_registries.h"
 
+#include "character/character38.h"
+#include "character/major_character.h"
+#include "character/special_forces.h"
 #include "economy/defense_facility.h"
 #include "economy/manu_mgr_leaves.h"
 #include "economy/manufacturing_facility.h"
@@ -19,51 +22,40 @@
 #include "fleet/fight_squad.h"
 #include "fleet/fleet.h"
 #include "fleet/troop_reg.h"
+#include "galaxy/mission_type42.h"
+#include "galaxy/role_container.h"
+#include "galaxy/sector.h"
+#include "galaxy/system_type90.h"
+#include "galaxy/system_type92.h"
 #include "gameobj/game_obj_root.h"
 #include "gameobj/game_root.h"
 #include "gameobj/side_root.h"
+#include "mission/mission_abduction.h"
+#include "mission/mission_adrift.h"
+#include "mission/mission_assassination.h"
+#include "mission/mission_autoroute.h"
+#include "mission/mission_diplomacy.h"
+#include "mission/mission_dssabotage.h"
+#include "mission/mission_espionage.h"
 #include "mission/mission_events.h"
+#include "mission/mission_incite.h"
+#include "mission/mission_jedi_training.h"
+#include "mission/mission_recon.h"
+#include "mission/mission_recruit.h"
+#include "mission/mission_rescue.h"
+#include "mission/mission_research.h"
+#include "mission/mission_sabotage.h"
+#include "mission/mission_subdue.h"
 #include "orders/mission_orders.h"
 #include "orders/order_base.h"
 #include "orders/orders_210_216.h"
+#include "story/mission_mgr.h"
+#include "story/story_characters.h"
+#include "story/story_missions.h"
 
 // The factories themselves live in the modules of the classes they build; only their addresses are needed here.
 // Taking the address of a function declared by its original name yields the original address.
-GameObjNotifier* FUN_00577530();
-GameObjNotifier* FUN_00576d60();
-GameObjNotifier* FUN_005769b0();
-GameObjNotifier* FUN_005764d0();
-GameObjNotifier* FUN_005761e0();
-GameObjNotifier* FUN_00575890();
-GameObjNotifier* FUN_00566c70();
-GameObjNotifier* FUN_005755c0();
-GameObjNotifier* FUN_00574aa0();
-GameObjNotifier* FUN_00574450();
-GameObjNotifier* FUN_00573e70();
-GameObjNotifier* FUN_00573ba0();
-GameObjNotifier* FUN_00572fa0();
-GameObjNotifier* FUN_00572810();
-GameObjNotifier* FUN_00571eb0();
-GameObjNotifier* FUN_005718e0();
-GameObjNotifier* FUN_00570620();
-GameObjNotifier* FUN_0056ffe0();
-GameObjNotifier* FUN_0056f8e0();
-GameObjNotifier* FUN_0056f230();
-GameObjNotifier* FUN_00549cf0();
-GameObjNotifier* FUN_0056eee0();
 GameObjNotifier* FUN_0056ebd0();
-GameObjNotifier* FUN_0056df00();
-GameObjNotifier* FUN_0056d480();
-GameObjNotifier* FUN_0056c3f0();
-GameObjNotifier* FUN_0056bdb0();
-GameObjNotifier* FUN_0056b300();
-GameObjNotifier* FUN_0056ad40();
-GameObjNotifier* FUN_0056aa30();
-GameObjNotifier* FUN_0056a4a0();
-GameObjNotifier* FUN_0056a0a0();
-GameObjNotifier* FUN_00526590();
-GameObjNotifier* FUN_00503ee0();
-GameObjNotifier* FUN_00569aa0();
 GameObjNotifier* FUN_00556f30();
 
 
@@ -87,57 +79,57 @@ extern int g_keyedFactoryCount;                 // 0x6b6fd8
 extern KeyedFactoryEntry g_keyedFactories[];    // 0x6b2fd8, kMaxKeyedFactories entries
 
 void RegisterGameObjFactories() {
-    GameObjRoot::RegisterFactory(0x98, FUN_00577530);
-    GameObjRoot::RegisterFactory(0x62, FUN_00576d60);
-    GameObjRoot::RegisterFactory(0x44, FUN_005769b0);
+    GameObjRoot::RegisterFactory(0x98, RoleContainer::Create);
+    GameObjRoot::RegisterFactory(0x62, MissionAbduction::Create);
+    GameObjRoot::RegisterFactory(0x44, MissionAdrift::Create);
     GameObjRoot::RegisterFactory(0x20, CreateAllFacility);
-    GameObjRoot::RegisterFactory(0x63, FUN_005764d0);
-    GameObjRoot::RegisterFactory(0x43, FUN_005761e0);
-    GameObjRoot::RegisterFactory(0x65, FUN_00575890);
+    GameObjRoot::RegisterFactory(0x63, MissionAssassination::Create);
+    GameObjRoot::RegisterFactory(0x43, MissionAutoroute::Create);
+    GameObjRoot::RegisterFactory(0x65, MissionBounty::Create);
     GameObjRoot::RegisterFactory(0x2a, CreateManufacturingFacility2A);
     GameObjRoot::RegisterFactory(0xa0, CreateConstructionYardManuMgr);
-    GameObjRoot::RegisterFactory(0x90, FUN_00566c70);
-    GameObjRoot::RegisterFactory(0x35, FUN_005755c0);
-    GameObjRoot::RegisterFactory(0x71, FUN_00574aa0);
+    GameObjRoot::RegisterFactory(0x90, SystemType90::Create);
+    GameObjRoot::RegisterFactory(0x35, MajorChar35::Create);
+    GameObjRoot::RegisterFactory(0x71, DagobahMission::Create);
     GameObjRoot::RegisterFactory(0x18, CreateDeathStar);
-    GameObjRoot::RegisterFactory(0x6a, FUN_00574450);
+    GameObjRoot::RegisterFactory(0x6a, MissionDSSabotage::Create);
     GameObjRoot::RegisterFactory(0x25, CreateDefenseFacility25);
-    GameObjRoot::RegisterFactory(0x51, FUN_00573e70);
-    GameObjRoot::RegisterFactory(0x34, FUN_00573ba0);
-    GameObjRoot::RegisterFactory(0x52, FUN_00572fa0);
+    GameObjRoot::RegisterFactory(0x51, MissionDiplomacy::Create);
+    GameObjRoot::RegisterFactory(0x34, MajorChar34::Create);
+    GameObjRoot::RegisterFactory(0x52, MissionEspionage::Create);
     GameObjRoot::RegisterFactory(0x1c, CreateFightSquad);
     GameObjRoot::RegisterFactory(0x8, CreateFleet);
     GameObjRoot::RegisterFactory(0xf1, CreateGameRoot);
-    GameObjRoot::RegisterFactory(0x33, FUN_00572810);
-    GameObjRoot::RegisterFactory(0x72, FUN_00571eb0);
-    GameObjRoot::RegisterFactory(0x56, FUN_005718e0);
+    GameObjRoot::RegisterFactory(0x33, Han::Create);
+    GameObjRoot::RegisterFactory(0x72, MissionVacation::Create);
+    GameObjRoot::RegisterFactory(0x56, MissionIncite::Create);
     GameObjRoot::RegisterFactory(0x22, CreateDefenseFacility22);
-    GameObjRoot::RegisterFactory(0x58, FUN_00570620);
-    GameObjRoot::RegisterFactory(0x31, FUN_0056ffe0);
-    GameObjRoot::RegisterFactory(0x32, FUN_0056f8e0);
+    GameObjRoot::RegisterFactory(0x58, MissionJediTraining::Create);
+    GameObjRoot::RegisterFactory(0x31, Leia::Create);
+    GameObjRoot::RegisterFactory(0x32, Luke::Create);
     GameObjRoot::RegisterFactory(0x2c, CreateProductionFacilityType2C);
-    GameObjRoot::RegisterFactory(0x38, FUN_0056f230);
-    GameObjRoot::RegisterFactory(0xf8, FUN_00549cf0);
-    GameObjRoot::RegisterFactory(0x30, FUN_0056eee0);
+    GameObjRoot::RegisterFactory(0x38, Character38::Create);
+    GameObjRoot::RegisterFactory(0xf8, MissionMgr::Create);
+    GameObjRoot::RegisterFactory(0x30, MajorChar30::Create);
     GameObjRoot::RegisterFactory(0x41, FUN_0056ebd0);
-    GameObjRoot::RegisterFactory(0x64, FUN_0056df00);
-    GameObjRoot::RegisterFactory(0x73, FUN_0056d480);
+    GameObjRoot::RegisterFactory(0x64, MissionPalace::Create);
+    GameObjRoot::RegisterFactory(0x73, MissionPickup::Create);
     GameObjRoot::RegisterFactory(0x24, CreateDefenseFacility24);
-    GameObjRoot::RegisterFactory(0x53, FUN_0056c3f0);
-    GameObjRoot::RegisterFactory(0x54, FUN_0056bdb0);
-    GameObjRoot::RegisterFactory(0x55, FUN_0056b300);
+    GameObjRoot::RegisterFactory(0x53, MissionResearch::Create);
+    GameObjRoot::RegisterFactory(0x54, MissionRecon::Create);
+    GameObjRoot::RegisterFactory(0x55, MissionRecruit::Create);
     GameObjRoot::RegisterFactory(0x2d, CreateProductionFacilityType2D);
-    GameObjRoot::RegisterFactory(0x61, FUN_0056ad40);
-    GameObjRoot::RegisterFactory(0x42, FUN_0056aa30);
-    GameObjRoot::RegisterFactory(0x92, FUN_0056a4a0);
-    GameObjRoot::RegisterFactory(0x69, FUN_0056a0a0);
-    GameObjRoot::RegisterFactory(0x80, FUN_00526590);
+    GameObjRoot::RegisterFactory(0x61, MissionRescue::Create);
+    GameObjRoot::RegisterFactory(0x42, Mission42::Create);
+    GameObjRoot::RegisterFactory(0x92, SystemType92::Create);
+    GameObjRoot::RegisterFactory(0x69, MissionSabotage::Create);
+    GameObjRoot::RegisterFactory(0x80, Sector::Create);
     GameObjRoot::RegisterFactory(0x28, CreateManufacturingFacility28);
     GameObjRoot::RegisterFactory(0xa2, CreateShipyardManuMgr);
     GameObjRoot::RegisterFactory(0xf3, CreateSide);
-    GameObjRoot::RegisterFactory(0x3c, FUN_00503ee0);
+    GameObjRoot::RegisterFactory(0x3c, SpecialForces::Create);
     GameObjRoot::RegisterFactory(0x14, CreateCapitalShip);
-    GameObjRoot::RegisterFactory(0x57, FUN_00569aa0);
+    GameObjRoot::RegisterFactory(0x57, MissionSubdue::Create);
     GameObjRoot::RegisterFactory(0xf9, FUN_00556f30);
     GameObjRoot::RegisterFactory(0xfa, CharacterMgr::Create);
     GameObjRoot::RegisterFactory(0x29, CreateManufacturingFacility29);

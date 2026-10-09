@@ -34,8 +34,6 @@ struct GameStateSnapshot {
     Crc32* CopyTableCrc(Crc32* out);  // 0x51e200
 };
 
-int __thiscall FUN_00539960(GameStateSnapshot* snapshot, istream* in);   // read
-int __thiscall FUN_00539970(GameStateSnapshot* snapshot, ostream* out);  // write
 
 class GameManager {
 public:

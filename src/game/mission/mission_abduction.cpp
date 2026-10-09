@@ -33,7 +33,7 @@ int MissionAbduction::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionAbduction::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -42,15 +42,15 @@ GameObj* MissionAbduction::CreateViewObject() { return NewOrNull<MissionAbductio
 
 GameObjNotifier* MissionAbduction::Create() { return NewOrNull<MissionAbduction>(); }
 
-int MissionAbduction::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionAbduction::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
-    return FUN_00586e20(check, status, out);
+    return MissionCharacterTargetBase::CheckTarget(check, status, out);
 }
 
 int MissionAbduction::Virtual157(GameObj* person, int* out) {
     Character* target = nullptr;
-    const int found = FUN_00586c80(this, &target);
+    const int found = static_cast<MissionCharacterTargetBase*>(this)->GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target));
     bool ok = found != 0;
     if (!target) return ok;
     const int targetCombat = target->GetCombat();
@@ -70,7 +70,7 @@ int MissionAbduction::Virtual159(GameObj* personObject, int roll, int* out, Noti
     bool ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
     if (person->Virtual118()) ok = person->SetBaseCombat(person->m_baseCombat + DAT_006bb574, ctx) && ok;
     Character* target = nullptr;
-    ok = FUN_00586c80(this, &target) && ok;
+    ok = static_cast<MissionCharacterTargetBase*>(this)->GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target)) && ok;
     if (target) {
         ObjectKey key;
         person->GetKey(&key);
@@ -83,7 +83,7 @@ int MissionAbduction::BuildEventKinds() {
     int result = 1;
     if (!g_missionAbductionEventKindsReady) {
         g_missionAbductionEventKindsReady = 1;
-        result = FUN_00587090(0, &g_missionAbductionEventKinds) != 0;
+        result = MissionCharacterTargetBase::InitEventKinds(0, &g_missionAbductionEventKinds) != 0;
     }
     return result;
 }

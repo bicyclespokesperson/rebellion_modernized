@@ -42,7 +42,7 @@ void collectAdrift(GameObj* parent, uint32_t stateFilter, ObjectKeyValueSet* out
 int MissionMgr::ReassignMissionMembers(Mission* mission, int* moved, NotifyContext* ctx) {
     *moved = 0;
     MissionPhaseLevels levels;
-    int ok = FUN_00520ec0(mission, &levels) != 0;
+    int ok = mission->ComputePhaseLevels(&levels) != 0;
     const uint32_t side = mission->ControlSide();
     const int memberCount = mission->CountMembers();
     bool haveFirstKey = false;
@@ -57,7 +57,7 @@ int MissionMgr::ReassignMissionMembers(Mission* mission, int* moved, NotifyConte
             int resigning = 0;
             int stays = 0;
             int flagC = 0;
-            ok = FUN_00521220(mission, person, &resigning, &stays, &flagC) && ok;
+            ok = mission->GetMemberTransitFlags(person, &resigning, &stays, &flagC) && ok;
             if (!(resigning != 0 && stays != 0 && !(person->m_flags78 & role_flag::kMissionRemoveRequest))) continue;
 
             ok = FindPersonMissionPoint(person, mission, flagC, &currentKey) && ok;

@@ -173,7 +173,10 @@ int System::FindBestShipOfCommandKind1(uint32_t side, GameObjNotifier** out) {
 
 uint32_t System::GetRecordField44() { return m_record ? static_cast<SdRecord*>(m_record)->m_field44 : 0; }
 
-void System::GetRecordField4c(uint32_t* out) { *out = m_record ? static_cast<SdRecord*>(m_record)->m_field4c : 0; }
+uint32_t* System::GetRecordField4c(uint32_t* out) {
+    *out = m_record ? static_cast<SdRecord*>(m_record)->m_field4c : 0;
+    return out;
+}
 
 int System::GetEnergy() { return m_energy; }
 

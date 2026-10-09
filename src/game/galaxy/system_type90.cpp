@@ -42,21 +42,21 @@ int SystemType90::ApplyAll(NotifyContext* ctx) {
     return isSideView;
 }
 
-int SystemType90::ReadImpl(istream* in) { return FUN_0050e410(this, in); }
+int SystemType90::ReadImpl(istream* in) { return this->System::Read(in); }
 
-int SystemType90::WriteImpl(ostream* out) { return FUN_0050e4e0(this, out); }
+int SystemType90::WriteImpl(ostream* out) { return this->System::Write(out); }
 
 int SystemType90::ApplyAllImpl(NotifyContext* ctx) {
     const int isSideView = IsSideView();
-    if (isSideView) FUN_0050e5b0(this, ctx);
+    if (isSideView) this->System::ApplyAll(ctx);
     return isSideView;
 }
 
-int SystemType90::ChecksumImpl(Crc32* crc) { return FUN_0050e730(this, crc); }
+int SystemType90::ChecksumImpl(Crc32* crc) { return this->System::Checksum(crc); }
 
-int SystemType90::ValidateImpl() { return FUN_0050e820(this); }
+int SystemType90::ValidateImpl() { return this->System::Validate(); }
 
-int SystemType90::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_0050e200(this, controlKind, ctx); }
+int SystemType90::CreateViews(int controlKind, NotifyContext* ctx) { return this->System::CreateViews(controlKind, ctx); }
 
 GameObj* SystemType90::CreateViewObject() { return NewOrNull<SystemType90>(); }
 
@@ -70,7 +70,7 @@ int SystemType90::Virtual47(int a) {
         int loyalty = 0;
         if (populated && m_id != kSystemIdWithoutLoyaltyRoll) {
             const uint32_t side = ControlSide();
-            loyalty = RollInitialLoyalty(side, FUN_005092f0(this));
+            loyalty = RollInitialLoyalty(side, this->GetDataFlagBit0());
         }
         SetPopulated(populated, ctx);
         if (populated) SetLoyalty(loyalty, ctx);
@@ -83,10 +83,10 @@ int SystemType90::Virtual47(int a) {
 
 int SystemType90::ApplyAllToViewOf(int view, int unused, NotifyContext* ctx) {
     int ok = System::ApplyAllToViewOf(view, unused, ctx) != 0;
-    ok = FUN_0050d5a0(this, 0xc, 1, ctx) && ok;
-    ok = FUN_0050d5a0(this, 0xc, 2, ctx) && ok;
-    ok = FUN_0050d5a0(this, 4, 1, ctx) && ok;
-    return FUN_0050d5a0(this, 4, 2, ctx) && ok ? 1 : 0;
+    ok = this->SyncViewForEvent(0xc, 1, ctx) && ok;
+    ok = this->SyncViewForEvent(0xc, 2, ctx) && ok;
+    ok = this->SyncViewForEvent(4, 1, ctx) && ok;
+    return this->SyncViewForEvent(4, 2, ctx) && ok ? 1 : 0;
 }
 
 int SystemType90::Virtual115(NotifyContext* ctx) {

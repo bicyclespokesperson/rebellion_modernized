@@ -48,8 +48,6 @@ void* __thiscall FUN_00404c30(void* memory, HINSTANCE instance, int x, int y, in
 void* __thiscall FUN_004213e0(void* memory, int movieId, int arg2, HINSTANCE instance, int x, int y, int width,
                               int height, CoolWindow* parent, int arg9);  // movie window
 
-void __thiscall FUN_004109e0(CoolWindow* multiplayerWindow);  // closes the lobby's dialogs
-void __thiscall FUN_00408240(CoolWindow* optionsWindow, int a, int b);
 
 int __thiscall FUN_0059cb60(TacticalWindow* window, void* stream);  // tactical window: save its state
 int __thiscall FUN_0059cb80(TacticalWindow* window, void* stream);  // tactical window: restore its state
@@ -64,7 +62,6 @@ void FUN_00409370();             // destroy it
 void __thiscall FUN_00409480(void* battleFlow, void* stream);   // restore a saved game
 void __thiscall FUN_004095b0(void* battleFlow, void* stream);   // write a saved game
 void __thiscall FUN_00409fe0(void* battleFlow, void* setup, int gameType, int side);
-void __thiscall FUN_0040a050(void* battleFlow, int* stepped);
 void __thiscall FUN_00409bd0(void* battleFlow);
 int __thiscall FUN_00409390(void* battleFlow);
 void __thiscall FUN_004093b0(void* battleFlow, int value);
@@ -83,7 +80,6 @@ void __thiscall FUN_0051c780(GameSetup* setup);
 // Serialises a command into a buffer for the other players (the multiplayer module's MessageCodec, 0x51c300).
 using CommandExecutor = MessageCodec;
 void* __thiscall FUN_0051c300(void* memory);
-int __thiscall FUN_0051c410(CommandExecutor* executor, AppCommand* command);
 
 // The 0x38-byte command (ctor 0x4210c0, module app_control_cmds) that carries a save request to the other players.
 class AppCommand {
@@ -104,7 +100,5 @@ void FUN_00401b50();       // thunk to FUN_00409280: create the battle-flow obje
 extern const char* g_autosaveName;  // 0x6a81d8: pointer to the "Autosave" text
 
 // ---- Added by the screens slice (app_screens.cpp) --------------------------------------------------------------
-void FUN_00614290();   // DirectDraw host teardown wrapper (acts on the global host, no arguments)
-void __thiscall FUN_00422620(CoolWindow* window);  // strategic window: handler of the modal child it is showing
 int DestroyAppDialog();   // 0x416d90 (app_dialogs.h declares it too)
 extern DirectDrawHost g_directDrawHost;   // 0x6b1460 the DirectDrawHost passed to the tactical window

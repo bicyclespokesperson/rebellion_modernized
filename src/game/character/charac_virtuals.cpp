@@ -2,10 +2,8 @@
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "data/gnprtb.h"
+#include "events/game_manager.h"
 #include "mission/mission_forwarders.h"
-
-// Shared stubs that return 1.
-int __stdcall FUN_0051ebb0(int ctx);
 
 namespace {
 
@@ -85,12 +83,12 @@ int Character::Virtual132(const ObjectKey* holder, NotifyContext* ctx) {
 }
 
 int Character::Virtual133(NotifyContext* ctx) {
-    const int stub = FUN_0051ebb0(static_cast<int>(reinterpret_cast<intptr_t>(ctx)));
+    const int stub = reinterpret_cast<GameManager*>(this)->NoteDispatch(ctx);
     return SetState(kStateFree, ctx) && stub ? 1 : 0;
 }
 
 int Character::Virtual134(NotifyContext* ctx) {
-    const int stub = FUN_0051ebb0(static_cast<int>(reinterpret_cast<intptr_t>(ctx)));
+    const int stub = reinterpret_cast<GameManager*>(this)->NoteDispatch(ctx);
     return SetState(kStateSecond, ctx) && stub ? 1 : 0;
 }
 

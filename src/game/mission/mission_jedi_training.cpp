@@ -13,7 +13,7 @@ extern int g_missionJediTrainingEventKindsReady;      // 0x6bba14
 extern EventKindSet g_missionJediTrainingEventKinds;  // 0x6bba18
 
 
-// The MissionOrderCheck record as the Jedi Training target check reads it.
+// The MissionCheckArgs record as the Jedi Training target check reads it.
 struct TrainingOrderCheck {
     int m_unk00;                    // +0x00
     int m_hasTeam;                  // +0x04
@@ -182,7 +182,7 @@ int MissionJediTraining::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionJediTraining::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -283,11 +283,11 @@ int MissionJediTraining::Virtual159(GameObj* person, int roll, int* out, NotifyC
 
 int MissionJediTraining::Virtual160(NotifyContext* ctx) { return MissionStartIfIdle(this, ctx); }
 
-int MissionJediTraining::CheckTarget(MissionOrderCheck* orderCheck, StatusCode* status, int* out) {
+int MissionJediTraining::CheckTarget(MissionCheckArgs* orderCheck, StatusCode* status, int* out) {
     TrainingOrderCheck* check = reinterpret_cast<TrainingOrderCheck*>(orderCheck);
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
-    int result = FUN_005868c0(orderCheck, status, out);
+    int result = MissionSystemTargetBase::CheckTarget(orderCheck, status, out);
     if (!check->m_hasTeam) return result;
     const int ok = static_cast<uint32_t>(mission_status::kOk);
 
@@ -331,7 +331,7 @@ int MissionJediTraining::CheckTarget(MissionOrderCheck* orderCheck, StatusCode* 
 int MissionJediTraining::BuildEventKinds() {
     if (!g_missionJediTrainingEventKindsReady) {
         g_missionJediTrainingEventKindsReady = 1;
-        return FUN_00586b00(0, &g_missionJediTrainingEventKinds);
+        return MissionSystemTargetBase::InitEventKinds(0, &g_missionJediTrainingEventKinds);
     }
     return 1;
 }

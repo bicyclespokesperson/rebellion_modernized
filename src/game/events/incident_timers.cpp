@@ -3,6 +3,7 @@
 #include "events/event_helpers.h"
 #include "events/incident_timers_decl.h"
 #include "galaxy/system.h"
+#include "mission/mission.h"
 
 using events::findTimerOwner;
 using events::fireOnTimerOwner;
@@ -54,7 +55,7 @@ UprisingLoyaltyTimer::~UprisingLoyaltyTimer() { REB_KEEP_VPTR_STORE(); }
 UprisingLoyaltyTimer* UprisingLoyaltyTimer::Clone() { return NewOrNull<UprisingLoyaltyTimer>(*this); }
 
 TrackedStat* UprisingLoyaltyTimer::GetTargetSpec() {
-    return timerStatOfOwner<System>(this, ResolveMasterInFamilies_90_98, [](System* s) { return FUN_00520aa0(s); });
+    return timerStatOfOwner<System>(this, ResolveMasterInFamilies_90_98, [](System* s) { return reinterpret_cast<Mission*>(s)->GetStatA(); });
 }
 
 void UprisingLoyaltyTimer::Fire() {
@@ -72,7 +73,7 @@ AssaultLoyaltyTimer::~AssaultLoyaltyTimer() { REB_KEEP_VPTR_STORE(); }
 AssaultLoyaltyTimer* AssaultLoyaltyTimer::Clone() { return NewOrNull<AssaultLoyaltyTimer>(*this); }
 
 TrackedStat* AssaultLoyaltyTimer::GetTargetSpec() {
-    return timerStatOfOwner<System>(this, ResolveMasterInFamilies_90_98, [](System* s) { return FUN_00520ab0(s); });
+    return timerStatOfOwner<System>(this, ResolveMasterInFamilies_90_98, [](System* s) { return reinterpret_cast<Mission*>(s)->GetStatB(); });
 }
 
 void AssaultLoyaltyTimer::Fire() {

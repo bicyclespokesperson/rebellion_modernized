@@ -7,7 +7,6 @@ extern "C" void __cdecl LAB_00571c00();
 extern int g_missionInciteEventKindsReady;      // 0x6bba30
 extern EventKindSet g_missionInciteEventKinds;  // 0x6bba28
 
-int __thiscall FUN_0050d030(System* self, NotifyContext* ctx);
 extern int DAT_006bb5a0;
 
 namespace {
@@ -38,7 +37,7 @@ int MissionIncite::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionIncite::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -47,15 +46,15 @@ GameObj* MissionIncite::CreateViewObject() { return NewOrNull<MissionIncite>(); 
 
 GameObjNotifier* MissionIncite::Create() { return NewOrNull<MissionIncite>(); }
 
-int MissionIncite::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionIncite::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
-    return FUN_005868c0(check, status, out);
+    return MissionSystemTargetBase::CheckTarget(check, status, out);
 }
 
 int MissionIncite::Virtual157(GameObj* person, int* out) {
     System* system = nullptr;
-    const int found = FUN_00586720(this, &system);
+    const int found = static_cast<MissionSystemTargetBase*>(this)->GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     int ok = found != 0;
     if (!system) return ok;
     const int side = ControlSideIndex(ControlSide());
@@ -71,12 +70,12 @@ int MissionIncite::Virtual160(NotifyContext* ctx) { return MissionStartIfIdle(th
 
 int MissionIncite::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     System* system = nullptr;
-    const int found = FUN_00586720(this, &system);
+    const int found = static_cast<MissionSystemTargetBase*>(this)->GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     int ok = found != 0;
     if (!system) return ok;
     if (!PercentChance(roll)) return ok;
     *out = 1;
-    ok = FUN_0050d030(system, ctx) && ok ? 1 : 0;
+    ok = system->ResolveUprisingTurn(ctx) && ok ? 1 : 0;
     const uint32_t side = ControlSideIndex(ControlSide());
     const bool sideHoldsLoyalty = system->m_controlData.Loyalty() == side;
     const bool uprisingContained = sideHoldsLoyalty || system->CountTroopRegiments(system->ControlSide(), 1) != 0;
@@ -91,7 +90,7 @@ int MissionIncite::Virtual159(GameObj* person, int roll, int* out, NotifyContext
 int MissionIncite::BuildEventKinds() {
     if (!g_missionInciteEventKindsReady) {
         g_missionInciteEventKindsReady = 1;
-        return FUN_00586b00(0, &g_missionInciteEventKinds);
+        return MissionSystemTargetBase::InitEventKinds(0, &g_missionInciteEventKinds);
     }
     return 1;
 }

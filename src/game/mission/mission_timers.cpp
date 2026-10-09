@@ -4,6 +4,7 @@
 #include "gameobj/object_queries.h"
 #include "mission/mission.h"
 #include "mission/mission_events.h"
+#include "story/mission_mgr.h"
 
 using events::fireOnTimerOwner;
 using events::timerStatOfOwner;
@@ -53,7 +54,7 @@ TrackedStat* MissionStatATimer::GetTargetSpec() {
 
 void MissionStatATimer::Fire() {
     fireOnTimerOwner<Mission>(this, ResolveMasterInFamilies_40_80, [](Mission* mission, NotifyContext* ctx) {
-        return FUN_00522a10(mission, ctx);
+        return mission->ReadyIfPhase8(ctx);
     });
 }
 
@@ -75,7 +76,7 @@ TrackedStat* MissionStatBTimer::GetTargetSpec() {
 
 void MissionStatBTimer::Fire() {
     fireOnTimerOwner<Mission>(this, ResolveMasterInFamilies_40_80, [](Mission* mission, NotifyContext* ctx) {
-        return FUN_00522a30(mission, ctx);
+        return mission->DestroyIfPhase11(ctx);
     });
 }
 
@@ -97,7 +98,7 @@ TrackedStat* MissionMgrStatATimer::GetTargetSpec() {
 
 void MissionMgrStatATimer::Fire() {
     fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_f8_f9, [](GameObj* manager, NotifyContext* ctx) {
-        return FUN_00546f80(reinterpret_cast<MissionMgr*>(manager), ctx);
+        return (reinterpret_cast<MissionMgr*>(manager))->UpdateStoryFlags(ctx);
     });
 }
 
@@ -119,7 +120,7 @@ TrackedStat* MissionMgrStatBTimer::GetTargetSpec() {
 
 void MissionMgrStatBTimer::Fire() {
     fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_f8_f9, [](GameObj* manager, NotifyContext* ctx) {
-        return FUN_00546fa0(reinterpret_cast<MissionMgr*>(manager), ctx);
+        return (reinterpret_cast<MissionMgr*>(manager))->CreateStoryMissionAtRandom(ctx);
     });
 }
 

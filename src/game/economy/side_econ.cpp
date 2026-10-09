@@ -1,5 +1,6 @@
 #include "core/checked_new.h"
 #include "data/dat_record.h"
+#include "economy/manu_mgr.h"
 #include "economy/side.h"
 #include "economy/side_decl.h"
 #include "galaxy/game_setup_seed.h"
@@ -54,7 +55,7 @@ int __stdcall MarkFacilityWaiting(ProductionFacility* facility, NotifyContext* c
     return result;
 }
 
-int Side::FindFacilityManuMgr(GameObj* facility, ManuMgrDecl** out) {
+int Side::FindFacilityManuMgr(GameObj* facility, ManuMgr** out) {
     *out = nullptr;
     GameObjNotifier* root = GetGameRootMember_bc();
     bool valid = root != nullptr;
@@ -71,7 +72,7 @@ int Side::FindFacilityManuMgr(GameObj* facility, ManuMgrDecl** out) {
             if (systemFamily >= 0x90 && systemFamily < 0x98) {
                 using SlotFn = int(__thiscall*)(GameObj*);
                 const int slot = (*reinterpret_cast<SlotFn**>(facility))[kFacilityManuSlot](facility);
-                ManuMgrDecl* manager = FUN_00509670(system, slot);
+                ManuMgr* manager = static_cast<ManuMgr*>(static_cast<System*>(system)->FindManufacturingManagerBySlot123(slot));
                 *out = manager;
                 result = manager != nullptr;
             }
@@ -84,8 +85,8 @@ void Side::ReleaseFacilityToManager(ProductionFacility* facility, NotifyContext*
     int result = 0;
     if (isReleasable(facility)) result = facility->SetPointPresent(0, ctx);
     if (result) {
-        ManuMgrDecl* manager = nullptr;
-        if (FindFacilityManuMgr(facility, &manager) && manager != nullptr) FUN_0052a430(manager, ctx);
+        ManuMgr* manager = nullptr;
+        if (FindFacilityManuMgr(facility, &manager) && manager != nullptr) reinterpret_cast<ManuMgr*>(manager)->AdvanceProgress(ctx);
     }
 }
 
@@ -303,14 +304,14 @@ int Side::UpdateRdProgress(NotifyContext* ctx) {
         if (result == 0) break;
         if (!sameControlSide(this, object)) continue;
         GameObjNotifier* system = object;
-        ManuMgrDecl* shipyards = FUN_00509670(system, rd_kind::kShipyard);
-        ManuMgrDecl* trainers = FUN_00509670(system, rd_kind::kTrainingFacil);
-        ManuMgrDecl* builders = FUN_00509670(system, rd_kind::kConstructionYard);
+        ManuMgr* shipyards = static_cast<ManuMgr*>(static_cast<System*>(system)->FindManufacturingManagerBySlot123(rd_kind::kShipyard));
+        ManuMgr* trainers = static_cast<ManuMgr*>(static_cast<System*>(system)->FindManufacturingManagerBySlot123(rd_kind::kTrainingFacil));
+        ManuMgr* builders = static_cast<ManuMgr*>(static_cast<System*>(system)->FindManufacturingManagerBySlot123(rd_kind::kConstructionYard));
         result = (shipyards != nullptr && trainers != nullptr && builders != nullptr) ? 1 : 0;
         if (result != 0) {
-            shipyardPoints += FUN_00528040(shipyards, 0);
-            trainingPoints += FUN_00528040(trainers, 0);
-            constructionPoints += FUN_00528040(builders, 0);
+            shipyardPoints += reinterpret_cast<ManuMgr*>(shipyards)->CountHostFacilities(0);
+            trainingPoints += reinterpret_cast<ManuMgr*>(trainers)->CountHostFacilities(0);
+            constructionPoints += reinterpret_cast<ManuMgr*>(builders)->CountHostFacilities(0);
         }
     }
     if (result != 0) result = SetShipyardRdProgress(m_shipyardRdProgress + shipyardPoints, ctx);

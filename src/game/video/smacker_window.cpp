@@ -2,6 +2,7 @@
 #include <cmath>
 #include <cstring>
 
+#include "audio/sound_manager.h"
 #include "core/vptr_store.h"
 #include "video/video_manager.h"
 
@@ -9,11 +10,7 @@
 #pragma clang diagnostic ignored "-Wcast-calling-convention"
 
 // SoundManager (0x610b20-0x611e90) entry points the window uses to leave the primary buffer volume as it found it.
-void* FUN_00610c10();                              // the game's IDirectSound, null until a screen initialises sound
-void FUN_00610be0(HWND window, int flags, int unused);  // SoundManager::Acquire
-void FUN_00610c00(int unused);                     // SoundManager::Release
 int FUN_00610cf0();                                // primary buffer volume
-void FUN_00610ce0(int volume);                     // set primary buffer volume
 
 namespace {
 constexpr int kFirstSkipKey = VK_ESCAPE;
@@ -57,18 +54,18 @@ SmackerWindow::SmackerWindow(const char* path, HINSTANCE instance, int x, int y,
     m_smackFlags = smackFlags;
     m_volumeTouched = 0;
     m_savedVolume = 0;
-    if (!FUN_00610c10()) FUN_00610be0(m_hwnd, 1, 0);
+    if (!SoundManager::GetDirectSound()) SoundManager::Initialize(m_hwnd, 1, 0);
     m_savedVolume = FUN_00610cf0();
-    FUN_00610c00(0);
+    SoundManager::Shutdown(0);
 }
 
 SmackerWindow::~SmackerWindow() {
     REB_KEEP_VPTR_STORE();
     StopPlayback();
     if (m_volumeTouched) {
-        if (!FUN_00610c10()) FUN_00610be0(m_hwnd, 1, 0);
-        FUN_00610ce0(m_savedVolume);
-        FUN_00610c00(0);
+        if (!SoundManager::GetDirectSound()) SoundManager::Initialize(m_hwnd, 1, 0);
+        SoundManager::SetMasterVolume(m_savedVolume);
+        SoundManager::Shutdown(0);
     }
 }
 

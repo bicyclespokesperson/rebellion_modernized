@@ -51,7 +51,7 @@ int MissionEspionage::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionEspionage::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -60,10 +60,10 @@ GameObj* MissionEspionage::CreateViewObject() { return NewOrNull<MissionEspionag
 
 GameObjNotifier* MissionEspionage::Create() { return NewOrNull<MissionEspionage>(); }
 
-int MissionEspionage::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionEspionage::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
-    return FUN_005868c0(check, status, out);
+    return MissionSystemTargetBase::CheckTarget(check, status, out);
 }
 
 int MissionEspionage::SetExtraSystemKey(ObjectKey* value, NotifyContext* ctx) {
@@ -200,7 +200,7 @@ int MissionEspionage::PickExtraSystems(GameObj* target, int count, int includeTy
 int MissionEspionage::BuildEventKinds() {
     if (!g_missionEspionageEventKindsReady) {
         g_missionEspionageEventKindsReady = 1;
-        return FUN_00586b00(0, &g_missionEspionageEventKinds);
+        return MissionSystemTargetBase::InitEventKinds(0, &g_missionEspionageEventKinds);
     }
     return 1;
 }

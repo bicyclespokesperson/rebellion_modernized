@@ -29,7 +29,7 @@ public:
     int ApplyAllBody(NotifyContext* ctx);                         // 0x573110: slot 9 behind its side-view guard
     int PickExtraSystems(GameObj* target, int count, int includeCore, int includeOuter, NotifyContext* ctx);  // 0x573170
 
-    static int CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out);  // 0x573010
+    static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x573010
     static int BuildEventKinds();      // 0x573940
     static void InitStatics();         // 0x573970
     static GameObjNotifier* Create();  // 0x572fa0

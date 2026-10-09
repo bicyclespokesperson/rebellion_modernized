@@ -5,20 +5,15 @@
 #include "core/game_string.h"
 #include "core/vptr_store.h"
 #include "data/dat_record.h"
+#include "data/seed_list.h"
 #include "gameobj/object_name_node.h"
 
 // Pieces owned by the data-table module (0x58e5a0-0x58eda0, 0x52d720, 0x53b860), used through their addresses.
 void* __thiscall FUN_0058ec40(void* storage);
 void* __thiscall FUN_0058eb60(void* storage);
-int __thiscall FUN_0058ec20(void* entry, int a, int b);
-void* __thiscall FUN_0058ec90(FamilyTable* table, uint32_t family);
 void* __thiscall FUN_0058ecc0(void* storage);
-int __thiscall FUN_0058eda0(void* node, DatRecord* record);
 void __thiscall FUN_0052d720(void* storage);
 void __thiscall FUN_0052d760(void* list);
-int __thiscall FUN_0053b860(DatRecord* record);
-int __thiscall FUN_004f4270(IdAvlTree* list, void* node);
-uint16_t __thiscall FUN_004f4290(IdAvlTree* list);
 
 namespace {
 
@@ -132,7 +127,7 @@ int ObjectTypeDb::AddFamily(int a, int b) {
     int ok = entry != nullptr;
     if (ok) {
         ok = Field<int>(entry, kEntryOkOffset);
-        if (ok) ok = FUN_0058ec20(entry, a, b);
+        if (ok) ok = static_cast<SeedListFile*>(entry)->Load(a, b);
     }
     if (entry) {
         for (AvlNode* record = RecordsOf(entry)->First(); record && ok; record = NextNode(record)) {
@@ -154,7 +149,7 @@ int ObjectTypeDb::ForEachFamily(Crc32* crc) {
 
 DatRecord* ObjectTypeDb::FindRecord(const SeedKey* key) {
     DatRecord* record = nullptr;
-    if (void* entry = FUN_0058ec90(m_families, key->m_key >> 24)) {
+    if (void* entry = reinterpret_cast<SeedListFileTree*>(m_families)->FindByFamily(key->m_key >> 24)) {
         record = AsRecord(RecordsOf(entry)->FindById(key->m_key & 0xffffff));
     }
     return record;
@@ -162,7 +157,7 @@ DatRecord* ObjectTypeDb::FindRecord(const SeedKey* key) {
 
 DatRecord* ObjectTypeDb::FirstRecordOfFamily(uint32_t family) {
     DatRecord* record = nullptr;
-    if (void* entry = FUN_0058ec90(m_families, family)) record = AsRecord(RecordsOf(entry)->First());
+    if (void* entry = reinterpret_cast<SeedListFileTree*>(m_families)->FindByFamily(family)) record = AsRecord(RecordsOf(entry)->First());
     return record;
 }
 
@@ -194,7 +189,7 @@ int ObjectTypeDb::CollectRecords(int view, uint32_t kind, int level, int whenBel
             IntPair range;
             GetRecordKindRange(record, &range);
             const bool kindMatches = kind >= range.m_first && kind < range.m_second;
-            if (!(kindMatches && FUN_0053b860(record) && Available(record, view))) continue;
+            if (!(kindMatches && static_cast<SdRecord*>(record)->GetField48() && Available(record, view))) continue;
 
             const int recordLevel = static_cast<int>(record->m_field50);
             if (*maxLevel < recordLevel) *maxLevel = recordLevel;
@@ -206,8 +201,8 @@ int ObjectTypeDb::CollectRecords(int view, uint32_t kind, int level, int whenBel
             void* nameNode = memory ? FUN_0058ecc0(memory) : nullptr;
             ok = nameNode != nullptr;
             if (nameNode) {
-                ok = FUN_0058eda0(nameNode, record);
-                if (!ok || !(ok = FUN_004f4270(out, nameNode))) delete static_cast<IdNode*>(nameNode);
+                ok = static_cast<RecordNameNode*>(nameNode)->SetFromRecord(record);
+                if (!ok || !(ok = static_cast<ObjectRefList*>(out)->Add(reinterpret_cast<ObjectRefNode*>(nameNode)))) delete static_cast<IdNode*>(nameNode);
             }
         }
     }
@@ -266,7 +261,7 @@ int ObjectTypeDb::AreLevelsUnique(int view, uint32_t kind, int* unique) {
         NameList atLevel;
         ok = CollectRecords(view, kind, level, 0, 1, 0, atLevel.tree(), &maxLevel);
         if (ok) {
-            const int count = FUN_004f4290(atLevel.tree());
+            const int count = static_cast<ObjectRefList*>(atLevel.tree())->Size();
             if (count != 0 && count != 1) *unique = 0;
         }
     }

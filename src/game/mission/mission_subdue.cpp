@@ -37,7 +37,7 @@ int MissionSubdue::CheckOrder(int a, int orderKind, StatusCode* out) {
 }
 
 int MissionSubdue::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(FUN_00592aa0);
+    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
     out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
     return 1;
 }
@@ -46,15 +46,15 @@ GameObj* MissionSubdue::CreateViewObject() { return NewOrNull<MissionSubdue>(); 
 
 GameObjNotifier* MissionSubdue::Create() { return NewOrNull<MissionSubdue>(); }
 
-int MissionSubdue::CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out) {
+int MissionSubdue::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     *status = MakeStatus(mission_status::kOk);
     *out = 0;
-    return FUN_005868c0(check, status, out);
+    return MissionSystemTargetBase::CheckTarget(check, status, out);
 }
 
 int MissionSubdue::Virtual157(GameObj* person, int* out) {
     System* system = nullptr;
-    const int found = FUN_00586720(this, &system);
+    const int found = static_cast<MissionSystemTargetBase*>(this)->GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     bool ok = found != 0;
     if (!system) return ok;
     const int side = ControlSideIndex(ControlSide());
@@ -71,7 +71,7 @@ int MissionSubdue::Virtual160(NotifyContext* ctx) { return MissionStartIfIdle(th
 
 int MissionSubdue::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     System* system = nullptr;
-    const int found = FUN_00586720(this, &system);
+    const int found = static_cast<MissionSystemTargetBase*>(this)->GetObjectiveSystem(reinterpret_cast<GameObj**>(&system));
     if (!system) return found != 0;
     const bool inUprising = (system->m_flags & 4) != 0;
     bool ok = inUprising && found;
@@ -93,7 +93,7 @@ int MissionSubdue::Virtual159(GameObj* person, int roll, int* out, NotifyContext
 int MissionSubdue::BuildEventKinds() {
     if (!g_missionSubdueEventKindsReady) {
         g_missionSubdueEventKindsReady = 1;
-        return FUN_00586b00(0, &g_missionSubdueEventKinds);
+        return MissionSystemTargetBase::InitEventKinds(0, &g_missionSubdueEventKinds);
     }
     return 1;
 }

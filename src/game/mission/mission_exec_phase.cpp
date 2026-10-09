@@ -68,7 +68,7 @@ int MissionMgr::DetachMissionMembers(Mission* mission, NotifyContext* ctx) {
             int resigning = 0;
             int stays = 0;
             int unusedC = 0;
-            ok = FUN_00521220(mission, person, &resigning, &stays, &unusedC) && ok;
+            ok = mission->GetMemberTransitFlags(person, &resigning, &stays, &unusedC) && ok;
             if (resigning == 0 || stays != 0 || (person->m_flags78 & role_flag::kMissionRemoveRequest)) continue;
 
             ObjectKey personKey;

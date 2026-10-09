@@ -11,6 +11,7 @@
 #include "gameobj/object_lookup.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
+#include "strategy_ui/sector_window.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
 #include "ui/cool_drag_list.h"
@@ -26,7 +27,6 @@ extern const int16_t g_stringGroup65d424;  // 0x65d424
 
 DibBitmap* CreateObjectPicture(HMODULE module, const ObjectKey* key, GameObjNotifier* object, int a, int b);
 // The sector window selects the unit of the given key (the report's object).
-void __thiscall FUN_0045c8e0(CoolWindow* sectorWindow, const ObjectKey* key, int mode);
 // The modal state of the report (the id of the window and of the message it shows).
 void ModalReportClose(int windowId, int messageId);
 void ModalReportReset(int windowId);
@@ -481,7 +481,7 @@ void ReportWindow::OnCommand(int a, int b, int c) {
             if (static_cast<int16_t>(a) == kPreviousId) {
                 ObjectKey reportedKey;
                 GetObjectKey(reported, &reportedKey);
-                FUN_0045c8e0(sectorWindow, &reportedKey, 4);
+                static_cast<SectorWindow*>(sectorWindow)->OpenWindowOfType(&reportedKey, 4);
             }
         }
         ModalReportReset(m_commandId);

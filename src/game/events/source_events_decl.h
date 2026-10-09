@@ -19,4 +19,3 @@ int FUN_00514a20(ObjectKey*, int, int, NotifyContext*);
 int FUN_00516360(ObjectKey*, int, int, NotifyContext*);
 int FUN_00516220(ObjectKey*, int, int, NotifyContext*);
 int FUN_00514a60(ObjectKey*, ObjectKey*, ObjectKey*, NotifyContext*);
-int __thiscall FUN_00546e30(GameObjNotifier* manager, ObjectKey* key, int value, NotifyContext* ctx);

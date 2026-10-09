@@ -83,7 +83,7 @@ public:
     virtual void Virtual75(const ObjectKey* key, int argument) override;   // 0x485f80: NotePlannerSlot3
     virtual void Virtual76(const ObjectKey* key, int unused, const ObjectKey* system) override;  // 0x485fa0
     virtual void Virtual80(const ObjectKey* key, int) override { m_model.NoteCharacterChanged(key); }   // 0x485fd0
-    virtual void Virtual83(const ObjectKey* key, const ObjectKey* from, int to) override;   // 0x486030: NoteMoved
+    virtual void Virtual83(const ObjectKey* key, const ObjectKey* from, const ObjectKey* to) override;   // 0x486030: NoteMoved
     virtual void Virtual84(const ObjectKey* key, int) override;                             // 0x486050
     virtual void Virtual87(const ObjectKey* key, int name0, int name1, int name2) override;  // 0x486080
     virtual void Virtual91(const ObjectKey* key, const ObjectKey* newParent) override;      // 0x4860d0

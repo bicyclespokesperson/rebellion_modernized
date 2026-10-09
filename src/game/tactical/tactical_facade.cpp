@@ -308,7 +308,7 @@ uint32_t __cdecl TacticalGetCarrierStat68(void* ship) {
     if (ship) {
         const int carrierHandle = *reinterpret_cast<int*>(static_cast<char*>(ship) + 0x178);
         if (carrierHandle) {
-            TacticalUnit* carrier = FUN_005a6480(GetTacticalRegistry(), carrierHandle);
+            TacticalUnit* carrier = reinterpret_cast<TacticalUnit*>(GetTacticalRegistry()->FindShipGroup(carrierHandle));
             if (carrier) return *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(carrier) + 0x68);
         }
     }
@@ -323,7 +323,7 @@ uint32_t __cdecl TacticalGetCarrierStat38(void* ship) {
     if (ship) {
         const int carrierHandle = *reinterpret_cast<int*>(static_cast<char*>(ship) + 0x178);
         if (carrierHandle) {
-            TacticalUnit* carrier = FUN_005a6480(GetTacticalRegistry(), carrierHandle);
+            TacticalUnit* carrier = reinterpret_cast<TacticalUnit*>(GetTacticalRegistry()->FindShipGroup(carrierHandle));
             if (carrier) return *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(carrier) + 0x38);
         }
     }

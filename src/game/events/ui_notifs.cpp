@@ -848,7 +848,7 @@ UiNotif300::UiNotif300() : KeyPairPayload() {}
 
 UiNotif300::~UiNotif300() { REB_KEEP_VPTR_STORE(); }
 
-void UiNotif300::Dispatch(PlayerController* controller) { controller->Virtual83(&m_key, &m_keyA, reinterpret_cast<int>(&m_keyB)); }
+void UiNotif300::Dispatch(PlayerController* controller) { controller->Virtual83(&m_key, &m_keyA, &m_keyB); }
 
 void UiNotif300::DispatchToSink(UiNotice* sink) {
     if (sink) sink->Virtual06(GetKind(), asArg(&m_key), asArg(&m_keyA), asArg(&m_keyB));

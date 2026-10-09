@@ -102,15 +102,15 @@ int TacticalAiSide::HasNoShipsAtAll() {
     TacticalSideBase* enemy = opposingSide(GetHeadlessSimulator(), index);
     if (enemy->HasDisabledUnit()) return 0;
     for (UnitRefNode* node = firstUnitNode(m_hangars); node; node = node->Next()) {
-        if (FUN_005b1b70(node->Value()) == 1) return 1;
+        if (node->Value()->UpdateHyperdriveReady() == 1) return 1;
     }
     for (UnitRefNode* node = firstUnitNode(m_fleet); node; node = node->Next()) {
-        if (FUN_005b1b70(node->Value()) == 1) return 1;
+        if (node->Value()->UpdateHyperdriveReady() == 1) return 1;
     }
     if (SideIndex() != 1) return 0;
     TacticalUnit* deathStar = GetTacticalRegistry()->GetDeathStar();
     if (!deathStar) return 0;
-    if (FUN_005ba420(deathStar) != 0) return 1;
+    if (static_cast<TacticalDeathStar*>(deathStar)->IsOperational() != 0) return 1;
     if (asDeathStar(deathStar)->m_hasFacility != 0) return 1;
     return 0;
 }
@@ -154,26 +154,26 @@ int TacticalAiSide::Refresh(int a) {
                 }
             }
         }
-        if (!engaged) m_strength = FUN_005b7a80(node->Value(), 0, a) + m_strength;
+        if (!engaged) m_strength = node->Value()->AttackRatingVsClass(0, a) + m_strength;
         ++count;
     }
     if (SideIndex() == 1) {
         for (UnitRefNode* node = firstUnitNode(&GetHeadlessSimulator()->m_launched); node; node = node->Next()) {
-            m_strength = FUN_005b7a80(node->Value(), 0, a) + m_strength;
+            m_strength = node->Value()->AttackRatingVsClass(0, a) + m_strength;
             ++count;
         }
     }
     for (UnitRefNode* node = firstUnitNode(m_hangars); node; node = node->Next()) {
-        m_strength = FUN_005b7a80(node->Value(), 0, a) + m_strength;
+        m_strength = node->Value()->AttackRatingVsClass(0, a) + m_strength;
         ++count;
     }
     TacticalUnit* deathStar = GetTacticalRegistry()->GetDeathStar();
-    if (deathStar && FUN_005ba420(deathStar)) {
+    if (deathStar && static_cast<TacticalDeathStar*>(deathStar)->IsOperational()) {
         if (SideIndex() == 1) {
             m_strength = kDeathStarBonus + m_strength;
             return count + 1;
         }
-        bool carried = FUN_005afcc0(GetHeadlessSimulator()) != 0;
+        bool carried = GetHeadlessSimulator()->SideZeroHasMoreFighters() != 0;
         if (!carried) {
             for (GroupRefNode* groupNode = firstGroupNode(m_groups); groupNode; groupNode = nextGroupNode(groupNode)) {
                 if (groupNode->Value()->m_unk68 == 6 || groupNode->Value()->m_mode == 6) {
@@ -244,7 +244,7 @@ int TacticalAiSide::Virtual11() {
         const int index = SideIndex();
         TacticalSideBase* enemy = reinterpret_cast<TacticalSideBase*>(simulator->m_sides[index == 0 ? 1 : 0]);
         enemy->Refresh(0);
-        const float enemyStrength = FUN_005afa30(GetHeadlessSimulator(), SideIndex());
+        const float enemyStrength = GetHeadlessSimulator()->OpponentStrength(SideIndex());
         if (enemyStrength > 0.0f) {
             const float ratio = m_strength / enemyStrength;
             if (!(ratio >= m_unk24)) return 1;
@@ -258,7 +258,7 @@ int TacticalAiSide::StepSide(float step) {
     HeadlessSimulator* simulator = GetHeadlessSimulator();
     TacticalUnit* deathStar = GetTacticalRegistry()->GetDeathStar();
     if (SideIndex() == 0) {
-        if (deathStar && FUN_005ba450(deathStar) == 1) {
+        if (deathStar && static_cast<TacticalDeathStar*>(deathStar)->IsReady() == 1) {
             const int enemyHangars = reinterpret_cast<TacticalSideBase*>(simulator->m_sides[1])->m_hangars.CountNodes();
             if (enemyHangars < m_hangars.CountNodes()) {
                 for (GroupRefNode* node = firstGroupNode(m_groups); node; node = nextGroupNode(node)) {
@@ -270,9 +270,9 @@ int TacticalAiSide::StepSide(float step) {
             }
         }
     } else {
-        if (deathStar && FUN_005ba420(deathStar)) {
+        if (deathStar && static_cast<TacticalDeathStar*>(deathStar)->IsOperational()) {
             if (asDeathStar(deathStar)->m_charge < kDeathStarReady || asDeathStar(deathStar)->m_charge > kDeathStarReady) {
-                FUN_005ba7f0(deathStar, step);
+                static_cast<TacticalDeathStar*>(deathStar)->Charge(step);
             }
             if (!(asDeathStar(deathStar)->m_charge < kDeathStarReady) &&
                 !(asDeathStar(deathStar)->m_charge > kDeathStarReady)) {
@@ -280,8 +280,8 @@ int TacticalAiSide::StepSide(float step) {
                 for (AvlNode* node = m_targets[0].First(); node; node = node->m_successor) {
                     TacticalShipBase* unit = static_cast<TargetPriorityNode*>(node)->m_unit.m_unit;
                     if (unit->GetUnitClass() == kCapitalShipClass) {
-                        FUN_005ba710(deathStar, static_cast<int>(unit->m_id));
-                        FUN_005af7a0(GetHeadlessSimulator(), unit);
+                        static_cast<TacticalDeathStar*>(deathStar)->ResetCharge(static_cast<int>(unit->m_id));
+                        GetHeadlessSimulator()->RetireUnit(unit);
                         break;
                     }
                 }
@@ -303,33 +303,33 @@ int TacticalAiSide::StepSide(float step) {
         TacticalShipBase* unit = node->Value()->m_formationA.FirstUnit();
         if (unit) {
             const float damage = node->Value()->MemberStrengthAgainst(unit) * step;
-            FUN_005b54d0(unit, damage);
+            unit->TakeDamage(damage);
             const float health = unit->m_hull;
-            if (!(health < 0.0f) && !(health > 0.0f)) FUN_005af7a0(GetHeadlessSimulator(), unit);
+            if (!(health < 0.0f) && !(health > 0.0f)) GetHeadlessSimulator()->RetireUnit(unit);
         }
     }
 
     if (Virtual11() == 1) {
         for (UnitRefNode* node = firstUnitNode(m_hangars); node;) {
             UnitRefNode* next = node->Next();
-            if (FUN_005b1b70(node->Value()) == 0) {
-                if (FUN_005afe40(GetHeadlessSimulator(), node->Value()) == 0) {
-                    FUN_005af7a0(GetHeadlessSimulator(), node->Value());
+            if (node->Value()->UpdateHyperdriveReady() == 0) {
+                if (GetHeadlessSimulator()->DockInHangar(node->Value()) == 0) {
+                    GetHeadlessSimulator()->RetireUnit(node->Value());
                 }
             } else {
-                FUN_005af910(GetHeadlessSimulator(), node->Value());
+                GetHeadlessSimulator()->DockAtDeathStar(node->Value());
             }
             node = next;
         }
-        if (SideIndex() == 1 && deathStar && FUN_005ba420(deathStar)) {
+        if (SideIndex() == 1 && deathStar && static_cast<TacticalDeathStar*>(deathStar)->IsOperational()) {
             asDeathStar(deathStar)->m_fired = 1;
         }
         for (UnitRefNode* node = firstUnitNode(m_fleet); node;) {
             UnitRefNode* next = node->Next();
-            if (FUN_005b1b70(node->Value()) == 1) {
-                FUN_005af910(GetHeadlessSimulator(), node->Value());
+            if (node->Value()->UpdateHyperdriveReady() == 1) {
+                GetHeadlessSimulator()->DockAtDeathStar(node->Value());
             } else {
-                FUN_005af7a0(GetHeadlessSimulator(), node->Value());
+                GetHeadlessSimulator()->RetireUnit(node->Value());
             }
             node = next;
         }
@@ -339,14 +339,14 @@ int TacticalAiSide::StepSide(float step) {
     int active = 0;
     for (UnitRefNode* node = firstUnitNode(m_fleet); node; node = node->Next()) {
         if (node->Value()->m_state == kStateActive) ++active;
-        FUN_005b6320(node->Value(), step);
+        node->Value()->Recharge(step);
     }
     for (UnitRefNode* node = firstUnitNode(m_hangars); node; node = node->Next()) {
         if (node->Value()->m_state == kStateActive) ++active;
-        FUN_005b6320(node->Value(), step);
+        node->Value()->Recharge(step);
     }
     if (active != 0) return 0;
     if (SideIndex() != 1 || !deathStar) return 1;
-    if (FUN_005ba420(deathStar) != 0) return 0;
+    if (static_cast<TacticalDeathStar*>(deathStar)->IsOperational() != 0) return 0;
     return 1;
 }

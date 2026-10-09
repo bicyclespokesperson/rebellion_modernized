@@ -3,6 +3,7 @@
 #include <new>
 
 #include "ai/ai_common.h"
+#include "ai/ai_task_manager.h"
 #include "app/rebapp_globals.h"
 #include "audio/sound_manager.h"
 #include "core/checked_new.h"
@@ -19,15 +20,13 @@
 #include "strategy_ui/advisor_droid.h"
 #include "strategy_ui/advisor_notices.h"
 #include "strategy_ui/game_ui_facade.h"
+#include "ui/animation_step.h"
 
 // ---- Parts of the player controller (0x488460-0x48aa90) and of the advisor droid (0x4392b0-0x43a2d0) that this class
 // calls; they belong to other modules.
 void __thiscall FUN_0048aa90(PlayerController* player, PlayerMessage* message);
 void __thiscall FUN_004888f0(PlayerDispatch* dispatch);
 void __thiscall FUN_00488990(PlayerDispatch* dispatch);
-void __thiscall FUN_00488a30(PlayerDispatch* dispatch, istream* in);
-void __thiscall FUN_00488ac0(PlayerDispatch* dispatch, ostream* out);
-void __thiscall FUN_00488b30(PlayerDispatch* dispatch);
 void __thiscall FUN_00488b50(PlayerDispatch* dispatch, void* message);
 void __thiscall FUN_00488b90(PlayerDispatch* dispatch);
 void __thiscall FUN_00488d20(PlayerDispatch* dispatch, const ObjectKey* key, int flag);
@@ -35,17 +34,8 @@ void __thiscall FUN_0048a340(PlayerDispatch* dispatch, PlayerMessage* message);
 void __thiscall FUN_0048a3b0(PlayerDispatch* dispatch, PlayerMessage* message);
 void __thiscall FUN_004bee50(void* alerts);
 void __thiscall FUN_004bee90(void* alerts);
-void __thiscall FUN_004beea0(void* alerts, istream* in);
-void __thiscall FUN_004bef30(void* alerts, ostream* out);
-void __thiscall FUN_004bef90(void* alerts, PlayerNotice* notice);
-void* __thiscall FUN_004befe0(void* alerts);
-void __thiscall FUN_0049cdb0(void* aiHelper, const ObjectKey* key, int arg);
-void __thiscall FUN_0049d0b0(void* aiHelper, const ObjectKey* key);
-void __thiscall FUN_0049d3b0(void* aiHelper, const ObjectKey* key, const ObjectKey* newParent, int arg);
 int FUN_0041dcb0(int speed);
-void __thiscall FUN_00403ef0(void* advisor, int a, int b);
 extern PersistentInt g_humanUiFlags;  // 0x6b28b0
-void __thiscall FUN_00488030(HumanPlayer* player, PlayerMessage* message);
 
 namespace {
 
@@ -123,8 +113,8 @@ void HumanPlayer::Read(istream* in) {
     PlayerController::Read(in);
     ReadValue32(in, &m_unk50);
     ReadValue32(in, &m_speed);
-    FUN_004beea0(m_alertList, in);
-    FUN_00488a30(Dispatch(), in);
+    reinterpret_cast<AiNoticeQueue*>(m_alertList)->Load(in);
+    Dispatch()->Read(in);
     if (m_side == kSideAlliance || m_side == kSideEmpire) m_advisor = NewAdvisor(this);
     m_advisor->m_dispatch = Dispatch();
     Dispatch()->m_advisor = m_advisor;
@@ -136,8 +126,8 @@ void HumanPlayer::Write(ostream* out) {
     PlayerController::Write(out);
     WriteValue32(out, &m_unk50);
     WriteValue32(out, &m_speed);
-    FUN_004bef30(m_alertList, out);
-    FUN_00488ac0(Dispatch(), out);
+    reinterpret_cast<AiNoticeQueue*>(m_alertList)->Save(out);
+    Dispatch()->Write(out);
     if (m_advisor) m_advisor->Write(out);
 }
 
@@ -147,7 +137,7 @@ int HumanPlayer::Virtual04() {
     int result = 1;
     if (m_advisor) result = m_advisor->StepStartup();
     if (result) {
-        FUN_00488b30(Dispatch());
+        Dispatch()->ClearRecords();
         SetSpeed(2);
     }
     return result;
@@ -175,7 +165,7 @@ int HumanPlayer::Virtual09() {
 
 void HumanPlayer::Virtual10() {
     if (m_advisor && !HasPendingMessages()) m_advisor->Tick();
-    if (void* message = FUN_004befe0(m_alertList)) {
+    if (void* message = reinterpret_cast<AiNoticeQueue*>(m_alertList)->DetachFinished()) {
         Dispatch()->HandleNotifications(static_cast<LinkNode*>(message));
         void** vtable = *static_cast<void***>(message);
         reinterpret_cast<void(__thiscall*)(void*, int)>(vtable[0])(message, 1);
@@ -194,7 +184,7 @@ void HumanPlayer::Virtual20(PlayerNotice* notice) {
     if (!notice) return;
     void** vtable = *reinterpret_cast<void***>(notice);
     reinterpret_cast<void(__thiscall*)(void*, HumanPlayer*)>(vtable[6])(notice, this);
-    FUN_004bef90(m_alertList, notice);
+    reinterpret_cast<AiNoticeQueue*>(m_alertList)->Add(reinterpret_cast<AiNotice*>(notice));
 }
 
 void HumanPlayer::Virtual17(int id, ObjectKey* key) {
@@ -276,7 +266,7 @@ void HumanPlayer::Virtual95() {
 // ---- Notification handlers -----------------------------------------------------------------------------------
 
 void HumanPlayer::Virtual22(int a, int b) {
-    if (m_advisor) FUN_00403ef0(m_advisor, a, b);
+    if (m_advisor) reinterpret_cast<AnimationStep*>(m_advisor)->AnimationStep::SetStart(a, b);
 }
 
 void HumanPlayer::Virtual23(int value) {
@@ -324,41 +314,41 @@ void HumanPlayer::Virtual29(unsigned flags) {
 void HumanPlayer::Virtual30(const ObjectKey* key, int arg) {
     UiOnSystemChangedKind2(key, arg, 0);
     UiBroadcastObjectUpdated(key, nullptr);
-    FUN_0049cdb0(AiHelperOf(m_advisor), key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
 }
 
 void HumanPlayer::Virtual31(const ObjectKey* key, int arg) {
     UiOnSystemChangedKind1(key, -1, arg);
-    FUN_0049cdb0(AiHelperOf(m_advisor), key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
 }
 
 void HumanPlayer::Virtual32(const ObjectKey* key, int arg) {
     UiOnSystemChangedKind1(key, arg, -1);
-    FUN_0049cdb0(AiHelperOf(m_advisor), key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
 }
 
 void HumanPlayer::Virtual33(const ObjectKey* key, int) {
     UiBroadcastObjectUpdated(key, nullptr);
-    FUN_0049cdb0(AiHelperOf(m_advisor), key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
 }
 
 void HumanPlayer::Virtual43(const ObjectKey* key, int sound) {
     UiBroadcastObjectUpdated(key, nullptr);
-    FUN_0049cdb0(AiHelperOf(m_advisor), key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
     if (sound) PlayEffect(kTargetRequestSound);
 }
 
 void HumanPlayer::Virtual44(const ObjectKey* key, int sound) {
     UiBroadcastObjectUpdated(key, nullptr);
-    FUN_0049cdb0(AiHelperOf(m_advisor), key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
     if (sound) PlayEffect(kBlockedRequestSound);
 }
 
-void HumanPlayer::Virtual45(const ObjectKey* key, int) { FUN_0049cdb0(AiHelperOf(m_advisor), key, 0); }
+void HumanPlayer::Virtual45(const ObjectKey* key, int) { reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0); }
 
 void HumanPlayer::Virtual51(const ObjectKey* manager, int unused) {
     UiOnManagerProductionChanged(manager, unused);
-    FUN_0049cdb0(AiHelperOf(m_advisor), manager, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(manager, 0);
 }
 
 void HumanPlayer::Virtual52(const ObjectKey* manager, int position) { UiOnManagerProgressChanged(manager, position); }
@@ -370,7 +360,7 @@ void HumanPlayer::Virtual53(const ObjectKey* manager, const ObjectKey* character
 void HumanPlayer::Virtual54(const ObjectKey* manager, String* text) { UiOnManagerStatusTextChanged(manager, text); }
 
 void HumanPlayer::Virtual62(const ObjectKey* key, int redraw) {
-    if (redraw) FUN_0049cdb0(AiHelperOf(m_advisor), key, 0);
+    if (redraw) reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
 }
 
 void HumanPlayer::Virtual80(const ObjectKey* key, int) { UiBroadcastObjectUpdated(key, nullptr); }
@@ -407,15 +397,15 @@ void HumanPlayer::Virtual81(const ObjectKey* key, const ObjectKey* oldKey, const
         UiBroadcastObjectMoved(key, nullptr, &parentKey, nullptr);
         UiBroadcastObjectChanged(key, nullptr);
     }
-    FUN_0049cdb0(AiHelperOf(m_advisor), key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
 }
 
 void HumanPlayer::Virtual82(const ObjectKey* key) {
     UiBroadcastObjectChanged(key, nullptr);
-    FUN_0049cdb0(AiHelperOf(m_advisor), key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
 }
 
-void HumanPlayer::Virtual83(const ObjectKey* key, const ObjectKey* newParent, int arg) {
+void HumanPlayer::Virtual83(const ObjectKey* key, const ObjectKey* newParent, const ObjectKey* arg) {
     if (FamilyIn(*key, 0x30, 0x40)) {
         if (GameObjNotifier* character = GetObjectInFamilies_30_40(m_side, key)) {
             ObjectKey* location = &reinterpret_cast<ObjectKey&>(*(reinterpret_cast<char*>(character) + 0x68));
@@ -427,7 +417,7 @@ void HumanPlayer::Virtual83(const ObjectKey* key, const ObjectKey* newParent, in
     }
     UiBroadcastObjectMoved(key, nullptr, newParent, nullptr);
     UiBroadcastObjectChanged(key, nullptr);
-    FUN_0049d3b0(AiHelperOf(m_advisor), key, newParent, arg);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteMoved(key, newParent, arg);
 }
 
 void HumanPlayer::Virtual87(const ObjectKey* key, int name0, int name1, int name2) {
@@ -439,13 +429,13 @@ void HumanPlayer::Virtual87(const ObjectKey* key, int name0, int name1, int name
 
 void HumanPlayer::Virtual90(const ObjectKey* key) {
     UiBroadcastObjectUpdated(key, nullptr);
-    FUN_0049cdb0(AiHelperOf(m_advisor), key, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(key, 0);
 }
 
 void HumanPlayer::Virtual91(const ObjectKey* key, const ObjectKey* newParent) {
     UiBroadcastObjectMoved(key, nullptr, newParent, nullptr);
-    FUN_0049d0b0(AiHelperOf(m_advisor), key);
-    FUN_0049cdb0(AiHelperOf(m_advisor), newParent, 0);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChangedAlt(key);
+    reinterpret_cast<AiGalaxyAnalysis*>(AiHelperOf(m_advisor))->NoteChanged(newParent, 0);
 }
 
 // ---- Commands and orders (0x486fb0-0x488460) ----------------------------------------------------------------
@@ -654,7 +644,7 @@ void HumanPlayer::SubmitOrder(PlayerMessage* order, int flag) {
     } else if (flag == 0 && IsQueuedOrder(order)) {
         Dispatch()->QueueConfirmation(reinterpret_cast<MessageBase*>(order));
     } else {
-        FUN_00488030(this, order);
+        this->SpeakOrderAdvice(order);
         Send(reinterpret_cast<MessageBase*>(order));
         m_advisor->ResetSpeech();
         m_advisor->OnOrderSubmitted(order);

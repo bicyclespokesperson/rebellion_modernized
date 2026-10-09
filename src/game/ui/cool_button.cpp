@@ -4,12 +4,12 @@
 #include "core/game_string.h"
 #include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
+#include "ui/cool_button_parts.h"
 #include "ui/resource_dll.h"
 
 // The frame ring and the button repeat timer are classes of the miscellaneous controls (0x60f020 range).
 void* __thiscall FUN_0060f2d0(void* list);                           // frame ring constructor
 void __thiscall FUN_0060f310(void* list);                            // frame ring destructor
-void __thiscall FUN_0060f320(void* list, void* node);                // append a node
 void* __thiscall FUN_0060f3c0(void* memory, DibBitmap* bitmap);      // frame node constructor (0x10 bytes)
 void* __thiscall FUN_0060f1e0(void* memory, int rate, void* target);  // CoolRepeatTimer constructor (0x3c bytes)
 
@@ -599,7 +599,7 @@ void CoolFrameButton::LoadFrames(uint32_t firstId, uint32_t count) {
             if (bitmap && bitmap->IsLoaded()) {
                 void* memory = operator new(sizeof(StrobeFrame));
                 void* node = memory ? FUN_0060f3c0(memory, bitmap) : nullptr;
-                FUN_0060f320(m_frames, node);
+                reinterpret_cast<BitmapFrameList*>(m_frames)->Append(reinterpret_cast<BitmapFrame*>(node));
             }
             ++index;
         } while ((index & 0xffff) < count);

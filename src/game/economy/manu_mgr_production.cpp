@@ -2,6 +2,7 @@
 #include "data/sd_record_bases.h"
 #include "economy/manu_mgr.h"
 #include "economy/manu_mgr_decl.h"
+#include "economy/procfacil.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_queries.h"
@@ -579,7 +580,7 @@ int ManuMgr::RebalanceFacilities(NotifyContext* ctx) {
                 facilities.Advance();
             }
             if (best) {
-                const int started = FUN_0053aac0(best, ctx);
+                const int started = static_cast<ProcFacil*>(best)->Restart(ctx);
                 result = started && previous;
                 --toStart;
             }
@@ -606,7 +607,7 @@ int ManuMgr::RebalanceFacilities(NotifyContext* ctx) {
                     facilities.Advance();
                 }
                 if (best) {
-                    const int released = FUN_0053ab10(best, ctx);
+                    const int released = static_cast<ProcFacil*>(best)->ResetToIdle(ctx);
                     result = released && previous;
                     --excess;
                 }

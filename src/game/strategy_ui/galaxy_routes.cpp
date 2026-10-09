@@ -26,6 +26,7 @@
 #include "strategy_ui/system_finder_window.h"
 #include "strategy_ui/system_window.h"
 #include "strategy_ui/troop_finder_window.h"
+#include "strategy_ui/vote_window.h"
 #include "tactical/comm2.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
@@ -49,7 +50,6 @@ extern int g_briefingDllSide;  // 0x6b14d4 the side whose briefing DLL (slot 0xd
 // of the modules that own them.
 void* __thiscall FUN_004591d0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                               DibBitmap* backdrop, uint32_t childId, GameObjNotifier* sector);
-void __thiscall FUN_00450ff0(CoolWindow* window, int a, int b);
 void __thiscall FUN_00457f30(SystemWindow* window, int slot, GameObjNotifier* manager, const ObjectKey* character);
 void* __thiscall FUN_0042dbe0(void* self);
 
@@ -308,7 +308,7 @@ void GalaxyWindow::OpenType8Window(LPARAM argument) {
 }
 
 void GalaxyWindow::ForwardToType6Window(int a, int b) {
-    if (CoolWindow* window = m_children.FindById(kType6Id)) FUN_00450ff0(window, a, b);
+    if (CoolWindow* window = m_children.FindById(kType6Id)) static_cast<VoteWindow*>(window)->ShowButtons(a, b);
 }
 
 // ---- Manufacturing manager changes shown in the system window ----------------------------------------

@@ -86,8 +86,8 @@ public:
 
     int Load(istream* in);    // 0x5398c0
     int Save(ostream* out);   // 0x539910
-    void Read(istream* in);   // 0x539960
-    void Write(ostream* out);  // 0x539970
+    int Read(istream* in);    // 0x539960
+    int Write(ostream* out);   // 0x539970
 
     int m_value00;   // +0x00
     int m_value04;   // +0x04

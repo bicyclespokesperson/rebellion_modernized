@@ -1,10 +1,8 @@
 #include "gameobj/child_iterator.h"
 
 #include "core/vptr_store.h"
+#include "gameobj/game_obj.h"
 #include "gameobj/object_family.h"
-
-// GameObj::MatchesStateFilter (0x4f6b90), declared on the notifier base because children are always GameObjs.
-int __thiscall FUN_004f6b90(GameObjNotifier* object, uint32_t filter);
 
 ChildIterator::ChildIterator(GameObjNotifier* parent, const FamilyRange* range, uint32_t stateFilter)
     : m_parent(parent), m_range(*range), m_hasSideFilter(0), m_side(0), m_current(nullptr) {
@@ -63,7 +61,7 @@ int ChildIterator::Accepts() {
     if (m_current) {
         const uint32_t family = m_current->GetFamily();
         if (family < m_range.m_first || family >= m_range.m_second) accepted = 0;
-        if (!FUN_004f6b90(m_current, m_stateFilter)) accepted = 0;
+        if (!static_cast<GameObj*>(m_current)->MatchesStateFilter(m_stateFilter)) accepted = 0;
         if (m_hasSideFilter && m_current->ControlSide() != m_side) accepted = 0;
     }
     return accepted;

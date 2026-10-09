@@ -15,6 +15,7 @@
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
+#include "strategy_ui/system_missions_window.h"
 #include "ui/bitmap_status_bar.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
@@ -29,9 +30,6 @@
 #include "ui/resource_dll.h"
 
 extern const char g_gokresDllName[];  // 0x6a8708 "gokres.dll"
-
-// The system the window shows (null, and the window closes itself, when it is gone).
-GameObjNotifier* __thiscall FUN_004a25c0(void* window);
 
 namespace {
 
@@ -394,7 +392,7 @@ void SystemWindow::EndSlotRename(SystemSlot* slot) {
 
 void SystemWindow::SaveState(ostream* out) {
     ObjectKey key;
-    if (GameObjNotifier* system = FUN_004a25c0(this)) {
+    if (GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem()) {
         ObjectKey systemKey;
         GetObjectKey(system, &systemKey);
         key = systemKey;
@@ -454,7 +452,7 @@ ObjectKey SystemWindow::GetKeyAt(int x, int y) {
 ObjectKey SystemWindow::GetDropKeyAt(int, int) { return m_systemKey; }
 
 int SystemWindow::Virtual29() {
-    GameObjNotifier* system = FUN_004a25c0(this);
+    GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->GetSystem();
     if (!system) return 0;
     const uint32_t side = (static_cast<GameObjRoot*>(system)->m_flags >> 6) & 3;
     if (side == 1) return 0x2d0a;

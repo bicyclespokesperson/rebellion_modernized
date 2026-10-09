@@ -6,6 +6,7 @@
 #include "gameobj/object_queries.h"
 #include "gameobj/object_type_db.h"
 #include "orders/route_context.h"
+#include "story/mission_mgr.h"
 
 // The 0x50-byte command of order 0x242 (ctor 0x540c40, another module).
 Command* __thiscall FUN_00540c40(void* memory);
@@ -13,15 +14,6 @@ Command* __thiscall FUN_00540c40(void* memory);
 // The mission manager functions the checks go through (0x541fc0-0x54cd80, another module); `self` is the mission
 // manager, the master of family 0xf8.
 class MissionMgr;
-int __thiscall FUN_005420d0(MissionMgr* self, const ActivityRequest* request, ObjectKeyValueSet* team,
-                            ObjectKeyValueSet* characters, ObjectKeyValueSet* out, StatusCode* status);
-int __thiscall FUN_005422f0(MissionMgr* self, const ActivityRequest* request, ObjectKeyValueSet* team,
-                            ObjectKeyValueSet* characters, ObjectKeyValueSet* out, StatusCode* status);
-int __thiscall FUN_005425e0(MissionMgr* self, const ActivityRequest* request, ObjectKey* resultKey,
-                            ObjectKeyValueSet* team, ObjectKeyValueSet* characters, ObjectKeyValueSet* out,
-                            StatusCode* status);
-int __thiscall FUN_00543410(MissionMgr* self, uint32_t side, NullableKey* missionKey, GameObjNotifier* target,
-                            GameObjNotifier** mission, StatusCode* status);
 
 namespace {
 
@@ -125,7 +117,7 @@ int MissionOrder::CollectCandidates(StatusCode* status, ObjectKeyValueSet* out) 
     BuildRequest(&request);
     if (ok && manager && usable && isOk(status)) {
         ObjectKey* resultKey = &static_cast<MissionOrderCommand*>(usable)->m_resultKey;
-        ok = FUN_005425e0(manager, &request, resultKey, GetTeam(), &m_characters, out, status);
+        ok = manager->ResolveMissionTravel(&request, resultKey, GetTeam(), &m_characters, out, status);
     }
     return ok;
 }
@@ -209,7 +201,7 @@ int MissionOrder::CheckDestination(StatusCode* status) {
         if (isOk(status)) {
             MissionMgr* manager = getMissionMgr();
             ok = manager != nullptr;
-            if (ok) ok = FUN_00543410(manager, side, &m_missionKey, target, &mission, status);
+            if (ok) ok = manager->FindMissionForTarget(side, &m_missionKey, target, &mission, status);
         }
         if (ok && isOk(status) && isMissionTypeKey(m_missionKey) && controlSideOf(mission) != side) {
             setStatus(status, kStatusWrongSide);
@@ -275,7 +267,7 @@ int MissionOrder240::CollectCandidatesA(ObjectKeyValueSet* out) {
     ActivityRequest request;
     initRequest(&request);
     BuildRequest(&request);
-    if (ok) ok = FUN_005420d0(manager, &request, GetTeam(), &m_characters, out, &status);
+    if (ok) ok = manager->CollectMissionTypesForTeam(&request, GetTeam(), &m_characters, reinterpret_cast<ObjectRefList*>(out), &status);
     return ok;
 }
 
@@ -287,7 +279,7 @@ int MissionOrder240::CollectCandidatesB(ObjectKeyValueSet* out) {
     ActivityRequest request;
     initRequest(&request);
     BuildRequest(&request);
-    if (ok) ok = FUN_005422f0(manager, &request, GetTeam(), &m_characters, out, &status);
+    if (ok) ok = manager->CollectMissionTypeNamesAtTarget(&request, GetTeam(), &m_characters, reinterpret_cast<ObjectRefList*>(out), &status);
     return ok;
 }
 

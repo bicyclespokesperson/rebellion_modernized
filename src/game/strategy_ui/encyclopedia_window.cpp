@@ -11,6 +11,7 @@
 #include "core/registry.h"
 #include "core/vptr_store.h"
 #include "data/dat_record.h"
+#include "galaxy/system.h"
 #include "gameobj/game_obj_root.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/object_type_db.h"
@@ -30,14 +31,6 @@ extern const char g_encyBitmapDllName[];         // 0x6a8750 "encybmap.dll"
 extern const char g_encyTextDllName[];           // 0x6a8760 "encytext.dll"
 extern const char g_encyDefaultDataDirectory[];  // 0x6a8770 "EDATA\\"
 extern const char g_encyLocationValueName[];     // 0x6a8778 "EncyLocation"
-
-// Heap copy of the registry value DllLocation (registry paths, 0x401440-0x401760).
-// Pause / resume the game while a modal panel is open (game UI facade, 0x41d3f0 range).
-// *out = the ObjectKey of a game-object list row (+0x68).
-ObjectKey* __thiscall FUN_0042d170(CoolListItem* item, ObjectKey* out);
-// The data-table record of a type key, null without an object-type database.
-// Picture index of a star system's type record (record +0x44), 0 without a record.
-int __thiscall FUN_00509610(GameObjNotifier* system);
 
 namespace {
 
@@ -619,11 +612,11 @@ void EncyclopediaWindow::SetFilter(int tabId, uint32_t reload) {
         m_filteredItems->Clear();
         for (; item; item = item->Next()) {
             ObjectKey key;
-            FUN_0042d170(item, &key);
+            static_cast<ObjectListItem*>(item)->GetKey(&key);
             uint32_t family = Family(key);
             if (range.m_first <= family && family < range.m_second) {
                 ObjectKey itemKey;
-                ObjectListItem* copy = NewOrNull<ObjectListItem>(item->m_id, FUN_0042d170(item, &itemKey));
+                ObjectListItem* copy = NewOrNull<ObjectListItem>(item->m_id, static_cast<ObjectListItem*>(item)->GetKey(&itemKey));
                 // BUG(original): no null check after a failed allocation.
                 copy->m_text = item->m_text.m_text;
                 m_filteredItems->Insert(copy);
@@ -694,12 +687,12 @@ void EncyclopediaWindow::LoadArticle() {
         m_picture = nullptr;
     }
     ObjectKey key;
-    FUN_0042d170(m_selected, &key);
+    static_cast<ObjectListItem*>(m_selected)->GetKey(&key);
     uint32_t family = Family(key);
     uint32_t pictureId;
     if (family >= 0x90 && family < 0x98) {
         GameObjNotifier* system = GetObjectInFamilies_90_98(m_galaxy->m_side, &key);
-        pictureId = static_cast<uint32_t>(SystemPictureId(FUN_00509610(system)));
+        pictureId = static_cast<uint32_t>(SystemPictureId(static_cast<System*>(system)->GetRecordField44()));
     } else if ((family >= 0x40 && family < 0x80) || (family >= 0x08 && family < 0x10)) {
         // Missions and fleets have one picture per side.
         uint32_t recordId = m_selected->m_id & kRecordIdMask;

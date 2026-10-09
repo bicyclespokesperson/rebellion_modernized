@@ -1,5 +1,6 @@
 #include "data/dat_record.h"
 #include "core/utility_classes.h"
+#include "fleet/fight_squad.h"
 #include "galaxy/system_rules.h"
 #include "galaxy/system_rules_1e.h"
 #include "galaxy/system_rules_decl.h"
@@ -80,7 +81,7 @@ int System::ApplyAll(NotifyContext* ctx) {
         if (ctx->m_flag04 == 1) {
             ApplyLoyalty(ctx);
             ApplyEnergy(ctx);
-            FUN_005037f0(this, ctx);
+            reinterpret_cast<FightSquad*>(this)->ApplySquadSizeDamage(ctx);
             ApplyRawMaterial(ctx);
             ApplyRawMaterialAllocated(ctx);
             ApplySmugglingPercent(ctx);

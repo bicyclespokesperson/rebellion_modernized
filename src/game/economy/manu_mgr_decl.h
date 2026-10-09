@@ -28,7 +28,3 @@ inline ManufacturingFacilityFields* AsFacilityFields(GameObjNotifier* facility) 
 // Virtual slot 129 of the manufacturing facility classes: the kind of product it builds (compared with
 // ManuMgr::GetFacilityKind()).
 int GetFacilityProductKind(GameObj* facility);
-
-// Facility methods that ManuMgr's rebalancing calls (0x53a670 region): put an idle facility to work / release one.
-int __thiscall FUN_0053aac0(void* facility, NotifyContext* ctx);
-int __thiscall FUN_0053ab10(void* facility, NotifyContext* ctx);

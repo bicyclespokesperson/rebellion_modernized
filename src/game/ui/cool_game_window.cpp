@@ -4,6 +4,7 @@
 #include "core/containers.h"
 #include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
+#include "ui/bitmap_overlay.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
 #include "ui/resource_dll.h"
@@ -11,7 +12,6 @@
 // Overlay registry of the miscellaneous controls (0x60f420 range): an IdAvlTree subclass and its nodes.
 void* __thiscall FUN_0060f420(void* registry);
 void __thiscall FUN_0060f460(void* registry);
-void* __thiscall FUN_0060f470(void* registry, uint32_t id);
 void* __thiscall FUN_0060f4f0(void* memory);
 
 namespace {
@@ -431,7 +431,7 @@ uint32_t CoolGameWindow::AddOverlay(DibBitmap* bitmap, uint32_t overlayId) {
 
 DibBitmap* CoolGameWindow::FindOverlayBitmap(uint32_t overlayId) {
     DibBitmap* bitmap = nullptr;
-    void* node = FUN_0060f470(m_overlays, overlayId);
+    void* node = reinterpret_cast<BitmapOverlayTree*>(m_overlays)->FindOverlay(overlayId);
     if (node) {
         using GetBitmap = DibBitmap*(__thiscall*)(void*);
         bitmap = reinterpret_cast<GetBitmap*>(*static_cast<void***>(node))[1](node);

@@ -13,11 +13,6 @@ extern "C" void __cdecl LAB_00526cb0();
 extern EventKindSet g_allFacilityEventKinds;  // 0x6b8ff8
 extern int g_allFacilityEventKindsReady;      // 0x6b9000
 
-// Other slot wrappers these ones delegate to (the originals are reconstructed below under their class names).
-int __thiscall FUN_0051c1d0(void* self, istream* in);
-int __thiscall FUN_005277f0(void* self, ostream* out);
-int __thiscall FUN_00527810(void* self, Crc32* crc);
-
 namespace {
 constexpr int kStatusCategory = 1;
 constexpr int kStatusOk = -1;
@@ -131,11 +126,11 @@ DefenseFacility::DefenseFacility() {}
 
 DefenseFacility::~DefenseFacility() { REB_KEEP_VPTR_STORE(); }
 
-int DefenseFacility::Read(istream* in) { return FUN_0051c1d0(this, in); }
+int DefenseFacility::Read(istream* in) { return reinterpret_cast<AllFacility*>(this)->AllFacility::Read(in); }
 
-int DefenseFacility::Write(ostream* out) { return FUN_005277f0(this, out); }
+int DefenseFacility::Write(ostream* out) { return reinterpret_cast<AllFacility*>(this)->AllFacility::Write(out); }
 
-int DefenseFacility::Checksum(Crc32* crc) { return FUN_00527810(this, crc); }
+int DefenseFacility::Checksum(Crc32* crc) { return reinterpret_cast<AllFacility*>(this)->AllFacility::Checksum(crc); }
 
 int DefenseFacility::ApplyAll(NotifyContext* ctx) {
     if (IsSideView()) return ApplyAllLeafStep(ctx);

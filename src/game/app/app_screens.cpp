@@ -8,6 +8,8 @@
 #include "audio/sound_manager.h"
 #include "core/layout.h"
 #include "gfx/dib_bitmap.h"
+#include "gfx/directdraw_host.h"
+#include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "tactical/comm2.h"
 #include "tactical/tactical_game.h"
@@ -189,7 +191,7 @@ void RebellionApplication::SetState(int state) {
             CommShutdown();
             FUN_00409370();
             SoundManager::Shutdown(0);
-            FUN_00614290();
+            g_directDrawHost.ReleaseAll();
             PostQuitMessage(0);
             return;
         case kStateVictoryMovieEmpire:
@@ -428,6 +430,6 @@ void RebellionApplication::ForwardToStrategicWindow() {
     CoolWindow* window = m_activeWindow;
     if (!window) return;
     if (window->m_childId == kModalChildStrategic || window->m_childId == kModalChildStrategicAlt) {
-        FUN_00422620(window);
+        static_cast<GalaxyWindow*>(window)->InitializeGameDisplay();
     }
 }

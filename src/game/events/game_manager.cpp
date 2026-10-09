@@ -8,6 +8,7 @@
 #include "data/table_registration.h"
 #include "economy/side.h"
 #include "events/event_base.h"
+#include "events/notif_event_payloads.h"
 #include "gameobj/factory_registries.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_queries.h"
@@ -141,7 +142,7 @@ int readFlagsAndSnapshots(GameManager* self, istream* in) {
     int* fields = &self->m_ok;
     for (int i = 0; i < 19; ++i) ReadValue32(in, fields + i);
     int ok = 1;
-    for (int i = 0; i < 3 && ok; ++i) ok = FUN_00539960(&self->m_snapshot[i], in);
+    for (int i = 0; i < 3 && ok; ++i) ok = reinterpret_cast<ChecksumRecord*>(&self->m_snapshot[i])->Read(in);
     return ok;
 }
 
@@ -219,9 +220,9 @@ int GameManager::Write(ostream* out) {
     const int* fields = &m_ok;
     for (int i = 0; i < 19; ++i) WriteValue32(out, fields + i);
 
-    int ok = FUN_00539970(&m_snapshot[0], out);
-    if (ok) ok = FUN_00539970(&m_snapshot[1], out);
-    if (ok) ok = FUN_00539970(&m_snapshot[2], out);
+    int ok = reinterpret_cast<ChecksumRecord*>(&m_snapshot[0])->Write(out);
+    if (ok) ok = reinterpret_cast<ChecksumRecord*>(&m_snapshot[1])->Write(out);
+    if (ok) ok = reinterpret_cast<ChecksumRecord*>(&m_snapshot[2])->Write(out);
     if (ok) WritePositionMarker(out);
     if (ok) ok = m_notices != nullptr;
     if (ok) {

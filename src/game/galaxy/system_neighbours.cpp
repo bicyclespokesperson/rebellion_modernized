@@ -9,8 +9,6 @@
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
 
-// The system's map position (its data record's +0x4c), 0,0 without a record; returns `out`.
-MapPosition* __thiscall FUN_00509620(GameObjNotifier* system, MapPosition* out);
 // Straight-line distance of two map positions.
 int __cdecl FUN_0055d860(const MapPosition* a, const MapPosition* b);
 
@@ -21,8 +19,11 @@ bool IsSystemFamily(uint32_t family) { return family >= family::kSystems.m_first
 int DistanceBetween(GameObjNotifier* from, GameObjNotifier* to) {
     MapPosition toPosition;
     MapPosition fromPosition;
-    MapPosition* target = FUN_00509620(to, &toPosition);
-    return FUN_0055d860(FUN_00509620(from, &fromPosition), target);
+    MapPosition* target = reinterpret_cast<MapPosition*>(
+        static_cast<System*>(to)->GetRecordField4c(reinterpret_cast<uint32_t*>(&toPosition)));
+    return FUN_0055d860(reinterpret_cast<MapPosition*>(static_cast<System*>(from)->GetRecordField4c(
+                            reinterpret_cast<uint32_t*>(&fromPosition))),
+                        target);
 }
 
 int SystemIndex(const GameObjNotifier* system) { return static_cast<int>(system->m_id) - SystemNeighbourTable::kFirstSystemId; }

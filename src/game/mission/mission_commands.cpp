@@ -4,6 +4,7 @@
 #include "gameobj/object_queries.h"
 #include "mission/mission.h"
 #include "mission/mission_events.h"
+#include "story/mission_mgr.h"
 
 namespace {
 
@@ -89,7 +90,7 @@ void MissionOrderCommand::Checksum(Crc32* crc) {
 int MissionOrderCommand::CheckEnabled(StatusCode* status) {
     MissionMgr* manager = nullptr;
     int ok = resolveMissionMgr(&m_key, &manager, status);
-    if (ok && succeeded(*status)) ok = FUN_005429e0(manager, &m_request, m_unk50, m_unk54, &m_team, &m_characters, status);
+    if (ok && succeeded(*status)) ok = manager->CheckMissionOrderMembers(&m_request, m_unk50, m_unk54, &m_team, &m_characters, status);
     return ok;
 }
 
@@ -97,8 +98,7 @@ int MissionOrderCommand::CheckValid(StatusCode* status) {
     MissionMgr* manager = nullptr;
     int ok = resolveMissionMgr(&m_key, &manager, status);
     if (ok && succeeded(*status)) {
-        ok = FUN_00542b60(manager, &m_request, m_unk50, m_unk54, &m_missionKey, &m_resultKey, &m_team, &m_characters,
-                          status);
+        ok = manager->CheckMissionOrder(&m_request, m_unk50, m_unk54, &m_missionKey, &m_resultKey, &m_team, &m_characters, status);
     }
     return ok;
 }
@@ -109,8 +109,7 @@ int MissionOrderCommand::Execute() {
     StatusCode status;
     int ok = resolveMissionMgr(&m_key, &manager, &status);
     if (ok && succeeded(status)) {
-        ok = FUN_00542b60(manager, &m_request, m_unk50, m_unk54, &m_missionKey, &m_resultKey, &m_team, &m_characters,
-                          &status);
+        ok = manager->CheckMissionOrder(&m_request, m_unk50, m_unk54, &m_missionKey, &m_resultKey, &m_team, &m_characters, &status);
     }
     if (ok && succeeded(status)) {
         events::callVirtualSlot<int>(manager, kMissionMgrCreateMissionSlot, &m_request, m_unk50, m_unk54, m_side, &m_missionKey,

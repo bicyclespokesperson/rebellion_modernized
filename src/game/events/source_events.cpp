@@ -4,6 +4,7 @@
 
 #include "events/event_helpers.h"
 #include "gameobj/game_obj.h"
+#include "story/mission_mgr.h"
 
 using events::kStatusCategory;
 using events::kStatusMissingTarget;
@@ -319,7 +320,7 @@ int Event313::CheckValid(StatusCode* status) {
 int Event313::Execute() {
     NotifyContext ctx(m_context);
     GameObjNotifier* manager = GetGameRootMember_b8();
-    if (manager) FUN_00546e30(manager, &m_key, m_valueB, &ctx);
+    if (manager) static_cast<MissionMgr*>(manager)->RunStoryPipelineForStoryKey2(&m_key, m_valueB, &ctx);
     return 0;
 }
 

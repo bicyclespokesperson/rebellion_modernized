@@ -51,21 +51,9 @@ inline int CallMissionSlot120(Mission* mission, ObjectKeyValueSet* team, ObjectK
     return reinterpret_cast<Slot*>(*reinterpret_cast<void***>(mission))[120](mission, team, decoys, ctx) ? 1 : 0;
 }
 
-// ---- Mission members whose declaration in mission.h differs from the original signature ----
-// Mission::GetTransitionFlags: (person, &a, &b, &c); it reads the person's flags and the mission's completion status.
-int __thiscall FUN_00521220(Mission* mission, Role* person, int* a, int* b, int* c);  // 0x521220
-// Mission::FillStatusFlags: fills the four phase levels.
-int __thiscall FUN_00520ec0(Mission* mission, MissionPhaseLevels* levels);  // 0x520ec0
-// Mission::AssignPhaseLevels with its real argument type.
-int __thiscall FUN_00522a60(Mission* mission, MissionPhaseLevels* levels);  // 0x522a60
-
 // ---- the rules object (game root member +0xbc, type 0xf9, 0x554020-0x557410) ----
 int __thiscall FUN_00556710(GameObjNotifier* rules, GameObj* person, NotifyContext* ctx);
 int __thiscall FUN_00556390(GameObjNotifier* rules, ObjectKey* personKey, ObjectKey* locationKey, NotifyContext* ctx);
 int __thiscall FUN_00556c70(GameObjNotifier* rules, ObjectKey* key, int a, NotifyContext* ctx);
-
-// ---- per-class checks of the 0x58 mission family ----
-int __thiscall FUN_00570470(Mission* mission, NotifyContext* ctx);
-int __thiscall FUN_005704b0(Mission* mission, NotifyContext* ctx);
 
 extern int DAT_006bb5b8;  // GNPRTB 0x1806, a percentage

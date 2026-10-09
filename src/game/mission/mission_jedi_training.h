@@ -31,7 +31,7 @@ public:
     int RequestPhase9(NotifyContext* ctx);   // 0x570470
     int RequestPhase10(NotifyContext* ctx);  // 0x5704b0
 
-    static int CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out);  // 0x570690
+    static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x570690
     static int BuildEventKinds();      // 0x5715d0
     static void InitStatics();         // 0x571600
     static GameObjNotifier* Create();  // 0x570620

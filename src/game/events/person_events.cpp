@@ -4,12 +4,10 @@
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "gameobj/object_queries.h"
+#include "story/mission_mgr.h"
 
 // Methods of the object GetGameRootMember_b8 returns (the mission manager, not reconstructed here); `manager` is the
 // thiscall receiver.
-int __thiscall FUN_00545e90(GameObjNotifier* manager, const ObjectKey* key, int value, NotifyContext* ctx);
-int __thiscall FUN_00546000(GameObjNotifier* manager, const ObjectKey* key, int value, NotifyContext* ctx);
-int __thiscall FUN_00546240(GameObjNotifier* manager, const ObjectKey* key, int value, NotifyContext* ctx);
 int __cdecl FUN_00515970(const ObjectKey* key, int value, NotifyContext* ctx);
 
 namespace {
@@ -104,7 +102,7 @@ int RemoveRequestEvent::CheckValid(StatusCode* status) {
 
 int RemoveRequestEvent::Execute() {
     NotifyContext ctx(m_context);
-    if (GameObjNotifier* manager = GetGameRootMember_b8()) FUN_00546240(manager, &m_key, m_valueB, &ctx);
+    if (GameObjNotifier* manager = GetGameRootMember_b8()) static_cast<MissionMgr*>(manager)->ProcessRemoveRequest(&m_key, m_valueB, &ctx);
     return 0;
 }
 
@@ -166,7 +164,7 @@ int PersonRemovedEvent::CheckValid(StatusCode* status) {
 
 int PersonRemovedEvent::Execute() {
     NotifyContext ctx(m_context);
-    if (GameObjNotifier* manager = GetGameRootMember_b8()) FUN_00545e90(manager, &m_key, m_valueB, &ctx);
+    if (GameObjNotifier* manager = GetGameRootMember_b8()) static_cast<MissionMgr*>(manager)->OnPersonRemoved(&m_key, m_valueB, &ctx);
     return 0;
 }
 
@@ -198,7 +196,7 @@ int ResignRequestEvent::CheckValid(StatusCode* status) {
 
 int ResignRequestEvent::Execute() {
     NotifyContext ctx(m_context);
-    if (GameObjNotifier* manager = GetGameRootMember_b8()) FUN_00546000(manager, &m_key, m_valueB, &ctx);
+    if (GameObjNotifier* manager = GetGameRootMember_b8()) static_cast<MissionMgr*>(manager)->ProcessResignRequest(&m_key, m_valueB, &ctx);
     return 0;
 }
 

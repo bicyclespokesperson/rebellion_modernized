@@ -220,7 +220,7 @@ public:
     virtual void Virtual80(const ObjectKey* key, int arg) {}
     virtual void Virtual81(const ObjectKey* key, const ObjectKey* oldKey, const ObjectKey* newKey) {}
     virtual void Virtual82(const ObjectKey* key) {}
-    virtual void Virtual83(const ObjectKey* key, const ObjectKey* newParent, int arg) {}
+    virtual void Virtual83(const ObjectKey* key, const ObjectKey* newParent, const ObjectKey* arg) {}
     virtual void Virtual84(const ObjectKey* key, int arg) {}
     virtual void Virtual85(const ObjectKey* key, int arg) {}
     virtual void Virtual86(const ObjectKey* key, int arg) {}

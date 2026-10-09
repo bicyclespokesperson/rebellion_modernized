@@ -197,8 +197,8 @@ void AiPlayer::Virtual76(const ObjectKey* key, int, const ObjectKey* system) {
     m_model.NoteSystemTouched(system);
 }
 
-void AiPlayer::Virtual83(const ObjectKey* key, const ObjectKey* from, int to) {
-    m_model.NoteMoved(key, from, reinterpret_cast<const ObjectKey*>(static_cast<intptr_t>(to)));
+void AiPlayer::Virtual83(const ObjectKey* key, const ObjectKey* from, const ObjectKey* to) {
+    m_model.NoteMoved(key, from, to);
 }
 
 void AiPlayer::Virtual84(const ObjectKey* key, int) {

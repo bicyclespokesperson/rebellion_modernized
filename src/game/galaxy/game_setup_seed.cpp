@@ -16,9 +16,6 @@
 // The helpers the setup stages share: rule rows applied to the systems of a sector, the creation of the objects a row
 // names, and the setup stage counter.
 
-int __thiscall FUN_00507270(System* system, int side);
-int __thiscall FUN_0050cf70(System* system, int value);
-int __thiscall FUN_0050cfa0(System* system, int value);
 
 extern int g_setupStage;  // 0x6b2bb4, the setup stage
 extern int g_setupComplete;  // 0x6b90e0
@@ -81,7 +78,7 @@ uint32_t ApplySeedRuleToSystem(System* system, const SeedRule* rule, NotifyConte
         if (rule->m_direction != 1) amount = -amount;
         const int target = rule->m_target;
         if ((system->m_flags & kPopulated) != 0 && (system->m_flags & kNeverBeenControlled) == 0 &&
-            FUN_00507270(system, rule->m_unitKind) < target) {
+            system->GetLoyaltyFor(rule->m_unitKind) < target) {
             void* memory = ::operator new(0x44);
             LoyaltyEvent373* command = memory ? new (memory) LoyaltyEvent373() : nullptr;
             result = command != nullptr;
@@ -131,11 +128,11 @@ int GameRoot::PlaceSystem(ObjectKey* systemKey, int unusedA, int initArg, int le
         ok = bothTrue(system != nullptr, ok);
     }
     if (system != nullptr) {
-        const int levelSet = FUN_0050cf70(static_cast<System*>(system), level);
+        const int levelSet = (static_cast<System*>(system))->SetDataFlag1(level);
         const int firstOk = bothTrue(levelSet, ok);
         const int announced = callVirtual<int>(system, kVirtual47Slot, ctx);
         const int secondOk = bothTrue(announced, firstOk);
-        const int flagged = FUN_0050cfa0(static_cast<System*>(system), 1);
+        const int flagged = (static_cast<System*>(system))->SetDataFlag2(1);
         ok = bothTrue(flagged, secondOk);
         ObjectKey recordKey;
         if (system->m_record == nullptr) {

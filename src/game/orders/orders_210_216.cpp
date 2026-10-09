@@ -6,6 +6,9 @@
 #include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "data/game_math.h"
+#include "economy/manu_mgr.h"
+#include "economy/side.h"
+#include "gameobj/key_int_set.h"
 #include "gameobj/key_queue.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_queries.h"
@@ -56,7 +59,7 @@ Command* nextCommand(Command* command) { return static_cast<Command*>(command->m
 
 ObjectKey commandKey(Command* command) {
     ObjectKey key;
-    FUN_004fa150(command, &key);
+    reinterpret_cast<GameObj*>(command)->GetDepartureKey(&key);
     return key;
 }
 
@@ -126,7 +129,7 @@ int DestinationOrder::CheckDestination(StatusCode* status) {
                  command && isOk(status) && onlyCapitalShips; command = nextCommand(command)) {
                 GameObjNotifier* manager = managerOfCommand(command);
                 if (!manager) continue;
-                ObjectKeyValueSet* children = FUN_00528820(manager);
+                ObjectKeyValueSet* children = static_cast<ManuMgr*>(manager)->GetQueue();
                 for (AvlNode* node = children->First(); isOk(status) && node && onlyCapitalShips;
                      node = node->m_successor) {
                     if (!isCapitalShip(keyOfNode(node))) onlyCapitalShips = false;
@@ -181,7 +184,7 @@ int DestinationOrder::CheckDestination(StatusCode* status) {
                         }
                     } else {
                         ok = route.FreeCarriedParents(static_cast<GameObj*>(manager), status);
-                        ObjectKeyValueSet* children = FUN_00528820(manager);
+                        ObjectKeyValueSet* children = static_cast<ManuMgr*>(manager)->GetQueue();
                         for (AvlNode* node = children->First(); ok != 0 && isOk(status) && node;
                              node = node->m_successor) {
                             ObjectKey legKey;
@@ -312,7 +315,7 @@ uint32_t ManufactureOrderBase::FillChoices(AvlTree* choices) {
                     kind = 0x29;
                 else
                     known = false;
-                result = known ? FUN_0052e580(sideObject, kind, choices) : 0;
+                result = known ? static_cast<Side*>(sideObject)->CollectRdRecords(kind, reinterpret_cast<IdAvlTree*>(choices)) : 0;
             }
         }
     }
@@ -412,7 +415,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
         if (ok != 0 && isOk(status)) {
             GameObjNotifier* sideObject = GetGameRootSideMember(sideIndexOf(side));
             ok = sideObject != nullptr;
-            if (ok != 0) ok = FUN_0052e970(sideObject, &m_item, m_count, status);
+            if (ok != 0) ok = static_cast<Side*>(sideObject)->CheckMaintCapacity(reinterpret_cast<const ObjectKey*>(&m_item), m_count, status);
         }
     }
 
@@ -420,7 +423,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
     if (ok != 0 && isOk(status)) {
         for (Command* command = firstCommand(m_commands); command && ok != 0; command = nextCommand(command)) {
             GameObjNotifier* manager = managerOfCommand(command);
-            capacity += FUN_00528040(manager, 1);
+            capacity += static_cast<ManuMgr*>(manager)->CountHostFacilities(1);
             ObjectKey locationKey;
             ok = route.AddContainerLegs(ManagerGetLocationKey(manager, &locationKey));
         }
@@ -440,7 +443,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
             ok = route.FreeCarriedParents(static_cast<GameObj*>(manager), status);
             int toBuild = 0;
             if (ok != 0) {
-                int managerCapacity = FUN_00528040(manager, 1);
+                int managerCapacity = static_cast<ManuMgr*>(manager)->CountHostFacilities(1);
                 int extra = managerCapacity < remainder ? managerCapacity : remainder;
                 toBuild = managerCapacity * share + extra;
                 remainder -= extra;
@@ -457,7 +460,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
                 }
                 if (ok != 0 && isOk(status)) {
                     ObjectKey itemKey;
-                    ok = FUN_0053e020(&fieldAt<char>(command, kCommandPayloadOffset), &legKey, GetItemKey(&itemKey));
+                    ok = reinterpret_cast<ObjectKeyIntSet*>(&fieldAt<char>(command, kCommandPayloadOffset))->AddPair(legKey, reinterpret_cast<const int&>(GetItemKey(&itemKey)->m_value));
                 }
             }
         }

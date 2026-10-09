@@ -36,9 +36,9 @@ public:
     int ApplyRecruitedCharacter(NotifyContext* ctx);                // 0x56b860
     int ApplyAllBody(NotifyContext* ctx);                           // 0x56b830
 
-    static int CheckTarget(MissionOrderCheck* check, StatusCode* status, int* out);  // 0x56b370
-    static int CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out);  // 0x56b550
-    static int CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* check, StatusCode* status, int* out);  // 0x56b680
+    static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56b370
+    static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56b550
+    static int CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56b680
     static int BuildEventKinds();      // 0x56bb50
     static void InitStatics();         // 0x56bb80
     static GameObjNotifier* Create();  // 0x56b300

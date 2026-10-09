@@ -47,6 +47,7 @@
 #include "events/game_clock_hooks.h"
 #include "gfx/dib_bitmap.h"
 #include "gfx/directdraw_host.h"
+#include "multiplayer/multiplayer_window.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "tactical/comm2.h"
 #include "ui/cool_environment.h"
@@ -249,7 +250,7 @@ void RebellionApplication::PollMultiplayerSync(int quit) {
     if (m_state == kStateStrategic) {
         if (static_cast<StrategicWindow*>(m_strategicWindow)->m_unknownAc != 0) return;
     } else if (m_state == kStateLobbyHost || m_state == kStateLobbyJoin) {
-        FUN_004109e0(m_activeWindow);
+        static_cast<MultiPlayerWindow*>(m_activeWindow)->UpdateStartButtons();
     }
     AppShowNoticeDialog(0x46d, 0, 0x1204, 0x190e, kDialogX, kDialogY);
     CommCleanUp();
@@ -275,7 +276,7 @@ void RebellionApplication::ReportOpponentTrouble() {
     SetManagerUnk3c(1);
     SetManagerUnk44(1);
     UiBeginPause();
-    if (m_state == kStateLobbyHost || m_state == kStateLobbyJoin) FUN_004109e0(m_activeWindow);
+    if (m_state == kStateLobbyHost || m_state == kStateLobbyJoin) static_cast<MultiPlayerWindow*>(m_activeWindow)->UpdateStartButtons();
     if (opponentLeft) {
         if (m_mismatchOptions)
             AppShowQuestionDialog(0x47d, 0x120b, 0x120c, kDialogX, kDialogY);

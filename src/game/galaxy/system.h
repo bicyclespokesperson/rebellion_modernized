@@ -2,6 +2,7 @@
 #include <cstdint>
 
 #include "core/layout.h"
+#include "fleet/fight_squad.h"
 #include "gameobj/child_iterator.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/side_bits.h"
@@ -31,9 +32,6 @@
 class Crc32;
 class EventKindSet;
 class System;
-
-// 0x5037f0: ApplyEnergyAllocated, identical to a function of the fleet code and folded with it (not reconstructed here).
-int __thiscall FUN_005037f0(System* system, NotifyContext* ctx);
 
 namespace system_flag {
 constexpr uint32_t kPopulated = 0x1;
@@ -213,7 +211,7 @@ public:
     int SetBlockadeAndBattlePendingManagementRequired(int on, NotifyContext* ctx);  // 0x50ac10
     int ApplyLoyalty(NotifyContext* ctx);  // 0x50f390
     int ApplyEnergy(NotifyContext* ctx);  // 0x50f410
-    int ApplyEnergyAllocated(NotifyContext* ctx) { return FUN_005037f0(this, ctx); }  // 0x5037f0, folded with an unrelated class's function
+    int ApplyEnergyAllocated(NotifyContext* ctx) { return reinterpret_cast<FightSquad*>(this)->ApplySquadSizeDamage(ctx); }  // 0x5037f0, folded with an unrelated class's function
     int ApplyRawMaterial(NotifyContext* ctx);  // 0x50f490
     int ApplyRawMaterialAllocated(NotifyContext* ctx);  // 0x50f510
     int ApplySmugglingPercent(NotifyContext* ctx);  // 0x50f590
@@ -279,7 +277,7 @@ public:
     int FindBestShipOfCommandKind2(uint32_t side, GameObjNotifier** out);  // 0x509460
     int FindBestShipOfCommandKind1(uint32_t side, GameObjNotifier** out);  // 0x509530
     uint32_t GetRecordField44();  // 0x509610
-    void GetRecordField4c(uint32_t* out);  // 0x509620
+    uint32_t* GetRecordField4c(uint32_t* out);  // 0x509620, returns `out`
     int GetEnergy();  // 0x509650
     int GetRawMaterial();  // 0x509660
     GameObjNotifier* FindManufacturingManagerBySlot123(int value);  // 0x509670
@@ -349,11 +347,11 @@ public:
     int RollResourceIncident(NotifyContext* ctx);                // 0x50cc70
     int PulseDisasterIncident(NotifyContext* ctx);               // 0x50cdc0
     // Stores into the SystemData block (m_data).
-    void SetData48(int value, int side);  // 0x50ce20, m_word48[side - 1] for sides 1-3
-    void SetData54(int value, int side);  // 0x50ce50
-    void SetData60(int side);             // 0x50ce80, sides 1 and 2 only
+    int SetData48(int value, int side);  // 0x50ce20, m_word48[side - 1] for sides 1-3; returns whether side is 1-3
+    int SetData54(int value, int side);  // 0x50ce50
+    int SetData60(int side);              // 0x50ce80, sides 1 and 2 only; returns whether it stored
     int SetData64(int side);              // 0x50ceb0, 0-3
-    void SetData68(int value, int side);  // 0x50cee0
+    int SetData68(int value, int side);  // 0x50cee0
     int SetData74(int value);             // 0x50cf10
     int SetData78(int value);             // 0x50cf30
     int SetData7c(int value);             // 0x50cf50
@@ -361,7 +359,7 @@ public:
     int SetDataFlag2(int on);             // 0x50cfa0
     int SetDataFlag4(int on);             // 0x50cfd0
     int SetDataFlag8(int on);             // 0x50d000
-    void ResolveUprisingTurn(NotifyContext* ctx);                // 0x50d030
+    int ResolveUprisingTurn(NotifyContext* ctx);                 // 0x50d030, 1 for a side without uprising
     int ApplyUprisingEvent(int event, int side, NotifyContext* ctx);  // 0x50d150
     int RollAndSyncEvent(NotifyContext* ctx);                    // 0x50d510
     int SyncViewForEvent(int mode, int view, NotifyContext* ctx);  // 0x50d5a0

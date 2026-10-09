@@ -10,6 +10,7 @@
 #include "core/iostream_lib.h"
 #include "core/registry.h"
 #include "events/game_clock_hooks.h"
+#include "strategy_ui/game_options_window.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "tactical/comm2.h"
 #include "ui/cool_app.h"
@@ -224,7 +225,7 @@ int RebellionApplication::SavePendingGame() {
     }
     CloseFileStream(file.get());
     if ((m_state == kStateOptionsMenu || m_state == kStateOptionsInGame) && m_activeWindow)
-        FUN_00408240(m_activeWindow, saved, slot);
+        static_cast<GameOptionsWindow*>(m_activeWindow)->OnSaveResult(saved, slot);
     return saved;
 }
 
@@ -257,7 +258,7 @@ void RebellionApplication::SendSaveCommand(int a, int b, String name, int d) {
     void* executorMemory = operator new(0x1c);
     CommandExecutor* executor = executorMemory ? static_cast<CommandExecutor*>(FUN_0051c300(executorMemory)) : nullptr;
     if (!executor) return;
-    FUN_0051c410(executor, command);
+    static_cast<MessageCodec*>(executor)->Serialize(reinterpret_cast<MessageBase*>(command));
     if (executor->m_valid) {
         CommSendMessage(executor->m_buffer, executor->m_size, 4, 1);
         CommFlushAll();
