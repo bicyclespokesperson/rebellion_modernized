@@ -44,19 +44,23 @@ is not emulated globally; goldens measure it. i686 Linux must set the FPU contro
 | P0c | minwin headers selected by `platform/win32.h`; layouts `static_assert`ed against the SDK on i686 | standalone with minwin headers + real import libs identical |
 | P1 | minwin on SDL3 (window manager, GDI/palette, FreeType text, PE resources, config store, DSound mixer, Smacker decoder), i686-windows under Wine | no user32/gdi32/dsound/smackw32/ddraw/advapi32 imports; goldens identical; screenshots identical (glyphs aside) |
 | P2 | Linux i686 ELF (verification only) | goldens byte-identical; Xvfb screenshots match P1 |
-| P3 | Linux x86-64 + soft x87 | goldens identical to Wine i686 (or every diff explained by first-divergence float tracing); ASan/UBSan clean; original 1998 saves load and re-save byte-identical |
-| P4 | macOS arm64 + x86-64 | goldens identical across architectures |
+| P3 | Linux x86-64 (native floats) | ASan/UBSan clean on the scenarios; goldens identical or drift characterised (first-divergence float tracing); original saves load (nice to have) |
+| P4 | macOS arm64 + x86-64 | same invariants as P3 on both architectures |
 | P5 | Multiplayer over TCP/ENet behind CommMgr | two native instances finish a game (not DirectPlay-compatible) |
 
 Every milestone leaves the Wine standalone byte-identical. Screenshots compare minwin's 8-bit framebuffer + palette.
 
-## Decisions (proposed defaults, pending the user)
+## Decisions (user, Oct 9 2026)
 
-1. Bit-exact 64-bit simulation (soft x87 + goldens) vs accepting float drift.
-2. Original save compatibility on 64-bit: yes (cheap; no saved field may be widened).
-3. Libraries: SDL3 (zlib), FreeType (FTL), own Smacker decoder and own soft x87 (avoid LGPL).
-4. Font: the user's Arial when present, Liberation Sans otherwise.
-5. Game data read in place via a config file pointing at the install; multiplayer later over TCP.
+1. **Float drift on 64-bit is acceptable** (exactness welcome but not required). No soft-x87 work up front: 64-bit builds
+   use native floating point; P3/P4 exit on invariants (no crashes, ASan/UBSan clean, plausible battle/AI statistics,
+   and goldens compared where they still match) instead of byte-identical goldens. The i686 goldens stay byte-exact.
+   Revisit soft x87 only if drift causes visible divergence problems.
+2. **Original save compatibility: nice to have, not required.** Keep it while it is free (don't widen saved fields
+   without reason), but it doesn't gate any milestone.
+3. **Libraries:** SDL3 (zlib), FreeType (FTL), own Smacker decoder; avoid LGPL.
+4. **Font:** the user's Arial when present, Liberation Sans as fallback.
+5. **Game data** read in place via a config file pointing at the install; multiplayer later over TCP.
 
 ## Hard parts
 
