@@ -6,17 +6,20 @@
 # (3) container: link. The link fails loudly when symbols are unresolved; tools/standalone_link_report.py then groups
 # them by category (build/standalone/gen/link_report.txt).
 #   REB_ALLOW_UNRESOLVED=ON: link with /FORCE:UNRESOLVED (the unresolved calls crash when reached) for bring-up.
+#   REB_STANDALONE_DIR=<dir>: build directory relative to the checkout (default build/standalone); REB_CMAKE_ARGS: extra cmake arguments
+#     (-DREB_MSG_TRACE_SHIM=ON, -DREB_MINWIN_IMPL=ON).
 #   REB_MINWIN=ON: compile the game code against the minwin headers (src/port/minwin) instead of the Windows SDK (docs/phase3_plan.md P0c).
 set -euo pipefail
 source "$(dirname "$0")/paths.sh"
-out="$ROOT/build/standalone"
+bdir="${REB_STANDALONE_DIR:-build/standalone}"
+out="$ROOT/$bdir"
 rm -f "$out/rebellion.exe"
 mkdir -p "$out/gen"
 container() {
   docker run --rm -u "$(id -u):$(id -g)" -v "$ROOT:$ROOT" -w "$ROOT" rebellion-dev bash -c "$1"
 }
-configure="cmake -S . -B build/standalone -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-win32-clangcl.cmake -DCMAKE_BUILD_TYPE=Release -DREB_STANDALONE=ON -DREB_ALLOW_UNRESOLVED=${REB_ALLOW_UNRESOLVED:-OFF} -DREB_MINWIN=${REB_MINWIN:-OFF}"
-if ! container "$configure -DREB_DATA_IMAGE=OFF >/dev/null && cmake --build build/standalone --target reb_standalone_refs reb_import_libs > build/standalone/gen/build.log 2>&1"; then
+configure="cmake -S . -B $bdir -G Ninja -DCMAKE_TOOLCHAIN_FILE=cmake/toolchain-win32-clangcl.cmake -DCMAKE_BUILD_TYPE=Release -DREB_STANDALONE=ON -DREB_ALLOW_UNRESOLVED=${REB_ALLOW_UNRESOLVED:-OFF} -DREB_MINWIN=${REB_MINWIN:-OFF} ${REB_CMAKE_ARGS:-}"
+if ! container "$configure -DREB_DATA_IMAGE=OFF >/dev/null && cmake --build $bdir --target reb_standalone_refs reb_import_libs > $bdir/gen/build.log 2>&1"; then
   tail -20 "$out/gen/build.log"
   exit 1
 fi
@@ -25,9 +28,9 @@ fi
   --out-asm "$out/gen/data_image.s" --out-report "$out/gen/data_image_report.json"
 "$ROOT/tools/gen_static_init.py" --standalone "$out/gen"
 "$ROOT/tools/gen_resources.py" --exe "$MAIN/orig_game_files/Star Wars - Rebellion/REBEXE.EXE" --out "$out/gen/rebexe.res"
-if ! container "$configure -DREB_DATA_IMAGE=ON >/dev/null && cmake --build build/standalone > build/standalone/gen/build.log 2>&1"; then
+if ! container "$configure -DREB_DATA_IMAGE=ON >/dev/null && cmake --build $bdir > $bdir/gen/build.log 2>&1"; then
   tail -5 "$out/gen/build.log"
-  container "python3 tools/standalone_link_report.py --log build/standalone/gen/build.log --out build/standalone/gen/link_report.txt" || true
+  container "python3 tools/standalone_link_report.py --log $bdir/gen/build.log --out $bdir/gen/link_report.txt" || true
   exit 1
 fi
 echo "built $out/rebellion.exe"

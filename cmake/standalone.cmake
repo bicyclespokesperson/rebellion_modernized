@@ -71,3 +71,18 @@ if(REB_MINWIN)
   target_compile_options(reb_minwin_layout PRIVATE ${REB_HYBRID_FLAGS})
   add_dependencies(rebellion reb_minwin_layout)
 endif()
+
+# REB_MSG_TRACE_SHIM: log the real user32's per-window message sequence (needs REB_MINWIN; src/standalone/msg_trace_shim.cpp).
+option(REB_MSG_TRACE_SHIM "Wrap the game's window procedures to log messages when REB_MSG_TRACE is set" OFF)
+if(REB_MSG_TRACE_SHIM)
+  if(NOT REB_MINWIN)
+    message(FATAL_ERROR "REB_MSG_TRACE_SHIM needs REB_MINWIN=ON")
+  endif()
+  target_compile_definitions(reb_game PRIVATE REB_MSG_TRACE_SHIM=1)
+  target_compile_definitions(reb_tactical_stubs PRIVATE REB_MSG_TRACE_SHIM=1)
+  add_library(reb_msg_trace OBJECT src/standalone/msg_trace_shim.cpp src/port/msg_trace.cpp)
+  target_include_directories(reb_msg_trace PRIVATE src/game src)
+  target_compile_options(reb_msg_trace PRIVATE ${REB_HYBRID_FLAGS})
+  target_sources(rebellion PRIVATE $<TARGET_OBJECTS:reb_msg_trace>)
+endif()
+
