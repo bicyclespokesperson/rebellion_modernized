@@ -11,7 +11,10 @@
 #include "core/game_string.h"
 #include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
+#include "multiplayer/multiplayer_window.h"
 #include "strategy_ui/game_ui_facade.h"
+#include "tactical/comm2.h"
+#include "tactical/tactical_facade.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
 #include "ui/cool_label.h"
@@ -25,14 +28,6 @@ extern const char g_spaceString[];                 // 0x6a7f40 " "
 extern const char g_gameOptionsRequestLoadText[];  // 0x6a7eec
 extern const char g_versionText[];                 // 0x6a7f44 "1.01.00"
 extern const char g_emptyText[];                   // 0x6b120c
-
-// The tactical game's copies of the display options (0x596b70 / 0x596b90), the multiplayer session's slot check
-// (0x411410) and the session shutdown (0x597340 / 0x597360).
-void FUN_00596b70(int musicBit);
-void FUN_00596b90(int musicSliderValue);
-int FUN_00411410(int slot);
-void FUN_00597340(const char* text);
-void FUN_00597360();
 
 namespace {
 
@@ -165,7 +160,7 @@ void AddChild(GameOptionsWindow* window, CoolStrobeButton* button) {
 bool SlotUsable(int slot) {
     SavedGameInfo header = AppReadSaveHeader(slot, g_isNetworkGame);
     if (!g_isNetworkGame) return header.m_gameType == 1;
-    return header.m_gameType == 2 && FUN_00411410(slot);
+    return header.m_gameType == 2 && IsSlotAssigned(slot);
 }
 
 void DrawSaveIcon(GameOptionsWindow* window, const SavedGameInfo& info, int slotIndex) {
@@ -306,7 +301,7 @@ LRESULT __stdcall GameOptionsWindow::WindowProc(UINT message, WPARAM wParam, LPA
         switch (id) {
         case kMusicSlider: {
             const int volume = static_cast<int>(lParam) == 0 ? kMinVolume : SliderPositionToVolume(lParam);
-            if (inBattle) FUN_00596b90(lParam);
+            if (inBattle) TacticalNotifySyncQuiet(lParam);
             AppSetMusicVolume(volume);
             return 0;
         }
@@ -321,7 +316,7 @@ LRESULT __stdcall GameOptionsWindow::WindowProc(UINT message, WPARAM wParam, LPA
             AppSetDisplayOptions2(m_options);
             g_resourceDlls.UnloadSlot(kCommonSlot);
             if (IsLobbyState(m_state)) {
-                FUN_00597360();
+                CommSendPlayerQuit();
                 m_state = kStateFrontEndOptions;
             }
             AppSetState(m_state);
@@ -543,8 +538,8 @@ void GameOptionsWindow::CreateControls() {
 void GameOptionsWindow::LoadSelectedSlot() {
     String name;
     if (m_state != 4 && m_state != 5) {
-        FUN_00597340(g_gameOptionsRequestLoadText);
-        FUN_00597360();
+        CommTrace(g_gameOptionsRequestLoadText);
+        CommSendPlayerQuit();
     }
     AppRequestLoad(m_selectedSlot);
     SendSaveCommand(2, m_selectedSlot, name);
@@ -614,7 +609,7 @@ void GameOptionsWindow::OnOptionToggled(uint32_t buttonId, int unused) {
         value = m_musicValue;
         bit = kMusicOption;
         if (inBattle) {
-            FUN_00596b70(~m_options & kMusicOption);
+            TacticalNotifySync(~m_options & kMusicOption);
         } else {
             AppSetMusicSwitch(~m_options & kMusicOption);
         }

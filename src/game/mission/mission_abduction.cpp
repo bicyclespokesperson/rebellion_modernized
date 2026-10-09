@@ -1,14 +1,14 @@
 #include "mission/mission_abduction.h"
 
 #include "character/character.h"
+#include "data/random.h"
+#include "mission/mission_rules.h"
 
 extern "C" void __cdecl LAB_00577030();
 
 extern int g_missionAbductionEventKindsReady;      // 0x6bbb30
 extern EventKindSet g_missionAbductionEventKinds;  // 0x6bbb28
 
-int __cdecl FUN_0055c810(int personCombat, int targetCombat, int* out);  // LookupMissionTable19
-int FUN_0053e2f0(int threshold);
 extern int DAT_006bb574;
 
 namespace {
@@ -55,7 +55,7 @@ int MissionAbduction::Virtual157(GameObj* person, int* out) {
     if (!target) return ok;
     const int targetCombat = target->GetCombat();
     const int personCombat = static_cast<Role*>(person)->GetCombat();
-    return FUN_0055c810(personCombat, targetCombat, out) != 0 && ok ? 1 : 0;
+    return LookupMissionTable19(personCombat, targetCombat, out) != 0 && ok ? 1 : 0;
 }
 
 int MissionAbduction::Virtual158(NotifyContext* ctx) { return 1; }
@@ -64,7 +64,7 @@ int MissionAbduction::Virtual160(NotifyContext* ctx) { return MissionStartIfIdle
 
 int MissionAbduction::Virtual159(GameObj* personObject, int roll, int* out, NotifyContext* ctx) {
     *out = 0;
-    if (!FUN_0053e2f0(roll)) return 1;
+    if (!PercentChance(roll)) return 1;
     *out = 1;
     Role* person = static_cast<Role*>(personObject);
     bool ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;

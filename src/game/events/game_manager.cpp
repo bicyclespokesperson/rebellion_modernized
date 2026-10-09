@@ -4,13 +4,14 @@
 
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
-#include "economy/side.h"
-#include "events/event_base.h"
 #include "data/probability_table.h"
 #include "data/table_registration.h"
+#include "economy/side.h"
+#include "events/event_base.h"
 #include "gameobj/factory_registries.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_queries.h"
+#include "gameobj/object_type_db.h"
 #include "orders/order_base.h"
 
 extern int g_gameFactoriesRegistered;  // 0x6b2fd0
@@ -555,7 +556,7 @@ int GameManager::CaptureSnapshot() {
         Checksum(&state);
         m_snapshot[0].m_stateCrc = state;
         Crc32 tables;
-        FUN_0051cce0(&tables);
+        ForEachDataFamily(&tables);
         ChecksumTables(&tables);
         m_snapshot[0].m_tableCrc = tables;
         if (m_firstSnapshotTick == 0) m_firstSnapshotTick = m_tickCount;

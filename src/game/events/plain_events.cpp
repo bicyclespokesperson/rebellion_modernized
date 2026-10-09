@@ -1,6 +1,7 @@
 #include "events/plain_events.h"
 #include "events/plain_events_decl.h"
 
+#include "ai/ai_common.h"
 #include "economy/side.h"
 #include "events/event_helpers.h"
 #include "gameobj/game_obj.h"
@@ -98,9 +99,9 @@ int ReparentToRootEvent::Execute() {
         static_cast<GameObj*>(owner)->GetValidParentKey(&currentParent);
         if (parent) {
             ObjectKey wanted;
-            if (FUN_004025b0(parent, &wanted)->m_value != currentParent.m_value) {
+            if (GetObjectKey(parent, &wanted)->m_value != currentParent.m_value) {
                 ObjectKey target;
-                static_cast<GameObj*>(owner)->Reparent(FUN_004025b0(parent, &target), &ctx);
+                static_cast<GameObj*>(owner)->Reparent(GetObjectKey(parent, &target), &ctx);
             }
         }
     }

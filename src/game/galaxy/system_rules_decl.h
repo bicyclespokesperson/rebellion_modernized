@@ -27,7 +27,6 @@ int __thiscall FUN_00509b30(System* self);
 int __thiscall FUN_00509c00(System* self, int value, int side, NotifyContext* ctx);
 int __thiscall FUN_00507270(System* self, int side);
 int __thiscall FUN_00512d00(System* self, int side, int flag, NotifyContext* ctx);
-int __thiscall FUN_0050eea0(System* self, GameObjNotifier* target, NotifyContext* ctx);
 
 // ---- units of other modules ----
 int __thiscall FUN_0040f340(GameObjNotifier* self);
@@ -41,5 +40,4 @@ int __thiscall FUN_00557860(GameObjNotifier* unit, int on, NotifyContext* ctx);
 int __thiscall FUN_00529dd0(GameObjNotifier* facility, NotifyContext* ctx);
 int __thiscall FUN_00528040(GameObjNotifier* facility, int a);
 int __thiscall FUN_0053a7f0(GameObjNotifier* facility, int on, NotifyContext* ctx);
-int FUN_0053fa60(int kind, int flag, System* owner, TrackedStat* stat, NotifyContext* ctx);
 int __thiscall FUN_005037f0(System* self, NotifyContext* ctx);  // System::ApplyEnergyAllocated (folded)

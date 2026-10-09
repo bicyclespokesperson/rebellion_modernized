@@ -5,12 +5,11 @@
 #include <locale.h>
 #include <new>
 
+#include "core/stream_io.h"
 #include "iostream/iostream.h"
 
 int16_t FUN_00479ac0();  // returns 1: bytes reserved for the terminator
 
-void FUN_005f4c40(istream* in, uint16_t* value);        // binary read of a uint16
-void FUN_005f4c60(ostream* out, const uint16_t* value);  // binary write of a uint16
 
 extern char g_stringResourceBuffer[0x100];
 extern void* g_loadStringCallback;
@@ -94,7 +93,7 @@ int ReadLengthPrefixedString(istream* in, char** out) {
     *out = nullptr;
     // The original reads into the low half of its own stream-pointer argument, so a failed read leaves that as the length.
     uint16_t length = static_cast<uint16_t>(reinterpret_cast<uintptr_t>(in));
-    FUN_005f4c40(in, &length);
+    StreamRead16(in, &length);
     char* buffer = allocateChars(terminatorBytes() + length);
     if (!buffer) return 0;
     istream_read(in, buffer, length);
@@ -105,7 +104,7 @@ int ReadLengthPrefixedString(istream* in, char** out) {
 
 int WriteLengthPrefixedString(ostream* out, const char* text) {
     const uint16_t length = static_cast<uint16_t>(SafeStrlen(text));
-    FUN_005f4c60(out, &length);
+    StreamWrite16(out, &length);
     ostream_write(out, text, length);
     return 1;
 }

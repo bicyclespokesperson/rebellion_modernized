@@ -1,9 +1,11 @@
 #include "gameobj/object_type_db.h"
 
+#include "ai/ai_common.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/vptr_store.h"
 #include "data/dat_record.h"
+#include "gameobj/object_name_node.h"
 
 // Pieces owned by the data-table module (0x58e5a0-0x58eda0, 0x52d720, 0x53b860), used through their addresses.
 void* __thiscall FUN_0058ec40(void* storage);
@@ -15,7 +17,6 @@ int __thiscall FUN_0058eda0(void* node, DatRecord* record);
 void __thiscall FUN_0052d720(void* storage);
 void __thiscall FUN_0052d760(void* list);
 int __thiscall FUN_0053b860(DatRecord* record);
-ObjectKey* __thiscall FUN_0042ec10(void* node, ObjectKey* out);
 int __thiscall FUN_004f4270(IdAvlTree* list, void* node);
 uint16_t __thiscall FUN_004f4290(IdAvlTree* list);
 
@@ -41,7 +42,7 @@ public:
     virtual void Virtual01() = 0;
     virtual void Virtual02() = 0;
     virtual void Virtual03() = 0;
-    virtual int Load(int arg) = 0;
+    virtual int Load(Crc32* crc) = 0;
 };
 
 template <class T>
@@ -143,10 +144,10 @@ int ObjectTypeDb::AddFamily(int a, int b) {
     return ok;
 }
 
-int ObjectTypeDb::ForEachFamily(int arg) {
+int ObjectTypeDb::ForEachFamily(Crc32* crc) {
     int ok = 1;
     for (AvlNode* entry = m_families->First(); entry && ok; entry = NextNode(entry)) {
-        ok = At<FamilyLoader>(entry, kEntryLoaderOffset)->Load(arg);
+        ok = At<FamilyLoader>(entry, kEntryLoaderOffset)->Load(crc);
     }
     return ok;
 }
@@ -221,7 +222,7 @@ int ObjectTypeDb::FindRecordAtLevel(int view, uint32_t kind, int level, DatRecor
     if (ok) {
         if (AvlNode* first = names.tree()->First()) {
             ObjectKey key;
-            FUN_0042ec10(first, &key);
+            GetObjectNameNodeKey(static_cast<ObjectNameNode*>(first), &key);
             const uint32_t family = key.Family();
             ok = 0;
             if (family >= kUnitFamilyFirst && family < kUnitFamilyEnd) {
@@ -374,7 +375,7 @@ void DescribeDataKey(const SeedKey* key, String* out) {
     if (db) db->DescribeKey(key, out);
 }
 
-int ForEachDataFamily(int arg) {
+int ForEachDataFamily(Crc32* crc) {
     ObjectTypeDb* db = GetObjectTypeDb();
-    return db ? db->ForEachFamily(arg) : 0;
+    return db ? db->ForEachFamily(crc) : 0;
 }

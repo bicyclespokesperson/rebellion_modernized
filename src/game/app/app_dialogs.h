@@ -5,15 +5,6 @@
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
 
-// The application's small modal message boxes, all children (id 0xd) of the main window, 412x176 pixels, centred.
-// There is at most one at a time (g_appDialog); showing a new notice or wait box destroys the previous one. Their
-// outcome goes back to the main window through FUN_004011a0 (the main loop sees message 0x46a/0x46b with
-// the dialog's message id as wParam). All texts are string ids of REBDLOG.DLL (resource slot 0xc).
-
-// Posts the result of the dialog to `app` (g_app when null): 0x47a, the close request for child 0xd, then message
-// 0x46a (accepted) or 0x46b with g_appDialogMessage.
-void FUN_004011a0(int accepted, CoolWindow* app);  // 0x4011a0, belongs to the application globals
-
 // Yes/No question: two lines of text (either may be 0) and the buttons Yes (id 0x65, Return) and No (id 0x66,
 // Escape). "Quit and return to cockpit?", "Save anyway?", "Resume Game Play?" ...
 class AppDialog : public CoolGameWindow {

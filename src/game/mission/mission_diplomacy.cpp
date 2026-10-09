@@ -1,13 +1,12 @@
 #include "mission/mission_diplomacy.h"
+#include "data/random.h"
+#include "mission/mission_rules.h"
 
 extern "C" void __cdecl LAB_00574230();
 
 extern int g_missionDiplomacyEventKindsReady;      // 0x6bba90
 extern EventKindSet g_missionDiplomacyEventKinds;  // 0x6bba88
 
-int __cdecl FUN_0055c680(int diplomacy, int loyalty, int regiments, int* out);  // LookupDiplomacyMissionTable
-int __cdecl FUN_0055cac0(int controlSide, int targetSide);                      // ComputeDiplomacyBonus
-int FUN_0053e2f0(int threshold);
 extern int DAT_006bb588;  // g_gnprtb1822
 
 namespace {
@@ -85,13 +84,13 @@ int MissionDiplomacy::Virtual157(GameObj* person, int* out) {
     const int regiments = system->CountEmpireRegimentsOfKey6();
     const int loyalty = system->GetLoyaltyFor(side);
     const int diplomacy = static_cast<Role*>(person)->GetDiplomacy();
-    return FUN_0055c680(diplomacy, loyalty, regiments, out) != 0 && ok ? 1 : 0;
+    return LookupDiplomacyMissionTable(diplomacy, loyalty, regiments, out) != 0 && ok ? 1 : 0;
 }
 
 int MissionDiplomacy::Virtual158(NotifyContext* ctx) { return 1; }
 
 int MissionDiplomacy::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
-    if (!FUN_0053e2f0(roll)) return 1;
+    if (!PercentChance(roll)) return 1;
     *out = 1;
     const bool ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
     Role* role = static_cast<Role*>(person);
@@ -108,7 +107,7 @@ int MissionDiplomacy::Virtual160(NotifyContext* ctx) {
     const int found = FUN_00586720(this, &system);
     ok = found != 0 && ok;
     if (!system) return ok;
-    const int bonus = FUN_0055cac0(ControlSide(), system->ControlSide());
+    const int bonus = ComputeDiplomacyBonus(ControlSide(), system->ControlSide());
     const int adjusted = system->AdjustLoyalty(bonus, ControlSide(), ctx);
     return adjusted != 0 && ok ? 1 : 0;
 }

@@ -2,16 +2,11 @@
 
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
+#include "economy/production_facility_types.h"
+#include "galaxy/system_rules_1e.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_key.h"
-
-// GNPRTB rules that roll the starting values of a populated system.
-int FUN_005596f0();                       // is the system populated
-int FUN_00559700(int side, int dataFlag);  // starting loyalty
-int FUN_00559670();                       // starting energy
-int FUN_005596a0(int energy);             // starting raw material
-int FUN_00559850(int rawMaterial, int a, int* created, ObjectKey* key);
 
 namespace {
 
@@ -71,16 +66,16 @@ int SystemType90::Virtual47(int a) {
     NotifyContext* ctx = reinterpret_cast<NotifyContext*>(a);
     const int result = System::Virtual47(a);
     if (result) {
-        const int populated = FUN_005596f0();
+        const int populated = RollSystemPopulated();
         int loyalty = 0;
         if (populated && m_id != kSystemIdWithoutLoyaltyRoll) {
             const uint32_t side = ControlSide();
-            loyalty = FUN_00559700(side, FUN_005092f0(this));
+            loyalty = RollInitialLoyalty(side, FUN_005092f0(this));
         }
         SetPopulated(populated, ctx);
         if (populated) SetLoyalty(loyalty, ctx);
-        SetEnergy(FUN_00559670(), ctx);
-        SetRawMaterial(FUN_005596a0(m_energy), ctx);
+        SetEnergy(RollSystemEnergy(), ctx);
+        SetRawMaterial(RollSystemRawMaterial(m_energy), ctx);
         SetNeverBeenControlled(0, ctx);
     }
     return result;
@@ -101,7 +96,7 @@ int SystemType90::Virtual115(NotifyContext* ctx) {
     const int rawMaterial = m_rawMaterial;
     for (int i = 0; i < count; ++i) {
         int created;
-        result = FUN_00559850(rawMaterial, FUN_0052d370(this, ControlSide(), 1), &created, &key);
+        result = RollStartingUnitA(rawMaterial, CountProductionFacilityType2C(this, ControlSide(), 1), &created, reinterpret_cast<NullableKey*>(&key));
         if (result && created) result = CreateChild(&key, ControlSide(), ctx, 1, 1) != 0;
         if (!result) break;
     }

@@ -107,6 +107,11 @@ public:
 
 // Table of the order factories, filled by RegisterOrderFactories (0x51f4b0).
 int RegisterOrderFactory(int kind, void* (*factory)());  // 0x51f930
+// The factories return the class they build; the table stores plain pointers.
+template <class T>
+int RegisterOrderFactory(int kind, T* (*factory)()) {
+    return RegisterOrderFactory(kind, reinterpret_cast<void* (*)()>(factory));
+}
 void* CreateOrderByKind(int kind);                       // 0x51f8f0, null if no factory is registered
 // As CreateOrderByKind, but kinds below 0x200 other than 1, 2, 3, 5 and 0x11 are refused.
 void* CreateMessageByKind(int kind);  // 0x4f5cd0

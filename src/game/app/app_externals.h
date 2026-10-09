@@ -55,18 +55,6 @@ int __thiscall FUN_0059cb60(TacticalWindow* window, void* stream);  // tactical 
 int __thiscall FUN_0059cb80(TacticalWindow* window, void* stream);  // tactical window: restore its state
 
 // ---- Multiplayer glue (comm2, 0x596fa0-0x597530) ------------------------------------------------------------
-void FUN_00597460();
-void FUN_00597310();
-int FUN_00597090();
-void FUN_00597050();
-void FUN_005974c0();
-int FUN_00597480();
-void FUN_00597340(const char* text);
-void FUN_00597360();
-void FUN_00597030();
-void FUN_005975a0();
-void FUN_005970d0(void* buffer, int size, int c, int d);
-void FUN_00597170();
 void FUN_00596a00();
 
 // ---- Battle flow / session (0x409230-0x40a050) --------------------------------------------------------------
@@ -80,29 +68,6 @@ void __thiscall FUN_0040a050(void* battleFlow, int* stepped);
 void __thiscall FUN_00409bd0(void* battleFlow);
 int __thiscall FUN_00409390(void* battleFlow);
 void __thiscall FUN_004093b0(void* battleFlow, int value);
-
-// ---- Strategic game helpers (0x41cxxx, 0x4fdxxx, 0x51cxxx) ----------------------------------------------------------
-int FUN_0041dad0();
-void FUN_0041dae0(int value);
-int FUN_0041cdb0();
-void FUN_0041d310(int side);
-int FUN_0041cf80();
-int FUN_0041dc10();
-int FUN_0041dc30();
-void FUN_0041dbf0();
-void FUN_0041dbc0();
-int FUN_004fd100();
-int FUN_004fd120();
-void FUN_004fd140(int value);
-int FUN_004fd160();
-int FUN_004fd180();
-void FUN_004fd1a0(int value);
-int FUN_004fd1c0();
-int FUN_004fd1e0();
-void FUN_004fd200(int value);
-int FUN_004fcee0();
-int FUN_00421360(WPARAM wParam);
-int FUN_00421380();
 
 // Setup record handed to the battle-flow object when a game is created (0x14 bytes, ctor 0x51c740, vtable 0x65ece0).
 struct GameSetup {
@@ -136,7 +101,6 @@ void* __thiscall FUN_004210c0(void* memory);
 
 // ---- Appended by the save/load slice -------------------------------------------------------------------------
 void FUN_00401b50();       // thunk to FUN_00409280: create the battle-flow object
-void FUN_004173a0();       // sound module: the click sound handler (RebellionApplication::PlayClickSound jumps to it)
 extern const char* g_autosaveName;  // 0x6a81d8: pointer to the "Autosave" text
 
 // ---- Added by the screens slice (app_screens.cpp) --------------------------------------------------------------

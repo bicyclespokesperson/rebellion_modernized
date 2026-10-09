@@ -2,6 +2,7 @@
 #include "galaxy/system_rules.h"
 
 #include "data/game_math.h"
+#include "events/event_post.h"
 #include "galaxy/system_rules_1e.h"
 #include "galaxy/system_rules_decl.h"
 #include "gameobj/object_key.h"
@@ -258,8 +259,8 @@ int System::NoteWithdrawingUnit(GameObjNotifier* unit, int mustBeIdle, NotifyCon
 
 int System::CheckHyperspaceBlocked(int sideA, int sideB, NotifyContext* ctx) {
     SystemData* data = static_cast<SystemData*>(m_data);
-    const int a = FUN_0053fa60(0x38e, sideA != 3, this, &data->m_stats[5], ctx);
-    const int b = FUN_0053fa60(0x38e, sideB != 3, this, &data->m_stats[5], ctx);
+    const int a = ArmTimerAfterSetFlag(0x38e, sideA != 3, this, &data->m_stats[5], ctx);
+    const int b = ArmTimerAfterSetFlag(0x38e, sideB != 3, this, &data->m_stats[5], ctx);
     return b != 0 && a != 0;
 }
 

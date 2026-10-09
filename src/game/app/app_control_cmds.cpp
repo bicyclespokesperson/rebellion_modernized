@@ -2,15 +2,10 @@
 
 #include <new>
 
+#include "app/rebapp_globals.h"
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
-
-// Multiplayer state owned by other modules.
-void FUN_004114a0(int slot, int value);
-void FUN_00411490(uint32_t flags);
-void FUN_00401420(int value);
-void FUN_00401380(int value);
-void FUN_00401320(int playerId, String playerName);
+#include "multiplayer/multiplayer_window.h"
 
 extern const int g_rectA[4];  // 0x658b08 {left, top, right, bottom}
 extern int g_rectAWidth;      // 0x6b14c4
@@ -59,7 +54,7 @@ int MpSlotTableMsg::Write(ostream* out) {
 int MpSlotTableMsg::GetKind() { return 0x14; }
 
 int MpSlotTableMsg::Apply() {
-    for (int slot = 1; slot <= kSlotCount; ++slot) FUN_004114a0(slot, m_values[slot - 1]);
+    for (int slot = 1; slot <= kSlotCount; ++slot) SetSlotValue(slot, m_values[slot - 1]);
     return 0;
 }
 
@@ -132,7 +127,7 @@ MessageBase* CreateMpChatMsg() { return NewOrNull<MpChatMsg>(); }
 // ---- MpFlagsMsg (kind 0x16) ----------------------------------------------------------------------------------
 
 int MpFlagsMsg::Apply() {
-    FUN_00411490(m_flags);
+    SetLobbyFlags(m_flags);
     return 0;
 }
 
@@ -167,12 +162,12 @@ int MpPlayerInfoMsg::GetKind() { return 0x12; }
 
 int MpPlayerInfoMsg::Apply() {
     if (m_action == kActionSetLocalPlayer) {
-        FUN_00401420(m_extra);
-        FUN_00401320(m_playerId, String(m_playerName));
+        AppSetAutosaveTick(m_extra);
+        AppRequestSave(m_playerId, String(m_playerName));
         return 1;
     }
     if (m_action == kActionSetPeerId) {
-        FUN_00401380(m_playerId);
+        AppRequestLoad(m_playerId);
         return 1;
     }
     return 0;

@@ -1,16 +1,7 @@
 #include "gameobj/game_obj.h"
+#include "events/event_post.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/object_database.h"
-
-// Event hubs of the strategic notification layer (all cdecl).
-int FUN_0053f950(int eventId, GameObj* object, int a, int b, NotifyContext* ctx);
-int FUN_0053f9c0(int eventId, GameObj* object, int value, NotifyContext* ctx);
-int FUN_0053f9f0(int eventId, GameObj* object, ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx);
-int FUN_0053fa60(int eventId, int a, GameObj* object, void* data, NotifyContext* ctx);
-int FUN_0053fcf0(int eventId, GameObj* object, int a, int b, NotifyContext* ctx);
-int FUN_0053fdd0(int eventId, GameObj* object, int value, NotifyContext* ctx);
-int FUN_0053fe40(int eventId, GameObj* object, ObjectKey* a, ObjectKey* b, NotifyContext* ctx);
-int FUN_0053ff20(int eventId, GameObj* object, int a, int b, NotifyContext* ctx);
 
 namespace {
 
@@ -44,8 +35,8 @@ int forEachChild(GameObj* self, uint32_t filter, Visit visit) {
 int GameObj::OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) {
     int ok = UpdateViewVisibility(ctx) != 0;
     ok = forEachChild(this, kExistingFilter, [&](GameObj* child) { return child->Virtual44(ctx); }) && ok;
-    ok = FUN_0053f950(0x302, this, oldKind, newKind, ctx) && ok;
-    return FUN_0053f950(0x318, this, oldKind, newKind, ctx) && ok ? 1 : 0;
+    ok = PostSourceEvent(0x302, this, oldKind, newKind, ctx) && ok;
+    return PostSourceEvent(0x318, this, oldKind, newKind, ctx) && ok ? 1 : 0;
 }
 
 int GameObj::OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) {
@@ -71,7 +62,7 @@ int GameObj::OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newPar
     ObjectKey oldKey;
     newParent->GetKey(&newKey);
     oldParent->GetKey(&oldKey);
-    const int hub = FUN_0053f9f0(0x320, this, &oldKey, &newKey, ctx);
+    const int hub = PostTwoKeyEvent(0x320, this, &oldKey, &newKey, ctx);
     return hub && result ? 1 : 0;
 }
 
@@ -108,7 +99,7 @@ int GameObj::OnUsableChanged(int newValue, NotifyContext* ctx) {
         }
     }
     ok = AutoscrapIfRequested(ctx) && ok;
-    return FUN_0053f9c0(0x301, this, newValue, ctx) && ok ? 1 : 0;
+    return PostSourceEventFlag(0x301, this, newValue, ctx) && ok ? 1 : 0;
 }
 
 int GameObj::OnCreatedChanged(int newValue, NotifyContext* ctx) { return UpdateExisting(ctx) != 0; }
@@ -116,7 +107,7 @@ int GameObj::OnCreatedChanged(int newValue, NotifyContext* ctx) { return UpdateE
 int GameObj::OnCompletedChanged(int newValue, NotifyContext* ctx) {
     const int constructed = SetConstructed(1, ctx);
     const bool ok = UpdateUsable(ctx) && constructed;
-    return FUN_0053f9c0(0x308, this, newValue, ctx) && ok ? 1 : 0;
+    return PostSourceEventFlag(0x308, this, newValue, ctx) && ok ? 1 : 0;
 }
 
 int GameObj::OnDestroyedChanged(int newValue, NotifyContext* ctx) {
@@ -149,7 +140,7 @@ int GameObj::OnEnrouteActiveChanged(int newValue, NotifyContext* ctx) {
 
 int GameObj::OnExistingChanged(int newValue, NotifyContext* ctx) {
     const int usable = UpdateUsable(ctx);
-    return FUN_0053f9c0(0x300, this, newValue, ctx) && usable ? 1 : 0;
+    return PostSourceEventFlag(0x300, this, newValue, ctx) && usable ? 1 : 0;
 }
 
 int GameObj::OnObservedByAllianceChanged(int newValue, NotifyContext* ctx) {
@@ -163,21 +154,21 @@ int GameObj::OnObservedByEmpireChanged(int newValue, NotifyContext* ctx) {
     return forEachChild(this, kAlwaysFilter, [&](GameObj* child) { return child->UpdateObservedByEmpire(ctx); }) && ok;
 }
 
-int GameObj::OnDamagedChanged(int newValue, NotifyContext* ctx) { return FUN_0053f9c0(0x31d, this, newValue, ctx) != 0; }
+int GameObj::OnDamagedChanged(int newValue, NotifyContext* ctx) { return PostSourceEventFlag(0x31d, this, newValue, ctx) != 0; }
 
 int GameObj::OnHyperdriveActiveChanged(int newValue, NotifyContext* ctx) {
-    const bool first = FUN_0053fa60(0x387, newValue, this, &m_data->m_stat, ctx) != 0;
-    return FUN_0053f9c0(0x306, this, newValue, ctx) && first ? 1 : 0;
+    const bool first = ArmTimerAfterSetFlag(0x387, newValue, this, &m_data->m_stat, ctx) != 0;
+    return PostSourceEventFlag(0x306, this, newValue, ctx) && first ? 1 : 0;
 }
 
-int GameObj::OnAutoroutingChanged(int newValue, NotifyContext* ctx) { return FUN_0053f9c0(0x307, this, newValue, ctx) != 0; }
+int GameObj::OnAutoroutingChanged(int newValue, NotifyContext* ctx) { return PostSourceEventFlag(0x307, this, newValue, ctx) != 0; }
 
 int GameObj::OnAutoscrapRequestChanged(int newValue, NotifyContext* ctx) { return AutoscrapIfRequested(ctx) != 0; }
 
-int GameObj::OnLockedChanged(int newValue, NotifyContext* ctx) { return FUN_0053f9c0(0x316, this, newValue, ctx) != 0; }
+int GameObj::OnLockedChanged(int newValue, NotifyContext* ctx) { return PostSourceEventFlag(0x316, this, newValue, ctx) != 0; }
 
 int GameObj::OnReadyForDeleteChanged(int newValue, NotifyContext* ctx) {
-    return FUN_0053f9c0(0x31a, this, newValue, ctx) != 0;
+    return PostSourceEventFlag(0x31a, this, newValue, ctx) != 0;
 }
 
 int GameObj::OnConstructedChanged(int newValue, NotifyContext* ctx) {
@@ -193,7 +184,7 @@ int GameObj::OnNameNotified(String* oldName, String* newName, NotifyContext* ctx
     int result = IsSideView();
     if (result) {
         LogString("GameObjNameNotif", "Name", newName, oldName, 0, ctx);
-        result = FUN_0053ff20(0x500, this, reinterpret_cast<int>(oldName), reinterpret_cast<int>(newName), ctx);
+        result = PostPayloadStrings(0x500, this, oldName, newName, ctx);
     }
     return result;
 }
@@ -202,7 +193,7 @@ int GameObj::OnControlKindNotified(uint32_t oldKind, uint32_t newKind, NotifyCon
     int result = IsSideView();
     if (result) {
         LogSide("GameObjControlKindNotif", "ControlKind", newKind, oldKind, 0, ctx);
-        result = FUN_0053fcf0(0x100, this, oldKind, newKind, ctx);
+        result = PostPayloadInts(0x100, this, oldKind, newKind, ctx);
     }
     return result;
 }
@@ -219,7 +210,7 @@ int GameObj::OnParentNotified(GameObjNotifier* oldParent, GameObjNotifier* newPa
         ObjectKey hubOldKey;
         newParent->GetKey(&hubNewKey);
         oldParent->GetKey(&hubOldKey);
-        result = FUN_0053fe40(0x300, this, &hubOldKey, &hubNewKey, ctx);
+        result = PostPayloadKeysA(0x300, this, &hubOldKey, &hubNewKey, ctx);
     }
     if (result && (m_stateFlags & kEnrouteActive) && (m_packed & 0xff0000)) {
         ObjectKey oldKey;
@@ -231,7 +222,7 @@ int GameObj::OnParentNotified(GameObjNotifier* oldParent, GameObjNotifier* newPa
         ObjectKey hubOldKey;
         newParent->GetKey(&hubNewKey);
         oldParent->GetKey(&hubOldKey);
-        result = FUN_0053fe40(0x301, this, &hubOldKey, &hubNewKey, ctx);
+        result = PostPayloadKeysA(0x301, this, &hubOldKey, &hubNewKey, ctx);
     }
     return result;
 }
@@ -279,7 +270,7 @@ int GameObj::OnUsableNotified(int value, NotifyContext* ctx) {
     int result = IsSideView();
     if (result) {
         LogFlag("GameObjUsableNotif", "Usable", value, 0, ctx);
-        result = FUN_0053fdd0(0x101, this, value, ctx);
+        result = PostPayloadFlag(0x101, this, value, ctx);
     }
     return result;
 }
@@ -288,7 +279,7 @@ int GameObj::OnCreatedNotified(int value, NotifyContext* ctx) {
     int result = IsSideView();
     if (result) {
         LogFlag("GameObjCreatedNotif", "Created", value, 0, ctx);
-        result = FUN_0053fdd0(0x102, this, value, ctx);
+        result = PostPayloadFlag(0x102, this, value, ctx);
     }
     return result;
 }
@@ -297,7 +288,7 @@ int GameObj::OnCompletedNotified(int value, NotifyContext* ctx) {
     int result = IsSideView();
     if (result) {
         LogFlag("GameObjCompletedNotif", "Completed", value, 0, ctx);
-        result = FUN_0053fdd0(0x103, this, value, ctx);
+        result = PostPayloadFlag(0x103, this, value, ctx);
     }
     return result;
 }
@@ -309,12 +300,12 @@ int GameObj::OnDestroyedNotified(int value, NotifyContext* ctx) {
     if (result) {
         LogFlag("GameObjDestroyedNotif", "Destroyed", value, 0, ctx);
         ObjectKey unset;
-        result = FUN_0053fe40(0x302, this, &parentKey, &unset, ctx);
+        result = PostPayloadKeysA(0x302, this, &parentKey, &unset, ctx);
     }
     if (result && (m_stateFlags & kEnrouteActive) && (m_packed & 0xff0000)) {
         LogFlag("GameObjDestroyedOnArrivalNotif", "DestroyedOnArrival", value, 0, ctx);
         ObjectKey unset;
-        result = FUN_0053fe40(0x303, this, &parentKey, &unset, ctx);
+        result = PostPayloadKeysA(0x303, this, &parentKey, &unset, ctx);
     }
     if (result) {
         int eventId = 0;
@@ -342,7 +333,7 @@ int GameObj::OnDestroyedNotified(int value, NotifyContext* ctx) {
         if (eventId != 0) {
             LogFlag(tag, property, value, 0, ctx);
             ObjectKey unset;
-            result = FUN_0053fe40(eventId, this, &parentKey, &unset, ctx);
+            result = PostPayloadKeysA(eventId, this, &parentKey, &unset, ctx);
         }
     }
     return result;
@@ -352,7 +343,7 @@ int GameObj::OnEnrouteNotified(int value, NotifyContext* ctx) {
     int result = IsSideView();
     if (result) {
         LogFlag("GameObjEnrouteNotif", "Enroute", value, 0, ctx);
-        result = FUN_0053fdd0(0x104, this, value, ctx);
+        result = PostPayloadFlag(0x104, this, value, ctx);
     }
     return result;
 }
@@ -361,7 +352,7 @@ int GameObj::OnEnrouteActiveNotified(int value, NotifyContext* ctx) {
     int result = IsSideView();
     if (result) {
         LogFlag("GameObjEnrouteActiveNotif", "EnrouteActive", value, 0, ctx);
-        result = FUN_0053fdd0(0x105, this, value, ctx);
+        result = PostPayloadFlag(0x105, this, value, ctx);
     }
     return result;
 }
@@ -388,7 +379,7 @@ int GameObj::OnDamagedNotified(int value, NotifyContext* ctx) {
     int result = IsSideView();
     if (result) {
         LogFlag("GameObjDamagedNotif", "Damaged", value, 0, ctx);
-        result = FUN_0053fdd0(0x106, this, value, ctx);
+        result = PostPayloadFlag(0x106, this, value, ctx);
     }
     return result;
 }
@@ -433,7 +424,7 @@ int GameObj::OnDeployedNotified(int value, NotifyContext* ctx) {
     int result = 0;
     if (IsSideView()) {
         LogFlag("GameObjDeployedNotif", "Deployed", value, 0, ctx);
-        result = FUN_0053fdd0(0x107, this, value, ctx);
+        result = PostPayloadFlag(0x107, this, value, ctx);
     }
     return result;
 }

@@ -1,9 +1,7 @@
 #include "gameobj/game_obj.h"
+#include "events/event_post.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/object_database.h"
-
-// Event hub (0x53fab0).
-int FUN_0053fab0(int eventId, int a, GameObj* object, void* data, int b);
 
 namespace {
 
@@ -118,8 +116,8 @@ int GameObj::DecrementLock(NotifyContext* ctx) {
     return 1;
 }
 
-int GameObj::NotifyDataEvent387(int a, int b) {
-    return FUN_0053fab0(kAllocationEventId, a, this, &m_data->m_stat, b);
+int GameObj::NotifyDataEvent387(int level, NotifyContext* ctx) {
+    return ArmTimerAfterSetLevel(kAllocationEventId, level, this, &m_data->m_stat, ctx);
 }
 
 // ---- creating and updating children -------------------------------------------------------------------------

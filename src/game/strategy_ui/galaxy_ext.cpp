@@ -1,5 +1,6 @@
 #include <cstdint>
 
+#include "ai/ai_common.h"
 #include "app/app_cdcheck_version.h"
 #include "app/game_session.h"
 #include "core/checked_new.h"
@@ -30,7 +31,6 @@ void* __thiscall FUN_004591d0(void* memory, HINSTANCE instance, int x, int y, in
                               DibBitmap* backdrop, uint32_t childId, GameObjNotifier* sector);
 void* __thiscall FUN_00452fc0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                               int a, int b);
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
 
 namespace {
 
@@ -254,7 +254,7 @@ void GalaxyWindow::BuildSectorItems(HMODULE module) {
         AddSideOffset(m_side, &x, &y);
         const int top = y;
         ObjectKey key;
-        FUN_004025b0(sector, &key);
+        GetObjectKey(sector, &key);
         ObjectListItem* item = NewOrNull<ObjectListItem>(&key);
         item->m_x = x;
         item->m_y = y;

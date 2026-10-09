@@ -13,9 +13,10 @@
 #include "data/int_pair_node.h"
 #include "galaxy/system.h"
 #include "gameobj/child_iterator.h"
-#include "gameobj/key_int_set.h"
 #include "gameobj/game_obj.h"
+#include "gameobj/key_int_set.h"
 #include "gameobj/object_lookup.h"
+#include "gameobj/object_type_db.h"
 #include "gfx/dib_bitmap.h"
 #include "mission/mission.h"
 #include "strategy_ui/galaxy_window.h"
@@ -29,7 +30,6 @@
 
 extern const char g_gokresDllName[];  // 0x6a8708 "gokres.dll"
 
-DatRecord* FUN_0051cab0(const ObjectKey* key);  // the data record of a key (via the object-type database)
 
 namespace {
 
@@ -794,7 +794,7 @@ int SystemMissionsWindow::FillMissionList() {
         const int side = sideNode->m_value;
         ObjectKey seedKey;
         seedKey.m_value = static_cast<uint32_t>(seedNode->m_value);
-        DatRecord* record = FUN_0051cab0(&seedKey);
+        DatRecord* record = FindDataRecord(AsLookupKey(&seedKey));
         if (record && !m_missions->FindById(missionKey.Id())) {
             m_objects.Add(NewOrNull<ObjectKeyIdNode>(&missionKey, 0u), m_missionList->m_childId);
             ObjectListItem* item = NewOrNull<ObjectListItem>(&missionKey);

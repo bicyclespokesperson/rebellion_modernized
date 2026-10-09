@@ -1,12 +1,15 @@
 #include "character/character_mgr.h"
 #include "story/story_missions.h"
 
+#include "ai/ai_common.h"
 #include "character/character.h"
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
+#include "data/random.h"
 #include "gameobj/object_family.h"
-#include "mission/mission_rules.h"
 #include "gameobj/object_key.h"
+#include "mission/mission_external.h"
+#include "mission/mission_rules.h"
 #include "story/story_common.h"
 
 extern "C" void __cdecl LAB_0056dcd0();
@@ -26,9 +29,6 @@ extern EventKindSet g_dagobahMissionEventKinds;  // 0x6bbab8
 extern int g_missionBountyEventKindsReady;      // 0x6bbad4
 extern EventKindSet g_missionBountyEventKinds;  // 0x6bbad8
 
-int FUN_0053e2f0(int threshold);
-int __cdecl FUN_00582cd0(ObjectKey* key, void** any, void** specialForces, void** character);
-ObjectKey* __thiscall FUN_00402e40(DatRecord* self, ObjectKey* out);
 GameObjNotifier* GetGameRootMember_c0();
 GameObjNotifier* GetMaster_32000242();
 int __cdecl ComputePalaceMissionValue(int espionage, int combat, int* out);
@@ -126,10 +126,10 @@ int checkMemberKeys(ObjectKeySet* keys, StatusCode* status, int* out) {
         if (statusOk(status)) {
             ObjectKey lookupKey;
             static_cast<ObjectKeyNode*>(node)->GetKey(&lookupKey);
-            void* any;
-            void* specialForces;
-            void* character;
-            result = FUN_00582cd0(&lookupKey, &any, &specialForces, &character);
+            GameObj* any;
+            GameObj* specialForces;
+            GameObj* character;
+            result = SplitRoleFromKey(&lookupKey, &any, &specialForces, &character);
             if (!result) continue;
             result = character != nullptr;
             if (result) rejectCapturedOrDecoy(static_cast<Character*>(character), status, out);
@@ -376,7 +376,7 @@ int MissionPalace::Virtual157(GameObj* person, int* out) {
 int MissionPalace::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     int result = 1;
     *out = 0;
-    if (!FUN_0053e2f0(roll)) return result;
+    if (!PercentChance(roll)) return result;
     *out = 1;
     int ok = SetTaskStatus(kTaskSucceeded, ctx) ? 1 : 0;
     Role* role = static_cast<Role*>(person);
@@ -778,10 +778,10 @@ int MissionBounty::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* che
     for (AvlNode* node = keys->First(); node && result && statusOk(status); node = node->m_successor) {
         ObjectKey key;
         static_cast<ObjectKeyNode*>(node)->GetKey(&key);
-        void* any;
-        void* specialForces;
-        void* character;
-        const int found = FUN_00582cd0(&key, &any, &specialForces, &character);
+        GameObj* any;
+        GameObj* specialForces;
+        GameObj* character;
+        const int found = SplitRoleFromKey(&key, &any, &specialForces, &character);
         result = found && specialForces ? 1 : 0;
         if (!result) continue;
         if (statusOk(status)) {
@@ -789,7 +789,7 @@ int MissionBounty::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* che
             result = record != nullptr;
             if (!result) continue;
             ObjectKey recordKey;
-            if (!isBountyUnitKey(*FUN_00402e40(record, &recordKey))) reject(status, out, kReasonWrongBountyUnit);
+            if (!isBountyUnitKey(*GetAiRecordKey(record, &recordKey))) reject(status, out, kReasonWrongBountyUnit);
         }
         if (statusOk(status) && (static_cast<Role*>(specialForces)->m_flags78 & role_flag::kDecoy))
             reject(status, out, kReasonDecoy);

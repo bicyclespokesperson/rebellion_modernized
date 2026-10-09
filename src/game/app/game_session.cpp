@@ -5,14 +5,9 @@
 #include "ai/ai_player.h"
 #include "core/checked_new.h"
 #include "multiplayer/remote_player.h"
+#include "strategy_ui/game_ui_facade.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
-
-// Game-clock hooks of the strategic game (game_ui_facade / game_clock_hooks modules).
-int FUN_0041d6d0();
-int FUN_0041dc10();
-int FUN_0041dbf0();
-unsigned FUN_0041dba0(unsigned target);
 
 namespace {
 
@@ -196,12 +191,12 @@ int GameSession::AdvancePhase() {
 
 void GameSession::Update() {
     if (!m_viewReady) {
-        m_viewReady = FUN_0041d6d0();
+        m_viewReady = UiIsGalaxyViewShown();
         return;
     }
     m_controllers[0]->Virtual10();
     m_controllers[1]->Virtual10();
-    if (FUN_0041dc10() && m_controllers[0]->IsSynced() && m_controllers[1]->IsSynced()) FUN_0041dbf0();
+    if (UiIsPauseTick() && m_controllers[0]->IsSynced() && m_controllers[1]->IsSynced()) UiEndPause();
 }
 
 int GameSession::AreAllSynced() { return m_controllers[0]->IsSynced() && m_controllers[1]->IsSynced(); }
@@ -292,7 +287,7 @@ int GameSession::BeginSync(unsigned requested) {
     unsigned other = m_controllers[1]->m_syncId;
     if (latest <= other) latest = other;
     unsigned target = requested < latest ? latest + 1 : requested;
-    unsigned granted = FUN_0041dba0(target);
+    unsigned granted = UiRaisePauseTo(target);
     if (granted == 0) return 0;
     m_controllers[0]->Virtual93(granted);
     m_controllers[1]->Virtual93(granted);

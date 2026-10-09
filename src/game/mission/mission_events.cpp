@@ -1,4 +1,5 @@
 #include "gameobj/object_queries.h"
+#include "events/event_post.h"
 #include "mission/mission.h"
 #include "mission/mission_external.h"
 #include "mission/mission_hub.h"
@@ -56,7 +57,7 @@ int Mission::OnObjectiveKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyC
 }
 
 int Mission::OnReadyForNextPhaseChanged(int newValue, NotifyContext* ctx) {
-    return FUN_0053f9c0(kEventReadyForNextPhase, this, newValue, ctx) != 0;
+    return PostSourceEventFlag(kEventReadyForNextPhase, this, newValue, ctx) != 0;
 }
 
 int Mission::OnPhaseChanged(int oldPhase, int newPhase, NotifyContext* ctx) {
@@ -70,7 +71,7 @@ int Mission::OnPhaseChanged(int oldPhase, int newPhase, NotifyContext* ctx) {
         case kPhaseOutcome: {
             const int updated = UpdatePhaseForTeam(ctx);
             const bool both = updated && ok;
-            const int raised = FUN_0053fa60(kEventPhaseStat, 0, this, &dataOf(this)->m_statA, ctx);
+            const int raised = ArmTimerAfterSetFlag(kEventPhaseStat, 0, this, &dataOf(this)->m_statA, ctx);
             ok = (raised && both) ? 1 : 0;
             break;
         }
@@ -141,7 +142,7 @@ int Mission::OnPhaseChanged(int oldPhase, int newPhase, NotifyContext* ctx) {
         case kPhaseOutcome: {
             const int cleared = SetTaskStatus(0, ctx);
             ok = (cleared && ok) ? 1 : 0;
-            step = FUN_0053fa60(kEventPhaseStat, 1, this, &dataOf(this)->m_statA, ctx);
+            step = ArmTimerAfterSetFlag(kEventPhaseStat, 1, this, &dataOf(this)->m_statA, ctx);
             break;
         }
         default:
@@ -151,7 +152,7 @@ int Mission::OnPhaseChanged(int oldPhase, int newPhase, NotifyContext* ctx) {
     }
     if (normalise) ok = (step && ok) ? 1 : 0;
 
-    const int raised = FUN_0053f950(kEventPhaseChanged, this, oldPhase, newPhase, ctx);
+    const int raised = PostSourceEvent(kEventPhaseChanged, this, oldPhase, newPhase, ctx);
     return (raised && ok) ? 1 : 0;
 }
 

@@ -19,27 +19,11 @@ class ManuMgrDecl;
 int __thiscall FUN_00528040(ManuMgrDecl* manager, int includeFlagged);
 void __thiscall FUN_0052a430(ManuMgrDecl* manager, NotifyContext* ctx);
 
-// Next system after `system` (families 0x90-0x97, 0x51a5d0).
-GameObjNotifier* __thiscall FUN_0051a5d0(GameObjNotifier* system);
-
 // System::FindManufacturingManagerBySlot123 (galaxy module, 0x509670): the manager of a system whose slot value is `slot`.
 ManuMgrDecl* __thiscall FUN_00509670(GameObjNotifier* system, int slot);
 
 // Rules/object-type database wrappers (0x51c-0x51d).
-int FUN_0051cb20(int view, uint32_t kind, int level, int whenBelow, int whenEqual, int whenAbove, IdAvlTree* out,
-                 int* maxLevel);
-int FUN_0051cc30(int view, int level, int* found, int* foundLevel, int* extraValue);
-int FUN_0051cc60(int view, int level, int* found, int* foundLevel, int* extraValue);
-int FUN_0051cc90(int view, int level, int* found, int* foundLevel, int* extraValue);
 class SdRecord;
-SdRecord* FUN_0051cab0(const ObjectKey* key);
-
-// Notification hubs (0x53f-0x540): all cdecl.
-int FUN_0053fa60(int eventId, int value, GameObj* object, void* stat, NotifyContext* ctx);
-int FUN_0053fcf0(int eventId, GameObj* object, int oldValue, int newValue, NotifyContext* ctx);
-int FUN_0053fd60(int eventId, GameObj* object, int oldFirst, int oldSecond, int newFirst, int newSecond,
-                 NotifyContext* ctx);
-int FUN_0053fdd0(int eventId, GameObj* object, int value, NotifyContext* ctx);
 
 // Timed event classes the Side schedules (0x5777c0, 0x577b00); both are 0x40 bytes and derive from the event base
 // (0x54f4e0). m_ok is the base class's construction flag.

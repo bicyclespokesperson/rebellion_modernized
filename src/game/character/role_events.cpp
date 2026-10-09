@@ -1,9 +1,7 @@
 #include "character/role.h"
 #include "data/random.h"
+#include "events/event_post.h"
 #include "gameobj/object_queries.h"
-
-// Event hub of the strategic notification layer (cdecl).
-int FUN_0053f9c0(int eventId, GameObj* object, int value, NotifyContext* ctx);
 
 namespace {
 
@@ -88,14 +86,14 @@ int Role::OnMovingBetweenMissionsChanged(int newValue, NotifyContext* ctx) { ret
 int Role::OnMissionRemoveRequestChanged(int newValue, NotifyContext* ctx) {
     int ok = 1;
     if (newValue != 0) ok = SetMissionResignRequest(0, ctx) != 0;
-    return FUN_0053f9c0(0x30b, this, newValue, ctx) && ok;
+    return PostSourceEventFlag(0x30b, this, newValue, ctx) && ok;
 }
 
 int Role::OnMissionResignRequestChanged(int newValue, NotifyContext* ctx) {
-    return FUN_0053f9c0(0x314, this, newValue, ctx) != 0;
+    return PostSourceEventFlag(0x314, this, newValue, ctx) != 0;
 }
 
-int Role::OnAdriftChanged(int newValue, NotifyContext* ctx) { return FUN_0053f9c0(0x30e, this, newValue, ctx) != 0; }
+int Role::OnAdriftChanged(int newValue, NotifyContext* ctx) { return PostSourceEventFlag(0x30e, this, newValue, ctx) != 0; }
 
 int Role::OnOnMissionChanged(int newValue, NotifyContext* ctx) {
     ObjectKey parentKey;
@@ -108,5 +106,5 @@ int Role::OnOnMissionChanged(int newValue, NotifyContext* ctx) {
     }
     ok = SetOnHiddenMission(0, ctx) && ok;
     ok = SetOnMandatoryMission(0, ctx) && ok;
-    return FUN_0053f9c0(0x312, this, newValue, ctx) && ok;
+    return PostSourceEventFlag(0x312, this, newValue, ctx) && ok;
 }

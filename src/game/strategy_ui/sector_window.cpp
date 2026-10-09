@@ -3,11 +3,12 @@
 #include <cstdint>
 #include <new>
 
+#include "ai/ai_common.h"
+#include "app/rebapp_globals.h"
 #include "audio/sound_manager.h"
 #include "core/checked_new.h"
 #include "core/stream_io.h"
 #include "core/vptr_store.h"
-#include "app/rebapp_globals.h"
 #include "galaxy/sector.h"
 #include "galaxy/system.h"
 #include "gameobj/game_obj.h"
@@ -26,7 +27,6 @@ extern HPALETTE g_palette;
 extern const int16_t g_sectorGridWidth;   // 0x659ef8
 extern const int16_t g_sectorGridHeight;  // 0x659efa
 
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
 uint32_t LAB_004ac550(uint32_t color);
 
 namespace {
@@ -160,7 +160,7 @@ void SectorWindow::OnCreate1() {
     for (systems.Begin(); systems.Current(); systems.Advance()) {
         GameObjNotifier* system = systems.Current();
         ObjectKey key;
-        FUN_004025b0(system, &key);
+        GetObjectKey(system, &key);
         ObjectKeyIdNode* node = NewOrNull<ObjectKeyIdNode>();
         node->m_key = key;
         if (node) m_objects.Add(node, 0);
@@ -243,7 +243,7 @@ void SectorWindow::OnCreate1() {
                 m_markers.Insert(marker);
             }
             ObjectKey updatedKey;
-            FUN_004025b0(system, &updatedKey);
+            GetObjectKey(system, &updatedKey);
             OnObjectUpdated(&updatedKey, system);
         }
     }
@@ -472,7 +472,7 @@ void SectorWindow::SaveState(ostream* out) {
     ObjectKey key;
     if (m_sector) {
         ObjectKey sectorKey;
-        FUN_004025b0(m_sector, &sectorKey);
+        GetObjectKey(m_sector, &sectorKey);
         key = sectorKey;
     }
     uint32_t childId = m_childId;

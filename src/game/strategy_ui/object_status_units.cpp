@@ -1,17 +1,18 @@
 #include <cstdint>
 
+#include "ai/ai_common.h"
 #include "app/app_cdcheck_version.h"
-#include "economy/defense_facility.h"
-#include "fleet/fight_squad.h"
 #include "character/special_forces.h"
+#include "economy/defense_facility.h"
 #include "economy/manufacturing_facility.h"
 #include "economy/production_facility_types.h"
+#include "fleet/fight_squad.h"
 #include "fleet/troop_reg.h"
 #include "galaxy/system.h"
-#include "mission/mission.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
+#include "mission/mission.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/object_status_helpers.h"
 #include "strategy_ui/object_status_window.h"
@@ -20,7 +21,6 @@
 
 using namespace status_page;
 
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
 
 void ObjectStatusWindow::FillFighterSquadronPage(CoolListItemList* labels, CoolListItemList* values) {
     String text;
@@ -279,7 +279,7 @@ void ObjectStatusWindow::FillMissionPage(CoolListItemList* labels, CoolListItemL
     GameObjNotifier* firstMember = nullptr;
     for (GameObjNotifier* member = GetFirstObjectInFamilies_30_40(m_galaxy->m_side); member;) {
         ObjectKey missionKey;
-        FUN_004025b0(m_object, &missionKey);
+        GetObjectKey(m_object, &missionKey);
         ObjectKey memberKey;
         static_cast<GameObjRoot*>(member)->GetKey(&memberKey);
         if (memberKey.m_value == missionKey.m_value) {

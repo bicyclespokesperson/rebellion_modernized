@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <new>
 
+#include "ai/ai_common.h"
 #include "app/player_controller_decl.h"
 #include "app/rebapp_globals.h"
 #include "audio/sound_manager.h"
@@ -27,7 +28,6 @@
 #include "ui/object_list_item.h"
 #include "ui/sprite_stage.h"
 
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
 
 namespace {
 
@@ -123,7 +123,7 @@ void ResolveSystemOf(GameObjNotifier* object, ObjectKey* key) {
     do {
         if (found) break;
         ObjectKey objectKey;
-        FUN_004025b0(object, &objectKey);
+        GetObjectKey(object, &objectKey);
         systemKey = objectKey;
         if (systemKey.Family() >= 0x90 && systemKey.Family() < 0x98) found = true;
         object = object->m_parent;

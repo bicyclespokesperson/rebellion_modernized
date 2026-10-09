@@ -1,19 +1,9 @@
 #include "character/role.h"
+#include "events/event_post.h"
 #include "galaxy/system.h"
+#include "galaxy/system_rules_1e.h"
 #include "galaxy/system_rules_fun_decl.h"
 #include "gameobj/game_obj_data.h"
-
-// Event hubs of the strategic notification layer (all cdecl).
-int FUN_0053f950(int eventId, GameObj* object, int a, int b, NotifyContext* ctx);
-int FUN_0053f9c0(int eventId, GameObj* object, int value, NotifyContext* ctx);
-int FUN_0053fa60(int eventId, int a, GameObj* object, void* data, NotifyContext* ctx);
-int FUN_0053fab0(int eventId, int a, GameObj* object, void* data, NotifyContext* ctx);
-
-// Maps a roll of the game's random source to 0/1 (always returns 1) and the damage helper of a disaster.
-int FUN_00559df0(int* outRoll);
-int FUN_00559e10(int* rawMaterial, int* energy);
-// The garrison strength for a loyalty value.
-int FUN_0055a0c0(int loyalty);
 
 extern int g_setupComplete;                      // 0x6b90e0
 extern int g_systemBlockadeStatLevelFleetSide;   // 0x6bb3d8
@@ -56,7 +46,7 @@ int maybeDestroyChildren(const FamilyRange* range, System* system, NotifyContext
         GameObj* child = static_cast<GameObj*>(it.Current());
         if ((child->m_stateFlags & kEnrouteState) == 0) {
             int roll = 0;
-            result = FUN_00559df0(&roll) && result;
+            result = RollSupportChance(&roll) && result;
             if (roll != 0) result = child->SetDestroyedReason(kDisasterDestroyedReason, ctx) && result;
         }
     }
@@ -87,7 +77,7 @@ int System::OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyConte
 
 int System::OnDestroyedChanged(int newValue, NotifyContext* ctx) {
     const int base = GameObj::OnDestroyedChanged(newValue, ctx);
-    const int hub = FUN_0053f9c0(0x319, this, newValue, ctx);
+    const int hub = PostSourceEventFlag(0x319, this, newValue, ctx);
     return hub && base ? 1 : 0;
 }
 
@@ -109,7 +99,7 @@ int System::OnLoyaltyChanged(int oldValue, int newValue, NotifyContext* ctx) {
             uint32_t fleetSide;
             ok = IsBlockaderMoreLoyal(&fleetSide) && result;
             const int level = fleetSide != 0 ? g_systemBlockadeStatLevelFleetSide : g_systemBlockadeStatLevelOther;
-            const int hub = FUN_0053fab0(0x386, level, this, &dataOf(this)->m_stats[3], ctx);
+            const int hub = ArmTimerAfterSetLevel(0x386, level, this, &dataOf(this)->m_stats[3], ctx);
             return hub && ok ? 1 : 0;
         }
     }
@@ -179,7 +169,7 @@ int System::OnControlDataChanged(const SideBits* oldValue, const SideBits* newVa
             const int kindSet = SetControlKind(newValue->m_value & 3, ctx);
             result = kindSet && causedByLoyalty ? 1 : 0;
         }
-        const int hub = FUN_0053f950(0x31b, this, oldValue->m_value, newValue->m_value, ctx);
+        const int hub = PostSourceEvent(0x31b, this, oldValue->m_value, newValue->m_value, ctx);
         if (hub && result) return 1;
         result = 0;
     }
@@ -220,9 +210,9 @@ int System::OnUprisingChanged(int newValue, NotifyContext* ctx) {
         ok = FUN_0050ba90(this, ctx) && ok;
         ok = FUN_0050b4d0(this, ctx) && ok;
         ok = FUN_0050bb00(this, ctx) && ok;
-        ok = FUN_0053f9c0(0x303, this, newValue, ctx) && ok;
-        ok = FUN_0053fa60(900, newValue, this, &dataOf(this)->m_stats[1], ctx) && ok;
-        ok = FUN_0053fa60(0x38d, newValue, this, &dataOf(this)->m_stats[4], ctx) && ok;
+        ok = PostSourceEventFlag(0x303, this, newValue, ctx) && ok;
+        ok = ArmTimerAfterSetFlag(900, newValue, this, &dataOf(this)->m_stats[1], ctx) && ok;
+        ok = ArmTimerAfterSetFlag(0x38d, newValue, this, &dataOf(this)->m_stats[4], ctx) && ok;
         result = ok;
     }
     return result;
@@ -238,7 +228,7 @@ int System::OnBattleChanged(int newValue, NotifyContext* ctx) {
             result = FUN_0050cee0(this, 0, 3) && ok;
         }
         int ok = FUN_0050bfe0(this, ctx) && result;
-        result = FUN_0053f9c0(0x309, this, newValue, ctx) && ok;
+        result = PostSourceEventFlag(0x309, this, newValue, ctx) && ok;
 
         NotifyContext allViews(*ctx);
         initAllViews(allViews);
@@ -283,8 +273,8 @@ int System::OnBlockadeChanged(int newValue, NotifyContext* ctx) {
                 ok = adjusted && found;
             }
         }
-        ok = FUN_0053f9c0(0x305, this, newValue, ctx) && ok;
-        ok = FUN_0053fa60(0x386, newValue, this, &dataOf(this)->m_stats[3], ctx) && ok;
+        ok = PostSourceEventFlag(0x305, this, newValue, ctx) && ok;
+        ok = ArmTimerAfterSetFlag(0x386, newValue, this, &dataOf(this)->m_stats[3], ctx) && ok;
         result = ok;
     }
     return result;
@@ -299,13 +289,13 @@ int System::OnBombardChanged(int newValue, NotifyContext* ctx) {
         const int second = ViewAsSystem(kEmpireView)->ApplyBombard(&allViews);
         result = second && first ? 1 : 0;
     }
-    if (g_setupComplete != 0) result = FUN_0053f9c0(0x310, this, newValue, ctx) && result;
+    if (g_setupComplete != 0) result = PostSourceEventFlag(0x310, this, newValue, ctx) && result;
     return result;
 }
 
 int System::OnAssaultChanged(int newValue, NotifyContext* ctx) {
     int ok = 1;
-    if (g_setupComplete != 0) ok = FUN_0053f9c0(0x30f, this, newValue, ctx) != 0;
+    if (g_setupComplete != 0) ok = PostSourceEventFlag(0x30f, this, newValue, ctx) != 0;
     return ok;
 }
 
@@ -323,16 +313,16 @@ int System::OnGarrisonedChanged(int newValue, NotifyContext* ctx) {
         }
         const int loyalty = GetLoyaltyFor(loyaltySide);
         const uint32_t side = ControlSide();
-        const int strength = FUN_0055a0c0(loyalty);
+        const int strength = ThresholdBonus(loyalty);
         ok = FUN_0050c9f0(this, strength, side, ctx) && sideKnown;
     }
-    const int hub = FUN_0053fa60(0x385, newValue, this, &dataOf(this)->m_stats[2], ctx);
+    const int hub = ArmTimerAfterSetFlag(0x385, newValue, this, &dataOf(this)->m_stats[2], ctx);
     return hub && ok ? 1 : 0;
 }
 
 int System::OnSuppressingChanged(int newValue, NotifyContext* ctx) {
     int ok = 1;
-    if (g_setupComplete != 0) ok = FUN_0053fa60(899, newValue, this, &dataOf(this)->m_stats[0], ctx) != 0;
+    if (g_setupComplete != 0) ok = ArmTimerAfterSetFlag(899, newValue, this, &dataOf(this)->m_stats[0], ctx) != 0;
     return ok;
 }
 
@@ -358,7 +348,7 @@ int System::OnBattlePendingChanged(int newValue, NotifyContext* ctx) {
         ok = SetControlKindBattleWon(0, ctx) && ok;
         ok = SetControlKindBattleWithdrew(0, ctx) && ok;
     }
-    const int hub = FUN_0053f9c0(0x304, this, newValue, ctx);
+    const int hub = PostSourceEventFlag(0x304, this, newValue, ctx);
     return hub && ok ? 1 : 0;
 }
 
@@ -383,7 +373,7 @@ int System::OnDisasterIncidentChanged(int newValue, NotifyContext* ctx) {
     if (newValue != 0) {
         int rawMaterial = m_rawMaterial;
         int energy = m_energy;
-        int ok = FUN_00559e10(&rawMaterial, &energy);
+        int ok = ResolveMutualLosses(&rawMaterial, &energy);
         ok = SetEnergy(energy, ctx) && ok;
         result = SetRawMaterial(rawMaterial, ctx) && ok;
         result = maybeDestroyChildren(&kDisasterVictimsA, this, ctx, result);
@@ -395,7 +385,7 @@ int System::OnDisasterIncidentChanged(int newValue, NotifyContext* ctx) {
 int System::OnBlockadeAndBattlePendingManagementRequiredChanged(int newValue, NotifyContext* ctx) {
     int result = 1;
     if (newValue != 0) {
-        const int hub = FUN_0053f9c0(0x311, this, 1, ctx);
+        const int hub = PostSourceEventFlag(0x311, this, 1, ctx);
         const int cleared = SetBlockadeAndBattlePendingManagementRequired(0, ctx);
         result = cleared && hub ? 1 : 0;
     }

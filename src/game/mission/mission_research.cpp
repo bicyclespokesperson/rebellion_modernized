@@ -1,12 +1,16 @@
 #include "mission/mission_research.h"
 
+#include "ai/ai_common.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
+#include "data/random.h"
 #include "data/sd_record_bases.h"
 #include "economy/manu_mgr.h"
 #include "economy/side.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_queries.h"
+#include "mission/mission_external.h"
+#include "mission/mission_rules.h"
 
 extern "C" void __cdecl LAB_0056d180();
 
@@ -14,14 +18,7 @@ extern int DAT_006bb568;  // g_gnprtb1816
 extern int g_missionResearchEventKindsReady;      // 0x6bb984
 extern EventKindSet g_missionResearchEventKinds;  // 0x6bb988
 
-int __cdecl FUN_0055c6f0(int base, int* out);  // research mission table: the chance (percent) equals the input
-int __cdecl FUN_0055c9f0(int* out);            // RollResearchBonus
-int FUN_0053e2f0(int threshold);
 class DatRecord;
-ObjectKey* __thiscall FUN_00402e40(DatRecord* self, ObjectKey* out);  // DatRecord::GetKey
-ObjectKey* __thiscall FUN_00402d80(GameObj* self, ObjectKey* out);    // key of the object's record, 0 if it has none
-int __cdecl FUN_00582c30(ObjectKey* key, GameObjNotifier** out);      // the character master of a key
-int __cdecl FUN_00582dd0(ObjectKey* key, SdRecordExt16** out);        // the character record of a key
 
 namespace {
 constexpr uint32_t kFamilyMissionResearch = 0x53;
@@ -53,7 +50,7 @@ int ControlSideAsSideIndex(uint32_t controlSide) {
 
 int ResearchKindOfCheck(MissionOrderCheck* check, int* kind) {
     ObjectKey key;
-    return MissionResearch::ResearchKindFromKey(FUN_00402e40(FieldAt<DatRecord*>(check, 0x14), &key), kind);
+    return MissionResearch::ResearchKindFromKey(GetAiRecordKey(FieldAt<DatRecord*>(check, 0x14), &key), kind);
 }
 
 template <class Set, int (*Check)(Set*, MissionOrderCheck*, StatusCode*, int*)>
@@ -229,7 +226,7 @@ int MissionResearch::ResearchKindFromKey(ObjectKey* key, int* out) {
 
 int MissionResearch::GetResearchKind(int* out) {
     ObjectKey key;
-    return ResearchKindFromKey(FUN_00402d80(this, &key), out);
+    return ResearchKindFromKey(GetObjectRecordKey(this, &key), out);
 }
 
 int MissionResearch::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* check, StatusCode* status, int* out) {
@@ -242,9 +239,9 @@ int MissionResearch::CheckCandidateKeys(ObjectKeySet* keys, MissionOrderCheck* c
          node = static_cast<ObjectKeyNode*>(node->m_successor)) {
         ObjectKey key;
         node->GetKey(&key);
-        GameObjNotifier* character = nullptr;
+        GameObj* character = nullptr;
         result = 0;
-        if (FUN_00582c30(&key, &character)) {
+        if (ResolveRoleFromKey(&key, &character)) {
             int skill = 0;
             result = static_cast<Role*>(character)->GetEffectiveRdForKind(kind, &skill);
             if (result && skill == 0) RejectMissingSkill(status, out);
@@ -262,9 +259,10 @@ int MissionResearch::CheckCandidateRefs(ObjectRefList* refs, MissionOrderCheck* 
     for (AvlNode* node = refs->First(); node && result && StatusIsOk(status); node = node->m_successor) {
         ObjectKey key;
         static_cast<ObjectRefNode*>(node)->GetKey(&key);
-        SdRecordExt16* record = nullptr;
+        DatRecord* person = nullptr;
         result = 0;
-        if (FUN_00582dd0(&key, &record)) {
+        if (ResolvePersonRecord(&key, &person)) {
+            SdRecordExt16* record = static_cast<SdRecordExt16*>(person);
             uint32_t first = 0;
             uint32_t second = 0;
             if (record->GetPairFirst(kind, &first)) {
@@ -337,10 +335,10 @@ int MissionResearch::Virtual159(GameObj* person, int roll, int* out, NotifyConte
     int skill = 0;
     ok = role->GetEffectiveRdForKind(kind, &skill) != 0 && ok;
     int chance = 0;
-    ok = FUN_0055c6f0(skill, &chance) != 0 && ok;
-    if (!FUN_0053e2f0(chance)) return ok;
+    ok = CopyMissionValue(skill, &chance) != 0 && ok;
+    if (!PercentChance(chance)) return ok;
     int bonus = 0;
-    ok = FUN_0055c9f0(&bonus) != 0 && ok;
+    ok = RollResearchBonus(&bonus) != 0 && ok;
     if (bonus == 0) return ok;
     ok = SetRdPoints(m_rdPoints + bonus, ctx) != 0 && ok;
     if (!role->Virtual118()) return ok;

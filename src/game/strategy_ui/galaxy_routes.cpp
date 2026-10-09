@@ -1,19 +1,23 @@
 #include <cstdint>
 #include <new>
 
+#include "ai/ai_common.h"
+#include "app/app_dialogs.h"
 #include "app/game_session.h"
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
 #include "economy/facility_misc.h"
 #include "events/game_clock_hooks.h"
 #include "galaxy/sector.h"
+#include "galaxy/system.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
+#include "gfx/dib_bitmap.h"
 #include "orders/mission_orders.h"
+#include "strategy_ui/battle_window.h"
 #include "strategy_ui/encyclopedia_window.h"
 #include "strategy_ui/fleet_finder_window.h"
 #include "strategy_ui/galaxy_window.h"
-#include "strategy_ui/battle_window.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "strategy_ui/message_index_window.h"
 #include "strategy_ui/mission_selection_window.h"
@@ -22,15 +26,13 @@
 #include "strategy_ui/system_finder_window.h"
 #include "strategy_ui/system_window.h"
 #include "strategy_ui/troop_finder_window.h"
-#include "galaxy/system.h"
-#include "gfx/dib_bitmap.h"
-#include "ui/cool_list_item.h"
-#include "ui/object_list_item.h"
-#include "app/app_dialogs.h"
+#include "tactical/comm2.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
 #include "ui/cool_label.h"
+#include "ui/cool_list_item.h"
 #include "ui/custom_dialog_box.h"
+#include "ui/object_list_item.h"
 #include "ui/resource_dll.h"
 #include "ui/sprite_stage.h"
 
@@ -48,9 +50,7 @@ extern int g_briefingDllSide;  // 0x6b14d4 the side whose briefing DLL (slot 0xd
 void* __thiscall FUN_004591d0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                               DibBitmap* backdrop, uint32_t childId, GameObjNotifier* sector);
 void __thiscall FUN_00450ff0(CoolWindow* window, int a, int b);
-int FUN_005971a0();
 void __thiscall FUN_00457f30(SystemWindow* window, int slot, GameObjNotifier* manager, const ObjectKey* character);
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
 void* __thiscall FUN_0042dbe0(void* self);
 
 namespace {
@@ -111,7 +111,7 @@ void OpenFinder(GalaxyWindow* galaxy, uint32_t childId) {
 
 ObjectKey ParentKeyOf(GameObjNotifier* object) {
     ObjectKey key;
-    FUN_004025b0(object->m_parent, &key);
+    GetObjectKey(object->m_parent, &key);
     return key;
 }
 
@@ -377,7 +377,7 @@ void GalaxyWindow::BroadcastObjectChanged(const ObjectKey* key, GameObjNotifier*
     if (!object) return;
     if (!object->m_parent) return;
     ObjectKey parentKey;
-    FUN_004025b0(object->m_parent, &parentKey);
+    GetObjectKey(object->m_parent, &parentKey);
     if (!IsContainerFamily(parentKey.Family()) || !openWindow) return;
     for (; openWindow; openWindow = openWindow->m_successor) {
         CustomDialogBox* window = static_cast<CustomDialogBox*>(
@@ -546,7 +546,7 @@ void GalaxyWindow::DisableControls() {
 
 DibBitmap* GalaxyWindow::GetMarkerImage(GameObjNotifier* system) {
     ObjectKey key;
-    FUN_004025b0(system, &key);
+    GetObjectKey(system, &key);
     DibBitmap* image = nullptr;
     if (CoolListItem* marker = m_systemItems.FindById(key.Id())) image = marker->m_image;
     return image;
@@ -594,7 +594,7 @@ void GalaxyWindow::ResumePendingRequest() {
 void GalaxyWindow::ShowLatency() {
     String text;
     text += String(g_currentLatencyText);
-    text.AppendUnsigned(FUN_005971a0());
+    text.AppendUnsigned(CommGetLastLatency());
     m_latencyLabel.SetText(text.m_text);
     RECT area = m_latencyLabel.m_rect;
     InvalidateRect(m_hwnd, &area, FALSE);
@@ -606,7 +606,7 @@ void GalaxyWindow::RedrawSectorMarkers(GameObjNotifier* sector) {
     SystemIterator systems(sector, 4);
     for (systems.Begin(); systems.Current(); systems.Advance()) {
         ObjectKey key;
-        FUN_004025b0(systems.Current(), &key);
+        GetObjectKey(systems.Current(), &key);
         CoolListItem* marker = m_systemItems.FindById(key.Id());
         if (!marker) continue;
         marker->m_selectedImage->Blit(GetBackground(), marker->m_x, marker->m_y, 0, 0, 0, 0);
@@ -614,7 +614,7 @@ void GalaxyWindow::RedrawSectorMarkers(GameObjNotifier* sector) {
     }
     for (systems.Begin(); systems.Current(); systems.Advance()) {
         ObjectKey key;
-        FUN_004025b0(systems.Current(), &key);
+        GetObjectKey(systems.Current(), &key);
         CoolListItem* marker = m_systemItems.FindById(key.Id());
         if (!marker) continue;
         DibBitmap* image;

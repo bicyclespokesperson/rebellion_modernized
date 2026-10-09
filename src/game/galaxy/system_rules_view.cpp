@@ -157,7 +157,7 @@ int System::SyncViewForEvent(int mode, int view, NotifyContext* ctx) {
         if (isEmpty(plan.systemChildren[i])) break;
         ok = target->UpdateChildren(&plan.systemChildren[i], &phase) && ok;
     }
-    if (plan.applyExtra) ok = FUN_0050eea0(this, target, &phase) && ok;
+    if (plan.applyExtra) ok = ReapplySystemCharacterViews(static_cast<GameObj*>(target), &phase) && ok;
 
     if (ok) {
         ChildIterator fleets(target, &family::kFleets, kStateAny);
@@ -168,7 +168,7 @@ int System::SyncViewForEvent(int mode, int view, NotifyContext* ctx) {
             for (ships.Begin(); ships.Current(); ships.Advance()) {
                 if (!isEmpty(plan.shipChildren[0]))
                     ok = static_cast<GameObj*>(ships.Current())->UpdateChildren(&plan.shipChildren[0], &phase) && ok;
-                if (plan.applyExtra) ok = FUN_0050eea0(this, ships.Current(), &phase) && ok;
+                if (plan.applyExtra) ok = ReapplySystemCharacterViews(static_cast<GameObj*>(ships.Current()), &phase) && ok;
             }
         }
     }

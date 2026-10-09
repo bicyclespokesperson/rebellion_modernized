@@ -68,4 +68,3 @@ int __thiscall FUN_0050e730(System* self, Crc32* crc);                          
 int __thiscall FUN_0050e820(System* self);                                        // Validate body
 int __thiscall FUN_0050d5a0(System* self, int a, int b, NotifyContext* ctx);
 int __thiscall FUN_005092f0(System* self);                                        // data flag 0x80 bit 0 (0 without data)
-int FUN_0052d370(GameObj* object, int side, int filter);                          // number of children of the rule family

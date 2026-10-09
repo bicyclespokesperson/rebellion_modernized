@@ -2,6 +2,7 @@
 
 #include <new>
 
+#include "ai/ai_common.h"
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
 #include "core/containers.h"
@@ -13,6 +14,7 @@
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/object_name_node.h"
+#include "gameobj/object_type_db.h"
 #include "gfx/dib_bitmap.h"
 #include "orders/mission_orders.h"
 #include "strategy_ui/galaxy_window.h"
@@ -28,8 +30,6 @@
 extern const char g_gokresDllName[];  // 0x6a8708 "gokres.dll"
 extern int g_missionKindCounter;      // 0x6a8794 the next row id for a mission kind the table does not know
 
-DatRecord* FUN_0051cab0(const NullableKey* key);
-ObjectKey* __thiscall FUN_0042ec10(void* node, ObjectKey* out);
 
 namespace {
 
@@ -328,8 +328,8 @@ void MissionSelectionWindow::OnCreate1() {
     for (AvlNode* node = candidates.First(); node; node = node->m_successor) {
         ObjectNameNode* nameNode = static_cast<ObjectNameNode*>(node);
         ObjectKey nameKey;
-        ObjectKey candidateKey(*FUN_0042ec10(nameNode, &nameKey));
-        DatRecord* record = FUN_0051cab0(reinterpret_cast<NullableKey*>(&candidateKey));
+        ObjectKey candidateKey(*GetObjectNameNodeKey(nameNode, &nameKey));
+        DatRecord* record = FindDataRecord(AsLookupKey(reinterpret_cast<NullableKey*>(&candidateKey)));
         uint32_t pictureId = record->m_small & 0xfff;
         if (!alliance) pictureId += 0x1000;
         DibBitmap* picture = NewOrNull<DibBitmap>(m_gokres, pictureId, kResourceBitmapKind);

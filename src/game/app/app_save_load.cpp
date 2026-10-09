@@ -4,10 +4,14 @@
 #include "app/app_save_strings.h"
 #include "app/rebapp_globals.h"
 #include "app/rebellion_application.h"
+#include "audio/music.h"
 #include "audio/sound_manager.h"
 #include "core/file_util.h"
 #include "core/iostream_lib.h"
 #include "core/registry.h"
+#include "events/game_clock_hooks.h"
+#include "strategy_ui/game_ui_facade.h"
+#include "tactical/comm2.h"
 #include "ui/cool_app.h"
 
 // Save and load of games, the small state hooks the other screens call, and a few settings. The save file starts
@@ -87,7 +91,7 @@ int RebellionApplication::LoadStrategicState(void* stream) {
     StrategicWindow* window = static_cast<StrategicWindow*>(m_strategicWindow);
     if (window) {
         window->Virtual10(stream);
-        FUN_0041d310(m_side);
+        UiAckSync(m_side);
     }
     return window != nullptr;
 }
@@ -159,7 +163,7 @@ int RebellionApplication::GetSavedGameType(int slot, int isNetworkGame) {
 
 int RebellionApplication::LoadPendingGame() {
     int loaded = 0;
-    FUN_0041dae0(0);
+    UiSetPausePending(0);
     int isNetworkGame = m_networkMode == 7 && m_gameType == 2;
     String fileName = MakeSaveFileName(m_pendingLoadSlot, isNetworkGame);
     m_pendingLoadSlot = 0;
@@ -230,7 +234,7 @@ void RebellionApplication::ProcessPendingSaveLoad() {
         String autosaveName(g_autosaveName);
         m_pendingSaveSlot = kAutosaveSlot;
         m_pendingSaveName.Assign(autosaveName);
-        m_autosaveTick = FUN_004fcee0();
+        m_autosaveTick = GameHookTickCount();
     }
     if (m_pendingLoadSlot != 0) LoadPendingGame();
     if (m_pendingSaveSlot != 0) SavePendingGame();
@@ -255,8 +259,8 @@ void RebellionApplication::SendSaveCommand(int a, int b, String name, int d) {
     if (!executor) return;
     FUN_0051c410(executor, command);
     if (executor->m_valid) {
-        FUN_005970d0(executor->m_buffer, executor->m_size, 4, 1);
-        FUN_00597170();
+        CommSendMessage(executor->m_buffer, executor->m_size, 4, 1);
+        CommFlushAll();
     }
     delete executor;
     delete command;
@@ -273,22 +277,22 @@ int RebellionApplication::HasWaitedLongEnough() {
 
 void RebellionApplication::PromptForPause() {
     if (m_state < kStateOptionsMenu || m_state > kStateOptionsInGame) {
-        if (FUN_0041dad0() == 0) AppShowNoticeDialog(kNoticePausedMessage, 0, 0x1203, 0x190d, 500, 0x50);
-        FUN_0041dae0(1);
+        if (UiGetInputActive() == 0) AppShowNoticeDialog(kNoticePausedMessage, 0, 0x1203, 0x190d, 500, 0x50);
+        UiSetPausePending(1);
     }
 }
 
-void RebellionApplication::PlayClickSound() { FUN_004173a0(); }
+void RebellionApplication::PlayClickSound() { AppConfirmWaitDialog(); }
 
 void RebellionApplication::OnDialogEndedEnableSpeed() {
     if (m_gameType == 2) {
         if (m_state != kStateStrategic) return;
-        FUN_0041d310(FUN_0041cdb0());
+        UiAckSync(UiGetHumanSide());
         if (static_cast<StrategicWindow*>(m_strategicWindow)->m_unknownAc != 0) return;
-        if ((FUN_0041cf80() == 0 && FUN_0041dc10() != 0) || FUN_0041dc30() != 0)
+        if ((UiAreAllSynced() == 0 && UiIsPauseTick() != 0) || UiGetHold() != 0)
             AppShowAckDialog(0, kSpeedAckText, 500, 0x50);
     } else if (m_gameType == 1) {
-        FUN_0041d310(FUN_0041cdb0());
+        UiAckSync(UiGetHumanSide());
     }
 }
 

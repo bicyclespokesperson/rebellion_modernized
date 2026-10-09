@@ -1,4 +1,5 @@
 #include "character/role.h"
+#include "events/event_post.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_lookup.h"
@@ -330,7 +331,7 @@ int Mission::DestroyIfPhase11(NotifyContext* ctx) {
 int Mission::ScheduleTimerEvent(NotifyContext* ctx) {
     int result = 1;
     if (!HasMembers() && m_completionStatus != 0) {
-        result = FUN_0053fa60(kEventMissionTimer, 1, this, &dataOf(this)->m_statB, ctx) != 0;
+        result = ArmTimerAfterSetFlag(kEventMissionTimer, 1, this, &dataOf(this)->m_statB, ctx) != 0;
     }
     return result;
 }

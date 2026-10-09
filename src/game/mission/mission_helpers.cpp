@@ -4,14 +4,14 @@
 #include "character/special_forces.h"
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
-#include "economy/manu_mgr.h"
-#include "gameobj/status_code.h"
 #include "data/dat_record.h"
+#include "economy/manu_mgr.h"
 #include "gameobj/object_queries.h"
+#include "gameobj/object_type_db.h"
+#include "gameobj/status_code.h"
 #include "mission/mission.h"
 #include "mission/mission_external.h"
 
-DatRecord* FUN_0051cab0(ObjectKey* key);
 
 namespace {
 
@@ -233,7 +233,7 @@ int SplitRoleFromKey(ObjectKey* key, GameObj** person, GameObj** specialForces, 
 
 int ResolvePersonRecord(ObjectKey* key, DatRecord** out) {
     *out = nullptr;
-    DatRecord* record = FUN_0051cab0(key);
+    DatRecord* record = FindDataRecord(AsLookupKey(key));
     int found = 0;
     if (record) {
         found = isPersonFamily(recordKey(record).Family());

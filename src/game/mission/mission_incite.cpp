@@ -1,12 +1,12 @@
 #include "mission/mission_incite.h"
+#include "data/random.h"
+#include "mission/mission_rules.h"
 
 extern "C" void __cdecl LAB_00571c00();
 
 extern int g_missionInciteEventKindsReady;      // 0x6bba30
 extern EventKindSet g_missionInciteEventKinds;  // 0x6bba28
 
-int __cdecl FUN_0055c740(int leadership, int loyalty, int regiments, int* out);  // LookupInciteMissionTable
-int FUN_0053e2f0(int threshold);
 int __thiscall FUN_0050d030(System* self, NotifyContext* ctx);
 extern int DAT_006bb5a0;
 
@@ -62,7 +62,7 @@ int MissionIncite::Virtual157(GameObj* person, int* out) {
     const int regiments = system->CountEmpireRegimentsOfKey6();
     const int loyalty = system->GetLoyaltyFor(side);
     const int leadership = static_cast<Role*>(person)->GetLeadership();
-    return FUN_0055c740(leadership, loyalty, regiments, out) && ok ? 1 : 0;
+    return LookupInciteMissionTable(leadership, loyalty, regiments, out) && ok ? 1 : 0;
 }
 
 int MissionIncite::Virtual158(NotifyContext* ctx) { return 1; }
@@ -74,7 +74,7 @@ int MissionIncite::Virtual159(GameObj* person, int roll, int* out, NotifyContext
     const int found = FUN_00586720(this, &system);
     int ok = found != 0;
     if (!system) return ok;
-    if (!FUN_0053e2f0(roll)) return ok;
+    if (!PercentChance(roll)) return ok;
     *out = 1;
     ok = FUN_0050d030(system, ctx) && ok ? 1 : 0;
     const uint32_t side = ControlSideIndex(ControlSide());

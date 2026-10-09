@@ -1,12 +1,12 @@
 #include "mission/mission_dssabotage.h"
+#include "data/random.h"
+#include "mission/mission_rules.h"
 
 extern "C" void __cdecl LAB_005747d0();
 
 extern int g_missionDSSabotageEventKindsReady;      // 0x6bbaa8
 extern EventKindSet g_missionDSSabotageEventKinds;  // 0x6bbaa0
 
-int __cdecl FUN_0055c8d0(int espionage, int combat, int* out);  // LookupDSSabotageMissionTable
-int FUN_0053e2f0(int threshold);
 extern int DAT_006bb5c0;
 extern int DAT_006bb57c;
 
@@ -62,7 +62,7 @@ int MissionDSSabotage::Virtual157(GameObj* person, int* out) {
     Role* role = static_cast<Role*>(person);
     const int combat = role->GetCombat();
     const int espionage = role->GetEspionage();
-    return FUN_0055c8d0(espionage, combat, out);
+    return LookupDSSabotageMissionTable(espionage, combat, out);
 }
 
 int MissionDSSabotage::Virtual158(NotifyContext* ctx) { return 1; }
@@ -72,7 +72,7 @@ int MissionDSSabotage::Virtual160(NotifyContext* ctx) { return MissionDestroyOri
 int MissionDSSabotage::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     int ok = 1;
     *out = 0;
-    if (!FUN_0053e2f0(roll)) return ok;
+    if (!PercentChance(roll)) return ok;
     *out = 1;
     ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
     Role* role = static_cast<Role*>(person);

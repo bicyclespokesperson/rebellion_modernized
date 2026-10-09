@@ -1,10 +1,11 @@
 #include "strategy_ui/finder_helpers.h"
 
+#include "ai/ai_common.h"
 #include "core/game_string.h"
 #include "gameobj/game_obj.h"
 #include "ui/cool_button.h"
-#include "ui/cool_label.h"
 #include "ui/cool_drag_list.h"
+#include "ui/cool_label.h"
 #include "ui/cool_string_field.h"
 #include "ui/cool_tab_control.h"
 #include "ui/custom_dialog_box.h"
@@ -59,14 +60,11 @@ void FinderOnKeyDown(CustomDialogBox* window, CoolTabControl* tabs, CoolStringFi
     }
 }
 
-// The record key of an object (its type), 0 if it has none (0x402d80).
-ObjectKey* __thiscall FUN_00402d80(GameObjNotifier* object, ObjectKey* out);
-
 extern const char g_noForcesText[];  // 0x6a8788 "-"
 
 void CountIntoCell(ForceCell* cells, int cellCount, GameObj* force) {
     ObjectKey recordKey;
-    FUN_00402d80(force, &recordKey);
+    GetObjectRecordKey(force, &recordKey);
     for (int i = 0; i < cellCount; ++i) {
         if (recordKey.m_value != cells[i].m_key.m_value) continue;
         ++cells[i].m_count;

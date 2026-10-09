@@ -17,7 +17,6 @@ class DatRecord;
 // The set of objects the manager's facility list holds (a static empty one for a sided object).
 ObjectKeyValueSet* __thiscall FUN_00528820(GameObjNotifier* manager);
 int __thiscall FUN_00528040(GameObjNotifier* manager, int includeBusy);
-ObjectKey* __thiscall FUN_004c27b0(GameObjNotifier* manager, ObjectKey* out);  // the key at +0x7c
 int __thiscall FUN_0052e970(GameObjNotifier* side, const NullableKey* item, int count, StatusCode* status);
 int __thiscall FUN_0052e580(GameObjNotifier* side, int kind, AvlTree* choices);
 int __stdcall FUN_00555f00(GameObjNotifier* manager, const ObjectKey* item, int count, StatusCode* status, int* out);

@@ -2,6 +2,8 @@
 #include "data/gnprtb.h"
 #include "economy/side.h"
 #include "economy/side_decl.h"
+#include "events/event_post.h"
+#include "gameobj/object_type_db.h"
 
 namespace {
 
@@ -77,24 +79,24 @@ int Side::OnRefinedMaterialsChanged(int oldValue, int newValue, NotifyContext* c
 }
 
 int Side::OnShipyardRdProgressChanged(int oldValue, int newValue, NotifyContext* ctx) {
-    return advanceResearch(this, m_shipyardRdOrder, m_shipyardRdProgress, FUN_0051cc30, &Side::SetShipyardRdDone,
+    return advanceResearch(this, m_shipyardRdOrder, m_shipyardRdProgress, FindNextTier28, &Side::SetShipyardRdDone,
                            &Side::SetShipyardRdOrder, &Side::SetShipyardRdProgress, ctx);
 }
 
 int Side::OnTrainingFacilRdProgressChanged(int oldValue, int newValue, NotifyContext* ctx) {
-    return advanceResearch(this, m_trainingFacilRdOrder, m_trainingFacilRdProgress, FUN_0051cc60,
+    return advanceResearch(this, m_trainingFacilRdOrder, m_trainingFacilRdProgress, FindNextTier29,
                            &Side::SetTrainingFacilRdDone, &Side::SetTrainingFacilRdOrder,
                            &Side::SetTrainingFacilRdProgress, ctx);
 }
 
 int Side::OnConstructionYardRdProgressChanged(int oldValue, int newValue, NotifyContext* ctx) {
-    return advanceResearch(this, m_constructionYardRdOrder, m_constructionYardRdProgress, FUN_0051cc90,
+    return advanceResearch(this, m_constructionYardRdOrder, m_constructionYardRdProgress, FindNextTier2a,
                            &Side::SetConstructionYardRdDone, &Side::SetConstructionYardRdOrder,
                            &Side::SetConstructionYardRdProgress, ctx);
 }
 
 int Side::OnMaintDeficitChanged(int oldValue, int newValue, NotifyContext* ctx) {
-    return FUN_0053fa60(side_event::kMaintDeficit, newValue, this, &m_statCc, ctx);
+    return ArmTimerAfterSetFlag(side_event::kMaintDeficit, newValue, this, &m_statCc, ctx);
 }
 
 // A new master starts its two tracked stats from the rules' initial levels.
@@ -104,7 +106,7 @@ int Side::OnExistingChanged(int newValue, NotifyContext* ctx) {
         m_statCc.SetLevel(g_gnprtb1C00);
         m_statD4.SetLevel(g_gnprtb1C01);
         m_statD4.SetProgress(g_gnprtb1C02);
-        result = FUN_0053fa60(side_event::kTrackedStatReset, 1, this, &m_statD4, ctx);
+        result = ArmTimerAfterSetFlag(side_event::kTrackedStatReset, 1, this, &m_statD4, ctx);
     }
     return result;
 }
@@ -138,72 +140,72 @@ int Side::OnMaintStateNotified(const IntPair* oldValue, const IntPair* newValue,
     appendPairText(&newText, newValue);
     appendPairText(&oldText, oldValue);
     LogChange("SideMaintStateNotif", "MaintState (Capacity/Allocated)", newText.m_text, oldText.m_text, nullptr, ctx);
-    return FUN_0053fd60(side_event::kMaintState, this, oldValue->m_first, oldValue->m_second, newValue->m_first,
+    return PostPayloadFourInts(side_event::kMaintState, this, oldValue->m_first, oldValue->m_second, newValue->m_first,
                         newValue->m_second, ctx);
 }
 
 int Side::OnMaintRequiredNotified(int oldValue, int newValue, NotifyContext* ctx) {
     if (!IsSideView()) return 0;
     LogInt("SideMaintRequiredNotif", "Maint Required", newValue, oldValue, 0, ctx);
-    return FUN_0053fcf0(side_event::kMaintRequired, this, oldValue, newValue, ctx);
+    return PostPayloadInts(side_event::kMaintRequired, this, oldValue, newValue, ctx);
 }
 
 int Side::OnRawMaterialsNotified(int oldValue, int newValue, NotifyContext* ctx) {
-    return IsSideView() ? FUN_0053fcf0(side_event::kRawMaterials, this, oldValue, newValue, ctx) : 0;
+    return IsSideView() ? PostPayloadInts(side_event::kRawMaterials, this, oldValue, newValue, ctx) : 0;
 }
 
 int Side::OnRefinedMaterialsNotified(int oldValue, int newValue, NotifyContext* ctx) {
-    return IsSideView() ? FUN_0053fcf0(side_event::kRefinedMaterials, this, oldValue, newValue, ctx) : 0;
+    return IsSideView() ? PostPayloadInts(side_event::kRefinedMaterials, this, oldValue, newValue, ctx) : 0;
 }
 
 int Side::OnWaitingRefineriesNotified(int oldValue, int newValue, NotifyContext* ctx) {
-    return IsSideView() ? FUN_0053fcf0(side_event::kWaitingRefineries, this, oldValue, newValue, ctx) : 0;
+    return IsSideView() ? PostPayloadInts(side_event::kWaitingRefineries, this, oldValue, newValue, ctx) : 0;
 }
 
 int Side::OnWaitingManufacturersNotified(int oldValue, int newValue, NotifyContext* ctx) {
-    return IsSideView() ? FUN_0053fcf0(side_event::kWaitingManufacturers, this, oldValue, newValue, ctx) : 0;
+    return IsSideView() ? PostPayloadInts(side_event::kWaitingManufacturers, this, oldValue, newValue, ctx) : 0;
 }
 
 int Side::OnShipyardRdOrderNotified(int oldValue, int newValue, NotifyContext* ctx) {
     if (!IsSideView()) return 0;
     LogInt("SideShipyardRdOrderNotif", "ShipyardRdOrder", newValue, oldValue, 0, ctx);
-    return FUN_0053fcf0(side_event::kShipyardRdOrder, this, oldValue, newValue, ctx);
+    return PostPayloadInts(side_event::kShipyardRdOrder, this, oldValue, newValue, ctx);
 }
 
 int Side::OnTrainingFacilRdOrderNotified(int oldValue, int newValue, NotifyContext* ctx) {
     if (!IsSideView()) return 0;
     LogInt("SideTrainingFacilRdOrderNotif", "TrainingFacilRdOrder", newValue, oldValue, 0, ctx);
-    return FUN_0053fcf0(side_event::kTrainingFacilRdOrder, this, oldValue, newValue, ctx);
+    return PostPayloadInts(side_event::kTrainingFacilRdOrder, this, oldValue, newValue, ctx);
 }
 
 int Side::OnConstructionYardRdOrderNotified(int oldValue, int newValue, NotifyContext* ctx) {
     if (!IsSideView()) return 0;
     LogInt("SideConstructionYardRdOrderNotif", "ConstructionYardRdOrder", newValue, oldValue, 0, ctx);
-    return FUN_0053fcf0(side_event::kConstructionYardRdOrder, this, oldValue, newValue, ctx);
+    return PostPayloadInts(side_event::kConstructionYardRdOrder, this, oldValue, newValue, ctx);
 }
 
 int Side::OnShipyardRdDoneNotified(int oldValue, int newValue, NotifyContext* ctx) {
     if (!IsSideView()) return 0;
     LogFlag("(SideShipyardRdDoneNotif)", "ShipyardRdDone", newValue, 0, ctx);
-    return FUN_0053fdd0(side_event::kShipyardRdDone, this, newValue, ctx);
+    return PostPayloadFlag(side_event::kShipyardRdDone, this, newValue, ctx);
 }
 
 int Side::OnTrainingFacilRdDoneNotified(int oldValue, int newValue, NotifyContext* ctx) {
     if (!IsSideView()) return 0;
     LogFlag("(SideTrainingFacilRdDoneNotif)", "TrainingFacilRdDone", newValue, 0, ctx);
-    return FUN_0053fdd0(side_event::kTrainingFacilRdDone, this, newValue, ctx);
+    return PostPayloadFlag(side_event::kTrainingFacilRdDone, this, newValue, ctx);
 }
 
 int Side::OnConstructionYardRdDoneNotified(int oldValue, int newValue, NotifyContext* ctx) {
     if (!IsSideView()) return 0;
     LogFlag("(SideConstructionYardRdDoneNotif)", "ConstructionYardRdDone", newValue, 0, ctx);
-    return FUN_0053fdd0(side_event::kConstructionYardRdDone, this, newValue, ctx);
+    return PostPayloadFlag(side_event::kConstructionYardRdDone, this, newValue, ctx);
 }
 
 int Side::OnRecruitmentDoneNotified(int oldValue, int newValue, NotifyContext* ctx) {
     if (!IsSideView()) return 0;
     LogFlag("(SideRecruitmentDoneNotif)", "RecruitmentDone", newValue, 0, ctx);
-    return FUN_0053fdd0(side_event::kRecruitmentDone, this, newValue, ctx);
+    return PostPayloadFlag(side_event::kRecruitmentDone, this, newValue, ctx);
 }
 
 int Side::OnVictoryConditionsNotified(int oldValue, int newValue, NotifyContext* ctx) {
@@ -213,5 +215,5 @@ int Side::OnVictoryConditionsNotified(int oldValue, int newValue, NotifyContext*
     int formatted = FormatVictoryConditions(static_cast<uint32_t>(oldValue), &oldText);
     if (formatted) formatted = FormatVictoryConditions(static_cast<uint32_t>(newValue), &newText);
     if (formatted) LogString("SideVictoryConditionsNotif", "VictoryConditions", &newText, &oldText, 0, ctx);
-    return FUN_0053fcf0(side_event::kVictoryConditions, this, oldValue, newValue, ctx);
+    return PostPayloadInts(side_event::kVictoryConditions, this, oldValue, newValue, ctx);
 }

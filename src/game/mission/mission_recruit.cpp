@@ -1,17 +1,17 @@
 #include "character/character_mgr.h"
 #include "mission/mission_recruit.h"
 
+#include "data/random.h"
 #include "economy/side.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_queries.h"
+#include "mission/mission_rules.h"
 
 extern "C" void __cdecl LAB_0056bbb0();
 
 extern int g_missionRecruitEventKindsReady;      // 0x6bb968
 extern EventKindSet g_missionRecruitEventKinds;  // 0x6bb960
 
-int __cdecl FUN_0055c700(int leadership, int loyalty, int* out);  // LookupRecruitMissionTable
-int FUN_0053e2f0(int threshold);
 int __thiscall FUN_005589b0(ObjectKey* self, Crc32* crc);
 extern int DAT_006bb5b0;  // g_gnprtb1824
 
@@ -199,7 +199,7 @@ int MissionRecruit::Virtual157(GameObj* person, int* out) {
     const int side = ControlSideIndex(ControlSide());
     const int loyalty = system->GetLoyaltyFor(side);
     const int leadership = static_cast<Role*>(person)->GetLeadership();
-    return FUN_0055c700(leadership, loyalty, out) != 0 && ok ? 1 : 0;
+    return LookupRecruitMissionTable(leadership, loyalty, out) != 0 && ok ? 1 : 0;
 }
 
 int MissionRecruit::Virtual158(NotifyContext* ctx) {
@@ -210,7 +210,7 @@ int MissionRecruit::Virtual158(NotifyContext* ctx) {
 
 int MissionRecruit::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     *out = 0;
-    if (!FUN_0053e2f0(roll)) return 1;
+    if (!PercentChance(roll)) return 1;
     *out = 1;
     System* system = nullptr;
     const int found = FUN_00586720(this, &system);

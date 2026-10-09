@@ -23,9 +23,6 @@ public:
 
 inline CombatRulesMgr* GetCombatRulesMgr() { return reinterpret_cast<CombatRulesMgr*>(GetGameRootMember_bc()); }
 
-// Hub event with two values and a context (0x53f950).
-int FUN_0053f950(int eventId, GameObj* object, int a, int b, NotifyContext* ctx);
-
 // The people on a mission as the checks see them (0x14 bytes, zero-initialised by 0x568fe0).
 struct MissionMemberSummary {
     uint32_t m_specialForceMissionBits;  // +0x00 union of the special forces' SD mission bits

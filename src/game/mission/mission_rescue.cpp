@@ -1,12 +1,12 @@
 #include "mission/mission_rescue.h"
+#include "data/random.h"
+#include "mission/mission_rules.h"
 
 extern "C" void __cdecl LAB_0056afa0();
 
 extern int g_missionRescueEventKindsReady;      // 0x6bb94c
 extern EventKindSet g_missionRescueEventKinds;  // 0x6bb950
 
-int __cdecl FUN_0055c7e0(int combat, int* out);  // LookupRescueMissionTable
-int FUN_0053e2f0(int threshold);
 extern int DAT_006bb55c;
 
 namespace {
@@ -47,7 +47,7 @@ int MissionRescue::CheckTarget(MissionOrderCheck* check, StatusCode* status, int
 }
 
 int MissionRescue::Virtual157(GameObj* person, int* out) {
-    return FUN_0055c7e0(static_cast<Role*>(person)->GetCombat(), out);
+    return LookupRescueMissionTable(static_cast<Role*>(person)->GetCombat(), out);
 }
 
 int MissionRescue::Virtual158(NotifyContext* ctx) { return 1; }
@@ -57,7 +57,7 @@ int MissionRescue::Virtual160(NotifyContext* ctx) { return MissionStartIfIdle(th
 int MissionRescue::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     int ok = 1;
     *out = 0;
-    if (!FUN_0053e2f0(roll)) return ok;
+    if (!PercentChance(roll)) return ok;
     *out = 1;
     SetTaskStatus(kTaskSucceeded, ctx);
     Role* role = static_cast<Role*>(person);

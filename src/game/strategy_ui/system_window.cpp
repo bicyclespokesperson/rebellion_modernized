@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <new>
 
+#include "ai/ai_common.h"
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
 #include "core/stream_io.h"
@@ -29,7 +30,6 @@
 
 extern const char g_gokresDllName[];  // 0x6a8708 "gokres.dll"
 
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
 // The system the window shows (null, and the window closes itself, when it is gone).
 GameObjNotifier* __thiscall FUN_004a25c0(void* window);
 
@@ -60,7 +60,7 @@ SystemWindow::SystemWindow(HINSTANCE instance, int x, int y, int width, int heig
                            uint32_t childId, GameObjNotifier* system)
     : CustomDialogBox(instance, x, y, width, height, parent, childId, nullptr) {
     ObjectKey key;
-    if (system) FUN_004025b0(system, &key);
+    if (system) GetObjectKey(system, &key);
     m_systemKey = key;
     m_galaxy = parent;
     CoolGameWindow::m_flags |= 4;
@@ -172,7 +172,7 @@ void SystemWindow::InitSlot(int slot, GameObjNotifier* manager) {
     SystemSlot& panel = Slot(slot);
     const ObjectKey unset;
     ObjectKey managerKey;
-    FUN_004025b0(manager, &managerKey);
+    GetObjectKey(manager, &managerKey);
     panel.m_managerKey = managerKey;
     panel.m_productKey = unset;
     panel.m_characterKey = unset;
@@ -396,7 +396,7 @@ void SystemWindow::SaveState(ostream* out) {
     ObjectKey key;
     if (GameObjNotifier* system = FUN_004a25c0(this)) {
         ObjectKey systemKey;
-        FUN_004025b0(system, &systemKey);
+        GetObjectKey(system, &systemKey);
         key = systemKey;
     }
     uint32_t childId = m_childId;

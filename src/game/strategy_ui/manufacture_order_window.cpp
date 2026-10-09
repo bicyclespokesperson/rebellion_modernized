@@ -3,6 +3,7 @@
 #include <cstdlib>
 #include <cstring>
 
+#include "ai/ai_common.h"
 #include "app/game_session.h"
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
@@ -14,6 +15,7 @@
 #include "economy/side.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/object_name_node.h"
+#include "gameobj/object_type_db.h"
 #include "gfx/dib_bitmap.h"
 #include "orders/orders_210_216.h"
 #include "strategy_ui/galaxy_window.h"
@@ -28,10 +30,6 @@
 
 extern const char g_gokresDllName[];  // 0x6a8708 "gokres.dll"
 extern const char g_spaceString[];    // 0x6a7f40 " "
-
-// The record of a unit type (0x51cab0) and the key of an ObjectNameNode (0x42ec10).
-DatRecord* FUN_0051cab0(const NullableKey* key);
-ObjectKey* __thiscall FUN_0042ec10(void* node, ObjectKey* out);
 
 namespace {
 
@@ -135,12 +133,12 @@ ManufactureOrderWindow::ManufactureOrderWindow(HINSTANCE instance, int x, int y,
         String name;
         nameNode->GetName(&name);
         ObjectKey typeKey;
-        FUN_0042ec10(nameNode, &typeKey);
+        GetObjectNameNodeKey(nameNode, &typeKey);
         ObjectKey* keyCopy = NewOrNull<ObjectKey>(typeKey);
         CoolListItem* item = nullptr;
         if (void* memory = ::operator new(sizeof(CoolListItem))) item = new (memory) CoolListItem(++nextItemId);
         if (item) {
-            DatRecord* record = FUN_0051cab0(reinterpret_cast<NullableKey*>(&typeKey));
+            DatRecord* record = FindDataRecord(AsLookupKey(reinterpret_cast<NullableKey*>(&typeKey)));
             const uint32_t pictureId = record->m_small & 0xfff;
             DibBitmap* picture = NewOrNull<DibBitmap>(m_gokres, pictureId, kBitmapKind);
             DibBitmap* normal = NewOrNull<DibBitmap>(kPictureWidth, kPictureHeight, picture);
@@ -231,9 +229,9 @@ void ManufactureOrderWindow::OnCreate1() {
             }
             if (remember) m_remembered.m_value = remember->m_value;
             if (m_remembered.m_value != none.m_value) {
-                const uint16_t wanted = FUN_0051cab0(&m_remembered)->m_small;
+                const uint16_t wanted = FindDataRecord(AsLookupKey(&m_remembered))->m_small;
                 for (CoolListItem* item = first; item; item = item->Next()) {
-                    if (wanted == FUN_0051cab0(reinterpret_cast<NullableKey*>(item->m_userData))->m_small) {
+                    if (wanted == FindDataRecord(AsLookupKey(reinterpret_cast<NullableKey*>(item->m_userData)))->m_small) {
                         m_selector->Select(item->m_id);
                         break;
                     }

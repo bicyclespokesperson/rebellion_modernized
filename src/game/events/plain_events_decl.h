@@ -6,6 +6,3 @@
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_key.h"
 
-
-// GameObjRoot::GetKey (family << 24 | id), out of line.
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);

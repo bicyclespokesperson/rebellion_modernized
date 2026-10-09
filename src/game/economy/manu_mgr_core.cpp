@@ -5,6 +5,7 @@
 #include "economy/manu_mgr.h"
 #include "economy/manu_mgr_decl.h"
 #include "gameobj/object_database.h"
+#include "gameobj/object_type_db.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
 extern "C" void __cdecl LAB_00528880();
@@ -17,7 +18,6 @@ extern EventKindSet g_manuMgrEventKinds;    // 0x6b9018
 extern uint8_t g_manuMgrEmptyQueueGuard;    // 0x6b9020
 
 // Data-table record lookup by key (0x51cab0).
-DatRecord* FUN_0051cab0(ObjectKey* key);
 // The data block constructor (0x583800).
 ManuMgrData* __thiscall FUN_00583800(void* memory);
 
@@ -69,7 +69,7 @@ void __thiscall AppendManuMgrName(ObjectBase* base, String* out, int kind) {
     if (kind == kWriteNameSeedRecord) {
         ObjectKey key;
         self->GetSeedKey(&key);
-        DatRecord* record = FUN_0051cab0(&key);
+        DatRecord* record = FindDataRecord(AsLookupKey(&key));
         if (record) *out += record->m_name;
         return;
     }

@@ -3,12 +3,7 @@
 #include "data/gnprtb.h"
 #include "data/random.h"
 #include "data/sd_records.h"
-
-// Event hubs of the strategic notification layer (all cdecl).
-int FUN_0053f950(int eventId, GameObj* object, int a, int b, NotifyContext* ctx);
-int FUN_0053f9c0(int eventId, GameObj* object, int value, NotifyContext* ctx);
-int FUN_0053fa60(int eventId, int a, GameObj* object, void* data, NotifyContext* ctx);
-int FUN_0053fab0(int eventId, int a, GameObj* object, void* data, NotifyContext* ctx);
+#include "events/event_post.h"
 
 // OnXChanged: events on the master view. Most of them recompute the derived values that depend on the property.
 
@@ -240,7 +235,7 @@ int Character::OnStateChanged(int oldValue, int newValue, NotifyContext* ctx) {
     }
     ok = SetAutorouting(1, ctx) && ok;
     if (m_missionKey.IsSet()) ok = SetMissionRemoveRequest(1, ctx) && ok;
-    const int hub = FUN_0053f950(0x30a, this, oldValue, newValue, ctx);
+    const int hub = PostSourceEvent(0x30a, this, oldValue, newValue, ctx);
     return hub && ok ? 1 : 0;
 }
 
@@ -275,7 +270,7 @@ int Character::OnCanHealChanged(int newValue, NotifyContext* ctx) { return Updat
 
 int Character::OnFastHealChanged(int newValue, NotifyContext* ctx) {
     const int level = (m_flagsAc & kFastHealFlag) ? g_gnprtbA01 : g_gnprtbA02;
-    return FUN_0053fab0(0x388, level, this, &dataOf(this)->m_healingStat, ctx);
+    return ArmTimerAfterSetLevel(0x388, level, this, &dataOf(this)->m_healingStat, ctx);
 }
 
 int Character::OnForceAwareChanged(int newValue, NotifyContext* ctx) { return UpdateForceExperience(ctx); }
@@ -283,19 +278,19 @@ int Character::OnForceAwareChanged(int newValue, NotifyContext* ctx) { return Up
 int Character::OnForcePotentialChanged(int newValue, NotifyContext* ctx) { return UpdateForceExperience(ctx); }
 
 int Character::OnHealingChanged(int newValue, NotifyContext* ctx) {
-    return FUN_0053fa60(0x388, newValue, this, &dataOf(this)->m_healingStat, ctx);
+    return ArmTimerAfterSetFlag(0x388, newValue, this, &dataOf(this)->m_healingStat, ctx);
 }
 
 int Character::OnDiscoveringForceUserChanged(int newValue, NotifyContext* ctx) {
-    return FUN_0053fa60(0x389, newValue, this, &dataOf(this)->m_forceDiscoveryStat, ctx);
+    return ArmTimerAfterSetFlag(0x389, newValue, this, &dataOf(this)->m_forceDiscoveryStat, ctx);
 }
 
 int Character::OnCanEscapeChanged(int newValue, NotifyContext* ctx) {
-    return FUN_0053fa60(0x38a, newValue, this, &dataOf(this)->m_escapeStat, ctx);
+    return ArmTimerAfterSetFlag(0x38a, newValue, this, &dataOf(this)->m_escapeStat, ctx);
 }
 
 int Character::OnEscapeRequestChanged(int newValue, NotifyContext* ctx) { return RaiseEscapeRequest(ctx); }
 
 int Character::OnEscapeAttemptChanged(int newValue, NotifyContext* ctx) {
-    return FUN_0053f9c0(0x317, this, newValue, ctx);
+    return PostSourceEventFlag(0x317, this, newValue, ctx);
 }

@@ -3,6 +3,7 @@
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "data/sd_records.h"
+#include "economy/manu_mgr_leaves.h"
 #include "gameobj/object_family.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
@@ -11,7 +12,6 @@ extern "C" void __cdecl LAB_00504000();
 extern int g_specialForcesEventKindsReady;       // 0x6b2b50
 extern EventKindSet g_specialForcesEventKinds;   // 0x6b2b58
 
-int __thiscall FUN_0055b560(SpecialForces* self, int controlKind, NotifyContext* ctx);
 
 namespace {
 
@@ -112,7 +112,7 @@ int SpecialForces::Virtual46(NotifyContext* ctx) {
     return result;
 }
 
-int SpecialForces::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_0055b560(this, controlKind, ctx); }
+int SpecialForces::CreateViews(int controlKind, NotifyContext* ctx) { return CreateViewsStubShared(this, controlKind, ctx); }
 
 GameObj* SpecialForces::CreateViewObject() { return NewOrNull<SpecialForces>(); }
 

@@ -3,6 +3,7 @@
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "data/probability_table.h"
+#include "mission/mission_forwarders.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_type_db.h"
@@ -10,7 +11,6 @@
 
 // ---- helpers the game root shares with the rest of the setup code ----------------------------------------------
 
-int __stdcall FUN_00524fb0(int, NotifyContext*);  // shared stub: returns 1
 int FUN_0040f340(GameRoot*);                      // shared stub: returns 1
 
 extern int g_setupComplete;  // 0x6b90e0
@@ -129,7 +129,7 @@ int GameRoot::ApplyAll(NotifyContext* ctx) {
     return isSideView;
 }
 
-int GameRoot::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_00524fb0(controlKind, ctx); }
+int GameRoot::CreateViews(int controlKind, NotifyContext* ctx) { return ReturnOneTwoArgs(controlKind, ctx); }
 
 GameObj* GameRoot::CreateViewObject() { return NewOrNull<GameRoot>(); }
 

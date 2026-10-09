@@ -2,9 +2,9 @@
 
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
+#include "events/event_post.h"
 #include "gameobj/game_hooks.h"
 
-int FUN_0053fc90(int value, int low, int high, const char* message);
 
 namespace {
 
@@ -121,7 +121,7 @@ int ProductionFacility::SetWork(const IntPair* value, NotifyContext* ctx) {
 
 int ProductionFacility::SetProductionModifier(int value, NotifyContext* ctx) {
     int result = 0;
-    if (IsMasterView()) result = FUN_0053fc90(value, 0, value, "Invalid ProductionModifier value!");
+    if (IsMasterView()) result = IsInRange(value, 0, value, "Invalid ProductionModifier value!");
     if (result && m_productionModifier != value) {
         const int oldValue = m_productionModifier;
         m_productionModifier = value;

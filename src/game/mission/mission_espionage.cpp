@@ -3,6 +3,7 @@
 
 #include "data/random.h"
 #include "economy/defense_facility.h"
+#include "events/event_post.h"
 #include "galaxy/system.h"
 #include "gameobj/object_queries.h"
 
@@ -11,10 +12,6 @@ extern "C" void __cdecl LAB_005739a0();
 extern int g_missionEspionageEventKindsReady;      // 0x6bba64
 extern EventKindSet g_missionEspionageEventKinds;  // 0x6bba68
 
-int __cdecl FUN_0055c940(int isCoreSystem, int isHomeSystem, int hasFacility, int* count, int* includeType90,
-                         int* includeType92);  // ComputeEspionageOutcome, always 1
-int FUN_0053e2f0(int threshold);
-int FUN_0053fe40(int eventId, GameObj* object, ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx);
 extern int DAT_006bb534;  // g_gnprtb1810
 
 namespace {
@@ -87,7 +84,7 @@ int MissionEspionage::OnExtraKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, N
     const int result = IsSideView();
     if (!result) return result;
     LogKey("MissionEspionageExtraSystemKeyNotif", "ExtraSystem", newKey, oldKey, 0, ctx);
-    return FUN_0053fe40(kEventExtraSystemChanged, this, oldKey, newKey, ctx);
+    return PostPayloadKeysA(kEventExtraSystemChanged, this, oldKey, newKey, ctx);
 }
 
 int MissionEspionage::Virtual157(GameObj* person, int* out) {
@@ -98,7 +95,7 @@ int MissionEspionage::Virtual158(NotifyContext* ctx) { return 1; }
 
 int MissionEspionage::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     *out = 0;
-    if (!FUN_0053e2f0(roll)) return 1;
+    if (!PercentChance(roll)) return 1;
     *out = 1;
     int result = SetTaskStatus(kTaskSucceeded, ctx) != 0;
     GameObj* leader = nullptr;
@@ -142,7 +139,7 @@ int MissionEspionage::Virtual160(NotifyContext* ctx) {
     int count = 0;
     int includeType90 = 0;
     int includeType92 = 0;
-    const int computed = FUN_0055c940(isCoreSystem, isHomeSystem, hasFacility, &count, &includeType90, &includeType92);
+    const int computed = ComputeEspionageOutcome(isCoreSystem, isHomeSystem, hasFacility, &count, &includeType90, &includeType92);
     result = computed && result ? 1 : 0;
     if (!count) return result;
     return PickExtraSystems(target, count, includeType90, includeType92, ctx) && result ? 1 : 0;

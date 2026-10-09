@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "app/rebapp_globals.h"
+#include "audio/music.h"
 #include "audio/sound_manager.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
@@ -17,10 +18,6 @@
 #include "ui/resource_dll.h"
 
 extern const char g_commonDllName[];  // 0x6a7c98 "common.dll"
-
-// Music helpers of the sound module (0x417xxx): load the track list, start track `index`.
-void FUN_004173c0();
-void FUN_00417520(uint32_t index);
 
 namespace {
 
@@ -364,8 +361,8 @@ LRESULT __stdcall MainMenuWindow::WindowProc(UINT message, WPARAM wParam, LPARAM
         RealizeBackdropPalette(this);
         g_stringModule = CoolAppGetResourceModule(kStringSlot);
         StartMenuSound(m_parent->m_hwnd);
-        FUN_004173c0();
-        FUN_00417520(UiHumanNextAdvice());
+        InitMusic();
+        StartMusicTrack(UiHumanNextAdvice());
         CreateControls();
         return 0;
     }
@@ -485,6 +482,6 @@ void MainMenuMovieDone() {
     HWND parentWindow = menu->m_parent->m_hwnd;
     StartMenuSound(parentWindow);
     menu->m_leaving = 0;
-    FUN_004173c0();
-    FUN_00417520(UiHumanNextAdvice());
+    InitMusic();
+    StartMusicTrack(UiHumanNextAdvice());
 }

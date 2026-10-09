@@ -1,4 +1,5 @@
 #include "gameobj/game_obj.h"
+#include "gameobj/game_obj_forwarders.h"
 
 // The tiny shared bodies the leaf classes' Read / Write / Checksum / ApplyAll slots forward to (0x569840-0x5698b0,
 // 0x4f29d0): the linker folded them over many classes, so they have no owner. Each calls the base body of GameObj.

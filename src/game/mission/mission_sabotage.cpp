@@ -1,4 +1,5 @@
 #include "mission/mission_rules.h"
+#include "data/random.h"
 #include "mission/mission_sabotage.h"
 
 extern "C" void __cdecl LAB_0056a410();
@@ -6,7 +7,6 @@ extern "C" void __cdecl LAB_0056a410();
 extern int g_missionSabotageEventKindsReady;      // 0x6bb920
 extern EventKindSet g_missionSabotageEventKinds;  // 0x6bb928
 
-int FUN_0053e2f0(int threshold);
 extern int DAT_006bb58c;
 extern int DAT_006bb518;
 
@@ -80,7 +80,7 @@ int MissionSabotage::Virtual160(NotifyContext* ctx) { return MissionDestroyOrigi
 int MissionSabotage::Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) {
     int ok = 1;
     *out = 0;
-    if (!FUN_0053e2f0(roll)) return ok;
+    if (!PercentChance(roll)) return ok;
     *out = 1;
     ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
     Role* role = static_cast<Role*>(person);

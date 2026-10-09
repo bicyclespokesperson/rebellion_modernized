@@ -2,12 +2,14 @@
 
 #include <new>
 
+#include "ai/ai_common.h"
 #include "app/rebapp_globals.h"
 #include "audio/sound_manager.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/stream_io.h"
 #include "core/vptr_store.h"
+#include "economy/side.h"
 #include "events/game_clock_hooks.h"
 #include "galaxy/system.h"
 #include "gameobj/game_obj.h"
@@ -44,7 +46,6 @@ int FUN_0041dcb0(int speed);
 void __thiscall FUN_00403ef0(void* advisor, int a, int b);
 extern PersistentInt g_humanUiFlags;  // 0x6b28b0
 void __thiscall FUN_00488030(HumanPlayer* player, PlayerMessage* message);
-int __thiscall FUN_0041bde0(GameObjNotifier* side, void* scratch);
 
 namespace {
 
@@ -291,8 +292,8 @@ void HumanPlayer::Virtual25(int value) {
     int available = 0;
     int total = 0;
     if (side) {
-        char scratch[8];
-        total = *reinterpret_cast<int*>(FUN_0041bde0(side, scratch));
+        IntPair scratch;
+        total = GetSidePairAt58(static_cast<Side*>(side), &scratch)->m_first;
         available = total - *reinterpret_cast<int*>(reinterpret_cast<char*>(side) + 0x74);
     }
     UiSetMaintenance(available, total);
@@ -304,8 +305,8 @@ void HumanPlayer::Virtual26(int value) {
     int available = 0;
     int total = 0;
     if (side) {
-        char scratch[8];
-        total = *reinterpret_cast<int*>(FUN_0041bde0(side, scratch));
+        IntPair scratch;
+        total = GetSidePairAt58(static_cast<Side*>(side), &scratch)->m_first;
         available = total - *reinterpret_cast<int*>(reinterpret_cast<char*>(side) + 0x74);
     }
     UiSetMaintenance(available, total);

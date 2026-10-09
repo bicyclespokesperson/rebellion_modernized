@@ -1,5 +1,6 @@
 #include "events/game_step_driver.h"
 
+#include "app/app_control_cmds.h"
 #include "app/game_session.h"
 #include "app/rebapp_globals.h"
 #include "core/vptr_store.h"
@@ -10,24 +11,9 @@
 #include "events/ui_notifs_ext.h"
 #include "gameobj/factory_registries.h"
 #include "orders/order_base.h"
+#include "strategy_ui/game_ui_facade.h"
 
 // Forwarders of the game session (0x41cc00-0x41d3a0 call into 0x435a40's object) and UI glue, declared by address.
-void FUN_0041cca0(int a, int b);
-int FUN_0041cce0(int* status);
-int FUN_0041cd10(istream* in);
-int FUN_0041cd50(ostream* out);
-int FUN_0041cf20();
-int FUN_0041cf40();
-void FUN_0041cf60();
-void FUN_0041d030();
-void FUN_0041d050();
-int FUN_0041d070(int tick);
-int FUN_0041d0a0();
-int FUN_0041d0e0();
-void FUN_0041d350(int tick);
-int FUN_0041d370();
-int FUN_0041d390();
-void FUN_0041db60();
 int FUN_0040f340();
 
 extern int g_strategicFactoriesRegistered;  // 0x6b14c0
@@ -60,7 +46,7 @@ GameStepDriver::GameStepDriver() { InitFields(); }
 
 GameStepDriver::GameStepDriver(int a, int b) {
     InitFields();
-    FUN_0041cca0(a, b);
+    UiCreateGameSession(a, b);
 }
 
 GameStepDriver::~GameStepDriver() {
@@ -106,7 +92,7 @@ int GameStepDriver::Load(istream* in) {
             ok = GameManagerExists();
             if (ok) ok = GetGameManager()->Read(in);
             if (ok) ok = CheckPositionMarker(in);
-            if (ok) ok = FUN_0041cd10(in);
+            if (ok) ok = UiReadSession(in);
             if (ok) ok = CheckPositionMarker(in);
         }
     }
@@ -123,7 +109,7 @@ int GameStepDriver::Save(ostream* out) {
         ok = GetGameManager()->Write(out);
         if (ok) {
             WritePositionMarker(out);
-            ok = FUN_0041cd50(out);
+            ok = UiWriteSession(out);
             if (ok) WritePositionMarker(out);
         }
     }
@@ -144,7 +130,7 @@ int GameStepDriver::StepSetup(int* status) {
             if (GetGameManager()->StepSetup(status)) m_setupStage = kSetupSession;
             break;
         case kSetupSession:
-            if (FUN_0041cce0(status)) {
+            if (UiAdvanceTurn(status)) {
                 m_setupStage = kSetupWaitForUser;
                 return 0;
             }
@@ -172,7 +158,7 @@ int GameStepDriver::Step(uint32_t* done) {
             if (!IsPauseTick()) ++m_phase;
             break;
         case kPhaseSyncB:
-            if (FUN_0041cf40()) ++m_phase;
+            if (UiProcessAllMessages()) ++m_phase;
             break;
         case kPhaseIdle:
             if (IdlePhase()) ++m_phase;
@@ -184,19 +170,19 @@ int GameStepDriver::Step(uint32_t* done) {
             if (EndOfStepPhase()) ++m_phase;
             break;
         case kPhaseSyncC:
-            if (FUN_0041d0a0()) ++m_phase;
+            if (UiResetAllPlayerFlags()) ++m_phase;
             break;
         case kPhaseSyncD:
-            if (FUN_0041cf20()) ++m_phase;
+            if (UiAdvancePhase()) ++m_phase;
             break;
         case kPhaseSyncE:
-            if (!FUN_0041d0e0()) ++m_phase;
+            if (!UiHumanHasPending()) ++m_phase;
             break;
         case kPhaseSyncF:
-            if (FUN_0041d370()) ++m_phase;
+            if (UiHumanDispatchIdle()) ++m_phase;
             break;
         case kPhaseBattleCheck:
-            if (!FUN_0041d390()) {
+            if (!UiHaveSameSyncValue()) {
                 if (AppGetGameType() != kSessionTypeSinglePlayer) AppShowResumeNotice();
             } else if (AppGetGameType() != kSessionTypeSinglePlayer) {
                 AppPlayClickSound();
@@ -212,7 +198,7 @@ int GameStepDriver::Step(uint32_t* done) {
             if (FinishPhase(&battlePending)) m_phase = 0;
             break;
     }
-    FUN_0041cf60();
+    UiUpdateSession();
     *done = m_phase == 2;
     return battlePending;
 }
@@ -261,7 +247,7 @@ uint32_t GameStepDriver::RaisePauseTo(uint32_t tick) {
 int GameStepDriver::BeginPause() {
     if (m_pauseTick == 0) {
         m_pauseTick = GetGameTickCount();
-        FUN_0041d350(m_pauseTick);
+        UiSetSyncTargets(m_pauseTick);
     }
     return m_pauseTick;
 }
@@ -288,7 +274,7 @@ int GameStepDriver::AdvanceClock() {
     if (GameManagerExists()) battlePending = GetGameManager()->HasPendingBattle();
     if (waited) {
         if (battlePending) {
-            FUN_0041db60();
+            UiResumePendingRequest();
             return 0;
         }
         if (m_hold == 0) {
@@ -298,11 +284,11 @@ int GameStepDriver::AdvanceClock() {
         }
     }
     if (battlePending == 0) return 0;
-    FUN_0041db60();
+    UiResumePendingRequest();
     return 0;
 }
 
-int GameStepDriver::PausePhase() { return FUN_0041d070(GetGameTickCount()); }
+int GameStepDriver::PausePhase() { return UiSyncAllPlayers(GetGameTickCount()); }
 
 int IdlePhase() {
     int result = 1;
@@ -329,11 +315,11 @@ int SnapshotPhase() {
 }
 
 int GameStepDriver::FinishPhase(int* battlePending) {
-    FUN_0041d030();
+    UiRefreshAllPlayers();
     if (GameManagerExists()) {
-        if (GetGameManager()->m_dayEnded != 0) FUN_0041d050();
+        if (GetGameManager()->m_dayEnded != 0) UiComputeAllAdvisorChoices();
         *battlePending = GetGameManager()->GetRootField70();
-        if (*battlePending == 0) FUN_0041db60();
+        if (*battlePending == 0) UiResumePendingRequest();
     }
     return 1;
 }
@@ -448,20 +434,16 @@ void RegisterKeyedFactories() {
     RegisterKeyedFactory(0x340, CreateUiNotif340);
 }
 
-void* FUN_00420c20();
-void* FUN_00420de0();
-void* FUN_00420f60();
-void* FUN_00421190();
 
 void RegisterMultiplayerOrderFactories() {
     RegisterOrderFactory(0x2, CreateNetMsg2);
     RegisterOrderFactory(0x1, CreateNetMsg1);
-    RegisterOrderFactory(0x10, FUN_00420de0);
-    RegisterOrderFactory(0x12, FUN_00421190);
-    RegisterOrderFactory(0x11, FUN_00420f60);
+    RegisterOrderFactory(0x10, CreateMpLobbySettingsMsg);
+    RegisterOrderFactory(0x12, CreateMpPlayerInfoMsg);
+    RegisterOrderFactory(0x11, CreateMpChatMsg);
     RegisterOrderFactory(0x13, CreateNetMsg13);
     RegisterOrderFactory(0x4, CreateNetMsg4);
     RegisterOrderFactory(0x15, CreateNetMsg15);
-    RegisterOrderFactory(0x14, FUN_00420c20);
+    RegisterOrderFactory(0x14, CreateMpSlotTableMsg);
     RegisterOrderFactory(0x5, CreateNetMsg5);
 }

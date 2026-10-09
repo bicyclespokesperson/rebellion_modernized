@@ -2,21 +2,21 @@
 
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
+#include "gameobj/object_queries.h"
 
 // 0x506e60 returns the rules object (field +0xbc of the game-state global 0x6b2bb0), or null.
-void* FUN_00506e60();
 void __thiscall FUN_00555e60(void* rules, int a, int b, int* out);
 void __thiscall FUN_005560b0(void* rules, int a, int b, int* out);
 
 int QueryRuleValueA(int a, int b, int* out) {
     *out = 0;
-    if (void* rules = FUN_00506e60()) FUN_00555e60(rules, a, b, out);
+    if (void* rules = GetGameRootMember_bc()) FUN_00555e60(rules, a, b, out);
     return 1;
 }
 
 int QueryRuleValueB(int a, int b, int* out) {
     *out = 0;
-    if (void* rules = FUN_00506e60()) FUN_005560b0(rules, a, b, out);
+    if (void* rules = GetGameRootMember_bc()) FUN_005560b0(rules, a, b, out);
     return 1;
 }
 

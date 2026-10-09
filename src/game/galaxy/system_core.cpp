@@ -1,13 +1,9 @@
 #include "core/vptr_store.h"
 #include "galaxy/system.h"
+#include "galaxy/system_rules_1e.h"
 #include "galaxy/system_rules_fun_decl.h"
 #include "gameobj/object_family.h"
 #include "orders/order_checks.h"
-
-// The shared permission check of the object tree (0x553410); fills *out and returns 0 only if it could not run.
-// The game-rules constants read by the checks below (GNPRTB values).
-int FUN_0055a0b0();
-int FUN_0055a0f0(int value);
 
 namespace {
 
@@ -208,7 +204,7 @@ int System::Virtual111(const ActivityRequest* request, StatusCode* out) {
             if (!(m_flags & system_flag::kBlockade)) setStatus(out, kStatusSystemCategory, kStatusNoBlockade);
             if (statusIsOk(out)) {
                 ChildIterator facilities(this, &kFacilityKindBRange, 1);
-                if (FUN_0055a0b0() <= facilities.Count()) setStatus(out, kStatusSystemCategory, kStatusNoCapacity);
+                if (GetParameter1E03() <= facilities.Count()) setStatus(out, kStatusSystemCategory, kStatusNoCapacity);
             }
         }
     }
@@ -359,7 +355,7 @@ int System::Virtual50(int childArg, int added, int ctxArg) {
         ok = applied && ok;
     }
     if (familyIn(family, FamilyRange(0x20, 0x22))) {
-        applied = FUN_0050c9f0(this, FUN_0055a0f0(added), 1, ctx);
+        applied = FUN_0050c9f0(this, SignedParameter1E1A(added), 1, ctx);
         ok = applied && ok;
     }
     if (family == 0x22) {

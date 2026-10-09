@@ -1,10 +1,12 @@
 #include "core/checked_new.h"
+#include "ai/ai_common.h"
 #include "data/gnprtb.h"
 #include "data/sd_records.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/object_name_node.h"
 #include "gameobj/object_queries.h"
+#include "gameobj/object_type_db.h"
 #include "mission/mission_external.h"
 #include "story/mission_mgr.h"
 #include "story/story_characters.h"
@@ -22,9 +24,6 @@ int __thiscall FUN_005545e0(GameObjNotifier* rules, GameObj* person, ObjectKey* 
                             ObjectKey* out, StatusCode* status);
 int __thiscall FUN_00555b30(GameObjNotifier* rules, int modifier, int unused, ObjectKey* origin, ObjectKey* resultKey,
                             int* travelMode);
-ObjectKey* __thiscall FUN_00402e40(DatRecord* self, ObjectKey* out);
-DatRecord* __cdecl FUN_0051cad0(int family);
-DatRecord* __cdecl FUN_0051cab0(const ObjectKey* key);
 
 namespace {
 
@@ -212,7 +211,7 @@ int MissionMgr::CheckMissionTypeForTeam(int side, ObjectKeyValueSet* members, Ob
                                         StatusCode* status) {
     setStatus(status, kStatusCategory, kStatusOk);
     ObjectKey recordKey;
-    FUN_00402e40(record, &recordKey);
+    GetAiRecordKey(record, &recordKey);
     MissionCheckFunctions checks;
     int result = 0;
     if (FindTypeChecks(&recordKey, &checks)) {
@@ -229,7 +228,7 @@ int MissionMgr::CheckMissionTypeAtTarget(int side, ObjectKeyValueSet* members, O
                                          GameObjNotifier* target, DatRecord* record, StatusCode* status) {
     setStatus(status, kStatusCategory, kStatusOk);
     ObjectKey recordKey;
-    FUN_00402e40(record, &recordKey);
+    GetAiRecordKey(record, &recordKey);
     MissionCheckFunctions checks;
     GameObj* resolved = nullptr;
     int result = 0;
@@ -271,14 +270,14 @@ int MissionMgr::CollectMissionTypesForTeam(const ActivityRequest* request, Objec
     if (statusOk(status)) {
         ok = FillMemberSummaryForMission(&members, &decoys, &captured, &summary, status) && ok ? 1 : 0;
         if (statusOk(status)) {
-            for (DatRecord* record = FUN_0051cad0(kRecordFamilyMissions); record; record = nextRecord(record)) {
+            for (DatRecord* record = GetFirstRecordOfType(kRecordFamilyMissions); record; record = nextRecord(record)) {
                 if (static_cast<MissionSD*>(record)->m_hidden != 0) continue;
                 StatusCode recordStatus(kStatusCategory, kStatusOk);
                 ok = CheckMissionTypeForTeam(summary.m_kind, &members, &decoys, &captured, &summary, record,
                                              &recordStatus) && ok ? 1 : 0;
                 if (recordStatus.m_second == static_cast<uint32_t>(kStatusOk)) {
                     ObjectKey recordKey;
-                    FUN_00402e40(record, &recordKey);
+                    GetAiRecordKey(record, &recordKey);
                     ok = out->AddKey(recordKey) != nullptr;
                 }
             }
@@ -307,7 +306,7 @@ int MissionMgr::CollectMissionTypeNamesAtTarget(const ActivityRequest* request, 
         GameObjNotifier* target = GetObjectInFamilies_01_ff(viewOfSummary(summary), &request->m_target);
         if (!target) setStatus(status, kMissionStatus, kReasonTargetNotFound);
         if (statusOk(status)) {
-            for (DatRecord* record = FUN_0051cad0(kRecordFamilyMissions); record; record = nextRecord(record)) {
+            for (DatRecord* record = GetFirstRecordOfType(kRecordFamilyMissions); record; record = nextRecord(record)) {
                 if (static_cast<MissionSD*>(record)->m_hidden != 0) continue;
                 StatusCode recordStatus(kStatusCategory, kStatusOk);
                 ok = CheckMissionTypeAtTarget(summary.m_kind, &members, &decoys, &captured, &summary, target, record,
@@ -347,7 +346,7 @@ int MissionMgr::CheckMissionOrder(const ActivityRequest* request, int a, int b, 
         GameObjNotifier* target = GetObjectInFamilies_01_ff(viewOfSummary(summary), &request->m_target);
         if (!target) setStatus(status, kMissionStatus, kReasonTargetNotFound);
         if (statusOk(status)) {
-            DatRecord* record = FUN_0051cab0(missionKey);
+            DatRecord* record = FindDataRecord(AsLookupKey(missionKey));
             ok = record != nullptr;
             if (record)
                 ok = CheckMissionTypeAtTarget(summary.m_kind, &members, &decoys, &captured, &summary, target, record, status) &&

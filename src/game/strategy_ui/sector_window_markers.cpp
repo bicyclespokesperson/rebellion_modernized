@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <new>
 
+#include "ai/ai_common.h"
 #include "character/role.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
@@ -24,7 +25,6 @@
 #include "ui/cool_drag_list.h"
 #include "ui/cool_list_item.h"
 
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
 void* __thiscall FUN_00452fc0(void* memory, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                               int childId, GameObjNotifier* system);
 
@@ -491,8 +491,8 @@ void SectorWindow::UpdateSystemMarkers(const ObjectKey* systemKey, int side) {
                     if (sector) {
                         ObjectKey windowSectorKey;
                         ObjectKey objectSectorKey;
-                        FUN_004025b0(m_sector, &windowSectorKey);
-                        FUN_004025b0(sector, &objectSectorKey);
+                        GetObjectKey(m_sector, &windowSectorKey);
+                        GetObjectKey(sector, &objectSectorKey);
                         sameSector = objectSectorKey.m_value == windowSectorKey.m_value;
                     }
                 }
@@ -503,7 +503,7 @@ void SectorWindow::UpdateSystemMarkers(const ObjectKey* systemKey, int side) {
             GameObjNotifier* facility = facilities.Current();
             if (!special) {
                 ObjectKey facilityKey;
-                FUN_004025b0(facility, &facilityKey);
+                GetObjectKey(facility, &facilityKey);
                 special = NewOrNull<ObjectListItem>(kSpecialMarkerId, &facilityKey);
                 m_markers.Insert(special);
                 special->SetImageIds(0x388, 0, art);
@@ -579,7 +579,7 @@ void SectorWindow::SetMarkerState(ObjectListItem* marker, int side, int count) {
 
 void SectorWindow::UpdateFleetMarker(GameObjNotifier* system, GameObjNotifier*) {
     ObjectKey key;
-    FUN_004025b0(system, &key);
+    GetObjectKey(system, &key);
     ObjectListItem* marker = static_cast<ObjectListItem*>(m_markers.FindById((key.m_value & 0xffff) | 0x100000));
     if (!marker) return;
     int side = ViewSide(m_galaxy->m_side);
@@ -597,7 +597,7 @@ void SectorWindow::UpdateFleetMarker(GameObjNotifier* system, GameObjNotifier*) 
 
 void SectorWindow::UpdateFacilityMarker(GameObjNotifier* system, GameObjNotifier*) {
     ObjectKey key;
-    FUN_004025b0(system, &key);
+    GetObjectKey(system, &key);
     ObjectListItem* marker = static_cast<ObjectListItem*>(m_markers.FindById((key.m_value & 0xffff) | 0x40000));
     int side = (static_cast<GameObjRoot*>(system)->m_flags >> 6) & 3;
     int count;
@@ -611,7 +611,7 @@ void SectorWindow::UpdateFacilityMarker(GameObjNotifier* system, GameObjNotifier
 
 void SectorWindow::UpdateDefenseMarker(GameObjNotifier* system, GameObjNotifier*) {
     ObjectKey key;
-    FUN_004025b0(system, &key);
+    GetObjectKey(system, &key);
     ObjectListItem* marker = static_cast<ObjectListItem*>(m_markers.FindById((key.m_value & 0xffff) | 0x80000));
     if (!marker) return;
     const uint32_t systemFlags = static_cast<GameObjRoot*>(system)->m_flags;
@@ -638,7 +638,7 @@ void SectorWindow::UpdateDefenseMarker(GameObjNotifier* system, GameObjNotifier*
 void SectorWindow::UpdateMissionMarker(GameObjNotifier* system, GameObjNotifier*) {
     if (!system) return;
     ObjectKey key;
-    FUN_004025b0(system, &key);
+    GetObjectKey(system, &key);
     ObjectListItem* marker = static_cast<ObjectListItem*>(m_markers.FindById((key.m_value & 0xffff) | 0x400000));
     const int controlSide = DominantMissionSide(system, m_galaxy->m_side);
     const int count = (controlSide == 0 || controlSide == 3) ? 0 : 1;
@@ -649,7 +649,7 @@ void SectorWindow::UpdateMissionMarker(GameObjNotifier* system, GameObjNotifier*
 
 void SectorWindow::OnChildAdded(const ObjectKey* key, GameObjNotifier* object) {
     ObjectKey parentKey;
-    FUN_004025b0(object->m_parent, &parentKey);
+    GetObjectKey(object->m_parent, &parentKey);
     const uint32_t family = key->Family();
     const bool fleetOrFacility = InFamilies(family, 8, 0x10) || InFamilies(family, 0x28, 0x30);
     const bool unit = InFamilies(family, 0x1c, 0x20) || InFamilies(family, 0x22, 0x28) || InFamilies(family, 0x10, 0x14) ||
@@ -659,7 +659,7 @@ void SectorWindow::OnChildAdded(const ObjectKey* key, GameObjNotifier* object) {
     if (InFamilies(key->Family(), 0x20, 0x22)) {
         GameObjNotifier* parent = object->m_parent;
         ObjectKey updatedKey;
-        FUN_004025b0(parent, &updatedKey);
+        GetObjectKey(parent, &updatedKey);
         OnObjectUpdated(&updatedKey, parent);
         return;
     }
@@ -683,7 +683,7 @@ void SectorWindow::OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object
     GameObjNotifier* parent = object->m_parent;
     const uint32_t family = key->Family();
     ObjectKey parentKey;
-    FUN_004025b0(parent, &parentKey);
+    GetObjectKey(parent, &parentKey);
     if (InFamilies(family, 0x90, 0x98)) {
         const int side = m_galaxy->m_side;
         System* system = static_cast<System*>(object ? object : GetObjectInFamilies_90_98(side, key));

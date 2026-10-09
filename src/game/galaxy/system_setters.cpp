@@ -1,8 +1,6 @@
 #include "data/game_math.h"
+#include "events/event_post.h"
 #include "galaxy/system.h"
-
-// Range check helper of the notification hub (0x53fc90); the message is ignored by the release build.
-int FUN_0053fc90(int value, int low, int high, const char* message);
 
 // Validated setters of the System properties: master view only; each stores the value, has both side views copy it
 // (ApplyX) and finally raises the virtual OnXChanged event.
@@ -30,7 +28,7 @@ int System::SetLoyalty(int value, NotifyContext* ctx) {
 
 int System::SetEnergy(int value, NotifyContext* ctx) {
     int valid = 0;
-    if (IsMasterView()) valid = FUN_0053fc90(value, 0, value, "Invalid SystemEnergy value!");
+    if (IsMasterView()) valid = IsInRange(value, 0, value, "Invalid SystemEnergy value!");
     if (valid && m_energy != value) {
         const int oldValue = m_energy;
         m_energy = value;
@@ -43,7 +41,7 @@ int System::SetEnergy(int value, NotifyContext* ctx) {
 
 int System::SetEnergyAllocated(int value, NotifyContext* ctx) {
     int valid = 0;
-    if (IsMasterView()) valid = FUN_0053fc90(value, 0, value, "Invalid SystemEnergyAllocated value!");
+    if (IsMasterView()) valid = IsInRange(value, 0, value, "Invalid SystemEnergyAllocated value!");
     if (valid && m_energyAllocated != value) {
         const int oldValue = m_energyAllocated;
         m_energyAllocated = value;
@@ -56,7 +54,7 @@ int System::SetEnergyAllocated(int value, NotifyContext* ctx) {
 
 int System::SetRawMaterial(int value, NotifyContext* ctx) {
     int valid = 0;
-    if (IsMasterView()) valid = FUN_0053fc90(value, 0, value, "Invalid SystemRawMaterial value!");
+    if (IsMasterView()) valid = IsInRange(value, 0, value, "Invalid SystemRawMaterial value!");
     if (valid && m_rawMaterial != value) {
         const int oldValue = m_rawMaterial;
         m_rawMaterial = value;
@@ -69,7 +67,7 @@ int System::SetRawMaterial(int value, NotifyContext* ctx) {
 
 int System::SetRawMaterialAllocated(int value, NotifyContext* ctx) {
     int valid = 0;
-    if (IsMasterView()) valid = FUN_0053fc90(value, 0, value, "Invalid SystemRawMaterialAllocated value!");
+    if (IsMasterView()) valid = IsInRange(value, 0, value, "Invalid SystemRawMaterialAllocated value!");
     if (valid && m_rawMaterialAllocated != value) {
         const int oldValue = m_rawMaterialAllocated;
         m_rawMaterialAllocated = value;
@@ -82,7 +80,7 @@ int System::SetRawMaterialAllocated(int value, NotifyContext* ctx) {
 
 int System::SetSmugglingPercent(int value, NotifyContext* ctx) {
     int valid = 0;
-    if (IsMasterView()) valid = FUN_0053fc90(value, -100, 100, "Invalid SmugglingPercent value!");
+    if (IsMasterView()) valid = IsInRange(value, -100, 100, "Invalid SmugglingPercent value!");
     if (valid && m_smugglingPercent != value) {
         const int oldValue = m_smugglingPercent;
         m_smugglingPercent = value;
@@ -95,7 +93,7 @@ int System::SetSmugglingPercent(int value, NotifyContext* ctx) {
 
 int System::SetProductionModifier(int value, NotifyContext* ctx) {
     int valid = 0;
-    if (IsMasterView()) valid = FUN_0053fc90(value, 0, value, "Invalid ProductionModifier value!");
+    if (IsMasterView()) valid = IsInRange(value, 0, value, "Invalid ProductionModifier value!");
     if (valid && m_productionModifier != value) {
         const int oldValue = m_productionModifier;
         m_productionModifier = value;
@@ -108,7 +106,7 @@ int System::SetProductionModifier(int value, NotifyContext* ctx) {
 
 int System::SetTroopRegWithdrawPercent(int value, NotifyContext* ctx) {
     int valid = 0;
-    if (IsMasterView()) valid = FUN_0053fc90(value, 0, 100, "Invalid TroopRegWithdrawPercent value!");
+    if (IsMasterView()) valid = IsInRange(value, 0, 100, "Invalid TroopRegWithdrawPercent value!");
     if (valid && m_troopRegWithdrawPercent != value) {
         const int oldValue = m_troopRegWithdrawPercent;
         m_troopRegWithdrawPercent = value;

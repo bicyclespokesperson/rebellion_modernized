@@ -10,8 +10,6 @@
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/manufacture_order_window.h"
 
-// 0x4fd220: queues a notice for the player's manager.
-void AddManagerNotice(void* notice);
 // 0x4fcf20: the menu commands that apply to `selection` for `player`.
 void BuildAvailableOrdersViaManager(int side, ObjectKeyValueSet* team, EventKindSet* orders);
 
@@ -341,7 +339,7 @@ void UiSendNotificationToSide(int side, int argument) {
 // ---- Game step driver ----------------------------------------------------------------------------------------
 
 void UiAddManagerNotice(void* notice) {
-    if (notice) AddManagerNotice(notice);
+    if (notice) AddManagerNotice(static_cast<IdNode*>(notice));
 }
 
 unsigned UiRaisePauseTo(unsigned tick) {

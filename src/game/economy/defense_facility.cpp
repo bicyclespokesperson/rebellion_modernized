@@ -3,6 +3,8 @@
 #include <new>
 
 #include "core/vptr_store.h"
+#include "economy/manu_mgr_leaves.h"
+#include "gameobj/game_obj_forwarders.h"
 #include "gameobj/object_family.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
@@ -81,15 +83,15 @@ int AllFacility::CheckUnknownImpl(const ActivityRequest* request, StatusCode* ou
     return result;
 }
 
-int AllFacility::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_0055ac90(this, controlKind, ctx); }
+int AllFacility::CreateViews(int controlKind, NotifyContext* ctx) { return CreateViewsStubDefense(this, controlKind, ctx); }
 
 GameObj* AllFacility::CreateViewObject() { return new AllFacility(); }
 
-int AllFacility::ReadStep(istream* in) { return FUN_00569840(this, in); }
+int AllFacility::ReadStep(istream* in) { return LeafReadForward(this, in); }
 
-int AllFacility::WriteStep(ostream* out) { return FUN_00569850(this, out); }
+int AllFacility::WriteStep(ostream* out) { return LeafWriteForward(this, out); }
 
-int AllFacility::ChecksumStep(Crc32* crc) { return FUN_00569860(this, crc); }
+int AllFacility::ChecksumStep(Crc32* crc) { return LeafChecksumForward(this, crc); }
 
 int AllFacility::ApplyAllStep(NotifyContext* ctx) { return ApplyAllImpl(ctx); }
 
@@ -140,7 +142,7 @@ int DefenseFacility::ApplyAll(NotifyContext* ctx) {
     return 0;
 }
 
-int DefenseFacility::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_0055ac90(this, controlKind, ctx); }
+int DefenseFacility::CreateViews(int controlKind, NotifyContext* ctx) { return CreateViewsStubDefense(this, controlKind, ctx); }
 
 int DefenseFacility::Virtual46(NotifyContext* ctx) {
     GameObjNotifier* parent;

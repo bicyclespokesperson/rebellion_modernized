@@ -55,7 +55,8 @@ int ArmTimerAfterSetLevel(int kind, int level, GameObjNotifier* object, TrackedS
 
 int QueueEvent(EventBase* event);            // 0x53fcd0, calls the type-queue hook; returns 1
 int QueueEventConfirmed(EventBase* event);   // 0x53fcb0, QueueEvent and returns 1
-int IsInRange(int value, int first, int last);  // 0x53fc90, first <= value <= last
+// Callers push an assertion text as a fourth argument; the release build ignores it.
+int IsInRange(int value, int first, int last, const char* message);  // 0x53fc90, first <= value <= last
 
 // ---- notification payloads --------------------------------------------------------------------------------
 

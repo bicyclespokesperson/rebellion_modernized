@@ -1,4 +1,5 @@
 #include "gameobj/game_obj.h"
+#include "mission/mission_forwarders.h"
 
 // Shared tiny bodies of the mission leaf classes (the linker folded identical forwarders and constant stubs over many
 // classes, so these have no single owner): the Read / Write / Checksum slots that call a base body, the CreateViews chain

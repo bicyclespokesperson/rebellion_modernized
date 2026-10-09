@@ -3,15 +3,13 @@
 #include "character/major_character.h"
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
+#include "data/gnprtb.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
 extern "C" void __cdecl LAB_0056f390();
 
 extern int g_character38EventKindsReady;      // 0x6bb9e0
 extern EventKindSet g_character38EventKinds;  // 0x6bb9d8
-
-// Fills *out from an unknown source; Character38's slot 184 returns what it produced.
-int FUN_0053eb30(int* out);
 
 namespace {
 
@@ -63,7 +61,7 @@ GameObjNotifier* Character38::Create() { return NewOrNull<Character38>(); }
 
 int Character38::Virtual184() {
     int value = 0;
-    FUN_0053eb30(&value);
+    RollChanceA11(&value);
     return value;
 }
 

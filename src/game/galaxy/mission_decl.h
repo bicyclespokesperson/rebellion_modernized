@@ -40,4 +40,3 @@ int __thiscall FUN_00593ad0(MissionTypeBase* self, Crc32* crc);      // Checksum
 int __thiscall FUN_00523c60(MissionTypeBase* self);                  // Validate
 int __thiscall FUN_0056ec40(MissionTypeBase* self, ostream* out);    // Write (shared by several mission types)
 int __thiscall FUN_0056ec50(MissionTypeBase* self, NotifyContext* ctx);  // ApplyAll body (shared)
-int __thiscall FUN_00576250(MissionTypeBase* self, int controlKind, NotifyContext* ctx);  // CreateViews (shared)

@@ -1,8 +1,5 @@
 #include "character/character.h"
-
-// Event hubs of the strategic notification layer (all cdecl).
-int FUN_0053fcf0(int eventId, GameObj* object, int a, int b, NotifyContext* ctx);
-int FUN_0053fe40(int eventId, GameObj* object, ObjectKey* a, ObjectKey* b, NotifyContext* ctx);
+#include "events/event_post.h"
 
 // OnXNotified: events raised on a side view (the "Character*Notif" strings). The debug log calls are dead in the shipped
 // game; the hub calls forward the change to the UI (ids 0x1e0-0x1e5 for the Force/command state, 0x360-0x362 for keys).
@@ -59,7 +56,7 @@ int Character::OnForceNotified(int oldValue, int newValue, NotifyContext* ctx) {
     int result = IsSideView();
     if (result) {
         LogInt("CharacterForceNotif", "Force", newValue, oldValue, 0, ctx);
-        result = FUN_0053fcf0(0x1e1, this, oldValue, newValue, ctx);
+        result = PostPayloadInts(0x1e1, this, oldValue, newValue, ctx);
     }
     return result;
 }
@@ -68,7 +65,7 @@ int Character::OnForceExperienceNotified(int oldValue, int newValue, NotifyConte
     int result = IsSideView();
     if (result) {
         LogInt("CharacterForceExperienceNotif", "ForceExperience", newValue, oldValue, 0, ctx);
-        result = FUN_0053fcf0(0x1e4, this, oldValue, newValue, ctx);
+        result = PostPayloadInts(0x1e4, this, oldValue, newValue, ctx);
     }
     return result;
 }
@@ -77,7 +74,7 @@ int Character::OnForceTrainingNotified(int oldValue, int newValue, NotifyContext
     int result = IsSideView();
     if (result) {
         LogInt("CharacterForceTrainingNotif", "ForceTraining", newValue, oldValue, 0, ctx);
-        result = FUN_0053fcf0(0x1e5, this, oldValue, newValue, ctx);
+        result = PostPayloadInts(0x1e5, this, oldValue, newValue, ctx);
     }
     return result;
 }
@@ -92,7 +89,7 @@ int Character::OnInjuryNotified(int oldValue, int newValue, NotifyContext* ctx) 
     int result = IsSideView();
     if (result) {
         LogInt("CharacterInjuryNotif", "Injury", newValue, oldValue, 0, ctx);
-        result = FUN_0053fcf0(0x1e3, this, oldValue, newValue, ctx);
+        result = PostPayloadInts(0x1e3, this, oldValue, newValue, ctx);
     }
     return result;
 }
@@ -101,7 +98,7 @@ int Character::OnCommandKindNotified(int oldValue, int newValue, NotifyContext* 
     int result = IsSideView();
     if (result) {
         LogInt("(CharacterCommandKindNotif)", "CommandKind", newValue, oldValue, 0, ctx);
-        result = FUN_0053fcf0(0x1e2, this, oldValue, newValue, ctx);
+        result = PostPayloadInts(0x1e2, this, oldValue, newValue, ctx);
     }
     return result;
 }
@@ -109,7 +106,7 @@ int Character::OnCommandKindNotified(int oldValue, int newValue, NotifyContext* 
 int Character::OnStateNotified(int oldValue, int newValue, NotifyContext* ctx) {
     int result = IsSideView();
     if (result) {
-        result = FUN_0053fcf0(0x1e0, this, oldValue, newValue, ctx);
+        result = PostPayloadInts(0x1e0, this, oldValue, newValue, ctx);
     }
     return result;
 }
@@ -124,7 +121,7 @@ int Character::OnEncounterNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyC
     int result = IsSideView();
     if (result) {
         LogKey("(CharacterEncounterKeyNotif)", "Encounter", newKey, oldKey, 0, ctx);
-        result = FUN_0053fe40(0x360, this, oldKey, newKey, ctx);
+        result = PostPayloadKeysA(0x360, this, oldKey, newKey, ctx);
     }
     return result;
 }
@@ -133,7 +130,7 @@ int Character::OnTraitorDiscoveredNotified(ObjectKey* oldKey, ObjectKey* newKey,
     int result = IsSideView();
     if (result) {
         LogKey("CharacterTraitorDiscoveredKeyNotif", "TraitorDiscovered", newKey, oldKey, 0, ctx);
-        result = FUN_0053fe40(0x361, this, oldKey, newKey, ctx);
+        result = PostPayloadKeysA(0x361, this, oldKey, newKey, ctx);
     }
     return result;
 }
@@ -142,7 +139,7 @@ int Character::OnForceUserDiscoveredNotified(ObjectKey* oldKey, ObjectKey* newKe
     int result = IsSideView();
     if (result) {
         LogKey("CharacterForceUserDiscoveredKeyNotif", "ForceUserDiscovered", newKey, oldKey, 0, ctx);
-        result = FUN_0053fe40(0x362, this, oldKey, newKey, ctx);
+        result = PostPayloadKeysA(0x362, this, oldKey, newKey, ctx);
     }
     return result;
 }
@@ -151,7 +148,7 @@ int Character::OnCommandingNotified(ObjectKey* oldKey, ObjectKey* newKey, Notify
     int result = IsSideView();
     if (result) {
         LogKey("CharacterCommandingKeyNotif", "Commanding", newKey, oldKey, 0, ctx);
-        result = FUN_0053fe40(0x362, this, oldKey, newKey, ctx);
+        result = PostPayloadKeysA(0x362, this, oldKey, newKey, ctx);
     }
     return result;
 }

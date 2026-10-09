@@ -1,5 +1,6 @@
 #include <cstdint>
 
+#include "ai/ai_common.h"
 #include "character/character.h"
 #include "character/role.h"
 #include "character/special_forces.h"
@@ -23,7 +24,6 @@
 #include "ui/cool_list_item.h"
 #include "ui/custom_dialog_box.h"
 
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
 
 namespace {
 
@@ -165,7 +165,7 @@ void CountUnits(GameObjNotifier* system, uint32_t side, SystemUnitCounts* counts
 void GalaxyWindow::OnSystemChanged(const ObjectKey* system, int kind, int a, int b) {
     GameObjNotifier* object = GetObjectInFamilies_90_98(m_side, system);
     ObjectKey sectorKey;
-    FUN_004025b0(object->m_parent, &sectorKey);
+    GetObjectKey(object->m_parent, &sectorKey);
     const uint32_t sectorWindowId = (static_cast<uint16_t>(static_cast<uint16_t>(sectorKey.m_value) << 6)) | 1;
     SectorWindow* sectorWindow = static_cast<SectorWindow*>(m_children.FindById(sectorWindowId));
     UpdateSystemMarker(system, object, 1);
@@ -189,13 +189,13 @@ void GalaxyWindow::UpdateSystemMarker(const ObjectKey* key, GameObjNotifier* obj
     GameObjNotifier* system = object;
     for (;;) {
         ObjectKey candidate;
-        FUN_004025b0(system, &candidate);
+        GetObjectKey(system, &candidate);
         if (IsSystemFamily(candidate)) break;
         system = system->m_parent;
         if (!system) return;
     }
     ObjectKey systemKey;
-    FUN_004025b0(system, &systemKey);
+    GetObjectKey(system, &systemKey);
     System* systemObject = static_cast<System*>(system);
     GameObj* systemGameObj = AsGameObj(system);
     const uint32_t systemSide = ControllingSide(system);
@@ -425,7 +425,7 @@ void GalaxyWindow::UpdateSystemMarker(const ObjectKey* key, GameObjNotifier* obj
             case 0x92:
             case 0x93: {
                 ObjectKey selectedKey;
-                FUN_004025b0(system, &selectedKey);
+                GetObjectKey(system, &selectedKey);
                 if (!m_selectedIds.FindById(selectedKey.Id())) {
                     reading.m_value = 0;
                     reading.m_kind = 0;
@@ -466,11 +466,11 @@ void GalaxyWindow::UpdateSystemMarker(const ObjectKey* key, GameObjNotifier* obj
     marker->SetImageIds(static_cast<uint16_t>(reading.m_icon), 0, CoolAppGetResourceModule(kSpriteSlot));
     if (redraw) RedrawSectorMarkers(sector);
     ObjectKey sectorKey;
-    FUN_004025b0(sector, &sectorKey);
+    GetObjectKey(sector, &sectorKey);
     const uint32_t sectorWindowId = (static_cast<uint16_t>(static_cast<uint16_t>(sectorKey.m_value) << 6)) | 1;
     CustomDialogBox* sectorWindow = static_cast<CustomDialogBox*>(m_children.FindById(sectorWindowId));
     if (!sectorWindow) return;
     ObjectKey updatedKey;
-    FUN_004025b0(system, &updatedKey);
+    GetObjectKey(system, &updatedKey);
     sectorWindow->OnObjectUpdated(&updatedKey, system);
 }

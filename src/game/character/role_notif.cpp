@@ -1,15 +1,11 @@
 #include "character/role.h"
-
-// Event hubs of the strategic notification layer (all cdecl).
-int FUN_0053f9f0(int eventId, GameObj* object, ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx);
-int FUN_0053fdd0(int eventId, GameObj* object, int value, NotifyContext* ctx);
-int FUN_0053fe40(int eventId, GameObj* object, ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx);
+#include "events/event_post.h"
 
 int Role::OnEnrouteActiveNotified(int value, NotifyContext* ctx) {
     int result = IsSideView();
     if (result) {
         LogFlag("RoleEnrouteActiveNotif", "EnrouteActive", value, 0, ctx);
-        result = FUN_0053fdd0(0x200, this, value, ctx);
+        result = PostPayloadFlag(0x200, this, value, ctx);
     }
     return result;
 }
@@ -65,8 +61,8 @@ int Role::OnBaseLoyaltyNotified(int oldValue, int newValue, NotifyContext* ctx) 
 int Role::OnMissionNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) {
     if (!IsSideView()) return 0;
     LogKey("RoleMissionKeyNotif", "Mission", newKey, oldKey, 0, ctx);
-    const int first = FUN_0053fe40(0x380, this, oldKey, newKey, ctx);
-    const int second = FUN_0053f9f0(0x321, this, oldKey, newKey, ctx);
+    const int first = PostPayloadKeysA(0x380, this, oldKey, newKey, ctx);
+    const int second = PostTwoKeyEvent(0x321, this, oldKey, newKey, ctx);
     return second && first ? 1 : 0;
 }
 

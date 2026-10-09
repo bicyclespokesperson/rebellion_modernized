@@ -1,4 +1,5 @@
 #include "data/gnprtb.h"
+#include "ai/ai_common.h"
 #include "mission/mission_encounter.h"
 #include "mission/mission_exec_decl.h"
 #include "mission/mission_rules.h"
@@ -153,7 +154,7 @@ int MissionMgr::UpdateSystemMissionScores(Mission* mission, int fromPhase, int t
 int MissionMgr::OnMissionPhaseStory(Mission* mission, int fromPhase, int toPhase, NotifyContext* ctx) {
     int ok = 1;
     ObjectKey recordKey;
-    FUN_00402d80(mission, &recordKey);
+    GetObjectRecordKey(mission, &recordKey);
     if (recordKey.m_value == kRecordKeyStoryMission) {
         if (toPhase == kPhaseResolved) {
             if (mission->GetDataField1c() >= kLevelThreshold) ok = SetLukeDagobahRequired(0, ctx) != 0;

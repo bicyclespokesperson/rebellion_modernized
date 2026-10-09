@@ -1,4 +1,5 @@
 #include "app/battle_flow.h"
+#include "app/battle_handoff.h"
 
 #include <new>
 

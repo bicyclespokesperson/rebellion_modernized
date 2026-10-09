@@ -58,10 +58,6 @@ int __thiscall FUN_00521220(Mission* mission, Role* person, int* a, int* b, int*
 int __thiscall FUN_00520ec0(Mission* mission, MissionPhaseLevels* levels);  // 0x520ec0
 // Mission::AssignPhaseLevels with its real argument type.
 int __thiscall FUN_00522a60(Mission* mission, MissionPhaseLevels* levels);  // 0x522a60
-// Record key of the object ((record family << 24) | record id), 0x402d80; returns `out`.
-ObjectKey* __thiscall FUN_00402d80(GameObjNotifier* object, ObjectKey* out);
-// Owner key of an object: GameObjRoot::GetOwnerKey into `out`, returns `out` (0x50c640).
-ObjectKey* __thiscall FUN_0050c640(GameObjNotifier* object, ObjectKey* out);
 
 // ---- the rules object (game root member +0xbc, type 0xf9, 0x554020-0x557410) ----
 int __thiscall FUN_00556710(GameObjNotifier* rules, GameObj* person, NotifyContext* ctx);

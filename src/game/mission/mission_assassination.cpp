@@ -1,14 +1,14 @@
 #include "mission/mission_assassination.h"
 
 #include "character/character.h"
+#include "data/random.h"
+#include "mission/mission_rules.h"
 
 extern "C" void __cdecl LAB_00576790();
 
 extern int g_missionAssassinationEventKindsReady;      // 0x6bbb08
 extern EventKindSet g_missionAssassinationEventKinds;  // 0x6bbb00
 
-int __cdecl FUN_0055c850(int personCombat, int targetCombat, int* out);  // LookupMissionTable1D
-int FUN_0053e2f0(int threshold);
 extern int DAT_006bb584;
 
 namespace {
@@ -56,7 +56,7 @@ int MissionAssassination::Virtual157(GameObj* person, int* out) {
     if (!target) return ok;
     const int targetCombat = target->GetCombat();
     const int personCombat = static_cast<Role*>(person)->GetCombat();
-    return FUN_0055c850(personCombat, targetCombat, out) != 0 && ok ? 1 : 0;
+    return LookupMissionTable1D(personCombat, targetCombat, out) != 0 && ok ? 1 : 0;
 }
 
 int MissionAssassination::Virtual158(NotifyContext* ctx) { return 1; }
@@ -65,7 +65,7 @@ int MissionAssassination::Virtual160(NotifyContext* ctx) { return MissionStartIf
 
 int MissionAssassination::Virtual159(GameObj* personObject, int roll, int* out, NotifyContext* ctx) {
     *out = 0;
-    if (!FUN_0053e2f0(roll)) return 1;
+    if (!PercentChance(roll)) return 1;
     *out = 1;
     Character* target = nullptr;
     const int found = FUN_00586c80(this, &target);

@@ -4,6 +4,7 @@
 #include "core/vptr_store.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/object_queries.h"
+#include "gameobj/object_type_db.h"
 #include "orders/route_context.h"
 
 // The 0x50-byte command of order 0x242 (ctor 0x540c40, another module).
@@ -21,8 +22,6 @@ int __thiscall FUN_005425e0(MissionMgr* self, const ActivityRequest* request, Ob
                             StatusCode* status);
 int __thiscall FUN_00543410(MissionMgr* self, uint32_t side, NullableKey* missionKey, GameObjNotifier* target,
                             GameObjNotifier** mission, StatusCode* status);
-// Whether the mission-type key is acceptable (cdecl).
-int FUN_0051cab0(NullableKey* key);
 
 namespace {
 
@@ -180,7 +179,7 @@ int MissionOrder::CheckDestination(StatusCode* status) {
         if (ok && isOk(status)) {
             if (m_missionKey.m_value == 0) {
                 setStatus(status, kMissionCategory, kStatusNoMissionKey);
-            } else if (FUN_0051cab0(&m_missionKey) == 0) {
+            } else if (FindDataRecord(AsLookupKey(&m_missionKey)) == 0) {
                 setStatus(status, kMissionCategory, kStatusBadMissionKey);
                 ok = 0;
             }

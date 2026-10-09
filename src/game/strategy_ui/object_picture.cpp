@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <new>
 
+#include "ai/ai_common.h"
 #include "character/character.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_key.h"
@@ -9,8 +10,6 @@
 #include "strategy_ui/galaxy_window.h"
 #include "ui/cool_app.h"
 
-ObjectKey* __thiscall FUN_004025b0(GameObjNotifier* object, ObjectKey* out);
-ObjectKey* __thiscall FUN_00402d80(GameObjNotifier* object, ObjectKey* out);
 
 namespace {
 
@@ -83,7 +82,7 @@ DibBitmap* CreateObjectPicture(HMODULE module, const ObjectKey* key, GameObjNoti
         object = GetObjectInFamilies_01_ff(g_galaxyWindow->m_side, key);
     } else {
         ObjectKey objectKey;
-        if (FUN_004025b0(object, &objectKey)->m_value != key->m_value) {
+        if (GetObjectKey(object, &objectKey)->m_value != key->m_value) {
             object = GetObjectInFamilies_01_ff(g_galaxyWindow->m_side, key);
         }
     }
@@ -91,7 +90,7 @@ DibBitmap* CreateObjectPicture(HMODULE module, const ObjectKey* key, GameObjNoti
     if (!object) return nullptr;
     const uint32_t recordBits = static_cast<GameObj*>(object)->GetRecordTypeBits();
     ObjectKey typeKey;
-    FUN_00402d80(object, &typeKey);
+    GetObjectRecordKey(object, &typeKey);
     const uint32_t objectSide = ControllingSide(object);
     const uint32_t stateFlags = static_cast<GameObj*>(object)->m_stateFlags;
 

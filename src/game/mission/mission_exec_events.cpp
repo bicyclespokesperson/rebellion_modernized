@@ -1,4 +1,5 @@
 #include "mission/mission_encounter.h"
+#include "ai/ai_common.h"
 #include "mission/mission_exec_decl.h"
 
 using namespace mission_exec;
@@ -188,7 +189,7 @@ int MissionMgr::OnPersonRemoved(ObjectKey* key, int unused, NotifyContext* ctx) 
                 ok = FUN_00556710(rules, person, ctx) && ok;
                 if (person->m_stateFlags & kStateExisting) {
                     ObjectKey recordKey;
-                    FUN_00402d80(person, &recordKey);
+                    GetObjectRecordKey(person, &recordKey);
                     if (recordKey.m_value == 0x3c000009) ok = person->SetDestroyedReason(0x14, ctx) && ok;
                 }
             }

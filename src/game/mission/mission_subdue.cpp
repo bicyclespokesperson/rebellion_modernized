@@ -1,13 +1,12 @@
 #include "mission/mission_subdue.h"
+#include "data/random.h"
+#include "mission/mission_rules.h"
 
 extern "C" void __cdecl LAB_00569df0();
 
 extern int g_missionSubdueEventKindsReady;      // 0x6bb918
 extern EventKindSet g_missionSubdueEventKinds;  // 0x6bb910
 
-int __cdecl FUN_0055cb10(int controlSide, int targetSide);  // ComputeSubdueBonus
-void __cdecl FUN_0055c780(int leadership, int loyalty, int regiments, int* out);  // LookupSubdueMissionTable
-int FUN_0053e2f0(int threshold);
 extern int DAT_006bb538;  // g_gnprtb1811
 
 namespace {
@@ -62,7 +61,7 @@ int MissionSubdue::Virtual157(GameObj* person, int* out) {
     const int regiments = system->CountEmpireRegimentsOfKey6();
     const int loyalty = system->GetLoyaltyFor(side);
     const int leadership = static_cast<Role*>(person)->GetLeadership();
-    FUN_0055c780(leadership, loyalty, regiments, out);
+    LookupSubdueMissionTable(leadership, loyalty, regiments, out);
     return ok && *out != 0 ? 1 : 0;
 }
 
@@ -77,10 +76,10 @@ int MissionSubdue::Virtual159(GameObj* person, int roll, int* out, NotifyContext
     const bool inUprising = (system->m_flags & 4) != 0;
     bool ok = inUprising && found;
     if (!inUprising) return ok;
-    if (!FUN_0053e2f0(roll)) return ok;
+    if (!PercentChance(roll)) return ok;
     *out = 1;
     const uint32_t side = ControlSide();
-    const int bonus = FUN_0055cb10(side, system->ControlSide());
+    const int bonus = ComputeSubdueBonus(side, system->ControlSide());
     ok = system->AdjustLoyalty(bonus, side, ctx) && ok;
     if (system->m_flags & 4) ok = system->EndUprisingIfQuelled(ctx) && ok;
     ok = SetTaskStatus((system->m_flags & 4) ? kTaskStarted : kTaskSucceeded, ctx) && ok;

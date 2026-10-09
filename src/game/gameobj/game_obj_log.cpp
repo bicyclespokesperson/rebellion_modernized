@@ -1,4 +1,5 @@
 #include "gameobj/game_obj.h"
+#include "gameobj/object_type_db.h"
 #include "orders/order_checks.h"
 
 // Notification debug log. The original guards every entry with a "logging enabled?" call that the linker folded into
@@ -6,7 +7,6 @@
 // argument conventions); the formatter itself, LogChange (0x4f8c60), keeps only its guard (see below).
 
 int icf_return_zero();
-void FUN_0051ccc0(ObjectKey* key, String* out);
 
 namespace {
 
@@ -89,8 +89,8 @@ int GameObj::LogTypeKey(const char* tag, const char* property, ObjectKey* newKey
     if (icf_return_zero()) {
         String newText;
         String oldText;
-        FUN_0051ccc0(newKey, &newText);
-        FUN_0051ccc0(oldKey, &oldText);
+        DescribeDataKey(AsLookupKey(newKey), &newText);
+        DescribeDataKey(AsLookupKey(oldKey), &oldText);
         result = LogChange(tag, property, newText.m_text, oldText.m_text, reinterpret_cast<const char*>(unused), ctx);
     }
     return result;

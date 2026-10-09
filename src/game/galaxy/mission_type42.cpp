@@ -3,6 +3,7 @@
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "gameobj/game_hooks.h"
+#include "mission/mission_forwarders.h"
 
 extern "C" int __cdecl atexit(void(__cdecl* function)(void));
 extern "C" void __cdecl LAB_0056ab30();
@@ -38,7 +39,7 @@ int Mission42::ApplyAll(NotifyContext* ctx) {
     return 0;
 }
 
-int Mission42::CreateViews(int controlKind, NotifyContext* ctx) { return FUN_00576250(this, controlKind, ctx); }
+int Mission42::CreateViews(int controlKind, NotifyContext* ctx) { return MissionTypeCreateViewsForward(this, controlKind, ctx); }
 
 int Mission42::ReadImpl(istream* in) { return FUN_00592c50(this, in); }
 

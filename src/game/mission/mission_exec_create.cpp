@@ -1,4 +1,5 @@
 #include "mission/mission_exec_decl.h"
+#include "galaxy/system_rules.h"
 
 using namespace mission_exec;
 
@@ -171,7 +172,7 @@ int MissionMgr::CreateMissionForCharacter(ObjectKey* objectiveKey, ObjectKey* ty
     ObjectKey personLocation;
     if (person) {
         ObjectKey scratch;
-        personLocation = *FUN_0050c640(person, &scratch);
+        personLocation = *GetOwnerKeyValue(person, &scratch);
     }
     ObjectKey objectiveLocation;
     if (person) {
@@ -179,7 +180,7 @@ int MissionMgr::CreateMissionForCharacter(ObjectKey* objectiveKey, ObjectKey* ty
         ok = objective != nullptr;
         if (objective) {
             ObjectKey scratch;
-            objectiveLocation = *FUN_0050c640(objective, &scratch);
+            objectiveLocation = *GetOwnerKeyValue(objective, &scratch);
         }
     }
     ObjectKeyValueSet team;

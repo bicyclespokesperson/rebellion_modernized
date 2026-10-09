@@ -85,9 +85,6 @@ struct TickNode {
 TickNode* __thiscall FUN_00568de0(TickTable* table, SeedKey* key);
 TickNode* __thiscall FUN_00568d70(TickTable* table, SeedKey* key);
 
-// The three checksum sources the per-tick snapshot folds in (0x51cce0, 0x55bef0 is NotifyTables).
-void FUN_0051cce0(Crc32* crc);
-
 // Battle / follow-up code run on the game root (0x516710-0x518460).
 int __thiscall FUN_00516710(GameRoot* root, ObjectKey* out);
 int __thiscall FUN_00516730(GameRoot* root, int side, uint32_t* a, uint32_t* b, int* c, uint32_t* d);

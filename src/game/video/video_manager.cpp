@@ -3,12 +3,12 @@
 
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
+#include "ui/cool_environment.h"
 
 extern VideoManager* g_videoManager;
 extern CoolWindow* g_videoParentWindow;
 extern const char g_pathUnknownCaption[];  // "PathName unknown to VideoManager"
 
-void FUN_0060a9e0(const char* text, const char* caption);  // beep + MessageBox
 
 namespace {
 constexpr UINT kPaletteChangedMessage = WM_PALETTECHANGED;
@@ -64,7 +64,7 @@ int VideoManager::Play(const char* path, CoolWindow* parent, int x, int y, int t
     HINSTANCE instance = parent->m_instance;
     CoolWindow* movieWindow = nullptr;
     if (!result) {
-        FUN_0060a9e0(path, g_pathUnknownCaption);
+        ShowErrorMessage(path, g_pathUnknownCaption);
         PostMessageA(parent->m_hwnd, kMovieMessageNotFound, 0, 0);
     } else if (m_movieType == kMovieAvi) {
         m_videoWindow = NewOrNull<VideoWindow>(path, instance, x, y, width, height, parent, 1);

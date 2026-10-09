@@ -1,9 +1,7 @@
 #include "economy/manufacturing_facility.h"
 
 #include "core/vptr_store.h"
-
-// The shared CreateViews of the unit classes (thiscall, 0x55b560).
-int __thiscall FUN_0055b560(ProcFacil* self, int controlKind, NotifyContext* ctx);
+#include "economy/manu_mgr_leaves.h"
 
 namespace {
 const FamilyRange kManufacturingFamilies(0x28, 0x2c);
@@ -54,7 +52,7 @@ int ManufacturingFacility::ApplyAllForward(NotifyContext* ctx) { return ApplyAll
 int ManufacturingFacility::CreateViewsForward(int controlKind, NotifyContext* ctx) { return CreateViewsImpl(controlKind, ctx); }
 
 int ManufacturingFacility::CreateViewsImpl(int controlKind, NotifyContext* ctx) {
-    const int result = FUN_0055b560(this, controlKind, ctx);
+    const int result = CreateViewsStubShared(this, controlKind, ctx);
     if (result) {
         const int duration = static_cast<int>(Facility::GetRecordField5c());
         if (m_data) static_cast<ProcFacilData*>(m_data)->m_duration = duration;

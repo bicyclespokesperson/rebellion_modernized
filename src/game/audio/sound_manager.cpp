@@ -6,6 +6,7 @@
 
 #include "audio/interlocked_import.h"
 #include "core/checked_new.h"
+#include "ui/cool_window.h"
 
 // Original globals that only this file touches.
 extern HANDLE g_soundEvents[2];            // 0x6be630 wake-up event (queue not empty), stop event
@@ -18,7 +19,6 @@ extern LONG g_sweepBusy;                   // 0x6be660 SweepSources is running
 extern const char g_waveResourceType[];    // 0x6ac954 "WAVE"
 
 // Functions of other modules.
-HMODULE FUN_005fefd0(int moduleIndex);  // resource DLL by index (ui_framework)
 // Compiler-generated atexit handlers that destroy the global objects below.
 extern "C" {
 void __cdecl LAB_00610fe0();
@@ -321,7 +321,7 @@ void SoundManager::SweepSources(int) {
 int SoundManager::LoadResourceSource(SoundRequest* request) {
     if (g_soundSources.Find(request->SourceKey())) return kSoundAlreadyLoaded;
     SoundSource* source;
-    int error = CreateResourceSource(request, FUN_005fefd0(request->m_moduleIndex), &source);
+    int error = CreateResourceSource(request, FindResourceModule(request->m_moduleIndex), &source);
     if (error != 0 || source == nullptr) return kSoundFailed;
     g_soundSources.Add(source);
     if (request->m_keepLoaded) source->m_keepLoaded = 1;

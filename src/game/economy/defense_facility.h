@@ -4,24 +4,6 @@
 #include "economy/facility.h"
 #include "gameobj/child_iterator.h"
 
-// The facility classes of ALLFACSD / DEFFACSD, all 0x58 bytes like Facility (none adds a field).
-//
-//   Facility
-//     AllFacility (VT 0x65f280, secondary ObjectBase VT 0x65f27c): families 0x20-0x21
-//     DefenseFacility (VT 0x65f458, secondary 0x65f450): abstract; adds slots 115-118 (the record's attack and shield
-//       strength and two "return 0" stubs); its leaves are families 0x22 (VT 0x65f828), 0x23 (VT 0x65f640),
-//       0x24 (VT 0x65fa10) and 0x25 (VT 0x65eaf8)
-//
-// The leaf classes share the wrappers for slots 5-9 and 37 (identical code, folded by the linker), so those live here in
-// DefenseFacility even though the original vtable of DefenseFacility itself leaves them pure. Which in-game facility each
-// family is (shield generator, ion cannon, ...) is not known yet, hence the numeric class names.
-
-// Functions of other modules that the wrappers delegate to (thiscall, `this` passed through).
-int __thiscall FUN_0055ac90(void* self, int controlKind, NotifyContext* ctx);
-int __thiscall FUN_00569840(void* self, istream* in);
-int __thiscall FUN_00569850(void* self, ostream* out);
-int __thiscall FUN_00569860(void* self, Crc32* crc);
-
 // Families 0x20-0x21 (secondary ObjectBase VT 0x65f27c): the facility records common to every side.
 class AllFacility : public Facility {
 public:

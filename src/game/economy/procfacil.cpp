@@ -4,14 +4,9 @@
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
+#include "events/event_post.h"
 #include "fleet/unit_view_flags.h"
 #include "gameobj/game_hooks.h"
-
-// Strategic-layer hubs (cdecl): range check, and the event hubs that tell the game about changes.
-int FUN_0053fc90(int value, int low, int high, const char* message);
-int FUN_0053f950(int eventId, GameObj* object, int a, int b, NotifyContext* ctx);
-int FUN_0053fa60(int eventId, int a, GameObj* object, void* data, NotifyContext* ctx);
-int FUN_0053fab0(int eventId, int a, GameObj* object, void* data, NotifyContext* ctx);
 
 // The data block constructor (0x584590).
 
@@ -157,7 +152,7 @@ int ProcFacil::OnStateChanged(int oldState, int newState, NotifyContext* ctx) {
     const int processingSet = SetProcessing(newState == kStateProcessing, ctx);
     bool ok = processingSet != 0 && startupSet != 0;
     ok = UpdateState(ctx) != 0 && ok;
-    return FUN_0053f950(kEventStateChanged, this, oldState, newState, ctx) != 0 && ok;
+    return PostSourceEvent(kEventStateChanged, this, oldState, newState, ctx) != 0 && ok;
 }
 
 int ProcFacil::OnSuspendedChanged(int value, NotifyContext* ctx) {
@@ -176,8 +171,8 @@ int ProcFacil::OnPointProcessedChanged(int value, NotifyContext* ctx) { return U
 
 int ProcFacil::OnProcessingChanged(int value, NotifyContext* ctx) {
     bool ok = true;
-    if (value != 0) ok = FUN_0053fab0(kEventProcessingTimer, dataOf(this)->m_duration, this, &dataOf(this)->m_processingStat, ctx) != 0;
-    const bool tracked = FUN_0053fa60(kEventProcessingTimer, value, this, &dataOf(this)->m_processingStat, ctx) != 0 && ok;
+    if (value != 0) ok = ArmTimerAfterSetLevel(kEventProcessingTimer, dataOf(this)->m_duration, this, &dataOf(this)->m_processingStat, ctx) != 0;
+    const bool tracked = ArmTimerAfterSetFlag(kEventProcessingTimer, value, this, &dataOf(this)->m_processingStat, ctx) != 0 && ok;
     int etc = 0;
     if (value != 0) {
         ProcFacilData* data = dataOf(this);
@@ -228,7 +223,7 @@ int ProcFacil::GetCycleCount() { return m_data ? dataOf(this)->m_cycleCount : 0;
 
 int ProcFacil::SetState(int value, NotifyContext* ctx) {
     int result = 0;
-    if (IsMasterView()) result = FUN_0053fc90(value, 0, value, "Invalid ProcFacilState value!");
+    if (IsMasterView()) result = IsInRange(value, 0, value, "Invalid ProcFacilState value!");
     if (result && m_state != value) {
         const int oldValue = m_state;
         m_state = value;
@@ -241,7 +236,7 @@ int ProcFacil::SetState(int value, NotifyContext* ctx) {
 
 int ProcFacil::SetEtc(int value, NotifyContext* ctx) {
     int result = 0;
-    if (IsMasterView()) result = FUN_0053fc90(value, 0, value, "Invalid ETC value!");
+    if (IsMasterView()) result = IsInRange(value, 0, value, "Invalid ETC value!");
     if (result && m_etc != value) {
         const int oldValue = m_etc;
         m_etc = value;

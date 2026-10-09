@@ -2,8 +2,10 @@
 #include "data/dat_record.h"
 #include "economy/side.h"
 #include "economy/side_decl.h"
+#include "galaxy/game_setup_seed.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
+#include "gameobj/object_type_db.h"
 
 extern int g_setupComplete;  // 0x6b90e0
 
@@ -116,7 +118,7 @@ int Side::CollectRdRecords(int kind, IdAvlTree* out) {
         int maxLevel = 0;
         ObjectKey key;
         GetKey(&key);
-        result = FUN_0051cb20(SideNumberFromKey(&key), kind, level, 1, 1, 0, out, &maxLevel);
+        result = CollectDataRecords(SideNumberFromKey(&key), kind, level, 1, 1, 0, out, &maxLevel);
     }
     return result;
 }
@@ -126,7 +128,7 @@ int Side::CheckMaintCapacity(const ObjectKey* key, int count, StatusCode* status
     bool result = true;
     const uint32_t keyFamily = key->m_value >> 24;
     if (keyFamily >= 0x10 && keyFamily < 0x40) {
-        SdRecord* record = FUN_0051cab0(key);
+        SdRecord* record = static_cast<SdRecord*>(FindDataRecord(AsLookupKey(key)));
         result = record != nullptr;
         if (result) {
             const int needed = static_cast<int>(record->GetField4c()) * count;
@@ -297,7 +299,7 @@ int Side::UpdateRdProgress(NotifyContext* ctx) {
     int shipyardPoints = 0;
     int trainingPoints = 0;
     int constructionPoints = 0;
-    for (GameObjNotifier* object = GetFirstMasterInFamilies_90_98(); object; object = FUN_0051a5d0(object)) {
+    for (GameObjNotifier* object = GetFirstMasterInFamilies_90_98(); object; object = NextSystemMaster(object)) {
         if (result == 0) break;
         if (!sameControlSide(this, object)) continue;
         GameObjNotifier* system = object;

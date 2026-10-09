@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <new>
 
+#include "ai/ai_common.h"
 #include "core/checked_new.h"
 #include "economy/manufacturing_facility.h"
 #include "economy/production_facility_types.h"
@@ -16,7 +17,6 @@
 #include "ui/cool_tab_control.h"
 #include "ui/object_list_item.h"
 
-ObjectKey* __thiscall FUN_00402d80(GameObjNotifier* object, ObjectKey* out);
 GameObjNotifier* __thiscall FUN_004a25c0(void* window);
 
 namespace {
@@ -65,7 +65,7 @@ DibBitmap* __stdcall SystemObjectPicture(GameObjNotifier* object) {
     DibBitmap* result = nullptr;
     if (object) {
         ObjectKey recordKey;
-        FUN_00402d80(object, &recordKey);
+        GetObjectRecordKey(object, &recordKey);
         if (InFamily(recordKey.Family(), 0x28, 0x2c)) {
             switch (object->GetRecordId()) {
             case 1: base = 0x232e; break;
@@ -77,7 +77,7 @@ DibBitmap* __stdcall SystemObjectPicture(GameObjNotifier* object) {
             }
         } else {
             ObjectKey secondKey;
-            FUN_00402d80(object, &secondKey);
+            GetObjectRecordKey(object, &secondKey);
             if (InFamily(secondKey.Family(), 0x2c, 0x30)) {
                 const uint32_t recordId = object->GetRecordId();
                 if (recordId == 1) {

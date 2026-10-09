@@ -4,6 +4,7 @@
 #include <cstring>
 
 #include "core/vptr_store.h"
+#include "galaxy/game_setup_seed.h"
 #include "gameobj/game_obj_root.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
@@ -12,8 +13,6 @@
 MapPosition* __thiscall FUN_00509620(GameObjNotifier* system, MapPosition* out);
 // Straight-line distance of two map positions.
 int __cdecl FUN_0055d860(const MapPosition* a, const MapPosition* b);
-// The next master system after `system`.
-GameObjNotifier* __thiscall FUN_0051a5d0(GameObjNotifier* system);
 
 namespace {
 
@@ -51,10 +50,10 @@ int SystemNeighbourTable::GetNeighbours(const ObjectKey* key, SystemNeighbourCur
 }
 
 int SystemNeighbourTable::Build() {
-    for (GameObjNotifier* from = GetFirstMasterInFamilies_90_98(); from; from = FUN_0051a5d0(from)) {
+    for (GameObjNotifier* from = GetFirstMasterInFamilies_90_98(); from; from = NextSystemMaster(from)) {
         SystemDistance distances[kSystemCount];
         std::memset(distances, 0, sizeof(distances));
-        for (GameObjNotifier* to = GetFirstMasterInFamilies_90_98(); to; to = FUN_0051a5d0(to)) {
+        for (GameObjNotifier* to = GetFirstMasterInFamilies_90_98(); to; to = NextSystemMaster(to)) {
             SystemDistance& slot = distances[SystemIndex(to)];
             slot.m_system = to;
             slot.m_distance = DistanceBetween(from, to);

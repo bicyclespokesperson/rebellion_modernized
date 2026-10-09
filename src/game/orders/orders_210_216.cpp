@@ -9,11 +9,12 @@
 #include "gameobj/key_queue.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_queries.h"
+#include "gameobj/object_type_db.h"
 #include "orders/order_checks.h"
 #include "orders/order_route_decl.h"
 #include "orders/route_context.h"
+#include "strategy_ui/advisor_sides.h"
 
-DatRecord* FUN_0051cab0(const ObjectKey* key);  // the data record of a key (via the object-type database)
 
 namespace {
 
@@ -329,7 +330,7 @@ int ManufactureOrderBase::ComputeTotals(int* out1, int* out2, int* out3, int* ou
     GetItemKey(&item);
     if (inFamilies(item, 0x10, 0x40)) {
         ObjectKey recordKey;
-        DatRecord* record = FUN_0051cab0(GetItemKey(&recordKey));
+        DatRecord* record = FindDataRecord(AsLookupKey(GetItemKey(&recordKey)));
         ok = record != nullptr;
         if (record) {
             *out1 = static_cast<SdRecord*>(record)->GetField4c() * m_count;
@@ -390,7 +391,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
             if (isOk(status)) {
                 StatusCode missing(kStatusCategory, kStatusNoDestination);
                 ObjectKey locationKey;
-                FUN_004c27b0(manager, &locationKey);
+                ManagerGetLocationKey(manager, &locationKey);
                 ok = ResolveMasterInFamilies_01_ff(&locationKey, &destination, &missing, &resolveStatus);
                 if (ok != 0 && destination == nullptr) *status = resolveStatus;
             }
@@ -421,7 +422,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
             GameObjNotifier* manager = managerOfCommand(command);
             capacity += FUN_00528040(manager, 1);
             ObjectKey locationKey;
-            ok = route.AddContainerLegs(FUN_004c27b0(manager, &locationKey));
+            ok = route.AddContainerLegs(ManagerGetLocationKey(manager, &locationKey));
         }
     }
 
@@ -449,7 +450,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
                 CapacityScratch leg;
                 if (isOk(status)) {
                     ObjectKey originKey;
-                    FUN_004c27b0(manager, &originKey);
+                    ManagerGetLocationKey(manager, &originKey);
                     ObjectKey itemKey;
                     GetItemKey(&itemKey);
                     ok = route.CheckArrivalOfFamily(&itemKey, &originKey, status, &leg, &legKey);

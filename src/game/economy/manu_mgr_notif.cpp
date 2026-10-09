@@ -1,11 +1,5 @@
 #include "economy/manu_mgr.h"
-
-// Event hubs of the strategic notification layer (all cdecl).
-int FUN_0053fcf0(int eventId, GameObj* object, int a, int b, NotifyContext* ctx);
-int FUN_0053fdd0(int eventId, GameObj* object, int value, NotifyContext* ctx);
-int FUN_0053fe40(int eventId, GameObj* object, ObjectKey* a, ObjectKey* b, NotifyContext* ctx);
-int FUN_0053feb0(int eventId, GameObj* object, ObjectKey* a, ObjectKey* b, NotifyContext* ctx);
-int FUN_0053ff20(int eventId, GameObj* object, String* a, String* b, NotifyContext* ctx);
+#include "events/event_post.h"
 
 // OnXNotified: events raised on a side view (the "ManuMgr*Notif" strings). The log calls are dead in the shipped game;
 // the hub calls forward the change to the UI: 0x160-0x163 for the counts and the flag, 0x320/0x321 for the product and
@@ -30,7 +24,7 @@ int ManuMgr::OnRemainingGameObjCountNotified(int oldValue, int newValue, NotifyC
     int result = IsSideView();
     if (result) {
         LogInt("ManuMgrRemainingGameObjCountNotif", "RemainingGameObjCount", newValue, oldValue, 0, ctx);
-        result = FUN_0053fcf0(kEventRemainingCount, this, oldValue, newValue, ctx);
+        result = PostPayloadInts(kEventRemainingCount, this, oldValue, newValue, ctx);
     }
     return result;
 }
@@ -39,7 +33,7 @@ int ManuMgr::OnCompletedPointCountNotified(int oldValue, int newValue, NotifyCon
     int result = IsSideView();
     if (result) {
         LogInt("ManuMgrCompletedPointCountNotif", "CompletedPointCount", newValue, oldValue, 0, ctx);
-        result = FUN_0053fcf0(kEventCompletedPoints, this, oldValue, newValue, ctx);
+        result = PostPayloadInts(kEventCompletedPoints, this, oldValue, newValue, ctx);
     }
     return result;
 }
@@ -54,7 +48,7 @@ int ManuMgr::OnSeedKeyNotified(NullableKey* oldKey, NullableKey* newKey, NotifyC
     int result = IsSideView();
     if (result) {
         LogTypeKey("ManuMgrSeedKeyNotif", "SeedKey", asKey(newKey), asKey(oldKey), 0, ctx);
-        result = FUN_0053feb0(kEventSeedKey, this, asKey(oldKey), asKey(newKey), ctx);
+        result = PostPayloadKeysB(kEventSeedKey, this, asKey(oldKey), asKey(newKey), ctx);
     }
     return result;
 }
@@ -63,7 +57,7 @@ int ManuMgr::OnRequiredPointCountNotified(int oldValue, int newValue, NotifyCont
     int result = IsSideView();
     if (result) {
         LogInt("ManuMgrRequiredPointCountNotif", "RequiredPointCount", newValue, oldValue, 0, ctx);
-        result = FUN_0053fcf0(kEventRequiredPoints, this, oldValue, newValue, ctx);
+        result = PostPayloadInts(kEventRequiredPoints, this, oldValue, newValue, ctx);
     }
     return result;
 }
@@ -80,7 +74,7 @@ int ManuMgr::OnReservedNotified(int oldValue, int newValue, NotifyContext* ctx) 
     int result = IsSideView();
     if (result) {
         LogFlag("ManuMgrReservedNotif", "Reserved", newValue, 0, ctx);
-        result = FUN_0053fdd0(kEventReserved, this, newValue, ctx);
+        result = PostPayloadFlag(kEventReserved, this, newValue, ctx);
     }
     return result;
 }
@@ -89,7 +83,7 @@ int ManuMgr::OnProductKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyCo
     int result = IsSideView();
     if (result) {
         LogKey("ManuMgrProductKeyNotif", "ProductKey", newKey, oldKey, 0, ctx);
-        result = FUN_0053fe40(kEventProductKey, this, oldKey, newKey, ctx);
+        result = PostPayloadKeysA(kEventProductKey, this, oldKey, newKey, ctx);
     }
     return result;
 }
@@ -98,7 +92,7 @@ int ManuMgr::OnDeploymentKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, Notif
     int result = IsSideView();
     if (result) {
         LogKey("ManuMgrDeploymentKeyNotif", "DeploymentKey", newKey, oldKey, 0, ctx);
-        result = FUN_0053fe40(kEventDeploymentKey, this, oldKey, newKey, ctx);
+        result = PostPayloadKeysA(kEventDeploymentKey, this, oldKey, newKey, ctx);
     }
     return result;
 }
@@ -113,7 +107,7 @@ int ManuMgr::OnProductNameNotified(String* oldName, String* newName, NotifyConte
     int result = IsSideView();
     if (result) {
         LogString("ManuMgrProductNameNotif", "ProductName", newName, oldName, 0, ctx);
-        result = FUN_0053ff20(kEventProductName, this, oldName, newName, ctx);
+        result = PostPayloadStrings(kEventProductName, this, oldName, newName, ctx);
     }
     return result;
 }

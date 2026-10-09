@@ -3,9 +3,7 @@
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
 #include "gameobj/object_family.h"
-
-// The production time formula (0x55e2b0, cdecl): false if the work cannot be processed.
-int FUN_0055e2b0(int rate, const IntPair* work, int modifier, int notStartupCycle, int* duration);
+#include "mission/mission_rules.h"
 
 namespace {
 
@@ -23,7 +21,7 @@ int createdChanged(ProductionFacility* facility, int newValue, NotifyContext* ct
 }
 
 int computeDuration(ProductionFacility* facility, const IntPair* work, int modifier, int notStartupCycle, int* duration) {
-    return FUN_0055e2b0(static_cast<int>(facility->GetRecordField5c()), work, modifier, notStartupCycle, duration);
+    return ComputeProcessingDuration(static_cast<int>(facility->GetRecordField5c()), work, modifier, notStartupCycle, duration);
 }
 
 int applyAll(ProductionFacility* facility, NotifyContext* ctx) {

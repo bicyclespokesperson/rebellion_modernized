@@ -1,13 +1,16 @@
 #include <cstddef>
 #include <new>
 
-#include "app/app_strings.h"
 #include "app/app_externals.h"
+#include "app/app_strings.h"
 #include "app/rebapp_globals.h"
 #include "app/rebellion_application.h"
 #include "audio/sound_manager.h"
 #include "core/layout.h"
 #include "gfx/dib_bitmap.h"
+#include "strategy_ui/game_ui_facade.h"
+#include "tactical/comm2.h"
+#include "tactical/tactical_game.h"
 #include "ui/game_window_object.h"
 
 namespace {
@@ -130,8 +133,8 @@ void RebellionApplication::SetState(int state) {
             m_peersReady = 0;
             m_networkMode = 0;
             m_gameType = 0;
-            FUN_005974c0();
-            FUN_00597050();
+            CommClearLobbyLaunch();
+            CommCleanUp();
             [[fallthrough]];
         case kStateLobbyHost:
         case kStateLobbyJoin:
@@ -176,14 +179,14 @@ void RebellionApplication::SetState(int state) {
             return;
         case kStateQuit:
             WinHelpA(m_hwnd, nullptr, HELP_QUIT, 0);
-            FUN_00597340(
+            CommTrace(
                 "RebellionApplication::QuitRebellion(): REBAPP_UI_PHASE_COCKPIT_SCREEN: About to call "
                 "PlayerQuitSession()!\n");
-            FUN_00597360();
-            FUN_005975a0();
+            CommSendPlayerQuit();
+            DestroyTacticalGame();
             ReleaseOverlayWindow();
             DestroyAllWindows();
-            FUN_00597030();
+            CommShutdown();
             FUN_00409370();
             SoundManager::Shutdown(0);
             FUN_00614290();
@@ -197,7 +200,7 @@ void RebellionApplication::SetState(int state) {
             DestroyAppDialog();
             DestroyStrategicWindow();
             DestroyTacticalWindow();
-            FUN_00597050();
+            CommCleanUp();
             FUN_00409370();
             BeginMovieState();
             return;
@@ -299,15 +302,15 @@ void RebellionApplication::DoMainChildWindow(int previousState) {
     switch (m_state) {
     case kStateMainMenu: {
         ShowCursorCounter(true);
-        FUN_00597340(
+        CommTrace(
             "RebellionApplication::DoMainChildWindow(): REBAPP_UI_PHASE_COCKPIT_SCREEN: About to call "
             "PlayerQuitSession()!\n");
-        FUN_00597360();
+        CommSendPlayerQuit();
         DestroyStrategicWindow();
         DestroyTacticalWindow();
-        FUN_00597050();
+        CommCleanUp();
         FUN_00409370();
-        FUN_0041dae0(0);
+        UiSetPausePending(0);
         DibBitmap* backdrop = nullptr;
         if (void* memory = ::operator new(kDibBitmapSize)) {
             backdrop = new (memory) DibBitmap(commonModule, kFrontEndBackdropId, 2u);
