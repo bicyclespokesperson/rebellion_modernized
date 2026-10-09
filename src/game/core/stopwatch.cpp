@@ -16,9 +16,17 @@ Stopwatch::Stopwatch() {
 Stopwatch::~Stopwatch() { REB_KEEP_VPTR_STORE(); }
 
 void Stopwatch::Reset() {
-    if (m_secondsPerTick != 0.0f)
-        QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&m_startLow));
-    else
+    if (m_secondsPerTick != 0.0f) {
+        if constexpr (sizeof(void*) == 4) {
+            QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&m_startLow));  // m_startLow/m_startHigh are the 64-bit counter
+        } else {
+            // The pair is not 8-aligned once the vptr is 8 bytes wide.
+            LARGE_INTEGER now;
+            QueryPerformanceCounter(&now);
+            m_startLow = now.LowPart;
+            m_startHigh = now.HighPart;
+        }
+    } else
         m_startLow = timeGetTime();
 }
 

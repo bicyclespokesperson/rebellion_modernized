@@ -80,22 +80,32 @@ constexpr int kPhaseTrainingEnded = 0xb;
 constexpr int kTrainingLevelNeeded = 8;
 constexpr int kConstantMissionValue = 100;
 
-// The record the order-check callbacks of slot 111 receive, as the story missions read it.
+// The record the order-check callbacks of slot 111 receive, as the story missions read it: the original names its fields by
+// offset (+0x04 team flag, +0x08 key-set flag, +0x0c target flag, +0x10 side, +0x18.. reference lists, +0x24.. key sets, +0x30
+// summary, +0x34 palace origin, +0x38 target); a copy of those fields of MissionCheckArgs, so that the checks do not depend on
+// the record's memory layout.
 struct StoryOrderCheck {
-    int m_unk00;                       // +0x00
-    int m_hasTeam;                     // +0x04
-    int m_useKeySets;                  // +0x08: 0 = the three object-reference lists, else the three key sets
-    int m_hasTarget;                   // +0x0c
-    int m_side;                        // +0x10
-    int m_unk14;                       // +0x14
-    ObjectRefList* m_refLists[3];      // +0x18, +0x1c, +0x20
-    ObjectKeySet* m_keySets[3];        // +0x24, +0x28, +0x2c
-    GameObjRoot* m_unk30;              // +0x30
-    GameObjRoot* m_palaceOrigin;       // +0x34, read by the Palace check only
-    GameObjRoot* m_target;             // +0x38
-};
+    int m_hasTeam;
+    int m_useKeySets;  // 0 = the three object-reference lists, else the three key sets
+    int m_hasTarget;
+    int m_side;
+    ObjectRefList* m_refLists[3];
+    ObjectKeySet* m_keySets[3];
+    GameObjRoot* m_palaceOrigin;  // read by the Palace check only
+    GameObjRoot* m_target;
 
-StoryOrderCheck* asStory(MissionCheckArgs* check) { return reinterpret_cast<StoryOrderCheck*>(check); }
+    explicit StoryOrderCheck(const MissionCheckArgs* args)
+        : m_hasTeam(args->m_flag04),
+          m_useKeySets(args->m_flag08),
+          m_hasTarget(args->m_flag0c),
+          m_side(args->m_controlSide),
+          m_refLists{static_cast<ObjectRefList*>(args->m_refs[0]), static_cast<ObjectRefList*>(args->m_refs[1]),
+                     static_cast<ObjectRefList*>(args->m_refs[2])},
+          m_keySets{reinterpret_cast<ObjectKeySet*>(args->m_team), reinterpret_cast<ObjectKeySet*>(args->m_decoys),
+                    reinterpret_cast<ObjectKeySet*>(args->m_captured)},
+          m_palaceOrigin(args->m_target),
+          m_target(args->m_objective) {}
+};
 
 bool statusOk(const StatusCode* status) { return status->m_second == static_cast<uint32_t>(story::kStatusOk); }
 
@@ -166,7 +176,8 @@ int checkThreeSets(MissionCheckArgs* check, Set* const (&sets)[3], StatusCode* s
 template <int (*CheckRefs)(ObjectRefList*, MissionCheckArgs*, StatusCode*, int*),
           int (*CheckKeys)(ObjectKeySet*, MissionCheckArgs*, StatusCode*, int*)>
 int checkCandidates(MissionCheckArgs* check, StatusCode* status, int* out, int result) {
-    StoryOrderCheck* fields = asStory(check);
+    StoryOrderCheck fieldsView(check);
+    StoryOrderCheck* fields = &fieldsView;
     if (fields->m_useKeySets == 0) return checkThreeSets<ObjectRefList, CheckRefs>(check, fields->m_refLists, status, out, result);
     return checkThreeSets<ObjectKeySet, CheckKeys>(check, fields->m_keySets, status, out, result);
 }
@@ -304,7 +315,8 @@ int MissionPickup::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* che
 int MissionPickup::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     beginCheck(status, out);
     int result = MissionStoryBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
-    StoryOrderCheck* fields = asStory(check);
+    StoryOrderCheck fieldsView(check);
+    StoryOrderCheck* fields = &fieldsView;
     if (fields->m_hasTeam != 0) {
         if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) != kKeyPickupSystem)
             reject(status, out, kReasonPickupTarget);
@@ -430,7 +442,8 @@ int MissionPalace::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* che
 int MissionPalace::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     beginCheck(status, out);
     int result = MissionCharacterTargetBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
-    StoryOrderCheck* fields = asStory(check);
+    StoryOrderCheck fieldsView(check);
+    StoryOrderCheck* fields = &fieldsView;
     if (fields->m_hasTeam != 0) {
         if (fields->m_hasTarget != 0 && result) {
             if (statusOk(status) && keyOf(fields->m_palaceOrigin) != kKeyPickupSystem) reject(status, out, kReasonPalaceOrigin);
@@ -515,7 +528,8 @@ int MissionVacation::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* c
 int MissionVacation::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     beginCheck(status, out);
     int result = MissionStoryBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
-    StoryOrderCheck* fields = asStory(check);
+    StoryOrderCheck fieldsView(check);
+    StoryOrderCheck* fields = &fieldsView;
     if (fields->m_hasTeam != 0) {
         if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) != kKeyVacationSystem)
             reject(status, out, kReasonVacationTarget);
@@ -677,7 +691,8 @@ int DagobahMission::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* ch
 int DagobahMission::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     beginCheck(status, out);
     int result = MissionStoryBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
-    StoryOrderCheck* fields = asStory(check);
+    StoryOrderCheck fieldsView(check);
+    StoryOrderCheck* fields = &fieldsView;
     if (fields->m_hasTeam != 0) {
         if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) != kKeyDagobahSystem)
             reject(status, out, kReasonDagobahTarget);
@@ -806,7 +821,8 @@ int MissionBounty::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* che
 int MissionBounty::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
     beginCheck(status, out);
     int result = MissionCharacterTargetBase::CheckTarget(reinterpret_cast<MissionCheckArgs*>(check), status, out);
-    StoryOrderCheck* fields = asStory(check);
+    StoryOrderCheck fieldsView(check);
+    StoryOrderCheck* fields = &fieldsView;
     if (fields->m_hasTeam != 0) {
         if (fields->m_hasTarget != 0 && result && statusOk(status) && keyOf(fields->m_target) == kKeyHan)
             reject(status, out, kReasonBountyHan);

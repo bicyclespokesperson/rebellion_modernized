@@ -86,7 +86,7 @@ public:
     virtual void Virtual80(const ObjectKey* key, int) override { m_model.NoteCharacterChanged(key); }   // 0x485fd0
     virtual void Virtual83(const ObjectKey* key, const ObjectKey* from, const ObjectKey* to) override;   // 0x486030: NoteMoved
     virtual void Virtual84(const ObjectKey* key, int) override;                             // 0x486050
-    virtual void Virtual87(const ObjectKey* key, int name0, int name1, int name2) override;  // 0x486080
+    virtual void Virtual87(const ObjectKey* key, StringWords name) override;  // 0x486080
     virtual void Virtual91(const ObjectKey* key, const ObjectKey* newParent) override;      // 0x4860d0
     virtual void Virtual92(intptr_t unused, const ObjectKey* key) override { m_model.NoteCombat(key); }       // 0x486100
     virtual void Virtual93(unsigned target) override;   // 0x485e10

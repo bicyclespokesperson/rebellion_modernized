@@ -580,12 +580,12 @@ void ObjectStatusWindow::AddTallyItems(AvlTree* tally) {
         strstream_ctor(&stream, 1);
         ostream_seekp_pos(stream.Out(), 0);
         ClearIosState(&stream);
-        char* ios = IosPartOf(&stream);
-        ios[0x2c] = '0';
-        *reinterpret_cast<int*>(ios + 0x30) = 3;
+        ios* streamBase = iostream_access::IosOf(&stream);
+        streamBase->m_fill = '0';
+        streamBase->m_width = 3;
         ostream_operator_ls_int(stream.Out(), node->m_count);
         ostream_operator_ls_cstr(stream.Out(), g_tallySeparator);
-        *reinterpret_cast<int*>(IosPartOf(&stream) + 0x30) = 4;
+        iostream_access::IosOf(&stream)->m_width = 4;
         ostream_operator_ls_int(stream.Out(), node->m_total);
         ostream_operator_ls_char(stream.Out(), 0);
         text = strstreambuf_str(StreambufOf(&stream));

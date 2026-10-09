@@ -1,4 +1,5 @@
 #include "core/reb_abi.h"
+#include <cstddef>
 #include <cstring>
 
 #include "iostream/iostream.h"
@@ -80,10 +81,10 @@ int REB_THISCALL strstreambuf_doallocate(strstreambuf* self) {
     if (self->m_nextSize <= grown) newSize = grown;
     char* buffer = static_cast<char*>(self->m_allocate == nullptr ? ::operator new(newSize) : self->m_allocate(newSize));
     if (buffer == nullptr) return -1;
-    int delta = 0;
+    ptrdiff_t delta = 0;  // between two allocations: wider than an int on a 64-bit target
     if (RangeLength(self->m_base, self->m_ebuf) != 0) {
         memmove(buffer, self->m_base, RangeLength(self->m_base, self->m_ebuf));
-        delta = static_cast<int>(buffer - self->m_base);
+        delta = buffer - self->m_base;
     }
     FreeBuffer(self, self->m_base);
     streambuf_setb(self, buffer, buffer + newSize, 0);

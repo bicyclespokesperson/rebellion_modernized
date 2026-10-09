@@ -20,13 +20,13 @@ inline char* IosPart(void* stream) {
 }
 
 inline bool IsOpen(void* stream) {
-    char* filebuf = *reinterpret_cast<char**>(IosPart(stream) + 4);
-    return *reinterpret_cast<int32_t*>(filebuf + 0x4c) != -1;
+    const ios* base = reinterpret_cast<const ios*>(IosPart(stream));
+    return static_cast<const filebuf*>(base->m_bp)->m_fd != -1;
 }
 
-inline bool AtEof(void* stream) { return (*reinterpret_cast<uint8_t*>(IosPart(stream) + 8) & 1) != 0; }
+inline bool AtEof(void* stream) { return (reinterpret_cast<const ios*>(IosPart(stream))->m_state & iostream_flags::kEof) != 0; }
 
-inline uint32_t LastReadCount(istream* in) { return *reinterpret_cast<uint32_t*>(reinterpret_cast<char*>(in) + 8); }
+inline uint32_t LastReadCount(istream* in) { return static_cast<uint32_t>(in->m_gcount); }
 
 // Calls the virtual deleting destructor of the ios part (slot 0), which frees the whole stream object.
 inline void DeleteStream(void* stream) {

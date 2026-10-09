@@ -356,3 +356,13 @@ Save fidelity: `REB_STANDALONE_DIR=build/impl tools/standalone_check.sh --no-bui
 Remaining: the 9-11 bytes near the end of the battle save are uninitialised memory that the game serialises (orig, hybrid and
 standalone each write different garbage there; not traced to its record yet). Under heavy machine load (load average ~28) the
 wall-clock-scripted clicks can miss the main menu and a run writes no save; rerun with fewer runs.
+
+
+
+## P3 results: native Linux x86-64 (measured Oct 9 2026)
+
+Details, findings and how to build: [docs/native_linux.md](native_linux.md). `build/native/rebellion` (clang-19, SDL3 and FreeType from `third_party/`, `src/port/minwin_impl`, POSIX kernel32/CRT in
+`src/port/native`) runs the game to the main menu, loads and saves games, runs new games and the UI tour. The three simulation goldens (7,000 ticks incl. an auto-resolved battle) are **byte-identical to the
+i686 goldens** (no float drift measured); ASan/UBSan are clean on those and on 15 UI scenarios after fixing 15 findings, most of them classes that mirror the 32-bit layout (two of which changed simulation results). The data image and the static-initializer
+table are generated from the EXE as typed C++ definitions (`tools/gen_native_data.py`, `tools/gen_native_init.py`). P2 (i686 Linux) was skipped.
+

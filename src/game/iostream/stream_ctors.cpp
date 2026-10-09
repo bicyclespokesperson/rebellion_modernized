@@ -45,7 +45,7 @@ istream* REB_THISCALL istream_ctor(istream* self, streambuf* buffer, int constru
     return self;
 }
 
-void REB_THISCALL istream_dtor(void* istreamEnd) { SetOwnVtable(IosAt(istreamEnd, -0x0c), &istream::vftable); }
+void REB_THISCALL istream_dtor(void* istreamEnd) { SetOwnVtable(IosAt(istreamEnd, -static_cast<int>(sizeof(istream))), &istream::vftable); }
 
 ostream* REB_THISCALL ostream_ctor(ostream* self, streambuf* buffer, int constructVirtualBase) {
     if (constructVirtualBase != 0) {
@@ -59,7 +59,7 @@ ostream* REB_THISCALL ostream_ctor(ostream* self, streambuf* buffer, int constru
     return self;
 }
 
-void REB_THISCALL ostream_dtor(void* ostreamEnd) { SetOwnVtable(IosAt(ostreamEnd, -0x08), &ostream::vftable); }
+void REB_THISCALL ostream_dtor(void* ostreamEnd) { SetOwnVtable(IosAt(ostreamEnd, -static_cast<int>(sizeof(ostream))), &ostream::vftable); }
 
 iostream* REB_THISCALL iostream_ctor(iostream* self, streambuf* buffer, int constructVirtualBase) {
     if (constructVirtualBase != 0) {
@@ -76,7 +76,7 @@ iostream* REB_THISCALL iostream_ctor(iostream* self, streambuf* buffer, int cons
 void REB_THISCALL iostream_dtor(ios* iosBase) {
     SetOwnVtable(IosAt(iosBase, -iostream::kIosOffset), &iostream::vftable);
     ostream_dtor(iosBase);
-    istream_dtor(Offset(iosBase, -8));
+    istream_dtor(Offset(iosBase, -static_cast<int>(sizeof(ostream))));
 }
 
 istrstream* REB_THISCALL istrstream_ctor_str(istrstream* self, char* text, int constructVirtualBase) {

@@ -87,7 +87,7 @@ public:
     virtual void Virtual81(const ObjectKey* key, const ObjectKey* oldKey, const ObjectKey* newKey) override;  // 0x486b60
     virtual void Virtual82(const ObjectKey* key) override;                          // 0x486d50
     virtual void Virtual83(const ObjectKey* key, const ObjectKey* newParent, const ObjectKey* arg) override;  // 0x486d80
-    virtual void Virtual87(const ObjectKey* key, int name0, int name1, int name2) override;  // 0x486eb0
+    virtual void Virtual87(const ObjectKey* key, StringWords name) override;  // 0x486eb0
     virtual void Virtual90(const ObjectKey* key) override;                          // 0x486f30
     virtual void Virtual91(const ObjectKey* key, const ObjectKey* newParent) override;  // 0x486f60
     virtual void Virtual93(unsigned target) override { SetSyncTarget(target); }  // slot 93, shared 0x4888d0
@@ -127,7 +127,7 @@ public:
     int m_unk50;                  // +0x50
     int m_speed;                  // +0x54 the game speed (1-4)
     int m_pausedSpeed;            // +0x58 the speed to return to after a pause, 0 while not paused
-    uint8_t m_alertList[0x10];    // +0x5c list built by 0x4bee50
+    alignas(void*) uint8_t m_alertList[REB_LP64_SCALED(0x10)];    // +0x5c list built by 0x4bee50
     alignas(4) uint8_t m_dispatchStorage[sizeof(PlayerDispatch)];  // +0x6c the PlayerDispatch, built and destroyed by the original's functions
     AdvisorBase* m_advisor;       // +0xc0 advisor droid (AllianceAdvisor / EmpireAdvisor)
 

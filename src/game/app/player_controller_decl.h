@@ -26,6 +26,12 @@ class PlayerController;
 class HumanPlayer;
 class PlayerMessage;
 class PlayerNotice;
+
+// A String (vptr, buffer pointer, flag: three words on a 32-bit target) passed by value through the argument words of a virtual
+// call; the callee destroys it. The words are pointer-sized so that the String fits on a 64-bit target too.
+struct StringWords {
+    intptr_t m_words[3];
+};
 class String;
 class UiNotice;
 class MessageBase;
@@ -50,11 +56,13 @@ public:
 };
 
 // Notification routed to the controller of its side; only the side and the destructor are used by GameSession.
-class PlayerNotice {
+class PlayerNotice : public LinkNode {
 public:
     virtual ~PlayerNotice();
-    uint8_t m_unk04[0x14];  // +0x04
-    int m_side;             // +0x18
+    int m_unk0c;  // +0x0c
+    int m_unk10;  // +0x10
+    int m_unk14;  // +0x14
+    int m_side;   // +0x18
 };
 
 // Messages that have been sent but not yet delivered (the order module's MessageTree, VT 0x661030).
@@ -224,7 +232,7 @@ public:
     virtual void Virtual84(const ObjectKey* key, int arg) {}
     virtual void Virtual85(const ObjectKey* key, int arg) {}
     virtual void Virtual86(const ObjectKey* key, int arg) {}
-    virtual void Virtual87(const ObjectKey* key, int name0, int name1, int name2) {}
+    virtual void Virtual87(const ObjectKey* key, StringWords name) {}
     virtual void Virtual88(const ObjectKey* key, int arg) {}
     virtual void Virtual89(const ObjectKey* key, int arg) {}
     virtual void Virtual90(const ObjectKey* key) {}

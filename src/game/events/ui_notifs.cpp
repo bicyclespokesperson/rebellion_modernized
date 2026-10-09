@@ -1,3 +1,4 @@
+#include <cstring>
 #include "core/reb_abi.h"
 #include "events/ui_notifs.h"
 #include "core/atexit_keep.h"
@@ -1031,8 +1032,9 @@ int UiNotif500::GetKind() { return 0x500; }
 void UiNotif500::Dispatch(PlayerController* controller) {
     alignas(String) char nameStorage[sizeof(String)];
     String* name = CopyNameForSink(reinterpret_cast<String*>(nameStorage));
-    const int* words = reinterpret_cast<const int*>(name);
-    controller->Virtual87(GetKeyPointer(), words[0], words[1], words[2]);
+    StringWords words = {};
+    memcpy(&words, name, sizeof(String));
+    controller->Virtual87(GetKeyPointer(), words);
 }
 
 ObjectKey* UiNotif500::GetKeyPointer() { return &m_key; }

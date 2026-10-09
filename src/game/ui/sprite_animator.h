@@ -47,7 +47,7 @@ public:
     int m_spriteCount;         // +0x24
     int m_originX;             // +0x28
     int m_originY;             // +0x2c
-    alignas(4) uint8_t m_steps[0x10];  // +0x30 the waiting steps (a NodeQueue subclass, VT 0x65c0a4)
+    alignas(void*) uint8_t m_steps[REB_LP64_SCALED(0x10)];  // +0x30 the waiting steps (a NodeQueue subclass, VT 0x65c0a4)
     int m_hasEndAction;        // +0x40
     int m_endKind;             // +0x44
     uint32_t m_endSequence;    // +0x48 (a copy of the first word of the script's sequence)

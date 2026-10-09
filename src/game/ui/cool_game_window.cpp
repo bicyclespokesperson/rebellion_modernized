@@ -43,6 +43,7 @@ CoolGameWindow::CoolGameWindow(HINSTANCE instance, int x, int y, int width, int 
                                uint32_t style, uint32_t flags, uint32_t unknownB0, uint32_t unknownB4)
     : CoolWindow(instance, "CoolGameWindow", style, x, y, width, height, parent, nullptr,
                  static_cast<HBRUSH>(GetStockObject(NULL_BRUSH)), nullptr, nullptr, nullptr, 0, 0) {
+    static_assert(sizeof(BitmapOverlayTree) <= sizeof(CoolGameWindow::m_overlays), "CoolGameWindow::m_overlays is too small for a BitmapOverlayTree");
     new (m_overlays) BitmapOverlayTree();
     m_stringSlot = stringSlot;
     m_bitmapSlot = bitmapSlot;

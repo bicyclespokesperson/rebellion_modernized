@@ -22,17 +22,23 @@ TEST(parse_and_serialize_roundtrip) {
     CHECK_STR(v.text.c_str(), "/x");
 }
 
+#if defined(_WIN32)
+#define WINDOWS_ROOT(path) path
+#else
+#define WINDOWS_ROOT(path) "C:" path
+#endif
+
 TEST(location_defaults_follow_install_and_data_dir) {
     Config c;
     c.Parse("install_dir=/inst\n");
     RegistryValue v;
     CHECK(c.GetRegistryValue("InstalledLocation", &v));
-    CHECK_STR(v.text.c_str(), "/inst");
+    CHECK_STR(v.text.c_str(), WINDOWS_ROOT("/inst"));
     CHECK(c.GetRegistryValue("TooBigLocation", &v));
-    CHECK_STR(v.text.c_str(), "/inst");
+    CHECK_STR(v.text.c_str(), WINDOWS_ROOT("/inst"));
     c.Set("data_dir", "/cdrom");
     CHECK(c.GetRegistryValue("TooBigLocation", &v));
-    CHECK_STR(v.text.c_str(), "/cdrom");
+    CHECK_STR(v.text.c_str(), WINDOWS_ROOT("/cdrom"));
     CHECK(!c.GetRegistryValue("MusicVolume", &v));
     CHECK_EQ(c.WindowScale(), 1);
 }
@@ -46,15 +52,15 @@ TEST(registry_api_semantics) {
     DWORD type = 0, size = 0;
     CHECK_EQ(RegQueryValueExA(key, "DllLocation", nullptr, &type, nullptr, &size), 0);
     CHECK_EQ(type, 1);
-    CHECK_EQ(size, 6);
+    CHECK_EQ(size, sizeof(WINDOWS_ROOT("/inst")));
     char small[3];
     DWORD smallSize = sizeof small;
     CHECK_EQ(RegQueryValueExA(key, "DllLocation", nullptr, &type, reinterpret_cast<LPBYTE>(small), &smallSize), 234);
-    CHECK_EQ(smallSize, 6);
+    CHECK_EQ(smallSize, sizeof(WINDOWS_ROOT("/inst")));
     char buf[16];
     size = sizeof buf;
     CHECK_EQ(RegQueryValueExA(key, "DllLocation", nullptr, &type, reinterpret_cast<LPBYTE>(buf), &size), 0);
-    CHECK_STR(buf, "/inst");
+    CHECK_STR(buf, WINDOWS_ROOT("/inst"));
     CHECK_EQ(RegQueryValueExA(key, "Volume", nullptr, &type, nullptr, &size), 2);
     DWORD volume = 0x1234;
     CHECK_EQ(RegSetValueExA(key, "Volume", 0, REG_DWORD, reinterpret_cast<const BYTE*>(&volume), 4), 0);

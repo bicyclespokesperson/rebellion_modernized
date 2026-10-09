@@ -120,7 +120,7 @@ public:
     void StepFrame();                                  // 0x603a50: the timer callback shows the next frame
     void LoadFrames(uint32_t firstId, uint32_t count);  // 0x603aa0
 
-    uint8_t m_frames[0x0c];  // +0x114 ring of frame nodes (batch B list class, vftable 0x66e2b8; count +4, head +8)
+    alignas(void*) uint8_t m_frames[REB_LP64_SCALED(0x0c)];  // +0x114 ring of frame nodes (batch B list class, vftable 0x66e2b8; count +4, head +8)
     void* m_currentFrame;    // +0x120 node whose bitmap is m_normal; node: vptr, bitmap +4, next +8, previous +0xc
 };
 

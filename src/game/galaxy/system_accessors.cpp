@@ -1,5 +1,7 @@
 #include "character/character.h"
 #include "data/dat_record.h"
+#include "economy/manu_mgr.h"
+#include "fleet/combat_unit.h"
 #include "fleet/fleet.h"
 #include "galaxy/system.h"
 #include "gameobj/object_family.h"
@@ -28,26 +30,6 @@ bool isSideOneOrTwo(int side) { return isSideOneToThree(side) && side != static_
 
 int sideWord(const int (&words)[3], int side) { return isSideOneToThree(side) ? words[side - 1] : 0; }
 
-#define SLOT_PAD10(p)                                                                                    \
-    virtual void p##0() = 0; virtual void p##1() = 0; virtual void p##2() = 0; virtual void p##3() = 0;  \
-    virtual void p##4() = 0; virtual void p##5() = 0; virtual void p##6() = 0; virtual void p##7() = 0;  \
-    virtual void p##8() = 0; virtual void p##9() = 0;
-
-// Foreign classes (a ship or character, a manufacturing manager): only the vtable slots this file calls (123-125,
-// byte offsets 0x1ec-0x1f4) are named; slots 0-122 are padding.
-struct ForeignSlots {
-    SLOT_PAD10(a) SLOT_PAD10(b) SLOT_PAD10(c) SLOT_PAD10(d) SLOT_PAD10(e) SLOT_PAD10(f)
-    SLOT_PAD10(g) SLOT_PAD10(h) SLOT_PAD10(i) SLOT_PAD10(j) SLOT_PAD10(k) SLOT_PAD10(l)
-    virtual void m0() = 0;
-    virtual void m1() = 0;
-    virtual void m2() = 0;
-    virtual int Slot123() = 0;  // 0x1ec
-    virtual int Slot124() = 0;  // 0x1f0
-    virtual int Slot125() = 0;  // 0x1f4
-};
-
-ForeignSlots* asForeign(GameObjNotifier* object) { return reinterpret_cast<ForeignSlots*>(object); }
-
 int countChildren(System* system, uint32_t side, const FamilyRange* range, uint32_t stateFilter) {
     ChildIterator it(system, side, range, stateFilter);
     return it.Count();
@@ -69,11 +51,11 @@ uint32_t recordKeyOf(GameObjNotifier* object) {
 }
 
 // Keeps the higher-valued object in *best: the candidate replaces it unless the current one is at least as good.
-template <int (ForeignSlots::*Value)()>
+template <uint32_t (CombatUnit::*Value)()>
 void keepBetter(GameObjNotifier** best, GameObjNotifier* candidate) {
     if (*best) {
-        const int current = (asForeign(*best)->*Value)();
-        const int offered = (asForeign(candidate)->*Value)();
+        const int current = static_cast<int>((static_cast<CombatUnit*>(*best)->*Value)());
+        const int offered = static_cast<int>((static_cast<CombatUnit*>(candidate)->*Value)());
         if (current >= offered) return;
     }
     *best = candidate;
@@ -154,7 +136,7 @@ int System::FindBestShipOfCommandKind2(uint32_t side, GameObjNotifier** out) {
     for (fleets.Begin(); fleets.Current(); fleets.Advance()) {
         GameObjNotifier* ship = nullptr;
         found = static_cast<Fleet*>(fleets.Current())->FindShipByNumber(2, &ship);
-        if (found && ship) keepBetter<&ForeignSlots::Slot125>(out, ship);
+        if (found && ship) keepBetter<&CombatUnit::GetGridTotal>(out, ship);
         if (!found) break;
     }
     return found;
@@ -166,7 +148,7 @@ int System::FindBestShipOfCommandKind1(uint32_t side, GameObjNotifier** out) {
     for (fleets.Begin(); found && fleets.Current(); fleets.Advance()) {
         GameObjNotifier* ship = nullptr;
         found = static_cast<Fleet*>(fleets.Current())->FindShipByNumber(1, &ship);
-        if (found && ship) keepBetter<&ForeignSlots::Slot124>(out, ship);
+        if (found && ship) keepBetter<&CombatUnit::GetField70>(out, ship);
     }
     return found;
 }
@@ -185,7 +167,7 @@ int System::GetRawMaterial() { return m_rawMaterial; }
 GameObjNotifier* System::FindManufacturingManagerBySlot123(int value) {
     ChildIterator managers(this, &family::kManufacturingManagers, kStateAlways);
     for (managers.Begin(); managers.Current(); managers.Advance())
-        if (asForeign(managers.Current())->Slot123() == value) break;
+        if (static_cast<ManuMgr*>(managers.Current())->GetFacilityKind() == value) break;
     return managers.Current();
 }
 

@@ -14,3 +14,7 @@
 #define REB_ASSERT_SIZE(type, size) static_assert(true)
 #define REB_ASSERT_OFFSET(type, member, offset) static_assert(true)
 #endif
+
+// Storage for an object whose class is only known by its 32-bit size: a pointer-bearing class is at most twice as large on a 64-bit
+// target (every 4-byte field becomes at most 8 bytes). Use with a static_assert on the class where it is constructed.
+#define REB_LP64_SCALED(bytes32) ((bytes32) * (sizeof(void*) / 4))

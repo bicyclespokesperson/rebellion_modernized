@@ -52,9 +52,9 @@ Command* firstCommand(CommandQueue* commands) { return static_cast<Command*>(com
 Command* nextCommand(Command* command) { return static_cast<Command*>(command->m_successor); }
 
 ObjectKey commandKey(Command* command) {
-    ObjectKey key;
-    reinterpret_cast<GameObj*>(command)->GameObj::GetDepartureKey(&key);
-    return key;
+    // The original calls GameObj::GetDepartureKey on the command (the linker folded it with the identical accessor of the
+    // object key at +0x3c, which EventBase::m_key is).
+    return command->m_key;
 }
 
 GameObjNotifier* managerOfCommand(Command* command) {

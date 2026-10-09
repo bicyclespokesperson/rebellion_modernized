@@ -4,7 +4,7 @@
 #include "platform/win32.h"
 
 extern int g_iosInstanceCount;         // 0x6be740 number of live ios objects
-extern uint8_t g_iosStaticLock[0x18];  // 0x6be708 CRITICAL_SECTION shared by every ios
+extern uint8_t g_iosStaticLock[kCriticalSectionBytes];  // 0x6be708 CRITICAL_SECTION shared by every ios
 
 void REB_CDECL mtx_init(void* criticalSection) { InitializeCriticalSection(static_cast<LPCRITICAL_SECTION>(criticalSection)); }
 

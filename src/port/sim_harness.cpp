@@ -2,7 +2,11 @@
 // window state, which belongs to the UI), then steps the battle flow (AppStepGame, the same call as the main loop) with
 // the 0.25 s wait timer forced on, so no wall clock, message pump or input is involved, and saves the game.
 // A "tick" here is one advance of the game manager's tick counter plus the rest of that tick's frame phases.
+#if defined(REB_NATIVE)
+#include "port/native/win_compat.h"
+#else
 #include <windows.h>
+#endif
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
