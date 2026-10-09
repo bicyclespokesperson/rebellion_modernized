@@ -22,17 +22,23 @@ TEST(parse_and_serialize_roundtrip) {
     CHECK_STR(v.text.c_str(), "/x");
 }
 
+#if defined(_WIN32)
+#define WINDOWS_ROOT(path) path
+#else
+#define WINDOWS_ROOT(path) "C:" path
+#endif
+
 TEST(location_defaults_follow_install_and_data_dir) {
     Config c;
     c.Parse("install_dir=/inst\n");
     RegistryValue v;
     CHECK(c.GetRegistryValue("InstalledLocation", &v));
-    CHECK_STR(v.text.c_str(), "/inst");
+    CHECK_STR(v.text.c_str(), WINDOWS_ROOT("/inst"));
     CHECK(c.GetRegistryValue("TooBigLocation", &v));
-    CHECK_STR(v.text.c_str(), "/inst");
+    CHECK_STR(v.text.c_str(), WINDOWS_ROOT("/inst"));
     c.Set("data_dir", "/cdrom");
     CHECK(c.GetRegistryValue("TooBigLocation", &v));
-    CHECK_STR(v.text.c_str(), "/cdrom");
+    CHECK_STR(v.text.c_str(), WINDOWS_ROOT("/cdrom"));
     CHECK(!c.GetRegistryValue("MusicVolume", &v));
     CHECK_EQ(c.WindowScale(), 1);
 }

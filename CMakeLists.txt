@@ -13,6 +13,13 @@ list(FILTER REB_GAME_SOURCES EXCLUDE REGEX "tactical_3d_absent\\.cpp$")
 # The stubs are compiled either way (reb_tactical_stubs) so they cannot rot; they are linked only when the option is on.
 option(REB_NO_TACTICAL_3D "Stub out the 3D tactical code; battles are always auto-resolved" OFF)
 
+# REB_NATIVE: the native Linux x86-64 executable `rebellion` (docs/native_linux.md); everything lives in cmake/native.cmake.
+option(REB_NATIVE "Build the native x86-64 Linux executable (tools/build_native.sh)" OFF)
+if(REB_NATIVE)
+  include(${CMAKE_SOURCE_DIR}/cmake/native.cmake)
+  return()
+endif()
+
 # REB_STANDALONE: build rebellion.exe, the executable that runs without REBEXE.EXE (docs/phase2_plan.md, M6). Driven by
 # tools/build_standalone.sh; it implies REB_NO_TACTICAL_3D and replaces everything below the "Standalone" marker.
 option(REB_STANDALONE "Build the standalone rebellion.exe instead of the hybrid proxy DLL" OFF)

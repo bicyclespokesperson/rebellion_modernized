@@ -158,6 +158,10 @@ bool Config::GetRegistryValue(const std::string& name, RegistryValue* out) const
              EqualsNoCase(name, "InstalledLocation") || EqualsNoCase(name, "EncyLocation"))
         derived = InstallDir();
     if (derived.empty()) return false;
+#if !defined(_WIN32)
+    // The game drops the first two characters of a location (the drive) and changes drive from the first: hand it a Windows-style name.
+    if (derived[0] == '/') derived = "C:" + derived;
+#endif
     out->type = ValueType::String;
     out->text = derived;
     return true;
