@@ -31,7 +31,7 @@ constexpr LONG kWsPopup = static_cast<LONG>(0x80000000u), kWsExTopmost = 8;
 constexpr LONG kFrameStyleBits = 0xc00000 | 0x80000 | 0x40000 | 0x20000 | 0x10000;  // caption, system menu, sizing frame, min/max boxes
 constexpr int kGwlStyle = -16, kGwlExStyle = -20;
 constexpr UINT kWmDisplayChange = 0x7e;
-constexpr UINT kSwpNoRedraw = 8;
+constexpr UINT kSwpNoRedraw = 8, kSwpFrameChanged = 0x20;
 HWND const kHwndTopmost = reinterpret_cast<HWND>(static_cast<intptr_t>(-1));
 
 bool SameGuid(const GUID& a, const GUID& b) { return memcmp(&a, &b, sizeof(GUID)) == 0; }
@@ -49,7 +49,7 @@ void CoverDisplay(HWND window) {
     const LONG style = GetWindowLongA(window, kGwlStyle);
     SetWindowLongA(window, kGwlStyle, (style & ~kFrameStyleBits) | kWsPopup);
     SetWindowLongA(window, kGwlExStyle, GetWindowLongA(window, kGwlExStyle) | kWsExTopmost);
-    SetWindowPos(window, kHwndTopmost, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_NOACTIVATE);
+    SetWindowPos(window, kHwndTopmost, 0, 0, GetSystemMetrics(SM_CXSCREEN), GetSystemMetrics(SM_CYSCREEN), SWP_NOACTIVATE | kSwpFrameChanged);
     SetWindowPos(window, kHwndTopmost, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_SHOWWINDOW);
     SetWindowPos(window, kHwndTopmost, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | kSwpNoRedraw);
 }

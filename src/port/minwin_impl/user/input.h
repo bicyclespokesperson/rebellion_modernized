@@ -33,7 +33,7 @@ void WaitForPlatformEvent(unsigned maxMs);
 
 // Fed by the platform layer.
 void InputMouseMotion(int x, int y);
-void InputMouseButton(int button, bool down, int clicks, int x, int y);
+void InputMouseButton(int button, bool down, unsigned timeMs, int x, int y);  // timeMs: the event's own time
 void InputKey(int sdlScancode, bool down, bool repeat, unsigned shiftMask);
 void InputText(const char* utf8);
 void InputFocusChanged(bool gained);

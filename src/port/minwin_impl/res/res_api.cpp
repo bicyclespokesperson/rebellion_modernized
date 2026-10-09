@@ -121,11 +121,18 @@ std::set<const uint8_t*>& ConvertedValues() {
 extern "C" {
 
 namespace {
+#if defined(_WIN32)
+extern "C" __declspec(dllimport) unsigned long long __stdcall GetTickCount64(void);
+#endif
+
 void Trace(const char* format, ...) {
     static const char* path = getenv("MW_RES_TRACE");
     if (!path) return;
     FILE* log = fopen(path, "a");
     if (!log) return;
+#if defined(_WIN32)
+    fprintf(log, "[%llu] ", GetTickCount64());
+#endif
     va_list args;
     va_start(args, format);
     vfprintf(log, format, args);
@@ -154,6 +161,7 @@ HRSRC REB_STDCALL FindResourceA(HMODULE hModule, LPCSTR lpName, LPCSTR lpType) {
         return nullptr;
     }
     Entry entry;
+    Trace("FindResourceA(%p, %p, %p)\n", static_cast<void*>(hModule), static_cast<const void*>(lpName), static_cast<const void*>(lpType));
     if (!module->Find(ResId::FromPointer(lpType), ResId::FromPointer(lpName), &entry)) {
         Trace("FindResourceA(%p, %p, %p) not found\n", static_cast<void*>(hModule), static_cast<const void*>(lpName), static_cast<const void*>(lpType));
         return nullptr;

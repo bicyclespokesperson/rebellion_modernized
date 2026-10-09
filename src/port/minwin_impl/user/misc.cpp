@@ -256,9 +256,21 @@ namespace minwin_user {
 HWND g_pendingRealizer = nullptr;
 bool g_paletteNotificationPending = false;
 
+// The first realization is announced with WM_PALETTEISCHANGING after the realizing handler returns; every later one that changes
+// the palette is broadcast at once as WM_PALETTECHANGED (what Wine's user32 does, observed with the real window messages).
 void NotifyPaletteChanged(HWND realizer) {
-    g_pendingRealizer = realizer;
-    g_paletteNotificationPending = true;
+    static bool first = true;
+    if (first) {
+        first = false;
+        g_pendingRealizer = realizer;
+        g_paletteNotificationPending = true;
+        return;
+    }
+    for (minwin::Window* t = minwin::FirstTopLevel(); t;) {
+        minwin::Window* next = t->next;
+        minwin::Send(t, WM_PALETTECHANGED, reinterpret_cast<WPARAM>(realizer), 0);
+        t = next;
+    }
 }
 
 }  // namespace minwin_user
