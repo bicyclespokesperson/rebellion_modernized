@@ -30,6 +30,7 @@ add_custom_command(
 add_custom_target(reb_standalone_refs DEPENDS ${REB_GEN}/data_refs.json)
 
 set(REB_STANDALONE_DATA)
+set(REB_STANDALONE_RES)
 option(REB_DATA_IMAGE "Link the generated gen/data_image.s (stage 3 of tools/build_standalone.sh)" OFF)
 if(REB_DATA_IMAGE)
   add_custom_command(
@@ -37,6 +38,7 @@ if(REB_DATA_IMAGE)
     COMMAND llvm-mc-19 -triple=i686-pc-windows-msvc -filetype=obj -o ${REB_GEN}/data_image.obj ${REB_GEN}/data_image.s
     DEPENDS ${REB_GEN}/data_image.s VERBATIM)
   set(REB_STANDALONE_DATA ${REB_GEN}/data_image.obj)
+  set(REB_STANDALONE_RES ${REB_GEN}/rebexe.res)
 endif()
 
 add_executable(rebellion
@@ -53,4 +55,4 @@ endif()
 target_link_libraries(rebellion PRIVATE
   libcmt libvcruntime libucrt oldnames legacy_stdio_definitions legacy_stdio_wide_specifiers
   kernel32 user32 gdi32 advapi32 winmm comctl32 version ddraw dsound dxguid avifil32 ole32 uuid
-  ${REB_IMPORT_LIBS})
+  ${REB_IMPORT_LIBS} ${REB_STANDALONE_RES})

@@ -393,14 +393,29 @@ def init_table_asm(image: Image) -> tuple[list[str], list[int]]:
     entries = struct.unpack(f"<{(hi - lo) // 4}I", image.exe.bytes_at(lo, hi - lo))
     lines = ['.section .rdata,"dr"', ".p2align 2", ".globl _reb_init_table", "_reb_init_table:"]
     missing = []
+
+    def targets(value: int) -> list[int]:
+        """The reconstructed initializers an entry runs: itself, or what its `jmp X` / `call X; jmp Y` thunk reaches."""
+        if value in image.hook_symbols:
+            return [value]
+        code = image.exe.bytes_at(value, 10)
+        if code[0] == 0xE9:
+            return targets((value + 5 + struct.unpack_from("<i", code, 1)[0]) & 0xFFFFFFFF)
+        if code[0] == 0xE8 and code[5] == 0xE9:
+            first = (value + 5 + struct.unpack_from("<i", code, 1)[0]) & 0xFFFFFFFF
+            second = (value + 10 + struct.unpack_from("<i", code, 6)[0]) & 0xFFFFFFFF
+            return [*targets(first), *targets(second)]
+        return []
+
     for value in entries:
-        symbol = image.hook_symbols.get(value)
-        if symbol:
-            lines.append(f"  .long {quote(symbol)}")
-        else:
+        found = targets(value)
+        for target in found:
+            lines.append(f"  .long {quote(image.hook_symbols[target])}")
+        if not found:
             lines.append("  .long 0")
             missing.append(value)
-    lines += [".globl _reb_init_table_count", f"_reb_init_table_count = {len(entries)}"]
+    emitted = sum(1 for line in lines if line.startswith("  .long"))
+    lines += [".globl _reb_init_table_count", f"_reb_init_table_count = {emitted}"]
     return lines, missing
 
 

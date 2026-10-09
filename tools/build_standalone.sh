@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Build the standalone rebellion.exe (build/standalone/rebellion.exe) of this checkout in the dev container
 # (docs/phase2_plan.md, M6). Stages, like build_hybrid.sh --own-data: (1) container: objects + the list of original
-# globals they reference; (2) host: tools/gen_data_image.py --standalone (reads the original EXE) writes the data image;
+# globals they reference; (2) host: tools/gen_data_image.py --standalone and tools/gen_resources.py (read the original EXE) write the data image
+# and the resource file;
 # (3) container: link. The link fails loudly when symbols are unresolved; tools/standalone_link_report.py then groups
 # them by category (build/standalone/gen/link_report.txt).
 #   REB_ALLOW_UNRESOLVED=ON: link with /FORCE:UNRESOLVED (the unresolved calls crash when reached) for bring-up.
@@ -21,6 +22,7 @@ fi
 "$ROOT/tools/gen_data_image.py" --standalone --exe "$MAIN/orig_game_files/Star Wars - Rebellion/REBEXE.EXE" \
   --symbols "$ROOT/symbols" --refs "$out/gen/data_refs.json" \
   --out-asm "$out/gen/data_image.s" --out-report "$out/gen/data_image_report.json"
+"$ROOT/tools/gen_resources.py" --exe "$MAIN/orig_game_files/Star Wars - Rebellion/REBEXE.EXE" --out "$out/gen/rebexe.res"
 if ! container "$configure -DREB_DATA_IMAGE=ON >/dev/null && cmake --build build/standalone > build/standalone/gen/build.log 2>&1"; then
   tail -5 "$out/gen/build.log"
   container "python3 tools/standalone_link_report.py --log build/standalone/gen/build.log --out build/standalone/gen/link_report.txt" || true
