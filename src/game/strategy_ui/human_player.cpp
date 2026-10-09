@@ -76,6 +76,7 @@ void HumanSetUiTarget(int a, int b) { AdvisorSetPendingCommand(a, b); }
 // ---- Construction ----------------------------------------------------------------------------------------------
 
 HumanPlayer::HumanPlayer() : PlayerController() {
+    static_assert(sizeof(AiNoticeQueue) <= sizeof(HumanPlayer::m_alertList), "HumanPlayer::m_alertList is too small for a AiNoticeQueue");
     new (m_alertList) AiNoticeQueue();
     new (Dispatch()) PlayerDispatch();
     m_unk50 = 0;
@@ -85,6 +86,7 @@ HumanPlayer::HumanPlayer() : PlayerController() {
 }
 
 HumanPlayer::HumanPlayer(int side) : PlayerController(side) {
+    static_assert(sizeof(AiNoticeQueue) <= sizeof(HumanPlayer::m_alertList), "HumanPlayer::m_alertList is too small for a AiNoticeQueue");
     new (m_alertList) AiNoticeQueue();
     new (Dispatch()) PlayerDispatch();
     m_unk50 = 0;

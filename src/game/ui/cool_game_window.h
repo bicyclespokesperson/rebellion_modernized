@@ -109,7 +109,7 @@ public:
     int m_grabX;                  // +0xec
     int m_grabY;                  // +0xf0
     uint32_t m_dragMode;          // +0xf4 CoolGameWindowDragMode (initially kDragLive)
-    uint8_t m_overlays[0x0c];     // +0xf8 overlay registry (IdAvlTree subclass, ctor 0x60f420)
+    alignas(void*) uint8_t m_overlays[REB_LP64_SCALED(0x0c)];     // +0xf8 overlay registry (IdAvlTree subclass, ctor 0x60f420)
     DibBitmap* m_tiledBackground;  // +0x104 owned
     DibBitmap* m_drawTarget;      // +0x108 target of BeginOffscreen
     HWND m_previousFocus;         // +0x10c

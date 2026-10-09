@@ -18,8 +18,8 @@ set(REB_NATIVE_FLAGS
   -Wno-writable-strings -Wno-c++11-narrowing -Wno-microsoft-enum-value -Wno-microsoft-cast
   -Werror=pointer-to-int-cast -Werror=int-to-pointer-cast)
 if(REB_NATIVE_SANITIZE)
-  string(REPLACE ";" "," REB_SAN_LIST "${REB_NATIVE_SANITIZE}")
-  list(APPEND REB_NATIVE_FLAGS -fsanitize=${REB_SAN_LIST} -fno-sanitize-recover=undefined)
+  string(REPLACE ";" "," REB_SAN_LIST "${REB_NATIVE_SANITIZE}")  # "address,undefined" or "address;undefined"
+  list(APPEND REB_NATIVE_FLAGS -fsanitize=${REB_SAN_LIST} -fno-sanitize=function)
   set(REB_NATIVE_LINK_FLAGS -fsanitize=${REB_SAN_LIST})
 endif()
 

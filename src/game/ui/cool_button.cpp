@@ -548,6 +548,7 @@ CoolFrameButton::CoolFrameButton(HINSTANCE instance, int x, int y, int width, in
                                    uint32_t childId, uint32_t firstFrameId, uint32_t pressedBitmapId,
                                    uint16_t frameCount, DibBitmap* backdrop, int repeatRate, int pixelHit)
     : CoolStrobeButton(instance, x, y, width, height, parent, childId, 0, pressedBitmapId, backdrop, repeatRate, pixelHit) {
+    static_assert(sizeof(BitmapFrameList) <= sizeof(CoolFrameButton::m_frames), "CoolFrameButton::m_frames is too small for a BitmapFrameList");
     new (m_frames) BitmapFrameList();
     LoadFrames(firstFrameId, frameCount);
 }
@@ -599,7 +600,7 @@ void CoolFrameButton::LoadFrames(uint32_t firstId, uint32_t count) {
             ++index;
         } while ((index & 0xffff) < count);
     }
-    m_currentFrame = *reinterpret_cast<void**>(m_frames + 8);
+    m_currentFrame = reinterpret_cast<BitmapFrameList*>(m_frames)->m_head;
 }
 
 // ---- CoolStrobeTimer ------------------------------------------------------------------------------------------

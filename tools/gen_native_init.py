@@ -112,6 +112,11 @@ def main() -> int:
                     name, offset = where
                     g = layout[name]
                     room = min(len(data) - cursor, g["extent32"] - offset)
+                    if g.get("pointer_like"):
+                        # the 32-bit offsets inside a pointer or an object that holds pointers mean nothing in the LP64 layout
+                        dropped += room
+                        cursor += room
+                        continue
                     if offset >= g["size"]:
                         dropped += room
                         cursor += room

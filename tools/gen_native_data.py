@@ -314,6 +314,7 @@ def main() -> int:
     for entry in entries:
         define(entry)
         layout[entry["name"]]["extent32"] = entry["distance"]
+        layout[entry["name"]]["pointer_like"] = bool(entry["info"]["pointer_like"])
 
     args.out.mkdir(parents=True, exist_ok=True)
     (args.out / "native_data.cpp").write_text("\n".join(out_lines) + "\n")

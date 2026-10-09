@@ -19,6 +19,7 @@ NodeQueue* QueueOf(SpriteAnimator* animator) { return reinterpret_cast<NodeQueue
 }  // namespace
 
 SpriteAnimator::SpriteAnimator(int spriteCount) {
+    static_assert(sizeof(AnimationStepQueue) <= sizeof(SpriteAnimator::m_steps), "SpriteAnimator::m_steps is too small for a AnimationStepQueue");
     new (m_steps) AnimationStepQueue();
     *reinterpret_cast<int16_t*>(&m_endSequence) = 0;
     *(reinterpret_cast<int16_t*>(&m_endSequence) + 1) = 0;

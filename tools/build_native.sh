@@ -6,7 +6,7 @@
 #   3. link.
 #   tools/build_native.sh [--image] [--objects-only]
 # Environment: REB_NATIVE_DIR (build directory, default build/native), REB_BUILD_TYPE (default RelWithDebInfo),
-#   REB_CMAKE_ARGS (e.g. "-DREB_NATIVE_SANITIZE=address;undefined" -- quote it), REB_NINJA_ARGS, REB_TAIL (build log lines shown).
+#   REB_CMAKE_ARGS (e.g. -DREB_NATIVE_SANITIZE=address,undefined; REB_SANITIZE=1 is shorthand for that with REB_NATIVE_DIR=build/native_asan), REB_NINJA_ARGS, REB_TAIL (build log lines shown).
 set -euo pipefail
 source "$(dirname "$0")/paths.sh"
 objects_only=0
@@ -17,6 +17,11 @@ for arg in "$@"; do
     *) echo "usage: $0 [--image] [--objects-only]" >&2; exit 2 ;;
   esac
 done
+if [[ "${REB_SANITIZE:-}" == 1 ]]; then
+  REB_NATIVE_DIR="${REB_NATIVE_DIR:-build/native_asan}"
+  REB_CMAKE_ARGS="-DREB_NATIVE_SANITIZE=address,undefined ${REB_CMAKE_ARGS:-}"
+  REB_BUILD_TYPE="${REB_BUILD_TYPE:-RelWithDebInfo}"
+fi
 bdir="${REB_NATIVE_DIR:-build/native}"
 mkdir -p "$ROOT/$bdir/gen"
 container() {

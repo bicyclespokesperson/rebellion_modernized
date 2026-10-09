@@ -8,9 +8,16 @@ display=":${REB_DISPLAY_NUMBER:-77}"
 Xvfb "$display" -screen 0 640x480x24 >/dev/null 2>&1 &
 xvfb=$!
 export DISPLAY="$display"
+export SDL_RENDER_DRIVER="${SDL_RENDER_DRIVER:-software}"
+export ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=0:alloc_dealloc_mismatch=0}"
 sleep 1
 cd "$out/game"
-"$exe" ${REB_GAME_ARGS:-} > "$out/game.log" 2>&1 &
+if [[ -n "${REB_GDB:-}" ]]; then
+  # REB_GDB=1: run under gdb; a crash prints the backtrace into game.log
+  gdb -batch -ex "handle SIGPIPE nostop noprint" -ex run -ex "bt 40" -ex "info registers rip" --args "$exe" ${REB_GAME_ARGS:-} > "$out/game.log" 2>&1 &
+else
+  "$exe" ${REB_GAME_ARGS:-} > "$out/game.log" 2>&1 &
+fi
 game=$!
 start=$(date +%s.%N)
 finished=0

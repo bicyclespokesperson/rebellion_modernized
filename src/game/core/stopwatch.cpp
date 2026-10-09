@@ -16,9 +16,12 @@ Stopwatch::Stopwatch() {
 Stopwatch::~Stopwatch() { REB_KEEP_VPTR_STORE(); }
 
 void Stopwatch::Reset() {
-    if (m_secondsPerTick != 0.0f)
-        QueryPerformanceCounter(reinterpret_cast<LARGE_INTEGER*>(&m_startLow));
-    else
+    if (m_secondsPerTick != 0.0f) {
+        LARGE_INTEGER now;
+        QueryPerformanceCounter(&now);
+        m_startLow = now.LowPart;
+        m_startHigh = now.HighPart;
+    } else
         m_startLow = timeGetTime();
 }
 

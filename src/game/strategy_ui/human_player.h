@@ -127,7 +127,7 @@ public:
     int m_unk50;                  // +0x50
     int m_speed;                  // +0x54 the game speed (1-4)
     int m_pausedSpeed;            // +0x58 the speed to return to after a pause, 0 while not paused
-    uint8_t m_alertList[0x10];    // +0x5c list built by 0x4bee50
+    alignas(void*) uint8_t m_alertList[REB_LP64_SCALED(0x10)];    // +0x5c list built by 0x4bee50
     alignas(4) uint8_t m_dispatchStorage[sizeof(PlayerDispatch)];  // +0x6c the PlayerDispatch, built and destroyed by the original's functions
     AdvisorBase* m_advisor;       // +0xc0 advisor droid (AllianceAdvisor / EmpireAdvisor)
 
