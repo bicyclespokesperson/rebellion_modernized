@@ -13,6 +13,13 @@
 #define REB_CDECL
 #endif
 
+// Functions imported from a DLL are called through the import address table on Windows; elsewhere they are ordinary functions.
+#if defined(_WIN32)
+#define REB_DLLIMPORT __declspec(dllimport)
+#else
+#define REB_DLLIMPORT
+#endif
+
 // Structured exception handling (`__try`/`__finally`), used once, by the sound refill thread, to leave the thread when the
 // refill raises an exception. Off Windows there are no structured exceptions: the body just runs and the handler is the
 // ordinary cleanup.

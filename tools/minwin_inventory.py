@@ -57,7 +57,7 @@ CRT_DIR_MARKERS = ("/crt/include/", "/sdk/include/ucrt/", "/include/c++/")
 EXCLUDED_NAMES = {"main", "WinMain", "std", "size_t", "ptrdiff_t", "wchar_t", "uintptr_t", "intptr_t", "NULL", "true", "false",
                   "nullptr", "offsetof", "va_list", "va_start", "va_end", "va_arg", "errno", "EOF", "assert", "FILE", "tm", "time_t",
                   "int8_t", "int16_t", "int32_t", "int64_t", "uint8_t", "uint16_t", "uint32_t", "uint64_t", "setlocale", "sprintf",
-                  "min", "max"}
+                  "min", "max", "near", "byte"}
 
 
 def run_clang(args: list[str], out: Path) -> None:

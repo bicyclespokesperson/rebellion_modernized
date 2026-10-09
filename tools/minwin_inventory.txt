@@ -5,7 +5,7 @@
 ## Summary (distinct names by group)
   user32             244   (function 92, macro 144, macro-function 2, type 6)
   gdi32               84   (function 40, macro 34, macro-function 1, type 9)
-  base                69   (macro 14, macro-function 2, type 53)
+  base                67   (macro 13, macro-function 2, type 52)
   kernel32            49   (function 38, macro 7, type 4)
   winmm               37   (function 9, macro 20, type 8)
   dplayx              24   (function 3, struct 5, type 1, variable 15)
@@ -19,7 +19,7 @@
   other:mmeapi         2   (macro 1, type 1)
   avifil32/vfw         2   (type 2)
   ole/com              1   (type 1)
-  TOTAL              587
+  TOTAL              585
 
 ## advapi32
  [function] 5
@@ -36,16 +36,15 @@
   AVIFILEINFOA(1) PAVIFILE(1)
 
 ## base
- [type] 53
+ [type] 52
   ATOM(2) BOOL(26) BYTE(1) COLORREF(109) DWORD(121) DWORD_PTR(33) GUID(21) HACCEL(3) HANDLE(11) HBITMAP(5) HBRUSH(35)
   HCURSOR(23) HDC(238) HFILE(1) HFONT(13) HGDIOBJ(76) HGLOBAL(18) HHOOK(5) HICON(5) HINSTANCE(146) HKEY(5) HMENU(7)
   HMODULE(196) HPALETTE(58) HPEN(6) HRESULT(64) HRSRC(12) HWND(239) LARGE_INTEGER(3) LONG(122) LONG_PTR(1)
   LPARAM(270) LPBYTE(1) LPCSTR(9) LPCVOID(1) LPDWORD(2) LPPOINT(1) LPRECT(2) LPSTR(10) LPVOID(7) LRESULT(172)
   POINT(82) POINTS(34) PUINT(1) RECT(259) SHORT(32) SIZE(9) UINT(296) UINT_PTR(9) ULONG(1) WORD(6) WPARAM(248)
-  byte(4)
- [macro] 14
+ [macro] 13
   CALLBACK(14) ERROR_ALREADY_EXISTS(1) ERROR_INVALID_HANDLE(1) ERROR_SUCCESS(7) E_FAIL(6) FALSE(214) HFILE_ERROR(1)
-  InterlockedExchange(10) KEY_READ(2) KEY_WRITE(1) REG_DWORD(2) TRUE(36) WAIT_TIMEOUT(2) near(2)
+  InterlockedExchange(10) KEY_READ(2) KEY_WRITE(1) REG_DWORD(2) TRUE(36) WAIT_TIMEOUT(2)
  [macro-function] 2
   HIWORD(2) LOWORD(2)
 

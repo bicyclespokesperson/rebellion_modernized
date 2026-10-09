@@ -4,8 +4,8 @@
 // toolchain has no DirectPlay headers, so the declarations the game needs are written out here. The port replaces the
 // implementation of these entry points behind this header (docs/platform_layer.md, "multiplayer").
 #pragma once
-#include <windows.h>
-#include <objbase.h>
+#include "core/reb_abi.h"
+#include "platform/win32.h"
 
 typedef DWORD DPID;
 typedef DPID* LPDPID;
@@ -83,78 +83,73 @@ typedef BOOL(FAR PASCAL* LPDPENUMSESSIONSCALLBACK2)(const DPSESSIONDESC2* lpThis
 typedef BOOL(FAR PASCAL* LPDPENUMPLAYERSCALLBACK2)(DPID dpId, DWORD dwPlayerType, const DPNAME* lpName,
                                                    DWORD dwFlags, LPVOID lpContext);
 
-#undef INTERFACE
-#define INTERFACE IDirectPlay2A
-DECLARE_INTERFACE_(IDirectPlay2A, IUnknown) {
-    STDMETHOD(QueryInterface)(THIS_ REFIID riid, LPVOID * ppvObj) PURE;
-    STDMETHOD_(ULONG, AddRef)(THIS) PURE;
-    STDMETHOD_(ULONG, Release)(THIS) PURE;
-    STDMETHOD(AddPlayerToGroup)(THIS_ DPID idGroup, DPID idPlayer) PURE;
-    STDMETHOD(Close)(THIS) PURE;
-    STDMETHOD(CreateGroup)(THIS_ LPDPID lpidGroup, DPNAME * lpGroupName, LPVOID lpData, DWORD dwDataSize,
-                           DWORD dwFlags) PURE;
-    STDMETHOD(CreatePlayer)(THIS_ LPDPID lpidPlayer, DPNAME * lpPlayerName, HANDLE hEvent, LPVOID lpData,
-                            DWORD dwDataSize, DWORD dwFlags) PURE;
-    STDMETHOD(DeletePlayerFromGroup)(THIS_ DPID idGroup, DPID idPlayer) PURE;
-    STDMETHOD(DestroyGroup)(THIS_ DPID idGroup) PURE;
-    STDMETHOD(DestroyPlayer)(THIS_ DPID idPlayer) PURE;
-    STDMETHOD(EnumGroupPlayers)(THIS_ DPID idGroup, GUID * lpguidInstance, LPDPENUMPLAYERSCALLBACK2 lpEnumPlayersCallback2,
-                                LPVOID lpContext, DWORD dwFlags) PURE;
-    STDMETHOD(EnumGroups)(THIS_ GUID * lpguidInstance, LPDPENUMPLAYERSCALLBACK2 lpEnumPlayersCallback2, LPVOID lpContext,
-                          DWORD dwFlags) PURE;
-    STDMETHOD(EnumPlayers)(THIS_ GUID * lpguidInstance, LPDPENUMPLAYERSCALLBACK2 lpEnumPlayersCallback2,
-                           LPVOID lpContext, DWORD dwFlags) PURE;
-    STDMETHOD(EnumSessions)(THIS_ DPSESSIONDESC2 * lpsd, DWORD dwTimeout, LPDPENUMSESSIONSCALLBACK2 lpEnumSessionsCallback2,
-                            LPVOID lpContext, DWORD dwFlags) PURE;
-    STDMETHOD(GetCaps)(THIS_ LPVOID lpDPCaps, DWORD dwFlags) PURE;
-    STDMETHOD(GetGroupData)(THIS_ DPID idGroup, LPVOID lpData, LPDWORD lpdwDataSize, DWORD dwFlags) PURE;
-    STDMETHOD(GetGroupName)(THIS_ DPID idGroup, LPVOID lpData, LPDWORD lpdwDataSize) PURE;
-    STDMETHOD(GetMessageCount)(THIS_ DPID idPlayer, LPDWORD lpdwCount) PURE;
-    STDMETHOD(GetPlayerAddress)(THIS_ DPID idPlayer, LPVOID lpData, LPDWORD lpdwDataSize) PURE;
-    STDMETHOD(GetPlayerCaps)(THIS_ DPID idPlayer, LPVOID lpPlayerCaps, DWORD dwFlags) PURE;
-    STDMETHOD(GetPlayerData)(THIS_ DPID idPlayer, LPVOID lpData, LPDWORD lpdwDataSize, DWORD dwFlags) PURE;
-    STDMETHOD(GetPlayerName)(THIS_ DPID idPlayer, LPVOID lpData, LPDWORD lpdwDataSize) PURE;
-    STDMETHOD(GetSessionDesc)(THIS_ LPVOID lpData, LPDWORD lpdwDataSize) PURE;
-    STDMETHOD(Initialize)(THIS_ GUID * lpGUID) PURE;
-    STDMETHOD(Open)(THIS_ DPSESSIONDESC2 * lpsd, DWORD dwFlags) PURE;
-    STDMETHOD(Receive)(THIS_ LPDPID lpidFrom, LPDPID lpidTo, DWORD dwFlags, LPVOID lpData, LPDWORD lpdwDataSize) PURE;
-    STDMETHOD(Send)(THIS_ DPID idFrom, DPID idTo, DWORD dwFlags, LPVOID lpData, DWORD dwDataSize) PURE;
-    STDMETHOD(SetGroupData)(THIS_ DPID idGroup, LPVOID lpData, DWORD dwDataSize, DWORD dwFlags) PURE;
-    STDMETHOD(SetGroupName)(THIS_ DPID idGroup, DPNAME * lpGroupName, DWORD dwFlags) PURE;
-    STDMETHOD(SetPlayerData)(THIS_ DPID idPlayer, LPVOID lpData, DWORD dwDataSize, DWORD dwFlags) PURE;
-    STDMETHOD(SetPlayerName)(THIS_ DPID idPlayer, DPNAME * lpPlayerName, DWORD dwFlags) PURE;
-    STDMETHOD(SetSessionDesc)(THIS_ DPSESSIONDESC2 * lpSessDesc, DWORD dwFlags) PURE;
+struct IDirectPlay2A : public IUnknown {
+    virtual HRESULT REB_STDCALL QueryInterface(REFIID riid, LPVOID * ppvObj) = 0;
+    virtual ULONG REB_STDCALL AddRef() = 0;
+    virtual ULONG REB_STDCALL Release() = 0;
+    virtual HRESULT REB_STDCALL AddPlayerToGroup(DPID idGroup, DPID idPlayer) = 0;
+    virtual HRESULT REB_STDCALL Close() = 0;
+    virtual HRESULT REB_STDCALL CreateGroup(LPDPID lpidGroup, DPNAME * lpGroupName, LPVOID lpData, DWORD dwDataSize,
+                           DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL CreatePlayer(LPDPID lpidPlayer, DPNAME * lpPlayerName, HANDLE hEvent, LPVOID lpData,
+                            DWORD dwDataSize, DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL DeletePlayerFromGroup(DPID idGroup, DPID idPlayer) = 0;
+    virtual HRESULT REB_STDCALL DestroyGroup(DPID idGroup) = 0;
+    virtual HRESULT REB_STDCALL DestroyPlayer(DPID idPlayer) = 0;
+    virtual HRESULT REB_STDCALL EnumGroupPlayers(DPID idGroup, GUID * lpguidInstance, LPDPENUMPLAYERSCALLBACK2 lpEnumPlayersCallback2,
+                                LPVOID lpContext, DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL EnumGroups(GUID * lpguidInstance, LPDPENUMPLAYERSCALLBACK2 lpEnumPlayersCallback2, LPVOID lpContext,
+                          DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL EnumPlayers(GUID * lpguidInstance, LPDPENUMPLAYERSCALLBACK2 lpEnumPlayersCallback2,
+                           LPVOID lpContext, DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL EnumSessions(DPSESSIONDESC2 * lpsd, DWORD dwTimeout, LPDPENUMSESSIONSCALLBACK2 lpEnumSessionsCallback2,
+                            LPVOID lpContext, DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL GetCaps(LPVOID lpDPCaps, DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL GetGroupData(DPID idGroup, LPVOID lpData, LPDWORD lpdwDataSize, DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL GetGroupName(DPID idGroup, LPVOID lpData, LPDWORD lpdwDataSize) = 0;
+    virtual HRESULT REB_STDCALL GetMessageCount(DPID idPlayer, LPDWORD lpdwCount) = 0;
+    virtual HRESULT REB_STDCALL GetPlayerAddress(DPID idPlayer, LPVOID lpData, LPDWORD lpdwDataSize) = 0;
+    virtual HRESULT REB_STDCALL GetPlayerCaps(DPID idPlayer, LPVOID lpPlayerCaps, DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL GetPlayerData(DPID idPlayer, LPVOID lpData, LPDWORD lpdwDataSize, DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL GetPlayerName(DPID idPlayer, LPVOID lpData, LPDWORD lpdwDataSize) = 0;
+    virtual HRESULT REB_STDCALL GetSessionDesc(LPVOID lpData, LPDWORD lpdwDataSize) = 0;
+    virtual HRESULT REB_STDCALL Initialize(GUID * lpGUID) = 0;
+    virtual HRESULT REB_STDCALL Open(DPSESSIONDESC2 * lpsd, DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL Receive(LPDPID lpidFrom, LPDPID lpidTo, DWORD dwFlags, LPVOID lpData, LPDWORD lpdwDataSize) = 0;
+    virtual HRESULT REB_STDCALL Send(DPID idFrom, DPID idTo, DWORD dwFlags, LPVOID lpData, DWORD dwDataSize) = 0;
+    virtual HRESULT REB_STDCALL SetGroupData(DPID idGroup, LPVOID lpData, DWORD dwDataSize, DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL SetGroupName(DPID idGroup, DPNAME * lpGroupName, DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL SetPlayerData(DPID idPlayer, LPVOID lpData, DWORD dwDataSize, DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL SetPlayerName(DPID idPlayer, DPNAME * lpPlayerName, DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL SetSessionDesc(DPSESSIONDESC2 * lpSessDesc, DWORD dwFlags) = 0;
 };
 
-#undef INTERFACE
-#define INTERFACE IDirectPlayLobbyA
-DECLARE_INTERFACE_(IDirectPlayLobbyA, IUnknown) {
-    STDMETHOD(QueryInterface)(THIS_ REFIID riid, LPVOID * ppvObj) PURE;
-    STDMETHOD_(ULONG, AddRef)(THIS) PURE;
-    STDMETHOD_(ULONG, Release)(THIS) PURE;
-    STDMETHOD(Connect)(THIS_ DWORD dwFlags, IUnknown * *lplpDP, IUnknown * pUnk) PURE;
-    STDMETHOD(CreateAddress)(THIS_ REFGUID guidSP, REFGUID guidDataType, LPCVOID lpData, DWORD dwDataSize,
-                             LPVOID lpAddress, LPDWORD lpdwAddressSize) PURE;
-    STDMETHOD(EnumAddress)(THIS_ LPVOID lpEnumAddressCallback, LPCVOID lpAddress, DWORD dwAddressSize,
-                           LPVOID lpContext) PURE;
-    STDMETHOD(EnumAddressTypes)(THIS_ LPVOID lpEnumAddressTypeCallback, REFGUID guidSP, LPVOID lpContext,
-                                DWORD dwFlags) PURE;
-    STDMETHOD(EnumLocalApplications)(THIS_ LPVOID lpEnumLocalAppCallback, LPVOID lpContext, DWORD dwFlags) PURE;
-    STDMETHOD(GetConnectionSettings)(THIS_ DWORD dwAppID, LPVOID lpData, LPDWORD lpdwDataSize) PURE;
-    STDMETHOD(ReceiveLobbyMessage)(THIS_ DWORD dwFlags, DWORD dwAppID, LPDWORD lpdwMessageFlags, LPVOID lpData,
-                                   LPDWORD lpdwDataSize) PURE;
-    STDMETHOD(RunApplication)(THIS_ DWORD dwFlags, LPDWORD lpdwAppID, DPLCONNECTION * lpConn, HANDLE hReceiveEvent) PURE;
-    STDMETHOD(SendLobbyMessage)(THIS_ DWORD dwFlags, DWORD dwAppID, LPVOID lpData, DWORD dwDataSize) PURE;
-    STDMETHOD(SetConnectionSettings)(THIS_ DWORD dwFlags, DWORD dwAppID, DPLCONNECTION * lpConn) PURE;
-    STDMETHOD(SetLobbyMessageEvent)(THIS_ DWORD dwFlags, DWORD dwAppID, HANDLE hReceiveEvent) PURE;
+struct IDirectPlayLobbyA : public IUnknown {
+    virtual HRESULT REB_STDCALL QueryInterface(REFIID riid, LPVOID * ppvObj) = 0;
+    virtual ULONG REB_STDCALL AddRef() = 0;
+    virtual ULONG REB_STDCALL Release() = 0;
+    virtual HRESULT REB_STDCALL Connect(DWORD dwFlags, IUnknown * *lplpDP, IUnknown * pUnk) = 0;
+    virtual HRESULT REB_STDCALL CreateAddress(REFGUID guidSP, REFGUID guidDataType, LPCVOID lpData, DWORD dwDataSize,
+                             LPVOID lpAddress, LPDWORD lpdwAddressSize) = 0;
+    virtual HRESULT REB_STDCALL EnumAddress(LPVOID lpEnumAddressCallback, LPCVOID lpAddress, DWORD dwAddressSize,
+                           LPVOID lpContext) = 0;
+    virtual HRESULT REB_STDCALL EnumAddressTypes(LPVOID lpEnumAddressTypeCallback, REFGUID guidSP, LPVOID lpContext,
+                                DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL EnumLocalApplications(LPVOID lpEnumLocalAppCallback, LPVOID lpContext, DWORD dwFlags) = 0;
+    virtual HRESULT REB_STDCALL GetConnectionSettings(DWORD dwAppID, LPVOID lpData, LPDWORD lpdwDataSize) = 0;
+    virtual HRESULT REB_STDCALL ReceiveLobbyMessage(DWORD dwFlags, DWORD dwAppID, LPDWORD lpdwMessageFlags, LPVOID lpData,
+                                   LPDWORD lpdwDataSize) = 0;
+    virtual HRESULT REB_STDCALL RunApplication(DWORD dwFlags, LPDWORD lpdwAppID, DPLCONNECTION * lpConn, HANDLE hReceiveEvent) = 0;
+    virtual HRESULT REB_STDCALL SendLobbyMessage(DWORD dwFlags, DWORD dwAppID, LPVOID lpData, DWORD dwDataSize) = 0;
+    virtual HRESULT REB_STDCALL SetConnectionSettings(DWORD dwFlags, DWORD dwAppID, DPLCONNECTION * lpConn) = 0;
+    virtual HRESULT REB_STDCALL SetLobbyMessageEvent(DWORD dwFlags, DWORD dwAppID, HANDLE hReceiveEvent) = 0;
 };
-#undef INTERFACE
 
 extern "C" {
 // DPLAYX.DLL, bound through the game's own import table (the original calls them by ordinal 1, 2 and 4).
-__declspec(dllimport) HRESULT __stdcall DirectPlayCreate(GUID* lpGUID, IUnknown** lplpDP, IUnknown* pUnk);
-__declspec(dllimport) HRESULT __stdcall DirectPlayEnumerateA(LPDPENUMDPCALLBACKA lpEnumCallback, LPVOID lpContext);
-__declspec(dllimport) HRESULT __stdcall DirectPlayLobbyCreateA(GUID* lpGUIDSP, IDirectPlayLobbyA** lplpDPL,
+REB_DLLIMPORT HRESULT REB_STDCALL DirectPlayCreate(GUID* lpGUID, IUnknown** lplpDP, IUnknown* pUnk);
+REB_DLLIMPORT HRESULT REB_STDCALL DirectPlayEnumerateA(LPDPENUMDPCALLBACKA lpEnumCallback, LPVOID lpContext);
+REB_DLLIMPORT HRESULT REB_STDCALL DirectPlayLobbyCreateA(GUID* lpGUIDSP, IDirectPlayLobbyA** lplpDPL,
                                                                IUnknown* lpUnk, LPVOID lpData, DWORD dwDataSize);
 }
 

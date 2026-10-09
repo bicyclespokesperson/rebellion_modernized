@@ -6,6 +6,7 @@
 #include <cstdint>
 
 #include "core/layout.h"
+#include "core/reb_abi.h"
 #include "platform/win32.h"
 
 constexpr uint32_t kSmackAllAudioTracks = 0xfe000;  // SMACKTRACK1..7: open flag and SmackVolumePan track mask
@@ -44,25 +45,25 @@ struct SmackBuf {
 constexpr uint32_t kSmackBufferBlitType = 3;
 
 extern "C" {
-__declspec(dllimport) void __stdcall SmackSoundUseDirectSound(void* directSound);
-__declspec(dllimport) Smack* __stdcall SmackOpen(const char* name, uint32_t flags, uint32_t extraBuffer);
-__declspec(dllimport) void __stdcall SmackClose(Smack* smack);
-__declspec(dllimport) uint32_t __stdcall SmackDoFrame(Smack* smack);
-__declspec(dllimport) void __stdcall SmackNextFrame(Smack* smack);
-__declspec(dllimport) uint32_t __stdcall SmackWait(Smack* smack);
-__declspec(dllimport) void __stdcall SmackGoto(Smack* smack, uint32_t frame);
-__declspec(dllimport) void __stdcall SmackToBuffer(Smack* smack, uint32_t left, uint32_t top, uint32_t pitch,
+REB_DLLIMPORT void REB_STDCALL SmackSoundUseDirectSound(void* directSound);
+REB_DLLIMPORT Smack* REB_STDCALL SmackOpen(const char* name, uint32_t flags, uint32_t extraBuffer);
+REB_DLLIMPORT void REB_STDCALL SmackClose(Smack* smack);
+REB_DLLIMPORT uint32_t REB_STDCALL SmackDoFrame(Smack* smack);
+REB_DLLIMPORT void REB_STDCALL SmackNextFrame(Smack* smack);
+REB_DLLIMPORT uint32_t REB_STDCALL SmackWait(Smack* smack);
+REB_DLLIMPORT void REB_STDCALL SmackGoto(Smack* smack, uint32_t frame);
+REB_DLLIMPORT void REB_STDCALL SmackToBuffer(Smack* smack, uint32_t left, uint32_t top, uint32_t pitch,
                                                    uint32_t destHeight, void* buffer, uint32_t flags);
-__declspec(dllimport) uint32_t __stdcall SmackToBufferRect(Smack* smack, uint32_t smackSurface);
-__declspec(dllimport) void __stdcall SmackVolumePan(Smack* smack, uint32_t trackFlags, uint32_t volume, uint32_t pan);
-__declspec(dllimport) SmackBuf* __stdcall SmackBufferOpen(HWND window, uint32_t blitType, uint32_t width,
+REB_DLLIMPORT uint32_t REB_STDCALL SmackToBufferRect(Smack* smack, uint32_t smackSurface);
+REB_DLLIMPORT void REB_STDCALL SmackVolumePan(Smack* smack, uint32_t trackFlags, uint32_t volume, uint32_t pan);
+REB_DLLIMPORT SmackBuf* REB_STDCALL SmackBufferOpen(HWND window, uint32_t blitType, uint32_t width,
                                                           uint32_t height, uint32_t zoomWidth, uint32_t zoomHeight);
-__declspec(dllimport) void __stdcall SmackBufferClose(SmackBuf* buffer);
-__declspec(dllimport) uint32_t __stdcall SmackBufferBlit(SmackBuf* buffer, HDC dc, int32_t windowX, int32_t windowY,
+REB_DLLIMPORT void REB_STDCALL SmackBufferClose(SmackBuf* buffer);
+REB_DLLIMPORT uint32_t REB_STDCALL SmackBufferBlit(SmackBuf* buffer, HDC dc, int32_t windowX, int32_t windowY,
                                                          int32_t subX, int32_t subY, int32_t subWidth,
                                                          int32_t subHeight);
-__declspec(dllimport) uint32_t __stdcall SmackBufferNewPalette(SmackBuf* buffer, void* palette, uint32_t paletteType);
-__declspec(dllimport) uint32_t __stdcall SmackBufferSetPalette(SmackBuf* buffer);
+REB_DLLIMPORT uint32_t REB_STDCALL SmackBufferNewPalette(SmackBuf* buffer, void* palette, uint32_t paletteType);
+REB_DLLIMPORT uint32_t REB_STDCALL SmackBufferSetPalette(SmackBuf* buffer);
 }
 
 #pragma clang diagnostic push
