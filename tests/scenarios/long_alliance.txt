@@ -1,0 +1,42 @@
+# Long deterministic comparison, Alliance game with AI activity: load "Rebels" (SAVEGAME.002, tick 95,075), run at Fast
+# speed until the shims' fast phase ends (REB_QPC_FAST_UNTIL_TICK=<tick>, then REB_QPC_STEP_NS=0 freezes the simulation
+# clock at exactly that tick no matter when this script's input lands), pause through the speed menu, and save into the
+# first empty row (SAVEGAME.005). Driven by tools/long_compare.sh, which sets the environment. The wait before the
+# pause is generous (the fast phase takes ~25-170 game ticks per wall second depending on the build).
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+33 shot load_list
+# Saved Games screen: row 2 = Rebels (y=132).
+34 move 300 129
+35 move 305 132
+36 click 305 132
+41 shot load_galaxy
+# Speed menu (right-click the box at the top left): Pause 36, Very Slow 56, Slow 76, Medium 96, Fast 116.
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 112
+46 move 170 116
+47 click 170 116
+100 shot run_100
+200 shot run_200
+300 shot run_300
+320 shot before_options
+# The clock stands still at the target tick until Scroll Lock is seen down (REB_QPC_HOLD_UNTIL_KEY=145), so the ticks
+# the save flow needs are counted from this key press, not from when this script's input happens to land. The first
+# tick after the press is >= 3 s of wall time away; the options click follows within 2 s.
+330 keydown Scroll_Lock
+331 move 12 370
+332 move 15 372
+333 click 15 372
+335 keyup Scroll_Lock
+345 shot save_options
+347 move 48 256
+348 move 50 258
+349 click 50 258
+365 shot save_done
+370 end

@@ -15,6 +15,11 @@
 //                          tick is below n. The switch happens on the first clock call that sees tick >= n, so a long run
 //                          stops at a tick that does not depend on when scripted input arrives (reads the game manager's
 //                          tick counter; never calls game code).
+// REB_QPC_HOLD_UNTIL_KEY=<vk>  with REB_QPC_FAST_UNTIL_TICK: after the fast phase the counter stands still (the simulation
+//                          waits at exactly that tick) until virtual key <vk> (decimal, e.g. 145 = Scroll Lock, which the
+//                          game ignores) is seen down, then it runs at REB_QPC_STEP_NS. A scenario presses the key before
+//                          the clicks that start the save flow, so the ticks that follow are counted from the key, not
+//                          from wall time.
 // REB_NO_TIMERS=1         timeSetEvent returns a fake id and never calls back (the game's CoolTimer threads).
 // REB_CLOCK_TRACE=1       logs the first call from every distinct caller of the virtual clocks.
 // REB_HEAP_PROBE=<bytes>   shifts heap addresses: reserves <bytes> of address space before the game's heap exists
@@ -58,6 +63,8 @@ uint32_t g_fast_until_tick = 0;
 int64_t g_counter_ns = 0;
 volatile LONG g_counter_lock = 0;
 volatile LONG g_fast_phase_logged = 0;
+uint32_t g_release_key = 0;
+bool g_release_seen = false;
 SIZE_T g_probe_bytes = 0;
 bool g_probe_sbh = false;
 volatile LONG g_probe_pending = 0;
@@ -82,12 +89,19 @@ uint32_t current_game_tick() {
     return manager ? *reinterpret_cast<const uint32_t*>(manager + kGameManagerTickOffset) : 0;
 }
 
+bool release_key_down() { return (GetAsyncKeyState(static_cast<int>(g_release_key)) & 0x8000) != 0; }
+
 uint32_t current_counter_step_ns() {
     if (g_fast_until_tick == 0) return g_counter_step_ns;
     const uint32_t tick = current_game_tick();
     if (tick < g_fast_until_tick) return g_fast_step_ns;
     if (InterlockedExchange(&g_fast_phase_logged, 1) == 0)
         log("determinism: fast phase over at game tick %u after %d counter calls", tick, static_cast<int>(g_counter_calls));
+    if (g_release_key != 0 && !g_release_seen) {
+        if (!release_key_down()) return 0;
+        g_release_seen = true;
+        log("determinism: release key seen at game tick %u, simulation clock released", tick);
+    }
     return g_counter_step_ns;
 }
 
@@ -120,7 +134,8 @@ BOOL WINAPI fake_query_performance_counter(LARGE_INTEGER* out) {
     apply_heap_probe_when_ready();
     if (out) out->QuadPart = advance_counter_us();
     if (g_trace_callers && g_counter_calls % 100000 == 0)
-        log("qpc: %d calls at real tick %u", static_cast<int>(g_counter_calls), static_cast<unsigned>(GetTickCount64()));
+        log("qpc: %d calls at real tick %u, game tick %u", static_cast<int>(g_counter_calls), static_cast<unsigned>(GetTickCount64()),
+            current_game_tick());
     return TRUE;
 }
 
@@ -177,6 +192,7 @@ void install_clock_shims() {
     if (env_is_set("REB_QPC_STEP_NS")) g_counter_step_ns = static_cast<uint32_t>(env_number("REB_QPC_STEP_NS"));
     if (SIZE_T step = env_number("REB_QPC_FAST_STEP_NS")) g_fast_step_ns = static_cast<uint32_t>(step);
     g_fast_until_tick = static_cast<uint32_t>(env_number("REB_QPC_FAST_UNTIL_TICK"));
+    g_release_key = static_cast<uint32_t>(env_number("REB_QPC_HOLD_UNTIL_KEY"));
     g_trace_callers = env_number("REB_CLOCK_TRACE") != 0;
     patch_iat(kIatQueryPerformanceCounter, reinterpret_cast<void*>(fake_query_performance_counter));
     patch_iat(kIatQueryPerformanceFrequency, reinterpret_cast<void*>(fake_query_performance_frequency));

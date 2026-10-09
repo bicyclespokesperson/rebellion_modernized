@@ -9,6 +9,7 @@
 //                        time() are fixed.
 //   REB_QPC_FAST_UNTIL_TICK=<n>, REB_QPC_FAST_STEP_NS=<m>: as in the hybrid, the counter steps m ns (default 1,000,000) per call
 //                        while the game manager's tick counter is below n, then REB_QPC_STEP_NS.
+//   REB_QPC_HOLD_UNTIL_KEY=<vk>: the counter stands still after that tick until the virtual key (decimal) is seen down.
 //   REB_NO_TIMERS=1      timeSetEvent returns a fake id and never calls back.
 #include <windows.h>
 #include <mmsystem.h>
@@ -31,6 +32,8 @@ uint32_t g_stepUs = 1000;
 uint32_t g_counterStepNs = 1000;
 uint32_t g_fastStepNs = 1000000;
 uint32_t g_fastUntilTick = 0;
+uint32_t g_releaseKey = 0;
+bool g_releaseSeen = false;
 int64_t g_counterNs = 0;
 volatile LONG g_counterLock = 0;
 volatile LONG g_ready = 0;
@@ -55,6 +58,7 @@ void EnsureReady() {
     if (present) g_counterStepNs = counterStep;
     if (const uint32_t step = EnvNumber("REB_QPC_FAST_STEP_NS")) g_fastStepNs = step;
     g_fastUntilTick = EnvNumber("REB_QPC_FAST_UNTIL_TICK");
+    g_releaseKey = EnvNumber("REB_QPC_HOLD_UNTIL_KEY");
     g_ready = 1;
 }
 
@@ -71,9 +75,16 @@ uint32_t CurrentGameTick() {
     return g_gameManager ? static_cast<uint32_t>(g_gameManager->m_tickCount) : 0;
 }
 
+bool ReleaseKeyDown() { return (GetAsyncKeyState(static_cast<int>(g_releaseKey)) & 0x8000) != 0; }
+
 uint32_t CurrentCounterStepNs() {
     if (g_fastUntilTick == 0) return g_counterStepNs;
-    return CurrentGameTick() < g_fastUntilTick ? g_fastStepNs : g_counterStepNs;
+    if (CurrentGameTick() < g_fastUntilTick) return g_fastStepNs;
+    if (g_releaseKey != 0 && !g_releaseSeen) {
+        if (!ReleaseKeyDown()) return 0;
+        g_releaseSeen = true;
+    }
+    return g_counterStepNs;
 }
 
 uint64_t AddCounterNs(uint32_t step_ns) {
