@@ -370,7 +370,10 @@ UINT REB_STDCALL SetSystemPaletteUse(HDC, UINT use) {
 UINT REB_STDCALL RealizePalette(HDC handle) {
     Dc* dc = ToDc(handle);
     if (!dc || !dc->palette) return 0;
+    static bool first = true;
     bool changed = false;
+    const bool notify = first;
+    first = false;
     for (int i = 0; i < dc->palette->count; ++i) {
         if (!g_noStatic && (i < 10 || i >= 246)) continue;
         if (g_systemPalette[i] != dc->palette->rgb[i]) {
@@ -378,10 +381,8 @@ UINT REB_STDCALL RealizePalette(HDC handle) {
             changed = true;
         }
     }
-    if (changed) {
-        ++g_generation;
-        minwin_user::NotifyPaletteChanged(dc->window);
-    }
+    if (changed) ++g_generation;
+    if (notify) minwin_user::NotifyPaletteChanged(dc->window);
     return static_cast<UINT>(dc->palette->count);
 }
 

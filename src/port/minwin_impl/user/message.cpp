@@ -60,13 +60,14 @@ bool MatchesWindow(const Window* target, const Window* filter) {
 LRESULT CallProc(Window* w, UINT msg, WPARAM wp, LPARAM lp) {
     if (!w->cls->builtin && msgtrace::Enabled()) msgtrace::Log(w->cls->name, reinterpret_cast<uintptr_t>(w), msg, wp, lp, g_depth);
     WNDPROC proc = w->proc;
-    ++g_depth;
+    if (!w->cls->builtin) ++g_depth;
     LRESULT result;
     if (proc)
         result = proc(ToHandle(w), msg, wp, lp);
     else
         result = DefaultWindowProc(w, msg, wp, lp);
-    --g_depth;
+    if (!w->cls->builtin) --g_depth;
+    if (msg == WM_QUERYNEWPALETTE) FlushPaletteNotification();
     return result;
 }
 
@@ -321,6 +322,7 @@ static unsigned NextTimerDelay(unsigned now, unsigned limit) {
 
 bool NextMessage(MSG* out, Window* filter, UINT min, UINT max, bool remove, bool wait) {
     ProcessCrossThreadRequests();
+    FlushPaletteNotification();
     if (g_depth > 0 && msgtrace::Enabled()) {
         char note[64];
         snprintf(note, sizeof note, "nested %s at depth %d", wait ? "GetMessage" : "PeekMessage", g_depth);
@@ -351,6 +353,7 @@ bool NextMessage(MSG* out, Window* filter, UINT min, UINT max, bool remove, bool
             return true;
         }
 
+        SynthesizeMouseMoveIfNeeded();
         Input* inputBefore = nullptr;
         for (Input* n = g_inputHead; n;) {
             InputEvent& e = n->event;

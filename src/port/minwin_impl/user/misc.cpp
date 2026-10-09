@@ -303,14 +303,29 @@ HBITMAP REB_STDCALL LoadBitmapA(HINSTANCE instance, LPCSTR name) {
 
 namespace minwin_user {
 
+// The notification is delivered by the system after the window procedure that realized the palette has returned.
+HWND g_pendingRealizer = nullptr;
+bool g_paletteNotificationPending = false;
+
 void NotifyPaletteChanged(HWND realizer) {
-    for (Window* t = FirstTopLevel(); t;) {
-        Window* next = t->next;
-        Send(t, kWmPaletteIsChanging, reinterpret_cast<WPARAM>(realizer), 0);
-        t = next;
-    }
+    g_pendingRealizer = realizer;
+    g_paletteNotificationPending = true;
 }
 
 }  // namespace minwin_user
 
-SDL_Cursor* CreateCursorFromResource(HINSTANCE, LPCSTR) { return SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT); }
+namespace minwin {
+
+void FlushPaletteNotification() {
+    if (!minwin_user::g_paletteNotificationPending) return;
+    minwin_user::g_paletteNotificationPending = false;
+    for (Window* t = FirstTopLevel(); t;) {
+        Window* next = t->next;
+        Send(t, kWmPaletteIsChanging, reinterpret_cast<WPARAM>(minwin_user::g_pendingRealizer), 0);
+        t = next;
+    }
+}
+
+}  // namespace minwin
+
+

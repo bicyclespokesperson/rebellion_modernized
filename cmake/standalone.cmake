@@ -106,6 +106,7 @@ if(REB_MINWIN_IMPL)
     src/port/minwin_impl/user/region.cpp src/port/minwin_impl/user/window.cpp src/port/minwin_impl/user/focus.cpp
     src/port/minwin_impl/user/message.cpp src/port/minwin_impl/user/paint.cpp src/port/minwin_impl/user/input.cpp
     src/port/minwin_impl/user/platform.cpp src/port/minwin_impl/user/misc.cpp src/port/minwin_impl/user/mmtimer.cpp
+    src/port/minwin_impl/user/cursor.cpp
     src/port/msg_trace.cpp)
   if(REB_GDI_STUB)
     list(APPEND REB_MINWIN_USER_SOURCES src/port/minwin_impl/gdi_stub/gdi_stub.cpp)

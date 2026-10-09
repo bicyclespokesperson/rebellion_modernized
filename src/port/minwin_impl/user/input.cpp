@@ -159,7 +159,25 @@ unsigned MessageFor(int button, bool down, bool dbl) {
     return down ? (dbl ? kWmMButtonDblClk : kWmMButtonDown) : kWmMButtonUp;
 }
 
+Window* g_lastUnderCursor = nullptr;
+bool g_layoutChanged = false;
+
 }  // namespace
+
+// Windows posts a WM_MOUSEMOVE when a window appears, disappears or moves under a motionless pointer.
+void MarkLayoutChanged() { g_layoutChanged = true; }
+
+void SynthesizeMouseMoveIfNeeded() {
+    if (!g_layoutChanged) return;
+    g_layoutChanged = false;
+    if (CaptureWindow()) return;
+    Window* under = WindowAtPoint(g_cursorPos, false, false, nullptr);
+    if (under == g_lastUnderCursor || !under) {
+        g_lastUnderCursor = under;
+        return;
+    }
+    InputMouseMotion(g_cursorPos.x, g_cursorPos.y);
+}
 
 void InitInput() {
     memset(g_keyDown, 0, sizeof g_keyDown);
@@ -259,6 +277,7 @@ bool FinalizeInput(InputEvent* e) {
                 target = CaptureWindow();
             } else {
                 target = WindowAtPoint(pt, false, true, &hit);
+                g_lastUnderCursor = target;
             }
             if (!target || !IsLive(target)) return false;
             if (!IsEnabledTree(target)) return false;

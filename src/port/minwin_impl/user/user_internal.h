@@ -213,6 +213,7 @@ unsigned GetTicksMs();
 void PurgeMessagesFor(Window* w);
 void PurgeTimersFor(Window* w);
 int NestingDepth();
+void FlushPaletteNotification();
 bool IsOwnerThread();
 void ProcessCrossThreadRequests();
 LRESULT SendFromOtherThread(Window* w, UINT msg, WPARAM wp, LPARAM lp);
@@ -235,6 +236,8 @@ void DrawCaretOverlay(uint32_t* pixels, int pitchPixels);
 
 // ---- input (input.cpp) ------------------------------------------------------------------------------------------------
 void InitInput();
+void MarkLayoutChanged();
+void SynthesizeMouseMoveIfNeeded();
 POINT CursorScreenPosition();
 void SetCursorScreenPosition(POINT p);
 void UpdateCursorForWindow(Window* underMouse, int hitTest, UINT mouseMessage);

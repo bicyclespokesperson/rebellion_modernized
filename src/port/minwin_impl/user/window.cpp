@@ -372,8 +372,6 @@ HWND REB_STDCALL CreateWindowExA(DWORD exStyle, LPCSTR className, LPCSTR title, 
     LinkAfter(w, isChild ? parent : nullptr, after);
     LiveInsert(w);
 
-    if (isChild) Send(parent, kWmNotifyFormat, reinterpret_cast<WPARAM>(w), 3);
-
     CREATESTRUCTA cs;
     memset(&cs, 0, sizeof cs);
     cs.lpCreateParams = param;
@@ -480,12 +478,20 @@ BOOL REB_STDCALL DestroyWindow(HWND handle) {
     if (isChild && !(w->exStyle & kWsExNoParentNotify) && parent && !parent->destroying)
         Send(parent, kWmParentNotify, MAKEWPARAM(WM_DESTROY, static_cast<WORD>(w->id)), reinterpret_cast<LPARAM>(w));
     if (!IsLive(w)) return TRUE;
-    if (w->style & WS_VISIBLE) ShowWindow(handle, kSwHide);
+    if (w->style & WS_VISIBLE) {
+        if (IsWindowVisibleTree(w)) {
+            ShowWindow(handle, kSwHide);
+        } else {
+            Send(w, kWmShowWindowMsg, 0, 0);
+            if (IsLive(w)) w->style &= ~static_cast<DWORD>(WS_VISIBLE);
+        }
+    }
     if (!IsLive(w)) return TRUE;
     OnWindowHidden(w);
     SendDestroyMessages(w);
     if (!IsLive(w)) return TRUE;
     FinishDestroy(w);
+    MarkLayoutChanged();
     return TRUE;
 }
 
@@ -526,6 +532,8 @@ BOOL REB_STDCALL EnableWindow(HWND h, BOOL enable) {
         Send(w, kWmEnable, TRUE, 0);
     } else if (!enable && !wasDisabled) {
         if (CaptureWindow() == w || (CaptureWindow() && IsDescendant(w, CaptureWindow()))) ReleaseCapture();
+        Send(w, kWmCancelMode, 0, 0);
+        if (!IsLive(w)) return wasDisabled;
         w->style |= kWsDisabled;
         Send(w, kWmEnable, FALSE, 0);
         if (FocusWindow() == w || (FocusWindow() && IsDescendant(w, FocusWindow()))) SetFocus(nullptr);
@@ -801,6 +809,11 @@ BOOL ApplyWindowPos(Window* w, HWND insertAfter, int x, int y, int cx, int cy, U
         w->needNcPaint = true;
     }
 
+    if ((w->style & WS_CHILD) && w->parent && !(flags & (kSwpNoActivate | kSwpHideWindow))) {
+        Send(w, kWmChildActivate, 0, 0);
+        if (!IsLive(w)) return FALSE;
+    }
+
     const bool nowVisibleTree = IsWindowVisibleTree(w);
     const bool becameVisible = nowVisibleTree && !wasVisibleTree;
     const bool becameHidden = wasVisibleTree && !nowVisibleTree;
@@ -822,6 +835,11 @@ BOOL ApplyWindowPos(Window* w, HWND insertAfter, int x, int y, int cx, int cy, U
         }
     }
 
+    if ((flags & kSwpShowWindow) && !w->parent && !(flags & kSwpNoActivate) && !(w->exStyle & kWsExNoActivate)) {
+        ActivateTopLevel(w, false);
+        if (!IsLive(w)) return TRUE;
+    }
+
     UINT notified = flags;
     const POINT newClientOrigin = {w->x + w->clientLeft, w->y + w->clientTop};
     if (newClientOrigin.x == oldClientOrigin.x && newClientOrigin.y == oldClientOrigin.y) notified |= kSwpNoClientMove;
@@ -834,8 +852,8 @@ BOOL ApplyWindowPos(Window* w, HWND insertAfter, int x, int y, int cx, int cy, U
     Send(w, kWmWindowPosChanged, 0, reinterpret_cast<LPARAM>(&pos));
     if (!IsLive(w)) return TRUE;
 
+    if (becameHidden || becameVisible || moved || sized || zChanged) MarkLayoutChanged();
     if (becameHidden || (!nowVisibleTree && (moved || sized))) OnWindowHidden(w);
-    if ((flags & kSwpShowWindow) && !w->parent && !(flags & kSwpNoActivate) && !(w->exStyle & kWsExNoActivate)) ActivateTopLevel(w, false);
     return TRUE;
 }
 
@@ -859,7 +877,7 @@ BOOL REB_STDCALL ShowWindow(HWND h, int command) {
     Window* w = FromHandle(h);
     if (!w) return FALSE;
     const bool wasVisible = (w->style & WS_VISIBLE) != 0;
-    UINT flags = kSwpNoSize | kSwpNoMove | kSwpNoZOrder;
+    UINT flags = kSwpNoSize | kSwpNoMove | kSwpNoZOrder | (w->parent ? kSwpNoActivate : 0u);
     bool show = true;
     switch (command) {
         case kSwHide:
@@ -891,6 +909,11 @@ BOOL REB_STDCALL ShowWindow(HWND h, int command) {
     }
     if (show && wasVisible) return TRUE;
     Send(w, kWmShowWindowMsg, show ? 1 : 0, 0);
+    if (IsLive(w) && w->parent && !IsWindowVisibleTree(w->parent)) {
+        // A child of a hidden parent only changes its own visibility flag; nothing is shown or exposed yet.
+        if (show) w->style |= WS_VISIBLE; else w->style &= ~static_cast<DWORD>(WS_VISIBLE);
+        return wasVisible;
+    }
     if (!IsLive(w)) return wasVisible;
     ApplyWindowPos(w, nullptr, 0, 0, 0, 0, flags);
     return wasVisible;
@@ -902,7 +925,12 @@ namespace {
 
 LRESULT REB_STDCALL TooltipProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
-        case TTM_ADDTOOLA:
+        case TTM_ADDTOOLA: {
+            const TTTOOLINFOA* tool = reinterpret_cast<const TTTOOLINFOA*>(lParam);
+            if (Window* owner = FromHandle(tool ? tool->hwnd : nullptr))
+                Send(owner, kWmNotifyFormat, reinterpret_cast<WPARAM>(hwnd), 3);
+            return TRUE;
+        }
         case TTM_DELTOOLA:
         case TTM_UPDATETIPTEXTA:
         case TTM_ACTIVATE:

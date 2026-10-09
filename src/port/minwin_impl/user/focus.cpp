@@ -128,7 +128,7 @@ HWND REB_STDCALL SetFocus(HWND h) {
         SetFocusWindow(nullptr);
         return ToHandle(old);
     }
-    if (!IsWindowVisibleTree(w) || !IsEnabledTree(w)) return nullptr;
+    if (!IsEnabledTree(w)) return nullptr;  // like Windows, visibility is not required: only disabled (or minimized) windows refuse
     if (w == old) return ToHandle(old);
     Window* top = TopLevelOf(w);
     if (top != ActiveWindow() && !(top->exStyle & kWsExNoActivate) && top->style & WS_VISIBLE) {
