@@ -242,3 +242,59 @@ Wiring left to the integrator: `mwds::SetEventSignaler(SetEvent)` (DirectSound n
 - `dsound`: no reference implementation was available; 15 tests pin the documented semantics (return codes, control flags, circular regions, notification timing, the game's half-buffer music refill pattern is gapless).
 
 **Known deviations.** GDI: dotted/dashed pens on diagonal lines have a different dash phase from Wine (axis-aligned lines are identical, the only dotted lines the game draws). Text: the "System" stock font is drawn with Liberation Sans, `DT_END_ELLIPSIS`-style flags and `DT_EXPANDTABS` tab stops (a guess: 8 average widths) are untested. Smack: SMK4 is rejected (all shipped movies are SMK2); `SmackBufferSetPalette` realizes the movie palette as 256 `PC_NOCOLLAPSE` entries instead of RAD's remapping; blits stretch by integer zoom factors only. DirectSound: the mixer's write cursor leads by 15 ms and the output rate is the backend's (default 44,100 Hz), with linear resampling.
+
+
+## Long-run fidelity against the original (measured Oct 9 2026)
+
+`tools/long_compare.sh [-s alliance|battle] [-t TICK] [-n RUNS] [-k SECONDS]` (slow, on demand, not part of `integrate.sh`) runs one UI-driven
+scenario on the original logic (hybrid with `REB_DISABLE_HOOKS=all`), the hybrid with all hooks and the standalone, all runs concurrently
+(one container each), and `tools/long_compare_report.py` compares saves byte for byte and screenshots pixel for pixel. Scenarios:
+`long_alliance` (Alliance game "Rebels", tick 95,075, the Imperial AI plays, no battle; default target tick 98,575 = 3,500 ticks) and
+`long_battle` (Empire game "JAS1", tick 150,326, an Alliance fleet arrives at Clak'dor VII around tick 152,576, the script chooses Simulate
+Results; default target 154,500 = 4,200 ticks, one auto-resolved battle plus AI activity of both sides).
+
+**Making the save tick deterministic.** The shims (`src/hybrid/determinism.cpp`, mirrored in `src/standalone/determinism.cpp`) gained
+`REB_QPC_FAST_UNTIL_TICK=<n>` (the virtual QPC steps 1 ms per call until the game manager's tick counter reaches n, so ticks are cheap, then
+`REB_QPC_STEP_NS`), `REB_QPC_START_KEY=<vk>` (the counter stands still from the moment a game exists until the key is seen down, so idle
+frames while the script sets the speed do not move game time), `REB_QPC_HOLD_UNTIL_KEY=<vk>` (after tick n the counter stands still again
+until the key is pressed a second time, immediately before the script opens the Saved Games screen: the ticks the save needs, ~2, are
+counted from the key, not from wall time), `REB_CLOCK_FROM_QPC=1` (timeGetTime/GetTickCount read the virtual counter instead of counting
+calls) and, in the hybrid, `REB_ENABLE_HOOKS=<hex list>` (only these hooks are installed; the inverse of `REB_DISABLE_HOOKS`, which cannot
+express "all but a few" within the environment size). The scripts press Scroll Lock (VK 145), which the game ignores. Both gates poll
+`GetAsyncKeyState`; the tick counter is read from `g_gameManager+0xc`. The tick at the save is exact in every run (header word 0x6a:
+154,502 in all 9 battle runs; 96,302 in all alliance runs). The scenarios also turn the music off in the Saved Games screen first and
+`REB_NO_TIMERS=1` stops the multimedia timers. Screenshots are only taken while the clock is held (a picture taken while the game runs
+depends on the moment), and are identical within a trajectory (below).
+
+**The original does not reproduce its own long runs.** Even `orig` x `orig` differs after a few hundred ticks. Cause, found with
+`tools/trace_divergence.patch` (temporary trace points in game code; apply, build, run twice, compare; the first sim-visible difference is
+the first differing `RUN` event): the AI breaks ties with `g_sessionRandom` (`AiRankedList::IsLess` -> `SessionRandomNext`), the same
+generator the droid advisor draws from (`AllianceAdvisor/EmpireAdvisor::ProcessIdle`, `AdvisorBase::PickAdvice`, called by
+`HumanPlayer::NextAdvice` from the music-end callback and by the cue machinery after droid animation steps). When an advisor draw lands one
+draw earlier or later relative to the AI's draws, the AI ranks sectors/systems differently (first visible: an `AdvisorTask20` destination
+order, event kind 0x214, for a different manager key), and the simulations drift: sizes of the saves differ by kilobytes and the
+game-manager serial counters (`GameHookNextSerialA/B`, header words at 0x72/0x76) differ. Advisor idle draws are driven by UI animation and
+music, which run on wall-clock/async schedules. Further sources removed on the way: multimedia timers (`REB_NO_TIMERS`), the per-call
+clock (`REB_CLOCK_FROM_QPC`), idle frames before the start (start key), music (scenario).
+
+**Results (Oct 9, concurrent runs on one machine).**
+
+| Scenario / config | runs | outcome |
+|---|---|---|
+| alliance, 3,500 ticks, first shims | orig 2, hybrid 2, standalone 2 | all six saves differ (sizes 1,262,052-1,282,422); same-config pairs too |
+| alliance, 3,500 ticks, + start key, no timers, clock from QPC | 3 x 3 | all nine differ in size; orig_1/orig_2 within 9,960 bytes |
+| alliance, 1,225 ticks (`-t 96300`), no music switch | orig 4, hybrid 4, standalone 4 | modal trajectory (1,252,262 bytes) reached by orig 4/4, hybrid 2/4, standalone 1/4; all seven runs on it agree within 45-57 bytes of UI state (16-bit message stamps, one 5 KB region); three more trajectories |
+| same, music off, final scenario | orig 3, hybrid 4, standalone 4 | hybrid 4/4 on the modal trajectory (<= 52 bytes apart), orig 1/3 on it (the other two on trajectories standalone also reaches), standalone on 4 distinct trajectories (2 shared with orig); screenshots identical across the modal runs |
+| battle, 4,200 ticks (with and without music) | 3 + 3 + 3 | all runs differ in size, but **orig 3/3 and every hybrid/standalone run (6/6, 5/5) form two stable groups**: header serials 0x142e5/0x1ea8c (original code) vs 0x142dd/0x1ea88 (hybrid and standalone), same tick 154,502 |
+
+So on a trajectory the three configurations agree (alliance), and the standalone and hybrid always agree with each other. The battle scenario shows
+a *systematic* difference between the original code and the reconstructions, appearing at the daily update between ticks 153,762 and 153,822
+(bisected by save tick; `tools/bisect_save.py`'s first round was ambiguous: no single chunk of 1,785 hooks restores the original, and
+module-level `REB_ENABLE_HOOKS` subsets of core modules stall the game). The first difference of the event/random trace of the original code
+(`REB_ENABLE_HOOKS` of the trace functions only) against the hybrid is not a game-logic result but timing: the Empire droid advisor's idle draw
+after event 513 at tick 150,797 happens 172 ticks later in the original code (tick 150,969) and 221 ticks later in the hybrid (151,018), a
+constant offset that then shifts every later advisor draw against the AI's draws (AI target choice 0x214 differs at tick 151,380). Hypothesis:
+droid animation progress per game tick depends on wall-clock rate (paint/idle cadence), and the original runs fewer ticks per second than the
+reconstruction, so its animations advance further per tick; this would explain a stable orig-vs-reconstruction split with no logic difference.
+Not tested: pinning animation to virtual time (the standalone/hybrid would need to suppress or virtualise WM_PAINT/SpriteStage cadence).
+No reconstruction bug was identified, and none is excluded.

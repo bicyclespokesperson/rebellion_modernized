@@ -20,12 +20,14 @@ static constexpr uint32_t kTextBegin = 0x00401000;
 static constexpr uint32_t kTextEnd = 0x00657400;
 
 // REB_DISABLE_HOOKS="all" or a comma-separated list of hex addresses keeps the original code,
-// which is how a regression gets bisected to a single reimplemented function.
-class DisabledHooks {
+// which is how a regression gets bisected to a single reimplemented function. REB_ENABLE_HOOKS=<list> is the inverse: only
+// the listed hooks are installed (the environment block of a process cannot hold a disable list of nearly all 10,000 hooks).
+template <int Tag>
+class HookList {
 public:
-    DisabledHooks() {
-        DWORD n = GetEnvironmentVariableA("REB_DISABLE_HOOKS", buf_, sizeof buf_);
-        if (n >= sizeof buf_) log("REB_DISABLE_HOOKS is %u bytes; the limit is %u — ignored", n, sizeof buf_);
+    explicit HookList(const char* variable) {
+        DWORD n = GetEnvironmentVariableA(variable, buf_, sizeof buf_);
+        if (n >= sizeof buf_) log("%s is %u bytes; the limit is %u — ignored", variable, n, sizeof buf_);
         has_ = n > 0 && n < sizeof buf_;
         all_ = has_ && lstrcmpiA(buf_, "all") == 0;
     }
@@ -52,7 +54,8 @@ private:
     bool all_ = false;
 };
 
-char DisabledHooks::buf_[65536];
+template <int Tag>
+char HookList<Tag>::buf_[65536];
 
 bool patch_jump(uint32_t from, const void* to) {
     auto* p = reinterpret_cast<uint8_t*>(from);
@@ -67,7 +70,9 @@ bool patch_jump(uint32_t from, const void* to) {
 }
 
 int install_hooks() {
-    DisabledHooks disabled;
+    HookList<0> disabled("REB_DISABLE_HOOKS");
+    HookList<1> enabled("REB_ENABLE_HOOKS");
+    const bool enabled_only = GetEnvironmentVariableA("REB_ENABLE_HOOKS", nullptr, 0) != 0;
     int installed = 0, skipped = 0, failed = 0;
     for (const HookEntry* h = reb_hook_table; h->original; ++h) {
         if (h->original < kTextBegin || h->original + 5 > kTextEnd) {
@@ -76,7 +81,7 @@ int install_hooks() {
         } else if (is_capture_target(h->original)) {
             log("hook %s (%08x) left original: capture target", h->name, h->original);
             ++skipped;
-        } else if (disabled.contains(h->original)) {
+        } else if (disabled.contains(h->original) || (enabled_only && !enabled.contains(h->original))) {
             ++skipped;
         } else if (patch_jump(h->original, h->replacement)) {
             ++installed;
