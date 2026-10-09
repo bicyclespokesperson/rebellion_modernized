@@ -279,7 +279,8 @@ public:
     int FindBestShipOfCommandKind2(uint32_t side, GameObjNotifier** out);  // 0x509460
     int FindBestShipOfCommandKind1(uint32_t side, GameObjNotifier** out);  // 0x509530
     uint32_t GetRecordField44();  // 0x509610
-    void GetRecordField4c(uint32_t* out);  // 0x509620
+    // *out = the map position (record +0x4c, 0 without a record); returns out.
+    uint32_t* GetRecordField4c(uint32_t* out);  // 0x509620
     int GetEnergy();  // 0x509650
     int GetRawMaterial();  // 0x509660
     GameObjNotifier* FindManufacturingManagerBySlot123(int value);  // 0x509670

@@ -7,11 +7,10 @@
 #include "gameobj/game_obj_root.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
+#include "rules/loyalty_params.h"
 
 // The system's map position (its data record's +0x4c), 0,0 without a record; returns `out`.
 MapPosition* __thiscall FUN_00509620(GameObjNotifier* system, MapPosition* out);
-// Straight-line distance of two map positions.
-int __cdecl FUN_0055d860(const MapPosition* a, const MapPosition* b);
 // The next master system after `system`.
 GameObjNotifier* __thiscall FUN_0051a5d0(GameObjNotifier* system);
 
@@ -23,7 +22,7 @@ int DistanceBetween(GameObjNotifier* from, GameObjNotifier* to) {
     MapPosition toPosition;
     MapPosition fromPosition;
     MapPosition* target = FUN_00509620(to, &toPosition);
-    return FUN_0055d860(FUN_00509620(from, &fromPosition), target);
+    return MapDistance(FUN_00509620(from, &fromPosition), target);
 }
 
 int SystemIndex(const GameObjNotifier* system) { return static_cast<int>(system->m_id) - SystemNeighbourTable::kFirstSystemId; }

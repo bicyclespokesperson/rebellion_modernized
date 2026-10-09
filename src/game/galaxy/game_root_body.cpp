@@ -16,7 +16,7 @@
 // accounted for.
 
 // Loads the rule tables for the game's difficulty (0x513f70).
-int FUN_00513f70(int difficulty);
+int BindRuleTables(int difficulty);
 // The manufacturing manager's confirmation that it knows `unit` (0x528930).
 int __thiscall FUN_00528930(GameObjNotifier* manager, ObjectKey* unit);
 
@@ -63,7 +63,7 @@ int countKey(ObjectKeyValueSet* counts, ObjectKey* key, int ok) {
 
 }  // namespace
 
-int GameRoot::BindDifficultyTables() { return FUN_00513f70(m_settings.m_field0c); }
+int GameRoot::BindDifficultyTables() { return BindRuleTables(m_settings.m_field0c); }
 
 int GameRoot::ReadBody(istream* in) {
     int ok = GameObj::Read(in);

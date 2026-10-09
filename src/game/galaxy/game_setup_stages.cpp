@@ -11,6 +11,8 @@
 #include "gameobj/object_queries.h"
 #include "gameobj/object_type_db.h"
 #include "galaxy/game_setup_seed.h"
+#include "rules/loyalty_params.h"
+#include "rules/rules_mgr.h"
 
 // The stages of the new-game setup that fill the universe (GameRoot::StepSetup, 0x5136d0, calls them in this order):
 // the root's children (side roots, managers, sides, the singleton rules objects), the sectors, the split of the
@@ -23,11 +25,10 @@ DatRecord* FUN_0051cab0(const ObjectKey* key);  // the data record of a key (via
 DatRecord* FUN_0051cad0(uint32_t family);       // the first data record of a family
 int FUN_005597e0(int side, int which);          // seeding percentages by side
 int __thiscall FUN_005305c0(GameObjNotifier* side, int systemCount);
-int __thiscall FUN_005562e0(GameObjNotifier* rules, NotifyContext* ctx);
-int FUN_005187a0(int side, GameObjNotifier** out);
+int GetSideObjectForIndex(int side, GameObjNotifier** out);
 int __thiscall FUN_0052fff0(GameObjNotifier* object, NotifyContext* ctx);
-int FUN_00517760(GameObjNotifier* object, NotifyContext* ctx);
-int FUN_00516360(ObjectKey* key, int kind, int value, NotifyContext* ctx);
+int NumberUnitName(GameObjNotifier* object, NotifyContext* ctx);
+int ApplyEvent315(ObjectKey* key, int kind, int value, NotifyContext* ctx);
 int FUN_0040f340();
 int __thiscall FUN_00526550(GameObjNotifier* sector);
 int __thiscall FUN_005092f0(System* system);
@@ -37,19 +38,6 @@ int FUN_00529a40(GameObjNotifier* system, NotifyContext* ctx);
 int FUN_00566c00(GameObjNotifier* sector, NotifyContext* ctx);
 int FUN_00539ac0(GameObjNotifier* system, NotifyContext* ctx);
 int __thiscall FUN_0050d5a0(GameObjNotifier* system, int a, int b, NotifyContext* ctx);
-// Initial-force parameters (0x55d500-0x55d780): each fills its outputs from the current rule parameters.
-int FUN_0055d500(int* out);
-int FUN_0055d520(int* tableType, int* first, int* last);
-int FUN_0055d550(int* tableType, int* first, int* last);
-int FUN_0055d580(int* tableType, int* first, int* last);
-int FUN_0055d5b0(int* tableType, int* first, int* last);
-int FUN_0055d5e0(int* tableType, int* first, int* last);
-int FUN_0055d610(int* tableType, int* first, int* last);
-int FUN_0055d640(int* tableType, int* first, int* last);
-int FUN_0055d670(int value, int level, int* out);
-int FUN_0055d6d0(int value, int level, int* out);
-int FUN_0055d730(int* count, ObjectRefList* list);
-int FUN_0055d780(int* count, ObjectRefList* list);
 int FUN_0055a050(int value);
 
 namespace {
@@ -377,7 +365,7 @@ int GameRoot::PlaceNextPooledSystem(int* done, NotifyContext* ctx) {
 
 // ---- stages 0xd-0xf: the rules object and the per-system initialization walk ----------------------------------
 
-int GameRoot::BuildRulesObject(NotifyContext* ctx) { return FUN_005562e0(m_master_f9000007, ctx); }
+int GameRoot::BuildRulesObject(NotifyContext* ctx) { return static_cast<RulesMgr*>(m_master_f9000007)->BuildNeighbourTable(ctx); }
 
 int GameRoot::BeginSystemWalk(NotifyContext* ctx) {
     (void)ctx;
@@ -408,7 +396,7 @@ int GameRoot::PlaceCoreSystem(NotifyContext* ctx) {
     int tableType = 0;
     int first = 0;
     int last = 0;
-    int ok = bothTrue(FUN_0055d610(&tableType, &first, &last), headquarters != nullptr);
+    int ok = bothTrue(GetCoreSystemRows(&tableType, &first, &last), headquarters != nullptr);
     if (headquarters != nullptr) {
         ok = seedHeadquarters(this, headquarters, tableType, first, last, ctx, ok);
         const ObjectKey managerKey = ObjectKey::Make(0x20, 5);
@@ -424,7 +412,7 @@ int GameRoot::PlaceCoruscantSystem(NotifyContext* ctx) {
         int tableType = 0;
         int first = 0;
         int last = 0;
-        const int tablesOk = bothTrue(FUN_0055d640(&tableType, &first, &last), ok);
+        const int tablesOk = bothTrue(GetCoruscantSystemRows(&tableType, &first, &last), ok);
         ok = seedHeadquarters(this, headquarters, tableType, first, last, ctx, tablesOk);
     }
     return ok;
@@ -471,7 +459,7 @@ int GameRoot::SeedYavinForces(NotifyContext* ctx) {
     int tableType = 0;
     int first = 0;
     int last = 0;
-    int ok = bothTrue(FUN_0055d520(&tableType, &first, &last), system != nullptr);
+    int ok = bothTrue(GetYavinForceRows(&tableType, &first, &last), system != nullptr);
     if (system != nullptr) ok = bothTrue(SeedFromTableRows(system, tableType, first, last, ctx), ok);
     return ok;
 }
@@ -481,7 +469,7 @@ int GameRoot::SeedKey154Forces(NotifyContext* ctx) {
     int tableType = 0;
     int first = 0;
     int last = 0;
-    int ok = FUN_0055d550(&tableType, &first, &last);
+    int ok = GetKey154ForceRows(&tableType, &first, &last);
     if (system != nullptr) {
         const int placed = SeedFromTableRows(system, tableType, first, last, ctx);
         return placed != 0 && ok != 0 ? 1 : 0;
@@ -494,14 +482,14 @@ int GameRoot::SeedCoruscantForces(NotifyContext* ctx) {
     int tableType = 0;
     int first = 0;
     int last = 0;
-    int ok = bothTrue(FUN_0055d580(&tableType, &first, &last), system != nullptr);
+    int ok = bothTrue(GetCoruscantForceRows(&tableType, &first, &last), system != nullptr);
     if (system != nullptr) ok = bothTrue(SeedFromTableRows(system, tableType, first, last, ctx), ok);
     return ok;
 }
 
 int GameRoot::SeedStartingFleet(NotifyContext* ctx) {
     int atYavin = 1;
-    const int rolled = FUN_0055d500(&atYavin);
+    const int rolled = RollStartingFleetAtYavin(&atYavin);
     GameObjNotifier* system = atYavin == 0 ? GetMasterInFamilies_90_98(&m_key154) : masterSystem(kYavinKey);
     int ok = bothTrue(rolled, system != nullptr);
     GameObj* fleet = nullptr;
@@ -512,7 +500,7 @@ int GameRoot::SeedStartingFleet(NotifyContext* ctx) {
     int tableType = 0;
     int first = 0;
     int last = 0;
-    int tablesOk = bothTrue(FUN_0055d5b0(&tableType, &first, &last), ok);
+    int tablesOk = bothTrue(GetStartingFleetRows(&tableType, &first, &last), ok);
     if (fleet != nullptr) tablesOk = bothTrue(SeedFromTableRows(fleet, tableType, first, last, ctx), tablesOk);
     return tablesOk;
 }
@@ -528,7 +516,7 @@ int GameRoot::SeedCoruscantFleet(NotifyContext* ctx) {
     int tableType = 0;
     int first = 0;
     int last = 0;
-    int result = bothTrue(FUN_0055d5e0(&tableType, &first, &last), ok);
+    int result = bothTrue(GetCoruscantFleetRows(&tableType, &first, &last), ok);
     if (system != nullptr) result = bothTrue(SeedFromTableRows(fleet, tableType, first, last, ctx), result);
     return result;
 }
@@ -548,17 +536,17 @@ int GameRoot::SeedSideReserves(int side, NotifyContext* ctx) {
     if (sideObject != nullptr) {
         const int available = reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(sideObject) + 0x58)[0] -
                               reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(sideObject) + 0x58)[1];
-        result = side == 2 ? FUN_0055d6d0(available, m_settings.m_field04, &budget)
-                           : FUN_0055d670(available, m_settings.m_field04, &budget);
+        result = side == 2 ? ScaleEmpireReserveBudget(available, m_settings.m_field04, &budget)
+                           : ScaleAllianceReserveBudget(available, m_settings.m_field04, &budget);
     }
     for (;;) {
         int count = 0;
         ObjectRefList units;
         int ok;
         if (side == 2) {
-            ok = bothTrue(FUN_0055d780(&count, &units), result);
+            ok = bothTrue(PickEmpireReserveUnits(&count, &units), result);
         } else {
-            ok = bothTrue(FUN_0055d730(&count, &units), result);
+            ok = bothTrue(PickAllianceReserveUnits(&count, &units), result);
         }
         int unitsTotal = 0;
         result = bothTrue(SumSeedValues(count, &units, &unitsTotal), ok);
@@ -616,9 +604,9 @@ int GameRoot::SeedSideReserves(int side, NotifyContext* ctx) {
 
 int GameRoot::SetupSideObjects(NotifyContext* ctx) {
     GameObjNotifier* side = nullptr;
-    int ok = FUN_005187a0(1, &side) != 0;
+    int ok = GetSideObjectForIndex(1, &side) != 0;
     if (side != nullptr) ok = bothTrue(FUN_0052fff0(side, ctx), ok);
-    ok = bothTrue(FUN_005187a0(2, &side), ok);
+    ok = bothTrue(GetSideObjectForIndex(2, &side), ok);
     if (side != nullptr) {
         if (FUN_0052fff0(side, ctx) == 0 || ok == 0) return 0;
         return 1;
@@ -650,14 +638,14 @@ int GameRoot::InitializeAllObjects(NotifyContext* ctx) {
     int ok = 1;
     for (GameObjNotifier* object = GetFirstMasterInFamilies_01_ff(); object != nullptr;
          object = asGameObj(object)->FindNextSibling(&kAllFamilies, 1)) {
-        ok = bothTrue(FUN_00517760(object, ctx), ok);
+        ok = bothTrue(NumberUnitName(object, ctx), ok);
         ok = bothTrue(callVirtual<int>(object, kVirtual48Slot, ctx), ok);
         const uint32_t objectFamily = object->GetFamily();
         if (objectFamily >= kStationFamilies.m_first && objectFamily < kStationFamilies.m_second) {
             const int level = *reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(object) + kFacilityLevelOffset);
             ObjectKey key;
             object->GetKey(&key);
-            ok = bothTrue(FUN_00516360(&key, 4, level, ctx), ok);
+            ok = bothTrue(ApplyEvent315(&key, 4, level, ctx), ok);
         }
     }
     return ok;

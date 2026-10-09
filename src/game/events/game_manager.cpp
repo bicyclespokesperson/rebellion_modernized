@@ -6,6 +6,7 @@
 #include "core/vptr_store.h"
 #include "economy/side.h"
 #include "events/event_base.h"
+#include "events/game_manager_state.h"
 #include "data/probability_table.h"
 #include "data/table_registration.h"
 #include "gameobj/factory_registries.h"
@@ -100,17 +101,14 @@ int GameManager::InitState() {
     m_events = NewOrNull<TypeQueue>();
     if (!m_events || m_events->m_flag0c == 0) m_ok = 0;
 
-    void* memory = operator new(sizeof(PostedEventQueue));
-    m_firstQueue = memory ? FUN_00568840(memory) : nullptr;
+    m_firstQueue = NewOrNull<PostedEventQueue>();
     if (!m_firstQueue || m_firstQueue->m_flag == 0) m_ok = 0;
 
-    memory = operator new(sizeof(PostedEventQueue));
-    m_secondQueue = memory ? FUN_00568840(memory) : nullptr;
+    m_secondQueue = NewOrNull<PostedEventQueue>();
     if (!m_secondQueue || m_secondQueue->m_flag == 0) m_ok = 0;
 
-    memory = operator new(sizeof(TickTable));
-    m_tickTable = memory ? FUN_00568b40(memory) : nullptr;
-    if (!m_tickTable || *reinterpret_cast<int*>(reinterpret_cast<char*>(m_tickTable) + 8) == 0) m_ok = 0;
+    m_tickTable = NewOrNull<TickTable>();
+    if (!m_tickTable || m_tickTable->m_ready == 0) m_ok = 0;
     return m_ok;
 }
 
@@ -151,7 +149,7 @@ int GameManager::Read(istream* in) {
     if (ok) ok = InitState();
     if (ok) ok = CheckPositionMarker(in);
     if (ok) {
-        FUN_00568a30(in);
+        ReadLegacyTexts(in);
         ok = readFlagsAndSnapshots(this, in);
         if (ok) ok = CheckPositionMarker(in);
         if (ok) {
@@ -171,11 +169,11 @@ int GameManager::Read(istream* in) {
             ok = CheckPositionMarker(in);
         }
         if (ok) {
-            ok = FUN_005688d0(m_firstQueue, in);
+            ok = m_firstQueue->Read(in);
             if (ok) ok = CheckPositionMarker(in);
         }
         if (ok) {
-            ok = FUN_005688d0(m_secondQueue, in);
+            ok = m_secondQueue->Read(in);
             if (ok) ok = CheckPositionMarker(in);
         }
         if (ok) {
@@ -189,13 +187,11 @@ int GameManager::Read(istream* in) {
     if (ok) {
         ReadValue32(in, &hasCurrentFormat);
         if (hasCurrentFormat == 0) {
-            LegacySaveBlock legacy;
-            FUN_005686a0(&legacy);
-            for (int i = 0; i < 6; ++i) FUN_00568770(&legacy, in);
-            FUN_005686e0(&legacy);
+            LegacyTextTable legacy;
+            for (int i = 0; i < 6; ++i) legacy.Read(in);
             ok = CheckPositionMarker(in);
         }
-        ok = ok ? FUN_00568560(in) : 0;
+        ok = ok ? ReadLegacyBlocks(in) : 0;
     }
 
     m_stateDiffers = 0;
@@ -214,7 +210,7 @@ int GameManager::Read(istream* in) {
 
 int GameManager::Write(ostream* out) {
     WritePositionMarker(out);
-    FUN_00568a80(out);
+    WriteLegacyTexts(out);
     const int* fields = &m_ok;
     for (int i = 0; i < 19; ++i) WriteValue32(out, fields + i);
 
@@ -240,11 +236,11 @@ int GameManager::Write(ostream* out) {
         if (ok) WritePositionMarker(out);
     }
     if (ok) {
-        ok = m_firstQueue ? FUN_00568980(m_firstQueue, out) : 0;
+        ok = m_firstQueue ? m_firstQueue->Write(out) : 0;
         if (ok) WritePositionMarker(out);
     }
     if (ok) {
-        ok = m_secondQueue ? FUN_00568980(m_secondQueue, out) : 0;
+        ok = m_secondQueue ? m_secondQueue->Write(out) : 0;
         if (ok) WritePositionMarker(out);
     }
     if (ok) {
@@ -256,7 +252,7 @@ int GameManager::Write(ostream* out) {
     int currentFormat = 1;
     if (ok) {
         WriteValue32(out, &currentFormat);
-        if (ok) ok = FUN_005685a0(out);
+        if (ok) ok = WriteLegacyBlocks(out);
     }
     return ok;
 }
@@ -273,7 +269,7 @@ int GameManager::Checksum(Crc32* crc) {
 }
 
 void GameManager::BeginNewGame(GameSettings* settings) {
-    FUN_00568a00();
+    ResetLegacyTexts();
     m_setupDone = 0;
     delete m_root;
     m_root = nullptr;
@@ -415,10 +411,10 @@ int GameManager::BuildAvailableOrders(int side, ObjectKeyValueSet* team, EventKi
 
 int GameManager::GetRootField70() { return m_root ? m_root->m_unk70 : 0; }
 
-int GameManager::GetRootKey(ObjectKey* out) { return m_root ? FUN_00516710(m_root, out) : 0; }
+int GameManager::GetRootKey(ObjectKey* out) { return m_root ? m_root->GetRootKey(out) : 0; }
 
 int GameManager::QueryRootBattle(int side, uint32_t* a, uint32_t* b, int* c, uint32_t* d) {
-    return m_root ? FUN_00516730(m_root, side, a, b, c, d) : 0;
+    return m_root ? m_root->QueryRetreat(side, a, b, c, d) : 0;
 }
 
 int GameManager::ExecuteNotice(SidedMessage* notice) {
@@ -433,16 +429,16 @@ int GameManager::ExecuteNotice(SidedMessage* notice) {
 
 int GameManager::StartPendingBattle() {
     int result = 0;
-    if (m_root) result = FUN_00516d50(m_root);
+    if (m_root) result = m_root->StartPendingBattle();
     m_lastBattleTick = m_tickCount;
     return result;
 }
 
 int GameManager::RunFollowUps() {
     if (!m_root) return 0;
-    int ok = FUN_00516ef0(m_root) != 0;
+    int ok = m_root->PrepareBattle() != 0;
     ok = RunUntilIdle() && ok;
-    ok = FUN_00517270(m_root) && ok;
+    ok = m_root->ResolveBattle() && ok;
     ok = RunUntilIdle() && ok;
     return EndOfStep() && ok;
 }
@@ -537,7 +533,7 @@ int GameManager::EndOfStep() {
             m_unk40 = tableValueA != tableValueB;
         m_haveSideSnapshots = 1;
     }
-    if (FUN_00518460() && FlushFirstQueue() && m_tickTable) {
+    if (PublishVictoryState() && FlushFirstQueue() && m_tickTable) {
         m_tickTable->Clear();
         FlushSecondQueue();
     }
@@ -629,16 +625,16 @@ int GameManager::ResolveTickValue(SeedKey* key, int* out) {
     *out = 0;
     int ok = m_tickTable != nullptr;
     if (ok) {
-        TickNode* node = nullptr;
-        if (key->m_key != 2) node = FUN_00568de0(m_tickTable, key);
+        SeedKeyCountNode* node = nullptr;
+        if (key->m_key != 2) node = m_tickTable->Find(key);
         if (!node) {
-            node = FUN_00568d70(m_tickTable, key);
+            node = m_tickTable->Create(key);
             if (!node) return 0;
             const int value = CallGameHook2AF4();
-            node->m_value = value;
-            ok = PostTickValue(node->m_a, value, node->m_c);
+            node->m_count = value;
+            ok = PostTickValue(node->m_key.m_third, value, node->m_key.m_fifth);
         }
-        if (ok) *out = node->m_value;
+        if (ok) *out = node->m_count;
     }
     return ok;
 }

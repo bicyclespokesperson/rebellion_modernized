@@ -30,7 +30,7 @@ int Event301::CheckValid(StatusCode* status) {
 
 int Event301::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00514510(&m_key, &m_keyA, &m_keyB, m_valueB, &ctx);
+    ApplyEvent301(&m_key, &m_keyA, &m_keyB, m_valueB, &ctx);
     return 0;
 }
 
@@ -54,7 +54,7 @@ int Event31d::CheckValid(StatusCode* status) {
 
 int Event31d::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00514820(&m_key, &m_keyA, &m_keyB, m_valueB, &ctx);
+    ApplyEvent31d(&m_key, &m_keyA, &m_keyB, m_valueB, &ctx);
     return 0;
 }
 
@@ -78,7 +78,7 @@ int Event300::CheckValid(StatusCode* status) {
 
 int Event300::Execute() {
     NotifyContext ctx(m_context);
-    FUN_005140c0(&m_key, &m_keyA, &m_keyB, m_valueB, &ctx);
+    ApplyEvent300(&m_key, &m_keyA, &m_keyB, m_valueB, &ctx);
     return 0;
 }
 
@@ -102,7 +102,7 @@ int Event308::CheckValid(StatusCode* status) {
 
 int Event308::Execute() {
     NotifyContext ctx(m_context);
-    FUN_005150c0(&m_key, m_valueB, &ctx);
+    ApplyEvent308(&m_key, m_valueB, &ctx);
     return 0;
 }
 
@@ -126,7 +126,7 @@ int Event306::CheckValid(StatusCode* status) {
 
 int Event306::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00515a50(&m_key, m_valueB, &ctx);
+    ApplyEvent306(&m_key, m_valueB, &ctx);
     return 0;
 }
 
@@ -150,7 +150,7 @@ int Event316::CheckValid(StatusCode* status) {
 
 int Event316::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00515bb0(&m_key, m_valueB, &ctx);
+    ApplyEvent316(&m_key, m_valueB, &ctx);
     return 0;
 }
 
@@ -174,7 +174,7 @@ int Event307::CheckValid(StatusCode* status) {
 
 int Event307::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00515480(&m_key, m_valueB, &ctx);
+    ApplyEvent307(&m_key, m_valueB, &ctx);
     return 0;
 }
 
@@ -198,7 +198,7 @@ int Event302::CheckValid(StatusCode* status) {
 
 int Event302::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00514890(&m_key, m_valueA, m_valueB, &ctx);
+    ApplyEvent302(&m_key, m_valueA, m_valueB, &ctx);
     return 0;
 }
 
@@ -222,7 +222,7 @@ int Event318::CheckValid(StatusCode* status) {
 
 int Event318::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00514a20(&m_key, m_valueA, m_valueB, &ctx);
+    ApplyEvent318(&m_key, m_valueA, m_valueB, &ctx);
     return 0;
 }
 
@@ -246,7 +246,7 @@ int Event315::CheckValid(StatusCode* status) {
 
 int Event315::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00516360(&m_key, m_valueA, m_valueB, &ctx);
+    ApplyEvent315(&m_key, m_valueA, m_valueB, &ctx);
     return 0;
 }
 
@@ -270,7 +270,7 @@ int Event30a::CheckValid(StatusCode* status) {
 
 int Event30a::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00516220(&m_key, m_valueA, m_valueB, &ctx);
+    ApplyEvent30a(&m_key, m_valueA, m_valueB, &ctx);
     return 0;
 }
 
@@ -294,7 +294,7 @@ int Event320::CheckValid(StatusCode* status) {
 
 int Event320::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00514a60(&m_key, &m_keyC, &m_keyD, &ctx);
+    ApplyEvent320(&m_key, &m_keyC, &m_keyD, &ctx);
     return 0;
 }
 

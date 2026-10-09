@@ -5,7 +5,7 @@ start,end,module,subsystem,confidence,evidence
 0x00404c30,0x00406600,ui_frontend_window,ui_strategic,low,main front-end window loaded from common.dll VT 0x658580 (global 0x6b06f4); created from DoMainChildWindow 0x414a80
 0x00406600,0x00406950,app_cdcheck_version,app,high,S:"data0.reb" "Error: CD Not Found" "Versions Incompatible"; GetFileVersionInfo on textstra.dll
 0x00406950,0x00409230,GameOptionsWindow,ui_strategic,high,S:"GameOptionsWindow::GameOptionsRequestLoad()" "1.01.00"; textcomm.dll (notes:game-options)
-0x00409230,0x0040a050,game_session_saveload,saveload,medium,session save/load driver: save 0x409690 / load 0x409700 / restore 0x409480 via ofstream/ifstream (0x5f4a60/0x5f4b10); game root 0x41dd60/0x41de70; also restores mid-tactical saves (0x409a50/0x59a4f0)
+0x00409230,0x0040a050,battle_flow_session,saveload,high,BattleFlow object lifetime (GetBattleFlow/CreateBattleFlow/DestroyBattleFlow 0x409280..), StartGame/Restore/Save/SaveStrategic and the pre-battle autosave files (0x409480-0x409fe0); not the game state itself (that is game_manager_state)
 0x0040a050,0x0040d7a0,battle_flow,battle_flow,high,battle state machine 0x40a050 + names 0x40a700 (STRAT_*/TACT_*); strat->tact converters 0x40b0e0..0x40c5f0; tact->strat 0x40c780..0x40d510
 0x0040d7a0,0x004119e0,MultiPlayerWindow,multiplayer,high,S:"MultiPlayerWindow::DoCancelMultiPlayer()" "MP_BCKGND_GAME_SETUP"; GetUserNameA/GetComputerNameA; calls comm2 0x597xxx
 0x004119e0,0x00412fc0,anim_resource_classes,gfx,low,five INIT-pair TUs each loading RCDATA (FindResource type 0xa) sprite lists via 0x5fbd20
@@ -131,7 +131,7 @@ start,end,module,subsystem,confidence,evidence
 0x00510800,0x00513040,system_virtual_notif,galaxy,high,System virtuals VT 0x65e728/e810; System*Notif 511b90-5126c0; 4 INITs 512db0-512ea0; iterators fam 0x90-0x98
 0x00513040,0x00513240,objiter_base,gameobj,high,child iterator base 513050/513090 + walk 513120(c226)/5130d0(c208); filter 5131d0 (notes:object-state-flags)
 0x00513240,0x00513f70,game_root,gameobj,medium,root game object ctor 513240 VT 0x65e938 (GameObj-derived); setup stage machine 5136d0 (notes:timer-scheduler)
-0x00513f70,0x00518b20,game_rules_battle,combat_strat,medium,event handlers 5140c0-516360; pending-battle queue 516d50/516710; post-battle 516ef0/517270; 514a60 = event 0x31a handler (NOT a combat resolver)
+0x00513f70,0x00518b20,event_rules,combat_strat,high,what the game does around an object event (move, destroy, control change): handlers 5140c0-516360 for events 0x300-0x320, support rules 517510-518ac0 (loyalty shifts, Death Star, victory state), GameRoot pending-battle methods 516710-517270; BindRuleTables 513f70 (NOT a combat resolver)
 0x00518b20,0x0051c040,game_setup_seed,galaxy,medium,setup-stage helpers called from 5136d0: galaxy seeding 518f00/519d00 (notes:ai-behavior-analysis); 51b7f0 stage 0x17
 0x0051c040,0x0051c300,obj_family25,economy,low,small class fam 0x25-0x26: ctor 51c060 (base 526xxx); factory 51c140 registered as fam 0x25 in 51ebf0; iter 51c270
 0x0051c300,0x0051c740,order_stream_reader,multiplayer,low,VT 0x65ecd8; iostream reads of order ids -> 51f8f0 factory; called from battle-flow 40e-415/485
@@ -169,7 +169,7 @@ start,end,module,subsystem,confidence,evidence
 0x0054ea70,0x0054eee0,event_queue,events,medium,queue VT 0x661fb8/0x661fd8; 54ec90 pop+run slot +0x20 / 54ece0 reinsert (notes:timer-scheduler)
 0x0054eee0,0x0054f830,command_base_registry,events,medium,command base 54eee0; 54f2c0 order base; 54f100 id->factory table DAT_006b92f0; 54f5b0 type-range table + INIT 54f7c0
 0x0054f830,0x00554020,move_route_validation,fleet,medium,result ctx VT 0x6620dc; route legs 550620-552d10; order checks 553410-553b80; S:"<empty GameObjKey>" 553c80
-0x00554020,0x00557410,ObjF9_combat_rules_mgr,combat_strat,low,type 0xf9 ctor 554020 (factory 556f30); bombardment 555b30/556430; fleet strength 555540; disaster timer 556b50
+0x00554020,0x00557410,rules_mgr,combat_strat,high,RulesMgr = family 0xf9 manager (ctor 554020, factory 556f30): move capacity checks, travel days, relocation of units that lose their container, random system incidents (timers 0x38f/0x390); not combat
 0x00557410,0x00557e60,CombatUnit,fleet,high,ctor 557410 over Detector 557e60; S:"CombatUnitUnderRepairNotif" "CombatUnitFastRepairNotif"; INIT 557e10
 0x00557e60,0x00558460,Detector,fleet,medium,ctor 557e60 VT 0x662558; continues to ~0x558460 (S:"DetectorIsDecoyedNotif" 558310; INIT 558410)
 0x00558460,0x005587e0,rules_gnprtb_08,fleet,low,GNPRTB 0x800-0x805 loader 0x558510 (bss 0x6bb378); ObjSet<0x10..0x20>; class VT 0x662738; callers IN:501/502
@@ -180,7 +180,7 @@ start,end,module,subsystem,confidence,evidence
 0x0055b2f0,0x0055bea0,resource_facilities,economy,medium,3 TUs (INIT 0x55b640/0x55b9c0/0x55be50) types 0xa4/0xa0/0xa2 VT 0x6629a0/0x662c00/0x662e60; notes:economy-systems
 0x0055bea0,0x0055bfd0,rules_gnprtb_1c,data,low,prob-table lookup helpers 0x55bed0 (c9); GNPRTB 0x1c00 loader 0x55bf10; RLEVADTB 0x55bfa0
 0x0055bfd0,0x0055cb60,mission_rules_18,mission,high,GNPRTB 0x1800-0x182e loader 0x55bfd0; *MSTB mission-table formulas called by each mission class; notes:mission-lifecycle
-0x0055cb60,0x0055e290,combat_rules_14,combat_strat,high,GNPRTB 0x1400-0x1420 loader 0x55cb60; power ratio 0x55d860; transit/damage 0x55d8c0; notes:bombardment
+0x0055cb60,0x0055e290,loyalty_params,combat_strat,high,GNPRTB/SDPRTB 0x1400-0x1445 loader 0x55cb60: loyalty-shift rule builders (BuildCaptureRule...), galaxy seeding parameters, map distance and travel days 0x55d860-0x55d8c0
 0x0055e290,0x0055e5b0,rules_gnprtb_10_0e,mission,medium,GNPRTB 0x1000 + 0xe00 loaders; TDECOYTB/FDECOYTB 0x55e410 FOILTB 0x55e470 (callers 0x588xxx); notes:INDEX
 0x0055e5b0,0x0055ec90,rules_gnprtb_0c_06_02,mission,low,GNPRTB 0xc00/0x600/0x200 loaders; ESCAPETB 0x55e7e0; callers 0x58b-0x58d and 0x561xxx
 0x0055ec90,0x00562a50,CharacterMgr,character,medium,VT 0x6630c0 type 0xfa; S:"CharacterMgrSeatOfPowerNotif"; has ground combat 0x560d50 + DeathStar 0x5617b0; INIT 0x562a00
@@ -189,7 +189,7 @@ start,end,module,subsystem,confidence,evidence
 0x005651d0,0x00566b90,incident_timers,events,high,timer base 0x585fe0; ids 0x383-0x390 VT 0x6634d8-0x663660 (uprising/informant/disaster/resource); notes:timer-scheduler
 0x00566b90,0x005673d0,system_type90,galaxy,medium,System subclass (base 0x507130) VT 0x663698 type 0x90; ObjSet<0x90..0x92> 0x567340; notes:timer-scheduler (0x663758)
 0x005673d0,0x00568160,objtype_db,gameobj,low,singleton class VT 0x663984 (0x6bb7a4); S:"<can't find name; type = "; family>>24 lookups via 0x58ec90; IN:51c
-0x00568160,0x00568fe0,saveload_state,saveload,low,INITs 0x5685e0/0x568630/0x568ad0; read/write pairs called from 0x51c/0x51d/0x51e; VT 0x663988-0x663990
+0x00568160,0x00568fe0,game_manager_state,saveload,high,GameManager own saved state: legacy save blocks and texts, PostedEventQueue (VT 0x66398c), TickTable (VT 0x663990), seed list key node
 0x00568fe0,0x005698c0,table_entry_registry,data,medium,S:"IntTableEntry/SeedTableEntry/GeneralParamTableEntry.."; SD factories 0x569300; class type 0xf2 VT 0x6639b8
 0x005698c0,0x00569e10,MissionSubdue,mission,high,VT 0x663b78 type 0x57; SUBDMSTB 0x55c780; INIT 0x569dc0; notes:mission-lifecycle
 0x00569e10,0x0056a430,MissionSabotage,mission,high,VT 0x663e08 type 0x69 base 0x5933a0; ObjSet VT 0x663e00; SBTGMSTB; INIT 0x56a3e0; notes:mission-lifecycle
@@ -234,8 +234,8 @@ start,end,module,subsystem,confidence,evidence
 0x0058af30,0x0058b1a0,system_neighbours,galaxy,high,SystemNeighbourTable/Cursor and CompareSystemDistance (galaxy/system_neighbours.cpp)
 0x0058b1a0,0x0058b310,unit_data_blocks,fleet,high,CombatUnitData/DetectorData (fleet/unit_data.cpp)
 0x0058b310,0x0058b960,data_table_registry,data,medium,table id registry 58b420 (58b810 GDATA ids); lookup 58b7e0; table base VT 0x66a8b0 for 557/558; notes:uprising-incident
-0x0058b960,0x0058c960,cmd_225_resolver,combat_strat,low,multi-step resolver 58c120 driven by cmd 0x225 fire (563390); functors VT 0x66a8d8
-0x0058c960,0x0058e570,planet_assault_resolver,combat_strat,low,resolver 58d770 for cmd 0x224 fire (5637c0); switch on 0x220-0x223; troop sums 58df60; control change 58e320
+0x0058b960,0x0058c960,planet_assault,combat_strat,high,planetary assault (command 0x225): AssaultResolver 58c0d0-58c8b0 runs troop-vs-troop rounds with AssaultWalker 58b9b0 and the TroopVisitor family (VT 0x66a8c8-0x66a8f8)
+0x0058c960,0x0058e570,planet_bombard,combat_strat,high,planetary bombardment (command 0x224, request kinds 0x220-0x223): BombardResolver 58d720-58e320 with BombardWalker 58ca00 and the ShipVisitor/DefenderVisitor families (VT 0x66a900-0x66a950)
 0x0058e570,0x0058fd50,seedlist_table_entries,data,medium,INIT S:SeedList (5954a0 class reg); SeedTableEntry 58f0e0 SeedFamilyTableEntry 58f3a0 IntTableEntry 58fb40 (569280)
 0x0058fd50,0x005923a0,sd_record_classes,data,medium,~13 *SD record classes registered by family range in 569300; Read/Write (5f4d90/5f4db0) + text parse (615/617)
 0x005923a0,0x00593b90,mission_base_classes_a,mission,medium,base 5923a0 rules 592600; end 592c80; agent 592f50; obj rules 593500 INITs 593350/5936e0/593b40; notes:mission-lifecycle

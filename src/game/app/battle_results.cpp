@@ -1,3 +1,4 @@
+#include "gameobj/game_root.h"
 #include "app/battle_flow.h"
 
 #include "character/character.h"
@@ -14,7 +15,6 @@
 // The tactical -> strategic hand-back (0x40c730-0x40d660): BattleResults reads the tactical engine's results through the
 // facade and applies them to the strategic objects the hand-over registered (battle_handoff.cpp).
 
-NotifyContext* __thiscall FUN_00516ee0(GameObjNotifier* gameRoot);  // the game root's notify context (+0x90)
 GameObjNotifier* GetMasterInFamilies_14_1c(const ObjectKey* key);   // 0x504f70
 uint32_t __thiscall SystemBattleControlKind(System* system);        // 0x40d750
 int __thiscall CapShipCurrentHull(CapShip* ship);                   // 0x40d710
@@ -85,7 +85,7 @@ unsigned BattleResults::Apply(int* inconclusive) {
 
         GameObjNotifier* root = GetGameRootObjectCached();
         const unsigned rootFound = root != nullptr;
-        if (rootFound) context = *FUN_00516ee0(root);
+        if (rootFound) context = *static_cast<GameRoot*>(root)->GetBattleContext();
         result = rootFound ? 1 : 0;
 
         {

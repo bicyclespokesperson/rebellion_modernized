@@ -78,13 +78,15 @@ int Side::FindFacilityManuMgr(GameObj* facility, ManuMgrDecl** out) {
     return result;
 }
 
-void Side::ReleaseFacilityToManager(ProductionFacility* facility, NotifyContext* ctx) {
+int Side::ReleaseFacilityToManager(ProductionFacility* facility, NotifyContext* ctx) {
     int result = 0;
     if (isReleasable(facility)) result = facility->SetPointPresent(0, ctx);
     if (result) {
         ManuMgrDecl* manager = nullptr;
-        if (FindFacilityManuMgr(facility, &manager) && manager != nullptr) FUN_0052a430(manager, ctx);
+        const int found = FindFacilityManuMgr(facility, &manager) && manager != nullptr;
+        result = found ? FUN_0052a430(manager, ctx) : 0;
     }
+    return result;
 }
 
 // ---- queries ------------------------------------------------------------------------------------------------

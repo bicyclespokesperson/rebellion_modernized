@@ -4,14 +4,8 @@
 #include "core/vptr_store.h"
 #include "galaxy/system.h"
 #include "gameobj/object_queries.h"
-
-// The helper objects the two system commands build to carry themselves out (classes of the 0x58b-0x58d code).
-void* __thiscall FUN_0058c0d0(void* helper);
-void __thiscall FUN_0058c1e0(void* helper, GameObjNotifier* system, ActivityRequest* request, NotifyContext* context);
-void __thiscall FUN_0058c110(void* helper);
-void* __thiscall FUN_0058d720(void* helper);
-void __thiscall FUN_0058d800(void* helper, GameObjNotifier* system, ActivityRequest* request, NotifyContext* context);
-void __thiscall FUN_0058d760(void* helper);
+#include "rules/planet_assault.h"
+#include "rules/planet_bombard.h"
 
 namespace {
 
@@ -19,8 +13,6 @@ constexpr int kStatusCategory = 1;
 constexpr int kStatusOk = -1;
 constexpr int kStatusMissingTarget = 0x12;
 constexpr int kLoyaltySide = 1;
-constexpr int kHelperBytes225 = 0x30;
-constexpr int kHelperBytes224 = 0x48;
 
 bool isOk(const StatusCode& status) { return status.m_second == static_cast<uint32_t>(kStatusOk); }
 
@@ -38,7 +30,7 @@ int resolveSystem(const ObjectKey* key, GameObjNotifier** system, StatusCode* st
 
 }  // namespace
 
-// ---- ActivityRequest / SearchSpec ------------------------------------------------------------------------------
+// ---- ActivityRequest ------------------------------------------------------------------------------
 
 ObjectKey* ActivityRequest::GetTarget(ObjectKey* out) const {
     *out = m_target;
@@ -48,33 +40,6 @@ ObjectKey* ActivityRequest::GetTarget(ObjectKey* out) const {
 GameObjNotifier* __thiscall NextCharacterSibling(GameObj* object) {
     const FamilyRange characters(0x30, 0x3c);
     return object->FindNextSibling(&characters, 1);
-}
-
-SearchSpec::SearchSpec() : m_range() { Reset(); }
-
-SearchSpec::~SearchSpec() {}
-
-SearchSpec& SearchSpec::operator=(const SearchSpec& other) {
-    if (this != &other) CopyFrom(other);
-    return *this;
-}
-
-void SearchSpec::Reset() {
-    m_kind = 0;
-    m_range = FamilyRange(0x90, 0x98);
-    m_value0c = 1;
-    m_value10 = 100;
-    m_value14 = 1;
-    m_value18 = 0;
-}
-
-void SearchSpec::CopyFrom(const SearchSpec& other) {
-    m_kind = other.m_kind;
-    m_range = other.m_range;
-    m_value0c = other.m_value0c;
-    m_value10 = other.m_value10;
-    m_value14 = other.m_value14;
-    m_value18 = other.m_value18;
 }
 
 // ---- LoyaltyEvent373 -------------------------------------------------------------------------------------------
@@ -167,10 +132,8 @@ int SystemCommand225::Execute() {
     StatusCode status;
     const int found = resolveSystem(&m_key, &system, &status);
     if (found && isOk(status)) {
-        alignas(4) char helper[kHelperBytes225];
-        FUN_0058c0d0(helper);
-        FUN_0058c1e0(helper, system, &m_request, &context);
-        FUN_0058c110(helper);
+        AssaultResolver resolver;
+        resolver.Run(system, &m_request, &context);
     }
     return 0;
 }
@@ -219,10 +182,8 @@ int SystemCommand224::Execute() {
     StatusCode status;
     const int found = resolveSystem(&m_key, &system, &status);
     if (found && isOk(status)) {
-        alignas(4) char helper[kHelperBytes224];
-        FUN_0058d720(helper);
-        FUN_0058d800(helper, system, &m_request, &context);
-        FUN_0058d760(helper);
+        BombardResolver resolver;
+        resolver.Run(system, &m_request, &context);
     }
     return 0;
 }

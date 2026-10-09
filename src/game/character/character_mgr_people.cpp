@@ -6,6 +6,7 @@
 #include "data/random.h"
 #include "data/sd_records.h"
 #include "economy/side.h"
+#include "rules/loyalty_params.h"
 #include "events/command_classes.h"
 #include "fleet/capship.h"
 #include "fleet/fleet.h"
@@ -21,7 +22,6 @@
 
 DatRecord* GetFirstRecordOfType(int type);  // 0x51cad0
 ObjectKey* __thiscall GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
-int FUN_0055d7d0(int kind, int size, int* count);
 int __thiscall FUN_00556c70(GameObjNotifier* rules, ObjectKey* key, int side, NotifyContext* ctx);
 
 namespace {
@@ -378,7 +378,7 @@ int CharacterMgr::PlaceStartingCharacters(NotifyContext* ctx) {
         ok = PlaceAtRandomSystem(&key, ctx) && ok;
     }
     int count = 0;
-    ok = FUN_0055d7d0(2, m_galaxySize, &count) && ok;
+    ok = GetStartingCharacterCount(2, m_galaxySize, &count) && ok;
     for (int i = 0; i < count; ++i) ok = RecruitMinorAtRandomPlace(2, &recruited, ctx) && ok;
 
     key = keyOf(kMonMothmaKey);
@@ -387,7 +387,7 @@ int CharacterMgr::PlaceStartingCharacters(NotifyContext* ctx) {
         key = keyOf(heroKey);
         ok = PlaceCharacter(&key, yavin, ctx) && ok;
     }
-    ok = FUN_0055d7d0(1, m_galaxySize, &count) && ok;
+    ok = GetStartingCharacterCount(1, m_galaxySize, &count) && ok;
     for (int i = 0; i < count; ++i) ok = RecruitMinorAtRandomPlace(1, &recruited, ctx) && ok;
     return ok;
 }

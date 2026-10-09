@@ -17,7 +17,7 @@ int __thiscall FUN_00555540(GameObjNotifier* self, GameObj* object, GameObjNotif
 // A manufacturing manager (family 0xa0-0xaf, ManuMgr module).
 class ManuMgrDecl;
 int __thiscall FUN_00528040(ManuMgrDecl* manager, int includeFlagged);
-void __thiscall FUN_0052a430(ManuMgrDecl* manager, NotifyContext* ctx);
+int __thiscall FUN_0052a430(ManuMgrDecl* manager, NotifyContext* ctx);
 
 // Next system after `system` (families 0x90-0x97, 0x51a5d0).
 GameObjNotifier* __thiscall FUN_0051a5d0(GameObjNotifier* system);

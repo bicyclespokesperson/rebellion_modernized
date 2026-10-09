@@ -10,7 +10,7 @@
 int __thiscall FUN_00545e90(GameObjNotifier* manager, const ObjectKey* key, int value, NotifyContext* ctx);
 int __thiscall FUN_00546000(GameObjNotifier* manager, const ObjectKey* key, int value, NotifyContext* ctx);
 int __thiscall FUN_00546240(GameObjNotifier* manager, const ObjectKey* key, int value, NotifyContext* ctx);
-int __cdecl FUN_00515970(const ObjectKey* key, int value, NotifyContext* ctx);
+int __cdecl ApplyRoleStateEvent(const ObjectKey* key, int value, NotifyContext* ctx);
 
 namespace {
 
@@ -136,7 +136,7 @@ int RoleStateEvent::CheckValid(StatusCode* status) {
 
 int RoleStateEvent::Execute() {
     NotifyContext ctx(m_context);
-    FUN_00515970(&m_key, m_valueB, &ctx);
+    ApplyRoleStateEvent(&m_key, m_valueB, &ctx);
     return 0;
 }
 

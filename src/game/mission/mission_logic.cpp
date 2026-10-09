@@ -391,7 +391,7 @@ int Mission::UpdateTeamAndTarget(NotifyContext* ctx) {
             }
             int anyMoving = 1;
             int anyStopped = 1;
-            CombatRulesMgr* rules = GetCombatRulesMgr();
+            RulesMgr* rules = GetRulesMgr();
             ok = rules != nullptr && ok;
             if (rules) {
                 MissionPersonIterator members(this);
@@ -399,7 +399,7 @@ int Mission::UpdateTeamAndTarget(NotifyContext* ctx) {
                 while (members.Current()) {
                     uint32_t arrived = 1;
                     if (members.Current()->m_stateFlags & kEnrouteActive) {
-                        const int evaluated = rules->Method556620(members.Current(), &arrived, ctx);
+                        const int evaluated = rules->ResumeTrip(members.Current(), &arrived, ctx);
                         ok = evaluated && ok;
                     }
                     if (arrived == 0) {
