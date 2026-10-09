@@ -10,6 +10,11 @@
 //                          ~3 s of wall time). Ticks then almost never fall near the (wall-clock scripted) input,
 //                          which makes the state at a save independent of timing jitter; 0 freezes the simulation
 //                          (and with it saving, which runs as a simulation command).
+// REB_QPC_FAST_UNTIL_TICK=<n>  runs the simulation fast until the game's tick counter reaches n, then drops to REB_QPC_STEP_NS.
+//                          The step is REB_QPC_FAST_STEP_NS (default 1,000,000: a tick every ~250 loop iterations) while the
+//                          tick is below n. The switch happens on the first clock call that sees tick >= n, so a long run
+//                          stops at a tick that does not depend on when scripted input arrives (reads the game manager's
+//                          tick counter; never calls game code).
 // REB_NO_TIMERS=1         timeSetEvent returns a fake id and never calls back (the game's CoolTimer threads).
 // REB_CLOCK_TRACE=1       logs the first call from every distinct caller of the virtual clocks.
 // REB_HEAP_PROBE=<bytes>   shifts heap addresses: reserves <bytes> of address space before the game's heap exists
@@ -34,6 +39,8 @@ constexpr uint32_t kIatGetLocalTime = 0x00658210;
 constexpr uint32_t kIatGetSystemTime = 0x00658214;
 constexpr uint32_t kIatTimeGetTime = 0x00658444;
 constexpr uint32_t kIatTimeSetEvent = 0x00658448;
+constexpr uint32_t kGameManagerGlobal = 0x006b2fcc;
+constexpr uint32_t kGameManagerTickOffset = 0x0c;
 constexpr uint32_t kGameTime = 0x0061b120;
 constexpr uint32_t kGameMalloc = 0x00619170;
 constexpr uint32_t kGameCrtHeap = 0x006bed14;
@@ -46,6 +53,11 @@ volatile LONG g_clock_calls = 0;
 volatile LONG g_counter_calls = 0;
 uint32_t g_step_us = 1000;
 uint32_t g_counter_step_ns = 1000;
+uint32_t g_fast_step_ns = 1000000;
+uint32_t g_fast_until_tick = 0;
+int64_t g_counter_ns = 0;
+volatile LONG g_counter_lock = 0;
+volatile LONG g_fast_phase_logged = 0;
 SIZE_T g_probe_bytes = 0;
 bool g_probe_sbh = false;
 volatile LONG g_probe_pending = 0;
@@ -65,8 +77,32 @@ void trace_caller(const char* api, void* return_address) {
 
 uint64_t advance_clock_us() { return static_cast<uint64_t>(static_cast<uint32_t>(InterlockedIncrement(&g_clock_calls))) * g_step_us; }
 
+uint32_t current_game_tick() {
+    auto* manager = *reinterpret_cast<const uint8_t* const*>(kGameManagerGlobal);
+    return manager ? *reinterpret_cast<const uint32_t*>(manager + kGameManagerTickOffset) : 0;
+}
+
+uint32_t current_counter_step_ns() {
+    if (g_fast_until_tick == 0) return g_counter_step_ns;
+    const uint32_t tick = current_game_tick();
+    if (tick < g_fast_until_tick) return g_fast_step_ns;
+    if (InterlockedExchange(&g_fast_phase_logged, 1) == 0)
+        log("determinism: fast phase over at game tick %u after %d counter calls", tick, static_cast<int>(g_counter_calls));
+    return g_counter_step_ns;
+}
+
+uint64_t add_counter_ns(uint32_t step_ns) {
+    while (InterlockedExchange(&g_counter_lock, 1)) {
+    }
+    g_counter_ns += step_ns;
+    const uint64_t now = static_cast<uint64_t>(g_counter_ns);
+    InterlockedExchange(&g_counter_lock, 0);
+    return now;
+}
+
 uint64_t advance_counter_us() {
-    return static_cast<uint64_t>(static_cast<uint32_t>(InterlockedIncrement(&g_counter_calls))) * g_counter_step_ns / 1000;
+    InterlockedIncrement(&g_counter_calls);
+    return add_counter_ns(current_counter_step_ns()) / 1000;
 }
 
 void apply_heap_probe_when_ready() {
@@ -139,6 +175,8 @@ bool env_is_set(const char* name) {
 void install_clock_shims() {
     if (SIZE_T step = env_number("REB_CLOCK_STEP_US")) g_step_us = static_cast<uint32_t>(step);
     if (env_is_set("REB_QPC_STEP_NS")) g_counter_step_ns = static_cast<uint32_t>(env_number("REB_QPC_STEP_NS"));
+    if (SIZE_T step = env_number("REB_QPC_FAST_STEP_NS")) g_fast_step_ns = static_cast<uint32_t>(step);
+    g_fast_until_tick = static_cast<uint32_t>(env_number("REB_QPC_FAST_UNTIL_TICK"));
     g_trace_callers = env_number("REB_CLOCK_TRACE") != 0;
     patch_iat(kIatQueryPerformanceCounter, reinterpret_cast<void*>(fake_query_performance_counter));
     patch_iat(kIatQueryPerformanceFrequency, reinterpret_cast<void*>(fake_query_performance_frequency));

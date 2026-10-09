@@ -7,11 +7,15 @@
 //   REB_DETERMINISTIC=1  virtual clock: every timeGetTime/GetTickCount call advances it by REB_CLOCK_STEP_US (default 1000),
 //                        QueryPerformanceCounter by REB_QPC_STEP_NS (default 1000) nanoseconds, the local/system time and
 //                        time() are fixed.
+//   REB_QPC_FAST_UNTIL_TICK=<n>, REB_QPC_FAST_STEP_NS=<m>: as in the hybrid, the counter steps m ns (default 1,000,000) per call
+//                        while the game manager's tick counter is below n, then REB_QPC_STEP_NS.
 //   REB_NO_TIMERS=1      timeSetEvent returns a fake id and never calls back.
 #include <windows.h>
 #include <mmsystem.h>
 #include <stdint.h>
 #include <time.h>
+
+#include "events/game_manager.h"
 
 namespace {
 
@@ -25,6 +29,10 @@ volatile LONG g_clockCalls = 0;
 volatile LONG g_counterCalls = 0;
 uint32_t g_stepUs = 1000;
 uint32_t g_counterStepNs = 1000;
+uint32_t g_fastStepNs = 1000000;
+uint32_t g_fastUntilTick = 0;
+int64_t g_counterNs = 0;
+volatile LONG g_counterLock = 0;
 volatile LONG g_ready = 0;
 
 uint32_t EnvNumber(const char* name, bool* present = nullptr) {
@@ -45,6 +53,8 @@ void EnsureReady() {
     bool present = false;
     const uint32_t counterStep = EnvNumber("REB_QPC_STEP_NS", &present);
     if (present) g_counterStepNs = counterStep;
+    if (const uint32_t step = EnvNumber("REB_QPC_FAST_STEP_NS")) g_fastStepNs = step;
+    g_fastUntilTick = EnvNumber("REB_QPC_FAST_UNTIL_TICK");
     g_ready = 1;
 }
 
@@ -57,8 +67,27 @@ Function RealFunction(const char* module, const char* name) {
 
 uint64_t AdvanceClockUs() { return static_cast<uint64_t>(static_cast<uint32_t>(InterlockedIncrement(&g_clockCalls))) * g_stepUs; }
 
+uint32_t CurrentGameTick() {
+    return g_gameManager ? static_cast<uint32_t>(g_gameManager->m_tickCount) : 0;
+}
+
+uint32_t CurrentCounterStepNs() {
+    if (g_fastUntilTick == 0) return g_counterStepNs;
+    return CurrentGameTick() < g_fastUntilTick ? g_fastStepNs : g_counterStepNs;
+}
+
+uint64_t AddCounterNs(uint32_t step_ns) {
+    while (InterlockedExchange(&g_counterLock, 1)) {
+    }
+    g_counterNs += step_ns;
+    const uint64_t now = static_cast<uint64_t>(g_counterNs);
+    InterlockedExchange(&g_counterLock, 0);
+    return now;
+}
+
 uint64_t AdvanceCounterUs() {
-    return static_cast<uint64_t>(static_cast<uint32_t>(InterlockedIncrement(&g_counterCalls))) * g_counterStepNs / 1000;
+    InterlockedIncrement(&g_counterCalls);
+    return AddCounterNs(CurrentCounterStepNs()) / 1000;
 }
 
 BOOL WINAPI RebQueryPerformanceCounter(LARGE_INTEGER* out) {
