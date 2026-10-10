@@ -124,6 +124,10 @@ window when reacquiring exclusive mode. Task switching also preserves the active
 focus during deactivation, preventing a nested reactivation before minimization finishes. `focus_test` reproduces that
 sequence, fails against the previous implementation, and passes with the repair.
 
+Encyclopedia artwork uses `EData` under `data_dir` (or `install_dir` when `data_dir` is absent); an explicit registry
+`EncyLocation` still overrides this default. Native game windows use live dragging, while Windows builds keep the original
+outline mode. The outline reconstruction also uses the original white pen, so its preview is visible.
+
 `tools/build_native.sh` remains the Linux container build.
 
 ## arm64

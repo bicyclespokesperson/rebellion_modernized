@@ -36,13 +36,26 @@ TEST(location_defaults_follow_install_and_data_dir) {
     CHECK_STR(v.text.c_str(), WINDOWS_ROOT("/inst"));
     CHECK(c.GetRegistryValue("TooBigLocation", &v));
     CHECK_STR(v.text.c_str(), WINDOWS_ROOT("/inst"));
+    CHECK(c.GetRegistryValue("EncyLocation", &v));
+    CHECK_STR(v.text.c_str(), WINDOWS_ROOT("/inst/EData"));
     c.Set("data_dir", "/cdrom");
     CHECK(c.GetRegistryValue("TooBigLocation", &v));
     CHECK_STR(v.text.c_str(), WINDOWS_ROOT("/cdrom"));
+    CHECK(c.GetRegistryValue("EncyLocation", &v));
+    CHECK_STR(v.text.c_str(), WINDOWS_ROOT("/cdrom/EData"));
     CHECK(!c.GetRegistryValue("MusicVolume", &v));
     CHECK_EQ(c.WindowScale(), 0);
     c.Set("window_scale", "99");
     CHECK_EQ(c.WindowScale(), 8);
+}
+
+TEST(encyclopedia_location_requires_installation_and_respects_override) {
+    Config config;
+    RegistryValue value;
+    CHECK(!config.GetRegistryValue("EncyLocation", &value));
+    config.Parse("install_dir=/inst\n[registry]\nEncyLocation=/custom/art\n");
+    CHECK(config.GetRegistryValue("EncyLocation", &value));
+    CHECK_STR(value.text.c_str(), "/custom/art");
 }
 
 TEST(registry_api_semantics) {
