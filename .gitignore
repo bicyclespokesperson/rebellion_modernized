@@ -15,3 +15,4 @@ __pycache__/
 symbols/*.lock
 .claude/worktrees/
 /third_party/
+.DS_Store
