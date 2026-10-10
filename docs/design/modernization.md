@@ -3,6 +3,9 @@
 Status: proposal, not started. Written Oct 2026 after phases 1–3 (faithful reconstruction, standalone build, native
 Linux/macOS port). Companion: [high_resolution.md](high_resolution.md).
 
+Alternative: [aggressive modernization](modernization_aggressive.md) prioritizes cleanup and bug fixes, C++23,
+independent review and short smoke checks instead of behavior preservation.
+
 ## Goal
 
 Turn the faithful reconstruction into a codebase that is pleasant to change: real names and types, owned memory,
