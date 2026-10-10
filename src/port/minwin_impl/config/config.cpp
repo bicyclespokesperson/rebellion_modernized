@@ -137,8 +137,8 @@ std::string Config::DataDir() const {
 }
 
 int Config::WindowScale() const {
-    int s = atoi(Get("window_scale", "1").c_str());
-    return s < 1 ? 1 : (s > 8 ? 8 : s);
+    int s = atoi(Get("window_scale", "0").c_str());
+    return s < 1 ? 0 : (s > 8 ? 8 : s);
 }
 
 bool Config::GetRegistryValue(const std::string& name, RegistryValue* out) const {

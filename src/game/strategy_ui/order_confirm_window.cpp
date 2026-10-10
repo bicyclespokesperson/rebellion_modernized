@@ -2,6 +2,7 @@
 
 #include "core/checked_new.h"
 #include "core/vptr_store.h"
+#include "events/player_notices.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
@@ -39,7 +40,7 @@ CoolStrobeButton* AddConfirmButton(OrderConfirmWindow* window, HMODULE module, i
 }  // namespace
 
 OrderConfirmWindow::OrderConfirmWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childId,
-                                       ConfirmRequest* request)
+                                       Notice8* request)
     : CoolGameWindow(instance, 0, 0, kWidth, kHeight, parent, 0, kSpriteSlot, 0, childId, 0, 1, 0, 0) {
     m_galaxy = parent;
     m_style = kStyle;
@@ -78,7 +79,7 @@ void OrderConfirmWindow::OnCreate1() {
     m_textField = NewOrNull<TextScrollField>(m_instance, 0x18, 0xf2, 0x142, 0x46, this, GetPaintBackgroundIfOwned(), 0);
     m_textField->Create(0);
     m_textField->SetTextFont(kFontSlot);
-    m_textField->m_text.Assign(m_request->m_text);
+    m_textField->m_text.Assign(m_request->m_text1);
     m_textField->m_caret.m_index = 0;
     m_textField->Reset();
 
@@ -87,7 +88,7 @@ void OrderConfirmWindow::OnCreate1() {
     m_titleLabel->MoveTo(0x15, 0xe);
     m_titleLabel->SetFont(kFontSlot);
     m_titleLabel->m_drawFlags = 1;
-    m_titleLabel->SetText(m_request->m_title.m_text);
+    m_titleLabel->SetText(m_request->m_text0.m_text);
     HGDIOBJ previous = SelectObject(dc, surface->DibSectionHandle());
     m_titleLabel->Draw(dc);
     SelectObject(dc, previous);
@@ -96,7 +97,7 @@ void OrderConfirmWindow::OnCreate1() {
     AddConfirmButton(this, module, 0x163, 0xf4, kYesButton, 0x2aae, 0x2aaf, 0x1300);
     AddConfirmButton(this, module, 0x163, 0x119, kNoButton, 0x2ab1, 0x2ab2, 0x1301);
 
-    DibBitmap* picture = NewOrNull<DibBitmap>(module, static_cast<uint32_t>(m_request->m_pictureId), kBitmapKind);
+    DibBitmap* picture = NewOrNull<DibBitmap>(module, static_cast<uint32_t>(m_request->m_picture[1]), kBitmapKind);
     if (picture) {
         picture->Blit(GetPaintBackgroundIfOwned(), 0xc, 0x1e, 0, 0, 0, 0);
         picture->~DibBitmap();
@@ -108,10 +109,10 @@ void OrderConfirmWindow::OnCreate1() {
 void OrderConfirmWindow::OnCommand(int a, int b, int c) {
     const int16_t command = static_cast<int16_t>(a);
     if (command == kYesButton) {
-        UiHumanReceiveMessage(m_request->m_order, 1);
+        UiHumanReceiveMessage(reinterpret_cast<PlayerMessage*>(m_request->m_subject), 1);
     } else {
         if (command != kNoButton) return;
-        PlayerMessage* order = m_request->m_order;
+        PlayerMessage* order = reinterpret_cast<PlayerMessage*>(m_request->m_subject);
         if (order) {
             delete order;
             PostCloseRequest();

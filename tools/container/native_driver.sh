@@ -5,9 +5,11 @@
 set -uo pipefail
 scenario="$1"; exe="$2"; out="$3"
 display=":${REB_DISPLAY_NUMBER:-77}"
-Xvfb "$display" -screen 0 640x480x24 >/dev/null 2>&1 &
+Xvfb "$display" -screen 0 "${REB_XVFB_GEOMETRY:-640x480x24}" >/dev/null 2>&1 &
 xvfb=$!
 export DISPLAY="$display"
+wm=0
+if [[ -n "${REB_WM:-}" ]]; then "$REB_WM" >/dev/null 2>&1 & wm=$!; fi   # e.g. REB_WM=openbox with REB_NATIVE_IMAGE=rebellion-native-wm
 export SDL_RENDER_DRIVER="${SDL_RENDER_DRIVER:-software}"
 export ASAN_OPTIONS="${ASAN_OPTIONS:-detect_leaks=0:alloc_dealloc_mismatch=0:halt_on_error=0}"
 sleep 1
@@ -26,6 +28,14 @@ while read -r at action a1 a2 a3 a4; do
   python3 -c "import time; d=$start+$at-time.time(); d>0 and time.sleep(d)"
   if ! kill -0 "$game" 2>/dev/null; then echo "game exited early (before '$action $a1' at $at s)" >> "$out/driver.log"; break; fi
   case "$action" in
+    wmove) xdotool mousemove --window "$(xdotool search --pid "$game" | head -1)" "$a1" "$a2" ;;
+    wclick) xdotool mousemove --window "$(xdotool search --pid "$game" | head -1)" "$a1" "$a2" click 1 ;;
+    minimize) xdotool windowminimize "$(xdotool search --pid "$game" | head -1)" ;;
+    restore) xdotool windowmap "$(xdotool search --pid "$game" | head -1)"; xdotool windowactivate "$(xdotool search --pid "$game" | head -1)" ;;
+    close) wmctrl -c "Star Wars" ;;
+    geometry) xdotool getwindowgeometry "$(xdotool search --pid "$game" | head -1)" >> "$out/geometry.log" 2>&1 ;;
+    focus-away) xdotool windowfocus "$(xwininfo -root | awk '/Window id/ {print $4}')" ;;
+    focus-back) xdotool windowfocus "$(xdotool search --pid "$game" | head -1)" ;;
     shot) import -window root "$out/$a1.png" 2>/dev/null ;;
     key) xdotool key "$a1" ;;
     keydown) xdotool keydown "$a1" ;;
@@ -37,6 +47,10 @@ while read -r at action a1 a2 a3 a4; do
     click) xdotool mousemove "$a1" "$a2" click 1 ;;
     rclick) xdotool mousemove "$a1" "$a2" click 3 ;;
     move) xdotool mousemove "$a1" "$a2" ;;
+    cpu) snap() { for t in /proc/$game/task/*; do echo "$(basename "$t") $(cat "$t/comm") $(awk '{print $14+$15}' "$t/stat")"; done; }
+         snap > "$out/cpu_a.tmp"; sleep "$a1"; snap > "$out/cpu_b.tmp"
+         echo "cpu over $a1 s (at $at s), percent of one core per thread:" >> "$out/cpu.log"
+         join "$out/cpu_a.tmp" "$out/cpu_b.tmp" | awk -v n="$a1" -v hz="$(getconf CLK_TCK)" '{total+=$5-$3; printf "  %s %s %d%%\n", $1, $2, ($5-$3)*100/hz/n} END {printf "  total %d%%\n", total*100/hz/n}' >> "$out/cpu.log" ;;
     end) finished=1; break ;;
   esac
 done < "$scenario"
@@ -49,5 +63,6 @@ else
   wait "$game"
   echo "game exit status $?" >> "$out/driver.log"
 fi
+[[ $wm != 0 ]] && kill "$wm" 2>/dev/null
 kill "$xvfb" 2>/dev/null
 exit 0

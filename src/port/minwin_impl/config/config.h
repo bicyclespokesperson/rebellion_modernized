@@ -4,7 +4,11 @@
 //   install_dir    the game installation (REBEXE.EXE, the *.DLL resource libraries, GData, MDATA, EData, SaveGame)
 //   data_dir       where MDATA\ lives when it is not in install_dir (the CD, the "TooBig" location); defaults to install_dir
 //   font_path      full path of arial.ttf; when empty the text module searches the system and then falls back to Liberation Sans
-//   window_scale   integer scale of the 640x480 window (default 1)
+//   window_scale   integer scale of the 640x480 window, 1-8; 0 or absent: the largest that fits the display
+//   fullscreen     1: start fullscreen (letterboxed at an integer scale); Alt+Enter toggles while playing (default 0)
+//   renderer       SDL render driver name ("software", "opengl", ...; default: SDL's choice, software when that fails)
+//   vsync          1: synchronise presentation with the display (default 0)
+//   audio_buffer   device buffer in sample frames (default 1024 at 44.1 kHz)
 // The `[registry]` section holds the values the game reads and writes under
 //   HKLM\SOFTWARE\LucasArts Entertainment Company LLC\Star Wars Rebellion
 // (DataLocation, DllLocation, InstalledLocation, TooBigLocation, EncyLocation, MismatchOpts, DisplayOpts, Volume, MusicVolume,
@@ -48,7 +52,7 @@ public:
     std::string InstallDir() const { return Get("install_dir"); }
     std::string DataDir() const;
     std::string FontPath() const { return Get("font_path"); }
-    int WindowScale() const;
+    int WindowScale() const;  // 0: automatic
 
     bool GetRegistryValue(const std::string& name, RegistryValue* out) const;
     void SetRegistryValue(const std::string& name, const RegistryValue& value);

@@ -19,7 +19,7 @@ class DibBitmap;
 class GalaxyWindow;
 class GameObjNotifier;
 class ObjectListItem;
-class RenameRequest;
+class TextMessage;
 class String;
 
 // One of the three manufacturing manager panels (slot 1 shipyard, 2 training facility, 3 construction yard) of the
@@ -73,7 +73,7 @@ public:
     // Sets the slot's progress bar to `position` of `range`.
     void SetSlotProgress(int slot, GameObjNotifier* manager, int position, int range);  // 0x458040
     // Starts renaming for `request` once the window's tab is shown.
-    void BeginRenameRequest(RenameRequest* request);  // 0x458b50
+    void BeginRenameRequest(TextMessage* request);  // 0x458b50
 
     // Prepares the slot's labels for `manager` (0x458080).
     void InitSlot(int slot, GameObjNotifier* manager);
@@ -122,7 +122,7 @@ public:
     DibBitmap* m_dragPictures[3];       // +0x254 one per number of panels dragged
     int m_selectedCount;                // +0x260 the highlighted panels
     CoolDragImage* m_dragImage;         // +0x264
-    RenameRequest* m_pendingRename;     // +0x268
+    TextMessage* m_pendingRename;     // +0x268
 };
 
 // The picture of a facility or manufacturing manager (0x458fe0): null if none; the caller owns it.

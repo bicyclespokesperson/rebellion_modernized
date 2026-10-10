@@ -572,7 +572,7 @@ void HumanPlayer::ExecuteCommand(int command, ObjectKeyValueSet* selection, Obje
         order = CreateOrder(command, selection, key);
         if (!order) return;
         if (!name) {
-            UiBeginRename(reinterpret_cast<RenameRequest*>(order));
+            UiBeginRename(reinterpret_cast<TextMessage*>(order));
             return;
         }
         static_cast<TextMessage*>(static_cast<OrderBase*>(order))->m_text.Assign(*name);

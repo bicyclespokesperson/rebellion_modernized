@@ -446,7 +446,7 @@ void UiBeginTargeting(void* command) {
     if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->BeginTargeting(command);
 }
 
-void UiBeginRename(RenameRequest* request) {
+void UiBeginRename(TextMessage* request) {
     if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->BeginRename(request);
 }
 

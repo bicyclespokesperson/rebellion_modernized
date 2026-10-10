@@ -121,7 +121,7 @@ if(REB_MINWIN_IMPL)
   set(REB_MINWIN_IMPL_SOURCES
     # window manager (user32, comctl32, winmm timers)
     ${MW}/user/region.cpp ${MW}/user/window.cpp ${MW}/user/focus.cpp ${MW}/user/message.cpp ${MW}/user/paint.cpp
-    ${MW}/user/input.cpp ${MW}/user/platform.cpp ${MW}/user/misc.cpp ${MW}/user/mmtimer.cpp src/port/msg_trace.cpp
+    ${MW}/user/input.cpp ${MW}/user/platform.cpp ${MW}/user/present.cpp ${MW}/user/misc.cpp ${MW}/user/mmtimer.cpp src/port/msg_trace.cpp
     # components (each is also a stand-alone library with unit tests, src/port/minwin_impl/CMakeLists.txt)
     ${MW}/config/config.cpp ${MW}/config/advapi32_api.cpp
     ${MW}/res/pe_module.cpp ${MW}/res/mapped_file.cpp ${MW}/res/formats.cpp ${MW}/res/path.cpp ${MW}/res/modules.cpp ${MW}/res/res_api.cpp

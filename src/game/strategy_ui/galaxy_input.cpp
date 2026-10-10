@@ -582,7 +582,7 @@ CoolWindow* GalaxyWindow::CreateModalWindow(WPARAM wParam, LPARAM lParam) {
         case kOrderConfirmWindowType: {
             void* memory = ::operator new(sizeof(OrderConfirmWindow));
             window = memory ? new (memory) OrderConfirmWindow(m_instance, this, static_cast<uint32_t>(wParam),
-                                                              reinterpret_cast<ConfirmRequest*>(lParam))
+                                                              reinterpret_cast<Notice8*>(lParam))
                             : nullptr;
             break;
         }

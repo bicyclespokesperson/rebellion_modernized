@@ -18,7 +18,7 @@ tools/run_native.sh --exe build/native_asan/rebellion --out work/run_native/x_as
 python3 tools/native_triage.py work/run_native/x_asan/game.log   # distinct sanitizer reports with counts
 ```
 
-Running by hand: write a config file (`install_dir=/path/to/Star Wars - Rebellion`, optional `font_path=`, `window_scale=`),
+Running by hand: write a config file (`install_dir=/path/to/Star Wars - Rebellion`, optional `font_path=`, `window_scale=`, `fullscreen=`; see native.md "Playing on a desktop"),
 `REBELLION_CONFIG=<file> build/native/rebellion` (the working directory is changed to `install_dir` by the game itself). Useful
 environment: `REB_MINWIN_SCALE`, `REB_MINWIN_TRACE`, `REB_MSG_TRACE=<file>`, `SDL_RENDER_DRIVER=software`, `REB_AUDIO_CAPTURE=<file>`.
 `tools/container/native_gdb.sh <rundir>` and `REB_GDB=1 tools/run_native.sh ...` give backtraces; `tools/save_diff.py` compares saves.
@@ -108,6 +108,7 @@ game_controls, system_forces, save_game_slot. The saves of the sanitized and the
 | 4-byte array cookies in front of 8-aligned elements | `MissionMgr` type table, `AnimationStep` frame lists | game, 64-bit | cookie = alignment |
 | `LARGE_INTEGER*` over two `uint32_t` fields | `Stopwatch::Reset` | game, 64-bit | local (32-bit build keeps the original call: difftest compares the API arguments) |
 | pointers in `int` parameters/outputs | `Mission::CheckMemberDefault` | game, 64-bit | `intptr_t` |
+| stand-in classes for objects the game really builds as orders and notices (`RenameRequest` for the order `TextMessage`, `ConfirmRequest` for `Notice8`): fields at 32-bit offsets and a virtual call through a made-up vtable slot (Itanium vtables differ) | renaming a fleet or system (Return in the rename field), confirming a move order (`object_menu`, `move_drag_confirmed` crashed: SEGV in `String::Assign`) | game, 64-bit | the stand-ins removed; the real classes with their own members and `GetTeam()` |
 | a String passed by value in three `int` argument words | `PlayerController::Virtual87` and overrides | game, 64-bit | `StringWords` (three pointer-sized words; the same stack bytes on i686) |
 | object layouts described twice (`PlayerNotice` stub vs the real `PostedEvent`/`AiNotice`; `TrainingOrderCheck`/`StoryOrderCheck` vs `MissionCheckArgs`) | notice routing, Jedi training and story mission checks | game, 64-bit: **changed simulation results** (notices never reached the AI; a mission completed too early) | derive from the real base; field copies |
 | fake leading virtual slots (`ForeignSlots`) | `System::FindManufacturingManagerBySlot123` and two siblings | game, ABI: Itanium vtables differ | call the declared virtual |

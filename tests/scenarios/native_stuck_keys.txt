@@ -1,0 +1,11 @@
+# Native-only: a key held while the window loses the focus must be released toward the game (REB_MSG_TRACE shows the WM_KEYUP).
+12 key Escape
+16 key Escape
+20 key Escape
+24 keydown Left
+24.5 keydown shift
+25 focus-away
+27 focus-back
+28 keyup Left
+28.5 keyup shift
+30 end
