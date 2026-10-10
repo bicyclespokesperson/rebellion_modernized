@@ -164,7 +164,9 @@ bool g_layoutChanged = false;
 
 }  // namespace
 
-// Windows posts a WM_MOUSEMOVE when a window appears, disappears or moves under a motionless pointer.
+// Windows posts a WM_MOUSEMOVE when a window appears, disappears or moves under a motionless pointer. Under Wine only top-level windows
+// do (the X server reports the pointer entering a new X window; child windows live inside their top-level's X window), which is what
+// the callers in window.cpp mark.
 void MarkLayoutChanged() { g_layoutChanged = true; }
 
 void SynthesizeMouseMoveIfNeeded() {

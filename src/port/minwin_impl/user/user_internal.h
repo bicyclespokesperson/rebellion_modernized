@@ -234,6 +234,7 @@ void DrawCaretOverlay(uint32_t* pixels, int pitchPixels);
 void InitInput();
 void MarkLayoutChanged();
 void SynthesizeMouseMoveIfNeeded();
+LRESULT REB_STDCALL TooltipProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);  // tooltip.cpp: tooltips_class32
 POINT CursorScreenPosition();
 void SetCursorScreenPosition(POINT p);
 void UpdateCursorForWindow(Window* underMouse, int hitTest, UINT mouseMessage);

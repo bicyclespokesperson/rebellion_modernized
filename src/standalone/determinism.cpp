@@ -17,6 +17,8 @@
 //   REB_CLOCK_TRACE=<n>  (n >= 1) counts the virtual clock calls per caller address (return address, 'q' QueryPerformanceCounter,
 //                        't' timeGetTime/GetTickCount) and appends the counts to Z:\\out\\clock_trace.log every n game ticks; the
 //                        hybrid's REB_CLOCK_TRACE reports the same totals, so a standalone run can be compared with an original run.
+//   REB_CLOCK_RATE_LOG=<file>  once per real second: the number of clock calls (timeGetTime/GetTickCount) and of counter calls
+//                        (QueryPerformanceCounter) made in that second, with the game's tick counter (profiles the main loop's speed).
 //   REB_VIRTUAL_SOUND=1  with REB_DETERMINISTIC: the playing state of sound buffers follows the virtual counter
 //                        (src/port/virtual_sound.h; in REB_MINWIN_IMPL builds the port's own dsound does the same, minwin_impl/dsound/dsound_api.cpp).
 #include <windows.h>
@@ -186,7 +188,46 @@ Function RealFunction(const char* module, const char* name) {
     return reinterpret_cast<Function>(GetProcAddress(handle, name));
 }
 
+uint64_t AddCounterNs(uint32_t stepNs);
+uint32_t CurrentGameTick();
+
+HANDLE g_rateLog = nullptr;
+bool g_rateLogChecked = false;
+volatile LONG g_rateCounts[2];
+volatile LONG g_rateLock = 0;
+DWORD g_rateSecondStart = 0;
+
+void ReportRates() {
+    char line[96];
+    const LONG clock = InterlockedExchange(&g_rateCounts[0], 0), counter = InterlockedExchange(&g_rateCounts[1], 0);
+    const int length = wsprintfA(line, "clock %ld counter %ld tick %u\r\n", static_cast<long>(clock), static_cast<long>(counter),
+                                 static_cast<unsigned>(CurrentGameTick()));
+    DWORD written = 0;
+    WriteFile(g_rateLog, line, static_cast<DWORD>(length), &written, nullptr);
+}
+
+void NoteClockCall(int which) {
+    if (!g_rateLogChecked) {
+        g_rateLogChecked = true;
+        char path[260];
+        if (GetEnvironmentVariableA("REB_CLOCK_RATE_LOG", path, sizeof path) && path[0])
+            g_rateLog = CreateFileA(path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
+        if (g_rateLog == INVALID_HANDLE_VALUE) g_rateLog = nullptr;
+    }
+    if (!g_rateLog) return;
+    InterlockedIncrement(&g_rateCounts[which]);
+    static auto realTicks = RealFunction<DWORD(WINAPI*)()>("kernel32.dll", "GetTickCount");
+    const DWORD now = realTicks();
+    if (now - g_rateSecondStart < 1000 || InterlockedExchange(&g_rateLock, 1)) return;
+    if (now - g_rateSecondStart >= 1000) {
+        g_rateSecondStart = now;
+        ReportRates();
+    }
+    InterlockedExchange(&g_rateLock, 0);
+}
+
 uint64_t AdvanceClockUs() {
+    NoteClockCall(0);
     if (g_clockFromCounter) return AddCounterNs(0) / 1000;
     return static_cast<uint64_t>(static_cast<uint32_t>(InterlockedIncrement(&g_clockCalls))) * g_stepUs;
 }
@@ -194,6 +235,7 @@ uint64_t AdvanceClockUs() {
 uint32_t CurrentGameTick() {
     return g_gameManager ? static_cast<uint32_t>(g_gameManager->m_tickCount) : 0;
 }
+
 
 bool KeyDown(uint32_t vk) { return (GetAsyncKeyState(static_cast<int>(vk)) & 0x8000) != 0; }
 
@@ -235,6 +277,7 @@ uint64_t AddCounterNs(uint32_t step_ns) {
 }
 
 uint64_t AdvanceCounterUs() {
+    NoteClockCall(1);
     InterlockedIncrement(&g_counterCalls);
     return AddCounterNs(CurrentCounterStepNs()) / 1000;
 }

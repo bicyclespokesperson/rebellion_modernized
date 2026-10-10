@@ -71,12 +71,24 @@ void SetSlot(SystemPalette& s, int i, uint32_t rgb, int& changed) {
 
 }  // namespace
 
+// RealizePalette's result when no system palette slot changed colour: the entries of the logical palette that map to a different
+// system palette index than at its previous realization (every entry, for a palette realized the first time). Wine's user32 reports
+// a realization that only re-maps entries to the colours the system palette already holds (a movie palette equal to the previous
+// one) with a WM_PALETTECHANGED broadcast as well.
+int MappedDifferently(const std::vector<uint8_t>& before, const std::vector<uint8_t>& after) {
+    int different = 0;
+    for (size_t i = 0; i < after.size(); ++i)
+        if (i >= before.size() || before[i] != after[i]) ++different;
+    return different;
+}
+
 // Foreground realization of the DC's palette (the model: one active palette owns every non-static slot).
 int RealizePaletteIn(Dc* dc) {
     Palette* pal = dc->palette;
     SystemPalette& sys = System();
     if (pal == DefaultPalette()) return 0;
     int n = static_cast<int>(pal->entries.size());
+    const std::vector<uint8_t> previousMapping = pal->realized ? pal->toPhysical : std::vector<uint8_t>();
     pal->toPhysical.assign(n, 0);
     if (dc->memory) {
         pal->realized = false;
@@ -122,7 +134,7 @@ int RealizePaletteIn(Dc* dc) {
         }
     pal->realized = true;
     if (changed) ++sys.generation;
-    return changed;
+    return changed ? changed : MappedDifferently(previousMapping, pal->toPhysical);
 }
 
 Dc* DcOf(HDC hdc) { return As<Dc>(hdc, ObjType::Dc); }

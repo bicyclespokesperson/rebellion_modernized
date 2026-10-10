@@ -36,6 +36,7 @@ frame), `=stacks` (nested message loops note the game code addresses on the stac
 | `input.cpp`, `platform.cpp` | SDL events to `WM_MOUSEMOVE`/`BUTTON*`/`DBLCLK`/`KEYDOWN`/`KEYUP`/`CHAR` with Windows' `wParam`/`lParam`, hit-testing (`WM_NCHITTEST`), `WM_PARENTNOTIFY`/`WM_MOUSEACTIVATE`/`WM_SETCURSOR`, `GetKeyState`/`GetAsyncKeyState`, cursors, the 640x480 SDL window, present loop (palette to XRGB, letterboxed), `MessageBoxA` |
 | `misc.cpp`, `cursor.cpp` | metrics, caret (XOR overlay), `LoadStringA`/`LoadAcceleratorsA`/`LoadBitmapA` (through kernel32's resource API), `RT_GROUP_CURSOR` to SDL colour cursors, `wsprintfA`, rectangle helpers |
 | `mmtimer.cpp` | `timeSetEvent`/`timeKillEvent` |
+| `tooltip.cpp` | the `tooltips_class32` control: tools (windows or rectangles), initial/re-show/auto-pop timers, the popup under the pointer (`TTM_ACTIVATE/SETDELAYTIME/ADDTOOLA/DELTOOLA/UPDATETIPTEXTA/RELAYEVENT`); no `TTN_*` notifications |
 
 **Creation/destruction order** (taken from the real user32 trace): `WM_NCCREATE`, `WM_NCCALCSIZE`, `WM_CREATE`, `WM_SIZE`, `WM_MOVE`, `WM_PARENTNOTIFY` (to the parent),
 `ShowWindow` when `WS_VISIBLE`; `ShowWindow` = `WM_SHOWWINDOW`, `SetWindowPos` (`WM_WINDOWPOSCHANGING`, `WM_NCCALCSIZE` on size/frame change, `WM_CHILDACTIVATE` for children,
@@ -51,6 +52,14 @@ of first appearance, pointers `ptr`). The real-user32 build (`REB_MSG_TRACE_SHIM
 drops the message kinds whose count is timing or host dependent (listed with their counts on both sides) and diffs the rest. Results and causes of the divergences
 are in `docs/phase3_plan.md` (P1 window manager).
 
+## Pixel comparison (`tools/pixel_run.sh`)
+
+`tools/pixel_run.sh [-o tag] [-R] [scenario...]` runs the scenarios on `build/standalone` (real user32/gdi32 under Wine) and `build/impl`, 8-bit Xvfb with Liberation fonts (the reference is re-run
+only with `-R`; `REB_PIXEL_CLOCK=real|virtual|frozen` picks the clock, real by default), and `tools/pixel_compare.py` prints per screenshot the number of differing pixels, in palette-index space too
+(the impl's `REB_MINWIN_DUMP` frames: every impl palette index must map to one reference colour; Wine's own 8-bit palette-to-X-pixel conversion is not a difference), the bounding boxes of the
+differing clusters, and writes `reference | impl | differences` images. Results, residuals and their causes: docs/phase3_plan.md, "P1 pixel and message-trace comparison".
+`tools/msg_trace_run.sh` does the same for the message traces.
+
 ## Deviations from Windows (deliberate or known)
 
 * **Single thread.** The thread that initialises the runtime owns every window and queue. A `SendMessage` from another thread (the movie thread) is queued
@@ -59,7 +68,8 @@ are in `docs/phase3_plan.md` (P1 window manager).
 * **No non-client area is drawn**; `WS_BORDER`/`WS_DLGFRAME`/caption only affect the client rectangle (insets 1/3/19 px).
 * **Update regions are one rectangle** per window (union); a hidden or fully covered window's update region is dropped. Uncovered areas are invalidated per
   window, so `WM_PAINT` counts differ from Windows'.
-* **Tooltips**: `tooltips_class32` accepts the `TTM_*` messages the game uses, answers `WM_NOTIFYFORMAT` on `TTM_ADDTOOLA` and draws nothing; no `TTN_*` notifications.
-* `WM_GETICON`, `WM_STYLECHANGING/CHANGED` on activation, IME messages and `WM_DISPLAYCHANGE` come from Wine's shell/IME/ddraw integration and are not emulated.
+* **Tooltips** (`tooltip.cpp`): the messages the game uses, drawn like the real control (white-ish `COLOR_INFOBK` box, text pixel-identical, border grey on the top/right edges and dithered on the left/bottom as Wine's 8-bit display renders `WS_BORDER`); no `TTN_*` notifications and no balloon/track modes. A button message hides the tip and restarts the show timer (the real control shows the tip again 500 ms after a click that leaves the pointer on the tool).
+* `WM_GETICON`, `WM_STYLECHANGING/CHANGED` on activation and IME messages come from Wine's shell/IME integration and are not emulated (`WM_DISPLAYCHANGE`, the extra `WM_WINDOWPOSCHANGING` and the `WM_PALETTECHANGED` broadcast after a mode switch are, by `ddraw_api.cpp`).
+* **Pointer motion from window changes**: a window appearing, disappearing or moving under a motionless pointer posts a `WM_MOUSEMOVE` only for top-level windows other than tooltips (Windows does it for every window; under Wine only the X windows' crossing events do, and child windows live inside one X window). Anything else makes the hover label of the galaxy map follow a stale pointer position.
 * `GetCursorPos` is the last position SDL reported; there is no `SetCursorPos`.
 * The 64-bit port keeps `HWND` = pointer to the window object, window extra bytes are rounded up to pointer size.

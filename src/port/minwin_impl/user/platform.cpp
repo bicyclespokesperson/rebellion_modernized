@@ -189,6 +189,32 @@ void ShutdownPlatform() {
     g_window = nullptr;
 }
 
+// REB_MINWIN_DUMP=<directory>: when the scenario driver leaves "dump_request" (a name) there, write <name>.idx: the 8-bit frame
+// (640x480 palette indices) followed by the 256-entry palette (RGBA bytes), for tools/pixel_compare.py.
+void DumpFrameOnRequest(const minwin_gdi::ScreenSurface& screen, const uint32_t* rgb) {
+    static const char* directory = getenv("REB_MINWIN_DUMP");
+    if (!directory) return;
+    char path[512];
+    snprintf(path, sizeof path, "%s/dump_request", directory);
+    FILE* request = fopen(path, "rb");
+    if (!request) return;
+    char name[128] = {};
+    size_t length = fread(name, 1, sizeof name - 1, request);
+    fclose(request);
+    remove(path);
+    while (length && (name[length - 1] == '\n' || name[length - 1] == '\r' || name[length - 1] == ' ')) name[--length] = 0;
+    snprintf(path, sizeof path, "%s/%s.idx", directory, length ? name : "frame");
+    FILE* out = fopen(path, "wb");
+    if (!out) return;
+    for (int y = 0; y < minwin_gdi::kScreenHeight; ++y)
+        fwrite(screen.bits + static_cast<size_t>(y) * static_cast<size_t>(screen.pitch), 1, minwin_gdi::kScreenWidth, out);
+    for (int i = 0; i < 256; ++i) {
+        const uint8_t entry[4] = {static_cast<uint8_t>(rgb[i] >> 16), static_cast<uint8_t>(rgb[i] >> 8), static_cast<uint8_t>(rgb[i]), 255};
+        fwrite(entry, 1, 4, out);
+    }
+    fclose(out);
+}
+
 void PresentScreen() {
     if (!g_window) return;
     uint32_t generation = 0;
@@ -199,6 +225,7 @@ void PresentScreen() {
         g_paletteGeneration = generation;
     }
     const minwin_gdi::ScreenSurface screen = minwin_gdi::Screen();
+    DumpFrameOnRequest(screen, g_palette);
     for (int y = 0; y < minwin_gdi::kScreenHeight; ++y) {
         const uint8_t* row = screen.bits + static_cast<size_t>(y) * static_cast<size_t>(screen.pitch);
         uint32_t* out = g_pixels + y * minwin_gdi::kScreenWidth;

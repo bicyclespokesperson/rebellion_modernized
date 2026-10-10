@@ -73,7 +73,7 @@ add_subdirectory(${FREETYPE_ROOT} ${CMAKE_BINARY_DIR}/freetype EXCLUDE_FROM_ALL)
 
 # ---- the platform: minwin_impl (user32/gdi32/... on SDL3) and src/port/native (kernel32 and the CRT on POSIX) ---------------
 set(REB_MINWIN_IMPL_SOURCES
-  ${MW}/user/region.cpp ${MW}/user/window.cpp ${MW}/user/focus.cpp ${MW}/user/message.cpp ${MW}/user/paint.cpp
+  ${MW}/user/region.cpp ${MW}/user/window.cpp ${MW}/user/focus.cpp ${MW}/user/message.cpp ${MW}/user/tooltip.cpp ${MW}/user/paint.cpp
   ${MW}/user/input.cpp ${MW}/user/platform.cpp ${MW}/user/present.cpp ${MW}/user/misc.cpp ${MW}/user/mmtimer.cpp src/port/msg_trace.cpp
   ${MW}/config/config.cpp ${MW}/config/advapi32_api.cpp
   ${MW}/res/pe_module.cpp ${MW}/res/mapped_file.cpp ${MW}/res/formats.cpp ${MW}/res/path.cpp ${MW}/res/modules.cpp ${MW}/res/res_api.cpp

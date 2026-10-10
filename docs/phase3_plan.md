@@ -359,6 +359,64 @@ wall-clock-scripted clicks can miss the main menu and a run writes no save; reru
 
 
 
+## P1 pixel and message-trace comparison against the real-Win32 standalone (measured Oct 9 2026)
+
+Tools: `tools/pixel_run.sh` (scenarios on `build/standalone` and `build/impl`, 8-bit Xvfb, Liberation fonts, `tools/pixel_compare.py` per scenario, diff images
+reference | impl | differences), `tools/msg_trace_run.sh` (the message-trace comparison; the reference needs `REB_MSG_TRACE_SHIM=ON`, see the script), `REB_MINWIN_DUMP=Z:/out`
+(the impl writes its 8-bit frame and palette when the scenario's `shot` asks: `<shot>.idx`), `REB_CLOCK_RATE_LOG=<file>` (clock calls per real second and the game tick, both builds).
+Method notes:
+
+* **Palette-index space.** The 8-bit X screenshot of Wine's own display and the one of the SDL window are both lossy and *different* (an entry that is not one of the 20 static colours
+  is matched by Wine's palette code per entry, by the SDL window's blit per pixel: index 195 `(79,80,161)` is blue in the reference and black in the impl, index 246 `(255,251,240)` black in
+  the impl and white in the reference). `pixel_compare.py` therefore checks, with the impl's dump, that every impl palette index maps to **one** reference colour (the most common one)
+  and counts the reference pixels that deviate: those are real differences in what was drawn. The "rgb px" column is the plain screenshot difference.
+* **Clock.** Under `REB_DETERMINISTIC=1` the game's clock advances per call, so the animation phase and, in `new_game_rebel`, the whole intro trajectory depend on the loop's speed (the
+  intro was at different stages in the two builds: 52k px). The comparison therefore runs with real clocks; the run-to-run floor of the *reference itself* is then the measure of what is
+  timing (`ref vs ref` below). A frozen clock (`REB_PIXEL_CLOCK=frozen`: the virtual clock stands still from the moment a game exists) makes every loaded-game frame reproducible; it shows
+  one constant 103 px difference (the droid advisor sprite: each build froze at a different droid frame) and the residuals below, but it makes the double-clicks of tour_03/tour_04 flaky, so the table uses real clocks.
+* One scenario at a time: ten concurrent games slow the movies enough that the scripted Escape presses land on other movies (new_game_rebel/battle then differ by 50-60k px).
+
+| scenario | shots | before (virtual clock, rgb px) | after (real clock, rgb px / palette-index px) | reference vs reference (rgb px, two runs) |
+|---|---|---|---|---|
+| smoke | 1 | 1,975-3,024 | 874 / 713 | 773 |
+| ui_tour | 20 | 275-14,352 (tour_04: a stray sector window), tour_17 99k (Game Controls late) | 254-3,186 / **0 for 9 shots**, 32-34 for 5 (a 2-px strip), 53-86 for 3, 293 (tooltip), 400, 505 | 0 for 14 shots, 34 for 4, 260-292 for 2 |
+| load_game | 9 | 509-2,388 | 296-2,298 / 0-628 | 0-359 (two shots 51k: a battle popup in one run) |
+| new_game_rebel | 11 | 51,947-52,213 (different intro stage) | 2,037-2,606 / 306-852 | 197-846 |
+| space_battle_autoresolve | 7 | 1,841-2,388 (sequential; 61k when concurrent) | 2,036 / 253 for the popup shot; 24-46k for the 4 shots after_20s, closed, result_a, result_b | 504-52k (the battle popup's timing differs between two runs of the reference) |
+
+What the remaining differences are (all documented, none is a drawing bug of the impl that was found):
+
+| Residual | Size | Cause |
+|---|---|---|
+| animation phase | 30-250 px per shot at fixed places (droid at (558,350), map sparkles, the day counter's digits) | the real-clock phase of the animations; the same places differ between two reference runs |
+| `Version: 1.01.00 English` label | 505 px, `load_list`, `tour_17` | Wine's `VerLanguageNameA(0x409)` returns `English`; Windows and the impl return `English (United States)` (unit test `res_test`). The impl keeps Windows' answer |
+| tooltip border | about 140 px per tooltip shot | Wine's 8-bit display dithers the `WS_BORDER` colour (top/right edges grey, left/bottom edges grey/white); the impl draws the same pattern with a different phase |
+| ship/troop/facility bars | 12-16 px strips in the sector, system and personnel windows (53-86 px per shot) | the reference dithers a solid fill whose colour is not an exact member of Wine's X colormap; the impl draws the exact palette entry (what Windows does when the entry is in the system palette) |
+| `Mission Messages` tooltip (`tour_13`) | 400 px | after a click the impl restarts the tooltip's show timer, as the real control did for the GID and Game Controls buttons (the reference traces show `TTN_SHOW` again 500 ms after the click) but not for this one (cause not found) |
+| battle timing | the 4 battle shots listed above | the popup appears at a different moment in two runs of the *reference* |
+
+Fixes made (biggest first):
+
+1. **Synthesized `WM_MOUSEMOVE`** (window appears/disappears/moves under a motionless pointer) only for top-level windows other than tooltips, as under Wine (child windows live inside one X window).
+   The impl delivered a stray hover to the galaxy map after `alt+w`: the Fleet window screen differed by 14k px (a sector window was opened by the next click) and the hover label
+   ("Dolomar Sector", "Fakir Sector") followed the wrong position.
+2. **Tooltips**: `tooltips_class32` now behaves like the real control (`user/tooltip.cpp`), drawn with the same text pixels and box geometry; the stub drew nothing (2.2k px per shot with a tooltip).
+3. **Palette**: `RealizePalette` reports a palette that only re-maps entries as realized (Windows' result), which makes the movie palettes broadcast `WM_PALETTECHANGED` like Wine; `SmackBufferSetPalette`
+   realizes the buffer's initial (black) palette; the ddraw mode switch sends Wine's extra `WM_WINDOWPOSCHANGING` and the `WM_PALETTECHANGED` broadcast (both open items of the P1 results).
+4. **The Game Controls screen "2 s later"** is an artefact of the virtual clock, not a slow window manager. `REB_CLOCK_RATE_LOG` of the whole ui_tour: both builds make about 140,000 `timeGetTime` and 70,000 `QueryPerformanceCounter`
+   calls per second in the main loop, and both stop calling the clock for 2-3 s while the screen is built (ref 3 s, impl 2.3 s). With real clocks `tour_17` is the same state in both builds (only the version label differs). In the
+   pre-game phase (movies, menu) the impl makes about 20x more `QueryPerformanceCounter` calls than the real Smacker (194M against 9M per ui_tour run: `smack_clock.cpp` polls), which only matters for the per-call virtual clock.
+5. **The reference trace shim lost windows**: `RebTracedRegisterClassA` wrapped a class only the first time its name was registered, but the game registers every Cool class once per instance handle; about 170 CoolStrobeButton windows (and all their messages) were missing
+   from the reference log, which is why `ui_tour` showed 16% identical lines.
+
+Message-sequence comparison after the fixes (`tools/msg_trace_run.sh`, real clocks, identical lines in order after dropping the noise kinds): **smoke 98.1%** (206 of 210; was 91-93%), **ui_tour 94.6%** (5,817 of 6,147; was 16%, 17.9% with the old shim),
+**load_game 96.6%** (1,059 of 1,096; was 58%). The rest: the second `WM_PALETTECHANGED` of every movie window (sent by Wine after the activation), repeated `WM_NCHITTEST`/`WM_SETCURSOR` around a mouse move, `WM_SHOWWINDOW` order of
+sibling buttons, a few `WM_WINDOWPOSCHANGED` of a hidden window.
+
+Default builds unchanged: `standalone_check` OK (byte-identical saves), `sim_goldens check` identical (3/3), the impl build's `standalone_check` OK (64-byte tick difference), `tools/native_sim.sh` 17/17 files identical to the i686 goldens,
+`run_tests.sh native` and `i686` pass.
+
+
 ## P3 results: native Linux x86-64 (measured Oct 9 2026)
 
 Details, findings and how to build: [docs/native_linux.md](native_linux.md). `build/native/rebellion` (clang-19, SDL3 and FreeType from `third_party/`, `src/port/minwin_impl`, POSIX kernel32/CRT in
