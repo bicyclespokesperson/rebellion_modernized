@@ -3,12 +3,18 @@
 #   native  host x86-64 clang, runs the unit tests directly
 #   i686    clang-cl --target=i686-pc-windows-msvc (cmake/toolchain-win32-clangcl.cmake), tests run under Wine
 cmake_minimum_required(VERSION 3.20)
+# FreeType 2.13.2 predates the policy floor enforced by CMake 4.
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 project(minwin_impl C CXX)
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  message(FATAL_ERROR "minwin_impl requires a Clang-family C++ compiler (Apple Clang, LLVM Clang, or clang-cl)")
+endif()
 
 set(REPO ${CMAKE_CURRENT_SOURCE_DIR}/../../..)
 get_filename_component(REPO ${REPO} ABSOLUTE)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(MSVC OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
   add_compile_options(/GR- /EHs-c- /arch:IA32 /Zc:sizedDealloc- -Wno-microsoft-cast -D_CRT_SECURE_NO_WARNINGS -DNOMINMAX -DWIN32_LEAN_AND_MEAN

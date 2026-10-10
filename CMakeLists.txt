@@ -6,8 +6,12 @@ if(CMAKE_HOST_SYSTEM_NAME STREQUAL "Darwin" AND NOT CMAKE_OSX_DEPLOYMENT_TARGET)
   set(CMAKE_OSX_DEPLOYMENT_TARGET 11.0 CACHE STRING "Minimum macOS version")
 endif()
 project(rebellion LANGUAGES C CXX)
-set(CMAKE_CXX_STANDARD 20)
+if(NOT CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+  message(FATAL_ERROR "Rebellion requires a Clang-family C++ compiler (Apple Clang, LLVM Clang, or clang-cl)")
+endif()
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Reconstructed game code: every .cpp under src/game, except the stubs of the 3D tactical code (below).
 file(GLOB_RECURSE REB_GAME_SOURCES CONFIGURE_DEPENDS src/game/*.cpp)

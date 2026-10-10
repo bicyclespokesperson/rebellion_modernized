@@ -30,7 +30,7 @@ class NativeLayoutTests(unittest.TestCase):
             source.write_text('#include <algorithm>\n#include <cstdint>\n'
                               'struct Handler { virtual ~Handler(); uint64_t values[17]; };\n'
                               'extern Handler g_handler;\n')
-            args = ["-std=c++20", *compiler_system_includes(llvm_tool("clang++")), str(source)]
+            args = ["-std=c++23", *compiler_system_includes(llvm_tool("clang++")), str(source)]
             info = parse_unit((args, ["g_handler"], self.resource_dir()))["g_handler"]
             self.assertEqual(info["size"], 144)
             self.assertEqual(info["align"], 8)

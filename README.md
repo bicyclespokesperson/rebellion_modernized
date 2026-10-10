@@ -9,7 +9,7 @@ auto-resolved. Multiplayer is not supported in the native builds.
 See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the approach, [docs/phase3_plan.md](docs/phase3_plan.md) for the
 port, and [CLAUDE.md](CLAUDE.md) for the working process.
 
-Future work (designs, not started): [codebase modernization](docs/design/modernization.md),
+Active work: [aggressive modernization roadmap](docs/design/modernization_aggressive.md). Related future work:
 [higher resolutions and upscaling](docs/design/high_resolution.md).
 
 ## Builds

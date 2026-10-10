@@ -1,7 +1,7 @@
 # Design: higher resolutions and upscaling (preliminary)
 
 Status: renderer/pack support proposed, not started; asset preparation skill available.
-Written Oct 2026. Companion: [modernization.md](modernization.md).
+Written Oct 2026. Companion: [aggressive modernization](modernization_aggressive.md).
 
 ## Goal
 

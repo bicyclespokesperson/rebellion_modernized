@@ -1,7 +1,9 @@
-# Design: aggressive modernization
+# Roadmap: aggressive modernization
 
-Status: second proposal, October 11, 2026; implementation not started. Alternative to
-[the fidelity-first plan](modernization.md), not an additional set of requirements.
+Status: **correct, authoritative plan**; implementation started October 11, 2026.
+
+This checklist is the source of truth for modernization work. Update it in the same change that completes, adds, splits,
+or deliberately defers a roadmap item.
 
 ## Decision
 
@@ -10,7 +12,8 @@ material, not as a specification for every observable detail. Fix bugs while rew
 callers together, replace accidental ordering with explicit rules, and delete obsolete compatibility machinery.
 
 Use C++23. Apply mechanical cleanup early. Then modernize by responsibility, with an independent adversarial review,
-a build and a short automated smoke check before each commit. Save substantial manual playtesting for the end.
+a host-platform build and a short automated smoke check before each commit. Save substantial manual playtesting for the
+end.
 
 The important adjustment to “rewrite each file and commit” is the unit of work: **one responsibility plus its clients**.
 A file can be that unit, but a container family, ownership chain or initialization sequence often spans several files.
@@ -32,34 +35,45 @@ playthrough, or obligatory test for every rewritten function. The existing annot
 at `7df8d105c5db53cfa18bc5d227e11eaee6d903f6` is the known-good macOS baseline (annotation: “decompile working on macos”).
 Old code and tools remain available there for archaeology; do not maintain a second active fidelity branch.
 
+## Platform rule
+
+Each change only needs to build and pass its relevant checks on the platform where the agent is working. A macOS agent
+does not need Linux or Windows access; a Linux agent does not need to find a way to test macOS; the same rule applies on
+Windows. Record the host platform and checks run, and do not claim checks that were not run. Platform discrepancies are
+usually small and can be fixed by a later agent working on that platform. Cross-platform build status is tracked below,
+but it is never a prerequisite for an individual change or a reason to block modernization work.
+
 ## A0 — Establish the modern build
 
-1. Use `decompile-working-on-macos` as the existing known-good baseline and record the build/run commands.
-   Use copies of saves for development runs.
-2. Enable C++23 on our targets, with the standard required and extensions disabled as the target end state. Keep narrowly
-   needed legacy compiler extensions temporarily; remove them as their users disappear. Do not impose our flags on SDL
-   or FreeType. Export compilation databases and pin clang-format/clang-tidy versions.
-3. Build the existing native game in C++23 on macOS and Linux. Adapt generator parsing flags too: changing the top-level
-   CMake setting does not prove the Python/libclang generators understand the same source language.
-4. Establish a modern Windows x64 target using clang-cl and the MSVC STL/SDK, normal CRT linking and SDL/minwin. This is
-   real port work: the current Windows standalone target is i686, uses `/NODEFAULTLIB`, and reconstructs startup/data;
-   the current native platform selection only handles macOS and Linux. Provide the Windows OS adapter and resolve
-   Win32/minwin naming and import boundaries. Do not promise Windows support based on a compiler flag alone.
-5. Adapt the existing smoke harness to check save write/close failures and reload its output in a second process,
-   advance again, and validate basic references. Its current save-success return is insufficient. Exercise normal
-   application teardown too; the existing `ExitProcess` shortcut does not test shutdown ownership. Finish one such
-   startup/load/short-simulation/save/reload run on each modern platform before the broad rewrite loop.
+- [x] Adopt `decompile-working-on-macos` as the known-good archaeology baseline. Keep development saves as disposable
+  copies. Build and run commands are recorded in [native.md](../native.md).
+- [x] Require C++23 and disable compiler extensions in the maintained CMake builds.
+- [x] Standardize maintained builds on the Clang compiler family: Apple Clang, LLVM Clang, or clang-cl.
+- [x] Update checked-in parser and syntax-check flags to C++23 so tooling reads the same language as the build.
+- [ ] Pin the clang-format and clang-tidy versions used by the project.
+- [x] Export the native compilation database.
+- [x] Build and run the native game in C++23 on macOS (Apple Clang 17, arm64; 10-tick headless simulation smoke).
+- [ ] Build and run the native game in C++23 on Linux.
+- [ ] Establish a modern Windows x64 target using clang-cl and the Windows SDK, normal CRT linking and SDL/minwin. This
+  is real port work: the current Windows standalone target is i686, uses `/NODEFAULTLIB`, and reconstructs startup/data;
+  the current native platform selection only handles macOS and Linux. Provide the Windows OS adapter and resolve
+  Win32/minwin naming and import boundaries. Do not promise Windows support based on a compiler flag alone.
+- [ ] Adapt the smoke harness to detect save write/close failures, reload its output in a second process, advance again,
+  validate basic references, and exercise normal application teardown instead of the existing `ExitProcess` shortcut.
+- [ ] Run that startup/load/short-simulation/save/reload smoke on macOS.
+- [ ] Run that startup/load/short-simulation/save/reload smoke on Linux.
+- [ ] Run that startup/load/short-simulation/save/reload smoke on Windows.
 
-Steps A0 and A1 may interleave where the Windows target needs the new initialization path. Keep macOS/Linux building
-during that work; establish Windows before large interface changes accumulate. Normal CRT startup also means deliberately
-retiring conflicting CRT replacements and allocator overrides, rather than linking two versions of them together.
+A0 and A1 may interleave where a platform target needs the new initialization path. Normal CRT startup also means
+deliberately retiring conflicting CRT replacements and allocator overrides, rather than linking two versions together.
 
 ### C++23 support policy
 
-Target current stable toolchains and current desktop operating systems; preserving the existing macOS 11 deployment
-floor is not a requirement. Initial matrix: Apple Clang/libc++ on macOS arm64, Clang/libstdc++ on Linux x86-64, and
-clang-cl/MSVC STL on Windows x64. Retain existing macOS x86-64 and Linux arm64 builds where practical; they need not each
-receive manual playthroughs. Supporting GCC or MSVC's compiler as additional frontends is optional.
+Target current stable Clang toolchains and current desktop operating systems; preserving the existing macOS 11 deployment
+floor is not a requirement. Target matrix: Apple Clang/libc++ on macOS arm64, LLVM Clang/libstdc++ on Linux x86-64, and
+clang-cl with the Windows SDK on Windows x64. Retain existing macOS x86-64 and Linux arm64 builds where practical. GCC and
+the MSVC compiler are out of scope. This matrix describes the eventual project state; each agent only builds the row
+matching its host platform.
 
 Pin concrete compiler, standard-library, SDK, CMake and OS versions after the first successful matrix build. “Latest”
 describes selection policy, not a permanently floating CI dependency. Check a tiny compile/link probe for each C++23
@@ -80,29 +94,37 @@ The current native build still depends on `symbols/symbols.csv`, original global
 `native_data.json`, and static initializer stores recovered from the EXE. See `tools/gen_native_data.py` and
 `tools/gen_native_init.py`. Removing layout assertions alone does not remove this coupling.
 
-- Replace reconstructed program globals and startup calls with typed definitions and explicit initialization/shutdown.
+- [ ] Replace reconstructed program globals and startup calls with typed definitions and explicit initialization/shutdown.
   Group ownership in a small application/game context and pass the services each subsystem needs. Avoid merely replacing
   dozens of globals with one global service locator.
-- Separate shipped game data from program initialization. Continue extracting proprietary tables/resources from the
+- [ ] Separate shipped game data from program initialization. Continue extracting proprietary tables/resources from the
   user's installation where needed, but emit a stable asset schema independent of C++ symbols and object offsets.
   Do not check extracted proprietary bytes into source. Delete the old generators once no live build depends on them.
-- Preserve real initialization dependencies explicitly; remove incidental dependencies on translation-unit order,
+- [ ] Preserve real initialization dependencies explicitly; remove incidental dependencies on translation-unit order,
   constructor side effects, or original memory addresses. Break cycles by moving shared types or responsibilities and
   passing dependencies explicitly, not by introducing an interface for every class.
-- Remove hybrid/hook/difftest build requirements, original-layout assertions and obsolete calling conventions from the
+- [ ] Remove hybrid/hook/difftest build requirements, original-layout assertions and obsolete calling conventions from the
   modern targets. Archive their implementation in Git. Keep archaeology tools only where still useful independently.
-- Restore normal allocation and error handling. Audit code relying on zero-filled allocations before switching it to
+- [ ] Restore normal allocation and error handling. Audit code relying on zero-filled allocations before switching it to
   ordinary `new`/`make_unique`; initialize members explicitly. Use RAII; enable normal exception support, catch failures
   at application/callback boundaries, and use explicit results for routine recoverable errors. No exceptions may unwind
   through C callbacks. RTTI can use the compiler default; there is no need to emulate the old ABI.
 
-Exit: a clean modern build/run no longer needs original C++ layouts, function names or EXE startup-store replay. It may
-still require original game assets. This is the one enabling migration worth doing ahead of the broad cleanup.
+- [ ] **A1 exit:** a clean modern build/run no longer needs original C++ layouts, function names or EXE startup-store
+  replay. It may still require original game assets.
 
 ## A2 — Mechanical cleanup in bulk
 
-Add a curated `.clang-tidy`. Defer all clang-format runs until the rewrite is complete, including formatting touched
-files, to avoid churn during semantic changes. The single final formatting pass is described below.
+- [ ] Add a curated `.clang-tidy`.
+- [ ] Apply `modernize-use-nullptr` as a reviewed, buildable batch.
+- [ ] Apply `modernize-use-override` as a reviewed, buildable batch.
+- [ ] Apply `modernize-use-equals-default` as a reviewed, buildable batch.
+- [ ] Apply `modernize-redundant-void-arg` as a reviewed, buildable batch.
+- [ ] Survey bugprone and performance checks; enable fixes only where their assumptions fit this code.
+- [ ] Enable useful warnings for newly cleaned code and remove suppressions with the code that requires them.
+
+Defer all clang-format runs until the rewrite is complete, including formatting touched files, to avoid churn during
+semantic changes. The single final formatting pass is described below.
 
 Run clang-tidy against real compilation commands. Start with fixable checks such as `modernize-use-nullptr`,
 `modernize-use-override`, `modernize-use-equals-default` and `modernize-redundant-void-arg`; apply each family in a separate
@@ -116,18 +138,18 @@ up-front gate. Newly cleaned code should stay clean; remove suppressions and leg
 ## A3 — Rewrite loop
 
 Maintain a short worklist of responsibilities, not a speculative architecture document. Seed it with the existing code
-map and `BUG(original)` sites. Each work item follows this loop:
+map and `BUG(original)` sites. Each work item copies and completes this checklist:
 
-1. Read the responsibility, its callers and its lifetime/serialization dependencies. State the intended simpler API and
-   behavior in a few sentences. Identify real invariants, not incidental properties of the old implementation.
-2. Rewrite it and migrate all affected clients in the same change. Rename, split, merge or delete as needed. Fix bugs
-   encountered in the area immediately; summarize meaningful gameplay changes in the commit.
-3. Run selected tidy fixes. Build and run the cheap checks below; leave clang-format until the end.
-4. Give an independent reviewer the diff, surrounding code and intended behavior. Ask them to find concrete failures,
-   especially ownership/lifetime errors, invalidated iteration, lost callbacks, save corruption, startup cycles, integer
-   errors and platform assumptions. They should inspect callers and error paths, not merely critique the diff's style.
-5. Address actionable findings, rerun affected checks, and commit a coherent, buildable change. Use another review pass
-   only for material revisions or unresolved findings; no recursive debate over speculative concerns.
+- [ ] Read the responsibility, its callers and its lifetime/serialization dependencies. State the intended simpler API
+  and behavior in a few sentences. Identify real invariants, not incidental properties of the old implementation.
+- [ ] Rewrite it and migrate all affected clients in the same change. Rename, split, merge or delete as needed. Fix bugs
+  encountered in the area immediately; summarize meaningful gameplay changes in the commit.
+- [ ] Run selected tidy fixes, build on the host platform, and run the cheap relevant checks below. Leave clang-format
+  until the end.
+- [ ] Give an independent reviewer the diff, surrounding code and intended behavior. Ask them to find concrete failures,
+  especially ownership/lifetime errors, invalidated iteration, lost callbacks, save corruption, startup cycles, integer
+  errors and platform assumptions. They should inspect callers and error paths, not merely critique the diff's style.
+- [ ] Address actionable findings, rerun affected checks, update this roadmap, and commit a coherent, buildable change.
 
 One independent LLM review per semantic unit is the default; a second reviewer is useful for core ownership, startup or
 serialization changes. Mechanical batches need a lighter review. Review supports judgment; it cannot demonstrate that
@@ -135,14 +157,12 @@ the game runs, which is why the small executable check remains.
 
 Suggested order after A1/A2:
 
-| Area | Main payoff |
-| --- | --- |
-| Core types, strings, ownership and container families | Remove shared friction; migrate consumers with each family |
-| Save boundary and object identity | Decouple the on-disk representation from subsequent object redesign |
-| Rules, economy, missions, AI and events | Fix original bugs; make gameplay code understandable |
-| Simulation scheduling and randomness | Remove UI-driven AI randomness and accidental timing dependencies |
-| UI models, windows and platform interfaces | Simplify callers and retire Win32-shaped abstractions where useful |
-| Remaining glue and dead compatibility code | Remove adapters, suppressions and obsolete build paths |
+- [ ] Core types, strings, ownership and container families: remove shared friction and migrate consumers with each family.
+- [ ] Save boundary and object identity: decouple the on-disk representation from subsequent object redesign.
+- [ ] Rules, economy, missions, AI and events: fix original bugs and make gameplay code understandable.
+- [ ] Simulation scheduling and randomness: remove UI-driven AI randomness and accidental timing dependencies.
+- [ ] UI models, windows and platform interfaces: simplify callers and retire Win32-shaped abstractions where useful.
+- [ ] Remaining glue and dead compatibility code: remove adapters, suppressions and obsolete build paths.
 
 This is a priority order, not a strict topological traversal. Follow related callers across areas when it makes a change
 smaller overall. A large responsibility can take several commits with a temporary adapter, but name its deletion task.
@@ -176,8 +196,8 @@ change its success criteria rather than building a new scenario framework or enl
 | Each semantic commit | Incremental host build; short load → bounded ticks → save → reload → more ticks smoke; independent review |
 | Ownership, startup or save changes | Same smoke under ASan/UBSan on a supported host; focused invariant or round-trip check |
 | Existing relevant automated tests | Run the affected tests; no need to run unrelated legacy fidelity suites |
-| Each integration batch | macOS/Linux/Windows builds and the short smoke; catch platform breakage before starting another batch |
-| End of the rewrite | Full build matrix, existing useful tests, one bounded sanitizer simulation, one structured manual acceptance pass |
+| Each integration batch | Host-platform build and short smoke; record platform discrepancies as later work |
+| End of the rewrite | Host-platform build, existing useful tests, one bounded sanitizer simulation, one structured manual acceptance pass |
 
 The smoke has a timeout and checks successful loading, tick progress, successful save/reload and basic object-reference
 integrity. It does not compare game outcomes against the reconstruction. Target well under a minute of runtime; measure
@@ -187,18 +207,18 @@ Tiny direct tests are worthwhile for a discovered crash, tricky
 arithmetic, lifetime or serialization bug; coverage percentages and mirrored implementation tests are not objectives.
 
 Keep CI possible without publishing game data: compile in public jobs where feasible; asset-dependent runs use a local or
-private installation. If a platform check is unavailable, record it as unverified rather than silently claiming coverage.
-Do not finish the project with an untested Windows target.
+private installation. If a platform check is unavailable, leave its roadmap box unchecked. A failure found later on
+another platform is an ordinary follow-up and does not invalidate a change that passed on its development platform.
 
-The root `.clang-format` was copied from [Meneldor](https://github.com/bicyclespokesperson/meneldor_chess_engine/blob/main/.clang-format).
-Once the rewrite is complete, check its options against the pinned formatter and C++23 syntax, then run it once over first-party maintained code, excluding
-third-party, generated and archival code. Put that formatting-only pass in a dedicated commit and record it in
-`.git-blame-ignore-revs`. Run the final build and automated checks on the formatted tree before manual acceptance.
+- [ ] Check the root `.clang-format` options against the pinned formatter and C++23 syntax.
+- [ ] Run one final formatting pass over first-party maintained code, excluding third-party, generated and archival code.
+- [ ] Put the formatting-only pass in a dedicated commit and record it in `.git-blame-ignore-revs`.
+- [ ] Run the host-platform build and automated checks on the formatted tree.
 
-At the end, do one substantial play session on the primary desktop, using representative saves to reach both factions,
-missions/research/recruitment, fleet movement, economy, combat resolution, and save/reload without waiting through a full
-campaign. Briefly launch/load/save and check input/audio on the other two OSes. Fix findings and repeat affected paths;
-there is no required second campaign or complete rerun for every fix.
+- [ ] On the current primary desktop, complete one substantial play session using representative saves to reach both
+  factions, missions/research/recruitment, fleet movement, economy, combat resolution, and save/reload without waiting
+  through a full campaign. Fix findings and repeat affected paths; there is no required second campaign or complete rerun
+  for every fix.
 
 ## Recovery and completion
 
@@ -208,11 +228,15 @@ inspect the responsible code, or bisect when the regression is reproducible. Bis
 and a reusable fixture. Save-format transitions and nondeterministic failures can complicate it, so it is a recovery tool,
 not a substitute for the minute-long smoke check.
 
-Finish when modern targets build/run on the three OSes, the old layout/startup coupling is gone, core interfaces and
-ownership are clear, known bug sites have been fixed or explicitly deferred, and the final acceptance pass succeeds.
-Every first-party area should have been assessed; not every file needs a diff. Deferred items get a concrete reason, not
-a compatibility mode. No fidelity score, zero-warning crusade, or exhaustive campaign certification is required.
+- [ ] The old layout/startup coupling is gone.
+- [ ] Core interfaces and ownership are clear.
+- [ ] Known bug sites are fixed or explicitly deferred with a concrete reason.
+- [ ] Every first-party area has been assessed; not every file needs a diff.
+- [ ] The final host-platform acceptance pass succeeds.
 
-Recommended sequence: **C++23 build → remove layout/startup coupling and establish Windows x64 → bulk tooling fixes →
+No fidelity score, zero-warning crusade, exhaustive campaign certification, or simultaneous cross-platform sign-off is
+required.
+
+Recommended sequence: **C++23 host build → remove layout/startup coupling → bulk tooling fixes →
 rewrite responsibility + clients → adversarial review + cheap executable check → commit → one clang-format pass →
-final checks and one acceptance pass.**
+final host checks and one acceptance pass.**
