@@ -1,0 +1,116 @@
+# UI tour in a loaded game (RebelsFastStart, Alliance): opens the main windows/panels with a screenshot
+# of each and closes them again. See docs/ui_navigation.md. Runtime ~170 s.
+# The game is set to Very Slow (not paused) so time advances but the Ando space battle (which pops up
+# ~45 s after setting Fast) does not interrupt the tour.
+12 key Escape
+16 key Escape
+20 key Escape
+# Main menu -> Load Game monitor -> row 3 (RebelsFastStart) -> galaxy screen (paused).
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot tour_00_galaxy
+# Speed menu (right-click the clock box) -> "Very Slow" (2nd entry, y~56).
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 52
+46 move 170 56
+47 click 170 56
+# F2 System Finder; double-click a row -> Sector window; alt+w closes all windows.
+49 key F2
+52 shot tour_01_system_finder
+53 move 130 215
+54 move 133 218
+55 click 133 218
+56.0 click 133 218
+56.15 click 133 218
+59 shot tour_02_sector_window
+60 key alt+w
+# F3 Fleet Finder; double-click "Fleet 1" -> Fleet window (+ sector window).
+62 key F3
+65 shot tour_03_fleet_finder
+66 move 100 197
+67 move 105 200
+68 click 105 200
+69.0 click 105 200
+69.15 click 105 200
+72 shot tour_04_fleet_window
+73 key alt+w
+# F4 Troop Finder.
+75 key F4
+78 shot tour_05_troop_finder
+79 key Escape
+# F5 Personnel Finder; double-click first row -> Personnel window of that system.
+81 key F5
+84 shot tour_06_personnel_finder
+85 move 130 205
+86 move 135 210
+87 click 135 210
+88.0 click 135 210
+88.15 click 135 210
+91 shot tour_07_personnel_window
+92 key alt+w
+# F6 Message Index (all messages).
+94 key F6
+97 shot tour_08_message_index
+98 key Escape
+# F7 Galactic Encyclopedia; double-click "A-wing" -> article.
+100 key F7
+103 shot tour_09_encyclopedia
+104 move 125 195
+105 move 130 197
+106 click 130 197
+107.0 click 130 197
+107.15 click 130 197
+110 shot tour_10_encyclopedia_article
+111 key Escape
+112 key Escape
+# alt+h Game Objectives, alt+o Galaxy Overview.
+113 key alt+h
+115 shot tour_11_objectives
+116 key Escape
+117 key alt+o
+119 shot tour_12_galaxy_overview
+120 key Escape
+# Left toolbar: mission messages (y~166) -> Message Index on the Mission tab.
+122 move 12 163
+123 move 15 166
+124 click 15 166
+127 shot tour_13_mission_messages
+128 key Escape
+# Click a sector on the galaxy map -> Sector window; double-click a planet -> system/manufacturing window.
+130 move 275 265
+131 move 281 268
+132 click 281 268
+134 shot tour_14_sector_window
+135 move 205 153
+136 move 210 157
+137.0 click 210 157
+137.15 click 210 157
+140 shot tour_15_system_window
+141 key alt+w
+# Galactic Information Display (control on the right console), click -> overlay menu.
+143 move 455 408
+144 move 460 411
+145 click 460 411
+147 shot tour_16_gid_menu
+# Escape does not dismiss this menu; pick "Display Off" (bottom entry) instead.
+148 move 540 428
+149 move 545 431
+150 click 545 431
+151 shot tour_16b_gid_off
+# Game Controls (lower-left monitor, y~372) -> save/load/options screen. Escape does NOT leave it;
+# the middle (galaxy) icon at the bottom (183,400) returns to the game.
+152 move 12 369
+153 move 15 372
+154 click 15 372
+157 shot tour_17_game_controls
+158 move 180 398
+159 move 183 400
+160 click 183 400
+163 shot tour_18_back_to_galaxy
+164 end

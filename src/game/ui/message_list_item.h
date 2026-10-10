@@ -1,0 +1,39 @@
+#pragma once
+#include <cstdint>
+
+#include "core/layout.h"
+#include "ui/cool_drag_list.h"
+#include "ui/cool_list_item.h"
+
+#include "ui/message_record_decl.h"
+
+// A row of the message index (0x468ab0): shows a message record's text. Rows whose m_visible is 0 are skipped by
+// Next/Previous (the same code as ObjectListItem's, linker-folded).
+class MessageListItem : public CoolListItem {
+public:
+    explicit MessageListItem(MessageRecord* record);  // 0x4ad6b0
+    virtual ~MessageListItem();                       // 0x4ad720 (scalar deleting destructor 0x4ad690)
+    virtual void Read(istream* in) override;          // slot 1, 0x5ae1e0: does nothing
+    virtual void Write(ostream* out) override;        // slot 2, 0x5ae1e0: does nothing
+    virtual CoolListItem* Next() override;            // slot 3, 0x4ad730
+    virtual CoolListItem* Previous() override;        // slot 4, 0x4ad750
+
+    MessageRecord* m_record;  // +0x68 not owned
+    int m_visible;            // +0x6c 1
+};
+
+// The message index's item list: First skips invisible rows (0x4665f0).
+class MessageItemList : public CoolListItemList {
+public:
+    explicit MessageItemList(int sortMode);  // 0x4ad620
+    virtual ~MessageItemList();              // 0x4ad660 (scalar deleting destructor 0x4ad640)
+    virtual CoolListItem* First() override;  // slot 2, 0x4ad670
+};
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winvalid-offsetof"
+REB_ASSERT_SIZE(MessageListItem, 0x70);
+REB_ASSERT_OFFSET(MessageListItem, m_record, 0x68);
+REB_ASSERT_OFFSET(MessageListItem, m_visible, 0x6c);
+REB_ASSERT_SIZE(MessageItemList, 0x10);
+#pragma clang diagnostic pop

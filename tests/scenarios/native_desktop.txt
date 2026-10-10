@@ -1,0 +1,19 @@
+# Native-only: desktop behaviour with a window manager (see native_window.txt for the environment): automatic scale, the close button,
+# Alt+F4, focus loss and regain, minimise and restore.
+12 key Escape
+16 key Escape
+20 key Escape
+24 geometry
+24.5 shot menu
+25 close
+27 shot close_button_dialog
+30 focus-away
+32 shot focus_lost
+33 focus-back
+35 shot focus_back
+36 minimize
+38 restore
+40 shot restored
+41 key alt+F4
+43 shot alt_f4
+44 end

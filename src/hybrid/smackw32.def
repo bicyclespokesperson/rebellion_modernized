@@ -1,0 +1,41 @@
+LIBRARY smackw32
+EXPORTS
+    _SmackBufferString@8 = smackorig._SmackBufferString@8 @1
+    _SmackBufferOpen@24 = smackorig._SmackBufferOpen@24 @2
+    _SmackBufferBlit@32 = smackorig._SmackBufferBlit@32 @3
+    _SmackBufferFocused@4 = smackorig._SmackBufferFocused@4 @4
+    _SmackBufferNewPalette@12 = smackorig._SmackBufferNewPalette@12 @5
+    _SmackBufferClose@4 = smackorig._SmackBufferClose@4 @6
+    _SmackBufferSetPalette@4 = smackorig._SmackBufferSetPalette@4 @7
+    _SmackBufferClear@8 = smackorig._SmackBufferClear@8 @8
+    _SmackSetSystemRes@4 = smackorig._SmackSetSystemRes@4 @9
+    _SmackBufferToBuffer@32 = smackorig._SmackBufferToBuffer@32 @10
+    _SmackBufferToBufferTrans@36 = smackorig._SmackBufferToBufferTrans@36 @11
+    _SmackBufferFromScreen@16 = smackorig._SmackBufferFromScreen@16 @12
+    _SmackBufferCopyPalette@12 = smackorig._SmackBufferCopyPalette@12 @13
+    _SmackOpen@12 = smackorig._SmackOpen@12 @14
+    _SmackSimulate@4 = smackorig._SmackSimulate@4 @15
+    _SmackFrameRate@4 = smackorig._SmackFrameRate@4 @16
+    _SmackSoundOnOff@8 = smackorig._SmackSoundOnOff@8 @17
+    _SmackClose@4 = smackorig._SmackClose@4 @18
+    _SmackDoFrame@4 = smackorig._SmackDoFrame@4 @19
+    _SmackSummary@8 = smackorig._SmackSummary@8 @20
+    _SmackNextFrame@4 = smackorig._SmackNextFrame@4 @21
+    _SmackToScreen@24 = smackorig._SmackToScreen@24 @22
+    _SmackToBuffer@28 = smackorig._SmackToBuffer@28 @23
+    _SmackColorTrans@8 = smackorig._SmackColorTrans@8 @24
+    _SmackColorRemap@16 = smackorig._SmackColorRemap@16 @25
+    _SmackGetTrackData@12 = smackorig._SmackGetTrackData@12 @26
+    _SmackGoto@8 = smackorig._SmackGoto@8 @27
+    _SmackToBufferRect@8 = smackorig._SmackToBufferRect@8 @28
+    _SmackSoundInTrack@8 = smackorig._SmackSoundInTrack@8 @29
+    _SmackVolumePan@16 = smackorig._SmackVolumePan@16 @30
+    _SmackSoundCheck@0 = smackorig._SmackSoundCheck@0 @31
+    _SmackWait@4 = smackorig._SmackWait@4 @32
+    _SmackSoundUseMSS@4 = smackorig._SmackSoundUseMSS@4 @33
+    _donemarker@20 = smackorig._donemarker@20 @34
+    _TimerFunc@20 = smackorig._TimerFunc@20 @35
+    _SetDirectSoundHWND@4 = smackorig._SetDirectSoundHWND@4 @36
+    _SmackSoundUseDirectSound@4 = smackorig._SmackSoundUseDirectSound@4 @37
+    _SmackSoundUseWin@0 = smackorig._SmackSoundUseWin@0 @38
+    reb_hook_table DATA

@@ -1,0 +1,39 @@
+# New Standard game as the Rebel Alliance, then let game time run ~60 s at Fast speed.
+# See docs/ui_navigation.md. Runtime ~300 s (the agent-droid introduction cannot be skipped and takes
+# ~190 s after the shuttle movie; the day counter / clock controls are disabled until it ends).
+#
+# Skip the three intro movies, main menu (cockpit) is up at ~26 s.
+12 key Escape
+16 key Escape
+20 key Escape
+# Hover first, then click the red Alliance monitor (bottom-right, centre ~465,335; its right edge is
+# ~498, so do not click at x>=495) = start a new game as the Alliance (galaxy size "Standard Game").
+26 move 460 330
+27 move 465 335
+28 click 465 335
+# The shuttle movie starts after a ~5 s black screen; Escape skips it.
+31 key Escape
+# Agent-droid introduction: GID display cycles through its views, mouse + most hotkeys disabled.
+60 shot reb_intro_a
+120 shot reb_intro_b
+180 shot reb_intro_c
+# Intro ends 205-222 s after launch: the Message Index (advice messages) pops up; Escape closes it.
+224 key Escape
+228 key Escape
+230 shot reb_after_intro
+# Speed control = box at top left in the Alliance skin (135,24). Right-click opens the
+# Pause/Very Slow/Slow/Medium/Fast menu; Fast is at ~(170,116). Choose Fast.
+231 move 130 24
+232 move 135 24
+233 rclick 135 24
+234 move 170 112
+235 move 170 116
+236 click 170 116
+240 shot reb_run_00
+250 shot reb_run_10
+260 shot reb_run_20
+270 shot reb_run_30
+280 shot reb_run_40
+290 shot reb_run_50
+300 shot reb_run_60
+301 end

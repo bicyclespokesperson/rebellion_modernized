@@ -1,0 +1,463 @@
+address,name,library,confidence,game_call_sites,notes
+0x006153b0,ios_ctor,iostream,high,0,"ios::ios(); init bp/state=badbit/precision 6/fill ' ', ios lock CRITICAL_SECTION; lib_internal_refs=11"
+0x00615420,ios_scalar_deleting_dtor,iostream,high,0,ios vftable[0]; rdata_refs=1
+0x00615440,ios_dtor,iostream,high,72,"ios::~ios(); unwind_funclet_refs=11, lib_internal_refs=11"
+0x006154a0,ios_init,iostream,high,0,ios::init(streambuf*); lib_internal_refs=2
+0x006154e0,strstreambuf_ctor,iostream,high,0,strstreambuf::strstreambuf() (dynamic); lib_internal_refs=2
+0x00615510,strstreambuf_scalar_deleting_dtor,iostream,high,0,strstreambuf vftable[0]; rdata_refs=1
+0x00615530,strstreambuf_ctor_buf,iostream,high,0,"strstreambuf::strstreambuf(char* buf,int n,char* pstart); lib_internal_refs=3"
+0x006155f0,strstreambuf_dtor,iostream,high,0,frees buffer if dynamic and not frozen; lib_internal_refs=1
+0x00615660,strstreambuf_freeze,iostream,high,20,strstreambuf::freeze(int)
+0x00615680,strstreambuf_str,iostream,high,23,strstreambuf::str(); freezes and returns buffer base
+0x00615690,strstreambuf_doallocate,iostream,high,0,"vftable[10]; rdata_refs=1, lib_internal_refs=2"
+0x006157c0,strstreambuf_setbuf,iostream,medium,0,vftable[2]; label only (no Ghidra function); rdata_refs=1
+0x006157d0,strstreambuf_overflow,iostream,high,0,"vftable[7]; rdata_refs=1, lib_internal_refs=1"
+0x00615860,strstreambuf_underflow,iostream,high,0,"vftable[8]; rdata_refs=1, lib_internal_refs=1"
+0x006158b0,icf_return_zero,other,high,11,"ICF-folded 'xor eax,eax; ret'. Same bytes serve strstreambuf::sync (vftable[1]), CRT _matherr (called by __call_matherr) and every other game 'return 0' stub (hundreds of vtable slots); rdata_refs=516, lib_internal_refs=2"
+0x006158c0,strstreambuf_seekoff,iostream,medium,0,vftable[3]; label only (no Ghidra function); rdata_refs=1
+0x006159e0,istrstream_ctor_str,iostream,high,1,istrstream::istrstream(char*)
+0x00615aa0,istrstream_scalar_deleting_dtor,iostream,high,0,istrstream vftable[0]; label only (no Ghidra function); rdata_refs=1
+0x00615ad0,istrstream_ctor_str_len,iostream,high,1,"istrstream::istrstream(char*,int)"
+0x00615b90,istrstream_dtor,iostream,high,2,sets istrstream vptr then istream_dtor; lib_internal_refs=1
+0x00615bb0,ostrstream_ctor,iostream,high,2,ostrstream::ostrstream() (dynamic)
+0x00615c60,ostrstream_scalar_deleting_dtor,iostream,high,0,ostrstream vftable[0]; label only (no Ghidra function); rdata_refs=1
+0x00615c90,ostrstream_ctor_buf,iostream,high,2,"ostrstream::ostrstream(char*,int,int mode)"
+0x00615d70,ostrstream_vbase_dtor,iostream,medium,0,ostream_dtor + ios_dtor; unwind_funclet_refs=1
+0x00615d90,ostrstream_dtor,iostream,high,3,sets ostrstream vptr then ostream_dtor; lib_internal_refs=1
+0x00615db0,strstream_ctor,iostream,high,54,strstream::strstream() - heavily used by game
+0x00615e70,strstream_scalar_deleting_dtor,iostream,high,0,strstream vftable[0]; label only (no Ghidra function); rdata_refs=1
+0x00615ea0,strstream_dtor,iostream,high,55,strstream::~strstream(); lib_internal_refs=1
+0x00615ec0,mtx_init,iostream,medium,0,thunk to InitializeCriticalSection (iostream lock helper); lib_internal_refs=3
+0x00615ed0,mtx_term,iostream,medium,0,thunk to DeleteCriticalSection; lib_internal_refs=3
+0x00615ee0,mtx_lock,iostream,medium,21,thunk to EnterCriticalSection; inlined ios::lock() in game code calls this; lib_internal_refs=27
+0x00615ef0,mtx_unlock,iostream,medium,21,thunk to LeaveCriticalSection; lib_internal_refs=49
+0x00615f00,ostream_operator_ls_char,iostream,high,34,ostream::operator<<(char) via outstr
+0x00615fc0,ostream_opfx,iostream,high,0,ostream::opfx(); flushes tie(); lib_internal_refs=7
+0x00616040,ostream_osfx,iostream,high,0,ostream::osfx(); unitbuf/stdio flush; lib_internal_refs=9
+0x00616110,ostream_operator_ls_cstr,iostream,high,100,ostream::operator<<(const char*)
+0x00616140,ostream_flush,iostream,high,1,ostream::flush(); lib_internal_refs=2
+0x006161e0,ostream_scalar_deleting_dtor,iostream,high,0,ostream vftable[0]; label only (no Ghidra function); rdata_refs=1
+0x00616210,ostream_ctor,iostream,high,0,ostream::ostream(streambuf*) with vbase flag; lib_internal_refs=4
+0x006162a0,ostream_dtor,iostream,high,0,ostream::~ostream(); lib_internal_refs=5
+0x006162b0,ostream_outstr,iostream,high,0,"ostream::outstr(const char*,const char*) width/adjust padding; lib_internal_refs=5"
+0x006164b0,ofstream_ctor,iostream,high,3,ofstream::ofstream()
+0x00616560,ofstream_scalar_deleting_dtor,iostream,high,0,ofstream vftable[0]; label only (no Ghidra function); rdata_refs=1
+0x00616590,ofstream_dtor,iostream,high,3,ofstream::~ofstream(); lib_internal_refs=1
+0x006165b0,ofstream_open,iostream,high,1,"ofstream::open(const char*,int,int)"
+0x00616620,ifstream_ctor,iostream,high,8,ifstream::ifstream()
+0x006166d0,ifstream_scalar_deleting_dtor,iostream,high,0,ifstream vftable[0]; label only (no Ghidra function); rdata_refs=1
+0x00616700,ifstream_ctor_open,iostream,high,1,"ifstream::ifstream(const char*,int,int)"
+0x006167f0,ifstream_vbase_dtor,iostream,medium,0,istream_dtor + ios_dtor; unwind_funclet_refs=2
+0x00616810,ifstream_dtor,iostream,high,9,ifstream::~ifstream(); lib_internal_refs=1
+0x00616830,ifstream_open,iostream,high,1,"ifstream::open(const char*,int,int)"
+0x006168a0,fstreambase_close,iostream,high,6,ifstream/ofstream::close(); ICF-merged copy
+0x00616900,ostream_seekp_pos,iostream,medium,7,ostream::seekp(streampos)
+0x006169a0,ostream_seekp_off,iostream,medium,1,"ostream::seekp(streamoff,seek_dir); lib_internal_refs=1"
+0x00616a40,ostream_tellp,iostream,medium,1,ostream::tellp()
+0x00616ae0,ostream_operator_ls_streambuf,iostream,medium,1,ostream::operator<<(streambuf*)
+0x00616b70,istream_operator_rs_streambuf,iostream,medium,1,istream::operator>>(streambuf*)
+0x00616c30,istream_seekg_pos,iostream,medium,4,istream::seekg(streampos)
+0x00616cd0,istream_seekg_off,iostream,medium,7,"istream::seekg(streamoff,seek_dir)"
+0x00616d70,istream_tellg,iostream,medium,2,istream::tellg()
+0x00616e10,ostream_operator_ls_long,iostream,high,6,"ostream::operator<<(long) uses ""%ld"""
+0x00616ed0,filebuf_ctor,iostream,high,0,filebuf::filebuf(); fd at +0x4c; lib_internal_refs=3
+0x00616ef0,filebuf_scalar_deleting_dtor,iostream,high,0,filebuf vftable[0]; rdata_refs=1
+0x00616f10,filebuf_dtor,iostream,high,0,filebuf::~filebuf(); lib_internal_refs=1
+0x00616f90,filebuf_close,iostream,high,0,filebuf::close() -> _close; lib_internal_refs=3
+0x00617010,filebuf_overflow,iostream,high,0,vftable[7]; rdata_refs=1
+0x006170a0,filebuf_underflow,iostream,high,0,vftable[8]; uses _read; label only (no Ghidra function); rdata_refs=1
+0x00617160,filebuf_seekoff,iostream,medium,0,vftable[3]; label only (no Ghidra function); rdata_refs=1
+0x006171b0,filebuf_sync,iostream,high,0,"vftable[1]; flushes via _write; rdata_refs=1, lib_internal_refs=4"
+0x006172b0,filebuf_setbuf,iostream,high,0,vftable[2]; rdata_refs=1
+0x00617330,istream_get,iostream,high,1,istream::get()
+0x006173b0,istream_read,iostream,high,26,"istream::read(char*,int); xsgetn"
+0x00617430,ostream_write,iostream,high,6,"ostream::write(const char*,int); xsputn"
+0x00617480,ostream_operator_ls_ulong,iostream,high,7,"ostream::operator<<(unsigned long) uses ""%lu"""
+0x00617540,ostream_operator_ls_int,iostream,high,2,"ostream::operator<<(int) uses ""%d"""
+0x00617610,istream_operator_rs_long,iostream,medium,95,istream::operator>>(long&) (could be int& overload); getint+strtol; 95 game sites
+0x006176a0,istream_operator_rs_ushort,iostream,medium,2,istream::operator>>(unsigned short&)
+0x00617760,istream_operator_rs_ulong,iostream,medium,16,istream::operator>>(unsigned long&) (or unsigned int&)
+0x00617800,istream_getline,iostream,medium,1,"istream::getline(char*,int,char)"
+0x00617900,istream_operator_rs_short,iostream,medium,4,istream::operator>>(short&)
+0x006179b0,istream_scalar_deleting_dtor,iostream,high,0,istream vftable[0]; label only (no Ghidra function); rdata_refs=1
+0x006179e0,istream_ctor,iostream,high,0,istream::istream(streambuf*) with vbase flag; lib_internal_refs=5
+0x00617a80,istream_dtor,iostream,high,0,"istream::~istream(); unwind_funclet_refs=1, lib_internal_refs=5"
+0x00617a90,istream_ipfx,iostream,high,0,istream::ipfx(int); lib_internal_refs=10
+0x00617b90,istream_operator_rs_charptr,iostream,medium,1,istream::operator>>(char*) honors width
+0x00617cb0,istream_eatwhite,iostream,high,0,istream::eatwhite(); lib_internal_refs=1
+0x00617d60,streambuf_ctor,iostream,high,0,streambuf::streambuf(); lib_internal_refs=3
+0x00617db0,streambuf_scalar_deleting_dtor,iostream,high,0,streambuf vftable[0]; rdata_refs=1
+0x00617dd0,streambuf_dtor,iostream,high,0,"streambuf::~streambuf(); unwind_funclet_refs=3, lib_internal_refs=3"
+0x00617e10,streambuf_setbuf,iostream,medium,0,vftable[2]; label only (no Ghidra function); rdata_refs=1
+0x00617e50,streambuf_xsputn,iostream,high,0,vftable[5]; shared by strstreambuf/filebuf; rdata_refs=3
+0x00617eb0,streambuf_xsgetn,iostream,medium,0,vftable[6]; label only (no Ghidra function); rdata_refs=3
+0x00617fa0,streambuf_sync,iostream,high,0,"vftable[1]; rdata_refs=1, lib_internal_refs=1"
+0x00617fc0,streambuf_allocate,iostream,high,0,streambuf::allocate(); calls doallocate; lib_internal_refs=2
+0x00617fe0,streambuf_doallocate,iostream,high,0,vftable[10]; allocates 0x200-byte buffer; rdata_refs=2
+0x00618020,streambuf_setb,iostream,high,0,"streambuf::setb(char*,char*,int); lib_internal_refs=5"
+0x00618060,streambuf_seekoff,iostream,high,0,vftable[3]; returns EOF; label only (no Ghidra function); rdata_refs=1
+0x00618070,streambuf_seekpos,iostream,high,0,vftable[4]; calls seekoff; label only (no Ghidra function); rdata_refs=3
+0x00618090,streambuf_pbackfail,iostream,high,0,vftable[9]; rdata_refs=3
+0x00618100,iostream_scalar_deleting_dtor,iostream,high,0,iostream vftable[0]; label only (no Ghidra function); rdata_refs=1
+0x00618130,iostream_ctor,iostream,high,0,iostream::iostream(streambuf*) with vbase flag; lib_internal_refs=1
+0x006181d0,iostream_dtor,iostream,high,0,iostream::~iostream(); lib_internal_refs=2
+0x00618240,filebuf_open,iostream,high,0,"filebuf::open(const char*,int,int) -> _sopen; lib_internal_refs=3"
+0x006183e0,streambuf_snextc,iostream,medium,0,streambuf::snextc(); lib_internal_refs=2
+0x00618440,streambuf_sbumpc,iostream,medium,0,streambuf::sbumpc(); lib_internal_refs=5
+0x00618490,streambuf_stossc,iostream,medium,0,streambuf::stossc(); lib_internal_refs=3
+0x006184e0,streambuf_sgetc,iostream,medium,0,streambuf::sgetc(); lib_internal_refs=4
+0x00618510,istream_getint,iostream,high,0,istream::getint(char*); returns base; lib_internal_refs=4
+0x00618710,__JumpToContinuation,eh,high,0,trnsctrl: restores ExceptionList then jumps to continuation; lib_internal_refs=1
+0x00618750,__CallMemberFunction0,eh,high,0,trnsctrl: thiscall trampoline; lib_internal_refs=3
+0x00618760,__UnwindNestedFrames,eh,high,0,trnsctrl: RtlUnwind helper; lib_internal_refs=2
+0x006187c0,__CxxFrameHandler,eh,high,0,C++ EH personality; every EH-enabled function's handler stub jumps here; unwind_funclet_refs=3820
+0x00618800,__CallCatchBlock2,eh,high,0,trnsctrl; lib_internal_refs=1
+0x00618860,CatchGuardHandler,eh,high,0,trnsctrl SEH handler; lib_internal_refs=1
+0x00618890,__CallSETranslator,eh,high,0,trnsctrl; calls ptd _translator; lib_internal_refs=1
+0x00618960,TranslatorGuardHandler,eh,high,0,trnsctrl SEH handler; lib_internal_refs=1
+0x006189f0,__GetRangeOfTrysToCheck,eh,high,0,trnsctrl; lib_internal_refs=2
+0x00618a70,__global_unwind2,eh,high,0,SEH; RtlUnwind wrapper; lib_internal_refs=1
+0x00618a90,__unwind_handler,eh,high,0,SEH unwind handler (referenced by __abnormal_termination); label only (no Ghidra function); lib_internal_refs=2
+0x00618ab2,__local_unwind2,eh,high,0,SEH local unwind; lib_internal_refs=3
+0x00618b1a,__abnormal_termination,eh,high,0,SEH; lib_internal_refs=1
+0x00618b3d,__NLG_Notify1,eh,high,0,name from Ghidra; NLG notification; lib_internal_refs=2
+0x00618b46,__NLG_Notify,eh,high,0,lib_internal_refs=2
+0x00618b60,operator_delete,cpp_runtime,high,1503,"operator delete(void*) -> _free; unwind_funclet_refs=2210, lib_internal_refs=17"
+0x00618b70,operator_new,cpp_runtime,high,2759,"operator new(size_t) -> __nh_malloc(size,1); returns NULL on failure (does not throw); game checks the result; lib_internal_refs=11"
+0x00618b80,__purecall,cpp_runtime,high,0,"_amsg_exit(25) ""R6025 pure virtual function call""; streambuf overflow/underflow slots; label only (no Ghidra function); rdata_refs=647"
+0x00618b90,__onexit,crt,high,0,appends to __onexitbegin table (DAT_006bed1c/DAT_006bed18); lib_internal_refs=1
+0x00618c20,_atexit,crt,high,147,147 game call sites
+0x00618c40,__onexitinit,crt,medium,0,malloc(0x80) = 32 onexit slots; label only (no Ghidra function); rdata_refs=1
+0x00618c80,__ehvec_ctor,eh,medium,29,"eh vector constructor iterator (ptr,size,count,ctor)"
+0x00618cf8,__ehvec_ctor_unwind,eh,medium,0,SEH funclet of __ehvec_ctor; lib_internal_refs=1
+0x00618d20,__ehvec_dtor,eh,medium,27,eh vector destructor iterator; unwind_funclet_refs=33
+0x00618d99,__ehvec_dtor_unwind,eh,medium,0,SEH funclet of __ehvec_dtor; lib_internal_refs=1
+0x00618dd0,__ArrayUnwind,eh,medium,0,destroys partially built array; lib_internal_refs=2
+0x00618e10,__ArrayUnwindFilter_thunk,eh,low,0,SEH filter/handler funclet; label only (no Ghidra function)
+0x00618e40,FrameUnwindFilter,eh,high,0,calls terminate() if C++ exception code 0xE06D7363; label only (no Ghidra function)
+0x00618e60,_free,crt,high,1,__sbh_find_block / HeapFree; __lock(9); lib_internal_refs=62
+0x00618ed0,_sprintf,crt,high,19,lib_internal_refs=3
+0x00618f40,_fclose,crt,high,1,
+0x00618f80,__fclose_lk,crt,high,0,lib_internal_refs=1
+0x00618ff0,_fread,crt,high,1,
+0x00619030,__fread_lk,crt,high,0,lib_internal_refs=1
+0x00619170,_malloc,crt,high,1,"_nh_malloc(size,__newmode); lib_internal_refs=38"
+0x00619190,__nh_malloc,crt,high,0,lib_internal_refs=2
+0x006191e0,__heap_alloc,crt,high,0,small-block heap if size <= __sbh_threshold else HeapAlloc; lib_internal_refs=1
+0x00619240,_ftell,crt,high,1,
+0x00619270,__ftell_lk,crt,high,0,lib_internal_refs=2
+0x00619420,_fseek,crt,high,2,
+0x00619460,__fseek_lk,crt,high,0,lib_internal_refs=1
+0x00619500,__fsopen,crt,high,0,lib_internal_refs=1
+0x00619540,_fopen,crt,high,1,"_fsopen(name,mode,_SH_DENYNO=0x40)"
+0x00619560,_atol,crt,high,0,lib_internal_refs=5
+0x00619600,_atoi,crt,high,5,tail of _atol
+0x00619610,_floor,crt,medium,5,uses control word DAT_006acac0=0x173f (RC_DOWN); 5 game sites
+0x00619710,__fpmath,crt,high,0,"name from Ghidra; rdata_refs=1, lib_internal_refs=1"
+0x00619730,icf_empty_function,other,high,6791,"1-byte RET. ICF-folded copy of every empty no-arg function (trivial dtors, scope-exit calls); game calls it constantly and hundreds of vtable slots point at it; game_ptr_refs=10, unwind_funclet_refs=5116, rdata_refs=379"
+0x00619740,__cfltcvt_init,crt,high,0,fills _cfltcvt_tab (0x6af4e0); lib_internal_refs=1
+0x00619780,__ftol,crt,high,66,
+0x006197b0,_CIpow,crt,medium,3,x87 pow wrapper
+0x006197d2,_pow_core,crt,medium,0,pow() body; lib_internal_refs=1
+0x006199a5,_pow_isint_helper,crt,low,0,lib_internal_refs=2
+0x006199d0,_strncpy,crt,high,3,lib_internal_refs=7
+0x00619ad0,__chdir,crt,high,1,
+0x00619b70,__chdrive,crt,high,1,
+0x00619bf0,_toupper,crt,high,1,lib_internal_refs=1
+0x00619c80,__toupper_lk,crt,high,0,lib_internal_refs=1
+0x00619d80,_WinMainCRTStartup,crt,high,0,entry point; calls WinMain 0x4165b0; lib_internal_refs=2
+0x00619f30,__amsg_exit,crt,high,0,lib_internal_refs=11
+0x00619f60,__fast_error_exit,crt,medium,0,_NMSG_WRITE then ExitProcess(255); lib_internal_refs=2
+0x00619f90,_isdigit,crt,high,0,lib_internal_refs=1
+0x00619fc0,_isxdigit,crt,high,0,lib_internal_refs=1
+0x00619ff0,_isspace,crt,high,1,lib_internal_refs=2
+0x0061a020,_ispunct,crt,high,1,
+0x0061a050,_isprint,crt,high,2,
+0x0061a080,_strncmp,crt,high,4,lib_internal_refs=1
+0x0061a0c0,_qsort,crt,high,1,
+0x0061a270,__shortsort,crt,high,0,lib_internal_refs=1
+0x0061a2d0,__swap,crt,high,0,lib_internal_refs=4
+0x0061a300,_srand,crt,high,2,seed lives in per-thread data (ptd+0x14)
+0x0061a310,_rand,crt,high,5,"LCG 214013*x+2531011, returns (x>>16)&0x7fff; seed in ptd+0x14"
+0x0061a340,_CIacos,crt,medium,2,
+0x0061a35d,_CIacos_body,crt,medium,0,continuation of _CIacos (acos via fpatan); lib_internal_refs=1
+0x0061a414,__except_handler3,eh,high,0,"SEH handler ('VC20XC00'); every SEH frame uses it; label only (no Ghidra function); game_ptr_refs=2, lib_internal_refs=10"
+0x0061a4d1,__seh_longjmp_unwind_4,eh,high,0,_seh_longjmp_unwind@4
+0x0061a4f0,_strncat,crt,high,5,
+0x0061a620,__strnicmp,crt,high,1,lib_internal_refs=3
+0x0061a740,_strchr,crt,high,1,lib_internal_refs=1
+0x0061a800,_setlocale,crt,high,1,
+0x0061aad0,__setlocale_set_cat,crt,medium,0,setlocale helper; lib_internal_refs=3
+0x0061ac30,__setlocale_get_all,crt,medium,0,builds LC_ALL string; lib_internal_refs=2
+0x0061ad50,__expandlocale,crt,medium,0,lib_internal_refs=2
+0x0061af50,__strcats,crt,medium,0,variadic strcat helper; lib_internal_refs=4
+0x0061afa0,__lc_strtolc,crt,medium,0,parses lang_country.codepage; lib_internal_refs=1
+0x0061b0b0,__lc_lctostr,crt,medium,0,lib_internal_refs=1
+0x0061b120,__ftime,crt,high,1,
+0x0061b250,type_info_dtor,cpp_runtime,high,0,type_info::~type_info(); lib_internal_refs=1
+0x0061b280,type_info_scalar_deleting_dtor,cpp_runtime,high,0,type_info vftable[0]; rdata_refs=1
+0x0061b2a0,_fflush,crt,high,0,lib_internal_refs=2
+0x0061b2e0,__fflush_lk,crt,high,0,lib_internal_refs=3
+0x0061b320,__flush,crt,high,0,lib_internal_refs=3
+0x0061b390,__flushall,crt,high,0,_flushall(); label only (no Ghidra function)
+0x0061b3a0,__flsall,crt,high,0,lib_internal_refs=1
+0x0061b460,__initstdio,crt,high,0,allocates __piob (DAT_006bee24) of _nstream (DAT_006bfe40=512) entries; label only (no Ghidra function); rdata_refs=1
+0x0061b520,__endstdio,crt,high,0,_flushall then _fcloseall if _exitflag; label only (no Ghidra function)
+0x0061b540,__close,crt,high,0,lib_internal_refs=3
+0x0061b5b0,__close_lk,crt,high,0,lib_internal_refs=1
+0x0061b640,__write,crt,high,0,lib_internal_refs=5
+0x0061b6c0,__write_lk,crt,high,0,lib_internal_refs=2
+0x0061b8d0,__read,crt,high,0,lib_internal_refs=4
+0x0061b950,__read_lk,crt,high,0,lib_internal_refs=2
+0x0061bb80,__lseek,crt,high,0,lib_internal_refs=7
+0x0061bc00,__lseek_lk,crt,high,0,lib_internal_refs=10
+0x0061bc80,__ioinit,crt,high,0,"allocates __pioinfo[0] (0x20 handles x 0x24 bytes, DAT_006bed20); lib_internal_refs=1"
+0x0061be90,_memmove,crt,high,0,also serves memcpy (overlap-safe); lib_internal_refs=6
+0x0061c1d0,__dosmaperr,crt,high,0,lib_internal_refs=7
+0x0061c250,__errno,crt,high,0,returns &ptd->_terrno (ptd+8); lib_internal_refs=34
+0x0061c260,___doserrno,crt,high,0,returns &ptd->_tdoserrno (ptd+0xc); lib_internal_refs=18
+0x0061c270,_strtol,crt,high,0,lib_internal_refs=2
+0x0061c290,__strtoxl,crt,high,0,lib_internal_refs=2
+0x0061c520,_strtoul,crt,high,0,lib_internal_refs=2
+0x0061c540,__sopen,crt,high,0,lib_internal_refs=2
+0x0061c8e0,__setmode,crt,high,0,lib_internal_refs=2
+0x0061c950,__InternalCxxFrameHandler,eh,high,0,lib_internal_refs=3
+0x0061ca20,FindHandler,eh,high,0,lib_internal_refs=1
+0x0061cce0,FindHandlerForForeignException,eh,medium,0,lib_internal_refs=1
+0x0061cdc0,__FrameUnwindToState,eh,high,0,lib_internal_refs=2
+0x0061ce80,CatchIt,eh,high,0,lib_internal_refs=2
+0x0061cf10,CallCatchBlock,eh,high,0,lib_internal_refs=1
+0x0061d008,CallCatchBlock_finally,eh,medium,0,SEH funclet; lib_internal_refs=1
+0x0061d070,ExFilterRethrow,eh,high,0,SEH filter (rethrow detection); label only (no Ghidra function)
+0x0061d0a0,BuildCatchObject,eh,high,0,lib_internal_refs=1
+0x0061d2b0,__DestructExceptionObject,eh,high,0,lib_internal_refs=2
+0x0061d330,__AdjustPointer,eh,high,0,lib_internal_refs=5
+0x0061d360,__CallSettingFrame@12,eh,high,0,name from Ghidra (__CallSettingFrame@12); lib_internal_refs=2
+0x0061d3b0,__mtinit,crt,high,0,TlsAlloc (DAT_006ad0a0) + first _tiddata (0x74 bytes); lib_internal_refs=1
+0x0061d410,__initptd,crt,high,0,ptd+0x14 (rand seed)=1; ptd+0x50=_XcptActTab; lib_internal_refs=2
+0x0061d430,__getptd,crt,high,0,TlsGetValue(DAT_006ad0a0); lib_internal_refs=18
+0x0061d4b0,_terminate,cpp_runtime,high,0,"terminate() -> abort; rdata_refs=1, lib_internal_refs=4"
+0x0061d527,terminate_abort_funclet,eh,medium,0,Ghidra named this '_abort' but it is only 'call _abort; ret'; real _abort is 0x624a60; lib_internal_refs=1
+0x0061d540,__inconsistency,cpp_runtime,medium,0,lib_internal_refs=8
+0x0061d5ae,__inconsistency_funclet,eh,low,0,lib_internal_refs=1
+0x0061d5d0,__cinit,crt,high,0,calls _FPinit then _initterm over xi/xc tables; lib_internal_refs=1
+0x0061d600,_exit,crt,high,0,"C exit(): doexit(code,0,0); lib_internal_refs=2"
+0x0061d620,__exit,crt,high,0,"C _exit(): doexit(code,1,0); name from Ghidra; rdata_refs=1, lib_internal_refs=3"
+0x0061d640,_doexit,crt,high,0,lib_internal_refs=2
+0x0061d700,__lockexit,crt,high,0,__lock(0xd); lib_internal_refs=2
+0x0061d710,__unlockexit,crt,high,0,lib_internal_refs=3
+0x0061d720,__initterm,crt,high,0,lib_internal_refs=4
+0x0061d740,_realloc,crt,high,0,lib_internal_refs=3
+0x0061d8f0,__msize,crt,high,0,lib_internal_refs=2
+0x0061d960,__heap_init,crt,high,0,"HeapCreate(0,0x1000,0) -> DAT_006bed14 (_crtheap); lib_internal_refs=1"
+0x0061d9a0,__mtinitlocks,crt,high,0,lib_internal_refs=1
+0x0061d9d0,__lock,crt,high,0,lib_internal_refs=29
+0x0061da50,__unlock,crt,high,0,lib_internal_refs=43
+0x0061da70,__lock_file,crt,high,0,lib_internal_refs=5
+0x0061dab0,__lock_file2,crt,high,0,lib_internal_refs=2
+0x0061dae0,__unlock_file,crt,high,0,lib_internal_refs=6
+0x0061db20,__unlock_file2,crt,high,0,lib_internal_refs=2
+0x0061db50,__sbh_alloc_new_region,crt,medium,0,small-block heap; VirtualAlloc 4MB region; lib_internal_refs=2
+0x0061dcc0,__sbh_release_region,crt,medium,0,lib_internal_refs=1
+0x0061dd20,__sbh_decommit_pages,crt,medium,0,lib_internal_refs=1
+0x0061ddf0,__sbh_find_block,crt,high,0,lib_internal_refs=3
+0x0061de50,__sbh_free_block,crt,high,0,lib_internal_refs=3
+0x0061deb0,__sbh_alloc_block,crt,high,0,lib_internal_refs=3
+0x0061e0f0,__sbh_alloc_block_from_page,crt,medium,0,lib_internal_refs=2
+0x0061e270,__sbh_resize_block,crt,medium,0,lib_internal_refs=1
+0x0061e340,__flsbuf,crt,high,0,lib_internal_refs=2
+0x0061e470,__output,crt,high,0,printf core; lib_internal_refs=1
+0x0061ee00,_write_char,crt,high,0,lib_internal_refs=4
+0x0061ee50,_write_multi_char,crt,high,0,lib_internal_refs=3
+0x0061ee90,_write_string,crt,high,0,lib_internal_refs=3
+0x0061eed0,_get_int_arg,crt,high,0,lib_internal_refs=10
+0x0061eef0,_get_int64_arg,crt,high,0,lib_internal_refs=1
+0x0061ef10,_get_short_arg,crt,high,0,lib_internal_refs=1
+0x0061ef30,__freebuf,crt,high,0,lib_internal_refs=1
+0x0061ef70,__filbuf,crt,high,0,lib_internal_refs=1
+0x0061f060,__callnewh,crt,high,0,calls _pnhHeap (DAT_006be830); lib_internal_refs=3
+0x0061f080,__openfile,crt,high,0,lib_internal_refs=1
+0x0061f250,__getstream,crt,high,0,lib_internal_refs=1
+0x0061f330,__isctype,crt,high,0,lib_internal_refs=19
+0x0061f3d0,__allmul,crt,high,0,64-bit multiply; label only (no Ghidra function)
+0x0061f410,__frnd,crt,medium,0,frndint; lib_internal_refs=3
+0x0061f430,__handle_qnan1,crt,medium,0,lib_internal_refs=1
+0x0061f480,__except1,crt,medium,0,lib_internal_refs=2
+0x0061f540,__raise_exc,crt,medium,0,RaiseException with STATUS_FLOAT_* codes; lib_internal_refs=2
+0x0061f880,__handle_exc,crt,medium,0,lib_internal_refs=2
+0x0061fbb0,__call_matherr,crt,medium,0,calls _matherr (0x6158b0); lib_internal_refs=2
+0x0061fc60,__set_errno_from_matherr,crt,medium,0,lib_internal_refs=4
+0x0061fc90,__lookup_matherr_name,crt,low,0,lib_internal_refs=1
+0x0061fcc0,__matherr_flags_to_type,crt,low,0,lib_internal_refs=1
+0x0061fd00,__set_exp,crt,medium,0,lib_internal_refs=2
+0x0061fd40,__sptype,crt,medium,0,lib_internal_refs=2
+0x0061fda0,__decomp,crt,medium,0,lib_internal_refs=1
+0x0061feb0,__statfp,crt,medium,0,fstsw; lib_internal_refs=1
+0x0061fec0,__clearfp,crt,medium,0,fnstsw+fnclex; lib_internal_refs=1
+0x0061fee0,__ctrlfp,crt,medium,0,fstcw/fldcw read-modify-write; lib_internal_refs=8
+0x0061ff10,__raise_fp_flags,crt,low,0,lib_internal_refs=5
+0x0061ff70,__setdefaultprecision,crt,high,0,"name from Ghidra; _controlfp(_PC_53,_MCW_PC); lib_internal_refs=1"
+0x0061ff90,__fdiv_check_stub,crt,low,0,returns 0; lib_internal_refs=1
+0x0061ffe0,__isa_fdiv_check,crt,low,0,IsProcessorFeaturePresent(0) via GetProcAddress; lib_internal_refs=1
+0x00620010,__forcdecpt,crt,high,0,_cfltcvt_tab[3]; lib_internal_refs=1
+0x00620070,__cropzeros,crt,high,0,_cfltcvt_tab[1]; label only (no Ghidra function); lib_internal_refs=1
+0x006200e0,__positive,crt,high,0,_cfltcvt_tab[4]; label only (no Ghidra function); lib_internal_refs=1
+0x00620100,__fassign,crt,high,0,_cfltcvt_tab[2]; label only (no Ghidra function); lib_internal_refs=1
+0x00620160,__cftoe,crt,high,0,lib_internal_refs=1
+0x006201e0,__cftoe2,crt,medium,0,lib_internal_refs=2
+0x006202e0,__cftof,crt,high,0,lib_internal_refs=1
+0x00620350,__cftof2,crt,medium,0,lib_internal_refs=2
+0x00620410,__cftog,crt,high,0,lib_internal_refs=1
+0x006204d0,__cfltcvt,crt,high,0,_cfltcvt_tab[0] and [5]; label only (no Ghidra function); lib_internal_refs=1
+0x00620540,__shift,crt,high,0,lib_internal_refs=4
+0x00620570,__87_transcendental_core,crt,low,0,x87 log/exp helper block 0x620570-0x62094f; label only (no Ghidra function)
+0x00620950,__fp_error_return,crt,low,0,lib_internal_refs=2
+0x00620967,__startOneArgErrorHandling,crt,medium,0,name from Ghidra; lib_internal_refs=3
+0x006209b0,__exp2_helper,crt,low,0,f2xm1/fscale; lib_internal_refs=1
+0x006209c5,__fp_helper_006209c5,crt,low,0,lib_internal_refs=2
+0x006209dc,__fp_nan_flag_helper,crt,low,0,lib_internal_refs=1
+0x006209f5,__fload_withFB,crt,medium,0,name from Ghidra; lib_internal_refs=3
+0x00620a38,__fp_check_exp,crt,low,0,lib_internal_refs=1
+0x00620a4e,__fp_ret_stub,crt,low,0,lib_internal_refs=9
+0x00620a5b,__math_exit,crt,medium,0,name from Ghidra; lib_internal_refs=1
+0x00620a99,__pow_result_check,crt,low,0,lib_internal_refs=1
+0x00620b40,__pow_special,crt,low,0,pow() special cases for infinities; lib_internal_refs=1
+0x00620d70,__pow_isint,crt,low,0,"returns 0 non-integer, 1 odd, 2 even; lib_internal_refs=1"
+0x00620e00,__mbctoupper,crt,medium,0,lib_internal_refs=1
+0x00620ea0,___crtLCMapStringA,crt,high,0,lib_internal_refs=5
+0x006210d0,__strncnt,crt,medium,0,lib_internal_refs=3
+0x00621100,__XcptFilter,crt,high,0,SEH exception filter used by startup; label only (no Ghidra function)
+0x00621310,_xcptlookup,crt,high,0,table at 0x6af614 count; label only (no Ghidra function)
+0x00621350,__ismbbtrail,crt,medium,0,lib_internal_refs=1
+0x00621370,__x_ismbbtype,crt,medium,0,lib_internal_refs=1
+0x006213b0,__setenvp,crt,high,0,lib_internal_refs=1
+0x006214a0,__setargv,crt,high,0,lib_internal_refs=1
+0x00621540,_parse_cmdline,crt,high,0,lib_internal_refs=2
+0x00621750,___crtGetEnvironmentStringsA,crt,high,0,lib_internal_refs=1
+0x006218b0,__setmbcp,crt,high,0,lib_internal_refs=1
+0x00621ae0,_getSystemCP,crt,high,0,lib_internal_refs=1
+0x00621b30,_CPtoLCID,crt,high,0,lib_internal_refs=2
+0x00621b90,_setSBCS,crt,high,0,lib_internal_refs=2
+0x00621bd0,_setSBUpLow,crt,high,0,lib_internal_refs=2
+0x00621db0,__initmbctable,crt,high,0,lib_internal_refs=1
+0x00621dc0,__FF_MSGBANNER,crt,high,0,lib_internal_refs=2
+0x00621e00,__NMSG_WRITE,crt,high,0,writes rterr table at 0x6af710 (stderr/MessageBox); lib_internal_refs=5
+0x00621fe0,_tolower,crt,high,0,lib_internal_refs=1
+0x00622070,__tolower_lk,crt,high,0,lib_internal_refs=5
+0x00622170,___crtCompareStringA,crt,high,0,lib_internal_refs=1
+0x00622440,___crtGetLocaleInfoW,crt,medium,0,lib_internal_refs=1
+0x00622570,___crtGetLocaleInfoA,crt,medium,0,lib_internal_refs=3
+0x006226b0,__init_time,crt,medium,0,LC_TIME init (__lc_handle[5]=0x6be84c); label only (no Ghidra function)
+0x00622760,_init_lc_time_strings,crt,low,0,GetLocaleInfo day/month names; label only (no Ghidra function)
+0x00622ae0,__free_lc_time,crt,medium,0,label only (no Ghidra function)
+0x00622d20,_init_lc_time_formats,crt,low,0,label only (no Ghidra function)
+0x00622e20,__init_numeric,crt,medium,0,LC_NUMERIC init (0x6be848); label only (no Ghidra function); rdata_refs=1
+0x00623020,_fix_grouping,crt,high,0,lib_internal_refs=2
+0x00623060,__init_monetary,crt,medium,0,LC_MONETARY init (0x6be844); label only (no Ghidra function); rdata_refs=1
+0x00623150,_init_monetary_lconv,crt,low,0,lib_internal_refs=1
+0x006232a0,__free_lconv_mon,crt,medium,0,lib_internal_refs=3
+0x00623310,__init_ctype,crt,medium,0,LC_CTYPE init (0x6be840); label only (no Ghidra function); rdata_refs=1
+0x006235d0,_strcspn,crt,high,0,name from Ghidra; lib_internal_refs=3
+0x00623610,_strpbrk,crt,high,0,name from Ghidra; lib_internal_refs=2
+0x00623650,__get_qualified_locale,crt,medium,0,lib_internal_refs=1
+0x006237f0,_getqloc_bsearch,crt,low,0,lib_internal_refs=2
+0x00623850,GetLcidFromLangCountry,crt,medium,0,lib_internal_refs=1
+0x006238e0,LangCountryEnumProc,crt,medium,0,label only (no Ghidra function); lib_internal_refs=1
+0x00623bc0,GetLcidFromLanguage,crt,medium,0,lib_internal_refs=1
+0x00623c20,LanguageEnumProc,crt,medium,0,label only (no Ghidra function); lib_internal_refs=1
+0x00623d00,GetLcidFromCountry,crt,medium,0,lib_internal_refs=1
+0x00623d40,CountryEnumProc,crt,medium,0,label only (no Ghidra function); lib_internal_refs=1
+0x00623de0,GetLcidFromDefault,crt,medium,0,lib_internal_refs=1
+0x00623e00,ProcessCodePage,crt,medium,0,lib_internal_refs=1
+0x00623ef0,TestDefaultCountry,crt,medium,0,lib_internal_refs=2
+0x00623f20,TestDefaultLanguage,crt,medium,0,lib_internal_refs=4
+0x00623fb0,_getqloc_is_nt,crt,low,0,GetVersionEx platform==VER_PLATFORM_WIN32_NT; lib_internal_refs=1
+0x00623ff0,_getqloc_GetLocaleInfoA_win9x,crt,low,0,lib_internal_refs=1
+0x00624120,LcidFromHexString,crt,medium,0,lib_internal_refs=4
+0x00624160,GetPrimaryLen,crt,medium,0,lib_internal_refs=3
+0x00624190,__loctotime_t,crt,high,0,lib_internal_refs=1
+0x00624280,__commit,crt,high,0,FlushFileBuffers; lib_internal_refs=1
+0x00624320,_calloc,crt,high,0,lib_internal_refs=7
+0x00624470,__alloc_osfhnd,crt,high,0,lib_internal_refs=1
+0x006245e0,__set_osfhnd,crt,high,0,lib_internal_refs=1
+0x00624690,__free_osfhnd,crt,high,0,lib_internal_refs=1
+0x00624730,__get_osfhandle,crt,high,0,lib_internal_refs=7
+0x00624780,__lock_fhandle,crt,high,0,lib_internal_refs=6
+0x006247f0,__unlock_fhandle,crt,high,0,lib_internal_refs=8
+0x00624820,__chsize,crt,high,0,lib_internal_refs=1
+0x00624970,_CxxUnhandledExceptionFilter,eh,medium,0,"UnhandledExceptionFilter that calls terminate() for C++ exceptions; rdata_refs=1, lib_internal_refs=1"
+0x006249d0,__CxxSetUnhandledExceptionFilter,eh,medium,0,label only (no Ghidra function); rdata_refs=1
+0x006249f0,__CxxRestoreUnhandledExceptionFilter,eh,medium,0,label only (no Ghidra function)
+0x00624a00,__ValidateRead,crt,high,0,IsBadReadPtr; lib_internal_refs=5
+0x00624a20,__ValidateWrite,crt,high,0,IsBadWritePtr; lib_internal_refs=4
+0x00624a40,__ValidateExecute,crt,high,0,IsBadCodePtr; lib_internal_refs=2
+0x00624a60,_abort,crt,high,0,_NMSG_WRITE(10); raise(SIGABRT); _exit(3); lib_internal_refs=1
+0x00624a80,__getbuf,crt,high,0,lib_internal_refs=2
+0x00624ae0,__isatty,crt,high,0,lib_internal_refs=1
+0x00624b10,_wctomb,crt,high,0,lib_internal_refs=2
+0x00624b80,__wctomb_lk,crt,high,0,lib_internal_refs=1
+0x00624c00,__aulldiv,crt,high,0,name from Ghidra; lib_internal_refs=1
+0x00624c70,__aullrem,crt,high,0,name from Ghidra; lib_internal_refs=1
+0x00624cf0,___crtGetStringTypeW,crt,medium,0,lib_internal_refs=1
+0x00624e80,___crtGetStringTypeA,crt,medium,0,lib_internal_refs=3
+0x00624fc0,__control87,crt,high,0,lib_internal_refs=1
+0x00625000,__controlfp,crt,high,0,lib_internal_refs=1
+0x00625020,__abstract_cw,crt,medium,0,lib_internal_refs=1
+0x006250c0,__hw_cw,crt,medium,0,lib_internal_refs=1
+0x00625150,_ZeroTail,crt,medium,0,lib_internal_refs=1
+0x006251c0,_IncMan,crt,medium,0,lib_internal_refs=1
+0x00625230,_RoundMan,crt,medium,0,lib_internal_refs=2
+0x006252d0,_CopyMan,crt,medium,0,lib_internal_refs=2
+0x006252f0,_ZeroMan,crt,medium,0,lib_internal_refs=3
+0x00625300,_IsZeroMan,crt,medium,0,lib_internal_refs=1
+0x00625320,_ShrMan,crt,medium,0,lib_internal_refs=4
+0x006253e0,__ld12cvt,crt,medium,0,lib_internal_refs=2
+0x006255b0,__ld12tod,crt,medium,0,lib_internal_refs=1
+0x006255d0,__ld12tof,crt,medium,0,lib_internal_refs=1
+0x006255f0,__atodbl,crt,medium,0,lib_internal_refs=1
+0x00625630,__atoflt,crt,medium,0,lib_internal_refs=1
+0x00625670,__fptostr,crt,high,0,lib_internal_refs=3
+0x00625710,__fltout,crt,high,0,lib_internal_refs=3
+0x006257a0,__dtold,crt,medium,0,lib_internal_refs=1
+0x00625860,__fptrap,crt,medium,0,"_amsg_exit(2) (_RT_FLOAT); rdata_refs=6, lib_internal_refs=3"
+0x00625870,__adj_fdiv_core,crt,low,0,Pentium FDIV-bug workaround block 0x62586b-0x62632d (called 46x internally); label only (no Ghidra function)
+0x00626076,__adj_fprem1_core,crt,low,0,called from 0x62627c; label only (no Ghidra function)
+0x0062627c,__adj_fprem1,crt,low,0,label only (no Ghidra function)
+0x0062632e,__adj_fprem_core,crt,low,0,lib_internal_refs=2
+0x00626534,__adj_fprem,crt,low,0,label only (no Ghidra function)
+0x00626600,__fpmath_error_dispatch,crt,low,0,lib_internal_refs=1
+0x00626720,__fpclass,crt,medium,0,lib_internal_refs=1
+0x006267c0,_wcslen,crt,high,0,lib_internal_refs=1
+0x006267e0,__crtMessageBoxA,crt,high,0,"LoadLibrary(""user32.dll""), MessageBoxA; lib_internal_refs=1"
+0x00626870,__getlocaleinfo,crt,medium,0,lib_internal_refs=19
+0x00626a20,__itoa,crt,high,0,lib_internal_refs=1
+0x00626a60,_xtoa,crt,high,0,lib_internal_refs=2
+0x00626ad0,__stricmp,crt,high,2,lib_internal_refs=6
+0x00626ba0,___tzset,crt,medium,0,lib_internal_refs=1
+0x00626be0,__tzset,crt,medium,0,GetTimeZoneInformation / TZ env; lib_internal_refs=1
+0x00626ec0,__isindst,crt,high,0,name from Ghidra; lib_internal_refs=1
+0x00626ef0,__isindst_lk,crt,medium,0,lib_internal_refs=1
+0x00627160,_cvtdate,crt,high,0,lib_internal_refs=3
+0x00627300,__alloca_probe,crt,high,0,lib_internal_refs=1
+0x00627330,_raise,crt,high,0,lib_internal_refs=1
+0x00627540,_siglookup,crt,high,0,lib_internal_refs=1
+0x00627580,__addl,crt,medium,0,lib_internal_refs=7
+0x006275b0,__add_12,crt,medium,0,lib_internal_refs=3
+0x00627620,__shl_12,crt,medium,0,lib_internal_refs=9
+0x00627650,__shr_12,crt,medium,0,lib_internal_refs=2
+0x00627680,__mtold12,crt,medium,0,lib_internal_refs=1
+0x00627780,__strgtold12,crt,high,0,lib_internal_refs=2
+0x00627f10,__I10_OUTPUT,crt,high,0,lib_internal_refs=1
+0x006282a0,_wcstombs,crt,high,0,lib_internal_refs=2
+0x00628320,__wcstombs_lk,crt,high,0,lib_internal_refs=1
+0x00628510,__wcsncnt,crt,medium,0,lib_internal_refs=1
+0x00628550,_getenv,crt,high,0,lib_internal_refs=1
+0x006285e0,__mulld12,crt,low,0,12-byte long double multiply used by __multtenpow12; lib_internal_refs=2
+0x006288a0,__multtenpow12,crt,medium,0,lib_internal_refs=2
+0x00628930,__strnicoll,crt,medium,0,lib_internal_refs=2
+0x00628970,_wtomb_environ,crt,medium,0,lib_internal_refs=2
+0x006289f0,__putenv,crt,high,0,lib_internal_refs=1
+0x00628c00,_findenv,crt,high,0,lib_internal_refs=1
+0x00628c80,_copy_environ,crt,high,0,lib_internal_refs=1
+0x00628cf0,__mbschr,crt,high,0,lib_internal_refs=1
+0x00628dc0,__strdup,crt,high,0,lib_internal_refs=1

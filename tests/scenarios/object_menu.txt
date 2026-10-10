@@ -1,0 +1,50 @@
+# Object pop-up menu in a loaded game (RebelsFastStart, Alliance): right-click objects in a sector window and in a
+# fleet window (CustomDialogBox::OnRightButtonUp), look for a Rename entry. Runtime ~130 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot om_00_galaxy
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 52
+46 move 170 56
+47 click 170 56
+# Sector window, right-click a planet.
+50 move 275 265
+51 move 281 268
+52 click 281 268
+55 shot om_01_sector
+56 move 205 153
+57 move 210 157
+58 rclick 210 157
+60 shot om_02_planet_menu
+61 key Escape
+62 key alt+w
+# Fleet Finder -> Fleet window; right-click the fleet icon.
+64 key F3
+67 move 100 197
+68 move 105 200
+69 click 105 200
+70.0 click 105 200
+70.15 click 105 200
+74 shot om_03_fleet_window
+75 move 330 124
+76 move 335 128
+77 rclick 335 128
+79 shot om_04_fleet_menu
+80 move 385 215
+81 move 390 219
+82 click 390 219
+85 shot om_05_rename_field
+86 key x
+87 key y
+88 key Return
+91 shot om_06_renamed
+92 end

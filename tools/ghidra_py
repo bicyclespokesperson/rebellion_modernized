@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+set -euo pipefail
+tools="$(cd "$(dirname "$0")" && pwd)"
+script="$(realpath "$1")"; shift
+export GHIDRA_MAXMEM="${GHIDRA_MAXMEM:-8G}"
+exec mise exec -C "$tools/.." -- "$tools/.venv/bin/python" "$tools/py/pyghidra_run.py" "$script" "$@"

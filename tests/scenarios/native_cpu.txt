@@ -1,0 +1,20 @@
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot load_galaxy
+42 cpu 8
+52 move 130 24
+53 move 135 24
+54 rclick 135 24
+55 move 170 112
+56 move 170 116
+57 click 170 116
+60 cpu 10
+72 shot running
+73 end

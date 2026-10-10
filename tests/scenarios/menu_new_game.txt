@@ -1,0 +1,25 @@
+# Skip intros, start a new game as the Rebellion, skip the intro cinematic, open the in-game options/save UI
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 470 340
+28 click 470 340
+36 key Escape
+44 key Escape
+50 key Escape
+70 key Escape
+84 move 15 373
+86 click 15 373
+91 shot op_a
+93 move 320 240
+95 click 320 240
+99 shot op_b
+101 key F10
+104 shot op_c
+106 key ctrl+s
+110 shot op_d
+112 key Escape
+114 shot op_e
+116 key F1
+120 shot op_f
+125 end

@@ -1,0 +1,95 @@
+# Galactic Encyclopedia in a loaded game (RebelsFastStart): category tabs, list selection, articles of a system,
+# a mission and a character, previous/next buttons and arrow keys, the list/article page tabs, typing into the
+# search field (prefix search, Return opens the article). Window origin is (64,50) in the Alliance skin; category
+# tabs at y=148 (all 124, systems 176, ships 228, facilities 280, missions 332, troops 384, characters 436);
+# page tabs article 503,158 / list 503,212; article page previous/next buttons 102,72 / 454,72. Runtime ~150 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+42 key F7
+46 shot en_00_list
+# Systems tab, select the first row, open its article.
+47 move 170 145
+48 move 176 148
+49 click 176 148
+51 move 125 195
+52 move 130 197
+53 click 130 197
+54 shot en_01_systems
+55 click 130 197
+55.15 click 130 197
+58 shot en_02_system_article
+# Next / previous buttons and arrow keys on the article page.
+59 move 450 70
+60 move 454 72
+61 click 454 72
+63 click 454 72
+65 shot en_03_next
+66 move 100 70
+67 move 102 72
+68 click 102 72
+70 key Right
+71 key Right
+72 key Left
+73 shot en_04_keys
+# Back to the list page; missions tab, open the first mission.
+74 move 500 210
+75 move 503 212
+76 click 503 212
+78 key Right
+79 key Left
+80 move 330 145
+81 move 332 148
+82 click 332 148
+84 move 125 195
+85 move 130 197
+86 click 130 197
+87 click 130 197
+87.15 click 130 197
+90 shot en_05_mission_article
+# Article page tab while on the list, characters tab, open the second row with Return.
+91 move 503 212
+92 click 503 212
+94 move 434 145
+95 move 436 148
+96 click 436 148
+98 move 130 214
+99 move 133 217
+100 click 133 217
+101 key Return
+103 shot en_06_character_article
+# Troops and ships tabs, then all; type a prefix into the search field and open it with Return.
+104 click 503 212
+106 move 384 148
+107 click 384 148
+108 move 228 148
+109 click 228 148
+110 move 280 148
+111 click 280 148
+112 move 124 148
+113 click 124 148
+114 move 300 100
+115 move 305 104
+116 click 305 104
+117 key BackSpace
+118 key BackSpace
+119 key BackSpace
+120 key BackSpace
+121 key BackSpace
+122 key BackSpace
+123 key y
+124 key a
+125 key v
+126 shot en_07_search
+127 key Return
+129 shot en_08_search_article
+130 key Escape
+132 key Escape
+134 shot en_09_closed
+136 end

@@ -1,0 +1,27 @@
+# Native-only (tools/run_native.sh): window scaling, Alt+Enter fullscreen and mouse mapping, with a window manager:
+#   REB_NATIVE_IMAGE=rebellion-native-wm REB_WM=openbox REB_XVFB_GEOMETRY=1920x1080x24 REB_MINWIN_SCALE=1 REB_MINWIN_TRACE=mouse
+# (an image with openbox, see docs/native.md). wmove coordinates are relative to the window; fullscreen is letterboxed at scale 2 with
+# the frame at (320,60).
+12 key Escape
+16 key Escape
+20 key Escape
+24 wmove 0 0
+24.5 wmove 1 1
+25 wmove 2 2
+25.5 wmove 639 479
+26 geometry
+26.2 shot windowed
+27 key alt+Return
+30 geometry
+30.2 shot fullscreen
+31 wmove 320 60
+31.5 wmove 321 61
+32 wmove 322 62
+32.5 wmove 1599 1019
+33 wmove 1600 1020
+33.5 wmove 10 10
+34 wmove 1900 1070
+35 key alt+Return
+38 geometry
+38.2 shot windowed_again
+39 end

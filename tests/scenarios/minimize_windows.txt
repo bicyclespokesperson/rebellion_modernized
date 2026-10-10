@@ -1,0 +1,33 @@
+# Minimise and restore a strategy window in a loaded game (RebelsFastStart, Alliance): opens a fleet window, minimises
+# it into the bar at the right edge, restores it by double-clicking its slot. Runtime ~90 s.
+12 key Escape
+16 key Escape
+20 key Escape
+# Main menu -> Load Game monitor -> row 3 (RebelsFastStart) -> galaxy screen (paused).
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot min_00_galaxy
+# F3 Fleet Finder; double-click "Fleet 1" -> Fleet window (+ sector window).
+49 key F3
+53 move 100 197
+54 move 105 200
+55 click 105 200
+56.0 click 105 200
+56.15 click 105 200
+59 shot min_01_fleet_window
+# The minimise button of the fleet window (the "_" in its title bar).
+60 move 515 96
+61 move 517 96
+62 click 517 96
+65 shot min_02_minimised
+# Double-click the slot of the bar (Alliance: x 544-606, y 61-79) to restore the window.
+66 move 575 70
+67 move 577 71
+68 click 577 71
+68.15 click 577 71
+71 shot min_03_restored
+72 key alt+w

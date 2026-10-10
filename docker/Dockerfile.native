@@ -1,0 +1,20 @@
+# Native Linux x86-64 build (REB_NATIVE, tools/build_native.sh): the dev image plus what SDL3 (built from the pinned source)
+# needs for its X11/Wayland/audio backends and what the sanitizer builds need. Build: tools/build_native.sh --image
+# (DOCKER_BUILDKIT=0 docker build -t rebellion-native -f docker/Dockerfile.native docker).
+FROM rebellion-dev
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      libx11-dev libxext-dev libxcursor-dev libxi-dev libxfixes-dev libxrandr-dev libxss-dev libxkbcommon-dev \
+      libwayland-dev wayland-protocols libdecor-0-dev libasound2-dev libpulse-dev libdrm-dev libgbm-dev libgl1-mesa-dev \
+      libegl1-mesa-dev libudev-dev libdbus-1-dev pkg-config libclang-rt-19-dev libxcb1-dev gdb valgrind \
+    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y --no-install-recommends libxtst-dev libxrender-dev libxkbcommon-x11-dev \
+    && rm -rf /var/lib/apt/lists/*
+# The data and static-initializer generators (tools/gen_native_*.py) run in the container: they read the EXE, ask libclang for the
+# layout of the game's globals, and emulate the original's initializers.
+RUN apt-get update && apt-get install -y --no-install-recommends python3-pefile python3-capstone python3-unicorn python3-clang-19 libclang-19-dev git \
+    && rm -rf /var/lib/apt/lists/*
+# aarch64 cross build and qemu-user (docs/native.md): the arm64 readiness check of the native build (tools/build_native.sh --arch arm64).
+RUN apt-get update && apt-get install -y --no-install-recommends gcc-13-aarch64-linux-gnu g++-13-aarch64-linux-gnu \
+      libc6-dev-arm64-cross libstdc++-13-dev-arm64-cross qemu-user \
+    && rm -rf /var/lib/apt/lists/*

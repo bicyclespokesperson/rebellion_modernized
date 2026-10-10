@@ -1,0 +1,63 @@
+#pragma once
+#include "core/layout.h"
+#include "gameobj/game_obj.h"
+#include "gameobj/game_obj_data.h"
+
+// The data block of UnitObjBase objects (VT 0x661ad8, 0x18 bytes, ctor 0x5409d0): GameObjData with its Read/Write/Checksum
+// forwarded to the base class. The data blocks of the unit classes derive from it.
+class UnitObjData : public GameObjData {
+public:
+    UnitObjData();                                    // 0x5409d0
+    virtual ~UnitObjData();                           // 0x5409f0 (deleting), 0x540a10
+    virtual int Read(istream* in) override;           // 0x540a20
+    virtual int Write(ostream* out) override;         // 0x540a30
+    virtual int Checksum(Crc32* crc) override;        // 0x540a40
+    // Slot 4 (IsValid) is the shared "return 1" stub.
+};
+
+// Abstract base of the unit classes (troop regiments, capital ships, fighter squadrons, facilities, characters, special
+// forces and fleets: families 0x08-0x3f). VT 0x65ce68 (112 slots; slot 111 is new), secondary ObjectBase VT 0x65ce60. The
+// class adds no fields. Over GameObj it supplies per-side availability from the SD record, the move check, an empty
+// event-kind set and the unit data block; slots 1 and 5-9 and 37 and 57 stay pure.
+class UnitObjBase : public GameObj {
+public:
+    UnitObjBase();
+    virtual ~UnitObjBase();
+
+    virtual int GetEventKinds(int unused, EventKindSet* out) override;                            // 15, 0x4f2770
+    // Availability for a side (1-3): 0 without a record, 1 unless the object exists, else the record's per-side value.
+    virtual int CanBeControlledBy(int side) override;                                             // 20, 0x4f27d0
+    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                       // 22, 0x4f2860
+    virtual int CheckRequestImpl(const ActivityRequest* request, StatusCode* out) override;       // 23, 0x4f28d0
+    virtual int Virtual47(intptr_t a) override;                                                        // 47, 0x4f29a0
+    virtual int Virtual48(intptr_t a) override;                                                        // 48, 0x4f29a0
+    virtual int Virtual55(intptr_t a) override;                                                        // 55, 0x4f29b0
+    virtual GameObjData* CreateData() override;                                                   // 58, 0x4f2bf0
+    virtual int OnNameChanged(String* oldName, String* newName, NotifyContext* ctx) override;     // 59, 0x4f2a70
+    virtual int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;  // 60, 0x4f2a90
+    virtual int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x4f2ab0
+    virtual int OnDestroyedReasonChanged(uint32_t oldValue, uint32_t newValue, NotifyContext* ctx) override;  // 64, 0x4f2ad0
+    virtual int OnUsableChanged(int newValue, NotifyContext* ctx) override;                       // 68, 0x4f2af0
+    virtual int OnCreatedChanged(int newValue, NotifyContext* ctx) override;                      // 69, 0x4f2b30
+    virtual int OnCompletedChanged(int newValue, NotifyContext* ctx) override;                    // 70, 0x4f2b10
+    virtual int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;                    // 71, 0x4f2b50
+    virtual int OnEnrouteChanged(int newValue, NotifyContext* ctx) override;                      // 72, 0x4f2b70
+    virtual int OnEnrouteActiveChanged(int newValue, NotifyContext* ctx) override;                // 73, 0x4f2b90
+    virtual int OnExistingChanged(int newValue, NotifyContext* ctx) override;                     // 74, 0x4f2bb0
+    virtual int OnAutoroutingChanged(int newValue, NotifyContext* ctx) override;                  // 79, 0x4f2bd0
+    virtual int Virtual111() { return 0; }                                                        // 111, new
+
+    // SD record fields 0x48 / 0x4c (0 without a record).
+    uint32_t GetRecordField48();  // 0x4f2980
+    uint32_t GetRecordField4c();  // 0x4f2990
+    // A side view applies everything GameObj::ApplyAll does; the master does nothing. Returns IsSideView().
+    int ApplyAllToSideView(NotifyContext* ctx);  // 0x4f29e0
+    // The event-kind set initializer the leaf classes call for their static sets: an empty set.
+    static int InitEventKinds(int unused, EventKindSet* out);  // 0x4f2a10
+};
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winvalid-offsetof"
+REB_ASSERT_SIZE(UnitObjData, 0x18);
+REB_ASSERT_SIZE(UnitObjBase, 0x58);
+#pragma clang diagnostic pop

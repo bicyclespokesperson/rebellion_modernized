@@ -1,0 +1,24 @@
+# Determinism baseline: load "RebelsFastStart" (Alliance), open the Saved Games screen and save into the first empty
+# row (creates SAVEGAME.005), then wait for the save command to run under the slow deterministic simulation clock
+# (REB_QPC_STEP_NS, see src/hybrid/determinism.cpp). Used by tools/determinism_check.sh. Runtime ~115 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot save_galaxy
+# Lower-left monitor of the galaxy screen = Saved Games / options screen.
+44 move 12 370
+45 move 15 372
+46 click 15 372
+50 shot save_options
+# Save icon at the left end of the first empty row (y=258); a "Selected Game Saved Successfully" dialog follows.
+52 move 48 256
+53 move 50 258
+54 click 50 258
+105 shot save_done
+110 end

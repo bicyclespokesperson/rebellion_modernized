@@ -1,0 +1,98 @@
+# Create Mission dialog (CoolSelectionBox + its drop-down) in a loaded game (RebelsFastStart, Alliance).
+# Runs ~25 s at Fast so Bren Derlin arrives at Ghorman (idle characters can take missions), then Very Slow.
+# Personnel window -> right-click Bren Derlin -> Mission -> click Coruscant in the sector window -> the
+# "Create Mission" dialog, whose mission type is a selection box. Runtime ~175 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+# Fast, then Very Slow at 75 s (Pause would bring up a modal "Resume Game Play?" box).
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 112
+46 move 170 116
+47 click 170 116
+70 move 130 24
+71 move 135 24
+72 rclick 135 24
+73 move 170 52
+74 move 170 56
+75 click 170 56
+# F5 Personnel Finder; double-click Bren Derlin -> Ghorman personnel window (+ Sesswenna sector window).
+77 key F5
+81 move 130 205
+82 move 135 210
+83 click 135 210
+84.0 click 135 210
+84.15 click 135 210
+# Right-click the character -> Mission -> click the target planet (Coruscant).
+88 move 252 178
+89 move 255 180
+90 rclick 255 180
+93 move 288 229
+94 move 290 231
+95 click 290 231
+98 move 160 210
+99 move 165 215
+100 click 165 215
+103 shot sel_00_mission_dialog
+# The selection box's button (below the mission picture) opens the drop-down list; keys typed now go to the
+# drop-down window (DefWindowProc) and change nothing; the click at 124 lands on the list row, which selects it
+# and closes the drop-down.
+104 move 298 216
+105 move 300 218
+106 click 300 218
+109 shot sel_01_dropdown
+110 key Down
+111 key Down
+112 shot sel_02_down
+113 key Return
+115 shot sel_03_closed
+116 key Up
+118 shot sel_04_up_opens
+119 key Escape
+121 shot sel_05_escape
+122 move 298 216
+123 move 300 218
+124 click 300 218
+127 shot sel_06_reopen
+# The box has the focus again: Down (key-up) opens the drop-down. While it is open the keys reach the drop-down
+# window (DefWindowProc), so the further Down/Return change nothing.
+128 key Down
+130 shot sel_07_key_opens
+131 key Down
+133 shot sel_08_key_down
+134 key Return
+136 shot sel_09_return
+# The click on the button lands on the open list's row (select + close); the next two clicks miss the closed list.
+137 move 298 216
+138 move 300 218
+139 click 300 218
+141 move 395 320
+142 move 397 322
+143 click 397 322
+145 shot sel_10_scrolled
+146 move 298 268
+147 move 300 270
+148 click 300 270
+150 shot sel_11_selected
+# Open again and close it with a click outside.
+151 move 298 216
+152 move 300 218
+153 click 300 218
+155 move 600 450
+156 move 602 452
+157 click 602 452
+159 shot sel_12_click_outside
+# Cancel the dialog.
+160 move 368 370
+161 move 370 372
+162 click 370 372
+164 shot sel_13_cancelled
+166 end

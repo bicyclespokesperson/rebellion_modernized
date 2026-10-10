@@ -1,0 +1,6 @@
+# Boot to main menu; minimal smoke test for hybrid builds
+12 key Escape
+16 key Escape
+20 key Escape
+26 shot smoke_menu
+27 end

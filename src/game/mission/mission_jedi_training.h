@@ -1,0 +1,52 @@
+#pragma once
+#include "mission/mission_extra_key.h"
+
+// MissionJediTraining (family 0x58, ctor 0x5701d0, VT 0x6667d8, secondary ObjectBase VT 0x6667d4, 0xac bytes): a Jedi
+// teacher trains the Force of the team's student. The extra key property Teacher (+0xa8, base class MissionExtraKeyBase)
+// names the teacher character. Strings: "MissionJediTrainingTeacherKeyNotif", "Teacher".
+class MissionJediTraining : public MissionExtraKeyBase {
+public:
+    MissionJediTraining();           // 0x5701d0
+    virtual ~MissionJediTraining();  // 0x570230 (deleting), 0x570250
+
+    virtual uint32_t GetFamily() override;                                      // 1, 0x5705a0: 0x58
+    virtual int Checksum(Crc32* crc) override;                                  // 7, 0x56dee0: the rule-base sum only
+    virtual int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x570580
+    virtual int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x5702b0
+    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x5702d0
+    virtual int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x570390
+    virtual GameObj* CreateViewObject() override;                               // 57, 0x5704f0
+    virtual int RemoveMember(ObjectKey* member, int decoy, NotifyContext* ctx) override;  // 116, 0x5705b0
+    virtual int OnPhaseChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 125, 0x571410
+    virtual int Virtual157(GameObj* person, int* out) override;                 // 157, 0x5710b0
+    virtual int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
+    virtual int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x5712b0
+    virtual int Virtual160(NotifyContext* ctx) override;                        // 160, shared 0x576700
+    virtual int OnExtraKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) override { return 1; }  // 162, shared stub 0x524b10
+    virtual int OnExtraKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) override;  // 163, 0x571590
+
+    int SetTeacherKey(ObjectKey* value, NotifyContext* ctx);  // 0x5703b0
+    int ApplyExtraKey(NotifyContext* ctx);                    // 0x5711d0 (ApplyTeacherKey)
+    int ApplyAllBody(NotifyContext* ctx);                     // 0x5711a0: slot 9 behind its side-view guard
+    // Called by the character code (0x545a10 / 0x545b20): asks for phase 9 / 10 once the mission is far enough along.
+    int RequestPhase9(NotifyContext* ctx);   // 0x570470
+    int RequestPhase10(NotifyContext* ctx);  // 0x5704b0
+
+    static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x570690
+    static int BuildEventKinds();      // 0x5715d0
+    static void InitStatics();         // 0x571600
+    static GameObjNotifier* Create();  // 0x570620
+};
+
+// Iterator over the Jedi Training missions among the children of an object (family 0x58, VT 0x666a68, destructor only).
+class MissionJediTrainingIterator : public ChildIterator {
+public:
+    explicit MissionJediTrainingIterator(GameObjNotifier* parent);  // 0x571650 (state filter 1)
+    virtual ~MissionJediTrainingIterator();                         // 0x5716d0 (deleting), 0x5716f0
+};
+
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winvalid-offsetof"
+REB_ASSERT_SIZE(MissionJediTraining, 0xac);
+REB_ASSERT_SIZE(MissionJediTrainingIterator, 0x20);
+#pragma clang diagnostic pop

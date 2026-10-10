@@ -1,0 +1,72 @@
+# The forces window of a system (galaxy view child kind 8): opened from the Personnel Finder by a character that is not on a
+# mission (Bren Derlin, row 1, at Ghorman), the tabs (personnel, troops, fighters, shields, weapons), the list, the keys
+# and the title bar buttons. Loaded game RebelsFastStart, Very Slow. Runtime ~110 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot sf_00_galaxy
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 52
+46 move 170 56
+47 click 170 56
+49 key F5
+52 shot sf_01_personnel_finder
+53 move 130 205
+54 move 135 210
+55 click 135 210
+56.0 click 135 210
+56.15 click 135 210
+60 shot sf_02_forces_window
+# The tabs along the top: troops, fighters, shields, weapons, then personnel again.
+61 move 295 120
+62 move 300 124
+63 click 300 124
+65 shot sf_03_tab_troops
+66 move 331 120
+67 move 336 124
+68 click 336 124
+70 shot sf_04_tab_fighters
+71 move 367 120
+72 move 372 124
+73 click 372 124
+75 shot sf_05_tab_shields
+76 move 403 120
+77 move 408 124
+78 click 408 124
+80 shot sf_06_tab_weapons
+81 move 263 120
+82 move 268 124
+83 click 268 124
+85 shot sf_07_tab_personnel
+# The list: click and right click the first row; the keys left and right change the tab.
+86 move 245 190
+87 move 250 195
+88 click 250 195
+89 rclick 250 195
+91 shot sf_08_row_menu
+92 key Escape
+93 key Right
+95 shot sf_09_key_right
+96 key Left
+97 key Left
+99 shot sf_10_key_left
+# The sector button, the side button, then close with Escape.
+100 move 224 95
+101 move 228 98
+102 click 228 98
+104 shot sf_11_sector_button
+105 move 428 95
+106 move 433 98
+107 click 433 98
+109 shot sf_12_side_button
+110 key Escape
+113 shot sf_13_closed
+116 end

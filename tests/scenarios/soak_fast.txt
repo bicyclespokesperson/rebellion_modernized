@@ -1,0 +1,21 @@
+# Load a game in progress, set Fast speed, and play ~2.5 minutes: the soak test for crashes in long runs.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+33 shot load_list
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot load_galaxy
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 112
+46 move 170 116
+47 click 170 116
+100 shot load_long_100
+160 shot load_long_160
+200 end

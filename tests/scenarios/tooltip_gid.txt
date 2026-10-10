@@ -1,0 +1,25 @@
+# Tooltip behaviour (pixel comparison): load RebelsFastStart, hover the Galactic Information Display control, click it, and
+# take a screenshot while the overlay menu is open (the real comctl32 shows the tooltip again after the click).
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+41 shot tip_galaxy
+43 move 455 408
+44 move 460 411
+45 click 460 411
+44.6 shot tip_before_click
+45.12 shot tip_click_a
+45.3 shot tip_click_b
+45.55 shot tip_click_c
+45.9 shot tip_click_d
+46 shot tip_after_click
+47 shot tip_after_click_b
+48 move 560 300
+50 shot tip_moved_away
+51 end

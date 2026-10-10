@@ -1,0 +1,61 @@
+# The battle result window (galaxy view child 8, shown after "Simulate Results" for the battle at Ando): summary page,
+# the Alliance / Imperial forces pages with their kind tabs (ships, fighters, troops, personnel), the go-to page, and
+# the go-to-system button. Same set-up as space_battle_autoresolve.txt (the battle pops up ~90 s after launch at Fast).
+# Runtime ~150 s.
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 245
+27 move 430 248
+29 click 430 248
+34 move 300 170
+35 move 305 173
+36 click 305 173
+42 move 130 24
+43 move 135 24
+44 rclick 135 24
+45 move 170 112
+46 move 170 116
+47 click 170 116
+95 shot bw_00_prompt
+97 move 270 350
+98 move 275 354
+99 click 275 354
+103 shot bw_01_summary
+# Alliance forces page, then the kind tabs.
+104 move 490 150
+105 move 493 152
+106 click 493 152
+109 shot bw_02_alliance_ships
+110 move 262 130
+111 move 265 131
+112 click 265 131
+115 shot bw_03_alliance_fighters
+116 move 312 130
+117 move 314 131
+118 click 314 131
+121 shot bw_04_alliance_troops
+122 move 360 130
+123 move 363 131
+124 click 363 131
+127 shot bw_05_alliance_personnel
+# Imperial forces page, ships again.
+128 move 490 212
+129 move 493 215
+130 click 493 215
+133 shot bw_06_empire_personnel
+134 move 215 130
+135 move 217 131
+136 click 217 131
+139 shot bw_07_empire_ships
+# Go-to page.
+140 move 490 278
+141 move 493 280
+142 click 493 280
+145 shot bw_08_goto
+# Close the window.
+146 move 495 85
+147 move 498 88
+148 click 498 88
+151 shot bw_09_closed
+153 end

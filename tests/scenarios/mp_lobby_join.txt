@@ -1,0 +1,27 @@
+# Main menu -> multiplayer lobby -> "Connect To Game" (join): the session list page, back to the provider page, cancel
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 75 415
+27 move 77 417
+28 click 77 417
+34 shot join_a
+35 move 160 328
+36 move 162 330
+37 click 162 330
+39 move 336 455
+40 move 338 457
+41 click 338 457
+48 shot join_b
+50 key x
+51 key y
+53 shot join_c
+54 move 170 455
+55 move 172 457
+56 click 172 457
+62 shot join_d
+64 move 475 455
+65 move 477 457
+66 click 477 457
+72 shot join_e
+74 end

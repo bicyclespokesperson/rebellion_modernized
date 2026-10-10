@@ -1,0 +1,45 @@
+# Load the "RebelsFastStart" save, then open the bottom consoles and side panels
+12 key Escape
+16 key Escape
+20 key Escape
+26 move 425 250
+28 click 425 250
+36 move 305 174
+38 click 305 174
+75 move 120 418
+76 click 120 418
+81 shot gk_a
+82 key Escape
+83 move 170 418
+84 click 170 418
+89 shot gk_b
+90 key Escape
+91 move 222 412
+92 click 222 412
+97 shot gk_c
+98 key Escape
+99 move 268 410
+100 click 268 410
+105 shot gk_d
+106 key Escape
+107 move 405 415
+108 click 405 415
+113 shot gk_e
+114 key Escape
+115 move 460 415
+116 click 460 415
+121 shot gk_f
+122 key Escape
+123 move 20 120
+124 click 20 120
+129 shot gk_g
+130 key Escape
+131 move 20 175
+132 click 20 175
+137 shot gk_h
+138 key Escape
+139 move 20 250
+140 click 20 250
+145 shot gk_i
+146 key Escape
+150 end
