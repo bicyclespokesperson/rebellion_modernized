@@ -39,6 +39,7 @@
 #include <new>
 
 #include "app/app_cdcheck_version.h"
+#include "app/battle_flow.h"
 #include "app/app_dialogs.h"
 #include "app/app_externals.h"
 #include "app/app_strings.h"
@@ -611,7 +612,13 @@ int REB_STDCALL WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR co
     if (!app) return 2;
     app->SetScreenSize(kScreenWidth, kScreenHeight);
 #ifdef REB_STANDALONE
-    if (RebSimRequested()) RebSimRun(app);  // headless simulation harness (src/port); exits the process
+    if (RebSimRequested()) {
+        const int result = RebSimRun(app);
+        DestroyBattleFlow();
+        delete app;
+        CloseHandle(semaphore);
+        return result;
+    }
 #endif
     exitCode = app->Run(showCommand, 1);
     delete app;

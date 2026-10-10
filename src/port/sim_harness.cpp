@@ -19,8 +19,11 @@
 #include "core/file_util.h"
 #include "core/iostream_lib.h"
 #include "events/game_clock_hooks.h"
+#include "events/game_manager.h"
 #include "events/game_step_driver.h"
 #include "app/game_session.h"
+#include "gameobj/game_obj.h"
+#include "gameobj/object_queries.h"
 #include "strategy_ui/human_player.h"
 
 #include "port/sim_harness.h"
@@ -46,9 +49,10 @@ void Log(const char* format, ...) {
     const int n = vsnprintf(line, sizeof line - 1, format, args);
     va_end(args);
     if (g_log == INVALID_HANDLE_VALUE || n <= 0) return;
-    line[n] = '\n';
+    const DWORD length = static_cast<DWORD>(n) < sizeof line - 1 ? static_cast<DWORD>(n) : sizeof line - 2;
+    line[length] = '\n';
     DWORD written;
-    WriteFile(g_log, line, static_cast<DWORD>(n) + 1, &written, nullptr);
+    WriteFile(g_log, line, length + 1, &written, nullptr);
 }
 
 void CopyField(char* destination, size_t capacity, const char* value, size_t length) {
@@ -103,10 +107,13 @@ void LogHeapSample(const char* when) {
     operator delete(first);
 }
 
-[[noreturn]] void Finish(int code, const char* message) {
+int Finish(int code, const char* message) {
     Log("%s", message);
-    if (g_log != INVALID_HANDLE_VALUE) CloseHandle(g_log);
-    ExitProcess(static_cast<UINT>(code));
+    if (g_log != INVALID_HANDLE_VALUE) {
+        CloseHandle(g_log);
+        g_log = INVALID_HANDLE_VALUE;
+    }
+    return code;
 }
 
 // Mirrors RebellionApplication::LoadPendingGame and BattleFlow::Restore for a running strategic game; the strategic
@@ -136,9 +143,10 @@ bool LoadGame(RebellionApplication* app, const char* path, SavedGameInfo* info) 
     if (CreateGameStepDriver() == 0) return false;
     CheckPositionMarker(in);
     const int loaded = g_gameStepDriver->Load(in);
+    const int readState = iostream_access::State(file.get());
     flow->m_ok = 1;
     CloseFileStream(file.get());
-    return loaded != 0;
+    return loaded != 0 && readState == 0 && iostream_access::State(file.get()) == 0;
 }
 
 bool SaveGame(RebellionApplication* app, const SavedGameInfo& source, const char* path) {
@@ -155,8 +163,25 @@ bool SaveGame(RebellionApplication* app, const SavedGameInfo& source, const char
     info.m_unknown24 = app->m_autosaveTick;
     info.Write(reinterpret_cast<ostream*>(file.get()));
     AppSaveGame(file.get());
+    const int writeState = iostream_access::State(file.get());
     CloseFileStream(file.get());
-    return true;
+    return writeState == 0 && iostream_access::State(file.get()) == 0;
+}
+
+const char* ValidateReferences() {
+    BattleFlow* flow = GetBattleFlow();
+    if (!flow || flow->m_state != kFlowStrategic) return "battle flow";
+    if (!g_gameStepDriver || !g_gameStepDriver->m_ok) return "game step driver";
+    if (!GetGameManager()) return "game manager";
+    GameSession* session = GetGameSession();
+    if (!session || !session->m_valid) return "game session";
+    if (!session->m_controllers[0] || !session->m_controllers[1]) return "player controllers";
+    if (!session->m_human || (session->m_human != session->m_controllers[0] && session->m_human != session->m_controllers[1]))
+        return "human controller";
+    GameObjNotifier* root = GetGameRootObjectCached();
+    if (!root || !static_cast<GameObj*>(root)->Validate()) return "game root";
+    if (!GetGameRootSideMember(1) || !GetGameRootSideMember(2)) return "side roots";
+    return nullptr;
 }
 
 struct StepStats {
@@ -229,10 +254,14 @@ int RebSimRun(RebellionApplication* app) {
         g_log = CreateFileA(options.log[0] ? options.log : path, GENERIC_WRITE, FILE_SHARE_READ, nullptr, CREATE_ALWAYS,
                             FILE_ATTRIBUTE_NORMAL, nullptr);
     }
-    if (!valid) Finish(2, "REB_SIM: expected load:<file>,ticks:<N>,save:<path>[,every:<k>][,log:<path>]");
+    if (!valid) return Finish(2, "REB_SIM: expected load:<file>,ticks:<N>,save:<path>[,every:<k>][,log:<path>]");
 
     SavedGameInfo header;
-    if (!LoadGame(app, options.load, &header)) Finish(3, "REB_SIM: load failed");
+    if (!LoadGame(app, options.load, &header)) return Finish(3, "REB_SIM: load or close failed");
+    if (const char* invalid = ValidateReferences()) {
+        Log("REB_SIM: invalid reference after load: %s", invalid);
+        return Finish(6, "REB_SIM: reference validation failed");
+    }
     const uint32_t startTick = static_cast<uint32_t>(GetGameTickCount());
     LogHeapSample("loaded");
     Log("loaded %s: tick %u side %d type %d pause %d", options.load, startTick, app->m_side, app->m_gameType,
@@ -244,12 +273,16 @@ int RebSimRun(RebellionApplication* app) {
     uint32_t next = options.every ? startTick + options.every : endTick;
     for (;;) {
         if (next > endTick) next = endTick;
-        if (!RunToTick(app, next, &stats)) Finish(4, "REB_SIM: step stalled");
+        if (!RunToTick(app, next, &stats)) return Finish(4, "REB_SIM: step stalled");
         const uint32_t tick = static_cast<uint32_t>(GetGameTickCount());
+        if (const char* invalid = ValidateReferences()) {
+            Log("REB_SIM: invalid reference at tick %u: %s", tick, invalid);
+            return Finish(6, "REB_SIM: reference validation failed");
+        }
         char path[MAX_PATH];
         if (tick >= endTick) snprintf(path, sizeof path, "%s", options.save);
         else snprintf(path, sizeof path, "%s.t%u", options.save, tick);
-        if (!SaveGame(app, header, path)) Finish(5, "REB_SIM: save failed");
+        if (!SaveGame(app, header, path)) return Finish(5, "REB_SIM: save write or close failed");
         GameSession* session = GetGameSession();
         Log("saved tick %u frames %llu messages sent (side1 %d, side2 %d) -> %s", tick, static_cast<unsigned long long>(stats.frames),
             session ? session->m_controllers[0]->m_nextVoteId : -1, session ? session->m_controllers[1]->m_nextVoteId : -1, path);
@@ -260,5 +293,6 @@ int RebSimRun(RebellionApplication* app) {
     Log("done: %llu frames, max %u frames per tick", static_cast<unsigned long long>(stats.frames), stats.maxFramesPerTick);
     for (int state = 0; state < 0x18; ++state)
         if (state != 2 && stats.stateEntries[state]) Log("flow state %d entered %u times", state, stats.stateEntries[state]);
-    Finish(0, "ok");
+    Log("references ok");
+    return Finish(0, "returning for normal teardown");
 }

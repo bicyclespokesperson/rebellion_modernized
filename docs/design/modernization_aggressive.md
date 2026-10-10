@@ -50,7 +50,7 @@ but it is never a prerequisite for an individual change or a reason to block mod
 - [x] Require C++23 and disable compiler extensions in the maintained CMake builds.
 - [x] Standardize maintained builds on the Clang compiler family: Apple Clang, LLVM Clang, or clang-cl.
 - [x] Update checked-in parser and syntax-check flags to C++23 so tooling reads the same language as the build.
-- [ ] Pin the clang-format and clang-tidy versions used by the project.
+- [x] Pin clang-format and clang-tidy to LLVM 22.1.4 through `tools/clang_tools.sh`.
 - [x] Export the native compilation database.
 - [x] Build and run the native game in C++23 on macOS (Apple Clang 17, arm64; 10-tick headless simulation smoke).
 - [ ] Build and run the native game in C++23 on Linux.
@@ -58,9 +58,10 @@ but it is never a prerequisite for an individual change or a reason to block mod
   is real port work: the current Windows standalone target is i686, uses `/NODEFAULTLIB`, and reconstructs startup/data;
   the current native platform selection only handles macOS and Linux. Provide the Windows OS adapter and resolve
   Win32/minwin naming and import boundaries. Do not promise Windows support based on a compiler flag alone.
-- [ ] Adapt the smoke harness to detect save write/close failures, reload its output in a second process, advance again,
+- [x] Adapt the smoke harness to detect save write/close failures, reload its output in a second process, advance again,
   validate basic references, and exercise normal application teardown instead of the existing `ExitProcess` shortcut.
-- [ ] Run that startup/load/short-simulation/save/reload smoke on macOS.
+- [x] Run that startup/load/short-simulation/save/reload smoke on macOS (release and UBSan). Apple Clang 17's ASan
+  runtime deadlocks before `main` on the current macOS host, including for an empty probe executable.
 - [ ] Run that startup/load/short-simulation/save/reload smoke on Linux.
 - [ ] Run that startup/load/short-simulation/save/reload smoke on Windows.
 
