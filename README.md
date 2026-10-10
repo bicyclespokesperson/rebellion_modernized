@@ -29,6 +29,22 @@ Future work (designs, not started): [codebase modernization](docs/design/moderni
    tools/fetch_deps.sh                                       # SDL3, FreeType, Liberation fonts (pinned, into third_party/)
    ```
 
+## Launch the game (macOS / Linux)
+
+Once built, run from the repo root:
+
+```sh
+./launch_game.sh
+```
+
+The launcher checks for the native executable and uses `$REBELLION_CONFIG`, your platform's user config, or the existing
+local config (`work/macos/config.ini` on macOS, `work/launch/config.ini` on Linux), in that order. If no config exists,
+it creates `work/launch/config.ini` pointing to `orig_game_files/Star Wars - Rebellion/`. Missing builds, configs and game
+files produce setup instructions. Saves go to the installation's `SaveGame/` folder.
+
+On macOS, build first with `tools/build_macos.sh` (Xcode command-line tools, CMake and `uv` required;
+see [native.md](docs/native.md)). Linux build instructions follow.
+
 ## Play natively (Linux)
 
 ```sh
