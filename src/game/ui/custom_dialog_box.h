@@ -41,25 +41,7 @@ public:
     void Remove(ObjectKeyIdNode* node);             // 0x4acca0
 };
 
-// Stand-in (class not identified): what a rename is applied to. The game session hands it the new name
-// (m_name, +0x44) through game_ui_facade 0x41ce20. Slot 10 yields the set of keys of the objects it concerns.
-class RenameRequest {
-public:
-    virtual ~RenameRequest() = 0;
-    virtual void Virtual01() = 0;
-    virtual void Virtual02() = 0;
-    virtual void Virtual03() = 0;
-    virtual void Virtual04() = 0;
-    virtual void Virtual05() = 0;
-    virtual void Virtual06() = 0;
-    virtual void Virtual07() = 0;
-    virtual void Virtual08() = 0;
-    virtual void Virtual09() = 0;
-    virtual ObjectKeyValueSet* GetKeys() = 0;  // slot 10
-
-    uint8_t m_unk04[0x40];  // +0x04
-    String m_name;          // +0x44
-};
+class TextMessage;  // the order a rename is applied to (human_player.cpp builds it: the new name goes into m_text)
 
 // "CustomDialogBox": the base class of the strategy object windows (sector, system, fleet, object status, mission
 // windows...). A CoolGameWindow with a title label, the set of objects it shows, the selection, and in-place
@@ -93,7 +75,7 @@ public:
     virtual ObjectKey GetDropKeyAt(int x, int y);                          // slot 28, 0x4ac520: GetKeyAt
     virtual int Virtual29();                                                // slot 29, 0x5a5b60 (shared): returns 0
     // Opens an edit field over the name of the object `target` refers to (nothing if the object is unknown).
-    virtual void BeginRename(RenameRequest* target);                               // slot 30, 0x4ac7a0
+    virtual void BeginRename(TextMessage* target);                               // slot 30, 0x4ac7a0
     virtual void CommitRename();                                            // slot 31, 0x4ac950
     virtual void CancelRename();                                            // slot 32, 0x4aca40
     // The first selected object's key; 0 if nothing is selected.
@@ -106,7 +88,7 @@ public:
     CoolLabel* m_titleLabel;           // +0x124 owned
     RECT m_titleRect;                  // +0x128
     CoolStringField* m_renameField;    // +0x138 owned, while renaming
-    RenameRequest* m_renameTarget;   // +0x13c deleted by the destructor
+    TextMessage* m_renameTarget;   // +0x13c deleted by the destructor
 };
 
 #pragma clang diagnostic push

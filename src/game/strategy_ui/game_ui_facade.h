@@ -13,7 +13,7 @@ class PlayerNotice;
 class ObjectKeyValueSet;
 class EventKindSet;
 class GameObjNotifier;
-class RenameRequest;
+class TextMessage;
 class String;
 class ManufactureOrderBase;
 struct ResourceStringId;
@@ -114,7 +114,7 @@ void UiSetMaintenance(int value, int unused);                                   
 void UiOnSystemChangedKind1(const ObjectKey* system, int a, int b);                      // 0x41d580
 void UiOnSystemChangedKind2(const ObjectKey* system, int a, int b);                      // 0x41d5b0
 void UiBeginTargeting(void* command);                                                    // 0x41d5e0
-void UiBeginRename(RenameRequest* request);                                              // 0x41d600
+void UiBeginRename(TextMessage* request);                                              // 0x41d600
 void UiSetDateAndSpeed(int day, int speed);                                              // 0x41d620
 void UiOpenManufactureWindow(ManufactureOrderBase* order, uint32_t unused);              // 0x41d640
 void UiPlayDroidScript(uint32_t resourceId, uint32_t x, uint32_t y, int alternateSet);   // 0x41d660

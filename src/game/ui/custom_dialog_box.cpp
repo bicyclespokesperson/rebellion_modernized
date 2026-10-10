@@ -1,5 +1,6 @@
 #include "core/reb_abi.h"
 #include "ui/custom_dialog_box.h"
+#include "orders/order_base.h"
 
 #include "app/rebapp_globals.h"
 #include "app/rebellion_application.h"
@@ -183,9 +184,9 @@ ObjectKey CustomDialogBox::GetDropKeyAt(int x, int y) { return GetKeyAt(x, y); }
 
 int CustomDialogBox::Virtual29() { return 0; }
 
-void CustomDialogBox::BeginRename(RenameRequest* target) {
+void CustomDialogBox::BeginRename(TextMessage* target) {
     GalaxyWindow* galaxy = GetGalaxyWindow();
-    ObjectKeyNode* firstKey = static_cast<ObjectKeyNode*>(target->GetKeys()->First());
+    ObjectKeyNode* firstKey = static_cast<ObjectKeyNode*>(target->GetTeam()->First());
     ObjectKey key;
     firstKey->GetKey(&key);
     int view = galaxy ? galaxy->m_side : static_cast<int>(reinterpret_cast<intptr_t>(target));
@@ -216,7 +217,7 @@ void CustomDialogBox::CommitRename() {
     if (m_renameField->m_text.Length() == 0) return;
     {
         String name(m_renameField->m_text.m_text);
-        m_renameTarget->m_name.Assign(name);
+        m_renameTarget->m_text.Assign(name);
     }
     UiHumanReceiveMessage(reinterpret_cast<PlayerMessage*>(m_renameTarget), 0);
     m_renameTarget = nullptr;

@@ -4,6 +4,7 @@
 #include <new>
 
 #include "ai/ai_common.h"
+#include "orders/order_base.h"
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
 #include "core/stream_io.h"
@@ -327,7 +328,7 @@ void SystemWindow::ShowProgressBars(int hide) {
     }
 }
 
-void SystemWindow::BeginRenameRequest(RenameRequest* request) {
+void SystemWindow::BeginRenameRequest(TextMessage* request) {
     m_pendingRename = request;
     if ((m_uiFlags & 8) == 0) {
         m_uiFlags = (m_uiFlags & ~4u) | 8;
@@ -374,7 +375,7 @@ void SystemWindow::EndSlotRename(SystemSlot* slot) {
             keys.Add(node);
             UiHumanCommand(0x215, &keys, &unset, &name);
         } else {
-            m_pendingRename->m_name.Assign(typed);
+            m_pendingRename->m_text.Assign(typed);
             UiHumanReceiveMessage(reinterpret_cast<PlayerMessage*>(m_pendingRename), 0);
             m_pendingRename = nullptr;
         }

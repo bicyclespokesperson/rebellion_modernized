@@ -40,8 +40,22 @@ The game reads `config.ini` from `~/.config/rebellion/` (macOS: `~/Library/Appli
 install_dir=/path/to/Star Wars - Rebellion
 ```
 
-Optional keys: `font_path` (an `arial.ttf`; otherwise system Arial, then the bundled Liberation Sans). Saves go to
-`SaveGame/` inside the installation, as in the original. macOS builds on a Mac are described in
+Optional keys (all in the same file, before any `[registry]` section):
+
+| Key | Default | Meaning |
+|---|---|---|
+| `window_scale` | largest integer scale that fits the display | window size as a multiple of 640x480 (1-8); the window can also be resized, the picture always stays at an integer scale, centred, with black bars |
+| `fullscreen` | `0` | `1` starts fullscreen (desktop resolution, integer-scaled, letterboxed, nearest-neighbour); **Alt+Enter** toggles at any time |
+| `data_dir` | `install_dir` | where `MDATA/` lives if it is not inside the installation |
+| `font_path` | system Arial, then bundled Liberation Sans | an `arial.ttf` |
+| `renderer` | SDL's choice (GPU if available, else software) | SDL render driver name, e.g. `software` |
+| `vsync` | `0` | `1` synchronises presentation with the display |
+| `audio_buffer` | `1024` | audio device buffer in sample frames (raise to 2048 if you hear crackling) |
+
+If the config file is missing, `install_dir` is wrong, or the installation lacks a file the game needs (`REBEXE.EXE`, the `*.DLL`
+resource libraries, `GData`, `EData`, `MDATA/MDATA.000`), the game shows a message box that says what to put where and exits.
+The close button and **Alt+F4** go through the game's own quit confirmation. Saves go to `SaveGame/` inside the installation, as in the
+original. The game keeps one CPU core mostly idle (about 10% at the galaxy screen). macOS builds on a Mac are described in
 [docs/native.md](docs/native.md) (not yet tested on real Mac hardware).
 
 ## Development

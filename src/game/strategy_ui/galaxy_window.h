@@ -23,7 +23,7 @@ class SpriteStage;
 class istream;
 class ostream;
 class GameObjNotifier;
-class RenameRequest;
+class TextMessage;
 class NullableKey;
 
 // Child-window ids of the galaxy view's controls and the WM_COMMAND ids they send.
@@ -188,7 +188,7 @@ public:
     // Starts picking a target for `command` (mode 2, the target cursor, mouse captured).
     void BeginTargeting(void* command);                  // 0x429320
     // Starts renaming the first object of `request` in the window (system window or the active child) showing it.
-    void BeginRename(RenameRequest* request);            // 0x429350
+    void BeginRename(TextMessage* request);            // 0x429350
     // Opens the sector or system window that shows `object` and selects it; 1 if a window was found.
     int OpenWindowForObject(const ObjectKey* object);    // 0x429440
     // Opens (or returns the open) sector window of the sector `sector`: at most two stand side by side.

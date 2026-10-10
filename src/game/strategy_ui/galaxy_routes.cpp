@@ -3,6 +3,7 @@
 #include <new>
 
 #include "ai/ai_common.h"
+#include "orders/order_base.h"
 #include "app/app_dialogs.h"
 #include "app/game_session.h"
 #include "app/rebapp_globals.h"
@@ -129,9 +130,9 @@ void GalaxyWindow::BeginTargeting(void* command) {
     m_pendingCommand = command;
 }
 
-void GalaxyWindow::BeginRename(RenameRequest* request) {
+void GalaxyWindow::BeginRename(TextMessage* request) {
     AvlNode* child = m_children.First();
-    ObjectKeyValueSet keys(*request->GetKeys());
+    ObjectKeyValueSet keys(*request->GetTeam());
     ObjectKey target;
     static_cast<ObjectKeyNode*>(keys.First())->GetKey(&target);
     for (; child; child = child->m_successor) {
