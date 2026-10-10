@@ -20,7 +20,7 @@ while read -r at action a1 a2 a3 a4; do
   [[ -z "${at:-}" || "$at" == \#* ]] && continue
   python3 -c "import time,sys; d=$start+$at-time.time(); d>0 and time.sleep(d)"
   case "$action" in
-    shot) import -window root "/out/$a1.png" 2>/dev/null ;;
+    shot) [[ -n "${REB_MINWIN_DUMP:-}" ]] && { echo "$a1" > /out/dump_request; sleep 0.1; }; import -window root "/out/$a1.png" 2>/dev/null ;;
     key) xdotool key "$a1" ;;
     keydown) xdotool keydown "$a1" ;;
     keyup) xdotool keyup "$a1" ;;

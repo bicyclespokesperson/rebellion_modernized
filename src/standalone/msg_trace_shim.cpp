@@ -17,10 +17,15 @@ ClassProc g_classes[kMaxClasses];
 int g_classCount = 0;
 int g_depth = 0;
 
-WNDPROC OriginalProc(const char* className) {
+ClassProc* FindClass(const char* className) {
     for (int i = 0; i < g_classCount; ++i)
-        if (!lstrcmpA(g_classes[i].name, className)) return g_classes[i].proc;
+        if (!lstrcmpA(g_classes[i].name, className)) return &g_classes[i];
     return nullptr;
+}
+
+WNDPROC OriginalProc(const char* className) {
+    const ClassProc* entry = FindClass(className);
+    return entry ? entry->proc : nullptr;
 }
 
 LRESULT CALLBACK TracedProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
@@ -39,10 +44,18 @@ LRESULT CALLBACK TracedProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lPara
 
 extern "C" ATOM WINAPI RebTracedRegisterClassA(const WNDCLASSA* cls) {
     WNDCLASSA wrapped = *cls;
-    if (msgtrace::Enabled() && g_classCount < kMaxClasses && cls->lpszClassName && !OriginalProc(cls->lpszClassName)) {
-        lstrcpynA(g_classes[g_classCount].name, cls->lpszClassName, sizeof g_classes[0].name);
-        g_classes[g_classCount++].proc = cls->lpfnWndProc;
-        wrapped.lpfnWndProc = TracedProc;
+    if (msgtrace::Enabled() && cls->lpszClassName && reinterpret_cast<uintptr_t>(cls->lpszClassName) >= 0x10000) {
+        // A class that is unregistered and registered again (the game does this for its buttons) must be wrapped again: its
+        // windows would otherwise vanish from the trace.
+        ClassProc* entry = FindClass(cls->lpszClassName);
+        if (!entry && g_classCount < kMaxClasses) {
+            entry = &g_classes[g_classCount++];
+            lstrcpynA(entry->name, cls->lpszClassName, sizeof entry->name);
+        }
+        if (entry) {
+            entry->proc = cls->lpfnWndProc;
+            wrapped.lpfnWndProc = TracedProc;
+        }
     }
     return RegisterClassA(&wrapped);
 }
