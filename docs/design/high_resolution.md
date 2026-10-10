@@ -1,6 +1,7 @@
 # Design: higher resolutions and upscaling (preliminary)
 
-Status: proposal, not started. Written Oct 2026. Companion: [modernization.md](modernization.md).
+Status: renderer/pack support proposed, not started; asset preparation skill available.
+Written Oct 2026. Companion: [modernization.md](modernization.md).
 
 ## Goal
 
@@ -72,12 +73,98 @@ and optionally movies, at any integer multiple of the original size, with alpha 
 fall back to tier-2 scaling. Packs are never part of this repository (they derive from the game's art); a small tool
 exports the originals to PNG with a manifest so anyone can produce a pack (by hand or with an upscaling model).
 
+Use the repository skill [flowers-upscale](../../.agents/skills/flowers-upscale/SKILL.md)
+(`$flowers-upscale`) to prepare and review selected replacements. It adapts the
+@flowersslop contextual crop workflow to this game's rendered/painted art, with
+deterministic baselines, SVG/procedural reconstruction, hybrid rendering, and
+contextual AI where each improves the result. The skill is
+available now; the exporter, loader, and overlay remain R5 implementation work.
+
 * Palette effects: replacement art is true-colour, so palette-animated or remapped items need per-item rules (keep the
   original 8-bit path for those, or provide per-palette variants). The manifest marks which items are palette-dependent.
 * Movies: an optional modern codec with a permissive decoder (e.g. AV1 via dav1d, BSD) for replacement videos; Smacker
   stays the default.
 * Requires the frame to become true-colour where replacement art is drawn: the scaled surface gets an RGBA overlay layer
   composited above the 8-bit layer, which keeps tier 2 intact for everything else.
+
+#### Asset selection and resolution
+
+Prioritize by time visible in normal play and visible improvement at the intended
+display size. **Encyclopedia art is low priority**: it is rarely on screen. Do not
+make enhancing the encyclopedia library a prerequisite for an HD pack.
+
+| Priority / asset class | Approach |
+|---|---|
+| First: frequently visible galaxy, sector, and planet artwork | Inspect resources/palette behavior; compare scaling with procedural terrain/spheres/atmosphere/lighting, SVG, or hybrid rendering; selective AI for suitable textured regions |
+| Next: portraits and unit/ship art displayed in routine gameplay | Preserve likeness/design; consider SVG/layered 2D/simple 3D reconstruction for ships and vehicles, hybrid textures, or selective AI for static candidates |
+| Small static pilot: menu/background artwork | Useful for establishing style and validating R5 integration; avoid spending most of the art budget on menus |
+| UI borders, buttons, bitmap labels/emblems, cursors, small markers/icons | SVG/code reconstruction or deterministic/key-aware scaling; live text/primitives use R3 |
+| Flat fills, gradients, sparse starfields | SVG/procedural rendering, simple resize, or existing primitives; preserve authored star positions and avoid invented texture |
+| Animated sprites, briefing sequences, movies, palette-remapped/animated art | Keep original path plus R4 scaling initially; separate sequence/variant work before replacements |
+| Later: encyclopedia illustrations | Optional selective enhancement after frequently visible gameplay artwork |
+
+Start at **2× source dimensions** and compare at the actual on-screen size; prepare
+4× where the display scale and visible benefit justify it. Pack dimensions stay exact
+integer multiples of the original. A full 640×480 background is 1280×960 at 2× or
+2560×1920 at 4×, already suitable for the game's letterboxed presentation on modern
+displays. There is no 8K master requirement or automatic upgrade of every resource.
+Choose higher scales only for a demonstrated display need.
+
+Local inspection found 187 `EData/EDATA.nnn` BMP files, each 400×200 and 8-bit, referenced
+through `ENCYBMAP.DLL`; these would be 800×400 or 1600×800. They are useful size/style
+examples, not the initial pack scope. Samples include rendered vehicles/ships and
+portraits: a photographic skin/texture reconstruction prompt would change the look.
+
+#### Preparation workflow and pack contract
+
+1. Export an inventory with source identity (module, resource type/id/name, language
+   where relevant, frame or external file), source hash, dimensions, palette/key,
+   decoded masks, logical bounds/pivots, animation/atlas membership, and known palette
+   dependencies. Keep unknown semantics marked unknown until audited at draw sites.
+   Retain original indexed data: equal RGB colors can have different palette roles.
+2. Choose a small pilot from frequently visible static gameplay art, plus menu art
+   if useful for integration. Compare nearest, an appropriate smooth resize, and
+   key-aware pixel-art scaling as applicable. Compare SVG/procedural or hybrid
+   reconstructions where shape, materials, and lighting can be reproduced faithfully,
+   including planets and ships. Keep simple scaling when it looks good.
+3. Use `$flowers-upscale` to select the approach per asset or region. For code-driven
+   rendering, preserve editable source, fitted parameters, fixed seeds, renderer
+   version, and source textures; render to the exact PNG pack dimensions. For raster
+   AI candidates, start with one whole-image contextual edit. Use padded registered tiles only if
+   the native generation budget or a failed whole-image attempt warrants them;
+   add targeted passes for observed defects rather than mandatory 2/3-pass batches.
+   Every edit sees the unchanged original and target crop. Preserve geometry, style,
+   text/emblems, alpha masks, and quiet areas; generated detail is reconstructed.
+4. Review baseline/enhanced comparisons at game display size and 100% focal/overlap
+   crops. Reject invented structures, likeness changes, seams, doubling, or alpha
+   fringes. At most two targeted retries per defect; keep prior pixels on failure.
+   Verify exact export dimensions and PNG decoding. Preserve native generated outputs
+   and record their actual resolution separately from resized pack exports.
+5. Keep source exports, baselines, intermediates, PNGs, previews, and preparation
+   manifests in ignored `work/hd/` or `extracted/`. Commit only tooling/instructions.
+   Record route, scale, rendering source/parameters/seeds/version, prompts/settings,
+   crop boxes/transforms/masks, and accepted or
+   rejected edits. The preparation manifest is provenance; define/version the actual
+   loader schema during R5 rather than assuming the skill's records are loadable.
+
+R5 must preserve original hit-testing, frame alignment, atlas regions, and logical
+sizes, and identify replacements even when the original is copied into an off-screen
+DIB before presentation. A static RGBA replacement cannot reproduce arbitrary palette
+remaps. Custom type-302 animation resources are palette-index delta frames, so they
+must be decoded in sequence; independent AI edits would introduce flicker and drift.
+Missing, rejected, unsupported, or disabled replacements retain the original path.
+Validate accepted replacements in real game scenes once the loader is available.
+
+Procedural reconstruction is not limited to UI. A planet can use a shaded sphere,
+terrain/cloud fields, atmosphere, and rings fitted to the original; a ship can use
+SVG paths, layered 2D shapes, or simple 3D geometry with shared repeated components.
+Preserve distinctive land/cloud features, terminator and light direction, or ship
+silhouette, perspective, component count, and insignia. Use retained/enhanced source
+textures where code alone cannot match the artwork. Judge the rendered composite
+against the source and baseline; neither cleaner geometry nor richer texture excuses
+a changed design. This is offline asset preparation, not a requirement for a runtime
+vector/3D renderer. Derived SVGs, meshes, textures, and per-asset reconstruction code
+remain outside git with the pack; reusable generic tooling can live in the repository.
 
 ### Tier 4 — larger logical resolution and widescreen (needs modernization)
 
@@ -98,7 +185,7 @@ layouts and hit-testing.
 | R2 | Scaled DC plumbing in minwin GDI: logical/device mapping, k× surface, nearest scaler only | k = 1 identical; k > 1 downsampling test exact on all scenarios |
 | R3 | Text and primitives at device resolution | Sharp text at k = 2…4; line breaks unchanged (text metrics tests) |
 | R4 | Index-space scalers for bitmaps (key-aware, RLE-aware), scaled-bitmap cache, movie and cursor scaling | Screenshot goldens per scaler; frame time budget met at 4K |
-| R5 | Asset export tool + replacement pack loader + RGBA overlay layer | A sample pack replaces the main menu and galaxy art; fallbacks work |
+| R5 | Asset export/inventory tool + replacement pack loader + RGBA overlay layer; prepare a selective pilot with `$flowers-upscale` | Frequently visible static gameplay art (and menu art if useful) improves at 2×/4×; geometry/alpha/palette rules and per-item fallbacks work; encyclopedia is not a prerequisite |
 | R6 | Widescreen galaxy map (after modernization) | Galaxy view uses the full window; other screens pillarboxed |
 
 ## Risks and open questions
@@ -115,5 +202,8 @@ layouts and hit-testing.
 ## Decisions to make
 
 1. Default look: pixel-perfect integer (today), sharp-bilinear to fill the screen, or a pixel-art scaler.
-2. Whether HD packs are in scope (tier 3) and which art matters most (galaxy map, planets, portraits, encyclopedia).
+2. Whether to implement HD pack support (tier 3). Preparation uses `$flowers-upscale`;
+   prioritize galaxy/sector/planet and routine gameplay portrait/unit art, with
+   encyclopedia images later. Select exact pilot resource IDs after the inventory
+   and palette audit.
 3. Whether widescreen galaxy (tier 4) is a goal; it ties this work to the modernization plan.

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Flowers Upscale for Rebellion"
+  short_description: "Rebuild game art with code, scaling, or contextual AI"
+  default_prompt: "Use $flowers-upscale to prepare selected Rebellion artwork, comparing scaling, SVG/procedural reconstruction, hybrid rendering, and contextual AI where appropriate."
