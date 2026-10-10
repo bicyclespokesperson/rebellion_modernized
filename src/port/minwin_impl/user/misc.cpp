@@ -266,6 +266,10 @@ void NotifyPaletteChanged(HWND realizer) {
         g_paletteNotificationPending = true;
         return;
     }
+    BroadcastPaletteChanged(realizer);
+}
+
+void BroadcastPaletteChanged(HWND realizer) {
     for (minwin::Window* t = minwin::FirstTopLevel(); t;) {
         minwin::Window* next = t->next;
         minwin::Send(t, WM_PALETTECHANGED, reinterpret_cast<WPARAM>(realizer), 0);

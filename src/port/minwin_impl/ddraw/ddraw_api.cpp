@@ -5,6 +5,7 @@
 #define MINWIN_IMPLEMENTATION 1
 #include "port/minwin/ddraw.h"
 #include "port/minwin/user32.h"
+#include "port/minwin_impl/gdi_api.h"
 
 #include <string.h>
 
@@ -30,7 +31,7 @@ constexpr DWORD kCooperativeFullscreen = 0x1, kCooperativeNormal = 0x8, kCoopera
 constexpr LONG kWsPopup = static_cast<LONG>(0x80000000u), kWsExTopmost = 8;
 constexpr LONG kFrameStyleBits = 0xc00000 | 0x80000 | 0x40000 | 0x20000 | 0x10000;  // caption, system menu, sizing frame, min/max boxes
 constexpr int kGwlStyle = -16, kGwlExStyle = -20;
-constexpr UINT kWmDisplayChange = 0x7e;
+constexpr UINT kWmDisplayChange = 0x7e, kWmWindowPosChanging = 0x46;
 constexpr UINT kSwpNoRedraw = 8, kSwpFrameChanged = 0x20;
 HWND const kHwndTopmost = reinterpret_cast<HWND>(static_cast<intptr_t>(-1));
 
@@ -63,11 +64,27 @@ HRESULT SetLevel(DisplayDevice* device, HWND window, DWORD level) {
     return kOk;
 }
 
+struct WindowPosition {
+    HWND hwnd;
+    HWND hwndInsertAfter;
+    int x, y, cx, cy;
+    UINT flags;
+};
+
+// What Wine's ddraw does to the window after the mode switch: WM_DISPLAYCHANGE, one more WM_WINDOWPOSCHANGING (nothing moves, so no
+// WM_WINDOWPOSCHANGED follows) and the palette-changed broadcast of the reset display palette.
+void AnnounceModeSwitch(HWND window, DWORD bitsPerPixel, DWORD width, DWORD height) {
+    SendMessageA(window, kWmDisplayChange, bitsPerPixel, static_cast<LPARAM>(width | (height << 16)));
+    WindowPosition position = {window, kHwndTopmost, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | kSwpNoRedraw};
+    SendMessageA(window, kWmWindowPosChanging, 0, reinterpret_cast<LPARAM>(&position));
+    minwin_user::BroadcastPaletteChanged(window);
+}
+
 HRESULT SwitchMode(DisplayDevice* device, DWORD width, DWORD height, DWORD bitsPerPixel) {
     if (!(device->level & kCooperativeExclusive)) return kErrNoCooperativeLevelSet;
     if (width != 640 || height != 480 || bitsPerPixel != 8) return kErrUnsupported;
     device->modeSwitched = true;
-    if (device->window) SendMessageA(device->window, kWmDisplayChange, bitsPerPixel, static_cast<LPARAM>(width | (height << 16)));
+    if (device->window) AnnounceModeSwitch(device->window, bitsPerPixel, width, height);
     return kOk;
 }
 

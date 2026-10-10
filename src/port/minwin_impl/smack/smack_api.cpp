@@ -288,7 +288,7 @@ uint32_t REB_STDCALL SmackBufferNewPalette(SmackBuf* buf, void* palette, uint32_
 uint32_t REB_STDCALL SmackBufferSetPalette(SmackBuf* buf) {
     if (!buf) return 0;
     BufferExtension* ext = ExtensionOf(buf);
-    if (!ext->paletteLoaded || !g_getDc) return 0;
+    if (!g_getDc) return 0;
     HDC dc = g_getDc(ext->window);
     if (!dc) return 0;
     struct {

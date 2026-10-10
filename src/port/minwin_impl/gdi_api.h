@@ -53,4 +53,8 @@ namespace minwin_user {
 // which is all the real user32 does under Wine for the game's first realization (call it only when the palette really changed).
 void NotifyPaletteChanged(HWND realizer);
 
+// Sends WM_PALETTECHANGED (wParam = `realizer`) to every top-level window, as Wine's user32 does when a palette realization or a
+// display mode switch changes the display palette.
+void BroadcastPaletteChanged(HWND realizer);
+
 }  // namespace minwin_user
