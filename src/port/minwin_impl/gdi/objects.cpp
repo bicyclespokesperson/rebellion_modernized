@@ -19,8 +19,9 @@ Bitmap::~Bitmap() { free(bits); }
 
 namespace {
 std::unordered_set<const void*>& Live() {
-    static std::unordered_set<const void*> live;
-    return live;
+    // Game globals delete their graphics objects after other static destructors have run.
+    static auto* live = new std::unordered_set<const void*>;
+    return *live;
 }
 }  // namespace
 

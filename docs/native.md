@@ -130,6 +130,12 @@ outline mode. The outline reconstruction also uses the original white pen, so it
 Encyclopedia pictures and live system-window dragging were manually verified in the rebuilt Mac app. The input trace
 also confirms repeated window-position changes while the mouse button is held, before release.
 
+The graphics handle registry stays alive until process exit because global game font tables delete their fonts during
+static cleanup. Destroying the registry earlier caused a shutdown crash in `FontTable::~FontTable` / `DeleteObject`.
+`gdi_shutdown_test` reproduces that destruction order, crashes before the repair, and exits successfully afterward;
+the regular GDI tests also pass. The rebuilt Mac app was also launched on the desktop and exited through its normal
+quit confirmation with status 0 and no crash output.
+
 `tools/build_native.sh` remains the Linux container build.
 
 ## arm64
