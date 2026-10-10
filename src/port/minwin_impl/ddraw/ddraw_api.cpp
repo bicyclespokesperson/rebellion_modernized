@@ -47,6 +47,7 @@ struct DisplayDevice {
 // With the exclusive full-screen cooperative level the real ddraw takes the window out of its frame, makes it topmost and
 // covers the display (here: 640x480), through three window-position changes.
 void CoverDisplay(HWND window) {
+    if (IsIconic(window)) ShowWindow(window, SW_RESTORE);
     const LONG style = GetWindowLongA(window, kGwlStyle);
     SetWindowLongA(window, kGwlStyle, (style & ~kFrameStyleBits) | kWsPopup);
     SetWindowLongA(window, kGwlExStyle, GetWindowLongA(window, kGwlExStyle) | kWsExTopmost);

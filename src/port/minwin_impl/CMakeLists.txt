@@ -29,6 +29,8 @@ function(mw_test name)
 endfunction()
 enable_testing()
 
+mw_test(focus_test user/focus_test.cpp user/focus.cpp)
+
 # config
 add_library(mw_config STATIC config/config.cpp config/advapi32_api.cpp)
 if(NOT WIN32)
@@ -57,6 +59,9 @@ if(WIN32)
 endif()
 mw_test(gdi_test gdi/gdi_test.cpp)
 target_link_libraries(gdi_test PRIVATE mw_gdi mw_gdi_userstub)
+add_executable(gdi_shutdown_test gdi/tests/shutdown_test.cpp)
+target_link_libraries(gdi_shutdown_test PRIVATE mw_gdi mw_gdi_userstub)
+add_test(NAME gdi_shutdown_test COMMAND gdi_shutdown_test)
 
 # text (FreeType from third_party/, fetched by tools/fetch_deps.sh)
 set(MW_FREETYPE_DIR ${REPO}/third_party/freetype-2.13.2 CACHE PATH "FreeType source tree")

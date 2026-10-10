@@ -26,7 +26,7 @@ DibBitmap* LoadResourceBitmap(HMODULE module, uint32_t id, uint32_t kind) { retu
 void DrawXorOutline(CoolGameWindow* window, int x, int y) {
     HDC dc = GetWindowDC(window->m_parent->m_hwnd);
     HGDIOBJ brush = SelectObject(dc, GetStockObject(NULL_BRUSH));
-    HGDIOBJ pen = SelectObject(dc, GetStockObject(NULL_PEN));
+    HGDIOBJ pen = SelectObject(dc, GetStockObject(WHITE_PEN));
     SetROP2(dc, R2_XORPEN);
     RECT outline;
     SetRect(&outline, x, y, window->m_width + x, window->m_height + y);
@@ -323,7 +323,7 @@ int CoolGameWindow::DragTo(int x, int y) {
     if (m_parent) {
         HDC dc = GetWindowDC(m_parent->m_hwnd);
         HGDIOBJ brush = SelectObject(dc, GetStockObject(NULL_BRUSH));
-        HGDIOBJ pen = SelectObject(dc, GetStockObject(NULL_PEN));
+        HGDIOBJ pen = SelectObject(dc, GetStockObject(WHITE_PEN));
         SetROP2(dc, R2_XORPEN);
         RECT old;
         SetRect(&old, m_dragX, m_dragY, m_dragX + m_width, m_dragY + m_height);
@@ -503,7 +503,12 @@ int CoolGameWindow::BuildFrame(HMODULE module, uint32_t topId, uint32_t bottomId
     return m_frame != nullptr;
 }
 
-void CoolGameWindow::SetDragMode(uint32_t mode) { m_dragMode = (m_dragMode & ~3u) | mode; }
+void CoolGameWindow::SetDragMode(uint32_t mode) {
+#if defined(REB_NATIVE)
+    if (mode & kDragOutline) mode = (mode & ~kDragOutline) | kDragLive;
+#endif
+    m_dragMode = (m_dragMode & ~3u) | mode;
+}
 
 DibBitmap* CoolGameWindow::LoadBitmapCopy(uint32_t bitmapId) {
     DibBitmap* copy = nullptr;

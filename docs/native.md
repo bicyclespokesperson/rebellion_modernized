@@ -95,16 +95,48 @@ REB_NATIVE_IMAGE=... tools/build_native.sh --arch arm64       # Linux aarch64 cr
 tools/native_sim.sh -a arm64                                  # the sim goldens on it under qemu-user
 ```
 
-macOS (on a Mac with Xcode command-line tools, cmake, ninja, python3 with `pefile capstone unicorn clang`; not run yet, see below):
+macOS (on a Mac with Xcode command-line tools, CMake and `uv`):
 
-```
-cmake -S . -B build/native -G Ninja -DREB_NATIVE=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo     # -DCMAKE_OSX_ARCHITECTURES=arm64|x86_64
-cmake --build build/native --target reb_native_objects
-python3 tools/gen_native_data.py --build build/native --exe <REBEXE.EXE> --symbols symbols --out build/native/gen   # and gen_native_init.py
-cmake -S . -B build/native -DREB_NATIVE_GEN=ON && cmake --build build/native --target rebellion      # build/native/Rebellion.app
+```sh
+REB_GAME_EXE="/path/to/Star Wars - Rebellion/REBEXE.EXE" tools/build_macos.sh
 ```
 
-`tools/build_native.sh` is container-only (the generators need libclang 19 and the other Python packages of the image).
+The script downloads the pinned sources, creates `build/tools-venv` for the Python generators and Ninja, builds the objects,
+generates the data and initialization tables from your EXE, then links and signs `build/native/Rebellion.app`.
+`REB_GAME_EXE` defaults to `orig_game_files/Star Wars - Rebellion/REBEXE.EXE` in this checkout.
+The LLVM symbol tools come from Xcode (`xcrun`); the generators support both ELF and Mach-O symbol spelling.
+
+Set `install_dir` in a config file as described in the README. `tools/run_macos.command` is a double-clickable launcher;
+it defaults to `work/macos/config.ini`, or uses `$REBELLION_CONFIG` when set. The installation must be writable for saves.
+
+Verified on Apple silicon on Oct 10 2026: Apple clang compiled all game and port objects, both generators reported zero
+problems, the ARM64 app linked and passed signature verification, and the intro and main menu rendered on the desktop.
+The initial Mac build crashed when creating a game because libclang did not discover Xcode's C++ headers and silently
+reported one-byte class layouts. The generator now supplies the compiler's system header directories and rejects parsing
+errors. Regression tests cover both cases (`build/tools-venv/bin/python tools/test_native_data.py`); compiler assertions
+verified all 43 notice-handler storage sizes. A headless saved game loaded, advanced ten ticks and saved successfully.
+Four of six minwin unit-test suites passed. The resource path suite expects canonical letter case even on case-insensitive
+APFS, and the text suite's Wine font goldens differ from macOS system Arial. Full gameplay and audio fidelity remain unverified.
+
+Empire gameplay sector selection, the message droid and centered exit dialogs were manually verified after two repairs:
+the galaxy's show handler now clears mouse mode bit 8, matching the original executable, and DirectDraw restores a minimized
+window when reacquiring exclusive mode. Task switching also preserves the active top-level window while changing keyboard
+focus during deactivation, preventing a nested reactivation before minimization finishes. `focus_test` reproduces that
+sequence, fails against the previous implementation, and passes with the repair.
+
+Encyclopedia artwork uses `EData` under `data_dir` (or `install_dir` when `data_dir` is absent); an explicit registry
+`EncyLocation` still overrides this default. Native game windows use live dragging, while Windows builds keep the original
+outline mode. The outline reconstruction also uses the original white pen, so its preview is visible.
+Encyclopedia pictures and live system-window dragging were manually verified in the rebuilt Mac app. The input trace
+also confirms repeated window-position changes while the mouse button is held, before release.
+
+The graphics handle registry stays alive until process exit because global game font tables delete their fonts during
+static cleanup. Destroying the registry earlier caused a shutdown crash in `FontTable::~FontTable` / `DeleteObject`.
+`gdi_shutdown_test` reproduces that destruction order, crashes before the repair, and exits successfully afterward;
+the regular GDI tests also pass. The rebuilt Mac app was also launched on the desktop and exited through its normal
+quit confirmation with status 0 and no crash output.
+
+`tools/build_native.sh` remains the Linux container build.
 
 ## arm64
 
@@ -140,6 +172,5 @@ it to cross-compile on Linux is not permitted. macOS builds therefore happen on 
 
 ## Needs a real Mac / arm64 hardware
 
-The macOS build has never been compiled: Apple clang vs clang-19 diagnostics, SDL3's Cocoa flags and link frameworks in the static build,
-`Rebellion.app` packaging and codesign, the generator step on macOS (libclang), the unit tests next to a system Arial, and the
-`TerminateThread` cancellation behaviour. arm64 memory ordering (see above) needs hardware.
+The macOS ARM64 build and menu launch have been verified (see Build above). Remaining checks include full gameplay,
+real audio, Retina mouse/cursor scaling, Intel macOS, and `TerminateThread` cancellation behaviour. arm64 memory ordering (see above) needs hardware.

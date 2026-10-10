@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run
 """Native build: the original's C++ static initializers as native_init.cpp (docs/native_linux.md).
 
 REBEXE.EXE's start-up walks a table of 1,781 initializer thunks. tools/gen_static_init.py classifies them (emulating the original
@@ -12,6 +12,9 @@ sequence for the native objects:
 
 Runs in the rebellion-native container, after gen_native_data.py. Output: native_init.cpp defining `void RebRunStaticInitializers()`.
 """
+# /// script
+# dependencies = ["pefile", "capstone>=5", "unicorn>=2.1"]
+# ///
 from __future__ import annotations
 
 import argparse
@@ -25,20 +28,21 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import gen_static_init as gsi  # noqa: E402
 import own_data  # noqa: E402
+from native_symbols import linker_symbol, llvm_tool, source_symbol
 
 
 def defined_functions(objects: list[Path]) -> dict[str, str]:
     """demangled name (with parameter list) -> mangled symbol, of the functions the objects define."""
     names: list[str] = []
     for i in range(0, len(objects), 400):
-        out = subprocess.run(["llvm-nm-19", "-P", "--defined-only", *map(str, objects[i:i + 400])], check=True, capture_output=True,
+        out = subprocess.run([llvm_tool("llvm-nm"), "-P", "--defined-only", *map(str, objects[i:i + 400])], check=True, capture_output=True,
                              text=True).stdout
         for line in out.splitlines():
             parts = line.split()
-            if len(parts) >= 2 and not line.endswith(":") and parts[1] in ("T", "t") and parts[0].startswith("_Z"):
-                names.append(parts[0])
+            if len(parts) >= 2 and not line.endswith(":") and parts[1] in ("T", "t") and source_symbol(parts[0]).startswith("_Z"):
+                names.append(source_symbol(parts[0]))
     names = sorted(set(names))
-    demangled = subprocess.run(["llvm-cxxfilt-19"], input="\n".join(names) + "\n", capture_output=True, text=True, check=True).stdout
+    demangled = subprocess.run([llvm_tool("llvm-cxxfilt"), "--no-strip-underscore"], input="\n".join(names) + "\n", capture_output=True, text=True, check=True).stdout
     return dict(zip(demangled.splitlines(), names))
 
 
@@ -50,7 +54,8 @@ def main() -> int:
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args()
 
-    exe = gsi.Image.load(gsi.EXE_PATH)
+    gsi.EXE_PATH = args.exe
+    exe = gsi.Image.load(args.exe)
     tables = gsi.read_tables(exe)
     cpp_entries = [e for e in gsi.read_dwords(exe, *tables.cpp_range) if e]
 
@@ -145,10 +150,10 @@ def main() -> int:
         "#include <cstddef>", "#include <cstdint>", "",
     ]
     for name in used:
-        lines.append(f'extern unsigned char {name}_s[] __asm__("{name}");')
+        lines.append(f'extern unsigned char {name}_s[] __asm__("{linker_symbol(name)}");')
     for address, symbol in sorted(reconstructed.items()):
         if any(s.kind == "call" and s.address == address for s in plan):
-            lines.append(f'void init_{address:08x}() __asm__("{symbol}");')
+            lines.append(f'void init_{address:08x}() __asm__("{linker_symbol(symbol)}");')
     lines += ["", "namespace {", "", "struct BakedStore {", "    unsigned char* destination;", "    uint32_t poolOffset;", "    uint32_t length;", "};", "",
               "const uint8_t kBakedBytes[] = {"]
     for i in range(0, len(pool), 24):

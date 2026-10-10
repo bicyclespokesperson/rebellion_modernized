@@ -191,6 +191,7 @@ extern "C" ATOM REB_STDCALL RebTracedRegisterClassA(const WNDCLASSA *lpWndClass)
 #define MAKEINTRESOURCE MAKEINTRESOURCEA
 #define RT_RCDATA MAKEINTRESOURCE(10)
 #define SW_SHOW 5
+#define SW_RESTORE 9
 #define SW_MINIMIZE 6
 #define VK_LBUTTON 1
 #define VK_BACK 8

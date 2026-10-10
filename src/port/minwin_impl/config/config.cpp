@@ -154,8 +154,12 @@ bool Config::GetRegistryValue(const std::string& name, RegistryValue* out) const
     }
     std::string derived;
     if (EqualsNoCase(name, "TooBigLocation")) derived = DataDir();
+    else if (EqualsNoCase(name, "EncyLocation")) {
+        derived = DataDir();
+        if (!derived.empty()) derived += "/EData";
+    }
     else if (EqualsNoCase(name, "DataLocation") || EqualsNoCase(name, "DllLocation") ||
-             EqualsNoCase(name, "InstalledLocation") || EqualsNoCase(name, "EncyLocation"))
+             EqualsNoCase(name, "InstalledLocation"))
         derived = InstallDir();
     if (derived.empty()) return false;
 #if !defined(_WIN32)
