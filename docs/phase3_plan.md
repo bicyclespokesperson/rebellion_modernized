@@ -467,3 +467,9 @@ table are generated from the EXE as typed C++ definitions (`tools/gen_native_dat
 | alliance, minwin_impl standalone (`REB_STANDALONE_DIR=build/impl`) | 3 + 3 (orig) | one trajectory, standalone +55u; one run lost its save under load; Wine-vs-impl screenshots differ (impl's own GDI) |
 | battle, minwin_impl standalone | 3 + 3 (orig) | one trajectory (1,366,554 bytes), standalone +10u in all three runs |
 
+
+## Decision: 3D tactical combat (user, Oct 9 2026)
+
+Not reconstructed and not ported. The user doesn't use it; battles auto-resolve (`REB_NO_TACTICAL_3D` stubs in the
+standalone and native builds). A future from-scratch tactical mode that improves on the original is the intended path,
+so new work should not reconstruct the original 3D code (D3DRM renderer, 3D object managers, tactical window).
