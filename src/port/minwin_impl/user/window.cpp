@@ -5,12 +5,11 @@
 
 #include "port/minwin_impl/user/user_internal.h"
 
-namespace {
-LRESULT REB_STDCALL TooltipProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam);
-}
-
 namespace minwin {
 namespace {
+
+// Top-level windows other than tooltips (see MarkLayoutChanged in input.cpp).
+bool MovesPointerOnChange(const Window* w) { return !(w->style & WS_CHILD) && w->proc != TooltipProc; }
 
 WindowClass* g_classes = nullptr;
 ATOM g_nextAtom = 0xc000;
@@ -522,6 +521,7 @@ BOOL REB_STDCALL DestroyWindow(HWND handle) {
     if (!w || w->destroying) return FALSE;
     w->destroying = true;
     const bool isChild = (w->style & WS_CHILD) && w->parent;
+    const bool movesPointer = MovesPointerOnChange(w);
     Window* parent = w->parent;
     // Owned windows go first.
     for (Window* t = FirstTopLevel(); t;) {
@@ -546,7 +546,7 @@ BOOL REB_STDCALL DestroyWindow(HWND handle) {
     SendDestroyMessages(w);
     if (!IsLive(w)) return TRUE;
     FinishDestroy(w);
-    MarkLayoutChanged();
+    if (movesPointer) MarkLayoutChanged();
     return TRUE;
 }
 
@@ -907,7 +907,7 @@ BOOL ApplyWindowPos(Window* w, HWND insertAfter, int x, int y, int cx, int cy, U
     Send(w, kWmWindowPosChanged, 0, reinterpret_cast<LPARAM>(&pos));
     if (!IsLive(w)) return TRUE;
 
-    if (becameHidden || becameVisible || moved || sized || zChanged) MarkLayoutChanged();
+    if (MovesPointerOnChange(w) && (becameHidden || becameVisible || moved || sized || zChanged)) MarkLayoutChanged();
     if (becameHidden || (!nowVisibleTree && (moved || sized))) OnWindowHidden(w);
     return TRUE;
 }
@@ -975,28 +975,3 @@ BOOL REB_STDCALL ShowWindow(HWND h, int command) {
 }
 
 }  // extern "C"
-
-namespace {
-
-LRESULT REB_STDCALL TooltipProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) {
-    switch (message) {
-        case TTM_ADDTOOLA: {
-            const TTTOOLINFOA* tool = reinterpret_cast<const TTTOOLINFOA*>(lParam);
-            if (Window* owner = FromHandle(tool ? tool->hwnd : nullptr))
-                Send(owner, kWmNotifyFormat, reinterpret_cast<WPARAM>(hwnd), 3);
-            return TRUE;
-        }
-        case TTM_DELTOOLA:
-        case TTM_UPDATETIPTEXTA:
-        case TTM_ACTIVATE:
-        case TTM_SETDELAYTIME:
-        case TTM_RELAYEVENT:
-            return 0;
-        case WM_NCCREATE:
-            return TRUE;
-        default:
-            return DefWindowProcA(hwnd, message, wParam, lParam);
-    }
-}
-
-}  // namespace
