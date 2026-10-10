@@ -8,9 +8,11 @@
 #include <string.h>
 
 #include <map>
+#include <utility>
 
 #include "port/minwin_impl/res/modules.h"
 #include "port/minwin_impl/user/input.h"
+#include "port/minwin_impl/user/present.h"
 #include "port/minwin_impl/user/user_internal.h"
 
 namespace minwin {
@@ -51,21 +53,19 @@ SDL_Cursor* CreateSdlCursor(const mw::res::CursorObject& cursor) {
     if (cursor.systemId) return SDL_CreateSystemCursor(SystemCursorFor(static_cast<unsigned>(cursor.systemId)));
     const mw::res::Image& image = cursor.image;
     if (image.width <= 0 || image.height <= 0) return SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
-    SDL_Surface* surface = SDL_CreateSurfaceFrom(image.width, image.height, SDL_PIXELFORMAT_RGBA32,
-                                                 const_cast<uint8_t*>(image.rgba.data()), image.width * 4);
-    SDL_Cursor* sdl = surface ? SDL_CreateColorCursor(surface, image.hotX, image.hotY) : nullptr;
-    if (surface) SDL_DestroySurface(surface);
+    SDL_Cursor* sdl = present::CreateScaledCursor(image.rgba.data(), image.width, image.height, image.hotX, image.hotY);
     return sdl ? sdl : SDL_CreateSystemCursor(SDL_SYSTEM_CURSOR_DEFAULT);
 }
 
 SDL_Cursor* SdlCursorFor(HCURSOR handle) {
-    static std::map<const mw::res::CursorObject*, SDL_Cursor*> cache;
+    static std::map<std::pair<const mw::res::CursorObject*, int>, SDL_Cursor*> cache;
     const mw::res::CursorObject* cursor = mw::res::CursorFromHandle(handle);
     if (!cursor) return nullptr;
-    auto found = cache.find(cursor);
+    const std::pair<const mw::res::CursorObject*, int> key(cursor, present::CursorScale());
+    auto found = cache.find(key);
     if (found != cache.end()) return found->second;
     EnsurePlatform();
-    return cache[cursor] = CreateSdlCursor(*cursor);
+    return cache[key] = CreateSdlCursor(*cursor);
 }
 
 void ApplyCursor() {
@@ -81,6 +81,8 @@ void ApplyCursor() {
 }  // namespace
 
 int g_showCursorCount = 0;
+
+void RefreshCursor() { ApplyCursor(); }
 
 void DrawCaretOverlay(uint32_t* pixels, int pitch) {
     if (!g_caret.window || g_caret.hidden > 0 || !IsLive(g_caret.window) || !IsWindowVisibleTree(g_caret.window)) return;

@@ -40,7 +40,9 @@ TEST(location_defaults_follow_install_and_data_dir) {
     CHECK(c.GetRegistryValue("TooBigLocation", &v));
     CHECK_STR(v.text.c_str(), WINDOWS_ROOT("/cdrom"));
     CHECK(!c.GetRegistryValue("MusicVolume", &v));
-    CHECK_EQ(c.WindowScale(), 1);
+    CHECK_EQ(c.WindowScale(), 0);
+    c.Set("window_scale", "99");
+    CHECK_EQ(c.WindowScale(), 8);
 }
 
 TEST(registry_api_semantics) {

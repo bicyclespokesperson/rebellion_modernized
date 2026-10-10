@@ -10,6 +10,7 @@
 
 #include "app/rebellion_application.h"
 #include "platform/win32.h"
+#include "port/native/first_run.h"
 #include "port/native/native_clock.h"
 
 void RebRunStaticInitializers();
@@ -49,6 +50,7 @@ std::string CommandLineFrom(int argc, char** argv) {
 
 int main(int argc, char** argv) {
     setvbuf(stdout, nullptr, _IOLBF, 0);
+    if (!reb::native::CheckInstallation()) return 1;
     minwin_wiring::Install();
     RebRunStaticInitializers();
     std::string commandLine = CommandLineFrom(argc, argv);

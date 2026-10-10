@@ -12,6 +12,10 @@
 #include "port/minwin_impl/user/user_internal.h"
 #include "port/msg_trace.h"
 
+namespace minwin::present {
+void PaceIdleLoop();  // present.cpp
+}
+
 namespace minwin {
 namespace {
 
@@ -462,7 +466,10 @@ extern "C" {
 BOOL REB_STDCALL PeekMessageA(LPMSG msg, HWND hwnd, UINT min, UINT max, UINT flags) {
     Window* filter = FromHandle(hwnd);
     if (hwnd && !filter) return FALSE;
-    if (!NextMessage(msg, filter, min, max, (flags & PM_REMOVE) != 0, false)) return FALSE;
+    if (!NextMessage(msg, filter, min, max, (flags & PM_REMOVE) != 0, false)) {
+        if ((flags & PM_REMOVE) && NestingDepth() == 0) present::PaceIdleLoop();
+        return FALSE;
+    }
     if (flags & PM_REMOVE) g_lastMessagePos = static_cast<DWORD>(MakeLParam(msg->pt.x, msg->pt.y));
     return TRUE;
 }

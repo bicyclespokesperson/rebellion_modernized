@@ -7,6 +7,7 @@
 #include <string.h>
 
 #include "port/minwin_impl/user/input.h"
+#include "port/minwin_impl/user/present.h"
 #include "port/minwin_impl/user/user_internal.h"
 
 namespace minwin {
@@ -16,22 +17,15 @@ void ServiceMmTimers();
 namespace {
 
 SDL_Window* g_window = nullptr;
-SDL_Renderer* g_renderer = nullptr;
-SDL_Texture* g_texture = nullptr;
 bool g_failed = false;
 bool g_everFocused = false;
 bool g_outlines = false;
+bool g_traceMouse = false;
 bool g_pumping = false;
 uint32_t g_pixels[minwin_gdi::kScreenWidth * minwin_gdi::kScreenHeight];
 uint32_t g_palette[256];
 uint32_t g_paletteGeneration = 0xffffffffu;
 unsigned g_lastPresent = 0;
-
-int ScaleFromEnvironment() {
-    const char* text = getenv("REB_MINWIN_SCALE");
-    const int scale = text ? atoi(text) : 1;
-    return scale >= 1 && scale <= 8 ? scale : 1;
-}
 
 bool OptionEnabled(const char* name, const char* value) {
     const char* text = getenv(name);
@@ -44,8 +38,58 @@ void PostCloseRequest() {
     if (target) Post(target, WM_SYSCOMMAND, 0xf060, 0);
 }
 
+constexpr int kMouseButtons = 4;
+bool g_keysDown[SDL_SCANCODE_COUNT];
+bool g_buttonsDown[kMouseButtons];
+bool g_swallowReturnRelease = false;
+int g_mouseX = 0, g_mouseY = 0;
+
+// Keys and buttons still held when the window loses the keyboard focus are released toward the game: it would otherwise never see
+// the release (the keyboard goes to another window) and treat them as held on return.
+void ReleaseHeldInput() {
+    for (int sc = 0; sc < SDL_SCANCODE_COUNT; ++sc)
+        if (g_keysDown[sc]) {
+            g_keysDown[sc] = false;
+            InputKey(sc, false, false, 0);
+        }
+    for (int button = 1; button < kMouseButtons; ++button)
+        if (g_buttonsDown[button]) {
+            g_buttonsDown[button] = false;
+            InputMouseButton(button, false, PlatformTicksMs(), g_mouseX, g_mouseY);
+        }
+}
+
+bool IsAltChord(const SDL_KeyboardEvent& key, SDL_Scancode scancode) { return key.scancode == scancode && (key.mod & SDL_KMOD_ALT); }
+
+// Alt+Enter and Alt+F4 belong to the window, not to the game. True when the event was consumed.
+bool HandleWindowShortcut(const SDL_KeyboardEvent& key) {
+    const bool isReturn = key.scancode == SDL_SCANCODE_RETURN || key.scancode == SDL_SCANCODE_KP_ENTER;
+    if (isReturn && !key.down && g_swallowReturnRelease) {
+        g_swallowReturnRelease = false;
+        return true;
+    }
+    if (!key.down) return false;
+    if (IsAltChord(key, SDL_SCANCODE_RETURN) || IsAltChord(key, SDL_SCANCODE_KP_ENTER)) {
+        if (!key.repeat) present::ToggleFullscreen();
+        g_swallowReturnRelease = true;
+        return true;
+    }
+    if (IsAltChord(key, SDL_SCANCODE_F4)) {
+        if (!key.repeat) PostCloseRequest();
+        return true;
+    }
+    return false;
+}
+
+void ForwardFocusLost() {
+    if (!g_everFocused) return;
+    ReleaseHeldInput();
+    InputFocusChanged(false);
+}
+
 void HandleEvent(const SDL_Event& original) {
     SDL_Event e = original;
+    if (e.type >= SDL_EVENT_WINDOW_FIRST && e.type <= SDL_EVENT_WINDOW_LAST && present::HandleWindowEvent(e)) PresentScreen();
     switch (e.type) {
         case SDL_EVENT_QUIT:
         case SDL_EVENT_WINDOW_CLOSE_REQUESTED:
@@ -56,21 +100,29 @@ void HandleEvent(const SDL_Event& original) {
             InputFocusChanged(true);
             break;
         case SDL_EVENT_WINDOW_FOCUS_LOST:
-            if (g_everFocused) InputFocusChanged(false);
+        case SDL_EVENT_WINDOW_MINIMIZED:
+            ForwardFocusLost();
+            break;
+        case SDL_EVENT_WINDOW_RESTORED:
+            if (g_window && (SDL_GetWindowFlags(g_window) & SDL_WINDOW_INPUT_FOCUS)) InputFocusChanged(true);
             break;
         case SDL_EVENT_MOUSE_MOTION:
-            SDL_ConvertEventToRenderCoordinates(g_renderer, &e);
-            InputMouseMotion(static_cast<int>(e.motion.x), static_cast<int>(e.motion.y));
+            present::MapMouse(e.motion.x, e.motion.y, &g_mouseX, &g_mouseY);
+            if (g_traceMouse) fprintf(stderr, "minwin: mouse window (%g,%g) -> game (%d,%d)\n", e.motion.x, e.motion.y, g_mouseX, g_mouseY);
+            InputMouseMotion(g_mouseX, g_mouseY);
             break;
         case SDL_EVENT_MOUSE_BUTTON_DOWN:
         case SDL_EVENT_MOUSE_BUTTON_UP: {
-            SDL_ConvertEventToRenderCoordinates(g_renderer, &e);
+            present::MapMouse(e.button.x, e.button.y, &g_mouseX, &g_mouseY);
             const int button = e.button.button == SDL_BUTTON_LEFT ? 1 : e.button.button == SDL_BUTTON_RIGHT ? 2 : 3;
-            InputMouseButton(button, e.button.down, static_cast<unsigned>(e.button.timestamp / 1000000u), static_cast<int>(e.button.x), static_cast<int>(e.button.y));
+            g_buttonsDown[button] = e.button.down;
+            InputMouseButton(button, e.button.down, static_cast<unsigned>(e.button.timestamp / 1000000u), g_mouseX, g_mouseY);
             break;
         }
         case SDL_EVENT_KEY_DOWN:
         case SDL_EVENT_KEY_UP:
+            if (HandleWindowShortcut(e.key)) break;
+            if (e.key.scancode < SDL_SCANCODE_COUNT) g_keysDown[e.key.scancode] = e.key.down;
             InputKey(static_cast<int>(e.key.scancode), e.key.down, e.key.repeat, 0);
             break;
         case SDL_EVENT_TEXT_INPUT:
@@ -118,40 +170,22 @@ bool EnsurePlatform() {
         g_failed = true;
         return false;
     }
-    const int scale = ScaleFromEnvironment();
-    SDL_PropertiesID props = SDL_CreateProperties();
-    SDL_SetStringProperty(props, SDL_PROP_WINDOW_CREATE_TITLE_STRING, "Star Wars: Rebellion");
-    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_WIDTH_NUMBER, minwin_gdi::kScreenWidth * scale);
-    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_HEIGHT_NUMBER, minwin_gdi::kScreenHeight * scale);
-    SDL_SetBooleanProperty(props, SDL_PROP_WINDOW_CREATE_BORDERLESS_BOOLEAN, true);
-    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_X_NUMBER, SDL_WINDOWPOS_CENTERED);
-    SDL_SetNumberProperty(props, SDL_PROP_WINDOW_CREATE_Y_NUMBER, SDL_WINDOWPOS_CENTERED);
-    g_window = SDL_CreateWindowWithProperties(props);
-    SDL_DestroyProperties(props);
-    if (g_window) g_renderer = SDL_CreateRenderer(g_window, "software");
-    if (g_renderer) {
-        SDL_SetRenderLogicalPresentation(g_renderer, minwin_gdi::kScreenWidth, minwin_gdi::kScreenHeight, SDL_LOGICAL_PRESENTATION_LETTERBOX);
-        g_texture = SDL_CreateTexture(g_renderer, SDL_PIXELFORMAT_XRGB8888, SDL_TEXTUREACCESS_STREAMING, minwin_gdi::kScreenWidth,
-                                      minwin_gdi::kScreenHeight);
-    }
-    if (!g_window || !g_renderer || !g_texture) {
+    if (!present::Create()) {
         fprintf(stderr, "minwin: cannot create the window: %s\n", SDL_GetError());
+        present::Destroy();
         g_failed = true;
         return false;
     }
-    SDL_SetTextureScaleMode(g_texture, SDL_SCALEMODE_NEAREST);
+    g_window = present::Window();
     SDL_StartTextInput(g_window);
     g_outlines = OptionEnabled("REB_MINWIN_TRACE", "outlines");
+    g_traceMouse = OptionEnabled("REB_MINWIN_TRACE", "mouse");
     InitInput();
     return true;
 }
 
 void ShutdownPlatform() {
-    if (g_texture) SDL_DestroyTexture(g_texture);
-    if (g_renderer) SDL_DestroyRenderer(g_renderer);
-    if (g_window) SDL_DestroyWindow(g_window);
-    g_texture = nullptr;
-    g_renderer = nullptr;
+    present::Destroy();
     g_window = nullptr;
 }
 
@@ -172,10 +206,7 @@ void PresentScreen() {
     }
     DrawCaretOverlay(g_pixels, minwin_gdi::kScreenWidth);
     if (g_outlines) ForEachVisibleWindow(OutlineVisitor, g_pixels);
-    SDL_UpdateTexture(g_texture, nullptr, g_pixels, minwin_gdi::kScreenWidth * static_cast<int>(sizeof(uint32_t)));
-    SDL_RenderClear(g_renderer);
-    SDL_RenderTexture(g_renderer, g_texture, nullptr, nullptr);
-    SDL_RenderPresent(g_renderer);
+    present::Present(g_pixels);
 }
 
 void PumpPlatform() {
@@ -183,6 +214,7 @@ void PumpPlatform() {
         SDL_Event e;
         while (SDL_PollEvent(&e)) HandleEvent(e);
     }
+    present::SyncMouseCapture(CaptureWindow() != nullptr);
     if (!g_pumping) {
         g_pumping = true;
         ServiceMmTimers();
