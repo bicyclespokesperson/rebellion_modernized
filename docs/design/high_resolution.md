@@ -10,18 +10,18 @@ eventually more screen space for the galaxy map, without breaking the game's log
 
 ## How the game draws today (measured)
 
-* **One 640×480 8-bit palettised framebuffer** (minwin's screen surface) with one global palette. The game relies on the
+- **One 640×480 8-bit palettised framebuffer** (minwin's screen surface) with one global palette. The game relies on the
   palette: 79 `SelectPalette`, 9 `RealizePalette` sites, palette-changing movies, colour-index tricks (`BlitRemapped*`).
-* **Self-drawn UI on Win32 windows.** Every widget is an HWND; the game positions them with absolute 640×480 coordinates
+- **Self-drawn UI on Win32 windows.** Every widget is an HWND; the game positions them with absolute 640×480 coordinates
   (33 `SetWindowPos`, 9 `MoveWindow`, 49 `SetRect`, ~49 creation calls with literal coordinates, plus coordinate tables
   in code and in the resource DLLs' `RT_RCDATA`).
-* **Pixels come from the game's software blitter** (`DibBitmap`: plain, colour-keyed, RLE, remapped and overlay blits) into
+- **Pixels come from the game's software blitter** (`DibBitmap`: plain, colour-keyed, RLE, remapped and overlay blits) into
   8-bit DIBs, then `BitBlt`/`SetDIBitsToDevice` (31 sites) into window DCs. GDI primitives: rectangles, lines, XOR
   outlines, fills.
-* **Text** goes through minwin's FreeType renderer (Arial or Liberation Sans): resolution independent at the source.
-* **Assets:** 8-bit bitmaps in the resource DLLs (`STRATEGY.DLL`, `COMMON.DLL`, `ENCYBMAP.DLL`, `ALSPRITE`/`EMSPRITE`
+- **Text** goes through minwin's FreeType renderer (Arial or Liberation Sans): resolution independent at the source.
+- **Assets:** 8-bit bitmaps in the resource DLLs (`STRATEGY.DLL`, `COMMON.DLL`, `ENCYBMAP.DLL`, `ALSPRITE`/`EMSPRITE`
   with ~2,000 RLE sprite frames…), Smacker movies at their authored size, the game's own cursors.
-* **Presentation** (`src/port/minwin_impl/user/present.cpp`): the finished 8-bit frame is converted through the palette
+- **Presentation** (`src/port/minwin_impl/user/present.cpp`): the finished 8-bit frame is converted through the palette
   and shown at an integer scale with nearest-neighbour, letterboxed (window or fullscreen).
 
 ## Tiers
@@ -39,26 +39,26 @@ Apply a filter to the final RGB frame on the GPU (SDL3 GPU/renderer with a shade
 (fills the screen at non-integer scales without shimmer), pixel-art scalers (xBRZ, ScaleFX, hqx), optional CRT/scanline
 look. Config key `upscale_filter`.
 
-* Cost: small, contained in `present.cpp`.
-* Limitation: everything is filtered together, so text and thin UI lines get the same treatment as artwork, and pixel-art
+- Cost: small, contained in `present.cpp`.
+- Limitation: everything is filtered together, so text and thin UI lines get the same treatment as artwork, and pixel-art
   scalers distort text. Good enough as a first step; tier 2 fixes it.
 
 ### Tier 2 — resolution-independent minwin (the main proposal)
 
-Render at the output resolution *inside* the GDI layer instead of upscaling the finished frame.
+Render at the output resolution _inside_ the GDI layer instead of upscaling the finished frame.
 
-* The screen surface becomes **k× in device pixels while the logical coordinate space stays 640×480**: window DCs carry a
+- The screen surface becomes **k× in device pixels while the logical coordinate space stays 640×480**: window DCs carry a
   scale; every GDI call maps logical → device coordinates.
-* **Bitmaps:** each 8-bit DIB blit is scaled at blit time with the chosen scaler, in **palette-index space**, so the scaled
+- **Bitmaps:** each 8-bit DIB blit is scaled at blit time with the chosen scaler, in **palette-index space**, so the scaled
   surface is still 8-bit indices + one palette. Palette animation, remapped blits and palette-changing movies keep
   working unchanged. Colour-keyed and RLE sprites are scaled with key-aware variants (the key colour never bleeds).
   Scaled results are cached per (bitmap, contents generation, k).
-* **Primitives** (lines, rectangles, XOR outlines, fills) are drawn at device resolution: crisp at any scale.
-* **Text** is rendered by FreeType at device resolution (font size × k): sharp text at any scale, no scaler artefacts.
+- **Primitives** (lines, rectangles, XOR outlines, fills) are drawn at device resolution: crisp at any scale.
+- **Text** is rendered by FreeType at device resolution (font size × k): sharp text at any scale, no scaler artefacts.
   Metrics stay in logical units, so line breaks don't change; `GetTextExtentPoint32` returns logical values.
-* **Movies:** decoded at native size, scaled with the video scaler (or tier 3 replacements).
-* **Cursors:** scaled with the bitmap scaler or replaced (tier 3).
-* **Game code that reads pixels back:** none found so far (`GetPixel` is unused); any DIB the game *reads* must stay at
+- **Movies:** decoded at native size, scaled with the video scaler (or tier 3 replacements).
+- **Cursors:** scaled with the bitmap scaler or replaced (tier 3).
+- **Game code that reads pixels back:** none found so far (`GetPixel` is unused); any DIB the game _reads_ must stay at
   logical resolution, so scaling happens only on the path to the screen. A source bitmap the game draws into (an
   off-screen DIB composed in game code, e.g. the battle banner) is scaled when it is blitted to a window.
 
@@ -80,11 +80,11 @@ deterministic baselines, SVG/procedural reconstruction, hybrid rendering, and
 contextual AI where each improves the result. The skill is
 available now; the exporter, loader, and overlay remain R5 implementation work.
 
-* Palette effects: replacement art is true-colour, so palette-animated or remapped items need per-item rules (keep the
+- Palette effects: replacement art is true-colour, so palette-animated or remapped items need per-item rules (keep the
   original 8-bit path for those, or provide per-palette variants). The manifest marks which items are palette-dependent.
-* Movies: an optional modern codec with a permissive decoder (e.g. AV1 via dav1d, BSD) for replacement videos; Smacker
+- Movies: an optional modern codec with a permissive decoder (e.g. AV1 via dav1d, BSD) for replacement videos; Smacker
   stays the default.
-* Requires the frame to become true-colour where replacement art is drawn: the scaled surface gets an RGBA overlay layer
+- Requires the frame to become true-colour where replacement art is drawn: the scaled surface gets an RGBA overlay layer
   composited above the 8-bit layer, which keeps tier 2 intact for everything else.
 
 #### Asset selection and resolution
@@ -93,15 +93,15 @@ Prioritize by time visible in normal play and visible improvement at the intende
 display size. **Encyclopedia art is low priority**: it is rarely on screen. Do not
 make enhancing the encyclopedia library a prerequisite for an HD pack.
 
-| Priority / asset class | Approach |
-|---|---|
-| First: frequently visible galaxy, sector, and planet artwork | Inspect resources/palette behavior; compare scaling with procedural terrain/spheres/atmosphere/lighting, SVG, or hybrid rendering; selective AI for suitable textured regions |
-| Next: portraits and unit/ship art displayed in routine gameplay | Preserve likeness/design; consider SVG/layered 2D/simple 3D reconstruction for ships and vehicles, hybrid textures, or selective AI for static candidates |
-| Small static pilot: menu/background artwork | Useful for establishing style and validating R5 integration; avoid spending most of the art budget on menus |
-| UI borders, buttons, bitmap labels/emblems, cursors, small markers/icons | SVG/code reconstruction or deterministic/key-aware scaling; live text/primitives use R3 |
-| Flat fills, gradients, sparse starfields | SVG/procedural rendering, simple resize, or existing primitives; preserve authored star positions and avoid invented texture |
-| Animated sprites, briefing sequences, movies, palette-remapped/animated art | Keep original path plus R4 scaling initially; separate sequence/variant work before replacements |
-| Later: encyclopedia illustrations | Optional selective enhancement after frequently visible gameplay artwork |
+| Priority / asset class                                                      | Approach                                                                                                                                                                      |
+| --------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| First: frequently visible galaxy, sector, and planet artwork                | Inspect resources/palette behavior; compare scaling with procedural terrain/spheres/atmosphere/lighting, SVG, or hybrid rendering; selective AI for suitable textured regions |
+| Next: portraits and unit/ship art displayed in routine gameplay             | Preserve likeness/design; consider SVG/layered 2D/simple 3D reconstruction for ships and vehicles, hybrid textures, or selective AI for static candidates                     |
+| Small static pilot: menu/background artwork                                 | Useful for establishing style and validating R5 integration; avoid spending most of the art budget on menus                                                                   |
+| UI borders, buttons, bitmap labels/emblems, cursors, small markers/icons    | SVG/code reconstruction or deterministic/key-aware scaling; live text/primitives use R3                                                                                       |
+| Flat fills, gradients, sparse starfields                                    | SVG/procedural rendering, simple resize, or existing primitives; preserve authored star positions and avoid invented texture                                                  |
+| Animated sprites, briefing sequences, movies, palette-remapped/animated art | Keep original path plus R4 scaling initially; separate sequence/variant work before replacements                                                                              |
+| Later: encyclopedia illustrations                                           | Optional selective enhancement after frequently visible gameplay artwork                                                                                                      |
 
 Start at **2× source dimensions** and compare at the actual on-screen size; prepare
 4× where the display scale and visible benefit justify it. Pack dimensions stay exact
@@ -171,32 +171,32 @@ remain outside git with the pack; reusable generic tooling can live in the repos
 More visible galaxy, larger encyclopedia, widescreen layouts. This changes the logical coordinate space and therefore
 layouts and hit-testing.
 
-* Menus and dialogs: keep 640×480 logical, centred (pillarbox), possibly scaled up independently.
-* Galaxy map: the one screen that benefits most. It needs a viewport of variable size, the side panels anchored to the
+- Menus and dialogs: keep 640×480 logical, centred (pillarbox), possibly scaled up independently.
+- Galaxy map: the one screen that benefits most. It needs a viewport of variable size, the side panels anchored to the
   edges instead of absolute positions, and the map's scrolling/zoom logic to accept the larger viewport.
-* Prerequisite: layouts expressed as data with anchors instead of literal coordinates in code (modernization M2/M6).
+- Prerequisite: layouts expressed as data with anchors instead of literal coordinates in code (modernization M2/M6).
   Not worth starting before that.
 
 ## Milestones
 
-| # | Milestone | Exit criterion |
-|---|---|---|
-| R1 | Tier 1 filters (sharp-bilinear, xBRZ, CRT) in `present.cpp`, config key, GPU path + CPU fallback | Filters selectable; 1× output unchanged |
-| R2 | Scaled DC plumbing in minwin GDI: logical/device mapping, k× surface, nearest scaler only | k = 1 identical; k > 1 downsampling test exact on all scenarios |
-| R3 | Text and primitives at device resolution | Sharp text at k = 2…4; line breaks unchanged (text metrics tests) |
-| R4 | Index-space scalers for bitmaps (key-aware, RLE-aware), scaled-bitmap cache, movie and cursor scaling | Screenshot goldens per scaler; frame time budget met at 4K |
-| R5 | Asset export/inventory tool + replacement pack loader + RGBA overlay layer; prepare a selective pilot with `$flowers-upscale` | Frequently visible static gameplay art (and menu art if useful) improves at 2×/4×; geometry/alpha/palette rules and per-item fallbacks work; encyclopedia is not a prerequisite |
-| R6 | Widescreen galaxy map (after modernization) | Galaxy view uses the full window; other screens pillarboxed |
+| #   | Milestone                                                                                                                     | Exit criterion                                                                                                                                                                  |
+| --- | ----------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | Tier 1 filters (sharp-bilinear, xBRZ, CRT) in `present.cpp`, config key, GPU path + CPU fallback                              | Filters selectable; 1× output unchanged                                                                                                                                         |
+| R2  | Scaled DC plumbing in minwin GDI: logical/device mapping, k× surface, nearest scaler only                                     | k = 1 identical; k > 1 downsampling test exact on all scenarios                                                                                                                 |
+| R3  | Text and primitives at device resolution                                                                                      | Sharp text at k = 2…4; line breaks unchanged (text metrics tests)                                                                                                               |
+| R4  | Index-space scalers for bitmaps (key-aware, RLE-aware), scaled-bitmap cache, movie and cursor scaling                         | Screenshot goldens per scaler; frame time budget met at 4K                                                                                                                      |
+| R5  | Asset export/inventory tool + replacement pack loader + RGBA overlay layer; prepare a selective pilot with `$flowers-upscale` | Frequently visible static gameplay art (and menu art if useful) improves at 2×/4×; geometry/alpha/palette rules and per-item fallbacks work; encyclopedia is not a prerequisite |
+| R6  | Widescreen galaxy map (after modernization)                                                                                   | Galaxy view uses the full window; other screens pillarboxed                                                                                                                     |
 
 ## Risks and open questions
 
-* **Palette semantics at scale.** Index-space scaling keeps them, but some scalers blend colours; blended pixels must
+- **Palette semantics at scale.** Index-space scaling keeps them, but some scalers blend colours; blended pixels must
   map back to palette indices (nearest index) or switch that blit to the RGBA layer. Decide per scaler.
-* **Hidden pixel readback.** If game code turns out to read the screen or a window DC (screen grabs for transitions,
+- **Hidden pixel readback.** If game code turns out to read the screen or a window DC (screen grabs for transitions,
   XOR drag outlines), those paths need the logical-resolution copy. Audit before R2.
-* **Performance.** Scaling every blit at 4K is fine on the GPU, heavier on the CPU path; caching makes static UI cheap,
+- **Performance.** Scaling every blit at 4K is fine on the GPU, heavier on the CPU path; caching makes static UI cheap,
   animated sprites dominate. Budget: 60 fps at 3840×2160 on a mid-range laptop.
-* **Text metrics vs look.** Text drawn at k× but measured at 1× can look slightly different from the 1× glyphs (hinting);
+- **Text metrics vs look.** Text drawn at k× but measured at 1× can look slightly different from the 1× glyphs (hinting);
   layout stays stable because metrics are logical.
 
 ## Decisions to make
