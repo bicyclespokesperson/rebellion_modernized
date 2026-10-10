@@ -29,6 +29,8 @@ function(mw_test name)
 endfunction()
 enable_testing()
 
+mw_test(focus_test user/focus_test.cpp user/focus.cpp)
+
 # config
 add_library(mw_config STATIC config/config.cpp config/advapi32_api.cpp)
 if(NOT WIN32)

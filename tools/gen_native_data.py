@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env -S uv run
 """Native build: define the original's globals that the reconstructed code references, as typed-size C++ storage with their
 initial values taken from REBEXE.EXE (docs/native_linux.md).
 
@@ -18,6 +18,9 @@ global the objects reference but do not define becomes its own variable:
 Runs in the rebellion-native container (clang.cindex from python3-clang-19, pefile). Outputs, in --out: native_data.cpp,
 native_data.json (the layout of every global: the static-initializer generator maps the original's stores through it).
 """
+# /// script
+# dependencies = ["pefile", "libclang==18.1.1"]
+# ///
 from __future__ import annotations
 
 import argparse
@@ -36,6 +39,7 @@ from clang import cindex
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import own_data  # noqa: E402
+from native_symbols import linker_symbol, llvm_tool, source_symbol
 
 RDATA = own_data.RDATA_RANGE
 
@@ -70,19 +74,19 @@ def nm_symbols(objects: list[Path]) -> tuple[set[str], set[str]]:
     undefined: set[str] = set()
     defined: set[str] = set()
     for i in range(0, len(objects), 400):
-        out = subprocess.run(["llvm-nm-19", "-P", *map(str, objects[i:i + 400])], check=True, capture_output=True, text=True).stdout
+        out = subprocess.run([llvm_tool("llvm-nm"), "-P", *map(str, objects[i:i + 400])], check=True, capture_output=True, text=True).stdout
         for line in out.splitlines():
             parts = line.split()
             if len(parts) < 2 or line.endswith(":"):
                 continue
-            (undefined if parts[1] in ("U", "w", "v") else defined).add(parts[0])
+            (undefined if parts[1] in ("U", "w", "v") else defined).add(source_symbol(parts[0]))
     return undefined, defined
 
 
 def demangle(names: list[str]) -> dict[str, str]:
     if not names:
         return {}
-    out = subprocess.run(["llvm-cxxfilt-19"], input="\n".join(names) + "\n", capture_output=True, text=True, check=True).stdout
+    out = subprocess.run([llvm_tool("llvm-cxxfilt"), "--no-strip-underscore"], input="\n".join(names) + "\n", capture_output=True, text=True, check=True).stdout
     return dict(zip(names, out.splitlines()))
 
 
@@ -148,6 +152,9 @@ def parse_unit(job: tuple[list[str], list[str], str]) -> dict[str, dict]:
     index = cindex.Index.create()
     tu = index.parse(None, args=arguments + ["-resource-dir", resource, "-Wno-everything"],
                      options=cindex.TranslationUnit.PARSE_SKIP_FUNCTION_BODIES)
+    errors = [str(d) for d in tu.diagnostics if d.severity >= cindex.Diagnostic.Error]
+    if errors:
+        raise RuntimeError("Cannot determine native global layouts:\n" + "\n".join(errors))
 
     def visit(cursor) -> None:
         for c in cursor.get_children():
@@ -166,8 +173,10 @@ def parse_unit(job: tuple[list[str], list[str], str]) -> dict[str, dict]:
 def compile_arguments(build: Path) -> list[tuple[str, list[str]]]:
     db = cindex.CompilationDatabase.fromDirectory(str(build))
     jobs = []
+    system_args: dict[str, list[str]] = {}
     for cmd in db.getAllCompileCommands():
-        args = list(cmd.arguments)[1:]
+        command = list(cmd.arguments)
+        args = command[1:]
         keep: list[str] = []
         skip = 0
         for a in args:
@@ -182,8 +191,32 @@ def compile_arguments(build: Path) -> list[tuple[str, list[str]]]:
             else:
                 keep.append(a)
         if "src/game/" in cmd.filename and cmd.filename.endswith(".cpp"):
+            if sys.platform == "darwin":
+                compiler = command[0]
+                if compiler not in system_args:
+                    system_args[compiler] = compiler_system_includes(compiler)
+                keep.extend(system_args[compiler])
             jobs.append((cmd.filename, keep + [cmd.filename]))
     return jobs
+
+
+def compiler_system_includes(compiler: str) -> list[str]:
+    result = subprocess.run([compiler, "-E", "-x", "c++", "-", "-v"], input="", capture_output=True,
+                            text=True, check=True)
+    includes: list[str] = []
+    searching = False
+    for line in result.stderr.splitlines():
+        if line == "#include <...> search starts here:":
+            searching = True
+        elif line == "End of search list.":
+            break
+        elif searching:
+            path = line.strip()
+            framework = " (framework directory)"
+            includes.extend(["-iframework" if path.endswith(framework) else "-isystem", path.removesuffix(framework)])
+    if not includes:
+        raise RuntimeError(f"Cannot discover C++ system headers from {compiler}")
+    return includes
 
 
 # ---- emission --------------------------------------------------------------------------------------------------------------
@@ -208,7 +241,7 @@ def main() -> int:
     ap.add_argument("--exe", type=Path, required=True)
     ap.add_argument("--symbols", type=Path, required=True)
     ap.add_argument("--out", type=Path, required=True)
-    ap.add_argument("--resource-dir", default="/usr/lib/llvm-19/lib/clang/19")
+    ap.add_argument("--resource-dir", default=subprocess.check_output([llvm_tool("clang"), "-print-resource-dir"], text=True).strip())
     ap.add_argument("-j", type=int, default=multiprocessing.cpu_count())
     args = ap.parse_args()
 
@@ -265,7 +298,7 @@ def main() -> int:
         dims = info["dims"]
         incomplete = size is None
         extent32 = entry["distance"]
-        raw_symbol = f'__asm__("{name}")'
+        raw_symbol = f'__asm__("{linker_symbol(name)}")'
         if incomplete:
             esize = info["element_size"] or 1
             count = max(1, extent32 // esize)

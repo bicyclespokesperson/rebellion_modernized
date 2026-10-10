@@ -56,7 +56,7 @@ If the config file is missing, `install_dir` is wrong, or the installation lacks
 resource libraries, `GData`, `EData`, `MDATA/MDATA.000`), the game shows a message box that says what to put where and exits.
 The close button and **Alt+F4** go through the game's own quit confirmation. Saves go to `SaveGame/` inside the installation, as in the
 original. The game keeps one CPU core mostly idle (about 10% at the galaxy screen). macOS builds on a Mac are described in
-[docs/native.md](docs/native.md) (not yet tested on real Mac hardware).
+[docs/native.md](docs/native.md) (ARM64 build and menu launch verified on real Mac hardware).
 
 ## Development
 

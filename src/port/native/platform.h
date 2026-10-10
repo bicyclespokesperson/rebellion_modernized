@@ -3,6 +3,7 @@
 // The full list of OS differences is in docs/native.md.
 #pragma once
 #include <stdint.h>
+#include <sys/stat.h>
 
 #include <string>
 #include <vector>
@@ -27,5 +28,12 @@ uint32_t CurrentThreadId();
 
 // Names the calling thread for debuggers and profilers (the two OSes take different pthread_setname_np forms).
 void SetCurrentThreadName(const char* name);
+
+struct FileTimestamps {
+    timespec modified;
+    timespec accessed;
+    timespec created;
+};
+FileTimestamps StatTimestamps(const struct stat& info);
 
 }  // namespace reb::platform

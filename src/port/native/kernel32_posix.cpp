@@ -222,9 +222,10 @@ bool FillFindData(FindState* state, const dirent* entry, WIN32_FIND_DATAA* data)
     if (stat(full.c_str(), &st) != 0) return false;
     memset(data, 0, sizeof *data);
     data->dwFileAttributes = S_ISDIR(st.st_mode) ? 0x10 : 0x80;
-    FileTimeFrom(st.st_mtim, &data->ftLastWriteTime);
-    FileTimeFrom(st.st_atim, &data->ftLastAccessTime);
-    FileTimeFrom(st.st_ctim, &data->ftCreationTime);
+    const auto times = reb::platform::StatTimestamps(st);
+    FileTimeFrom(times.modified, &data->ftLastWriteTime);
+    FileTimeFrom(times.accessed, &data->ftLastAccessTime);
+    FileTimeFrom(times.created, &data->ftCreationTime);
     data->nFileSizeHigh = static_cast<DWORD>(static_cast<uint64_t>(st.st_size) >> 32);
     data->nFileSizeLow = static_cast<DWORD>(st.st_size);
     strncpy(data->cFileName, entry->d_name, sizeof data->cFileName - 1);

@@ -36,4 +36,8 @@ uint32_t CurrentThreadId() {
 
 void SetCurrentThreadName(const char* name) { pthread_setname_np(name); }
 
+FileTimestamps StatTimestamps(const struct stat& info) {
+    return {info.st_mtimespec, info.st_atimespec, info.st_birthtimespec};
+}
+
 }  // namespace reb::platform
