@@ -3,7 +3,12 @@ Checks: >-
   modernize-use-nullptr,
   modernize-use-override,
   modernize-use-equals-default,
-  modernize-redundant-void-arg
+  modernize-redundant-void-arg,
+  bugprone-use-after-move,
+  bugprone-dangling-handle,
+  bugprone-sizeof-expression,
+  bugprone-suspicious-memset-usage,
+  performance-inefficient-string-concatenation
 HeaderFilterRegex: '(^|/)src/(game|port)/'
 WarningsAsErrors: ''
 FormatStyle: none

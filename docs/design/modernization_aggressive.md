@@ -141,14 +141,17 @@ stream clients and teardown. Linux/Windows checks remain future host work under 
 
 ## A2 — Mechanical cleanup in bulk
 
-- [x] Add a curated `.clang-tidy` limited to the four reviewed mechanical modernization checks.
-  Bugprone/performance checks are surveyed separately before enabling any automatic fixes.
+- [x] Add a curated `.clang-tidy` for the four reviewed mechanical modernization checks and selected
+  bugprone/performance diagnostics after surveying them.
 - [x] Apply `modernize-use-nullptr` as a reviewed, buildable batch (nine sites; use value initialization for
   `pthread_t` because its host representation varies).
 - [x] Apply `modernize-use-override` as a reviewed, buildable batch (declaration-only changes).
 - [ ] Apply `modernize-use-equals-default` as a reviewed, buildable batch.
 - [ ] Apply `modernize-redundant-void-arg` as a reviewed, buildable batch.
-- [ ] Survey bugprone and performance checks; enable fixes only where their assumptions fit this code.
+- [x] Survey bugprone and performance checks across maintained translation units. Fix the path-concatenation
+  finding, make intentional pointer-sized copies explicit, and enable five selected diagnostics. Keep virtual-name
+  near misses and by-value API changes as survey findings pending responsibility-level review.
+  Commands and decisions: [clang_tidy.md](../clang_tidy.md), [clang_tidy_findings.md](../clang_tidy_findings.md).
 - [ ] Enable useful warnings for newly cleaned code and remove suppressions with the code that requires them.
 
 Defer all clang-format runs until the rewrite is complete, including formatting touched files, to avoid churn during

@@ -41,7 +41,7 @@ struct SmackState {
 
 SmackState* StateOf(Smack* smk) {
     SmackState* s;
-    memcpy(&s, smk->m_unk10 + (kStateOffset - 0x10), sizeof s);
+    memcpy(&s, smk->m_unk10 + (kStateOffset - 0x10), sizeof(SmackState*));
     return s;
 }
 
@@ -135,7 +135,7 @@ Smack* REB_STDCALL SmackOpen(const char* name, uint32_t flags, uint32_t) {
     s->movie = movie;
     s->trackMask = flags & (0x7fu * kTrackFlagFirst);
     memcpy(smk, movie->RawHeader(), 0x68);
-    memcpy(smk->m_unk10 + (kStateOffset - 0x10), &s, sizeof s);
+    memcpy(smk->m_unk10 + (kStateOffset - 0x10), &s, sizeof(SmackState*));
     for (int t = 0; t < mwsmk::kAudioTracks; ++t) {
         s->volume[t] = 0x8000;
         s->pan[t] = 0x8000;

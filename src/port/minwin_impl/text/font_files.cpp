@@ -106,7 +106,9 @@ std::string FindFileNoCase(const std::string& directory, const std::string& file
     while (dirent* e = readdir(d)) {
         std::string n = e->d_name;
         if (n == "." || n == "..") continue;
-        std::string full = directory + "/" + n;
+        std::string full = directory;
+        full += '/';
+        full += n;
         struct stat st;
         if (stat(full.c_str(), &st) != 0) continue;
         if ((st.st_mode & S_IFMT) == S_IFDIR) subdirs.push_back(full);

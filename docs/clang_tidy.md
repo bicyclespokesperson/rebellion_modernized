@@ -1,0 +1,35 @@
+# Clang-tidy modernization
+
+Use LLVM 22.1.4. `tools/clang_tools.sh tidy` checks the version; set `REB_CLANG_TIDY` when the binary is outside `PATH`.
+The official [LLVM release](https://github.com/llvm/llvm-project/releases/tag/llvmorg-22.1.4) includes `clang-tidy`,
+`clang-apply-replacements`, and the parallel `run-clang-tidy` driver. Keep downloaded tools outside tracked source.
+
+Configure the maintained native target first and use its `compile_commands.json`. Select only compiled first-party
+sources under `src/game`, `src/port`, and `tests`; skip third-party dependencies and archival targets. The root
+`.clang-tidy` limits header diagnostics to maintained source. macOS runs using a separate LLVM distribution need the
+Apple SDK explicitly because the Apple Clang compilation database may omit its implicit sysroot.
+
+Apply one modernization family at a time. For example, on macOS:
+
+```bash
+LLVM_ROOT="/path/to/LLVM-22.1.4-macOS-ARM64"
+BUILD_DIR="build/native"
+CHECK="modernize-use-nullptr"
+SDK_PATH="$(xcrun --sdk macosx --show-sdk-path)"
+uv run --with pyyaml "$LLVM_ROOT/bin/run-clang-tidy" \
+  -clang-tidy-binary "$LLVM_ROOT/bin/clang-tidy" \
+  -clang-apply-replacements-binary "$LLVM_ROOT/bin/clang-apply-replacements" \
+  -p "$BUILD_DIR" -j 8 -checks="-*,${CHECK}" \
+  -extra-arg=-isysroot -extra-arg="$SDK_PATH" \
+  -export-fixes "work/tidy-${CHECK}" -fix \
+  '.*/(src/(game|port)|tests)/.*'
+```
+
+On another host, use its native compilation database and SDK discovery. Review every replacement and any compiler
+errors, build, and run the short save/reload smoke before committing each family. Run fix collections sequentially
+because different translation units can propose edits to the same header. Do not pass `-format`; formatting stays
+separate until the rewrite is complete. The configuration also specifies `FormatStyle: none`.
+
+Bugprone/performance findings are triaged in [clang_tidy_findings.md](clang_tidy_findings.md). Diagnostics do not authorize
+bulk signature changes. Run a survey without `-fix`; enable or apply additional checks only after reviewing their
+assumptions and affected callers.
