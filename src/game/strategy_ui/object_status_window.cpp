@@ -285,8 +285,8 @@ void ObjectStatusWindow::OnCreate1() {
     } else {
         if (InFamilies(m_key.Family(), 0x50, 0x80)) {
             if (GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, &m_key)) {
-                uint32_t pictureId = *reinterpret_cast<uint32_t*>(
-                    reinterpret_cast<char*>(object->m_record) + offsetof(DatRecord, m_small));
+                const auto* record = static_cast<const DatRecord*>(object->m_record);
+                uint32_t pictureId = record->m_small;
                 if ((object->m_flags & 0xc0) == 0x40) {
                     pictureId &= 0xfff;
                 } else {

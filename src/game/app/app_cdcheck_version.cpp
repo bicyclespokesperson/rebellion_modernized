@@ -97,11 +97,11 @@ void InitCdAndVersionCheck() {
 
     ErrorTexts texts;
     DecodeTexts(text, size, &texts);
-    sprintf(g_cdErrorText, texts.cdErrorText);
-    sprintf(g_cdErrorTitle, texts.cdErrorTitle);
-    sprintf(g_versionOlderText, texts.versionOlderText);
-    sprintf(g_versionNewerText, texts.versionNewerText);
-    sprintf(g_versionErrorTitle, texts.versionErrorTitle);
+    std::snprintf(g_cdErrorText, sizeof(g_cdErrorText), "%s", texts.cdErrorText);
+    std::snprintf(g_cdErrorTitle, sizeof(g_cdErrorTitle), "%s", texts.cdErrorTitle);
+    std::snprintf(g_versionOlderText, sizeof(g_versionOlderText), "%s", texts.versionOlderText);
+    std::snprintf(g_versionNewerText, sizeof(g_versionNewerText), "%s", texts.versionNewerText);
+    std::snprintf(g_versionErrorTitle, sizeof(g_versionErrorTitle), "%s", texts.versionErrorTitle);
     free(text);
     g_versionCheckResult = CheckTextstraVersion();
 }

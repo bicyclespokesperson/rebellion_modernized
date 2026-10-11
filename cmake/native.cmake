@@ -13,7 +13,7 @@ set(REB_STARTUP_ASSET_PACK "${CMAKE_BINARY_DIR}/startup-assets.bin" CACHE FILEPA
 set(REB_NATIVE_FLAGS
   -fms-extensions -fwrapv -fno-strict-aliasing -fsigned-char
   -ffp-contract=off -fno-fast-math -fno-omit-frame-pointer -fPIE
-  -Wno-microsoft-anon-tag -Wno-ignored-attributes -Wno-deprecated-declarations -Wno-invalid-offsetof
+  -Wno-microsoft-anon-tag -Wno-ignored-attributes -Wno-deprecated-declarations
   -Wno-writable-strings -Wno-c++11-narrowing -Wno-microsoft-enum-value -Wno-microsoft-cast
   -Werror=pointer-to-int-cast -Werror=int-to-pointer-cast)
 if(REB_NATIVE_SANITIZE)
@@ -22,6 +22,14 @@ if(REB_NATIVE_SANITIZE)
   set(REB_NATIVE_LINK_FLAGS -fsanitize=${REB_SAN_LIST})
 
 endif()
+
+# Modern runtime files get focused warnings without imposing the legacy backlog on every game file.
+set_source_files_properties(
+  src/port/native/game_context.cpp src/port/native/audio_context.cpp src/port/native/main.cpp
+  src/game/gfx/directdraw_host.cpp src/game/gfx/directdraw_errors.cpp
+  src/game/iostream/ios.cpp src/game/iostream/streambuf.cpp src/game/iostream/stream_ctors.cpp
+  PROPERTIES COMPILE_OPTIONS
+  "-Werror=return-type;-Werror=uninitialized;-Werror=delete-non-virtual-dtor;-Wdeprecated-declarations;-Wwritable-strings")
 
 # Host runtime declarations for remaining platform compatibility calls.
 set(REB_NATIVE_RUNTIME -include ${CMAKE_SOURCE_DIR}/src/port/native/crt/native_runtime.h)

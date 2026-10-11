@@ -33,3 +33,7 @@ separate until the rewrite is complete. The configuration also specifies `Format
 Bugprone/performance findings are triaged in [clang_tidy_findings.md](clang_tidy_findings.md). Diagnostics do not authorize
 bulk signature changes. Run a survey without `-fix`; enable or apply additional checks only after reviewing their
 assumptions and affected callers.
+
+The A2 pass intentionally retains 13 first-declaration inline constructors in the tactical headers. Defaulting those
+can change value-initialization behavior. Their repeated `modernize-use-equals-default` diagnostics are reviewed
+exceptions; the other three modernization families have no outstanding diagnostics on the native host configuration.

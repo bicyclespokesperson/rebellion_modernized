@@ -147,13 +147,24 @@ stream clients and teardown. Linux/Windows checks remain future host work under 
   `pthread_t` because its host representation varies).
 - [x] Apply `modernize-use-override` as a reviewed, buildable batch (declaration-only changes).
 - [x] Apply `modernize-use-equals-default` as a reviewed, buildable batch. Retain first-declaration inline
-  constructor bodies where defaulting could change value-initialization behavior.
-- [ ] Apply `modernize-redundant-void-arg` as a reviewed, buildable batch.
+  constructor bodies where defaulting could change value-initialization behavior (13 constructors in five tactical
+  headers; their repeated tidy diagnostics are intentional).
+- [x] Run `modernize-redundant-void-arg` across maintained source and tests; no eligible fixes. Remaining
+  `(void)` prototypes are C-linkage platform APIs.
 - [x] Survey bugprone and performance checks across maintained translation units. Fix the path-concatenation
   finding, make intentional pointer-sized copies explicit, and enable five selected diagnostics. Keep virtual-name
   near misses and by-value API changes as survey findings pending responsibility-level review.
   Commands and decisions: [clang_tidy.md](../clang_tidy.md), [clang_tidy_findings.md](../clang_tidy_findings.md).
-- [ ] Enable useful warnings for newly cleaned code and remove suppressions with the code that requires them.
+- [x] Enable focused return, initialization and polymorphic-deletion errors in the modern context/display/stream
+  files; restore deprecated-declaration and writable-string warnings there. Replace the last maintained member-offset
+  picture read with typed access and retire the global invalid-`offsetof` suppression. Fix the exposed error-text
+  format/copy issue and raw string transfer in ship notices; leave unrelated legacy diagnostics for their rewrites.
+
+A2 validation: LLVM 22.1.4 processed 502 maintained source translation units and two test files, without formatting.
+Each changed family passed an Apple Clang 17 macOS arm64 build and two-process save/reload smoke before commit.
+The final integration passes the focused stream tests and both release and halt-on-error UBSan save/reload runs
+with malloc pre-scribble/scribble enabled. Constructor exceptions and survey-only signature findings are recorded
+in the linked tooling notes; Linux/Windows verification remains host follow-up.
 
 Defer all clang-format runs until the rewrite is complete, including formatting touched files, to avoid churn during
 semantic changes. The single final formatting pass is described below.
