@@ -405,6 +405,12 @@ host probe with the actual STRATEGY.DLL pages verified both registrations and bo
 and halt-on-error UBSan, with malloc scribbling enabled. Temporary diagnostic code was removed after verification.
 Rebuilt the normal `build/native` executable; all eight tests and its two-process malloc-scribble save/reload smoke pass.
 
+Fleet-collapse follow-up: replacing intrusive traversal lost the item-specific visibility filtering. Fleet state still
+defaulted to collapsed, but hidden ship rows were drawn, laid out and hit-tested. Lists now expose a borrowed visible
+range and visibility-aware navigation, while owning storage and sorting retain every row. The optional `REB_UI_SMOKE=1`
+check exercises collapse → expand → collapse, rendered pixels, hit testing, keyboard navigation, hidden selections and
+sorting with actual fleet rows. Host release and halt-on-error UBSan save/reload smoke pass this check.
+
 Host-only validation and the existing desktop acceptance gap still apply; Linux and Windows are work for agents
 running on those hosts.
 

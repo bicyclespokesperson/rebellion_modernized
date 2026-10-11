@@ -27,6 +27,7 @@
 #include "strategy_ui/human_player.h"
 
 #include "port/native/save_transaction.h"
+#include "port/native/ui_smoke.h"
 #include "port/sim_harness.h"
 
 namespace
@@ -296,6 +297,12 @@ int RebSimRun(RebellionApplication* app)
   {
     Log("REB_SIM: invalid reference after load: %s", invalid);
     return Finish(6, "REB_SIM: reference validation failed");
+  }
+  char uiSmoke[8];
+  if (GetEnvironmentVariableA("REB_UI_SMOKE", uiSmoke, sizeof uiSmoke) != 0)
+  {
+    RunNativeUiSmoke(*app);
+    Log("UI visibility checks passed");
   }
   const uint32_t startTick = static_cast<uint32_t>(GetGameTickCount());
   Log("loaded %s: tick %u side %d type %d pause %d", options.load, startTick, app->m_side, app->m_gameType,

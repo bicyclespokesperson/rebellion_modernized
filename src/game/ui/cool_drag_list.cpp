@@ -135,12 +135,43 @@ std::list<std::unique_ptr<CoolListItem>>::const_iterator CoolListItemList::Posit
 // Return the first item through the owning sorted list.
 CoolListItem* CoolListItemList::First()
 {
-  return m_items.empty() ? nullptr : m_items.front().get();
+  for (const auto& ownedItem : m_items)
+    if (ownedItem->IsVisible())
+      return ownedItem.get();
+  return nullptr;
 }
 
 CoolListItem* CoolListItemList::Last()
 {
-  return m_items.empty() ? nullptr : m_items.back().get();
+  for (auto position = m_items.crbegin(); position != m_items.crend(); ++position)
+    if ((*position)->IsVisible())
+      return position->get();
+  return nullptr;
+}
+
+CoolListItem* CoolListItemList::NextVisible(const CoolListItem* item) const
+{
+  auto position = PositionOf(item);
+  if (position == m_items.cend())
+    return nullptr;
+  for (++position; position != m_items.cend(); ++position)
+    if ((*position)->IsVisible())
+      return position->get();
+  return nullptr;
+}
+
+CoolListItem* CoolListItemList::PreviousVisible(const CoolListItem* item) const
+{
+  auto position = PositionOf(item);
+  if (position == m_items.cend())
+    return nullptr;
+  while (position != m_items.cbegin())
+  {
+    --position;
+    if ((*position)->IsVisible())
+      return position->get();
+  }
+  return nullptr;
 }
 
 CoolListItem* CoolListItemList::FindById(uint32_t id)
@@ -304,7 +335,7 @@ void CoolDragList::SetSortMode(int sortMode)
   CoolListItemList* sorted = NewOrNull<CoolListItemList>(sortMode);
   while (!m_items->Empty())
   {
-    auto* item = static_cast<CoolListItem*>(m_items->First());
+    auto* item = m_items->Entries().front().get();
     m_items->Remove(item);
     sorted->Insert(item);
   }
@@ -320,7 +351,7 @@ void CoolDragList::SetSortMode(int sortMode)
 void CoolDragList::CopySelectionTo(CoolListItemList* out)
 {
   out->Clear();
-  for (const auto& entry : m_items->Entries())
+  for (const auto& entry : m_items->VisibleEntries())
   {
     auto* item = static_cast<CoolListItem*>(entry.get());
     if (item->m_state.m_value & kListItemSelected)
@@ -346,7 +377,7 @@ void CoolDragList::SelectById(uint32_t id, int notify)
 {
   if (m_options.m_value & kDragListSingleSelect)
     ClearSelection();
-  for (const auto& entry : m_items->Entries())
+  for (const auto& entry : m_items->VisibleEntries())
   {
     auto* item = static_cast<CoolListItem*>(entry.get());
     if (item->m_id == id)
@@ -377,7 +408,7 @@ void CoolDragList::SelectRect(POINTS from, POINTS to)
     top = to.y;
     bottom = from.y;
   }
-  for (const auto& entry : m_items->Entries())
+  for (const auto& entry : m_items->VisibleEntries())
   {
     auto* item = static_cast<CoolListItem*>(entry.get());
     if (item->m_x <= right && left <= m_itemWidth + item->m_x && item->m_y <= bottom && top <= m_itemHeight + item->m_y)
@@ -402,7 +433,7 @@ uint32_t CoolDragList::SelectByPrefix(const std::string* prefix, int notify, int
   CoolListItem* best = nullptr;
   if (prefix->empty())
     return 0;
-  for (const auto& entry : m_items->Entries())
+  for (const auto& entry : m_items->VisibleEntries())
   {
     auto* item = static_cast<CoolListItem*>(entry.get());
     std::string& text = item->m_text;
@@ -530,7 +561,7 @@ void CoolDragList::DrawItem(CoolListItem* item)
 void CoolDragList::Redraw()
 {
   uint8_t fill = 0;
-  for (const auto& entry : m_items->Entries())
+  for (const auto& entry : m_items->VisibleEntries())
   {
     auto* item = static_cast<CoolListItem*>(entry.get());
     if (fill)
@@ -543,7 +574,7 @@ void CoolDragList::Redraw()
   m_canvas->FillRect(0, 0, m_canvas->Width(), m_canvas->Height(), m_fillColor);
   if (m_selectionImage)
     m_selectionImage->FillRect(0, 0, m_selectionImage->Width(), m_selectionImage->Height(), m_fillColor);
-  for (const auto& entry : m_items->Entries())
+  for (const auto& entry : m_items->VisibleEntries())
     DrawItem(static_cast<CoolListItem*>(entry.get()));
   if (m_hwnd)
     InvalidateRect(m_hwnd, nullptr, FALSE);
@@ -557,7 +588,7 @@ void CoolDragList::Layout()
   int y = 0;
   int availableWidth = 0;
   int availableHeight = 0;
-  for (const auto& entry : m_items->Entries())
+  for (const auto& entry : m_items->VisibleEntries())
   {
     auto* item = static_cast<CoolListItem*>(entry.get());
     item->m_x = x;
@@ -644,7 +675,7 @@ void CoolDragList::Layout()
 
 CoolListItem* CoolDragList::HitTest(POINTS point)
 {
-  for (const auto& entry : m_items->Entries())
+  for (const auto& entry : m_items->VisibleEntries())
   {
     auto* item = static_cast<CoolListItem*>(entry.get());
     if (item->m_x <= point.x && point.x <= m_itemWidth + item->m_x && item->m_y <= point.y &&
@@ -678,7 +709,7 @@ void CoolDragList::UpdateItemRects()
   origin.x = 0;
   origin.y = 0;
   const POINTS offset = ListToClient(origin);
-  for (const auto& entry : m_items->Entries())
+  for (const auto& entry : m_items->VisibleEntries())
   {
     auto* item = static_cast<CoolListItem*>(entry.get());
     item->m_rect.left = item->m_x + offset.x;
@@ -691,7 +722,7 @@ void CoolDragList::UpdateItemRects()
 void CoolDragList::ScrollIntoView(uint32_t id)
 {
   CoolListItem* item = FindItem(id);
-  if (!item)
+  if (!item || !item->IsVisible())
     return;
   bool scrolled = false;
   int start = item->m_rect.left;
@@ -1030,6 +1061,8 @@ LRESULT Paint(CoolDragList* list, HWND hwnd)
     for (; position != list->m_items->Entries().end(); ++position)
     {
       item = static_cast<CoolListItem*>((*position).get());
+      if (!item->IsVisible())
+        continue;
       if (item->m_x > right || item->m_y > bottom)
         break;
       if (!item->m_text.empty())
@@ -1048,7 +1081,7 @@ LRESULT KeyDown(CoolDragList* list, WPARAM key, LPARAM lParam)
   if (!first || (list->m_options.m_value & kDragListForwardMouse))
     return list->m_parent->WindowProc(WM_KEYDOWN, key, lParam);
   CoolListItem* current = nullptr;
-  for (const auto& entry : list->m_items->Entries())
+  for (const auto& entry : list->m_items->VisibleEntries())
   {
     auto* item = static_cast<CoolListItem*>(entry.get());
     if (item->m_state.m_value & kListItemSelected)
@@ -1087,52 +1120,23 @@ LRESULT KeyDown(CoolDragList* list, WPARAM key, LPARAM lParam)
       move = false;
       break;
     case VK_PRIOR:
-      if (!current)
+      target = current;
+      for (int rows = list->m_clientHeight / list->m_itemHeight; rows > 0; --rows)
       {
-        current = list->m_items->First();
-      }
-      else
-      {
-        target = current;
-        auto position = list->m_items->PositionOf(target);
-        for (int rows = list->m_clientHeight / list->m_itemHeight; rows > 0; --rows)
-        {
-          if (position == list->m_items->Entries().begin())
-            rows = 0;
-          else
-          {
-            --position;
-            target = static_cast<CoolListItem*>((*position).get());
-          }
-        }
+        CoolListItem* previous = list->m_items->PreviousVisible(target);
+        if (!previous)
+          break;
+        target = previous;
       }
       break;
     case VK_NEXT:
-      if (!current)
+      target = current;
+      for (int rows = list->m_clientHeight / list->m_itemHeight; rows > 0; --rows)
       {
-        current = list->m_items->First();
-      }
-      else
-      {
-        target = current;
-        auto position = list->m_items->PositionOf(target);
-        for (int rows = list->m_clientHeight / list->m_itemHeight; rows > 0; --rows)
-        {
-          if (position == list->m_items->Entries().end())
-            rows = 0;
-          else
-          {
-            auto next = position;
-            ++next;
-            if (next == list->m_items->Entries().end())
-            {
-              rows = 0;
-              continue;
-            }
-            position = next;
-            target = static_cast<CoolListItem*>((*position).get());
-          }
-        }
+        CoolListItem* next = list->m_items->NextVisible(target);
+        if (!next)
+          break;
+        target = next;
       }
       break;
     case VK_END:
@@ -1146,16 +1150,14 @@ LRESULT KeyDown(CoolDragList* list, WPARAM key, LPARAM lParam)
       {
         target = list->m_items->First();
       }
-      else if (list->m_items->PositionOf(current) == list->m_items->Entries().begin())
-      {
-        move = false;
-        target = current;
-      }
       else
       {
-        auto position = list->m_items->PositionOf(current);
-        --position;
-        target = static_cast<CoolListItem*>((*position).get());
+        target = list->m_items->PreviousVisible(current);
+        if (!target)
+        {
+          move = false;
+          target = current;
+        }
       }
       break;
     case VK_DOWN:
@@ -1165,16 +1167,11 @@ LRESULT KeyDown(CoolDragList* list, WPARAM key, LPARAM lParam)
       }
       else
       {
-        auto position = list->m_items->PositionOf(current);
-        ++position;
-        if (position == list->m_items->Entries().end())
+        target = list->m_items->NextVisible(current);
+        if (!target)
         {
           move = false;
           target = current;
-        }
-        else
-        {
-          target = static_cast<CoolListItem*>((*position).get());
         }
       }
       break;
@@ -1284,7 +1281,7 @@ LRESULT MouseMove(CoolDragList* list, HWND hwnd, WPARAM keys, LPARAM lParam)
     {
       at.x = 0;
       at.y = 0;
-      for (const auto& entry : list->m_items->Entries())
+      for (const auto& entry : list->m_items->VisibleEntries())
       {
         auto* item = static_cast<CoolListItem*>(entry.get());
         if (item->m_state.m_value & kListItemSelected)

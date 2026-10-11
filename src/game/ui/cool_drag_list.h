@@ -2,6 +2,7 @@
 #include <cstdint>
 #include <list>
 #include <memory>
+#include <ranges>
 #include <string>
 
 #include "core/game_string.h"
@@ -49,9 +50,19 @@ public:
   {
     return m_items;
   }
+  auto VisibleEntries() const
+  {
+    return m_items | std::views::filter(
+                       [](const auto& ownedItem)
+                       {
+                         return ownedItem->IsVisible();
+                       });
+  }
   std::list<std::unique_ptr<CoolListItem>>::const_iterator PositionOf(const CoolListItem* item) const;
   virtual CoolListItem* First(); // slot 2, 0x60beb0 (linker-folded with CoolListItem::Next)
   CoolListItem* Last();
+  CoolListItem* NextVisible(const CoolListItem* item) const;
+  CoolListItem* PreviousVisible(const CoolListItem* item) const;
 
   CoolListItem* FindById(uint32_t id); // 0x60a860
 

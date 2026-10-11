@@ -6,13 +6,17 @@
 
 #include "ui/message_record_decl.h"
 
-// A row of the message index (0x468ab0): shows a message record's text. Rows whose m_visible is 0 are skipped by
-// Next/Previous (the same code as ObjectListItem's, linker-folded).
+// A row of the message index (0x468ab0): shows a message record's text. Rows whose m_visible is 0 are excluded from
+// visible list traversal.
 class MessageListItem : public CoolListItem
 {
 public:
   explicit MessageListItem(MessageRecord* record); // 0x4ad6b0
   ~MessageListItem() override; // 0x4ad720 (scalar deleting destructor 0x4ad690)
+  bool IsVisible() const override
+  {
+    return m_visible != 0;
+  }
   void Read(istream* in) override; // slot 1, 0x5ae1e0: does nothing
   void Write(ostream* out) override; // slot 2, 0x5ae1e0: does nothing
 
