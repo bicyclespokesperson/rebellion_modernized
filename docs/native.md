@@ -103,7 +103,9 @@ REB_GAME_EXE="/path/to/Star Wars - Rebellion/REBEXE.EXE" tools/build_macos.sh
 ```
 
 The script downloads pinned dependencies, creates `build/tools-venv` for Python asset extraction and Ninja, extracts the
-startup asset pack from your EXE, configures the native CMake build, and links and signs `build/native/Rebellion.app`.
+startup asset pack and original application icon from your EXE, configures the native CMake build, and links and signs
+`build/native/Rebellion.app`. The icon is converted locally to `Rebellion.icns` and bundled for Finder and the Dock;
+original game artwork stays out of git. `REB_BUNDLE_ICON` can point CMake at a different `.icns` file.
 `REB_GAME_EXE` defaults to `orig_game_files/Star Wars - Rebellion/REBEXE.EXE` in this checkout.
 
 Set `install_dir` in a config file as described in the README. `tools/run_macos.command` is a double-clickable launcher;

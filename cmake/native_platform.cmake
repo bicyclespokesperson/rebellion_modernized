@@ -43,6 +43,16 @@ function(reb_native_platform_package target)
     return()
   endif()
   set(REB_BUNDLE_VERSION "0.1" CACHE STRING "CFBundleShortVersionString of Rebellion.app")
+  set(REB_BUNDLE_ICON "${CMAKE_BINARY_DIR}/Rebellion.icns" CACHE FILEPATH "Locally extracted macOS application icon")
+  if(EXISTS "${REB_BUNDLE_ICON}")
+    get_filename_component(REB_BUNDLE_ICON_NAME "${REB_BUNDLE_ICON}" NAME)
+    set_property(TARGET ${target} APPEND PROPERTY LINK_DEPENDS "${REB_BUNDLE_ICON}")
+    set_target_properties(${target} PROPERTIES MACOSX_BUNDLE_ICON_FILE "${REB_BUNDLE_ICON_NAME}")
+    add_custom_command(TARGET ${target} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resources
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${REB_BUNDLE_ICON}"
+              $<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resources/${REB_BUNDLE_ICON_NAME})
+  endif()
   set_target_properties(${target} PROPERTIES
     MACOSX_BUNDLE TRUE
     OUTPUT_NAME Rebellion

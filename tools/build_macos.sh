@@ -11,8 +11,9 @@ if [[ ! -f "$EXE" ]]; then
 fi
 tools/fetch_deps.sh freetype liberation sdl3
 [[ -x "$VENV/bin/python" ]] || uv venv "$VENV"
-uv pip install --python "$VENV/bin/python" pefile ninja
+uv pip install --python "$VENV/bin/python" pefile pillow ninja
 "$VENV/bin/python" tools/extract_startup_assets.py --exe "$EXE" --out "$BUILD_DIR/startup-assets.bin"
+"$VENV/bin/python" tools/extract_macos_icon.py --exe "$EXE" --out "$BUILD_DIR/Rebellion.icns"
 cmake -S . -B "$BUILD_DIR" -G Ninja -DREB_NATIVE=ON \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_MAKE_PROGRAM="$VENV/bin/ninja"
 cmake --build "$BUILD_DIR" --target rebellion --parallel
