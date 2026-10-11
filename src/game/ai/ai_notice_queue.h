@@ -5,15 +5,16 @@
 #include "core/stream_io.h"
 
 // The notes the AI player was sent, in AiNoticeGroups by group id. The tree holds the IdNode part of the groups.
-class AiNoticeQueue : public IdAvlTree {
+class AiNoticeQueue : public IdAvlTree
+{
 public:
-    AiNoticeQueue();
-    ~AiNoticeQueue() override;
-    void Load(istream* in);
-    void Save(ostream* out);
-    void Add(NotifPayload* notice);
-    AiNoticeGroup* DetachFinished();
-    void NewGroup(NotifPayload* notice);
+  AiNoticeQueue();
+  ~AiNoticeQueue() override;
+  void Load(istream* in);
+  void Save(ostream* out);
+  void Add(NotifPayload* notice);
+  AiNoticeGroup* DetachFinished();
+  void NewGroup(NotifPayload* notice);
 
-    int m_x0c;
+  int m_x0c;
 };

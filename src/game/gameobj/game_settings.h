@@ -8,19 +8,20 @@
 // it with its own copy, and m_field04 is what the setup stage machine hands to its stage 0xa.
 class Crc32;
 
-class GameSettings {
+class GameSettings
+{
 public:
-    GameSettings();
-    virtual ~GameSettings();
-    virtual int Read(istream* in);
-    virtual int Write(ostream* out);
-    virtual int Checksum(Crc32* crc);  // 0x51c8c0
+  GameSettings();
+  virtual ~GameSettings();
+  virtual int Read(istream* in);
+  virtual int Write(ostream* out);
+  virtual int Checksum(Crc32* crc); // 0x51c8c0
 
-    GameSettings& operator=(const GameSettings& other);
-    int operator==(const GameSettings& other) const;
+  GameSettings& operator=(const GameSettings& other);
+  int operator==(const GameSettings& other) const;
 
-    int m_field04;  // +0x04
-    int m_field08;  // +0x08
-    int m_field0c;  // +0x0c, defaults to 7
-    int m_field10;  // +0x10
+  int m_field04; // +0x04
+  int m_field08; // +0x08
+  int m_field0c; // +0x0c, defaults to 7
+  int m_field10; // +0x10
 };

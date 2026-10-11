@@ -12,4 +12,3 @@
 #include <new>
 
 #include "msvc_crt.h"
-

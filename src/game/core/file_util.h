@@ -4,11 +4,12 @@
 #include "core/stream_io.h"
 
 // Error code of the last file/resource helper call below (g_fileError).
-enum FileError : int {
-    kFileOk = 0,
-    kFileNoName = 1,
-    kFileOpenFailed = 2,
-    kFileResourceMissing = 4,
+enum FileError : int
+{
+  kFileOk = 0,
+  kFileNoName = 1,
+  kFileOpenFailed = 2,
+  kFileResourceMissing = 4,
 };
 
 // Module whose resources LoadRcdataString reads (the game's own module if `module` is null); clears the error.

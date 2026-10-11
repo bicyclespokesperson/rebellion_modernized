@@ -5,8 +5,8 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "gameobj/game_obj_root.h"
 #include "gameobj/game_obj.h"
+#include "gameobj/game_obj_root.h"
 #include "gameobj/object_key.h"
 #include "gameobj/status_code.h"
 #include "orders/command_decl.h"

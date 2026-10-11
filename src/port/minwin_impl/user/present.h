@@ -7,12 +7,13 @@
 
 #include <stdint.h>
 
-namespace minwin::present {
+namespace minwin::present
+{
 
-bool Create();                                  // window, renderer, frame texture; false (with SDL_GetError set) on failure
+bool Create(); // window, renderer, frame texture; false (with SDL_GetError set) on failure
 void Destroy();
 SDL_Window* Window();
-void Present(const uint32_t* xrgbPixels);       // the 640x480 frame; letterboxed at an integer scale
+void Present(const uint32_t* xrgbPixels); // the 640x480 frame; letterboxed at an integer scale
 
 // Window coordinates (SDL mouse events) -> game pixels, floor-rounded and clamped to the screen.
 void MapMouse(float windowX, float windowY, int* x, int* y);
@@ -32,4 +33,4 @@ void SyncMouseCapture(bool captured);
 // Called when the main loop found nothing to do: sleeps so the loop does not spin a core. No-op with REB_DETERMINISTIC=1.
 void PaceIdleLoop();
 
-}  // namespace minwin::present
+} // namespace minwin::present

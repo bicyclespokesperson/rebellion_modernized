@@ -4,15 +4,14 @@
 #include "data/random.h"
 #include "mission/mission_rules.h"
 
+extern int g_missionAbductionEventKindsReady; // 0x6bbb30
+extern EventKindSet g_missionAbductionEventKinds; // 0x6bbb28
 
-extern int g_missionAbductionEventKindsReady;      // 0x6bbb30
-extern EventKindSet g_missionAbductionEventKinds;  // 0x6bbb28
-
-
-namespace {
+namespace
+{
 constexpr uint32_t kFamilyMissionAbduction = 0x62;
 constexpr int kTaskSucceeded = 3;
-}  // namespace
+} // namespace
 
 MissionAbduction::MissionAbduction() = default;
 
@@ -20,70 +19,100 @@ MissionAbduction::~MissionAbduction() = default;
 
 REB_MISSION_SHARED_PERSISTENCE(MissionAbduction)
 
-uint32_t MissionAbduction::GetFamily() { return kFamilyMissionAbduction; }
-
-int MissionAbduction::GetEventKinds(int unused, EventKindSet* out) {
-    return CopyEventKinds(BuildEventKinds, &g_missionAbductionEventKinds, out);
+uint32_t MissionAbduction::GetFamily()
+{
+  return kFamilyMissionAbduction;
 }
 
-int MissionAbduction::CheckOrder(int a, int orderKind, StatusCode* out) {
-    return CheckOrderAgainstKinds(BuildEventKinds, &g_missionAbductionEventKinds, orderKind, out);
+int MissionAbduction::GetEventKinds(int unused, EventKindSet* out)
+{
+  return CopyEventKinds(BuildEventKinds, &g_missionAbductionEventKinds, out);
 }
 
-int MissionAbduction::GetCheckFunctions(MissionCheckFunctions* out) {
-    out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
-    out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
-    return 1;
+int MissionAbduction::CheckOrder(int a, int orderKind, StatusCode* out)
+{
+  return CheckOrderAgainstKinds(BuildEventKinds, &g_missionAbductionEventKinds, orderKind, out);
 }
 
-GameObj* MissionAbduction::CreateViewObject() { return NewOrNull<MissionAbduction>(); }
-
-GameObjNotifier* MissionAbduction::Create() { return NewOrNull<MissionAbduction>(); }
-
-int MissionAbduction::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out) {
-    *status = MakeStatus(mission_status::kOk);
-    *out = 0;
-    return MissionCharacterTargetBase::CheckTarget(check, status, out);
+int MissionAbduction::GetCheckFunctions(MissionCheckFunctions* out)
+{
+  out->m_unk00 = reinterpret_cast<void*>(MissionRuleBase::CheckMember);
+  out->m_unk04 = reinterpret_cast<void*>(CheckTarget);
+  return 1;
 }
 
-int MissionAbduction::Virtual157(GameObj* person, int* out) {
-    Character* target = nullptr;
-    const int found = static_cast<MissionCharacterTargetBase*>(this)->MissionCharacterTargetBase::GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target));
-    bool ok = found != 0;
-    if (!target) return ok;
-    const int targetCombat = target->GetCombat();
-    const int personCombat = static_cast<Role*>(person)->GetCombat();
-    return LookupMissionTable19(personCombat, targetCombat, out) != 0 && ok ? 1 : 0;
+GameObj* MissionAbduction::CreateViewObject()
+{
+  return NewOrNull<MissionAbduction>();
 }
 
-int MissionAbduction::Virtual158(NotifyContext* ctx) { return 1; }
+GameObjNotifier* MissionAbduction::Create()
+{
+  return NewOrNull<MissionAbduction>();
+}
 
-int MissionAbduction::Virtual160(NotifyContext* ctx) { return MissionStartIfIdle(this, ctx); }
+int MissionAbduction::CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out)
+{
+  *status = MakeStatus(mission_status::kOk);
+  *out = 0;
+  return MissionCharacterTargetBase::CheckTarget(check, status, out);
+}
 
-int MissionAbduction::Virtual159(GameObj* personObject, int roll, int* out, NotifyContext* ctx) {
-    *out = 0;
-    if (!PercentChance(roll)) return 1;
-    *out = 1;
-    Role* person = static_cast<Role*>(personObject);
-    bool ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
-    if (person->Virtual118()) ok = person->SetBaseCombat(person->m_baseCombat + g_gnprtb1813, ctx) && ok;
-    Character* target = nullptr;
-    ok = static_cast<MissionCharacterTargetBase*>(this)->MissionCharacterTargetBase::GetObjectiveCharacter(reinterpret_cast<GameObj**>(&target)) && ok;
-    if (target) {
-        ObjectKey key;
-        person->GetKey(&key);
-        ok = target->Virtual131(&key, ctx) && ok;
-    }
+int MissionAbduction::Virtual157(GameObj* person, int* out)
+{
+  Character* target = nullptr;
+  const int found = static_cast<MissionCharacterTargetBase*>(this)->MissionCharacterTargetBase::GetObjectiveCharacter(
+    reinterpret_cast<GameObj**>(&target));
+  bool ok = found != 0;
+  if (!target)
     return ok;
+  const int targetCombat = target->GetCombat();
+  const int personCombat = static_cast<Role*>(person)->GetCombat();
+  return LookupMissionTable19(personCombat, targetCombat, out) != 0 && ok ? 1 : 0;
 }
 
-int MissionAbduction::BuildEventKinds() {
-    int result = 1;
-    if (!g_missionAbductionEventKindsReady) {
-        g_missionAbductionEventKindsReady = 1;
-        result = MissionCharacterTargetBase::InitEventKinds(0, &g_missionAbductionEventKinds) != 0;
-    }
-    return result;
+int MissionAbduction::Virtual158(NotifyContext* ctx)
+{
+  return 1;
+}
+
+int MissionAbduction::Virtual160(NotifyContext* ctx)
+{
+  return MissionStartIfIdle(this, ctx);
+}
+
+int MissionAbduction::Virtual159(GameObj* personObject, int roll, int* out, NotifyContext* ctx)
+{
+  *out = 0;
+  if (!PercentChance(roll))
+    return 1;
+  *out = 1;
+  Role* person = static_cast<Role*>(personObject);
+  bool ok = SetTaskStatus(kTaskSucceeded, ctx) != 0;
+  if (person->Virtual118())
+    ok = person->SetBaseCombat(person->m_baseCombat + g_gnprtb1813, ctx) && ok;
+  Character* target = nullptr;
+  ok = static_cast<MissionCharacterTargetBase*>(this)->MissionCharacterTargetBase::GetObjectiveCharacter(
+         reinterpret_cast<GameObj**>(&target)) &&
+       ok;
+  if (target)
+  {
+    ObjectKey key;
+    person->GetKey(&key);
+    ok = target->Virtual131(&key, ctx) && ok;
+  }
+  return ok;
+}
+
+int MissionAbduction::BuildEventKinds()
+{
+  int result = 1;
+  if (!g_missionAbductionEventKindsReady)
+  {
+    g_missionAbductionEventKindsReady = 1;
+    result = MissionCharacterTargetBase::InitEventKinds(0, &g_missionAbductionEventKinds) != 0;
+  }
+  return result;
 }
 EventKindSet g_missionAbductionEventKinds{};
 int g_missionAbductionEventKindsReady{};

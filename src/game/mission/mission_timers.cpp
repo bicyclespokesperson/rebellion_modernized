@@ -8,112 +8,178 @@
 using events::fireOnTimerOwner;
 using events::timerStatOfOwner;
 
-namespace {
+namespace
+{
 
 constexpr FamilyRange kMissionFamilies(0x40, 0x80);
 constexpr FamilyRange kMissionMgrFamilies(0xf8, 0xf9);
 
-TrackedStat* managerStatA(GameObj* manager) { return &static_cast<MissionMgr*>(manager)->m_statA; }
-TrackedStat* managerStatB(GameObj* manager) { return &static_cast<MissionMgr*>(manager)->m_statB; }
+TrackedStat* managerStatA(GameObj* manager)
+{
+  return &static_cast<MissionMgr*>(manager)->m_statA;
+}
+TrackedStat* managerStatB(GameObj* manager)
+{
+  return &static_cast<MissionMgr*>(manager)->m_statB;
+}
 
-}  // namespace
+} // namespace
 
 // ---- shared slot 10 --------------------------------------------------------------------------------------------------
 
-FamilyRange* GetMissionFamilyRange(FamilyRange* out) {
-    *out = kMissionFamilies;
-    return out;
+FamilyRange* GetMissionFamilyRange(FamilyRange* out)
+{
+  *out = kMissionFamilies;
+  return out;
 }
 
-FamilyRange* GetMissionMgrFamilyRange(FamilyRange* out) {
-    *out = kMissionMgrFamilies;
-    return out;
+FamilyRange* GetMissionMgrFamilyRange(FamilyRange* out)
+{
+  *out = kMissionMgrFamilies;
+  return out;
 }
 
 // ---- MissionStatATimer (kind 0x38b) ----------------------------------------------------------------------------------
 
-MissionStatATimer::MissionStatATimer() : TimerEvent() {}
+MissionStatATimer::MissionStatATimer() : TimerEvent()
+{
+}
 
-MissionStatATimer::MissionStatATimer(const MissionStatATimer& other)  = default;
+MissionStatATimer::MissionStatATimer(const MissionStatATimer& other) = default;
 
 MissionStatATimer::~MissionStatATimer() = default;
 
-MissionStatATimer* MissionStatATimer::Clone() { return NewOrNull<MissionStatATimer>(*this); }
-
-TrackedStat* MissionStatATimer::GetTargetSpec() {
-    return timerStatOfOwner<Mission>(this, ResolveMasterInFamilies_40_80, [](Mission* mission) { return mission->GetStatA(); });
+MissionStatATimer* MissionStatATimer::Clone()
+{
+  return NewOrNull<MissionStatATimer>(*this);
 }
 
-void MissionStatATimer::Fire() {
-    fireOnTimerOwner<Mission>(this, ResolveMasterInFamilies_40_80, [](Mission* mission, NotifyContext* ctx) {
-        return mission->Mission::ReadyIfPhase8(ctx);
-    });
+TrackedStat* MissionStatATimer::GetTargetSpec()
+{
+  return timerStatOfOwner<Mission>(this, ResolveMasterInFamilies_40_80,
+                                   [](Mission* mission)
+                                   {
+                                     return mission->GetStatA();
+                                   });
 }
 
-MissionStatATimer* CreateMissionStatATimer() { return NewOrNull<MissionStatATimer>(); }
+void MissionStatATimer::Fire()
+{
+  fireOnTimerOwner<Mission>(this, ResolveMasterInFamilies_40_80,
+                            [](Mission* mission, NotifyContext* ctx)
+                            {
+                              return mission->Mission::ReadyIfPhase8(ctx);
+                            });
+}
+
+MissionStatATimer* CreateMissionStatATimer()
+{
+  return NewOrNull<MissionStatATimer>();
+}
 
 // ---- MissionStatBTimer (kind 0x38c) ----------------------------------------------------------------------------------
 
-MissionStatBTimer::MissionStatBTimer() : TimerEvent() {}
+MissionStatBTimer::MissionStatBTimer() : TimerEvent()
+{
+}
 
-MissionStatBTimer::MissionStatBTimer(const MissionStatBTimer& other)  = default;
+MissionStatBTimer::MissionStatBTimer(const MissionStatBTimer& other) = default;
 
 MissionStatBTimer::~MissionStatBTimer() = default;
 
-MissionStatBTimer* MissionStatBTimer::Clone() { return NewOrNull<MissionStatBTimer>(*this); }
-
-TrackedStat* MissionStatBTimer::GetTargetSpec() {
-    return timerStatOfOwner<Mission>(this, ResolveMasterInFamilies_40_80, [](Mission* mission) { return mission->GetStatB(); });
+MissionStatBTimer* MissionStatBTimer::Clone()
+{
+  return NewOrNull<MissionStatBTimer>(*this);
 }
 
-void MissionStatBTimer::Fire() {
-    fireOnTimerOwner<Mission>(this, ResolveMasterInFamilies_40_80, [](Mission* mission, NotifyContext* ctx) {
-        return mission->Mission::DestroyIfPhase11(ctx);
-    });
+TrackedStat* MissionStatBTimer::GetTargetSpec()
+{
+  return timerStatOfOwner<Mission>(this, ResolveMasterInFamilies_40_80,
+                                   [](Mission* mission)
+                                   {
+                                     return mission->GetStatB();
+                                   });
 }
 
-MissionStatBTimer* CreateMissionStatBTimer() { return NewOrNull<MissionStatBTimer>(); }
+void MissionStatBTimer::Fire()
+{
+  fireOnTimerOwner<Mission>(this, ResolveMasterInFamilies_40_80,
+                            [](Mission* mission, NotifyContext* ctx)
+                            {
+                              return mission->Mission::DestroyIfPhase11(ctx);
+                            });
+}
+
+MissionStatBTimer* CreateMissionStatBTimer()
+{
+  return NewOrNull<MissionStatBTimer>();
+}
 
 // ---- MissionMgrStatATimer (kind 0x392) -------------------------------------------------------------------------------
 
-MissionMgrStatATimer::MissionMgrStatATimer() : TimerEvent() {}
+MissionMgrStatATimer::MissionMgrStatATimer() : TimerEvent()
+{
+}
 
-MissionMgrStatATimer::MissionMgrStatATimer(const MissionMgrStatATimer& other)  = default;
+MissionMgrStatATimer::MissionMgrStatATimer(const MissionMgrStatATimer& other) = default;
 
 MissionMgrStatATimer::~MissionMgrStatATimer() = default;
 
-MissionMgrStatATimer* MissionMgrStatATimer::Clone() { return NewOrNull<MissionMgrStatATimer>(*this); }
-
-TrackedStat* MissionMgrStatATimer::GetTargetSpec() {
-    return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_f8_f9, managerStatA);
+MissionMgrStatATimer* MissionMgrStatATimer::Clone()
+{
+  return NewOrNull<MissionMgrStatATimer>(*this);
 }
 
-void MissionMgrStatATimer::Fire() {
-    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_f8_f9, [](GameObj* manager, NotifyContext* ctx) {
-        return (reinterpret_cast<MissionMgr*>(manager))->MissionMgr::UpdateStoryFlags(ctx);
-    });
+TrackedStat* MissionMgrStatATimer::GetTargetSpec()
+{
+  return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_f8_f9, managerStatA);
 }
 
-MissionMgrStatATimer* CreateMissionMgrStatATimer() { return NewOrNull<MissionMgrStatATimer>(); }
+void MissionMgrStatATimer::Fire()
+{
+  fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_f8_f9,
+                            [](GameObj* manager, NotifyContext* ctx)
+                            {
+                              return (reinterpret_cast<MissionMgr*>(manager))->MissionMgr::UpdateStoryFlags(ctx);
+                            });
+}
+
+MissionMgrStatATimer* CreateMissionMgrStatATimer()
+{
+  return NewOrNull<MissionMgrStatATimer>();
+}
 
 // ---- MissionMgrStatBTimer (kind 0x393) -------------------------------------------------------------------------------
 
-MissionMgrStatBTimer::MissionMgrStatBTimer() : TimerEvent() {}
+MissionMgrStatBTimer::MissionMgrStatBTimer() : TimerEvent()
+{
+}
 
-MissionMgrStatBTimer::MissionMgrStatBTimer(const MissionMgrStatBTimer& other)  = default;
+MissionMgrStatBTimer::MissionMgrStatBTimer(const MissionMgrStatBTimer& other) = default;
 
 MissionMgrStatBTimer::~MissionMgrStatBTimer() = default;
 
-MissionMgrStatBTimer* MissionMgrStatBTimer::Clone() { return NewOrNull<MissionMgrStatBTimer>(*this); }
-
-TrackedStat* MissionMgrStatBTimer::GetTargetSpec() {
-    return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_f8_f9, managerStatB);
+MissionMgrStatBTimer* MissionMgrStatBTimer::Clone()
+{
+  return NewOrNull<MissionMgrStatBTimer>(*this);
 }
 
-void MissionMgrStatBTimer::Fire() {
-    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_f8_f9, [](GameObj* manager, NotifyContext* ctx) {
-        return (reinterpret_cast<MissionMgr*>(manager))->MissionMgr::CreateStoryMissionAtRandom(ctx);
+TrackedStat* MissionMgrStatBTimer::GetTargetSpec()
+{
+  return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_f8_f9, managerStatB);
+}
+
+void MissionMgrStatBTimer::Fire()
+{
+  fireOnTimerOwner<GameObj>(
+    this, ResolveMasterInFamilies_f8_f9,
+    [](GameObj* manager, NotifyContext* ctx)
+    {
+      return (reinterpret_cast<MissionMgr*>(manager))->MissionMgr::CreateStoryMissionAtRandom(ctx);
     });
 }
 
-MissionMgrStatBTimer* CreateMissionMgrStatBTimer() { return NewOrNull<MissionMgrStatBTimer>(); }
+MissionMgrStatBTimer* CreateMissionMgrStatBTimer()
+{
+  return NewOrNull<MissionMgrStatBTimer>();
+}

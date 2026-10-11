@@ -8,7 +8,8 @@
 #include <string>
 #include <vector>
 
-namespace reb::platform {
+namespace reb::platform
+{
 
 // Directory holding the port's config.ini when $REBELLION_CONFIG is not set:
 //   Linux  $XDG_CONFIG_HOME/rebellion, else ~/.config/rebellion
@@ -29,11 +30,12 @@ uint32_t CurrentThreadId();
 // Names the calling thread for debuggers and profilers (the two OSes take different pthread_setname_np forms).
 void SetCurrentThreadName(const char* name);
 
-struct FileTimestamps {
-    timespec modified;
-    timespec accessed;
-    timespec created;
+struct FileTimestamps
+{
+  timespec modified;
+  timespec accessed;
+  timespec created;
 };
 FileTimestamps StatTimestamps(const struct stat& info);
 
-}  // namespace reb::platform
+} // namespace reb::platform

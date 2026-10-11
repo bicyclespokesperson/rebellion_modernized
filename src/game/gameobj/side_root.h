@@ -8,21 +8,25 @@
 //   1 GetFamily (0xf2)   5-8 Read/Write/Checksum/Validate, 9 ApplyAll (side views only), 37 CreateViews: all
 //   forward to GameObj's bodies (their thunks are ICF-shared with other classes, so they have no symbol here)
 //   16 Virtual16 returns 1 (GameObj's returns 0)   57 CreateViewObject: a new SideRoot.
-class SideRoot : public GameObj {
+class SideRoot : public GameObj
+{
 public:
-    SideRoot();           // 0x5696b0
-    ~SideRoot() override;  // 0x569740 (scalar deleting 0x569720)
+  SideRoot(); // 0x5696b0
+  ~SideRoot() override; // 0x569740 (scalar deleting 0x569720)
 
-    uint32_t GetFamily() override;  // 0x569880
-    int Read(istream* in) override;
-    int Write(ostream* out) override;
-    int Checksum(Crc32* crc) override;
-    int Validate() override;
-    // Side views only (shared with the game root class, 0x513f20): the master has nothing to apply.
-    int ApplyAll(NotifyContext* ctx) override;
-    int Virtual16() override { return 1; }
-    int CreateViews(int controlKind, NotifyContext* ctx) override;
-    GameObj* CreateViewObject() override;  // 0x5697d0
+  uint32_t GetFamily() override; // 0x569880
+  int Read(istream* in) override;
+  int Write(ostream* out) override;
+  int Checksum(Crc32* crc) override;
+  int Validate() override;
+  // Side views only (shared with the game root class, 0x513f20): the master has nothing to apply.
+  int ApplyAll(NotifyContext* ctx) override;
+  int Virtual16() override
+  {
+    return 1;
+  }
+  int CreateViews(int controlKind, NotifyContext* ctx) override;
+  GameObj* CreateViewObject() override; // 0x5697d0
 };
 
 // The factory the object family registry holds for family 0xf2 (0x569760).

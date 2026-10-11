@@ -5,75 +5,81 @@
 #include "port/minwin/base.h"
 #include "port/minwin/gdi32.h"
 
-typedef LRESULT (REB_STDCALL *WNDPROC)(HWND, UINT, WPARAM, LPARAM);
-typedef void (REB_STDCALL *TIMERPROC)(HWND, UINT, UINT_PTR, DWORD);
-typedef LRESULT (REB_STDCALL *HOOKPROC)(int, WPARAM, LPARAM);
-struct tagMOUSEHOOKSTRUCT {
-    POINT pt;
-    HWND hwnd;
-    UINT wHitTestCode;
-    ULONG_PTR dwExtraInfo;
+typedef LRESULT(REB_STDCALL* WNDPROC)(HWND, UINT, WPARAM, LPARAM);
+typedef void(REB_STDCALL* TIMERPROC)(HWND, UINT, UINT_PTR, DWORD);
+typedef LRESULT(REB_STDCALL* HOOKPROC)(int, WPARAM, LPARAM);
+struct tagMOUSEHOOKSTRUCT
+{
+  POINT pt;
+  HWND hwnd;
+  UINT wHitTestCode;
+  ULONG_PTR dwExtraInfo;
 };
 typedef struct tagMOUSEHOOKSTRUCT MOUSEHOOKSTRUCT;
-struct tagWNDCLASSA {
-    UINT style;
-    WNDPROC lpfnWndProc;
-    int cbClsExtra;
-    int cbWndExtra;
-    HINSTANCE hInstance;
-    HICON hIcon;
-    HCURSOR hCursor;
-    HBRUSH hbrBackground;
-    LPCSTR lpszMenuName;
-    LPCSTR lpszClassName;
+struct tagWNDCLASSA
+{
+  UINT style;
+  WNDPROC lpfnWndProc;
+  int cbClsExtra;
+  int cbWndExtra;
+  HINSTANCE hInstance;
+  HICON hIcon;
+  HCURSOR hCursor;
+  HBRUSH hbrBackground;
+  LPCSTR lpszMenuName;
+  LPCSTR lpszClassName;
 };
 typedef struct tagWNDCLASSA WNDCLASSA;
-typedef struct tagWNDCLASSA *LPWNDCLASSA;
-struct tagMSG {
-    HWND hwnd;
-    UINT message;
-    WPARAM wParam;
-    LPARAM lParam;
-    DWORD time;
-    POINT pt;
+typedef struct tagWNDCLASSA* LPWNDCLASSA;
+struct tagMSG
+{
+  HWND hwnd;
+  UINT message;
+  WPARAM wParam;
+  LPARAM lParam;
+  DWORD time;
+  POINT pt;
 };
 typedef struct tagMSG MSG;
-typedef struct tagMSG *LPMSG;
-struct tagPAINTSTRUCT {
-    HDC hdc;
-    BOOL fErase;
-    RECT rcPaint;
-    BOOL fRestore;
-    BOOL fIncUpdate;
-    BYTE rgbReserved[32];
+typedef struct tagMSG* LPMSG;
+struct tagPAINTSTRUCT
+{
+  HDC hdc;
+  BOOL fErase;
+  RECT rcPaint;
+  BOOL fRestore;
+  BOOL fIncUpdate;
+  BYTE rgbReserved[32];
 };
 typedef struct tagPAINTSTRUCT PAINTSTRUCT;
-typedef struct tagPAINTSTRUCT *LPPAINTSTRUCT;
-struct tagCREATESTRUCTA {
-    LPVOID lpCreateParams;
-    HINSTANCE hInstance;
-    HMENU hMenu;
-    HWND hwndParent;
-    int cy;
-    int cx;
-    int y;
-    int x;
-    LONG style;
-    LPCSTR lpszName;
-    LPCSTR lpszClass;
-    DWORD dwExStyle;
+typedef struct tagPAINTSTRUCT* LPPAINTSTRUCT;
+struct tagCREATESTRUCTA
+{
+  LPVOID lpCreateParams;
+  HINSTANCE hInstance;
+  HMENU hMenu;
+  HWND hwndParent;
+  int cy;
+  int cx;
+  int y;
+  int x;
+  LONG style;
+  LPCSTR lpszName;
+  LPCSTR lpszClass;
+  DWORD dwExStyle;
 };
 typedef struct tagCREATESTRUCTA CREATESTRUCTA;
-struct tagDRAWITEMSTRUCT {
-    UINT CtlType;
-    UINT CtlID;
-    UINT itemID;
-    UINT itemAction;
-    UINT itemState;
-    HWND hwndItem;
-    HDC hDC;
-    RECT rcItem;
-    ULONG_PTR itemData;
+struct tagDRAWITEMSTRUCT
+{
+  UINT CtlType;
+  UINT CtlID;
+  UINT itemID;
+  UINT itemAction;
+  UINT itemState;
+  HWND hwndItem;
+  HDC hDC;
+  RECT rcItem;
+  ULONG_PTR itemData;
 };
 typedef struct tagDRAWITEMSTRUCT DRAWITEMSTRUCT;
 
@@ -81,17 +87,29 @@ extern "C" {
 MINWIN_IMPORT int REB_STDCALL LoadStringA(HINSTANCE hInstance, UINT uID, LPSTR lpBuffer, int cchBufferMax);
 MINWIN_IMPORT int REB_CDECL wsprintfA(LPSTR, LPCSTR, ...);
 MINWIN_IMPORT BOOL REB_STDCALL GetMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax);
-MINWIN_IMPORT BOOL REB_STDCALL TranslateMessage(const MSG *lpMsg);
-MINWIN_IMPORT LRESULT REB_STDCALL DispatchMessageA(const MSG *lpMsg);
-MINWIN_IMPORT BOOL REB_STDCALL PeekMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
+MINWIN_IMPORT BOOL REB_STDCALL TranslateMessage(const MSG* lpMsg);
+MINWIN_IMPORT LRESULT REB_STDCALL DispatchMessageA(const MSG* lpMsg);
+MINWIN_IMPORT BOOL REB_STDCALL
+PeekMessageA(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg);
 MINWIN_IMPORT DWORD REB_STDCALL GetMessagePos(void);
 MINWIN_IMPORT LRESULT REB_STDCALL SendMessageA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 MINWIN_IMPORT BOOL REB_STDCALL PostMessageA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 MINWIN_IMPORT LRESULT REB_STDCALL DefWindowProcA(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam);
 MINWIN_IMPORT void REB_STDCALL PostQuitMessage(int nExitCode);
-MINWIN_IMPORT ATOM REB_STDCALL RegisterClassA(const WNDCLASSA *lpWndClass);
+MINWIN_IMPORT ATOM REB_STDCALL RegisterClassA(const WNDCLASSA* lpWndClass);
 MINWIN_IMPORT BOOL REB_STDCALL GetClassInfoA(HINSTANCE hInstance, LPCSTR lpClassName, LPWNDCLASSA lpWndClass);
-MINWIN_IMPORT HWND REB_STDCALL CreateWindowExA(DWORD dwExStyle, LPCSTR lpClassName, LPCSTR lpWindowName, DWORD dwStyle, int X, int Y, int nWidth, int nHeight, HWND hWndParent, HMENU hMenu, HINSTANCE hInstance, LPVOID lpParam);
+MINWIN_IMPORT HWND REB_STDCALL CreateWindowExA(DWORD dwExStyle,
+                                               LPCSTR lpClassName,
+                                               LPCSTR lpWindowName,
+                                               DWORD dwStyle,
+                                               int X,
+                                               int Y,
+                                               int nWidth,
+                                               int nHeight,
+                                               HWND hWndParent,
+                                               HMENU hMenu,
+                                               HINSTANCE hInstance,
+                                               LPVOID lpParam);
 MINWIN_IMPORT BOOL REB_STDCALL IsWindow(HWND hWnd);
 MINWIN_IMPORT BOOL REB_STDCALL IsChild(HWND hWndParent, HWND hWnd);
 MINWIN_IMPORT BOOL REB_STDCALL DestroyWindow(HWND hWnd);
@@ -124,9 +142,9 @@ MINWIN_IMPORT HDC REB_STDCALL GetDC(HWND hWnd);
 MINWIN_IMPORT HDC REB_STDCALL GetWindowDC(HWND hWnd);
 MINWIN_IMPORT int REB_STDCALL ReleaseDC(HWND hWnd, HDC hDC);
 MINWIN_IMPORT HDC REB_STDCALL BeginPaint(HWND hWnd, LPPAINTSTRUCT lpPaint);
-MINWIN_IMPORT BOOL REB_STDCALL EndPaint(HWND hWnd, const PAINTSTRUCT *lpPaint);
+MINWIN_IMPORT BOOL REB_STDCALL EndPaint(HWND hWnd, const PAINTSTRUCT* lpPaint);
 MINWIN_IMPORT BOOL REB_STDCALL GetUpdateRect(HWND hWnd, LPRECT lpRect, BOOL bErase);
-MINWIN_IMPORT BOOL REB_STDCALL InvalidateRect(HWND hWnd, const RECT *lpRect, BOOL bErase);
+MINWIN_IMPORT BOOL REB_STDCALL InvalidateRect(HWND hWnd, const RECT* lpRect, BOOL bErase);
 MINWIN_IMPORT BOOL REB_STDCALL SetWindowTextA(HWND hWnd, LPCSTR lpString);
 MINWIN_IMPORT BOOL REB_STDCALL GetClientRect(HWND hWnd, LPRECT lpRect);
 MINWIN_IMPORT BOOL REB_STDCALL GetWindowRect(HWND hWnd, LPRECT lpRect);
@@ -148,14 +166,14 @@ MINWIN_IMPORT BOOL REB_STDCALL ScreenToClient(HWND hWnd, LPPOINT lpPoint);
 MINWIN_IMPORT int REB_STDCALL MapWindowPoints(HWND hWndFrom, HWND hWndTo, LPPOINT lpPoints, UINT cPoints);
 MINWIN_IMPORT HWND REB_STDCALL WindowFromPoint(POINT Point);
 MINWIN_IMPORT HWND REB_STDCALL ChildWindowFromPointEx(HWND hwnd, POINT pt, UINT flags);
-MINWIN_IMPORT int REB_STDCALL FillRect(HDC hDC, const RECT *lprc, HBRUSH hbr);
+MINWIN_IMPORT int REB_STDCALL FillRect(HDC hDC, const RECT* lprc, HBRUSH hbr);
 MINWIN_IMPORT BOOL REB_STDCALL SetRect(LPRECT lprc, int xLeft, int yTop, int xRight, int yBottom);
 MINWIN_IMPORT BOOL REB_STDCALL SetRectEmpty(LPRECT lprc);
-MINWIN_IMPORT BOOL REB_STDCALL CopyRect(LPRECT lprcDst, const RECT *lprcSrc);
-MINWIN_IMPORT BOOL REB_STDCALL IntersectRect(LPRECT lprcDst, const RECT *lprcSrc1, const RECT *lprcSrc2);
-MINWIN_IMPORT BOOL REB_STDCALL UnionRect(LPRECT lprcDst, const RECT *lprcSrc1, const RECT *lprcSrc2);
-MINWIN_IMPORT BOOL REB_STDCALL IsRectEmpty(const RECT *lprc);
-MINWIN_IMPORT BOOL REB_STDCALL PtInRect(const RECT *lprc, POINT pt);
+MINWIN_IMPORT BOOL REB_STDCALL CopyRect(LPRECT lprcDst, const RECT* lprcSrc);
+MINWIN_IMPORT BOOL REB_STDCALL IntersectRect(LPRECT lprcDst, const RECT* lprcSrc1, const RECT* lprcSrc2);
+MINWIN_IMPORT BOOL REB_STDCALL UnionRect(LPRECT lprcDst, const RECT* lprcSrc1, const RECT* lprcSrc2);
+MINWIN_IMPORT BOOL REB_STDCALL IsRectEmpty(const RECT* lprc);
+MINWIN_IMPORT BOOL REB_STDCALL PtInRect(const RECT* lprc, POINT pt);
 MINWIN_IMPORT LONG REB_STDCALL GetWindowLongA(HWND hWnd, int nIndex);
 MINWIN_IMPORT LONG REB_STDCALL SetWindowLongA(HWND hWnd, int nIndex, LONG dwNewLong);
 #if MINWIN_TARGET_WINDOWS && !defined(_WIN64)
@@ -183,7 +201,7 @@ MINWIN_IMPORT BOOL REB_STDCALL SystemParametersInfoA(UINT uiAction, UINT uiParam
 
 #if defined(REB_MSG_TRACE_SHIM)
 // src/standalone/msg_trace_shim.cpp: registers a logging wrapper around each window procedure (tools/msg_trace_compare.py).
-extern "C" ATOM REB_STDCALL RebTracedRegisterClassA(const WNDCLASSA *lpWndClass);
+extern "C" ATOM REB_STDCALL RebTracedRegisterClassA(const WNDCLASSA* lpWndClass);
 #define RegisterClassA RebTracedRegisterClassA
 #endif
 
@@ -294,7 +312,7 @@ extern "C" ATOM REB_STDCALL RebTracedRegisterClassA(const WNDCLASSA *lpWndClass)
 #define SWP_NOOWNERZORDER 0x200
 #define HWND_TOP ((HWND)0)
 #define HWND_BOTTOM ((HWND)1)
-#define HWND_NOTOPMOST ((HWND)-2)
+#define HWND_NOTOPMOST ((HWND) - 2)
 #define SM_CXSCREEN 0
 #define SM_CYSCREEN 1
 #define SM_CYCAPTION 4

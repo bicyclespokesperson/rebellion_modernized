@@ -8,40 +8,53 @@
 // receives WM_ACTIVATEAPP, which Windows sends to the first window of the application.
 struct UiResources;
 
-class CoolApp : public CoolWindow {
+class CoolApp : public CoolWindow
+{
 public:
-    UiResources& m_resources;
+  UiResources& m_resources;
 
-    CoolApp(HINSTANCE instance, const char* className, uint32_t style, int x, int y, int width, int height,
-            const char* windowName, HBRUSH background, HICON icon, HCURSOR cursor, HMENU menu, uint32_t unknown58,
-            uint32_t flags, UiResources& resources);  // 0x5fb850: sets g_app, starts the 10 ms timer period
-    ~CoolApp() override;       // 0x5fb980 (scalar deleting destructor 0x5fb960)
+  CoolApp(HINSTANCE instance,
+          const char* className,
+          uint32_t style,
+          int x,
+          int y,
+          int width,
+          int height,
+          const char* windowName,
+          HBRUSH background,
+          HICON icon,
+          HCURSOR cursor,
+          HMENU menu,
+          uint32_t unknown58,
+          uint32_t flags,
+          UiResources& resources); // 0x5fb850: sets g_app, starts the 10 ms timer period
+  ~CoolApp() override; // 0x5fb980 (scalar deleting destructor 0x5fb960)
 
-    // Slot 9: called by the main loop before TranslateMessage. Turns Return in a standard "edit" control into a
-    // 0x407 message for the control's parent (wParam = child id, lParam = child). Always returns 1.
-    virtual int FilterMessage(MSG* message);  // 0x5fba70
+  // Slot 9: called by the main loop before TranslateMessage. Turns Return in a standard "edit" control into a
+  // 0x407 message for the control's parent (wParam = child id, lParam = child). Always returns 1.
+  virtual int FilterMessage(MSG* message); // 0x5fba70
 
-    void SetScreenSize(int width, int height);  // 0x5fba00
+  void SetScreenSize(int width, int height); // 0x5fba00
 
-    char* m_appName;           // +0x94 heap copy of the class name
-    uintptr_t m_unknown98;     // +0x98 the accelerator table handle (HACCEL) of the main window
-    int m_unknown9c;           // +0x9c
-    int m_unknownA0;           // +0xa0
-    int m_unknownA4;           // +0xa4
-    int m_screenWidth;         // +0xa8
-    int m_screenHeight;        // +0xac
-    int m_defaultFontSlot;     // +0xb0 font every new CoolWindow starts with (0: none)
+  char* m_appName; // +0x94 heap copy of the class name
+  uintptr_t m_unknown98; // +0x98 the accelerator table handle (HACCEL) of the main window
+  int m_unknown9c; // +0x9c
+  int m_unknownA0; // +0xa0
+  int m_unknownA4; // +0xa4
+  int m_screenWidth; // +0xa8
+  int m_screenHeight; // +0xac
+  int m_defaultFontSlot; // +0xb0 font every new CoolWindow starts with (0: none)
 };
 
 // Cool's resource-DLL API (stdcall wrappers kept by the application).
-HMODULE CoolGetResourceModule(uint32_t slot);                                           // 0x5fba20
-HMODULE CoolRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot);  // 0x5fba30
-void CoolUnloadResourceSlot(uint32_t slot);                                            // 0x5fba50
+HMODULE CoolGetResourceModule(uint32_t slot); // 0x5fba20
+HMODULE CoolRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot); // 0x5fba30
+void CoolUnloadResourceSlot(uint32_t slot); // 0x5fba50
 
-HMODULE CoolAppGetResourceModule(uint32_t slot);   // 0x6037f0: 0 without an application
-void CoolAppRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot);  // 0x603810
-void CoolAppUnloadResourceSlot(uint32_t slot);   // 0x603830
-int GetDefaultFontSlot();                  // 0x603850: g_app default font slot, 0 without an application
+HMODULE CoolAppGetResourceModule(uint32_t slot); // 0x6037f0: 0 without an application
+void CoolAppRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot); // 0x603810
+void CoolAppUnloadResourceSlot(uint32_t slot); // 0x603830
+int GetDefaultFontSlot(); // 0x603850: g_app default font slot, 0 without an application
 
-extern CoolApp* g_app;                  // 0x6be3b8
-extern char g_classNameBuffer[0x100];   // 0x6be3c0 scratch for GetClassNameA
+extern CoolApp* g_app; // 0x6be3b8
+extern char g_classNameBuffer[0x100]; // 0x6be3c0 scratch for GetClassNameA

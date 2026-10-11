@@ -1,7 +1,7 @@
-#include "character/character_mgr.h"
-#include "gameobj/object_queries.h"
 #include "events/object_timers.h"
+#include "character/character_mgr.h"
 #include "events/object_timers_decl.h"
+#include "gameobj/object_queries.h"
 
 #include "character/character.h"
 #include "economy/procfacil.h"
@@ -15,176 +15,322 @@
 using events::fireOnTimerOwner;
 using events::timerStatOfOwner;
 
-FamilyRange* GetSideFamilyRange(FamilyRange* out) {
-    *out = FamilyRange(0xf3, 0xf4);
-    return out;
+FamilyRange* GetSideFamilyRange(FamilyRange* out)
+{
+  *out = FamilyRange(0xf3, 0xf4);
+  return out;
 }
 
-FamilyRange* GetProcFacilFamilyRange(FamilyRange* out) {
-    *out = FamilyRange(0x28, 0x30);
-    return out;
+FamilyRange* GetProcFacilFamilyRange(FamilyRange* out)
+{
+  *out = FamilyRange(0x28, 0x30);
+  return out;
 }
 
-FamilyRange* GetAnyFamilyRange(FamilyRange* out) {
-    *out = FamilyRange(0x1, 0xff);
-    return out;
+FamilyRange* GetAnyFamilyRange(FamilyRange* out)
+{
+  *out = FamilyRange(0x1, 0xff);
+  return out;
 }
 
-FamilyRange* GetFamily14Range(FamilyRange* out) {
-    *out = FamilyRange(0x14, 0x20);
-    return out;
+FamilyRange* GetFamily14Range(FamilyRange* out)
+{
+  *out = FamilyRange(0x14, 0x20);
+  return out;
 }
 
-FamilyRange* GetCharacterFamilyRange(FamilyRange* out) {
-    *out = FamilyRange(0x30, 0x3c);
-    return out;
+FamilyRange* GetCharacterFamilyRange(FamilyRange* out)
+{
+  *out = FamilyRange(0x30, 0x3c);
+  return out;
 }
 
+SideScrapTimer::SideScrapTimer() : TimerEvent()
+{
+}
 
-SideScrapTimer::SideScrapTimer() : TimerEvent() {}
-
-SideScrapTimer::SideScrapTimer(const SideScrapTimer& other)  = default;
+SideScrapTimer::SideScrapTimer(const SideScrapTimer& other) = default;
 
 SideScrapTimer::~SideScrapTimer() = default;
 
-SideScrapTimer* SideScrapTimer::Clone() { return NewOrNull<SideScrapTimer>(*this); }
-
-TrackedStat* SideScrapTimer::GetTargetSpec() {
-    return timerStatOfOwner<Side>(this, ResolveMasterInFamilies_f3_f4, [](Side* side) { return &side->m_statCc; });
+SideScrapTimer* SideScrapTimer::Clone()
+{
+  return NewOrNull<SideScrapTimer>(*this);
 }
 
-void SideScrapTimer::Fire() {
-    fireOnTimerOwner<Side>(this, ResolveMasterInFamilies_f3_f4, [](Side* side, NotifyContext* ctx) { return side->ScrapRandomUnit(ctx); });
+TrackedStat* SideScrapTimer::GetTargetSpec()
+{
+  return timerStatOfOwner<Side>(this, ResolveMasterInFamilies_f3_f4,
+                                [](Side* side)
+                                {
+                                  return &side->m_statCc;
+                                });
 }
 
-SideScrapTimer* CreateSideScrapTimer() { return NewOrNull<SideScrapTimer>(); }
+void SideScrapTimer::Fire()
+{
+  fireOnTimerOwner<Side>(this, ResolveMasterInFamilies_f3_f4,
+                         [](Side* side, NotifyContext* ctx)
+                         {
+                           return side->ScrapRandomUnit(ctx);
+                         });
+}
 
-SideResearchTimer::SideResearchTimer() : TimerEvent() {}
+SideScrapTimer* CreateSideScrapTimer()
+{
+  return NewOrNull<SideScrapTimer>();
+}
 
-SideResearchTimer::SideResearchTimer(const SideResearchTimer& other)  = default;
+SideResearchTimer::SideResearchTimer() : TimerEvent()
+{
+}
+
+SideResearchTimer::SideResearchTimer(const SideResearchTimer& other) = default;
 
 SideResearchTimer::~SideResearchTimer() = default;
 
-SideResearchTimer* SideResearchTimer::Clone() { return NewOrNull<SideResearchTimer>(*this); }
-
-TrackedStat* SideResearchTimer::GetTargetSpec() {
-    return timerStatOfOwner<Side>(this, ResolveMasterInFamilies_f3_f4, [](Side* side) { return &side->m_statD4; });
+SideResearchTimer* SideResearchTimer::Clone()
+{
+  return NewOrNull<SideResearchTimer>(*this);
 }
 
-void SideResearchTimer::Fire() {
-    fireOnTimerOwner<Side>(this, ResolveMasterInFamilies_f3_f4, [](Side* side, NotifyContext* ctx) { return side->UpdateRdProgress(ctx); });
+TrackedStat* SideResearchTimer::GetTargetSpec()
+{
+  return timerStatOfOwner<Side>(this, ResolveMasterInFamilies_f3_f4,
+                                [](Side* side)
+                                {
+                                  return &side->m_statD4;
+                                });
 }
 
-SideResearchTimer* CreateSideResearchTimer() { return NewOrNull<SideResearchTimer>(); }
+void SideResearchTimer::Fire()
+{
+  fireOnTimerOwner<Side>(this, ResolveMasterInFamilies_f3_f4,
+                         [](Side* side, NotifyContext* ctx)
+                         {
+                           return side->UpdateRdProgress(ctx);
+                         });
+}
 
-ProcFacilTimer::ProcFacilTimer() : TimerEvent() {}
+SideResearchTimer* CreateSideResearchTimer()
+{
+  return NewOrNull<SideResearchTimer>();
+}
 
-ProcFacilTimer::ProcFacilTimer(const ProcFacilTimer& other)  = default;
+ProcFacilTimer::ProcFacilTimer() : TimerEvent()
+{
+}
+
+ProcFacilTimer::ProcFacilTimer(const ProcFacilTimer& other) = default;
 
 ProcFacilTimer::~ProcFacilTimer() = default;
 
-ProcFacilTimer* ProcFacilTimer::Clone() { return NewOrNull<ProcFacilTimer>(*this); }
-
-TrackedStat* ProcFacilTimer::GetTargetSpec() {
-    return timerStatOfOwner<ProcFacil>(this, ResolveMasterInFamilies_28_30, [](ProcFacil* p) { return reinterpret_cast<System*>(p)->System::GetStat0(); });
+ProcFacilTimer* ProcFacilTimer::Clone()
+{
+  return NewOrNull<ProcFacilTimer>(*this);
 }
 
-void ProcFacilTimer::Fire() {
-    fireOnTimerOwner<ProcFacil>(this, ResolveMasterInFamilies_28_30, [](ProcFacil* p, NotifyContext* ctx) { return p->MarkPointProcessedIfProcessing(ctx); });
+TrackedStat* ProcFacilTimer::GetTargetSpec()
+{
+  return timerStatOfOwner<ProcFacil>(this, ResolveMasterInFamilies_28_30,
+                                     [](ProcFacil* p)
+                                     {
+                                       return reinterpret_cast<System*>(p)->System::GetStat0();
+                                     });
 }
 
-ProcFacilTimer* CreateProcFacilTimer() { return NewOrNull<ProcFacilTimer>(); }
+void ProcFacilTimer::Fire()
+{
+  fireOnTimerOwner<ProcFacil>(this, ResolveMasterInFamilies_28_30,
+                              [](ProcFacil* p, NotifyContext* ctx)
+                              {
+                                return p->MarkPointProcessedIfProcessing(ctx);
+                              });
+}
 
-HyperdriveTimer::HyperdriveTimer() : TimerEvent() {}
+ProcFacilTimer* CreateProcFacilTimer()
+{
+  return NewOrNull<ProcFacilTimer>();
+}
 
-HyperdriveTimer::HyperdriveTimer(const HyperdriveTimer& other)  = default;
+HyperdriveTimer::HyperdriveTimer() : TimerEvent()
+{
+}
+
+HyperdriveTimer::HyperdriveTimer(const HyperdriveTimer& other) = default;
 
 HyperdriveTimer::~HyperdriveTimer() = default;
 
-HyperdriveTimer* HyperdriveTimer::Clone() { return NewOrNull<HyperdriveTimer>(*this); }
-
-TrackedStat* HyperdriveTimer::GetTargetSpec() {
-    return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_01_ff, [](GameObj* o) { return static_cast<TrackedStat*>(o->GetDataExtra()); });
+HyperdriveTimer* HyperdriveTimer::Clone()
+{
+  return NewOrNull<HyperdriveTimer>(*this);
 }
 
-void HyperdriveTimer::Fire() {
-    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_01_ff, [](GameObj* o, NotifyContext* ctx) { return o->UpdateHyperdriveAndEta(ctx); });
+TrackedStat* HyperdriveTimer::GetTargetSpec()
+{
+  return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_01_ff,
+                                   [](GameObj* o)
+                                   {
+                                     return static_cast<TrackedStat*>(o->GetDataExtra());
+                                   });
 }
 
-HyperdriveTimer* CreateHyperdriveTimer() { return NewOrNull<HyperdriveTimer>(); }
+void HyperdriveTimer::Fire()
+{
+  fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_01_ff,
+                            [](GameObj* o, NotifyContext* ctx)
+                            {
+                              return o->UpdateHyperdriveAndEta(ctx);
+                            });
+}
 
-FleetSlot138Timer::FleetSlot138Timer() : TimerEvent() {}
+HyperdriveTimer* CreateHyperdriveTimer()
+{
+  return NewOrNull<HyperdriveTimer>();
+}
 
-FleetSlot138Timer::FleetSlot138Timer(const FleetSlot138Timer& other)  = default;
+FleetSlot138Timer::FleetSlot138Timer() : TimerEvent()
+{
+}
+
+FleetSlot138Timer::FleetSlot138Timer(const FleetSlot138Timer& other) = default;
 
 FleetSlot138Timer::~FleetSlot138Timer() = default;
 
-FleetSlot138Timer* FleetSlot138Timer::Clone() { return NewOrNull<FleetSlot138Timer>(*this); }
-
-TrackedStat* FleetSlot138Timer::GetTargetSpec() {
-    return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_14_20, [](GameObj* o) { return static_cast<System*>(o)->System::GetStat0(); });
+FleetSlot138Timer* FleetSlot138Timer::Clone()
+{
+  return NewOrNull<FleetSlot138Timer>(*this);
 }
 
-void FleetSlot138Timer::Fire() {
-    fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_14_20, [](GameObj* o, NotifyContext* ctx) { return static_cast<CombatUnit*>(o)->RepairStep(ctx); });
+TrackedStat* FleetSlot138Timer::GetTargetSpec()
+{
+  return timerStatOfOwner<GameObj>(this, ResolveMasterInFamilies_14_20,
+                                   [](GameObj* o)
+                                   {
+                                     return static_cast<System*>(o)->System::GetStat0();
+                                   });
 }
 
-FleetSlot138Timer* CreateFleetSlot138Timer() { return NewOrNull<FleetSlot138Timer>(); }
+void FleetSlot138Timer::Fire()
+{
+  fireOnTimerOwner<GameObj>(this, ResolveMasterInFamilies_14_20,
+                            [](GameObj* o, NotifyContext* ctx)
+                            {
+                              return static_cast<CombatUnit*>(o)->RepairStep(ctx);
+                            });
+}
 
-CharacterInjuryTimer::CharacterInjuryTimer() : TimerEvent() {}
+FleetSlot138Timer* CreateFleetSlot138Timer()
+{
+  return NewOrNull<FleetSlot138Timer>();
+}
 
-CharacterInjuryTimer::CharacterInjuryTimer(const CharacterInjuryTimer& other)  = default;
+CharacterInjuryTimer::CharacterInjuryTimer() : TimerEvent()
+{
+}
+
+CharacterInjuryTimer::CharacterInjuryTimer(const CharacterInjuryTimer& other) = default;
 
 CharacterInjuryTimer::~CharacterInjuryTimer() = default;
 
-CharacterInjuryTimer* CharacterInjuryTimer::Clone() { return NewOrNull<CharacterInjuryTimer>(*this); }
-
-TrackedStat* CharacterInjuryTimer::GetTargetSpec() {
-    return timerStatOfOwner<Character>(this, ResolveMasterInFamilies_30_3c, [](Character* c) { return reinterpret_cast<System*>(c)->System::GetStat0(); });
+CharacterInjuryTimer* CharacterInjuryTimer::Clone()
+{
+  return NewOrNull<CharacterInjuryTimer>(*this);
 }
 
-void CharacterInjuryTimer::Fire() {
-    fireOnTimerOwner<Character>(this, ResolveMasterInFamilies_30_3c, [](Character* c, NotifyContext* ctx) { return c->RecoverFromInjury(ctx); });
+TrackedStat* CharacterInjuryTimer::GetTargetSpec()
+{
+  return timerStatOfOwner<Character>(this, ResolveMasterInFamilies_30_3c,
+                                     [](Character* c)
+                                     {
+                                       return reinterpret_cast<System*>(c)->System::GetStat0();
+                                     });
 }
 
-CharacterInjuryTimer* CreateCharacterInjuryTimer() { return NewOrNull<CharacterInjuryTimer>(); }
+void CharacterInjuryTimer::Fire()
+{
+  fireOnTimerOwner<Character>(this, ResolveMasterInFamilies_30_3c,
+                              [](Character* c, NotifyContext* ctx)
+                              {
+                                return c->RecoverFromInjury(ctx);
+                              });
+}
 
-CharacterTimer389::CharacterTimer389() : TimerEvent() {}
+CharacterInjuryTimer* CreateCharacterInjuryTimer()
+{
+  return NewOrNull<CharacterInjuryTimer>();
+}
 
-CharacterTimer389::CharacterTimer389(const CharacterTimer389& other)  = default;
+CharacterTimer389::CharacterTimer389() : TimerEvent()
+{
+}
+
+CharacterTimer389::CharacterTimer389(const CharacterTimer389& other) = default;
 
 CharacterTimer389::~CharacterTimer389() = default;
 
-CharacterTimer389* CharacterTimer389::Clone() { return NewOrNull<CharacterTimer389>(*this); }
-
-TrackedStat* CharacterTimer389::GetTargetSpec() {
-    return timerStatOfOwner<Character>(this, ResolveMasterInFamilies_30_3c, [](Character* c) { return reinterpret_cast<Mission*>(c)->Mission::GetStatA(); });
+CharacterTimer389* CharacterTimer389::Clone()
+{
+  return NewOrNull<CharacterTimer389>(*this);
 }
 
-void CharacterTimer389::Fire() {
-    fireOnTimerOwner<Character>(this, ResolveMasterInFamilies_30_3c, [](Character* c, NotifyContext* ctx) {
-        // The original calls the character manager (game root +0xc0) with the character as an argument.
-        CharacterMgr* characterManager = GetCharacterManager();
-        return characterManager ? characterManager->DiscoverForceUser(c, ctx) : 0;
-    });
+TrackedStat* CharacterTimer389::GetTargetSpec()
+{
+  return timerStatOfOwner<Character>(this, ResolveMasterInFamilies_30_3c,
+                                     [](Character* c)
+                                     {
+                                       return reinterpret_cast<Mission*>(c)->Mission::GetStatA();
+                                     });
 }
 
-CharacterTimer389* CreateCharacterTimer389() { return NewOrNull<CharacterTimer389>(); }
+void CharacterTimer389::Fire()
+{
+  fireOnTimerOwner<Character>(this, ResolveMasterInFamilies_30_3c,
+                              [](Character* c, NotifyContext* ctx)
+                              {
+                                // The original calls the character manager (game root +0xc0) with the character as an argument.
+                                CharacterMgr* characterManager = GetCharacterManager();
+                                return characterManager ? characterManager->DiscoverForceUser(c, ctx) : 0;
+                              });
+}
 
-CharacterEscapeTimer::CharacterEscapeTimer() : TimerEvent() {}
+CharacterTimer389* CreateCharacterTimer389()
+{
+  return NewOrNull<CharacterTimer389>();
+}
 
-CharacterEscapeTimer::CharacterEscapeTimer(const CharacterEscapeTimer& other)  = default;
+CharacterEscapeTimer::CharacterEscapeTimer() : TimerEvent()
+{
+}
+
+CharacterEscapeTimer::CharacterEscapeTimer(const CharacterEscapeTimer& other) = default;
 
 CharacterEscapeTimer::~CharacterEscapeTimer() = default;
 
-CharacterEscapeTimer* CharacterEscapeTimer::Clone() { return NewOrNull<CharacterEscapeTimer>(*this); }
-
-TrackedStat* CharacterEscapeTimer::GetTargetSpec() {
-    return timerStatOfOwner<Character>(this, ResolveMasterInFamilies_30_3c, [](Character* c) { return reinterpret_cast<Mission*>(c)->Mission::GetStatB(); });
+CharacterEscapeTimer* CharacterEscapeTimer::Clone()
+{
+  return NewOrNull<CharacterEscapeTimer>(*this);
 }
 
-void CharacterEscapeTimer::Fire() {
-    fireOnTimerOwner<Character>(this, ResolveMasterInFamilies_30_3c, [](Character* c, NotifyContext* ctx) { return c->PulseEscapeAttempt(ctx); });
+TrackedStat* CharacterEscapeTimer::GetTargetSpec()
+{
+  return timerStatOfOwner<Character>(this, ResolveMasterInFamilies_30_3c,
+                                     [](Character* c)
+                                     {
+                                       return reinterpret_cast<Mission*>(c)->Mission::GetStatB();
+                                     });
 }
 
-CharacterEscapeTimer* CreateCharacterEscapeTimer() { return NewOrNull<CharacterEscapeTimer>(); }
+void CharacterEscapeTimer::Fire()
+{
+  fireOnTimerOwner<Character>(this, ResolveMasterInFamilies_30_3c,
+                              [](Character* c, NotifyContext* ctx)
+                              {
+                                return c->PulseEscapeAttempt(ctx);
+                              });
+}
+
+CharacterEscapeTimer* CreateCharacterEscapeTimer()
+{
+  return NewOrNull<CharacterEscapeTimer>();
+}

@@ -7,385 +7,547 @@
 
 // ---- ObjectKey ---------------------------------------------------------------------------------------------
 
-ObjectKey ObjectKey::Make(uint32_t family, uint32_t id) {
-    ObjectKey key;
-    key.m_value = (family << 24) | (id & 0xffffff);
-    return key;
+ObjectKey ObjectKey::Make(uint32_t family, uint32_t id)
+{
+  ObjectKey key;
+  key.m_value = (family << 24) | (id & 0xffffff);
+  return key;
 }
 
-ObjectKey::ObjectKey() : m_value(kUnsetValue) {}
-
-ObjectKey::ObjectKey(const ObjectKey& other)  = default;
-
-void ObjectKey::Reset() { m_value = kUnsetValue; }
-
-ObjectKey* ObjectKey::OrNull() {
-    if (m_value == kUnsetValue) return nullptr;
-    return this;
+ObjectKey::ObjectKey() : m_value(kUnsetValue)
+{
 }
 
-int ObjectKey::IsSet() const { return m_value != kUnsetValue; }
+ObjectKey::ObjectKey(const ObjectKey& other) = default;
 
-int ObjectKey::Read(istream* in) {
-    StreamRead32(in, this);
-    return 1;
+void ObjectKey::Reset()
+{
+  m_value = kUnsetValue;
 }
 
-int ObjectKey::Write(ostream* out) {
-    StreamWrite32(out, this);
-    return 1;
+ObjectKey* ObjectKey::OrNull()
+{
+  if (m_value == kUnsetValue)
+    return nullptr;
+  return this;
 }
 
-int ObjectKey::Checksum(Crc32* crc) {
-    crc->AddInt(static_cast<int>(m_value));
-    return 1;
+int ObjectKey::IsSet() const
+{
+  return m_value != kUnsetValue;
+}
+
+int ObjectKey::Read(istream* in)
+{
+  StreamRead32(in, this);
+  return 1;
+}
+
+int ObjectKey::Write(ostream* out)
+{
+  StreamWrite32(out, this);
+  return 1;
+}
+
+int ObjectKey::Checksum(Crc32* crc)
+{
+  crc->AddInt(static_cast<int>(m_value));
+  return 1;
 }
 
 // ---- NullableKey -----------------------------------------------------------------------------------------------
 
-NullableKey* NullableKey::OrNull() {
-    if (m_value == 0) return nullptr;
-    return this;
+NullableKey* NullableKey::OrNull()
+{
+  if (m_value == 0)
+    return nullptr;
+  return this;
 }
 
-int NullableKey::IsSet() const { return m_value != 0; }
+int NullableKey::IsSet() const
+{
+  return m_value != 0;
+}
 
 // ---- ObjectKeyNode -----------------------------------------------------------------------------------------
 
-ObjectKeyNode::ObjectKeyNode() : AvlNode() {}
+ObjectKeyNode::ObjectKeyNode() : AvlNode()
+{
+}
 
-ObjectKeyNode::ObjectKeyNode(const ObjectKey& key) : AvlNode(), m_key(key) {}
+ObjectKeyNode::ObjectKeyNode(const ObjectKey& key) : AvlNode(), m_key(key)
+{
+}
 
-ObjectKeyNode::ObjectKeyNode(const ObjectKeyNode& other) : AvlNode(), m_key(other.m_key) {}
+ObjectKeyNode::ObjectKeyNode(const ObjectKeyNode& other) : AvlNode(), m_key(other.m_key)
+{
+}
 
 ObjectKeyNode::~ObjectKeyNode() = default;
 
-ObjectKeyNode* ObjectKeyNode::Clone() { return NewOrNull<ObjectKeyNode>(*this); }
+ObjectKeyNode* ObjectKeyNode::Clone()
+{
+  return NewOrNull<ObjectKeyNode>(*this);
+}
 
-void ObjectKeyNode::Load(istream* in) { Read(in); }
+void ObjectKeyNode::Load(istream* in)
+{
+  Read(in);
+}
 
-void ObjectKeyNode::Read(istream* in) { m_key.Read(in); }
+void ObjectKeyNode::Read(istream* in)
+{
+  m_key.Read(in);
+}
 
-void ObjectKeyNode::Save(ostream* out) { Write(out); }
+void ObjectKeyNode::Save(ostream* out)
+{
+  Write(out);
+}
 
-void ObjectKeyNode::Write(ostream* out) { m_key.Write(out); }
+void ObjectKeyNode::Write(ostream* out)
+{
+  m_key.Write(out);
+}
 
-int ObjectKeyNode::Checksum(Crc32* crc) { return m_key.Checksum(crc); }
+int ObjectKeyNode::Checksum(Crc32* crc)
+{
+  return m_key.Checksum(crc);
+}
 
-int ObjectKeyNode::HasSameKey(const ObjectKeyNode& other) const { return m_key.m_value == other.m_key.m_value; }
+int ObjectKeyNode::HasSameKey(const ObjectKeyNode& other) const
+{
+  return m_key.m_value == other.m_key.m_value;
+}
 
 // ---- ObjectKeyValueNode ------------------------------------------------------------------------------------
 
-ObjectKeyValueNode::ObjectKeyValueNode() : ObjectKeyNode(), m_value(0) {}
+ObjectKeyValueNode::ObjectKeyValueNode() : ObjectKeyNode(), m_value(0)
+{
+}
 
-ObjectKeyValueNode::ObjectKeyValueNode(const ObjectKey& key, int value) : ObjectKeyNode(key), m_value(value) {}
+ObjectKeyValueNode::ObjectKeyValueNode(const ObjectKey& key, int value) : ObjectKeyNode(key), m_value(value)
+{
+}
 
-ObjectKeyValueNode::ObjectKeyValueNode(const ObjectKeyValueNode& other)  = default;
+ObjectKeyValueNode::ObjectKeyValueNode(const ObjectKeyValueNode& other) = default;
 
 ObjectKeyValueNode::~ObjectKeyValueNode() = default;
 
-ObjectKeyNode* ObjectKeyValueNode::Clone() { return NewOrNull<ObjectKeyValueNode>(*this); }
-
-void ObjectKeyValueNode::Read(istream* in) {
-    ObjectKeyNode::Read(in);
-    ReadValue32(in, &m_value);
+ObjectKeyNode* ObjectKeyValueNode::Clone()
+{
+  return NewOrNull<ObjectKeyValueNode>(*this);
 }
 
-void ObjectKeyValueNode::Write(ostream* out) {
-    ObjectKeyNode::Write(out);
-    WriteValue32(out, &m_value);
+void ObjectKeyValueNode::Read(istream* in)
+{
+  ObjectKeyNode::Read(in);
+  ReadValue32(in, &m_value);
 }
 
-int ObjectKeyValueNode::Checksum(Crc32* crc) {
-    int ok = ObjectKeyNode::Checksum(crc);
-    if (ok) crc->AddInt(m_value);
-    return ok;
+void ObjectKeyValueNode::Write(ostream* out)
+{
+  ObjectKeyNode::Write(out);
+  WriteValue32(out, &m_value);
 }
 
-int ObjectKeyValueNode::HasSameKeyAndValue(const ObjectKeyValueNode& other) const {
-    return HasSameKey(other) && m_value == other.m_value;
+int ObjectKeyValueNode::Checksum(Crc32* crc)
+{
+  int ok = ObjectKeyNode::Checksum(crc);
+  if (ok)
+    crc->AddInt(m_value);
+  return ok;
+}
+
+int ObjectKeyValueNode::HasSameKeyAndValue(const ObjectKeyValueNode& other) const
+{
+  return HasSameKey(other) && m_value == other.m_value;
 }
 
 // ---- ObjectKeySet ------------------------------------------------------------------------------------------
 
-ObjectKeySet::ObjectKeySet() : AvlTree() {}
-
-ObjectKeySet::ObjectKeySet(const ObjectKeySet& other) : AvlTree() {
-    for (AvlNode* node = other.AvlTree::First(); node; node = node->m_successor) {
-        if (ObjectKeyNode* copy = static_cast<ObjectKeyNode*>(node)->Clone()) Add(copy);
-    }
+ObjectKeySet::ObjectKeySet() : AvlTree()
+{
 }
 
-ObjectKeySet::~ObjectKeySet() {
-    AvlTree::Clear();
-
+ObjectKeySet::ObjectKeySet(const ObjectKeySet& other) : AvlTree()
+{
+  for (AvlNode* node = other.AvlTree::First(); node; node = node->m_successor)
+  {
+    if (ObjectKeyNode* copy = static_cast<ObjectKeyNode*>(node)->Clone())
+      Add(copy);
+  }
 }
 
-int ObjectKeySet::IsLess(AvlNode* a, AvlNode* b) {
-    if (!a || !b) return 0;
-    ObjectKey keyA;
-    ObjectKey keyB;
-    static_cast<ObjectKeyNode*>(a)->GetKey(&keyA);
-    static_cast<ObjectKeyNode*>(b)->GetKey(&keyB);
-    return keyA.m_value < keyB.m_value;
+ObjectKeySet::~ObjectKeySet()
+{
+  AvlTree::Clear();
 }
 
-ObjectKeyNode* ObjectKeySet::NewNode() { return NewOrNull<ObjectKeyNode>(); }
-
-void ObjectKeySet::Load(istream* in) { Read(in); }
-
-void ObjectKeySet::Read(istream* in) {
-    Clear();
-    uint32_t count = 0;
-    ReadValue32(in, &count);
-    if (iostream_access::State(in) != 0) return;
-    for (uint32_t i = 0; i < count; ++i) {
-        auto node = std::unique_ptr<ObjectKeyNode>(NewNode());
-        if (!node) {
-            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
-            return;
-        }
-        node->Read(in);
-        if (iostream_access::State(in) != 0 || !Add(node.get())) {
-            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
-            return;
-        }
-        node.release();
-    }
-}
-
-void ObjectKeySet::Save(ostream* out) { Write(out); }
-
-void ObjectKeySet::Write(ostream* out) {
-    if (Count() > std::numeric_limits<uint32_t>::max()) {
-        iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
-        return;
-    }
-    uint32_t count = static_cast<uint32_t>(Count());
-    WriteValue32(out, &count);
-    for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor)) node->Write(out);
-}
-
-int ObjectKeySet::Checksum(Crc32* crc) {
-    int ok = 1;
-    crc->AddInt(static_cast<uint32_t>(Count()));
-    for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor)) {
-        ok = node->Checksum(crc);
-        if (!ok) break;
-    }
-    return ok;
-}
-
-ObjectKeySet& ObjectKeySet::operator=(const ObjectKeySet& other) {
-    if (this != &other) {
-        Clear();
-        for (AvlNode* node = other.AvlTree::First(); node; node = node->m_successor) {
-            if (ObjectKeyNode* copy = static_cast<ObjectKeyNode*>(node)->Clone()) Add(copy);
-        }
-    }
-    return *this;
-}
-
-uint32_t ObjectKeySet::Add(ObjectKeyNode* node) {
-    ObjectKey key;
-    if (node) {
-        node->GetKey(&key);
-        if (!key.IsComplete() || !Insert(node)) return 0;
-    }
-    return key.Id();
-}
-
-int ObjectKeySet::AddKey(const ObjectKey* key) {
-    ObjectKeyNode* node = NewOrNull<ObjectKeyNode>(*key);
-    if (!node) return 0;
-    if (Add(node)) return 1;
-    delete node;
+int ObjectKeySet::IsLess(AvlNode* a, AvlNode* b)
+{
+  if (!a || !b)
     return 0;
+  ObjectKey keyA;
+  ObjectKey keyB;
+  static_cast<ObjectKeyNode*>(a)->GetKey(&keyA);
+  static_cast<ObjectKeyNode*>(b)->GetKey(&keyB);
+  return keyA.m_value < keyB.m_value;
 }
 
-void ObjectKeySet::RemoveKey(const ObjectKey* key) {
-    ObjectKeyNode* node = Find(key);
-    if (node) {
-        AvlTree::Remove(node);
-        delete node;
+ObjectKeyNode* ObjectKeySet::NewNode()
+{
+  return NewOrNull<ObjectKeyNode>();
+}
+
+void ObjectKeySet::Load(istream* in)
+{
+  Read(in);
+}
+
+void ObjectKeySet::Read(istream* in)
+{
+  Clear();
+  uint32_t count = 0;
+  ReadValue32(in, &count);
+  if (iostream_access::State(in) != 0)
+    return;
+  for (uint32_t i = 0; i < count; ++i)
+  {
+    auto node = std::unique_ptr<ObjectKeyNode>(NewNode());
+    if (!node)
+    {
+      iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+      return;
     }
+    node->Read(in);
+    if (iostream_access::State(in) != 0 || !Add(node.get()))
+    {
+      iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+      return;
+    }
+    node.release();
+  }
 }
 
-ObjectKeyNode* ObjectKeySet::Detach(const ObjectKey* key) {
-    ObjectKeyNode* node = Find(key);
-    if (node) AvlTree::Remove(node);
-    return node;
+void ObjectKeySet::Save(ostream* out)
+{
+  Write(out);
 }
 
-ObjectKeyNode* ObjectKeySet::Find(const ObjectKey* key) {
-    AvlNode* found = LowerBound([key](const AvlNode* candidate) {
-        ObjectKey nodeKey;
-        static_cast<const ObjectKeyNode*>(candidate)->GetKey(&nodeKey);
-        return nodeKey.m_value < key->m_value;
+void ObjectKeySet::Write(ostream* out)
+{
+  if (Count() > std::numeric_limits<uint32_t>::max())
+  {
+    iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
+    return;
+  }
+  uint32_t count = static_cast<uint32_t>(Count());
+  WriteValue32(out, &count);
+  for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+    node->Write(out);
+}
+
+int ObjectKeySet::Checksum(Crc32* crc)
+{
+  int ok = 1;
+  crc->AddInt(static_cast<uint32_t>(Count()));
+  for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  {
+    ok = node->Checksum(crc);
+    if (!ok)
+      break;
+  }
+  return ok;
+}
+
+ObjectKeySet& ObjectKeySet::operator=(const ObjectKeySet& other)
+{
+  if (this != &other)
+  {
+    Clear();
+    for (AvlNode* node = other.AvlTree::First(); node; node = node->m_successor)
+    {
+      if (ObjectKeyNode* copy = static_cast<ObjectKeyNode*>(node)->Clone())
+        Add(copy);
+    }
+  }
+  return *this;
+}
+
+uint32_t ObjectKeySet::Add(ObjectKeyNode* node)
+{
+  ObjectKey key;
+  if (node)
+  {
+    node->GetKey(&key);
+    if (!key.IsComplete() || !Insert(node))
+      return 0;
+  }
+  return key.Id();
+}
+
+int ObjectKeySet::AddKey(const ObjectKey* key)
+{
+  ObjectKeyNode* node = NewOrNull<ObjectKeyNode>(*key);
+  if (!node)
+    return 0;
+  if (Add(node))
+    return 1;
+  delete node;
+  return 0;
+}
+
+void ObjectKeySet::RemoveKey(const ObjectKey* key)
+{
+  ObjectKeyNode* node = Find(key);
+  if (node)
+  {
+    AvlTree::Remove(node);
+    delete node;
+  }
+}
+
+ObjectKeyNode* ObjectKeySet::Detach(const ObjectKey* key)
+{
+  ObjectKeyNode* node = Find(key);
+  if (node)
+    AvlTree::Remove(node);
+  return node;
+}
+
+ObjectKeyNode* ObjectKeySet::Find(const ObjectKey* key)
+{
+  AvlNode* found = LowerBound(
+    [key](const AvlNode* candidate)
+    {
+      ObjectKey nodeKey;
+      static_cast<const ObjectKeyNode*>(candidate)->GetKey(&nodeKey);
+      return nodeKey.m_value < key->m_value;
     });
-    auto* node = static_cast<ObjectKeyNode*>(found);
-    if (node) {
-        ObjectKey nodeKey;
-        node->GetKey(&nodeKey);
-        if (nodeKey.m_value != key->m_value) node = nullptr;
-    }
-    return node;
+  auto* node = static_cast<ObjectKeyNode*>(found);
+  if (node)
+  {
+    ObjectKey nodeKey;
+    node->GetKey(&nodeKey);
+    if (nodeKey.m_value != key->m_value)
+      node = nullptr;
+  }
+  return node;
 }
 
 // ---- ObjectKeyValueSet -------------------------------------------------------------------------------------
 
-ObjectKeyValueSet::ObjectKeyValueSet() : ObjectKeySet() {}
+ObjectKeyValueSet::ObjectKeyValueSet() : ObjectKeySet()
+{
+}
 
-ObjectKeyValueSet::ObjectKeyValueSet(const ObjectKeyValueSet& other)  = default;
+ObjectKeyValueSet::ObjectKeyValueSet(const ObjectKeyValueSet& other) = default;
 
 ObjectKeyValueSet::~ObjectKeyValueSet() = default;
 
-ObjectKeyNode* ObjectKeyValueSet::NewNode() { return NewOrNull<ObjectKeyValueNode>(); }
-
-void ObjectKeyValueSet::Read(istream* in) { ObjectKeySet::Read(in); }
-
-void ObjectKeyValueSet::Write(ostream* out) { ObjectKeySet::Write(out); }
-
-int ObjectKeyValueSet::Checksum(Crc32* crc) { return ObjectKeySet::Checksum(crc); }
-
-ObjectKeyValueSet& ObjectKeyValueSet::operator=(const ObjectKeyValueSet& other) {
-    if (this != &other) ObjectKeySet::operator=(other);
-    return *this;
+ObjectKeyNode* ObjectKeyValueSet::NewNode()
+{
+  return NewOrNull<ObjectKeyValueNode>();
 }
 
-int ObjectKeyValueSet::operator==(const ObjectKeyValueSet& other) const {
-    bool same = true;
-    const ObjectKeyValueNode* a = static_cast<const ObjectKeyValueNode*>(AvlTree::First());
-    const ObjectKeyValueNode* b = static_cast<const ObjectKeyValueNode*>(other.AvlTree::First());
-    while (a && b) {
-        if (!same) return false;
-        same = a->HasSameKeyAndValue(*b);
-        a = static_cast<const ObjectKeyValueNode*>(a->m_successor);
-        b = static_cast<const ObjectKeyValueNode*>(b->m_successor);
-    }
-    return same && !a && !b;
+void ObjectKeyValueSet::Read(istream* in)
+{
+  ObjectKeySet::Read(in);
 }
 
-int ObjectKeyValueSet::operator!=(const ObjectKeyValueSet& other) const { return !(*this == other); }
+void ObjectKeyValueSet::Write(ostream* out)
+{
+  ObjectKeySet::Write(out);
+}
 
-int ObjectKeyValueSet::AddKeyValue(const ObjectKey* key, int value) {
-    ObjectKeyValueNode* node = NewOrNull<ObjectKeyValueNode>(*key, value);
-    if (!node) return 0;
-    if (Add(node)) return 1;
-    delete node;
+int ObjectKeyValueSet::Checksum(Crc32* crc)
+{
+  return ObjectKeySet::Checksum(crc);
+}
+
+ObjectKeyValueSet& ObjectKeyValueSet::operator=(const ObjectKeyValueSet& other)
+{
+  if (this != &other)
+    ObjectKeySet::operator=(other);
+  return *this;
+}
+
+int ObjectKeyValueSet::operator==(const ObjectKeyValueSet& other) const
+{
+  bool same = true;
+  const ObjectKeyValueNode* a = static_cast<const ObjectKeyValueNode*>(AvlTree::First());
+  const ObjectKeyValueNode* b = static_cast<const ObjectKeyValueNode*>(other.AvlTree::First());
+  while (a && b)
+  {
+    if (!same)
+      return false;
+    same = a->HasSameKeyAndValue(*b);
+    a = static_cast<const ObjectKeyValueNode*>(a->m_successor);
+    b = static_cast<const ObjectKeyValueNode*>(b->m_successor);
+  }
+  return same && !a && !b;
+}
+
+int ObjectKeyValueSet::operator!=(const ObjectKeyValueSet& other) const
+{
+  return !(*this == other);
+}
+
+int ObjectKeyValueSet::AddKeyValue(const ObjectKey* key, int value)
+{
+  ObjectKeyValueNode* node = NewOrNull<ObjectKeyValueNode>(*key, value);
+  if (!node)
     return 0;
+  if (Add(node))
+    return 1;
+  delete node;
+  return 0;
 }
 
 // ---- ObjectRefList -----------------------------------------------------------------------------------------
 
-ObjectRefList::ObjectRefList() : IdAvlTree(), m_ok(1) {}
+ObjectRefList::ObjectRefList() : IdAvlTree(), m_ok(1)
+{
+}
 
-ObjectRefList::~ObjectRefList() {
+ObjectRefList::~ObjectRefList()
+{
+  IdAvlTree::Clear();
+}
+
+ObjectRefList& ObjectRefList::operator=(const ObjectRefList& other)
+{
+  bool copied = true;
+  if (this != &other)
+  {
     IdAvlTree::Clear();
-
-}
-
-ObjectRefList& ObjectRefList::operator=(const ObjectRefList& other) {
-    bool copied = true;
-    if (this != &other) {
-        IdAvlTree::Clear();
-        for (const AvlNode* node = other.AvlTree::First(); node && copied; node = node->m_successor) {
-            ObjectRefNode* copy = NewOrNull<ObjectRefNode>(*static_cast<const ObjectRefNode*>(node));
-            copied = copy != nullptr;
-            if (copied) Add(copy);
-        }
+    for (const AvlNode* node = other.AvlTree::First(); node && copied; node = node->m_successor)
+    {
+      ObjectRefNode* copy = NewOrNull<ObjectRefNode>(*static_cast<const ObjectRefNode*>(node));
+      copied = copy != nullptr;
+      if (copied)
+        Add(copy);
     }
-    m_ok = copied;
-    return *this;
+  }
+  m_ok = copied;
+  return *this;
 }
 
-int ObjectRefList::Read(istream* in) {
-    int ok = 1;
-    IdAvlTree::Clear();
-    ReadValue32(in, &m_ok);
-    int count;
-    ReadValue32(in, &count);
-    for (int i = 0; i < count && ok; ++i) {
-        ObjectRefNode* node = NewOrNull<ObjectRefNode>();
-        ok = 0;
-        if (node) {
-            ok = node->Read(in);
-            if (ok) ok = Add(node);
-        }
-    }
-    return ok;
-}
-
-int ObjectRefList::Write(ostream* out) {
-    int ok = 1;
-    WriteValue32(out, &m_ok);
-    uint32_t count = Size();
-    WriteValue32(out, &count);
-    for (AvlNode* node = AvlTree::First(); node; node = node->m_successor) {
-        ok = static_cast<ObjectRefNode*>(node)->Write(out);
-    }
-    return ok;
-}
-
-int ObjectRefList::Checksum(Crc32* crc) {
-    int ok = 1;
-    crc->AddInt(m_ok);
-    crc->AddInt(Size());
-    for (AvlNode* node = AvlTree::First(); node; node = node->m_successor) ok = static_cast<ObjectRefNode*>(node)->Checksum(crc);
-    return ok;
-}
-
-int ObjectRefList::Add(ObjectRefNode* node) {
-    if (node) AddWithId(node);
-    return node != nullptr;
-}
-
-uint16_t ObjectRefList::Size() const { return static_cast<uint16_t>(Count()); }
-
-ObjectRefNode* ObjectRefList::AddKey(ObjectKey key) {
+int ObjectRefList::Read(istream* in)
+{
+  int ok = 1;
+  IdAvlTree::Clear();
+  ReadValue32(in, &m_ok);
+  int count;
+  ReadValue32(in, &count);
+  for (int i = 0; i < count && ok; ++i)
+  {
     ObjectRefNode* node = NewOrNull<ObjectRefNode>();
-    if (node) {
-        node->Set(key);
-        Add(node);
+    ok = 0;
+    if (node)
+    {
+      ok = node->Read(in);
+      if (ok)
+        ok = Add(node);
     }
-    return node;
+  }
+  return ok;
 }
 
-ObjectRefNode::ObjectRefNode() : IdNode(), m_flag(1), m_count(0) {
-    m_key.m_value = 0;
+int ObjectRefList::Write(ostream* out)
+{
+  int ok = 1;
+  WriteValue32(out, &m_ok);
+  uint32_t count = Size();
+  WriteValue32(out, &count);
+  for (AvlNode* node = AvlTree::First(); node; node = node->m_successor)
+  {
+    ok = static_cast<ObjectRefNode*>(node)->Write(out);
+  }
+  return ok;
+}
+
+int ObjectRefList::Checksum(Crc32* crc)
+{
+  int ok = 1;
+  crc->AddInt(m_ok);
+  crc->AddInt(Size());
+  for (AvlNode* node = AvlTree::First(); node; node = node->m_successor)
+    ok = static_cast<ObjectRefNode*>(node)->Checksum(crc);
+  return ok;
+}
+
+int ObjectRefList::Add(ObjectRefNode* node)
+{
+  if (node)
+    AddWithId(node);
+  return node != nullptr;
+}
+
+uint16_t ObjectRefList::Size() const
+{
+  return static_cast<uint16_t>(Count());
+}
+
+ObjectRefNode* ObjectRefList::AddKey(ObjectKey key)
+{
+  ObjectRefNode* node = NewOrNull<ObjectRefNode>();
+  if (node)
+  {
+    node->Set(key);
+    Add(node);
+  }
+  return node;
+}
+
+ObjectRefNode::ObjectRefNode() : IdNode(), m_flag(1), m_count(0)
+{
+  m_key.m_value = 0;
 }
 
 // The copy constructor clears m_flag instead of copying it.
-ObjectRefNode::ObjectRefNode(const ObjectRefNode& other) : IdNode(), m_flag(0), m_count(other.m_count), m_key(other.m_key) {}
+ObjectRefNode::ObjectRefNode(const ObjectRefNode& other)
+: IdNode(),
+  m_flag(0),
+  m_count(other.m_count),
+  m_key(other.m_key)
+{
+}
 
 ObjectRefNode::~ObjectRefNode() = default;
 
-int ObjectRefNode::Read(istream* in) {
-    ReadValue32(in, &m_flag);
-    ReadValue32(in, &m_count);
-    return m_key.Read(in);
+int ObjectRefNode::Read(istream* in)
+{
+  ReadValue32(in, &m_flag);
+  ReadValue32(in, &m_count);
+  return m_key.Read(in);
 }
 
-int ObjectRefNode::Write(ostream* out) {
-    WriteValue32(out, &m_flag);
-    WriteValue32(out, &m_count);
-    return m_key.Write(out);
+int ObjectRefNode::Write(ostream* out)
+{
+  WriteValue32(out, &m_flag);
+  WriteValue32(out, &m_count);
+  return m_key.Write(out);
 }
 
-int ObjectRefNode::Checksum(Crc32* crc) {
-    crc->AddInt(m_flag);
-    crc->AddInt(m_count);
-    m_key.Checksum(crc);
-    return 1;
+int ObjectRefNode::Checksum(Crc32* crc)
+{
+  crc->AddInt(m_flag);
+  crc->AddInt(m_count);
+  m_key.Checksum(crc);
+  return 1;
 }
 
-int ObjectRefNode::Set(const ObjectKey& key) {
-    m_key = key;
-    m_count = 0;
-    return 1;
+int ObjectRefNode::Set(const ObjectKey& key)
+{
+  m_key = key;
+  m_count = 0;
+  return 1;
 }
 
-ObjectKey* ObjectRefNode::GetKey(ObjectKey* out) const {
-    out->m_value = m_key.m_value;
-    return out;
+ObjectKey* ObjectRefNode::GetKey(ObjectKey* out) const
+{
+  out->m_value = m_key.m_value;
+  return out;
 }

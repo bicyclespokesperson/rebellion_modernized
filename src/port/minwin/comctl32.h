@@ -5,16 +5,17 @@
 #include "port/minwin/base.h"
 #include "port/minwin/user32.h"
 
-struct tagTOOLINFOA {
-    UINT cbSize;
-    UINT uFlags;
-    HWND hwnd;
-    UINT_PTR uId;
-    RECT rect;
-    HINSTANCE hinst;
-    LPSTR lpszText;
-    LPARAM lParam;
-    void *lpReserved;
+struct tagTOOLINFOA
+{
+  UINT cbSize;
+  UINT uFlags;
+  HWND hwnd;
+  UINT_PTR uId;
+  RECT rect;
+  HINSTANCE hinst;
+  LPSTR lpszText;
+  LPARAM lParam;
+  void* lpReserved;
 };
 typedef struct tagTOOLINFOA TTTOOLINFOA;
 

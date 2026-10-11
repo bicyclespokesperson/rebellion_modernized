@@ -19,70 +19,73 @@
 class ObjectDatabase;
 
 // One database entry; the IdNode id is the key's id, m_family its family.
-class ObjectEntry : public IdNode {
+class ObjectEntry : public IdNode
+{
 public:
-    ObjectEntry();
-    ~ObjectEntry() override;
+  ObjectEntry();
+  ~ObjectEntry() override;
 
-    ObjectKey* GetKey(ObjectKey* out) const;
-    // Stores `object` in the slot of its view side if the family matches and the slot is free; 1 if it was stored.
-    int AddObject(GameObjNotifier* object);
-    // Clears the slot if it holds `object`; 1 if it did.
-    int RemoveObject(GameObjNotifier* object);
-    GameObjNotifier* GetObject(int view) const;
-    // All three slots are filled with objects that point back at this entry and are attached (have a parent) or are
-    // the game root.
-    int IsFullyLinked() const;
-    // The next entry in key order if its family lies in `range`.
-    ObjectEntry* NextInRange(const FamilyRange* range) const;
+  ObjectKey* GetKey(ObjectKey* out) const;
+  // Stores `object` in the slot of its view side if the family matches and the slot is free; 1 if it was stored.
+  int AddObject(GameObjNotifier* object);
+  // Clears the slot if it holds `object`; 1 if it did.
+  int RemoveObject(GameObjNotifier* object);
+  GameObjNotifier* GetObject(int view) const;
+  // All three slots are filled with objects that point back at this entry and are attached (have a parent) or are
+  // the game root.
+  int IsFullyLinked() const;
+  // The next entry in key order if its family lies in `range`.
+  ObjectEntry* NextInRange(const FamilyRange* range) const;
 
-    int m_flag;                    // +0x1c, always 1
-    uint32_t m_family;             // +0x20
-    GameObjNotifier* m_objects[3];  // +0x24, indexed by view
+  int m_flag; // +0x1c, always 1
+  uint32_t m_family; // +0x20
+  GameObjNotifier* m_objects[3]; // +0x24, indexed by view
 };
 
 // A parent's children, sorted by (family, id). m_ok is saved with the list.
-class ChildList : public IdAvlTree {
+class ChildList : public IdAvlTree
+{
 public:
-    ChildList();
-    ~ChildList() override;
-    int IsLess(AvlNode* a, AvlNode* b) override;
+  ChildList();
+  ~ChildList() override;
+  int IsLess(AvlNode* a, AvlNode* b) override;
 
-    int Read(istream* in);
-    int Write(ostream* out);
-    // Unlinks `child` (matched by family and id); it is not deleted.
-    int RemoveChild(GameObjNotifier* child);
-    GameObjNotifier* Find(uint32_t family, uint32_t id) const;
-    // Lowest child whose family is inside `range`.
-    GameObjNotifier* FindFirstInRange(const FamilyRange* range) const;
+  int Read(istream* in);
+  int Write(ostream* out);
+  // Unlinks `child` (matched by family and id); it is not deleted.
+  int RemoveChild(GameObjNotifier* child);
+  GameObjNotifier* Find(uint32_t family, uint32_t id) const;
+  // Lowest child whose family is inside `range`.
+  GameObjNotifier* FindFirstInRange(const FamilyRange* range) const;
 
-    int m_ok;  // +0x0c
+  int m_ok; // +0x0c
 };
 
 // The database itself (VT 0x66a220, 0x585b20-0x585f80): an IdAvlTree of ObjectEntries ordered by key.
-class ObjectDatabase : public IdAvlTree {
+class ObjectDatabase : public IdAvlTree
+{
 public:
-    ObjectDatabase();                                 // 0x585b20
-    ~ObjectDatabase() override;                        // 0: 0x585b40 (deleting), 0x585b60
-    int IsLess(AvlNode* a, AvlNode* b) override;  // 2: 0x585f50
+  ObjectDatabase(); // 0x585b20
+  ~ObjectDatabase() override; // 0: 0x585b40 (deleting), 0x585b60
+  int IsLess(AvlNode* a, AvlNode* b) override; // 2: 0x585f50
 
-    // Puts the object in the entry of its key (creating the entry); 0 for a null object.
-    int AddObject(GameObjNotifier* object);           // 0x585b70
-    // Takes the object out of its entry and deletes the entry once it holds no object; 1 if the object was in it.
-    int RemoveObject(GameObjNotifier* object);        // 0x585c70
-    int DetachEntry(AvlNode* entry);                  // 0x585d40: unlinks the node; 1 unless it is null
-    int DeleteEntry(AvlNode* entry);                  // 0x585d60
-    int AreAllLinked();                               // 0x585d90
-    ObjectEntry* FindEntry(const ObjectKey* key);     // 0x585dc0
-    // The entry with the lowest key whose family is the range's first family or, failing that, the next entry if it lies in
-    // the range.
-    ObjectEntry* FindEntryInRange(const FamilyRange* range);  // 0x585e40
+  // Puts the object in the entry of its key (creating the entry); 0 for a null object.
+  int AddObject(GameObjNotifier* object); // 0x585b70
+  // Takes the object out of its entry and deletes the entry once it holds no object; 1 if the object was in it.
+  int RemoveObject(GameObjNotifier* object); // 0x585c70
+  int DetachEntry(AvlNode* entry); // 0x585d40: unlinks the node; 1 unless it is null
+  int DeleteEntry(AvlNode* entry); // 0x585d60
+  int AreAllLinked(); // 0x585d90
+  ObjectEntry* FindEntry(const ObjectKey* key); // 0x585dc0
+  // The entry with the lowest key whose family is the range's first family or, failing that, the next entry if it lies in
+  // the range.
+  ObjectEntry* FindEntryInRange(const FamilyRange* range); // 0x585e40
 
-    int m_ok;  // +0x0c
+  int m_ok; // +0x0c
 };
 
-extern ObjectDatabase* g_objectDatabase;  // 0x6b90e4
-extern ObjectKeySet* g_unresolvedKeys;    // 0x6b90e8: keys whose lookup found no object, for debugging
+extern ObjectDatabase* g_objectDatabase; // 0x6b90e4
+extern ObjectKeySet* g_unresolvedKeys; // 0x6b90e8: keys whose lookup found no object, for debugging
 
 // ---- lookups (view 0 = master copy) ------------------------------------------------------------------------
 

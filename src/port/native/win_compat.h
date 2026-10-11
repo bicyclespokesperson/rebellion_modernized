@@ -12,6 +12,12 @@
 #define FILE_ATTRIBUTE_NORMAL 0x80u
 
 DWORD GetEnvironmentVariableA(LPCSTR name, LPSTR buffer, DWORD size);
-HANDLE CreateFileA(LPCSTR path, DWORD access, DWORD share, void* security, DWORD disposition, DWORD attributes, HANDLE template_);
+HANDLE CreateFileA(LPCSTR path,
+                   DWORD access,
+                   DWORD share,
+                   void* security,
+                   DWORD disposition,
+                   DWORD attributes,
+                   HANDLE template_);
 BOOL WriteFile(HANDLE file, const void* data, DWORD bytes, DWORD* written, void* overlapped);
 [[noreturn]] void ExitProcess(UINT code);

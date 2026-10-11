@@ -9,22 +9,23 @@
 class istream;
 class ostream;
 
-class SavedGameInfo {
+class SavedGameInfo
+{
 public:
-    SavedGameInfo();                       // 0x411730
-    SavedGameInfo(const SavedGameInfo&);   // 0x4117c0
-    virtual ~SavedGameInfo();              // 0x4118f0 (scalar deleting destructor first in vtable 0x6587e0)
-    SavedGameInfo& operator=(const SavedGameInfo&);  // 0x411860
-    void Read(istream* in);                // 0x411900
-    void Write(ostream* out);              // 0x411970
-    void SetName(std::string name);             // 0x415890 (this module; the argument is passed by value)
-    std::string GetName() const;                // 0x408d90
+  SavedGameInfo(); // 0x411730
+  SavedGameInfo(const SavedGameInfo&); // 0x4117c0
+  virtual ~SavedGameInfo(); // 0x4118f0 (scalar deleting destructor first in vtable 0x6587e0)
+  SavedGameInfo& operator=(const SavedGameInfo&); // 0x411860
+  void Read(istream* in); // 0x411900
+  void Write(ostream* out); // 0x411970
+  void SetName(std::string name); // 0x415890 (this module; the argument is passed by value)
+  std::string GetName() const; // 0x408d90
 
-    std::string m_name;           // +0x04
-    int m_unknown10;         // +0x10 stored by the application as m_unknown130 (1 in a freshly written header)
-    int m_unknown14;         // +0x14
-    int m_gameType;          // +0x18 RebellionApplication::m_gameType
-    int m_slot;              // +0x1c save slot
-    int m_side;              // +0x20 RebellionApplication::m_side
-    int m_unknown24;         // +0x24
+  std::string m_name; // +0x04
+  int m_unknown10; // +0x10 stored by the application as m_unknown130 (1 in a freshly written header)
+  int m_unknown14; // +0x14
+  int m_gameType; // +0x18 RebellionApplication::m_gameType
+  int m_slot; // +0x1c save slot
+  int m_side; // +0x20 RebellionApplication::m_side
+  int m_unknown24; // +0x24
 };

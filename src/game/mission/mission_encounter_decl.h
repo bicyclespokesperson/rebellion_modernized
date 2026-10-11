@@ -16,8 +16,9 @@ ObjectKey* GetOwnerKeyValue(GameObjNotifier* self, ObjectKey* out);
 
 #include "story/story_characters.h"
 
-namespace mission_encounter {
+namespace mission_encounter
+{
 
 constexpr uint32_t kStateUsable = 1;
 
-}  // namespace mission_encounter
+} // namespace mission_encounter

@@ -5,4 +5,4 @@
 #include "core/stream_io.h"
 
 // Function of the player dispatch module that the advisor droid calls.
-int LoadAdvisorNotices(int side, IdValueTree* notices);  // 0x48b460
+int LoadAdvisorNotices(int side, IdValueTree* notices); // 0x48b460

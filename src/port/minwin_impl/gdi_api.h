@@ -14,16 +14,18 @@
 
 #include "port/minwin/minwin.h"
 
-namespace minwin_gdi {
+namespace minwin_gdi
+{
 
 constexpr int kScreenWidth = 640;
 constexpr int kScreenHeight = 480;
 
-struct ScreenSurface {
-    uint8_t* bits;  // kScreenHeight rows of `pitch` bytes, one palette index per pixel
-    int width;
-    int height;
-    int pitch;
+struct ScreenSurface
+{
+  uint8_t* bits; // kScreenHeight rows of `pitch` bytes, one palette index per pixel
+  int width;
+  int height;
+  int pitch;
 };
 
 // The desktop. Always valid after the first call; the contents persist for the life of the process.
@@ -33,21 +35,24 @@ ScreenSurface Screen();
 void CurrentPalette(uint32_t rgb[256], uint32_t* generation);
 
 // What the window manager knows about a window DC when it creates one.
-struct WindowDcDesc {
-    HWND window;           // null for the screen DC
-    int originX;           // screen coordinates of the DC's (0,0): the client origin (GetDC, BeginPaint) or window origin (GetWindowDC)
-    int originY;
-    const RECT* clip;      // visible area in screen coordinates: non-overlapping rectangles
-    int clipCount;         // the GDI side copies them; the pointer is not kept
+struct WindowDcDesc
+{
+  HWND window; // null for the screen DC
+  int
+    originX; // screen coordinates of the DC's (0,0): the client origin (GetDC, BeginPaint) or window origin (GetWindowDC)
+  int originY;
+  const RECT* clip; // visible area in screen coordinates: non-overlapping rectangles
+  int clipCount; // the GDI side copies them; the pointer is not kept
 };
 
-HDC CreateWindowDc(const WindowDcDesc& desc);  // GetDC, GetWindowDC, BeginPaint
-void DestroyWindowDc(HDC dc);                  // ReleaseDC, EndPaint
+HDC CreateWindowDc(const WindowDcDesc& desc); // GetDC, GetWindowDC, BeginPaint
+void DestroyWindowDc(HDC dc); // ReleaseDC, EndPaint
 
-}  // namespace minwin_gdi
+} // namespace minwin_gdi
 
 // Window manager services the GDI side may call (src/port/minwin_impl/user/user_api.h declares the rest).
-namespace minwin_user {
+namespace minwin_user
+{
 
 // RealizePalette changed the system palette: sends WM_PALETTEISCHANGING (0x310, wParam = `realizer`) to the top-level windows,
 // which is all the real user32 does under Wine for the game's first realization (call it only when the palette really changed).
@@ -57,4 +62,4 @@ void NotifyPaletteChanged(HWND realizer);
 // display mode switch changes the display palette.
 void BroadcastPaletteChanged(HWND realizer);
 
-}  // namespace minwin_user
+} // namespace minwin_user

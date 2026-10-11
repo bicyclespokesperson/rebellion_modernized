@@ -14,93 +14,110 @@
 // The movie windows report to their parent window with private messages: 0x402 = the last frame was shown,
 // 0x403 = the file could not be opened, 0x404 = the movie was skipped (Escape or a mouse click).
 
-enum MovieType : int {
-    kMovieSmacker = 1,
-    kMovieAvi = 2,
+enum MovieType : int
+{
+  kMovieSmacker = 1,
+  kMovieAvi = 2,
 };
 
 constexpr UINT kMovieMessageFinished = 0x402;
 constexpr UINT kMovieMessageNotFound = 0x403;
 constexpr UINT kMovieMessageSkipped = 0x404;
 
-class SmackerWindow : public CoolWindow {
+class SmackerWindow : public CoolWindow
+{
 public:
-    SmackerWindow(const char* path, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
-                  int autoStart, uint32_t smackFlags);
-    ~SmackerWindow() override;
-    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
+  SmackerWindow(const char* path,
+                HINSTANCE instance,
+                int x,
+                int y,
+                int width,
+                int height,
+                CoolWindow* parent,
+                int autoStart,
+                uint32_t smackFlags);
+  ~SmackerWindow() override;
+  LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
 
-    // Starts the playback thread (stopping a previous one); `loop` makes the movie restart after its last frame.
-    int StartPlayback(int loop);
-    // Stops the thread and releases the Smack and its buffer; always returns 1.
-    int PrepareDestroy(HWND window);
-    void StopPlayback();
-    // Opens the movie and its window buffer; false when SmackOpen fails.
-    int OpenMovie();
-    // Decodes and shows the next frame. Returns 1 when playback is over (end reached without looping, or skipped).
-    int AdvanceFrame();
-    void SetVolume(int volume);
+  // Starts the playback thread (stopping a previous one); `loop` makes the movie restart after its last frame.
+  int StartPlayback(int loop);
+  // Stops the thread and releases the Smack and its buffer; always returns 1.
+  int PrepareDestroy(HWND window);
+  void StopPlayback();
+  // Opens the movie and its window buffer; false when SmackOpen fails.
+  int OpenMovie();
+  // Decodes and shows the next frame. Returns 1 when playback is over (end reached without looping, or skipped).
+  int AdvanceFrame();
+  void SetVolume(int volume);
 
-    static int GetMovieSize(int* width, int* height, HWND unusedWindow, const char* path);
-    static DWORD REB_STDCALL PlaybackThreadProc(LPVOID context);
+  static int GetMovieSize(int* width, int* height, HWND unusedWindow, const char* path);
+  static DWORD REB_STDCALL PlaybackThreadProc(LPVOID context);
 
-    std::string m_path;
-    uint32_t m_unk194;         // +0x194
-    uint32_t m_unk198;         // +0x198
-    uint32_t m_scale;          // +0x19c, integer window zoom
-    int m_autoStart;           // +0x1a0, WM_CREATE starts playback
-    int m_loop;                // +0x1a4
-    SmackBuf* m_smackBuffer;   // +0x1a8
-    Smack* m_smack;            // +0x1ac
-    DWORD m_threadId;          // +0x1b0
-    HANDLE m_thread;           // +0x1b4
-    uint32_t m_smackFlags;     // +0x1b8, SmackOpen flags
-    int m_savedVolume;         // +0x1bc, DirectSound primary volume when the window was created
-    int m_volumeTouched;       // +0x1c0, SetVolume was called; the destructor restores m_savedVolume
+  std::string m_path;
+  uint32_t m_unk194; // +0x194
+  uint32_t m_unk198; // +0x198
+  uint32_t m_scale; // +0x19c, integer window zoom
+  int m_autoStart; // +0x1a0, WM_CREATE starts playback
+  int m_loop; // +0x1a4
+  SmackBuf* m_smackBuffer; // +0x1a8
+  Smack* m_smack; // +0x1ac
+  DWORD m_threadId; // +0x1b0
+  HANDLE m_thread; // +0x1b4
+  uint32_t m_smackFlags; // +0x1b8, SmackOpen flags
+  int m_savedVolume; // +0x1bc, DirectSound primary volume when the window was created
+  int m_volumeTouched; // +0x1c0, SetVolume was called; the destructor restores m_savedVolume
 };
 
-class VideoWindow : public CoolWindow {
+class VideoWindow : public CoolWindow
+{
 public:
-    VideoWindow(const char* path, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
-                int autoStart);
-    ~VideoWindow() override;
-    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
+  VideoWindow(const char* path,
+              HINSTANCE instance,
+              int x,
+              int y,
+              int width,
+              int height,
+              CoolWindow* parent,
+              int autoStart);
+  ~VideoWindow() override;
+  LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
 
-    int OpenMovie(HWND window, const char* path, MCIDEVICEID* device);
-    int Play(int fullScreen);
-    int CloseMovie(HWND window, MCIDEVICEID device);
-    int OpenDriver(const char* path);
-    int CloseDevices(const char* path);
+  int OpenMovie(HWND window, const char* path, MCIDEVICEID* device);
+  int Play(int fullScreen);
+  int CloseMovie(HWND window, MCIDEVICEID device);
+  int OpenDriver(const char* path);
+  int CloseDevices(const char* path);
 
-    static int GetMovieSize(int* width, int* height, HWND unusedWindow, const char* path);
+  static int GetMovieSize(int* width, int* height, HWND unusedWindow, const char* path);
 
-    std::string m_path;
-    MCIDEVICEID m_device;      // +0x194
-    uint32_t m_unk198;         // +0x198
-    uint32_t m_unk19c;         // +0x19c
-    int m_autoStart;           // +0x1a0
+  std::string m_path;
+  MCIDEVICEID m_device; // +0x194
+  uint32_t m_unk198; // +0x198
+  uint32_t m_unk19c; // +0x19c
+  int m_autoStart; // +0x1a0
 };
 
-class VideoManager {
+class VideoManager
+{
 public:
-    explicit VideoManager(CoolWindow* parentWindow);
-    virtual ~VideoManager();
+  explicit VideoManager(CoolWindow* parentWindow);
+  virtual ~VideoManager();
 
-    // Starts a movie of `type` (MovieType) in a child window of `parent` (the application window when null) at
-    // (x, y), centred when both are 0. `scale` zooms Smacker movies. Returns 1 when the movie size is known.
-    int Play(const char* path, CoolWindow* parent, int x, int y, int type, uint32_t scale, uint32_t smackFlags);
-    // Destroys the movie window; 1 if there was one.
-    int Stop();
-    void NotifyPaletteChanged(HWND window);
-    void SetVolume(int volume);
-    void AdvanceMovieFrame();
-    int IsDefaultPlacement(int x, int y);
+  // Starts a movie of `type` (MovieType) in a child window of `parent` (the application window when null) at
+  // (x, y), centred when both are 0. `scale` zooms Smacker movies. Returns 1 when the movie size is known.
+  int Play(const char* path, CoolWindow* parent, int x, int y, int type, uint32_t scale, uint32_t smackFlags);
+  // Destroys the movie window; 1 if there was one.
+  int Stop();
+  void NotifyPaletteChanged(HWND window);
+  void SetVolume(int volume);
+  void AdvanceMovieFrame();
+  int IsDefaultPlacement(int x, int y);
 
-    static VideoManager* GetInstance();
-    static int GetMovieSize(const char* path, int* width, int* height, int type);
+  static VideoManager* GetInstance();
+  static int GetMovieSize(const char* path, int* width, int* height, int type);
 
-    VideoWindow* m_videoWindow;      // +0x04, the MovieType 2 window
-    SmackerWindow* m_smackerWindow;  // +0x08, the MovieType 1 window
-    int m_movieType;                 // +0x0c
-    int m_playing;                   // +0x10
+  VideoWindow* m_videoWindow; // +0x04, the MovieType 2 window
+  SmackerWindow* m_smackerWindow; // +0x08, the MovieType 1 window
+  int m_movieType; // +0x0c
+  int m_playing; // +0x10
 };

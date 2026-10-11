@@ -12,100 +12,137 @@ using events::kStatusOk;
 using events::succeeded;
 using events::succeedWithoutChecks;
 
+RefineryQueueEvent::RefineryQueueEvent() : PlainEvent()
+{
+}
 
-RefineryQueueEvent::RefineryQueueEvent() : PlainEvent() {}
-
-RefineryQueueEvent::RefineryQueueEvent(const RefineryQueueEvent& other)  = default;
+RefineryQueueEvent::RefineryQueueEvent(const RefineryQueueEvent& other) = default;
 
 RefineryQueueEvent::~RefineryQueueEvent() = default;
 
-RefineryQueueEvent* RefineryQueueEvent::Clone() { return NewOrNull<RefineryQueueEvent>(*this); }
-
-int RefineryQueueEvent::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+RefineryQueueEvent* RefineryQueueEvent::Clone()
+{
+  return NewOrNull<RefineryQueueEvent>(*this);
 }
 
-int RefineryQueueEvent::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int RefineryQueueEvent::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int RefineryQueueEvent::Execute() {
-    NotifyContext ctx(m_context);
-    int more = 0;
-    GameObjNotifier* owner = nullptr;
-    StatusCode status(kStatusCategory, kStatusOk);
-    const StatusCode missing(kStatusCategory, kStatusMissingTarget);
-    int ok = ResolveMasterInFamilies_f3_f4(&m_key, &owner, &missing, &status);
-    if (ok && succeeded(status)) static_cast<Side*>(owner)->ServeRefineryQueue(&more, &ctx);
-    return more;
+int RefineryQueueEvent::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-RefineryQueueEvent* CreateRefineryQueueEvent() { return NewOrNull<RefineryQueueEvent>(); }
+int RefineryQueueEvent::Execute()
+{
+  NotifyContext ctx(m_context);
+  int more = 0;
+  GameObjNotifier* owner = nullptr;
+  StatusCode status(kStatusCategory, kStatusOk);
+  const StatusCode missing(kStatusCategory, kStatusMissingTarget);
+  int ok = ResolveMasterInFamilies_f3_f4(&m_key, &owner, &missing, &status);
+  if (ok && succeeded(status))
+    static_cast<Side*>(owner)->ServeRefineryQueue(&more, &ctx);
+  return more;
+}
 
-ManufacturerQueueEvent::ManufacturerQueueEvent() : PlainEvent() {}
+RefineryQueueEvent* CreateRefineryQueueEvent()
+{
+  return NewOrNull<RefineryQueueEvent>();
+}
 
-ManufacturerQueueEvent::ManufacturerQueueEvent(const ManufacturerQueueEvent& other)  = default;
+ManufacturerQueueEvent::ManufacturerQueueEvent() : PlainEvent()
+{
+}
+
+ManufacturerQueueEvent::ManufacturerQueueEvent(const ManufacturerQueueEvent& other) = default;
 
 ManufacturerQueueEvent::~ManufacturerQueueEvent() = default;
 
-ManufacturerQueueEvent* ManufacturerQueueEvent::Clone() { return NewOrNull<ManufacturerQueueEvent>(*this); }
-
-int ManufacturerQueueEvent::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+ManufacturerQueueEvent* ManufacturerQueueEvent::Clone()
+{
+  return NewOrNull<ManufacturerQueueEvent>(*this);
 }
 
-int ManufacturerQueueEvent::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int ManufacturerQueueEvent::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int ManufacturerQueueEvent::Execute() {
-    NotifyContext ctx(m_context);
-    int more = 0;
-    GameObjNotifier* owner = nullptr;
-    StatusCode status(kStatusCategory, kStatusOk);
-    const StatusCode missing(kStatusCategory, kStatusMissingTarget);
-    int ok = ResolveMasterInFamilies_f3_f4(&m_key, &owner, &missing, &status);
-    if (ok && succeeded(status)) static_cast<Side*>(owner)->ServeManufacturerQueue(&more, &ctx);
-    return more;
+int ManufacturerQueueEvent::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-ManufacturerQueueEvent* CreateManufacturerQueueEvent() { return NewOrNull<ManufacturerQueueEvent>(); }
+int ManufacturerQueueEvent::Execute()
+{
+  NotifyContext ctx(m_context);
+  int more = 0;
+  GameObjNotifier* owner = nullptr;
+  StatusCode status(kStatusCategory, kStatusOk);
+  const StatusCode missing(kStatusCategory, kStatusMissingTarget);
+  int ok = ResolveMasterInFamilies_f3_f4(&m_key, &owner, &missing, &status);
+  if (ok && succeeded(status))
+    static_cast<Side*>(owner)->ServeManufacturerQueue(&more, &ctx);
+  return more;
+}
 
-ReparentToRootEvent::ReparentToRootEvent() : PlainEvent() {}
+ManufacturerQueueEvent* CreateManufacturerQueueEvent()
+{
+  return NewOrNull<ManufacturerQueueEvent>();
+}
 
-ReparentToRootEvent::ReparentToRootEvent(const ReparentToRootEvent& other)  = default;
+ReparentToRootEvent::ReparentToRootEvent() : PlainEvent()
+{
+}
+
+ReparentToRootEvent::ReparentToRootEvent(const ReparentToRootEvent& other) = default;
 
 ReparentToRootEvent::~ReparentToRootEvent() = default;
 
-ReparentToRootEvent* ReparentToRootEvent::Clone() { return NewOrNull<ReparentToRootEvent>(*this); }
-
-int ReparentToRootEvent::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+ReparentToRootEvent* ReparentToRootEvent::Clone()
+{
+  return NewOrNull<ReparentToRootEvent>(*this);
 }
 
-int ReparentToRootEvent::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int ReparentToRootEvent::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int ReparentToRootEvent::Execute() {
-    NotifyContext ctx(m_context);
-    GameObjNotifier* owner = nullptr;
-    StatusCode status(kStatusCategory, kStatusOk);
-    const StatusCode missing(kStatusCategory, kStatusMissingTarget);
-    int ok = ResolveMasterInFamilies_01_ff(&m_key, &owner, &missing, &status);
-    if (ok && owner) {
-        GameObjNotifier* parent = GetGameRootMember_b0();
-        ObjectKey currentParent;
-        static_cast<GameObj*>(owner)->GetValidParentKey(&currentParent);
-        if (parent) {
-            ObjectKey wanted;
-            if (GetObjectKey(parent, &wanted)->m_value != currentParent.m_value) {
-                ObjectKey target;
-                static_cast<GameObj*>(owner)->Reparent(GetObjectKey(parent, &target), &ctx);
-            }
-        }
+int ReparentToRootEvent::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
+}
+
+int ReparentToRootEvent::Execute()
+{
+  NotifyContext ctx(m_context);
+  GameObjNotifier* owner = nullptr;
+  StatusCode status(kStatusCategory, kStatusOk);
+  const StatusCode missing(kStatusCategory, kStatusMissingTarget);
+  int ok = ResolveMasterInFamilies_01_ff(&m_key, &owner, &missing, &status);
+  if (ok && owner)
+  {
+    GameObjNotifier* parent = GetGameRootMember_b0();
+    ObjectKey currentParent;
+    static_cast<GameObj*>(owner)->GetValidParentKey(&currentParent);
+    if (parent)
+    {
+      ObjectKey wanted;
+      if (GetObjectKey(parent, &wanted)->m_value != currentParent.m_value)
+      {
+        ObjectKey target;
+        static_cast<GameObj*>(owner)->Reparent(GetObjectKey(parent, &target), &ctx);
+      }
     }
-    return 0;
+  }
+  return 0;
 }
 
-ReparentToRootEvent* CreateReparentToRootEvent() { return NewOrNull<ReparentToRootEvent>(); }
+ReparentToRootEvent* CreateReparentToRootEvent()
+{
+  return NewOrNull<ReparentToRootEvent>();
+}

@@ -27,9 +27,9 @@ class TacticalSoundManager;
 class TacticalTurnSync;
 
 // ---- Ship-group module: the hub (DAT_006bc468, 0x188 bytes) and the registry (DAT_006bc470, 0x48 bytes) ----
-TacticalHub* FUN_0059ed70();                                    // creates the hub on first use
-void DestroyTacticalHub();                                      // 0x59ede0 destroys the hub
-void FUN_0059ee10(TacticalHub* hub);                 // the hub's destructor body
+TacticalHub* FUN_0059ed70(); // creates the hub on first use
+void DestroyTacticalHub(); // 0x59ede0 destroys the hub
+void FUN_0059ee10(TacticalHub* hub); // the hub's destructor body
 void FUN_0059eec0(TacticalHub* hub, int a);
 void FUN_0059eef0(TacticalHub* hub, int a);
 int FUN_0059f6e0(TacticalHub* hub);
@@ -41,9 +41,8 @@ void FUN_005a0c20(TacticalHub* hub, uint32_t* out);
 void FUN_005a5fd0(TacticalHub* hub, int arg);
 void FUN_005a0240();
 
-
 // ---- Capital ship / fighter / Death Star modules ----
-void DestroyTacticalSoundManager();  // 0x5ba920
+void DestroyTacticalSoundManager(); // 0x5ba920
 
 // ---- Headless simulator (DAT_006bc4a8, 0x274 bytes) ----
 
@@ -55,41 +54,44 @@ int FUN_005ae1d0(TacticalObjectManager* manager, int side);
 void FUN_0059e840(TacticalHub* hub);
 void FUN_005bf320();
 void FUN_005c1020(int a);
-void DestroyTurnSync();  // 0x5bbee0
-void FUN_005bbe20(TacticalTurnSync* sync);  // the turn-sync object's destructor body
+void DestroyTurnSync(); // 0x5bbee0
+void FUN_005bbe20(TacticalTurnSync* sync); // the turn-sync object's destructor body
 void* FUN_005bbe70(int handle);
 void FUN_005bbd90(void* syncObject, int handle);
 void FUN_005c1470(float seconds);
 int FUN_005c1490();
 
 // The 3D view's client object (DAT_006bc464); only its second virtual is called from here.
-class TacticalClient {
+class TacticalClient
+{
 public:
-    virtual void Virtual00();
-    virtual void Virtual01();
+  virtual void Virtual00();
+  virtual void Virtual01();
 };
 // A sound the tactical sound manager is playing: only the handle is read.
-struct TacticalSoundNode {
-    uint8_t m_pad00[0x18];
-    int m_handle;  // +0x18
+struct TacticalSoundNode
+{
+  uint8_t m_pad00[0x18];
+  int m_handle; // +0x18
 };
 
 // The 3D battle's sound manager (singleton g_tacticalSoundManager, 0x1420 bytes, built by FUN_005ba8b0); only its teardown
 // is reconstructed.
-class TacticalSoundManager {
+class TacticalSoundManager
+{
 public:
-    virtual ~TacticalSoundManager();            // slot 0 (the deleting destructor)
-    virtual void Virtual01();
-    virtual void Virtual02();
-    virtual TacticalSoundNode* FirstSound();    // slot 3
+  virtual ~TacticalSoundManager(); // slot 0 (the deleting destructor)
+  virtual void Virtual01();
+  virtual void Virtual02();
+  virtual TacticalSoundNode* FirstSound(); // slot 3
 };
-void FUN_005bab10(TacticalSoundManager* manager, int soundHandle);  // stops a sound
+void FUN_005bab10(TacticalSoundManager* manager, int soundHandle); // stops a sound
 #ifndef REB_NO_TACTICAL_3D
-extern TacticalSoundManager* g_tacticalSoundManager;    // 0x6bc4c8
-extern TacticalTurnSync* g_tacticalTurnSync;            // 0x6bc6dc
-extern TacticalClient* g_tacticalClient;                // 0x6bc464
-extern TacticalObjectManager* g_tacticalObjectManager;  // 0x6bc4a0
-extern TacticalHub* g_tacticalHub;                      // 0x6bc468
+extern TacticalSoundManager* g_tacticalSoundManager; // 0x6bc4c8
+extern TacticalTurnSync* g_tacticalTurnSync; // 0x6bc6dc
+extern TacticalClient* g_tacticalClient; // 0x6bc464
+extern TacticalObjectManager* g_tacticalObjectManager; // 0x6bc4a0
+extern TacticalHub* g_tacticalHub; // 0x6bc468
 #endif
 
 // ---- Object manager (3D battle): commander skill, random numbers, control and registration of units ----
@@ -119,7 +121,7 @@ void FUN_005caef0(ShipGroup* group, int handle);
 void FUN_0059f4d0(TacticalHub* hub, TacticalShipBase* ship);
 int FUN_0059f640(TacticalHub* hub, TacticalShipBase* ship);
 void FUN_005a5cf0(TacticalHub* hub, int attacker, int target);
-extern float g_shipMinTurnStep;  // 0x6bc4b0
+extern float g_shipMinTurnStep; // 0x6bc4b0
 
 // ---- 3D presentation hooks (effects, camera, sound): called as the original does ----
 void FUN_005c12d0(int target, int source, int kind, float volume, int level);

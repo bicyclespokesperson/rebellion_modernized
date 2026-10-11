@@ -10,27 +10,28 @@
 
 class MessageBase;
 
-class MessageCodec {
+class MessageCodec
+{
 public:
-    MessageCodec();           // 0x51c300
-    virtual ~MessageCodec();  // 0x51c350 (deleting 0x51c330)
+  MessageCodec(); // 0x51c300
+  virtual ~MessageCodec(); // 0x51c350 (deleting 0x51c330)
 
-    // Reads the kind at the start of the buffer, creates the message and lets it read itself. *out is the new
-    // message or null; true if there is one.
-    int Deserialize(MessageBase** out);  // 0x51c360
-    // Writes the message into the buffer (growing it as needed); m_size is the byte count afterwards.
-    int Serialize(MessageBase* message);  // 0x51c410
-    // Copies received bytes into the buffer for Deserialize.
-    void SetData(const void* data, uint32_t size);  // 0x51c510
-    // Frees the streams and the buffer; always true.
-    int Release();  // 0x51c560
-    // Makes the buffer at least `capacity` bytes (and new streams over it), keeping the contents if asked.
-    int Reserve(int capacity, int keepContents);  // 0x51c5c0
+  // Reads the kind at the start of the buffer, creates the message and lets it read itself. *out is the new
+  // message or null; true if there is one.
+  int Deserialize(MessageBase** out); // 0x51c360
+  // Writes the message into the buffer (growing it as needed); m_size is the byte count afterwards.
+  int Serialize(MessageBase* message); // 0x51c410
+  // Copies received bytes into the buffer for Deserialize.
+  void SetData(const void* data, uint32_t size); // 0x51c510
+  // Frees the streams and the buffer; always true.
+  int Release(); // 0x51c560
+  // Makes the buffer at least `capacity` bytes (and new streams over it), keeping the contents if asked.
+  int Reserve(int capacity, int keepContents); // 0x51c5c0
 
-    int m_valid;           // +0x04 the buffer and the streams exist
-    IStrStream* m_input;   // +0x08
-    OStrStream* m_output;  // +0x0c
-    int m_capacity;        // +0x10
-    uint32_t m_size;       // +0x14 bytes written by the last Serialize / given to SetData
-    char* m_buffer;        // +0x18
+  int m_valid; // +0x04 the buffer and the streams exist
+  IStrStream* m_input; // +0x08
+  OStrStream* m_output; // +0x0c
+  int m_capacity; // +0x10
+  uint32_t m_size; // +0x14 bytes written by the last Serialize / given to SetData
+  char* m_buffer; // +0x18
 };

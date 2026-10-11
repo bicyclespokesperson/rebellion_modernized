@@ -25,45 +25,60 @@
 #include <string>
 #include <vector>
 
-namespace mw::config {
+namespace mw::config
+{
 
 constexpr const char* kRegistrySubKey = "SOFTWARE\\LucasArts Entertainment Company LLC\\Star Wars Rebellion";
 
-enum class ValueType : uint32_t { None = 0, String = 1, Dword = 4 };
-
-struct RegistryValue {
-    ValueType type = ValueType::None;
-    std::string text;
-    uint32_t dword = 0;
+enum class ValueType : uint32_t
+{
+  None = 0,
+  String = 1,
+  Dword = 4
 };
 
-class Config {
+struct RegistryValue
+{
+  ValueType type = ValueType::None;
+  std::string text;
+  uint32_t dword = 0;
+};
+
+class Config
+{
 public:
-    static std::string DefaultPath();
+  static std::string DefaultPath();
 
-    bool Load(const std::string& path);
-    bool Save(const std::string& path) const;
-    void Parse(const std::string& text);
-    std::string Serialize() const;
+  bool Load(const std::string& path);
+  bool Save(const std::string& path) const;
+  void Parse(const std::string& text);
+  std::string Serialize() const;
 
-    std::string Get(const std::string& key, const std::string& fallback = std::string()) const;
-    void Set(const std::string& key, const std::string& value);
+  std::string Get(const std::string& key, const std::string& fallback = std::string()) const;
+  void Set(const std::string& key, const std::string& value);
 
-    std::string InstallDir() const { return Get("install_dir"); }
-    std::string DataDir() const;
-    std::string FontPath() const { return Get("font_path"); }
-    int WindowScale() const;  // 0: automatic
+  std::string InstallDir() const
+  {
+    return Get("install_dir");
+  }
+  std::string DataDir() const;
+  std::string FontPath() const
+  {
+    return Get("font_path");
+  }
+  int WindowScale() const; // 0: automatic
 
-    bool GetRegistryValue(const std::string& name, RegistryValue* out) const;
-    void SetRegistryValue(const std::string& name, const RegistryValue& value);
+  bool GetRegistryValue(const std::string& name, RegistryValue* out) const;
+  void SetRegistryValue(const std::string& name, const RegistryValue& value);
 
 private:
-    struct Entry {
-        std::string key;
-        std::string value;
-    };
-    std::vector<Entry> m_settings;
-    std::vector<Entry> m_registry;
+  struct Entry
+  {
+    std::string key;
+    std::string value;
+  };
+  std::vector<Entry> m_settings;
+  std::vector<Entry> m_registry;
 };
 
 // The process-wide configuration, loaded from DefaultPath() on first use. SetGlobalPath() replaces it (tests, --config).
@@ -73,4 +88,4 @@ const std::string& GlobalPath();
 
 bool EqualsNoCase(const std::string& a, const std::string& b);
 
-}  // namespace mw::config
+} // namespace mw::config

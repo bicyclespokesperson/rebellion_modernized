@@ -11,28 +11,29 @@
 // the delay spread (the 'progress') and the minimum delay (the 'level'). A timer whose target's counter differs from
 // its copy was cancelled.
 
-class TimerEvent : public TimedEvent {
+class TimerEvent : public TimedEvent
+{
 public:
-    TimerEvent();                          // 0x585fe0
-    TimerEvent(const TimerEvent& other);   // 0x5860a0
-    ~TimerEvent() override;                 // 0x586050
+  TimerEvent(); // 0x585fe0
+  TimerEvent(const TimerEvent& other); // 0x5860a0
+  ~TimerEvent() override; // 0x586050
 
-    void Read(istream* in) override;                 // 2: 0x586100 -> ReadTimer
-    void Write(ostream* out) override;               // 3: 0x586110 -> WriteTimer
-    void Checksum(Crc32* crc) override;              // 4: 0x586120 -> ChecksumTimer
-    int CheckEnabled(StatusCode* status) override;  // 6: 0x586150 (target and range checks)
-    int CheckValid(StatusCode* status) override;    // 7: 0x586290 (calls CheckEnabled)
-    int Execute() override;                         // 8: 0x5862a0, true if the timer must be rescheduled
+  void Read(istream* in) override; // 2: 0x586100 -> ReadTimer
+  void Write(ostream* out) override; // 3: 0x586110 -> WriteTimer
+  void Checksum(Crc32* crc) override; // 4: 0x586120 -> ChecksumTimer
+  int CheckEnabled(StatusCode* status) override; // 6: 0x586150 (target and range checks)
+  int CheckValid(StatusCode* status) override; // 7: 0x586290 (calls CheckEnabled)
+  int Execute() override; // 8: 0x5862a0, true if the timer must be rescheduled
 
-    virtual FamilyRange* GetTargetRange(FamilyRange* out) = 0;  // 10: the object families the timer may target
-    virtual TrackedStat* GetTargetSpec() = 0;                      // 11: the target's delay record for this timer kind
-    virtual void Fire() = 0;                                     // 12: does the timer's work
+  virtual FamilyRange* GetTargetRange(FamilyRange* out) = 0; // 10: the object families the timer may target
+  virtual TrackedStat* GetTargetSpec() = 0; // 11: the target's delay record for this timer kind
+  virtual void Fire() = 0; // 12: does the timer's work
 
-    // delay = rand(0..spread) + minimum (0x586130).
-    int RollDelay();
-    int ReadTimer(istream* in);      // 0x586340
-    int WriteTimer(ostream* out);    // 0x586360
-    int ChecksumTimer(Crc32* crc);   // 0x586380
+  // delay = rand(0..spread) + minimum (0x586130).
+  int RollDelay();
+  int ReadTimer(istream* in); // 0x586340
+  int WriteTimer(ostream* out); // 0x586360
+  int ChecksumTimer(Crc32* crc); // 0x586380
 
-    TrackedStat m_spec;  // +0x44
+  TrackedStat m_spec; // +0x44
 };

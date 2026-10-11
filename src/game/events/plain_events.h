@@ -4,62 +4,109 @@
 
 #include "events/event_base.h"
 
-
 // kind 0x370: serves the refinery queue of the side it names (Side::ServeRefineryQueue); re-queued while work remains; priority 0x20
-class RefineryQueueEvent : public PlainEvent {
+class RefineryQueueEvent : public PlainEvent
+{
 public:
-    RefineryQueueEvent();  // 0x5777c0
-    RefineryQueueEvent(const RefineryQueueEvent& other);  // 0x577810
-    ~RefineryQueueEvent() override;  // 0x577800 (deleting 0x5777e0)
+  RefineryQueueEvent(); // 0x5777c0
+  RefineryQueueEvent(const RefineryQueueEvent& other); // 0x577810
+  ~RefineryQueueEvent() override; // 0x577800 (deleting 0x5777e0)
 
-    RefineryQueueEvent* Clone() override;  // 1: 0x577830
-    void Read(istream* in) override { ReadPlain(in); }  // 2: 0x577910
-    void Write(ostream* out) override { WritePlain(out); }  // 3: 0x577920
-    void Checksum(Crc32* crc) override { ChecksumPlain(crc); }  // 4: 0x577930
-    int CheckEnabled(StatusCode* status) override;  // 6: 0x577940
-    int CheckValid(StatusCode* status) override;  // 7: 0x5779b0
-    int Execute() override;  // 8: 0x577a20
-    int GetKind() override { return 0x370; }  // 9: 0x43cc40
-    int GetPriority() override { return 0x20; }  // 10: 0x526bd0
+  RefineryQueueEvent* Clone() override; // 1: 0x577830
+  void Read(istream* in) override
+  {
+    ReadPlain(in);
+  } // 2: 0x577910
+  void Write(ostream* out) override
+  {
+    WritePlain(out);
+  } // 3: 0x577920
+  void Checksum(Crc32* crc) override
+  {
+    ChecksumPlain(crc);
+  } // 4: 0x577930
+  int CheckEnabled(StatusCode* status) override; // 6: 0x577940
+  int CheckValid(StatusCode* status) override; // 7: 0x5779b0
+  int Execute() override; // 8: 0x577a20
+  int GetKind() override
+  {
+    return 0x370;
+  } // 9: 0x43cc40
+  int GetPriority() override
+  {
+    return 0x20;
+  } // 10: 0x526bd0
 };
 
 // kind 0x371: serves the manufacturer queue of the side it names; re-queued while work remains; priority 0x21
-class ManufacturerQueueEvent : public PlainEvent {
+class ManufacturerQueueEvent : public PlainEvent
+{
 public:
-    ManufacturerQueueEvent();  // 0x577b00
-    ManufacturerQueueEvent(const ManufacturerQueueEvent& other);  // 0x577b50
-    ~ManufacturerQueueEvent() override;  // 0x577b40 (deleting 0x577b20)
+  ManufacturerQueueEvent(); // 0x577b00
+  ManufacturerQueueEvent(const ManufacturerQueueEvent& other); // 0x577b50
+  ~ManufacturerQueueEvent() override; // 0x577b40 (deleting 0x577b20)
 
-    ManufacturerQueueEvent* Clone() override;  // 1: 0x577b70
-    void Read(istream* in) override { ReadPlain(in); }  // 2: 0x577910
-    void Write(ostream* out) override { WritePlain(out); }  // 3: 0x577920
-    void Checksum(Crc32* crc) override { ChecksumPlain(crc); }  // 4: 0x577930
-    int CheckEnabled(StatusCode* status) override;  // 6: 0x577c60
-    int CheckValid(StatusCode* status) override;  // 7: 0x577cd0
-    int Execute() override;  // 8: 0x577d40
-    int GetKind() override { return 0x371; }  // 9: 0x577be0
-    int GetPriority() override { return 0x21; }  // 10: 0x577e20
+  ManufacturerQueueEvent* Clone() override; // 1: 0x577b70
+  void Read(istream* in) override
+  {
+    ReadPlain(in);
+  } // 2: 0x577910
+  void Write(ostream* out) override
+  {
+    WritePlain(out);
+  } // 3: 0x577920
+  void Checksum(Crc32* crc) override
+  {
+    ChecksumPlain(crc);
+  } // 4: 0x577930
+  int CheckEnabled(StatusCode* status) override; // 6: 0x577c60
+  int CheckValid(StatusCode* status) override; // 7: 0x577cd0
+  int Execute() override; // 8: 0x577d40
+  int GetKind() override
+  {
+    return 0x371;
+  } // 9: 0x577be0
+  int GetPriority() override
+  {
+    return 0x21;
+  } // 10: 0x577e20
 };
 
 // kind 0x372: moves the object it names under the root member at +0xb0 when its parent differs; priority 0x998
-class ReparentToRootEvent : public PlainEvent {
+class ReparentToRootEvent : public PlainEvent
+{
 public:
-    ReparentToRootEvent();  // 0x579bf0
-    ReparentToRootEvent(const ReparentToRootEvent& other);  // 0x579c40
-    ~ReparentToRootEvent() override;  // 0x579c30 (deleting 0x579c10)
+  ReparentToRootEvent(); // 0x579bf0
+  ReparentToRootEvent(const ReparentToRootEvent& other); // 0x579c40
+  ~ReparentToRootEvent() override; // 0x579c30 (deleting 0x579c10)
 
-    ReparentToRootEvent* Clone() override;  // 1: 0x579c60
-    void Read(istream* in) override { ReadPlain(in); }  // 2: 0x577910
-    void Write(ostream* out) override { WritePlain(out); }  // 3: 0x577920
-    void Checksum(Crc32* crc) override { ChecksumPlain(crc); }  // 4: 0x577930
-    int CheckEnabled(StatusCode* status) override;  // 6: 0x579d50
-    int CheckValid(StatusCode* status) override;  // 7: 0x579dc0
-    int Execute() override;  // 8: 0x579e30
-    int GetKind() override { return 0x372; }  // 9: 0x579cd0
-    int GetPriority() override { return 0x998; }  // 10: 0x579f90
+  ReparentToRootEvent* Clone() override; // 1: 0x579c60
+  void Read(istream* in) override
+  {
+    ReadPlain(in);
+  } // 2: 0x577910
+  void Write(ostream* out) override
+  {
+    WritePlain(out);
+  } // 3: 0x577920
+  void Checksum(Crc32* crc) override
+  {
+    ChecksumPlain(crc);
+  } // 4: 0x577930
+  int CheckEnabled(StatusCode* status) override; // 6: 0x579d50
+  int CheckValid(StatusCode* status) override; // 7: 0x579dc0
+  int Execute() override; // 8: 0x579e30
+  int GetKind() override
+  {
+    return 0x372;
+  } // 9: 0x579cd0
+  int GetPriority() override
+  {
+    return 0x998;
+  } // 10: 0x579f90
 };
 
 // Factories registered in the event factory table.
-RefineryQueueEvent* CreateRefineryQueueEvent();  // 0x5778a0
-ManufacturerQueueEvent* CreateManufacturerQueueEvent();  // 0x577bf0
-ReparentToRootEvent* CreateReparentToRootEvent();  // 0x579ce0
+RefineryQueueEvent* CreateRefineryQueueEvent(); // 0x5778a0
+ManufacturerQueueEvent* CreateManufacturerQueueEvent(); // 0x577bf0
+ReparentToRootEvent* CreateReparentToRootEvent(); // 0x579ce0

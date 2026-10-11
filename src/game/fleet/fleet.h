@@ -28,108 +28,144 @@
 
 class FleetIterator;
 
-class Fleet : public GameObj {
+class Fleet : public GameObj
+{
 public:
-    Fleet();                                                         // 0x4fd650
-    ~Fleet() override;                                                // 0x4fd670 (deleting), 0x4fd690
+  Fleet(); // 0x4fd650
+  ~Fleet() override; // 0x4fd670 (deleting), 0x4fd690
 
-    uint32_t GetFamily() override { return family::kFleet; }  // 1, 0x48c2a0 (shared)
-    int Read(istream* in) override;                          // 5, 0x4fe7b0
-    int Write(ostream* out) override;                        // 6, 0x4fe7c0
-    int Checksum(Crc32* crc) override;                       // 7, 0x4fe7f0
-    int Validate() override;                                 // 8, 0x4fe800 (jump to 0x4ff040)
-    int ApplyAll(NotifyContext* ctx) override;               // 9, 0x4fe7d0
-    int CollectDependencies(void* context, int value, ObjectKeyValueSet* out) override;  // 11, 0x4ffc90
-    int GetTransitSpeed(int arg) override;                   // 13, 0x4fd900: slowest ready ship's speed
-    int IsConstructed() override;                            // 14, 0x4fda10: some ship is ready
-    int GetEventKinds(int unused, EventKindSet* out) override;  // 15, 0x4fdad0
-    int Virtual18() override { return 1; }                   // 18, 0x40f340
-    int CanBeControlledBy(int arg) override;                 // 20, 0x4fdaf0: true until the fleet is created
-    int CheckOrder(int a, int orderKind, StatusCode* out) override;  // 22, 0x4fdb00
-    int CheckRequestImpl(const ActivityRequest* request, StatusCode* out) override;  // 23, 0x4fdbc0
-    int CheckRenameImpl(const ActivityRequest* request, StatusCode* out) override;   // 25, 0x4fdd20
-    int CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) override;  // 27, 0x4fdc70
-    int Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) override;  // 29, 0x4fe0d0
-    int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 30, 0x4fe160
-    int UpdateUsable(NotifyContext* ctx) override;           // 33, 0x4fe540
-    int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, 0x4fe790
-    int Reparent(ObjectKey* key, NotifyContext* ctx) override;      // 42, 0x4feca0
-    int Virtual44(NotifyContext* ctx) override { return 1; }        // 44, 0x51ebb0 (shared)
-    int Virtual45(int a, NotifyContext* ctx) override { return 1; } // 45, 0x524fb0 (shared)
-    int Virtual48(intptr_t ctx) override;                         // 48, 0x4fe810 (ctx is a NotifyContext*)
-    int NotifyUnitExisting(intptr_t other, int b, intptr_t ctx) override;       // 49, 0x4fe870 (other is a GameObj*)
-    int NotifyUnitUsable(intptr_t other, int b, intptr_t ctx) override;       // 50, 0x4fe930
-    int NotifyUnitDamaged(intptr_t other, int b, intptr_t ctx) override;       // 51, 0x4fe9f0
-    GameObj* CreateViewObject() override;                    // 57, 0x4fe710
-    int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x4ff570
-    int OnUsableChanged(int newValue, NotifyContext* ctx) override;       // 68, 0x4ff5e0
-    int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;    // 71, 0x4ff600
-    int OnAutoroutingChanged(int newValue, NotifyContext* ctx) override;  // 79, 0x4ff690
+  uint32_t GetFamily() override
+  {
+    return family::kFleet;
+  } // 1, 0x48c2a0 (shared)
+  int Read(istream* in) override; // 5, 0x4fe7b0
+  int Write(ostream* out) override; // 6, 0x4fe7c0
+  int Checksum(Crc32* crc) override; // 7, 0x4fe7f0
+  int Validate() override; // 8, 0x4fe800 (jump to 0x4ff040)
+  int ApplyAll(NotifyContext* ctx) override; // 9, 0x4fe7d0
+  int CollectDependencies(void* context, int value, ObjectKeyValueSet* out) override; // 11, 0x4ffc90
+  int GetTransitSpeed(int arg) override; // 13, 0x4fd900: slowest ready ship's speed
+  int IsConstructed() override; // 14, 0x4fda10: some ship is ready
+  int GetEventKinds(int unused, EventKindSet* out) override; // 15, 0x4fdad0
+  int Virtual18() override
+  {
+    return 1;
+  } // 18, 0x40f340
+  int CanBeControlledBy(int arg) override; // 20, 0x4fdaf0: true until the fleet is created
+  int CheckOrder(int a, int orderKind, StatusCode* out) override; // 22, 0x4fdb00
+  int CheckRequestImpl(const ActivityRequest* request, StatusCode* out) override; // 23, 0x4fdbc0
+  int CheckRenameImpl(const ActivityRequest* request, StatusCode* out) override; // 25, 0x4fdd20
+  int CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) override; // 27, 0x4fdc70
+  int Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) override; // 29, 0x4fe0d0
+  int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override; // 30, 0x4fe160
+  int UpdateUsable(NotifyContext* ctx) override; // 33, 0x4fe540
+  int CreateViews(int controlKind, NotifyContext* ctx) override; // 37, 0x4fe790
+  int Reparent(ObjectKey* key, NotifyContext* ctx) override; // 42, 0x4feca0
+  int Virtual44(NotifyContext* ctx) override
+  {
+    return 1;
+  } // 44, 0x51ebb0 (shared)
+  int Virtual45(int a, NotifyContext* ctx) override
+  {
+    return 1;
+  } // 45, 0x524fb0 (shared)
+  int Virtual48(intptr_t ctx) override; // 48, 0x4fe810 (ctx is a NotifyContext*)
+  int NotifyUnitExisting(intptr_t other, int b, intptr_t ctx) override; // 49, 0x4fe870 (other is a GameObj*)
+  int NotifyUnitUsable(intptr_t other, int b, intptr_t ctx) override; // 50, 0x4fe930
+  int NotifyUnitDamaged(intptr_t other, int b, intptr_t ctx) override; // 51, 0x4fe9f0
+  GameObj* CreateViewObject() override; // 57, 0x4fe710
+  int OnParentChanged(GameObjNotifier* oldParent,
+                      GameObjNotifier* newParent,
+                      NotifyContext* ctx) override; // 61, 0x4ff570
+  int OnUsableChanged(int newValue, NotifyContext* ctx) override; // 68, 0x4ff5e0
+  int OnDestroyedChanged(int newValue, NotifyContext* ctx) override; // 71, 0x4ff600
+  int OnAutoroutingChanged(int newValue, NotifyContext* ctx) override; // 79, 0x4ff690
 
-    // ---- slots 111-131 ----
-    // Assault request check on top of CheckFleetRequest: not allowed unless the fleet blockades ({8,7}).
-    virtual int CheckAssaultImpl(const ActivityRequest* request, StatusCode* out);   // 111, 0x4fddd0
-    virtual int CheckAssault(const ActivityRequest* request, StatusCode* out);       // 112, 0x4fdec0: out = {1,-1}, then 111
-    virtual int CheckBombardImpl(const ActivityRequest* request, StatusCode* out);   // 113, 0x4fdf70: CheckFleetRequest
-    virtual int CheckBombard(const ActivityRequest* request, StatusCode* out);       // 114, 0x4fe020: out = {1,-1}, then 113
-    virtual int UpdateDamaged(NotifyContext* ctx);                   // 115, 0x4feab0: Damaged follows the first ship's bit
-    virtual int StartAssault(intptr_t request, NotifyContext* ctx);       // 116, 0x4feb60: CheckAssault, then SetAssault(1)
-    virtual int StartBombard(intptr_t request, NotifyContext* ctx);       // 117, 0x4fec00: CheckBombard, then SetBombard(1)
-    virtual int OnFlag01Changed(int value, NotifyContext* ctx) { return 1; }    // 118, 0x524fb0
-    virtual int OnFlag02Changed(int value, NotifyContext* ctx) { return 1; }    // 119
-    virtual int OnFlag04Changed(int value, NotifyContext* ctx) { return 1; }    // 120
-    virtual int OnBattleChanged(int value, NotifyContext* ctx) { return 1; }    // 121
-    virtual int OnBlockadeChanged(int value, NotifyContext* ctx) { return 1; }  // 122
-    virtual int OnBombardChanged(int value, NotifyContext* ctx) { return 1; }   // 123
-    virtual int OnAssaultChanged(int value, NotifyContext* ctx) { return 1; }   // 124
-    virtual int OnFlag01Notified(int value, NotifyContext* ctx);     // 125, 0x4ff790: returns IsSideView
-    virtual int OnFlag02Notified(int value, NotifyContext* ctx);     // 126
-    virtual int OnFlag04Notified(int value, NotifyContext* ctx);     // 127
-    virtual int OnBattleNotified(int value, NotifyContext* ctx);     // 128, 0x4ff7a0
-    virtual int OnBlockadeNotified(int value, NotifyContext* ctx);   // 129, 0x4ff7f0
-    virtual int OnBombardNotified(int value, NotifyContext* ctx);    // 130, 0x4ff840
-    virtual int OnAssaultNotified(int value, NotifyContext* ctx);    // 131, 0x4ff890
+  // ---- slots 111-131 ----
+  // Assault request check on top of CheckFleetRequest: not allowed unless the fleet blockades ({8,7}).
+  virtual int CheckAssaultImpl(const ActivityRequest* request, StatusCode* out); // 111, 0x4fddd0
+  virtual int CheckAssault(const ActivityRequest* request, StatusCode* out); // 112, 0x4fdec0: out = {1,-1}, then 111
+  virtual int CheckBombardImpl(const ActivityRequest* request, StatusCode* out); // 113, 0x4fdf70: CheckFleetRequest
+  virtual int CheckBombard(const ActivityRequest* request, StatusCode* out); // 114, 0x4fe020: out = {1,-1}, then 113
+  virtual int UpdateDamaged(NotifyContext* ctx); // 115, 0x4feab0: Damaged follows the first ship's bit
+  virtual int StartAssault(intptr_t request, NotifyContext* ctx); // 116, 0x4feb60: CheckAssault, then SetAssault(1)
+  virtual int StartBombard(intptr_t request, NotifyContext* ctx); // 117, 0x4fec00: CheckBombard, then SetBombard(1)
+  virtual int OnFlag01Changed(int value, NotifyContext* ctx)
+  {
+    return 1;
+  } // 118, 0x524fb0
+  virtual int OnFlag02Changed(int value, NotifyContext* ctx)
+  {
+    return 1;
+  } // 119
+  virtual int OnFlag04Changed(int value, NotifyContext* ctx)
+  {
+    return 1;
+  } // 120
+  virtual int OnBattleChanged(int value, NotifyContext* ctx)
+  {
+    return 1;
+  } // 121
+  virtual int OnBlockadeChanged(int value, NotifyContext* ctx)
+  {
+    return 1;
+  } // 122
+  virtual int OnBombardChanged(int value, NotifyContext* ctx)
+  {
+    return 1;
+  } // 123
+  virtual int OnAssaultChanged(int value, NotifyContext* ctx)
+  {
+    return 1;
+  } // 124
+  virtual int OnFlag01Notified(int value, NotifyContext* ctx); // 125, 0x4ff790: returns IsSideView
+  virtual int OnFlag02Notified(int value, NotifyContext* ctx); // 126
+  virtual int OnFlag04Notified(int value, NotifyContext* ctx); // 127
+  virtual int OnBattleNotified(int value, NotifyContext* ctx); // 128, 0x4ff7a0
+  virtual int OnBlockadeNotified(int value, NotifyContext* ctx); // 129, 0x4ff7f0
+  virtual int OnBombardNotified(int value, NotifyContext* ctx); // 130, 0x4ff840
+  virtual int OnAssaultNotified(int value, NotifyContext* ctx); // 131, 0x4ff890
 
-    // ---- serialisation bodies behind slots 5-7 and 9 ----
-    int ReadImpl(istream* in);           // 0x4fef40
-    int WriteImpl(ostream* out);         // 0x4fef70
-    int ChecksumImpl(Crc32* crc);        // 0x4ff010
-    int ValidateImpl();                  // 0x4ff040
-    int ApplyAllImpl(NotifyContext* ctx);  // 0x4fefa0
-    int CreateViewsImpl(int controlKind, NotifyContext* ctx);  // 0x4fef10
+  // ---- serialisation bodies behind slots 5-7 and 9 ----
+  int ReadImpl(istream* in); // 0x4fef40
+  int WriteImpl(ostream* out); // 0x4fef70
+  int ChecksumImpl(Crc32* crc); // 0x4ff010
+  int ValidateImpl(); // 0x4ff040
+  int ApplyAllImpl(NotifyContext* ctx); // 0x4fefa0
+  int CreateViewsImpl(int controlKind, NotifyContext* ctx); // 0x4fef10
 
-    // ---- queries over the ships ----
-    // Sum of the capital ships' and their squadrons' value from capital ship slot 119.
-    int SumUnitStat119();                                  // 0x4fd6b0
-    // Finds the ship below a ready capital ship whose short at +0x96 equals `number` (see 0x5006f0); *out is null if none.
-    int FindShipByNumber(int number, GameObjNotifier** out);  // 0x4fd790
-    // Adds the capital ships' counts (0x5007a0, which always reports zero) into *out.
-    int SumShipCounts(int* out, int unused1, int unused2);  // 0x4fd840 (callers pass two zeros)
-    // Basic request check: GameObj's, then needs a ready, non-travelling ship; fills *out with the reason.
-    int CheckFleetRequest(const ActivityRequest* request, StatusCode* out);  // 0x4ffa70
-    // Sets Flag01, Created and Completed if the fleet has ships, else destroys it (reason 0x14) once Flag01 was set.
-    int RefreshFromShips(NotifyContext* ctx);              // 0x4fe630
+  // ---- queries over the ships ----
+  // Sum of the capital ships' and their squadrons' value from capital ship slot 119.
+  int SumUnitStat119(); // 0x4fd6b0
+  // Finds the ship below a ready capital ship whose short at +0x96 equals `number` (see 0x5006f0); *out is null if none.
+  int FindShipByNumber(int number, GameObjNotifier** out); // 0x4fd790
+  // Adds the capital ships' counts (0x5007a0, which always reports zero) into *out.
+  int SumShipCounts(int* out, int unused1, int unused2); // 0x4fd840 (callers pass two zeros)
+  // Basic request check: GameObj's, then needs a ready, non-travelling ship; fills *out with the reason.
+  int CheckFleetRequest(const ActivityRequest* request, StatusCode* out); // 0x4ffa70
+  // Sets Flag01, Created and Completed if the fleet has ships, else destroys it (reason 0x14) once Flag01 was set.
+  int RefreshFromShips(NotifyContext* ctx); // 0x4fe630
 
-    // ---- the seven fleet flags ----
-    int SetFlag01(int on, NotifyContext* ctx);   // 0x4fe230
-    int SetFlag02(int on, NotifyContext* ctx);   // 0x4fe2a0
-    int SetFlag04(int on, NotifyContext* ctx);   // 0x4fe310
-    int SetBattle(int on, NotifyContext* ctx);   // 0x4fe380
-    int SetBlockade(int on, NotifyContext* ctx);  // 0x4fe3f0
-    int SetBombard(int on, NotifyContext* ctx);  // 0x4fe460
-    int SetAssault(int on, NotifyContext* ctx);  // 0x4fe4d0
-    int ApplyFlag01(NotifyContext* ctx);   // 0x4ff180
-    int ApplyFlag02(NotifyContext* ctx);   // 0x4ff210
-    int ApplyFlag04(NotifyContext* ctx);   // 0x4ff2a0
-    int ApplyBattle(NotifyContext* ctx);   // 0x4ff330
-    int ApplyBlockade(NotifyContext* ctx);  // 0x4ff3c0
-    int ApplyBombard(NotifyContext* ctx);  // 0x4ff450
-    int ApplyAssault(NotifyContext* ctx);  // 0x4ff4e0
+  // ---- the seven fleet flags ----
+  int SetFlag01(int on, NotifyContext* ctx); // 0x4fe230
+  int SetFlag02(int on, NotifyContext* ctx); // 0x4fe2a0
+  int SetFlag04(int on, NotifyContext* ctx); // 0x4fe310
+  int SetBattle(int on, NotifyContext* ctx); // 0x4fe380
+  int SetBlockade(int on, NotifyContext* ctx); // 0x4fe3f0
+  int SetBombard(int on, NotifyContext* ctx); // 0x4fe460
+  int SetAssault(int on, NotifyContext* ctx); // 0x4fe4d0
+  int ApplyFlag01(NotifyContext* ctx); // 0x4ff180
+  int ApplyFlag02(NotifyContext* ctx); // 0x4ff210
+  int ApplyFlag04(NotifyContext* ctx); // 0x4ff2a0
+  int ApplyBattle(NotifyContext* ctx); // 0x4ff330
+  int ApplyBlockade(NotifyContext* ctx); // 0x4ff3c0
+  int ApplyBombard(NotifyContext* ctx); // 0x4ff450
+  int ApplyAssault(NotifyContext* ctx); // 0x4ff4e0
 
-    // Fills the class's static event kind set once; false if a kind could not be added.
-    static int InitEventKinds();  // 0x4ff8e0
+  // Fills the class's static event kind set once; false if a kind could not be added.
+  static int InitEventKinds(); // 0x4ff8e0
 
-    uint32_t m_fleetFlags;  // +0x58, bits as in the table above
+  uint32_t m_fleetFlags; // +0x58, bits as in the table above
 };
 
 // The factory registered for family 0x08 (0x51ebf0): a new empty fleet, or null if allocation fails (0x4fee30).

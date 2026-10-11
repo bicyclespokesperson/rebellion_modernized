@@ -6,9 +6,10 @@
 class istream;
 class ostream;
 
-struct ResourceStringId {
-    int16_t m_id;
-    int16_t m_group;
+struct ResourceStringId
+{
+  int16_t m_id;
+  int16_t m_group;
 };
 
 using StringLoader = int (*)(const ResourceStringId*, int, char*);
@@ -27,20 +28,21 @@ bool ReadLegacyString(istream* in, std::string& text);
 bool WriteLegacyString(ostream* out, const std::string& text);
 
 // Bounded borrow of a String's text; mutation of the owner invalidates attached cursors.
-class StringCursor {
+class StringCursor
+{
 public:
-    StringCursor() = default;
-    explicit StringCursor(const std::string& text);
-    StringCursor& Attach(const std::string& text);
-    StringCursor& operator++();
-    StringCursor operator++(int);
-    StringCursor operator--(int);
-    int Current() const;
-    void Rewind();
-    int HasMore() const;
+  StringCursor() = default;
+  explicit StringCursor(const std::string& text);
+  StringCursor& Attach(const std::string& text);
+  StringCursor& operator++();
+  StringCursor operator++(int);
+  StringCursor operator--(int);
+  int Current() const;
+  void Rewind();
+  int HasMore() const;
 
-    const char* m_current = nullptr;
-    const char* m_begin = nullptr;
+  const char* m_current = nullptr;
+  const char* m_begin = nullptr;
 };
 
 int SafeStrlen(const char* text);

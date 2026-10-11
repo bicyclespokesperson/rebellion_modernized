@@ -17,8 +17,8 @@ class Crc32;
 class GameRoot;
 class SidedMessage;
 
-class PostedEventQueue;  // game_manager_state.h
-class TickTable;         // game_manager_state.h
+class PostedEventQueue; // game_manager_state.h
+class TickTable; // game_manager_state.h
 
 // Battle / follow-up code run on the game root (0x516710-0x518460).
 int PublishVictoryState();

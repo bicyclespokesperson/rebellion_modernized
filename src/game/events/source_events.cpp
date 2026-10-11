@@ -1,5 +1,5 @@
-#include "character/character_mgr.h"
 #include "events/source_events.h"
+#include "character/character_mgr.h"
 #include "events/source_events_decl.h"
 
 #include "events/event_helpers.h"
@@ -12,378 +12,547 @@ using events::kStatusOk;
 using events::succeeded;
 using events::succeedWithoutChecks;
 
+Event301::Event301() : SourceEvent()
+{
+}
 
-Event301::Event301() : SourceEvent() {}
-
-Event301::Event301(const Event301& other)  = default;
+Event301::Event301(const Event301& other) = default;
 
 Event301::~Event301() = default;
 
-Event301* Event301::Clone() { return NewOrNull<Event301>(*this); }
-
-int Event301::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+Event301* Event301::Clone()
+{
+  return NewOrNull<Event301>(*this);
 }
 
-int Event301::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int Event301::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int Event301::Execute() {
-    NotifyContext ctx(m_context);
-    ApplyEvent301(&m_key, &m_keyA, &m_keyB, m_valueB, &ctx);
-    return 0;
+int Event301::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-Event301* CreateEvent301() { return NewOrNull<Event301>(); }
+int Event301::Execute()
+{
+  NotifyContext ctx(m_context);
+  ApplyEvent301(&m_key, &m_keyA, &m_keyB, m_valueB, &ctx);
+  return 0;
+}
 
-Event31d::Event31d() : SourceEvent() {}
+Event301* CreateEvent301()
+{
+  return NewOrNull<Event301>();
+}
 
-Event31d::Event31d(const Event31d& other)  = default;
+Event31d::Event31d() : SourceEvent()
+{
+}
+
+Event31d::Event31d(const Event31d& other) = default;
 
 Event31d::~Event31d() = default;
 
-Event31d* Event31d::Clone() { return NewOrNull<Event31d>(*this); }
-
-int Event31d::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+Event31d* Event31d::Clone()
+{
+  return NewOrNull<Event31d>(*this);
 }
 
-int Event31d::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int Event31d::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int Event31d::Execute() {
-    NotifyContext ctx(m_context);
-    ApplyEvent31d(&m_key, &m_keyA, &m_keyB, m_valueB, &ctx);
-    return 0;
+int Event31d::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-Event31d* CreateEvent31d() { return NewOrNull<Event31d>(); }
+int Event31d::Execute()
+{
+  NotifyContext ctx(m_context);
+  ApplyEvent31d(&m_key, &m_keyA, &m_keyB, m_valueB, &ctx);
+  return 0;
+}
 
-Event300::Event300() : SourceEvent() {}
+Event31d* CreateEvent31d()
+{
+  return NewOrNull<Event31d>();
+}
 
-Event300::Event300(const Event300& other)  = default;
+Event300::Event300() : SourceEvent()
+{
+}
+
+Event300::Event300(const Event300& other) = default;
 
 Event300::~Event300() = default;
 
-Event300* Event300::Clone() { return NewOrNull<Event300>(*this); }
-
-int Event300::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+Event300* Event300::Clone()
+{
+  return NewOrNull<Event300>(*this);
 }
 
-int Event300::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int Event300::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int Event300::Execute() {
-    NotifyContext ctx(m_context);
-    ApplyEvent300(&m_key, &m_keyA, &m_keyB, m_valueB, &ctx);
-    return 0;
+int Event300::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-Event300* CreateEvent300() { return NewOrNull<Event300>(); }
+int Event300::Execute()
+{
+  NotifyContext ctx(m_context);
+  ApplyEvent300(&m_key, &m_keyA, &m_keyB, m_valueB, &ctx);
+  return 0;
+}
 
-Event308::Event308() : SourceEvent() {}
+Event300* CreateEvent300()
+{
+  return NewOrNull<Event300>();
+}
 
-Event308::Event308(const Event308& other)  = default;
+Event308::Event308() : SourceEvent()
+{
+}
+
+Event308::Event308(const Event308& other) = default;
 
 Event308::~Event308() = default;
 
-Event308* Event308::Clone() { return NewOrNull<Event308>(*this); }
-
-int Event308::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+Event308* Event308::Clone()
+{
+  return NewOrNull<Event308>(*this);
 }
 
-int Event308::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int Event308::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int Event308::Execute() {
-    NotifyContext ctx(m_context);
-    ApplyEvent308(&m_key, m_valueB, &ctx);
-    return 0;
+int Event308::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-Event308* CreateEvent308() { return NewOrNull<Event308>(); }
+int Event308::Execute()
+{
+  NotifyContext ctx(m_context);
+  ApplyEvent308(&m_key, m_valueB, &ctx);
+  return 0;
+}
 
-Event306::Event306() : SourceEvent() {}
+Event308* CreateEvent308()
+{
+  return NewOrNull<Event308>();
+}
 
-Event306::Event306(const Event306& other)  = default;
+Event306::Event306() : SourceEvent()
+{
+}
+
+Event306::Event306(const Event306& other) = default;
 
 Event306::~Event306() = default;
 
-Event306* Event306::Clone() { return NewOrNull<Event306>(*this); }
-
-int Event306::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+Event306* Event306::Clone()
+{
+  return NewOrNull<Event306>(*this);
 }
 
-int Event306::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int Event306::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int Event306::Execute() {
-    NotifyContext ctx(m_context);
-    ApplyEvent306(&m_key, m_valueB, &ctx);
-    return 0;
+int Event306::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-Event306* CreateEvent306() { return NewOrNull<Event306>(); }
+int Event306::Execute()
+{
+  NotifyContext ctx(m_context);
+  ApplyEvent306(&m_key, m_valueB, &ctx);
+  return 0;
+}
 
-Event316::Event316() : SourceEvent() {}
+Event306* CreateEvent306()
+{
+  return NewOrNull<Event306>();
+}
 
-Event316::Event316(const Event316& other)  = default;
+Event316::Event316() : SourceEvent()
+{
+}
+
+Event316::Event316(const Event316& other) = default;
 
 Event316::~Event316() = default;
 
-Event316* Event316::Clone() { return NewOrNull<Event316>(*this); }
-
-int Event316::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+Event316* Event316::Clone()
+{
+  return NewOrNull<Event316>(*this);
 }
 
-int Event316::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int Event316::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int Event316::Execute() {
-    NotifyContext ctx(m_context);
-    ApplyEvent316(&m_key, m_valueB, &ctx);
-    return 0;
+int Event316::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-Event316* CreateEvent316() { return NewOrNull<Event316>(); }
+int Event316::Execute()
+{
+  NotifyContext ctx(m_context);
+  ApplyEvent316(&m_key, m_valueB, &ctx);
+  return 0;
+}
 
-Event307::Event307() : SourceEvent() {}
+Event316* CreateEvent316()
+{
+  return NewOrNull<Event316>();
+}
 
-Event307::Event307(const Event307& other)  = default;
+Event307::Event307() : SourceEvent()
+{
+}
+
+Event307::Event307(const Event307& other) = default;
 
 Event307::~Event307() = default;
 
-Event307* Event307::Clone() { return NewOrNull<Event307>(*this); }
-
-int Event307::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+Event307* Event307::Clone()
+{
+  return NewOrNull<Event307>(*this);
 }
 
-int Event307::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int Event307::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int Event307::Execute() {
-    NotifyContext ctx(m_context);
-    ApplyEvent307(&m_key, m_valueB, &ctx);
-    return 0;
+int Event307::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-Event307* CreateEvent307() { return NewOrNull<Event307>(); }
+int Event307::Execute()
+{
+  NotifyContext ctx(m_context);
+  ApplyEvent307(&m_key, m_valueB, &ctx);
+  return 0;
+}
 
-Event302::Event302() : SourceEvent() {}
+Event307* CreateEvent307()
+{
+  return NewOrNull<Event307>();
+}
 
-Event302::Event302(const Event302& other)  = default;
+Event302::Event302() : SourceEvent()
+{
+}
+
+Event302::Event302(const Event302& other) = default;
 
 Event302::~Event302() = default;
 
-Event302* Event302::Clone() { return NewOrNull<Event302>(*this); }
-
-int Event302::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+Event302* Event302::Clone()
+{
+  return NewOrNull<Event302>(*this);
 }
 
-int Event302::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int Event302::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int Event302::Execute() {
-    NotifyContext ctx(m_context);
-    ApplyEvent302(&m_key, m_valueA, m_valueB, &ctx);
-    return 0;
+int Event302::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-Event302* CreateEvent302() { return NewOrNull<Event302>(); }
+int Event302::Execute()
+{
+  NotifyContext ctx(m_context);
+  ApplyEvent302(&m_key, m_valueA, m_valueB, &ctx);
+  return 0;
+}
 
-Event318::Event318() : SourceEvent() {}
+Event302* CreateEvent302()
+{
+  return NewOrNull<Event302>();
+}
 
-Event318::Event318(const Event318& other)  = default;
+Event318::Event318() : SourceEvent()
+{
+}
+
+Event318::Event318(const Event318& other) = default;
 
 Event318::~Event318() = default;
 
-Event318* Event318::Clone() { return NewOrNull<Event318>(*this); }
-
-int Event318::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+Event318* Event318::Clone()
+{
+  return NewOrNull<Event318>(*this);
 }
 
-int Event318::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int Event318::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int Event318::Execute() {
-    NotifyContext ctx(m_context);
-    ApplyEvent318(&m_key, m_valueA, m_valueB, &ctx);
-    return 0;
+int Event318::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-Event318* CreateEvent318() { return NewOrNull<Event318>(); }
+int Event318::Execute()
+{
+  NotifyContext ctx(m_context);
+  ApplyEvent318(&m_key, m_valueA, m_valueB, &ctx);
+  return 0;
+}
 
-Event315::Event315() : SourceEvent() {}
+Event318* CreateEvent318()
+{
+  return NewOrNull<Event318>();
+}
 
-Event315::Event315(const Event315& other)  = default;
+Event315::Event315() : SourceEvent()
+{
+}
+
+Event315::Event315(const Event315& other) = default;
 
 Event315::~Event315() = default;
 
-Event315* Event315::Clone() { return NewOrNull<Event315>(*this); }
-
-int Event315::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+Event315* Event315::Clone()
+{
+  return NewOrNull<Event315>(*this);
 }
 
-int Event315::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int Event315::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int Event315::Execute() {
-    NotifyContext ctx(m_context);
-    ApplyEvent315(&m_key, m_valueA, m_valueB, &ctx);
-    return 0;
+int Event315::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-Event315* CreateEvent315() { return NewOrNull<Event315>(); }
+int Event315::Execute()
+{
+  NotifyContext ctx(m_context);
+  ApplyEvent315(&m_key, m_valueA, m_valueB, &ctx);
+  return 0;
+}
 
-Event30a::Event30a() : SourceEvent() {}
+Event315* CreateEvent315()
+{
+  return NewOrNull<Event315>();
+}
 
-Event30a::Event30a(const Event30a& other)  = default;
+Event30a::Event30a() : SourceEvent()
+{
+}
+
+Event30a::Event30a(const Event30a& other) = default;
 
 Event30a::~Event30a() = default;
 
-Event30a* Event30a::Clone() { return NewOrNull<Event30a>(*this); }
-
-int Event30a::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+Event30a* Event30a::Clone()
+{
+  return NewOrNull<Event30a>(*this);
 }
 
-int Event30a::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int Event30a::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int Event30a::Execute() {
-    NotifyContext ctx(m_context);
-    ApplyEvent30a(&m_key, m_valueA, m_valueB, &ctx);
-    return 0;
+int Event30a::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-Event30a* CreateEvent30a() { return NewOrNull<Event30a>(); }
+int Event30a::Execute()
+{
+  NotifyContext ctx(m_context);
+  ApplyEvent30a(&m_key, m_valueA, m_valueB, &ctx);
+  return 0;
+}
 
-Event320::Event320() : TwoKeyEvent() {}
+Event30a* CreateEvent30a()
+{
+  return NewOrNull<Event30a>();
+}
 
-Event320::Event320(const Event320& other)  = default;
+Event320::Event320() : TwoKeyEvent()
+{
+}
+
+Event320::Event320(const Event320& other) = default;
 
 Event320::~Event320() = default;
 
-Event320* Event320::Clone() { return NewOrNull<Event320>(*this); }
-
-int Event320::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+Event320* Event320::Clone()
+{
+  return NewOrNull<Event320>(*this);
 }
 
-int Event320::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int Event320::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int Event320::Execute() {
-    NotifyContext ctx(m_context);
-    ApplyEvent320(&m_key, &m_keyC, &m_keyD, &ctx);
-    return 0;
+int Event320::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-Event320* CreateEvent320() { return NewOrNull<Event320>(); }
+int Event320::Execute()
+{
+  NotifyContext ctx(m_context);
+  ApplyEvent320(&m_key, &m_keyC, &m_keyD, &ctx);
+  return 0;
+}
 
-Event313::Event313() : SourceEvent() {}
+Event320* CreateEvent320()
+{
+  return NewOrNull<Event320>();
+}
 
-Event313::Event313(const Event313& other)  = default;
+Event313::Event313() : SourceEvent()
+{
+}
+
+Event313::Event313(const Event313& other) = default;
 
 Event313::~Event313() = default;
 
-Event313* Event313::Clone() { return NewOrNull<Event313>(*this); }
-
-int Event313::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+Event313* Event313::Clone()
+{
+  return NewOrNull<Event313>(*this);
 }
 
-int Event313::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int Event313::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int Event313::Execute() {
-    NotifyContext ctx(m_context);
-    GameObjNotifier* manager = GetGameRootMember_b8();
-    if (manager) static_cast<MissionMgr*>(manager)->MissionMgr::RunStoryPipelineForStoryKey2(&m_key, m_valueB, &ctx);
-    return 0;
+int Event313::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-Event313* CreateEvent313() { return NewOrNull<Event313>(); }
+int Event313::Execute()
+{
+  NotifyContext ctx(m_context);
+  GameObjNotifier* manager = GetGameRootMember_b8();
+  if (manager)
+    static_cast<MissionMgr*>(manager)->MissionMgr::RunStoryPipelineForStoryKey2(&m_key, m_valueB, &ctx);
+  return 0;
+}
 
-Event31a::Event31a() : SourceEvent() {}
+Event313* CreateEvent313()
+{
+  return NewOrNull<Event313>();
+}
 
-Event31a::Event31a(const Event31a& other)  = default;
+Event31a::Event31a() : SourceEvent()
+{
+}
+
+Event31a::Event31a(const Event31a& other) = default;
 
 Event31a::~Event31a() = default;
 
-Event31a* Event31a::Clone() { return NewOrNull<Event31a>(*this); }
-
-int Event31a::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+Event31a* Event31a::Clone()
+{
+  return NewOrNull<Event31a>(*this);
 }
 
-int Event31a::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int Event31a::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int Event31a::Execute() {
-    GameObj* object = static_cast<GameObj*>(GetMasterInFamilies_01_ff(&m_key));
-    if (object) DeleteObjectViews(object);
-    return 0;
+int Event31a::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-Event31a* CreateEvent31a() { return NewOrNull<Event31a>(); }
+int Event31a::Execute()
+{
+  GameObj* object = static_cast<GameObj*>(GetMasterInFamilies_01_ff(&m_key));
+  if (object)
+    DeleteObjectViews(object);
+  return 0;
+}
 
-Event317::Event317() : SourceEvent() {}
+Event31a* CreateEvent31a()
+{
+  return NewOrNull<Event31a>();
+}
 
-Event317::Event317(const Event317& other)  = default;
+Event317::Event317() : SourceEvent()
+{
+}
+
+Event317::Event317(const Event317& other) = default;
 
 Event317::~Event317() = default;
 
-Event317* Event317::Clone() { return NewOrNull<Event317>(*this); }
-
-int Event317::CheckEnabled(StatusCode* status) {
-    return succeedWithoutChecks(status);
+Event317* Event317::Clone()
+{
+  return NewOrNull<Event317>(*this);
 }
 
-int Event317::CheckValid(StatusCode* status) {
-    return succeedWithoutChecks(status);
+int Event317::CheckEnabled(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-int Event317::Execute() {
-    StatusCode status(kStatusCategory, kStatusOk);
-    GameObjNotifier* owner = nullptr;
-    int ok = CheckValid(&status);
-    if (ok && succeeded(status)) {
-        const StatusCode missing(kStatusCategory, kStatusMissingTarget);
-        ok = ResolveMasterInFamilies_30_3c(&m_key, &owner, &missing, &status);
-    }
-    CharacterMgr* manager = nullptr;
-    if (ok && succeeded(status)) {
-        manager = GetCharacterManager();
-        ok = manager != nullptr;
-    }
-    if (ok && succeeded(status)) {
-        NotifyContext ctx(m_context);
-        manager->RollCaptiveEscape(static_cast<Character*>(owner), m_valueB, &ctx);
-    }
-    return 0;
+int Event317::CheckValid(StatusCode* status)
+{
+  return succeedWithoutChecks(status);
 }
 
-Event317* CreateEvent317() { return NewOrNull<Event317>(); }
+int Event317::Execute()
+{
+  StatusCode status(kStatusCategory, kStatusOk);
+  GameObjNotifier* owner = nullptr;
+  int ok = CheckValid(&status);
+  if (ok && succeeded(status))
+  {
+    const StatusCode missing(kStatusCategory, kStatusMissingTarget);
+    ok = ResolveMasterInFamilies_30_3c(&m_key, &owner, &missing, &status);
+  }
+  CharacterMgr* manager = nullptr;
+  if (ok && succeeded(status))
+  {
+    manager = GetCharacterManager();
+    ok = manager != nullptr;
+  }
+  if (ok && succeeded(status))
+  {
+    NotifyContext ctx(m_context);
+    manager->RollCaptiveEscape(static_cast<Character*>(owner), m_valueB, &ctx);
+  }
+  return 0;
+}
+
+Event317* CreateEvent317()
+{
+  return NewOrNull<Event317>();
+}

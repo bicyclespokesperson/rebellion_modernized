@@ -14,85 +14,91 @@ class DatRecord;
 // systems, facilities, ...). The file has a version, the number of records and the range [low, high) of record
 // families it holds; each record is created from the family range through the SD record factory registry
 // (RegisterRecordFactories) and then Read() from the file. The records are DatRecords keyed by their ids.
-struct RecordFamilyRange {
-    uint32_t m_low;
-    uint32_t m_high;
+struct RecordFamilyRange
+{
+  uint32_t m_low;
+  uint32_t m_high;
 };
 
-class SeedList : public TableBase {
+class SeedList : public TableBase
+{
 public:
-    SeedList();
-    virtual ~SeedList();
-    int Read(istream* in) override;
-    int Write(ostream* out) override;
-    int ParseText(istream* in) override;
-    virtual int Checksum(Crc32* crc);
+  SeedList();
+  virtual ~SeedList();
+  int Read(istream* in) override;
+  int Write(ostream* out) override;
+  int ParseText(istream* in) override;
+  virtual int Checksum(Crc32* crc);
 
-    // Adds a record to the list (nothing for null).
-    void AddRecord(IdNode* record);
+  // Adds a record to the list (nothing for null).
+  void AddRecord(IdNode* record);
 
-    RecordFamilyRange m_range;  // +0x08
-    IdAvlTree m_records;        // +0x10
+  RecordFamilyRange m_range; // +0x08
+  IdAvlTree m_records; // +0x10
 };
 
 // A SeedList loaded from a file, keyed by the id the SD record registry gives it.
-class SeedListFile : public IdNode {
+class SeedListFile : public IdNode
+{
 public:
-    SeedListFile();
-    ~SeedListFile() override;
+  SeedListFile();
+  ~SeedListFile() override;
 
-    // Reads the list from the file `<resource string firstId><resource string secondId>`; see TableBase::Open.
-    int Load(uint16_t firstId, uint16_t secondId);
+  // Reads the list from the file `<resource string firstId><resource string secondId>`; see TableBase::Open.
+  int Load(uint16_t firstId, uint16_t secondId);
 
-    int m_version;     // +0x1c
-    SeedList m_list;   // +0x20
+  int m_version; // +0x1c
+  SeedList m_list; // +0x20
 };
 
 // All loaded SeedListFiles.
-class SeedListFileTree : public IdAvlTree {
+class SeedListFileTree : public IdAvlTree
+{
 public:
-    SeedListFileTree();
-    ~SeedListFileTree() override;
+  SeedListFileTree();
+  ~SeedListFileTree() override;
 
-    // The file whose family range contains `family` (the top byte of a record key), or null.
-    SeedListFile* FindByFamily(uint32_t family);
+  // The file whose family range contains `family` (the top byte of a record key), or null.
+  SeedListFile* FindByFamily(uint32_t family);
 
-    int m_ready;  // +0x0c, 1
+  int m_ready; // +0x0c, 1
 };
 
 // Display data cached for one record: its key and its localized name.
-class RecordNameNode : public IdNode {
+class RecordNameNode : public IdNode
+{
 public:
-    RecordNameNode();
-    ~RecordNameNode() override;
+  RecordNameNode();
+  ~RecordNameNode() override;
 
-    // Takes the key and the name (resource string id at +0x30) of `record`. Returns whether the name is valid.
-    int SetFromRecord(DatRecord* record);
+  // Takes the key and the name (resource string id at +0x30) of `record`. Returns whether the name is valid.
+  int SetFromRecord(DatRecord* record);
 
-    int m_ready;      // +0x1c, the validity of m_name after construction
-    uint32_t m_key;   // +0x20
-    std::string m_name;    // +0x24
+  int m_ready; // +0x1c, the validity of m_name after construction
+  uint32_t m_key; // +0x20
+  std::string m_name; // +0x24
 };
 
 // A seed key with a quantity, saved with the seed key's five values followed by the count.
-class SeedKeyCountNode : public AvlNode {
+class SeedKeyCountNode : public AvlNode
+{
 public:
-    SeedKeyCountNode();
-    explicit SeedKeyCountNode(const SeedKey& key);
-    SeedKeyCountNode(const SeedKeyCountNode& other);
-    ~SeedKeyCountNode() override;
-    virtual SeedKeyCountNode* Clone();
-    virtual void Load(istream* in);
-    virtual void Read(istream* in);
-    virtual void Save(ostream* out);
-    virtual void Write(ostream* out);
-    virtual int Checksum(Crc32* crc);
+  SeedKeyCountNode();
+  explicit SeedKeyCountNode(const SeedKey& key);
+  SeedKeyCountNode(const SeedKeyCountNode& other);
+  ~SeedKeyCountNode() override;
+  virtual SeedKeyCountNode* Clone();
+  virtual void Load(istream* in);
+  virtual void Read(istream* in);
+  virtual void Save(ostream* out);
+  virtual void Write(ostream* out);
+  virtual int Checksum(Crc32* crc);
 
-    // Copies the key into *out and returns it.
-    SeedKey* GetKey(SeedKey* out) const;  // 0x568ec0
+  // Copies the key into *out and returns it.
+  SeedKey* GetKey(SeedKey* out) const; // 0x568ec0
 
-    SeedKey m_key;   // +0x18
-    int m_count;     // +0x2c
+  SeedKey m_key; // +0x18
+  int m_count; // +0x2c
 };
 
 // Registers the "SeedList" class with the table class registry (a static initializer of the original).

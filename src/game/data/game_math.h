@@ -4,8 +4,8 @@
 
 // Integer helpers used by every rules module (0x53e0d0-0x53e1d0). The percentage limits are const ints in the
 // original's .rdata (0 and 100) that the compiler left as memory loads.
-extern const int g_percentMin;  // 0x661a84
-extern const int g_percentMax;  // 0x661a88
+extern const int g_percentMin; // 0x661a84
+extern const int g_percentMax; // 0x661a88
 
 int ClampPercent(int value);
 int Clamp(int value, int low, int high);

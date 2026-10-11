@@ -9,7 +9,8 @@
 #include "ui/sprite_animator.h"
 #include "ui/sprite_stage.h"
 
-namespace {
+namespace
+{
 
 constexpr uint32_t kLeftDroidId = 0xdead;
 constexpr uint32_t kRightDroidId = 0xbeef;
@@ -24,61 +25,75 @@ constexpr int kHookFrames = 0xf;
 constexpr int kLeftDroidHookArgument = 0x12;
 constexpr int kRightDroidHookArgument = 5;
 
-struct StageArea {
-    int m_x;
-    int m_y;
-    int m_width;
-    int m_height;
+struct StageArea
+{
+  int m_x;
+  int m_y;
+  int m_width;
+  int m_height;
 };
 
-SpriteStage* NewStage(GalaxyWindow* galaxy, const StageArea& area) {
-    void* memory = ::operator new(sizeof(SpriteStage));
-    if (!memory) return nullptr;
-    return new (memory) SpriteStage(galaxy, galaxy->GetBackground(), area.m_x, area.m_y, area.m_width, area.m_height,
-                                    kFrameMs);
+SpriteStage* NewStage(GalaxyWindow* galaxy, const StageArea& area)
+{
+  void* memory = ::operator new(sizeof(SpriteStage));
+  if (!memory)
+    return nullptr;
+  return new (memory)
+    SpriteStage(galaxy, galaxy->GetBackground(), area.m_x, area.m_y, area.m_width, area.m_height, kFrameMs);
 }
 
-SpriteAnimator* NewAnimator(SpriteStage* stage, uint32_t droidId) {
-    SpriteAnimator* animator = NewOrNull<SpriteAnimator>(kAnimatorSpriteCount);
-    animator->SetId(droidId);
-    stage->AddAnimator(animator);
-    return animator;
+SpriteAnimator* NewAnimator(SpriteStage* stage, uint32_t droidId)
+{
+  SpriteAnimator* animator = NewOrNull<SpriteAnimator>(kAnimatorSpriteCount);
+  animator->SetId(droidId);
+  stage->AddAnimator(animator);
+  return animator;
 }
 
-void StartIdleScript(SpriteStage* stage, SpriteAnimator* animator, uint32_t droidId, uint32_t scriptId,
-                     int hookArgument, void (*hook)(int)) {
-    uint32_t sequence = (kDroidSlot << 16) | scriptId;
-    stage->StartAnimator(droidId, &sequence, kScriptStartX, kScriptStartY, 0);
-    sequence = (kDroidSlot << 16) | scriptId;
-    animator->SetEndAction(hookArgument, &sequence, stage, kHookFrames, hook);
+void StartIdleScript(SpriteStage* stage,
+                     SpriteAnimator* animator,
+                     uint32_t droidId,
+                     uint32_t scriptId,
+                     int hookArgument,
+                     void (*hook)(int))
+{
+  uint32_t sequence = (kDroidSlot << 16) | scriptId;
+  stage->StartAnimator(droidId, &sequence, kScriptStartX, kScriptStartY, 0);
+  sequence = (kDroidSlot << 16) | scriptId;
+  animator->SetEndAction(hookArgument, &sequence, stage, kHookFrames, hook);
 }
 
-}  // namespace
+} // namespace
 
-void GalaxyWindow::CreateDroidAnimations() {
-    SoundManager::ReleaseAll(1);
-    const int earlyGame = static_cast<uint32_t>(GameHookTickCount()) < kEarlyGameTicks ? 1 : 0;
-    if (earlyGame) m_mouseMode = kMouseModeRestoring;
-    LoadSideSpriteDlls(m_side, earlyGame);
-    if (m_side == 1) {
-        m_droidStage = NewStage(this, {0x21d, 0x151, 0x43, 0x74});
-        SpriteAnimator* left = NewAnimator(m_droidStage, kLeftDroidId);
-        StartIdleScript(m_droidStage, left, kLeftDroidId, 0x193, kLeftDroidHookArgument, UiRequestRedraw);
-        m_droidStage2 = NewStage(this, {0x13c, 0x19b, 0x2f, 0x45});
-        SpriteAnimator* right = NewAnimator(m_droidStage2, kRightDroidId);
-        StartIdleScript(m_droidStage2, right, kRightDroidId, 0x192, kRightDroidHookArgument, UiRequestRedrawAlt);
-    } else {
-        m_droidStage = NewStage(this, {0, 0x15b, 0x6b, 0x85});
-        m_droidStage2 = NewStage(this, {0x12e, 0x191, 0x65, 0x4f});
-        SpriteAnimator* left = NewAnimator(m_droidStage, kLeftDroidId);
-        StartIdleScript(m_droidStage, left, kLeftDroidId, 0x193, kLeftDroidHookArgument, UiRequestRedraw);
-        SpriteAnimator* right = NewAnimator(m_droidStage2, kRightDroidId);
-        StartIdleScript(m_droidStage2, right, kRightDroidId, 0x191, kRightDroidHookArgument, UiRequestRedrawAlt);
-    }
-    m_droidStage->Enable();
-    m_droidStage2->Enable();
-    m_droidStage->Tick();
-    m_droidStage2->Tick();
+void GalaxyWindow::CreateDroidAnimations()
+{
+  SoundManager::ReleaseAll(1);
+  const int earlyGame = static_cast<uint32_t>(GameHookTickCount()) < kEarlyGameTicks ? 1 : 0;
+  if (earlyGame)
+    m_mouseMode = kMouseModeRestoring;
+  LoadSideSpriteDlls(m_side, earlyGame);
+  if (m_side == 1)
+  {
+    m_droidStage = NewStage(this, {0x21d, 0x151, 0x43, 0x74});
+    SpriteAnimator* left = NewAnimator(m_droidStage, kLeftDroidId);
+    StartIdleScript(m_droidStage, left, kLeftDroidId, 0x193, kLeftDroidHookArgument, UiRequestRedraw);
+    m_droidStage2 = NewStage(this, {0x13c, 0x19b, 0x2f, 0x45});
+    SpriteAnimator* right = NewAnimator(m_droidStage2, kRightDroidId);
+    StartIdleScript(m_droidStage2, right, kRightDroidId, 0x192, kRightDroidHookArgument, UiRequestRedrawAlt);
+  }
+  else
+  {
+    m_droidStage = NewStage(this, {0, 0x15b, 0x6b, 0x85});
+    m_droidStage2 = NewStage(this, {0x12e, 0x191, 0x65, 0x4f});
+    SpriteAnimator* left = NewAnimator(m_droidStage, kLeftDroidId);
+    StartIdleScript(m_droidStage, left, kLeftDroidId, 0x193, kLeftDroidHookArgument, UiRequestRedraw);
+    SpriteAnimator* right = NewAnimator(m_droidStage2, kRightDroidId);
+    StartIdleScript(m_droidStage2, right, kRightDroidId, 0x191, kRightDroidHookArgument, UiRequestRedrawAlt);
+  }
+  m_droidStage->Enable();
+  m_droidStage2->Enable();
+  m_droidStage->Tick();
+  m_droidStage2->Tick();
 }
 
-AnimationStep * g_animationSteps[33]{};
+AnimationStep* g_animationSteps[33]{};

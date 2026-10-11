@@ -11,7 +11,6 @@
 class ShipGroup;
 class TacticalHub;
 
-
 void FUN_005cb1a0(ShipGroup* group, int a);
 void FUN_005a0320(TacticalHub* hub, int groupId);
 TacticalHub* FUN_0059ed70();

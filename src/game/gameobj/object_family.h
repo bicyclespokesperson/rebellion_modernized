@@ -7,7 +7,8 @@
 // Object families: the top byte of an ObjectKey says what kind of object it names. The object database, iterators and
 // lookups work on half-open ranges [first, last) of families (FamilyRange). The families that have a registered factory
 // (0x51ebf0) are the single values below; the ranges are the groupings the typed lookups (object_lookup.h) use.
-namespace family {
+namespace family
+{
 
 constexpr uint32_t kFleet = 0x08;
 constexpr uint32_t kTroopRegiment = 0x10;
@@ -36,4 +37,4 @@ constexpr FamilyRange kSectors(0x80, 0x90);
 constexpr FamilyRange kSystems(0x90, 0x98);
 constexpr FamilyRange kManufacturingManagers(0xa0, 0xb0);
 
-}  // namespace family
+} // namespace family

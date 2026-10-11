@@ -8,18 +8,19 @@
 #include "core/containers.h"
 #include "orders/order_base.h"
 
-class MessageTree : public IdAvlTree {
+class MessageTree : public IdAvlTree
+{
 public:
-    MessageTree();  // 0x536eb0
-    ~MessageTree() override;
+  MessageTree(); // 0x536eb0
+  ~MessageTree() override;
 
-    // Appends messages from the stream; an unknown kind or malformed body sets fail state.
-    void Read(istream* in);  // 0x536f00
-    void Write(ostream* out);  // 0x536f70
-    // Takes ownership of `message` (any message, only its id is used): queued under its id, or deleted when it has no id
-    // or the id is already queued.
-    void Adopt(IdNode* message);  // 0x536fe0
-    IdNode* Detach(uint32_t id);  // 0x537030
+  // Appends messages from the stream; an unknown kind or malformed body sets fail state.
+  void Read(istream* in); // 0x536f00
+  void Write(ostream* out); // 0x536f70
+  // Takes ownership of `message` (any message, only its id is used): queued under its id, or deleted when it has no id
+  // or the id is already queued.
+  void Adopt(IdNode* message); // 0x536fe0
+  IdNode* Detach(uint32_t id); // 0x537030
 
-    uint32_t m_unk0c;  // +0x0c, 1
+  uint32_t m_unk0c; // +0x0c, 1
 };

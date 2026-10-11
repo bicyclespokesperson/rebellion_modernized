@@ -2,32 +2,45 @@
 
 #include <new>
 
+extern ObjectKeyValueSet g_emptyKeyValueSet; // 0x6b2960
+extern uint8_t g_emptyKeyValueSetBuilt; // 0x6b2954, bit 0
+extern ObjectKey g_emptyKey; // 0x6b2958
+extern uint8_t g_emptyKeyBuilt; // 0x6b2950, bit 0
 
-extern ObjectKeyValueSet g_emptyKeyValueSet;  // 0x6b2960
-extern uint8_t g_emptyKeyValueSetBuilt;       // 0x6b2954, bit 0
-extern ObjectKey g_emptyKey;                  // 0x6b2958
-extern uint8_t g_emptyKeyBuilt;               // 0x6b2950, bit 0
-
-ObjectKeyValueSet* GetEmptyKeyValueSet() { return &g_emptyKeyValueSet; }
-
-
-ObjectKey* ConstructUnsetKey(ObjectKey* key) {
-    new (key) ObjectKey();
-    return key;
+ObjectKeyValueSet* GetEmptyKeyValueSet()
+{
+  return &g_emptyKeyValueSet;
 }
 
+ObjectKey* ConstructUnsetKey(ObjectKey* key)
+{
+  new (key) ObjectKey();
+  return key;
+}
 
-ObjectKey* GetEmptyKey() { return &g_emptyKey; }
+ObjectKey* GetEmptyKey()
+{
+  return &g_emptyKey;
+}
 
-void ResetKey(ObjectKey* key) { key->Reset(); }
+void ResetKey(ObjectKey* key)
+{
+  key->Reset();
+}
 
-int CallSlot1(void* object) {
-    struct SlotOne {
-        virtual void Virtual00() {}
-        virtual void Virtual01() {}
-    };
-    static_cast<SlotOne*>(object)->Virtual01();
-    return 1;
+int CallSlot1(void* object)
+{
+  struct SlotOne
+  {
+    virtual void Virtual00()
+    {
+    }
+    virtual void Virtual01()
+    {
+    }
+  };
+  static_cast<SlotOne*>(object)->Virtual01();
+  return 1;
 }
 ObjectKey g_emptyKey{};
 ObjectKeyValueSet g_emptyKeyValueSet{};

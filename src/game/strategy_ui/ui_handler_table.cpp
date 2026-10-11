@@ -94,53 +94,65 @@ extern Notice43 g_notice43Handler;
 extern Notice45 g_notice45Handler;
 extern Notice44 g_notice44Handler;
 
-namespace {
+namespace
+{
 
 UiNotice* const kNoticePrototypes[] = {
-    &g_notice2Handler,  &g_notice1Handler,  &g_notice8Handler,  &g_notice6Handler,  &g_notice5Handler,
-    &g_notice4Handler,  &g_notice3Handler,  &g_notice9Handler,  &g_notice10Handler, &g_notice11Handler,
-    &g_notice12Handler, &g_notice13Handler, &g_notice14Handler, &g_notice16Handler, &g_notice15Handler,
-    &g_notice7Handler,  &g_notice19Handler, &g_notice20Handler, &g_notice21Handler, &g_notice22Handler,
-    &g_notice23Handler, &g_notice24Handler, &g_notice25Handler, &g_notice26bHandler, &g_notice26aHandler,
-    &g_notice30Handler, &g_notice28Handler, &g_notice29Handler, &g_notice32Handler, &g_notice31Handler,
-    &g_notice36Handler, &g_notice35Handler, &g_notice37Handler, &g_notice38Handler, &g_notice39Handler,
-    &g_notice40Handler, &g_notice33Handler, &g_notice34Handler, &g_notice41Handler, &g_notice42Handler,
-    &g_notice43Handler, &g_notice45Handler, &g_notice44Handler,
+  &g_notice2Handler,  &g_notice1Handler,  &g_notice8Handler,  &g_notice6Handler,   &g_notice5Handler,
+  &g_notice4Handler,  &g_notice3Handler,  &g_notice9Handler,  &g_notice10Handler,  &g_notice11Handler,
+  &g_notice12Handler, &g_notice13Handler, &g_notice14Handler, &g_notice16Handler,  &g_notice15Handler,
+  &g_notice7Handler,  &g_notice19Handler, &g_notice20Handler, &g_notice21Handler,  &g_notice22Handler,
+  &g_notice23Handler, &g_notice24Handler, &g_notice25Handler, &g_notice26bHandler, &g_notice26aHandler,
+  &g_notice30Handler, &g_notice28Handler, &g_notice29Handler, &g_notice32Handler,  &g_notice31Handler,
+  &g_notice36Handler, &g_notice35Handler, &g_notice37Handler, &g_notice38Handler,  &g_notice39Handler,
+  &g_notice40Handler, &g_notice33Handler, &g_notice34Handler, &g_notice41Handler,  &g_notice42Handler,
+  &g_notice43Handler, &g_notice45Handler, &g_notice44Handler,
 };
 
-}  // namespace
+} // namespace
 
-UiRecordTree::UiRecordTree() {
-    if (g_uiHandlerTableNeedsInit == 0) return;
-    for (UiNotice*& notice : g_uiHandlers) notice = nullptr;
-    for (UiNotice* prototype : kNoticePrototypes) g_uiHandlers[prototype->GetKind()] = prototype;
-    g_uiHandlerTableNeedsInit = 0;
+UiRecordTree::UiRecordTree()
+{
+  if (g_uiHandlerTableNeedsInit == 0)
+    return;
+  for (UiNotice*& notice : g_uiHandlers)
+    notice = nullptr;
+  for (UiNotice* prototype : kNoticePrototypes)
+    g_uiHandlers[prototype->GetKind()] = prototype;
+  g_uiHandlerTableNeedsInit = 0;
 }
 
 UiRecordTree::~UiRecordTree() = default;
 
-void UiRecordTree::Read(istream* in) {
-    int16_t count;
-    ReadValue16(in, &count);
-    while (count != 0) {
-        --count;
-        uint32_t kind;
-        ReadValue32(in, &kind);
-        UiNotice* notice = CreateUiRecord(static_cast<int>(kind));
-        notice->Read(in);
-        AddWithId(notice);
-    }
+void UiRecordTree::Read(istream* in)
+{
+  int16_t count;
+  ReadValue16(in, &count);
+  while (count != 0)
+  {
+    --count;
+    uint32_t kind;
+    ReadValue32(in, &kind);
+    UiNotice* notice = CreateUiRecord(static_cast<int>(kind));
+    notice->Read(in);
+    AddWithId(notice);
+  }
 }
 
-void UiRecordTree::Write(ostream* out) {
-    int16_t count = Count();
-    WriteValue16(out, &count);
-    for (AvlNode* node = First(); node; node = node->m_successor) {
-        UiNotice* notice = static_cast<UiNotice*>(node);
-        int kind = notice->GetKind();
-        WriteValue32(out, &kind);
-        notice->Write(out);
-    }
+void UiRecordTree::Write(ostream* out)
+{
+  int16_t count = Count();
+  WriteValue16(out, &count);
+  for (AvlNode* node = First(); node; node = node->m_successor)
+  {
+    UiNotice* notice = static_cast<UiNotice*>(node);
+    int kind = notice->GetKind();
+    WriteValue32(out, &kind);
+    notice->Write(out);
+  }
 }
 
-UiNotice* CreateUiRecord(int kind) { return g_uiHandlers[kind]->Virtual10(); }
+UiNotice* CreateUiRecord(int kind)
+{
+  return g_uiHandlers[kind]->Virtual10();
+}

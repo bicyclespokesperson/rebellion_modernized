@@ -6,7 +6,7 @@
 // pick a seed when none is given.
 class RandomGenerator;
 
-extern RandomGenerator* g_gameRandom;  // 0x6b9054, null outside a running game
+extern RandomGenerator* g_gameRandom; // 0x6b9054, null outside a running game
 
 void SetGameRandom(RandomGenerator* generator);
 // Uniform value in [0, max] for max >= 0, in [max, 0] for max < 0; 0 without a generator.

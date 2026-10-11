@@ -7,26 +7,39 @@
 #include "port/minwin_impl/dsound/mixer.h"
 #include "port/minwin_impl/smack/smack_api.h"
 
-namespace minwin_audio {
+namespace minwin_audio
+{
 void Install();
 }
 
-namespace {
+namespace
+{
 
-void SignalEvent(void* event) { SetEvent(static_cast<HANDLE>(event)); }
-
-HDC GetDeviceContext(HWND window) { return GetDC(window); }
-
-int ReleaseDeviceContext(HWND window, HDC dc) { return ReleaseDC(window, dc); }
-
-}  // namespace
-
-namespace minwin_wiring {
-
-void Install() {
-    mwds::SetEventSignaler(SignalEvent);
-    minwin_audio::Install();
-    mwsmk::SetDeviceContextProvider(GetDeviceContext, ReleaseDeviceContext);
+void SignalEvent(void* event)
+{
+  SetEvent(static_cast<HANDLE>(event));
 }
 
-}  // namespace minwin_wiring
+HDC GetDeviceContext(HWND window)
+{
+  return GetDC(window);
+}
+
+int ReleaseDeviceContext(HWND window, HDC dc)
+{
+  return ReleaseDC(window, dc);
+}
+
+} // namespace
+
+namespace minwin_wiring
+{
+
+void Install()
+{
+  mwds::SetEventSignaler(SignalEvent);
+  minwin_audio::Install();
+  mwsmk::SetDeviceContextProvider(GetDeviceContext, ReleaseDeviceContext);
+}
+
+} // namespace minwin_wiring

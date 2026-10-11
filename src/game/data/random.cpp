@@ -4,23 +4,36 @@
 
 #include "data/game_math.h"
 
-
-void SetGameRandom(RandomGenerator* generator) { g_gameRandom = generator; }
-
-int GameRandom(int max) {
-    if (!g_gameRandom) return 0;
-    if (max >= 0) return g_gameRandom->Between(0, max);
-    return g_gameRandom->Between(max, 0);
+void SetGameRandom(RandomGenerator* generator)
+{
+  g_gameRandom = generator;
 }
 
-int GameRandomRange(int low, int high) {
-    return g_gameRandom ? g_gameRandom->Between(low, high) : low;
+int GameRandom(int max)
+{
+  if (!g_gameRandom)
+    return 0;
+  if (max >= 0)
+    return g_gameRandom->Between(0, max);
+  return g_gameRandom->Between(max, 0);
 }
 
-int GameplayRandomNext(int limit) {
-    return g_gameRandom ? g_gameRandom->Next(limit) : 0;
+int GameRandomRange(int low, int high)
+{
+  return g_gameRandom ? g_gameRandom->Between(low, high) : low;
 }
 
-int RollPercent() { return GameRandom(g_percentMax - 1); }
+int GameplayRandomNext(int limit)
+{
+  return g_gameRandom ? g_gameRandom->Next(limit) : 0;
+}
 
-int PercentChance(int percent) { return RollPercent() < percent; }
+int RollPercent()
+{
+  return GameRandom(g_percentMax - 1);
+}
+
+int PercentChance(int percent)
+{
+  return RollPercent() < percent;
+}
