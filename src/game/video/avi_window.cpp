@@ -42,7 +42,7 @@ struct MciWindowParams {  // MCI_DGV_WINDOW_PARMS
 VideoWindow::VideoWindow(const char* path, HINSTANCE instance, int x, int y, int width, int height,
                          CoolWindow* parent, int autoStart)
     : CoolWindow(instance, "Video Window", kStyleChildVisible, x, y, width, height, parent, nullptr,
-                 static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)), 0, LoadCursorA(nullptr, IDC_ARROW), 0, 0, 0) {
+                 static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)), nullptr, LoadCursorA(nullptr, IDC_ARROW), nullptr, 0, 0) {
     // BUG(original): the path is copied into the fixed 0x100-byte buffer without a length check.
     std::memcpy(m_path, path, std::strlen(path) + 1);
     m_unk198 = 0;

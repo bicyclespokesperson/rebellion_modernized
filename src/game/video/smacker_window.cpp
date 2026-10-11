@@ -29,7 +29,7 @@ uint32_t LowWord(uint32_t value) { return static_cast<uint16_t>(value); }
 SmackerWindow::SmackerWindow(const char* path, HINSTANCE instance, int x, int y, int width, int height,
                              CoolWindow* parent, int autoStart, uint32_t smackFlags)
     : CoolWindow(instance, "Smacker Window", kStyleChildVisible, x, y, width, height, parent, nullptr,
-                 static_cast<HBRUSH>(GetStockObject(kBlackBrush)), 0, LoadCursorA(nullptr, IDC_ARROW), 0, 0, 0) {
+                 static_cast<HBRUSH>(GetStockObject(kBlackBrush)), nullptr, LoadCursorA(nullptr, IDC_ARROW), nullptr, 0, 0) {
     // BUG(original): the path is copied into the fixed 0x100-byte buffer without a length check.
     std::memcpy(m_path, path, std::strlen(path) + 1);
     m_unk194 = 0;

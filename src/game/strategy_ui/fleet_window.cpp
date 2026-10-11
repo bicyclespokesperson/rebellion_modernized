@@ -833,7 +833,7 @@ void FleetWindow::AddFleetRow(GameObjNotifier* fleet, FleetListItem** position) 
     fleet->GetKey(&rowKey);
     FleetListItem* item = NewOrNull<FleetListItem>(&rowKey);
     DibBitmap* image = NewOrNull<DibBitmap>(kRowWidth, kRowHeight, m_paintBackground, m_dc);
-    if (image->DibSectionHandle() != 0) {
+    if (image->DibSectionHandle() != nullptr) {
         int skin = 0;
         DibBitmap* frame;
         DibBitmap* selectedFrame;

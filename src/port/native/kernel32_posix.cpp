@@ -90,7 +90,7 @@ struct Semaphore : Object {
 
 struct Thread : Object {
     Thread() : Object(Kind::Thread) {}
-    pthread_t id = 0;
+    pthread_t id{};
     LPTHREAD_START_ROUTINE start = nullptr;
     LPVOID parameter = nullptr;
     DWORD exitCode = 259;  // STILL_ACTIVE

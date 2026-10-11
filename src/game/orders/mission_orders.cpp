@@ -168,7 +168,7 @@ int MissionOrder::CheckDestination(StatusCode* status) {
         if (ok && isOk(status)) {
             if (m_missionKey.m_value == 0) {
                 setStatus(status, kMissionCategory, kStatusNoMissionKey);
-            } else if (FindDataRecord(AsLookupKey(&m_missionKey)) == 0) {
+            } else if (FindDataRecord(AsLookupKey(&m_missionKey)) == nullptr) {
                 setStatus(status, kMissionCategory, kStatusBadMissionKey);
                 ok = 0;
             }

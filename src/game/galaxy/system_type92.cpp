@@ -85,7 +85,7 @@ int SystemType92::Virtual115(NotifyContext* ctx) {
         for (int i = 0; i < count; ++i) {
             int created;
             result = RollStartingUnitB(rawMaterial, CountProductionFacilityType2C(this, ControlSide(), 1), &created, reinterpret_cast<NullableKey*>(&key));
-            if (result && created) result = CreateChild(&key, ControlSide(), ctx, 1, 1) != 0;
+            if (result && created) result = CreateChild(&key, ControlSide(), ctx, 1, 1) != nullptr;
             if (!result) break;
         }
     }

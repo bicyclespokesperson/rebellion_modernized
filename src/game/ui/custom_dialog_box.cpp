@@ -160,7 +160,7 @@ int CustomDialogBox::OnRightButtonUp(int x, int y, CoolWindow* sender) {
 
 void CustomDialogBox::Virtual08(int a, int, int) {
     ObjectKey none;
-    UiHumanCommand(a, &m_selection, &none, 0);
+    UiHumanCommand(a, &m_selection, &none, nullptr);
 }
 
 void CustomDialogBox::GetSelection(ObjectKeyValueSet*, CoolWindow*) {}

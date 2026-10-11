@@ -162,7 +162,7 @@ CoolWindow* GalaxyWindow::OpenChildWindow(istream* in, ChildWindowState* state) 
         case kTypeSystem: {
             void* memory = ::operator new(sizeof(SystemWindow));
             tracked = true;
-            window = memory ? static_cast<CoolWindow*>(new (memory) SystemWindow(m_instance, state->m_x, state->m_y, state->m_width, state->m_height, this, 0, 0))
+            window = memory ? static_cast<CoolWindow*>(new (memory) SystemWindow(m_instance, state->m_x, state->m_y, state->m_width, state->m_height, this, 0, nullptr))
                             : nullptr;
             break;
         }
