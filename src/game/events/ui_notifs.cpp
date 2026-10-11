@@ -1,7 +1,4 @@
-#include <cstring>
 #include "events/ui_notifs.h"
-
-#include <new>
 
 #include "app/player_controller_decl.h"
 #include "core/checked_new.h"
@@ -1025,24 +1022,10 @@ UiNotif500::~UiNotif500() = default;
 int UiNotif500::GetKind() { return 0x500; }
 
 void UiNotif500::Dispatch(PlayerController* controller) {
-    alignas(String) char nameStorage[sizeof(String)];
-    String* name = CopyNameForSink(reinterpret_cast<String*>(nameStorage));
-    StringWords words = {};
-    memcpy(&words, name, sizeof(String));
-    controller->Virtual87(GetKeyPointer(), words);
+    controller->NotifyShipChanged(GetKeyPointer());
 }
 
 ObjectKey* UiNotif500::GetKeyPointer() { return &m_key; }
-
-String* UiNotif500::CopyName(String* out) {
-    new (out) String(m_textB);
-    return out;
-}
-
-String* UiNotif500::CopyNameForSink(String* out) {
-    CopyName(out);
-    return out;
-}
 
 void* CreateUiNotif500() { return NewOrNull<UiNotif500>(); }
 

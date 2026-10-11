@@ -87,7 +87,7 @@ public:
     void Virtual81(const ObjectKey* key, const ObjectKey* oldKey, const ObjectKey* newKey) override;  // 0x486b60
     void Virtual82(const ObjectKey* key) override;                          // 0x486d50
     void Virtual83(const ObjectKey* key, const ObjectKey* newParent, const ObjectKey* arg) override;  // 0x486d80
-    void Virtual87(const ObjectKey* key, StringWords name) override;  // 0x486eb0
+    void NotifyShipChanged(const ObjectKey* key) override;  // 0x486eb0
     void Virtual90(const ObjectKey* key) override;                          // 0x486f30
     void Virtual91(const ObjectKey* key, const ObjectKey* newParent) override;  // 0x486f60
     void Virtual93(unsigned target) override { SetSyncTarget(target); }  // slot 93, shared 0x4888d0

@@ -204,10 +204,8 @@ void AiPlayer::Virtual84(const ObjectKey* key, int) {
     m_model.NoteObject(key);
 }
 
-void AiPlayer::Virtual87(const ObjectKey* key, StringWords name) {
+void AiPlayer::NotifyShipChanged(const ObjectKey* key) {
     m_model.NoteShipChanged(key);
-    static_assert(sizeof(String) <= sizeof(StringWords), "a String must fit in the argument words");
-    reinterpret_cast<String*>(&name)->~String();  // the caller passes the ship's name by value; the callee destroys it
 }
 
 void AiPlayer::Virtual91(const ObjectKey* key, const ObjectKey* newParent) {

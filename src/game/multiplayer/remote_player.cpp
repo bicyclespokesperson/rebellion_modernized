@@ -207,11 +207,7 @@ void RemotePlayer::Virtual20(NotifPayload* notice) {
     if (notice) delete notice;
 }
 
-void RemotePlayer::Virtual87(const ObjectKey* key, StringWords name) {
-    // The String that was passed by value in the argument words is destroyed by the callee.
-    static_assert(sizeof(String) <= sizeof(StringWords), "a String must fit in the argument words");
-    reinterpret_cast<String*>(&name)->String::~String();
-}
+void RemotePlayer::NotifyShipChanged(const ObjectKey*) {}
 
 void RemotePlayer::Virtual93(unsigned target) {
     if (target <= m_syncTarget) return;

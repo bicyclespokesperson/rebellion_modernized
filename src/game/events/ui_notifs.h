@@ -1171,8 +1171,6 @@ public:
     void Dispatch(PlayerController* controller) override;  // 0x43f3e0
     void DispatchToSink(UiNotice*) override {}
     ObjectKey* GetKeyPointer();  // 0x43f440
-    String* CopyName(String* out);  // 0x43f470
-    String* CopyNameForSink(String* out);  // 0x43f450
 };
 
 void* CreateUiNotif500();  // 0x43f360
