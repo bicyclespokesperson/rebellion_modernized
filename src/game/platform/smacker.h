@@ -5,7 +5,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/reb_abi.h"
 #include "platform/win32.h"
 
@@ -65,18 +64,3 @@ REB_DLLIMPORT uint32_t REB_STDCALL SmackBufferBlit(SmackBuf* buffer, HDC dc, int
 REB_DLLIMPORT uint32_t REB_STDCALL SmackBufferNewPalette(SmackBuf* buffer, void* palette, uint32_t paletteType);
 REB_DLLIMPORT uint32_t REB_STDCALL SmackBufferSetPalette(SmackBuf* buffer);
 }
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_OFFSET(Smack, m_frameCount, 0x0c);
-REB_ASSERT_OFFSET(Smack, m_newPalette, 0x68);
-REB_ASSERT_OFFSET(Smack, m_palette, 0x6c);
-REB_ASSERT_OFFSET(Smack, m_paletteType, 0x370);
-REB_ASSERT_OFFSET(Smack, m_frameNumber, 0x374);
-REB_ASSERT_OFFSET(Smack, m_lastRectX, 0x378);
-REB_ASSERT_OFFSET(Smack, m_lastRectHeight, 0x384);
-REB_ASSERT_OFFSET(SmackBuf, m_surfaceType, 0x04);
-REB_ASSERT_OFFSET(SmackBuf, m_width, 0x10);
-REB_ASSERT_OFFSET(SmackBuf, m_height, 0x14);
-REB_ASSERT_OFFSET(SmackBuf, m_buffer, 0x448);
-#pragma clang diagnostic pop

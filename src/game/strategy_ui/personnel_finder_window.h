@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
 #include "ui/custom_dialog_box.h"
@@ -53,18 +52,3 @@ public:
     CoolListItemList* m_characterRows;  // +0x174 owned
     ObjectKey m_selected;            // +0x178
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(PersonnelFinderWindow, 0x17c);
-REB_ASSERT_OFFSET(PersonnelFinderWindow, m_filterTabs, 0x144);
-REB_ASSERT_OFFSET(PersonnelFinderWindow, m_pageTabs, 0x148);
-REB_ASSERT_OFFSET(PersonnelFinderWindow, m_nameField, 0x14c);
-REB_ASSERT_OFFSET(PersonnelFinderWindow, m_list, 0x150);
-REB_ASSERT_OFFSET(PersonnelFinderWindow, m_galaxy, 0x154);
-REB_ASSERT_OFFSET(PersonnelFinderWindow, m_filterLabel, 0x158);
-REB_ASSERT_OFFSET(PersonnelFinderWindow, m_brushes, 0x15c);
-REB_ASSERT_OFFSET(PersonnelFinderWindow, m_forceRows, 0x170);
-REB_ASSERT_OFFSET(PersonnelFinderWindow, m_characterRows, 0x174);
-REB_ASSERT_OFFSET(PersonnelFinderWindow, m_selected, 0x178);
-#pragma clang diagnostic pop

@@ -210,3 +210,5 @@ int AllocateObjectId() {
     root->m_unk6c = id + 1;
     return id;
 }
+
+int g_setupStage{};

@@ -85,3 +85,7 @@ int DeleteGameFile(const char* fileName) {
     if (name.m_text) deleted = DeleteFileA(name.m_text);
     return deleted;
 }
+
+HMODULE g_resourceModule{};
+char g_resourceString[256]{};
+int g_fileError = 8;

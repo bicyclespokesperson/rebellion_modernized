@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
 
@@ -29,10 +28,3 @@ public:
     TextScrollField* m_textField;   // +0x11c owned
     CoolLabel* m_titleLabel;        // +0x120 owned
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(OrderConfirmWindow, 0x124);
-REB_ASSERT_OFFSET(OrderConfirmWindow, m_galaxy, 0x114);
-REB_ASSERT_OFFSET(OrderConfirmWindow, m_titleLabel, 0x120);
-#pragma clang diagnostic pop

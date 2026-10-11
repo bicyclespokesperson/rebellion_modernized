@@ -9,7 +9,6 @@
 #include "strategy_ui/advisor_droid.h"
 #include "strategy_ui/game_ui_facade.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 
 namespace {
 
@@ -32,23 +31,6 @@ HumanPlayer* newHuman(int side) {
 
 }  // namespace
 
-// ---- module static initializer ------------------------------------------------------------------------------
-
-void ConstructSessionRandom() { new (&g_sessionRandom) RandomGenerator(); }
-
-void RegisterSessionRandomDestructor() { atexit(DestroySessionRandom); }
-
-void GameSessionStaticInit() {
-    ConstructSessionRandom();
-    RegisterSessionRandomDestructor();
-}
-
-void DestroySessionRandom() {
-    if (!(g_sessionRandomDestroyedGuard & 1)) {
-        g_sessionRandomDestroyedGuard |= 1;
-        g_sessionRandom.~RandomGenerator();
-    }
-}
 
 // ---- the singleton ------------------------------------------------------------------------------------------
 

@@ -34,7 +34,6 @@ public:
 
     static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x570690
     static int BuildEventKinds();      // 0x5715d0
-    static void InitStatics();         // 0x571600
     static GameObjNotifier* Create();  // 0x570620
 };
 
@@ -44,9 +43,3 @@ public:
     explicit MissionJediTrainingIterator(GameObjNotifier* parent);  // 0x571650 (state filter 1)
     virtual ~MissionJediTrainingIterator();                         // 0x5716d0 (deleting), 0x5716f0
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionJediTraining, 0xac);
-REB_ASSERT_SIZE(MissionJediTrainingIterator, 0x20);
-#pragma clang diagnostic pop

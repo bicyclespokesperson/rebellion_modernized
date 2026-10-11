@@ -350,3 +350,5 @@ int TacticalAiSide::StepSide(float step) {
     if (static_cast<TacticalDeathStar*>(deathStar)->TacticalDeathStar::IsOperational() != 0) return 0;
     return 1;
 }
+
+TacticalVector g_formationOrigin{};

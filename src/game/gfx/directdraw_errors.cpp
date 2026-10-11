@@ -213,3 +213,6 @@ void ReportDirectDrawError(HRESULT result, HWND parent) {
         MessageBoxExA(parent, text, caption, kMessageBoxFlags, kEnglishUs);
     }
 }
+
+HMODULE g_ddErrorModule{};
+int g_ddReportErrors{};

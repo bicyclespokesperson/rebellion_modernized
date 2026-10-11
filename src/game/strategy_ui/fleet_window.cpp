@@ -31,7 +31,7 @@
 #include "ui/cool_tab_control.h"
 #include "ui/resource_dll.h"
 
-extern const char g_gokresDllName[];  // 0x6a8708 "gokres.dll"
+extern const char *g_gokresDllName;  // 0x6a8708 "gokres.dll"
 extern POINT g_fleetRowLines[12];     // 0x6a87b8 six two-point lines
 extern RECT g_fleetInfoRect;          // 0x6a8818 where the selection's picture and totals are drawn
 
@@ -1438,3 +1438,8 @@ void REB_STDCALL DrawFleetContentIcons(DibBitmap* target, int side, uint32_t con
         DeleteBitmap(bitmap);
     }
 }
+
+FontTable g_fontTable = FontTable("Arial");
+POINT g_fleetRowLines[12] = {{2, 6}, {5, 6}, {2, 6}, {2, 50}, {2, 0}, {2, 50}, {2, 0}, {2, 6}, {2, 6}, {5, 6}, {2, 6}, {6, 6}};
+RECT g_fleetInfoRect = {100, 42, 225, 91};
+ResourceDllList g_resourceDlls{};

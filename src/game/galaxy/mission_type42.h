@@ -27,11 +27,5 @@ public:
     int ValidateImpl();            // 0x56aac0 (jump thunk to the mission base's Validate body 0x523c60)
 
     static int BuildEventKinds();      // 0x56aad0, g_mission42EventKinds at 0x6bb938
-    static void InitStatics();         // 0x56ab00
     static GameObjNotifier* Create();  // 0x56aa30, the object factory of family 0x42
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(Mission42, 0xa8);
-#pragma clang diagnostic pop

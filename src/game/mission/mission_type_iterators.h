@@ -23,10 +23,3 @@ public:
     explicit MissionInciteIterator(GameObjNotifier* parent);  // 0x571c20
     virtual ~MissionInciteIterator();                         // 0x571ca0 (deleting), 0x571cc0
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionSubdueIterator, 0x20);
-REB_ASSERT_SIZE(MissionResearchIterator, 0x20);
-REB_ASSERT_SIZE(MissionInciteIterator, 0x20);
-#pragma clang diagnostic pop

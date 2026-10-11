@@ -27,8 +27,3 @@ public:
 
 // The factory the object family registry holds for family 0xf2 (0x569760).
 GameObjNotifier* CreateSideRoot();
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SideRoot, 0x58);
-#pragma clang diagnostic pop

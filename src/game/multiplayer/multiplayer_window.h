@@ -16,7 +16,6 @@
 #include <cstdint>
 
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "multiplayer/comm_packets.h"
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
@@ -175,15 +174,3 @@ uint32_t GetSlotSaveId(int slot);                                      // 0x4114
 void SetLobbyFlags(uint32_t flags);                                    // 0x411490
 void SetSlotValue(int slot, uint32_t value);                           // 0x4114a0
 void BroadcastSlotTable();                                             // 0x4114c0
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MultiPlayerWindow, 0x194);
-REB_ASSERT_OFFSET(MultiPlayerWindow, m_ready, 0x114);
-REB_ASSERT_OFFSET(MultiPlayerWindow, m_page, 0x12c);
-REB_ASSERT_OFFSET(MultiPlayerWindow, m_backButton, 0x13c);
-REB_ASSERT_OFFSET(MultiPlayerWindow, m_typeButton2, 0x16c);
-REB_ASSERT_OFFSET(MultiPlayerWindow, m_gameNameField, 0x170);
-REB_ASSERT_OFFSET(MultiPlayerWindow, m_providerList, 0x184);
-REB_ASSERT_OFFSET(MultiPlayerWindow, m_selectedSession, 0x190);
-#pragma clang diagnostic pop

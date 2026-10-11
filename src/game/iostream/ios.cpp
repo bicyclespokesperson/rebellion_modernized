@@ -4,7 +4,7 @@
 #include "platform/win32.h"
 
 extern int g_iosInstanceCount;         // 0x6be740 number of live ios objects
-extern uint8_t g_iosStaticLock[kCriticalSectionBytes];  // 0x6be708 CRITICAL_SECTION shared by every ios
+extern CRITICAL_SECTION g_iosStaticLock;  // 0x6be708 CRITICAL_SECTION shared by every ios
 
 void REB_CDECL mtx_init(void* criticalSection) { InitializeCriticalSection(static_cast<LPCRITICAL_SECTION>(criticalSection)); }
 
@@ -18,6 +18,8 @@ ios* REB_THISCALL ios_ctor(ios* self) {
     self->m_bp = nullptr;
     self->m_ispecial = 0;
     self->m_ospecial = 0;
+    self->m_isfxSpecial = 0;
+    self->m_osfxSpecial = 0;
     self->m_tie = nullptr;
     self->m_flags = 0;
     self->m_width = 0;
@@ -28,14 +30,14 @@ ios* REB_THISCALL ios_ctor(ios* self) {
     self->m_fill = ' ';
     self->m_lockCount = -1;
     mtx_init(self->m_lock);
-    if (g_iosInstanceCount++ == 0) mtx_init(g_iosStaticLock);
+    if (g_iosInstanceCount++ == 0) mtx_init(&g_iosStaticLock);
     return self;
 }
 
 void REB_THISCALL ios_dtor(ios* self) {
     self->m_vftable = &ios::vftable;
     self->m_lockCount = -1;
-    if (--g_iosInstanceCount == 0) mtx_term(g_iosStaticLock);
+    if (--g_iosInstanceCount == 0) mtx_term(&g_iosStaticLock);
     mtx_term(self->m_lock);
     if (self->m_delbuf != 0 && self->m_bp != nullptr) self->m_bp->m_vftable->m_scalarDeletingDtor(self->m_bp, 1);
     self->m_bp = nullptr;
@@ -50,3 +52,6 @@ void REB_THISCALL ios_init(ios* self, streambuf* buffer) {
     else
         self->m_state |= iostream_flags::kBad;
 }
+
+int g_iosInstanceCount{};
+CRITICAL_SECTION g_iosStaticLock{};

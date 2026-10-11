@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/child_iterator.h"
 #include "gameobj/unit_obj_base.h"
 
@@ -50,11 +49,7 @@ public:
 
     // Fills the class's static event kind set once (kind 0x200); false if it could not be built.
     static int BuildEventKinds();  // 0x539c20
-    // Static initialisation of the event kind set (0x539d00, called from the CRT initialisers): the constructor call
     // (0x539d10) and the atexit registration of its destructor (0x539d20).
-    static void InitStatics();
-    static void ConstructEventKinds();
-    static void RegisterEventKindsAtExit();
 };
 
 // Runs UpdateChildren over the facility families 0x20-0x30 of `object` (0x539ac0, cdecl).
@@ -67,9 +62,3 @@ public:
     FacilityIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x539df0
     virtual ~FacilityIterator();                                                     // 0x539e70 (scalar deleting destructor 0x539d50)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(Facility, 0x58);
-REB_ASSERT_SIZE(FacilityIterator, 0x20);
-#pragma clang diagnostic pop

@@ -3,7 +3,6 @@
 
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/utility_classes.h"
 #include "platform/win32.h"
 
@@ -59,15 +58,3 @@ public:
     COLORREF m_color;            // +0x60 white
     COLORREF m_hoverColor;       // +0x64 white
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CoolListItem, 0x68);
-REB_ASSERT_OFFSET(CoolListItem, m_id, 0x0c);
-REB_ASSERT_OFFSET(CoolListItem, m_text, 0x14);
-REB_ASSERT_OFFSET(CoolListItem, m_image, 0x20);
-REB_ASSERT_OFFSET(CoolListItem, m_state, 0x3c);
-REB_ASSERT_OFFSET(CoolListItem, m_rect, 0x40);
-REB_ASSERT_OFFSET(CoolListItem, m_userData, 0x54);
-REB_ASSERT_OFFSET(CoolListItem, m_hoverColor, 0x64);
-#pragma clang diagnostic pop

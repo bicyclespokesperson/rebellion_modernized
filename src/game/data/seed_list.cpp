@@ -197,3 +197,5 @@ int SeedKeyCountNode::Checksum(Crc32* crc) {
     if (ok) crc->AddInt(m_count);
     return ok;
 }
+
+int g_seedListClassRegistered{};

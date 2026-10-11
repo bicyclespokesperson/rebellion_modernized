@@ -8,11 +8,8 @@
 #include "gameobj/object_database.h"
 #include "gameobj/object_type_db.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyManuMgrEmptyQueue();
-void DestroyManuMgrEventKinds();
 
-extern const char g_emptyText[];            // 0x6b120c
+extern const char *g_emptyText;            // 0x6b120c
 extern int g_manuMgrEventKindsReady;        // 0x6b9008
 extern ObjectKeyValueSet g_manuMgrEmptyQueue;  // 0x6b9010
 extern EventKindSet g_manuMgrEventKinds;    // 0x6b9018
@@ -118,27 +115,14 @@ int ManuMgr::CheckOrder(int a, int orderKind, StatusCode* out) {
     return result;
 }
 
-void ManuMgr::ConstructEventKinds() { new (&g_manuMgrEventKinds) EventKindSet(); }
-
-void ManuMgr::RegisterEventKindsAtExit() { atexit(DestroyManuMgrEventKinds); }
-
-void ManuMgr::StaticInit() {
-    ConstructEventKinds();
-    RegisterEventKindsAtExit();
-}
 
 // ---- queue and facilities --------------------------------------------------------------------------------------
 
 ObjectKeyValueSet* ManuMgr::GetQueue() {
-    const uint32_t flags = m_flags;
-    if ((g_manuMgrEmptyQueueGuard & 1) == 0) {
-        g_manuMgrEmptyQueueGuard |= 1;
-        new (&g_manuMgrEmptyQueue) ObjectKeyValueSet();
-        atexit(DestroyManuMgrEmptyQueue);
-    }
-    if ((flags & kViewBits) == 0) return &static_cast<ManuMgrData*>(m_data)->m_queue;
+    if ((m_flags & kViewBits) == 0) return &static_cast<ManuMgrData*>(m_data)->m_queue;
     return &g_manuMgrEmptyQueue;
 }
+
 
 int ManuMgr::GetQueueCopy(ObjectKeyValueSet* out) {
     const int isMaster = (m_flags & kViewBits) == 0;
@@ -241,16 +225,8 @@ ManuMgrIterator::ManuMgrIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &family::kManufacturingManagers, stateFilter) {}
 
 ManuMgrIterator::~ManuMgrIterator() { REB_KEEP_VPTR_STORE(); }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-void DestroyManuMgrEmptyQueue() { g_manuMgrEmptyQueue.~ObjectKeyValueSet(); }
-
-extern uint8_t g_manuMgrEventKindsDestroyedGuard;  // 0x6b9024
-
-void DestroyManuMgrEventKinds() {
-    if (!(g_manuMgrEventKindsDestroyedGuard & 0x1)) {
-        g_manuMgrEventKindsDestroyedGuard |= 0x1;
-        g_manuMgrEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_manuMgrEventKinds{};
+ObjectKeyValueSet g_manuMgrEmptyQueue{};
+ObjectTypeDb * g_objectTypeDb{};
+int g_manuMgrEventKindsReady{};
+uint8_t g_manuMgrEmptyQueueGuard{};

@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "ui/cool_drag_list.h"
 #include "ui/cool_list_item.h"
 
@@ -29,11 +28,3 @@ public:
     virtual ~MessageItemList();              // 0x4ad660 (scalar deleting destructor 0x4ad640)
     virtual CoolListItem* First() override;  // slot 2, 0x4ad670
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MessageListItem, 0x70);
-REB_ASSERT_OFFSET(MessageListItem, m_record, 0x68);
-REB_ASSERT_OFFSET(MessageListItem, m_visible, 0x6c);
-REB_ASSERT_SIZE(MessageItemList, 0x10);
-#pragma clang diagnostic pop

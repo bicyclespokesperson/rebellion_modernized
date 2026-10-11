@@ -700,3 +700,10 @@ void RegisterAllFactoriesOnce() {
         g_gameFactoriesRegistered = 1;
     }
 }
+
+LegacyBlockA g_legacyBlockA{};
+LegacyBlockB g_legacyBlockB[3]{};
+String g_legacyTexts[10]{};
+int g_gameFactoriesRegistered{};
+int g_legacyTextCount{};
+int g_legacyTextExtra{};

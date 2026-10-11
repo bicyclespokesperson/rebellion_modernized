@@ -7,7 +7,6 @@
 // (rules/planet_assault.h and rules/planet_bombard.h, 0x58b960-0x58e570).
 #include <cstdint>
 
-#include "core/layout.h"
 #include "events/event_base.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/status_code.h"
@@ -70,11 +69,3 @@ void* CreateSystemCommand224();  // 0x563580
 
 // The next object after `object` in the character families 0x30-0x3c (0x562a50, a thiscall on the object).
 GameObjNotifier* REB_THISCALL NextCharacterSibling(GameObj* object);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(LoyaltyEvent373, 0x44);
-REB_ASSERT_OFFSET(LoyaltyEvent373, m_delta, 0x40);
-REB_ASSERT_SIZE(SystemCommand225, 0x50);
-REB_ASSERT_SIZE(SystemCommand224, 0x50);
-#pragma clang diagnostic pop

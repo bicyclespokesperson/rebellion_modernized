@@ -26,10 +26,10 @@
 #include "ui/cool_list_item.h"
 #include "ui/resource_dll.h"
 
-extern const char g_gokresDllName[];     // 0x6a8708 "gokres.dll"
-extern const char g_attachedText[];      // 0x6a8738 "Attached:"
-extern const char g_statusText[];        // 0x6a8744 "Status:"
-extern const char g_tallySeparator[];    // 0x6a874c "  "
+extern const char *g_gokresDllName;     // 0x6a8708 "gokres.dll"
+extern const char *g_attachedText;      // 0x6a8738 "Attached:"
+extern const char *g_statusText;        // 0x6a8744 "Status:"
+extern const char *g_tallySeparator;    // 0x6a874c "  "
 
 // The record key of an object (0x402d80) and its key (0x4025b0, GameObjRoot::GetKey out of line).
 // The picture of an object for its status window (galaxy view routes, 0x42c3b0).
@@ -596,3 +596,7 @@ void ObjectStatusWindow::AddTallyItems(AvlTree* tally) {
         ios_dtor(stream.Ios());
     }
 }
+
+const char *g_attachedText = nullptr;
+const char *g_statusText = nullptr;
+const char *g_tallySeparator = nullptr;

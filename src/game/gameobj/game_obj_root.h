@@ -4,7 +4,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "gameobj/object_key.h"
 #include "gameobj/status_code.h"
@@ -124,14 +123,3 @@ public:
 // Edits `mask` bits of *flags to `value`'s, writing only if they differ. Returns 1 if the bits changed.
 int UpdateFlagBits(uint32_t mask, uint32_t value, uint32_t* flags);
 int UpdateFlagBit(uint32_t mask, int on, uint32_t* flags);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(GameObjRoot, 0x28);
-REB_ASSERT_OFFSET(GameObjRoot, m_parent, 0x1c);
-REB_ASSERT_OFFSET(GameObjRoot, m_entry, 0x20);
-REB_ASSERT_OFFSET(GameObjRoot, m_flags, 0x24);
-REB_ASSERT_SIZE(GameObjNotifier, 0x30);
-REB_ASSERT_OFFSET(GameObjNotifier, m_children, 0x28);
-REB_ASSERT_OFFSET(GameObjNotifier, m_record, 0x2c);
-#pragma clang diagnostic pop

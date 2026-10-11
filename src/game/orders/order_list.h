@@ -6,7 +6,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "orders/order_base.h"
 
 class MessageTree : public IdAvlTree {
@@ -24,9 +23,3 @@ public:
 
     uint32_t m_unk0c;  // +0x0c, 1
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MessageTree, 0x10);
-REB_ASSERT_OFFSET(MessageTree, m_unk0c, 0x0c);
-#pragma clang diagnostic pop

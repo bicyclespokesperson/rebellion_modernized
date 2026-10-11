@@ -13,7 +13,6 @@
 #include "mission/mission_external.h"
 #include "mission/mission_rules.h"
 
-void DestroyMissionResearchEventKinds();  // the atexit destructor of the event kind set
 
 extern int g_missionResearchEventKindsReady;      // 0x6bb984
 extern EventKindSet g_missionResearchEventKinds;  // 0x6bb988
@@ -81,7 +80,7 @@ MissionResearch::MissionResearch() {
 MissionResearch::~MissionResearch() { REB_KEEP_VPTR_STORE(); }
 
 int MissionResearch::Read(istream* in) {
-    const int result = static_cast<MissionRuleBase*>(this)->MissionRuleBase::ReadBody(in);
+    const int result = this->Mission::ReadImpl(in);
     if (result) {
         ReadValue32(in, &m_rdPoints);
         ReadValue32(in, &m_rdOrders);
@@ -99,7 +98,7 @@ int MissionResearch::Write(ostream* out) {
 }
 
 int MissionResearch::Checksum(Crc32* crc) {
-    const int result = reinterpret_cast<MissionTypeBase*>(this)->MissionTypeBase::ChecksumBody(crc);
+    const int result = this->Mission::ChecksumImpl(crc);
     if (result) {
         crc->AddInt(m_rdPoints);
         crc->AddInt(m_rdOrders);
@@ -378,23 +377,5 @@ int MissionResearch::BuildEventKinds() {
     }
     return 1;
 }
-
-void ConstructMissionResearchEventKinds() { new (&g_missionResearchEventKinds) EventKindSet(); }
-
-void RegisterMissionResearchEventKindsAtExit() { atexit(DestroyMissionResearchEventKinds); }
-
-void MissionResearch::InitStatics() {
-    ConstructMissionResearchEventKinds();
-    RegisterMissionResearchEventKindsAtExit();
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_missionResearchEventKindsDestroyedGuard;  // 0x6bb980
-
-void DestroyMissionResearchEventKinds() {
-    if (!(g_missionResearchEventKindsDestroyedGuard & 0x1)) {
-        g_missionResearchEventKindsDestroyedGuard |= 0x1;
-        g_missionResearchEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_missionResearchEventKinds{};
+int g_missionResearchEventKindsReady{};

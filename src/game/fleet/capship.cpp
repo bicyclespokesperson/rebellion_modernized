@@ -16,8 +16,6 @@
 #include "gameobj/object_family.h"
 #include "orders/order_checks.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyCapShipEventKinds();
 
 extern int g_capShipEventKindsReady;      // 0x6b2b20
 extern EventKindSet g_capShipEventKinds;  // 0x6b2b28
@@ -708,14 +706,6 @@ int CapShip::EnsureEventKinds() {
     return addedSecond && addedFirst;
 }
 
-void CapShipStaticInit() {
-    ConstructCapShipEventKinds();
-    RegisterCapShipEventKindsAtExit();
-}
-
-void ConstructCapShipEventKinds() { new (&g_capShipEventKinds) EventKindSet(); }
-
-void RegisterCapShipEventKindsAtExit() { atexit(DestroyCapShipEventKinds); }
 
 CapShipIterator::CapShipIterator(GameObjNotifier* parent) : ChildIterator(parent, &family::kCapitalShips, 1) {}
 
@@ -812,14 +802,11 @@ int CapShip::InflictCriticalHit(int damage, int destroyedReason, NotifyContext* 
     }
     return ok;
 }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_capShipEventKindsDestroyedGuard;  // 0x6b2b30
-
-void DestroyCapShipEventKinds() {
-    if (!(g_capShipEventKindsDestroyedGuard & 0x1)) {
-        g_capShipEventKindsDestroyedGuard |= 0x1;
-        g_capShipEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_capShipEventKinds{};
+int g_capShipEventKindsReady{};
+int g_gnprtb0800{};
+int g_gnprtb0801{};
+int g_gnprtb0802{};
+int g_gnprtb0803{};
+int g_gnprtb0804{};
+int g_gnprtb0805{};

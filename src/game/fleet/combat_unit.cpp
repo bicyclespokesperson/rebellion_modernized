@@ -10,8 +10,6 @@
 #include "fleet/unit_data_decl.h"
 #include "fleet/unit_view_flags.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyCombatUnitEventKinds();
 
 extern int g_combatUnitEventKindsReady;      // 0x6bb358
 extern EventKindSet g_combatUnitEventKinds;  // 0x6bb350
@@ -226,23 +224,5 @@ int CombatUnit::InitEventKinds(int unused, EventKindSet* out) {
     *out = g_combatUnitEventKinds;
     return ready;
 }
-
-void CombatUnitStaticInit() {
-    ConstructCombatUnitEventKinds();
-    RegisterCombatUnitEventKindsAtExit();
-}
-
-void ConstructCombatUnitEventKinds() { new (&g_combatUnitEventKinds) EventKindSet(); }
-
-void RegisterCombatUnitEventKindsAtExit() { atexit(DestroyCombatUnitEventKinds); }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_combatUnitEventKindsDestroyedGuard;  // 0x6bb35c
-
-void DestroyCombatUnitEventKinds() {
-    if (!(g_combatUnitEventKindsDestroyedGuard & 0x1)) {
-        g_combatUnitEventKindsDestroyedGuard |= 0x1;
-        g_combatUnitEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_combatUnitEventKinds{};
+int g_combatUnitEventKindsReady{};

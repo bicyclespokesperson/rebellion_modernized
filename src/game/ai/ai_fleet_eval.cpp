@@ -261,3 +261,11 @@ void AiFleetEval::AddShipStats(const int* stats, const int* flags) {
         Stat(0xac) -= stats[5];
     }
 }
+
+GameManager * g_gameManager{};
+GameRoot * g_gameRoot{};
+UiHandler * g_uiHandlers[46]{};
+int (*g_gameHook2ADC)(HookArg) = nullptr;
+int (*g_gameHook2AE4)(HookArg) = nullptr;
+int g_gnprtb1200{};
+int g_gnprtb1201{};

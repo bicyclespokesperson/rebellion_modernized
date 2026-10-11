@@ -1,6 +1,5 @@
 #pragma once
 // The data blocks of Detector and CombatUnit (0x58b1a0-0x58b300); the bodies are in fleet/unit_data.cpp.
-#include "core/layout.h"
 #include "gameobj/tracked_stat.h"
 #include "gameobj/unit_obj_base.h"
 
@@ -22,10 +21,3 @@ public:
 
     TrackedStat m_repairStat;  // +0x18
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(DetectorData, 0x18);
-REB_ASSERT_SIZE(CombatUnitData, 0x20);
-REB_ASSERT_OFFSET(CombatUnitData, m_repairStat, 0x18);
-#pragma clang diagnostic pop

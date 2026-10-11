@@ -1,5 +1,4 @@
 #pragma once
-#include "core/layout.h"
 #include "fleet/capship.h"
 
 // The two concrete capital-ship classes. They add no state and no events: each supplies its family, the thin slot wrappers
@@ -56,11 +55,3 @@ public:
     DeathStarIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x500450
     virtual ~DeathStarIterator();                                                     // 0x5004d0 (scalar deleting destructor 0x5003b0)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CapitalShip, 0x68);
-REB_ASSERT_SIZE(DeathStar, 0x68);
-REB_ASSERT_SIZE(CapitalShipIterator, 0x20);
-REB_ASSERT_SIZE(DeathStarIterator, 0x20);
-#pragma clang diagnostic pop

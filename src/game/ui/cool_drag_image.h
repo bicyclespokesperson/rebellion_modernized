@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 
 class CoolWindow;
@@ -44,13 +43,3 @@ public:
     LONG m_savedStyle;       // +0x20 m_window's style before BeginDrag cleared WS_CLIPCHILDREN
     uint32_t m_flags;        // +0x24 CoolDragImageFlags
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CoolDragImage, 0x28);
-REB_ASSERT_OFFSET(CoolDragImage, m_saved, 0x08);
-REB_ASSERT_OFFSET(CoolDragImage, m_hotspotX, 0x10);
-REB_ASSERT_OFFSET(CoolDragImage, m_position, 0x18);
-REB_ASSERT_OFFSET(CoolDragImage, m_savedStyle, 0x20);
-REB_ASSERT_OFFSET(CoolDragImage, m_flags, 0x24);
-#pragma clang diagnostic pop

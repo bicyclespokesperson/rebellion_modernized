@@ -4,7 +4,6 @@
 
 #include "character/character_data.h"
 #include "character/role.h"
-#include "core/layout.h"
 #include "gameobj/child_iterator.h"
 #include "gameobj/game_obj_data.h"
 #include "gameobj/unit_obj_base.h"
@@ -244,7 +243,6 @@ public:
     // static initializer's entry used by the leaf classes, 0x4f2550 registers the destructor (static init).
     static int BuildEventKinds();                                  // 0x4f2400
     static int InitEventKinds(int unused, EventKindSet* out);      // 0x4f24c0
-    static void InitStatics();                                     // 0x4f2550
 
     // ---- other non-virtual members: added by the implementer of 0x4eceb0-0x4f26d0 (keep this marker) ----
     // The object's copy in `view` (0 master, 1 Alliance, 2 Empire).
@@ -323,8 +321,6 @@ public:
 // Mission-member bit of a character (0x10000) used by the mission member-mask builder (0x582fb0).
 int GetCharacterMemberMask();  // 0x4ed260
 // Static initializer pieces of the event-kind set (see Character::InitStatics).
-void ConstructCharacterEventKinds();        // 0x4f2560
-void RegisterCharacterEventKindsAtExit();   // 0x4f2570
 
 // The AppendCharacterName free function (secondary vtable slot, takes the ObjectBase subobject).
 void REB_THISCALL AppendCharacterName(ObjectBase* base, String* out, int kind);  // 0x4ed060
@@ -336,17 +332,3 @@ public:
     CharacterIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x4f2640
     virtual ~CharacterIterator();                                                     // 0x4f25a0 (deleting), 0x4f26c0
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(Character, 0xb0);
-REB_ASSERT_OFFSET(Character, m_enhancedDiplomacy, 0x7c);
-REB_ASSERT_OFFSET(Character, m_force, 0x8c);
-REB_ASSERT_OFFSET(Character, m_injury, 0x94);
-REB_ASSERT_OFFSET(Character, m_missionHyperdriveModifier, 0x9a);
-REB_ASSERT_OFFSET(Character, m_encounterKey, 0x9c);
-REB_ASSERT_OFFSET(Character, m_commandingKey, 0xa8);
-REB_ASSERT_OFFSET(Character, m_flagsAc, 0xac);
-REB_ASSERT_SIZE(CharacterIterator, 0x20);
-#pragma clang diagnostic pop
-

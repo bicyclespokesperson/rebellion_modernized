@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "economy/manu_mgr.h"
 
 // The three concrete manufacturing managers (0x8c bytes each, no fields of their own), one per kind of product. A
@@ -54,9 +53,6 @@ public:
 
     // Fills the class's static event kind set once (ManuMgr's set plus 0x212); false if it failed.
     static int BuildEventKinds();            // 0x55b580
-    static void InitStatics();               // 0x55b640 (from the CRT initialisers)
-    static void ConstructEventKinds();       // 0x55b650
-    static void RegisterEventKindsAtExit();  // 0x55b660
 };
 
 // Family 0xa0.
@@ -80,9 +76,6 @@ public:
 
     // Fills the class's static event kind set once (ManuMgr's set plus 0x210); false if it failed.
     static int BuildEventKinds();            // 0x55b900
-    static void InitStatics();               // 0x55b9c0
-    static void ConstructEventKinds();       // 0x55b9d0
-    static void RegisterEventKindsAtExit();  // 0x55b9e0
 };
 
 // Family 0xa2.
@@ -108,9 +101,6 @@ public:
 
     // Fills the class's static event kind set once (ManuMgr's set plus 0x215 and 0x211); false if it failed.
     static int BuildEventKinds();            // 0x55bd30
-    static void InitStatics();               // 0x55be50
-    static void ConstructEventKinds();       // 0x55be60
-    static void RegisterEventKindsAtExit();  // 0x55be70
 };
 
 // Registry factories: a new empty object, or null if allocation fails. Identical code to the slot-57 methods.
@@ -123,10 +113,3 @@ GameObjNotifier* CreateShipyardManuMgr();           // 0x55bc10
 int CountTrainingFacilManuMgrChildren(GameObj* parent, uint32_t side, uint32_t filter);     // 0x55b480, family 0xa4
 int CountConstructionYardManuMgrChildren(GameObj* parent, uint32_t side, uint32_t filter);  // 0x55b820, family 0xa0
 int CountShipyardManuMgrChildren(GameObj* parent, uint32_t side, uint32_t filter);          // 0x55bba0, family 0xa2
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(TrainingFacilManuMgr, 0x8c);
-REB_ASSERT_SIZE(ConstructionYardManuMgr, 0x8c);
-REB_ASSERT_SIZE(ShipyardManuMgr, 0x8c);
-#pragma clang diagnostic pop

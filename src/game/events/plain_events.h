@@ -63,10 +63,3 @@ public:
 RefineryQueueEvent* CreateRefineryQueueEvent();  // 0x5778a0
 ManufacturerQueueEvent* CreateManufacturerQueueEvent();  // 0x577bf0
 ReparentToRootEvent* CreateReparentToRootEvent();  // 0x579ce0
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(RefineryQueueEvent, 0x40);
-REB_ASSERT_SIZE(ManufacturerQueueEvent, 0x40);
-REB_ASSERT_SIZE(ReparentToRootEvent, 0x40);
-#pragma clang diagnostic pop

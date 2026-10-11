@@ -173,3 +173,12 @@ FightSquadResult* TacticalFighter::BuildResult(FightSquadResult* out) {
 
 // The same code as the capital ship's slot 50 (0x5b00c0), shared by the linker.
 void TacticalFighter::Virtual50() { FUN_005ba980(FUN_005ba8b0(), 1, 1); }
+
+HeadlessSimulator * g_headlessSimulator{};
+TacticalClient * g_tacticalClient{};
+TacticalHub * g_tacticalHub{};
+TacticalObjectManager * g_tacticalObjectManager{};
+TacticalRegistry * g_tacticalRegistry{};
+TacticalSoundManager * g_tacticalSoundManager{};
+TacticalTurnSync * g_tacticalTurnSync{};
+float g_shipMinTurnStep{};

@@ -12,11 +12,6 @@
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroySystemEventKinds4();
-void DestroySystemEventKinds8();
-void DestroySystemEventKinds10();
-void DestroySystemEventKinds40();
 
 extern int g_systemEventKindsBuilt;        // 0x6b2ba0
 extern EventKindSet g_systemEventKinds4;   // 0x6b2b90
@@ -183,61 +178,8 @@ int System::SelectEventKinds(uint32_t type, EventKindSet** out) {
     }
     return 0;
 }
-
-void ConstructSystemEventKinds4() { new (&g_systemEventKinds4) EventKindSet(); }
-void RegisterSystemEventKinds4AtExit() { atexit(DestroySystemEventKinds4); }
-void ConstructSystemEventKinds8() { new (&g_systemEventKinds8) EventKindSet(); }
-void RegisterSystemEventKinds8AtExit() { atexit(DestroySystemEventKinds8); }
-void ConstructSystemEventKinds10() { new (&g_systemEventKinds10) EventKindSet(); }
-void RegisterSystemEventKinds10AtExit() { atexit(DestroySystemEventKinds10); }
-void ConstructSystemEventKinds40() { new (&g_systemEventKinds40) EventKindSet(); }
-void RegisterSystemEventKinds40AtExit() { atexit(DestroySystemEventKinds40); }
-
-void System::InitStatics4() {
-    ConstructSystemEventKinds4();
-    RegisterSystemEventKinds4AtExit();
-}
-void System::InitStatics8() {
-    ConstructSystemEventKinds8();
-    RegisterSystemEventKinds8AtExit();
-}
-void System::InitStatics10() {
-    ConstructSystemEventKinds10();
-    RegisterSystemEventKinds10AtExit();
-}
-void System::InitStatics40() {
-    ConstructSystemEventKinds40();
-    RegisterSystemEventKinds40AtExit();
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_systemEventKinds4DestroyedGuard;  // 0x6b2b80
-
-void DestroySystemEventKinds4() {
-    if (!(g_systemEventKinds4DestroyedGuard & 0x1)) {
-        g_systemEventKinds4DestroyedGuard |= 0x1;
-        g_systemEventKinds4.~EventKindSet();
-    }
-}
-
-void DestroySystemEventKinds8() {
-    if (!(g_systemEventKinds4DestroyedGuard & 0x2)) {
-        g_systemEventKinds4DestroyedGuard |= 0x2;
-        g_systemEventKinds8.~EventKindSet();
-    }
-}
-
-void DestroySystemEventKinds10() {
-    if (!(g_systemEventKinds4DestroyedGuard & 0x4)) {
-        g_systemEventKinds4DestroyedGuard |= 0x4;
-        g_systemEventKinds10.~EventKindSet();
-    }
-}
-
-void DestroySystemEventKinds40() {
-    if (!(g_systemEventKinds4DestroyedGuard & 0x8)) {
-        g_systemEventKinds4DestroyedGuard |= 0x8;
-        g_systemEventKinds40.~EventKindSet();
-    }
-}
+EventKindSet g_systemEventKinds10{};
+EventKindSet g_systemEventKinds40{};
+EventKindSet g_systemEventKinds4{};
+EventKindSet g_systemEventKinds8{};
+int g_systemEventKindsBuilt{};

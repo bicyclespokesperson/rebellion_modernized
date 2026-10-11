@@ -211,3 +211,5 @@ int DestroyAppDialog() {
 void CenterAppDialog() {
     if (g_appDialog) g_appDialog->CenterInParent();
 }
+
+AppDialog * g_appDialog{};

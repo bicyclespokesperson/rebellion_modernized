@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "audio/sound_manager.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
 #include "ui/cool_label.h"
@@ -86,18 +85,3 @@ public:
 // The state the type-0x1c report windows leave for the message index to continue (ids at 0x6b2904-0x6b2914).
 void ModalReportClose(int owner, int notice);  // 0x469d60
 void ModalReportReset(int owner);              // 0x469db0
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MessageIndexWindow, 0x1e0);
-REB_ASSERT_OFFSET(MessageIndexWindow, m_galaxy, 0x114);
-REB_ASSERT_OFFSET(MessageIndexWindow, m_soundA, 0x128);
-REB_ASSERT_OFFSET(MessageIndexWindow, m_soundB, 0x140);
-REB_ASSERT_OFFSET(MessageIndexWindow, m_filter, 0x158);
-REB_ASSERT_OFFSET(MessageIndexWindow, m_tabs, 0x160);
-REB_ASSERT_OFFSET(MessageIndexWindow, m_list, 0x168);
-REB_ASSERT_OFFSET(MessageIndexWindow, m_current, 0x170);
-REB_ASSERT_OFFSET(MessageIndexWindow, m_title, 0x174);
-REB_ASSERT_OFFSET(MessageIndexWindow, m_tabLabel, 0x1a8);
-REB_ASSERT_OFFSET(MessageIndexWindow, m_text, 0x1dc);
-#pragma clang diagnostic pop

@@ -76,8 +76,6 @@ void HumanSetUiTarget(int a, int b) { AdvisorSetPendingCommand(a, b); }
 // ---- Construction ----------------------------------------------------------------------------------------------
 
 HumanPlayer::HumanPlayer() : PlayerController() {
-    static_assert(sizeof(AiNoticeQueue) <= sizeof(HumanPlayer::m_alertList), "HumanPlayer::m_alertList is too small for a AiNoticeQueue");
-    new (m_alertList) AiNoticeQueue();
     new (Dispatch()) PlayerDispatch();
     m_unk50 = 0;
     m_speed = 0;
@@ -86,8 +84,6 @@ HumanPlayer::HumanPlayer() : PlayerController() {
 }
 
 HumanPlayer::HumanPlayer(int side) : PlayerController(side) {
-    static_assert(sizeof(AiNoticeQueue) <= sizeof(HumanPlayer::m_alertList), "HumanPlayer::m_alertList is too small for a AiNoticeQueue");
-    new (m_alertList) AiNoticeQueue();
     new (Dispatch()) PlayerDispatch();
     m_unk50 = 0;
     m_speed = 0;
@@ -102,7 +98,6 @@ HumanPlayer::HumanPlayer(int side) : PlayerController(side) {
 HumanPlayer::~HumanPlayer() {
     delete m_advisor;
     Dispatch()->PlayerDispatch::~PlayerDispatch();
-    reinterpret_cast<AiNoticeQueue*>(m_alertList)->AiNoticeQueue::~AiNoticeQueue();
     REB_KEEP_VPTR_STORE();
 }
 
@@ -110,7 +105,7 @@ void HumanPlayer::Read(istream* in) {
     PlayerController::Read(in);
     ReadValue32(in, &m_unk50);
     ReadValue32(in, &m_speed);
-    reinterpret_cast<AiNoticeQueue*>(m_alertList)->Load(in);
+    m_alertList.Load(in);
     Dispatch()->Read(in);
     if (m_side == kSideAlliance || m_side == kSideEmpire) m_advisor = NewAdvisor(this);
     m_advisor->m_dispatch = Dispatch();
@@ -123,7 +118,7 @@ void HumanPlayer::Write(ostream* out) {
     PlayerController::Write(out);
     WriteValue32(out, &m_unk50);
     WriteValue32(out, &m_speed);
-    reinterpret_cast<AiNoticeQueue*>(m_alertList)->AiNoticeQueue::Save(out);
+    m_alertList.Save(out);
     Dispatch()->Write(out);
     if (m_advisor) m_advisor->Write(out);
 }
@@ -162,7 +157,7 @@ int HumanPlayer::Virtual09() {
 
 void HumanPlayer::Virtual10() {
     if (m_advisor && !HasPendingMessages()) m_advisor->Tick();
-    if (AiNoticeGroup* group = reinterpret_cast<AiNoticeQueue*>(m_alertList)->AiNoticeQueue::DetachFinished()) {
+    if (AiNoticeGroup* group = m_alertList.DetachFinished()) {
         Dispatch()->HandleNotifications(reinterpret_cast<LinkNode*>(group));
         delete group;
     }
@@ -179,7 +174,7 @@ void HumanPlayer::Virtual14() {
 void HumanPlayer::Virtual20(PlayerNotice* notice) {
     if (!notice) return;
     reinterpret_cast<AiNotice*>(notice)->Virtual06(this);
-    reinterpret_cast<AiNoticeQueue*>(m_alertList)->Add(reinterpret_cast<AiNotice*>(notice));
+    m_alertList.Add(reinterpret_cast<AiNotice*>(notice));
 }
 
 void HumanPlayer::Virtual17(int id, ObjectKey* key) {
@@ -798,7 +793,7 @@ void HumanPlayer::SetSpeed(int speed) {
 }
 
 int HumanPlayer::HasPendingMessages() {
-    return reinterpret_cast<AvlTree*>(m_alertList)->Count() != 0;
+    return m_alertList.Count() != 0;
 }
 
 void HumanPlayer::SetAdvisorFlag4000(int on) {

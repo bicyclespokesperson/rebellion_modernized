@@ -108,3 +108,6 @@ void* CreateTableEntryByClassName(const char* className) {
     }
     return entry;
 }
+
+TableEntryClassRegistration g_tableEntryClasses[10]{};
+int g_tableEntryClassCount{};

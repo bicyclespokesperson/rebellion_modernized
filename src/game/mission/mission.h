@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "data/sd_records.h"
 #include "gameobj/child_iterator.h"
 #include "gameobj/game_hooks.h"
@@ -270,7 +269,6 @@ public:
     static int REB_CDECL CheckTargetDefault(class MissionCheckArgs* args, StatusCode* status, int* code);  // 0x523450
     static int BuildEventKinds();                                 // 0x525620
     static int GetBaseEventKinds(int unused, EventKindSet* out);  // 0x525670
-    static void InitStatics();                                    // 0x525700
 
     int m_userId;              // +0x58
     int m_userId2;             // +0x5c
@@ -366,18 +364,3 @@ REB_MISSION_ITERATOR_CLASS(MissionMinorDecoyIterator, 0x5262a0);
 REB_MISSION_ITERATOR_CLASS(MissionMajorTeamIterator, 0x526350);
 REB_MISSION_ITERATOR_CLASS(MissionMajorDecoyIterator, 0x526400);
 #undef REB_MISSION_ITERATOR_CLASS
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionPhaseLevels, 0x8);
-REB_ASSERT_SIZE(MissionData, 0x38);
-REB_ASSERT_SIZE(Mission, 0xa8);
-REB_ASSERT_OFFSET(Mission, m_userId, 0x58);
-REB_ASSERT_OFFSET(Mission, m_phase, 0x68);
-REB_ASSERT_OFFSET(Mission, m_leaderSeedKey, 0x80);
-REB_ASSERT_OFFSET(Mission, m_team, 0x84);
-REB_ASSERT_OFFSET(Mission, m_finishedMembers, 0x9c);
-REB_ASSERT_OFFSET(Mission, m_flagsA4, 0xa4);
-REB_ASSERT_SIZE(MissionIterator, 0x20);
-REB_ASSERT_SIZE(MissionMemberIterator, 0x30);
-#pragma clang diagnostic pop

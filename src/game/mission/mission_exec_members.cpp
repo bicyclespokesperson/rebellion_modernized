@@ -270,4 +270,3 @@ int MissionMgr::InjureStoryCharacter(NotifyContext* ctx) {
     if (story) ok = static_cast<Character*>(story)->Virtual188(amount, kInjuryReasonMission, ctx) && ok;
     return ok;
 }
-

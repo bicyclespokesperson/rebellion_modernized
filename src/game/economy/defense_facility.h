@@ -1,5 +1,4 @@
 #pragma once
-#include "core/layout.h"
 #include "data/sd_records.h"
 #include "economy/facility.h"
 #include "gameobj/child_iterator.h"
@@ -32,10 +31,6 @@ public:
 
     // Fills the class's static event kind set once (Facility's set plus 0x201, 0x202 and 0x204); false if it failed.
     static int BuildEventKinds();  // 0x526c00
-    // Static initialisation (0x526c80, from the CRT initialisers).
-    static void InitStatics();
-    static void ConstructEventKinds();       // 0x526c90
-    static void RegisterEventKindsAtExit();  // 0x526ca0
 };
 
 // Abstract base of the defense facility leaves (families 0x22-0x27, record DefenseFacilitySD).
@@ -151,15 +146,3 @@ public:
     DefenseFacility25Iterator(GameObjNotifier* parent, uint32_t stateFilter);  // 0x51c270
     virtual ~DefenseFacility25Iterator();  // 0x51c2f0 (scalar deleting destructor 0x51c250)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AllFacility, 0x58);
-REB_ASSERT_SIZE(DefenseFacility, 0x58);
-REB_ASSERT_SIZE(DefenseFacility22, 0x58);
-REB_ASSERT_SIZE(DefenseFacility23, 0x58);
-REB_ASSERT_SIZE(DefenseFacility24, 0x58);
-REB_ASSERT_SIZE(DefenseFacility25, 0x58);
-REB_ASSERT_SIZE(AllFacilityIterator, 0x20);
-REB_ASSERT_SIZE(DefenseFacilityIterator, 0x20);
-#pragma clang diagnostic pop

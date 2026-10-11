@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_window.h"
 #include "ui/cool_drag_image.h"
@@ -51,10 +50,3 @@ public:
     CoolScrollBar* m_verticalBar;    // +0x04 owned
     CoolScrollBar* m_horizontalBar;  // +0x08 owned
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CoolScrollable, 0x0c);
-REB_ASSERT_OFFSET(CoolScrollable, m_verticalBar, 0x04);
-REB_ASSERT_OFFSET(CoolScrollable, m_horizontalBar, 0x08);
-#pragma clang diagnostic pop

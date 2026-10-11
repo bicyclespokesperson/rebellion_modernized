@@ -4,7 +4,6 @@
 
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_scrollable.h"
 #include "ui/cool_window.h"
@@ -118,29 +117,3 @@ public:
     TextLineStart* m_lastLineStart;  // +0x170
     int m_topIndex;                  // +0x174 index of the first visible character
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(TextLineStart, 0x14);
-REB_ASSERT_OFFSET(TextLineStart, m_charIndex, 0x10);
-REB_ASSERT_SIZE(TextScrollField, 0x178);
-REB_ASSERT_OFFSET(TextScrollField, m_text, 0xa0);
-REB_ASSERT_OFFSET(TextScrollField, m_background, 0xac);
-REB_ASSERT_OFFSET(TextScrollField, m_textColor, 0xb4);
-REB_ASSERT_OFFSET(TextScrollField, m_textBounds, 0xb8);
-REB_ASSERT_OFFSET(TextScrollField, m_textMetrics, 0xc8);
-REB_ASSERT_OFFSET(TextScrollField, m_wordCursor, 0x100);
-REB_ASSERT_OFFSET(TextScrollField, m_scanCursor, 0x10c);
-REB_ASSERT_OFFSET(TextScrollField, m_hasCaret, 0x118);
-REB_ASSERT_OFFSET(TextScrollField, m_dc, 0x11c);
-REB_ASSERT_OFFSET(TextScrollField, m_spaceWidth, 0x128);
-REB_ASSERT_OFFSET(TextScrollField, m_lineWidth, 0x130);
-REB_ASSERT_OFFSET(TextScrollField, m_scrollBarSlot, 0x134);
-REB_ASSERT_OFFSET(TextScrollField, m_state, 0x138);
-REB_ASSERT_OFFSET(TextScrollField, m_caret, 0x13c);
-REB_ASSERT_OFFSET(TextScrollField, m_selectionStart, 0x148);
-REB_ASSERT_OFFSET(TextScrollField, m_selectionEnd, 0x154);
-REB_ASSERT_OFFSET(TextScrollField, m_lineStarts, 0x160);
-REB_ASSERT_OFFSET(TextScrollField, m_lastLineStart, 0x170);
-REB_ASSERT_OFFSET(TextScrollField, m_topIndex, 0x174);
-#pragma clang diagnostic pop

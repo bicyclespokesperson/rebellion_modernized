@@ -553,3 +553,5 @@ int scheduleEvent(Side* side) {
 int Side::ScheduleRefineryEvent() { return scheduleEvent<RefineryQueueEvent>(this); }
 
 int Side::ScheduleManufacturerEvent() { return scheduleEvent<ManufacturerQueueEvent>(this); }
+
+int g_setupComplete{};

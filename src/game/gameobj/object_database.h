@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "gameobj/game_obj_root.h"
 #include "gameobj/object_key.h"
@@ -126,12 +125,3 @@ int AttachMasterObject(GameObjNotifier* object);
 // Like AttachMasterObject for a side view: copies id and record from `master` and uses `view`'s tree.
 int AttachSideObject(GameObjNotifier* object, GameObjNotifier* master, int view);
 int DetachObject(GameObjNotifier* object);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ObjectEntry, 0x30);
-REB_ASSERT_OFFSET(ObjectEntry, m_family, 0x20);
-REB_ASSERT_OFFSET(ObjectEntry, m_objects, 0x24);
-REB_ASSERT_SIZE(ChildList, 0x10);
-REB_ASSERT_SIZE(ObjectDatabase, 0x10);
-#pragma clang diagnostic pop

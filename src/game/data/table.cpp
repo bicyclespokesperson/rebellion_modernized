@@ -299,3 +299,8 @@ int RegisterTableClass(const char* className, void* (*factory)()) {
 void* CreateTable() { return NewOrNull<Table>(); }
 
 void InitTableClassRegistration() { g_tableClassRegistered = RegisterTableClass("Table", CreateTable); }
+
+GDataTables * g_gdataTables{};
+TableClassRegistration g_tableClasses[10]{};
+int g_tableClassCount{};
+int g_tableClassRegistered{};

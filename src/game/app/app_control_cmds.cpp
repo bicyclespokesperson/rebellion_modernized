@@ -174,3 +174,27 @@ int MpPlayerInfoMsg::Apply() {
 }
 
 MessageBase* CreateMpPlayerInfoMsg() { return NewOrNull<MpPlayerInfoMsg>(); }
+
+HCURSOR g_defaultCursor{};
+HHOOK g_mouseHook{};
+HHOOK g_tooltipHook{};
+HINSTANCE g_stringModule{};
+HPALETTE g_displayPalette{};
+HPALETTE g_palette{};
+HPALETTE g_savedPalette{};
+HWND g_tooltipWindow{};
+HwndNode * g_captureStack{};
+IdAvlTree g_windowRegistry{};
+NodeStack g_popupStack{};
+const RECT g_rectSessionList = {124, 277, 473, 352};
+const char *g_tooltipClassName = nullptr;
+const int g_rectA[4] = {144, 125, 500, 222};
+const int g_rectB[4] = {144, 125, 500, 222};
+int g_isNetworkGame{};
+int g_musicVolume{};
+int g_rectAWidth{};
+int g_rectBWidth{};
+uint32_t g_appDialogMessage{};
+uint32_t g_lobbyFlags{};
+uint32_t g_lobbySlotPollTime{};
+uint32_t g_lobbySlotTable[7]{};

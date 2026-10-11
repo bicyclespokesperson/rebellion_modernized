@@ -6,8 +6,6 @@
 #include "core/vptr_store.h"
 #include "data/gnprtb.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyCharacter38EventKinds();
 
 extern int g_character38EventKindsReady;      // 0x6bb9e0
 extern EventKindSet g_character38EventKinds;  // 0x6bb9d8
@@ -78,23 +76,5 @@ int Character38::BuildEventKinds() {
     }
     return result;
 }
-
-void ConstructCharacter38EventKinds() { new (&g_character38EventKinds) EventKindSet(); }
-
-void RegisterCharacter38EventKindsAtExit() { atexit(DestroyCharacter38EventKinds); }
-
-void Character38::InitStatics() {
-    ConstructCharacter38EventKinds();
-    RegisterCharacter38EventKindsAtExit();
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_character38EventKindsDestroyedGuard;  // 0x6bb9e4
-
-void DestroyCharacter38EventKinds() {
-    if (!(g_character38EventKindsDestroyedGuard & 0x1)) {
-        g_character38EventKindsDestroyedGuard |= 0x1;
-        g_character38EventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_character38EventKinds{};
+int g_character38EventKindsReady{};

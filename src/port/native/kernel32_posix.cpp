@@ -9,15 +9,21 @@
 #include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
-#include <sched.h>
 #include <stdlib.h>
+#include <sched.h>
+#include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <time.h>
 #include <unistd.h>
 
+#include <exception>
 #include <string>
 #include <unordered_set>
+
+#if defined(__GLIBCXX__)
+#include <cxxabi.h>
+#endif
 
 #include "port/minwin/minwin.h"
 #include "port/minwin_impl/res/path.h"
@@ -186,7 +192,20 @@ void* ThreadMain(void* argument) {
     thread->tid = reb::platform::CurrentThreadId();
     reb::platform::SetCurrentThreadName("rebellion-worker");
     pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, nullptr);
-    const DWORD code = thread->start(thread->parameter);
+    DWORD code;
+    try {
+        code = thread->start(thread->parameter);
+#if defined(__GLIBCXX__)
+    } catch (const __cxxabiv1::__forced_unwind&) {
+        throw;
+#endif
+    } catch (const std::exception& error) {
+        fprintf(stderr, "kernel32_posix: exception escaped worker thread: %s\n", error.what());
+        abort();
+    } catch (...) {
+        fprintf(stderr, "kernel32_posix: unknown exception escaped worker thread\n");
+        abort();
+    }
     pthread_mutex_lock(&Sync().mutex);
     thread->exitCode = code;
     thread->finished = true;

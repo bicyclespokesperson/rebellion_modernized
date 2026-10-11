@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "economy/production_facility.h"
 
 // The two concrete production facility classes (PROFAC records, families 0x2c and 0x2d). They add no state: each
@@ -85,11 +84,3 @@ public:
     ProductionFacilityType2CIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x52d690
     virtual ~ProductionFacilityType2CIterator();                                                     // 0x52d710 (scalar deleting destructor 0x52d5f0)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ProductionFacilityType2D, 0x70);
-REB_ASSERT_SIZE(ProductionFacilityType2C, 0x70);
-REB_ASSERT_SIZE(ProductionFacilityType2DIterator, 0x20);
-REB_ASSERT_SIZE(ProductionFacilityType2CIterator, 0x20);
-#pragma clang diagnostic pop

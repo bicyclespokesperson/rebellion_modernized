@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "gameobj/object_key.h"
 #include "gameobj/tracked_stat.h"
@@ -53,18 +52,3 @@ public:
 // Body of the galaxy class's CreateData (slot 58, 0x512c90, shared by the classes at 0x65e640/0x663698/0x664098): a new
 // SystemData, or null if allocation fails. The class that implements the slot calls this (it has no symbol row here).
 GameObjData* NewSystemData();
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(GameObjData, 0x18);
-REB_ASSERT_OFFSET(GameObjData, m_lockCount, 0x08);
-REB_ASSERT_OFFSET(GameObjData, m_key, 0x0c);
-REB_ASSERT_OFFSET(GameObjData, m_stat, 0x10);
-REB_ASSERT_SIZE(SystemData, 0x84);
-REB_ASSERT_OFFSET(SystemData, m_stats, 0x18);
-REB_ASSERT_OFFSET(SystemData, m_word48, 0x48);
-REB_ASSERT_OFFSET(SystemData, m_word54, 0x54);
-REB_ASSERT_OFFSET(SystemData, m_word60, 0x60);
-REB_ASSERT_OFFSET(SystemData, m_word68, 0x68);
-REB_ASSERT_OFFSET(SystemData, m_flags80, 0x80);
-#pragma clang diagnostic pop

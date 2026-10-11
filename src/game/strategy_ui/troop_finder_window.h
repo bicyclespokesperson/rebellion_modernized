@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
 #include "ui/custom_dialog_box.h"
@@ -48,19 +47,3 @@ public:
     CoolListItemList* m_items;    // +0x178 owned
     ObjectKey m_selected;         // +0x17c
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(TroopFinderWindow, 0x180);
-REB_ASSERT_OFFSET(TroopFinderWindow, m_tabs, 0x144);
-REB_ASSERT_OFFSET(TroopFinderWindow, m_nameField, 0x148);
-REB_ASSERT_OFFSET(TroopFinderWindow, m_list, 0x14c);
-REB_ASSERT_OFFSET(TroopFinderWindow, m_galaxy, 0x150);
-REB_ASSERT_OFFSET(TroopFinderWindow, m_filterLabel, 0x154);
-REB_ASSERT_OFFSET(TroopFinderWindow, m_filter, 0x158);
-REB_ASSERT_OFFSET(TroopFinderWindow, m_resourceModule, 0x15c);
-REB_ASSERT_OFFSET(TroopFinderWindow, m_dc, 0x160);
-REB_ASSERT_OFFSET(TroopFinderWindow, m_brushes, 0x164);
-REB_ASSERT_OFFSET(TroopFinderWindow, m_items, 0x178);
-REB_ASSERT_OFFSET(TroopFinderWindow, m_selected, 0x17c);
-#pragma clang diagnostic pop

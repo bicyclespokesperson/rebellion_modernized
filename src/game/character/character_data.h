@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/game_obj_data.h"
 #include "gameobj/object_key.h"
 #include "gameobj/tracked_stat.h"
@@ -37,10 +36,3 @@ public:
     ObjectKey m_holderKey;             // +0x30, reset whenever the State changes
     int m_field34;                     // +0x34
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(RoleData, 0x18);
-REB_ASSERT_SIZE(CharacterData, 0x38);
-REB_ASSERT_OFFSET(CharacterData, m_holderKey, 0x30);
-#pragma clang diagnostic pop

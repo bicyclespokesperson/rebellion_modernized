@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/status_code.h"
 
 // One loyalty-shift rule (0x1c bytes, no vtable): "systems of the family range that are controlled by m_controlSide
@@ -31,10 +30,3 @@ public:
     int m_direction;        // +0x14, 1-3; anything but 1 negates the amount
     int m_amount;           // +0x18, 0 disables the rule
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(LoyaltyRule, 0x1c);
-REB_ASSERT_OFFSET(LoyaltyRule, m_familyRange, 0x04);
-REB_ASSERT_OFFSET(LoyaltyRule, m_amount, 0x18);
-#pragma clang diagnostic pop

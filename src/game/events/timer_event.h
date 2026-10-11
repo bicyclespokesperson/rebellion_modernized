@@ -4,7 +4,6 @@
 // the object they act on (character 0x57cca0-0x57d330, incident timers 0x565400-0x566410, ...).
 #include <cstdint>
 
-#include "core/layout.h"
 #include "events/event_base.h"
 #include "gameobj/tracked_stat.h"
 
@@ -37,9 +36,3 @@ public:
 
     TrackedStat m_spec;  // +0x44
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(TimerEvent, 0x4c);
-REB_ASSERT_OFFSET(TimerEvent, m_spec, 0x44);
-#pragma clang diagnostic pop

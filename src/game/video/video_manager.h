@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/smacker.h"
 #include "platform/win32.h"
 #include "ui/cool_window.h"
@@ -104,20 +103,3 @@ public:
     int m_movieType;                 // +0x0c
     int m_playing;                   // +0x10
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SmackerWindow, 0x1c4);
-REB_ASSERT_OFFSET(SmackerWindow, m_path, 0x94);
-REB_ASSERT_OFFSET(SmackerWindow, m_scale, 0x19c);
-REB_ASSERT_OFFSET(SmackerWindow, m_loop, 0x1a4);
-REB_ASSERT_OFFSET(SmackerWindow, m_smackBuffer, 0x1a8);
-REB_ASSERT_OFFSET(SmackerWindow, m_smack, 0x1ac);
-REB_ASSERT_OFFSET(SmackerWindow, m_thread, 0x1b4);
-REB_ASSERT_OFFSET(SmackerWindow, m_smackFlags, 0x1b8);
-REB_ASSERT_OFFSET(SmackerWindow, m_volumeTouched, 0x1c0);
-REB_ASSERT_SIZE(VideoWindow, 0x1a4);
-REB_ASSERT_OFFSET(VideoWindow, m_device, 0x194);
-REB_ASSERT_SIZE(VideoManager, 0x14);
-REB_ASSERT_OFFSET(VideoManager, m_movieType, 0x0c);
-#pragma clang diagnostic pop

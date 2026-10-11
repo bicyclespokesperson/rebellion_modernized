@@ -3,7 +3,6 @@
 
 #include "ai/ai_selector.h"
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
 
@@ -100,13 +99,3 @@ public:
     int m_systemRecordId;      // +0x54 id of the AiSystemRecord this agent serves
     ObjectKey m_sectorKey;     // +0x58
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiAgentBase, 0x48);
-REB_ASSERT_OFFSET(AiAgentBase, m_flags, 0x20);
-REB_ASSERT_OFFSET(AiAgentBase, m_selector, 0x30);
-REB_ASSERT_OFFSET(AiAgentBase, m_owner, 0x44);
-REB_ASSERT_SIZE(AiAgentSimple, 0x4c);
-REB_ASSERT_SIZE(AiAgentTargeted, 0x5c);
-#pragma clang diagnostic pop

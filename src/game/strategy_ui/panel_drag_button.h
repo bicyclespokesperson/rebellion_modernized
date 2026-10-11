@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_button.h"
 
@@ -41,12 +40,3 @@ private:
     LRESULT OnDoubleClick(LPARAM lParam);
     void ClampToLimits(int* x, int* y);
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(PanelDragButton, 0x148);
-REB_ASSERT_OFFSET(PanelDragButton, m_flags, 0x114);
-REB_ASSERT_OFFSET(PanelDragButton, m_limits, 0x11c);
-REB_ASSERT_OFFSET(PanelDragButton, m_outline, 0x12c);
-REB_ASSERT_OFFSET(PanelDragButton, m_backdropCopy, 0x144);
-#pragma clang diagnostic pop

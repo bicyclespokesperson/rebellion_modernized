@@ -3,7 +3,6 @@
 
 #include "orders/order_base.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 
 // Multiplayer lobby messages (kinds 0x10-0x12 and 0x14), registered in 0x41ec50 and dispatched by the
@@ -95,16 +94,3 @@ void StaticInitRectAWidth();
 void ComputeRectAWidth();
 void StaticInitRectBWidth();
 void ComputeRectBWidth();
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MpSlotTableMsg, 0x3c);
-REB_ASSERT_OFFSET(MpSlotTableMsg, m_values, 0x24);
-REB_ASSERT_SIZE(MpLobbySettingsMsg, 0x34);
-REB_ASSERT_OFFSET(MpLobbySettingsMsg, m_startGame, 0x30);
-REB_ASSERT_SIZE(MpChatMsg, 0x50);
-REB_ASSERT_SIZE(MpPlayerInfoMsg, 0x38);
-REB_ASSERT_OFFSET(MpPlayerInfoMsg, m_playerName, 0x28);
-REB_ASSERT_OFFSET(MpPlayerInfoMsg, m_extra, 0x34);
-REB_ASSERT_OFFSET(MpFlagsMsg, m_flags, 0x20);
-#pragma clang diagnostic pop

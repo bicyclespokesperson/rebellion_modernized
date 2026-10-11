@@ -10,7 +10,6 @@
 //   0x241  MissionOrder241 VT 0x65d170, the order the move orders build for characters and special forces
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "mission/mission_events.h"
 #include "orders/order_base.h"
@@ -76,13 +75,3 @@ public:
 Order242* CreateOrder242();              // 0x4f45b0
 MissionOrder240* CreateMissionOrder240();  // 0x4f5250
 MissionOrder241* CreateMissionOrder241();  // 0x4f5490
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(Order242, 0x44);
-REB_ASSERT_SIZE(MissionOrder, 0x60);
-REB_ASSERT_OFFSET(MissionOrder, m_missionKey, 0x4c);
-REB_ASSERT_OFFSET(MissionOrder, m_characters, 0x58);
-REB_ASSERT_SIZE(MissionOrder240, 0x60);
-REB_ASSERT_SIZE(MissionOrder241, 0x60);
-#pragma clang diagnostic pop

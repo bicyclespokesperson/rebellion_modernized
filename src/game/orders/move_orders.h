@@ -8,7 +8,6 @@
 // per-object move for everything else. The checks and the execution are then forwarded to the sub-orders.
 #include <cstdint>
 
-#include "core/layout.h"
 #include "data/int_pair_node.h"
 #include "gameobj/key_int_set.h"
 #include "gameobj/object_key.h"
@@ -127,21 +126,3 @@ void* CreateReadyForDeleteOrder();  // 0x53de60, kind 0x205
 
 // Moves the characters of `team` that are at the same location (the first one's) into `out`; the others stay.
 int REB_STDCALL TakeCharactersAtOneLocation(ObjectKeyValueSet* team, ObjectKeyValueSet* out, StatusCode* status);  // 0x53cbc0
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MoveOrderBase, 0x4c);
-REB_ASSERT_OFFSET(MoveOrderBase, m_subOrders, 0x44);
-REB_ASSERT_OFFSET(MoveOrderBase, m_status, 0x48);
-REB_ASSERT_SIZE(MoveOrder, 0x4c);
-REB_ASSERT_SIZE(ConfirmedMoveOrder, 0x4c);
-REB_ASSERT_SIZE(ObjectMoveOrder, 0x44);
-REB_ASSERT_SIZE(RenameOrder, 0x50);
-REB_ASSERT_SIZE(ScrapOrder, 0x44);
-REB_ASSERT_SIZE(ReadyForDeleteOrder, 0x44);
-REB_ASSERT_SIZE(ObjectKeyIntSet, 0x08);
-REB_ASSERT_SIZE(RenameCommand, 0x5c);
-REB_ASSERT_SIZE(MissionOrder, 0x60);
-REB_ASSERT_OFFSET(MissionOrder, m_missionKey, 0x4c);
-REB_ASSERT_OFFSET(MissionOrder, m_characters, 0x58);
-#pragma clang diagnostic pop

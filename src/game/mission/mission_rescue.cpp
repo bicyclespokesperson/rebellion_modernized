@@ -2,7 +2,6 @@
 #include "data/random.h"
 #include "mission/mission_rules.h"
 
-void DestroyMissionRescueEventKinds();
 
 extern int g_missionRescueEventKindsReady;      // 0x6bb94c
 extern EventKindSet g_missionRescueEventKinds;  // 0x6bb950
@@ -79,23 +78,5 @@ int MissionRescue::BuildEventKinds() {
     }
     return 1;
 }
-
-void ConstructMissionRescueEventKinds() { new (&g_missionRescueEventKinds) EventKindSet(); }
-
-void RegisterMissionRescueEventKindsAtExit() { atexit(DestroyMissionRescueEventKinds); }
-
-void MissionRescue::InitStatics() {
-    ConstructMissionRescueEventKinds();
-    RegisterMissionRescueEventKindsAtExit();
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_missionRescueEventKindsDestroyedGuard;  // 0x6bb948
-
-void DestroyMissionRescueEventKinds() {
-    if (!(g_missionRescueEventKindsDestroyedGuard & 0x1)) {
-        g_missionRescueEventKindsDestroyedGuard |= 0x1;
-        g_missionRescueEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_missionRescueEventKinds{};
+int g_missionRescueEventKindsReady{};

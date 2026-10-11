@@ -1,6 +1,6 @@
 #include "economy/manu_mgr.h"
 
-extern const char g_emptyText[];  // 0x6b120c
+extern const char *g_emptyText;  // 0x6b120c
 
 // The virtual OnXChanged events of the master view (and the GameObj events ManuMgr overrides): they keep the queue, the
 // current product and the derived properties in step.
@@ -95,3 +95,5 @@ int ManuMgr::OnProductNameChanged(String* oldName, String* newName, NotifyContex
     const String empty(g_emptyText);
     return newName->Compare(empty) == 0;
 }
+
+const char *g_emptyText = "";

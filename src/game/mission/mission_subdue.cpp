@@ -2,7 +2,6 @@
 #include "data/random.h"
 #include "mission/mission_rules.h"
 
-void DestroyMissionSubdueEventKinds();
 
 extern int g_missionSubdueEventKindsReady;      // 0x6bb918
 extern EventKindSet g_missionSubdueEventKinds;  // 0x6bb910
@@ -96,23 +95,5 @@ int MissionSubdue::BuildEventKinds() {
     }
     return 1;
 }
-
-void ConstructMissionSubdueEventKinds() { new (&g_missionSubdueEventKinds) EventKindSet(); }
-
-void RegisterMissionSubdueEventKindsAtExit() { atexit(DestroyMissionSubdueEventKinds); }
-
-void MissionSubdue::InitStatics() {
-    ConstructMissionSubdueEventKinds();
-    RegisterMissionSubdueEventKindsAtExit();
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_missionSubdueEventKindsDestroyedGuard;  // 0x6bb908
-
-void DestroyMissionSubdueEventKinds() {
-    if (!(g_missionSubdueEventKindsDestroyedGuard & 0x1)) {
-        g_missionSubdueEventKindsDestroyedGuard |= 0x1;
-        g_missionSubdueEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_missionSubdueEventKinds{};
+int g_missionSubdueEventKindsReady{};

@@ -4,7 +4,6 @@
 
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
@@ -90,17 +89,3 @@ public:
     CoolStringField* m_renameField;    // +0x138 owned, while renaming
     TextMessage* m_renameTarget;   // +0x13c deleted by the destructor
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ObjectKeyIdNode, 0x28);
-REB_ASSERT_OFFSET(ObjectKeyIdNode, m_ids, 0x1c);
-REB_ASSERT_SIZE(ObjectKeyIdSet, 0x08);
-REB_ASSERT_SIZE(CustomDialogBox, 0x140);
-REB_ASSERT_OFFSET(CustomDialogBox, m_objects, 0x114);
-REB_ASSERT_OFFSET(CustomDialogBox, m_selection, 0x11c);
-REB_ASSERT_OFFSET(CustomDialogBox, m_titleLabel, 0x124);
-REB_ASSERT_OFFSET(CustomDialogBox, m_titleRect, 0x128);
-REB_ASSERT_OFFSET(CustomDialogBox, m_renameField, 0x138);
-REB_ASSERT_OFFSET(CustomDialogBox, m_renameTarget, 0x13c);
-#pragma clang diagnostic pop

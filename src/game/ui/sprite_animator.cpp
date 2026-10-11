@@ -1,7 +1,6 @@
 #include "ui/sprite_animator.h"
 
 #include <cstdint>
-#include <new>
 
 #include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
@@ -14,13 +13,11 @@ AnimationStepQueue::~AnimationStepQueue() { REB_KEEP_VPTR_STORE(); }
 
 namespace {
 
-NodeQueue* QueueOf(SpriteAnimator* animator) { return reinterpret_cast<NodeQueue*>(animator->m_steps); }
+NodeQueue* QueueOf(SpriteAnimator* animator) { return &animator->m_steps; }
 
 }  // namespace
 
 SpriteAnimator::SpriteAnimator(int spriteCount) {
-    static_assert(sizeof(AnimationStepQueue) <= sizeof(SpriteAnimator::m_steps), "SpriteAnimator::m_steps is too small for a AnimationStepQueue");
-    new (m_steps) AnimationStepQueue();
     *reinterpret_cast<int16_t*>(&m_endSequence) = 0;
     *(reinterpret_cast<int16_t*>(&m_endSequence) + 1) = 0;
     if (spriteCount < 1) spriteCount = 1;
@@ -42,7 +39,6 @@ SpriteAnimator::~SpriteAnimator() {
         delete m_current;
         m_current = nullptr;
     }
-    reinterpret_cast<AnimationStepQueue*>(m_steps)->~AnimationStepQueue();
     REB_KEEP_VPTR_STORE();
 }
 

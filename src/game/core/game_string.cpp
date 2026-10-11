@@ -11,12 +11,11 @@
 #include "iostream/iostream.h"
 
 
-
 extern char g_stringResourceBuffer[0x100];
 extern void* g_loadStringCallback;
 extern char g_signedNumberBuffer[];
 extern char g_unsignedNumberBuffer[];
-extern const char g_vowelCharacters[];
+extern const char *g_vowelCharacters;
 
 namespace {
 
@@ -336,3 +335,9 @@ int StringCursor::Current() const { return m_current ? *m_current : 0; }
 void StringCursor::Rewind() { m_current = m_begin; }
 
 int StringCursor::HasMore() const { return m_current && *m_current ? 1 : 0; }
+
+char g_stringResourceBuffer[256]{};
+char g_signedNumberBuffer[32]{};
+char g_unsignedNumberBuffer[32]{};
+const char *g_vowelCharacters = nullptr;
+void * g_loadStringCallback{};

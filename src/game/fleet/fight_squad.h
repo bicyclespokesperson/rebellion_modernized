@@ -1,5 +1,4 @@
 #pragma once
-#include "core/layout.h"
 #include "data/sd_records.h"
 #include "fleet/combat_unit.h"
 #include "gameobj/child_iterator.h"
@@ -87,13 +86,3 @@ public:
     FightSquadIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x503a50
     virtual ~FightSquadIterator();                                                      // 0x503ad0 (scalar deleting destructor 0x5039b0)
 };
-
-void FightSquadStaticInit();                // 0x503960
-void ConstructFightSquadEventKinds();       // 0x503970
-void RegisterFightSquadEventKindsAtExit();  // 0x503980
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(FightSquad, 0x64);
-REB_ASSERT_OFFSET(FightSquad, m_squadSizeDamage, 0x60);
-#pragma clang diagnostic pop

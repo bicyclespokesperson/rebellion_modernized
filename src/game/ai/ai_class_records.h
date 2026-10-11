@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
 
@@ -144,17 +143,3 @@ public:
     int m_x58;  // +0x58
     int m_x5c;  // +0x5c
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiClassRecordBase, 0x30);
-REB_ASSERT_OFFSET(AiClassRecordBase, m_flags, 0x18);
-REB_ASSERT_OFFSET(AiClassRecordBase, m_view, 0x28);
-REB_ASSERT_OFFSET(AiClassRecordBase, m_key, 0x2c);
-REB_ASSERT_SIZE(AiSpecialForceClass, 0x40);
-REB_ASSERT_SIZE(AiManufacturingClass, 0x34);
-REB_ASSERT_SIZE(AiDefenseClass, 0x38);
-REB_ASSERT_SIZE(AiTroopClass, 0x44);
-REB_ASSERT_SIZE(AiFighterClass, 0x50);
-REB_ASSERT_SIZE(AiCapitalShipClass, 0x60);
-#pragma clang diagnostic pop

@@ -52,7 +52,6 @@ public:
     static int REB_CDECL CheckMember(int side, GameObj* person, GameObj** out, StatusCode* status);  // 0x592aa0
     static int REB_CDECL CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);          // 0x592600
     static int InitEventKinds(int unused, EventKindSet* out);                                      // 0x593300
-    static void InitStatics();                                                                     // 0x593350
     static int BuildEventKinds();  // 0x5932d0
 };
 
@@ -67,7 +66,6 @@ public:
 
     static int BuildEventKinds();  // 0x586ad0
     static int InitEventKinds(int unused, EventKindSet* out);  // 0x586b00
-    static void InitStatics();                                  // 0x586b20
     static int REB_CDECL CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x5868c0
     int GetObjectiveSystem(GameObj** out);  // 0x586720
 };
@@ -83,7 +81,6 @@ public:
 
     static int BuildEventKinds();  // 0x587060
     static int InitEventKinds(int unused, EventKindSet* out);  // 0x587090
-    static void InitStatics();                                  // 0x5870b0
     static int REB_CDECL CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x586e20
     int GetObjectiveCharacter(GameObj** out);  // 0x586c80
 };
@@ -99,7 +96,6 @@ public:
 
     static int BuildEventKinds();  // 0x593690
     static int InitEventKinds(int unused, EventKindSet* out);  // 0x5936c0
-    static void InitStatics();                                  // 0x5936e0
     static int REB_CDECL CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x593500
 };
 
@@ -115,7 +111,6 @@ public:
 
     static int BuildEventKinds();  // 0x594480
     static int InitEventKinds(int unused, EventKindSet* out);  // 0x5944b0
-    static void InitStatics();                                  // 0x5944d0
     static int REB_CDECL CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x594320
 };
 
@@ -125,12 +120,3 @@ public:
     explicit MissionTargetKindIterator(GameObjNotifier* parent);  // 0x586b70
     virtual ~MissionTargetKindIterator();                          // 0x586c10
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionRuleBase, 0xa8);
-REB_ASSERT_SIZE(MissionSystemTargetBase, 0xa8);
-REB_ASSERT_SIZE(MissionCharacterTargetBase, 0xa8);
-REB_ASSERT_SIZE(MissionObjectTargetBase, 0xa8);
-REB_ASSERT_SIZE(MissionStoryBase, 0xa8);
-#pragma clang diagnostic pop

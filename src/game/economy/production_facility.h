@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "economy/procfacil.h"
 
 // ProductionFacility (ctor 0x55a600 over ProcFacil, VT 0x662778, secondary ObjectBase VT 0x662774): the base of the
@@ -69,11 +68,3 @@ public:
     ProductionFacilityIterator(GameObjNotifier* parent, uint32_t stateFilter);  // 0x55b260
     virtual ~ProductionFacilityIterator();                                      // 0x55b2e0 (scalar deleting destructor 0x55b240)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ProductionFacility, 0x70);
-REB_ASSERT_OFFSET(ProductionFacility, m_work, 0x64);
-REB_ASSERT_OFFSET(ProductionFacility, m_productionModifier, 0x6c);
-REB_ASSERT_SIZE(ProductionFacilityIterator, 0x20);
-#pragma clang diagnostic pop

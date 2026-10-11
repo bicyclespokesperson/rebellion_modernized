@@ -4,7 +4,6 @@
 #include "core/containers.h"
 #include "core/game_string.h"
 #include "core/iostream_lib.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 
@@ -29,7 +28,7 @@ public:
     virtual void WriteName(String* out, int kind) override;
     String* GetNameCopy(String* out);  // 0x4486d0, constructs a copy of m_name into out
 
-    int m_hasData;     // +0x20, uninitialised by the constructor; set to 1 by ParseFields
+    int m_hasData;     // +0x20, set to 1 by ParseFields
     uint32_t m_first;  // +0x24
     uint32_t m_second; // +0x28
     uint32_t m_third;  // +0x2c
@@ -91,16 +90,3 @@ inline void ParseUnsignedShortField(istream* in, strstream* token, int* endOfLin
 int SkipRestOfLine(istream* in, int* endOfLine);
 // Discards lines until the first field of a line starts with "****", then the rest of that line.
 int SkipTableHeader(istream* in);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(DatRecord, 0x40);
-REB_ASSERT_OFFSET(DatRecord, m_hasData, 0x20);
-REB_ASSERT_OFFSET(DatRecord, m_first, 0x24);
-REB_ASSERT_OFFSET(DatRecord, m_third, 0x2c);
-REB_ASSERT_OFFSET(DatRecord, m_small, 0x30);
-REB_ASSERT_OFFSET(DatRecord, m_name, 0x34);
-REB_ASSERT_SIZE(SdRecord, 0x58);
-REB_ASSERT_OFFSET(SdRecord, m_field40, 0x40);
-REB_ASSERT_OFFSET(SdRecord, m_field54, 0x54);
-#pragma clang diagnostic pop

@@ -625,3 +625,13 @@ void UiRemoveInputHooks() {
 int UiGetInputActive() { return g_uiInputActive; }
 
 void UiSetPausePending(int pending) { g_uiPausePending = pending; }
+
+HHOOK g_uiKeyboardHook{};
+HHOOK g_uiMouseHook{};
+ManufactureOrderWindow * g_manufactureOrderWindow{};
+NullableKey g_lastFacilityType{};
+NullableKey g_lastShipType{};
+NullableKey g_lastTroopType{};
+int g_uiGameInputStarted{};
+int g_uiInputActive{};
+int g_uiPausePending{};

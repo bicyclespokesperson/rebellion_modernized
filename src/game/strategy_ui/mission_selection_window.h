@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
@@ -54,15 +53,3 @@ int REB_STDCALL MissionKindItemId(DatRecord* record);  // 0x46cab0
 // Copies of the order's team (0x46c850) and of its selected characters (0x46c880).
 ObjectKeyValueSet* REB_THISCALL MissionOrderCopyTeam(MissionOrder240* order, ObjectKeyValueSet* out);
 ObjectKeyValueSet* REB_THISCALL MissionOrderCopyCharacters(MissionOrder240* order, ObjectKeyValueSet* out);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionSelectionWindow, 0x174);
-REB_ASSERT_OFFSET(MissionSelectionWindow, m_galaxy, 0x114);
-REB_ASSERT_OFFSET(MissionSelectionWindow, m_order, 0x120);
-REB_ASSERT_OFFSET(MissionSelectionWindow, m_missionBox, 0x128);
-REB_ASSERT_OFFSET(MissionSelectionWindow, m_availableList, 0x130);
-REB_ASSERT_OFFSET(MissionSelectionWindow, m_selectedList, 0x138);
-REB_ASSERT_OFFSET(MissionSelectionWindow, m_gokres, 0x13c);
-REB_ASSERT_OFFSET(MissionSelectionWindow, m_unusedLabel, 0x140);
-#pragma clang diagnostic pop

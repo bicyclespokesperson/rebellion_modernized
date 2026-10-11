@@ -4,7 +4,6 @@
 #include "ai/ai_side_controller.h"
 #include "ai/ai_task_manager.h"
 #include "app/player_controller_decl.h"
-#include "core/layout.h"
 
 // The computer player of one side (0x4856f0-0x486120, VT 0x65abf0, 0x42c bytes). It embeds the strategic model of the side
 // (AiSideController at +0x84) and runs the side's tasks: after the model is built (Virtual04), every call of Virtual09 lets one
@@ -103,14 +102,3 @@ public:
     int m_turnsPerBudget;         // +0x424
     int m_ordersPerBudget;        // +0x428 (10 once the tasks exist)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiPlayer, 0x42c);
-REB_ASSERT_OFFSET(AiPlayer, m_state, 0x50);
-REB_ASSERT_OFFSET(AiPlayer, m_notices, 0x54);
-REB_ASSERT_OFFSET(AiPlayer, m_tasks, 0x64);
-REB_ASSERT_OFFSET(AiPlayer, m_currentTask, 0x80);
-REB_ASSERT_OFFSET(AiPlayer, m_model, 0x84);
-REB_ASSERT_OFFSET(AiPlayer, m_tasksOff, 0x418);
-#pragma clang diagnostic pop

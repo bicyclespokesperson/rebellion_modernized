@@ -10,12 +10,6 @@
 #include "events/player_notices.h"
 #include "strategy_ui/manufacture_order_window.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-
-// The handler singletons are function-local statics of the original constructor: a guard byte per eight of them,
-// constructed on first use with their destructor registered through atexit. They belong to the player-action modules
-// (0x48aac0-0x49bda0), which are not reconstructed yet, so objects, constructors and the atexit stubs are declared by address.
-
 extern uint8_t g_noticeHandlerGuardB;  // 0x006b169c
 extern uint8_t g_noticeHandlerGuardC;  // 0x006b1af8
 extern uint8_t g_noticeHandlerGuardD;  // 0x006b1c2c
@@ -188,14 +182,10 @@ const HandlerInit kHandlerInits[] = {
 };
 
 void InitializeHandler(const HandlerInit& init) {
-    if ((*init.m_guard & init.m_guardBit) == 0) {
-        *init.m_guard |= init.m_guardBit;
-        init.m_construct(init.m_object);
-        atexit(init.m_destroyAtExit);
-    }
     const int slot = init.m_kindOf ? init.m_kindOf(init.m_object) : init.m_slot;
     g_uiHandlers[slot] = reinterpret_cast<UiHandler*>(init.m_object);
 }
+
 
 }  // namespace
 
@@ -234,64 +224,17 @@ void UiRecordTree::Write(ostream* out) {
 
 UiRecord* CreateUiRecord(int kind) { return g_uiHandlers[kind]->CreateRecord(); }
 
-// ---- Static initializers of three UI globals (a zeroed pointer each, destroyed at exit) -----------------------
 
-void DestroyLastShipType();
-void DestroyLastTroopType();
-void DestroyLastFacilityType();
-
-void StaticInitGlobalA() {
-    InitGlobalA();
-    RegisterGlobalADestructor();
-}
 void InitGlobalA() { g_lastShipType.m_value = 0; }
-void RegisterGlobalADestructor() { atexit(DestroyLastShipType); }
-void StaticInitGlobalB() {
-    InitGlobalB();
-    RegisterGlobalBDestructor();
-}
+
 void InitGlobalB() { g_lastTroopType.m_value = 0; }
-void RegisterGlobalBDestructor() { atexit(DestroyLastTroopType); }
-void StaticInitGlobalC() {
-    InitGlobalC();
-    RegisterGlobalCDestructor();
-}
+
 void InitGlobalC() { g_lastFacilityType.m_value = 0; }
-void RegisterGlobalCDestructor() { atexit(DestroyLastFacilityType); }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_lastShipTypeDestroyedGuard;  // 0x6b28a8
-
-void DestroyLastShipType() {
-    if (!(g_lastShipTypeDestroyedGuard & 0x1)) {
-        g_lastShipTypeDestroyedGuard |= 0x1;
-        g_lastShipType.~NullableKey();
-    }
-}
-
-void DestroyLastTroopType() {
-    if (!(g_lastShipTypeDestroyedGuard & 0x2)) {
-        g_lastShipTypeDestroyedGuard |= 0x2;
-        g_lastTroopType.~NullableKey();
-    }
-}
-
-void DestroyLastFacilityType() {
-    if (!(g_lastShipTypeDestroyedGuard & 0x4)) {
-        g_lastShipTypeDestroyedGuard |= 0x4;
-        g_lastFacilityType.~NullableKey();
-    }
-}
-
-// ---- destructors of the handler singletons registered with atexit ---------------------------------------------
 
 namespace {
 
 template <class T>
-void DestroyHandler(T& object) {
-    object.~T();
-}
+void DestroyHandler(T& object) { object.~T(); }
 
 }  // namespace
 
@@ -338,3 +281,54 @@ void DestroyNotice6Handler() { DestroyHandler(g_notice6Handler); }
 void DestroyNotice8Handler() { DestroyHandler(g_notice8Handler); }
 void DestroyNotice1Handler() { DestroyHandler(g_notice1Handler); }
 void DestroyNotice2Handler() { DestroyHandler(g_notice2Handler); }
+
+Notice1 g_notice1Handler{};
+Notice10 g_notice10Handler{};
+Notice11 g_notice11Handler{};
+Notice12 g_notice12Handler{};
+Notice13 g_notice13Handler{};
+Notice14 g_notice14Handler{};
+Notice15 g_notice15Handler{};
+Notice16 g_notice16Handler{};
+Notice19 g_notice19Handler{};
+Notice2 g_notice2Handler{};
+Notice20 g_notice20Handler{};
+Notice21 g_notice21Handler{};
+Notice22 g_notice22Handler{};
+Notice23 g_notice23Handler{};
+Notice24 g_notice24Handler{};
+Notice25 g_notice25Handler{};
+Notice26a g_notice26aHandler{};
+Notice26b g_notice26bHandler{};
+Notice28 g_notice28Handler{};
+Notice29 g_notice29Handler{};
+Notice3 g_notice3Handler{};
+Notice30 g_notice30Handler{};
+Notice31 g_notice31Handler{};
+Notice32 g_notice32Handler{};
+Notice33 g_notice33Handler{};
+Notice34 g_notice34Handler{};
+Notice35 g_notice35Handler{};
+Notice36 g_notice36Handler{};
+Notice37 g_notice37Handler{};
+Notice38 g_notice38Handler{};
+Notice39 g_notice39Handler{};
+Notice4 g_notice4Handler{};
+Notice40 g_notice40Handler{};
+Notice41 g_notice41Handler{};
+Notice42 g_notice42Handler{};
+Notice43 g_notice43Handler{};
+Notice44 g_notice44Handler{};
+Notice45 g_notice45Handler{};
+Notice5 g_notice5Handler{};
+Notice6 g_notice6Handler{};
+Notice7 g_notice7Handler{};
+Notice8 g_notice8Handler{};
+Notice9 g_notice9Handler{};
+int g_uiHandlerTableNeedsInit = 1;
+uint8_t g_noticeHandlerGuardA{};
+uint8_t g_noticeHandlerGuardB{};
+uint8_t g_noticeHandlerGuardC{};
+uint8_t g_noticeHandlerGuardD{};
+uint8_t g_noticeHandlerGuardE{};
+uint8_t g_noticeHandlerGuardF{};

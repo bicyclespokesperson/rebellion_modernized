@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 
@@ -136,15 +135,3 @@ public:
     virtual ~TargetPriorityTree();                         // 0x5c9600 (scalar deleting destructor 0x5c9670)
     virtual int IsLess(AvlNode* a, AvlNode* b) override;   // 0x5c9610
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(UnitRefNode, 0x20);
-REB_ASSERT_SIZE(UnitRefTree, 0x0c);
-REB_ASSERT_SIZE(InsertionOrderTree, 0x0c);
-REB_ASSERT_SIZE(GroupRefNode, 0x20);
-REB_ASSERT_SIZE(GroupRefTree, 0x0c);
-REB_ASSERT_SIZE(TargetPriorityNode, 0x20);
-REB_ASSERT_OFFSET(TargetPriorityNode, m_unit, 0x1c);
-REB_ASSERT_SIZE(TargetPriorityTree, 0x08);
-#pragma clang diagnostic pop

@@ -7,11 +7,9 @@
 #include "core/vptr_store.h"
 #include "iostream/iostream.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 
 extern RECT g_windowedRect;
 extern DisplayModeTree g_displayModes;
-extern uint8_t g_displayModesDestroyedGuard;
 extern IUnknown* g_ddSurfaces[4];  // only released: the strategic game never creates a surface
 extern HWND g_ddWindow;
 extern int g_displayWidth;
@@ -242,18 +240,12 @@ int DisplayModeTree::IsLess(AvlNode* a, AvlNode* b) {
     return 0;
 }
 
-void ConstructDisplayModes() { new (&g_displayModes) DisplayModeTree(); }
 
-void RegisterDisplayModesDestructor() { atexit(DestroyDisplayModes); }
-
-void InitializeDirectDrawStatics() {
-    ConstructDisplayModes();
-    RegisterDisplayModesDestructor();
-}
-
-void DestroyDisplayModes() {
-    if (!(g_displayModesDestroyedGuard & 1)) {
-        g_displayModesDestroyedGuard |= 1;
-        g_displayModes.~DisplayModeTree();
-    }
-}
+DisplayModeTree g_displayModes{};
+HWND g_ddWindow{};
+IUnknown * g_ddSurfaces[4]{};
+RECT g_windowedRect{};
+int g_ddExclusive{};
+int g_displayBitsPerPixel{};
+int g_displayHeight{};
+int g_displayWidth{};

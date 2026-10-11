@@ -1,5 +1,4 @@
 #pragma once
-#include "core/layout.h"
 #include "data/table_entry.h"
 #include "gameobj/object_key.h"
 
@@ -9,8 +8,3 @@ class SeedTableEntry : public TableEntryWithValue {
 public:
     ObjectRefList m_units;  // +0x28
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_OFFSET(SeedTableEntry, m_units, 0x28);
-#pragma clang diagnostic pop

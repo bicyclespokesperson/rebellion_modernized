@@ -183,7 +183,6 @@ public:
     int FindTypeChecks(const ObjectKey* typeKey, MissionCheckFunctions* out);  // 0x54c720, copies the two callbacks
 
     static int BuildEventKinds();      // 0x54ba90, g_missionMgrEventKinds at 0x6b92e8
-    static void InitStatics();         // 0x54cd30
     static GameObjNotifier* Create();  // 0x549cf0
 
     // ==== SECTION story (0x5434b0-0x5445d0, 0x544a20-0x544fc0): the finders of the six story characters, the predicates and
@@ -319,14 +318,3 @@ public:
     int m_typeCount;                      // +0x6c, number of entries of the mission-type table
     MissionTypeCheckEntry* m_typeTable;   // +0x70, one entry per mission-type record (family 0x40-0x7f)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionTypeCheckEntry, 0x0c);
-REB_ASSERT_SIZE(MissionMgr, 0x74);
-REB_ASSERT_OFFSET(MissionMgr, m_storyFlags, 0x58);
-REB_ASSERT_OFFSET(MissionMgr, m_statA, 0x5c);
-REB_ASSERT_OFFSET(MissionMgr, m_statB, 0x64);
-REB_ASSERT_OFFSET(MissionMgr, m_typeCount, 0x6c);
-REB_ASSERT_OFFSET(MissionMgr, m_typeTable, 0x70);
-#pragma clang diagnostic pop

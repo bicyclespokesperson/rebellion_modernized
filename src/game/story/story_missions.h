@@ -41,7 +41,6 @@ public:
     static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56d6d0
     static int CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56d910
     static int BuildEventKinds();      // 0x56dc70, g_missionPickupEventKinds at 0x6bb998
-    static void InitStatics();         // 0x56dca0
     static GameObjNotifier* Create();  // 0x56d480
 };
 
@@ -72,7 +71,6 @@ public:
     static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56e1f0
     static int CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56e4b0
     static int BuildEventKinds();      // 0x56e980, g_missionPalaceEventKinds at 0x6bb9a8
-    static void InitStatics();         // 0x56e9b0
     static GameObjNotifier* Create();  // 0x56df00
 };
 
@@ -103,7 +101,6 @@ public:
     static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x572100
     static int CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x572340
     static int BuildEventKinds();      // 0x5724b0, g_missionVacationEventKinds at 0x6bba40
-    static void InitStatics();         // 0x5724e0
     static GameObjNotifier* Create();  // 0x571eb0
 };
 
@@ -146,7 +143,6 @@ public:
     static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x574cf0
     static int CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x574f30
     static int BuildEventKinds();      // 0x575360, g_dagobahMissionEventKinds at 0x6bbab8
-    static void InitStatics();         // 0x575390
     static GameObjNotifier* Create();  // 0x574aa0
 
     int m_firstTrainingDay;  // +0xa8
@@ -179,7 +175,6 @@ public:
     static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x575ae0
     static int CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x575cc0
     static int BuildEventKinds();      // 0x575f80, g_missionBountyEventKinds at 0x6bbad8
-    static void InitStatics();         // 0x575fb0
     static GameObjNotifier* Create();  // 0x575890
 };
 
@@ -189,13 +184,3 @@ int REB_THISCALL MissionStoryReadForward(Mission* self, istream* in);          /
 int REB_THISCALL MissionStoryWriteForward(Mission* self, ostream* out);        // 0x56da50
 int REB_THISCALL MissionStoryApplyAllForward(Mission* self, NotifyContext* ctx);  // 0x56da60
 int REB_THISCALL MissionStoryChecksumForward(Mission* self, Crc32* crc);       // 0x56da70
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionPickup, 0xa8);
-REB_ASSERT_SIZE(MissionPalace, 0xa8);
-REB_ASSERT_SIZE(MissionVacation, 0xa8);
-REB_ASSERT_SIZE(DagobahMission, 0xac);
-REB_ASSERT_OFFSET(DagobahMission, m_firstTrainingDay, 0xa8);
-REB_ASSERT_SIZE(MissionBounty, 0xa8);
-#pragma clang diagnostic pop

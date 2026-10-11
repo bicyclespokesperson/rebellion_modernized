@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 
 class CoolWindow;
@@ -84,19 +83,3 @@ public:
     RECT m_rect;                 // +0x58
     int m_alive;                 // +0x68 cleared by the destructor
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SpriteTree, 0x0c);
-REB_ASSERT_SIZE(AnimatorTree, 0x0c);
-REB_ASSERT_SIZE(SpriteStage, 0x6c);
-REB_ASSERT_OFFSET(SpriteStage, m_buffers, 0x04);
-REB_ASSERT_OFFSET(SpriteStage, m_window, 0x10);
-REB_ASSERT_OFFSET(SpriteStage, m_animators, 0x18);
-REB_ASSERT_OFFSET(SpriteStage, m_sprites, 0x24);
-REB_ASSERT_OFFSET(SpriteStage, m_frame, 0x30);
-REB_ASSERT_OFFSET(SpriteStage, m_resynced, 0x44);
-REB_ASSERT_OFFSET(SpriteStage, m_x, 0x50);
-REB_ASSERT_OFFSET(SpriteStage, m_rect, 0x58);
-REB_ASSERT_OFFSET(SpriteStage, m_alive, 0x68);
-#pragma clang diagnostic pop

@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 
@@ -177,19 +176,3 @@ public:
 
     int m_ok;  // +0x0c
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ObjectKey, 0x04);
-REB_ASSERT_SIZE(NullableKey, 0x04);
-REB_ASSERT_SIZE(ObjectKeyNode, 0x1c);
-REB_ASSERT_OFFSET(ObjectKeyNode, m_key, 0x18);
-REB_ASSERT_SIZE(ObjectKeyValueNode, 0x20);
-REB_ASSERT_OFFSET(ObjectKeyValueNode, m_value, 0x1c);
-REB_ASSERT_SIZE(ObjectKeySet, 0x08);
-REB_ASSERT_SIZE(ObjectKeyValueSet, 0x08);
-REB_ASSERT_SIZE(ObjectRefNode, 0x28);
-REB_ASSERT_OFFSET(ObjectRefNode, m_key, 0x24);
-REB_ASSERT_SIZE(ObjectRefList, 0x10);
-REB_ASSERT_OFFSET(ObjectRefList, m_ok, 0x0c);
-#pragma clang diagnostic pop

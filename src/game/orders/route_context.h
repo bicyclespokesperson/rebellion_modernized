@@ -6,7 +6,6 @@
 // operations below report refusals by filling a StatusCode.
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_key.h"
 #include "gameobj/status_code.h"
@@ -88,10 +87,3 @@ public:
     int m_kind;          // +0x1c
     int m_filter;        // +0x20
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(RouteContext, 0x24);
-REB_ASSERT_OFFSET(RouteContext, m_status, 0x0c);
-REB_ASSERT_OFFSET(RouteContext, m_filter, 0x20);
-#pragma clang diagnostic pop

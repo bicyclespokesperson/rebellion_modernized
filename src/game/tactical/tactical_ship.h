@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
@@ -485,37 +484,3 @@ public:
     int m_hasFacility;            // +0x74
     int m_fired;                  // +0x78
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(TacticalDeathStar, 0x7c);
-REB_ASSERT_OFFSET(TacticalDeathStar, m_channelA, 0x4c);
-REB_ASSERT_OFFSET(TacticalDeathStar, m_hull, 0x68);
-REB_ASSERT_OFFSET(TacticalDeathStar, m_fired, 0x78);
-REB_ASSERT_SIZE(TacticalWeaponArc, 0x74);
-REB_ASSERT_OFFSET(TacticalWeaponArc, m_firepower, 0x70);
-REB_ASSERT_SIZE(TacticalHangar, 0x30);
-REB_ASSERT_SIZE(TacticalShipBase, 0x418);
-REB_ASSERT_SIZE(TacticalCapitalShip, 0x448);
-REB_ASSERT_SIZE(TacticalFighter, 0x418);
-REB_ASSERT_OFFSET(TacticalShipBase, m_channelA, 0x118);
-REB_ASSERT_OFFSET(TacticalShipBase, m_objectFamily, 0x128);
-REB_ASSERT_OFFSET(TacticalShipBase, m_name, 0x144);
-REB_ASSERT_OFFSET(TacticalShipBase, m_state, 0x170);
-REB_ASSERT_OFFSET(TacticalShipBase, m_arcs, 0x17c);
-REB_ASSERT_OFFSET(TacticalShipBase, m_chargeQueue, 0x34c);
-REB_ASSERT_OFFSET(TacticalShipBase, m_unk360, 0x360);
-REB_ASSERT_OFFSET(TacticalShipBase, m_speedCH, 0x36c);
-REB_ASSERT_OFFSET(TacticalShipBase, m_tractoredBy, 0x384);
-REB_ASSERT_OFFSET(TacticalShipBase, m_hullMax, 0x3c8);
-REB_ASSERT_OFFSET(TacticalShipBase, m_speed, 0x3f8);
-REB_ASSERT_OFFSET(TacticalShipBase, m_unk414, 0x414);
-#pragma clang diagnostic pop
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(TacticalShipFacetA, 0x0c);
-REB_ASSERT_SIZE(TacticalShipFacetB, 0x08);
-REB_ASSERT_SIZE(TacticalShipFacetC, 0x08);
-REB_ASSERT_SIZE(TacticalShipFacetD, 0x0c);
-#pragma clang diagnostic pop

@@ -14,11 +14,6 @@
 #include "mission/mission_rules.h"
 #include "story/story_common.h"
 
-void DestroyMissionPickupEventKinds();
-void DestroyMissionPalaceEventKinds();
-void DestroyMissionVacationEventKinds();
-void DestroyDagobahMissionEventKinds();
-void DestroyMissionBountyEventKinds();
 
 extern int g_missionPickupEventKindsReady;      // 0x6bb994
 extern EventKindSet g_missionPickupEventKinds;  // 0x6bb998
@@ -224,17 +219,17 @@ intptr_t keyAsArgument(ObjectKey* key) { return reinterpret_cast<intptr_t>(asRef
 
 // ---- shared second-level forwarders of the story missions -----------------------------------------------------------
 
-int REB_THISCALL MissionStoryReadForward(Mission* self, istream* in) { return static_cast<MissionRuleBase*>(self)->ReadBody(in); }
+int REB_THISCALL MissionStoryReadForward(Mission* self, istream* in) { return self->Mission::ReadImpl(in); }
 
 int REB_THISCALL MissionStoryWriteForward(Mission* self, ostream* out) {
-    return static_cast<MissionRuleBase*>(self)->WriteBody(out);
+    return self->Mission::WriteImpl(out);
 }
 
 int REB_THISCALL MissionStoryApplyAllForward(Mission* self, NotifyContext* ctx) {
-    return static_cast<MissionRuleBase*>(self)->ApplyAllBody(ctx);
+    return self->Mission::ApplyAllImpl(ctx);
 }
 
-int REB_THISCALL MissionStoryChecksumForward(Mission* self, Crc32* crc) { return static_cast<MissionTypeBase*>(self)->MissionTypeBase::ChecksumBody(crc); }
+int REB_THISCALL MissionStoryChecksumForward(Mission* self, Crc32* crc) { return self->Mission::ChecksumImpl(crc); }
 
 // ---- MissionPickup ----------------------------------------------------------------------------------------------
 
@@ -331,14 +326,6 @@ int MissionPickup::BuildEventKinds() {
     });
 }
 
-void ConstructMissionPickupEventKinds() { new (&g_missionPickupEventKinds) EventKindSet(); }
-
-void RegisterMissionPickupEventKindsAtExit() { atexit(DestroyMissionPickupEventKinds); }
-
-void MissionPickup::InitStatics() {
-    ConstructMissionPickupEventKinds();
-    RegisterMissionPickupEventKindsAtExit();
-}
 
 // ---- MissionPalace ----------------------------------------------------------------------------------------------
 
@@ -460,14 +447,6 @@ int MissionPalace::BuildEventKinds() {
     });
 }
 
-void ConstructMissionPalaceEventKinds() { new (&g_missionPalaceEventKinds) EventKindSet(); }
-
-void RegisterMissionPalaceEventKindsAtExit() { atexit(DestroyMissionPalaceEventKinds); }
-
-void MissionPalace::InitStatics() {
-    ConstructMissionPalaceEventKinds();
-    RegisterMissionPalaceEventKindsAtExit();
-}
 
 // ---- MissionVacation --------------------------------------------------------------------------------------------
 
@@ -544,14 +523,6 @@ int MissionVacation::BuildEventKinds() {
     });
 }
 
-void ConstructMissionVacationEventKinds() { new (&g_missionVacationEventKinds) EventKindSet(); }
-
-void RegisterMissionVacationEventKindsAtExit() { atexit(DestroyMissionVacationEventKinds); }
-
-void MissionVacation::InitStatics() {
-    ConstructMissionVacationEventKinds();
-    RegisterMissionVacationEventKindsAtExit();
-}
 
 // ---- DagobahMission ---------------------------------------------------------------------------------------------
 
@@ -707,14 +678,6 @@ int DagobahMission::BuildEventKinds() {
     });
 }
 
-void ConstructDagobahMissionEventKinds() { new (&g_dagobahMissionEventKinds) EventKindSet(); }
-
-void RegisterDagobahMissionEventKindsAtExit() { atexit(DestroyDagobahMissionEventKinds); }
-
-void DagobahMission::InitStatics() {
-    ConstructDagobahMissionEventKinds();
-    RegisterDagobahMissionEventKindsAtExit();
-}
 
 // ---- MissionBounty ----------------------------------------------------------------------------------------------
 
@@ -836,59 +799,13 @@ int MissionBounty::BuildEventKinds() {
         return MissionCharacterTargetBase::InitEventKinds(0, &g_missionBountyEventKinds);
     });
 }
-
-void ConstructMissionBountyEventKinds() { new (&g_missionBountyEventKinds) EventKindSet(); }
-
-void RegisterMissionBountyEventKindsAtExit() { atexit(DestroyMissionBountyEventKinds); }
-
-void MissionBounty::InitStatics() {
-    ConstructMissionBountyEventKinds();
-    RegisterMissionBountyEventKindsAtExit();
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_missionPickupEventKindsDestroyedGuard;  // 0x6bb990
-
-void DestroyMissionPickupEventKinds() {
-    if (!(g_missionPickupEventKindsDestroyedGuard & 0x1)) {
-        g_missionPickupEventKindsDestroyedGuard |= 0x1;
-        g_missionPickupEventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_missionPalaceEventKindsDestroyedGuard;  // 0x6bb9a0
-
-void DestroyMissionPalaceEventKinds() {
-    if (!(g_missionPalaceEventKindsDestroyedGuard & 0x1)) {
-        g_missionPalaceEventKindsDestroyedGuard |= 0x1;
-        g_missionPalaceEventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_missionVacationEventKindsDestroyedGuard;  // 0x6bba38
-
-void DestroyMissionVacationEventKinds() {
-    if (!(g_missionVacationEventKindsDestroyedGuard & 0x1)) {
-        g_missionVacationEventKindsDestroyedGuard |= 0x1;
-        g_missionVacationEventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_dagobahMissionEventKindsDestroyedGuard;  // 0x6bbab0
-
-void DestroyDagobahMissionEventKinds() {
-    if (!(g_dagobahMissionEventKindsDestroyedGuard & 0x1)) {
-        g_dagobahMissionEventKindsDestroyedGuard |= 0x1;
-        g_dagobahMissionEventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_missionBountyEventKindsDestroyedGuard;  // 0x6bbad0
-
-void DestroyMissionBountyEventKinds() {
-    if (!(g_missionBountyEventKindsDestroyedGuard & 0x1)) {
-        g_missionBountyEventKindsDestroyedGuard |= 0x1;
-        g_missionBountyEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_dagobahMissionEventKinds{};
+EventKindSet g_missionBountyEventKinds{};
+EventKindSet g_missionPalaceEventKinds{};
+EventKindSet g_missionPickupEventKinds{};
+EventKindSet g_missionVacationEventKinds{};
+int g_dagobahMissionEventKindsReady{};
+int g_missionBountyEventKindsReady{};
+int g_missionPalaceEventKindsReady{};
+int g_missionPickupEventKindsReady{};
+int g_missionVacationEventKindsReady{};

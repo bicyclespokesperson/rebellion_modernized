@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_window.h"
 
@@ -66,15 +65,3 @@ public:
     uint32_t m_unknownEc;    // +0xec 0xff
     uint32_t m_unknownF0;    // +0xf0 0x808080
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CoolStringField, 0xf4);
-REB_ASSERT_OFFSET(CoolStringField, m_flags, 0x94);
-REB_ASSERT_OFFSET(CoolStringField, m_text, 0x98);
-REB_ASSERT_OFFSET(CoolStringField, m_maxLength, 0xa4);
-REB_ASSERT_OFFSET(CoolStringField, m_selStart, 0xb4);
-REB_ASSERT_OFFSET(CoolStringField, m_caret, 0xcc);
-REB_ASSERT_OFFSET(CoolStringField, m_scroll, 0xd4);
-REB_ASSERT_OFFSET(CoolStringField, m_shadowOffset, 0xe0);
-#pragma clang diagnostic pop

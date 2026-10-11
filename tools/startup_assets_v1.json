@@ -1,0 +1,470 @@
+{
+  "schema": 1,
+  "assets": [
+    {
+      "id": "cool-drag-list-class-name/0",
+      "source_pointer_rva": 2547896,
+      "max_bytes": 4096
+    },
+    {
+      "id": "dll-location-name",
+      "source_rva": 2784272,
+      "max_bytes": 84
+    },
+    {
+      "id": "data-location-name",
+      "source_rva": 2784356,
+      "max_bytes": 16
+    },
+    {
+      "id": "too-big-location-name",
+      "source_rva": 2784372,
+      "max_bytes": 16
+    },
+    {
+      "id": "installed-location-name",
+      "source_rva": 2784388,
+      "max_bytes": 20
+    },
+    {
+      "id": "common-dll-name",
+      "source_rva": 2784408,
+      "max_bytes": 480
+    },
+    {
+      "id": "texts-file-name",
+      "source_rva": 2784888,
+      "max_bytes": 16
+    },
+    {
+      "id": "file-version-query-format",
+      "source_rva": 2784904,
+      "max_bytes": 40
+    },
+    {
+      "id": "translation-query",
+      "source_rva": 2784944,
+      "max_bytes": 28
+    },
+    {
+      "id": "textstra-dll-name",
+      "source_rva": 2784972,
+      "max_bytes": 16
+    },
+    {
+      "id": "textcomm-dll-name",
+      "source_rva": 2784988,
+      "max_bytes": 16
+    },
+    {
+      "id": "game-options-request-load-text",
+      "source_rva": 2785004,
+      "max_bytes": 84
+    },
+    {
+      "id": "space-string",
+      "source_rva": 2785088,
+      "max_bytes": 4
+    },
+    {
+      "id": "version-text",
+      "source_rva": 2785092,
+      "max_bytes": 416
+    },
+    {
+      "id": "newline-string",
+      "source_rva": 2785648,
+      "max_bytes": 104
+    },
+    {
+      "id": "autosave-name/0",
+      "source_pointer_rva": 2785752,
+      "max_bytes": 4096
+    },
+    {
+      "id": "volume-name",
+      "source_rva": 2785768,
+      "max_bytes": 8
+    },
+    {
+      "id": "display-opts-name",
+      "source_rva": 2785776,
+      "max_bytes": 12
+    },
+    {
+      "id": "registry-key-path",
+      "source_rva": 2785788,
+      "max_bytes": 68
+    },
+    {
+      "id": "mismatch-opts-name",
+      "source_rva": 2785856,
+      "max_bytes": 16
+    },
+    {
+      "id": "rebdlog-dll-name",
+      "source_rva": 2785872,
+      "max_bytes": 196
+    },
+    {
+      "id": "app-class-name",
+      "source_rva": 2786068,
+      "max_bytes": 20
+    },
+    {
+      "id": "intro-music-failed-text",
+      "source_rva": 2786088,
+      "max_bytes": 32
+    },
+    {
+      "id": "sound-manager-caption",
+      "source_rva": 2786120,
+      "max_bytes": 260
+    },
+    {
+      "id": "local-machine-root-name",
+      "source_rva": 2786380,
+      "max_bytes": 20
+    },
+    {
+      "id": "movie-file000",
+      "source_rva": 2786400,
+      "max_bytes": 16
+    },
+    {
+      "id": "music-file-names/0",
+      "source_pointer_rva": 2786424,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-file-names/1",
+      "source_pointer_rva": 2786428,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-file-names/2",
+      "source_pointer_rva": 2786432,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-file-names/3",
+      "source_pointer_rva": 2786436,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-file-names/4",
+      "source_pointer_rva": 2786440,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-file-names/5",
+      "source_pointer_rva": 2786444,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-file-names/6",
+      "source_pointer_rva": 2786448,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-file-names/7",
+      "source_pointer_rva": 2786452,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-file-names/8",
+      "source_pointer_rva": 2786456,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-file-names/9",
+      "source_pointer_rva": 2786460,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-file-names/10",
+      "source_pointer_rva": 2786464,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-file-names/11",
+      "source_pointer_rva": 2786468,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-file-names/12",
+      "source_pointer_rva": 2786472,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-file-names/13",
+      "source_pointer_rva": 2786476,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-file-names/14",
+      "source_pointer_rva": 2786480,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-file-names/15",
+      "source_pointer_rva": 2786484,
+      "max_bytes": 4096
+    },
+    {
+      "id": "music-switch-name",
+      "source_rva": 2786680,
+      "max_bytes": 12
+    },
+    {
+      "id": "music-volume-name",
+      "source_rva": 2786692,
+      "max_bytes": 52
+    },
+    {
+      "id": "movie-file103",
+      "source_rva": 2786744,
+      "max_bytes": 16
+    },
+    {
+      "id": "movie-file102",
+      "source_rva": 2786760,
+      "max_bytes": 16
+    },
+    {
+      "id": "movie-file104",
+      "source_rva": 2786776,
+      "max_bytes": 16
+    },
+    {
+      "id": "movie-file201",
+      "source_rva": 2786792,
+      "max_bytes": 16
+    },
+    {
+      "id": "movie-file202",
+      "source_rva": 2786808,
+      "max_bytes": 16
+    },
+    {
+      "id": "movie-file101",
+      "source_rva": 2786824,
+      "max_bytes": 16
+    },
+    {
+      "id": "movie-file005",
+      "source_rva": 2786840,
+      "max_bytes": 16
+    },
+    {
+      "id": "movie-file108",
+      "source_rva": 2786856,
+      "max_bytes": 16
+    },
+    {
+      "id": "movie-file107",
+      "source_rva": 2786872,
+      "max_bytes": 16
+    },
+    {
+      "id": "movie-file105",
+      "source_rva": 2786888,
+      "max_bytes": 16
+    },
+    {
+      "id": "movie-file106",
+      "source_rva": 2786904,
+      "max_bytes": 16
+    },
+    {
+      "id": "movie-file004",
+      "source_rva": 2786920,
+      "max_bytes": 16
+    },
+    {
+      "id": "movie-file003",
+      "source_rva": 2786936,
+      "max_bytes": 16
+    },
+    {
+      "id": "movie-file002",
+      "source_rva": 2786952,
+      "max_bytes": 16
+    },
+    {
+      "id": "movie-file001",
+      "source_rva": 2786968,
+      "max_bytes": 16
+    },
+    {
+      "id": "strategy-dll-name",
+      "source_rva": 2786984,
+      "max_bytes": 16
+    },
+    {
+      "id": "embrief-dll-name",
+      "source_rva": 2787000,
+      "max_bytes": 12
+    },
+    {
+      "id": "albrief-dll-name",
+      "source_rva": 2787012,
+      "max_bytes": 12
+    },
+    {
+      "id": "emsprite-dll-name",
+      "source_rva": 2787024,
+      "max_bytes": 16
+    },
+    {
+      "id": "alsprite-dll-name",
+      "source_rva": 2787040,
+      "max_bytes": 16
+    },
+    {
+      "id": "current-latency-text",
+      "source_rva": 2787056,
+      "max_bytes": 20
+    },
+    {
+      "id": "gokres-dll-name",
+      "source_rva": 2787080,
+      "max_bytes": 16
+    },
+    {
+      "id": "game-menu-window-class-name",
+      "source_rva": 2787096,
+      "max_bytes": 20
+    },
+    {
+      "id": "status-separator",
+      "source_rva": 2787116,
+      "max_bytes": 4
+    },
+    {
+      "id": "no-text",
+      "source_rva": 2787120,
+      "max_bytes": 4
+    },
+    {
+      "id": "yes-text",
+      "source_rva": 2787124,
+      "max_bytes": 4
+    },
+    {
+      "id": "attached-text",
+      "source_rva": 2787128,
+      "max_bytes": 12
+    },
+    {
+      "id": "status-text",
+      "source_rva": 2787140,
+      "max_bytes": 8
+    },
+    {
+      "id": "tally-separator",
+      "source_rva": 2787148,
+      "max_bytes": 4
+    },
+    {
+      "id": "ency-bitmap-dll-name",
+      "source_rva": 2787152,
+      "max_bytes": 16
+    },
+    {
+      "id": "ency-text-dll-name",
+      "source_rva": 2787168,
+      "max_bytes": 16
+    },
+    {
+      "id": "ency-default-data-directory",
+      "source_rva": 2787184,
+      "max_bytes": 8
+    },
+    {
+      "id": "ency-location-value-name",
+      "source_rva": 2787192,
+      "max_bytes": 16
+    },
+    {
+      "id": "no-forces-text",
+      "source_rva": 2787208,
+      "max_bytes": 4
+    },
+    {
+      "id": "detail-close-text",
+      "source_rva": 2787212,
+      "max_bytes": 4
+    },
+    {
+      "id": "detail-open-text",
+      "source_rva": 2787216,
+      "max_bytes": 4
+    },
+    {
+      "id": "transit-days-separator",
+      "source_rva": 2787224,
+      "max_bytes": 4
+    },
+    {
+      "id": "battle-in-progress-text",
+      "source_rva": 2787228,
+      "max_bytes": 28
+    },
+    {
+      "id": "custom-dialog-box-class-name",
+      "source_rva": 2787368,
+      "max_bytes": 16
+    },
+    {
+      "id": "invalid-command-text",
+      "source_rva": 2787384,
+      "max_bytes": 10164
+    },
+    {
+      "id": "vowel-characters",
+      "source_rva": 2802120,
+      "max_bytes": 120
+    },
+    {
+      "id": "path-unknown-caption",
+      "source_rva": 2802244,
+      "max_bytes": 68
+    },
+    {
+      "id": "avi-device-type",
+      "source_rva": 2802312,
+      "max_bytes": 12
+    },
+    {
+      "id": "tooltip-class-name",
+      "source_rva": 2803648,
+      "max_bytes": 20
+    },
+    {
+      "id": "display-too-small-message",
+      "source_rva": 2803748,
+      "max_bytes": 68
+    },
+    {
+      "id": "already-running-message",
+      "source_rva": 2803816,
+      "max_bytes": 92
+    },
+    {
+      "id": "display-driver-name",
+      "source_rva": 2803908,
+      "max_bytes": 8
+    },
+    {
+      "id": "no-mouse-message",
+      "source_rva": 2803916,
+      "max_bytes": 136
+    },
+    {
+      "id": "wave-resource-type",
+      "source_rva": 2804052,
+      "max_bytes": 36
+    }
+  ]
+}

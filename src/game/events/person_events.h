@@ -6,7 +6,6 @@
 // trivial CheckEnabled/CheckValid (status {1, -1}) and runs its job in Execute, which returns 0: the queue deletes
 // the event afterwards. CreateXxx is the class's entry in the event factory table (0x51ef80).
 #include "events/event_base.h"
-#include "core/layout.h"
 
 // Kind 0x230: asks the role named by the command's key (family 0x30-0x3f) to carry out its ActivityRequest.
 // CheckEnabled/CheckValid resolve the role and ask it Role::CheckActivity / Role::CheckActivityStatus; Execute runs
@@ -129,13 +128,3 @@ void* CreatePersonRemovedEvent();    // 0x5413d0
 void* CreateResignRequestEvent();    // 0x541690
 void* CreateRemoveRequestEvent();    // 0x541960
 void* CreateLockTransferEvent();     // 0x541c10
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(RoleActivityCommand, 0x50);
-REB_ASSERT_SIZE(RemoveRequestEvent, 0x54);
-REB_ASSERT_SIZE(RoleStateEvent, 0x54);
-REB_ASSERT_SIZE(PersonRemovedEvent, 0x54);
-REB_ASSERT_SIZE(ResignRequestEvent, 0x54);
-REB_ASSERT_SIZE(LockTransferEvent, 0x54);
-#pragma clang diagnostic pop

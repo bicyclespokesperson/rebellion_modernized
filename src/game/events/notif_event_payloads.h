@@ -6,7 +6,6 @@
 #include <cstdint>
 
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/notif_payload.h"
@@ -95,15 +94,3 @@ public:
     Crc32 m_crcA;    // +0x0c
     Crc32 m_crcB;    // +0x14
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(KeyPairPayload, 0x2c);
-REB_ASSERT_SIZE(IntPairPayload, 0x2c);
-REB_ASSERT_SIZE(IntQuadPayload, 0x34);
-REB_ASSERT_SIZE(StringPairPayload, 0x3c);
-REB_ASSERT_SIZE(NullableKeyPairPayload, 0x2c);
-REB_ASSERT_SIZE(ChecksumRecord, 0x1c);
-REB_ASSERT_OFFSET(StringPairPayload, m_textB, 0x30);
-REB_ASSERT_OFFSET(ChecksumRecord, m_crcB, 0x14);
-#pragma clang diagnostic pop

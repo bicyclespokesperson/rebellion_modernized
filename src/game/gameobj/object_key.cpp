@@ -332,8 +332,8 @@ ObjectRefNode::ObjectRefNode() : IdNode(), m_flag(1), m_count(0) {
     m_key.m_value = 0;
 }
 
-// BUG(original): the copy constructor leaves m_flag uninitialised.
-ObjectRefNode::ObjectRefNode(const ObjectRefNode& other) : IdNode(), m_count(other.m_count), m_key(other.m_key) {}
+// The copy constructor does not copy m_flag; new nodes are zero-filled by the game's allocator.
+ObjectRefNode::ObjectRefNode(const ObjectRefNode& other) : IdNode(), m_flag(0), m_count(other.m_count), m_key(other.m_key) {}
 
 ObjectRefNode::~ObjectRefNode() { REB_KEEP_VPTR_STORE(); }
 

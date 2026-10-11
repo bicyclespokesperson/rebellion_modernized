@@ -320,3 +320,11 @@ void BattleFlow::BuildPreBattleSavePath(String* out) {
     appendResource(out, kResourceSaveDirectory);
     appendResource(out, kResourcePreBattleSaveName);
 }
+
+GameSession * g_gameSession{};
+RandomGenerator g_sessionRandom{};
+float g_flowScaleC = 3.0f;
+float g_flowScaleCSquared{};
+int g_flowRange2End = 500;
+int g_flowRange2Span{};
+int g_flowRange2Start = 144;

@@ -32,7 +32,7 @@ void appendWithArticle(String* out, const String& name) {
 
 // ---- DatRecord ---------------------------------------------------------------------------------------------
 
-DatRecord::DatRecord() : m_first(0), m_second(0), m_third(0), m_small(0), m_small2(0), m_name("<not set>") {}
+DatRecord::DatRecord() : m_hasData(0), m_first(0), m_second(0), m_third(0), m_small(0), m_small2(0), m_name("<not set>") {}
 
 DatRecord::~DatRecord() { REB_KEEP_VPTR_STORE(); }
 
@@ -291,3 +291,6 @@ int SkipTableHeader(istream* in) {
     SkipRestOfLine(in, &endOfLine);
     return 1;
 }
+
+RecordFactoryEntry g_recordFactories[0x3c]{};
+int g_recordFactoryCount{};

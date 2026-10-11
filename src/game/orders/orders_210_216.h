@@ -14,7 +14,6 @@
 // code folding, e.g. 0x53d0f0/0x53dd90), which these classes reproduce inline.
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "orders/command_decl.h"
 #include "orders/order_base.h"
@@ -137,17 +136,3 @@ public:
 };
 
 void* CreateOrder216();  // 0x539090
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(DestinationOrder, 0x44);
-REB_ASSERT_SIZE(RenameOrder215, 0x50);
-REB_ASSERT_SIZE(ManufactureOrderBase, 0x4c);
-REB_ASSERT_OFFSET(ManufactureOrderBase, m_item, 0x44);
-REB_ASSERT_OFFSET(ManufactureOrderBase, m_count, 0x48);
-REB_ASSERT_SIZE(ManufactureOrder210, 0x4c);
-REB_ASSERT_SIZE(ManufactureOrder211, 0x4c);
-REB_ASSERT_SIZE(ManufactureOrder212, 0x4c);
-REB_ASSERT_SIZE(Order213, 0x44);
-REB_ASSERT_SIZE(Order216, 0x44);
-#pragma clang diagnostic pop

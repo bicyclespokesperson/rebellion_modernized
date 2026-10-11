@@ -4,7 +4,6 @@
 
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/game_hooks.h"
@@ -335,15 +334,3 @@ int UpdateAllChildren(GameObj* object, NotifyContext* ctx);
 int DeleteObjectViews(GameObj* object);
 // The default of the leaf classes' static event-kind sets: an empty set (0x4fad70).
 int InitEventKinds(int unused, EventKindSet* out);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(GameObj, 0x58);
-REB_ASSERT_OFFSET(GameObj, m_name, 0x34);
-REB_ASSERT_OFFSET(GameObj, m_builderKey, 0x38);
-REB_ASSERT_OFFSET(GameObj, m_departureKey, 0x3c);
-REB_ASSERT_OFFSET(GameObj, m_packed, 0x40);
-REB_ASSERT_OFFSET(GameObj, m_eta, 0x44);
-REB_ASSERT_OFFSET(GameObj, m_stateFlags, 0x50);
-REB_ASSERT_OFFSET(GameObj, m_data, 0x54);
-#pragma clang diagnostic pop

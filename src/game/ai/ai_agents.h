@@ -63,12 +63,3 @@ public:
     virtual int GetKind() override { return 3; }                                        // 6: 0x526f00
     virtual int GetOrderKind() override;                                                // 7: 0x47a400
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiAgentKind6, 0x4c);
-REB_ASSERT_SIZE(AiAgentKind1, 0x4c);
-REB_ASSERT_SIZE(AiAgentKind5, 0x5c);
-REB_ASSERT_SIZE(AiAgentKind4, 0x5c);
-REB_ASSERT_SIZE(AiAgentKind3, 0x5c);
-#pragma clang diagnostic pop

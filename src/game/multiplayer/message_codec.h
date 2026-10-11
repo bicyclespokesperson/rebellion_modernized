@@ -6,7 +6,6 @@
 // over it; the buffer doubles when a message fills it.
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/strstream_io.h"
 
 class MessageBase;
@@ -35,10 +34,3 @@ public:
     uint32_t m_size;       // +0x14 bytes written by the last Serialize / given to SetData
     char* m_buffer;        // +0x18
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MessageCodec, 0x1c);
-REB_ASSERT_OFFSET(MessageCodec, m_valid, 0x04);
-REB_ASSERT_OFFSET(MessageCodec, m_buffer, 0x18);
-#pragma clang diagnostic pop

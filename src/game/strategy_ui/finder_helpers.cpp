@@ -60,7 +60,7 @@ void FinderOnKeyDown(CustomDialogBox* window, CoolTabControl* tabs, CoolStringFi
     }
 }
 
-extern const char g_noForcesText[];  // 0x6a8788 "-"
+extern const char *g_noForcesText;  // 0x6a8788 "-"
 
 void CountIntoCell(ForceCell* cells, int cellCount, GameObj* force) {
     ObjectKey recordKey;
@@ -126,3 +126,5 @@ void DrawForceCells(const ForceCell* cells, int cellCount, CoolLabel* label, Str
         x += 0x1c;
     }
 }
+
+const char *g_noForcesText = nullptr;

@@ -1,4 +1,3 @@
-#include "core/layout.h"
 #include "core/reb_abi.h"
 #include "gameobj/object_type_db.h"
 
@@ -30,20 +29,6 @@ SdRecord* AsRecord(AvlNode* node) { return static_cast<SdRecord*>(static_cast<Da
 const ResourceStringId* NameResource(const DatRecord* record) {
     return reinterpret_cast<const ResourceStringId*>(&record->m_small);
 }
-
-// A name list on the stack (0x52d720 constructs it, 0x52d760 destroys it).
-class NameList {
-public:
-    NameList() {
-        static_assert(sizeof(ObjectNameList) <= sizeof(storage), "NameList storage is too small");
-        new (storage) ObjectNameList();
-    }
-    ~NameList() { reinterpret_cast<ObjectNameList*>(storage)->ObjectNameList::~ObjectNameList(); }
-    IdAvlTree* tree() { return reinterpret_cast<IdAvlTree*>(storage); }
-
-private:
-    alignas(8) char storage[REB_LP64_SCALED(0x10)];
-};
 
 bool Available(const SdRecord* record, int view) {
     return (view == 1 && record->m_field40 != 0) || (view == 2 && record->m_field44 != 0);
@@ -185,11 +170,11 @@ int ObjectTypeDb::CollectRecords(int view, uint32_t kind, int level, int whenBel
 
 int ObjectTypeDb::FindRecordAtLevel(int view, uint32_t kind, int level, DatRecord** out) {
     *out = nullptr;
-    NameList names;
+    ObjectNameList names;
     int maxLevel = 0;
-    int ok = CollectRecords(view, kind, level, 0, 1, 0, names.tree(), &maxLevel);
+    int ok = CollectRecords(view, kind, level, 0, 1, 0, &names, &maxLevel);
     if (ok) {
-        if (AvlNode* first = names.tree()->First()) {
+        if (AvlNode* first = names.First()) {
             ObjectKey key;
             GetObjectNameNodeKey(static_cast<ObjectNameNode*>(first), &key);
             const uint32_t family = key.Family();
@@ -209,10 +194,10 @@ int ObjectTypeDb::FindNextLevel(int view, int kind, int level, int* found, int* 
     *found = 0;
     *foundLevel = 0;
     *extraValue = 0;
-    NameList names;
+    ObjectNameList names;
     int maxLevel = 0;
     DatRecord* record = nullptr;
-    int ok = CollectRecords(view, static_cast<uint32_t>(kind), 0, 0, 0, 0, names.tree(), &maxLevel);
+    int ok = CollectRecords(view, static_cast<uint32_t>(kind), 0, 0, 0, 0, &names, &maxLevel);
     for (int candidate = level + 1; ok && candidate <= maxLevel && *found == 0; ++candidate) {
         ok = FindRecordAtLevel(view, static_cast<uint32_t>(kind), candidate, &record);
         if (ok) {
@@ -228,14 +213,14 @@ int ObjectTypeDb::FindNextLevel(int view, int kind, int level, int* found, int* 
 
 int ObjectTypeDb::AreLevelsUnique(int view, uint32_t kind, int* unique) {
     *unique = 1;
-    NameList names;
+    ObjectNameList names;
     int maxLevel = 0;
-    int ok = CollectRecords(view, kind, 0, 0, 0, 0, names.tree(), &maxLevel);
+    int ok = CollectRecords(view, kind, 0, 0, 0, 0, &names, &maxLevel);
     for (int level = 1; ok && level <= maxLevel; ++level) {
-        NameList atLevel;
-        ok = CollectRecords(view, kind, level, 0, 1, 0, atLevel.tree(), &maxLevel);
+        ObjectNameList atLevel;
+        ok = CollectRecords(view, kind, level, 0, 1, 0, &atLevel, &maxLevel);
         if (ok) {
-            const int count = static_cast<ObjectRefList*>(atLevel.tree())->ObjectRefList::Size();
+            const int count = atLevel.Count();
             if (count != 0 && count != 1) *unique = 0;
         }
     }

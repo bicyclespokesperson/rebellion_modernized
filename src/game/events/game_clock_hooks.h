@@ -7,7 +7,6 @@
 #include <cstdint>
 
 #include "app/player_controller_decl.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "events/game_manager.h"
 #include "gameobj/game_hooks.h"

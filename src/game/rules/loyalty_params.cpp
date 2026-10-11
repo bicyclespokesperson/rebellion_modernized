@@ -77,7 +77,6 @@ void resolveSides(uint32_t* from, uint32_t* to) {
 }  // namespace
 
 
-
 void BindGnprtb14() {
     BindGnprtbParameter(0x1400, &g_gnprtb1400);
     BindGnprtbParameter(0x1401, &g_gnprtb1401);

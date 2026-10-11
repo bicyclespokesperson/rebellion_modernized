@@ -17,8 +17,6 @@
 #include "story/story_characters.h"
 #include "story/story_common.h"
 
-void DestroyCharacterMgrEventKinds();
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 
 extern int g_characterMgrEventKindsReady;      // 0x6bb7a0
 extern EventKindSet g_characterMgrEventKinds;  // 0x6bb798
@@ -112,14 +110,6 @@ int CharacterMgr::CheckOrder(int a, int orderKind, StatusCode* out) {
     return story::checkOrder(BuildEventKinds(), g_characterMgrEventKinds, orderKind, out);
 }
 
-void ConstructCharacterMgrEventKinds() { new (&g_characterMgrEventKinds) EventKindSet(); }
-
-void RegisterCharacterMgrEventKindsAtExit() { atexit(DestroyCharacterMgrEventKinds); }
-
-void CharacterMgr::InitStatics() {
-    ConstructCharacterMgrEventKinds();
-    RegisterCharacterMgrEventKindsAtExit();
-}
 
 // ---- persistence ------------------------------------------------------------------------------------------------------
 
@@ -248,14 +238,87 @@ int CharacterMgr::UpdateLeadershipAdjustment(Character* person, NotifyContext* c
     if ((m_flags58 & character_mgr_flag::kSeatOfPower) && person->GetRecordSide() == 2) adjustment = g_gnprtb0C04;
     return person->SetLeadershipAdjustment(adjustment, ctx) != 0;
 }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_characterMgrEventKindsDestroyedGuard;  // 0x6bb790
-
-void DestroyCharacterMgrEventKinds() {
-    if (!(g_characterMgrEventKindsDestroyedGuard & 0x1)) {
-        g_characterMgrEventKindsDestroyedGuard |= 0x1;
-        g_characterMgrEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_characterMgrEventKinds{};
+int g_characterMgrEventKindsReady{};
+int g_gnprtb0200{};
+int g_gnprtb0201{};
+int g_gnprtb0202{};
+int g_gnprtb0203{};
+int g_gnprtb0204{};
+int g_gnprtb0205{};
+int g_gnprtb0600{};
+int g_gnprtb0601{};
+int g_gnprtb0602{};
+int g_gnprtb0603{};
+int g_gnprtb0604{};
+int g_gnprtb0605{};
+int g_gnprtb0606{};
+int g_gnprtb0C00{};
+int g_gnprtb0C01{};
+int g_gnprtb0C02{};
+int g_gnprtb0C03{};
+int g_gnprtb0C04{};
+int g_gnprtb0C05{};
+int g_gnprtb0C06{};
+int g_gnprtb0C07{};
+int g_gnprtb0C08{};
+int g_gnprtb0C09{};
+int g_gnprtb0C0A{};
+int g_gnprtb0C0B{};
+int g_gnprtb0C0C{};
+int g_gnprtb0C0D{};
+int g_gnprtb0C0E{};
+int g_gnprtb0C0F{};
+int g_gnprtb0E00{};
+int g_gnprtb0E01{};
+int g_gnprtb0E02{};
+int g_gnprtb0E03{};
+int g_gnprtb0E04{};
+int g_gnprtb0E05{};
+int g_gnprtb1000{};
+int g_gnprtb1800{};
+int g_gnprtb1801{};
+int g_gnprtb1802{};
+int g_gnprtb1803{};
+int g_gnprtb1804{};
+int g_gnprtb1805{};
+int g_gnprtb1806{};
+int g_gnprtb1807{};
+int g_gnprtb1808{};
+int g_gnprtb1809{};
+int g_gnprtb180A{};
+int g_gnprtb180B{};
+int g_gnprtb180C{};
+int g_gnprtb180D{};
+int g_gnprtb180E{};
+int g_gnprtb180F{};
+int g_gnprtb1810{};
+int g_gnprtb1811{};
+int g_gnprtb1812{};
+int g_gnprtb1813{};
+int g_gnprtb1814{};
+int g_gnprtb1815{};
+int g_gnprtb1816{};
+int g_gnprtb1817{};
+int g_gnprtb1818{};
+int g_gnprtb1819{};
+int g_gnprtb181A{};
+int g_gnprtb181B{};
+int g_gnprtb181C{};
+int g_gnprtb181D{};
+int g_gnprtb181E{};
+int g_gnprtb181F{};
+int g_gnprtb1820{};
+int g_gnprtb1821{};
+int g_gnprtb1822{};
+int g_gnprtb1823{};
+int g_gnprtb1824{};
+int g_gnprtb1825{};
+int g_gnprtb1827{};
+int g_gnprtb1828{};
+int g_gnprtb1829{};
+int g_gnprtb182A{};
+int g_gnprtb182B{};
+int g_gnprtb182C{};
+int g_gnprtb182D{};
+int g_gnprtb182E{};

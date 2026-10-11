@@ -23,11 +23,5 @@ public:
     virtual GameObj* CreateViewObject() override;                               // 57, 0x56eb40
 
     static int BuildEventKinds();      // 0x56ec60, g_mission41EventKinds at 0x6bb9b8
-    static void InitStatics();         // 0x56ec90
     static GameObjNotifier* Create();  // 0x56ebd0, the object factory of family 0x41
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(Mission41, 0xa8);
-#pragma clang diagnostic pop

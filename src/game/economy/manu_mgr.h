@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/child_iterator.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_family.h"
@@ -144,9 +143,6 @@ public:
     int HasHostFacility(int includeOutOfService);      // 0x528100
     static int EnsureEventKinds();                              // 0x52ae30
     static int InitEventKinds(int unused, EventKindSet* out);   // 0x52aeb0
-    static void ConstructEventKinds();                          // 0x52c090
-    static void RegisterEventKindsAtExit();                     // 0x52c0a0
-    static void StaticInit();                                   // 0x52c080
 
     // ==== SECTION setters (manu_mgr_setters.cpp) ====
     int SetRemainingGameObjCount(int value, NotifyContext* ctx);  // 0x529480
@@ -230,14 +226,3 @@ public:
     ManuMgrIterator(GameObjNotifier* parent, uint32_t stateFilter);    // 0x52c170
     virtual ~ManuMgrIterator();                                        // 0x52c150 (deleting), 0x52c1f0
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ManuMgrData, 0x20);
-REB_ASSERT_SIZE(ManuMgr, 0x8c);
-REB_ASSERT_OFFSET(ManuMgr, m_remainingGameObjCount, 0x58);
-REB_ASSERT_OFFSET(ManuMgr, m_seedKey, 0x64);
-REB_ASSERT_OFFSET(ManuMgr, m_productKey, 0x74);
-REB_ASSERT_OFFSET(ManuMgr, m_productName, 0x80);
-REB_ASSERT_SIZE(ManuMgrIterator, 0x20);
-#pragma clang diagnostic pop

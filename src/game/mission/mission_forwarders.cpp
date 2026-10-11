@@ -23,10 +23,10 @@ int REB_THISCALL MissionExtraKeyWriteForward(void* self, ostream* out) { return 
 
 int REB_THISCALL MissionExtraKeyChecksumForward(void* self, Crc32* crc) { return static_cast<MissionExtraKeyBase*>(self)->MissionExtraKeyBase::Checksum(crc); }  // 0x572f80
 
-int REB_THISCALL MissionRuleBaseApplyAllForward(void* self, NotifyContext* ctx) { return static_cast<MissionRuleBase*>(self)->MissionRuleBase::ApplyAllBody(ctx); }  // 0x586ac0
+int REB_THISCALL MissionRuleBaseApplyAllForward(void* self, NotifyContext* ctx) { return static_cast<Mission*>(self)->Mission::ApplyAllImpl(ctx); }  // 0x586ac0
 
 int REB_THISCALL MissionTypeCreateViewsForward(void* self, int controlKind, NotifyContext* ctx) {  // 0x576250
-    return static_cast<MissionTypeBase*>(self)->MissionTypeBase::CreateViewsBody(controlKind, ctx);
+    return static_cast<Mission*>(self)->Mission::CreateViewsImpl(controlKind, ctx);
 }
 
 int REB_THISCALL MissionTypeCreateViewsForward2(void* self, int controlKind, NotifyContext* ctx) {  // 0x574080
@@ -52,7 +52,7 @@ int REB_STDCALL ReturnOneTwoArgs(intptr_t, NotifyContext*) { return 1; }  // 0x5
 int REB_STDCALL ReturnOneSevenArgs(int, int, int, int, int, int, int) { return 1; }  // 0x5897b0
 
 int REB_THISCALL MissionTypeWriteForward(MissionTypeBase* self, ostream* out) {  // 0x56ec40
-    return reinterpret_cast<MissionRuleBase*>(self)->MissionRuleBase::WriteBody(out);
+    return self->Mission::WriteImpl(out);
 }
 
 int REB_THISCALL MissionTypeApplyAllForward(MissionTypeBase* self, NotifyContext* ctx) {  // 0x56ec50

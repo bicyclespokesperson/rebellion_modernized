@@ -1,6 +1,5 @@
 #include "mission/mission_recon.h"
 
-void DestroyMissionReconEventKinds();
 
 extern int g_missionReconEventKindsReady;      // 0x6bb970
 extern EventKindSet g_missionReconEventKinds;  // 0x6bb978
@@ -81,23 +80,5 @@ int MissionRecon::BuildEventKinds() {
     }
     return 1;
 }
-
-void ConstructMissionReconEventKinds() { new (&g_missionReconEventKinds) EventKindSet(); }
-
-void RegisterMissionReconEventKindsAtExit() { atexit(DestroyMissionReconEventKinds); }
-
-void MissionRecon::InitStatics() {
-    ConstructMissionReconEventKinds();
-    RegisterMissionReconEventKindsAtExit();
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_missionReconEventKindsDestroyedGuard;  // 0x6bb974
-
-void DestroyMissionReconEventKinds() {
-    if (!(g_missionReconEventKindsDestroyedGuard & 0x1)) {
-        g_missionReconEventKindsDestroyedGuard |= 0x1;
-        g_missionReconEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_missionReconEventKinds{};
+int g_missionReconEventKindsReady{};

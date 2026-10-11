@@ -58,7 +58,6 @@
 #include "video/movie_window.h"
 #include "video/video_manager.h"
 
-extern int g_directDrawHostDestroyedGuard;   // 0x6b1458
 extern int g_firstActivationPending;         // 0x6b1468
 extern const int16_t g_resourceStringGroup;  // 0x65d420
 extern HCURSOR g_defaultCursor;              // 0x6be5b4
@@ -132,20 +131,6 @@ HACCEL AcceleratorTableOf(RebellionApplication* app) {
 }
 
 }  // namespace
-
-void DestroyDirectDrawHost();
-
-void InitializeDirectDrawHost() {
-    new (&g_directDrawHost) DirectDrawHost(GetDllLocation(), 1);
-    atexit(DestroyDirectDrawHost);
-}
-
-void DestroyDirectDrawHost() {
-    if (!(g_directDrawHostDestroyedGuard & 1)) {
-        g_directDrawHostDestroyedGuard |= 1;
-        g_directDrawHost.~DirectDrawHost();
-    }
-}
 
 RebellionApplication::RebellionApplication(HINSTANCE instance, uint32_t commandLineFlags, const String* commandLine)
     : CoolApp(instance, g_appClassName, WindowStyle(commandLineFlags), 0, 0, WindowWidth(commandLineFlags),
@@ -319,8 +304,8 @@ WPARAM RebellionApplication::Run(int showCommand, int unused) {
 LRESULT RebellionApplication::OnCreate() {
     InitCommonControls();
     CreateTooltipControl(kTooltipDelayMs);
-    g_directDrawHost.Initialize(m_hwnd, 1);
-    if (m_commandLineFlags & kAppWindowed) g_directDrawHost.SetNormalMode(0);
+    g_directDrawHost->Initialize(m_hwnd, 1);
+    if (m_commandLineFlags & kAppWindowed) g_directDrawHost->SetNormalMode(0);
     const ResourceStringId titleId = {0x1000, g_resourceStringGroup};
     const String title(&titleId);
     SetWindowTitle(title.m_text);
@@ -348,7 +333,7 @@ void RebellionApplication::OnDeactivated() {
     m_activationFlags.m_value |= kDeactivatedBit;
     if (!(m_commandLineFlags & kAppWindowed)) {
         SetFocus(m_hwnd);
-        g_directDrawHost.RestoreDisplayMode();
+        g_directDrawHost->RestoreDisplayMode();
         ShowWindow(m_hwnd, SW_MINIMIZE);
     }
     if (m_activeWindow) SendMessageA(m_activeWindow->m_hwnd, kMsgDeactivated, 0, 0);
@@ -358,10 +343,10 @@ void RebellionApplication::OnActivated() {
     m_activationFlags.m_value &= ~kDeactivatedBit;
     if (!(m_commandLineFlags & kAppWindowed)) {
         if (m_activeWindow) m_activeWindow->Hide();
-        g_directDrawHost.SetExclusiveMode(0);
-        g_directDrawHost.SetDisplayMode(kScreenWidth, kScreenHeight, 8, 0);
-        g_directDrawHost.SetNormalMode(0);
-        g_directDrawHost.RestoreSurfaces();
+        g_directDrawHost->SetExclusiveMode(0);
+        g_directDrawHost->SetDisplayMode(kScreenWidth, kScreenHeight, 8, 0);
+        g_directDrawHost->SetNormalMode(0);
+        g_directDrawHost->RestoreSurfaces();
     }
     if (RealizeCurrentPalette()) InvalidateRect(m_hwnd, nullptr, FALSE);
     SetCaptureWindow(nullptr);
@@ -659,3 +644,12 @@ int InstalledLocationHasBigData() {
     operator delete(tooBig);
     return found;
 }
+
+const char *g_alreadyRunningMessage = nullptr;
+const char *g_displayDriverName = nullptr;
+const char *g_displayTooSmallMessage = nullptr;
+const char *g_noMouseMessage = nullptr;
+const int16_t g_resourceStringGroup = 1;
+DirectDrawHost *g_directDrawHost = nullptr;
+int g_firstActivationPending{};
+int g_stringLoaderInstalled{};

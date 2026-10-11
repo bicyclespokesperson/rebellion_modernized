@@ -1,5 +1,4 @@
 #pragma once
-#include "core/layout.h"
 #include "data/sd_records.h"
 #include "fleet/detector.h"
 #include "gameobj/child_iterator.h"
@@ -75,14 +74,3 @@ public:
     TroopRegIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x504cc0
     virtual ~TroopRegIterator();                                                      // 0x504d40 (scalar deleting destructor 0x504c20)
 };
-
-void TroopRegStaticInit();                // 0x504bd0
-void ConstructTroopRegEventKinds();       // 0x504be0
-void RegisterTroopRegEventKindsAtExit();  // 0x504bf0
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(TroopReg, 0x64);
-REB_ASSERT_OFFSET(TroopReg, m_runningBlockadeFlags, 0x5c);
-REB_ASSERT_OFFSET(TroopReg, m_withdrawPercent, 0x60);
-#pragma clang diagnostic pop

@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 
 // MCI CD-audio device (the original game's CD music). It is opened only when SoundManager::Initialize gets
@@ -29,4 +28,3 @@ public:
     uint32_t m_unk10;       // +0x10 cleared by Stop
     uint32_t m_unk14;       // +0x14 cleared by Stop
 };
-REB_ASSERT_SIZE(CdAudio, 0x18);

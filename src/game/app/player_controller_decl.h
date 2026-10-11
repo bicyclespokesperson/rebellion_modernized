@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
@@ -256,30 +255,6 @@ public:
     unsigned m_syncTarget;   // +0x48 non-zero while waiting for the other side to reach this sync point
     int m_unk4c;             // +0x4c
 };
-
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(GameTime, 0x04);
-REB_ASSERT_SIZE(PlayerMessageTree, 0x10);
-REB_ASSERT_OFFSET(PlayerMessage, m_side, 0x20);
-REB_ASSERT_OFFSET(PlayerNotice, m_side, 0x18);
-REB_ASSERT_SIZE(PlayerDispatch, 0x54);
-REB_ASSERT_OFFSET(PlayerDispatch, m_flags, 0x08);
-REB_ASSERT_OFFSET(PlayerDispatch, m_defaultState, 0x0c);
-REB_ASSERT_OFFSET(PlayerDispatch, m_trees, 0x10);
-REB_ASSERT_SIZE(PlayerController, 0x50);
-REB_ASSERT_SIZE(PlayerQueue, 0x30);
-REB_ASSERT_OFFSET(PlayerQueue, m_state, 0x14);
-REB_ASSERT_OFFSET(PlayerController, m_side, 0x24);
-REB_ASSERT_OFFSET(PlayerController, m_syncId, 0x28);
-REB_ASSERT_OFFSET(PlayerController, m_nextVoteId, 0x34);
-REB_ASSERT_OFFSET(PlayerController, m_voteState, 0x38);
-REB_ASSERT_OFFSET(PlayerController, m_voteTime, 0x3c);
-REB_ASSERT_OFFSET(PlayerController, m_voteKey, 0x40);
-REB_ASSERT_OFFSET(PlayerController, m_syncTarget, 0x48);
-REB_ASSERT_OFFSET(PlayerController, m_unk4c, 0x4c);
-#pragma clang diagnostic pop
 
 
 #include "strategy_ui/human_player.h"

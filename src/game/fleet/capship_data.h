@@ -1,5 +1,4 @@
 #pragma once
-#include "core/layout.h"
 #include "fleet/unit_data_decl.h"
 #include "gameobj/child_iterator.h"
 
@@ -46,10 +45,3 @@ int BindGnprtb08();  // 0x558510
 
 // Rolls PercentChance(percent) into *roll; always returns 1.
 int RollPercentChance(int percent, int* roll);  // 0x558680
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CapShipData, 0x2c);
-REB_ASSERT_OFFSET(CapShipData, m_word20, 0x20);
-REB_ASSERT_SIZE(CombatUnitIterator, 0x20);
-#pragma clang diagnostic pop

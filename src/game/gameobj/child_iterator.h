@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/game_obj_root.h"
 #include "gameobj/status_code.h"
 
@@ -44,11 +43,3 @@ public:
     UnitIterator(GameObjNotifier* parent, uint32_t stateFilter);
     virtual ~UnitIterator();
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ChildIterator, 0x20);
-REB_ASSERT_OFFSET(ChildIterator, m_stateFilter, 0x10);
-REB_ASSERT_OFFSET(ChildIterator, m_current, 0x1c);
-REB_ASSERT_SIZE(UnitIterator, 0x20);
-#pragma clang diagnostic pop

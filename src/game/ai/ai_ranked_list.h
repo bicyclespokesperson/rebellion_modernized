@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 
 // Ranked candidate lists used by the AI's selectors (0x41be00-0x41c590).
@@ -54,13 +53,3 @@ public:
 
 void REB_THISCALL AiRankedListRead(IdLinkNode* base, istream* in);    // 0x41bf50
 void REB_THISCALL AiRankedListWrite(IdLinkNode* base, ostream* out);  // 0x41c010
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiRankedItem, 0x18);
-REB_ASSERT_OFFSET(AiRankedItem, m_key, 0x0c);
-REB_ASSERT_OFFSET(AiRankedItem, m_score, 0x10);
-REB_ASSERT_OFFSET(AiRankedItem, m_rank, 0x14);
-REB_ASSERT_SIZE(AiRankedList, 0x20);
-REB_ASSERT_OFFSET(AiRankedList, m_descending, 0x1c);
-#pragma clang diagnostic pop

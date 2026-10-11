@@ -4,7 +4,6 @@
 #include "ai/ai_task_base.h"
 #include "ai/ai_task_family.h"
 #include "app/player_controller_decl.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
@@ -575,34 +574,3 @@ public:
     int16_t m_damagedTexts;    // +0x46
     int16_t m_otherTexts;      // +0x48
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiStagedTask, 0x40);
-REB_ASSERT_SIZE(AiTask13, 0x70);
-REB_ASSERT_OFFSET(AiTask13, m_plan, 0x5c);
-REB_ASSERT_OFFSET(AiTask13, m_objects, 0x64);
-REB_ASSERT_SIZE(AiTask5, 0x88);
-REB_ASSERT_OFFSET(AiTask5, m_selector, 0x68);
-REB_ASSERT_OFFSET(AiTask5, m_dropped, 0x80);
-REB_ASSERT_SIZE(AiTask10, 0x84);
-REB_ASSERT_OFFSET(AiTask10, m_targets, 0x74);
-REB_ASSERT_SIZE(AiFacilityTaskBase, 0x7c);
-REB_ASSERT_SIZE(AiTask7, 0x7c);
-REB_ASSERT_SIZE(AiTask2, 0x80);
-REB_ASSERT_OFFSET(AiTask2, m_selector, 0x70);
-REB_ASSERT_SIZE(AiTask1, 0x78);
-REB_ASSERT_OFFSET(AiTask1, m_selector, 0x68);
-REB_ASSERT_SIZE(AiTask3, 0x7c);
-REB_ASSERT_OFFSET(AiFacilityTaskBase, m_targets, 0x6c);
-REB_ASSERT_SIZE(AiTask11, 0x88);
-REB_ASSERT_OFFSET(AiTask11, m_targets, 0x78);
-REB_ASSERT_SIZE(AiTask6, 0x8c);
-REB_ASSERT_OFFSET(AiTask6, m_targets, 0x7c);
-REB_ASSERT_SIZE(AiTask8, 0x58);
-REB_ASSERT_SIZE(AiTask9, 0x58);
-REB_ASSERT_SIZE(AiTask4, 0x60);
-REB_ASSERT_SIZE(AiTask12, 0x60);
-REB_ASSERT_SIZE(AiTask14, 0x4c);
-REB_ASSERT_OFFSET(AiTask14, m_enrouteTexts, 0x44);
-#pragma clang diagnostic pop

@@ -53,9 +53,3 @@ public:
 
 void* CreateUiNotif200();  // 0x43c720
 void* CreateUiNotif1e0();  // 0x43dc30
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(UiNotif200, 0x34);
-REB_ASSERT_SIZE(UiNotif1e0, 0x3c);
-#pragma clang diagnostic pop

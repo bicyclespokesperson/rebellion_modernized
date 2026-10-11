@@ -823,3 +823,14 @@ void AdvisorEntryTree::Load(istream* in) {
         AddWithId(entry);
     }
 }
+
+PersistentInt g_humanUiFlags = PersistentInt(0);
+const GUID g_iidDirectPlay2A = {0x133efe41, 0x32dc, 0x11d0, {0x9c, 0xfb, 0x00, 0xa0, 0xc9, 0x0a, 0x43, 0xcb}};
+int g_advisorFlag0{};
+int g_advisorFlushAll{};
+int g_advisorMaySpeak{};
+int g_advisorNagCount{};
+int g_advisorPendingArg{};
+int g_advisorPendingMode{};
+uint32_t g_advisorLastRun{};
+uint32_t g_advisorNow{};

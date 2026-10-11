@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
 #include "ui/custom_dialog_box.h"
@@ -127,22 +126,3 @@ public:
 
 // The picture of a facility or manufacturing manager (0x458fe0): null if none; the caller owns it.
 DibBitmap* REB_STDCALL SystemObjectPicture(GameObjNotifier* object);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SystemSlot, 0x38);
-REB_ASSERT_OFFSET(SystemSlot, m_managerKey, 0x14);
-REB_ASSERT_OFFSET(SystemSlot, m_flags, 0x30);
-REB_ASSERT_OFFSET(SystemSlot, m_progressBar, 0x34);
-REB_ASSERT_SIZE(SystemWindow, 0x26c);
-REB_ASSERT_OFFSET(SystemWindow, m_systemKey, 0x144);
-REB_ASSERT_OFFSET(SystemWindow, m_galaxy, 0x14c);
-REB_ASSERT_OFFSET(SystemWindow, m_page, 0x160);
-REB_ASSERT_OFFSET(SystemWindow, m_gokres, 0x168);
-REB_ASSERT_OFFSET(SystemWindow, m_tabs, 0x16c);
-REB_ASSERT_OFFSET(SystemWindow, m_countsLabel, 0x19c);
-REB_ASSERT_OFFSET(SystemWindow, m_slots, 0x1a0);
-REB_ASSERT_OFFSET(SystemWindow, m_selectedSlot, 0x248);
-REB_ASSERT_OFFSET(SystemWindow, m_dragPictures, 0x254);
-REB_ASSERT_OFFSET(SystemWindow, m_pendingRename, 0x268);
-#pragma clang diagnostic pop

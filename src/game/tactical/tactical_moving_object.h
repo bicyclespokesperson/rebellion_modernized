@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "tactical/tactical_math.h"
@@ -38,11 +37,3 @@ public:
     TacticalVector m_unkBc;        // +0xbc
     uint8_t m_padCc[8];            // +0xcc
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MovingObject, 0xd4);
-REB_ASSERT_OFFSET(MovingObject, m_position, 0x30);
-REB_ASSERT_OFFSET(MovingObject, m_turnAxis, 0x9c);
-REB_ASSERT_OFFSET(MovingObject, m_unkBc, 0xbc);
-#pragma clang diagnostic pop

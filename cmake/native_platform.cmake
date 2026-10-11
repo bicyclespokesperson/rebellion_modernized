@@ -32,7 +32,14 @@ endfunction()
 # macOS: the executable becomes Rebellion.app (Info.plist from packaging/macos, ad-hoc signed so Gatekeeper accepts it on the
 # machine that built it) with the Liberation Sans fallback fonts in Resources/fonts; Linux stays a plain binary.
 function(reb_native_platform_package target)
+  if(EXISTS "${REB_STARTUP_ASSET_PACK}")
+    set_property(TARGET ${target} APPEND PROPERTY LINK_DEPENDS "${REB_STARTUP_ASSET_PACK}")
+  endif()
   if(NOT APPLE)
+    if(EXISTS "${REB_STARTUP_ASSET_PACK}")
+      add_custom_command(TARGET ${target} POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different "${REB_STARTUP_ASSET_PACK}" $<TARGET_FILE_DIR:${target}>/startup-assets.bin)
+    endif()
     return()
   endif()
   set(REB_BUNDLE_VERSION "0.1" CACHE STRING "CFBundleShortVersionString of Rebellion.app")
@@ -45,6 +52,12 @@ function(reb_native_platform_package target)
     MACOSX_BUNDLE_SHORT_VERSION_STRING ${REB_BUNDLE_VERSION}
     MACOSX_BUNDLE_BUNDLE_VERSION ${REB_BUNDLE_VERSION})
   set(fonts ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/../third_party/liberation-fonts-ttf-2.1.5)
+  if(EXISTS "${REB_STARTUP_ASSET_PACK}")
+    add_custom_command(TARGET ${target} POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resources
+      COMMAND ${CMAKE_COMMAND} -E copy_if_different "${REB_STARTUP_ASSET_PACK}"
+              $<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resources/startup-assets.bin)
+  endif()
   add_custom_command(TARGET ${target} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_BUNDLE_CONTENT_DIR:${target}>/Resources/fonts
     COMMAND ${CMAKE_COMMAND} -E copy ${fonts}/LiberationSans-Regular.ttf ${fonts}/LiberationSans-Bold.ttf

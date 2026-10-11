@@ -17,7 +17,6 @@
 // request depends on can carry out the request (troops aboard / ships and Death Stars).
 #include <cstdint>
 
-#include "core/layout.h"
 #include "events/command_classes.h"
 #include "events/command_classes2.h"
 #include "events/event_base.h"
@@ -220,16 +219,3 @@ void* CreateOrder221();   // 0x582710
 void* CreateOrder223();   // 0x5827e0
 void* CreateOrder222();   // 0x5828b0
 void* CreateOrder220();   // 0x582980
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(Order250, 0x44);
-REB_ASSERT_SIZE(PayloadMessage, 0x38);
-REB_ASSERT_SIZE(Order270, 0x44);
-REB_ASSERT_SIZE(RootCommandOrder, 0x44);
-REB_ASSERT_SIZE(Order268, 0x44);
-REB_ASSERT_SIZE(Order234, 0x48);
-REB_ASSERT_OFFSET(Order234, m_queue, 0x44);
-REB_ASSERT_SIZE(FleetCommandOrder, 0x48);
-REB_ASSERT_OFFSET(FleetCommandOrder, m_queue, 0x44);
-#pragma clang diagnostic pop

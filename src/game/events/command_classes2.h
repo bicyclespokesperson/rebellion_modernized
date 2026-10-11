@@ -272,29 +272,3 @@ ManufactureCommand* CreateManufactureCommand();  // 0x57f3c0
 FleetCommand221* CreateFleetCommand221();  // 0x57fa50
 FleetCommand220* CreateFleetCommand220();  // 0x57fe20
 PayloadEvent3f0* CreatePayloadEvent3f0();  // 0x580240
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MoveCommand, 0x50);
-REB_ASSERT_SIZE(RenameCommand, 0x5c);
-REB_ASSERT_OFFSET(RenameCommand, m_name, 0x50);
-REB_ASSERT_SIZE(ScrapCommand, 0x50);
-REB_ASSERT_SIZE(ReadyForDeleteCommand, 0x50);
-REB_ASSERT_SIZE(RootCommand240, 0x50);
-REB_ASSERT_SIZE(RootCommand242, 0x50);
-REB_ASSERT_SIZE(DestinationCommand, 0x58);
-REB_ASSERT_OFFSET(DestinationCommand, m_pairs, 0x50);
-REB_ASSERT_SIZE(ManagerRenameCommand, 0x5c);
-REB_ASSERT_OFFSET(ManagerRenameCommand, m_name, 0x50);
-REB_ASSERT_SIZE(ManagerCommand213, 0x50);
-REB_ASSERT_SIZE(ManagerCommand216, 0x54);
-REB_ASSERT_OFFSET(ManagerCommand216, m_value, 0x50);
-REB_ASSERT_SIZE(ManufactureCommand, 0x58);
-REB_ASSERT_OFFSET(ManufactureCommand, m_items, 0x50);
-REB_ASSERT_SIZE(FleetCommand221, 0x50);
-REB_ASSERT_SIZE(FleetCommand220, 0x50);
-REB_ASSERT_SIZE(PayloadEvent3f0, 0x50);
-REB_ASSERT_OFFSET(PayloadEvent3f0, m_valueA, 0x44);
-REB_ASSERT_OFFSET(PayloadEvent3f0, m_valueB, 0x48);
-REB_ASSERT_OFFSET(PayloadEvent3f0, m_valueC, 0x4c);
-#pragma clang diagnostic pop

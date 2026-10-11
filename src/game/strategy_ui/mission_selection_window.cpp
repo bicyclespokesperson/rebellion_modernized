@@ -28,7 +28,7 @@
 #include "ui/cool_tab_control.h"
 #include "ui/object_list_item.h"
 
-extern const char g_gokresDllName[];  // 0x6a8708 "gokres.dll"
+extern const char *g_gokresDllName;  // 0x6a8708 "gokres.dll"
 extern int g_missionKindCounter;      // 0x6a8794 the next row id for a mission kind the table does not know
 
 
@@ -630,3 +630,5 @@ int REB_STDCALL MissionKindItemId(DatRecord* record) {
     }
     return ++g_missionKindCounter;
 }
+
+int g_missionKindCounter = 100;

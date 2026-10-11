@@ -10,8 +10,6 @@
 #include "fleet/unit_view_flags.h"
 #include "gameobj/game_obj_iterator.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyTroopRegEventKinds();
 
 extern int g_troopRegEventKindsReady;      // 0x6b2b68
 extern EventKindSet g_troopRegEventKinds;  // 0x6b2b70
@@ -243,23 +241,5 @@ TroopRegIterator::TroopRegIterator(GameObjNotifier* parent, uint32_t stateFilter
     : ChildIterator(parent, side, &kTroopFamilies, stateFilter) {}
 
 TroopRegIterator::~TroopRegIterator() { REB_KEEP_VPTR_STORE(); }
-
-void TroopRegStaticInit() {
-    ConstructTroopRegEventKinds();
-    RegisterTroopRegEventKindsAtExit();
-}
-
-void ConstructTroopRegEventKinds() { new (&g_troopRegEventKinds) EventKindSet(); }
-
-void RegisterTroopRegEventKindsAtExit() { atexit(DestroyTroopRegEventKinds); }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_troopRegEventKindsDestroyedGuard;  // 0x6b2b78
-
-void DestroyTroopRegEventKinds() {
-    if (!(g_troopRegEventKindsDestroyedGuard & 0x1)) {
-        g_troopRegEventKindsDestroyedGuard |= 0x1;
-        g_troopRegEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_troopRegEventKinds{};
+int g_troopRegEventKindsReady{};

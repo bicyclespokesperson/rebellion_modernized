@@ -16,8 +16,6 @@
 #include "strategy_ui/advisor_sides.h"
 #include "strategy_ui/game_ui_facade.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyAllianceChoices();
 
 extern IdAvlTree g_allianceChoices;      // 0x6b2928 the list the display-mode switches show
 extern uint32_t g_allianceChoicesGuard;  // 0x6b2934
@@ -35,14 +33,8 @@ constexpr uint32_t kUiFlagIdleRequested = 0x2000;
 constexpr uint32_t kUiFlagSleep = 0x4000000;
 constexpr uint32_t kUiFlagWake = 0x8000000;
 
-IdAvlTree* ChoicesTree() {
-    if ((g_allianceChoicesGuard & 1) == 0) {
-        g_allianceChoicesGuard |= 1;
-        new (&g_allianceChoices) IdAvlTree();
-        atexit(DestroyAllianceChoices);
-    }
-    return &g_allianceChoices;
-}
+
+IdAvlTree* ChoicesTree() { return &g_allianceChoices; }
 
 void AddChoice(IdAvlTree* tree, uint32_t id) {
     IdNode* node = NewOrNull<IdNode>(id);
@@ -597,7 +589,5 @@ int AllianceAdvisor::PickMoodCue() {
         return UiSessionRandom(3) + 1;
     }
 }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-void DestroyAllianceChoices() { g_allianceChoices.~IdAvlTree(); }
+IdAvlTree g_allianceChoices{};
+uint32_t g_allianceChoicesGuard{};

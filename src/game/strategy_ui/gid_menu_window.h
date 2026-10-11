@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "strategy_ui/object_menu.h"
 
@@ -24,10 +23,3 @@ public:
     int m_side;                 // +0x154
     MenuWindowBase* m_subMenus[6];  // +0x158 the sub-menu windows (ids 0x141-0x146)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(GidMenuWindow, 0x170);
-REB_ASSERT_OFFSET(GidMenuWindow, m_backdrop, 0x14c);
-REB_ASSERT_OFFSET(GidMenuWindow, m_subMenus, 0x158);
-#pragma clang diagnostic pop

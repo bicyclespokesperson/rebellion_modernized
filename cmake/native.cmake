@@ -1,19 +1,17 @@
-# Native build for Linux and macOS, x86-64 and arm64 (docs/native.md, docs/phase3_plan.md P3/P4); OS differences: native_platform.cmake. Included from CMakeLists.txt when REB_NATIVE is on.
-# Driven by tools/build_native.sh, which generates gen/*.cpp (data image, static-init table, resources) on the host
-# before the second configure (REB_NATIVE_GEN=ON).
+# Native build for Linux and macOS, x86-64 and arm64. OS differences: native_platform.cmake.
+# Program state is typed source; only text assets are extracted from the local installation.
 #
 # The game objects are the same sources as the Windows builds, compiled for the host ABI (LP64, Itanium C++ ABI). The
 # platform comes from src/port/minwin_impl (SDL3 for window/input/audio, FreeType for text) and src/port/native (kernel32 on
 # POSIX, the MSVC CRT names the game uses).
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
-set(REB_GEN ${CMAKE_BINARY_DIR}/gen)
 set(MW ${CMAKE_SOURCE_DIR}/src/port/minwin_impl)
 include(${CMAKE_SOURCE_DIR}/cmake/native_platform.cmake)
 set(REB_NATIVE_SANITIZE "" CACHE STRING "address;undefined: sanitizers for the game, port and runtime objects")
-option(REB_NATIVE_GEN "Link the generated gen/*.cpp (data image, static-init table); stage 2 of tools/build_native.sh" OFF)
+set(REB_STARTUP_ASSET_PACK "${CMAKE_BINARY_DIR}/startup-assets.bin" CACHE FILEPATH "Locally extracted startup asset pack")
 
 set(REB_NATIVE_FLAGS
-  -fms-extensions -fno-exceptions -fno-rtti -fcheck-new -fwrapv -fno-strict-aliasing -fsigned-char
+  -fms-extensions -fcheck-new -fwrapv -fno-strict-aliasing -fsigned-char
   -ffp-contract=off -fno-fast-math -fno-omit-frame-pointer -fPIE
   -Wno-microsoft-anon-tag -Wno-ignored-attributes -Wno-deprecated-declarations -Wno-invalid-offsetof
   -Wno-writable-strings -Wno-c++11-narrowing -Wno-microsoft-enum-value -Wno-microsoft-cast
@@ -22,6 +20,24 @@ if(REB_NATIVE_SANITIZE)
   string(REPLACE ";" "," REB_SAN_LIST "${REB_NATIVE_SANITIZE}")  # "address,undefined" or "address;undefined"
   list(APPEND REB_NATIVE_FLAGS -fsanitize=${REB_SAN_LIST} -fsanitize-recover=all -fno-sanitize=function)
   set(REB_NATIVE_LINK_FLAGS -fsanitize=${REB_SAN_LIST})
+
+  # These translation units still cross opaque legacy class boundaries whose native type definitions are stand-ins.
+  # UBSan's vptr instrumentation asks for RTTI that those external class definitions do not provide. Keep the rest of
+  # undefined-behavior instrumentation enabled and track replacing these stand-ins with owning native types separately.
+  set(REB_OPAQUE_VPTR_SOURCES
+    src/game/app/app_save_load.cpp
+    src/game/app/game_session.cpp
+    src/game/app/rebellion_application.cpp
+    src/game/events/game_manager.cpp
+    src/game/events/game_manager_state.cpp
+    src/game/events/player_dispatch.cpp
+    src/game/gameobj/object_type_db.cpp
+    src/game/multiplayer/comm_mgr.cpp
+    src/game/multiplayer/remote_player.cpp
+    src/game/strategy_ui/ui_handler_table.cpp
+    src/game/tactical/tactical_game.cpp
+    src/game/tactical/tactical_objmgr.cpp)
+  set_source_files_properties(${REB_OPAQUE_VPTR_SOURCES} PROPERTIES COMPILE_OPTIONS "-fno-sanitize=vptr")
 endif()
 
 # The game's own versions of C library functions whose behaviour is game behaviour (src/game/crt) must not collide with libc's.
@@ -85,7 +101,7 @@ set(REB_MINWIN_IMPL_SOURCES
 add_library(reb_minwin_impl OBJECT ${REB_MINWIN_IMPL_SOURCES})
 target_include_directories(reb_minwin_impl PRIVATE src/game src ${MW} ${SDL3_SRC}/include ${FREETYPE_ROOT}/include)
 target_compile_options(reb_minwin_impl PRIVATE ${REB_NATIVE_FLAGS} -include ${CMAKE_SOURCE_DIR}/src/port/native/crt/msvc_crt.h)
-target_compile_definitions(reb_minwin_impl PRIVATE REB_MINWIN=1 MW_IIDS_IN_GAME_DATA=1)
+target_compile_definitions(reb_minwin_impl PRIVATE REB_MINWIN=1)
 
 file(GLOB REB_NATIVE_PORT_SOURCES CONFIGURE_DEPENDS src/port/native/*.cpp)
 list(FILTER REB_NATIVE_PORT_SOURCES EXCLUDE REGEX "platform_(linux|macos)\\.cpp$")
@@ -97,19 +113,9 @@ target_compile_options(reb_native_port PRIVATE ${REB_NATIVE_FLAGS})
 target_compile_definitions(reb_native_port PRIVATE REB_MINWIN=1 ${REB_NATIVE_DEFS})
 
 add_custom_target(reb_native_objects DEPENDS reb_game reb_tactical_stubs reb_minwin_impl reb_native_port)
-set(REB_NATIVE_GENERATED)
-if(REB_NATIVE_GEN)
-  file(GLOB REB_NATIVE_GENERATED CONFIGURE_DEPENDS ${REB_GEN}/*.cpp)
-  add_library(reb_native_gen OBJECT ${REB_NATIVE_GENERATED})
-  target_include_directories(reb_native_gen PRIVATE src/game src src/port/native/crt)
-  target_compile_options(reb_native_gen PRIVATE ${REB_NATIVE_FLAGS})
-  target_compile_definitions(reb_native_gen PRIVATE REB_MINWIN=1 ${REB_NATIVE_DEFS})
-  set(REB_NATIVE_GEN_OBJECTS $<TARGET_OBJECTS:reb_native_gen>)
-endif()
-
 add_executable(rebellion
   $<TARGET_OBJECTS:reb_game> $<TARGET_OBJECTS:reb_tactical_stubs> $<TARGET_OBJECTS:reb_minwin_impl>
-  $<TARGET_OBJECTS:reb_native_port> ${REB_NATIVE_GEN_OBJECTS})
+  $<TARGET_OBJECTS:reb_native_port>)
 set_target_properties(rebellion PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(rebellion PRIVATE freetype SDL3-static ${REB_PLATFORM_LIBS} ${REB_NATIVE_LINK_FLAGS})
 reb_native_platform_package(rebellion)

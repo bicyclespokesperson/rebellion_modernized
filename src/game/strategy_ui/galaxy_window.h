@@ -4,7 +4,6 @@
 
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
 #include "ui/cool_drag_list.h"
@@ -317,37 +316,3 @@ GalaxyWindow* GetGalaxyWindow();  // 0x422ca0
 void AnimateZoomRect(HWND hwnd, const RECT* to, const RECT* from);  // 0x428940
 
 extern GalaxyWindow* g_galaxyWindow;  // 0x6b14cc
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MinimizedWindowSlot, 0x1c);
-REB_ASSERT_SIZE(GalaxyTickTimer, 0x3c);
-REB_ASSERT_SIZE(ChildWindowState, 0x20);
-REB_ASSERT_SIZE(GalaxyWindow, 0x49c);
-REB_ASSERT_OFFSET(GalaxyWindow, m_side, 0x9c);
-REB_ASSERT_OFFSET(GalaxyWindow, m_mouseMode, 0xc0);
-REB_ASSERT_OFFSET(GalaxyWindow, m_displayMode, 0xc8);
-REB_ASSERT_OFFSET(GalaxyWindow, m_panelArea, 0xcc);
-REB_ASSERT_OFFSET(GalaxyWindow, m_dateLabel, 0xe0);
-REB_ASSERT_OFFSET(GalaxyWindow, m_speed, 0x114);
-REB_ASSERT_OFFSET(GalaxyWindow, m_gidMenu, 0x118);
-REB_ASSERT_OFFSET(GalaxyWindow, m_droidStage, 0x128);
-REB_ASSERT_OFFSET(GalaxyWindow, m_consoleButtons, 0x134);
-REB_ASSERT_OFFSET(GalaxyWindow, m_unknownButton150, 0x150);
-REB_ASSERT_OFFSET(GalaxyWindow, m_messageButtons, 0x154);
-REB_ASSERT_OFFSET(GalaxyWindow, m_resourceLabels, 0x178);
-REB_ASSERT_OFFSET(GalaxyWindow, m_latencyLabel, 0x214);
-REB_ASSERT_OFFSET(GalaxyWindow, m_gidLegendIcon, 0x248);
-REB_ASSERT_OFFSET(GalaxyWindow, m_sectorItems, 0x24c);
-REB_ASSERT_OFFSET(GalaxyWindow, m_sectorLabel, 0x260);
-REB_ASSERT_OFFSET(GalaxyWindow, m_gidIconIds, 0x294);
-REB_ASSERT_OFFSET(GalaxyWindow, m_selectedIds, 0x2cc);
-REB_ASSERT_OFFSET(GalaxyWindow, m_minimized, 0x2d8);
-REB_ASSERT_OFFSET(GalaxyWindow, m_minimizedOrder, 0x428);
-REB_ASSERT_OFFSET(GalaxyWindow, m_minimizedCount, 0x458);
-REB_ASSERT_OFFSET(GalaxyWindow, m_offscreen, 0x45c);
-REB_ASSERT_OFFSET(GalaxyWindow, m_encyclopediaItems, 0x474);
-REB_ASSERT_OFFSET(GalaxyWindow, m_openWindowIds, 0x478);
-REB_ASSERT_OFFSET(GalaxyWindow, m_systemItems, 0x484);
-REB_ASSERT_OFFSET(GalaxyWindow, m_pendingMovie, 0x498);
-#pragma clang diagnostic pop

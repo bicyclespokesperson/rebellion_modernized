@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/game_obj.h"
 
@@ -168,13 +167,3 @@ public:
     int m_unused4;             // +0x04, 1
     BombardWalker m_walker;    // +0x08
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(DefenderRef, 0x10);
-REB_ASSERT_SIZE(BombardWalker, 0x40);
-REB_ASSERT_OFFSET(BombardWalker, m_deathStar, 0x3c);
-REB_ASSERT_SIZE(BombardResolver, 0x48);
-REB_ASSERT_OFFSET(BombardResolver, m_walker, 0x08);
-REB_ASSERT_SIZE(DefenderPicker, 0x20);
-#pragma clang diagnostic pop

@@ -7,7 +7,7 @@
 using iostream_access::IosOf;
 
 // The empty string the library hands to outstr as the prefix of operator<<(const char*) and operator<<(char).
-extern const char g_emptyText[];  // 0x6b120c
+extern const char *g_emptyText;  // 0x6b120c
 
 namespace {
 

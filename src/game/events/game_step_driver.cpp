@@ -447,3 +447,5 @@ void RegisterMultiplayerOrderFactories() {
     RegisterOrderFactory(0x14, CreateMpSlotTableMsg);
     RegisterOrderFactory(0x5, CreateNetMsg5);
 }
+
+int g_strategicFactoriesRegistered{};

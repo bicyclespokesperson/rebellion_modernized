@@ -25,7 +25,7 @@
 #include "ui/cool_label.h"
 #include "ui/object_list_item.h"
 
-extern const char g_newlineString[];  // 0x6a8170 "\n"
+extern const char *g_newlineString;  // 0x6a8170 "\n"
 extern const int16_t g_mapGridWidth;   // 0x659b48
 extern const int16_t g_mapGridHeight;  // 0x659b4a
 extern const int16_t g_stringGroup65d424;  // 0x65d424 group of the localised sector name suffix
@@ -277,3 +277,7 @@ void GalaxyWindow::BuildSectorItems(HMODULE module) {
 }
 
 void SetDword30(void* object, int value) { *reinterpret_cast<int*>(static_cast<uint8_t*>(object) + 0x30) = value; }
+
+const char *g_newlineString = nullptr;
+const int16_t g_mapGridHeight = 1023;
+const int16_t g_mapGridWidth = 1023;

@@ -29,10 +29,10 @@
 #include "ui/object_list_item.h"
 #include "ui/text_scroll_field.h"
 
-extern const char g_encyBitmapDllName[];         // 0x6a8750 "encybmap.dll"
-extern const char g_encyTextDllName[];           // 0x6a8760 "encytext.dll"
-extern const char g_encyDefaultDataDirectory[];  // 0x6a8770 "EDATA\\"
-extern const char g_encyLocationValueName[];     // 0x6a8778 "EncyLocation"
+extern const char *g_encyBitmapDllName;         // 0x6a8750 "encybmap.dll"
+extern const char *g_encyTextDllName;           // 0x6a8760 "encytext.dll"
+extern const char *g_encyDefaultDataDirectory;  // 0x6a8770 "EDATA\\"
+extern const char *g_encyLocationValueName;     // 0x6a8778 "EncyLocation"
 
 namespace {
 
@@ -779,3 +779,8 @@ DibBitmap* LoadEncyclopediaPicture(uint32_t pictureId, HMODULE module) {
     String path = directory + fileName;
     return NewOrNull<DibBitmap>(module, static_cast<const char*>(path.m_text), kDataFileBitmapKind);
 }
+
+const char *g_encyBitmapDllName = nullptr;
+const char *g_encyDefaultDataDirectory = nullptr;
+const char *g_encyLocationValueName = nullptr;
+const char *g_encyTextDllName = nullptr;

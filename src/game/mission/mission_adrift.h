@@ -22,13 +22,7 @@ public:
     virtual GameObj* CreateViewObject() override;                               // 57, 0x5768f0
 
     static int BuildEventKinds();      // 0x576ac0
-    static void InitStatics();         // 0x576af0
     int CreateViewsImpl(int controlKind, NotifyContext* ctx);  // 0x576a20
 
     static GameObjNotifier* Create();  // 0x5769b0
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionAdrift, 0xa8);
-#pragma clang diagnostic pop

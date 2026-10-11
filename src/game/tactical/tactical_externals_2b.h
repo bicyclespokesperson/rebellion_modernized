@@ -13,8 +13,6 @@ class ShipGroup;
 class TacticalHub;
 
 
-
-
 void REB_THISCALL FUN_005cb1a0(ShipGroup* group, int a);
 void REB_THISCALL FUN_005a0320(TacticalHub* hub, int groupId);
 TacticalHub* FUN_0059ed70();

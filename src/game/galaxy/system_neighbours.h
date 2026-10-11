@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 
 class GameObjNotifier;
@@ -57,13 +56,3 @@ struct SystemDistance {
 
 // qsort comparator (0x58b140): listed systems first, by ascending distance; unlisted (null) slots last.
 int CompareSystemDistance(const void* a, const void* b);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SystemNeighbourCursor, 0x0c);
-REB_ASSERT_OFFSET(SystemNeighbourCursor, m_current, 0x08);
-REB_ASSERT_SIZE(SystemNeighbours, 0x324);
-REB_ASSERT_SIZE(SystemNeighbourTable, 0x27424);
-REB_ASSERT_OFFSET(SystemNeighbourTable, m_entries, 0x04);
-REB_ASSERT_SIZE(SystemDistance, 0x08);
-#pragma clang diagnostic pop

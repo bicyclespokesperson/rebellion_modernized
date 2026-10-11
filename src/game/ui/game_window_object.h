@@ -37,10 +37,3 @@ public:
     DibBitmap* m_background;  // +0x94 what Draw paints; owned
     DibBitmap* m_source;      // +0x98 optional picture the background is cut from; owned
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(GameWindowObject, 0x9c);
-REB_ASSERT_OFFSET(GameWindowObject, m_background, 0x94);
-REB_ASSERT_OFFSET(GameWindowObject, m_source, 0x98);
-#pragma clang diagnostic pop

@@ -22,7 +22,7 @@
 #include "ui/object_list_item.h"
 #include "ui/resource_dll.h"
 
-extern const char g_gokresDllName[];       // 0x6a8708 "gokres.dll"
+extern const char *g_gokresDllName;       // 0x6a8708 "gokres.dll"
 extern const int16_t g_stringGroup65d424;  // 0x65d424
 
 DibBitmap* CreateObjectPicture(HMODULE module, const ObjectKey* key, GameObjNotifier* object, int a, int b);

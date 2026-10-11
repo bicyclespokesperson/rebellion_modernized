@@ -3,7 +3,6 @@
 
 #include "app/player_controller_decl.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "tactical/tactical_types.h"
 
 // The 3D battle's object manager (singleton DAT_006bc4a0, accessor 0x5aaf90; abstract base class, VT 0x66c2d0 with 40

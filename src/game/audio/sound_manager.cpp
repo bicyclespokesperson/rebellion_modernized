@@ -17,18 +17,9 @@ extern int g_soundThreadReady;             // 0x6be6a8 queue lock initialised
 extern LONG g_soundDispatchBusy;           // 0x6be6ac the event thread is running a callback
 extern int g_soundShuttingDown;            // 0x6be6b0
 extern LONG g_sweepBusy;                   // 0x6be660 SweepSources is running
-extern const char g_waveResourceType[];    // 0x6ac954 "WAVE"
+extern const char *g_waveResourceType;    // 0x6ac954 "WAVE"
 
 // Functions of other modules.
-// Compiler-generated atexit handlers that destroy the global objects below.
-extern "C" {
-void DestroySoundSources();
-void DestroySoundCatalog();
-void DestroyCdAudio();
-void DestroySmackSound();
-void DestroySoundEventQueue();
-}
-
 namespace {
 
 constexpr uint32_t kDefaultPrimaryFormat = 0x2b110110;   // 11025 Hz, 1 channel, 16 bit
@@ -86,40 +77,6 @@ SoundRequest::~SoundRequest() { REB_KEEP_VPTR_STORE(); }
 
 // ---- statics ------------------------------------------------------------------------------------------------
 
-void SoundSourcesConstruct() { new (&g_soundSources) SoundSourceList(); }
-void SoundSourcesRegisterAtExit() { atexit(DestroySoundSources); }
-void SoundSourcesStaticInit() {
-    SoundSourcesConstruct();
-    SoundSourcesRegisterAtExit();
-}
-
-void SoundCatalogConstruct() { new (&g_soundCatalog) SoundCatalogList(); }
-void SoundCatalogRegisterAtExit() { atexit(DestroySoundCatalog); }
-void SoundCatalogStaticInit() {
-    SoundCatalogConstruct();
-    SoundCatalogRegisterAtExit();
-}
-
-void CdAudioConstruct() { new (&g_cdAudio) CdAudio(); }
-void CdAudioRegisterAtExit() { atexit(DestroyCdAudio); }
-void CdAudioStaticInit() {
-    CdAudioConstruct();
-    CdAudioRegisterAtExit();
-}
-
-void SmackSoundConstruct() { new (&g_smackSound) SmackSound(); }
-void SmackSoundRegisterAtExit() { atexit(DestroySmackSound); }
-void SmackSoundStaticInit() {
-    SmackSoundConstruct();
-    SmackSoundRegisterAtExit();
-}
-
-void SoundEventQueueConstruct() { new (&g_soundEventQueue) NodeQueue(); }
-void SoundEventQueueRegisterAtExit() { atexit(DestroySoundEventQueue); }
-void SoundEventQueueStaticInit() {
-    SoundEventQueueConstruct();
-    SoundEventQueueRegisterAtExit();
-}
 
 // ---- entry points -------------------------------------------------------------------------------------------
 
@@ -528,42 +485,11 @@ void SoundManager::StopEventThread() {
         g_soundThreadReady = 0;
     }
 }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_soundSourcesDestroyedGuard;  // 0x6be65c
-
-void DestroySoundSources() {
-    if (!(g_soundSourcesDestroyedGuard & 0x1)) {
-        g_soundSourcesDestroyedGuard |= 0x1;
-        g_soundSources.~SoundSourceList();
-    }
-}
-
-void DestroySoundCatalog() {
-    if (!(g_soundSourcesDestroyedGuard & 0x2)) {
-        g_soundSourcesDestroyedGuard |= 0x2;
-        g_soundCatalog.~SoundCatalogList();
-    }
-}
-
-void DestroyCdAudio() {
-    if (!(g_soundSourcesDestroyedGuard & 0x4)) {
-        g_soundSourcesDestroyedGuard |= 0x4;
-        g_cdAudio.~CdAudio();
-    }
-}
-
-void DestroySmackSound() {
-    if (!(g_soundSourcesDestroyedGuard & 0x8)) {
-        g_soundSourcesDestroyedGuard |= 0x8;
-        g_smackSound.~SmackSound();
-    }
-}
-
-void DestroySoundEventQueue() {
-    if (!(g_soundSourcesDestroyedGuard & 0x10)) {
-        g_soundSourcesDestroyedGuard |= 0x10;
-        g_soundEventQueue.~NodeQueue();
-    }
-}
+CRITICAL_SECTION g_soundQueueLock{};
+HANDLE g_soundEvents[2]{};
+HANDLE g_soundThread{};
+LONG g_soundDispatchBusy{};
+LONG g_sweepBusy{};
+const char *g_waveResourceType = nullptr;
+int g_soundShuttingDown{};
+int g_soundThreadReady{};

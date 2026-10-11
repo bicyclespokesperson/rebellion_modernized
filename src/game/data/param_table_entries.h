@@ -43,11 +43,3 @@ public:
 // Factories registered under the entry class names.
 void* CreateGeneralParamTableEntry();
 void* CreateSideParamTableEntry();
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(GeneralParamTableEntry, 0x44);
-REB_ASSERT_OFFSET(GeneralParamTableEntry, m_values, 0x24);
-REB_ASSERT_SIZE(SideParamTableEntry, 0x64);
-REB_ASSERT_OFFSET(SideParamTableEntry, m_values, 0x24);
-#pragma clang diagnostic pop

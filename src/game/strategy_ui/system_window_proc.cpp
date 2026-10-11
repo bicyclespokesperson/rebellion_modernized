@@ -29,7 +29,7 @@
 #include "ui/object_list_item.h"
 
 extern HPALETTE g_palette;
-extern const char g_statusSeparator[];  // 0x6a872c ":"
+extern const char *g_statusSeparator;  // 0x6a872c ":"
 
 
 namespace {

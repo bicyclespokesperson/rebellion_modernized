@@ -517,3 +517,6 @@ ObjectKey SectorWindow::GetDropKeyAt(int x, int y) {
     if (system) system->GetKey(&result);
     return result;
 }
+
+const int16_t g_sectorGridHeight = 1023;
+const int16_t g_sectorGridWidth = 1023;

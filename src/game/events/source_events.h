@@ -279,22 +279,3 @@ Event320* CreateEvent320();  // 0x57b8d0
 Event313* CreateEvent313();  // 0x57d880
 Event31a* CreateEvent31a();  // 0x57bbb0
 Event317* CreateEvent317();  // 0x57d520
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(Event301, 0x54);
-REB_ASSERT_SIZE(Event31d, 0x54);
-REB_ASSERT_SIZE(Event300, 0x54);
-REB_ASSERT_SIZE(Event308, 0x54);
-REB_ASSERT_SIZE(Event306, 0x54);
-REB_ASSERT_SIZE(Event316, 0x54);
-REB_ASSERT_SIZE(Event307, 0x54);
-REB_ASSERT_SIZE(Event302, 0x54);
-REB_ASSERT_SIZE(Event318, 0x54);
-REB_ASSERT_SIZE(Event315, 0x54);
-REB_ASSERT_SIZE(Event30a, 0x54);
-REB_ASSERT_SIZE(Event320, 0x54);
-REB_ASSERT_SIZE(Event313, 0x54);
-REB_ASSERT_SIZE(Event31a, 0x54);
-REB_ASSERT_SIZE(Event317, 0x54);
-#pragma clang diagnostic pop

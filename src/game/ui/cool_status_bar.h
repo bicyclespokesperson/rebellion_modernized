@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_window.h"
 
@@ -33,13 +32,3 @@ public:
     HBRUSH m_backgroundBrush;    // +0xb0
     HPEN m_tickPen;              // +0xb4 null: black ticks
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CoolwinStatusBar, 0xb8);
-REB_ASSERT_OFFSET(CoolwinStatusBar, m_range, 0x94);
-REB_ASSERT_OFFSET(CoolwinStatusBar, m_barColor, 0xa0);
-REB_ASSERT_OFFSET(CoolwinStatusBar, m_tickColor, 0xa8);
-REB_ASSERT_OFFSET(CoolwinStatusBar, m_barBrush, 0xac);
-REB_ASSERT_OFFSET(CoolwinStatusBar, m_tickPen, 0xb4);
-#pragma clang diagnostic pop

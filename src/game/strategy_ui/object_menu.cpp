@@ -11,16 +11,14 @@
 #include "ui/cool_app.h"
 #include "ui/game_window_object.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 
-extern const char g_gameMenuWindowClassName[];  // 0x6a8718 "Game Menu Window"
+extern const char *g_gameMenuWindowClassName;  // 0x6a8718 "Game Menu Window"
 
 extern PopupMenuWindow* g_menuWindow;  // 0x6b28f4
 extern HHOOK g_menuHook;               // 0x6b28f8
 extern HWND g_menuPreviousFocus;       // 0x6b28fc
 extern HWND g_menuClickFocus;          // 0x6b2900
 
-void DestroyMenuRoot();
 
 namespace {
 
@@ -319,24 +317,7 @@ bool PopupMenuWindow::InstallMouseHook() {
     return g_menuHook != nullptr;
 }
 
-// ---- Static initializer ----------------------------------------------------------------------------------
-
-void StaticInitMenuList() {
-    InitMenuList();
-    RegisterMenuListDestructor();
-}
-
-void InitMenuList() { new (&g_menuRoot) MenuItemList(); }
-
-void RegisterMenuListDestructor() { atexit(DestroyMenuRoot); }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_menuRootDestroyedGuard;  // 0x6b28f0
-
-void DestroyMenuRoot() {
-    if (!(g_menuRootDestroyedGuard & 0x1)) {
-        g_menuRootDestroyedGuard |= 0x1;
-        g_menuRoot.~MenuItemList();
-    }
-}
+HHOOK g_menuHook{};
+HWND g_menuClickFocus{};
+HWND g_menuPreviousFocus{};
+const char *g_gameMenuWindowClassName = nullptr;

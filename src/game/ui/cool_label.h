@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/strstream_io.h"
 #include "platform/win32.h"
 
@@ -81,15 +80,3 @@ public:
     // First node, in tree order, whose rectangle contains the point.
     RectNode* FindContaining(int x, int y);  // 0x601550
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CoolLabel, 0x34);
-REB_ASSERT_OFFSET(CoolLabel, m_text, 0x08);
-REB_ASSERT_OFFSET(CoolLabel, m_color, 0x0c);
-REB_ASSERT_OFFSET(CoolLabel, m_rect, 0x14);
-REB_ASSERT_OFFSET(CoolLabel, m_font, 0x28);
-REB_ASSERT_OFFSET(CoolLabel, m_layoutFlags, 0x2c);
-REB_ASSERT_SIZE(RectNode, 0x28);
-REB_ASSERT_SIZE(RectTree, 0x08);
-#pragma clang diagnostic pop

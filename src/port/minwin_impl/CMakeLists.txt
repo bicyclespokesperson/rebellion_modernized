@@ -17,10 +17,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(MSVC OR CMAKE_CXX_COMPILER_FRONTEND_VARIANT STREQUAL "MSVC")
-  add_compile_options(/GR- /EHs-c- /arch:IA32 /Zc:sizedDealloc- -Wno-microsoft-cast -D_CRT_SECURE_NO_WARNINGS -DNOMINMAX -DWIN32_LEAN_AND_MEAN
+  add_compile_options(/GR- /arch:IA32 /Zc:sizedDealloc- -Wno-microsoft-cast -D_CRT_SECURE_NO_WARNINGS -DNOMINMAX -DWIN32_LEAN_AND_MEAN
                       -Wno-deprecated-declarations)
 else()
-  add_compile_options(-fms-extensions -fno-rtti -fno-exceptions -fwrapv -fno-strict-aliasing -fsigned-char -ffp-contract=off
+  add_compile_options(-fms-extensions -fno-rtti -fwrapv -fno-strict-aliasing -fsigned-char -ffp-contract=off
                       -Wall -Wno-unused-function -Wno-microsoft-anon-tag -Wno-ignored-attributes)
 endif()
 include(${REPO}/cmake/native_platform.cmake)

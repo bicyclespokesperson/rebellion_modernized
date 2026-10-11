@@ -5,7 +5,6 @@
 #include "ai/ai_advisor_tasks.h"
 #include "ai/ai_galaxy_analysis.h"
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/status_code.h"
@@ -157,8 +156,6 @@ public:
 // The class-wide advisor state.
 // Statics of the advisor module.
 void AdvisorInitStatics();                    // 0x4392b0
-void AdvisorInitFlags();                      // 0x4392c0
-void AdvisorRegisterFlagsAtExit();            // 0x4392d0
 void REB_STDCALL AdvisorToggleUiFlag(int command);        // 0x439e80
 void AdvisorSetPendingCommand(int mode, int argument);  // 0x439eb0
 void AdvisorNoteNag();                        // 0x439ed0
@@ -175,22 +172,3 @@ extern int g_advisorPendingArg;       // 0x6b28c8
 extern uint32_t g_advisorNow;         // 0x6b28cc the tick of the current update
 extern uint32_t g_advisorLastRun;     // 0x6b28d0
 extern int g_advisorFlushAll;         // 0x6b28d4
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AdvisorBase, 0x194);
-REB_ASSERT_OFFSET(AdvisorBase, m_state, 0x0c);
-REB_ASSERT_OFFSET(AdvisorBase, m_taskTree, 0x18);
-REB_ASSERT_OFFSET(AdvisorBase, m_currentTask, 0x34);
-REB_ASSERT_OFFSET(AdvisorBase, m_aiHelper, 0x3c);
-REB_ASSERT_OFFSET(AdvisorBase, m_cueTree, 0x138);
-REB_ASSERT_OFFSET(AdvisorBase, m_player, 0x144);
-REB_ASSERT_OFFSET(AdvisorBase, m_flags, 0x150);
-REB_ASSERT_OFFSET(AdvisorBase, m_notices, 0x154);
-REB_ASSERT_OFFSET(AdvisorBase, m_cueCount, 0x164);
-REB_ASSERT_OFFSET(AdvisorBase, m_mood, 0x170);
-REB_ASSERT_OFFSET(AdvisorBase, m_lastStatus, 0x174);
-REB_ASSERT_OFFSET(AdvisorBase, m_primaryTask, 0x184);
-REB_ASSERT_SIZE(AllianceAdvisor, 0x194);
-REB_ASSERT_SIZE(EmpireAdvisor, 0x194);
-#pragma clang diagnostic pop

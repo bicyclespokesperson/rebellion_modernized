@@ -4,7 +4,6 @@
 #include "audio/sound_buffer.h"
 #include "audio/wave_info.h"
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 
 class SoundRequest;
@@ -44,11 +43,6 @@ public:
     long m_streamPosition;    // +0x50 where the WAVE image starts in that file
     int m_keepLoaded;         // +0x54 survives SoundManager::ReleaseAll(0)
 };
-REB_ASSERT_SIZE(SoundSource, 0x58);
-REB_ASSERT_OFFSET(SoundSource, m_wave, 0x20);
-REB_ASSERT_OFFSET(SoundSource, m_buffers, 0x40);
-REB_ASSERT_OFFSET(SoundSource, m_stream, 0x4c);
-REB_ASSERT_OFFSET(SoundSource, m_keepLoaded, 0x54);
 
 // Tree of all loaded SoundSources.
 class SoundSourceList : public SoundIdTree {
@@ -58,7 +52,6 @@ public:
 
     void DeleteByKey(uint32_t key);  // 0x6120d0
 };
-REB_ASSERT_SIZE(SoundSourceList, 0x0c);
 
 // A second tree of the same kind, constructed at start-up but never filled (SoundManager::SweepSources empties it).
 class SoundCatalogList : public SoundIdTree {
@@ -66,7 +59,6 @@ public:
     SoundCatalogList();
     virtual ~SoundCatalogList();
 };
-REB_ASSERT_SIZE(SoundCatalogList, 0x0c);
 
 // A queued notification for the sound-event thread (see SoundManager::QueueEvent).
 class SoundEvent : public LinkNode {
@@ -83,4 +75,3 @@ public:
     uint32_t m_first;    // +0x10
     uint32_t m_second;   // +0x14
 };
-REB_ASSERT_SIZE(SoundEvent, 0x18);

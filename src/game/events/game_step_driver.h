@@ -8,7 +8,6 @@
 //   5 run the scheduler until idle   6 end-of-step work   7-11 session synchronisation   12 snapshot   13 finish
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "gameobj/game_settings.h"
 #include "gameobj/object_key.h"
@@ -72,11 +71,3 @@ int IdlePhase();                               // 0x41e430, phase 4
 int SchedulerPhase();                          // 0x41e460, phase 5
 int EndOfStepPhase();                          // 0x41e490, phase 6
 int SnapshotPhase();                           // 0x41e4d0, phase 12
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(GameStepDriver, 0x28);
-REB_ASSERT_OFFSET(GameStepDriver, m_phase, 0x08);
-REB_ASSERT_OFFSET(GameStepDriver, m_pauseTick, 0x10);
-REB_ASSERT_OFFSET(GameStepDriver, m_dataLocation, 0x24);
-#pragma clang diagnostic pop

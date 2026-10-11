@@ -198,3 +198,6 @@ int Character::AdjustLoyaltyForSide(int amount, int side, NotifyContext* ctx) {
     }
     return result;
 }
+
+const int g_percentMax = 100;
+const int g_percentMin{};

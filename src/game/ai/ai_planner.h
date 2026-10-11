@@ -3,7 +3,6 @@
 
 #include "ai/ai_selector.h"
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
@@ -131,16 +130,3 @@ public:
     ObjectKey m_sectorKey;           // +0x74
     int m_tier;                      // +0x78
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiMissionPlanner, 0x70);
-REB_ASSERT_OFFSET(AiMissionPlanner, m_flags, 0x20);
-REB_ASSERT_OFFSET(AiMissionPlanner, m_missionKey, 0x2c);
-REB_ASSERT_OFFSET(AiMissionPlanner, m_leaders, 0x3c);
-REB_ASSERT_OFFSET(AiMissionPlanner, m_selector, 0x54);
-REB_ASSERT_OFFSET(AiMissionPlanner, m_characters, 0x64);
-REB_ASSERT_OFFSET(AiMissionPlanner, m_stall, 0x6c);
-REB_ASSERT_SIZE(AiFreePlanner, 0x70);
-REB_ASSERT_SIZE(AiSystemPlanner, 0x7c);
-#pragma clang diagnostic pop

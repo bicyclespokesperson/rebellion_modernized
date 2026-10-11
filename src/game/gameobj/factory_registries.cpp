@@ -267,3 +267,6 @@ int RegisterKeyedFactory(int key, void* (*factory)()) {
     }
     return 0;
 }
+
+KeyedFactoryEntry g_keyedFactories[0x800]{};
+int g_keyedFactoryCount{};

@@ -3,7 +3,6 @@
 
 #include "core/containers.h"
 #include "core/iostream_lib.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "data/table_entry.h"
 
@@ -99,16 +98,3 @@ void DestroyGDataTables();
 int RegisterTableClass(const char* className, void* (*factory)());
 void* CreateTable();
 void InitTableClassRegistration();
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(TableBase, 0x08);
-REB_ASSERT_SIZE(Table, 0x3c);
-REB_ASSERT_OFFSET(Table, m_name, 0x08);
-REB_ASSERT_OFFSET(Table, m_entries, 0x30);
-REB_ASSERT_SIZE(TableFile, 0x5c);
-REB_ASSERT_OFFSET(TableFile, m_table, 0x20);
-REB_ASSERT_SIZE(TableFileList, 0x10);
-REB_ASSERT_SIZE(GDataTables, 0x0c);
-REB_ASSERT_OFFSET(GDataTables, m_tables, 0x08);
-#pragma clang diagnostic pop

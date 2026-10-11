@@ -266,3 +266,6 @@ int RegisterEventFactory(int kind, void* (*factory)()) {
     }
     return 0;
 }
+
+EventFactoryEntry g_eventFactories[0x3ff]{};
+int g_eventFactoryCount{};

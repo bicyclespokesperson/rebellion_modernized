@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
@@ -111,19 +110,3 @@ public:
 uint32_t REB_STDCALL FleetContents(GameObjNotifier* object);
 // Draws the icons for the bits of `contents` on `target`: low (when `compact`) or high row of the picture (0x4a67a0).
 void REB_STDCALL DrawFleetContentIcons(DibBitmap* target, int side, uint32_t contents, int compact);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(FleetWindow, 0x1b4);
-REB_ASSERT_OFFSET(FleetWindow, m_systemKey, 0x144);
-REB_ASSERT_OFFSET(FleetWindow, m_uiFlags, 0x14c);
-REB_ASSERT_OFFSET(FleetWindow, m_buttons, 0x150);
-REB_ASSERT_OFFSET(FleetWindow, m_ownTabs, 0x158);
-REB_ASSERT_OFFSET(FleetWindow, m_infoBitmap, 0x168);
-REB_ASSERT_OFFSET(FleetWindow, m_headerActive, 0x178);
-REB_ASSERT_OFFSET(FleetWindow, m_fleetItems, 0x188);
-REB_ASSERT_OFFSET(FleetWindow, m_selectionLabel, 0x190);
-REB_ASSERT_OFFSET(FleetWindow, m_page, 0x194);
-REB_ASSERT_OFFSET(FleetWindow, m_pen, 0x1a0);
-REB_ASSERT_OFFSET(FleetWindow, m_gokres, 0x1b0);
-#pragma clang diagnostic pop

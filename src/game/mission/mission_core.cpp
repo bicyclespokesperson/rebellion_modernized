@@ -7,8 +7,6 @@
 #include "gameobj/object_database.h"
 #include "gameobj/object_queries.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyMissionEventKinds();
 
 extern int g_missionEventKindsBuilt;     // 0x6b8fe0
 extern EventKindSet g_missionEventKinds;  // 0x6b8fe8
@@ -62,15 +60,6 @@ int Mission::CheckOrder(int a, int orderKind, StatusCode* out) {
     const int result = BuildEventKinds();
     if (result && g_missionEventKinds.Contains(orderKind)) *out = StatusCode(kStatusCategory, kStatusOk);
     return result;
-}
-
-void ConstructMissionEventKinds() { new (&g_missionEventKinds) EventKindSet(); }  // 0x525710
-
-void RegisterMissionEventKindsAtExit() { atexit(DestroyMissionEventKinds); }  // 0x525720
-
-void Mission::InitStatics() {
-    ConstructMissionEventKinds();
-    RegisterMissionEventKindsAtExit();
 }
 
 // ---- simple accessors -------------------------------------------------------------------------------------
@@ -131,14 +120,5 @@ MissionIterator::MissionIterator(GameObjNotifier* parent)
     : ChildIterator(parent, &family::kMissions, 1) {}
 
 MissionIterator::~MissionIterator() { REB_KEEP_VPTR_STORE(); }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_missionEventKindsDestroyedGuard;  // 0x6b8ff0
-
-void DestroyMissionEventKinds() {
-    if (!(g_missionEventKindsDestroyedGuard & 0x1)) {
-        g_missionEventKindsDestroyedGuard |= 0x1;
-        g_missionEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_missionEventKinds{};
+int g_missionEventKindsBuilt{};

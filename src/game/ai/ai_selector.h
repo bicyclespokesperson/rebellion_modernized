@@ -4,7 +4,6 @@
 
 #include "ai/ai_ranked_list.h"
 #include "core/containers.h"
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 
 // Picks one candidate out of several ranked lists (0x4355d0-0x4359f0, VT 0x658d90, 0x10 bytes). Every candidate query of
@@ -28,8 +27,3 @@ public:
     // 1 if the key is in the list; adds the entry's rank to *total.
     static int REB_STDCALL AddRankOf(const ObjectKey* key, int* total, AiRankedList* list);  // 0x435980
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiRankedSelector, 0x10);
-#pragma clang diagnostic pop

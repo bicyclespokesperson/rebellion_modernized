@@ -16,9 +16,10 @@ Active work: [aggressive modernization roadmap](docs/design/modernization_aggres
 
 | Build | What it is | Doc |
 |---|---|---|
-| hybrid | proxy `SMACKW32.DLL` loaded by the original `REBEXE.EXE` under Wine; replaces reconstructed functions in place (the verification harness) | [ARCHITECTURE.md](docs/ARCHITECTURE.md) |
-| standalone | `rebellion.exe` built only from the sources (i686, Wine) | [phase2_plan.md](docs/phase2_plan.md) |
-| native | Linux / macOS executable on SDL3, x86-64 and arm64 | [native.md](docs/native.md), [native_linux.md](docs/native_linux.md) |
+| native | Linux / macOS executable on SDL3, x86-64 and arm64; the active CMake build | [native.md](docs/native.md), [native_linux.md](docs/native_linux.md) |
+
+The former hybrid and standalone Windows builds are retained in Git history and supporting scripts for reference, but are no longer
+buildable from the active CMake project.
 
 ## Setup
 
@@ -79,7 +80,7 @@ original. The game keeps one CPU core mostly idle (about 10% at the galaxy scree
 
 ## Development
 
-Reconstruction work uses the hybrid build and Ghidra:
+Reconstruction work uses Ghidra and the native build:
 
 ```sh
 mise install                                         # JDK 21 for Ghidra
@@ -88,13 +89,8 @@ tools/ghidra_headless.sh ghidra_proj Rebellion -import "orig_game_files/Star War
 uv venv -p 3.12 tools/.venv && uv pip install --python tools/.venv --no-index \
     --find-links tools/ghidra/Ghidra/Features/PyGhidra/pypkg/dist pyghidra
 tools/ghidra_server.sh start && tools/gq -f tools/py/apply_symbols.py && tools/gq --save
-mkdir -p work/game && cp -r "orig_game_files/Star Wars - Rebellion/." work/game/
-tools/build_hybrid.sh
-tools/run_game.sh tests/scenarios/smoke.txt     # screenshot in work/run/smoke/
+tools/build_macos.sh                         # macOS; Linux: tools/build_native.sh
+tools/run_native.sh tests/scenarios/smoke.txt
 ```
 
-Verification: `tools/integrate.sh` (merge + full regression), `tools/standalone_check.sh`, `tools/sim_goldens.sh check`,
-`tools/native_sim.sh`, `tools/long_compare.sh`.
-
-Note: building the Windows targets pulls the MSVC CRT and Windows SDK headers via `xwin`, which accepts Microsoft's
-license.
+Native run and simulation tools are documented in [native_linux.md](docs/native_linux.md).

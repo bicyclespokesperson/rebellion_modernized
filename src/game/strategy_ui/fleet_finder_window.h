@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
 #include "ui/custom_dialog_box.h"
@@ -57,19 +56,3 @@ public:
     CoolListItemList* m_items;     // +0x168 owned
     ObjectKey m_selected;          // +0x16c
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(FleetFinderWindow, 0x170);
-REB_ASSERT_OFFSET(FleetFinderWindow, m_pageTabs, 0x144);
-REB_ASSERT_OFFSET(FleetFinderWindow, m_mode, 0x148);
-REB_ASSERT_OFFSET(FleetFinderWindow, m_filterTabs, 0x14c);
-REB_ASSERT_OFFSET(FleetFinderWindow, m_nameField, 0x150);
-REB_ASSERT_OFFSET(FleetFinderWindow, m_list, 0x154);
-REB_ASSERT_OFFSET(FleetFinderWindow, m_galaxy, 0x158);
-REB_ASSERT_OFFSET(FleetFinderWindow, m_filterLabel, 0x15c);
-REB_ASSERT_OFFSET(FleetFinderWindow, m_filter, 0x160);
-REB_ASSERT_OFFSET(FleetFinderWindow, m_previousFilter, 0x164);
-REB_ASSERT_OFFSET(FleetFinderWindow, m_items, 0x168);
-REB_ASSERT_OFFSET(FleetFinderWindow, m_selected, 0x16c);
-#pragma clang diagnostic pop

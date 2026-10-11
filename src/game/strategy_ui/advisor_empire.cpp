@@ -17,12 +17,10 @@
 #include "strategy_ui/advisor_sides.h"
 #include "strategy_ui/game_ui_facade.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyEmpireChoices();
 
 extern IdAvlTree g_empireChoices;      // 0x6b2918 the list the display-mode switches show
 extern uint32_t g_empireChoicesGuard;  // 0x6b2924
-extern const char g_invalidCommandText[];  // 0x6a8838 "Processing Invalid Command"
+extern const char *g_invalidCommandText;  // 0x6a8838 "Processing Invalid Command"
 
 using namespace advisor_sides;
 
@@ -37,14 +35,8 @@ constexpr uint32_t kUiFlagIdleRequested = 0x2000;
 constexpr uint32_t kUiFlagSleep = 0x4000000;
 constexpr uint32_t kUiFlagWake = 0x8000000;
 
-IdAvlTree* ChoicesTree() {
-    if ((g_empireChoicesGuard & 1) == 0) {
-        g_empireChoicesGuard |= 1;
-        new (&g_empireChoices) IdAvlTree();
-        atexit(DestroyEmpireChoices);
-    }
-    return &g_empireChoices;
-}
+
+IdAvlTree* ChoicesTree() { return &g_empireChoices; }
 
 void AddChoice(IdAvlTree* tree, uint32_t id) {
     IdNode* node = NewOrNull<IdNode>(id);
@@ -571,7 +563,6 @@ int EmpireAdvisor::PickMoodCue() {
         return UiSessionRandom(3) + 1;
     }
 }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-void DestroyEmpireChoices() { g_empireChoices.~IdAvlTree(); }
+IdAvlTree g_empireChoices{};
+const char *g_invalidCommandText = nullptr;
+uint32_t g_empireChoicesGuard{};

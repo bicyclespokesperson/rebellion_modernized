@@ -7,8 +7,6 @@
 #include "data/sd_records.h"
 #include "gameobj/object_family.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyCharacterEventKinds();
 
 extern int g_characterEventKindsBuilt;       // 0x6b2938
 extern EventKindSet g_characterEventKinds;   // 0x6b2940
@@ -325,14 +323,6 @@ int Character::InitEventKinds(int unused, EventKindSet* out) {
     return result;
 }
 
-void ConstructCharacterEventKinds() { new (&g_characterEventKinds) EventKindSet(); }
-
-void RegisterCharacterEventKindsAtExit() { atexit(DestroyCharacterEventKinds); }
-
-void Character::InitStatics() {
-    ConstructCharacterEventKinds();
-    RegisterCharacterEventKindsAtExit();
-}
 
 CharacterIterator::CharacterIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &family::kCharacters, stateFilter) {}
@@ -341,14 +331,44 @@ CharacterIterator::CharacterIterator(GameObjNotifier* parent, uint32_t stateFilt
     : ChildIterator(parent, side, &family::kCharacters, stateFilter) {}
 
 CharacterIterator::~CharacterIterator() { REB_KEEP_VPTR_STORE(); }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_characterEventKindsDestroyedGuard;  // 0x6b2948
-
-void DestroyCharacterEventKinds() {
-    if (!(g_characterEventKindsDestroyedGuard & 0x1)) {
-        g_characterEventKindsDestroyedGuard |= 0x1;
-        g_characterEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_characterEventKinds{};
+int g_characterEventKindsBuilt{};
+int g_gnprtb1C00{};
+int g_gnprtb1C01{};
+int g_gnprtb1C02{};
+int g_gnprtbA00{};
+int g_gnprtbA01{};
+int g_gnprtbA02{};
+int g_gnprtbA03{};
+int g_gnprtbA04{};
+int g_gnprtbA05{};
+int g_gnprtbA06{};
+int g_gnprtbA07{};
+int g_gnprtbA08{};
+int g_gnprtbA09{};
+int g_gnprtbA0A{};
+int g_gnprtbA0B{};
+int g_gnprtbA0C{};
+int g_gnprtbA0D{};
+int g_gnprtbA0E{};
+int g_gnprtbA0F{};
+int g_gnprtbA10{};
+int g_gnprtbA11{};
+int g_gnprtbA12{};
+int g_gnprtbA13{};
+int g_gnprtbA14{};
+int g_gnprtbA15{};
+int g_gnprtbA16{};
+int g_gnprtbA17{};
+int g_gnprtbA18{};
+int g_gnprtbA19{};
+int g_gnprtbA20{};
+int g_gnprtbA21{};
+int g_gnprtbDefault{};
+int g_gnprtbDifficulty{};
+int g_sdprtbA00Side1{};
+int g_sdprtbA00Side2{};
+int g_sdprtbA01Side1{};
+int g_sdprtbA01Side2{};
+int g_sdprtbA02Side1{};
+int g_sdprtbA02Side2{};

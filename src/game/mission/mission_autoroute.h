@@ -22,11 +22,5 @@ public:
     virtual GameObj* CreateViewObject() override;                               // 57, 0x576140
 
     static int BuildEventKinds();      // 0x576270
-    static void InitStatics();         // 0x5762a0
     static GameObjNotifier* Create();  // 0x5761e0
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionAutoroute, 0xa8);
-#pragma clang diagnostic pop

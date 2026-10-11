@@ -4,8 +4,6 @@
 #include "events/event_post.h"
 #include "fleet/fleet.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyFleetEventKinds();
 
 extern EventKindSet g_fleetEventKinds;       // 0x6b2b10
 extern uint32_t g_fleetEventKindsReady;      // 0x6b2b18, set once the set has been filled
@@ -164,23 +162,4 @@ int Fleet::InitEventKinds() {
     }
     return result;
 }
-
-void FleetEventKindsConstruct() { new (&g_fleetEventKinds) EventKindSet(); }
-
-void FleetEventKindsRegisterAtExit() { atexit(DestroyFleetEventKinds); }
-
-void FleetStaticInit() {
-    FleetEventKindsConstruct();
-    FleetEventKindsRegisterAtExit();
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_fleetEventKindsDestroyedGuard;  // 0x6b2b1c
-
-void DestroyFleetEventKinds() {
-    if (!(g_fleetEventKindsDestroyedGuard & 0x1)) {
-        g_fleetEventKindsDestroyedGuard |= 0x1;
-        g_fleetEventKinds.~EventKindSet();
-    }
-}
+uint32_t g_fleetEventKindsReady{};

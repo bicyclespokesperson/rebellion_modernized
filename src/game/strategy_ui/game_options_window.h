@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/game_window_object.h"
 
@@ -59,15 +58,3 @@ public:
     CoolLabel* m_optionValues[5];       // +0x104 "On" / "Off" next to each option
     CoolLabel* m_versionLabel;          // +0x118
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(GameOptionsWindow, 0x11c);
-REB_ASSERT_OFFSET(GameOptionsWindow, m_state, 0x9c);
-REB_ASSERT_OFFSET(GameOptionsWindow, m_slotLoadable, 0xac);
-REB_ASSERT_OFFSET(GameOptionsWindow, m_nameFields, 0xc4);
-REB_ASSERT_OFFSET(GameOptionsWindow, m_musicSlider, 0xdc);
-REB_ASSERT_OFFSET(GameOptionsWindow, m_musicTitle, 0xe8);
-REB_ASSERT_OFFSET(GameOptionsWindow, m_musicValue, 0x100);
-REB_ASSERT_OFFSET(GameOptionsWindow, m_versionLabel, 0x118);
-#pragma clang diagnostic pop

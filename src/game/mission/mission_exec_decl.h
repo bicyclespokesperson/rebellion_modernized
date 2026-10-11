@@ -26,4 +26,3 @@
 #include "story/mission_mgr.h"
 
 // ---- the rules object (game root member +0xbc, type 0xf9, 0x554020-0x557410) ----
-

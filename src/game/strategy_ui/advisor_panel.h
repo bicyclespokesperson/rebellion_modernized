@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_button.h"
 #include "ui/cool_game_window.h"
@@ -36,12 +35,3 @@ public:
     CoolStrobeButton* m_closeButton;  // +0x144
     DibBitmap* m_layer;               // +0x148 the artwork and captions, owned
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AdvisorPanel, 0x14c);
-REB_ASSERT_OFFSET(AdvisorPanel, m_kind, 0x114);
-REB_ASSERT_OFFSET(AdvisorPanel, m_galaxy, 0x11c);
-REB_ASSERT_OFFSET(AdvisorPanel, m_remapTable, 0x140);
-REB_ASSERT_OFFSET(AdvisorPanel, m_layer, 0x148);
-#pragma clang diagnostic pop

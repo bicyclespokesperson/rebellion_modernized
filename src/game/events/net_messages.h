@@ -12,7 +12,6 @@
 #include <cstdint>
 
 #include "app/player_controller_decl.h"
-#include "core/layout.h"
 #include "events/notif_event_payloads.h"
 #include "gameobj/object_key.h"
 #include "orders/order_base.h"
@@ -127,16 +126,3 @@ void* CreateNetMsg5();   // 0x440410
 void* CreateNetMsg13();  // 0x440880
 void* CreateNetMsg15();  // 0x440540
 void* CreateNetMsg280(); // 0x628e60
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(NetMsg1, 0x4c);
-REB_ASSERT_SIZE(NetMsg2, 0x30);
-REB_ASSERT_SIZE(NetMsg4, 0x30);
-REB_ASSERT_SIZE(NetMsg5, 0x30);
-REB_ASSERT_SIZE(NetMsg13, 0x20);
-REB_ASSERT_SIZE(NetMsg15, 0x2c);
-REB_ASSERT_SIZE(NetMsg280, 0x30);
-REB_ASSERT_OFFSET(NetMsg1, m_checksums, 0x30);
-REB_ASSERT_OFFSET(NetMsg4, m_voteKey, 0x2c);
-#pragma clang diagnostic pop

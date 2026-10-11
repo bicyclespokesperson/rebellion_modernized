@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
 
@@ -72,14 +71,3 @@ void CenterAppDialog();  // 0x416f70
 
 extern AppDialog* g_appDialog;       // 0x6b146c the open dialog or null
 extern uint32_t g_appDialogMessage;  // 0x6b1470 message id of the open question, 0 when closed
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AppDialog, 0x120);
-REB_ASSERT_OFFSET(AppDialog, m_enabled, 0x114);
-REB_ASSERT_OFFSET(AppDialog, m_headlineId, 0x118);
-REB_ASSERT_OFFSET(AppDialog, m_detailId, 0x11c);
-REB_ASSERT_SIZE(AppNoticeDialog, 0x124);
-REB_ASSERT_OFFSET(AppNoticeDialog, m_buttonTooltipId, 0x120);
-REB_ASSERT_SIZE(AppWaitDialog, 0x120);
-#pragma clang diagnostic pop

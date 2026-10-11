@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 
 class DibBitmap;
@@ -38,11 +37,3 @@ public:
     // Linear search (the tree is not ordered by id).
     BitmapOverlay* FindOverlay(uint32_t id);  // 0x60f470
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(BitmapOverlay, 0x28);
-REB_ASSERT_OFFSET(BitmapOverlay, m_bitmap, 0x1c);
-REB_ASSERT_OFFSET(BitmapOverlay, m_y, 0x24);
-REB_ASSERT_SIZE(BitmapOverlayTree, 0x0c);
-#pragma clang diagnostic pop

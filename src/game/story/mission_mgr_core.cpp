@@ -11,8 +11,6 @@
 #include "story/mission_mgr.h"
 #include "story/story_common.h"
 
-void DestroyMissionMgrEventKinds();
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 extern "C" void* REB_CDECL operator_new(size_t size);
 
 extern int g_missionMgrEventKindsReady;      // 0x6b92e4
@@ -258,14 +256,6 @@ int MissionMgr::CheckOrder(int a, int orderKind, StatusCode* out) {
     return story::checkOrder(BuildEventKinds(), g_missionMgrEventKinds, orderKind, out);
 }
 
-void ConstructMissionMgrEventKinds() { new (&g_missionMgrEventKinds) EventKindSet(); }
-
-void RegisterMissionMgrEventKindsAtExit() { atexit(DestroyMissionMgrEventKinds); }
-
-void MissionMgr::InitStatics() {
-    ConstructMissionMgrEventKinds();
-    RegisterMissionMgrEventKindsAtExit();
-}
 
 // ---- the story flag properties ----------------------------------------------------------------------------------------
 
@@ -376,14 +366,5 @@ int MissionMgr::OnBountyHuntersActiveNotified(int on, NotifyContext* ctx) {
     if (result) LogFlag("(MissionMgrBountyHuntersActiveNotif)", "BountyHuntersActive", on, 0, ctx);
     return result;
 }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_missionMgrEventKindsDestroyedGuard;  // 0x6b92e0
-
-void DestroyMissionMgrEventKinds() {
-    if (!(g_missionMgrEventKindsDestroyedGuard & 0x1)) {
-        g_missionMgrEventKindsDestroyedGuard |= 0x1;
-        g_missionMgrEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_missionMgrEventKinds{};
+int g_missionMgrEventKindsReady{};

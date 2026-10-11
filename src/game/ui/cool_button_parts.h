@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_timer.h"
 
@@ -43,13 +42,3 @@ public:
     int m_count;          // +0x04
     BitmapFrame* m_head;  // +0x08
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ButtonRepeatTimer, 0x3c);
-REB_ASSERT_OFFSET(ButtonRepeatTimer, m_button, 0x38);
-REB_ASSERT_SIZE(BitmapFrame, 0x10);
-REB_ASSERT_OFFSET(BitmapFrame, m_next, 0x08);
-REB_ASSERT_SIZE(BitmapFrameList, 0x0c);
-REB_ASSERT_OFFSET(BitmapFrameList, m_head, 0x08);
-#pragma clang diagnostic pop

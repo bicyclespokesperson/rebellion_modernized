@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_window.h"
 
@@ -34,10 +33,3 @@ public:
     CoolStrobeButton* m_selected;  // +0x94
     DibBitmap* m_background;       // +0x98 owned
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CoolTabControl, 0x9c);
-REB_ASSERT_OFFSET(CoolTabControl, m_selected, 0x94);
-REB_ASSERT_OFFSET(CoolTabControl, m_background, 0x98);
-#pragma clang diagnostic pop

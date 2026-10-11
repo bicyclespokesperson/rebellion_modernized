@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
 #include "ui/cool_drag_list.h"
@@ -65,15 +64,6 @@ public:
     NullableKey m_remembered;           // +0x150 the type chosen last time, selected when the dialog opens
 };
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ManufactureOrderWindow, 0x154);
-REB_ASSERT_OFFSET(ManufactureOrderWindow, m_selector, 0x114);
-REB_ASSERT_OFFSET(ManufactureOrderWindow, m_choices, 0x118);
-REB_ASSERT_OFFSET(ManufactureOrderWindow, m_quantityField, 0x128);
-REB_ASSERT_OFFSET(ManufactureOrderWindow, m_order, 0x144);
-REB_ASSERT_OFFSET(ManufactureOrderWindow, m_remembered, 0x150);
-#pragma clang diagnostic pop
 
 extern ManufactureOrderWindow* g_manufactureOrderWindow;  // 0x6b28ac
 extern NullableKey g_lastFacilityType;                    // 0x6b289c

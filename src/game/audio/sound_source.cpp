@@ -250,3 +250,5 @@ int SoundSource::ReleaseUser(int) {
     --m_users;
     return 0;
 }
+
+int g_filebufOpenprot = 420;

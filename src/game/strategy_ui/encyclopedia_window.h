@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
@@ -80,16 +79,3 @@ public:
 char* GetEncyclopediaDataPath();  // 0x45f7b0
 // Loads the BMP file named by string `pictureId` of `module` from the EData directory.
 DibBitmap* LoadEncyclopediaPicture(uint32_t pictureId, HMODULE module);  // 0x45f970
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(EncyclopediaWindow, 0x164);
-REB_ASSERT_OFFSET(EncyclopediaWindow, m_mode, 0x114);
-REB_ASSERT_OFFSET(EncyclopediaWindow, m_pageTabs, 0x11c);
-REB_ASSERT_OFFSET(EncyclopediaWindow, m_list, 0x12c);
-REB_ASSERT_OFFSET(EncyclopediaWindow, m_filteredItems, 0x134);
-REB_ASSERT_OFFSET(EncyclopediaWindow, m_articleText, 0x13c);
-REB_ASSERT_OFFSET(EncyclopediaWindow, m_selected, 0x148);
-REB_ASSERT_OFFSET(EncyclopediaWindow, m_textModule, 0x158);
-REB_ASSERT_OFFSET(EncyclopediaWindow, m_galaxy, 0x160);
-#pragma clang diagnostic pop

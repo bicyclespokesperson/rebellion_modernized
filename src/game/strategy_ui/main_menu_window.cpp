@@ -18,7 +18,7 @@
 #include "ui/cool_timer.h"
 #include "ui/resource_dll.h"
 
-extern const char g_commonDllName[];  // 0x6a7c98 "common.dll"
+extern const char *g_commonDllName;  // 0x6a7c98 "common.dll"
 
 namespace {
 

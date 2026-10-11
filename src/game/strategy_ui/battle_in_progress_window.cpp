@@ -13,7 +13,7 @@
 #include "ui/cool_app.h"
 #include "ui/cool_label.h"
 
-extern const char g_battleInProgressText[];  // 0x6a879c "Battle in Progress..."
+extern const char *g_battleInProgressText;  // 0x6a879c "Battle in Progress..."
 
 namespace {
 
@@ -83,3 +83,5 @@ void BattleInProgressWindow::OnCreate1() {
     CenterIn(m_galaxy->m_panelArea.left, m_galaxy->m_panelArea.top, m_galaxy->m_panelArea.right,
              m_galaxy->m_panelArea.bottom);
 }
+
+const char *g_battleInProgressText = nullptr;

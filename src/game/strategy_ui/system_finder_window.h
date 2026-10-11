@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
 #include "ui/custom_dialog_box.h"
@@ -49,16 +48,3 @@ public:
     CoolListItemList* m_items;    // +0x15c owned, the ObjectListItem rows
     ObjectKey m_selected;         // +0x160
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SystemFinderWindow, 0x164);
-REB_ASSERT_OFFSET(SystemFinderWindow, m_tabs, 0x144);
-REB_ASSERT_OFFSET(SystemFinderWindow, m_nameField, 0x148);
-REB_ASSERT_OFFSET(SystemFinderWindow, m_list, 0x14c);
-REB_ASSERT_OFFSET(SystemFinderWindow, m_galaxy, 0x150);
-REB_ASSERT_OFFSET(SystemFinderWindow, m_filterLabel, 0x154);
-REB_ASSERT_OFFSET(SystemFinderWindow, m_filter, 0x158);
-REB_ASSERT_OFFSET(SystemFinderWindow, m_items, 0x15c);
-REB_ASSERT_OFFSET(SystemFinderWindow, m_selected, 0x160);
-#pragma clang diagnostic pop

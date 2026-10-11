@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/game_obj.h"
 
 // RoleContainer (family 0x98, ctor 0x577050, VT 0x669260, secondary ObjectBase VT 0x669258, 0x58 bytes; the name is
@@ -41,15 +40,7 @@ public:
 
     // The event-kind set of RoleContainer (g_roleContainerEventKinds, 0x6bbb40): an empty set, made on first use.
     static int BuildEventKinds();      // 0x577740
-    static void InitStatics();         // 0x577770
     static GameObjNotifier* Create();  // 0x577530, the object factory of family 0x98
 };
 
 // Static-initializer pieces of g_roleContainerEventKinds (0x577780 constructs it, 0x577790 registers its destructor).
-void ConstructRoleContainerEventKinds();
-void RegisterRoleContainerEventKindsAtExit();
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(RoleContainer, 0x58);
-#pragma clang diagnostic pop

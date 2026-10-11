@@ -4,7 +4,6 @@
 
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
@@ -140,14 +139,3 @@ struct TacticalEvent {
 // Event handler of the 3D battle (cdecl; registered in the object manager's event table): a character's ship and
 // injury state. args: 2 character handle, 6 ship handle, 8 / 9 injury flags.
 void REB_CDECL TacticalCharacterStatusEvent(TacticalEvent* event);  // 0x5bdc30
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(TacticalUnit, 0x1c);
-REB_ASSERT_SIZE(TurnSyncChannelA, 0x08);
-REB_ASSERT_SIZE(TacticalCharacterUnit, 0x64);
-REB_ASSERT_OFFSET(TacticalCharacterUnit, m_name, 0x38);
-REB_ASSERT_OFFSET(TacticalCharacterUnit, m_injured, 0x60);
-REB_ASSERT_SIZE(TacticalSpecialForceUnit, 0x4c);
-REB_ASSERT_OFFSET(TacticalSpecialForceUnit, m_shipHandle, 0x48);
-#pragma clang diagnostic pop

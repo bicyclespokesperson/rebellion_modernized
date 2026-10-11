@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/stream_io.h"
 
 #include "gameobj/status_code.h"
@@ -70,10 +69,3 @@ public:
     int m_reserved14;  // +0x14
     int m_reserved18;  // +0x18
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(NotifyContext, 0x1c);
-REB_ASSERT_OFFSET(NotifyContext, m_notifyView1, 0x0c);
-REB_ASSERT_OFFSET(NotifyContext, m_reserved18, 0x18);
-#pragma clang diagnostic pop

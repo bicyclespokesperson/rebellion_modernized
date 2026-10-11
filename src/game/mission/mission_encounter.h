@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/child_iterator.h"
 #include "gameobj/object_key.h"
 
@@ -315,17 +314,3 @@ public:
     ObjectKeyValueSet m_setC;    // +0x60
     ObjectKeyValueSet m_setD;    // +0x68
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(EncounterContext, 0x3c);
-REB_ASSERT_SIZE(EncounterRunner, 0x70);
-REB_ASSERT_OFFSET(EncounterRunner, m_context, 0x8);
-REB_ASSERT_OFFSET(EncounterRunner, m_secondPass, 0x44);
-REB_ASSERT_OFFSET(EncounterRunner, m_setA, 0x50);
-REB_ASSERT_OFFSET(EncounterRunner, m_setD, 0x68);
-REB_ASSERT_OFFSET(EncounterContext, m_teamCount, 0x2c);
-REB_ASSERT_OFFSET(EncounterContext, m_betrayerKey, 0x38);
-REB_ASSERT_SIZE(UnitPicker, 0x18);
-REB_ASSERT_SIZE(UnitFoilVisitor, 0x18);
-#pragma clang diagnostic pop

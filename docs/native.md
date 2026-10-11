@@ -1,6 +1,7 @@
 # Native builds: Linux and macOS, x86-64 and arm64 (phase 3, P3/P4)
 
-One configuration builds all four: `cmake/native.cmake` (`-DREB_NATIVE=ON`). Everything that differs between the operating systems is in
+The top-level `CMakeLists.txt` builds the native executable by default; `tools/build_native.sh` drives Linux builds and
+`tools/build_macos.sh` drives macOS builds. Both include `cmake/native.cmake`. Everything that differs between the operating systems is in
 `cmake/native_platform.cmake`, `src/port/native/platform{.h,_linux.cpp,_macos.cpp}` and `packaging/macos/`. The Linux x86-64 details (what is
 where, globals, sanitizer findings) are in [native_linux.md](native_linux.md); this file lists the deltas and the arm64/macOS status.
 
@@ -101,22 +102,16 @@ macOS (on a Mac with Xcode command-line tools, CMake and `uv`):
 REB_GAME_EXE="/path/to/Star Wars - Rebellion/REBEXE.EXE" tools/build_macos.sh
 ```
 
-The script downloads the pinned sources, creates `build/tools-venv` for the Python generators and Ninja, builds the objects,
-generates the data and initialization tables from your EXE, then links and signs `build/native/Rebellion.app`.
+The script downloads pinned dependencies, creates `build/tools-venv` for Python asset extraction and Ninja, extracts the
+startup asset pack from your EXE, configures the native CMake build, and links and signs `build/native/Rebellion.app`.
 `REB_GAME_EXE` defaults to `orig_game_files/Star Wars - Rebellion/REBEXE.EXE` in this checkout.
-The LLVM symbol tools come from Xcode (`xcrun`); the generators support both ELF and Mach-O symbol spelling.
 
 Set `install_dir` in a config file as described in the README. `tools/run_macos.command` is a double-clickable launcher;
 it defaults to `work/macos/config.ini`, or uses `$REBELLION_CONFIG` when set. The installation must be writable for saves.
 
-Verified on Apple silicon on Oct 10 2026: Apple clang compiled all game and port objects, both generators reported zero
-problems, the ARM64 app linked and passed signature verification, and the intro and main menu rendered on the desktop.
-The initial Mac build crashed when creating a game because libclang did not discover Xcode's C++ headers and silently
-reported one-byte class layouts. The generator now supplies the compiler's system header directories and rejects parsing
-errors. Regression tests cover both cases (`build/tools-venv/bin/python tools/test_native_data.py`); compiler assertions
-verified all 43 notice-handler storage sizes. A headless saved game loaded, advanced ten ticks and saved successfully.
-Four of six minwin unit-test suites passed. The resource path suite expects canonical letter case even on case-insensitive
-APFS, and the text suite's Wine font goldens differ from macOS system Arial. Full gameplay and audio fidelity remain unverified.
+**Historical host verification (Oct 10, 2026):** on Apple silicon, Apple clang compiled the game and port objects, the ARM64 app linked
+and passed signature verification, and the intro and main menu rendered. A headless saved game loaded, advanced ten ticks, and saved.
+This records the earlier build state; current validation should use the native CMake build and a host smoke run.
 
 Empire gameplay sector selection, the message droid and centered exit dialogs were manually verified after two repairs:
 the galaxy's show handler now clears mouse mode bit 8, matching the original executable, and DirectDraw restores a minimized
@@ -136,14 +131,15 @@ static cleanup. Destroying the registry earlier caused a shutdown crash in `Font
 the regular GDI tests also pass. The rebuilt Mac app was also launched on the desktop and exited through its normal
 quit confirmation with status 0 and no crash output.
 
-`tools/build_native.sh` remains the Linux container build.
+`tools/build_native.sh` remains the Linux container build. Windows and Linux host validation are deferred; current requested validation
+is macOS host-only.
 
 ## arm64
 
 * **Float to int**: `cvttsd2si` gives `0x80000000` for overflow and NaN; arm64 saturates. `reb_ftol` (`core/reb_x87.h`) has the x86 result on every
   target. The native x86-64 build run with `-fsanitize=float-cast-overflow` (`REB_NATIVE_SANITIZE=address,undefined,float-cast-overflow`) shows the
   places that rely on it; results in the phase 3 plan.
-* No x86 intrinsics or inline assembly in the native build: the only `__asm__` left are empty compiler barriers (`vptr_store.h`, `atexit_keep.h`,
+* No x86 intrinsics or inline assembly in the native build: the only `__asm__` left are empty compiler barriers (`vptr_store.h`,
   `galaxy_display.cpp`); the x87 code in `reb_x87.h` and `crt/floor.cpp` is `#if` i386.
 * `char` is signed (`-fsigned-char`), `-ffp-contract=off` so arm64 does not fuse multiply-adds, `-fwrapv`.
 * **Memory ordering**: arm64 is weakly ordered, x86 is not. The game's two helper threads (sound refill, movie) share a few plain flags with the
@@ -161,7 +157,7 @@ it to cross-compile on Linux is not permitted. macOS builds therefore happen on 
 
 ## Results (Oct 9 2026)
 
-* aarch64 Linux cross build: all 504 objects compile, generators run (0 problems), link. `tools/native_sim.sh -a arm64` under qemu-user: all three
+* Historical aarch64 Linux cross build: all 504 objects compiled and linked. `tools/native_sim.sh -a arm64` under qemu-user: all three
   sim goldens identical to the i686 goldens (17/17 files), same as x86-64 native.
 * Float to int: `tools/find_float_casts.py` lists 29 conversions (25 in game code, now `reb_ftol` / new `reb_ftou`; 4 in the port: mouse
   coordinates and two bounded volume curves in dsound/smack, left alone). The `float-cast-overflow` build reported 0 overflows on the three sims

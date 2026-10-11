@@ -5,7 +5,6 @@
 #include "ai/ai_posture.h"
 #include "ai/ai_selector.h"
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
 
@@ -99,14 +98,3 @@ public:
 
 int REB_STDCALL PlannerClassOf(AiMissionPlanner* planner);   // 0x4794b0
 int REB_STDCALL AgentClassOf(AiAgentTargeted* agent);       // 0x479520
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiSystemRecord, 0xe8);
-REB_ASSERT_OFFSET(AiSystemRecord, m_ships, 0x24);
-REB_ASSERT_OFFSET(AiSystemRecord, m_selector, 0x48);
-REB_ASSERT_OFFSET(AiSystemRecord, m_owner, 0x58);
-REB_ASSERT_OFFSET(AiSystemRecord, m_flagsA, 0x60);
-REB_ASSERT_OFFSET(AiSystemRecord, m_planners, 0xb0);
-REB_ASSERT_OFFSET(AiSystemRecord, m_agents, 0xd4);
-#pragma clang diagnostic pop

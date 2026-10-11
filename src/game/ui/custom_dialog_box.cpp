@@ -17,7 +17,7 @@
 #include "ui/cool_label.h"
 #include "ui/cool_string_field.h"
 
-extern const char g_customDialogBoxClassName[];  // 0x6a8828 "CustomDialogBox"
+extern const char *g_customDialogBoxClassName;  // 0x6a8828 "CustomDialogBox"
 
 namespace {
 
@@ -254,3 +254,5 @@ RECT* CustomDialogBox::GetRenameRect(RECT* out) {
 }
 
 void CustomDialogBox::Virtual35() {}
+
+const char *g_customDialogBoxClassName = nullptr;

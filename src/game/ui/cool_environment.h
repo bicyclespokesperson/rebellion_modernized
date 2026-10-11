@@ -24,7 +24,7 @@ void InstallStringLoader();  // 0x60aa20
 int LoadGameString(const ResourceStringId* id, int size, LPSTR buffer);  // 0x60aa30
 
 extern int g_stringLoaderInstalled;          // 0x6be5c0
-extern const char g_displayDriverName[];     // 0x6ac8c4 "DISPLAY"
-extern const char g_noMouseMessage[];        // 0x6ac8cc
-extern const char g_alreadyRunningMessage[]; // 0x6ac868
-extern const char g_displayTooSmallMessage[];  // 0x6ac824
+extern const char *g_displayDriverName;     // 0x6ac8c4 "DISPLAY"
+extern const char *g_noMouseMessage;        // 0x6ac8cc
+extern const char *g_alreadyRunningMessage; // 0x6ac868
+extern const char *g_displayTooSmallMessage;  // 0x6ac824

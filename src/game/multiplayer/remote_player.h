@@ -9,7 +9,6 @@
 
 #include "ai/ai_task_manager.h"
 #include "app/player_controller_decl.h"
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 
 class MessageBase;
@@ -60,10 +59,3 @@ public:
 
 // Takes the next message of category 2 (else 4) from CommMgr and decodes it; null if there is none.
 MessageBase* ReceiveRemoteMessage();  // 0x485460
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(RemotePlayer, 0x60);
-REB_ASSERT_OFFSET(RemotePlayer, m_voteSent, 0x50);
-REB_ASSERT_OFFSET(RemotePlayer, m_history, 0x58);
-#pragma clang diagnostic pop

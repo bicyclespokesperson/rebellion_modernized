@@ -343,3 +343,6 @@ void REB_CDECL TacticalNotifySyncQuiet(int handle) { IgnoreOneArgument(FUN_005bb
 int TacticalWorldCheck() { return GetObjectManager()->WorldCheck(); }
 
 void TacticalObjectManagerSlot7() { GetObjectManager()->Virtual07(); }
+
+float g_tacticalFacadeScaleBase = 3.0f;
+float g_tacticalFacadeScaleSquared{};

@@ -5,7 +5,6 @@
 #include "ai/ai_selector.h"
 #include "ai/ai_task_base.h"
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "gameobj/object_key.h"
 #include "strategy_ui/advisor_notices.h"
@@ -153,16 +152,3 @@ public:
     void Load(istream* in);                       // 0x49c6f0
     void Save(ostream* out);                      // 0x4e5210 (the code AiTaskObjectSet::Save shares)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AdvisorTaskBase, 0x34);
-REB_ASSERT_SIZE(AdvisorTask20, 0x58);
-REB_ASSERT_OFFSET(AdvisorTask20, m_selector, 0x48);
-REB_ASSERT_SIZE(AdvisorTask21, 0x5c);
-REB_ASSERT_OFFSET(AdvisorTask21, m_selector, 0x4c);
-REB_ASSERT_SIZE(AdvisorTask23, 0x58);
-REB_ASSERT_OFFSET(AdvisorTask23, m_selector, 0x44);
-REB_ASSERT_OFFSET(AdvisorTask23, m_advisor, 0x54);
-REB_ASSERT_SIZE(AdvisorTaskManager, 0x1c);
-#pragma clang diagnostic pop

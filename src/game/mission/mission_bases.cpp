@@ -13,13 +13,6 @@
 #include "gameobj/object_queries.h"
 #include "mission/mission_external.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyRuleBaseEventKinds();
-void DestroyObjectTargetBaseEventKinds();
-void DestroyTypeBaseEventKinds();
-void DestroySystemTargetBaseEventKinds();
-void DestroyCharacterTargetBaseEventKinds();
-void DestroyStoryBaseEventKinds();
 
 extern int g_ruleBaseEventKindsBuilt;               // 0x6bc018
 extern EventKindSet g_ruleBaseEventKinds;           // 0x6bc020
@@ -93,15 +86,6 @@ int MissionRuleBase::InitEventKinds(int unused, EventKindSet* out) {
 }
 
 int MissionRuleBase::IsFinalPhase() { return m_phase == 9; }
-
-void ConstructMissionRuleBaseEventKinds() { new (&g_ruleBaseEventKinds) EventKindSet(); }  // 0x593360
-
-void RegisterMissionRuleBaseEventKindsAtExit() { atexit(DestroyRuleBaseEventKinds); }  // 0x593370
-
-void MissionRuleBase::InitStatics() {
-    ConstructMissionRuleBaseEventKinds();
-    RegisterMissionRuleBaseEventKindsAtExit();
-}
 
 int MissionRuleBase::GetEventKinds(int unused, EventKindSet* out) {
     const int result = BuildEventKinds();
@@ -325,15 +309,6 @@ int MissionSystemTargetBase::InitEventKinds(int unused, EventKindSet* out) {
     return initFrom(BuildEventKinds, &g_systemTargetBaseEventKinds, out);
 }
 
-void ConstructMissionSystemTargetBaseEventKinds() { new (&g_systemTargetBaseEventKinds) EventKindSet(); }  // 0x586b30
-
-void RegisterMissionSystemTargetBaseEventKindsAtExit() { atexit(DestroySystemTargetBaseEventKinds); }  // 0x586b40
-
-void MissionSystemTargetBase::InitStatics() {
-    ConstructMissionSystemTargetBaseEventKinds();
-    RegisterMissionSystemTargetBaseEventKindsAtExit();
-}
-
 int MissionSystemTargetBase::GetEventKinds(int unused, EventKindSet* out) {
     const int result = BuildEventKinds();
     if (result) *out = g_systemTargetBaseEventKinds;
@@ -404,15 +379,6 @@ int MissionCharacterTargetBase::InitEventKinds(int unused, EventKindSet* out) {
     return initFrom(BuildEventKinds, &g_characterTargetBaseEventKinds, out);
 }
 
-void ConstructMissionCharacterTargetBaseEventKinds() { new (&g_characterTargetBaseEventKinds) EventKindSet(); }  // 0x5870c0
-
-void RegisterMissionCharacterTargetBaseEventKindsAtExit() { atexit(DestroyCharacterTargetBaseEventKinds); }  // 0x5870d0
-
-void MissionCharacterTargetBase::InitStatics() {
-    ConstructMissionCharacterTargetBaseEventKinds();
-    RegisterMissionCharacterTargetBaseEventKindsAtExit();
-}
-
 int MissionCharacterTargetBase::GetEventKinds(int unused, EventKindSet* out) {
     const int result = BuildEventKinds();
     if (result) *out = g_characterTargetBaseEventKinds;
@@ -480,15 +446,6 @@ int MissionObjectTargetBase::InitEventKinds(int unused, EventKindSet* out) {
     return initFrom(BuildEventKinds, &g_objectTargetBaseEventKinds, out);
 }
 
-void ConstructMissionObjectTargetBaseEventKinds() { new (&g_objectTargetBaseEventKinds) EventKindSet(); }  // 0x5936f0
-
-void RegisterMissionObjectTargetBaseEventKindsAtExit() { atexit(DestroyObjectTargetBaseEventKinds); }  // 0x593700
-
-void MissionObjectTargetBase::InitStatics() {
-    ConstructMissionObjectTargetBaseEventKinds();
-    RegisterMissionObjectTargetBaseEventKindsAtExit();
-}
-
 int MissionObjectTargetBase::GetEventKinds(int unused, EventKindSet* out) {
     const int result = BuildEventKinds();
     if (result) *out = g_objectTargetBaseEventKinds;
@@ -537,15 +494,6 @@ int MissionStoryBase::InitEventKinds(int unused, EventKindSet* out) {
     return initFrom(BuildEventKinds, &g_storyBaseEventKinds, out);
 }
 
-void ConstructMissionStoryBaseEventKinds() { new (&g_storyBaseEventKinds) EventKindSet(); }  // 0x5944e0
-
-void RegisterMissionStoryBaseEventKindsAtExit() { atexit(DestroyStoryBaseEventKinds); }  // 0x5944f0
-
-void MissionStoryBase::InitStatics() {
-    ConstructMissionStoryBaseEventKinds();
-    RegisterMissionStoryBaseEventKindsAtExit();
-}
-
 int MissionStoryBase::GetEventKinds(int unused, EventKindSet* out) {
     const int result = BuildEventKinds();
     if (result) *out = g_storyBaseEventKinds;
@@ -587,15 +535,6 @@ int MissionTypeBase::BuildEventKinds() {
 
 int MissionTypeBase::InitEventKinds(int unused, EventKindSet* out) {
     return initFrom(BuildEventKinds, &g_typeBaseEventKinds, out);
-}
-
-void ConstructMissionTypeBaseEventKinds() { new (&g_typeBaseEventKinds) EventKindSet(); }  // 0x593b50
-
-void RegisterMissionTypeBaseEventKindsAtExit() { atexit(DestroyTypeBaseEventKinds); }  // 0x593b60
-
-void MissionTypeBase::InitStatics() {
-    ConstructMissionTypeBaseEventKinds();
-    RegisterMissionTypeBaseEventKindsAtExit();
 }
 
 int MissionTypeBase::GetEventKinds(int unused, EventKindSet* out) {
@@ -651,59 +590,15 @@ int MissionTypeBase::ApplyAllBody(NotifyContext* ctx) {
 }
 
 int MissionTypeBase::ChecksumBody(Crc32* crc) { return ChecksumImpl(crc); }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_systemTargetBaseEventKindsDestroyedGuard;  // 0x6bbe3c
-
-void DestroySystemTargetBaseEventKinds() {
-    if (!(g_systemTargetBaseEventKindsDestroyedGuard & 0x1)) {
-        g_systemTargetBaseEventKindsDestroyedGuard |= 0x1;
-        g_systemTargetBaseEventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_characterTargetBaseEventKindsDestroyedGuard;  // 0x6bbe4c
-
-void DestroyCharacterTargetBaseEventKinds() {
-    if (!(g_characterTargetBaseEventKindsDestroyedGuard & 0x1)) {
-        g_characterTargetBaseEventKindsDestroyedGuard |= 0x1;
-        g_characterTargetBaseEventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_ruleBaseEventKindsDestroyedGuard;  // 0x6bc028
-
-void DestroyRuleBaseEventKinds() {
-    if (!(g_ruleBaseEventKindsDestroyedGuard & 0x1)) {
-        g_ruleBaseEventKindsDestroyedGuard |= 0x1;
-        g_ruleBaseEventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_objectTargetBaseEventKindsDestroyedGuard;  // 0x6bc03c
-
-void DestroyObjectTargetBaseEventKinds() {
-    if (!(g_objectTargetBaseEventKindsDestroyedGuard & 0x1)) {
-        g_objectTargetBaseEventKindsDestroyedGuard |= 0x1;
-        g_objectTargetBaseEventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_typeBaseEventKindsDestroyedGuard;  // 0x6bc050
-
-void DestroyTypeBaseEventKinds() {
-    if (!(g_typeBaseEventKindsDestroyedGuard & 0x1)) {
-        g_typeBaseEventKindsDestroyedGuard |= 0x1;
-        g_typeBaseEventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_storyBaseEventKindsDestroyedGuard;  // 0x6bc064
-
-void DestroyStoryBaseEventKinds() {
-    if (!(g_storyBaseEventKindsDestroyedGuard & 0x1)) {
-        g_storyBaseEventKindsDestroyedGuard |= 0x1;
-        g_storyBaseEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_characterTargetBaseEventKinds{};
+EventKindSet g_objectTargetBaseEventKinds{};
+EventKindSet g_ruleBaseEventKinds{};
+EventKindSet g_storyBaseEventKinds{};
+EventKindSet g_systemTargetBaseEventKinds{};
+EventKindSet g_typeBaseEventKinds{};
+int g_characterTargetBaseEventKindsBuilt{};
+int g_objectTargetBaseEventKindsBuilt{};
+int g_ruleBaseEventKindsBuilt{};
+int g_storyBaseEventKindsBuilt{};
+int g_systemTargetBaseEventKindsBuilt{};
+int g_typeBaseEventKindsBuilt{};

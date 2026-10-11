@@ -6,7 +6,6 @@
 // The GNPRTB loaders of the mission rules (0x55bfd0, 0x55e290, 0x55e340, 0x55e5b0, 0x55e840, 0x55ea00).
 
 
-
 namespace {
 
 struct GnprtbBinding {

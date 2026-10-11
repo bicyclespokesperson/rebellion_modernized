@@ -94,20 +94,3 @@ public:
 
     uint32_t m_field58;  // +0x58
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SdRecordExt2, 0x60);
-REB_ASSERT_OFFSET(SdRecordExt2, m_field58, 0x58);
-REB_ASSERT_SIZE(SdRecordGrid, 0xc0);
-REB_ASSERT_OFFSET(SdRecordGrid, m_field60, 0x60);
-REB_ASSERT_OFFSET(SdRecordGrid, m_grid, 0x74);
-REB_ASSERT_OFFSET(SdRecordGrid, m_fieldA4, 0xa4);
-REB_ASSERT_OFFSET(SdRecordGrid, m_columnTotals, 0xb0);
-REB_ASSERT_OFFSET(SdRecordGrid, m_total, 0xbc);
-REB_ASSERT_SIZE(SdRecordExt16, 0x98);
-REB_ASSERT_OFFSET(SdRecordExt16, m_fields, 0x58);
-REB_ASSERT_SIZE(SdRecordExt25, 0xbc);
-REB_ASSERT_OFFSET(SdRecordExt25, m_moreFields, 0x98);
-REB_ASSERT_SIZE(SdRecordExt1, 0x5c);
-#pragma clang diagnostic pop

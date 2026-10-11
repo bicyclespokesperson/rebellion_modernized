@@ -9,7 +9,7 @@
 #include "orders/move_orders.h"
 #include "ui/message_template.h"
 
-extern const char g_transitDaysSeparator[];  // 0x6a8798 ":  "
+extern const char *g_transitDaysSeparator;  // 0x6a8798 ":  "
 
 namespace {
 
@@ -133,3 +133,10 @@ void Notice8::AppendOrderLines() {
     strstream_dtor(stream.Ios());
     ios_dtor(stream.Ios());
 }
+
+const char *g_noText = nullptr;
+const char *g_spaceString = nullptr;
+const char *g_statusSeparator = nullptr;
+const char *g_transitDaysSeparator = nullptr;
+const char *g_yesText = nullptr;
+const int16_t g_stringGroup65d424 = 2;

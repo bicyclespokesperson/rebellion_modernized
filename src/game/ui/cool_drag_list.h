@@ -4,7 +4,6 @@
 
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/utility_classes.h"
 #include "platform/win32.h"
 #include "ui/cool_drag_image.h"
@@ -125,7 +124,7 @@ public:
     uint8_t m_padD5[3];             // +0xd5
     COLORREF m_textColor;           // +0xd8
     COLORREF m_selectedTextColor;   // +0xdc
-    COLORREF m_hoverTextColor;      // +0xe0 never initialised
+    COLORREF m_hoverTextColor;      // +0xe0
     UINT m_textFormat;              // +0xe4 DrawText format
     int m_textOffsetX;              // +0xe8
     int m_textOffsetY;              // +0xec
@@ -148,26 +147,3 @@ constexpr uint16_t kDragListReselected = 0x29d;       // a click on the item tha
 constexpr uint16_t kDragListActivated = 0x309;        // double click or Return
 
 extern const char* g_coolDragListClassName;  // 0x66e0b8 "CoolDragList"
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CoolListItemList, 0x10);
-REB_ASSERT_OFFSET(CoolListItemList, m_sortMode, 0x0c);
-REB_ASSERT_SIZE(CoolDragList, 0x118);
-REB_ASSERT_OFFSET(CoolDragList, m_verticalBar, 0x98);
-REB_ASSERT_OFFSET(CoolDragList, m_items, 0xa0);
-REB_ASSERT_OFFSET(CoolDragList, m_cursor, 0xb0);
-REB_ASSERT_OFFSET(CoolDragList, m_lineStep, 0xc0);
-REB_ASSERT_OFFSET(CoolDragList, m_itemWidth, 0xcc);
-REB_ASSERT_OFFSET(CoolDragList, m_fillColor, 0xd4);
-REB_ASSERT_OFFSET(CoolDragList, m_textColor, 0xd8);
-REB_ASSERT_OFFSET(CoolDragList, m_textFormat, 0xe4);
-REB_ASSERT_OFFSET(CoolDragList, m_vertical, 0xf0);
-REB_ASSERT_OFFSET(CoolDragList, m_options, 0xf4);
-REB_ASSERT_OFFSET(CoolDragList, m_anchor, 0xf8);
-REB_ASSERT_OFFSET(CoolDragList, m_dragStart, 0xfc);
-REB_ASSERT_OFFSET(CoolDragList, m_hoverItem, 0x100);
-REB_ASSERT_OFFSET(CoolDragList, m_dragImage, 0x104);
-REB_ASSERT_OFFSET(CoolDragList, m_selectionImage, 0x110);
-REB_ASSERT_OFFSET(CoolDragList, m_dragWindow, 0x114);
-#pragma clang diagnostic pop

@@ -294,3 +294,5 @@ int Character::OnEscapeRequestChanged(int newValue, NotifyContext* ctx) { return
 int Character::OnEscapeAttemptChanged(int newValue, NotifyContext* ctx) {
     return PostSourceEventFlag(0x317, this, newValue, ctx);
 }
+
+RandomGenerator * g_gameRandom{};

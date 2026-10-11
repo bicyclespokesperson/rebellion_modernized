@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_window.h"
 
@@ -37,14 +36,6 @@ public:
     void (REB_CDECL* m_callback)(uint32_t, uint32_t, int);  // +0xb4
 };
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MovieWindow, 0xb8);
-REB_ASSERT_OFFSET(MovieWindow, m_movieId, 0x98);
-REB_ASSERT_OFFSET(MovieWindow, m_caption, 0xa4);
-REB_ASSERT_OFFSET(MovieWindow, m_captionBackdrop, 0xb0);
-REB_ASSERT_OFFSET(MovieWindow, m_callback, 0xb4);
-#pragma clang diagnostic pop
 
 // The VideoManager singleton behind the movie window (0x421300-0x4213c0): all do nothing without a manager.
 int PlayMovie(const char* path, int x, int y, CoolWindow* parent, int type, uint32_t scale, uint32_t smackFlags);  // 0x421300

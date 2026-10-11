@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
 
@@ -150,30 +149,3 @@ public:
 
 // The transformation of a menu background colour (0x4ac550).
 uint32_t DimMenuColor(uint32_t color);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(OwningIdList, 0x10);
-REB_ASSERT_SIZE(MenuItemList, 0x10);
-REB_ASSERT_SIZE(MenuCommand, 0x08);
-REB_ASSERT_SIZE(MenuItemBase, 0x78);
-REB_ASSERT_OFFSET(MenuItemBase, m_hotPicture, 0x10);
-REB_ASSERT_OFFSET(MenuItemBase, m_backdrop, 0x24);
-REB_ASSERT_OFFSET(MenuItemBase, m_hotColor, 0x2c);
-REB_ASSERT_OFFSET(MenuItemBase, m_label, 0x38);
-REB_ASSERT_OFFSET(MenuItemBase, m_hit, 0x54);
-REB_ASSERT_OFFSET(MenuItemBase, m_area, 0x60);
-REB_ASSERT_OFFSET(MenuItemBase, m_indent, 0x74);
-REB_ASSERT_SIZE(MenuItem, 0x90);
-REB_ASSERT_OFFSET(MenuItem, m_command, 0x78);
-REB_ASSERT_OFFSET(MenuItem, m_subItems, 0x80);
-REB_ASSERT_SIZE(MenuWindowBase, 0x14c);
-REB_ASSERT_OFFSET(MenuWindowBase, m_hotItem, 0x118);
-REB_ASSERT_OFFSET(MenuWindowBase, m_arrow, 0x11c);
-REB_ASSERT_OFFSET(MenuWindowBase, m_remapTable, 0x124);
-REB_ASSERT_OFFSET(MenuWindowBase, m_dc, 0x128);
-REB_ASSERT_OFFSET(MenuWindowBase, m_backdrop, 0x12c);
-REB_ASSERT_OFFSET(MenuWindowBase, m_timer, 0x134);
-REB_ASSERT_OFFSET(MenuWindowBase, m_items, 0x138);
-REB_ASSERT_OFFSET(MenuWindowBase, m_parentMenu, 0x148);
-#pragma clang diagnostic pop

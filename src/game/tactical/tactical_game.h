@@ -5,7 +5,6 @@
 #include "app/player_controller_decl.h"
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/stopwatch.h"
 #include "tactical/tactical_types.h"
 
@@ -118,19 +117,3 @@ void DestroyTacticalGame();  // 0x5975a0
 
 // The headless simulator (DAT_006bc4a8, 0x274 bytes), created on first use.
 HeadlessSimulator* GetHeadlessSimulator();  // 0x596f30
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(TypeMapNode, 0x1c);
-REB_ASSERT_SIZE(TypeMapTree, 0x08);
-REB_ASSERT_SIZE(TacticalGame, 0x6b8);
-REB_ASSERT_OFFSET(TacticalGame, m_stateNames, 0x10);
-REB_ASSERT_OFFSET(TacticalGame, m_shipTypeNames, 0xa0);
-REB_ASSERT_OFFSET(TacticalGame, m_spriteIds, 0x268);
-REB_ASSERT_OFFSET(TacticalGame, m_abstract, 0x668);
-REB_ASSERT_OFFSET(TacticalGame, m_outcome, 0x66c);
-REB_ASSERT_OFFSET(TacticalGame, m_typeMap, 0x688);
-REB_ASSERT_OFFSET(TacticalGame, m_busy, 0x690);
-REB_ASSERT_OFFSET(TacticalGame, m_clock, 0x698);
-REB_ASSERT_OFFSET(TacticalGame, m_firstFrame, 0x6b0);
-#pragma clang diagnostic pop

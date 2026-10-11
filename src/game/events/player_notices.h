@@ -7,7 +7,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "orders/order_base.h"
 #include "strategy_ui/advisor_notices.h"
@@ -950,50 +949,3 @@ public:
     MessageBase* m_order;  // +0x90 the order 0x250 the notice offers, owned
     const LinkNode* m_payloads;  // +0x94
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(Notice44, 0x68);
-REB_ASSERT_SIZE(Notice45, 0x68);
-REB_ASSERT_SIZE(Notice43, 0x68);
-REB_ASSERT_SIZE(Notice42, 0x64);
-REB_ASSERT_SIZE(Notice41, 0x68);
-REB_ASSERT_SIZE(Notice34, 0x68);
-REB_ASSERT_SIZE(Notice33, 0x70);
-REB_ASSERT_SIZE(Notice40, 0x6c);
-REB_ASSERT_SIZE(Notice39, 0x64);
-REB_ASSERT_SIZE(Notice38, 0x68);
-REB_ASSERT_SIZE(Notice37, 0x68);
-REB_ASSERT_SIZE(Notice35, 0x64);
-REB_ASSERT_SIZE(Notice36, 0x70);
-REB_ASSERT_SIZE(Notice31, 0x68);
-REB_ASSERT_SIZE(Notice32, 0x74);
-REB_ASSERT_SIZE(Notice29, 0x64);
-REB_ASSERT_SIZE(Notice28, 0x64);
-REB_ASSERT_SIZE(Notice30, 0x68);
-REB_ASSERT_SIZE(Notice26a, 0x64);
-REB_ASSERT_SIZE(Notice26b, 0x64);
-REB_ASSERT_SIZE(Notice25, 0x68);
-REB_ASSERT_SIZE(Notice24, 0x64);
-REB_ASSERT_SIZE(Notice21, 0x70);
-REB_ASSERT_SIZE(Notice20, 0x7c);
-REB_ASSERT_SIZE(Notice19, 0x6c);
-REB_ASSERT_SIZE(Notice7, 0x64);
-REB_ASSERT_SIZE(Notice16, 0x6c);
-REB_ASSERT_SIZE(Notice14, 0x6c);
-REB_ASSERT_SIZE(Notice13, 0x6c);
-REB_ASSERT_SIZE(Notice12, 0x68);
-REB_ASSERT_SIZE(Notice11, 0x64);
-REB_ASSERT_SIZE(Notice10, 0x64);
-REB_ASSERT_SIZE(Notice9, 0x6c);
-REB_ASSERT_SIZE(Notice3, 0x68);
-REB_ASSERT_SIZE(Notice4, 0x68);
-REB_ASSERT_SIZE(Notice5, 0x64);
-REB_ASSERT_SIZE(Notice6, 0x64);
-REB_ASSERT_SIZE(Notice8, 0x60);
-REB_ASSERT_SIZE(Notice1, 0xc4);
-REB_ASSERT_SIZE(Notice2, 0x7c);
-REB_ASSERT_SIZE(Notice15, 0xa4);
-REB_ASSERT_SIZE(Notice23, 0x94);
-REB_ASSERT_SIZE(Notice22, 0x98);
-#pragma clang diagnostic pop

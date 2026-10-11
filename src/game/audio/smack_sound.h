@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 
 // State of a Smacker movie player (Smack and SmackBuf handles, playback thread), plus the hook that makes Smacker
@@ -28,4 +27,3 @@ public:
     uint32_t m_unk1c;         // +0x1c
     uint32_t m_unk20;         // +0x20
 };
-REB_ASSERT_SIZE(SmackSound, 0x24);

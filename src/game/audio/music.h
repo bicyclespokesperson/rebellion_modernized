@@ -32,11 +32,5 @@ void SetMusicSwitch(int enabled);               // 0x4176e0
 void REB_CDECL MusicEventCallback(uint32_t message, uint32_t first, uint32_t second);  // 0x417780
 
 void InitMusicFlags();         // 0x4177f0
-void ConstructMusicFlags();    // 0x417800
-void RegisterMusicFlagsAtExit();  // 0x417810
 void InitMusicRequest();       // 0x417840
-void ConstructMusicRequest();  // 0x417850
-void RegisterMusicRequestAtExit();  // 0x417870
 void InitMusicDirectory();     // 0x4178a0
-void ConstructMusicDirectory();  // 0x4178b0
-void RegisterMusicDirectoryAtExit();  // 0x4178c0

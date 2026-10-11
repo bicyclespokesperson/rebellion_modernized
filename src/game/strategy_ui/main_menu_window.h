@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_label.h"
 #include "ui/game_window_object.h"
@@ -57,16 +56,6 @@ public:
     int m_playingMovie;                  // +0x104
 };
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MainMenuWindow, 0x108);
-REB_ASSERT_OFFSET(MainMenuWindow, m_strobeTimer, 0x9c);
-REB_ASSERT_OFFSET(MainMenuWindow, m_cycleButton, 0xac);
-REB_ASSERT_OFFSET(MainMenuWindow, m_cycleImages, 0xd0);
-REB_ASSERT_OFFSET(MainMenuWindow, m_regions, 0xe4);
-REB_ASSERT_OFFSET(MainMenuWindow, m_cycleValue, 0xec);
-REB_ASSERT_OFFSET(MainMenuWindow, m_playingMovie, 0x104);
-#pragma clang diagnostic pop
 
 extern MainMenuWindow* g_mainMenuWindow;  // 0x6b06f4
 

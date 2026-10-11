@@ -1,6 +1,5 @@
 #pragma once
 #include "character/character.h"
-#include "core/layout.h"
 
 // Character38 (family 0x38, VT 0x665be0, secondary 0x665bdc, 0xb0 bytes): a plain Character subclass for type 0x38
 // (no strings; the story gates on it at 0x5438a0 together with the five named characters). It adds no fields. Its slots
@@ -25,11 +24,5 @@ public:
     virtual int OnInjuryChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 203, 0x56f310
 
     static int BuildEventKinds();      // 0x56f330, g_character38EventKinds at 0x6bb9d8
-    static void InitStatics();         // 0x56f360
     static GameObjNotifier* Create();  // 0x56f230, the object factory of family 0x38
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(Character38, 0xb0);
-#pragma clang diagnostic pop

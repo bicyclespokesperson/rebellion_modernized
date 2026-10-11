@@ -76,4 +76,4 @@ extern const char* g_autosaveName;  // 0x6a81d8: pointer to the "Autosave" text
 
 // ---- Added by the screens slice (app_screens.cpp) --------------------------------------------------------------
 int DestroyAppDialog();   // 0x416d90 (app_dialogs.h declares it too)
-extern DirectDrawHost g_directDrawHost;   // 0x6b1460 the DirectDrawHost passed to the tactical window
+extern DirectDrawHost* g_directDrawHost;  // Native host object, owned by GameInitialization.

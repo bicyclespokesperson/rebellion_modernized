@@ -12,15 +12,6 @@
 #include "ui/sprite_animator.h"
 #include "ui/sprite_stage.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyAnimationStep04();
-void DestroyAnimationStep05();
-void DestroyAnimationStep14();
-void DestroyAnimationStep15();
-void DestroyAnimationStep11();
-void DestroyAnimationStep12();
-void DestroyAnimationStep13();
-
 extern AnimationStep04 g_animationStep04;  // 0x6b0628
 extern int g_animationStep04Registered;    // 0x6b0620
 extern AnimationStep05 g_animationStep05;  // 0x6b0698
@@ -42,7 +33,6 @@ namespace {
 constexpr int kFirstKind = 1;
 constexpr int kLastKind = 0x20;
 constexpr uint32_t kBitmapResource = 2;
-constexpr int kSoundRequestBytes = 0x18;
 constexpr int kKindDelta04 = 4;
 constexpr int kKindTimed05 = 5;
 constexpr int kKindPositioned11 = 0x11;
@@ -106,6 +96,7 @@ void deleteFrameLists(IdAvlTreeElement* lists) {
     ::operator delete(block);
 }
 
+
 DibBitmap* loadBitmap(HMODULE module, uint32_t resourceId) { return NewOrNull<DibBitmap>(module, resourceId, kBitmapResource); }
 
 DibBitmap* copyOf(DibBitmap* source) {
@@ -132,7 +123,7 @@ void AnimationStep::Abort() {}
 
 int AnimationStep::PlayEffectSound(const uint16_t* pair, int loop) {
     if (m_effectSound.m_handle) SoundManager::Stop(&m_effectSound, 1);
-    std::memset(&m_effectSound, 0, kSoundRequestBytes);
+    m_effectSound = SoundRequest(0, 0, 0, 0, 0, 0);
     m_effectSound.m_kind = kSoundKindWave;
     m_effectSound.m_soundId = pair[0];
     m_effectSound.m_loop = loop & 1;
@@ -143,7 +134,7 @@ int AnimationStep::PlayEffectSound(const uint16_t* pair, int loop) {
 
 int AnimationStep::PlayMainSound(const uint16_t* pair, int loop) {
     if (m_sound.m_handle) SoundManager::Stop(&m_sound, 1);
-    std::memset(&m_sound, 0, kSoundRequestBytes);
+    m_sound = SoundRequest(0, 0, 0, 0, 0, 0);
     m_sound.m_kind = kSoundKindWave;
     m_sound.m_soundId = pair[0];
     m_sound.m_loop = loop & 1;
@@ -618,69 +609,28 @@ AnimationStep* AnimationStep13::Create() { return NewOrNull<AnimationStep13>(); 
 
 int AnimationStep13::GetKind() { return kKindDelta13; }
 
-// ---- static initializers (the instance of every kind, and its registration) ----------------------------------------------
-
-void InitAnimationStep04() {
-    new (&g_animationStep04) AnimationStep04();
-    atexit(DestroyAnimationStep04);
-}
-
+// The instances below are typed globals. Prototype registration remains an
+// explicit startup phase; their construction and destruction use C++ lifetime.
 void RegisterAnimationStep04() { g_animationStep04Registered = RegisterAnimationStep(&g_animationStep04); }
-
-void InitAnimationStep05() {
-    new (&g_animationStep05) AnimationStep05();
-    atexit(DestroyAnimationStep05);
-}
-
 void RegisterAnimationStep05() { g_animationStep05Registered = RegisterAnimationStep(&g_animationStep05); }
-
-void InitAnimationStep14() {
-    new (&g_animationStep14) AnimationStep14();
-    atexit(DestroyAnimationStep14);
-}
-
 void RegisterAnimationStep14() { g_animationStep14Registered = RegisterAnimationStep(&g_animationStep14); }
-
-void InitAnimationStep15() {
-    new (&g_animationStep15) AnimationStep15();
-    atexit(DestroyAnimationStep15);
-}
-
 void RegisterAnimationStep15() { g_animationStep15Registered = RegisterAnimationStep(&g_animationStep15); }
-
-void InitAnimationStep11() {
-    new (&g_animationStep11) AnimationStep11();
-    atexit(DestroyAnimationStep11);
-}
-
 void RegisterAnimationStep11() { g_animationStep11Registered = RegisterAnimationStep(&g_animationStep11); }
-
-void InitAnimationStep12() {
-    new (&g_animationStep12) AnimationStep12();
-    atexit(DestroyAnimationStep12);
-}
-
 void RegisterAnimationStep12() { g_animationStep12Registered = RegisterAnimationStep(&g_animationStep12); }
-
-void InitAnimationStep13() {
-    new (&g_animationStep13) AnimationStep13();
-    atexit(DestroyAnimationStep13);
-}
-
 void RegisterAnimationStep13() { g_animationStep13Registered = RegisterAnimationStep(&g_animationStep13); }
 
-// ---- destructors registered with atexit ----------------------------------------------------
-
-void DestroyAnimationStep04() { g_animationStep04.~AnimationStep04(); }
-
-void DestroyAnimationStep05() { g_animationStep05.~AnimationStep05(); }
-
-void DestroyAnimationStep14() { g_animationStep14.~AnimationStep14(); }
-
-void DestroyAnimationStep15() { g_animationStep15.~AnimationStep15(); }
-
-void DestroyAnimationStep11() { g_animationStep11.~AnimationStep11(); }
-
-void DestroyAnimationStep12() { g_animationStep12.~AnimationStep12(); }
-
-void DestroyAnimationStep13() { g_animationStep13.~AnimationStep13(); }
+AnimationStep04 g_animationStep04{};
+AnimationStep05 g_animationStep05{};
+AnimationStep11 g_animationStep11{};
+AnimationStep12 g_animationStep12{};
+AnimationStep13 g_animationStep13{};
+AnimationStep14 g_animationStep14{};
+AnimationStep15 g_animationStep15{};
+int g_animationStep04Registered{};
+int g_animationStep05Registered{};
+int g_animationStep11Registered{};
+int g_animationStep12Registered{};
+int g_animationStep13Registered{};
+int g_animationStep14Registered{};
+int g_animationStep15Registered{};
+int g_animationStepSignal{};

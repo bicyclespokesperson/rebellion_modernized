@@ -8,7 +8,6 @@
 #include "mission/mission_external.h"
 #include "mission/mission_rules.h"
 
-void DestroyMissionJediTrainingEventKinds();
 
 extern int g_missionJediTrainingEventKindsReady;      // 0x6bba14
 extern EventKindSet g_missionJediTrainingEventKinds;  // 0x6bba18
@@ -36,7 +35,7 @@ struct TrainingOrderCheck {
 // BUG(original): Read and Write handle the Teacher key but the checksum skips it (slot 7 is the shared forwarder to the
 // rule-base sum, unlike Espionage's); keep it, multiplayer sync and save checksums depend on it.
 int MissionJediTraining::Checksum(Crc32* crc) {
-    return reinterpret_cast<MissionTypeBase*>(this)->MissionTypeBase::ChecksumBody(crc);
+    return this->Mission::ChecksumImpl(crc);
 }
 
 namespace {
@@ -355,27 +354,10 @@ int MissionJediTraining::BuildEventKinds() {
     return 1;
 }
 
-void ConstructMissionJediTrainingEventKinds() { new (&g_missionJediTrainingEventKinds) EventKindSet(); }
-
-void RegisterMissionJediTrainingEventKindsAtExit() { atexit(DestroyMissionJediTrainingEventKinds); }
-
-void MissionJediTraining::InitStatics() {
-    ConstructMissionJediTrainingEventKinds();
-    RegisterMissionJediTrainingEventKindsAtExit();
-}
 
 MissionJediTrainingIterator::MissionJediTrainingIterator(GameObjNotifier* parent)
     : ChildIterator(parent, &kJediTrainingFamilies, 1) {}
 
 MissionJediTrainingIterator::~MissionJediTrainingIterator() { REB_KEEP_VPTR_STORE(); }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_missionJediTrainingEventKindsDestroyedGuard;  // 0x6bba10
-
-void DestroyMissionJediTrainingEventKinds() {
-    if (!(g_missionJediTrainingEventKindsDestroyedGuard & 0x1)) {
-        g_missionJediTrainingEventKindsDestroyedGuard |= 0x1;
-        g_missionJediTrainingEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_missionJediTrainingEventKinds{};
+int g_missionJediTrainingEventKindsReady{};

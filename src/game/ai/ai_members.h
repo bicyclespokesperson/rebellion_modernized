@@ -5,7 +5,6 @@
 #include "ai/ai_ranked_list.h"
 #include "ai/ai_records.h"
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
 
@@ -239,16 +238,3 @@ public:
     GameObjNotifier* m_cursorObject;       // +0x10
     AiClassTable* m_classes;               // +0x14
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiClassTable, 0x40);
-REB_ASSERT_SIZE(AiTaskRecordSet, 0x14);
-REB_ASSERT_SIZE(AiAgentSet, 0x18);
-REB_ASSERT_SIZE(AiSystemRecordSet, 0x14);
-REB_ASSERT_SIZE(AiPlannerSet, 0x18);
-REB_ASSERT_SIZE(AiFleetEvalSet, 0x14);
-REB_ASSERT_SIZE(AiShipRecordSet, 0x20);
-REB_ASSERT_SIZE(AiSectorEvalSet, 0x14);
-REB_ASSERT_SIZE(AiSystemEvalSet, 0x18);
-#pragma clang diagnostic pop

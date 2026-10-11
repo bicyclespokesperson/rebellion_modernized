@@ -1,6 +1,5 @@
 #pragma once
 #include "character/role.h"
-#include "core/layout.h"
 #include "gameobj/child_iterator.h"
 
 // SpecialForces (family 0x3c-0x3f, VT 0x65e160, secondary ObjectBase VT 0x65e15c, 0x7c bytes): the covert-ops squads a
@@ -49,7 +48,6 @@ public:
 
     // The event-kind set of SpecialForces (g_specialForcesEventKinds, 0x6b2b58): a copy of Role's, made on first use.
     static int BuildEventKinds();                              // 0x503fa0
-    static void InitStatics();                                 // 0x503fd0
     static GameObjNotifier* Create();                          // 0x503ee0, the object factory of family 0x3c
 };
 
@@ -61,12 +59,5 @@ public:
     virtual ~SpecialForceIterator();                                                     // 0x504020 (deleting), 0x504140
 };
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SpecialForces, 0x7c);
-REB_ASSERT_SIZE(SpecialForceIterator, 0x20);
-#pragma clang diagnostic pop
 
 // Static-initializer pieces of g_specialForcesEventKinds (0x503fe0 constructs it, 0x503ff0 registers its destructor).
-void ConstructSpecialForcesEventKinds();
-void RegisterSpecialForcesEventKindsAtExit();

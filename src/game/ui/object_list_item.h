@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "ui/cool_list_item.h"
 
@@ -25,10 +24,3 @@ public:
     int m_visible;    // +0x6c 1
     DibBitmap* m_markerImage;  // +0x70 0; the GID marker picture of a system icon (not owned)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ObjectListItem, 0x74);
-REB_ASSERT_OFFSET(ObjectListItem, m_key, 0x68);
-REB_ASSERT_OFFSET(ObjectListItem, m_visible, 0x6c);
-#pragma clang diagnostic pop

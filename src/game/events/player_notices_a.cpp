@@ -421,3 +421,5 @@ void Notice33::Write(ostream* out) {
     WriteValue32(out, &m_f68);
     m_hostKey.Write(out);
 }
+
+MessageTemplate * g_messageTemplate{};

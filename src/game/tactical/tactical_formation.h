@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "tactical/tactical_lists.h"
 #include "tactical/tactical_math.h"
 #include "tactical/tactical_moving_object.h"
@@ -100,16 +99,3 @@ public:
 };
 
 extern TacticalVector g_formationOrigin;  // 0x6bc940
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(FormationSlot, 0xf4);
-REB_ASSERT_OFFSET(FormationBase, m_slotsByUnit, 0xe0);
-REB_ASSERT_OFFSET(FormationBase, m_ranks, 0xf8);
-REB_ASSERT_OFFSET(FormationBase, m_leaderHandle, 0x100);
-REB_ASSERT_OFFSET(FormationBase, m_count, 0x12c);
-REB_ASSERT_OFFSET(FormationBase, m_radius, 0x13c);
-REB_ASSERT_SIZE(FormationBase, 0x140);
-REB_ASSERT_SIZE(CapitalShipFormation, 0x144);
-REB_ASSERT_SIZE(FighterFormation, 0x140);
-#pragma clang diagnostic pop

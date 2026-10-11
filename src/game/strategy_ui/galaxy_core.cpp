@@ -33,8 +33,8 @@
 #include "ui/resource_dll.h"
 #include "ui/sprite_stage.h"
 
-extern const char g_strategyDllName[];  // 0x6a86a8 "strategy.dll"
-extern const char g_textcommDllName[];  // 0x6a7edc "textcomm.dll"
+extern const char *g_strategyDllName;  // 0x6a86a8 "strategy.dll"
+extern const char *g_textcommDllName;  // 0x6a7edc "textcomm.dll"
 
 
 namespace {
@@ -351,3 +351,5 @@ void GalaxyWindow::InitializeGameDisplay() {
 }
 
 MinimizedWindowSlot::MinimizedWindowSlot() : m_icon(nullptr) {}
+
+const char *g_strategyDllName = nullptr;

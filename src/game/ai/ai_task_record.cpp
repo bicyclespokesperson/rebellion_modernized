@@ -573,4 +573,3 @@ int AiTaskRecord::ClearFleet() {
     m_fleetKey.Reset();
     return 1;
 }
-

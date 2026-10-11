@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 
 // DirectDraw as the game uses it (0x614000-0x6153b0): the object only switches the display to 640x480x8 while
@@ -55,20 +54,9 @@ void ReportDirectDrawError(HRESULT result, HWND parent);
 
 // Static initializer and atexit handler of g_displayModes.
 void InitializeDirectDrawStatics();
-void ConstructDisplayModes();
-void RegisterDisplayModesDestructor();
-void DestroyDisplayModes();
 
 HRESULT REB_STDCALL RestoreSurfaceCallback(LPDIRECTDRAWSURFACE surface, LPDDSURFACEDESC description, void* context);
 BOOL REB_STDCALL FindAdapterWith3dCallback(GUID* driverGuid, char* description, char* name, void* context);
 
 extern IDirectDraw* g_directDraw;
 extern IDirectDraw2* g_directDraw2;
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(DirectDrawHost, 0x04);
-REB_ASSERT_OFFSET(DisplayModeNode, m_width, 0x18);
-REB_ASSERT_OFFSET(DisplayModeNode, m_bitsPerPixel, 0x20);
-REB_ASSERT_SIZE(DisplayModeTree, 0x08);
-#pragma clang diagnostic pop

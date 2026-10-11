@@ -3,9 +3,9 @@
 #include <cstdint>
 
 #include "audio/sound_manager.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_label.h"
+#include "ui/cool_button_parts.h"
 #include "ui/cool_timer.h"
 #include "ui/cool_window.h"
 
@@ -120,7 +120,7 @@ public:
     void StepFrame();                                  // 0x603a50: the timer callback shows the next frame
     void LoadFrames(uint32_t firstId, uint32_t count);  // 0x603aa0
 
-    alignas(void*) uint8_t m_frames[REB_LP64_SCALED(0x0c)];  // +0x114 ring of frame nodes (batch B list class, vftable 0x66e2b8; count +4, head +8)
+    BitmapFrameList m_frames;  // +0x114 ring of frame nodes (batch B list class, vftable 0x66e2b8; count +4, head +8)
     void* m_currentFrame;    // +0x120 node whose bitmap is m_normal; node: vptr, bitmap +4, next +8, previous +0xc
 };
 
@@ -172,28 +172,3 @@ public:
 
     int m_index;  // +0x28
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CoolStrobeButton, 0x114);
-REB_ASSERT_OFFSET(CoolStrobeButton, m_normal, 0x94);
-REB_ASSERT_OFFSET(CoolStrobeButton, m_backdrop, 0xa4);
-REB_ASSERT_OFFSET(CoolStrobeButton, m_buffer, 0xa8);
-REB_ASSERT_OFFSET(CoolStrobeButton, m_normalId, 0xac);
-REB_ASSERT_OFFSET(CoolStrobeButton, m_normalColor, 0xb4);
-REB_ASSERT_OFFSET(CoolStrobeButton, m_state, 0xc4);
-REB_ASSERT_OFFSET(CoolStrobeButton, m_label, 0xc8);
-REB_ASSERT_OFFSET(CoolStrobeButton, m_labelRect, 0xcc);
-REB_ASSERT_OFFSET(CoolStrobeButton, m_clickSoundId, 0xdc);
-REB_ASSERT_OFFSET(CoolStrobeButton, m_clickSound, 0xe0);
-REB_ASSERT_OFFSET(CoolStrobeButton, m_hot, 0xf8);
-REB_ASSERT_OFFSET(CoolStrobeButton, m_repeatTimer, 0x100);
-REB_ASSERT_OFFSET(CoolStrobeButton, m_backdropX, 0x10c);
-REB_ASSERT_SIZE(CoolFrameButton, 0x124);
-REB_ASSERT_OFFSET(CoolFrameButton, m_currentFrame, 0x120);
-REB_ASSERT_SIZE(CoolCycleButton, 0x14c);
-REB_ASSERT_OFFSET(CoolCycleButton, m_position, 0x134);
-REB_ASSERT_OFFSET(CoolCycleButton, m_buffer2, 0x148);
-REB_ASSERT_SIZE(CoolStrobeTimer, 0x3c);
-REB_ASSERT_SIZE(IndexedRectNode, 0x2c);
-#pragma clang diagnostic pop

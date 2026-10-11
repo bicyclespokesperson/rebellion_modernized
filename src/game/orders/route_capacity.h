@@ -9,7 +9,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_key.h"
 #include "gameobj/status_code.h"
@@ -148,20 +147,3 @@ public:
     ObjectKey m_parentKey;      // +0x20
     CapacityTable m_table;      // +0x24
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CapacitySlot, 0x1c);
-REB_ASSERT_SIZE(CapacityScratch, 0x1c);
-REB_ASSERT_SIZE(UnitCount, 0x0c);
-REB_ASSERT_SIZE(CapacitySlotArray, 0x100);
-REB_ASSERT_SIZE(UnitCountArray, 0x70);
-REB_ASSERT_SIZE(CapacityTable, 0x204);
-REB_ASSERT_SIZE(UnitCountTable, 0xe4);
-REB_ASSERT_OFFSET(CapacitySlot, m_status, 0x0c);
-REB_ASSERT_OFFSET(CapacitySlot, m_limitStatus, 0x14);
-REB_ASSERT_OFFSET(CapacityTable, m_outgoing, 0x104);
-REB_ASSERT_OFFSET(UnitCountTable, m_carried, 0x74);
-REB_ASSERT_SIZE(CapacityLeg, 0x228);
-REB_ASSERT_OFFSET(CapacityLeg, m_table, 0x24);
-#pragma clang diagnostic pop

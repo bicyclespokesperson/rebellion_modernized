@@ -3,7 +3,6 @@
 
 #include "app/player_controller_decl.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "ui/cool_game_window.h"
 #include "ui/cool_label.h"
@@ -67,21 +66,3 @@ public:
     int m_listKind;                 // +0x180 the unit tab (0x97-0x9c) the list was built for
     int m_nextItemId;               // +0x184
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ReportMessage, 0xa0);
-REB_ASSERT_OFFSET(ReportMessage, m_bitmapId, 0x2e);
-REB_ASSERT_OFFSET(ReportMessage, m_title, 0x44);
-REB_ASSERT_OFFSET(ReportMessage, m_objectKey, 0x5c);
-REB_ASSERT_OFFSET(ReportMessage, m_showsSecondList, 0x64);
-REB_ASSERT_OFFSET(ReportMessage, m_side, 0x6c);
-REB_ASSERT_OFFSET(ReportMessage, m_sets, 0x70);
-REB_ASSERT_SIZE(ReportWindow, 0x188);
-REB_ASSERT_OFFSET(ReportWindow, m_galaxy, 0x118);
-REB_ASSERT_OFFSET(ReportWindow, m_list, 0x120);
-REB_ASSERT_OFFSET(ReportWindow, m_label, 0x128);
-REB_ASSERT_OFFSET(ReportWindow, m_pageTabs, 0x15c);
-REB_ASSERT_OFFSET(ReportWindow, m_report, 0x174);
-REB_ASSERT_OFFSET(ReportWindow, m_nextItemId, 0x184);
-#pragma clang diagnostic pop

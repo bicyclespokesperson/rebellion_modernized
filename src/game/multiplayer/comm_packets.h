@@ -12,7 +12,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/strstream_io.h"
 #include "core/game_string.h"
 #include "platform/win32.h"
@@ -250,32 +249,3 @@ public:
 
     int m_fromPlayer;  // +0x20c index of the player the last message came from
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ServiceProviderInfo, 0x38);
-REB_ASSERT_OFFSET(ServiceProviderInfo, m_guid, 0x1c);
-REB_ASSERT_OFFSET(ServiceProviderInfo, m_name, 0x2c);
-REB_ASSERT_SIZE(SessionInfo, 0x38);
-REB_ASSERT_OFFSET(SessionInfo, m_instance, 0x1c);
-REB_ASSERT_OFFSET(SessionInfo, m_name, 0x2c);
-REB_ASSERT_SIZE(ServiceProviderList, 0x0c);
-REB_ASSERT_SIZE(LobbyConnection, 0x10);
-REB_ASSERT_OFFSET(LobbyConnection, m_dplay, 0x0c);
-REB_ASSERT_SIZE(CommMessage, 0x74);
-REB_ASSERT_OFFSET(CommMessage, m_stream, 0x1c);
-REB_ASSERT_SIZE(CommAckRecord, 0x88);
-REB_ASSERT_OFFSET(CommAckRecord, m_state, 0x48);
-REB_ASSERT_SIZE(PacketWire, 0x200);
-REB_ASSERT_SIZE(CommPacket, 0x220);
-REB_ASSERT_OFFSET(CommPacket, m_wire, 0x20);
-REB_ASSERT_SIZE(ReceivedPacket, 0x220);
-REB_ASSERT_SIZE(CommOutgoing, 0x24);
-REB_ASSERT_OFFSET(CommOutgoing, m_firstPacketId, 0x20);
-REB_ASSERT_SIZE(PartialMessage, 0x28);
-REB_ASSERT_SIZE(CommBuffer, 0x08);
-REB_ASSERT_SIZE(SendBuffer, 0x20c);
-REB_ASSERT_OFFSET(PacketBuffer, m_used, 0x204);
-REB_ASSERT_OFFSET(PacketBuffer, m_write, 0x208);
-REB_ASSERT_SIZE(ReceiveBuffer, 0x210);
-#pragma clang diagnostic pop

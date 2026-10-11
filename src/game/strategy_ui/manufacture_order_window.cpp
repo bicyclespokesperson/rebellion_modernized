@@ -30,8 +30,8 @@
 #include "ui/cool_string_field.h"
 #include "ui/resource_dll.h"
 
-extern const char g_gokresDllName[];  // 0x6a8708 "gokres.dll"
-extern const char g_spaceString[];    // 0x6a7f40 " "
+extern const char *g_gokresDllName;  // 0x6a8708 "gokres.dll"
+extern const char *g_spaceString;    // 0x6a7f40 " "
 
 namespace {
 
@@ -521,3 +521,5 @@ String* ObjectNameNode::GetName(String* out) {
     new (out) String(m_name);
     return out;
 }
+
+int g_selectionBoxClosing{};

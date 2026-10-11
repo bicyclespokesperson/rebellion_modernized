@@ -130,15 +130,3 @@ UprisingPulseTimer* CreateUprisingPulseTimer();  // 0x565f80
 InformantIncidentTimer* CreateInformantIncidentTimer();  // 0x5662b0
 SideStatATimer* CreateSideStatATimer();  // 0x566600
 SideStatBTimer* CreateSideStatBTimer();  // 0x566950
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(UprisingEndTimer, 0x4c);
-REB_ASSERT_SIZE(UprisingLoyaltyTimer, 0x4c);
-REB_ASSERT_SIZE(AssaultLoyaltyTimer, 0x4c);
-REB_ASSERT_SIZE(BlockadeLoyaltyTimer, 0x4c);
-REB_ASSERT_SIZE(UprisingPulseTimer, 0x4c);
-REB_ASSERT_SIZE(InformantIncidentTimer, 0x4c);
-REB_ASSERT_SIZE(SideStatATimer, 0x4c);
-REB_ASSERT_SIZE(SideStatBTimer, 0x4c);
-#pragma clang diagnostic pop

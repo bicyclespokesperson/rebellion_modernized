@@ -401,3 +401,6 @@ int BattleSetup::AddTroopRegiment(GameObj* troops) {
     }
     return registered;
 }
+
+int g_characterScaleDivisorA = 10;
+int g_characterScaleDivisorB = 20;

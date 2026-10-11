@@ -8,8 +8,8 @@
 
 extern "C" int REB_CDECL _isprint(int c);
 
-extern const char g_spaceString[];    // 0x6a7f40 " " (shared literal)
-extern const char g_newlineString[];  // 0x6a8170 "\n" (shared literal)
+extern const char *g_spaceString;    // 0x6a7f40 " " (shared literal)
+extern const char *g_newlineString;  // 0x6a8170 "\n" (shared literal)
 
 namespace {
 

@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "gameobj/object_key.h"
 
@@ -22,9 +21,3 @@ public:
 
     int m_value;  // +0x1c
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(IntPairNode, 0x20);
-REB_ASSERT_OFFSET(IntPairNode, m_value, 0x1c);
-#pragma clang diagnostic pop

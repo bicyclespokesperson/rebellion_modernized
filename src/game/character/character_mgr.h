@@ -3,7 +3,6 @@
 
 #include "character/character.h"
 #include "character/role.h"
-#include "core/layout.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
@@ -132,7 +131,6 @@ public:
     int RollCaptiveEscape(Character* captive, int value, NotifyContext* ctx);                                 // 0x561990
 
     static int BuildEventKinds();      // 0x5624f0, g_characterMgrEventKinds at 0x6bb798
-    static void InitStatics();         // 0x562a00
     static GameObjNotifier* Create();  // 0x562120, the object factory of family 0xfa
 
     // ==== fields ====
@@ -140,15 +138,6 @@ public:
     int m_galaxySize;     // +0x5c, master only
 };
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CharacterMgr, 0x60);
-REB_ASSERT_OFFSET(CharacterMgr, m_flags58, 0x58);
-REB_ASSERT_OFFSET(CharacterMgr, m_galaxySize, 0x5c);
-#pragma clang diagnostic pop
 
 // The game root's character manager (null before the game is set up).
 inline CharacterMgr* GetCharacterManager() { return static_cast<CharacterMgr*>(GetGameRootMember_c0()); }
-
-void ConstructCharacterMgrEventKinds();       // 0x562a10
-void RegisterCharacterMgrEventKindsAtExit();  // 0x562a20

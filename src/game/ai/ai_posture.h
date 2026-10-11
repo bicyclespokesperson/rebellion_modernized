@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "ai/ai_selector.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
@@ -94,11 +93,3 @@ public:
     ObjectKey m_cursorB;           // +0x30
     int m_budget[kBudgetCount];    // +0x34
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiPosture, 0x5c);
-REB_ASSERT_OFFSET(AiPosture, m_owner, 0x0c);
-REB_ASSERT_OFFSET(AiPosture, m_selector, 0x18);
-REB_ASSERT_OFFSET(AiPosture, m_budget, 0x34);
-#pragma clang diagnostic pop

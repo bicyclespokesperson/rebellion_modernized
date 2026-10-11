@@ -26,7 +26,7 @@
 #include "ui/cool_tab_control.h"
 #include "ui/object_list_item.h"
 
-extern const char g_gokresDllName[];  // 0x6a8708 "gokres.dll"
+extern const char *g_gokresDllName;  // 0x6a8708 "gokres.dll"
 
 
 namespace {
@@ -867,3 +867,5 @@ void BattleWindow::FillList(int kind, int force) {
 }
 
 ObjectKey* BattleMessage::GetFleetKey(ObjectKey* out) { return new (out) ObjectKey(m_fleetKey); }
+
+const char *g_gokresDllName = nullptr;

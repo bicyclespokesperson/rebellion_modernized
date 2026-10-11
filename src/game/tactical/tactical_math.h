@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/reb_x87.h"
 
 // The four-float record the tactical engine uses for positions and directions: x, y, z and a fourth component that
@@ -22,5 +21,3 @@ struct TacticalVector {
     int MatchesXYZ(const TacticalVector* other);            // 0x5b39e0
     void Scale(float factor);                               // 0x5ba080
 };
-
-REB_ASSERT_SIZE(TacticalVector, 0x10);

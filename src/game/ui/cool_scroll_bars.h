@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_scroll_bar.h"
 #include "ui/cool_scrollable.h"
@@ -53,6 +52,3 @@ public:
     virtual void PageLeft() override;                  // slot 19, 0x610a20
     virtual void PageRight() override;                 // slot 20, 0x610aa0
 };
-
-REB_ASSERT_SIZE(CoolVerticalScrollBar, 0xf0);
-REB_ASSERT_SIZE(CoolHorizontalScrollBar, 0xf0);

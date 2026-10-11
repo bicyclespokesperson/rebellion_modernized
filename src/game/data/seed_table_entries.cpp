@@ -59,14 +59,10 @@ int SeedTableEntry::ParseText(istream* in) {
 
 // ---- SeedFamilyTableEntry ----------------------------------------------------------------------------------
 
-SeedFamilyTableEntry::SeedFamilyTableEntry() : m_field24(0) {
-    static_assert(sizeof(ObjectRefList) <= sizeof(SeedItemSet), "SeedItemSet is too small for an ObjectRefList");
-    new (&m_items) ObjectRefList();
-}
+SeedFamilyTableEntry::SeedFamilyTableEntry() : m_field24(0) {}
 
 SeedFamilyTableEntry::~SeedFamilyTableEntry() {
     REB_KEEP_VPTR_STORE();
-    reinterpret_cast<ObjectRefList*>(&m_items)->ObjectRefList::~ObjectRefList();
 }
 
 void* CreateSeedFamilyTableEntry() { return NewOrNull<SeedFamilyTableEntry>(); }
@@ -74,21 +70,21 @@ void* CreateSeedFamilyTableEntry() { return NewOrNull<SeedFamilyTableEntry>(); }
 int SeedFamilyTableEntry::Read(istream* in) {
     TableEntry::Read(in);
     ReadValue32(in, &m_field24);
-    reinterpret_cast<ObjectRefList*>(&m_items)->Read(in);
+    m_items.Read(in);
     return 1;
 }
 
 int SeedFamilyTableEntry::Write(ostream* out) {
     TableEntry::Write(out);
     WriteValue32(out, &m_field24);
-    reinterpret_cast<ObjectRefList*>(&m_items)->Write(out);
+    m_items.Write(out);
     return 1;
 }
 
 int SeedFamilyTableEntry::Checksum(Crc32* crc) {
     const int result = TableEntry::Checksum(crc);
     crc->AddInt(m_field24);
-    reinterpret_cast<ObjectRefList*>(&m_items)->Checksum(crc);
+    m_items.Checksum(crc);
     return result;
 }
 
@@ -102,7 +98,7 @@ int SeedFamilyTableEntry::ParseText(istream* in) {
         ParseLongField(in, token.get(), &endOfLine, &m_field24);
         ParseUnsignedField(in, token.get(), &endOfLine, &family);
         ParseUnsignedField(in, token.get(), &endOfLine, &id);
-        ok = reinterpret_cast<ObjectRefList*>(&m_items)->ObjectRefList::AddKey(ObjectKey::Make(family, id)) != nullptr;
+        ok = m_items.AddKey(ObjectKey::Make(family, id)) != nullptr;
     }
     for (int group = 0; ok && group < kSeedGroupCount; ++group) {
         unsigned int family;
@@ -111,7 +107,7 @@ int SeedFamilyTableEntry::ParseText(istream* in) {
         ParseUnsignedField(in, token.get(), &endOfLine, &family);
         ParseUnsignedField(in, token.get(), &endOfLine, &id);
         ParseLongField(in, token.get(), &endOfLine, &count);
-        for (int i = 0; ok && i < count; ++i) ok = reinterpret_cast<ObjectRefList*>(&m_items)->ObjectRefList::AddKey(ObjectKey::Make(family, id)) != nullptr;
+        for (int i = 0; ok && i < count; ++i) ok = m_items.AddKey(ObjectKey::Make(family, id)) != nullptr;
     }
     SkipRestOfLine(in, &endOfLine);
     return ok;

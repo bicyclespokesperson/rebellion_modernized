@@ -334,3 +334,6 @@ DibBitmap* GalaxyWindow::BuildBackground(int gidActive) {
     DeleteBitmap(map);
     return GetBackground();
 }
+
+const int16_t g_displayGridHeight = 1023;
+const int16_t g_displayGridWidth = 1023;

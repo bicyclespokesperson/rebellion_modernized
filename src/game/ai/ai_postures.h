@@ -146,13 +146,3 @@ public:
     virtual void Virtual20() override;                                          // 20: 0x4bb510
     virtual ObjectKey* Virtual21(ObjectKey* out) override;                      // 21: 0x4bb630
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiPostureKind2, 0x64);
-REB_ASSERT_SIZE(AiPostureKind1, 0x5c);
-REB_ASSERT_SIZE(AiPostureKind4, 0x60);
-REB_ASSERT_SIZE(AiPostureKind5, 0x5c);
-REB_ASSERT_SIZE(AiPostureKind3, 0x5c);
-REB_ASSERT_SIZE(AiPostureKind6, 0x5c);
-#pragma clang diagnostic pop

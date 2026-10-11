@@ -2,13 +2,7 @@
 #include <cstdint>
 
 #include "data/table_entry.h"
-
-// Set of seed item keys (a tree of 0x28-byte key nodes), owned by the game object module (ctor 0x4f3f70, dtor
-// 0x4f3fb0, Read 0x4f40b0, Write 0x4f41c0, Checksum 0x4f4220, add-by-key 0x4f42a0). Opaque here.
-#include "core/layout.h"
-struct SeedItemSet {
-    alignas(void*) uint32_t m_words[REB_LP64_SCALED(4)];
-};
+#include "gameobj/object_key.h"
 
 // Entry of SYFCCRTB.DAT / SYFCRMTB.DAT: a game object key (family in the top byte, id in the low 24 bits).
 class SeedTableEntry : public TableEntry {
@@ -35,7 +29,7 @@ public:
     virtual int Checksum(Crc32* crc) override;
 
     int m_field24;       // +0x24
-    SeedItemSet m_items;  // +0x28
+    ObjectRefList m_items;  // +0x28
 };
 
 // Entry of the integer lookup tables (the *MSTB tables and other gameplay tables): the inherited +0x20 is the
@@ -56,13 +50,3 @@ public:
 void* CreateSeedTableEntry();
 void* CreateSeedFamilyTableEntry();
 void* CreateIntTableEntry();
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SeedTableEntry, 0x28);
-REB_ASSERT_OFFSET(SeedTableEntry, m_key, 0x24);
-REB_ASSERT_SIZE(SeedFamilyTableEntry, 0x38);
-REB_ASSERT_OFFSET(SeedFamilyTableEntry, m_items, 0x28);
-REB_ASSERT_SIZE(IntTableEntry, 0x28);
-REB_ASSERT_OFFSET(IntTableEntry, m_value, 0x24);
-#pragma clang diagnostic pop

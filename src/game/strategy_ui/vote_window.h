@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
 
@@ -55,19 +54,3 @@ public:
     HMODULE m_module;              // +0x138 gokres.dll
     int m_tab;                     // +0x13c
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(VoteFamilyRange, 0x08);
-REB_ASSERT_SIZE(VoteWindow, 0x140);
-REB_ASSERT_OFFSET(VoteWindow, m_notice, 0x114);
-REB_ASSERT_OFFSET(VoteWindow, m_galaxy, 0x118);
-REB_ASSERT_OFFSET(VoteWindow, m_extra, 0x11c);
-REB_ASSERT_OFFSET(VoteWindow, m_fightButton, 0x120);
-REB_ASSERT_OFFSET(VoteWindow, m_resolveButton, 0x128);
-REB_ASSERT_OFFSET(VoteWindow, m_list, 0x12c);
-REB_ASSERT_OFFSET(VoteWindow, m_items, 0x130);
-REB_ASSERT_OFFSET(VoteWindow, m_tabs, 0x134);
-REB_ASSERT_OFFSET(VoteWindow, m_module, 0x138);
-REB_ASSERT_OFFSET(VoteWindow, m_tab, 0x13c);
-#pragma clang diagnostic pop

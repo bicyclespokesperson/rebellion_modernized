@@ -1,6 +1,5 @@
 #include "mission/mission_adrift.h"
 
-void DestroyMissionAdriftEventKinds();
 
 extern int g_missionAdriftEventKindsReady;      // 0x6bbb18
 extern EventKindSet g_missionAdriftEventKinds;  // 0x6bbb10
@@ -16,7 +15,7 @@ MissionAdrift::~MissionAdrift() { REB_KEEP_VPTR_STORE(); }
 
 uint32_t MissionAdrift::GetFamily() { return kFamilyMissionAdrift; }
 
-int MissionAdrift::Read(istream* in) { return reinterpret_cast<MissionRuleBase*>(this)->MissionRuleBase::ReadBody(in); }
+int MissionAdrift::Read(istream* in) { return this->Mission::ReadImpl(in); }
 
 int MissionAdrift::Write(ostream* out) { return MissionTypeWriteForward(this, out); }
 
@@ -56,23 +55,5 @@ int MissionAdrift::BuildEventKinds() {
     }
     return result;
 }
-
-void ConstructMissionAdriftEventKinds() { new (&g_missionAdriftEventKinds) EventKindSet(); }
-
-void RegisterMissionAdriftEventKindsAtExit() { atexit(DestroyMissionAdriftEventKinds); }
-
-void MissionAdrift::InitStatics() {
-    ConstructMissionAdriftEventKinds();
-    RegisterMissionAdriftEventKindsAtExit();
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_missionAdriftEventKindsDestroyedGuard;  // 0x6bbb1c
-
-void DestroyMissionAdriftEventKinds() {
-    if (!(g_missionAdriftEventKindsDestroyedGuard & 0x1)) {
-        g_missionAdriftEventKindsDestroyedGuard |= 0x1;
-        g_missionAdriftEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_missionAdriftEventKinds{};
+int g_missionAdriftEventKindsReady{};

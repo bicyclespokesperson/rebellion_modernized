@@ -64,7 +64,7 @@ CoolDragList::CoolDragList(HINSTANCE instance, int x, int y, int width, int heig
                            int lineStep, int vertical, HCURSOR dragCursor)
     : CoolWindow(instance, g_coolDragListClassName, kDragListStyle, x, y, width, height, parent, nullptr,
                  static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)), nullptr, nullptr, nullptr, 0, 0),
-      m_options(0) {
+      m_hoverTextColor(0), m_options(0) {
     m_items = NewOrNull<CoolListItemList>(static_cast<int>(kSortById));
     m_childId = childId;
     m_unknownB8 = 0;

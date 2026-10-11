@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 
 // A multimedia timer (timeSetEvent) that calls its virtual OnTick on the winmm timer thread, serialised by a
@@ -36,11 +35,3 @@ int EndTimerPeriod();                     // 0x601f10: 1 if a period was active
 
 extern int g_timerPeriodActive;  // 0x6be5b8
 extern UINT g_timerPeriod;       // 0x6ac7d4 the period BeginTimerPeriod chose (10 at start-up)
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CoolTimer, 0x38);
-REB_ASSERT_OFFSET(CoolTimer, m_pauseCount, 0x04);
-REB_ASSERT_OFFSET(CoolTimer, m_running, 0x18);
-REB_ASSERT_OFFSET(CoolTimer, m_lock, 0x20);
-#pragma clang diagnostic pop

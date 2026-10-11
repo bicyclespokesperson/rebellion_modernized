@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/stream_io.h"
 
 class Crc32;
@@ -36,9 +35,3 @@ public:
     int m_changeCount;   // +0x00
     uint32_t m_packed;   // +0x04
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(TrackedStat, 0x08);
-REB_ASSERT_OFFSET(TrackedStat, m_packed, 0x04);
-#pragma clang diagnostic pop

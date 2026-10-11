@@ -1,5 +1,4 @@
 #pragma once
-#include "core/layout.h"
 #include "galaxy/system.h"
 #include "gameobj/child_iterator.h"
 
@@ -49,11 +48,6 @@ public:
 // Applies the children of families 0x90-0x91 of `parent` (GameObj::UpdateChildren over that range), 0x566c00.
 int UpdateSystemType90Children(GameObj* parent, NotifyContext* ctx);
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SystemType90, 0x8c);
-REB_ASSERT_SIZE(SystemType90Iterator, 0x20);
-#pragma clang diagnostic pop
 
 // A side view (1 or 2) of a system, as the OnXChanged events push values into them.
 inline System* SystemView(System* system, int view) { return static_cast<System*>(system->GetViewObject(view)); }

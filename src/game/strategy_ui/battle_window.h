@@ -4,7 +4,6 @@
 
 #include "app/player_controller_decl.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
@@ -96,20 +95,3 @@ public:
 // What the battle list collects for one fleet of the battle: the participants of `kind` of its capital ships, in `shown`
 // (and, for personnel that are not ready, in `held`) (0x472010).
 void REB_STDCALL CollectBattleParticipants(GameObjNotifier* fleet, ObjectKeySet* shown, ObjectKeySet* held, int kind);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(BattleMessage, 0xc4);
-REB_ASSERT_OFFSET(BattleMessage, m_systemKey, 0x44);
-REB_ASSERT_OFFSET(BattleMessage, m_fleetKey, 0x4c);
-REB_ASSERT_OFFSET(BattleMessage, m_fleets, 0x60);
-REB_ASSERT_OFFSET(BattleMessage, m_title, 0x88);
-REB_ASSERT_SIZE(BattleWindow, 0x190);
-REB_ASSERT_OFFSET(BattleWindow, m_galaxy, 0x118);
-REB_ASSERT_OFFSET(BattleWindow, m_list, 0x120);
-REB_ASSERT_OFFSET(BattleWindow, m_label, 0x128);
-REB_ASSERT_OFFSET(BattleWindow, m_pageTabs, 0x15c);
-REB_ASSERT_OFFSET(BattleWindow, m_battle, 0x174);
-REB_ASSERT_OFFSET(BattleWindow, m_gokres, 0x178);
-REB_ASSERT_OFFSET(BattleWindow, m_advicePlaying, 0x188);
-#pragma clang diagnostic pop

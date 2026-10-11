@@ -13,28 +13,28 @@
 #include "ui/text_scroll_field.h"
 #include "video/video_manager.h"
 
-extern const char g_registryKeyPath[];  // 0x6a81fc
-extern const char g_musicVolumeName[];  // 0x6a8584
-extern const char g_tooBigLocationName[];  // 0x6a7c74
+extern const char *g_registryKeyPath;  // 0x6a81fc
+extern const char *g_musicVolumeName;  // 0x6a8584
+extern const char *g_tooBigLocationName;  // 0x6a7c74
 
 void REB_THISCALL FUN_0059b100(CoolWindow* window, LPARAM drawItem);  // WM_DRAWITEM of the movie window's text field art
 
-extern const char g_movieFile000[];  // 0x6a8460
-extern const char g_movieFile001[];  // 0x6a8698
-extern const char g_movieFile002[];  // 0x6a8688
-extern const char g_movieFile003[];  // 0x6a8678
-extern const char g_movieFile004[];  // 0x6a8668
-extern const char g_movieFile106[];  // 0x6a8658
-extern const char g_movieFile105[];  // 0x6a8648
-extern const char g_movieFile107[];  // 0x6a8638
-extern const char g_movieFile108[];  // 0x6a8628
-extern const char g_movieFile005[];  // 0x6a8618
-extern const char g_movieFile101[];  // 0x6a8608
-extern const char g_movieFile202[];  // 0x6a85f8
-extern const char g_movieFile201[];  // 0x6a85e8
-extern const char g_movieFile104[];  // 0x6a85d8
-extern const char g_movieFile102[];  // 0x6a85c8
-extern const char g_movieFile103[];  // 0x6a85b8
+extern const char *g_movieFile000;  // 0x6a8460
+extern const char *g_movieFile001;  // 0x6a8698
+extern const char *g_movieFile002;  // 0x6a8688
+extern const char *g_movieFile003;  // 0x6a8678
+extern const char *g_movieFile004;  // 0x6a8668
+extern const char *g_movieFile106;  // 0x6a8658
+extern const char *g_movieFile105;  // 0x6a8648
+extern const char *g_movieFile107;  // 0x6a8638
+extern const char *g_movieFile108;  // 0x6a8628
+extern const char *g_movieFile005;  // 0x6a8618
+extern const char *g_movieFile101;  // 0x6a8608
+extern const char *g_movieFile202;  // 0x6a85f8
+extern const char *g_movieFile201;  // 0x6a85e8
+extern const char *g_movieFile104;  // 0x6a85d8
+extern const char *g_movieFile102;  // 0x6a85c8
+extern const char *g_movieFile103;  // 0x6a85b8
 
 namespace {
 
@@ -297,3 +297,20 @@ void AdvanceMovie() {
     VideoManager* manager = VideoManager::GetInstance();
     if (manager) manager->AdvanceMovieFrame();
 }
+
+const char *g_movieFile000 = nullptr;
+const char *g_movieFile001 = nullptr;
+const char *g_movieFile002 = nullptr;
+const char *g_movieFile003 = nullptr;
+const char *g_movieFile004 = nullptr;
+const char *g_movieFile005 = nullptr;
+const char *g_movieFile101 = nullptr;
+const char *g_movieFile102 = nullptr;
+const char *g_movieFile103 = nullptr;
+const char *g_movieFile104 = nullptr;
+const char *g_movieFile105 = nullptr;
+const char *g_movieFile106 = nullptr;
+const char *g_movieFile107 = nullptr;
+const char *g_movieFile108 = nullptr;
+const char *g_movieFile201 = nullptr;
+const char *g_movieFile202 = nullptr;

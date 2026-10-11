@@ -43,16 +43,9 @@ public:
 // The new, empty record of `kind` (0x437780: calls the handler's CreateRecord).
 UiRecord* CreateUiRecord(int kind);  // 0x437780
 
-// Static initializers of three UI globals (a zeroed pointer each, destroyed at exit).
-void StaticInitGlobalA();  // 0x437790
 void InitGlobalA();        // 0x4377a0
-void RegisterGlobalADestructor();  // 0x4377b0
-void StaticInitGlobalB();  // 0x4377e0
 void InitGlobalB();        // 0x4377f0
-void RegisterGlobalBDestructor();  // 0x437800
-void StaticInitGlobalC();  // 0x437830
 void InitGlobalC();        // 0x437840
-void RegisterGlobalCDestructor();  // 0x437850
 
 constexpr int kUiHandlerCount = 0x2e;
 extern UiHandler* g_uiHandlers[kUiHandlerCount];  // 0x6b1f40

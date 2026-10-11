@@ -37,7 +37,6 @@ constexpr uint32_t kListId = 0xca;
 constexpr uint32_t kNameFieldId = 0xcb;
 
 
-
 ResourceStringId StringId(int16_t id) { return ResourceStringId{id, kStringGroup}; }
 
 CoolStrobeButton* NewButton(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,

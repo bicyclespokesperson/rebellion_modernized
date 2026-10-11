@@ -69,7 +69,7 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   reconstructions are `PickLeaders`/`PickMembers` (void) behind the virtual overrides; `AiDsSabotagePlanner::ChooseTarget`
   resets the target before testing it, so its keep-target branch is dead; `AiRescuePlanner::ChooseTarget` tests `(flags | 0x20) == 0`
   (never true) where the free 0x62 planner tests `(flags & 0x60) == 0`, so a rescue target is never kept; `ObjectRefNode`'s copy
-  constructor leaves `m_flag` uninitialised.
+  constructor deliberately resets `m_flag` to zero rather than copying it (now explicit in source).
 - Planner functions that no scenario reached (read only): sabotage 0x69, DS sabotage 0x6a, recruit 0x55, incite 0x56,
   research/subdue 0x53/0x57 steps, `AiAbductionPlanner::Read/Write`.
 - Classes that sit outside the module's ranges because the module needs them: `AiTaskNode` and `AiTaskObject`

@@ -442,3 +442,5 @@ ProcFacilIterator::ProcFacilIterator(GameObjNotifier* parent, uint32_t stateFilt
     : ChildIterator(parent, side, &kProcFacilFamilies, stateFilter) {}
 
 ProcFacilIterator::~ProcFacilIterator() { REB_KEEP_VPTR_STORE(); }
+
+int g_procFacilNotifyLog{};

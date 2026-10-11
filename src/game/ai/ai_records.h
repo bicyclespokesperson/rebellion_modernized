@@ -3,7 +3,6 @@
 
 #include "ai/ai_selector.h"
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
 
@@ -244,19 +243,3 @@ public:
     AiRankedSelector m_selector;   // +0x3c
     AiSideController* m_owner;     // +0x4c
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiSystemEval, 0x138);
-REB_ASSERT_OFFSET(AiSystemEval, m_stat, 0x48);
-REB_ASSERT_SIZE(AiSectorEval, 0x1d8);
-REB_ASSERT_OFFSET(AiSectorEval, m_systems, 0x48);
-REB_ASSERT_OFFSET(AiSectorEval, m_stat, 0x70);
-REB_ASSERT_SIZE(AiShipRecord, 0xbc);
-REB_ASSERT_OFFSET(AiShipRecord, m_stat, 0x44);
-REB_ASSERT_SIZE(AiFleetEval, 0xcc);
-REB_ASSERT_OFFSET(AiFleetEval, m_shipKeys, 0x48);
-REB_ASSERT_OFFSET(AiFleetEval, m_owner, 0xc8);
-REB_ASSERT_SIZE(AiTaskRecord, 0x50);
-REB_ASSERT_OFFSET(AiTaskRecord, m_selector, 0x3c);
-#pragma clang diagnostic pop

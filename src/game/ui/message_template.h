@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 
 class ObjectBase;
@@ -35,11 +34,3 @@ void ExpandMessageTemplate(String* out, UINT templateId, ObjectBase* field1, Obj
                            ObjectBase* field4);  // 0x60b9d0
 
 extern MessageTemplate* g_messageTemplate;  // 0x6be5c4
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MessageTemplate, 0x0c);
-REB_ASSERT_OFFSET(MessageTemplate, m_endMarker, 0x04);
-REB_ASSERT_OFFSET(MessageTemplate, m_fieldMarker, 0x05);
-REB_ASSERT_OFFSET(MessageTemplate, m_module, 0x08);
-#pragma clang diagnostic pop

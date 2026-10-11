@@ -141,3 +141,6 @@ int Crc32::SaveState(ostream* out) {
 void Crc32::Read(istream* in) { LoadState(in); }
 
 void Crc32::Write(ostream* out) { SaveState(out); }
+
+int g_crcTableReady{};
+uint32_t g_crcTable[256]{};

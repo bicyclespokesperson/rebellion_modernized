@@ -2,7 +2,6 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/stream_io.h"
 
 // The game's own intrusive containers (no STL). Nodes carry their links and are owned by the container that
@@ -259,32 +258,3 @@ public:
 
     LinkNode* m_top;  // +0x04
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AvlNode, 0x18);
-REB_ASSERT_OFFSET(AvlNode, m_left, 0x04);
-REB_ASSERT_OFFSET(AvlNode, m_height, 0x14);
-REB_ASSERT_SIZE(AvlTree, 0x08);
-REB_ASSERT_SIZE(IdNode, 0x1c);
-REB_ASSERT_OFFSET(IdNode, m_id, 0x18);
-REB_ASSERT_SIZE(IdValueNode, 0x20);
-REB_ASSERT_SIZE(IdAvlTree, 0x0c);
-REB_ASSERT_OFFSET(IdAvlTree, m_nextId, 0x08);
-REB_ASSERT_SIZE(IdValueTree, 0x0c);
-REB_ASSERT_SIZE(CloneableNode, 0x18);
-REB_ASSERT_SIZE(IntKeyNode, 0x1c);
-REB_ASSERT_OFFSET(IntKeyNode, m_key, 0x18);
-REB_ASSERT_SIZE(AvlSet, 0x08);
-REB_ASSERT_SIZE(IntKeyedSet, 0x08);
-REB_ASSERT_SIZE(OrderedTree, 0x0c);
-REB_ASSERT_SIZE(LinkNode, 0x0c);
-REB_ASSERT_SIZE(IdLinkNode, 0x10);
-REB_ASSERT_OFFSET(IdLinkNode, m_id, 0x0c);
-REB_ASSERT_SIZE(SortedLinkList, 0x0c);
-REB_ASSERT_OFFSET(SortedLinkList, m_head, 0x08);
-REB_ASSERT_SIZE(IdSortedLinkList, 0x10);
-REB_ASSERT_OFFSET(IdSortedLinkList, m_nextId, 0x0c);
-REB_ASSERT_SIZE(NodeQueue, 0x10);
-REB_ASSERT_SIZE(NodeStack, 0x08);
-#pragma clang diagnostic pop

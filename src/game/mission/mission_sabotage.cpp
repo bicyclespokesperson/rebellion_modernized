@@ -3,7 +3,6 @@
 #include "data/random.h"
 #include "mission/mission_sabotage.h"
 
-void DestroyMissionSabotageEventKinds();
 
 extern int g_missionSabotageEventKindsReady;      // 0x6bb920
 extern EventKindSet g_missionSabotageEventKinds;  // 0x6bb928
@@ -107,23 +106,5 @@ int MissionSabotage::BuildEventKinds() {
     }
     return 1;
 }
-
-void ConstructMissionSabotageEventKinds() { new (&g_missionSabotageEventKinds) EventKindSet(); }
-
-void RegisterMissionSabotageEventKindsAtExit() { atexit(DestroyMissionSabotageEventKinds); }
-
-void MissionSabotage::InitStatics() {
-    ConstructMissionSabotageEventKinds();
-    RegisterMissionSabotageEventKindsAtExit();
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_missionSabotageEventKindsDestroyedGuard;  // 0x6bb924
-
-void DestroyMissionSabotageEventKinds() {
-    if (!(g_missionSabotageEventKindsDestroyedGuard & 0x1)) {
-        g_missionSabotageEventKindsDestroyedGuard |= 0x1;
-        g_missionSabotageEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_missionSabotageEventKinds{};
+int g_missionSabotageEventKindsReady{};

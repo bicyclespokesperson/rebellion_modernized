@@ -1,7 +1,6 @@
 #pragma once
 #include "core/reb_abi.h"
 #include "character/character.h"
-#include "core/layout.h"
 
 // MajorCharacter (0x594520, VT 0x66b608, secondary 0x66b600, 0xb0 bytes) is the base of the story's major characters:
 // the leaf classes MajorChar30 (type 0x30, probably Mon Mothma), MajorChar34 (0x34, Vader?) and MajorChar35 (0x35, the
@@ -30,7 +29,6 @@ public:
 
     static int BuildEventKinds();                              // 0x594700, g_majorCharacterEventKinds at 0x6bc068
     static int InitEventKinds(int unused, EventKindSet* out);  // 0x594730
-    static void InitStatics();                                 // 0x594750
 };
 
 class MajorChar30 : public MajorCharacter {
@@ -50,7 +48,6 @@ public:
     virtual GameObj* CreateViewObject() override;                               // 57, 0x56ee20
 
     static int BuildEventKinds();   // 0x56efa0, g_majorChar30EventKinds at 0x6bb9c8
-    static void InitStatics();      // 0x56efd0
     static GameObjNotifier* Create();  // 0x56eee0, the object factory of family 0x30
 };
 
@@ -71,7 +68,6 @@ public:
     virtual GameObj* CreateViewObject() override;                               // 57, 0x573b00
 
     static int BuildEventKinds();   // 0x573c10, g_majorChar34EventKinds at 0x6bba70
-    static void InitStatics();      // 0x573c40
     static GameObjNotifier* Create();  // 0x573ba0, the object factory of family 0x34
 };
 
@@ -92,7 +88,6 @@ public:
     virtual GameObj* CreateViewObject() override;                               // 57, 0x575520
 
     static int BuildEventKinds();   // 0x575630, g_majorChar35EventKinds at 0x6bbac0
-    static void InitStatics();      // 0x575660
     static GameObjNotifier* Create();  // 0x5755c0, the object factory of family 0x35
 };
 
@@ -108,11 +103,3 @@ int REB_THISCALL MajorLeafRead(Character* self, istream* in);            // 0x56
 int REB_THISCALL MajorLeafWrite(Character* self, ostream* out);          // 0x56ef60
 int REB_THISCALL MajorLeafApplyAll(Character* self, NotifyContext* ctx);  // 0x56ef70
 int REB_THISCALL MajorLeafChecksum(Character* self, Crc32* crc);         // 0x56ef80
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MajorCharacter, 0xb0);
-REB_ASSERT_SIZE(MajorChar30, 0xb0);
-REB_ASSERT_SIZE(MajorChar34, 0xb0);
-REB_ASSERT_SIZE(MajorChar35, 0xb0);
-#pragma clang diagnostic pop

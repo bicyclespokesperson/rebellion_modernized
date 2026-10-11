@@ -18,3 +18,6 @@ const FamilyRange* GetCapacityBucketRange(int index) {
     g_capacityBucketRanges[8] = FamilyRange(0x40, 0x80);
     return &g_capacityBucketRanges[index];
 }
+
+FamilyRange g_capacityBucketRanges[9]{};
+int g_capacityBucketWord = 1;

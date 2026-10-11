@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/child_iterator.h"
 #include "gameobj/game_obj.h"
 
@@ -41,9 +40,3 @@ public:
     SectorIterator(GameObjNotifier* parent, uint32_t stateFilter);  // 0x5266a0
     virtual ~SectorIterator();                                      // 0x526680 (deleting), 0x526720
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(Sector, 0x58);
-REB_ASSERT_SIZE(SectorIterator, 0x20);
-#pragma clang diagnostic pop

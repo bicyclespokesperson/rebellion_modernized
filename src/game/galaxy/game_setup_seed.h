@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_key.h"

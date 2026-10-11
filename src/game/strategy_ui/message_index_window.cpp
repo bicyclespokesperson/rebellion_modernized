@@ -20,7 +20,7 @@
 #include "ui/message_list_item.h"
 #include "ui/text_scroll_field.h"
 
-extern const char g_encyBitmapDllName[];  // 0x6a8750 "encybmap.dll"
+extern const char *g_encyBitmapDllName;  // 0x6a8750 "encybmap.dll"
 
 extern int g_modalReportId;       // 0x6b2904 the notice a report window was opened for
 extern int g_modalReportMode;     // 0x6b2908 the mode and tab the message index was in
@@ -1282,3 +1282,9 @@ void ModalReportReset(int owner) {
     g_modalReportOwner = 0;
     g_modalReportPending = 0;
 }
+
+int g_modalReportId{};
+int g_modalReportMode{};
+int g_modalReportOwner{};
+int g_modalReportPending{};
+int g_modalReportTab{};

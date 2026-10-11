@@ -386,3 +386,8 @@ void MultiPlayerWindow::OnCreate2() {
     LoadAndDraw(this, kLobbyPageHost, DrawHostPage);
     LoadAndDraw(this, kLobbyPageSetup, DrawSetupPage);
 }
+
+const RECT g_rectProviderList = {144, 125, 500, 222};
+const RECT g_rectSideAClick = {178, 205, 286, 231};
+const RECT g_rectSideBClick = {354, 205, 462, 231};
+uint32_t g_lobbyProviderItemWidth{};

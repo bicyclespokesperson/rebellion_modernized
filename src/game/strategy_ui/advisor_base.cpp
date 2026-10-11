@@ -13,8 +13,6 @@
 #include "strategy_ui/game_ui_facade.h"
 #include "strategy_ui/human_player.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyHumanUiFlags();
 
 namespace {
 
@@ -37,14 +35,6 @@ int NoticeKind(IdValueNode* notice) { return notice->m_value & kNoticeKindMask; 
 
 }  // namespace
 
-// ---- Static initialisation of g_humanUiFlags ------------------------------------------------------------------
-
-void AdvisorInitFlags() { new (&g_humanUiFlags) PersistentInt(0); }  // 0x4392c0
-void AdvisorRegisterFlagsAtExit() { atexit(DestroyHumanUiFlags); }          // 0x4392d0
-void AdvisorInitStatics() {                                          // 0x4392b0
-    AdvisorInitFlags();
-    AdvisorRegisterFlagsAtExit();
-}
 
 // ---- Construction / persistence -------------------------------------------------------------------------------
 
@@ -462,15 +452,4 @@ void AdvisorBase::SetRefusedOrder(const void* order) { m_refusedOrder = order; }
 void AdvisorBase::OnOrderSubmitted(const void* order) {
     if ((g_humanUiFlags.m_value & kFlagNoticesCollected) != 0 && order == m_refusedOrder) g_humanUiFlags.m_value |= 1;
     g_humanUiFlags.m_value &= ~kFlagNoticesCollected;
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_humanUiFlagsDestroyedGuard;  // 0x6b28b4
-
-void DestroyHumanUiFlags() {
-    if (!(g_humanUiFlagsDestroyedGuard & 0x1)) {
-        g_humanUiFlagsDestroyedGuard |= 0x1;
-        g_humanUiFlags.~PersistentInt();
-    }
 }

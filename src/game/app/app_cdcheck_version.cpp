@@ -145,3 +145,27 @@ int CheckTextstraVersion() {
     }
     return compatible;
 }
+
+char g_cdErrorText[512]{};
+char g_cdErrorTitle[512]{};
+char g_languageName[256]{};
+char g_versionErrorTitle[512]{};
+char g_versionNewerText[512]{};
+char g_versionOlderText[512]{};
+const char *g_appClassName = nullptr;
+const char *g_commonDllName = nullptr;
+const char *g_displayOptsName = nullptr;
+const char *g_fileVersionQueryFormat = nullptr;
+const char *g_installedLocationName = nullptr;
+const char *g_introMusicFailedText = nullptr;
+const char *g_mismatchOptsName = nullptr;
+const char *g_rebdlogDllName = nullptr;
+const char *g_registryKeyPath = nullptr;
+const char *g_soundManagerCaption = nullptr;
+const char *g_textcommDllName = nullptr;
+const char *g_textsFileName = nullptr;
+const char *g_textstraDllName = nullptr;
+const char *g_tooBigLocationName = nullptr;
+const char *g_translationQuery = nullptr;
+const char *g_volumeName = nullptr;
+int g_versionCheckResult{};

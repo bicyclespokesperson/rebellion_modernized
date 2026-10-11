@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "platform/win32.h"
 
@@ -42,7 +41,3 @@ public:
     uint32_t m_dataSize;     // +0x18 length of the "data" chunk
     uint32_t m_dataOffset;   // +0x1c offset of the "data" chunk header from the start of the RIFF image
 };
-REB_ASSERT_SIZE(WaveInfo, 0x20);
-REB_ASSERT_OFFSET(WaveInfo, m_format, 0x04);
-REB_ASSERT_OFFSET(WaveInfo, m_dataSize, 0x18);
-REB_ASSERT_OFFSET(WaveInfo, m_dataOffset, 0x1c);

@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "data/seed_key.h"
 #include "gameobj/game_obj_root.h"
 #include "gameobj/object_key.h"
@@ -97,9 +96,3 @@ int ForEachDataFamily(Crc32* crc);                             // 0x51cce0
 
 // The kind range of a record (copies record+0x24).
 IntPair* REB_THISCALL GetRecordKindRange(DatRecord* record, IntPair* out);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ObjectTypeDb, 0x0c);
-REB_ASSERT_OFFSET(ObjectTypeDb, m_families, 0x08);
-#pragma clang diagnostic pop

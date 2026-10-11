@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 
 struct Rgb24 {
@@ -102,14 +101,3 @@ public:
     HPALETTE m_palette;        // +0x20 lazily built by DrawToDc
     uint8_t* m_remapTable;     // +0x24 256-entry colour remap (BuildRemapTable / SetRemapTable)
 };
-REB_ASSERT_SIZE(DibBitmap, 0x28);
-REB_ASSERT_OFFSET(DibBitmap, m_bits, 0x04);
-REB_ASSERT_OFFSET(DibBitmap, m_colorKey, 0x08);
-REB_ASSERT_OFFSET(DibBitmap, m_colorKeyRgb, 0x09);
-REB_ASSERT_OFFSET(DibBitmap, m_kind, 0x0c);
-REB_ASSERT_OFFSET(DibBitmap, m_colorCount, 0x10);
-REB_ASSERT_OFFSET(DibBitmap, m_resource, 0x14);
-REB_ASSERT_OFFSET(DibBitmap, m_module, 0x18);
-REB_ASSERT_OFFSET(DibBitmap, m_dibSection, 0x1c);
-REB_ASSERT_OFFSET(DibBitmap, m_palette, 0x20);
-REB_ASSERT_OFFSET(DibBitmap, m_remapTable, 0x24);

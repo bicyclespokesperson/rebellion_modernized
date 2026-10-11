@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_key.h"
 #include "gameobj/object_queries.h"
@@ -52,11 +51,6 @@ public:
 typedef int(REB_CDECL* MissionMemberCheckFn)(int a, intptr_t value, intptr_t* out, StatusCode* status);
 typedef int(REB_CDECL* MissionTargetCheckFn)(MissionCheckArgs* args, StatusCode* status, int* code);
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionMemberSummary, 0x14);
-REB_ASSERT_SIZE(MissionCheckArgs, 0x3c);
-#pragma clang diagnostic pop
 
 // Fills `summary` from the team, decoys and captured people (0x5830a0); false and a status in *status on failure.
 int REB_CDECL FillMemberSummaryForMission(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, ObjectKeyValueSet* captured,

@@ -188,31 +188,32 @@ int AiCharacterRecord::Refresh() {
 
     GameObjNotifier* object = GetObjectInFamilies_30_40(m_side, &m_key);
     if (!object) return 1;
-    Character* person = static_cast<Character*>(object);
-    if (person->m_stateFlags & 8) return 1;
+    Role* role = static_cast<Role*>(object);
+    if (role->m_stateFlags & 8) return 1;
 
-    m_controlSide = person->ControlSide();
-    if (person->m_flags78 & 0x80) m_flags.m_value |= ai_character_flag::kOnMission;
-    if (person->m_flags78 & 0x200) m_flags.m_value |= ai_character_flag::kOnMandatoryMission;
-    if (person->m_stateFlags & 0x10) m_flags.m_value |= ai_character_flag::kEnroute;
-    if ((person->m_stateFlags & 4) == 0) m_flags.m_value |= ai_character_flag::kNotCompleted;
+    m_controlSide = role->ControlSide();
+    if (role->m_flags78 & 0x80) m_flags.m_value |= ai_character_flag::kOnMission;
+    if (role->m_flags78 & 0x200) m_flags.m_value |= ai_character_flag::kOnMandatoryMission;
+    if (role->m_stateFlags & 0x10) m_flags.m_value |= ai_character_flag::kEnroute;
+    if ((role->m_stateFlags & 4) == 0) m_flags.m_value |= ai_character_flag::kNotCompleted;
 
     if ((m_flags.m_value & ai_character_flag::kCharacter) == 0) {
-        m_values[9] = person->GetRecordField4c();
+        m_values[9] = role->GetRecordField4c();
     } else {
-        if (person->m_flagsAc & 1) m_flags.m_value |= ai_character_flag::kCaptured;
-        if (person->m_injury != 0) m_flags.m_value |= ai_character_flag::kInjured;
+        Character* character = static_cast<Character*>(role);
+        if (character->m_flagsAc & 1) m_flags.m_value |= ai_character_flag::kCaptured;
+        if (character->m_injury != 0) m_flags.m_value |= ai_character_flag::kInjured;
         const uint32_t ownerFlags = m_owner->m_flags.Get();
         if ((m_capabilities.m_value & 0x800) && (ownerFlags & 0x2000000) == 0) m_flags.m_value |= ai_character_flag::kUnsuited;
         if ((m_capabilities.m_value & 0x1000) && (ownerFlags & 0x4000000) == 0) m_flags.m_value |= ai_character_flag::kUnsuited;
         if ((m_capabilities.m_value & 0x2000) && (ownerFlags & 0x8000000) == 0) m_flags.m_value |= ai_character_flag::kUnsuited;
-        if (person->m_commandKind == 1)
+        if (character->m_commandKind == 1)
             m_flags.m_value |= 0x4000000;
-        else if (person->m_commandKind == 2)
+        else if (character->m_commandKind == 2)
             m_flags.m_value |= 0x1000000;
-        else if (person->m_commandKind == 3)
+        else if (character->m_commandKind == 3)
             m_flags.m_value |= 0x2000000;
-        m_values[8] = person->m_force;
+        m_values[8] = character->m_force;
         if (m_values[8] > kForceWeak && m_values[8] < kForceStrong + 1) {
             if (!IsStoryKeyOf2(m_key.m_value)) m_flags.m_value |= ai_character_flag::kWeakForce;
         }
@@ -221,18 +222,18 @@ int AiCharacterRecord::Refresh() {
         }
     }
 
-    m_values[0] = person->GetDiplomacy();
-    m_values[1] = person->GetEspionage();
-    m_values[2] = person->GetShipyardRD();
-    m_values[3] = person->GetTrainingFacilRD();
-    m_values[4] = person->GetConstructionYardRD();
-    m_values[5] = person->GetCombat();
-    m_values[6] = person->GetLeadership();
-    m_values[7] = person->GetLoyalty();
+    m_values[0] = role->GetDiplomacy();
+    m_values[1] = role->GetEspionage();
+    m_values[2] = role->GetShipyardRD();
+    m_values[3] = role->GetTrainingFacilRD();
+    m_values[4] = role->GetConstructionYardRD();
+    m_values[5] = role->GetCombat();
+    m_values[6] = role->GetLeadership();
+    m_values[7] = role->GetLoyalty();
     if ((m_capabilities.m_value & 1) && m_values[0] > kSkillMinimumForBonus) m_flags.m_value |= ai_character_flag::kUnsuited;
-    if (m_location.Family() == 0 && person->m_parent) {
+    if (m_location.Family() == 0 && role->m_parent) {
         ObjectKey parentKey;
-        m_location = *GetObjectKey(person->m_parent, &parentKey);
+        m_location = *GetObjectKey(role->m_parent, &parentKey);
     }
     return 1;
 }

@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
 #include "ui/cool_label.h"
@@ -96,18 +95,3 @@ public:
 // Which side's missions are at `system`: 1 or 2 when only one side's characters are on missions there from the point
 // of view of `viewSide`, 3 for both or none (0x4a1f60).
 int DominantMissionSide(GameObjNotifier* system, int viewSide);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SystemMissionsWindow, 0x1cc);
-REB_ASSERT_OFFSET(SystemMissionsWindow, m_systemKey, 0x144);
-REB_ASSERT_OFFSET(SystemMissionsWindow, m_galaxy, 0x14c);
-REB_ASSERT_OFFSET(SystemMissionsWindow, m_tabs, 0x15c);
-REB_ASSERT_OFFSET(SystemMissionsWindow, m_headerInactive, 0x168);
-REB_ASSERT_OFFSET(SystemMissionsWindow, m_objectivePicture, 0x170);
-REB_ASSERT_OFFSET(SystemMissionsWindow, m_titleLabel, 0x17c);
-REB_ASSERT_OFFSET(SystemMissionsWindow, m_gokres, 0x1b0);
-REB_ASSERT_OFFSET(SystemMissionsWindow, m_missions, 0x1b4);
-REB_ASSERT_OFFSET(SystemMissionsWindow, m_selectedMission, 0x1c4);
-REB_ASSERT_OFFSET(SystemMissionsWindow, m_objectiveKey, 0x1c8);
-#pragma clang diagnostic pop

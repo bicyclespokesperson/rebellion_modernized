@@ -9,7 +9,6 @@
 #include "app/rebapp_globals.h"
 #include "app/rebellion_application.h"
 #include "audio/sound_manager.h"
-#include "core/layout.h"
 #include "gameobj/game_settings.h"
 #include "gfx/dib_bitmap.h"
 #include "gfx/directdraw_host.h"
@@ -200,7 +199,7 @@ void RebellionApplication::SetState(int state) {
             CommShutdown();
             DestroyBattleFlow();
             SoundManager::Shutdown(0);
-            g_directDrawHost.ReleaseAll();
+            g_directDrawHost->ReleaseAll();
             PostQuitMessage(0);
             return;
         case kStateVictoryMovieEmpire:
@@ -395,6 +394,7 @@ void RebellionApplication::DestroyStrategicWindow() {
     m_strategicWindow = nullptr;
 }
 
+
 void RebellionApplication::ShowTacticalWindow() {
     ReleaseOverlayWindow();
     DetachActiveWindow();
@@ -406,7 +406,7 @@ void RebellionApplication::ShowTacticalWindow() {
         int height = m_screenHeight;
         if (m_side != 0) {
             m_tacticalWindow = ConstructOpaqueWindow(kTacticalWindowSize,  [&](void* memory) {
-                return FUN_0059a8d0(memory, m_instance, x, y, width, height, this, &g_directDrawHost);
+                return FUN_0059a8d0(memory, m_instance, x, y, width, height, this, g_directDrawHost);
             });
         }
         if (m_tacticalWindow) ShowNewWindow(m_tacticalWindow);
@@ -441,3 +441,9 @@ void RebellionApplication::ForwardToStrategicWindow() {
         static_cast<GalaxyWindow*>(window)->GalaxyWindow::InitializeGameDisplay();
     }
 }
+
+GalaxyWindow * g_galaxyWindow{};
+HWND g_previousCapture{};
+MainMenuWindow * g_mainMenuWindow{};
+TacticalGame * g_tacticalGame{};
+const char * g_coolDragListClassName{};

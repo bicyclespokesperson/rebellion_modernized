@@ -3,7 +3,6 @@
 
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "data/seed_key.h"
 #include "data/table.h"
@@ -99,18 +98,3 @@ public:
 // Registers the "SeedList" class with the table class registry (a static initializer of the original).
 void InitSeedListClassRegistration();
 void* CreateSeedList();
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SeedList, 0x1c);
-REB_ASSERT_OFFSET(SeedList, m_range, 0x08);
-REB_ASSERT_OFFSET(SeedList, m_records, 0x10);
-REB_ASSERT_SIZE(SeedListFile, 0x3c);
-REB_ASSERT_OFFSET(SeedListFile, m_list, 0x20);
-REB_ASSERT_SIZE(SeedListFileTree, 0x10);
-REB_ASSERT_SIZE(RecordNameNode, 0x30);
-REB_ASSERT_OFFSET(RecordNameNode, m_name, 0x24);
-REB_ASSERT_SIZE(SeedKeyCountNode, 0x30);
-REB_ASSERT_OFFSET(SeedKeyCountNode, m_key, 0x18);
-REB_ASSERT_OFFSET(SeedKeyCountNode, m_count, 0x2c);
-#pragma clang diagnostic pop

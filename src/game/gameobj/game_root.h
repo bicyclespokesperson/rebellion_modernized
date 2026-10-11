@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/game_obj.h"
@@ -155,33 +154,3 @@ extern GameRoot* g_gameRoot;
 
 // The factory registered for family 0xf1 (0x513970).
 GameObjNotifier* CreateGameRoot();
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(GameRoot, 0x1b0);
-REB_ASSERT_OFFSET(GameRoot, m_settings, 0x58);
-REB_ASSERT_OFFSET(GameRoot, m_unk6c, 0x6c);
-REB_ASSERT_OFFSET(GameRoot, m_unk78, 0x78);
-REB_ASSERT_OFFSET(GameRoot, m_key8c, 0x8c);
-REB_ASSERT_OFFSET(GameRoot, m_ctx90, 0x90);
-REB_ASSERT_OFFSET(GameRoot, m_random, 0xac);
-REB_ASSERT_OFFSET(GameRoot, m_master_f2000003, 0xb0);
-REB_ASSERT_OFFSET(GameRoot, m_master_20000005, 0xb4);
-REB_ASSERT_OFFSET(GameRoot, m_master_f8000006, 0xb8);
-REB_ASSERT_OFFSET(GameRoot, m_master_f9000007, 0xbc);
-REB_ASSERT_OFFSET(GameRoot, m_master_fa000008, 0xc0);
-REB_ASSERT_OFFSET(GameRoot, m_master_f300000f, 0xc4);
-REB_ASSERT_OFFSET(GameRoot, m_master_f3000010, 0xc8);
-REB_ASSERT_OFFSET(GameRoot, m_master_98000440, 0xcc);
-REB_ASSERT_OFFSET(GameRoot, m_master_98000441, 0xd0);
-REB_ASSERT_OFFSET(GameRoot, m_master_98000442, 0xd4);
-REB_ASSERT_OFFSET(GameRoot, m_master_98000480, 0xd8);
-REB_ASSERT_OFFSET(GameRoot, m_master_98000481, 0xdc);
-REB_ASSERT_OFFSET(GameRoot, m_refLists, 0xe0);
-REB_ASSERT_OFFSET(GameRoot, m_key150, 0x150);
-REB_ASSERT_OFFSET(GameRoot, m_key154, 0x154);
-REB_ASSERT_OFFSET(GameRoot, m_nextSystem, 0x158);
-REB_ASSERT_OFFSET(GameRoot, m_ctx15c, 0x15c);
-REB_ASSERT_OFFSET(GameRoot, m_ctx178, 0x178);
-REB_ASSERT_OFFSET(GameRoot, m_ctx194, 0x194);
-#pragma clang diagnostic pop

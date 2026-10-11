@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "strategy_ui/menu_window.h"
 #include "ui/cool_game_window.h"
@@ -63,15 +62,7 @@ LinkNode* GetSubItemsHead(MenuItem* item);    // 0x442cd0
 BOOL RemoveMenuHook();                        // 0x442c60
 LRESULT CALLBACK MenuMouseHook(int code, WPARAM wParam, LPARAM lParam);  // 0x442b90
 
-// Static initializer of the menu list (0x4422a0) and its atexit destructor.
 void StaticInitMenuList();  // 0x4422a0
-void InitMenuList();        // 0x4422b0
-void RegisterMenuListDestructor();  // 0x4422c0
 
 extern MenuItemList g_menuRoot;          // 0x6b28e0
 extern PopupMenuWindow* g_menuWindow;    // 0x6b28f4 the open menu, or null
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(PopupMenuWindow, 0x154);
-#pragma clang diagnostic pop

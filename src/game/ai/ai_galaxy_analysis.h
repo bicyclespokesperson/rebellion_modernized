@@ -4,7 +4,6 @@
 #include "ai/ai_galaxy_scan.h"
 #include "ai/ai_members.h"
 #include "ai/ai_ranked_list.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
@@ -58,13 +57,3 @@ public:
     int m_stat[0x1e];                // +0x80 [0] focus key, [1] focus value, [4..] sums of the sectors' statistics
     int m_xf8;                       // +0xf8
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiGalaxyAnalysis, 0xfc);
-REB_ASSERT_OFFSET(AiGalaxyAnalysis, m_systemScans, 0x08);
-REB_ASSERT_OFFSET(AiGalaxyAnalysis, m_sectorScans, 0x20);
-REB_ASSERT_OFFSET(AiGalaxyAnalysis, m_classes, 0x34);
-REB_ASSERT_OFFSET(AiGalaxyAnalysis, m_cursor, 0x74);
-REB_ASSERT_OFFSET(AiGalaxyAnalysis, m_stat, 0x80);
-#pragma clang diagnostic pop

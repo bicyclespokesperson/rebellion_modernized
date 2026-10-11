@@ -80,3 +80,5 @@ void GalaxyWindow::CreateDroidAnimations() {
     m_droidStage->Tick();
     m_droidStage2->Tick();
 }
+
+AnimationStep * g_animationSteps[33]{};

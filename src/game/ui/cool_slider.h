@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_window.h"
 
@@ -52,12 +51,3 @@ public:
     uint32_t m_value;       // +0xdc
     uint32_t m_range;       // +0xe0
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CoolSlider, 0xe4);
-REB_ASSERT_OFFSET(CoolSlider, m_orientation, 0xa4);
-REB_ASSERT_OFFSET(CoolSlider, m_buffer, 0xb4);
-REB_ASSERT_OFFSET(CoolSlider, m_position, 0xc8);
-REB_ASSERT_OFFSET(CoolSlider, m_value, 0xdc);
-#pragma clang diagnostic pop

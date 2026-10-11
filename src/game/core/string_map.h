@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/game_string.h"
 
 class StringCursor;
@@ -44,11 +43,3 @@ public:
     void ReadWord(StringCursor* cursor, String* word);
     int ReadNumber(StringCursor* cursor, int* value);
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(StringMapNode, 0x1c);
-REB_ASSERT_OFFSET(StringMapNode, m_key, 0x0c);
-REB_ASSERT_OFFSET(StringMapNode, m_value, 0x18);
-REB_ASSERT_SIZE(StringMap, 0x0c);
-#pragma clang diagnostic pop

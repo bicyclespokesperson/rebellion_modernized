@@ -1,4 +1,6 @@
-# Module agent brief (template)
+# Historical module agent brief (template)
+
+The modernization roadmap in [`design/modernization_aggressive.md`](design/modernization_aggressive.md) is authoritative. This brief documents the former hybrid reconstruction workflow and is retained only as historical context; its symbol naming, hybrid build, difftest, no-STL, no-exceptions, and no-RTTI requirements are not active. Current work uses Clang and C++23, the native CMake build, and host-only macOS build/smoke validation. Windows and Linux host validation are deferred.
 
 You are reconstructing one module of Star Wars: Rebellion (REBEXE.EXE, MSVC 5, 32-bit) in a function-by-function
 decompilation. You work in your own git worktree; the primary checkout (Ghidra server, original game files,

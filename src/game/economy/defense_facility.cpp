@@ -8,8 +8,6 @@
 #include "gameobj/game_obj_forwarders.h"
 #include "gameobj/object_family.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyAllFacilityEventKinds();
 
 extern EventKindSet g_allFacilityEventKinds;  // 0x6b8ff8
 extern int g_allFacilityEventKindsReady;      // 0x6b9000
@@ -98,14 +96,6 @@ int AllFacility::BuildEventKinds() {
            g_allFacilityEventKinds.Add(kKindAllFacility2, 1) && g_allFacilityEventKinds.Add(kKindAllFacility3, 1);
 }
 
-void AllFacility::ConstructEventKinds() { new (&g_allFacilityEventKinds) EventKindSet(); }
-
-void AllFacility::RegisterEventKindsAtExit() { atexit(DestroyAllFacilityEventKinds); }
-
-void AllFacility::InitStatics() {
-    ConstructEventKinds();
-    RegisterEventKindsAtExit();
-}
 
 GameObjNotifier* CreateAllFacility() { return new AllFacility(); }
 
@@ -127,11 +117,11 @@ DefenseFacility::DefenseFacility() {}
 
 DefenseFacility::~DefenseFacility() { REB_KEEP_VPTR_STORE(); }
 
-int DefenseFacility::Read(istream* in) { return reinterpret_cast<AllFacility*>(this)->AllFacility::Read(in); }
+int DefenseFacility::Read(istream* in) { return LeafReadForward(this, in); }
 
-int DefenseFacility::Write(ostream* out) { return reinterpret_cast<AllFacility*>(this)->AllFacility::Write(out); }
+int DefenseFacility::Write(ostream* out) { return LeafWriteForward(this, out); }
 
-int DefenseFacility::Checksum(Crc32* crc) { return reinterpret_cast<AllFacility*>(this)->AllFacility::Checksum(crc); }
+int DefenseFacility::Checksum(Crc32* crc) { return LeafChecksumForward(this, crc); }
 
 int DefenseFacility::ApplyAll(NotifyContext* ctx) {
     if (IsSideView()) return ApplyAllLeafStep(ctx);
@@ -231,14 +221,5 @@ int CountDefenseFacilities25(GameObj* parent, uint32_t side, uint32_t filter) {
 DefenseFacility25Iterator::DefenseFacility25Iterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kDefenseFacility25Families, stateFilter) {}
 DefenseFacility25Iterator::~DefenseFacility25Iterator() { REB_KEEP_VPTR_STORE(); }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_allFacilityEventKindsDestroyedGuard;  // 0x6b9004
-
-void DestroyAllFacilityEventKinds() {
-    if (!(g_allFacilityEventKindsDestroyedGuard & 0x1)) {
-        g_allFacilityEventKindsDestroyedGuard |= 0x1;
-        g_allFacilityEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_allFacilityEventKinds{};
+int g_allFacilityEventKindsReady{};

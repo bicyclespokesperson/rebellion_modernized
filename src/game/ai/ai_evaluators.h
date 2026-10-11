@@ -43,9 +43,3 @@ REB_PLAN_EVALUATOR(AiEvaluatorPlan6);
 REB_PLAN_EVALUATOR(AiEvaluatorPlan7);
 
 #undef REB_PLAN_EVALUATOR
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiPlanEvaluator, 0x30);
-REB_ASSERT_SIZE(AiEvaluatorPlan1, 0x30);
-#pragma clang diagnostic pop

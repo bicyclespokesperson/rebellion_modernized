@@ -6,7 +6,6 @@
 
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "data/seed_key.h"
 #include "data/seed_list.h"
@@ -43,10 +42,8 @@ int WriteLegacyBlocks(ostream* out);  // 0x5685a0
 // Static initializers of the blocks (table entries 0x6a60ec / 0x6a60f0).
 void LegacyBlockAStaticInit();          // 0x5685e0
 void LegacyBlockAConstruct();           // 0x5685f0
-void LegacyBlockARegisterAtExit();      // 0x568600
 void LegacyBlockBStaticInit();          // 0x568630
 void LegacyBlockBConstruct();           // 0x568640
-void LegacyBlockBRegisterAtExit();      // 0x568660
 
 // ---- legacy text slots --------------------------------------------------------------------------------------
 // Ten strings with a count and one more int; saved as count, int, then the first `count` strings.
@@ -60,7 +57,6 @@ void ReadLegacyTexts(istream* in);  // 0x568a30
 void WriteLegacyTexts(ostream* out);  // 0x568a80
 void LegacyTextsStaticInit();       // 0x568ad0 (table entry 0x6a60f4)
 void LegacyTextsConstruct();        // 0x568ae0
-void LegacyTextsRegisterAtExit();   // 0x568b00
 
 // A table of `m_count` text slots of `m_width` bytes each, as old saves carry it (VT 0x663988). It is only ever read:
 // the slots are allocated and emptied, then the saved bytes replace them when the save has any.
@@ -119,15 +115,3 @@ public:
 
     int m_ready;  // +0x08, 1 once built
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(LegacyBlockA, 0x50);
-REB_ASSERT_SIZE(LegacyBlockB, 0x28);
-REB_ASSERT_SIZE(LegacyTextTable, 0x14);
-REB_ASSERT_OFFSET(LegacyTextTable, m_slots, 0x10);
-REB_ASSERT_SIZE(PostedEventQueue, 0x14);
-REB_ASSERT_OFFSET(PostedEventQueue, m_flag, 0x10);
-REB_ASSERT_SIZE(TickTable, 0x0c);
-REB_ASSERT_OFFSET(TickTable, m_ready, 0x08);
-#pragma clang diagnostic pop

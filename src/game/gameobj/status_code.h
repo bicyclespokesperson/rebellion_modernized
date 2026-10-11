@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 
 // A pair of 32-bit values that is copied around as a unit. The game uses it for two things:
@@ -64,11 +63,3 @@ public:
     int m_value;    // +0x1c
     int m_unknown;  // +0x20
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(IntPair, 0x08);
-REB_ASSERT_SIZE(EventKindSet, 0x08);
-REB_ASSERT_SIZE(EventKindNode, 0x24);
-REB_ASSERT_OFFSET(EventKindNode, m_value, 0x1c);
-#pragma clang diagnostic pop

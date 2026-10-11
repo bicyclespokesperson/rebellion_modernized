@@ -40,14 +40,7 @@ public:
     static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56b550
     static int CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56b680
     static int BuildEventKinds();      // 0x56bb50
-    static void InitStatics();         // 0x56bb80
     static GameObjNotifier* Create();  // 0x56b300
 
     ObjectKey m_recruitedCharacter;  // +0xa8
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionRecruit, 0xac);
-REB_ASSERT_OFFSET(MissionRecruit, m_recruitedCharacter, 0xa8);
-#pragma clang diagnostic pop

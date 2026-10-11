@@ -29,8 +29,13 @@ FontTable::FontTable(const char* faceName) {
 }
 
 FontTable::~FontTable() {
-    for (HFONT font : m_fonts) {
+    Clear();
+}
+
+void FontTable::Clear() {
+    for (HFONT& font : m_fonts) {
         if (font) DeleteObject(font);
+        font = nullptr;
     }
 }
 

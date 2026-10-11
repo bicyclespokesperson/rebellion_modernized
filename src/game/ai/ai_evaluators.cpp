@@ -537,3 +537,6 @@ void AiEvaluatorPlan7::Prepare() {
     }
     pass.FillFromGroups(4);
 }
+
+ObjectDatabase * g_objectDatabase{};
+ObjectKeySet * g_unresolvedKeys{};

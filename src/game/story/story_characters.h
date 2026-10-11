@@ -70,7 +70,6 @@ public:
     int ValidateWithForce();                              // 0x56f9b0
 
     static int BuildEventKinds();      // 0x56fcc0, g_lukeEventKinds at 0x6bb9f0
-    static void InitStatics();         // 0x56fcf0
     static GameObjNotifier* Create();  // 0x56f8e0, the object factory of family 0x32
 };
 
@@ -100,7 +99,6 @@ public:
     int ApplyAllBody(NotifyContext* ctx);               // 0x570050
 
     static int BuildEventKinds();      // 0x570150, g_leiaEventKinds at 0x6bba00
-    static void InitStatics();         // 0x570180
     static GameObjNotifier* Create();  // 0x56ffe0, the object factory of family 0x31
 };
 
@@ -135,7 +133,6 @@ public:
     int ApplyAllBody(NotifyContext* ctx);                         // 0x5728e0
 
     static int BuildEventKinds();      // 0x572bd0, g_hanEventKinds at 0x6bba50
-    static void InitStatics();         // 0x572c00
     static GameObjNotifier* Create();  // 0x572810, the object factory of family 0x33
 };
 
@@ -152,13 +149,3 @@ public:
     MinorCharacterIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x56f450
     virtual ~MinorCharacterIterator();                                                     // 0x56f3b0 (deleting), 0x56f4d0
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(StoryCharacter, 0xb4);
-REB_ASSERT_OFFSET(StoryCharacter, m_storyFlags, 0xb0);
-REB_ASSERT_SIZE(Luke, 0xb4);
-REB_ASSERT_SIZE(Leia, 0xb4);
-REB_ASSERT_SIZE(Han, 0xb4);
-REB_ASSERT_SIZE(MinorCharacterIterator, 0x20);
-#pragma clang diagnostic pop

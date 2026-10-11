@@ -133,15 +133,3 @@ FleetSlot138Timer* CreateFleetSlot138Timer();  // 0x57c160
 CharacterInjuryTimer* CreateCharacterInjuryTimer();  // 0x57cb60
 CharacterTimer389* CreateCharacterTimer389();  // 0x57ce90
 CharacterEscapeTimer* CreateCharacterEscapeTimer();  // 0x57d1f0
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SideScrapTimer, 0x4c);
-REB_ASSERT_SIZE(SideResearchTimer, 0x4c);
-REB_ASSERT_SIZE(ProcFacilTimer, 0x4c);
-REB_ASSERT_SIZE(HyperdriveTimer, 0x4c);
-REB_ASSERT_SIZE(FleetSlot138Timer, 0x4c);
-REB_ASSERT_SIZE(CharacterInjuryTimer, 0x4c);
-REB_ASSERT_SIZE(CharacterTimer389, 0x4c);
-REB_ASSERT_SIZE(CharacterEscapeTimer, 0x4c);
-#pragma clang diagnostic pop

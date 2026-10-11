@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "iostream/iostream.h"
 
 // Game-side helpers around the iostream library (declared in iostream/iostream.h).

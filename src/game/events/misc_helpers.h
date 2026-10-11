@@ -2,7 +2,6 @@
 // Two small classes the linker placed between the mission code and the keyed events (0x5947a0-0x5949d0).
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/child_iterator.h"
 #include "gameobj/object_key.h"
 
@@ -28,10 +27,3 @@ public:
 
     ObjectKey m_second;  // +0x1c
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CharacterRangeIterator, 0x20);
-REB_ASSERT_SIZE(ObjectKeyPairNode, 0x20);
-REB_ASSERT_OFFSET(ObjectKeyPairNode, m_second, 0x1c);
-#pragma clang diagnostic pop

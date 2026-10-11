@@ -43,8 +43,6 @@ CoolGameWindow::CoolGameWindow(HINSTANCE instance, int x, int y, int width, int 
                                uint32_t style, uint32_t flags, uint32_t unknownB0, uint32_t unknownB4)
     : CoolWindow(instance, "CoolGameWindow", style, x, y, width, height, parent, nullptr,
                  static_cast<HBRUSH>(GetStockObject(NULL_BRUSH)), nullptr, nullptr, nullptr, 0, 0) {
-    static_assert(sizeof(BitmapOverlayTree) <= sizeof(CoolGameWindow::m_overlays), "CoolGameWindow::m_overlays is too small for a BitmapOverlayTree");
-    new (m_overlays) BitmapOverlayTree();
     m_stringSlot = stringSlot;
     m_bitmapSlot = bitmapSlot;
     m_backgroundId = backgroundId;
@@ -95,7 +93,6 @@ CoolGameWindow::~CoolGameWindow() {
         m_frame = nullptr;
     }
     if (m_previousFocus) SetFocus(m_previousFocus);
-    reinterpret_cast<BitmapOverlayTree*>(m_overlays)->BitmapOverlayTree::~BitmapOverlayTree();
     REB_KEEP_VPTR_STORE();
 }
 
@@ -420,14 +417,14 @@ uint32_t CoolGameWindow::AddOverlay(DibBitmap* bitmap, uint32_t overlayId) {
     if (bitmap && node && bitmap->IsLoaded()) {
         static_cast<IdNode*>(node)->SetId(overlayId);
         static_cast<BitmapOverlay*>(node)->SetBitmap(bitmap);
-        result = reinterpret_cast<IdAvlTree*>(m_overlays)->AddWithId(static_cast<IdNode*>(node));
+        result = m_overlays.AddWithId(static_cast<IdNode*>(node));
     }
     return result;
 }
 
 DibBitmap* CoolGameWindow::FindOverlayBitmap(uint32_t overlayId) {
     DibBitmap* bitmap = nullptr;
-    void* node = reinterpret_cast<BitmapOverlayTree*>(m_overlays)->BitmapOverlayTree::FindOverlay(overlayId);
+    void* node = m_overlays.FindOverlay(overlayId);
     if (node) {
         bitmap = static_cast<BitmapOverlay*>(node)->GetBitmap();
     }

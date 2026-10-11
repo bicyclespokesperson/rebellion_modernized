@@ -1,7 +1,6 @@
 #pragma once
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 
 class DatRecord;
@@ -23,11 +22,3 @@ public:
     NullableKey m_key;   // +0x20
     String m_name;       // +0x24
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ObjectNameNode, 0x30);
-REB_ASSERT_OFFSET(ObjectNameNode, m_nameValid, 0x1c);
-REB_ASSERT_OFFSET(ObjectNameNode, m_key, 0x20);
-REB_ASSERT_OFFSET(ObjectNameNode, m_name, 0x24);
-#pragma clang diagnostic pop

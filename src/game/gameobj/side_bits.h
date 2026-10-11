@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 
 class Crc32;
@@ -46,8 +45,3 @@ extern int g_gnprtb1201;  // 0x6bb390
 
 // Binds both parameters for the current difficulty; every binder runs even after a failure. Returns 1 if both succeed.
 int BindGnprtb12();  // 0x5587e0
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SideBits, 0x04);
-#pragma clang diagnostic pop

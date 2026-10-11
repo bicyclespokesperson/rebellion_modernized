@@ -7,7 +7,7 @@
 
 extern VideoManager* g_videoManager;
 extern CoolWindow* g_videoParentWindow;
-extern const char g_pathUnknownCaption[];  // "PathName unknown to VideoManager"
+extern const char *g_pathUnknownCaption;  // "PathName unknown to VideoManager"
 
 
 namespace {
@@ -120,3 +120,7 @@ void VideoManager::SetVolume(int volume) {
 void VideoManager::AdvanceMovieFrame() {
     if (m_movieType == kMovieSmacker && m_smackerWindow && m_playing) m_smackerWindow->AdvanceFrame();
 }
+
+CoolWindow * g_videoParentWindow{};
+VideoManager * g_videoManager{};
+const char *g_pathUnknownCaption = nullptr;

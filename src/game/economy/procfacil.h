@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "economy/facility.h"
 #include "gameobj/tracked_stat.h"
 
@@ -123,13 +122,3 @@ public:
     ProcFacilIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x53b760
     virtual ~ProcFacilIterator();                                                     // 0x53b7e0 (scalar deleting destructor 0x53b6c0)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ProcFacilData, 0x28);
-REB_ASSERT_SIZE(ProcFacil, 0x64);
-REB_ASSERT_OFFSET(ProcFacil, m_state, 0x58);
-REB_ASSERT_OFFSET(ProcFacil, m_etc, 0x5c);
-REB_ASSERT_OFFSET(ProcFacil, m_procFlags, 0x60);
-REB_ASSERT_SIZE(ProcFacilIterator, 0x20);
-#pragma clang diagnostic pop

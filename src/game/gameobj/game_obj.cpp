@@ -9,12 +9,9 @@
 #include "gameobj/object_database.h"
 #include "gameobj/object_family.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyEmptyName();
-
 extern uint32_t g_gameObjStaticInitFlags;  // 0x6b2968, bit 0: g_emptyName constructed
 extern String g_emptyName;                 // 0x6b2ac8
-extern const char g_emptyText[];           // 0x6b120c
+extern const char *g_emptyText;           // 0x6b120c
 
 namespace {
 
@@ -136,8 +133,7 @@ String* GameObj::GetNameCopy(String* out) {
 String* GameObj::GetName() {
     if ((g_gameObjStaticInitFlags & 1) == 0) {
         g_gameObjStaticInitFlags |= 1;
-        new (&g_emptyName) String(g_emptyText);
-        atexit(DestroyEmptyName);
+        g_emptyName = g_emptyText;
     }
     if (m_name) return m_name;
     if (m_record) return &static_cast<DatRecord*>(m_record)->m_name;
@@ -288,6 +284,5 @@ uint32_t GameObj::MatchesStateFilter(uint32_t mode) {
 
 GameObjData* GameObj::CreateData() { return new GameObjData(); }
 
-// ---- destructors registered with atexit ----------------------------------------------------
-
-void DestroyEmptyName() { g_emptyName.~String(); }
+String g_emptyName{};
+uint32_t g_gameObjStaticInitFlags{};

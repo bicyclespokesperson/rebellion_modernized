@@ -6,11 +6,11 @@
 #include "gameobj/game_obj.h"
 #include "strategy_ui/object_status_window.h"
 
-extern const char g_statusSeparator[];     // 0x6a872c ":"
-extern const char g_noText[];              // 0x6a8730 "No"
-extern const char g_yesText[];             // 0x6a8734 "Yes"
-extern const char g_emptyText[];           // 0x6b120c
-extern const char g_spaceString[];         // 0x6a7f40 " "
+extern const char *g_statusSeparator;     // 0x6a872c ":"
+extern const char *g_noText;              // 0x6a8730 "No"
+extern const char *g_yesText;             // 0x6a8734 "Yes"
+extern const char *g_emptyText;           // 0x6b120c
+extern const char *g_spaceString;         // 0x6a7f40 " "
 extern const int16_t g_stringGroup65d424;  // 0x65d424 group of every localised string of the window
 
 namespace status_page {

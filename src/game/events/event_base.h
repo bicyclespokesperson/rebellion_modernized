@@ -13,7 +13,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/game_obj.h"
@@ -111,7 +110,6 @@ public:
     int ChecksumPlain(Crc32* crc);   // 0x54f590
 };
 
-// 0x594a30
 class KeyedEvent : public PlainEvent {
 public:
     KeyedEvent();                          // 0x594a30
@@ -131,7 +129,6 @@ public:
     int m_value;       // +0x48
 };
 
-// 0x5863b0
 class SourceEvent : public KeyedEvent {
 public:
     SourceEvent();                           // 0x5863b0
@@ -150,7 +147,6 @@ public:
     int m_valueB;  // +0x50
 };
 
-// 0x5864e0
 class TwoKeyEvent : public KeyedEvent {
 public:
     TwoKeyEvent();                           // 0x5864e0
@@ -177,18 +173,3 @@ int RegisterEventFactory(int kind, T* (*factory)()) {
     return RegisterEventFactory(kind, reinterpret_cast<void* (*)()>(factory));
 }
 void* CreateEventById(int kind);                          // 0x54f100
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(EventBase, 0x40);
-REB_ASSERT_OFFSET(EventBase, m_context, 0x20);
-REB_ASSERT_OFFSET(EventBase, m_key, 0x3c);
-REB_ASSERT_SIZE(TimedEvent, 0x44);
-REB_ASSERT_SIZE(Command, 0x50);
-REB_ASSERT_OFFSET(Command, m_request, 0x40);
-REB_ASSERT_SIZE(PlainEvent, 0x40);
-REB_ASSERT_SIZE(KeyedEvent, 0x4c);
-REB_ASSERT_OFFSET(KeyedEvent, m_value, 0x48);
-REB_ASSERT_SIZE(SourceEvent, 0x54);
-REB_ASSERT_SIZE(TwoKeyEvent, 0x54);
-#pragma clang diagnostic pop

@@ -97,3 +97,8 @@ void TacticalObjectManager::SetSystemInfo(int field44, String name) {
     m_systemField44 = field44;
     m_systemName.Assign(name);
 }
+
+float g_tacticalGameScaleBase = 3.0f;
+float g_tacticalGameScaleSquared{};
+float g_tacticalSideScaleBase = 3.0f;
+float g_tacticalSideScaleSquared{};

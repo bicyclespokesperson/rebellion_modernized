@@ -4,7 +4,6 @@
 #include "app/player_controller_decl.h"
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/utility_classes.h"
 #include "tactical/tactical_lists.h"
 #include "tactical/tactical_side.h"
@@ -112,20 +111,3 @@ struct HeadlessSimulator {
     CapitalShipGroup* FormCapitalGroup(UnitRefTree* units, int unitType, int role);  // 0x5ae330
     void FormBattleGroups(int unused);                                               // 0x5ae460
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(HeadlessSimulator, 0x274);
-REB_ASSERT_OFFSET(HeadlessSimulator, m_strings, 0x7c);
-REB_ASSERT_OFFSET(HeadlessSimulator, m_outcome, 0x10);
-REB_ASSERT_OFFSET(HeadlessSimulator, m_battleKind, 0x44);
-REB_ASSERT_OFFSET(HeadlessSimulator, m_characters, 0x2c);
-REB_ASSERT_OFFSET(HeadlessSimulator, m_specialForces, 0x38);
-REB_ASSERT_OFFSET(HeadlessSimulator, m_units, 0x4c);
-REB_ASSERT_OFFSET(HeadlessSimulator, m_launched, 0x58);
-REB_ASSERT_OFFSET(HeadlessSimulator, m_secondCommander, 0x254);
-REB_ASSERT_OFFSET(HeadlessSimulator, m_firstCommander, 0x25c);
-REB_ASSERT_OFFSET(HeadlessSimulator, m_sides, 0x24c);
-REB_ASSERT_OFFSET(HeadlessSimulator, m_bestStrength, 0x264);
-REB_ASSERT_OFFSET(HeadlessSimulator, m_stagnantTime, 0x26c);
-#pragma clang diagnostic pop

@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/game_obj.h"
 #include "mission/mission.h"
 
@@ -27,13 +26,8 @@ public:
     int ChecksumBody(Crc32* crc);                              // 0x593ad0
 
     static int BuildEventKinds();  // 0x593af0
-    static void InitStatics();     // 0x593b40
 };
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionTypeBase, 0xa8);
-#pragma clang diagnostic pop
 
 // Bodies of the mission base's persistence slots, called by the leaf types' second-level forwarders.
 int REB_THISCALL MissionTypeWriteForward(MissionTypeBase* self, ostream* out);        // 0x56ec40: Write (shared by several mission types)

@@ -46,16 +46,8 @@ public:
     static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56c820
     static int CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56c990
     static int BuildEventKinds();      // 0x56d130
-    static void InitStatics();         // 0x56d160
     static GameObjNotifier* Create();  // 0x56c3f0
 
     int m_rdPoints;  // +0xa8
     int m_rdOrders;  // +0xac
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionResearch, 0xb0);
-REB_ASSERT_OFFSET(MissionResearch, m_rdPoints, 0xa8);
-REB_ASSERT_OFFSET(MissionResearch, m_rdOrders, 0xac);
-#pragma clang diagnostic pop

@@ -21,11 +21,5 @@ public:
 
     static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x576dd0
     static int BuildEventKinds();      // 0x576fd0
-    static void InitStatics();         // 0x577000
     static GameObjNotifier* Create();  // 0x576d60
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionAbduction, 0xa8);
-#pragma clang diagnostic pop

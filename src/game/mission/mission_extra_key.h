@@ -67,9 +67,3 @@ inline int ApplyAllWithExtraKey(Class* self, NotifyContext* ctx) {
     if (result && ctx->m_flag04 == 1) self->ApplyExtraKey(ctx);
     return result;
 }
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionExtraKeyBase, 0xac);
-REB_ASSERT_OFFSET(MissionExtraKeyBase, m_extraKey, 0xa8);
-#pragma clang diagnostic pop

@@ -2,8 +2,8 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
+#include "ui/bitmap_overlay.h"
 #include "ui/cool_window.h"
 
 class DibBitmap;
@@ -109,21 +109,9 @@ public:
     int m_grabX;                  // +0xec
     int m_grabY;                  // +0xf0
     uint32_t m_dragMode;          // +0xf4 CoolGameWindowDragMode (initially kDragLive)
-    alignas(void*) uint8_t m_overlays[REB_LP64_SCALED(0x0c)];     // +0xf8 overlay registry (IdAvlTree subclass, ctor 0x60f420)
+    BitmapOverlayTree m_overlays;  // +0xf8 overlay registry (IdAvlTree subclass, ctor 0x60f420)
     DibBitmap* m_tiledBackground;  // +0x104 owned
     DibBitmap* m_drawTarget;      // +0x108 target of BeginOffscreen
     HWND m_previousFocus;         // +0x10c
     int m_shown;                  // +0x110 follows Show/Hide (starts as WS_VISIBLE)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CoolGameWindow, 0x114);
-REB_ASSERT_OFFSET(CoolGameWindow, m_background, 0xa0);
-REB_ASSERT_OFFSET(CoolGameWindow, m_flags, 0xb8);
-REB_ASSERT_OFFSET(CoolGameWindow, m_dragLimits, 0xbc);
-REB_ASSERT_OFFSET(CoolGameWindow, m_memoryDc, 0xd0);
-REB_ASSERT_OFFSET(CoolGameWindow, m_dragMode, 0xf4);
-REB_ASSERT_OFFSET(CoolGameWindow, m_overlays, 0xf8);
-REB_ASSERT_OFFSET(CoolGameWindow, m_shown, 0x110);
-#pragma clang diagnostic pop

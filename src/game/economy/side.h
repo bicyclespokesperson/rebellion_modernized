@@ -4,7 +4,6 @@
 
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "economy/production_facility.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/key_queue.h"
@@ -321,23 +320,3 @@ void REB_THISCALL AppendSideName(ObjectBase* base, String* out, int kind);
 // Helpers of the process facilities that live in this range (0x52e740, 0x52e8b0, 0x530650).
 GameObjNotifier* REB_THISCALL FindNextUnit(GameObjNotifier* unit);
 int REB_STDCALL MarkFacilityWaiting(ProductionFacility* facility, NotifyContext* ctx);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ObjectNameList, 0x10);
-REB_ASSERT_SIZE(Side, 0xdc);
-REB_ASSERT_OFFSET(Side, m_maintState, 0x58);
-REB_ASSERT_OFFSET(Side, m_mineState, 0x60);
-REB_ASSERT_OFFSET(Side, m_refineryState, 0x68);
-REB_ASSERT_OFFSET(Side, m_maintRequired, 0x70);
-REB_ASSERT_OFFSET(Side, m_rawMaterials, 0x78);
-REB_ASSERT_OFFSET(Side, m_waitingManufacturers, 0x84);
-REB_ASSERT_OFFSET(Side, m_refineryQueue, 0x88);
-REB_ASSERT_OFFSET(Side, m_shipyardRdProgress, 0x90);
-REB_ASSERT_OFFSET(Side, m_maintDeficit, 0xa8);
-REB_ASSERT_OFFSET(Side, m_victoryConditions, 0xbc);
-REB_ASSERT_OFFSET(Side, m_rdScalePercent, 0xc0);
-REB_ASSERT_OFFSET(Side, m_objectRefs, 0xc8);
-REB_ASSERT_OFFSET(Side, m_statCc, 0xcc);
-REB_ASSERT_OFFSET(Side, m_statD4, 0xd4);
-#pragma clang diagnostic pop

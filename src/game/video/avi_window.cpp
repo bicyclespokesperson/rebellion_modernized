@@ -6,7 +6,7 @@
 #include "core/vptr_store.h"
 #include "video/video_manager.h"
 
-extern const char g_aviDeviceType[];  // "avivideo"
+extern const char *g_aviDeviceType;  // "avivideo"
 
 namespace {
 constexpr DWORD kStyleChildVisible = WS_CHILD | WS_VISIBLE;
@@ -174,3 +174,5 @@ int VideoWindow::GetMovieSize(int* width, int* height, HWND, const char* path) {
     }
     return found;
 }
+
+const char *g_aviDeviceType = nullptr;

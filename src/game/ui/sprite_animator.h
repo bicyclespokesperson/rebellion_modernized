@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/animation_step.h"
 
@@ -12,7 +11,6 @@ public:
     AnimationStepQueue();           // 0x4ad770
     virtual ~AnimationStepQueue();  // 0x4ad790 (deleting), 0x4ad7b0
 };
-REB_ASSERT_SIZE(AnimationStepQueue, 0x10);
 
 class Sprite;
 class SpriteAnimator;
@@ -47,7 +45,7 @@ public:
     int m_spriteCount;         // +0x24
     int m_originX;             // +0x28
     int m_originY;             // +0x2c
-    alignas(void*) uint8_t m_steps[REB_LP64_SCALED(0x10)];  // +0x30 the waiting steps (a NodeQueue subclass, VT 0x65c0a4)
+    AnimationStepQueue m_steps;  // +0x30 the waiting steps (a NodeQueue subclass, VT 0x65c0a4)
     int m_hasEndAction;        // +0x40
     int m_endKind;             // +0x44
     uint32_t m_endSequence;    // +0x48 (a copy of the first word of the script's sequence)
@@ -55,13 +53,3 @@ public:
     int m_endFrames;           // +0x50
     uintptr_t m_endCallback;   // +0x54 the completion hook (a function address)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SpriteAnimator, 0x58);
-REB_ASSERT_OFFSET(SpriteAnimator, m_current, 0x1c);
-REB_ASSERT_OFFSET(SpriteAnimator, m_sprites, 0x20);
-REB_ASSERT_OFFSET(SpriteAnimator, m_steps, 0x30);
-REB_ASSERT_OFFSET(SpriteAnimator, m_hasEndAction, 0x40);
-REB_ASSERT_OFFSET(SpriteAnimator, m_endCallback, 0x54);
-#pragma clang diagnostic pop

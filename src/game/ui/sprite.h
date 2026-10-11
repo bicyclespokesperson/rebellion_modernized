@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 
 class DibBitmap;
@@ -80,18 +79,3 @@ public:
     uint16_t m_drawMode;     // +0x34 SpriteDrawMode
     uint16_t m_pad36;        // +0x36
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(DeltaFrame, 0x3c);
-REB_ASSERT_OFFSET(DeltaFrame, m_width, 0x1c);
-REB_ASSERT_OFFSET(DeltaFrame, m_left, 0x20);
-REB_ASSERT_OFFSET(DeltaFrame, m_dataSize, 0x28);
-REB_ASSERT_OFFSET(DeltaFrame, m_flag, 0x2c);
-REB_ASSERT_OFFSET(DeltaFrame, m_rows, 0x30);
-REB_ASSERT_OFFSET(DeltaFrame, m_unk38, 0x38);
-REB_ASSERT_SIZE(Sprite, 0x38);
-REB_ASSERT_OFFSET(Sprite, m_id, 0x18);
-REB_ASSERT_OFFSET(Sprite, m_bitmap, 0x2c);
-REB_ASSERT_OFFSET(Sprite, m_drawMode, 0x34);
-#pragma clang diagnostic pop

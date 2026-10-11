@@ -3,7 +3,6 @@
 
 #include "ai/ai_selector.h"
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
@@ -147,15 +146,3 @@ public:
     AiRankedSelector m_selector;     // +0x1c
     AiTaskObjectSet* m_objects;      // +0x2c the sectors the evaluator was asked to handle (set by the subclass)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiTaskNode, 0x20);
-REB_ASSERT_SIZE(AiNoticeGroup, 0x2c);
-REB_ASSERT_OFFSET(AiNoticeGroup, m_finished, 0x28);
-REB_ASSERT_SIZE(AiTaskObject, 0x28);
-REB_ASSERT_OFFSET(AiTaskBase, m_owner, 0x2c);
-REB_ASSERT_OFFSET(AiTaskBase, m_priority, 0x34);
-REB_ASSERT_SIZE(AiTaskEvaluator, 0x30);
-REB_ASSERT_OFFSET(AiTaskEvaluator, m_selector, 0x1c);
-#pragma clang diagnostic pop

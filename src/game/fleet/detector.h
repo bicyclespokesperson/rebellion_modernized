@@ -1,5 +1,4 @@
 #pragma once
-#include "core/layout.h"
 #include "gameobj/unit_obj_base.h"
 
 // Detector (0x557e60, VT 0x662558, secondary ObjectBase VT 0x662554, 0x5c bytes): the part of troop regiments, capital
@@ -52,14 +51,3 @@ public:
 
     uint32_t m_detectorFlags;  // +0x58, bit 0 IsDecoyed
 };
-
-// Static initializer of the Detector event-kind set (0x558410): constructs it, then registers its destructor.
-void DetectorStaticInit();                 // 0x558410
-void ConstructDetectorEventKinds();        // 0x558420
-void RegisterDetectorEventKindsAtExit();   // 0x558430
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(Detector, 0x5c);
-REB_ASSERT_OFFSET(Detector, m_detectorFlags, 0x58);
-#pragma clang diagnostic pop

@@ -1,19 +1,19 @@
-// Process entry of the native executable: what WinMainCRTStartup does for the Windows build. The C runtime is initialised by
-// the host; this runs the original's static initializers (generated from REBEXE.EXE: tools/gen_native_init.py), connects the
-// platform components, and calls the game's WinMain with a synthetic instance handle and the command line.
+// The host initializes the C runtime. Program startup, assets and platform services have explicit native lifetimes.
 #include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <exception>
+#include <iostream>
 
 #include <string>
 
 #include "app/rebellion_application.h"
 #include "platform/win32.h"
 #include "port/native/first_run.h"
+#include "port/native/game_initialization.h"
 #include "port/native/native_clock.h"
-
-void RebRunStaticInitializers();
+#include "port/native/startup_assets.h"
 
 namespace minwin_wiring {
 void Install();
@@ -50,10 +50,21 @@ std::string CommandLineFrom(int argc, char** argv) {
 
 int main(int argc, char** argv) {
     setvbuf(stdout, nullptr, _IOLBF, 0);
-    if (!reb::native::CheckInstallation()) return 1;
-    minwin_wiring::Install();
-    RebRunStaticInitializers();
-    std::string commandLine = CommandLineFrom(argc, argv);
-    HINSTANCE instance = reinterpret_cast<HINSTANCE>(GetModuleHandleA(nullptr));
-    return WinMain(instance, nullptr, commandLine.data(), 10 /* SW_SHOWDEFAULT */);
+    try {
+        reb::native::StartupAssets startupAssets(reb::native::StartupAssetPath());
+        if (!reb::native::CheckInstallation()) return 1;
+        minwin_wiring::Install();
+        reb::native::GameInitialization initialization;
+        initialization.Start();
+        std::string commandLine = CommandLineFrom(argc, argv);
+        HINSTANCE instance = reinterpret_cast<HINSTANCE>(GetModuleHandleA(nullptr));
+        int result = WinMain(instance, nullptr, commandLine.data(), 10 /* SW_SHOWDEFAULT */);
+        initialization.Shutdown();
+        return result;
+    } catch (const std::exception& error) {
+        std::cerr << "Native startup failed: " << error.what() << '\n';
+    } catch (...) {
+        std::cerr << "Native startup failed with an unknown exception\n";
+    }
+    return 1;
 }

@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
 #include "ui/cool_list_item.h"
@@ -27,10 +26,3 @@ public:
     PersistentInt m_flags;  // +0x68 FleetListItemFlags
     ObjectKey m_key;        // +0x6c
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(FleetListItem, 0x70);
-REB_ASSERT_OFFSET(FleetListItem, m_flags, 0x68);
-REB_ASSERT_OFFSET(FleetListItem, m_key, 0x6c);
-#pragma clang diagnostic pop

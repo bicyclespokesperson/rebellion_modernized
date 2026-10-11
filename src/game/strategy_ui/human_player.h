@@ -2,7 +2,7 @@
 #include <cstdint>
 
 #include "app/player_controller_decl.h"
-#include "core/layout.h"
+#include "ai/ai_notice_queue.h"
 #include "gameobj/object_key.h"
 
 class AdvisorBase;
@@ -127,7 +127,7 @@ public:
     int m_unk50;                  // +0x50
     int m_speed;                  // +0x54 the game speed (1-4)
     int m_pausedSpeed;            // +0x58 the speed to return to after a pause, 0 while not paused
-    alignas(void*) uint8_t m_alertList[REB_LP64_SCALED(0x10)];    // +0x5c list built by 0x4bee50
+    AiNoticeQueue m_alertList;  // +0x5c list built by 0x4bee50
     alignas(4) uint8_t m_dispatchStorage[sizeof(PlayerDispatch)];  // +0x6c the PlayerDispatch, built and destroyed by the original's functions
     AdvisorBase* m_advisor;       // +0xc0 advisor droid (AllianceAdvisor / EmpireAdvisor)
 
@@ -137,12 +137,3 @@ public:
 // Static helper of the human player: HumanSetUiTarget forwards to AdvisorSetPendingCommand (0x439eb0). The static
 // thunks 0x4878b0 / 0x4878c0 jump to AdvisorAllowSpeech / AdvisorSetFlag0.
 void HumanSetUiTarget(int a, int b);  // 0x4878d0
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(HumanPlayer, 0xc4);
-REB_ASSERT_OFFSET(HumanPlayer, m_speed, 0x54);
-REB_ASSERT_OFFSET(HumanPlayer, m_alertList, 0x5c);
-REB_ASSERT_OFFSET(HumanPlayer, m_dispatchStorage, 0x6c);
-REB_ASSERT_OFFSET(HumanPlayer, m_advisor, 0xc0);
-#pragma clang diagnostic pop

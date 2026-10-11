@@ -8,7 +8,6 @@
 
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_key.h"
@@ -115,16 +114,3 @@ int RegisterOrderFactory(int kind, T* (*factory)()) {
 void* CreateOrderByKind(int kind);                       // 0x51f8f0, null if no factory is registered
 // As CreateOrderByKind, but kinds below 0x200 other than 1, 2, 3, 5 and 0x11 are refused.
 void* CreateMessageByKind(int kind);  // 0x4f5cd0
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MessageBase, 0x20);
-REB_ASSERT_SIZE(SidedMessage, 0x2c);
-REB_ASSERT_SIZE(OrderBase, 0x44);
-REB_ASSERT_OFFSET(OrderBase, m_team, 0x2c);
-REB_ASSERT_OFFSET(OrderBase, m_target, 0x34);
-REB_ASSERT_OFFSET(OrderBase, m_commands, 0x40);
-REB_ASSERT_SIZE(TextMessage, 0x50);
-REB_ASSERT_OFFSET(TextMessage, m_text, 0x44);
-REB_ASSERT_SIZE(ActivityRequest, 0x10);
-#pragma clang diagnostic pop

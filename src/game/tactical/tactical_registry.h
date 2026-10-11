@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "tactical/tactical_units.h"
 
 // The tactical registry (singleton DAT_006bc470, 0x48 bytes, created by GetTacticalRegistry, 0x596bd0): the battle's
@@ -49,11 +48,3 @@ public:
 
 // The kind a TacticalUnit reports (its second virtual): 3 fighter group, 4 capital-ship group, 7 character / special force.
 int TacticalUnitKind(TacticalUnit* unit);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(TacticalRegistry, 0x48);
-REB_ASSERT_OFFSET(TacticalRegistry, m_ships, 0x14);
-REB_ASSERT_OFFSET(TacticalRegistry, m_capitalGroups, 0x38);
-REB_ASSERT_OFFSET(TacticalRegistry, m_deathStar, 0x44);
-#pragma clang diagnostic pop

@@ -305,3 +305,16 @@ int AiAgentKind4::Evaluate() {
     result = 1;
     return result;
 }
+
+const char *(*g_gameHook2AE8)() = nullptr;
+int (*g_gameHook2AD4)(HookArg) = nullptr;
+int (*g_gameHook2AEC)() = nullptr;
+int (*g_gameHook2AF0)() = nullptr;
+int (*g_gameHook2AF4)() = nullptr;
+int (*g_gameHook2AFC)() = nullptr;
+int (*g_gameHook2B04)() = nullptr;
+int (*g_gameHook2B08)() = nullptr;
+void (*g_gameHook2AD8)(HookArg, int) = nullptr;
+void (*g_gameHook2AE0)(HookArg) = nullptr;
+void (*g_gameHook2AF8)(HookArg) = nullptr;
+void (*g_gameHook2B00)(HookArg) = nullptr;

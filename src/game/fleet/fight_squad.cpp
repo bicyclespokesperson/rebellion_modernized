@@ -12,12 +12,9 @@
 #include "gameobj/object_family.h"
 #include "gameobj/side_bits.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyFightSquadEventKinds();
 
 extern int g_fightSquadEventKindsReady;      // 0x6b2b38
 extern EventKindSet g_fightSquadEventKinds;  // 0x6b2b40
-
 
 
 namespace {
@@ -311,23 +308,5 @@ FightSquadIterator::FightSquadIterator(GameObjNotifier* parent, uint32_t stateFi
     : ChildIterator(parent, side, &kFighterFamilies, stateFilter) {}
 
 FightSquadIterator::~FightSquadIterator() { REB_KEEP_VPTR_STORE(); }
-
-void FightSquadStaticInit() {
-    ConstructFightSquadEventKinds();
-    RegisterFightSquadEventKindsAtExit();
-}
-
-void ConstructFightSquadEventKinds() { new (&g_fightSquadEventKinds) EventKindSet(); }
-
-void RegisterFightSquadEventKindsAtExit() { atexit(DestroyFightSquadEventKinds); }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_fightSquadEventKindsDestroyedGuard;  // 0x6b2b48
-
-void DestroyFightSquadEventKinds() {
-    if (!(g_fightSquadEventKindsDestroyedGuard & 0x1)) {
-        g_fightSquadEventKindsDestroyedGuard |= 0x1;
-        g_fightSquadEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_fightSquadEventKinds{};
+int g_fightSquadEventKindsReady{};

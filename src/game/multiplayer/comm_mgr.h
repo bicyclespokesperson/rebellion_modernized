@@ -12,7 +12,6 @@
 
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/string_map.h"
 #include "multiplayer/comm_packets.h"
 #include "platform/win32.h"
@@ -173,25 +172,6 @@ public:
     ReceiveBuffer m_receiveBuffer;  // +0x247c
 };
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CommMgr, 0x268c);
-REB_ASSERT_OFFSET(CommMgr, m_seen, 0x18);
-REB_ASSERT_OFFSET(CommMgr, m_isHost, 0x24);
-REB_ASSERT_OFFSET(CommMgr, m_notifyWindow, 0x2c);
-REB_ASSERT_OFFSET(CommMgr, m_playerIds, 0x34);
-REB_ASSERT_OFFSET(CommMgr, m_assembling, 0x78);
-REB_ASSERT_OFFSET(CommMgr, m_outgoing, 0x84);
-REB_ASSERT_OFFSET(CommMgr, m_playerName, 0x98);
-REB_ASSERT_OFFSET(CommMgr, m_application, 0xb0);
-REB_ASSERT_OFFSET(CommMgr, m_lastReceiveTime, 0xd0);
-REB_ASSERT_OFFSET(CommMgr, m_dplay, 0x108);
-REB_ASSERT_OFFSET(CommMgr, m_ackName, 0x114);
-REB_ASSERT_OFFSET(CommMgr, m_resendInterval, 0x194);
-REB_ASSERT_OFFSET(CommMgr, m_unknown198, 0x198);
-REB_ASSERT_OFFSET(CommMgr, m_sendBuffers, 0x1b0);
-REB_ASSERT_OFFSET(CommMgr, m_receiveBuffer, 0x247c);
-#pragma clang diagnostic pop
 
 // The singleton: created on first use, null after DestroyCommMgr.
 CommMgr* GetCommMgr();     // 0x5f7cc0

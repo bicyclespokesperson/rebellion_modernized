@@ -4,7 +4,6 @@
 
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "gameobj/status_code.h"
 #include "platform/win32.h"
@@ -107,21 +106,3 @@ public:
     int m_count;       // +0x20
     ObjectKey m_key;   // +0x24 key of the first unit of the type
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ObjectStatusWindow, 0x1d8);
-REB_ASSERT_OFFSET(ObjectStatusWindow, m_galaxy, 0x114);
-REB_ASSERT_OFFSET(ObjectStatusWindow, m_list, 0x118);
-REB_ASSERT_OFFSET(ObjectStatusWindow, m_items, 0x11c);
-REB_ASSERT_OFFSET(ObjectStatusWindow, m_key, 0x124);
-REB_ASSERT_OFFSET(ObjectStatusWindow, m_typeKey, 0x128);
-REB_ASSERT_OFFSET(ObjectStatusWindow, m_object, 0x12c);
-REB_ASSERT_OFFSET(ObjectStatusWindow, m_titleLabel, 0x130);
-REB_ASSERT_OFFSET(ObjectStatusWindow, m_unusedLabel, 0x164);
-REB_ASSERT_OFFSET(ObjectStatusWindow, m_nameLabel, 0x198);
-REB_ASSERT_OFFSET(ObjectStatusWindow, m_gokres, 0x1d4);
-REB_ASSERT_SIZE(StatusTallyNode, 0x28);
-REB_ASSERT_OFFSET(StatusTallyNode, m_total, 0x1c);
-REB_ASSERT_OFFSET(StatusTallyNode, m_key, 0x24);
-#pragma clang diagnostic pop

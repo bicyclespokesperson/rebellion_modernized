@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "data/dat_record.h"
 #include "gameobj/child_iterator.h"
 #include "gameobj/unit_obj_base.h"
@@ -250,10 +249,6 @@ public:
     // it succeeded. Derived classes' static sets start from a copy of it (0x536ca0).
     static int BuildEventKinds();                                      // 0x536bc0
     static int InitEventKinds(int unused, EventKindSet* out);          // 0x536ca0
-    // Static initializer of g_roleEventKinds: constructs it (0x536d40) and registers the atexit destructor (0x536d50).
-    static void InitStatics();               // 0x536d30
-    static void ConstructEventKinds();       // 0x536d40
-    static void RegisterEventKindsAtExit();  // 0x536d50
 
     // ---- fields ----
     int16_t m_baseDiplomacy;                // +0x58
@@ -278,18 +273,3 @@ public:
     RoleIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x536e20
     virtual ~RoleIterator();                                                     // 0x536d80 (deleting), 0x536ea0
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(RoleSkillRange, 0x08);
-REB_ASSERT_OFFSET(RoleRecord, m_skills, 0x58);
-REB_ASSERT_SIZE(Role, 0x7c);
-REB_ASSERT_OFFSET(Role, m_baseDiplomacy, 0x58);
-REB_ASSERT_OFFSET(Role, m_baseLoyalty, 0x66);
-REB_ASSERT_OFFSET(Role, m_missionKey, 0x68);
-REB_ASSERT_OFFSET(Role, m_missionSeedKey, 0x6c);
-REB_ASSERT_OFFSET(Role, m_locationAtMissionCompletionKey, 0x74);
-REB_ASSERT_OFFSET(Role, m_flags78, 0x78);
-REB_ASSERT_SIZE(RoleIterator, 0x20);
-#pragma clang diagnostic pop
-

@@ -354,3 +354,5 @@ int DibBitmap::DrawToDc(HDC dc, char mode, DWORD rop, int destX, int destY, int 
     DeleteDC(memoryDc);
     return 1;
 }
+
+int16_t g_bmpFileMagic = 19778;

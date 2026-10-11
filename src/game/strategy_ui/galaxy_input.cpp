@@ -819,3 +819,6 @@ void GalaxyWindow::ActivateNextOpenWindow(IdNode* current, bool backwards) {
     CoolWindow* window = m_children.FindById(found->m_id);
     SendMessageA(m_hwnd, kGalaxyActivateChild, reinterpret_cast<WPARAM>(window->m_hwnd), 0);
 }
+
+MenuItemList g_menuRoot{};
+PopupMenuWindow * g_menuWindow{};

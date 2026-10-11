@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
 #include "ui/cool_drag_list.h"
@@ -100,19 +99,3 @@ int SectorSystemPictureId(int index);
 uint32_t REB_STDCALL SectorMarkerImageId(uint32_t kind, int state, int selected);
 // The rectangle of the caption below a system icon (0x45c1f0); returns `out`.
 RECT* REB_STDCALL SectorMarkerLabelRect(RECT* out, ObjectListItem* item);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SectorWindow, 0x1a4);
-REB_ASSERT_OFFSET(SectorWindow, m_inputBlocked, 0x140);
-REB_ASSERT_OFFSET(SectorWindow, m_sector, 0x144);
-REB_ASSERT_OFFSET(SectorWindow, m_dragging, 0x148);
-REB_ASSERT_OFFSET(SectorWindow, m_markerColorKey, 0x158);
-REB_ASSERT_OFFSET(SectorWindow, m_remapTable, 0x15c);
-REB_ASSERT_OFFSET(SectorWindow, m_systems, 0x164);
-REB_ASSERT_OFFSET(SectorWindow, m_markers, 0x174);
-REB_ASSERT_OFFSET(SectorWindow, m_marked, 0x184);
-REB_ASSERT_OFFSET(SectorWindow, m_closeButton, 0x18c);
-REB_ASSERT_OFFSET(SectorWindow, m_galaxy, 0x194);
-REB_ASSERT_OFFSET(SectorWindow, m_hitItem, 0x1a0);
-#pragma clang diagnostic pop

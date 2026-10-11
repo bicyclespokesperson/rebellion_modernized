@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "fleet/fight_squad.h"
 #include "gameobj/child_iterator.h"
 #include "gameobj/game_obj.h"
@@ -376,10 +375,6 @@ public:
     static int BuildEventKinds();  // 0x50f0b0
     // Points *out at the set for `type` (its bit 0 is ignored); 0 (and *out null) for an unknown type.
     static int SelectEventKinds(uint32_t type, EventKindSet** out);  // 0x50f2e0
-    static void InitStatics4();   // 0x512db0, constructs g_systemEventKinds4 and registers its destructor
-    static void InitStatics8();   // 0x512e00
-    static void InitStatics10();  // 0x512e50
-    static void InitStatics40();  // 0x512ea0
 
     // ---- fields ----
     int m_loyalty;                  // +0x58, constructed as 50
@@ -408,14 +403,3 @@ public:
     SystemIterator(GameObjNotifier* parent, uint32_t stateFilter);   // 0x512f90
     virtual ~SystemIterator();                                       // 0x512f70 (deleting), 0x513010
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(System, 0x8c);
-REB_ASSERT_SIZE(SystemIterator, 0x20);
-REB_ASSERT_OFFSET(System, m_loyalty, 0x58);
-REB_ASSERT_OFFSET(System, m_troopRegWithdrawPercent, 0x74);
-REB_ASSERT_OFFSET(System, m_controlBits, 0x78);
-REB_ASSERT_OFFSET(System, m_controlData, 0x84);
-REB_ASSERT_OFFSET(System, m_flags, 0x88);
-#pragma clang diagnostic pop

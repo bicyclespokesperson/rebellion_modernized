@@ -24,12 +24,12 @@
 #include "ui/cool_string_field.h"
 #include "ui/resource_dll.h"
 
-extern const char g_textcommDllName[];             // 0x6a7edc "textcomm.dll"
-extern const char g_commonDllName[];               // 0x6a7c98 "common.dll"
-extern const char g_spaceString[];                 // 0x6a7f40 " "
-extern const char g_gameOptionsRequestLoadText[];  // 0x6a7eec
-extern const char g_versionText[];                 // 0x6a7f44 "1.01.00"
-extern const char g_emptyText[];                   // 0x6b120c
+extern const char *g_textcommDllName;             // 0x6a7edc "textcomm.dll"
+extern const char *g_commonDllName;               // 0x6a7c98 "common.dll"
+extern const char *g_spaceString;                 // 0x6a7f40 " "
+extern const char *g_gameOptionsRequestLoadText;  // 0x6a7eec
+extern const char *g_versionText;                 // 0x6a7f44 "1.01.00"
+extern const char *g_emptyText;                   // 0x6b120c
 
 namespace {
 
@@ -710,3 +710,6 @@ void GameOptionsWindow::UpdateSlotButtons() {
 }
 
 String SavedGameInfo::GetName() const { return m_name; }
+
+const char *g_gameOptionsRequestLoadText = nullptr;
+const char *g_versionText = nullptr;

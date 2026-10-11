@@ -5,11 +5,6 @@
 #include "core/vptr_store.h"
 #include "story/story_characters.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyMajorCharacterEventKinds();
-void DestroyMajorChar30EventKinds();
-void DestroyMajorChar34EventKinds();
-void DestroyMajorChar35EventKinds();
 
 extern int g_majorCharacterEventKindsReady;      // 0x6bc070
 extern EventKindSet g_majorCharacterEventKinds;  // 0x6bc068
@@ -95,14 +90,6 @@ int MajorCharacter::InitEventKinds(int unused, EventKindSet* out) {
     return result;
 }
 
-void ConstructMajorCharacterEventKinds() { new (&g_majorCharacterEventKinds) EventKindSet(); }
-
-void RegisterMajorCharacterEventKindsAtExit() { atexit(DestroyMajorCharacterEventKinds); }
-
-void MajorCharacter::InitStatics() {
-    ConstructMajorCharacterEventKinds();
-    RegisterMajorCharacterEventKindsAtExit();
-}
 
 // ---- forwarders -----------------------------------------------------------------------------------------------
 
@@ -167,14 +154,6 @@ int MajorChar30::BuildEventKinds() {
                           [] { return MajorCharacter::InitEventKinds(0, &g_majorChar30EventKinds); });
 }
 
-void ConstructMajorChar30EventKinds() { new (&g_majorChar30EventKinds) EventKindSet(); }
-
-void RegisterMajorChar30EventKindsAtExit() { atexit(DestroyMajorChar30EventKinds); }
-
-void MajorChar30::InitStatics() {
-    ConstructMajorChar30EventKinds();
-    RegisterMajorChar30EventKindsAtExit();
-}
 
 // ---- MajorChar34 ---------------------------------------------------------------------------------------------
 
@@ -220,14 +199,6 @@ int MajorChar34::BuildEventKinds() {
                           [] { return MajorCharacter::InitEventKinds(0, &g_majorChar34EventKinds); });
 }
 
-void ConstructMajorChar34EventKinds() { new (&g_majorChar34EventKinds) EventKindSet(); }
-
-void RegisterMajorChar34EventKindsAtExit() { atexit(DestroyMajorChar34EventKinds); }
-
-void MajorChar34::InitStatics() {
-    ConstructMajorChar34EventKinds();
-    RegisterMajorChar34EventKindsAtExit();
-}
 
 // ---- MajorChar35 ---------------------------------------------------------------------------------------------
 
@@ -272,50 +243,11 @@ int MajorChar35::BuildEventKinds() {
     return buildKindsOnce(&g_majorChar35EventKindsReady,
                           [] { return MajorCharacter::InitEventKinds(0, &g_majorChar35EventKinds); });
 }
-
-void ConstructMajorChar35EventKinds() { new (&g_majorChar35EventKinds) EventKindSet(); }
-
-void RegisterMajorChar35EventKindsAtExit() { atexit(DestroyMajorChar35EventKinds); }
-
-void MajorChar35::InitStatics() {
-    ConstructMajorChar35EventKinds();
-    RegisterMajorChar35EventKindsAtExit();
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_majorChar30EventKindsDestroyedGuard;  // 0x6bb9d4
-
-void DestroyMajorChar30EventKinds() {
-    if (!(g_majorChar30EventKindsDestroyedGuard & 0x1)) {
-        g_majorChar30EventKindsDestroyedGuard |= 0x1;
-        g_majorChar30EventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_majorChar34EventKindsDestroyedGuard;  // 0x6bba7c
-
-void DestroyMajorChar34EventKinds() {
-    if (!(g_majorChar34EventKindsDestroyedGuard & 0x1)) {
-        g_majorChar34EventKindsDestroyedGuard |= 0x1;
-        g_majorChar34EventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_majorChar35EventKindsDestroyedGuard;  // 0x6bbac8
-
-void DestroyMajorChar35EventKinds() {
-    if (!(g_majorChar35EventKindsDestroyedGuard & 0x1)) {
-        g_majorChar35EventKindsDestroyedGuard |= 0x1;
-        g_majorChar35EventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_majorCharacterEventKindsDestroyedGuard;  // 0x6bc074
-
-void DestroyMajorCharacterEventKinds() {
-    if (!(g_majorCharacterEventKindsDestroyedGuard & 0x1)) {
-        g_majorCharacterEventKindsDestroyedGuard |= 0x1;
-        g_majorCharacterEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_majorChar30EventKinds{};
+EventKindSet g_majorChar34EventKinds{};
+EventKindSet g_majorChar35EventKinds{};
+EventKindSet g_majorCharacterEventKinds{};
+int g_majorChar30EventKindsReady{};
+int g_majorChar34EventKindsReady{};
+int g_majorChar35EventKindsReady{};
+int g_majorCharacterEventKindsReady{};

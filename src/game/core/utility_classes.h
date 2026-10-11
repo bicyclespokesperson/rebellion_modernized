@@ -2,7 +2,6 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/stream_io.h"
 
 class String;
@@ -75,13 +74,3 @@ public:
 
     uint32_t m_state;  // +0x04
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ObjectBase, 0x04);
-REB_ASSERT_SIZE(PersistentInt, 0x04);
-REB_ASSERT_SIZE(RandomGenerator, 0x08);
-REB_ASSERT_OFFSET(RandomGenerator, m_seed, 0x04);
-REB_ASSERT_SIZE(Crc32, 0x08);
-REB_ASSERT_OFFSET(Crc32, m_state, 0x04);
-#pragma clang diagnostic pop

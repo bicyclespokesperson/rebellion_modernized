@@ -60,3 +60,6 @@ int EnsureRecordFactoriesRegistered() {
     }
     return 1;
 }
+
+int g_recordFactoriesRegistered{};
+int g_tableEntryClassesRegistered{};

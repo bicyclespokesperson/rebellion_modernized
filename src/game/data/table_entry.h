@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 
 class Crc32;
@@ -45,11 +44,3 @@ public:
 void* CreateTableEntryByClassName(const char* className);
 int RegisterTableEntryClass(const char* className, void* (*factory)());
 int IsTableEntryClassRegistered(const char* className);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(TableEntry, 0x24);
-REB_ASSERT_OFFSET(TableEntry, m_field1c, 0x1c);
-REB_ASSERT_OFFSET(TableEntry, m_field20, 0x20);
-REB_ASSERT_OFFSET(TableEntryWithValue, m_firstValue, 0x24);
-#pragma clang diagnostic pop

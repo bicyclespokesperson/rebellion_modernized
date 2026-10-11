@@ -1,5 +1,6 @@
 #include "character/character.h"
 #include "data/dat_record.h"
+#include "data/sd_records.h"
 #include "economy/manu_mgr.h"
 #include "fleet/combat_unit.h"
 #include "fleet/fleet.h"
@@ -153,10 +154,18 @@ int System::FindBestShipOfCommandKind1(uint32_t side, GameObjNotifier** out) {
     return found;
 }
 
-uint32_t System::GetRecordField44() { return m_record ? static_cast<SdRecord*>(m_record)->m_field44 : 0; }
+uint32_t System::GetRecordField44() {
+    return m_record ? static_cast<uint32_t>(static_cast<SystemSD*>(m_record)->m_pictureId) : 0;
+}
 
 uint32_t* System::GetRecordField4c(uint32_t* out) {
-    *out = m_record ? static_cast<SdRecord*>(m_record)->m_field4c : 0;
+    if (m_record) {
+        const SystemSD* record = static_cast<SystemSD*>(m_record);
+        *out = static_cast<uint32_t>(static_cast<uint16_t>(record->m_xPosition)) |
+               (static_cast<uint32_t>(static_cast<uint16_t>(record->m_yPosition)) << 16);
+    } else {
+        *out = 0;
+    }
     return out;
 }
 

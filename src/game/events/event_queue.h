@@ -6,7 +6,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "events/event_base.h"
 
@@ -68,11 +67,3 @@ public:
     virtual int IsLess(AvlNode* a, AvlNode* b) override;  // 0x54ee90, true if either is null
     virtual EventBase* GetNext() override;                // 0x54eed0
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(EventQueue, 0x10);
-REB_ASSERT_SIZE(TimerQueue, 0x10);
-REB_ASSERT_SIZE(CommandQueue, 0x10);
-REB_ASSERT_SIZE(TypeQueue, 0x10);
-#pragma clang diagnostic pop

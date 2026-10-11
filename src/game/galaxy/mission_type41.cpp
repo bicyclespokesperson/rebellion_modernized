@@ -7,13 +7,10 @@
 #include "mission/mission_bases.h"
 #include "mission/mission_forwarders.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 
 extern int g_mission41EventKindsReady;      // 0x6bb9b0
 extern EventKindSet g_mission41EventKinds;  // 0x6bb9b8
-extern uint8_t g_mission41EventKindsDestroyedGuard;  // 0x6bb9c0
 
-void DestroyMission41EventKinds();
 
 namespace {
 
@@ -30,7 +27,7 @@ Mission41::~Mission41() { REB_KEEP_VPTR_STORE(); }
 
 uint32_t Mission41::GetFamily() { return kFamilyMission41; }
 
-int Mission41::Read(istream* in) { return reinterpret_cast<MissionRuleBase*>(this)->MissionRuleBase::ReadBody(in); }
+int Mission41::Read(istream* in) { return this->Mission::ReadImpl(in); }
 
 int Mission41::Write(ostream* out) { return MissionTypeWriteForward(this, out); }
 
@@ -71,18 +68,6 @@ int Mission41::BuildEventKinds() {
     return result;
 }
 
-void ConstructMission41EventKinds() { new (&g_mission41EventKinds) EventKindSet(); }
 
-void RegisterMission41EventKindsAtExit() { atexit(DestroyMission41EventKinds); }
-
-void Mission41::InitStatics() {
-    ConstructMission41EventKinds();
-    RegisterMission41EventKindsAtExit();
-}
-
-void DestroyMission41EventKinds() {
-    if (!(g_mission41EventKindsDestroyedGuard & 0x1)) {
-        g_mission41EventKindsDestroyedGuard |= 0x1;
-        g_mission41EventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_mission41EventKinds{};
+int g_mission41EventKindsReady{};

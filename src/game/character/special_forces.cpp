@@ -7,8 +7,6 @@
 #include "economy/manu_mgr_leaves.h"
 #include "gameobj/object_family.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroySpecialForcesEventKinds();
 
 extern int g_specialForcesEventKindsReady;       // 0x6b2b50
 extern EventKindSet g_specialForcesEventKinds;   // 0x6b2b58
@@ -31,9 +29,7 @@ constexpr int kDestroyedReasonSpecial = 9;
 
 // Constructs g_specialForcesEventKinds (0x503fe0) and registers its destructor (0x503ff0); both run from the static
 // initializer 0x503fd0.
-void ConstructSpecialForcesEventKinds() { new (&g_specialForcesEventKinds) EventKindSet(); }
 
-void RegisterSpecialForcesEventKindsAtExit() { atexit(DestroySpecialForcesEventKinds); }
 
 SpecialForces::SpecialForces() {}
 
@@ -151,10 +147,6 @@ int SpecialForces::BuildEventKinds() {
     return result;
 }
 
-void SpecialForces::InitStatics() {
-    ConstructSpecialForcesEventKinds();
-    RegisterSpecialForcesEventKindsAtExit();
-}
 
 SpecialForceIterator::SpecialForceIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &family::kSpecialForces, stateFilter) {}
@@ -163,14 +155,5 @@ SpecialForceIterator::SpecialForceIterator(GameObjNotifier* parent, uint32_t sta
     : ChildIterator(parent, side, &family::kSpecialForces, stateFilter) {}
 
 SpecialForceIterator::~SpecialForceIterator() { REB_KEEP_VPTR_STORE(); }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_specialForcesEventKindsDestroyedGuard;  // 0x6b2b60
-
-void DestroySpecialForcesEventKinds() {
-    if (!(g_specialForcesEventKindsDestroyedGuard & 0x1)) {
-        g_specialForcesEventKindsDestroyedGuard |= 0x1;
-        g_specialForcesEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_specialForcesEventKinds{};
+int g_specialForcesEventKindsReady{};

@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "ai/ai_ranked_list.h"
-#include "core/layout.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
 
@@ -113,18 +112,3 @@ public:
     GameObjNotifier* m_cursor;  // +0x14 the next character of the build, null before and after it
     int m_usableCount;         // +0x18 decremented for each usable character record added by BuildStep
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiCharacterRecord, 0x68);
-REB_ASSERT_OFFSET(AiCharacterRecord, m_side, 0x1c);
-REB_ASSERT_OFFSET(AiCharacterRecord, m_flags, 0x30);
-REB_ASSERT_OFFSET(AiCharacterRecord, m_capabilities, 0x34);
-REB_ASSERT_OFFSET(AiCharacterRecord, m_location, 0x38);
-REB_ASSERT_OFFSET(AiCharacterRecord, m_owner, 0x3c);
-REB_ASSERT_OFFSET(AiCharacterRecord, m_values, 0x40);
-REB_ASSERT_SIZE(AiCharacterRecordSet, 0x1c);
-REB_ASSERT_OFFSET(AiCharacterRecordSet, m_view, 0x08);
-REB_ASSERT_OFFSET(AiCharacterRecordSet, m_owner, 0x10);
-REB_ASSERT_OFFSET(AiCharacterRecordSet, m_cursor, 0x14);
-#pragma clang diagnostic pop

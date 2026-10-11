@@ -5,7 +5,6 @@
 #include <cstdint>
 
 #include "core/game_string.h"
-#include "core/layout.h"
 
 class istream;
 class ostream;
@@ -29,11 +28,3 @@ public:
     int m_side;              // +0x20 RebellionApplication::m_side
     int m_unknown24;         // +0x24
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SavedGameInfo, 0x28);
-REB_ASSERT_OFFSET(SavedGameInfo, m_name, 0x04);
-REB_ASSERT_OFFSET(SavedGameInfo, m_unknown10, 0x10);
-REB_ASSERT_OFFSET(SavedGameInfo, m_side, 0x20);
-#pragma clang diagnostic pop

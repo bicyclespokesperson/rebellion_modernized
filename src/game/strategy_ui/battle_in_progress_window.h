@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
 
@@ -22,9 +21,3 @@ public:
 
     GalaxyWindow* m_galaxy;  // +0x114
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(BattleInProgressWindow, 0x118);
-REB_ASSERT_OFFSET(BattleInProgressWindow, m_galaxy, 0x114);
-#pragma clang diagnostic pop

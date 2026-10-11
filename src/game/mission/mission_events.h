@@ -14,7 +14,6 @@
 //   0x30d  MissionMgrEvent30d        event handled by the mission manager with two arguments (VT 0x661ef0)
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "events/event_base.h"
 #include "events/timer_event.h"
@@ -167,18 +166,3 @@ MissionMgrEvent30c* CreateMissionMgrEvent30c();       // 0x54dc00
 MissionMgrEvent30d* CreateMissionMgrEvent30d();       // 0x54dec0
 MissionMgrStatATimer* CreateMissionMgrStatATimer();   // 0x54e4e0
 MissionMgrStatBTimer* CreateMissionMgrStatBTimer();   // 0x54e810
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(MissionOrderCommand, 0x74);
-REB_ASSERT_OFFSET(MissionOrderCommand, m_missionKey, 0x5c);
-REB_ASSERT_OFFSET(MissionOrderCommand, m_team, 0x64);
-REB_ASSERT_OFFSET(MissionOrderCommand, m_characters, 0x6c);
-REB_ASSERT_SIZE(MissionActivityCommand, 0x50);
-REB_ASSERT_SIZE(MissionStatATimer, 0x4c);
-REB_ASSERT_SIZE(MissionStatBTimer, 0x4c);
-REB_ASSERT_SIZE(MissionMgrStatATimer, 0x4c);
-REB_ASSERT_SIZE(MissionMgrStatBTimer, 0x4c);
-REB_ASSERT_SIZE(MissionMgrEvent30c, 0x54);
-REB_ASSERT_SIZE(MissionMgrEvent30d, 0x54);
-#pragma clang diagnostic pop

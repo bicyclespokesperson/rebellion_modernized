@@ -7,7 +7,6 @@
 #include "galaxy/system.h"
 #include "gameobj/object_queries.h"
 
-void DestroyMissionEspionageEventKinds();
 
 extern int g_missionEspionageEventKindsReady;      // 0x6bba64
 extern EventKindSet g_missionEspionageEventKinds;  // 0x6bba68
@@ -203,23 +202,5 @@ int MissionEspionage::BuildEventKinds() {
     }
     return 1;
 }
-
-void ConstructMissionEspionageEventKinds() { new (&g_missionEspionageEventKinds) EventKindSet(); }
-
-void RegisterMissionEspionageEventKindsAtExit() { atexit(DestroyMissionEspionageEventKinds); }
-
-void MissionEspionage::InitStatics() {
-    ConstructMissionEspionageEventKinds();
-    RegisterMissionEspionageEventKindsAtExit();
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_missionEspionageEventKindsDestroyedGuard;  // 0x6bba60
-
-void DestroyMissionEspionageEventKinds() {
-    if (!(g_missionEspionageEventKindsDestroyedGuard & 0x1)) {
-        g_missionEspionageEventKindsDestroyedGuard |= 0x1;
-        g_missionEspionageEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_missionEspionageEventKinds{};
+int g_missionEspionageEventKindsReady{};

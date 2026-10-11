@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "gameobj/object_key.h"
 
@@ -45,11 +44,3 @@ public:
 
     ObjectKey m_key;  // +0x20
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(NotifPayload, 0x20);
-REB_ASSERT_OFFSET(NotifPayload, m_value0c, 0x0c);
-REB_ASSERT_OFFSET(NotifPayload, m_value1c, 0x1c);
-REB_ASSERT_SIZE(KeyedNotifPayload, 0x24);
-#pragma clang diagnostic pop

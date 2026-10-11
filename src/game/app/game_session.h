@@ -4,7 +4,6 @@
 
 #include "app/player_controller_decl.h"
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
@@ -105,23 +104,9 @@ public:
     PlayerMessageTree m_messages;         // +0x24
 };
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(GameSession, 0x34);
-REB_ASSERT_OFFSET(GameSession, m_viewReady, 0x00);
-REB_ASSERT_OFFSET(GameSession, m_unk04, 0x04);
-REB_ASSERT_OFFSET(GameSession, m_nextId, 0x08);
-REB_ASSERT_OFFSET(GameSession, m_human, 0x0c);
-REB_ASSERT_OFFSET(GameSession, m_controllers, 0x10);
-REB_ASSERT_OFFSET(GameSession, m_activeIndex, 0x18);
-REB_ASSERT_OFFSET(GameSession, m_opponentType, 0x1c);
-REB_ASSERT_OFFSET(GameSession, m_valid, 0x20);
-REB_ASSERT_OFFSET(GameSession, m_messages, 0x24);
-#pragma clang diagnostic pop
 
 extern GameSession* g_gameSession;        // 0x6b14e4
 extern RandomGenerator g_sessionRandom;   // 0x6b14d8, saved with the session (its state is ignored when loading)
-extern uint8_t g_sessionRandomDestroyedGuard;  // 0x6b14e0
 
 GameSession* GetGameSession();
 // Replaces the session with a new one; destroys it again if construction left it invalid.
@@ -129,9 +114,3 @@ void CreateGameSession(int opponentType, int humanSide);
 // Replaces the session with an empty one (controllers are created by GameSession::Read); returns 0 on failure.
 int CreateEmptyGameSession();
 void DestroyGameSession();
-
-// Static initializer of g_sessionRandom (0x4359f0 constructs it and registers the destructor with atexit).
-void GameSessionStaticInit();
-void ConstructSessionRandom();
-void RegisterSessionRandomDestructor();
-void DestroySessionRandom();

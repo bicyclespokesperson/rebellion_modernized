@@ -316,3 +316,6 @@ int OrderBase::Write(ostream* out) {
     }
     return result;
 }
+
+OrderFactoryEntry g_orderFactories[0x3ff]{};
+int g_orderFactoryCount{};

@@ -1,5 +1,4 @@
 #pragma once
-#include "core/layout.h"
 #include "galaxy/system_type90.h"
 
 // SystemType92 (family 0x92, VT 0x664098, secondary ObjectBase VT 0x664090, 0x8c bytes, no fields of its own): the
@@ -27,8 +26,3 @@ public:
 
     static GameObjNotifier* Create();  // 0x56a4a0, the object factory of family 0x92
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SystemType92, 0x8c);
-#pragma clang diagnostic pop

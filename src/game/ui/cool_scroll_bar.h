@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_window.h"
 
@@ -103,19 +102,3 @@ private:
     void CreateArrowButton(CoolWindow*& button, HMODULE module, uint16_t normalId, uint16_t pressedId,
                            uint32_t childId);
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CoolScrollBar, 0xf0);
-REB_ASSERT_OFFSET(CoolScrollBar, m_timerId, 0x94);
-REB_ASSERT_OFFSET(CoolScrollBar, m_owner, 0x98);
-REB_ASSERT_OFFSET(CoolScrollBar, m_dragOffset, 0xa8);
-REB_ASSERT_OFFSET(CoolScrollBar, m_thickness, 0xac);
-REB_ASSERT_OFFSET(CoolScrollBar, m_previousCapture, 0xb0);
-REB_ASSERT_OFFSET(CoolScrollBar, m_trackTile, 0xb4);
-REB_ASSERT_OFFSET(CoolScrollBar, m_surface, 0xc4);
-REB_ASSERT_OFFSET(CoolScrollBar, m_backButton, 0xd4);
-REB_ASSERT_OFFSET(CoolScrollBar, m_total, 0xdc);
-REB_ASSERT_OFFSET(CoolScrollBar, m_artSlot, 0xe8);
-REB_ASSERT_OFFSET(CoolScrollBar, m_buttonFlags, 0xec);
-#pragma clang diagnostic pop

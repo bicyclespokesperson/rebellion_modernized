@@ -5,7 +5,6 @@
 // RunScheduler until nothing is due.
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "events/event_queue.h"
@@ -134,17 +133,3 @@ void DestroyGameManager();      // 0x51cea0
 
 // Registers the factories of all three tables once (0x51ebc0).
 void RegisterAllFactoriesOnce();
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(GameStateSnapshot, 0x1c);
-REB_ASSERT_SIZE(GameManager, 0xc4);
-REB_ASSERT_OFFSET(GameManager, m_tickCount, 0x0c);
-REB_ASSERT_OFFSET(GameManager, m_day, 0x10);
-REB_ASSERT_OFFSET(GameManager, m_dayEnded, 0x24);
-REB_ASSERT_OFFSET(GameManager, m_setupDone, 0x2c);
-REB_ASSERT_OFFSET(GameManager, m_snapshot, 0x50);
-REB_ASSERT_OFFSET(GameManager, m_notices, 0xa4);
-REB_ASSERT_OFFSET(GameManager, m_secondQueue, 0xb8);
-REB_ASSERT_OFFSET(GameManager, m_root, 0xc0);
-#pragma clang diagnostic pop

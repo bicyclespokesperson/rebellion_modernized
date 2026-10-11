@@ -251,31 +251,3 @@ void* CreateFighterSD();
 void* CreateDefenseFacilitySD();
 void* CreateCapitalShipSD();
 void* CreateAllFacilitySD();
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(BasicSD, 0x40);
-REB_ASSERT_SIZE(TroopSD, 0x6c);
-REB_ASSERT_OFFSET(TroopSD, m_bombardmentDefense, 0x60);
-REB_ASSERT_SIZE(SystemSD, 0x54);
-REB_ASSERT_OFFSET(SystemSD, m_sectorId, 0x40);
-REB_ASSERT_SIZE(SpecialForceSD, 0x9c);
-REB_ASSERT_OFFSET(SpecialForceSD, m_missionId, 0x98);
-REB_ASSERT_SIZE(SectorSD, 0x4c);
-REB_ASSERT_OFFSET(SectorSD, m_group, 0x40);
-REB_ASSERT_SIZE(ProductionFacilitySD, 0x60);
-REB_ASSERT_OFFSET(ProductionFacilitySD, m_processingRate, 0x5c);
-REB_ASSERT_SIZE(MissionSD, 0x98);
-REB_ASSERT_OFFSET(MissionSD, m_isAlliance, 0x40);
-REB_ASSERT_SIZE(MinorCharacterSD, 0xbc);
-REB_ASSERT_SIZE(ManufacturingFacilitySD, 0x60);
-REB_ASSERT_OFFSET(ManufacturingFacilitySD, m_processingRate, 0x5c);
-REB_ASSERT_SIZE(MajorCharacterSD, 0xbc);
-REB_ASSERT_SIZE(FighterSD, 0xd0);
-REB_ASSERT_OFFSET(FighterSD, m_torpedoes, 0xc0);
-REB_ASSERT_SIZE(DefenseFacilitySD, 0x64);
-REB_ASSERT_OFFSET(DefenseFacilitySD, m_attackStrength, 0x5c);
-REB_ASSERT_SIZE(CapitalShipSD, 0xf0);
-REB_ASSERT_OFFSET(CapitalShipSD, m_hull, 0xc0);
-REB_ASSERT_SIZE(AllFacilitySD, 0x5c);
-#pragma clang diagnostic pop

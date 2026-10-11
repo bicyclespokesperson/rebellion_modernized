@@ -4,7 +4,6 @@
 #include "data/random.h"
 #include "mission/mission_rules.h"
 
-void DestroyMissionAssassinationEventKinds();
 
 extern int g_missionAssassinationEventKindsReady;      // 0x6bbb08
 extern EventKindSet g_missionAssassinationEventKinds;  // 0x6bbb00
@@ -84,23 +83,5 @@ int MissionAssassination::BuildEventKinds() {
     }
     return 1;
 }
-
-void ConstructMissionAssassinationEventKinds() { new (&g_missionAssassinationEventKinds) EventKindSet(); }
-
-void RegisterMissionAssassinationEventKindsAtExit() { atexit(DestroyMissionAssassinationEventKinds); }
-
-void MissionAssassination::InitStatics() {
-    ConstructMissionAssassinationEventKinds();
-    RegisterMissionAssassinationEventKindsAtExit();
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_missionAssassinationEventKindsDestroyedGuard;  // 0x6bbaf8
-
-void DestroyMissionAssassinationEventKinds() {
-    if (!(g_missionAssassinationEventKindsDestroyedGuard & 0x1)) {
-        g_missionAssassinationEventKindsDestroyedGuard |= 0x1;
-        g_missionAssassinationEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_missionAssassinationEventKinds{};
+int g_missionAssassinationEventKindsReady{};

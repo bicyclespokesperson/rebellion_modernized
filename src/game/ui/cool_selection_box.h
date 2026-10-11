@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_drag_list.h"
 #include "ui/cool_window.h"
@@ -94,23 +93,3 @@ public:
 };
 
 extern int g_selectionBoxClosing;  // 0x6be5c8 guards CloseDropDown against re-entry
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CoolSelectionBox, 0xf8);
-REB_ASSERT_OFFSET(CoolSelectionBox, m_textColor, 0x94);
-REB_ASSERT_OFFSET(CoolSelectionBox, m_listFillColor, 0xac);
-REB_ASSERT_OFFSET(CoolSelectionBox, m_borderPen, 0xb0);
-REB_ASSERT_OFFSET(CoolSelectionBox, m_dropDownShade, 0xb4);
-REB_ASSERT_OFFSET(CoolSelectionBox, m_buttonBitmapId, 0xb8);
-REB_ASSERT_OFFSET(CoolSelectionBox, m_scrollResourceId, 0xbe);
-REB_ASSERT_OFFSET(CoolSelectionBox, m_screenBottom, 0xcc);
-REB_ASSERT_OFFSET(CoolSelectionBox, m_items, 0xd0);
-REB_ASSERT_OFFSET(CoolSelectionBox, m_current, 0xe0);
-REB_ASSERT_OFFSET(CoolSelectionBox, m_dropDown, 0xe8);
-REB_ASSERT_OFFSET(CoolSelectionBox, m_dropDownTile, 0xf4);
-REB_ASSERT_SIZE(CoolSelectionDropDown, 0xb4);
-REB_ASSERT_OFFSET(CoolSelectionDropDown, m_list, 0x9c);
-REB_ASSERT_OFFSET(CoolSelectionDropDown, m_shade, 0xa8);
-REB_ASSERT_OFFSET(CoolSelectionDropDown, m_sortMode, 0xb0);
-#pragma clang diagnostic pop

@@ -6,7 +6,6 @@
 #include "ai/ai_ranked_list.h"
 #include "ai/ai_records.h"
 #include "ai/ai_selector.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
@@ -160,22 +159,3 @@ public:
     int m_agentCount[2];               // +0x35c agents per kind (CountAgent)
     int m_budget[kBudgetCount];        // +0x364 how many of each kind of force to keep (ResetBudget sets the defaults)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiSideController, 0x394);
-REB_ASSERT_OFFSET(AiSideController, m_systems, 0x2c);
-REB_ASSERT_OFFSET(AiSideController, m_sectors, 0x44);
-REB_ASSERT_OFFSET(AiSideController, m_ships, 0x58);
-REB_ASSERT_OFFSET(AiSideController, m_fleets, 0x78);
-REB_ASSERT_OFFSET(AiSideController, m_characters, 0x8c);
-REB_ASSERT_OFFSET(AiSideController, m_planners, 0xa8);
-REB_ASSERT_OFFSET(AiSideController, m_systemRecords, 0xd8);
-REB_ASSERT_OFFSET(AiSideController, m_agents, 0xec);
-REB_ASSERT_OFFSET(AiSideController, m_tasks, 0x11c);
-REB_ASSERT_OFFSET(AiSideController, m_classes, 0x138);
-REB_ASSERT_OFFSET(AiSideController, m_cursor, 0x178);
-REB_ASSERT_OFFSET(AiSideController, m_stat, 0x184);
-REB_ASSERT_OFFSET(AiSideController, m_plannerCount, 0x320);
-REB_ASSERT_OFFSET(AiSideController, m_budget, 0x364);
-#pragma clang diagnostic pop

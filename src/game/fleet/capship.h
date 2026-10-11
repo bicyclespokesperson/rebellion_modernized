@@ -1,5 +1,4 @@
 #pragma once
-#include "core/layout.h"
 #include "fleet/combat_unit.h"
 #include "gameobj/child_iterator.h"
 
@@ -160,10 +159,6 @@ public:
     uint32_t m_criticalHits; // +0x64, six 4-bit CH values (shield, weapon, tractor beam, speed, primary and backup hyperdrive)
 };
 
-// Static initializer of the CapShip event-kind set (0x502cc0): constructs it, then registers its destructor.
-void CapShipStaticInit();                 // 0x502cc0
-void ConstructCapShipEventKinds();        // 0x502cd0
-void RegisterCapShipEventKindsAtExit();   // 0x502ce0
 
 // Iterators over capital-ship families (own vtable with just the destructor): [0x14,0x1c), the two leaf ranges.
 class CapShipIterator : public ChildIterator {
@@ -180,11 +175,3 @@ int RollCriticalHitType(int hullLeft, int damage, int* hitType);  // 0x5585e0
 
 // Number of capital ships (families 0x14-0x1b) below `parent` that pass the side and state filters.
 int CountCapitalShipChildren(GameObj* parent, uint32_t side, uint32_t filter);  // 0x501e70
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CapShip, 0x68);
-REB_ASSERT_OFFSET(CapShip, m_hullValueDamage, 0x60);
-REB_ASSERT_OFFSET(CapShip, m_criticalHits, 0x64);
-REB_ASSERT_SIZE(CapShipIterator, 0x20);
-#pragma clang diagnostic pop

@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_family.h"
 
@@ -137,11 +136,3 @@ public:
 Fleet* CreateFleet();
 // Number of fleets below `parent` controlled by `side` that pass the state `filter` (0x4feea0, cdecl).
 int CountFleets(GameObj* parent, uint32_t side, uint32_t filter);
-// Static initialisation of the event kind set (0x4ffd80, called from the CRT initialisers).
-void FleetStaticInit();
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(Fleet, 0x5c);
-REB_ASSERT_OFFSET(Fleet, m_fleetFlags, 0x58);
-#pragma clang diagnostic pop

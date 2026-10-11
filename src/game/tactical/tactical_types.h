@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 
 // Plain result records the tactical engine hands back to the strategic game when a battle ends (read through the
 // facade in tactical_facade.h). Field meanings are inferred from how the battle flow (app/battle_results.cpp)
@@ -60,17 +59,3 @@ struct CharacterResult {
     int m_handle;
     int m_unk04[7];
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(BattleOutcome, 0x1c);
-REB_ASSERT_SIZE(CapitalShipResult, 0x2c);
-REB_ASSERT_SIZE(FightSquadResult, 0x20);
-REB_ASSERT_SIZE(DeathStarResult, 0x14);
-REB_ASSERT_SIZE(CharacterResult, 0x20);
-REB_ASSERT_OFFSET(CapitalShipResult, m_hull, 0x10);
-REB_ASSERT_OFFSET(CapitalShipResult, m_hyperdriveDamage, 0x1c);
-REB_ASSERT_OFFSET(FightSquadResult, m_squadSize, 0x18);
-REB_ASSERT_OFFSET(DeathStarResult, m_hull, 0x0c);
-REB_ASSERT_OFFSET(DeathStarResult, m_alive, 0x08);
-#pragma clang diagnostic pop

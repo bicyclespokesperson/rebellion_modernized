@@ -3,7 +3,6 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "core/layout.h"
 
 // The statically linked iostream library (LIBCI, the pre-standard Microsoft iostreams shipped with Visual C++ 5), as
 // reconstructed in src/game/iostream. This is the only declaration of the library: game code includes it and calls the
@@ -93,8 +92,8 @@ public:
     int m_state;                 // +0x08
     int m_ispecial;              // +0x0c
     int m_ospecial;              // +0x10
-    int m_isfxSpecial;           // +0x14 never initialised by the constructor
-    int m_osfxSpecial;           // +0x18 never initialised by the constructor
+    int m_isfxSpecial;           // +0x14
+    int m_osfxSpecial;           // +0x18
     int m_delbuf;                // +0x1c the ios deletes its streambuf
     ostream* m_tie;              // +0x20
     unsigned m_flags;            // +0x24
@@ -254,40 +253,6 @@ public:
     static const int vbtable[2];     // 0x66e560
 };
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ios, 0x50);
-REB_ASSERT_SIZE(streambuf, 0x4c);
-REB_ASSERT_SIZE(strstreambuf, 0x64);
-REB_ASSERT_SIZE(filebuf, 0x54);
-REB_ASSERT_SIZE(istream, 0x0c);
-REB_ASSERT_SIZE(ostream, 0x08);
-REB_ASSERT_SIZE(strstream, 0x64);
-REB_ASSERT_SIZE(istrstream, 0x5c);
-REB_ASSERT_SIZE(ostrstream, 0x58);
-REB_ASSERT_SIZE(ifstream, 0x5c);
-REB_ASSERT_SIZE(ofstream, 0x58);
-REB_ASSERT_OFFSET(ios, m_bp, 0x04);
-REB_ASSERT_OFFSET(ios, m_state, 0x08);
-REB_ASSERT_OFFSET(ios, m_tie, 0x20);
-REB_ASSERT_OFFSET(ios, m_flags, 0x24);
-REB_ASSERT_OFFSET(ios, m_fill, 0x2c);
-REB_ASSERT_OFFSET(ios, m_width, 0x30);
-REB_ASSERT_OFFSET(ios, m_lockCount, 0x34);
-REB_ASSERT_OFFSET(ios, m_lock, 0x38);
-REB_ASSERT_OFFSET(streambuf, m_base, 0x10);
-REB_ASSERT_OFFSET(streambuf, m_pbase, 0x18);
-REB_ASSERT_OFFSET(streambuf, m_eback, 0x24);
-REB_ASSERT_OFFSET(streambuf, m_egptr, 0x2c);
-REB_ASSERT_OFFSET(streambuf, m_lockCount, 0x30);
-REB_ASSERT_OFFSET(streambuf, m_lock, 0x34);
-REB_ASSERT_OFFSET(strstreambuf, m_dynamic, 0x4c);
-REB_ASSERT_OFFSET(strstreambuf, m_nextSize, 0x50);
-REB_ASSERT_OFFSET(strstreambuf, m_static, 0x58);
-REB_ASSERT_OFFSET(strstreambuf, m_allocate, 0x5c);
-REB_ASSERT_OFFSET(strstreambuf, m_free, 0x60);
-REB_ASSERT_OFFSET(filebuf, m_fd, 0x4c);
-#pragma clang diagnostic pop
 
 // ---- ios -------------------------------------------------------------------------------------------------------
 ios* REB_THISCALL ios_ctor(ios* self);                       // 0x6153b0

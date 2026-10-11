@@ -8,10 +8,6 @@
 #include "mission/mission_rules.h"
 #include "story/story_common.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyLukeEventKinds();
-void DestroyLeiaEventKinds();
-void DestroyHanEventKinds();
 
 extern int g_lukeEventKindsReady;      // 0x6bb9e8
 extern EventKindSet g_lukeEventKinds;  // 0x6bb9f0
@@ -201,14 +197,6 @@ int Luke::BuildEventKinds() {
                                  [] { return MajorCharacter::InitEventKinds(0, &g_lukeEventKinds); });
 }
 
-void ConstructLukeEventKinds() { new (&g_lukeEventKinds) EventKindSet(); }
-
-void RegisterLukeEventKindsAtExit() { atexit(DestroyLukeEventKinds); }
-
-void Luke::InitStatics() {
-    ConstructLukeEventKinds();
-    RegisterLukeEventKindsAtExit();
-}
 
 // ---- Leia -------------------------------------------------------------------------------------------------------
 
@@ -278,14 +266,6 @@ int Leia::BuildEventKinds() {
                                  [] { return MajorCharacter::InitEventKinds(0, &g_leiaEventKinds); });
 }
 
-void ConstructLeiaEventKinds() { new (&g_leiaEventKinds) EventKindSet(); }
-
-void RegisterLeiaEventKindsAtExit() { atexit(DestroyLeiaEventKinds); }
-
-void Leia::InitStatics() {
-    ConstructLeiaEventKinds();
-    RegisterLeiaEventKindsAtExit();
-}
 
 // ---- Han --------------------------------------------------------------------------------------------------------
 
@@ -387,14 +367,6 @@ int Han::BuildEventKinds() {
                                  [] { return MajorCharacter::InitEventKinds(0, &g_hanEventKinds); });
 }
 
-void ConstructHanEventKinds() { new (&g_hanEventKinds) EventKindSet(); }
-
-void RegisterHanEventKindsAtExit() { atexit(DestroyHanEventKinds); }
-
-void Han::InitStatics() {
-    ConstructHanEventKinds();
-    RegisterHanEventKindsAtExit();
-}
 
 int GetHanHyperdriveModifier() { return g_gnprtb0C0B; }
 
@@ -411,32 +383,9 @@ MinorCharacterIterator::MinorCharacterIterator(GameObjNotifier* parent, uint32_t
     : ChildIterator(parent, side, &kMinorCharacters, stateFilter) {}
 
 MinorCharacterIterator::~MinorCharacterIterator() { REB_KEEP_VPTR_STORE(); }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_lukeEventKindsDestroyedGuard;  // 0x6bb9f8
-
-void DestroyLukeEventKinds() {
-    if (!(g_lukeEventKindsDestroyedGuard & 0x1)) {
-        g_lukeEventKindsDestroyedGuard |= 0x1;
-        g_lukeEventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_leiaEventKindsDestroyedGuard;  // 0x6bba0c
-
-void DestroyLeiaEventKinds() {
-    if (!(g_leiaEventKindsDestroyedGuard & 0x1)) {
-        g_leiaEventKindsDestroyedGuard |= 0x1;
-        g_leiaEventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_hanEventKindsDestroyedGuard;  // 0x6bba5c
-
-void DestroyHanEventKinds() {
-    if (!(g_hanEventKindsDestroyedGuard & 0x1)) {
-        g_hanEventKindsDestroyedGuard |= 0x1;
-        g_hanEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_hanEventKinds{};
+EventKindSet g_leiaEventKinds{};
+EventKindSet g_lukeEventKinds{};
+int g_hanEventKindsReady{};
+int g_leiaEventKindsReady{};
+int g_lukeEventKindsReady{};

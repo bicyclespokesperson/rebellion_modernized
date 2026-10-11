@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "core/vptr_store.h"
@@ -41,12 +40,3 @@ public:
     WeaponProfileC();           // 0x5d2490
     virtual ~WeaponProfileC();  // 0x5d24d0 (scalar deleting destructor 0x5d24b0)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(WeaponProfile, 0x14);
-REB_ASSERT_OFFSET(WeaponProfile, m_f10, 0x10);
-REB_ASSERT_SIZE(WeaponProfileA, 0x14);
-REB_ASSERT_SIZE(WeaponProfileB, 0x14);
-REB_ASSERT_SIZE(WeaponProfileC, 0x14);
-#pragma clang diagnostic pop

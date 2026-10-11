@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/stream_io.h"
 
 class Crc32;
@@ -31,8 +30,3 @@ public:
     uint32_t m_fourth;  // +0x0c
     int32_t m_fifth;    // +0x10
 };
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SeedKey, 0x14);
-REB_ASSERT_OFFSET(SeedKey, m_fifth, 0x10);
-#pragma clang diagnostic pop

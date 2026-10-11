@@ -1,7 +1,6 @@
 #include <cstring>
 #include "core/reb_abi.h"
 #include "events/ui_notifs.h"
-#include "core/atexit_keep.h"
 
 #include <new>
 
@@ -10,10 +9,8 @@
 #include "core/vptr_store.h"
 #include "strategy_ui/game_ui_facade.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
 extern uint8_t g_uiNotif2KeyReady;
 extern ObjectKey g_uiNotif2Key;
-void DestroyUiNotif2Key();
 
 // ---- UiNotif340 (kind 0x340) ----
 UiNotif340::UiNotif340() : KeyPairPayload() {}
@@ -1152,13 +1149,9 @@ UiNotif2::~UiNotif2() { REB_KEEP_VPTR_STORE(); }
 int UiNotif2::GetKind() { return 0x2; }
 
 void UiNotif2::DispatchToSink(UiNotice* sink) {
-    if ((g_uiNotif2KeyReady & 1) == 0) {
-        g_uiNotif2KeyReady |= 1;
-        new (&g_uiNotif2Key) ObjectKey();
-        atexit(DestroyUiNotif2Key);
-    }
     if (sink) sink->Virtual08(GetKind(), asArg(&g_uiNotif2Key), 1);
 }
+
 
 void* CreateUiNotif2() { return NewOrNull<UiNotif2>(); }
 
@@ -1248,7 +1241,6 @@ void UiNotif1::Dispatch(PlayerController* controller) { controller->Virtual22(m_
 
 void* CreateUiNotif1() { return NewOrNull<UiNotif1>(); }
 
-void DestroyUiNotif2Key() {
-    REB_KEEP_ATEXIT_TARGET();
-    g_uiNotif2Key.~ObjectKey();
-}
+
+ObjectKey g_uiNotif2Key{};
+uint8_t g_uiNotif2KeyReady{};

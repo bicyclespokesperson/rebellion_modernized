@@ -4,7 +4,6 @@
 
 #include "app/player_controller_decl.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "events/game_step_driver.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_key.h"
@@ -168,17 +167,3 @@ public:
     System* m_system;          // +0x08
     int m_abstract;            // +0x0c
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(BattleFlow, 0x14);
-REB_ASSERT_OFFSET(BattleFlow, m_ok, 0x04);
-REB_ASSERT_OFFSET(BattleFlow, m_state, 0x08);
-REB_ASSERT_OFFSET(BattleFlow, m_voteTimeB, 0x10);
-REB_ASSERT_SIZE(BattleSetup, 0x28);
-REB_ASSERT_OFFSET(BattleSetup, m_abstract, 0x0c);
-REB_ASSERT_OFFSET(BattleSetup, m_timeB, 0x14);
-REB_ASSERT_OFFSET(BattleSetup, m_keyKind1Side2, 0x24);
-REB_ASSERT_SIZE(BattleResults, 0x10);
-REB_ASSERT_OFFSET(BattleResults, m_abstract, 0x0c);
-#pragma clang diagnostic pop

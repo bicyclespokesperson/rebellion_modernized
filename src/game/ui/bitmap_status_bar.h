@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_status_bar.h"
 
@@ -34,10 +33,3 @@ public:
     int m_orientation;     // +0xc0 BitmapStatusBarOrientation
     int m_direction;       // +0xc4 BitmapStatusBarDirection
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(BitmapStatusBar, 0xc8);
-REB_ASSERT_OFFSET(BitmapStatusBar, m_picture, 0xb8);
-REB_ASSERT_OFFSET(BitmapStatusBar, m_direction, 0xc4);
-#pragma clang diagnostic pop

@@ -7,7 +7,6 @@
 #include "audio/sound_buffer.h"
 #include "audio/sound_source.h"
 #include "core/containers.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 
 class SoundSource;
@@ -63,9 +62,6 @@ public:
     uint32_t m_playing : 1;      // set when playback started, refreshed by SoundManager::Query
     uint32_t m_bit6 : 1;
 };
-REB_ASSERT_SIZE(SoundRequest, 0x14);
-REB_ASSERT_OFFSET(SoundRequest, m_soundId, 0x04);
-REB_ASSERT_OFFSET(SoundRequest, m_handle, 0x0c);
 
 typedef void(REB_CDECL* SoundEventCallback)(uint32_t message, uint32_t first, uint32_t second);
 

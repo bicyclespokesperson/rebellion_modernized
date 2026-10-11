@@ -2,9 +2,9 @@
 #include <cstdint>
 
 #include "ai/ai_task_base.h"
+#include "ai/ai_notice_queue.h"
 #include "app/player_controller_decl.h"
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "gameobj/object_key.h"
 
@@ -67,29 +67,3 @@ public:
     AiTaskBase* m_cursor;     // +0x14 where PickBest continues
     AiTaskBase* m_last;       // +0x18 the task SelectNext returned
 };
-
-// ---- AiNoticeQueue ------------------------------------------------------------------------------------------------------
-
-// The notes the AI player was sent, in AiNoticeGroups by group id (VT 0x65c470, 0x10 bytes). The tree holds the IdNode part
-// of the groups.
-class AiNoticeQueue : public IdAvlTree {
-public:
-    AiNoticeQueue();                            // 0x4bee50
-    virtual ~AiNoticeQueue();                   // 0: 0x4bee70 (deleting), 0x4bee90
-    void Load(istream* in);                     // 0x4beea0
-    void Save(ostream* out);                    // 0x4bef30
-    void Add(AiNotice* notice);                 // 0x4bef90: notes without a group are dropped
-    AiNoticeGroup* DetachFinished();            // 0x4befe0: the first finished group, removed from the queue
-    void NewGroup(AiNotice* notice);            // 0x4bf030
-
-    int m_x0c;                // +0x0c always 1
-};
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiMissionHistoryEntry, 0x2c);
-REB_ASSERT_SIZE(AiMissionHistory, 0x08);
-REB_ASSERT_SIZE(AiTaskManager, 0x1c);
-REB_ASSERT_OFFSET(AiTaskManager, m_current, 0x10);
-REB_ASSERT_SIZE(AiNoticeQueue, 0x10);
-#pragma clang diagnostic pop

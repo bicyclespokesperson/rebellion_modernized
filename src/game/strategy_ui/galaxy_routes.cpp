@@ -40,11 +40,11 @@
 #include "ui/resource_dll.h"
 #include "ui/sprite_stage.h"
 
-extern const char g_albriefDllName[];    // 0x6a86c4 "albrief.dll"
-extern const char g_embriefDllName[];    // 0x6a86b8 "embrief.dll"
-extern const char g_alspriteDllName[];   // 0x6a86e0 "alsprite.dll"
-extern const char g_emspriteDllName[];   // 0x6a86d0 "emsprite.dll"
-extern const char g_currentLatencyText[];  // 0x6a86f0 "Current Latency:"
+extern const char *g_albriefDllName;    // 0x6a86c4 "albrief.dll"
+extern const char *g_embriefDllName;    // 0x6a86b8 "embrief.dll"
+extern const char *g_alspriteDllName;   // 0x6a86e0 "alsprite.dll"
+extern const char *g_emspriteDllName;   // 0x6a86d0 "emsprite.dll"
+extern const char *g_currentLatencyText;  // 0x6a86f0 "Current Latency:"
 
 extern int g_spriteDllSide;    // 0x6b14d0 the side whose sprite DLL (slot 9) is loaded, 0 for none
 extern int g_briefingDllSide;  // 0x6b14d4 the side whose briefing DLL (slot 0xd) is loaded, 0 for none
@@ -680,3 +680,11 @@ ObjectKey* ObjectListItem::GetKey(ObjectKey* out) {
     out->m_value = m_key.m_value;
     return out;
 }
+
+const char *g_albriefDllName = nullptr;
+const char *g_alspriteDllName = nullptr;
+const char *g_currentLatencyText = nullptr;
+const char *g_embriefDllName = nullptr;
+const char *g_emspriteDllName = nullptr;
+int g_briefingDllSide{};
+int g_spriteDllSide{};

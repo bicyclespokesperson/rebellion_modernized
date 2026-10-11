@@ -339,3 +339,6 @@ int UpdateFlagBits(uint32_t mask, uint32_t value, uint32_t* flags) {
 }
 
 int UpdateFlagBit(uint32_t mask, int on, uint32_t* flags) { return UpdateFlagBits(mask, on ? 0xffffffff : 0, flags); }
+
+GameObjFactoryEntry g_gameObjFactories[0x3c]{};
+int g_gameObjFactoryCount{};

@@ -526,3 +526,5 @@ int CountFleets(GameObj* parent, uint32_t side, uint32_t filter) {
 }
 
 void DeleteObjectMemory(void* memory) { operator delete(memory); }
+
+EventKindSet g_fleetEventKinds{};

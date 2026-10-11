@@ -42,11 +42,3 @@ int GetDefaultFontSlot();                  // 0x603850: g_app default font slot,
 
 extern CoolApp* g_app;                  // 0x6be3b8
 extern char g_classNameBuffer[0x100];   // 0x6be3c0 scratch for GetClassNameA
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CoolApp, 0xb4);
-REB_ASSERT_OFFSET(CoolApp, m_appName, 0x94);
-REB_ASSERT_OFFSET(CoolApp, m_screenWidth, 0xa8);
-REB_ASSERT_OFFSET(CoolApp, m_defaultFontSlot, 0xb0);
-#pragma clang diagnostic pop

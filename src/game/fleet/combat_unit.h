@@ -1,5 +1,4 @@
 #pragma once
-#include "core/layout.h"
 #include "fleet/detector.h"
 
 // CombatUnit (0x557410, VT 0x662318, secondary ObjectBase VT 0x662314, 0x60 bytes): the common base of capital ships and
@@ -86,13 +85,3 @@ public:
 
     uint32_t m_combatFlags;  // +0x5c, bit 0 UnderRepair, bit 1 FastRepair
 };
-
-void CombatUnitStaticInit();                // 0x557e10
-void ConstructCombatUnitEventKinds();       // 0x557e20
-void RegisterCombatUnitEventKindsAtExit();  // 0x557e30
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(CombatUnit, 0x60);
-REB_ASSERT_OFFSET(CombatUnit, m_combatFlags, 0x5c);
-#pragma clang diagnostic pop

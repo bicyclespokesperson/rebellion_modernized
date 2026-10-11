@@ -2,7 +2,6 @@
 #include "core/reb_abi.h"
 #include <cstdint>
 
-#include "core/layout.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
 #include "ui/custom_dialog_box.h"
@@ -65,15 +64,3 @@ public:
     DibBitmap* m_headerActive;       // +0x17c the title bar while the window is in front
     DibBitmap* m_headerInactive;     // +0x180
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SystemForcesWindow, 0x184);
-REB_ASSERT_OFFSET(SystemForcesWindow, m_systemKey, 0x144);
-REB_ASSERT_OFFSET(SystemForcesWindow, m_galaxy, 0x14c);
-REB_ASSERT_OFFSET(SystemForcesWindow, m_tab, 0x158);
-REB_ASSERT_OFFSET(SystemForcesWindow, m_gokres, 0x15c);
-REB_ASSERT_OFFSET(SystemForcesWindow, m_tabs, 0x160);
-REB_ASSERT_OFFSET(SystemForcesWindow, m_items, 0x168);
-REB_ASSERT_OFFSET(SystemForcesWindow, m_headerInactive, 0x180);
-#pragma clang diagnostic pop

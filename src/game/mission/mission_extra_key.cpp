@@ -6,7 +6,7 @@ MissionExtraKeyBase::MissionExtraKeyBase() {}
 MissionExtraKeyBase::~MissionExtraKeyBase() { REB_KEEP_VPTR_STORE(); }
 
 int MissionExtraKeyBase::Read(istream* in) {
-    if (!static_cast<MissionRuleBase*>(this)->MissionRuleBase::ReadBody(in)) return 0;
+    if (!this->Mission::ReadImpl(in)) return 0;
     return m_extraKey.Read(in);
 }
 
@@ -16,7 +16,7 @@ int MissionExtraKeyBase::Write(ostream* out) {
 }
 
 int MissionExtraKeyBase::Checksum(Crc32* crc) {
-    if (!reinterpret_cast<MissionTypeBase*>(this)->MissionTypeBase::ChecksumBody(crc)) return 0;
+    if (!this->Mission::ChecksumImpl(crc)) return 0;
     return m_extraKey.Checksum(crc);
 }
 

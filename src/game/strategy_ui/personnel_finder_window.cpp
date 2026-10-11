@@ -25,8 +25,8 @@
 #include "ui/cool_tab_control.h"
 #include "ui/object_list_item.h"
 
-extern const char g_detailCloseText[];     // 0x6a878c " ) "
-extern const char g_detailOpenText[];      // 0x6a8790 " ( "
+extern const char *g_detailCloseText;     // 0x6a878c " ) "
+extern const char *g_detailOpenText;      // 0x6a8790 " ( "
 
 namespace {
 
@@ -666,3 +666,6 @@ void PersonnelFinderWindow::DescribeCharacter(Character* character, ObjectListIt
         row->m_text = line.m_text;
     }
 }
+
+const char *g_detailCloseText = nullptr;
+const char *g_detailOpenText = nullptr;

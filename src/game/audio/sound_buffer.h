@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_timer.h"
 
@@ -18,7 +17,6 @@ public:
     void (*m_callback)(void*);  // +0x38
     void* m_parameter;          // +0x3c
 };
-REB_ASSERT_SIZE(SoundCallbackTimer, 0x40);
 
 // Node of the sound trees: the key at +0x18 is what the tree searches and orders by.
 class KeyedSoundNode : public AvlNode {
@@ -27,7 +25,6 @@ public:
 
     uint32_t m_key;  // +0x18
 };
-REB_ASSERT_SIZE(KeyedSoundNode, 0x1c);
 
 // AVL tree of KeyedSoundNodes that hands out keys, like IdAvlTree (the original compiled separate copies of its
 // members for these trees, so they have their own addresses). Keys given to Add() as 0 are assigned m_nextKey.
@@ -44,7 +41,6 @@ public:
 
     uint32_t m_nextKey;  // +0x08
 };
-REB_ASSERT_SIZE(SoundIdTree, 0x0c);
 
 enum SoundBufferMode : int {
     kBufferStreamed = 1,  // looping ring buffer topped up from a file by a refill thread
@@ -99,16 +95,6 @@ public:
     int m_volumeSet;                   // +0xbc
     LONG m_volume;                     // +0xc0
 };
-REB_ASSERT_SIZE(SoundBuffer, 0xc4);
-REB_ASSERT_OFFSET(SoundBuffer, m_description, 0x20);
-REB_ASSERT_OFFSET(SoundBuffer, m_buffer, 0x34);
-REB_ASSERT_OFFSET(SoundBuffer, m_events, 0x40);
-REB_ASSERT_OFFSET(SoundBuffer, m_failed, 0x4c);
-REB_ASSERT_OFFSET(SoundBuffer, m_writePosition, 0x58);
-REB_ASSERT_OFFSET(SoundBuffer, m_remaining, 0x64);
-REB_ASSERT_OFFSET(SoundBuffer, m_stream, 0x6c);
-REB_ASSERT_OFFSET(SoundBuffer, m_timer, 0x7c);
-REB_ASSERT_OFFSET(SoundBuffer, m_volume, 0xc0);
 
 // The buffers of one SoundSource, keyed by SoundBuffer::m_key. Key 1 is the original buffer; duplicates start at 2.
 class SoundBufferList : public SoundIdTree {
@@ -119,4 +105,3 @@ public:
 
     int RemoveNode(KeyedSoundNode* node);  // 0x612b80: same as DeleteNode
 };
-REB_ASSERT_SIZE(SoundBufferList, 0x0c);

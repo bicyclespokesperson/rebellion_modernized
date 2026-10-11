@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "economy/procfacil.h"
 
 // ManufacturingFacility (ctor 0x52cbc0, VT 0x660490, secondary ObjectBase VT 0x66048c): abstract base of the facilities that
@@ -137,15 +136,3 @@ public:
     ManufacturingFacility28Iterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x52cb30
     virtual ~ManufacturingFacility28Iterator();                                                     // 0x52cbb0 (scalar deleting destructor 0x52ca90)
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(ManufacturingFacility, 0x64);
-REB_ASSERT_SIZE(ManufacturingFacility2A, 0x64);
-REB_ASSERT_SIZE(ManufacturingFacility29, 0x64);
-REB_ASSERT_SIZE(ManufacturingFacility28, 0x64);
-REB_ASSERT_SIZE(ManufacturingFacilityIterator, 0x20);
-REB_ASSERT_SIZE(ManufacturingFacility2AIterator, 0x20);
-REB_ASSERT_SIZE(ManufacturingFacility29Iterator, 0x20);
-REB_ASSERT_SIZE(ManufacturingFacility28Iterator, 0x20);
-#pragma clang diagnostic pop

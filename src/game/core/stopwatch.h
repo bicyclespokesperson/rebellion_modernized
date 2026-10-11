@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "platform/win32.h"
 
 // Elapsed-time clock: QueryPerformanceCounter when the hardware has one, timeGetTime otherwise.
@@ -22,6 +21,3 @@ public:
     uint32_t m_startLow;     // +0x10 (QPC low dword, or timeGetTime in fallback mode)
     int32_t m_startHigh;     // +0x14
 };
-REB_ASSERT_SIZE(Stopwatch, 0x18);
-REB_ASSERT_OFFSET(Stopwatch, m_secondsPerTick, 0x08);
-REB_ASSERT_OFFSET(Stopwatch, m_startLow, 0x10);

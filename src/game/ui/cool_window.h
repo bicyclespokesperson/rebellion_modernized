@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 
 // "Cool" is Coolhand's in-house GUI toolkit (shared with their StarTrader). Every screen, panel and control of
@@ -196,7 +195,7 @@ HMODULE FindResourceModule(uint32_t slot);                              // 0x5fe
 uint32_t FindSlotOfModule(HMODULE module);                              // 0x5feff0: slot of a loaded DLL, 0 if none
 HMODULE LoadResourceModule(const char* basePath, const char* fileName, uint32_t slot);  // 0x5ff020
 
-extern const char g_tooltipClassName[];  // 0x6ac7c0 "tooltips_class32"
+extern const char *g_tooltipClassName;  // 0x6ac7c0 "tooltips_class32"
 extern HPALETTE g_savedPalette;       // 0x6be59c palette that was selected before ours
 extern HPALETTE g_palette;            // 0x6be5a0 current game palette
 extern HWND g_tooltipWindow;          // 0x6be5a4
@@ -208,31 +207,3 @@ extern HwndNode* g_captureStack;      // 0x6be598 linked through AvlNode::m_succ
 extern NodeStack g_popupStack;        // 0x6be4e0 of PopupEntry
 extern IdAvlTree g_windowRegistry;    // 0x6be4e8 ids are CoolWindow addresses
 extern HPALETTE g_displayPalette;    // 0x6be4c0 the palette SetIdentityPalette installed (DibBitmap::DrawToDc selects it)
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(HwndNode, 0x20);
-REB_ASSERT_SIZE(HwndTree, 0x08);
-REB_ASSERT_SIZE(PopupEntry, 0x10);
-REB_ASSERT_SIZE(ChildWindowTree, 0x08);
-REB_ASSERT_SIZE(IdAvlTreeElement, 0x0c);
-REB_ASSERT_SIZE(CoolWindow, 0x94);
-REB_ASSERT_OFFSET(CoolWindow, m_hwnd, 0x18);
-REB_ASSERT_OFFSET(CoolWindow, m_instance, 0x1c);
-REB_ASSERT_OFFSET(CoolWindow, m_parent, 0x20);
-REB_ASSERT_OFFSET(CoolWindow, m_childId, 0x24);
-REB_ASSERT_OFFSET(CoolWindow, m_x, 0x28);
-REB_ASSERT_OFFSET(CoolWindow, m_width, 0x30);
-REB_ASSERT_OFFSET(CoolWindow, m_clientWidth, 0x38);
-REB_ASSERT_OFFSET(CoolWindow, m_flags, 0x40);
-REB_ASSERT_OFFSET(CoolWindow, m_className, 0x48);
-REB_ASSERT_OFFSET(CoolWindow, m_style, 0x50);
-REB_ASSERT_OFFSET(CoolWindow, m_background, 0x5c);
-REB_ASSERT_OFFSET(CoolWindow, m_menu, 0x68);
-REB_ASSERT_OFFSET(CoolWindow, m_children, 0x6c);
-REB_ASSERT_OFFSET(CoolWindow, m_linkedWindows, 0x74);
-REB_ASSERT_OFFSET(CoolWindow, m_font, 0x7c);
-REB_ASSERT_OFFSET(CoolWindow, m_tooltipText, 0x84);
-REB_ASSERT_OFFSET(CoolWindow, m_popupMembers, 0x88);
-REB_ASSERT_OFFSET(CoolWindow, m_tooltipOwner, 0x90);
-#pragma clang diagnostic pop

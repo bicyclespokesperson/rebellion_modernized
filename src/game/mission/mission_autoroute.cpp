@@ -1,6 +1,5 @@
 #include "mission/mission_autoroute.h"
 
-void DestroyMissionAutorouteEventKinds();
 
 extern int g_missionAutorouteEventKindsReady;      // 0x6bbae0
 extern EventKindSet g_missionAutorouteEventKinds;  // 0x6bbae8
@@ -15,7 +14,7 @@ MissionAutoroute::~MissionAutoroute() { REB_KEEP_VPTR_STORE(); }
 
 uint32_t MissionAutoroute::GetFamily() { return kFamilyMissionAutoroute; }
 
-int MissionAutoroute::Read(istream* in) { return reinterpret_cast<MissionRuleBase*>(this)->MissionRuleBase::ReadBody(in); }
+int MissionAutoroute::Read(istream* in) { return this->Mission::ReadImpl(in); }
 
 int MissionAutoroute::Write(ostream* out) { return MissionTypeWriteForward(this, out); }
 
@@ -47,23 +46,5 @@ int MissionAutoroute::BuildEventKinds() {
     }
     return result;
 }
-
-void ConstructMissionAutorouteEventKinds() { new (&g_missionAutorouteEventKinds) EventKindSet(); }
-
-void RegisterMissionAutorouteEventKindsAtExit() { atexit(DestroyMissionAutorouteEventKinds); }
-
-void MissionAutoroute::InitStatics() {
-    ConstructMissionAutorouteEventKinds();
-    RegisterMissionAutorouteEventKindsAtExit();
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_missionAutorouteEventKindsDestroyedGuard;  // 0x6bbaf0
-
-void DestroyMissionAutorouteEventKinds() {
-    if (!(g_missionAutorouteEventKindsDestroyedGuard & 0x1)) {
-        g_missionAutorouteEventKindsDestroyedGuard |= 0x1;
-        g_missionAutorouteEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_missionAutorouteEventKinds{};
+int g_missionAutorouteEventKindsReady{};

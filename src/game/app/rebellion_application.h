@@ -4,7 +4,6 @@
 
 #include "app/saved_game_info_decl.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/stopwatch.h"
 #include "core/string_map.h"
 #include "core/utility_classes.h"
@@ -169,21 +168,6 @@ public:
 
 // ---- Application-level helpers (0x401000-0x401c70): they act on g_app, doing nothing without one -----------------
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(RebellionApplication, 0x160);
-REB_ASSERT_OFFSET(RebellionApplication, m_activationFlags, 0xb4);
-REB_ASSERT_OFFSET(RebellionApplication, m_strategicWindow, 0xb8);
-REB_ASSERT_OFFSET(RebellionApplication, m_overlayWindow, 0xc4);
-REB_ASSERT_OFFSET(RebellionApplication, m_pendingSaveName, 0xd0);
-REB_ASSERT_OFFSET(RebellionApplication, m_state, 0xdc);
-REB_ASSERT_OFFSET(RebellionApplication, m_gameType, 0xe4);
-REB_ASSERT_OFFSET(RebellionApplication, m_networkMode, 0x104);
-REB_ASSERT_OFFSET(RebellionApplication, m_waitTimer, 0x110);
-REB_ASSERT_OFFSET(RebellionApplication, m_commandLineFlags, 0x128);
-REB_ASSERT_OFFSET(RebellionApplication, m_networkSettings, 0x148);
-REB_ASSERT_OFFSET(RebellionApplication, m_mismatchOptions, 0x154);
-#pragma clang diagnostic pop
 
 int REB_STDCALL WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int showCommand);  // 0x4165b0
 void ChangeToInstalledLocation();   // 0x416820

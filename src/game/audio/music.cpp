@@ -6,17 +6,13 @@
 #include "app/rebapp_globals.h"
 #include "core/registry.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyMusicFlags();
-void DestroyMusicRequest();
-void DestroyMusicDirectory();
 
 int UiHumanNextAdvice();  // 0x41d3b0
 
-extern const char g_localMachineRootName[];  // 0x6a844c "HKEY_LOCAL_MACHINE"
-extern const char g_registryKeyPath[];       // 0x6a81fc
-extern const char g_musicVolumeName[];       // 0x6a8584 "MusicVolume"
-extern const char g_musicSwitchName[];       // 0x6a8578 "MusicSwitch"
+extern const char *g_localMachineRootName;  // 0x6a844c "HKEY_LOCAL_MACHINE"
+extern const char *g_registryKeyPath;       // 0x6a81fc
+extern const char *g_musicVolumeName;       // 0x6a8584 "MusicVolume"
+extern const char *g_musicSwitchName;       // 0x6a8578 "MusicSwitch"
 
 namespace {
 
@@ -114,55 +110,5 @@ void REB_CDECL MusicEventCallback(uint32_t message, uint32_t first, uint32_t sec
         StartMusicTrack(static_cast<uint32_t>(UiHumanNextAdvice()));
     }
 }
-
-void ConstructMusicFlags() { new (&g_musicFlags) PersistentInt(0); }
-
-void RegisterMusicFlagsAtExit() { atexit(DestroyMusicFlags); }
-
-void InitMusicFlags() {
-    ConstructMusicFlags();
-    RegisterMusicFlagsAtExit();
-}
-
-void ConstructMusicRequest() { new (&g_musicRequest) SoundRequest(1, 0, 0, 0, 0, 0); }
-
-void RegisterMusicRequestAtExit() { atexit(DestroyMusicRequest); }
-
-void InitMusicRequest() {
-    ConstructMusicRequest();
-    RegisterMusicRequestAtExit();
-}
-
-void ConstructMusicDirectory() { new (&g_musicDirectory) String(); }
-
-void RegisterMusicDirectoryAtExit() { atexit(DestroyMusicDirectory); }
-
-void InitMusicDirectory() {
-    ConstructMusicDirectory();
-    RegisterMusicDirectoryAtExit();
-}
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_musicFlagsDestroyedGuard;  // 0x6b14a4
-
-void DestroyMusicFlags() {
-    if (!(g_musicFlagsDestroyedGuard & 0x1)) {
-        g_musicFlagsDestroyedGuard |= 0x1;
-        g_musicFlags.~PersistentInt();
-    }
-}
-
-void DestroyMusicDirectory() {
-    if (!(g_musicFlagsDestroyedGuard & 0x4)) {
-        g_musicFlagsDestroyedGuard |= 0x4;
-        g_musicDirectory.~String();
-    }
-}
-
-void DestroyMusicRequest() {
-    if (!(g_musicFlagsDestroyedGuard & 0x2)) {
-        g_musicFlagsDestroyedGuard |= 0x2;
-        g_musicRequest.~SoundRequest();
-    }
-}
+const char *g_musicSwitchName = nullptr;
+const char *g_musicVolumeName = nullptr;

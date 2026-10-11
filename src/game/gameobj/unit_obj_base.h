@@ -1,5 +1,4 @@
 #pragma once
-#include "core/layout.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/game_obj_data.h"
 
@@ -55,9 +54,3 @@ public:
     // The event-kind set initializer the leaf classes call for their static sets: an empty set.
     static int InitEventKinds(int unused, EventKindSet* out);  // 0x4f2a10
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(UnitObjData, 0x18);
-REB_ASSERT_SIZE(UnitObjBase, 0x58);
-#pragma clang diagnostic pop

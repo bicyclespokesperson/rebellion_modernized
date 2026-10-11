@@ -10,6 +10,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <exception>
 #include <vector>
 
 #include "port/minwin_impl/config/config.h"
@@ -25,6 +26,17 @@ SDL_Thread* g_thread = nullptr;
 FILE* g_capture = nullptr;
 bool g_started = false;
 
+[[noreturn]] void AbortCallbackException(const char* callback) {
+    try {
+        throw;
+    } catch (const std::exception& error) {
+        fprintf(stderr, "minwin: exception escaped %s: %s\n", callback, error.what());
+    } catch (...) {
+        fprintf(stderr, "minwin: unknown exception escaped %s\n", callback);
+    }
+    abort();
+}
+
 void RenderBlock(int frames, std::vector<int16_t>* block) {
     block->assign(static_cast<size_t>(frames) * 2, 0);
     mwds::Mixer::Global().Render(block->data(), frames);
@@ -32,31 +44,39 @@ void RenderBlock(int frames, std::vector<int16_t>* block) {
 }
 
 void SDLCALL StreamCallback(void*, SDL_AudioStream* stream, int additionalBytes, int) {
-    static std::vector<int16_t> block;
-    const int bytesPerFrame = static_cast<int>(sizeof(int16_t)) * 2;
-    while (additionalBytes > 0) {
-        const int frames = additionalBytes / bytesPerFrame < kBlockFrames ? additionalBytes / bytesPerFrame : kBlockFrames;
-        if (frames <= 0) break;
-        RenderBlock(frames, &block);
-        SDL_PutAudioStreamData(stream, block.data(), frames * bytesPerFrame);
-        additionalBytes -= frames * bytesPerFrame;
+    try {
+        static std::vector<int16_t> block;
+        const int bytesPerFrame = static_cast<int>(sizeof(int16_t)) * 2;
+        while (additionalBytes > 0) {
+            const int frames = additionalBytes / bytesPerFrame < kBlockFrames ? additionalBytes / bytesPerFrame : kBlockFrames;
+            if (frames <= 0) break;
+            RenderBlock(frames, &block);
+            SDL_PutAudioStreamData(stream, block.data(), frames * bytesPerFrame);
+            additionalBytes -= frames * bytesPerFrame;
+        }
+    } catch (...) {
+        AbortCallbackException("SDL audio stream callback");
     }
 }
 
 int SDLCALL PacingThread(void*) {
-    std::vector<int16_t> block;
-    const Uint64 start = SDL_GetTicksNS();
-    Uint64 rendered = 0;
-    for (;;) {
-        const Uint64 due = rendered * 1000000000ull / kOutputRate;
-        const Uint64 now = SDL_GetTicksNS() - start;
-        if (now < due) {
-            SDL_DelayNS(due - now);
-            continue;
+    try {
+        std::vector<int16_t> block;
+        const Uint64 start = SDL_GetTicksNS();
+        Uint64 rendered = 0;
+        for (;;) {
+            const Uint64 due = rendered * 1000000000ull / kOutputRate;
+            const Uint64 now = SDL_GetTicksNS() - start;
+            if (now < due) {
+                SDL_DelayNS(due - now);
+                continue;
+            }
+            RenderBlock(kBlockFrames, &block);
+            rendered += kBlockFrames;
+            if (g_capture) fflush(g_capture);
         }
-        RenderBlock(kBlockFrames, &block);
-        rendered += kBlockFrames;
-        if (g_capture) fflush(g_capture);
+    } catch (...) {
+        AbortCallbackException("SDL audio pacing thread");
     }
 }
 

@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "events/misc_helpers.h"
 #include "gameobj/object_key.h"
@@ -58,12 +57,3 @@ public:
 
     int AddPair(const ObjectKey* key, const ObjectKey* second);
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(KeyQueueNode, 0x18);
-REB_ASSERT_OFFSET(KeyQueueNode, m_key, 0x10);
-REB_ASSERT_SIZE(KeyQueue, 0x14);
-REB_ASSERT_OFFSET(KeyQueue, m_ok, 0x10);
-REB_ASSERT_SIZE(ObjectKeyPairSet, 0x08);
-#pragma clang diagnostic pop

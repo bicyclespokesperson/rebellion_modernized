@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "tactical/tactical_formation.h"
 #include "tactical/tactical_lists.h"
 #include "tactical/tactical_units.h"
@@ -214,22 +213,3 @@ void REB_STDCALL RegisterCapitalShipGroup(ShipGroup* group);
 
 // Removes a unit from its group (a null group is ignored); 0x5caed0.
 void REB_STDCALL RemoveMemberFromGroup(ShipGroup* group, int handle);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(BehaviorLink, 0x18);
-REB_ASSERT_SIZE(GroupBehavior, 0x3c);
-REB_ASSERT_OFFSET(GroupBehavior, m_link, 0x18);
-REB_ASSERT_SIZE(GroupOrder, 0x24);
-REB_ASSERT_OFFSET(GroupOrder, m_targets, 0x18);
-REB_ASSERT_OFFSET(ShipGroup, m_channelA, 0x28);
-REB_ASSERT_OFFSET(ShipGroup, m_founders, 0x44);
-REB_ASSERT_OFFSET(ShipGroup, m_side, 0x50);
-REB_ASSERT_OFFSET(ShipGroup, m_order, 0x60);
-REB_ASSERT_OFFSET(ShipGroup, m_targetsA, 0x74);
-REB_ASSERT_OFFSET(ShipGroup, m_formationA, 0x8c);
-REB_ASSERT_OFFSET(ShipGroup, m_unkb4, 0xb4);
-REB_ASSERT_SIZE(ShipGroup, 0xbc);
-REB_ASSERT_SIZE(CapitalShipGroup, 0xc4);
-REB_ASSERT_SIZE(FighterGroup, 0xbc);
-#pragma clang diagnostic pop

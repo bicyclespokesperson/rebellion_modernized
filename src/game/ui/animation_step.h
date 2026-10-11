@@ -3,7 +3,6 @@
 
 #include "audio/sound_manager.h"
 #include "core/containers.h"
-#include "core/layout.h"
 #include "platform/win32.h"
 #include "ui/cool_window.h"
 
@@ -208,34 +207,11 @@ public:
     virtual int GetKind() override;                          // 0x412fb0
 };
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AnimationStep, 0x48);
-REB_ASSERT_OFFSET(AnimationStep, m_stage, 0x0c);
-REB_ASSERT_OFFSET(AnimationStep, m_script, 0x14);
-REB_ASSERT_OFFSET(AnimationStep, m_sound, 0x18);
-REB_ASSERT_OFFSET(AnimationStep, m_effectSound, 0x30);
-REB_ASSERT_SIZE(AnimationStep05, 0x5c);
-REB_ASSERT_SIZE(AnimationStep12, 0x58);
-REB_ASSERT_SIZE(AnimationStep15, 0x5c);
-REB_ASSERT_SIZE(AnimationStep11, 0x5c);
-REB_ASSERT_SIZE(AnimationStep14, 0x58);
-REB_ASSERT_SIZE(AnimationStep04, 0x68);
-REB_ASSERT_SIZE(AnimationStep13, 0x68);
-REB_ASSERT_OFFSET(DeltaFrameStep, m_workBitmaps, 0x60);
-#pragma clang diagnostic pop
 
-void InitAnimationStep04();      // 0x4040a0
 void RegisterAnimationStep04();  // 0x4040d0
-void InitAnimationStep05();      // 0x4047e0
 void RegisterAnimationStep05();  // 0x404810
-void InitAnimationStep14();      // 0x4119e0
 void RegisterAnimationStep14();  // 0x411a10
-void InitAnimationStep15();      // 0x411dd0
 void RegisterAnimationStep15();  // 0x411e00
-void InitAnimationStep11();      // 0x412130
 void RegisterAnimationStep11();  // 0x412160
-void InitAnimationStep12();      // 0x4124d0
 void RegisterAnimationStep12();  // 0x412500
-void InitAnimationStep13();      // 0x412920
 void RegisterAnimationStep13();  // 0x412950

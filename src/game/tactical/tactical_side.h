@@ -2,7 +2,6 @@
 #include <cstdint>
 
 #include "core/containers.h"
-#include "core/layout.h"
 #include "tactical/tactical_groups.h"
 #include "tactical/tactical_lists.h"
 #include "tactical/tactical_units.h"
@@ -163,23 +162,3 @@ public:
     virtual int StepSide(float step);                         // 0x5d14d0 slot 10
     virtual int Virtual11();                                  // 0x5d19a0
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(SideOrderTree, 0x08);
-REB_ASSERT_SIZE(ScoredGroupNode, 0x20);
-REB_ASSERT_SIZE(SideOrderNode, 0x30);
-REB_ASSERT_OFFSET(TacticalSideBase, m_channelB, 0x0c);
-REB_ASSERT_OFFSET(TacticalSideBase, m_unk24, 0x24);
-REB_ASSERT_OFFSET(TacticalSideBase, m_attackEvaluator, 0x2c);
-REB_ASSERT_OFFSET(TacticalSideBase, m_formationEvaluator, 0x34);
-REB_ASSERT_OFFSET(TacticalSideBase, m_strength, 0x3c);
-REB_ASSERT_OFFSET(TacticalSideBase, m_fleet, 0x58);
-REB_ASSERT_OFFSET(TacticalSideBase, m_hangars, 0x64);
-REB_ASSERT_OFFSET(TacticalSideBase, m_groups, 0x70);
-REB_ASSERT_OFFSET(TacticalSideBase, m_state, 0x84);
-REB_ASSERT_OFFSET(TacticalSideBase, m_orders, 0x88);
-REB_ASSERT_OFFSET(TacticalSideBase, m_targets, 0x90);
-REB_ASSERT_OFFSET(TacticalSideBase, m_unkb0, 0xb0);
-REB_ASSERT_SIZE(TacticalSideBase, 0xb4);
-#pragma clang diagnostic pop

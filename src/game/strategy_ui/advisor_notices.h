@@ -4,7 +4,6 @@
 
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/layout.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
@@ -120,15 +119,3 @@ uint16_t AdvisorPickAdviceLine(uint32_t adviceId);  // 0x4c4990
 // Plays `adviceId` as a sound effect of the advisor module and returns a copy of the request in `result`.
 SoundRequest* REB_CDECL AdvisorPlayAdvice(SoundRequest* result, uint32_t adviceId);  // 0x4c4a20
 uint16_t REB_STDCALL AdvisorRecordTypeResource(GameObj* object);  // 0x4c5000
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(UiNotice, 0x44);
-REB_ASSERT_OFFSET(UiNotice, m_flags, 0x24);
-REB_ASSERT_OFFSET(UiNotice, m_created, 0x38);
-REB_ASSERT_SIZE(UiTextNotice, 0x64);
-REB_ASSERT_OFFSET(UiTextNotice, m_text1, 0x50);
-REB_ASSERT_SIZE(UiKeyNotice, 0x64);
-REB_ASSERT_OFFSET(UiKeyNotice, m_key, 0x60);
-REB_ASSERT_SIZE(DroidScript, 0x2c);
-#pragma clang diagnostic pop

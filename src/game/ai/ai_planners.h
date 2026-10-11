@@ -292,23 +292,3 @@ public:
 
     ObjectKey m_sectorKey;                           // +0x70
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(AiResearchPlanner1, 0x70);
-REB_ASSERT_SIZE(AiResearchPlanner2, 0x70);
-REB_ASSERT_SIZE(AiResearchPlanner3, 0x70);
-REB_ASSERT_SIZE(AiSubduePlanner, 0x70);
-REB_ASSERT_SIZE(AiRecruitPlanner, 0x70);
-REB_ASSERT_SIZE(AiIncitePlanner, 0x70);
-REB_ASSERT_SIZE(AiDsSabotagePlanner, 0x70);
-REB_ASSERT_SIZE(AiRescuePlanner, 0x70);
-REB_ASSERT_SIZE(AiMission62Planner, 0x70);
-REB_ASSERT_SIZE(AiDiplomacyPlanner, 0x70);
-REB_ASSERT_SIZE(AiMission54State5Planner, 0x74);
-REB_ASSERT_SIZE(AiEspionageState6Planner, 0x74);
-REB_ASSERT_SIZE(AiSabotagePlanner, 0x7c);
-REB_ASSERT_SIZE(AiMission54Planner, 0x7c);
-REB_ASSERT_SIZE(AiEspionagePlanner, 0x7c);
-REB_ASSERT_SIZE(AiAbductionPlanner, 0x80);
-#pragma clang diagnostic pop

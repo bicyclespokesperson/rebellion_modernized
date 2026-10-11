@@ -26,8 +26,6 @@
 #include "rules/event_rules.h"
 #include "rules/loyalty_params.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyRulesMgrEventKinds();
 
 extern int g_rulesMgrEventKindsBuilt;     // 0x6bb344
 extern EventKindSet g_rulesMgrEventKinds;  // 0x6bb348
@@ -214,13 +212,6 @@ int RulesMgr::CheckOrder(int, int orderKind, StatusCode* out) {
     const int result = BuildRulesEventKinds();
     if (result != 0 && g_rulesMgrEventKinds.Contains(orderKind) != 0) setStatus(out, kStatusCategory, kStatusOk);
     return result;
-}
-
-void RulesMgrConstructEventKinds() { new (&g_rulesMgrEventKinds) EventKindSet(); }  // 0x5573d0
-void RulesMgrRegisterEventKindsAtExit() { atexit(DestroyRulesMgrEventKinds); }                    // 0x5573e0
-void RulesMgrStaticInit() {                                                          // 0x5573c0
-    RulesMgrConstructEventKinds();
-    RulesMgrRegisterEventKindsAtExit();
 }
 
 // ---- capacity checks of moves -----------------------------------------------------------------------------------
@@ -917,14 +908,5 @@ int RulesMgr::SyncUnitView(const ObjectKey* key, int side, NotifyContext* ctx) {
     }
     return result;
 }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_rulesMgrEventKindsDestroyedGuard;  // 0x6bb340
-
-void DestroyRulesMgrEventKinds() {
-    if (!(g_rulesMgrEventKindsDestroyedGuard & 0x1)) {
-        g_rulesMgrEventKindsDestroyedGuard |= 0x1;
-        g_rulesMgrEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_rulesMgrEventKinds{};
+int g_rulesMgrEventKindsBuilt{};

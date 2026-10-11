@@ -279,3 +279,10 @@ void BattleFlow::Step(int* stepped) {
         GetBattleStateName(m_state, &stateName);
     }
 }
+
+float g_flowScaleA = 3.0f;
+float g_flowScaleASquared{};
+float g_flowScaleB = 3.0f;
+float g_flowScaleBSquared{};
+float g_tacticalFrameMilliseconds = 50.0f;
+int g_flowRangeSpan{};

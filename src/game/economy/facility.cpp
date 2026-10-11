@@ -9,8 +9,6 @@
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/object_family.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyFacilityEventKinds();
 
 extern EventKindSet g_facilityEventKinds;  // 0x6b9038
 extern int g_facilityEventKindsReady;      // 0x6b9040
@@ -99,14 +97,6 @@ int Facility::BuildEventKinds() {
     return result;
 }
 
-void Facility::ConstructEventKinds() { new (&g_facilityEventKinds) EventKindSet(); }
-
-void Facility::RegisterEventKindsAtExit() { atexit(DestroyFacilityEventKinds); }
-
-void Facility::InitStatics() {
-    ConstructEventKinds();
-    RegisterEventKindsAtExit();
-}
 
 int UpdateFacilityChildren(GameObj* object, NotifyContext* ctx) { return object->UpdateChildren(&kFacilityFamilies, ctx); }
 
@@ -117,14 +107,5 @@ FacilityIterator::FacilityIterator(GameObjNotifier* parent, uint32_t stateFilter
     : ChildIterator(parent, side, &kFacilityFamilies, stateFilter) {}
 
 FacilityIterator::~FacilityIterator() { REB_KEEP_VPTR_STORE(); }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_facilityEventKindsDestroyedGuard;  // 0x6b9044
-
-void DestroyFacilityEventKinds() {
-    if (!(g_facilityEventKindsDestroyedGuard & 0x1)) {
-        g_facilityEventKindsDestroyedGuard |= 0x1;
-        g_facilityEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_facilityEventKinds{};
+int g_facilityEventKindsReady{};
