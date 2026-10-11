@@ -233,9 +233,10 @@ int GetStartingCharacterCount(int side, int galaxySize, int* count) {
 }
 
 int MapDistance(const MapPosition* from, const MapPosition* to) {
-    const int dx = to->m_x - from->m_x;
-    const int dy = to->m_y - from->m_y;
-    return IntegerSqrt(dx * dx + dy * dy);
+    const int64_t dx = static_cast<int64_t>(to->m_x) - from->m_x;
+    const int64_t dy = static_cast<int64_t>(to->m_y) - from->m_y;
+    const uint64_t squaredDistance = static_cast<uint64_t>(dx * dx + dy * dy);
+    return static_cast<int>(IntegerSqrt(squaredDistance));
 }
 
 int TravelDays(const MapPosition* from, const MapPosition* to) { return TravelDaysAtSpeed(from, to, g_gnprtbDefault); }
@@ -244,7 +245,7 @@ int TravelDaysAtSpeed(const MapPosition* from, const MapPosition* to, int speed)
     int days = 0;
     const int distance = MapDistance(from, to);
     if (distance != 0) {
-        days = ScalePercent(distance / g_gnprtb1400, speed);
+        days = ScalePercent(IntDivide(distance, g_gnprtb1400), speed);
         if (days == 0) days = 1;
     }
     return days;

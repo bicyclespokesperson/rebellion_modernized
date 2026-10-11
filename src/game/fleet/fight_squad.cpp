@@ -207,6 +207,7 @@ int FightSquad::GetSquadSizeDamage() { return m_squadSizeDamage; }
 
 int FightSquad::GetBombardmentDefenseLost() {
     const int squadSize = static_cast<int>(GetSquadSize());
+    if (squadSize == 0) return 0;
     const int lost = GetSquadSizeDamage();
     return ScaleRatio(static_cast<int>(GetBombardmentDefense()), lost, squadSize);
 }

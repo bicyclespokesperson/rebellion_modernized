@@ -1,12 +1,22 @@
 #include "data/game_math.h"
 
-#include <cstdint>
+#include <algorithm>
+#include <limits>
+#include <stdexcept>
 
 namespace {
 
-int wrappingSquare(int value) { return static_cast<int>(static_cast<uint32_t>(value) * static_cast<uint32_t>(value)); }
+int checkedInt(int64_t value) {
+    if (value < std::numeric_limits<int>::min() || value > std::numeric_limits<int>::max()) {
+        throw std::overflow_error("integer math result is outside int range");
+    }
+    return static_cast<int>(value);
+}
 
-int wrappingProduct(int a, int b) { return static_cast<int>(static_cast<uint32_t>(a) * static_cast<uint32_t>(b)); }
+int64_t divide(int64_t numerator, int64_t denominator) {
+    if (denominator == 0) throw std::domain_error("division by zero");
+    return numerator / denominator;
+}
 
 }  // namespace
 
@@ -14,46 +24,45 @@ int ClampPercent(int value) { return Clamp(value, g_percentMin, g_percentMax); }
 
 int Clamp(int value, int low, int high) { return MinInt(high, MaxInt(low, value)); }
 
-int ClampNegativeToZero(int value) { return value & ((value < 0) - 1); }
+int ClampNegativeToZero(int value) { return std::max(value, 0); }
 
-int MaxInt(int a, int b) { return a > b ? a : b; }
+int MaxInt(int a, int b) { return std::max(a, b); }
 
-int MinInt(int a, int b) { return a <= b ? a : b; }
+int MinInt(int a, int b) { return std::min(a, b); }
 
-int IntDivide(int numerator, int denominator) { return numerator / denominator; }
+int IntDivide(int numerator, int denominator) {
+    if (denominator == 0) throw std::domain_error("division by zero");
+    if (numerator == std::numeric_limits<int>::min() && denominator == -1) {
+        throw std::overflow_error("integer division result is outside int range");
+    }
+    return numerator / denominator;
+}
 
-int DivideRoundUp(int numerator, int denominator) { return (denominator - 1 + numerator) / denominator; }
+int DivideRoundUp(int numerator, int denominator) {
+    const int64_t quotient = divide(numerator, denominator);
+    const int64_t remainder = static_cast<int64_t>(numerator) % denominator;
+    return checkedInt(quotient + ((remainder != 0 && ((numerator < 0) == (denominator < 0))) ? 1 : 0));
+}
 
 int ScaleRatio(int value, int numerator, int denominator) {
-    return IntDivide(wrappingProduct(numerator, value), denominator);
+    return checkedInt(divide(static_cast<int64_t>(value) * numerator, denominator));
 }
 
 int ScalePercent(int value, int percent) { return ScaleRatio(value, percent, g_percentMax); }
 
 int RatioToPercent(int part, int whole) { return ScaleRatio(g_percentMax, part, whole); }
 
-// Bisection between hi/2 and hi, where hi is the first power of two whose square reaches `value`.
-// BUG(original): IntegerSqrt(4) returns 1 (the search interval never reaches the exact root 2), and the
-// squares wrap on overflow.
-int IntegerSqrt(int value) {
-    if (value <= 3) return value > 0 ? 1 : 0;
-    int high = 2;
-    if (value > 4) {
-        do {
-            high += high;
-        } while (wrappingSquare(high) < value);
-    }
-    int low = high / 2;
-    int middle = high;
-    int previous;
-    do {
-        previous = middle;
-        middle = (low + high) / 2;
-        const int square = wrappingSquare(middle);
-        if (square > value)
-            high = middle;
-        else if (square < value)
+int IntegerSqrt(int value) { return value < 0 ? 0 : static_cast<int>(IntegerSqrt(static_cast<uint64_t>(value))); }
+
+uint64_t IntegerSqrt(uint64_t value) {
+    uint64_t low = 0;
+    uint64_t high = (uint64_t{1} << 32);
+    while (low + 1 < high) {
+        const uint64_t middle = low + (high - low) / 2;
+        if (middle <= value / middle)
             low = middle;
-    } while (middle != previous);
-    return middle;
+        else
+            high = middle;
+    }
+    return low;
 }

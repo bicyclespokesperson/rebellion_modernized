@@ -28,6 +28,7 @@ set_source_files_properties(
   src/port/native/game_context.cpp src/port/native/audio_context.cpp src/port/native/main.cpp
   src/game/gfx/directdraw_host.cpp src/game/gfx/directdraw_errors.cpp
   src/game/iostream/ios.cpp src/game/iostream/streambuf.cpp src/game/iostream/stream_ctors.cpp
+  src/game/core/string_map.cpp src/game/core/stopwatch.cpp src/game/data/game_math.cpp
   PROPERTIES COMPILE_OPTIONS
   "-Werror=return-type;-Werror=uninitialized;-Werror=delete-non-virtual-dtor;-Wdeprecated-declarations;-Wwritable-strings")
 
@@ -137,4 +138,9 @@ if(BUILD_TESTING)
   target_compile_definitions(reb_settings_tests PRIVATE ${REB_NATIVE_DEFS})
   target_link_libraries(reb_settings_tests PRIVATE ${REB_PLATFORM_LIBS} ${REB_NATIVE_LINK_FLAGS})
   add_test(NAME native_settings COMMAND reb_settings_tests)
+  add_executable(reb_math_tests tests/native/game_math_test.cpp src/game/data/game_math.cpp)
+  target_include_directories(reb_math_tests PRIVATE src/game)
+  target_compile_options(reb_math_tests PRIVATE ${REB_NATIVE_FLAGS})
+  target_link_libraries(reb_math_tests PRIVATE ${REB_NATIVE_LINK_FLAGS})
+  add_test(NAME native_integer_math COMMAND reb_math_tests)
 endif()

@@ -207,9 +207,25 @@ Validation for these completed units: macOS arm64, Apple Clang 17; release and h
 settings CTests, and two-process simulation/save/reload (150336 → 150346 → 150356). LLVM 22.1.4 selected tidy checks
 report no findings in the rewritten implementations. Formatting remains deferred.
 
+Integer rules math and map distance: retain the small helper API, define signed ceiling division, use wide ratio and
+coordinate intermediates, and compute the floor square root without overflowing squares. Zero division throws
+`std::domain_error`; results outside `int` throw `std::overflow_error`. Exact roots (including 4) now produce correct
+travel distances, and ratio products no longer wrap before division. Recordless ship/squad loss calculations avoid zero
+denominators. Invalid loaded travel parameters use the same checked division policy; valid truncation remains unchanged.
+
+- [x] Read responsibility, gameplay callers and data/serialization dependencies; define arithmetic invariants.
+- [x] Rewrite arithmetic and migrate map-distance/travel and zero-denominator fleet clients.
+- [x] Run selected tidy checks, host builds, boundary/exception tests and save/reload smoke.
+- [x] Complete independent review of integer ranges, signed rounding and callers.
+- [x] Address zero-denominator findings, verify and commit the coherent change.
+
+Math validation: macOS arm64 release and halt-on-error UBSan builds; all three CTests (streams, settings, integer math)
+and malloc pre-scribble/scribble two-process save/reload smoke pass. Boundary tests cover signed ceiling quadrants,
+`INT_MIN`/`INT_MAX`, `UINT64_MAX` square root, wide products with representable results and rejected invalid arithmetic.
+Selected LLVM 22.1.4 tidy checks report no findings in the changed implementations. Formatting remains deferred.
+
 Next units:
 
-- [ ] Integer rules math and map distance: defined wide arithmetic, signed ceiling division and corrected floor square root.
 - [ ] String ownership and editing: standard string storage, bounded legacy-save boundary, and migration of borrowed text clients.
 - [ ] Container families and identity/save boundary: inventory mutation/lifetime rules before replacing intrusive structures.
 

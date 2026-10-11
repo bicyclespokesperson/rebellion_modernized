@@ -275,7 +275,8 @@ int CapShip::GetTractorBeamPowerLoss() {
 }
 
 int CapShip::GetBombardmentModifierLoss() {
-    int lost = ScaleRatio(GetBombardmentModifier(), GetHullValueDamage(), GetHull());
+    const int hull = GetHull();
+    int lost = hull == 0 ? 0 : ScaleRatio(GetBombardmentModifier(), GetHullValueDamage(), hull);
     if ((m_flags & kViewMask) == 0 && GetDataWord20() != 0) lost = GetBombardmentModifier();
     return lost;
 }
