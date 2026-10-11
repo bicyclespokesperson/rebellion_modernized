@@ -191,10 +191,7 @@ void TacticalSpecialForceUnit::Write(ostream* out)
 
 int TacticalCharacterTree::CountItems()
 {
-  int count = 0;
-  for (IdNode* node = FirstItem(); node; node = static_cast<IdNode*>(node->m_successor))
-    ++count;
-  return count;
+  return static_cast<int>(Entries().size());
 }
 
 namespace
@@ -224,8 +221,9 @@ void writeRecords(Tree* tree, ostream* out)
 {
   int count = tree->CountItems();
   WriteValue32(out, &count);
-  for (IdNode* node = tree->FirstItem(); node; node = static_cast<IdNode*>(node->m_successor))
+  for (const auto& entry : tree->Entries())
   {
+    IdNode* node = static_cast<IdNode*>(entry.get());
     static_cast<Record*>(node)->Write(out);
   }
 }
@@ -234,8 +232,9 @@ template <class Record, class Tree>
 void checksumRecords(Tree* tree, Crc32* crc)
 {
   crc->AddInt(tree->CountItems());
-  for (IdNode* node = tree->FirstItem(); node; node = static_cast<IdNode*>(node->m_successor))
+  for (const auto& entry : tree->Entries())
   {
+    IdNode* node = static_cast<IdNode*>(entry.get());
     static_cast<Record*>(node)->Checksum(crc);
   }
 }

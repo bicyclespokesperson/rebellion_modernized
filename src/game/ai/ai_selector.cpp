@@ -5,16 +5,6 @@
 namespace
 {
 
-AiRankedList* ListOf(LinkNode* node)
-{
-  return node ? static_cast<AiRankedList*>(static_cast<IdLinkNode*>(node)) : nullptr;
-}
-
-AiRankedList* NextList(AiRankedList* list)
-{
-  return ListOf(static_cast<IdLinkNode*>(list)->m_next);
-}
-
 } // namespace
 
 AiRankedSelector::AiRankedSelector() : IdSortedLinkList()
@@ -48,10 +38,13 @@ void AiRankedSelector::Write(ostream* out)
 {
   uint32_t nextId = m_nextId;
   WriteValue32(out, &nextId);
-  int count = m_count;
+  int count = static_cast<int>(Count());
   WriteValue32(out, &count);
-  for (AiRankedList* list = ListOf(m_head); list; list = NextList(list))
+  for (const auto& entry : Entries())
+  {
+    auto* list = static_cast<AiRankedList*>(entry.get());
     static_cast<IdLinkNode*>(list)->Write(out);
+  }
 }
 
 void AiRankedSelector::Add(AiRankedList* list)
@@ -65,9 +58,10 @@ void AiRankedSelector::Add(AiRankedList* list)
 int AiRankedSelector::AddRankOf(const ObjectKey* key, int* total, AiRankedList* list)
 {
   int found = 0;
-  AiRankedItem* item = list->First();
-  while (item && !found)
+  auto position = list->Entries().begin();
+  while (position != list->Entries().end() && !found)
   {
+    auto* item = static_cast<AiRankedItem*>(position->get());
     ObjectKey itemKey;
     if (item->GetKey(&itemKey)->m_value == key->m_value)
     {
@@ -76,7 +70,7 @@ int AiRankedSelector::AddRankOf(const ObjectKey* key, int* total, AiRankedList* 
     }
     else
     {
-      item = static_cast<AiRankedItem*>(item->m_next);
+      ++position;
     }
   }
   return found;
@@ -88,36 +82,40 @@ ObjectKey* AiRankedSelector::PickBest(ObjectKey* out)
   ObjectKey current;
   int bestScore = 0;
   int score = 0;
-  AiRankedList* first = ListOf(m_head);
+  AiRankedList* first = Entries().empty() ? nullptr : static_cast<AiRankedList*>(Entries().front().get());
   if (first)
   {
-    AiRankedItem* item = first->First();
-    while (item)
+    auto position = first->Entries().begin();
+    while (position != first->Entries().end())
     {
+      auto* item = static_cast<AiRankedItem*>(position->get());
       int inAll = 1;
       ObjectKey itemKey;
       current = *item->GetKey(&itemKey);
       score = item->m_rank;
-      for (AiRankedList* other = NextList(first); other; other = NextList(other))
+      auto listPosition = PositionOf(first);
+      ++listPosition;
+      for (; listPosition != Entries().end(); ++listPosition)
       {
+        auto* other = static_cast<AiRankedList*>(listPosition->get());
         if (!inAll)
           break;
         inAll = AddRankOf(&current, &score, other);
       }
       if (!inAll)
       {
-        item = static_cast<AiRankedItem*>(item->m_next);
+        ++position;
         AiRankedItem* removed = first->RemoveKey(&current);
         delete removed;
       }
       else
       {
+        ++position;
         if (bestScore < score)
         {
           bestScore = score;
           best = current;
         }
-        item = static_cast<AiRankedItem*>(item->m_next);
       }
     }
   }

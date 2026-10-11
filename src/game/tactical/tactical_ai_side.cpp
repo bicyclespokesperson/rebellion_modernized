@@ -20,26 +20,6 @@ constexpr float kDeathStarReady = 100.0f;
 constexpr float kDeathStarBonus = 20000000.0f;
 constexpr float kRankStep = 1.0f;
 
-UnitRefNode* firstUnitNode(UnitRefTree& tree)
-{
-  return tree.FirstNode();
-}
-
-UnitRefNode* firstUnitNode(UnitRefTree* list)
-{
-  return list->FirstNode();
-}
-
-GroupRefNode* firstGroupNode(GroupRefTree& tree)
-{
-  return static_cast<GroupRefNode*>(tree.FirstNode());
-}
-
-GroupRefNode* nextGroupNode(GroupRefNode* node)
-{
-  return static_cast<GroupRefNode*>(node->Next());
-}
-
 TargetPriorityNode* newPriorityNode(float priority, TacticalShipBase* unit)
 {
   void* memory = ::operator new(sizeof(TargetPriorityNode));
@@ -73,48 +53,51 @@ TargetPriorityTree* TacticalAiSide::BuildTargetList()
 
   const int index = SideIndex();
   TacticalSideBase* enemy = opposingSide(GetHeadlessSimulator(), index);
-  for (UnitRefNode* node = firstUnitNode(enemy->m_fleet); node; node = node->Next())
+  for (const auto& entry : enemy->m_fleet.Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     TacticalShipBase* unit = node->Value();
     if (!unit)
       continue;
     const float score = EvaluateAttack(0, unit);
-    TargetPriorityNode* entry = newPriorityNode(-score, unit);
+    TargetPriorityNode* priorityNode = newPriorityNode(-score, unit);
     if (EvaluateUnit4(unit) == 1)
     {
-      list->Insert(entry);
+      list->Insert(priorityNode);
     }
     else if (unit->m_state == kStateActive)
     {
-      deferred.Insert(entry);
+      deferred.Insert(priorityNode);
     }
-    else if (entry)
+    else if (priorityNode)
     {
-      delete entry;
+      delete priorityNode;
     }
   }
-  for (UnitRefNode* node = firstUnitNode(enemy->m_hangars); node; node = node->Next())
+  for (const auto& entry : enemy->m_hangars.Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     TacticalShipBase* unit = node->Value();
     if (!unit || unit->m_state != kStateActive)
       continue;
     const float score = EvaluateAttack(0, unit);
-    TargetPriorityNode* entry = newPriorityNode(-score, unit);
+    TargetPriorityNode* priorityNode = newPriorityNode(-score, unit);
     if (EvaluateUnit4(unit) == 1)
     {
-      list->Insert(entry);
+      list->Insert(priorityNode);
     }
     else if (unit->m_state == kStateActive)
     {
-      deferred.Insert(entry);
+      deferred.Insert(priorityNode);
     }
-    else if (entry)
+    else if (priorityNode)
     {
-      delete entry;
+      delete priorityNode;
     }
   }
-  for (UnitRefNode* node = firstUnitNode(&GetHeadlessSimulator()->m_launched); node; node = node->Next())
+  for (const auto& entry : GetHeadlessSimulator()->m_launched.Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     TacticalShipBase* unit = node->Value();
     if (!unit || unit->m_side == index)
       continue;
@@ -124,15 +107,15 @@ TargetPriorityTree* TacticalAiSide::BuildTargetList()
     const float score = EvaluateAttack(0, unit);
     list->Insert(newPriorityNode(-score, unit));
   }
-  for (AvlNode* node = deferred.First(); node;)
+  for (auto entry = deferred.Entries().begin(); entry != deferred.Entries().end();)
   {
-    AvlNode* next = node->m_successor;
+    auto current = entry++;
+    AvlNode* node = current->get();
     deferred.Remove(node);
     TargetPriorityNode* last = static_cast<TargetPriorityNode*>(list->Last());
     if (last)
       static_cast<TargetPriorityNode*>(node)->m_priority = last->m_priority - -kRankStep;
     list->Insert(node);
-    node = next;
   }
   return list;
 }
@@ -146,13 +129,15 @@ int TacticalAiSide::HasNoShipsAtAll()
   TacticalSideBase* enemy = opposingSide(GetHeadlessSimulator(), index);
   if (enemy->HasDisabledUnit())
     return 0;
-  for (UnitRefNode* node = firstUnitNode(m_hangars); node; node = node->Next())
+  for (const auto& entry : m_hangars.Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     if (node->Value()->TacticalShipBase::UpdateHyperdriveReady() == 1)
       return 1;
   }
-  for (UnitRefNode* node = firstUnitNode(m_fleet); node; node = node->Next())
+  for (const auto& entry : m_fleet.Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     if (node->Value()->TacticalShipBase::UpdateHyperdriveReady() == 1)
       return 1;
   }
@@ -196,13 +181,15 @@ int TacticalAiSide::Refresh(int a)
 {
   int count = 0;
   m_strength = 0;
-  for (UnitRefNode* node = firstUnitNode(m_fleet); node; node = node->Next())
+  for (const auto& entry : m_fleet.Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     bool engaged = false;
     const int index = SideIndex();
     GroupRefTree& enemyGroups = GetHeadlessSimulator()->m_sides[index == 1 ? 0 : 1]->m_groups;
-    for (GroupRefNode* groupNode = firstGroupNode(enemyGroups); groupNode; groupNode = nextGroupNode(groupNode))
+    for (const auto& entry : enemyGroups.Entries())
     {
+      auto* groupNode = static_cast<GroupRefNode*>(entry.get());
       TacticalShipBase* leader = groupNode->Value()->m_formationA.FirstUnit();
       if (leader && static_cast<int>(leader->m_id) == node->Key())
       {
@@ -220,14 +207,16 @@ int TacticalAiSide::Refresh(int a)
   }
   if (SideIndex() == 1)
   {
-    for (UnitRefNode* node = firstUnitNode(&GetHeadlessSimulator()->m_launched); node; node = node->Next())
+    for (const auto& entry : GetHeadlessSimulator()->m_launched.Entries())
     {
+      auto* node = static_cast<UnitRefNode*>(entry.get());
       m_strength = node->Value()->TacticalShipBase::AttackRatingVsClass(0, a) + m_strength;
       ++count;
     }
   }
-  for (UnitRefNode* node = firstUnitNode(m_hangars); node; node = node->Next())
+  for (const auto& entry : m_hangars.Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     m_strength = node->Value()->TacticalShipBase::AttackRatingVsClass(0, a) + m_strength;
     ++count;
   }
@@ -242,8 +231,9 @@ int TacticalAiSide::Refresh(int a)
     bool carried = GetHeadlessSimulator()->HeadlessSimulator::SideZeroHasMoreFighters() != 0;
     if (!carried)
     {
-      for (GroupRefNode* groupNode = firstGroupNode(m_groups); groupNode; groupNode = nextGroupNode(groupNode))
+      for (const auto& entry : m_groups.Entries())
       {
+        auto* groupNode = static_cast<GroupRefNode*>(entry.get());
         if (groupNode->Value()->m_unk68 == 6 || groupNode->Value()->m_mode == 6)
         {
           carried = true;
@@ -288,9 +278,9 @@ int TacticalAiSide::SplitIntoGroups(TargetPriorityTree* targets, int least, int 
   int index = 0;
   int created = 0;
   FighterGroup* group = nullptr;
-  for (TargetPriorityNode* node = static_cast<TargetPriorityNode*>(targets->First()); node;
-       node = static_cast<TargetPriorityNode*>(node->m_successor))
+  for (const auto& entry : targets->Entries())
   {
+    auto* node = static_cast<TargetPriorityNode*>(entry.get());
     TacticalShipBase* unit = node->m_unit.m_unit;
     if (index % perGroup == 0 && created < groups)
     {
@@ -355,8 +345,9 @@ int TacticalAiSide::StepSide(float step)
       const int enemyHangars = simulator->m_sides[1]->m_hangars.CountNodes();
       if (enemyHangars < m_hangars.CountNodes())
       {
-        for (GroupRefNode* node = firstGroupNode(m_groups); node; node = nextGroupNode(node))
+        for (const auto& entry : m_groups.Entries())
         {
+          auto* node = static_cast<GroupRefNode*>(entry.get());
           if (kindOfGroup(node->Value()) == kCapitalGroupKind)
           {
             simulator->DeathStarAttackRun(node->Value());
@@ -378,8 +369,9 @@ int TacticalAiSide::StepSide(float step)
           !(asDeathStar(deathStar)->m_charge > kDeathStarReady))
       {
         BuildTargetList();
-        for (AvlNode* node = m_targets[0].First(); node; node = node->m_successor)
+        for (const auto& entry : m_targets[0].Entries())
         {
+          AvlNode* node = entry.get();
           TacticalShipBase* unit = static_cast<TargetPriorityNode*>(node)->m_unit.m_unit;
           if (unit->GetUnitClass() == kCapitalShipClass)
           {
@@ -390,8 +382,9 @@ int TacticalAiSide::StepSide(float step)
         }
       }
     }
-    for (UnitRefNode* node = firstUnitNode(&GetHeadlessSimulator()->m_launched); node; node = node->Next())
+    for (const auto& entry : GetHeadlessSimulator()->m_launched.Entries())
     {
+      auto* node = static_cast<UnitRefNode*>(entry.get());
       TacticalHangar* launchInterface = GetTacticalRegistry()->FindLaunchInterface(node->Value()->m_carrierHandle);
       if (launchInterface)
         launchInterface->TakeOut(node->Value());
@@ -403,8 +396,9 @@ int TacticalAiSide::StepSide(float step)
 
   BuildTargetList();
   ReprioritiseTargets(step);
-  for (GroupRefNode* node = firstGroupNode(m_groups); node; node = nextGroupNode(node))
+  for (const auto& entry : m_groups.Entries())
   {
+    auto* node = static_cast<GroupRefNode*>(entry.get());
     TacticalShipBase* unit = node->Value()->m_formationA.FirstUnit();
     if (unit)
     {
@@ -418,9 +412,11 @@ int TacticalAiSide::StepSide(float step)
 
   if (Virtual11() == 1)
   {
-    for (UnitRefNode* node = firstUnitNode(m_hangars); node;)
+    auto hangarEntry = m_hangars.Entries().begin();
+    while (hangarEntry != m_hangars.Entries().end())
     {
-      UnitRefNode* next = node->Next();
+      auto current = hangarEntry++;
+      auto* node = static_cast<UnitRefNode*>(current->get());
       if (node->Value()->TacticalShipBase::UpdateHyperdriveReady() == 0)
       {
         if (GetHeadlessSimulator()->HeadlessSimulator::DockInHangar(node->Value()) == 0)
@@ -432,15 +428,16 @@ int TacticalAiSide::StepSide(float step)
       {
         GetHeadlessSimulator()->HeadlessSimulator::DockAtDeathStar(node->Value());
       }
-      node = next;
     }
     if (SideIndex() == 1 && deathStar && static_cast<TacticalDeathStar*>(deathStar)->TacticalDeathStar::IsOperational())
     {
       asDeathStar(deathStar)->m_fired = 1;
     }
-    for (UnitRefNode* node = firstUnitNode(m_fleet); node;)
+    auto fleetEntry = m_fleet.Entries().begin();
+    while (fleetEntry != m_fleet.Entries().end())
     {
-      UnitRefNode* next = node->Next();
+      auto current = fleetEntry++;
+      auto* node = static_cast<UnitRefNode*>(current->get());
       if (node->Value()->TacticalShipBase::UpdateHyperdriveReady() == 1)
       {
         GetHeadlessSimulator()->HeadlessSimulator::DockAtDeathStar(node->Value());
@@ -449,20 +446,21 @@ int TacticalAiSide::StepSide(float step)
       {
         GetHeadlessSimulator()->HeadlessSimulator::RetireUnit(node->Value());
       }
-      node = next;
     }
     m_state = kStateWithdrawing;
   }
 
   int active = 0;
-  for (UnitRefNode* node = firstUnitNode(m_fleet); node; node = node->Next())
+  for (const auto& entry : m_fleet.Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     if (node->Value()->m_state == kStateActive)
       ++active;
     node->Value()->TacticalShipBase::Recharge(step);
   }
-  for (UnitRefNode* node = firstUnitNode(m_hangars); node; node = node->Next())
+  for (const auto& entry : m_hangars.Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     if (node->Value()->m_state == kStateActive)
       ++active;
     node->Value()->TacticalShipBase::Recharge(step);

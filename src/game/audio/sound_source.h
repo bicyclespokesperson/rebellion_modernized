@@ -64,18 +64,18 @@ public:
 };
 
 // A queued notification for the sound-event thread (see SoundManager::QueueEvent).
-class SoundEvent : public LinkNode
+class SoundEvent
 {
 public:
   SoundEvent(uint32_t message, uint32_t first, uint32_t second);
-  ~SoundEvent() override;
-  void Read(istream* in) override;
-  void Write(ostream* out) override;
+  ~SoundEvent();
+  void Read(istream* in);
+  void Write(ostream* out);
 
   void Set(uint32_t message, uint32_t first, uint32_t second);
   void Get(uint32_t* message, uint32_t* first, uint32_t* second);
 
-  uint32_t m_message; // +0x0c
-  uint32_t m_first; // +0x10
-  uint32_t m_second; // +0x14
+  uint32_t m_message;
+  uint32_t m_first;
+  uint32_t m_second;
 };

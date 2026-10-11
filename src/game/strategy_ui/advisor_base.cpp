@@ -260,10 +260,16 @@ int AdvisorBase::StepTasks()
   }
   else if (m_state == 6)
   {
-    if (!m_currentTask)
-      m_currentTask = static_cast<AdvisorTaskBase*>(Tasks()->First());
+    auto taskPosition = m_currentTask ? Tasks()->PositionOf(m_currentTask) : Tasks()->Entries().begin();
+    if (taskPosition == Tasks()->Entries().end())
+      taskPosition = Tasks()->Entries().begin();
+    if (taskPosition == Tasks()->Entries().end())
+      return 0;
+    m_currentTask = static_cast<AdvisorTaskBase*>(taskPosition->get());
     m_currentTask->Evaluate();
-    m_currentTask = static_cast<AdvisorTaskBase*>(m_currentTask->m_successor);
+    ++taskPosition;
+    m_currentTask =
+      taskPosition == Tasks()->Entries().end() ? nullptr : static_cast<AdvisorTaskBase*>(taskPosition->get());
     if (!m_currentTask)
     {
       m_state = 4;
@@ -440,20 +446,26 @@ void AdvisorBase::FlushPending()
   IdValueNode* notice = static_cast<IdValueNode*>(m_notices.Last());
   while (notice)
   {
-    IdValueNode* previous = static_cast<IdValueNode*>(notice->Predecessor());
+    auto position = m_notices.PositionOf(notice);
+    auto previousPosition = position;
+    const bool hasPrevious = previousPosition != m_notices.Entries().begin();
+    if (hasPrevious)
+      --previousPosition;
     if (NoticeKind(notice) == 7 || g_advisorFlushAll != 0)
     {
       m_player->Dispatch()->AddCharacterNotice(notice);
       m_notices.DetachById(notice->m_id);
       delete notice;
     }
-    notice = previous;
+    notice = hasPrevious ? static_cast<IdValueNode*>(previousPosition->get()) : nullptr;
   }
 }
 
 void AdvisorBase::SpeakNow()
 {
-  IdValueNode* notice = static_cast<IdValueNode*>(m_notices.First());
+  auto noticePosition = m_notices.Entries().begin();
+  IdValueNode* notice =
+    noticePosition == m_notices.Entries().end() ? nullptr : static_cast<IdValueNode*>(noticePosition->get());
   uint32_t found = 0;
   if ((m_flags.m_value & kFlagNoticesCollected) == 0)
     FlushPending();
@@ -481,7 +493,8 @@ void AdvisorBase::SpeakNow()
     }
     if (found == 0)
     {
-      notice = static_cast<IdValueNode*>(notice->m_successor);
+      ++noticePosition;
+      notice = noticePosition == m_notices.Entries().end() ? nullptr : static_cast<IdValueNode*>(noticePosition->get());
     }
     else
     {
@@ -526,7 +539,9 @@ void AdvisorBase::SpeakTopic(unsigned topic)
   if (kind == 0)
     return;
   bool told = false;
-  IdValueNode* notice = static_cast<IdValueNode*>(m_notices.First());
+  auto noticePosition = m_notices.Entries().begin();
+  IdValueNode* notice =
+    noticePosition == m_notices.Entries().end() ? nullptr : static_cast<IdValueNode*>(noticePosition->get());
   while (notice && !told)
   {
     if (static_cast<uint32_t>(NoticeKind(notice)) == kind)
@@ -539,7 +554,8 @@ void AdvisorBase::SpeakTopic(unsigned topic)
         delete removed;
       break;
     }
-    notice = static_cast<IdValueNode*>(notice->m_successor);
+    ++noticePosition;
+    notice = noticePosition == m_notices.Entries().end() ? nullptr : static_cast<IdValueNode*>(noticePosition->get());
   }
 }
 
@@ -554,8 +570,8 @@ void AdvisorBase::ClearAiHelperFlag(int value)
 
 void AdvisorBase::ResetTasks()
 {
-  for (AvlNode* node = Tasks()->First(); node; node = node->m_successor)
-    static_cast<IdValueNode*>(node)->m_value = kTaskReady;
+  for (const auto& ownedNode : Tasks()->Entries())
+    static_cast<IdValueNode*>(ownedNode.get())->m_value = kTaskReady;
 }
 
 int AdvisorBase::PickAdvice()

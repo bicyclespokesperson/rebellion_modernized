@@ -838,9 +838,9 @@ void AdvisorTaskManager::Save(ostream* out)
   WriteValue32(out, &m_view);
   int16_t count = Count();
   WriteValue16(out, &count);
-  for (AvlNode* node = First(); node; node = node->m_successor)
+  for (const auto& entry : Entries())
   {
-    AdvisorTaskBase* task = static_cast<AdvisorTaskBase*>(node);
+    AdvisorTaskBase* task = static_cast<AdvisorTaskBase*>(entry.get());
     uint32_t id = task->m_id;
     WriteValue32(out, &id);
     task->Write(out);
@@ -917,8 +917,10 @@ AdvisorTaskBase* AdvisorTaskManager::SelectNext()
   m_last = PickBest();
   if (m_last != nullptr)
     return m_last;
-  if (m_current == nullptr || (m_current = static_cast<AdvisorTaskBase*>(m_current->m_successor)) == nullptr)
-    m_current = static_cast<AdvisorTaskBase*>(First());
+  auto position = PositionOf(m_current);
+  if (position == Entries().end() || ++position == Entries().end())
+    position = Entries().begin();
+  m_current = position == Entries().end() ? nullptr : static_cast<AdvisorTaskBase*>(position->get());
   AdvisorTaskBase* start = m_current;
   bool wrapped = false;
   int wants = m_current->m_flags.Get();
@@ -929,9 +931,9 @@ AdvisorTaskBase* AdvisorTaskManager::SelectNext()
       m_last = nullptr;
       return m_last;
     }
-    m_current = static_cast<AdvisorTaskBase*>(m_current->m_successor);
-    if (m_current == nullptr)
-      m_current = static_cast<AdvisorTaskBase*>(First());
+    if (++position == Entries().end())
+      position = Entries().begin();
+    m_current = position == Entries().end() ? nullptr : static_cast<AdvisorTaskBase*>(position->get());
     wrapped = start == m_current;
     wants = m_current->m_flags.Get();
   }
@@ -962,8 +964,10 @@ AdvisorTaskBase* AdvisorTaskManager::PickBest()
 {
   AdvisorTaskBase* best = nullptr;
   uint32_t bestCount = 0;
-  if (m_cursor == nullptr || (m_cursor = static_cast<AdvisorTaskBase*>(m_cursor->m_successor)) == nullptr)
-    m_cursor = static_cast<AdvisorTaskBase*>(First());
+  auto position = PositionOf(m_cursor);
+  if (position == Entries().end() || ++position == Entries().end())
+    position = Entries().begin();
+  m_cursor = position == Entries().end() ? nullptr : static_cast<AdvisorTaskBase*>(position->get());
   AdvisorTaskBase* task = m_cursor;
   while (task)
   {
@@ -972,9 +976,9 @@ AdvisorTaskBase* AdvisorTaskManager::PickBest()
       bestCount = task->m_count;
       best = task;
     }
-    task = static_cast<AdvisorTaskBase*>(task->m_successor);
-    if (task == nullptr)
-      task = static_cast<AdvisorTaskBase*>(First());
+    if (++position == Entries().end())
+      position = Entries().begin();
+    task = position == Entries().end() ? nullptr : static_cast<AdvisorTaskBase*>(position->get());
     if (task == m_cursor)
       task = nullptr;
   }
@@ -993,8 +997,8 @@ void AdvisorEntryTree::Save(ostream* out)
 {
   if (!WriteCount32(out, Count()))
     return;
-  for (AvlNode* node = First(); node; node = node->m_successor)
-    static_cast<DroidScript*>(node)->Write(out);
+  for (const auto& entry : Entries())
+    static_cast<DroidScript*>(entry.get())->Write(out);
 }
 
 void AdvisorEntryTree::Load(istream* in)

@@ -3,6 +3,8 @@
 // option blocks and text slots that every save carries but nothing else uses, the queues of posted events and the
 // tick table that hands out the per-key tick values. GameManager::Read/Write (game_manager.h) call them.
 #include <cstdint>
+#include <deque>
+#include <memory>
 
 #include "core/containers.h"
 #include "core/game_string.h"
@@ -76,16 +78,31 @@ public:
 // ---- posted-event queues ------------------------------------------------------------------------------------
 // The two key-value queues at GameManager +0xb4/+0xb8: a FIFO of notification payloads saved as a flag, a count
 // and, per node, its factory key followed by its own data.
-class PostedEventQueue : public NodeQueue
+class NotifPayload;
+
+class PostedEventQueue
 {
 public:
   PostedEventQueue(); // 0x568840
-  ~PostedEventQueue() override; // 0x568880 (scalar deleting destructor 0x568860)
+  ~PostedEventQueue(); // 0x568880 (scalar deleting destructor 0x568860)
 
   int Read(istream* in); // 0x5688d0
   int Write(ostream* out); // 0x568980
 
-  int m_flag; // +0x10, 1
+  void Enqueue(std::unique_ptr<NotifPayload> payload);
+  std::unique_ptr<NotifPayload> Dequeue();
+  bool Empty() const
+  {
+    return m_payloads.empty();
+  }
+  void Clear();
+  PostedEventQueue(const PostedEventQueue&) = delete;
+  PostedEventQueue& operator=(const PostedEventQueue&) = delete;
+
+  int m_flag;
+
+private:
+  std::deque<std::unique_ptr<NotifPayload>> m_payloads;
 };
 
 // ---- tick table ---------------------------------------------------------------------------------------------

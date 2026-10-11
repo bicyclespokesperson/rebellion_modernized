@@ -1,4 +1,5 @@
 #include "strategy_ui/advisor_notices.h"
+#include "ai/ai_task_base.h"
 #include "core/game_string.h"
 
 #include <new>
@@ -139,21 +140,21 @@ void UiTextNotice::Virtual15()
   Virtual13();
 }
 
-int ForwardPayloads(UiNotice* sink, const LinkNode* payloads)
+int ForwardPayloads(UiNotice* sink, const AiNoticeGroup* payloads)
 {
   if (!payloads)
     return 0;
-  for (const LinkNode* node = payloads->m_next; node; node = node->m_next)
-    static_cast<NotifPayload*>(const_cast<LinkNode*>(node))->DispatchToSink(sink);
+  for (const auto& node : payloads->Entries())
+    node.get()->DispatchToSink(sink);
   return 1;
 }
 
-int UiTextNotice::Virtual16(const LinkNode* payloads)
+int UiTextNotice::Virtual16(const AiNoticeGroup* payloads)
 {
   return ForwardPayloads(this, payloads);
 }
 
-int UiKeyNotice::Virtual14(const LinkNode* payloads)
+int UiKeyNotice::Virtual14(const AiNoticeGroup* payloads)
 {
   return ForwardPayloads(this, payloads);
 }

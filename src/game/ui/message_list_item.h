@@ -15,8 +15,6 @@ public:
   ~MessageListItem() override; // 0x4ad720 (scalar deleting destructor 0x4ad690)
   void Read(istream* in) override; // slot 1, 0x5ae1e0: does nothing
   void Write(ostream* out) override; // slot 2, 0x5ae1e0: does nothing
-  CoolListItem* Next() override; // slot 3, 0x4ad730
-  CoolListItem* Previous() override; // slot 4, 0x4ad750
 
   MessageRecord* m_record; // +0x68 not owned
   int m_visible; // +0x6c 1

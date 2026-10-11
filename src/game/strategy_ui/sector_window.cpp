@@ -316,8 +316,9 @@ LRESULT SectorWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
       CoolLabel label(static_cast<const char*>(nullptr), 0, 0, 100, 0, 1u, 1u);
       label.SetFont(10);
       label.m_drawFlags = 1;
-      for (CoolListItem* item = m_systems.First(); item; item = item->Next())
+      for (const auto& ownedNode : m_systems.Entries())
       {
+        auto* item = static_cast<CoolListItem*>(ownedNode.get());
         DibBitmap* image = item->m_selectedImage;
         if (!image)
           continue;
@@ -333,8 +334,9 @@ LRESULT SectorWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
       }
       SelectObject(m_memoryDc, previousBitmap);
       ObjectKey unusedKey;
-      for (CoolListItem* marker = m_markers.First(); marker; marker = marker->Next())
+      for (const auto& ownedNode : m_markers.Entries())
       {
+        auto* marker = static_cast<CoolListItem*>(ownedNode.get());
         if ((marker->m_state.m_value & kMarkerVisible) == 0)
           continue;
         DibBitmap* image = marker->m_image;
@@ -386,8 +388,9 @@ LRESULT SectorWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
       {
         x = x != 0x78 ? 0x78 : 0x16d;
       }
-      for (AvlNode* node = m_galaxy->m_children.First(); node; node = node->m_successor)
+      for (const auto& ownedNode : m_galaxy->m_children.Entries())
       {
+        auto* node = static_cast<AvlNode*>(ownedNode.get());
         CoolWindow* other = static_cast<CoolWindow*>(node);
         if ((other->m_childId & 0x3f) == 1 && other->m_childId != m_childId)
         {

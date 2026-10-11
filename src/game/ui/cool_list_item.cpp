@@ -82,17 +82,6 @@ CoolListItem::~CoolListItem()
     delete m_selectedImage;
 }
 
-// Both getters are shared with other classes' identical one-line virtuals.
-CoolListItem* CoolListItem::Next()
-{
-  return static_cast<CoolListItem*>(m_next);
-}
-
-CoolListItem* CoolListItem::Previous()
-{
-  return static_cast<CoolListItem*>(m_prev);
-}
-
 DibBitmap* CoolListItem::CurrentImage()
 {
   if ((m_state.m_value & kListItemDisabled) == 0 && (m_state.m_value & kListItemSelected) != 0)

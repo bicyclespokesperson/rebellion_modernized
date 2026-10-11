@@ -19,7 +19,6 @@ using ai::IsFleetKey;
 using ai::IsSystemKey;
 using ai::KeyOfNode;
 using ai::KeyOfObject;
-using ai::NextNode;
 
 namespace
 {
@@ -66,18 +65,18 @@ void PickRandomKey(ObjectKeySet* set, ObjectKey* out)
   if (count == 0)
     return;
   int steps = GameplayRandomNext(count);
-  ObjectKeyNode* node = set->First();
-  if (!node)
+  auto position = set->Entries().begin();
+  if (position == set->Entries().end())
     return;
   while (steps > 0)
   {
-    node = NextNode(node);
+    ++position;
     --steps;
-    if (!node)
+    if (position == set->Entries().end())
       break;
   }
-  if (node)
-    *out = KeyOfNode(node);
+  if (position != set->Entries().end())
+    *out = KeyOfNode(static_cast<ObjectKeyNode*>(position->get()));
 }
 
 } // namespace
@@ -455,8 +454,11 @@ void AiPosture::PickRandomObject(const ObjectKey* system, ObjectKey* out, uint32
       AiFleetEval* fleet = FindFleet(m_owner, KeyOfObject(fleets.m_current));
       if (fleet && (fleet->m_flags.m_value & kFleetOurs) == 0)
       {
-        for (ObjectKeyNode* ship = fleet->m_shipKeys.First(); ship; ship = NextNode(ship))
+        for (const auto& entry : fleet->m_shipKeys.Entries())
+        {
+          auto* ship = static_cast<ObjectKeyNode*>(entry.get());
           AddKeyNode(&candidates, KeyOfNode(ship));
+        }
       }
     }
   }

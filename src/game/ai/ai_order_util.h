@@ -55,11 +55,6 @@ inline ObjectKey KeyOfObject(GameObjNotifier* object)
   return key;
 }
 
-inline ObjectKeyNode* NextNode(ObjectKeyNode* node)
-{
-  return static_cast<ObjectKeyNode*>(node->m_successor);
-}
-
 inline void AddToTeam(ObjectKeyValueSet* team, const ObjectKey& key)
 {
   ObjectKeyValueNode* node = NewOrNull<ObjectKeyValueNode>(key, 0);

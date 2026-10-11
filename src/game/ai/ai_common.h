@@ -36,10 +36,6 @@ inline int ViewOfSide(int side)
 
 // ---- functions of other modules the AI calls ----------------------------------------------------------------------
 
-// The data record table (0x567420 returns the table): the first record of the record type `type` (0x14 = capital
-// ships, ...), null if the table has none. Records of a type are chained by their AvlNode successor pointer.
-DatRecord* GetFirstRecordOfType(int type); // 0x51cad0
-
 // The data record of the side's research tier `tier` of the capital ship (0x28) / facility (0x2a) records, in *out;
 // non-zero when the table has one (both are cdecl wrappers of 0x51cb60).
 int GetTierRecord28(int view, int tier, DatRecord** out); // 0x51cbd0

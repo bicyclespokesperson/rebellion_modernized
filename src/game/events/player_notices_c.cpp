@@ -1,3 +1,4 @@
+#include "ai/ai_task_base.h"
 #include "events/player_notices.h"
 
 #include <new>
@@ -34,7 +35,7 @@ Notice31::Notice31() : UiKeyNotice()
   m_categories = Virtual11();
 }
 
-Notice31::Notice31(const LinkNode* payloads, int owner) : UiKeyNotice(owner)
+Notice31::Notice31(const AiNoticeGroup* payloads, int owner) : UiKeyNotice(owner)
 {
   m_categories = Virtual11();
   m_unk40 = 0;
@@ -84,7 +85,7 @@ Notice32::Notice32() : UiTextNotice(), m_state(0)
   m_categories = Virtual11();
 }
 
-Notice32::Notice32(const LinkNode* payloads, int owner) : UiTextNotice(owner), m_state(0)
+Notice32::Notice32(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner), m_state(0)
 {
   m_categories = Virtual11();
   Virtual16(payloads);
@@ -246,7 +247,7 @@ Notice29::Notice29() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice29::Notice29(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice29::Notice29(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_categories = Virtual11();
   m_unk40 = 0;
@@ -338,7 +339,7 @@ Notice28::Notice28() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice28::Notice28(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice28::Notice28(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_categories = Virtual11();
   m_unk40 = 0;
@@ -443,7 +444,7 @@ Notice30::Notice30() : UiKeyNotice()
   m_categories = Virtual11();
 }
 
-Notice30::Notice30(const LinkNode* payloads, int owner) : UiKeyNotice(owner)
+Notice30::Notice30(const AiNoticeGroup* payloads, int owner) : UiKeyNotice(owner)
 {
   m_unk40 = 0;
   m_categories = Virtual11();
@@ -493,7 +494,7 @@ Notice26a::Notice26a() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice26a::Notice26a(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice26a::Notice26a(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_unk40 = 0;
   m_categories = Virtual11();
@@ -569,7 +570,7 @@ Notice26b::Notice26b() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice26b::Notice26b(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice26b::Notice26b(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_unk40 = 0;
   m_categories = Virtual11();

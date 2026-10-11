@@ -35,7 +35,6 @@ public:
   // the game root.
   int IsFullyLinked() const;
   // The next entry in key order if its family lies in `range`.
-  ObjectEntry* NextInRange(const FamilyRange* range) const;
 
   int m_flag; // +0x1c, always 1
   uint32_t m_family; // +0x20

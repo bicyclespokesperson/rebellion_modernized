@@ -312,9 +312,12 @@ int MissionResearch::CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* ch
   int result = 1;
   if (StatusIsOk(status))
     result = ResearchKindOfCheck(check, &kind);
-  for (ObjectKeyNode* node = keys->First(); node && result && StatusIsOk(status);
-       node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& nodeEntry : keys->Entries())
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(nodeEntry.get());
+    if (!(result && StatusIsOk(status)))
+      break;
+
     ObjectKey key;
     node->GetKey(&key);
     GameObj* character = nullptr;
@@ -338,8 +341,12 @@ int MissionResearch::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* c
   int result = 1;
   if (StatusIsOk(status))
     result = ResearchKindOfCheck(check, &kind);
-  for (AvlNode* node = refs->First(); node && result && StatusIsOk(status); node = node->m_successor)
+  for (const auto& nodeEntry : refs->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    if (!(result && StatusIsOk(status)))
+      break;
+
     ObjectKey key;
     static_cast<ObjectRefNode*>(node)->GetKey(&key);
     DatRecord* person = nullptr;

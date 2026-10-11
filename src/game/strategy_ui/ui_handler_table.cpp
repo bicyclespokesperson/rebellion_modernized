@@ -143,8 +143,9 @@ void UiRecordTree::Write(ostream* out)
 {
   int16_t count = Count();
   WriteValue16(out, &count);
-  for (AvlNode* node = First(); node; node = node->m_successor)
+  for (const auto& ownedNode : Entries())
   {
+    auto* node = ownedNode.get();
     UiNotice* notice = static_cast<UiNotice*>(node);
     int kind = notice->GetKind();
     WriteValue32(out, &kind);

@@ -336,9 +336,12 @@ int RouteContext::CountUnits(const ObjectKeySet* keys, StatusCode* status, UnitC
 {
   int ok = 1;
   *status = okStatus();
-  for (ObjectKeyNode* node = keys->First(); isOk(*status) && node;
-       node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (auto nodePosition = keys->Entries().begin(); nodePosition != keys->Entries().end();)
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+    if (!(isOk(*status) && true))
+      break;
+
     ObjectKey key;
     ok = CountUnit(node->GetKey(&key), status, counts);
     if (!ok)
@@ -371,9 +374,12 @@ int RouteContext::FreeParentsOf(const ObjectKeySet* units, StatusCode* status)
 {
   int ok = 1;
   *status = okStatus();
-  for (ObjectKeyNode* node = units->First(); isOk(*status) && node;
-       node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (auto nodePosition = units->Entries().begin(); nodePosition != units->Entries().end();)
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+    if (!(isOk(*status) && true))
+      break;
+
     ObjectKey key;
     ok = FreeParent(node->GetKey(&key), status);
     if (!ok)

@@ -59,16 +59,6 @@ void setStatus(StatusCode* status, int category, int code)
   *status = StatusCode(category, code);
 }
 
-ObjectKeyNode* nextKey(ObjectKeyNode* node)
-{
-  return static_cast<ObjectKeyNode*>(node->m_successor);
-}
-
-DatRecord* nextRecord(DatRecord* record)
-{
-  return reinterpret_cast<DatRecord*>(static_cast<AvlNode*>(record)->m_successor);
-}
-
 int viewOfSummary(const MissionMemberSummary& summary)
 {
   if (summary.m_kind == 1)
@@ -111,9 +101,10 @@ int MissionMgr::GatherMissionMembers(const ActivityRequest* request,
     {
       if (!statusOk(status))
         return ok;
-      for (ObjectKeyNode* node = members->First(); node;)
+      for (auto position = members->Entries().begin(); position != members->Entries().end();)
       {
-        ObjectKeyNode* next = nextKey(node);
+        auto current = position++;
+        auto* node = static_cast<ObjectKeyNode*>(current->get());
         GameObj* role = nullptr;
         ObjectKey key;
         node->GetKey(&key);
@@ -123,11 +114,11 @@ int MissionMgr::GatherMissionMembers(const ActivityRequest* request,
           members->Remove(node);
           captured->Add(node);
         }
-        node = next;
       }
-      for (ObjectKeyNode* node = decoys->First(); node && ok;)
+      for (auto position = decoys->Entries().begin(); position != decoys->Entries().end() && ok;)
       {
-        ObjectKeyNode* next = nextKey(node);
+        auto current = position++;
+        auto* node = static_cast<ObjectKeyNode*>(current->get());
         GameObj* role = nullptr;
         ObjectKey key;
         node->GetKey(&key);
@@ -137,7 +128,6 @@ int MissionMgr::GatherMissionMembers(const ActivityRequest* request,
           decoys->Remove(node);
           captured->Add(node);
         }
-        node = next;
       }
       if (members->Count() == 0)
         setStatus(status, kMissionStatus, kReasonNoAbleMember);
@@ -149,8 +139,10 @@ int MissionMgr::GatherMissionMembers(const ActivityRequest* request,
     ObjectKeyValueSet* groups[] = {members, decoys, captured};
     for (ObjectKeyValueSet* set : groups)
     {
-      for (ObjectKeyNode* node = set->First(); node; node = nextKey(node))
+      for (auto nodePosition = set->Entries().begin(); nodePosition != set->Entries().end();)
       {
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+
         ObjectKey key;
         ok = everyone->AddKeyValue(node->GetKey(&key), 0) && ok ? 1 : 0;
       }
@@ -167,8 +159,10 @@ int MissionMgr::FindCommonOrigin(ObjectKeyValueSet* team, ObjectKey* out, Status
   ObjectKey common;
   bool firstMember = true;
   bool aborted = false;
-  for (ObjectKeyNode* node = team->First(); node; node = nextKey(node))
+  for (auto nodePosition = team->Entries().begin(); nodePosition != team->Entries().end();)
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+
     if (!statusOk(status))
     {
       aborted = true;
@@ -205,8 +199,12 @@ int MissionMgr::CheckTeamActivity(const ActivityRequest* request, ObjectKeyValue
 {
   int result = 1;
   setStatus(status, kStatusCategory, kStatusOk);
-  for (ObjectKeyNode* node = team->First(); node && statusOk(status); node = nextKey(node))
+  for (auto nodePosition = team->Entries().begin(); nodePosition != team->Entries().end();)
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+    if (!(true && statusOk(status)))
+      break;
+
     GameObj* person = nullptr;
     ObjectKey key;
     node->GetKey(&key);
@@ -232,8 +230,12 @@ int MissionMgr::CheckTeamActivities(const ActivityRequest* request,
   } groups[] = {{members, 0}, {decoys, 1}, {captured, 0}};
   for (const auto& group : groups)
   {
-    for (ObjectKeyNode* node = group.set->First(); node && statusOk(status); node = nextKey(node))
+    for (auto nodePosition = group.set->Entries().begin(); nodePosition != group.set->Entries().end();)
     {
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+      if (!(true && statusOk(status)))
+        break;
+
       GameObj* person = nullptr;
       ObjectKey key;
       node->GetKey(&key);
@@ -350,7 +352,7 @@ int MissionMgr::CollectMissionTypesForTeam(const ActivityRequest* request,
     ok = FillMemberSummaryForMission(&members, &decoys, &captured, &summary, status) && ok ? 1 : 0;
     if (statusOk(status))
     {
-      for (DatRecord* record = GetFirstRecordOfType(kRecordFamilyMissions); record; record = nextRecord(record))
+      for (DatRecord* record : GetRecordsOfType(kRecordFamilyMissions))
       {
         if (static_cast<MissionSD*>(record)->m_hidden != 0)
           continue;
@@ -401,7 +403,7 @@ int MissionMgr::CollectMissionTypeNamesAtTarget(const ActivityRequest* request,
       setStatus(status, kMissionStatus, kReasonTargetNotFound);
     if (statusOk(status))
     {
-      for (DatRecord* record = GetFirstRecordOfType(kRecordFamilyMissions); record; record = nextRecord(record))
+      for (DatRecord* record : GetRecordsOfType(kRecordFamilyMissions))
       {
         if (static_cast<MissionSD*>(record)->m_hidden != 0)
           continue;
@@ -535,8 +537,12 @@ int MissionMgr::ResolveMissionTravel(const ActivityRequest* request,
     ObjectKeyValueSet* groups[] = {&members, &decoys, &captured};
     for (ObjectKeyValueSet* set : groups)
     {
-      for (ObjectKeyNode* node = set->First(); node && !hasForces; node = nextKey(node))
+      for (auto nodePosition = set->Entries().begin(); nodePosition != set->Entries().end();)
       {
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+        if (!(true && !hasForces))
+          break;
+
         ObjectKey key;
         node->GetKey(&key);
         hasForces = mission_exec::InFamilies(&key, kFamilySpecialForcesFirst, kFamilySpecialForcesEnd);
@@ -553,8 +559,11 @@ int MissionMgr::ResolveMissionTravel(const ActivityRequest* request,
              1 :
              0;
   }
-  for (ObjectKeyNode* node = everyone->First(); node; node = nextKey(node))
+  for (auto nodePosition = everyone->Entries().begin(); nodePosition != everyone->Entries().end();)
+  {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
     static_cast<ObjectKeyValueNode*>(node)->m_value = travelMode;
+  }
   return ok;
 }
 

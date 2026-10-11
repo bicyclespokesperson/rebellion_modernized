@@ -1,5 +1,6 @@
 #include "strategy_ui/encyclopedia_window.h"
 #include "economy/manu_mgr.h"
+#include <iterator>
 #include <string>
 
 #include <cstring>
@@ -573,9 +574,9 @@ void EncyclopediaWindow::OnCommand(int, int command, int)
     {
       CoolListItemList selection(kSortById);
       m_list->CopySelectionTo(&selection);
-      if (selection.m_head)
+      if (selection.First())
       {
-        m_selected = m_list->FindItem(static_cast<CoolListItem*>(selection.m_head)->m_id);
+        m_selected = m_list->FindItem(static_cast<CoolListItem*>(selection.First())->m_id);
         if (m_selected)
         {
           if (static_cast<uint16_t>(code) == kDragListActivated)
@@ -614,9 +615,30 @@ void EncyclopediaWindow::OnCommand(int, int command, int)
     case kPreviousId:
     case kNextId:
     {
-      CoolListItem* item = static_cast<int16_t>(command) == kNextId ? m_selected->Next() : m_selected->Previous();
-      if (item)
+      auto& items = *m_list->m_items;
+      auto position = items.PositionOf(m_selected);
+      if (position != items.Entries().end())
       {
+        const bool forwards = static_cast<int16_t>(command) == kNextId;
+        if (forwards)
+          position = std::next(position);
+        else if (position == items.Entries().begin())
+          position = items.Entries().end();
+        else
+          position = std::prev(position);
+        while (position != items.Entries().end() && !static_cast<ObjectListItem*>(position->get())->m_visible)
+        {
+          if (forwards)
+            position = std::next(position);
+          else if (position == items.Entries().begin())
+            position = items.Entries().end();
+          else
+            position = std::prev(position);
+        }
+      }
+      if (position != items.Entries().end())
+      {
+        CoolListItem* item = static_cast<CoolListItem*>(position->get());
         SetRect(&area, 0xc, 0x1f, 0x19c, 0xe7);
         m_list->SelectById(item->m_id, 0);
         m_searchField->SetText(item->m_text.c_str());
@@ -660,8 +682,8 @@ void EncyclopediaWindow::OnKeyDown(WPARAM key, LPARAM lParam)
         CoolStrobeButton* current = m_filterTabs->m_selected;
         uint32_t currentId = current ? current->m_childId : 0;
         AvlNode* tab = m_filterTabs->m_children.FindById(currentId);
-        tab = key == VK_LEFT ? tab->Predecessor() : tab->m_successor;
-        if (!tab)
+        auto position = m_filterTabs->m_children.PositionOf(tab);
+        if (position == m_filterTabs->m_children.Entries().end())
         {
           AvlNode* first = m_filterTabs->m_children.First();
           if (first)
@@ -669,16 +691,28 @@ void EncyclopediaWindow::OnKeyDown(WPARAM key, LPARAM lParam)
         }
         else
         {
-          do
+          if (key == VK_LEFT)
+            position = position == m_filterTabs->m_children.Entries().begin() ?
+                         m_filterTabs->m_children.Entries().end() :
+                         std::prev(position);
+          else
+            position = std::next(position);
+          while (position != m_filterTabs->m_children.Entries().end())
           {
+            tab = position->get();
             CoolWindow* window = static_cast<CoolWindow*>(tab);
             if (IsWindowVisible(window->m_hwnd))
             {
               m_filterTabs->SelectTab(window->m_childId, 1);
               break;
             }
-            tab = key == VK_LEFT ? tab->Predecessor() : tab->m_successor;
-          } while (tab);
+            if (key == VK_LEFT)
+              position = position == m_filterTabs->m_children.Entries().begin() ?
+                           m_filterTabs->m_children.Entries().end() :
+                           std::prev(position);
+            else
+              position = std::next(position);
+          }
         }
       }
       if (m_mode == kEncyclopediaArticle)
@@ -731,10 +765,10 @@ void EncyclopediaWindow::SetFilter(int tabId, uint32_t reload)
   else
   {
     IntPair range = FilterRange(tabId);
-    CoolListItem* item = m_galaxy->m_encyclopediaItems->First();
     m_filteredItems->Clear();
-    for (; item; item = item->Next())
+    for (const auto& ownedItem : m_galaxy->m_encyclopediaItems->Entries())
     {
+      auto* item = static_cast<CoolListItem*>(ownedItem.get());
       ObjectKey key;
       static_cast<ObjectListItem*>(item)->GetKey(&key);
       uint32_t family = Family(key);
@@ -882,11 +916,24 @@ void EncyclopediaWindow::UpdateNavigationButtons(CoolListItem* item)
     m_nextButton->Disable();
     return;
   }
-  if (item->Previous())
+  auto& items = *m_list->m_items;
+  auto position = items.PositionOf(item);
+  auto previous = position;
+  while (previous != items.Entries().begin() && previous != items.Entries().end())
+  {
+    --previous;
+    if (static_cast<ObjectListItem*>(previous->get())->m_visible)
+      break;
+  }
+  if (position != items.Entries().end() && previous != position &&
+      static_cast<ObjectListItem*>(previous->get())->m_visible)
     m_previousButton->Enable();
   else
     m_previousButton->Disable();
-  if (item->Next())
+  auto next = position == items.Entries().end() ? position : std::next(position);
+  while (next != items.Entries().end() && !static_cast<ObjectListItem*>(next->get())->m_visible)
+    ++next;
+  if (next != items.Entries().end())
     m_nextButton->Enable();
   else
     m_nextButton->Disable();

@@ -1,4 +1,5 @@
 #pragma once
+class AiNoticeGroup;
 // The concrete UiNotice classes (0x48aac0-0x49c6a0): one per kind of player notice. A notice is built by the
 // controller of a side from the notification payloads that describe an event (the constructor taking the payload
 // list hands each payload to the notice through slots 5-9, see NotifPayload::DispatchToSink); the notice keeps the
@@ -15,7 +16,7 @@ class Notice44 : public UiTextNotice
 {
 public:
   Notice44(); // 0x48aac0
-  Notice44(const LinkNode* payloads, int owner); // 0x48ab40
+  Notice44(const AiNoticeGroup* payloads, int owner); // 0x48ab40
   ~Notice44() override; // 0x48abb0 (deleting 0x48ab20)
 
   int GetKind() override; // 0x48ad20
@@ -36,7 +37,7 @@ class Notice45 : public UiTextNotice
 {
 public:
   Notice45(); // 0x48ad40
-  Notice45(const LinkNode* payloads, int owner); // 0x48adc0
+  Notice45(const AiNoticeGroup* payloads, int owner); // 0x48adc0
   ~Notice45() override; // 0x48ae30 (deleting 0x48ada0)
 
   int GetKind() override; // 0x48af40
@@ -59,7 +60,7 @@ class Notice43 : public UiTextNotice
 {
 public:
   Notice43(); // 0x48af50
-  Notice43(const LinkNode* payloads, int owner); // 0x48afd0
+  Notice43(const AiNoticeGroup* payloads, int owner); // 0x48afd0
   ~Notice43() override; // 0x48b040 (deleting 0x48afb0)
 
   int GetKind() override; // 0x48b260
@@ -116,7 +117,7 @@ public:
   {
     return 0;
   } // shared 0x6158b0
-  int Virtual16(const LinkNode* payloads) override
+  int Virtual16(const AiNoticeGroup* payloads) override
   {
     return 0;
   } // shared 0x48b440
@@ -127,7 +128,7 @@ class Notice41 : public UiTextNotice
 {
 public:
   Notice41(); // 0x48b5e0
-  Notice41(const LinkNode* payloads, int owner); // 0x48b660
+  Notice41(const AiNoticeGroup* payloads, int owner); // 0x48b660
   ~Notice41() override; // 0x48b6d0 (deleting 0x48b640)
 
   int GetKind() override; // 0x48b850
@@ -153,7 +154,7 @@ class Notice34 : public UiTextNotice
 {
 public:
   Notice34(); // 0x48b860
-  Notice34(const LinkNode* payloads, int owner); // 0x48b8e0
+  Notice34(const AiNoticeGroup* payloads, int owner); // 0x48b8e0
   ~Notice34() override; // 0x48b950 (deleting 0x48b8c0)
 
   int GetKind() override; // 0x48bc70
@@ -170,7 +171,7 @@ public:
   void Virtual08(int kind, intptr_t a, intptr_t b) override
   {
   } // shared 0x48b3d0
-  int Virtual16(const LinkNode* payloads) override; // 0x48bbf0
+  int Virtual16(const AiNoticeGroup* payloads) override; // 0x48bbf0
   void Read(istream* in) override
   {
     UiTextNotice::Read(in);
@@ -190,7 +191,7 @@ class Notice33 : public UiTextNotice
 {
 public:
   Notice33(); // 0x48bc80
-  Notice33(const LinkNode* payloads, int owner); // 0x48bd10
+  Notice33(const AiNoticeGroup* payloads, int owner); // 0x48bd10
   ~Notice33() override; // 0x48bd90 (deleting 0x48bcf0)
 
   int GetKind() override; // 0x48c310
@@ -224,7 +225,7 @@ class Notice40 : public UiTextNotice
 {
 public:
   Notice40(); // 0x48c320
-  Notice40(const LinkNode* payloads, int owner); // 0x48c3a0
+  Notice40(const AiNoticeGroup* payloads, int owner); // 0x48c3a0
   ~Notice40() override; // 0x48c410 (deleting 0x48c380)
 
   int GetKind() override; // 0x48c8b0
@@ -259,7 +260,7 @@ class Notice39 : public UiTextNotice
 {
 public:
   Notice39(); // 0x48c8c0
-  Notice39(const LinkNode* payloads, int owner); // 0x48c940
+  Notice39(const AiNoticeGroup* payloads, int owner); // 0x48c940
   ~Notice39() override; // 0x48c9b0 (deleting 0x48c920)
 
   int GetKind() override; // 0x48cd70
@@ -286,7 +287,7 @@ class Notice38 : public UiTextNotice
 {
 public:
   Notice38(); // 0x48cd80
-  Notice38(const LinkNode* payloads, int owner); // 0x48ce00
+  Notice38(const AiNoticeGroup* payloads, int owner); // 0x48ce00
   ~Notice38() override; // 0x48ce70 (deleting 0x48cde0)
 
   int GetKind() override; // 0x48cfe0
@@ -312,7 +313,7 @@ class Notice37 : public UiTextNotice
 {
 public:
   Notice37(); // 0x48cff0
-  Notice37(const LinkNode* payloads, int owner); // 0x48d070
+  Notice37(const AiNoticeGroup* payloads, int owner); // 0x48d070
   ~Notice37() override; // 0x48d0e0 (deleting 0x48d050)
 
   int GetKind() override; // 0x48d360
@@ -339,7 +340,7 @@ class Notice35 : public UiKeyNotice
 {
 public:
   Notice35(); // 0x48d370
-  Notice35(const LinkNode* payloads, int owner); // 0x48d3e0
+  Notice35(const AiNoticeGroup* payloads, int owner); // 0x48d3e0
   ~Notice35() override; // 0x48d440 (deleting 0x48d3c0)
 
   int GetKind() override; // 0x48d630
@@ -365,7 +366,7 @@ class Notice36 : public UiTextNotice
 {
 public:
   Notice36(); // 0x48d650
-  Notice36(const LinkNode* payloads, int owner); // 0x48d6f0
+  Notice36(const AiNoticeGroup* payloads, int owner); // 0x48d6f0
   ~Notice36() override; // 0x48d780 (deleting 0x48d6d0)
 
   int GetKind() override; // 0x48e480
@@ -402,7 +403,7 @@ class Notice31 : public UiKeyNotice
 {
 public:
   Notice31(); // 0x48e490
-  Notice31(const LinkNode* payloads, int owner); // 0x48e500
+  Notice31(const AiNoticeGroup* payloads, int owner); // 0x48e500
   ~Notice31() override; // 0x48e570 (deleting 0x48e4e0)
 
   int GetKind() override; // 0x48e680
@@ -430,7 +431,7 @@ class Notice32 : public UiTextNotice
 {
 public:
   Notice32(); // 0x48e690
-  Notice32(const LinkNode* payloads, int owner); // 0x48e720
+  Notice32(const AiNoticeGroup* payloads, int owner); // 0x48e720
   ~Notice32() override; // 0x48e7a0 (deleting 0x48e700)
 
   int GetKind() override; // 0x48ec70
@@ -461,7 +462,7 @@ class Notice29 : public UiTextNotice
 {
 public:
   Notice29(); // 0x48ec80
-  Notice29(const LinkNode* payloads, int owner); // 0x48ed00
+  Notice29(const AiNoticeGroup* payloads, int owner); // 0x48ed00
   ~Notice29() override; // 0x48ed70 (deleting 0x48ece0)
 
   int GetKind() override; // 0x48f0d0
@@ -491,7 +492,7 @@ class Notice28 : public UiTextNotice
 {
 public:
   Notice28(); // 0x48f0e0
-  Notice28(const LinkNode* payloads, int owner); // 0x48f160
+  Notice28(const AiNoticeGroup* payloads, int owner); // 0x48f160
   ~Notice28() override; // 0x48f1d0 (deleting 0x48f140)
 
   int GetKind() override; // 0x48f660
@@ -525,7 +526,7 @@ class Notice30 : public UiKeyNotice
 {
 public:
   Notice30(); // 0x48f690
-  Notice30(const LinkNode* payloads, int owner); // 0x48f700
+  Notice30(const AiNoticeGroup* payloads, int owner); // 0x48f700
   ~Notice30() override; // 0x48f760 (deleting 0x48f6e0)
 
   int GetKind() override; // 0x48f900
@@ -561,7 +562,7 @@ class Notice26a : public UiTextNotice
 {
 public:
   Notice26a(); // 0x48f910
-  Notice26a(const LinkNode* payloads, int owner); // 0x48f990
+  Notice26a(const AiNoticeGroup* payloads, int owner); // 0x48f990
   ~Notice26a() override; // 0x48f9f0 (deleting 0x48f970)
 
   int GetKind() override; // 0x48fcf0
@@ -588,7 +589,7 @@ class Notice26b : public UiTextNotice
 {
 public:
   Notice26b(); // 0x48fd00
-  Notice26b(const LinkNode* payloads, int owner); // 0x48fd80
+  Notice26b(const AiNoticeGroup* payloads, int owner); // 0x48fd80
   ~Notice26b() override; // 0x48fde0 (deleting 0x48fd60)
 
   int GetKind() override
@@ -618,7 +619,7 @@ class Notice25 : public UiTextNotice
 {
 public:
   Notice25(); // 0x490250
-  Notice25(const LinkNode* payloads, int owner); // 0x4902d0
+  Notice25(const AiNoticeGroup* payloads, int owner); // 0x4902d0
   ~Notice25() override; // 0x490330 (deleting 0x4902b0)
 
   int GetKind() override; // 0x490f30
@@ -650,7 +651,7 @@ class Notice24 : public UiTextNotice
 {
 public:
   Notice24(); // 0x490f80
-  Notice24(const LinkNode* payloads, int owner); // 0x490ff0
+  Notice24(const AiNoticeGroup* payloads, int owner); // 0x490ff0
   ~Notice24() override; // 0x491050 (deleting 0x490fd0)
 
   int GetKind() override; // 0x491180
@@ -677,7 +678,7 @@ class Notice21 : public UiKeyNotice
 {
 public:
   Notice21(); // 0x494ef0
-  Notice21(const LinkNode* payloads, int owner); // 0x494f80
+  Notice21(const AiNoticeGroup* payloads, int owner); // 0x494f80
   ~Notice21() override; // 0x495000 (deleting 0x494f60)
 
   int GetKind() override; // 0x4953b0
@@ -705,7 +706,7 @@ class Notice20 : public UiTextNotice
 {
 public:
   Notice20(); // 0x4953c0
-  Notice20(const LinkNode* payloads, int owner); // 0x495460
+  Notice20(const AiNoticeGroup* payloads, int owner); // 0x495460
   ~Notice20() override; // 0x4954f0 (deleting 0x495440)
 
   int GetKind() override; // 0x495d40
@@ -728,8 +729,8 @@ public:
   void Virtual08(int kind, intptr_t a, intptr_t b) override
   {
   } // shared 0x48b3d0
-  int Virtual16(const LinkNode* payloads) override; // 0x495bf0
-  int CountUnscheduled(const LinkNode* payloads); // 0x495d00
+  int Virtual16(const AiNoticeGroup* payloads) override; // 0x495bf0
+  int CountUnscheduled(const AiNoticeGroup* payloads); // 0x495d00
   void Read(istream* in) override; // 0x495550
   void Write(ostream* out) override; // 0x495580
 
@@ -744,7 +745,7 @@ class Notice19 : public UiTextNotice
 {
 public:
   Notice19(); // 0x495d50
-  Notice19(const LinkNode* payloads, int owner); // 0x495dd0
+  Notice19(const AiNoticeGroup* payloads, int owner); // 0x495dd0
   ~Notice19() override; // 0x495e40 (deleting 0x495db0)
 
   int GetKind() override; // 0x496000
@@ -776,7 +777,7 @@ class Notice7 : public UiTextNotice
 {
 public:
   Notice7(); // 0x496010
-  Notice7(const LinkNode* payloads, int owner); // 0x496080
+  Notice7(const AiNoticeGroup* payloads, int owner); // 0x496080
   ~Notice7() override; // 0x4960e0 (deleting 0x496060)
 
   int GetKind() override
@@ -803,7 +804,7 @@ class Notice16 : public UiTextNotice
 {
 public:
   Notice16(); // 0x497560
-  Notice16(const LinkNode* payloads, int owner); // 0x4975e0
+  Notice16(const AiNoticeGroup* payloads, int owner); // 0x4975e0
   ~Notice16() override; // 0x497650 (deleting 0x4975c0)
 
   int GetKind() override
@@ -838,7 +839,7 @@ class Notice14 : public UiTextNotice
 {
 public:
   Notice14(); // 0x497810
-  Notice14(const LinkNode* payloads, int owner); // 0x497890
+  Notice14(const AiNoticeGroup* payloads, int owner); // 0x497890
   ~Notice14() override; // 0x497900 (deleting 0x497870)
 
   int GetKind() override
@@ -883,7 +884,7 @@ class Notice13 : public UiTextNotice
 {
 public:
   Notice13(); // 0x4980c0
-  Notice13(const LinkNode* payloads, int owner); // 0x498140
+  Notice13(const AiNoticeGroup* payloads, int owner); // 0x498140
   ~Notice13() override; // 0x4981b0 (deleting 0x498120)
 
   int GetKind() override
@@ -928,7 +929,7 @@ class Notice12 : public UiTextNotice
 {
 public:
   Notice12(); // 0x498870
-  Notice12(const LinkNode* payloads, int owner); // 0x4988f0
+  Notice12(const AiNoticeGroup* payloads, int owner); // 0x4988f0
   ~Notice12() override; // 0x498960 (deleting 0x4988d0)
 
   int GetKind() override; // 0x498ba0
@@ -948,7 +949,7 @@ public:
   void Virtual08(int kind, intptr_t a, intptr_t b) override
   {
   } // shared 0x48b3d0
-  int Virtual16(const LinkNode* payloads) override; // shared 0x48bbf0
+  int Virtual16(const AiNoticeGroup* payloads) override; // shared 0x48bbf0
   void Read(istream* in) override
   {
     UiTextNotice::Read(in);
@@ -968,7 +969,7 @@ class Notice11 : public UiTextNotice
 {
 public:
   Notice11(); // 0x498bb0
-  Notice11(const LinkNode* payloads, int owner); // 0x498c30
+  Notice11(const AiNoticeGroup* payloads, int owner); // 0x498c30
   ~Notice11() override; // 0x498ca0 (deleting 0x498c10)
 
   int GetKind() override; // 0x498e10
@@ -1024,7 +1025,7 @@ public:
   {
     return 0;
   } // shared 0x6158b0
-  int Virtual16(const LinkNode* payloads) override
+  int Virtual16(const AiNoticeGroup* payloads) override
   {
     return 0;
   } // shared 0x48b440
@@ -1036,7 +1037,7 @@ class Notice9 : public UiTextNotice
 {
 public:
   Notice9(); // 0x499030
-  Notice9(const LinkNode* payloads, int owner); // 0x4990b0
+  Notice9(const AiNoticeGroup* payloads, int owner); // 0x4990b0
   ~Notice9() override; // 0x499120 (deleting 0x499090)
 
   int GetKind() override; // 0x499350
@@ -1081,7 +1082,7 @@ class Notice3 : public UiTextNotice
 {
 public:
   Notice3(); // 0x499360
-  Notice3(const LinkNode* payloads, int owner); // 0x4993e0
+  Notice3(const AiNoticeGroup* payloads, int owner); // 0x4993e0
   ~Notice3() override; // 0x499450 (deleting 0x4993c0)
 
   int GetKind() override
@@ -1123,7 +1124,7 @@ class Notice4 : public UiTextNotice
 {
 public:
   Notice4(); // 0x499680
-  Notice4(const LinkNode* payloads, int owner); // 0x4996f0
+  Notice4(const AiNoticeGroup* payloads, int owner); // 0x4996f0
   ~Notice4() override; // 0x499750 (deleting 0x4996d0)
 
   int GetKind() override
@@ -1168,7 +1169,7 @@ class Notice5 : public UiTextNotice
 {
 public:
   Notice5(); // 0x4999c0
-  Notice5(const LinkNode* payloads, int owner); // 0x499a30
+  Notice5(const AiNoticeGroup* payloads, int owner); // 0x499a30
   ~Notice5() override; // 0x499a90 (deleting 0x499a10)
 
   int GetKind() override; // 0x499cd0
@@ -1195,7 +1196,7 @@ class Notice6 : public UiTextNotice
 {
 public:
   Notice6(); // 0x499ce0
-  Notice6(const LinkNode* payloads, int owner); // 0x499d50
+  Notice6(const AiNoticeGroup* payloads, int owner); // 0x499d50
   ~Notice6() override; // 0x499db0 (deleting 0x499d30)
 
   int GetKind() override
@@ -1268,7 +1269,7 @@ class Notice1 : public UiNotice
 {
 public:
   Notice1(); // 0x49aad0
-  Notice1(const LinkNode* payloads, int owner, Notice2* vote); // 0x49ac00
+  Notice1(const AiNoticeGroup* payloads, int owner, Notice2* vote); // 0x49ac00
   ~Notice1() override; // 0x49ad50 (deleting 0x49abe0)
 
   int GetKind() override
@@ -1291,7 +1292,7 @@ public:
   {
   } // shared 0x48b3d0
   void Virtual08(int kind, intptr_t a, intptr_t b) override; // 0x49b060
-  int DispatchAndFill(const LinkNode* payloads); // 0x49b0f0
+  int DispatchAndFill(const AiNoticeGroup* payloads); // 0x49b0f0
   void FillNeutral(); // 0x49b150
   void FillOwnSide(); // 0x49b330
   void FillOtherSide(); // 0x49b4d0
@@ -1369,7 +1370,7 @@ class Notice15 : public UiTextNotice
 {
 public:
   Notice15(); // 0x496380
-  Notice15(const LinkNode* payloads, int owner); // 0x496460
+  Notice15(const AiNoticeGroup* payloads, int owner); // 0x496460
   ~Notice15() override; // 0x496530 (deleting 0x496440)
 
   int GetKind() override
@@ -1412,7 +1413,7 @@ class Notice23 : public UiTextNotice
 {
 public:
   Notice23(); // 0x491190
-  Notice23(const LinkNode* payloads, int owner); // 0x491260
+  Notice23(const AiNoticeGroup* payloads, int owner); // 0x491260
   ~Notice23() override; // 0x491320 (deleting 0x491240)
 
   int GetKind() override; // 0x492380
@@ -1430,7 +1431,7 @@ public:
   void Virtual08(int kind, intptr_t a, intptr_t b) override
   {
   } // shared 0x48b3d0
-  int Virtual16(const LinkNode* payloads) override; // 0x492330
+  int Virtual16(const AiNoticeGroup* payloads) override; // 0x492330
   void Read(istream* in) override; // 0x4913f0
   void Write(ostream* out) override; // 0x4914a0
 
@@ -1442,7 +1443,6 @@ public:
   int m_f80; // +0x80
   int m_class; // +0x84 what GetClass returns
   ObjectKeySet m_keys; // +0x88
-  void* m_order90; // +0x90
 };
 
 // kind 22: events 0x1f0 and 0x302: a mission outcome with an order (the kind and class can change)
@@ -1450,7 +1450,7 @@ class Notice22 : public UiTextNotice
 {
 public:
   Notice22(); // 0x4923a0
-  Notice22(const LinkNode* payloads, int owner); // 0x492470
+  Notice22(const AiNoticeGroup* payloads, int owner); // 0x492470
   ~Notice22() override; // 0x492530 (deleting 0x492450)
 
   int GetKind() override
@@ -1476,7 +1476,7 @@ public:
   } // shared 0x48b3d0
   void Virtual14() override; // 0x494d70
   void Virtual15() override; // 0x494d90
-  int Virtual16(const LinkNode* payloads) override; // 0x494d20
+  int Virtual16(const AiNoticeGroup* payloads) override; // 0x494d20
   void ListSecondKeys(); // 0x494df0
   void Read(istream* in) override; // 0x492610
   void Write(ostream* out) override; // 0x492740
@@ -1490,5 +1490,5 @@ public:
   int m_class; // +0x84 what GetClass returns
   ObjectKeySet m_keys; // +0x88
   MessageBase* m_order; // +0x90 the order 0x250 the notice offers, owned
-  const LinkNode* m_payloads; // +0x94
+  const AiNoticeGroup* m_payloads; // +0x94
 };

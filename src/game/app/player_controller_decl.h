@@ -1,4 +1,5 @@
 #pragma once
+class AiNoticeGroup;
 #include <cstddef>
 #include <cstdint>
 
@@ -57,13 +58,14 @@ public:
   void Write(ostream* out); // 0x488ac0
   void ClearRecords(); // 0x488b30: empties the trees of dialogs
   // Builds the notice for a list of notification payloads and files it, or tells the payloads nobody wants them.
-  void HandleNotifications(LinkNode* payloads); // 0x488b50
+  void HandleNotifications(const AiNoticeGroup* payloads); // 0x488b50
   void Update(); // 0x488b90: opens the next waiting dialog
   void AddMessage(UiNotice* message); // 0x488ca0: files or retires a dialog notice by class
   void AddArrivalNotice(const ObjectKey* key, int attack); // 0x488d20
-  int ClassifyNotifications(LinkNode* payloads); // 0x488de0: the notice kind the payloads describe, 0 for none
-  UiNotice* CreateNotice(int kind, LinkNode* payloads); // 0x489740
-  void DiscardPayloads(LinkNode* payloads); // 0x48a040
+  int ClassifyNotifications(
+    const AiNoticeGroup* payloads); // 0x488de0: the notice kind the payloads describe, 0 for none
+  UiNotice* CreateNotice(int kind, const AiNoticeGroup* payloads); // 0x489740
+  void DiscardPayloads(const AiNoticeGroup* payloads); // 0x48a040
   void AddNotice(UiNotice* notice); // 0x48a060
   void RemoveRecord(int id); // 0x48a190
   unsigned GetStateValue(int key); // 0x48a1c0

@@ -1,5 +1,6 @@
 #include "strategy_ui/report_window.h"
 #include "core/game_string.h"
+#include <iterator>
 #include <string>
 
 #include <cstdint>
@@ -130,8 +131,9 @@ bool FindUnitTab(int subTabId, UnitTab* out)
 
 void CopyFamilyRange(ObjectKeySet* from, uint32_t first, uint32_t end, ObjectKeySet* to)
 {
-  for (ObjectKeyNode* node = from->First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& ownedNode : from->Entries())
   {
+    auto* node = static_cast<ObjectKeyNode*>(ownedNode.get());
     ObjectKey key;
     node->GetKey(&key);
     if (first <= key.Family() && key.Family() < end)
@@ -580,17 +582,28 @@ void ReportWindow::OnKeyDown(WPARAM key, LPARAM lParam)
   }
   const bool backwards = key == VK_LEFT;
   AvlNode* tab = m_unitTabs->m_children.FindById(SelectedChildId(m_unitTabs));
-  tab = backwards ? tab->Predecessor() : tab->m_successor;
-  if (tab)
+  auto position = m_unitTabs->m_children.PositionOf(tab);
+  if (position != m_unitTabs->m_children.Entries().end())
   {
-    for (; tab; tab = backwards ? tab->Predecessor() : tab->m_successor)
+    if (backwards)
+      position = position == m_unitTabs->m_children.Entries().begin() ? m_unitTabs->m_children.Entries().end() :
+                                                                        std::prev(position);
+    else
+      position = std::next(position);
+    for (; position != m_unitTabs->m_children.Entries().end();)
     {
+      tab = position->get();
       CoolWindow* window = static_cast<CoolWindow*>(tab);
       if (IsWindowVisible(window->m_hwnd))
       {
         m_unitTabs->SelectTab(window->m_childId, 1);
         return;
       }
+      if (backwards)
+        position = position == m_unitTabs->m_children.Entries().begin() ? m_unitTabs->m_children.Entries().end() :
+                                                                          std::prev(position);
+      else
+        position = std::next(position);
     }
     return;
   }
@@ -677,16 +690,16 @@ void ReportWindow::FillList(int subTabId, int force)
   if (threeColumns)
     CopyFamilyRange(source3, unitTab.m_firstFamily, unitTab.m_endFamily, &thirdSet);
 
-  ObjectKeyNode* first = firstSet.First();
-  ObjectKeyNode* second = secondSet.First();
-  ObjectKeyNode* third = threeColumns ? thirdSet.First() : nullptr;
+  auto firstPosition = firstSet.Entries().begin();
+  auto secondPosition = secondSet.Entries().begin();
+  auto thirdPosition = threeColumns ? thirdSet.Entries().begin() : thirdSet.Entries().end();
   std::string heading;
   int firstDone = 0;
   int secondDone = 0;
   int thirdDone = threeColumns == 0;
-  auto addColumnItem = [&](ObjectKeyNode*& node, int& done, uint16_t emptyId)
+  auto addColumnItem = [&](auto& position, const auto& end, int& done, uint16_t emptyId)
   {
-    if (!node)
+    if (position == end)
     {
       std::string* emptyHeading = nullptr;
       if (!done)
@@ -700,19 +713,20 @@ void ReportWindow::FillList(int subTabId, int force)
       return;
     }
     ObjectKey key;
+    auto* node = static_cast<ObjectKeyNode*>(position->get());
     node->GetKey(&key);
     GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, &key);
     AddListItem(object, flag, nullptr);
-    node = static_cast<ObjectKeyNode*>(node->m_successor);
-    if (!node)
+    ++position;
+    if (position == end)
       done = 1;
   };
   while (!firstDone || !secondDone || !thirdDone)
   {
-    addColumnItem(first, firstDone, 0x8526);
+    addColumnItem(firstPosition, firstSet.Entries().end(), firstDone, 0x8526);
     if (threeColumns)
-      addColumnItem(third, thirdDone, 0x8526);
-    addColumnItem(second, secondDone, 0x1941);
+      addColumnItem(thirdPosition, thirdSet.Entries().end(), thirdDone, 0x8526);
+    addColumnItem(secondPosition, secondSet.Entries().end(), secondDone, 0x1941);
   }
   m_list->Refresh();
   RECT captions = m_label.m_rect;

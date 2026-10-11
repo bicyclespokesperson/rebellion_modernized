@@ -6,7 +6,6 @@
 using ai::IsSystemKey;
 using ai::KeyInFamilies;
 using ai::KeyOfNode;
-using ai::NextNode;
 
 namespace ai_planner
 {
@@ -30,8 +29,10 @@ int SumLeaderValue(AiMissionPlanner* planner, int valueIndex)
   int sum = 0;
   if ((planner->m_flags.m_value & kStalled) == 0)
   {
-    for (ObjectKeyNode* node = planner->m_leaders.First(); node; node = NextNode(node))
+    for (auto position = planner->m_leaders.Entries().begin(); position != planner->m_leaders.Entries().end();
+         ++position)
     {
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
       const ObjectKey key = KeyOfNode(node);
       AiCharacterRecord* character = static_cast<AiCharacterRecord*>(planner->m_characters->Find(&key));
       if (character)
@@ -281,8 +282,10 @@ void ChooseCandidateTarget(AiFreePlanner* planner, const CharacterHunt& hunt)
         AiFleetEval* fleet = planner->m_owner->m_fleets.FindEval(ai::KeyOfObject(fleets.m_current));
         if (fleet && (fleet->m_flags.m_value & 1) == 0 && (fleet->m_flags.m_value & hunt.fleetMask) != 0)
         {
-          for (ObjectKeyNode* node = fleet->m_shipKeys.First(); node; node = ai::NextNode(node))
+          for (auto position = fleet->m_shipKeys.Entries().begin(); position != fleet->m_shipKeys.Entries().end();
+               ++position)
           {
+            ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
             const ObjectKey shipKey = ai::KeyOfNode(node);
             GameObjNotifier* ship = GetObjectInFamilies_14_1c(planner->m_view, &shipKey);
             if (ship)
@@ -296,18 +299,18 @@ void ChooseCandidateTarget(AiFreePlanner* planner, const CharacterHunt& hunt)
   if (count == 0)
     return;
   int steps = GameplayRandomNext(count);
-  ObjectKeyNode* node = candidates.First();
-  if (node)
+  auto position = candidates.Entries().begin();
+  if (position != candidates.Entries().end())
   {
     do
     {
       if (steps < 1)
         break;
-      node = ai::NextNode(node);
+      ++position;
       --steps;
-    } while (node);
-    if (node)
-      planner->m_target = ai::KeyOfNode(node);
+    } while (position != candidates.Entries().end());
+    if (position != candidates.Entries().end())
+      planner->m_target = ai::KeyOfNode(static_cast<ObjectKeyNode*>(position->get()));
   }
 }
 

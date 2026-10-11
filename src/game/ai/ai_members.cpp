@@ -20,6 +20,7 @@
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/object_name_node.h"
+#include "gameobj/object_type_db.h"
 
 using ai::InFamilies;
 
@@ -40,8 +41,11 @@ void SaveIdNodes(Set* set, ostream* out)
   WriteValue32(out, &set->m_view);
   if (!WriteCount32(out, set->Count()))
     return;
-  for (AvlNode* node = set->First(); node; node = node->m_successor)
+  for (const auto& entry : set->Entries())
+  {
+    AvlNode* node = static_cast<AvlNode*>(entry.get());
     static_cast<AiTaskRecord*>(node)->Write(out);
+  }
 }
 
 template <class Set>
@@ -127,8 +131,7 @@ void AiClassTable::Build(int side)
   auto addClasses =
     [&](int recordType, uint32_t firstFamily, uint32_t lastFamily, int* maxTier, bool matchSide, auto make)
   {
-    for (DatRecord* record = GetFirstRecordOfType(recordType); record;
-         record = static_cast<DatRecord*>(record->m_successor))
+    for (DatRecord* record : GetRecordsOfType(recordType))
     {
       if (!InFamilies(record->m_third, firstFamily, lastFamily))
         continue;
@@ -170,7 +173,7 @@ void AiClassTable::Build(int side)
              {
                return NewOrNull<AiSpecialForceClass>(r);
              });
-  for (DatRecord* record = GetFirstRecordOfType(0x38); record; record = static_cast<DatRecord*>(record->m_successor))
+  for (DatRecord* record : GetRecordsOfType(0x38))
   {
     if (!InFamilies(record->m_third, 0x38, 0x3c))
       continue;
@@ -225,14 +228,16 @@ int AiClassTable::Select(ObjectKey* out, int view, int maxTier, uint32_t flagMas
   AiRankedList* list = NewOrNull<AiRankedList>(descending);
   if (list)
   {
-    for (AvlNode* node = First(); node; node = node->m_successor)
+    for (const auto& entry : Entries())
     {
-      AiClassRecordBase* entry = static_cast<AiClassRecordBase*>(node);
-      if (entry->m_view == view && (flagMask & entry->m_flags.m_value) != 0 && entry->m_valueC <= maxTier)
+      AvlNode* node = entry.get();
+      AiClassRecordBase* classRecord = static_cast<AiClassRecordBase*>(node);
+      if (classRecord->m_view == view && (flagMask & classRecord->m_flags.m_value) != 0 &&
+          classRecord->m_valueC <= maxTier)
       {
-        key = entry->m_key;
+        key = classRecord->m_key;
         PersistentInt mask(static_cast<int>(valueMask));
-        AiRankedItem* item = NewOrNull<AiRankedItem>(key, entry->GetValue(&mask));
+        AiRankedItem* item = NewOrNull<AiRankedItem>(key, classRecord->GetValue(&mask));
         list->AddItem(item);
       }
     }
@@ -257,9 +262,11 @@ namespace
 // Drops the names of `list` whose class record is missing or lacks one of the requested flags.
 void FilterByClassFlags(AiClassTable* table, ObjectNameList* list, uint32_t requiredFlags)
 {
-  AvlNode* node = list->First();
-  while (node)
+  auto position = list->Entries().begin();
+  while (position != list->Entries().end())
   {
+    AvlNode* node = position->get();
+    ++position;
     ObjectKey key;
     ObjectNameNode* name = static_cast<ObjectNameNode*>(node);
     GetObjectNameNodeKey(name, &key);
@@ -267,12 +274,10 @@ void FilterByClassFlags(AiClassTable* table, ObjectNameList* list, uint32_t requ
     if (!entry || (entry->m_flags.m_value & requiredFlags) != requiredFlags)
     {
       const uint32_t id = static_cast<IdNode*>(node)->m_id;
-      node = node->m_successor;
       list->DeleteById(id);
     }
     else
     {
-      node = node->m_successor;
     }
   }
 }
@@ -297,20 +302,20 @@ int AiClassTable::ChooseFromSide(ObjectKey* out,
     const int count = static_cast<int>(CountOf(list));
     const int choice = GameplayRandomNext(count);
     int index = 0;
-    AvlNode* node = list.First();
-    if (node)
+    auto position = list.Entries().begin();
+    if (position != list.Entries().end())
     {
       do
       {
         if (choice <= index)
           break;
-        node = node->m_successor;
+        ++position;
         ++index;
-      } while (node);
-      if (node)
+      } while (position != list.Entries().end());
+      if (position != list.Entries().end())
       {
         ObjectKey key;
-        GetObjectNameNodeKey(static_cast<ObjectNameNode*>(node), &key);
+        GetObjectNameNodeKey(static_cast<ObjectNameNode*>(position->get()), &key);
         *out = key;
       }
     }
@@ -322,16 +327,17 @@ int AiClassTable::ChooseFromSide(ObjectKey* out,
     AiRankedList* ranked = NewOrNull<AiRankedList>(descending);
     if (ranked)
     {
-      for (AvlNode* node = list.First(); node; node = node->m_successor)
+      for (const auto& entry : list.Entries())
       {
+        AvlNode* node = static_cast<AvlNode*>(entry.get());
         ObjectKey nameKey;
         GetObjectNameNodeKey(static_cast<ObjectNameNode*>(node), &nameKey);
-        AiClassRecordBase* entry = Find(&nameKey);
-        if (entry)
+        AiClassRecordBase* classRecord = Find(&nameKey);
+        if (classRecord)
         {
-          key = entry->m_key;
+          key = classRecord->m_key;
           PersistentInt mask(mode);
-          AiRankedItem* item = NewOrNull<AiRankedItem>(key, entry->GetValue(&mask));
+          AiRankedItem* item = NewOrNull<AiRankedItem>(key, classRecord->GetValue(&mask));
           if (item)
             ranked->AddItem(item);
         }
@@ -364,16 +370,17 @@ AiRankedList* AiClassTable::RankClasses(GameObjNotifier* side,
   AiRankedList* ranked = NewOrNull<AiRankedList>(descending);
   if (ranked)
   {
-    for (AvlNode* node = list.First(); node; node = node->m_successor)
+    for (const auto& entry : list.Entries())
     {
+      AvlNode* node = static_cast<AvlNode*>(entry.get());
       ObjectKey nameKey;
       GetObjectNameNodeKey(static_cast<ObjectNameNode*>(node), &nameKey);
-      AiClassRecordBase* entry = Find(&nameKey);
-      if (entry)
+      AiClassRecordBase* classRecord = Find(&nameKey);
+      if (classRecord)
       {
-        key = entry->m_key;
+        key = classRecord->m_key;
         PersistentInt mask(static_cast<int>(valueMask));
-        AiRankedItem* item = NewOrNull<AiRankedItem>(key, entry->GetValue(&mask));
+        AiRankedItem* item = NewOrNull<AiRankedItem>(key, classRecord->GetValue(&mask));
         if (item)
           ranked->AddItem(item);
       }
@@ -476,9 +483,9 @@ void AiAgentSet::Save(ostream* out)
   WriteValue32(out, &m_view);
   if (!WriteCount32(out, Count()))
     return;
-  for (AvlNode* node = First(); node; node = node->m_successor)
+  for (const auto& entry : Entries())
   {
-    AiAgentBase* agent = static_cast<AiAgentBase*>(node);
+    AiAgentBase* agent = static_cast<AiAgentBase*>(entry.get());
     int kind = agent->GetKind();
     WriteValue32(out, &kind);
     agent->Write(out);
@@ -568,13 +575,14 @@ void AiSystemRecordSet::Save(ostream* out)
   WriteValue32(out, &m_view);
   if (!WriteCount32(out, Count()))
     return;
-  for (AvlNode* node = First(); node; node = node->m_successor)
-    static_cast<AiSystemRecord*>(node)->Write(out);
+  for (const auto& entry : Entries())
+    static_cast<AiSystemRecord*>(entry.get())->Write(out);
 }
 
 AiSystemRecord* AiSystemRecordSet::FindByTarget(const ObjectKey* key)
 {
-  AiSystemRecord* record = static_cast<AiSystemRecord*>(First());
+  auto position = Entries().begin();
+  AiSystemRecord* record = position == Entries().end() ? nullptr : static_cast<AiSystemRecord*>(position->get());
   bool found = false;
   while (record && !found)
   {
@@ -584,7 +592,8 @@ AiSystemRecord* AiSystemRecordSet::FindByTarget(const ObjectKey* key)
     }
     else
     {
-      record = static_cast<AiSystemRecord*>(record->m_successor);
+      ++position;
+      record = position == Entries().end() ? nullptr : static_cast<AiSystemRecord*>(position->get());
     }
   }
   return record;
@@ -603,9 +612,9 @@ uint32_t AiSystemRecordSet::DeleteFirstIdle()
 {
   bool found = false;
   uint32_t id = 0;
-  for (AiSystemRecord* record = static_cast<AiSystemRecord*>(First()); record;
-       record = static_cast<AiSystemRecord*>(record->m_successor))
+  for (const auto& entry : Entries())
   {
+    auto* record = static_cast<AiSystemRecord*>(entry.get());
     if (found)
       break;
     const bool hasSector = InFamilies(record->m_sectorKey.m_value >> 24, 0x80, 0x90);
@@ -673,9 +682,9 @@ void AiPlannerSet::Save(ostream* out)
   WriteValue32(out, &m_view);
   if (!WriteCount32(out, Count()))
     return;
-  for (AvlNode* node = First(); node; node = node->m_successor)
+  for (const auto& entry : Entries())
   {
-    AiMissionPlanner* planner = static_cast<AiMissionPlanner*>(node);
+    AiMissionPlanner* planner = static_cast<AiMissionPlanner*>(entry.get());
     uint32_t kind = planner->m_missionKey.m_value >> 24;
     WriteValue32(out, &kind);
     int subtype = planner->GetSubtype();
@@ -721,14 +730,18 @@ void AiPlannerSet::ReleasePlanner(uint32_t id)
 
 AiMissionPlanner* AiPlannerSet::FindByTarget(const int* key)
 {
-  AiMissionPlanner* planner = static_cast<AiMissionPlanner*>(First());
+  auto position = Entries().begin();
+  AiMissionPlanner* planner = position == Entries().end() ? nullptr : static_cast<AiMissionPlanner*>(position->get());
   bool found = false;
   while (planner && !found)
   {
     if (static_cast<int>(planner->m_missionObject.m_value) == *key)
       found = true;
     else
-      planner = static_cast<AiMissionPlanner*>(planner->m_successor);
+    {
+      ++position;
+      planner = position == Entries().end() ? nullptr : static_cast<AiMissionPlanner*>(position->get());
+    }
   }
   return planner;
 }
@@ -859,8 +872,11 @@ void AiFleetEvalSet::Save(ostream* out)
   WriteValue32(out, &m_view);
   if (!WriteCount32(out, Count()))
     return;
-  for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& entry : Entries())
+  {
+    auto* node = static_cast<ObjectKeyNode*>(entry.get());
     node->Save(out);
+  }
 }
 
 void AiFleetEvalSet::AddEval(AiFleetEval* eval)
@@ -980,8 +996,11 @@ void AiShipRecordSet::Save(ostream* out)
   WriteValue32(out, &m_view);
   if (!WriteCount32(out, Count()))
     return;
-  for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& entry : Entries())
+  {
+    auto* node = static_cast<ObjectKeyNode*>(entry.get());
     node->Save(out);
+  }
   WriteValue32(out, &m_done);
 }
 
@@ -1159,8 +1178,11 @@ void AiSectorEvalSet::Save(ostream* out)
   WriteValue32(out, &m_view);
   if (!WriteCount32(out, Count()))
     return;
-  for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& entry : Entries())
+  {
+    auto* node = static_cast<ObjectKeyNode*>(entry.get());
     node->Save(out);
+  }
   if (!m_cursorObject)
   {
     uint32_t none = 0;
@@ -1288,8 +1310,11 @@ void AiSystemEvalSet::Save(ostream* out)
   WriteValue32(out, &m_view);
   if (!WriteCount32(out, Count()))
     return;
-  for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& entry : Entries())
+  {
+    auto* node = static_cast<ObjectKeyNode*>(entry.get());
     node->Save(out);
+  }
   if (!m_cursorObject)
   {
     uint32_t none = 0;
@@ -1365,8 +1390,11 @@ void AiSystemEvalSet::NoteSystemCombat(const ObjectKey* key)
 
 void AiSystemEvalSet::MarkAllChanged()
 {
-  for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& entry : Entries())
+  {
+    auto* node = static_cast<ObjectKeyNode*>(entry.get());
     static_cast<AiSystemEval*>(node)->MarkChanged();
+  }
 }
 
 void AiSystemEvalSet::ReadOne(istream* in)

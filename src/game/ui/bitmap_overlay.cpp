@@ -59,8 +59,11 @@ int BitmapOverlayTree::IsLess(AvlNode* a, AvlNode* b)
 
 BitmapOverlay* BitmapOverlayTree::FindOverlay(uint32_t id)
 {
-  AvlNode* node = First();
-  while (node && static_cast<BitmapOverlay*>(node)->m_id != id)
-    node = node->m_successor;
-  return static_cast<BitmapOverlay*>(node);
+  for (const auto& entry : Entries())
+  {
+    auto* overlay = static_cast<BitmapOverlay*>(entry.get());
+    if (overlay->m_id == id)
+      return overlay;
+  }
+  return nullptr;
 }

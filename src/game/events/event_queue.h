@@ -10,9 +10,9 @@
 
 class Crc32;
 
-// Abstract base (VT 0x661fb8). Slot 2 (IsLess, from OrderedTree) decides where Add puts a node; slot 7 returns the
+// Abstract base (VT 0x661fb8). Slot 2 (IsLess, from AvlTree) decides where Add puts a node; slot 7 returns the
 // node that is next to run.
-class EventQueue : public OrderedTree
+class EventQueue : public AvlTree
 {
 public:
   EventQueue(); // 0x54ea70

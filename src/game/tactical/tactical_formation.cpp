@@ -121,20 +121,15 @@ int FormationBase::RemoveMember(int handle)
   if (m_leaderHandle == shipHandle)
   {
     Find(shipHandle);
-    UnitRefNode* node = static_cast<UnitRefNode*>(FirstNode());
     bool found = false;
-    if (node)
+    for (const auto& entry : Entries())
     {
-      do
-      {
-        if (node->Key() != m_leaderHandle)
-          break;
-        node = static_cast<UnitRefNode*>(node->Next());
-      } while (node);
-      if (node)
+      auto* node = static_cast<UnitRefNode*>(entry.get());
+      if (node->Key() != m_leaderHandle)
       {
         m_leaderHandle = node->Key();
         found = true;
+        break;
       }
     }
     if (!found)

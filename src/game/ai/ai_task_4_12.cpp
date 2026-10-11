@@ -8,12 +8,6 @@
 namespace
 {
 
-template <class Record>
-Record* NextAfter(Record* node)
-{
-  return static_cast<Record*>(node->m_successor);
-}
-
 } // namespace
 
 // ---- type 4 -------------------------------------------------------------------------------------------------------------
@@ -133,6 +127,7 @@ int AiTask4::NextRecordWithPlanners()
   AiSystemRecord* record = static_cast<AiSystemRecord*>(m_owner->m_systemRecords.FindById(m_recordCursor));
   if (!record)
     record = static_cast<AiSystemRecord*>(m_owner->m_systemRecords.First());
+  auto position = m_owner->m_systemRecords.PositionOf(record);
   if (record)
   {
     do
@@ -141,13 +136,18 @@ int AiTask4::NextRecordWithPlanners()
         break;
       found = record->HasWarships();
       if (!found)
-        record = NextAfter(record);
+      {
+        ++position;
+        record = position == m_owner->m_systemRecords.Entries().end() ? nullptr :
+                                                                        static_cast<AiSystemRecord*>(position->get());
+      }
     } while (record);
     if (record)
     {
       m_recordId = record->m_id;
-      AiSystemRecord* next = NextAfter(record);
-      m_recordCursor = next ? next->m_id : 0;
+      ++position;
+      m_recordCursor =
+        position == m_owner->m_systemRecords.Entries().end() ? 0 : static_cast<AiSystemRecord*>(position->get())->m_id;
       return found;
     }
   }
@@ -187,6 +187,7 @@ int AiTask4::NextPlanner()
   AiMissionPlanner* planner = static_cast<AiMissionPlanner*>(m_owner->m_planners.FindById(m_plannerCursor));
   if (!planner)
     planner = static_cast<AiMissionPlanner*>(m_owner->m_planners.First());
+  auto position = m_owner->m_planners.PositionOf(planner);
   if (planner)
   {
     do
@@ -195,13 +196,18 @@ int AiTask4::NextPlanner()
         break;
       found = planner->IsActive();
       if (!found)
-        planner = NextAfter(planner);
+      {
+        ++position;
+        planner =
+          position == m_owner->m_planners.Entries().end() ? nullptr : static_cast<AiMissionPlanner*>(position->get());
+      }
     } while (planner);
     if (planner)
     {
       m_plannerId = planner->m_id;
-      AiMissionPlanner* next = NextAfter(planner);
-      m_plannerCursor = next ? next->m_id : 0;
+      ++position;
+      m_plannerCursor =
+        position == m_owner->m_planners.Entries().end() ? 0 : static_cast<AiMissionPlanner*>(position->get())->m_id;
       return found;
     }
   }
@@ -335,6 +341,7 @@ int AiTask12::NextRecordWithAgents()
   AiSystemRecord* record = static_cast<AiSystemRecord*>(m_owner->m_systemRecords.FindById(m_recordCursor));
   if (!record)
     record = static_cast<AiSystemRecord*>(m_owner->m_systemRecords.First());
+  auto position = m_owner->m_systemRecords.PositionOf(record);
   if (record)
   {
     do
@@ -343,13 +350,18 @@ int AiTask12::NextRecordWithAgents()
         break;
       found = record->HasAgents();
       if (!found)
-        record = NextAfter(record);
+      {
+        ++position;
+        record = position == m_owner->m_systemRecords.Entries().end() ? nullptr :
+                                                                        static_cast<AiSystemRecord*>(position->get());
+      }
     } while (record);
     if (record)
     {
       m_recordId = record->m_id;
-      AiSystemRecord* next = NextAfter(record);
-      m_recordCursor = next ? next->m_id : 0;
+      ++position;
+      m_recordCursor =
+        position == m_owner->m_systemRecords.Entries().end() ? 0 : static_cast<AiSystemRecord*>(position->get())->m_id;
       return found;
     }
   }
@@ -390,6 +402,7 @@ int AiTask12::NextAgent()
   AiAgentBase* agent = static_cast<AiAgentBase*>(m_owner->m_agents.FindById(m_agentCursor));
   if (!agent)
     agent = static_cast<AiAgentBase*>(m_owner->m_agents.First());
+  auto position = m_owner->m_agents.PositionOf(agent);
   if (agent)
   {
     do
@@ -398,13 +411,17 @@ int AiTask12::NextAgent()
         break;
       found = agent->IsAvailable();
       if (!found)
-        agent = NextAfter(agent);
+      {
+        ++position;
+        agent = position == m_owner->m_agents.Entries().end() ? nullptr : static_cast<AiAgentBase*>(position->get());
+      }
     } while (agent);
     if (agent)
     {
       m_agentId = agent->m_id;
-      AiAgentBase* next = NextAfter(agent);
-      m_agentCursor = next ? next->m_id : 0;
+      ++position;
+      m_agentCursor =
+        position == m_owner->m_agents.Entries().end() ? 0 : static_cast<AiAgentBase*>(position->get())->m_id;
       return found;
     }
   }

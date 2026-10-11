@@ -40,16 +40,6 @@ uint32_t DwordAt(const MenuRecord& record, int byteOffset)
   return value;
 }
 
-MenuItem* FirstItem(IdSortedLinkList* list)
-{
-  return static_cast<MenuItem*>(list->m_head);
-}
-
-MenuItem* NextItem(MenuItem* item)
-{
-  return static_cast<MenuItem*>(item->m_next);
-}
-
 } // namespace
 
 // ---- Menu entries --------------------------------------------------------------------------------------------
@@ -132,16 +122,18 @@ void LayoutMenu(int x, int y, IdSortedLinkList* list, int* outX, int* outY, uint
   *outWidth = 0;
   *outHeight = 0;
   int widestText = 0;
-  for (MenuItem* item = FirstItem(list); item; item = NextItem(item))
+  for (const auto& ownedItem : list->Entries())
   {
+    auto* item = static_cast<MenuItem*>(ownedItem.get());
     const int width = item->GetPictureWidth();
     if (widestText < width)
       widestText = width;
   }
-  for (MenuItem* item = FirstItem(list); item; item = NextItem(item))
-    item->SetIndent(widestText);
-  for (MenuItem* item = FirstItem(list); item; item = NextItem(item))
+  for (const auto& ownedItem : list->Entries())
+    static_cast<MenuItem*>(ownedItem.get())->SetIndent(widestText);
+  for (const auto& ownedItem : list->Entries())
   {
+    auto* item = static_cast<MenuItem*>(ownedItem.get());
     const uint32_t width = item->GetWidth();
     if (maxWidth < width)
       maxWidth = width;
@@ -150,8 +142,9 @@ void LayoutMenu(int x, int y, IdSortedLinkList* list, int* outX, int* outY, uint
       maxHeight = height;
   }
   int nextY = kMenuLayoutStart;
-  for (MenuItem* item = FirstItem(list); item; item = NextItem(item))
+  for (const auto& ownedItem : list->Entries())
   {
+    auto* item = static_cast<MenuItem*>(ownedItem.get());
     nextY = item->Layout(nextY, maxWidth, maxHeight);
     if (item->Virtual04())
       item->TileNormalPicture();
@@ -194,7 +187,7 @@ PopupMenuWindow* BuildMenuWindow(int x,
       if (parentMenu)
         menuX -= parentMenu->m_width;
     }
-    MenuItem* first = FirstItem(list);
+    MenuItem* first = list->Entries().empty() ? nullptr : static_cast<MenuItem*>(list->Entries().begin()->get());
     if (first)
     {
       void* memory = ::operator new(sizeof(PopupMenuWindow));
@@ -225,29 +218,20 @@ PopupMenuWindow* BuildMenuWindow(int x,
                               arrowDelta + kArrowAlliance + 1);
         }
       }
-      first = FirstItem(list);
+      first = list->Entries().empty() ? nullptr : static_cast<MenuItem*>(list->Entries().begin()->get());
     }
   }
   return menu;
 }
 
-LinkNode* GetSubItemsHead(MenuItem* item)
-{
-  LinkNode* head = nullptr;
-  if (item)
-    head = item->m_subItems.m_head;
-  return head;
-}
-
-int CleanupMenuTree(MenuItem* item)
+int CleanupMenuTree(IdSortedLinkList& items)
 {
   int result = 0;
-  if (item)
+  for (auto position = items.Entries().rbegin(); position != items.Entries().rend(); ++position)
   {
-    MenuItem* firstSub = static_cast<MenuItem*>(GetSubItemsHead(item));
-    if (firstSub)
-      item->m_enabled = CleanupMenuTree(firstSub);
-    result = CleanupMenuTree(NextItem(item));
+    auto* item = static_cast<MenuItem*>(position->get());
+    if (!item->m_subItems.Entries().empty())
+      item->m_enabled = CleanupMenuTree(item->m_subItems);
     if (result == 0)
       result = item->m_enabled;
   }
@@ -260,7 +244,7 @@ PopupMenuWindow* ShowMenu(int x, int y, HMODULE resources, CoolWindow* window, C
 {
   if (DismissMenu() != 0)
   {
-    CleanupMenuTree(FirstItem(&g_menuRoot));
+    CleanupMenuTree(g_menuRoot);
     g_menuWindow = BuildMenuWindow(x, y, &g_menuRoot, resources, nullptr, window, owner,
                                    static_cast<GameWindowObject*>(window)->GetBackground());
   }

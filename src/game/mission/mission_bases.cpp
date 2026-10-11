@@ -122,14 +122,18 @@ int MissionRuleBase::GetCheckFunctions(MissionCheckFunctions* out)
 int MissionRuleBase::AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, NotifyContext* ctx)
 {
   int ok = 1;
-  for (AvlNode* node = team->First(); node; node = node->m_successor)
+  for (const auto& nodeEntry : team->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     ok = (AddMember(&key, 0, ctx) && ok) ? 1 : 0;
   }
-  for (AvlNode* node = decoys->First(); node; node = node->m_successor)
+  for (const auto& nodeEntry : decoys->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     ok = (AddMember(&key, 1, ctx) && ok) ? 1 : 0;
@@ -328,8 +332,9 @@ int MissionRuleBase::OnPhaseChanged(int oldValue, int newValue, NotifyContext* c
     while (AvlNode* first = scores.First())
     {
       auto* best = static_cast<ObjectKeyValueNode*>(first);
-      for (AvlNode* node = first; node; node = node->m_successor)
+      for (auto position = scores.PositionOf(first); position != scores.Entries().end(); ++position)
       {
+        auto* node = position->get();
         auto* candidate = static_cast<ObjectKeyValueNode*>(node);
         if (candidate->m_value < best->m_value)
           best = candidate;
@@ -696,8 +701,10 @@ int MissionTypeBase::AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSe
     if ((m_flagsA4 & mission_flag::kImpliedTeam) == 0)
       ok = leader.IsSet() != 0;
   }
-  for (AvlNode* node = team->First(); node; node = node->m_successor)
+  for (const auto& nodeEntry : team->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     Role* person = static_cast<Role*>(GetMasterInFamilies_30_40(&key));
@@ -709,8 +716,10 @@ int MissionTypeBase::AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSe
     }
     ok = (AddMember(&key, decoy, ctx) && ok);
   }
-  for (AvlNode* node = decoys->First(); node; node = node->m_successor)
+  for (const auto& nodeEntry : decoys->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     ok = (AddMember(&key, 1, ctx) && ok);

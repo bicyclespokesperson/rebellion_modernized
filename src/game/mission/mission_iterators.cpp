@@ -11,20 +11,23 @@ void NextMemberKey(ObjectKeyValueSet* set, ObjectKey* key)
 {
   const ObjectKey previous = *key;
   key->Reset();
-  AvlNode* node = nullptr;
+  auto position = set->Entries().end();
   if (!previous.IsSet())
   {
-    node = set->First();
+    position = set->Entries().begin();
   }
   else
   {
     ObjectKeyNode* found = set->Find(&previous);
     if (!found)
       return;
-    node = found->m_successor;
+    position = set->PositionOf(found);
+    if (position == set->Entries().end())
+      return;
+    ++position;
   }
-  if (node)
-    static_cast<ObjectKeyNode*>(node)->GetKey(key);
+  if (position != set->Entries().end())
+    static_cast<ObjectKeyNode*>(position->get())->GetKey(key);
 }
 
 MissionMemberIterator::MissionMemberIterator(Mission* mission,

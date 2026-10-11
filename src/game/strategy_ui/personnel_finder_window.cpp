@@ -471,7 +471,7 @@ void PersonnelFinderWindow::OnCommand(int, int command, int)
     {
       CoolListItemList selection(kSortById);
       m_list->CopySelectionTo(&selection);
-      CoolListItem* first = static_cast<CoolListItem*>(selection.m_head);
+      CoolListItem* first = static_cast<CoolListItem*>(selection.First());
       if (!first)
         break;
       ObjectListItem* row = static_cast<ObjectListItem*>(m_list->m_items->FindById(first->m_id));
@@ -562,7 +562,6 @@ void PersonnelFinderWindow::OnKeyDown(WPARAM key, LPARAM lParam)
 
 void PersonnelFinderWindow::BuildList(CoolListItemList* rows, int)
 {
-  ObjectListItem* head = static_cast<ObjectListItem*>(rows->m_head);
   const uint32_t filterTab = SelectedTabId(m_filterTabs);
   int fontSlot = 4;
   const uint32_t pageTab = SelectedTabId(m_pageTabs);
@@ -628,8 +627,9 @@ void PersonnelFinderWindow::BuildList(CoolListItemList* rows, int)
       return;
     SetPaintBackgroundById(filterTab == kAllianceTabId ? kAllianceCharactersBackground : kEmpireCharactersBackground);
     fontSlot = 10;
-    for (ObjectListItem* row = head; row; row = static_cast<ObjectListItem*>(row->m_next))
+    for (const auto& ownedRow : rows->Entries())
     {
+      auto* row = static_cast<ObjectListItem*>(ownedRow.get());
       ObjectKey key;
       row->GetKey(&key);
       Character* character = static_cast<Character*>(GetObjectInFamilies_30_3c(m_galaxy->m_side, &key));

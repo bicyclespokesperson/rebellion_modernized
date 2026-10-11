@@ -82,9 +82,9 @@ CoolStrobeButton* CoolTabControl::AddTab(CoolStrobeButton* tab, int select, int 
 
 void CoolTabControl::ReloadSelectedBitmaps()
 {
-  for (AvlNode* node = m_children.First(); node; node = node->m_successor)
+  for (const auto& entry : m_children.Entries())
   {
-    CoolStrobeButton* tab = static_cast<CoolStrobeButton*>(node);
+    CoolStrobeButton* tab = static_cast<CoolStrobeButton*>(entry.get());
     tab->LoadStateBitmap(kSelectedState, PressedResourceId(tab));
   }
 }
@@ -152,9 +152,9 @@ void CoolTabControl::SetBackground(DibBitmap* source, int x, int y)
   delete m_background;
   m_background = NewOrNull<DibBitmap>(source->Width(), source->Height(), source);
   source->Blit(m_background, 0, 0, x, y, 0, 0);
-  for (AvlNode* node = m_children.First(); node; node = node->m_successor)
+  for (const auto& entry : m_children.Entries())
   {
-    CoolStrobeButton* tab = static_cast<CoolStrobeButton*>(node);
+    CoolStrobeButton* tab = static_cast<CoolStrobeButton*>(entry.get());
     tab->m_backdropX = 0;
     tab->m_backdrop = m_background;
     tab->m_backdropY = 0;

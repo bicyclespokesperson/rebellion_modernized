@@ -147,8 +147,9 @@ int HeadlessSimulator::SideZeroHasMoreFighters()
   TacticalDeathStar* deathStar = static_cast<TacticalDeathStar*>(deathStarUnit);
   if (!deathStar->IsReady())
     return 0;
-  for (UnitRefNode* node = m_active.FirstNode(); node; node = node->Next())
+  for (const auto& entry : m_active.Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     TacticalShipBase* unit = node->Value();
     if (unit->GetUnitClass() != 1)
       continue;
@@ -193,8 +194,9 @@ int HeadlessSimulator::DockInHangar(TacticalShipBase* unit)
   }
   if (placed == 0)
   {
-    for (UnitRefNode* node = m_sides[unit->m_side]->m_fleet.FirstNode(); node; node = node->Next())
+    for (const auto& entry : m_sides[unit->m_side]->m_fleet.Entries())
     {
+      auto* node = static_cast<UnitRefNode*>(entry.get());
       TacticalShipBase* carrier = node->Value();
       if (IsActiveUnit(carrier) == 1 && static_cast<TacticalCapitalShip*>(carrier)->Dock(unit) == 1)
       {

@@ -714,8 +714,9 @@ int SystemWindow::SelectPage(int page)
   {
     std::string unusedText;
     ShowProgressBars(1);
-    for (CoolListItem* item = m_items->First(); item; item = item->Next())
+    for (const auto& ownedItem : m_items->Entries())
     {
+      auto* item = static_cast<CoolListItem*>(ownedItem.get());
       ObjectKey key;
       static_cast<ObjectListItem*>(item)->GetKey(&key);
       m_objects.RemoveKey(&key);

@@ -22,8 +22,6 @@ public:
   explicit UnitRefNode(TacticalShipBase* unit); // 0x5e9cc0
   ~UnitRefNode() override; // 0x5e9d40 (scalar deleting destructor 0x5e9d80)
   virtual int Key(); // 0x5e9d20 slot 1
-  virtual UnitRefNode* Next(); // 0x5c7530 slot 2
-  virtual UnitRefNode* Previous(); // 0x5e9d30 slot 3
   virtual TacticalShipBase* Value(); // 0x52bed0 slot 4
 
   TacticalShipBase* m_unit; // +0x1c
@@ -98,8 +96,6 @@ class GroupRefNode : public IdNode
 public:
   explicit GroupRefNode(ShipGroup* group); // 0x5ca350
   ~GroupRefNode() override; // 0x5ca3d0 (scalar deleting destructor 0x5ca3b0)
-  virtual AvlNode* Next(); // slot 1 (0x5c7530)
-  virtual AvlNode* Previous(); // slot 2 (0x5e9d30)
   virtual ShipGroup* Value(); // slot 3 (0x52bed0)
 
   ShipGroup* m_group; // +0x1c

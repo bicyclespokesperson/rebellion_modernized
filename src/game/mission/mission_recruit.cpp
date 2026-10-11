@@ -208,9 +208,12 @@ int MissionRecruit::CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* che
 {
   *status = MakeStatus(mission_status::kOk);
   *out = 0;
-  for (ObjectKeyNode* node = keys->First(); node && StatusIsOk(status);
-       node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& nodeEntry : keys->Entries())
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(nodeEntry.get());
+    if (!(StatusIsOk(status)))
+      break;
+
     ObjectKey key;
     node->GetKey(&key);
     if (!IsCharacterFamily(key.Family()))
@@ -223,8 +226,12 @@ int MissionRecruit::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* ch
 {
   *status = MakeStatus(mission_status::kOk);
   *out = 0;
-  for (AvlNode* node = refs->First(); node && StatusIsOk(status); node = node->m_successor)
+  for (const auto& nodeEntry : refs->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    if (!(StatusIsOk(status)))
+      break;
+
     ObjectKey key;
     static_cast<ObjectRefNode*>(node)->GetKey(&key);
     if (!IsCharacterFamily(key.Family()))

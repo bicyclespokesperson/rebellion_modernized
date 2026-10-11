@@ -35,11 +35,6 @@ inline ObjectKey KeyOfNode(ObjectKeyNode* node)
   return key;
 }
 
-inline ObjectKeyNode* NextNode(ObjectKeyNode* node)
-{
-  return static_cast<ObjectKeyNode*>(node->m_successor);
-}
-
 // Adds the object the iterator is at to the team; the node that was made (null if there was no object or no memory).
 inline ObjectKeyValueNode* AddCurrentToTeam(ObjectKeyValueSet* team, ChildIterator* it)
 {

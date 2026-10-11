@@ -331,11 +331,6 @@ void GameSession::DeliverQueuedMessage(int id)
     delete message;
 }
 
-AvlNode* GameSession::GetFirstMessage()
-{
-  return m_messages.First();
-}
-
 void GameSession::SendNotificationToSide(int side, intptr_t argument)
 {
   if (side == 1)

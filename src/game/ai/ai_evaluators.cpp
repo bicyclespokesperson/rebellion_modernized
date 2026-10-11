@@ -204,8 +204,9 @@ public:
   {
     if (picked.Count() == 0)
       return;
-    for (AvlNode* node = e->m_objects->First(); node; node = node->m_successor)
+    for (const auto& entry : e->m_objects->Entries())
     {
+      AvlNode* node = entry.get();
       if (AiSectorEval* sector = FindSector(static_cast<AiTaskObject*>(node)))
       {
         sector->m_flags2c.m_value &= ~kObjectSectorHeld;
@@ -214,9 +215,10 @@ public:
       }
     }
     e->m_objects->Clear();
-    AvlNode* node = picked.First();
-    while (node)
+    auto position = picked.Entries().begin();
+    while (position != picked.Entries().end())
     {
+      AvlNode* node = position->get();
       AiTaskObject* object = static_cast<AiTaskObject*>(node);
       if (AiSectorEval* sector = FindSector(object))
       {
@@ -224,10 +226,9 @@ public:
         sector->SetTarget(object->m_first, object->m_second);
         sector->m_x3c = object->m_id;
       }
-      AvlNode* next = node->m_successor;
+      ++position;
       picked.DetachById(object->m_id);
       e->m_objects->AddWithId(object);
-      node = next;
     }
   }
 

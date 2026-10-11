@@ -10,15 +10,10 @@
 #include "core/game_string.h"
 #include "core/stream_io.h"
 
-// Owning container APIs accept borrowed node pointers and take ownership after a successful insertion. Removal
-// transfers the node back to the caller; Clear()/destructors delete nodes through their virtual destructors.
-//
-//   AvlNode / AvlTree        ordered owning tree with borrowed in-order neighbor views
-//     IdNode / IdAvlTree     nodes keyed by a 32-bit id the tree hands out; IdValueNode / IdValueTree add a payload
-//     CloneableNode / AvlSet set of cloneable nodes (IntKeyNode / IntKeyedSet: keyed by a signed int)
-//   OrderedTree              ordered-tree compatibility type
-//   LinkNode / SortedLinkList  doubly linked list (IdLinkNode / IdSortedLinkList: ids assigned by the list)
-//   NodeQueue, NodeStack     FIFO / LIFO of LinkNodes
+// Transitional ordered registries use standard owning storage. Entries() exposes ordinary const iterators;
+// PositionOf() returns end() for a foreign or detached node. Removing a node invalidates only its iterator.
+// Successful insertion takes ownership; Remove transfers ownership back to the caller. The remaining virtual
+// comparison and ID/persistence interfaces will move to typed domain registries.
 
 class AvlNode
 {
@@ -29,14 +24,6 @@ public:
   AvlNode(AvlNode&&) = delete;
   AvlNode& operator=(AvlNode&&) = delete;
   virtual ~AvlNode();
-
-  // Borrowed in-order predecessor, or null.
-  AvlNode* Predecessor();
-
-  void ResetLinks();
-
-  AvlNode* m_predecessor = nullptr;
-  AvlNode* m_successor = nullptr;
 
 private:
   friend class AvlTree;
@@ -61,6 +48,19 @@ public:
   AvlNode* First() const; // leftmost
   AvlNode* Last() const; // rightmost
   size_t Count() const;
+  bool Empty() const
+  {
+    return m_nodes.empty();
+  }
+  const auto& Entries() const
+  {
+    return m_nodes;
+  }
+  auto PositionOf(const AvlNode* node) const
+  {
+    const auto found = m_index.find(const_cast<AvlNode*>(node));
+    return found == m_index.end() ? m_nodes.cend() : NodeSet::const_iterator(found->second);
+  }
 
 protected:
   AvlNode* LowerBound(const std::function<bool(const AvlNode*)>& candidatePrecedesProbe) const;
@@ -198,15 +198,7 @@ public:
   IntKeyedSet& operator=(const IntKeyedSet& other);
 };
 
-// Compatibility name for ordered event trees; ordering and ownership come from AvlTree.
-class OrderedTree : public AvlTree
-{
-public:
-  OrderedTree();
-  ~OrderedTree() override;
-};
-
-// Doubly linked list node. Read/Write are no-ops unless a derived class saves something.
+// Polymorphic entry retained by the transitional sorted registry.
 class LinkNode
 {
 public:
@@ -219,12 +211,7 @@ public:
   virtual void Read(istream* in);
   virtual void Write(ostream* out);
 
-  LinkNode* m_prev; // +0x04
-  LinkNode* m_next; // +0x08
-
 private:
-  friend class NodeQueue;
-  friend class NodeStack;
   friend class SortedLinkList;
   const void* m_owner = nullptr;
 };
@@ -257,15 +244,34 @@ public:
   int InsertBefore(LinkNode* node, LinkNode* anchor);
   int Remove(LinkNode* node);
   void Clear();
-  void RewindToFirst();
+  LinkNode* First() const
+  {
+    return m_nodes.empty() ? nullptr : m_nodes.front().get();
+  }
+  LinkNode* Last() const
+  {
+    return m_nodes.empty() ? nullptr : m_nodes.back().get();
+  }
+  size_t Count() const
+  {
+    return m_nodes.size();
+  }
+  bool Empty() const
+  {
+    return m_nodes.empty();
+  }
+  const auto& Entries() const
+  {
+    return m_nodes;
+  }
+  auto PositionOf(const LinkNode* node) const
+  {
+    const auto found = m_index.find(const_cast<LinkNode*>(node));
+    return found == m_index.end() ? m_nodes.cend() : NodeList::const_iterator(found->second);
+  }
 
 protected:
   bool CanInsert(const LinkNode* node) const;
-  LinkNode* FirstOwned() const;
-
-public:
-  int m_count; // +0x04
-  LinkNode* m_head; // +0x08
 
 private:
   using NodeList = std::list<std::unique_ptr<LinkNode>>;
@@ -290,57 +296,4 @@ public:
   void DeleteById(uint32_t id);
 
   uint32_t m_nextId; // +0x0c
-};
-
-class NodeQueue
-{
-public:
-  NodeQueue();
-  virtual ~NodeQueue();
-  NodeQueue(const NodeQueue&) = delete;
-  NodeQueue& operator=(const NodeQueue&) = delete;
-  NodeQueue(NodeQueue&&) = delete;
-  NodeQueue& operator=(NodeQueue&&) = delete;
-
-  // Takes ownership of an unlinked node; returns 0 if it is null or owned/linked elsewhere.
-  int Enqueue(LinkNode* node);
-  // Transfers ownership of the head node to the caller.
-  LinkNode* Dequeue();
-  void Clear();
-
-  // Temporary borrowed legacy views; delete after queue traversal callers migrate.
-  LinkNode* m_head; // +0x04
-  LinkNode* m_tail; // +0x08
-  int m_count; // +0x0c
-
-private:
-  std::list<std::unique_ptr<LinkNode>> m_nodes;
-  bool m_clearing = false;
-};
-
-class NodeStack
-{
-public:
-  NodeStack();
-  virtual ~NodeStack();
-  NodeStack(const NodeStack&) = delete;
-  NodeStack& operator=(const NodeStack&) = delete;
-  NodeStack(NodeStack&&) = delete;
-  NodeStack& operator=(NodeStack&&) = delete;
-  virtual void Clear();
-  virtual int Virtual02();
-
-  // Takes ownership of an unlinked node; returns 0 if it is null or owned/linked elsewhere.
-  int Push(LinkNode* node);
-  // Transfers ownership of the top node to the caller.
-  LinkNode* Pop();
-  // Deletes `node` if it is on the stack, keeping the order of the others. Returns 1 if it was found.
-  int RemoveAndDelete(LinkNode* node);
-
-  // Temporary borrowed legacy view; delete after stack traversal callers migrate.
-  LinkNode* m_top; // +0x04
-
-private:
-  std::list<std::unique_ptr<LinkNode>> m_nodes;
-  bool m_clearing = false;
 };

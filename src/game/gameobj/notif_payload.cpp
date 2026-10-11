@@ -1,6 +1,6 @@
 #include "gameobj/notif_payload.h"
 
-NotifPayload::NotifPayload() : LinkNode(), m_value0c(0), m_value10(0), m_value14(0), m_value18(0), m_value1c(0)
+NotifPayload::NotifPayload() : m_value0c(0), m_value10(0), m_value14(0), m_value18(0), m_value1c(0)
 {
 }
 
@@ -8,7 +8,6 @@ NotifPayload::~NotifPayload() = default;
 
 int NotifPayload::ReadFields(istream* in)
 {
-  LinkNode::Read(in);
   ReadValue32(in, &m_value0c);
   ReadValue32(in, &m_value10);
   ReadValue32(in, &m_value14);
@@ -19,7 +18,6 @@ int NotifPayload::ReadFields(istream* in)
 
 int NotifPayload::WriteFields(ostream* out)
 {
-  LinkNode::Write(out);
   WriteValue32(out, &m_value0c);
   WriteValue32(out, &m_value10);
   WriteValue32(out, &m_value14);

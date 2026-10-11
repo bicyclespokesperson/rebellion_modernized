@@ -72,16 +72,17 @@ int System::RecomputeEnergyAllocated(NotifyContext* ctx)
       {
         const int last = remaining - 1;
         int skip = GameRandom(last);
-        ObjectKeyNode* node = candidates.First();
-        if (node)
+        auto position = candidates.Entries().begin();
+        if (position != candidates.Entries().end())
         {
-          while (skip != 0 && node)
+          while (skip != 0 && position != candidates.Entries().end())
           {
-            node = static_cast<ObjectKeyNode*>(node->m_successor);
+            ++position;
             --skip;
           }
-          if (!node)
+          if (position == candidates.Entries().end())
             continue;
+          auto* node = static_cast<ObjectKeyNode*>(position->get());
           ObjectKey key;
           node->GetKey(&key);
           candidates.RemoveKey(&key);
@@ -89,8 +90,9 @@ int System::RecomputeEnergyAllocated(NotifyContext* ctx)
           remaining = last;
         }
       }
-      for (ObjectKeyNode* node = doomed.First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+      for (const auto& entry : doomed.Entries())
       {
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>(entry.get());
         ObjectKey key;
         GameObj* facility = static_cast<GameObj*>(GetMasterInFamilies_20_30(node->GetKey(&key)));
         if (facility)

@@ -178,8 +178,9 @@ ManufactureOrderWindow::ManufactureOrderWindow(HINSTANCE instance,
   m_order->FillChoices(&names);
   CoolAppGetResourceModule(kSpriteSlot);
   uint32_t nextItemId = 0;
-  for (AvlNode* node = names.First(); node; node = node->m_successor)
+  for (const auto& ownedNode : names.Entries())
   {
+    auto* node = static_cast<AvlNode*>(ownedNode.get());
     ObjectNameNode* nameNode = static_cast<ObjectNameNode*>(node);
     std::string name;
     nameNode->GetName(&name);
@@ -218,8 +219,9 @@ ManufactureOrderWindow::ManufactureOrderWindow(HINSTANCE instance,
 
 ManufactureOrderWindow::~ManufactureOrderWindow()
 {
-  for (CoolListItem* item = m_choices.First(); item; item = item->Next())
+  for (const auto& ownedNode : m_choices.Entries())
   {
+    auto* item = static_cast<CoolListItem*>(ownedNode.get());
     if (item->m_userPointer)
       operator delete(reinterpret_cast<void*>(item->m_userPointer));
   }
@@ -303,8 +305,9 @@ void ManufactureOrderWindow::OnCreate1()
       if (m_remembered.m_value != none.m_value)
       {
         const uint16_t wanted = FindDataRecord(AsLookupKey(&m_remembered))->m_small;
-        for (CoolListItem* item = first; item; item = item->Next())
+        for (const auto& ownedItem : m_choices.Entries())
         {
+          auto* item = static_cast<CoolListItem*>(ownedItem.get());
           if (wanted == FindDataRecord(AsLookupKey(reinterpret_cast<NullableKey*>(item->m_userPointer)))->m_small)
           {
             m_selector->Select(item->m_id);

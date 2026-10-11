@@ -574,7 +574,7 @@ int ApplyLoyaltyRuleToAllSectors(LoyaltyRule* rule, NotifyContext* ctx)
 {
   int ok = 1;
   for (GameObjNotifier* sector = GetFirstMasterInFamilies_80_90(); sector != nullptr;
-       sector = GetNextSectorMaster(sector))
+       sector = static_cast<GameObj*>(sector)->FindNextSibling(&family::kSectors, 1))
     ok = both(ApplyLoyaltyRuleToSector(sector, rule, ctx), ok);
   return ok;
 }
@@ -600,8 +600,9 @@ int CollectTeamSystems(ActivityRequest* request, ObjectKeyValueSet* team, Object
   {
     if (status->m_second == 0xffffffff)
     {
-      for (AvlNode* node = dependencies.First(); node != nullptr; node = node->m_successor)
+      for (auto position = dependencies.Entries().begin(); position != dependencies.Entries().end(); ++position)
       {
+        AvlNode* node = static_cast<AvlNode*>(position->get());
         if (ok == 0)
         {
           *status = StatusCode(1, 1);

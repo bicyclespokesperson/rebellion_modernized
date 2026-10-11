@@ -233,19 +233,16 @@ int MissionEspionage::PickExtraSystems(GameObj* target,
   {
     const int last = available - 1;
     const int skip = GameRandom(last);
-    AvlNode* node = candidates.First();
-    if (!node)
+    auto position = candidates.Entries().begin();
+    if (position == candidates.Entries().end())
       continue;
-    int step = 0;
-    do
+    for (int remainingSkip = skip; remainingSkip > 0 && position != candidates.Entries().end(); --remainingSkip)
     {
-      if (skip <= step)
-        break;
-      node = node->m_successor;
-      ++step;
-    } while (node);
-    if (!node)
+      ++position;
+    }
+    if (position == candidates.Entries().end())
       continue;
+    AvlNode* node = position->get();
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     result = SetExtraSystemKey(&key, ctx) && result;

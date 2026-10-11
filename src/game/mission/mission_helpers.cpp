@@ -370,9 +370,12 @@ namespace
 
 int addKeysToSummary(ObjectKeyValueSet* set, int a, MissionMemberSummary* summary, StatusCode* status, int ok)
 {
-  for (AvlNode* node = set->First(); node && ok && status->m_second == static_cast<uint32_t>(kStatusOk);
-       node = node->m_successor)
+  for (const auto& nodeEntry : set->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    if (!(ok && status->m_second == static_cast<uint32_t>(kStatusOk)))
+      break;
+
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     GameObj* person = nullptr;
@@ -395,8 +398,10 @@ int FillMemberSummaryForMission(ObjectKeyValueSet* team,
   *status = StatusCode(kStatusCategory, kStatusOk);
   int ok = addKeysToSummary(team, 0, summary, status, 1);
   ok = addKeysToSummary(decoys, 1, summary, status, ok);
-  for (AvlNode* node = captured->First(); node; node = node->m_successor)
+  for (const auto& nodeEntry : captured->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+
     if (!ok)
       return 0;
     if (status->m_second != static_cast<uint32_t>(kStatusOk))

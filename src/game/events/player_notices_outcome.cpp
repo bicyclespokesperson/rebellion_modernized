@@ -45,8 +45,9 @@ GameObjNotifier* findTeamLocation(int owner, ObjectKeyValueSet& members)
 {
   GameObjNotifier* found = nullptr;
   bool keepGoing = true;
-  for (ObjectKeyNode* node = members.First(); node && keepGoing; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (auto position = members.Entries().begin(); position != members.Entries().end() && (keepGoing); ++position)
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
     ObjectKey nodeKey(node->m_key);
     found = GetObjectInFamilies_01_ff(owner, &nodeKey);
     if (!found)

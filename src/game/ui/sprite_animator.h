@@ -1,17 +1,11 @@
 #pragma once
 #include <cstdint>
+#include <deque>
+#include <memory>
 
 #include "core/containers.h"
 #include "platform/win32.h"
 #include "ui/animation_step.h"
-
-// The queue of waiting steps: a NodeQueue with its own vtable (0x65c0a4), built by 0x4ad770 and destroyed by 0x4ad7b0.
-class AnimationStepQueue : public NodeQueue
-{
-public:
-  AnimationStepQueue(); // 0x4ad770
-  ~AnimationStepQueue() override; // 0x4ad790 (deleting), 0x4ad7b0
-};
 
 class Sprite;
 class SpriteAnimator;
@@ -49,7 +43,7 @@ public:
   int m_spriteCount; // +0x24
   int m_originX; // +0x28
   int m_originY; // +0x2c
-  AnimationStepQueue m_steps; // +0x30 the waiting steps (a NodeQueue subclass, VT 0x65c0a4)
+  std::deque<std::unique_ptr<AnimationStep>> m_steps; // +0x30 waiting script steps
   int m_hasEndAction; // +0x40
   int m_endKind; // +0x44
   uint32_t m_endSequence; // +0x48 (a copy of the first word of the script's sequence)

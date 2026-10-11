@@ -163,8 +163,9 @@ int AiGalaxyAnalysis::AnalyzeStep()
         {
           for (int index = 4; index < 0x1e; ++index)
             m_stat[index] = 0;
-          for (AvlNode* node = m_sectorScans.First(); node; node = node->m_successor)
+          for (const auto& entry : m_sectorScans.Entries())
           {
+            AvlNode* node = static_cast<AvlNode*>(entry.get());
             m_cursor = static_cast<AiSectorScan*>(node);
             AddSectorTotals(m_cursor->m_stat, &m_cursor->m_flagsA.m_value);
           }
@@ -194,7 +195,9 @@ int AiGalaxyAnalysis::AnalyzeStep()
     result = m_cursor->Update(m_view);
     if (result != 0)
       m_flags.m_value |= kSectorsChanged;
-    m_cursor = static_cast<AiSectorScan*>(m_cursor->m_successor);
+    auto position = m_sectorScans.PositionOf(m_cursor);
+    ++position;
+    m_cursor = position == m_sectorScans.Entries().end() ? nullptr : static_cast<AiSectorScan*>(position->get());
   } while (m_cursor != nullptr);
   if (m_cursor != nullptr)
     return 0;
@@ -288,8 +291,9 @@ AiRankedList* AiGalaxyAnalysis::RankSectors(uint32_t requireA,
   AiRankedList* list = NewOrNull<AiRankedList>(descending);
   if (!list)
     return list;
-  for (AvlNode* node = m_sectorScans.First(); node; node = node->m_successor)
+  for (const auto& entry : m_sectorScans.Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(entry.get());
     AiSectorScan* scan = static_cast<AiSectorScan*>(node);
     const uint32_t a = scan->m_flagsA.m_value;
     const uint32_t b = scan->m_flagsB.m_value;
@@ -330,8 +334,9 @@ AiRankedList* AiGalaxyAnalysis::RankSectorsByDistance(const ObjectKey* target,
       list = NewOrNull<AiRankedList>(descending);
       if (list)
       {
-        for (AvlNode* node = m_sectorScans.First(); node; node = node->m_successor)
+        for (const auto& entry : m_sectorScans.Entries())
         {
+          AvlNode* node = static_cast<AvlNode*>(entry.get());
           AiSectorScan* scan = static_cast<AiSectorScan*>(node);
           const uint32_t a = scan->m_flagsA.m_value;
           const uint32_t b = scan->m_flagsB.m_value;

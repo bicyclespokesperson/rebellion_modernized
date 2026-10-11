@@ -1,4 +1,5 @@
 #include "strategy_ui/finder_helpers.h"
+#include <iterator>
 #include <string>
 
 #include "ai/ai_common.h"
@@ -14,27 +15,40 @@
 namespace
 {
 
-AvlNode* NextTab(AvlNode* tab, WPARAM key)
-{
-  return key == VK_LEFT ? tab->Predecessor() : tab->m_successor;
-}
-
 void SelectNeighbourTab(CoolTabControl* tabs, WPARAM key)
 {
   const uint32_t selectedId = tabs->m_selected ? tabs->m_selected->m_childId : 0;
-  AvlNode* node = NextTab(tabs->m_children.FindById(selectedId), key);
-  if (node)
+  auto& children = tabs->m_children;
+  auto position = children.PositionOf(children.FindById(selectedId));
+  if (position != children.Entries().end())
   {
-    do
+    if (key == VK_LEFT)
     {
-      CoolWindow* tab = static_cast<CoolWindow*>(node);
+      if (position == children.Entries().begin())
+        position = children.Entries().end();
+      else
+        position = std::prev(position);
+    }
+    else
+      position = std::next(position);
+    while (position != children.Entries().end())
+    {
+      CoolWindow* tab = static_cast<CoolWindow*>(position->get());
       if (IsWindowVisible(tab->m_hwnd))
       {
         tabs->SelectTab(tab->m_childId, 1);
         return;
       }
-      node = NextTab(node, key);
-    } while (node);
+      if (key == VK_LEFT)
+      {
+        if (position == children.Entries().begin())
+          position = children.Entries().end();
+        else
+          position = std::prev(position);
+      }
+      else
+        position = std::next(position);
+    }
     return;
   }
   if (AvlNode* first = tabs->m_children.First())

@@ -437,40 +437,35 @@ int AiTask3::ChooseManager()
 {
   int result = 0;
   bool found = false;
-  ObjectKeyNode* node = m_targets.First();
-  while (node && !found)
+  auto position = m_targets.Entries().begin();
+  while (position != m_targets.Entries().end() && !found)
   {
+    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    ++position;
     m_manager = KeyOfNode(node);
     if (!IsSystemKey(m_manager))
     {
-      ObjectKeyNode* next = NextNode(node);
       ObjectKey key = KeyOfNode(node);
       m_targets.RemoveKey(&key);
-      node = next;
       continue;
     }
     AiSystemEval* eval = m_owner->m_systems.FindEval(m_manager);
     if (!eval)
     {
-      ObjectKeyNode* next = NextNode(node);
       ObjectKey key = KeyOfNode(node);
       m_targets.RemoveKey(&key);
-      node = next;
       continue;
     }
     if ((eval->m_flags30.m_value & 1) != 0 && (eval->m_flags28.m_value & kSystemClaimed) != 0)
     {
       if (0 < eval->Stat(0x60) && (eval->m_flags28.m_value & 0x800) != 0 && (eval->m_flags28.m_value & 3) == 0)
         found = true;
-      node = NextNode(node);
       continue;
     }
     eval->m_flags28.m_value &= ~kSystemClaimed;
     eval->MarkChanged();
-    ObjectKeyNode* next = NextNode(node);
     ObjectKey key = KeyOfNode(node);
     m_targets.RemoveKey(&key);
-    node = next;
   }
   if (!found)
   {

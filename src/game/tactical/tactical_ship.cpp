@@ -549,8 +549,9 @@ double TacticalShipBase::GetSpeed()
   float tractored = 0.0f;
   if (m_unk3b4 == 0.0f)
   {
-    for (UnitRefNode* node = m_unk360.FirstNode(); node; node = node->Next())
+    for (const auto& entry : m_unk360.Entries())
     {
+      auto* node = static_cast<UnitRefNode*>(entry.get());
       tractored = static_cast<float>(node->Value()->TractorPower() + tractored);
     }
 #ifdef REB_NO_TACTICAL_3D
@@ -577,25 +578,26 @@ int TacticalShipIsInState3(int handle)
 
 void TacticalHangar::ReleaseDocked()
 {
-  for (UnitRefNode* node = m_docked->FirstNode(); node;)
+  auto entry = m_docked->Entries().begin();
+  while (entry != m_docked->Entries().end())
   {
-    UnitRefNode* next = node->Next();
+    auto current = entry++;
+    auto* node = static_cast<UnitRefNode*>(current->get());
     if (TacticalShipIsInState3(node->Key()) == 0)
     {
       m_launched->AddUnit(node->Value());
       node->Value()->m_state = 5;
       m_docked->RemoveById(node->Key());
     }
-    node = next;
   }
 }
 
 void TacticalHangar::Disband()
 {
-  for (UnitRefNode* node = m_docked->FirstNode(); node; node = node->Next())
-    node->Value()->Destroy();
-  for (UnitRefNode* node = m_launched->FirstNode(); node; node = node->Next())
-    node->Value()->Destroy();
+  for (const auto& entry : m_docked->Entries())
+    static_cast<UnitRefNode*>(entry.get())->Value()->Destroy();
+  for (const auto& entry : m_launched->Entries())
+    static_cast<UnitRefNode*>(entry.get())->Value()->Destroy();
   m_docked->Clear();
   m_launched->Clear();
 }
@@ -609,18 +611,6 @@ void TacticalShipBase::SetState2()
 {
   m_fC_04 = 0;
   m_state = 2;
-}
-
-TacticalShipBase* TacticalShipBase::GetNextShip()
-{
-  AvlNode* next = TacticalUnit::m_successor;
-  return next != nullptr ? static_cast<TacticalShipBase*>(static_cast<TacticalUnit*>(next)) : nullptr;
-}
-
-TacticalShipBase* TacticalShipBase::GetNextShip2()
-{
-  AvlNode* next = TacticalUnit::m_successor;
-  return next != nullptr ? static_cast<TacticalShipBase*>(static_cast<TacticalUnit*>(next)) : nullptr;
 }
 
 double TacticalShipBase::GetValue394()

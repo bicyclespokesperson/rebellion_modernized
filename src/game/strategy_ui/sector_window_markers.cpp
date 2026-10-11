@@ -171,35 +171,34 @@ RECT* SectorMarkerLabelRect(RECT* out, ObjectListItem* item)
 
 ObjectListItem* SectorWindow::FindSystemAt(int x, int y)
 {
-  CoolListItem* item = m_systems.First();
-  while (item)
+  for (const auto& ownedItem : m_systems.Entries())
   {
+    auto* item = static_cast<CoolListItem*>(ownedItem.get());
     POINT point = {x, y};
     if (PtInRect(&item->m_rect, point))
-      break;
-    item = item->Next();
+      return static_cast<ObjectListItem*>(item);
   }
-  return static_cast<ObjectListItem*>(item);
+  return nullptr;
 }
 
 ObjectListItem* SectorWindow::HitTestMarkers(CoolListItemList* markers, int x, int y)
 {
-  CoolListItem* item = markers->First();
-  bool found = false;
-  while (item && !found)
+  for (const auto& ownedItem : markers->Entries())
   {
+    auto* item = static_cast<CoolListItem*>(ownedItem.get());
     const RECT area = item->m_rect;
     POINT point = {x, y};
-    found = PtInRect(&area, point) != 0;
+    bool found = PtInRect(&area, point) != 0;
     if (found && item->m_id == kSpecialMarkerId && item->m_image &&
         item->m_image->IsPixelOpaque(x - area.left, y - area.top) == 0)
     {
       found = false;
     }
     if (!found)
-      item = item->Next();
+      continue;
+    return static_cast<ObjectListItem*>(item);
   }
-  return static_cast<ObjectListItem*>(item);
+  return nullptr;
 }
 
 CoolWindow* SectorWindow::OpenWindowOfType(const ObjectKey* system, int windowType)
@@ -356,8 +355,9 @@ void SectorWindow::ClearHighlight(ObjectListItem* item)
     const int height = m_dragLayer->Height();
     const int width = m_dragLayer->Width();
     m_dragLayer->FillRect(0, 0, width, height, color);
-    for (CoolListItem* marker = m_markers.First(); marker; marker = marker->Next())
+    for (const auto& ownedNode : m_markers.Entries())
     {
+      auto* marker = static_cast<CoolListItem*>(ownedNode.get());
       const uint32_t state = marker->m_state.m_value;
       if ((state & kMarkerHighlighted) != 0)
       {

@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdint>
+#include <list>
+#include <memory>
 
 #include "ai/ai_selector.h"
 #include "core/containers.h"
@@ -59,20 +61,31 @@ public:
 
 // ---- AiNoticeGroup -----------------------------------------------------------------------------------------------------
 
-// The notes with one group id, in arrival order (0x2c bytes: a SortedLinkList whose IdNode part at +0xc is what AiNoticeQueue
-// keeps in its tree; VT 0x65c858 / 0x65c860).
-class AiNoticeGroup : public SortedLinkList, public IdNode
+// The notes with one group id, in arrival order. The IdNode part at +0xc is what AiNoticeQueue keeps in its tree.
+class AiNoticeGroup : public IdNode
 {
 public:
   AiNoticeGroup(); // 0x4e4d40
   ~AiNoticeGroup() override; // 0: 0x4e4da0 (deleting), 0x4e4dc0 (the IdNode part's slot is 0x4e4f70)
-  int IsLess(LinkNode* a, LinkNode* b) override; // 1: 0x4e4f80 (0: notes stay in arrival order)
 
   void Load(istream* in); // 0x4e4e20
   void Save(ostream* out); // 0x4e4eb0
-  void Add(NotifPayload* notice); // 0x4e4f20: takes the group's id from the first note; kind 2 marks it finished
+  void Add(std::unique_ptr<NotifPayload>
+             notice); // 0x4e4f20: takes the group's id from the first note; kind 2 marks it finished
+  void Clear();
+  size_t Count() const
+  {
+    return m_notices.size();
+  }
+  const std::list<std::unique_ptr<NotifPayload>>& Entries() const
+  {
+    return m_notices;
+  }
 
   int m_finished; // +0x28 set when a note of kind 2 was added
+
+private:
+  std::list<std::unique_ptr<NotifPayload>> m_notices;
 };
 
 // ---- AiTaskObject / AiTaskObjectSet ------------------------------------------------------------------------------------

@@ -62,11 +62,6 @@ Command* firstCommand(CommandQueue* commands)
   return commands->FirstCommand();
 }
 
-Command* nextCommand(Command* command)
-{
-  return static_cast<Command*>(command->m_successor);
-}
-
 CommandQueue* newCommandQueue()
 {
   return NewOrNull<CommandQueue>();
@@ -197,9 +192,12 @@ int Order270::CheckDestination(StatusCode* status)
       {
         if (isOk(status))
         {
-          for (Command* command = firstCommand(m_commands); command && ok != 0 && isOk(status);
-               command = nextCommand(command))
+          for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();)
           {
+            Command* command = static_cast<Command*>((commandPosition++)->get());
+            if (!(true && ok != 0 && isOk(status)))
+              break;
+
             ObjectKey tightest;
             CapacityScratch slot;
             ObjectKey unit = command->m_key;
@@ -674,8 +672,10 @@ int CheckFleetsCanInvade(ActivityRequest* request, ObjectKeyValueSet* team, Stat
   int regimentsAboard = 0;
   if (ok != 0 && isOk(status))
   {
-    for (AvlNode* node = dependencies.First(); regimentsAboard == 0 && node; node = node->m_successor)
+    for (auto position = dependencies.Entries().begin();
+         position != dependencies.Entries().end() && (regimentsAboard == 0); ++position)
     {
+      AvlNode* node = static_cast<AvlNode*>(position->get());
       ObjectKey fleetKey = keyOfNode(node);
       if (!isFleetKey(fleetKey))
         continue;
@@ -715,9 +715,11 @@ int CheckFleetsCanBeUsed(ActivityRequest* request, ObjectKeyValueSet* team, Stat
   const int ok = CollectKeyDependencies(request, team, &dependencies, status);
   if (ok != 0 && isOk(status))
   {
-    AvlNode* node = dependencies.First();
-    while (!stop && node)
+    for (const auto& entry : dependencies.Entries())
     {
+      if (stop)
+        break;
+      AvlNode* node = entry.get();
       ObjectKey fleetKey = keyOfNode(node);
       if (isFleetKey(fleetKey))
       {
@@ -738,7 +740,6 @@ int CheckFleetsCanBeUsed(ActivityRequest* request, ObjectKeyValueSet* team, Stat
           }
         }
       }
-      node = node->m_successor;
     }
   }
   if (ok != 0 && isOk(status) && !anyShips)

@@ -164,11 +164,12 @@ TacticalGame::~TacticalGame()
 
 uint16_t TacticalGame::LookupTypeSprite(int16_t key)
 {
-  for (AvlNode* node = m_typeMap.First(); node; node = node->m_successor)
+  for (const auto& entry : m_typeMap.Entries())
   {
-    const TypeMapNode* entry = static_cast<const TypeMapNode*>(node);
-    if (static_cast<int16_t>(entry->m_key) == key)
-      return entry->m_value;
+    AvlNode* node = entry.get();
+    const TypeMapNode* typeEntry = static_cast<const TypeMapNode*>(node);
+    if (static_cast<int16_t>(typeEntry->m_key) == key)
+      return typeEntry->m_value;
   }
   return 0;
 }

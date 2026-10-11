@@ -90,12 +90,6 @@ ObjectKey KeyOf(Record* record)
   return key;
 }
 
-template <class Record>
-Record* Next(Record* record)
-{
-  return static_cast<Record*>(record->m_successor);
-}
-
 } // namespace
 
 AiRankedList* AiSideController::RankSectors(uint32_t requireA,
@@ -111,8 +105,9 @@ AiRankedList* AiSideController::RankSectors(uint32_t requireA,
   AiRankedList* list = NewOrNull<AiRankedList>(descending);
   if (!list)
     return list;
-  for (AiSectorEval* sector = static_cast<AiSectorEval*>(m_sectors.First()); sector; sector = Next(sector))
+  for (const auto& entry : m_sectors.Entries())
   {
+    AiSectorEval* sector = static_cast<AiSectorEval*>(entry.get());
     if (masks.Matches(sector))
       AddItem(list, KeyOf(sector), sector->m_stat[statIndex & 0xffff]);
   }
@@ -142,8 +137,9 @@ AiRankedList* AiSideController::RankSectorsByDistance(const ObjectKey* target,
   list = NewOrNull<AiRankedList>(descending);
   if (!list)
     return list;
-  for (AiSectorEval* sector = static_cast<AiSectorEval*>(m_sectors.First()); sector; sector = Next(sector))
+  for (const auto& entry : m_sectors.Entries())
   {
+    AiSectorEval* sector = static_cast<AiSectorEval*>(entry.get());
     if (!masks.Matches(sector))
       continue;
     AddItem(list, KeyOf(sector), DistanceSquared(originX, originY, sector->m_x, sector->m_y));
@@ -164,8 +160,9 @@ AiRankedList* AiSideController::RankSectorsByX3c(uint32_t requireA,
   AiRankedList* list = NewOrNull<AiRankedList>(descending);
   if (!list)
     return list;
-  for (AiSectorEval* sector = static_cast<AiSectorEval*>(m_sectors.First()); sector; sector = Next(sector))
+  for (const auto& entry : m_sectors.Entries())
   {
+    AiSectorEval* sector = static_cast<AiSectorEval*>(entry.get());
     if (!masks.Matches(sector))
       continue;
     AddItem(list, KeyOf(sector), sector->m_x3c == 0 ? 100 : sector->m_x3c);
@@ -186,8 +183,9 @@ AiRankedList* AiSideController::RankSectorsByAge(uint32_t requireA,
   AiRankedList* list = NewOrNull<AiRankedList>(descending);
   if (!list)
     return list;
-  for (AiSectorEval* sector = static_cast<AiSectorEval*>(m_sectors.First()); sector; sector = Next(sector))
+  for (const auto& entry : m_sectors.Entries())
   {
+    AiSectorEval* sector = static_cast<AiSectorEval*>(entry.get());
     if (!masks.Matches(sector))
       continue;
     ObjectKey key = KeyOf(sector);
@@ -209,8 +207,9 @@ AiRankedList* AiSideController::RankSectorsRandomly(uint32_t requireA,
   AiRankedList* list = NewOrNull<AiRankedList>(descending);
   if (!list)
     return list;
-  for (AiSectorEval* sector = static_cast<AiSectorEval*>(m_sectors.First()); sector; sector = Next(sector))
+  for (const auto& entry : m_sectors.Entries())
   {
+    AiSectorEval* sector = static_cast<AiSectorEval*>(entry.get());
     if (!masks.Matches(sector))
       continue;
     ObjectKey key = KeyOf(sector);
@@ -289,8 +288,9 @@ AiSideController::RankFleets(uint32_t requireFlags, uint32_t forbidFlags, uint32
   AiRankedList* list = NewOrNull<AiRankedList>(descending);
   if (!list)
     return list;
-  for (AiFleetEval* fleet = static_cast<AiFleetEval*>(m_fleets.First()); fleet; fleet = Next(fleet))
+  for (const auto& entry : m_fleets.Entries())
   {
+    AiFleetEval* fleet = static_cast<AiFleetEval*>(entry.get());
     if (masks.Matches(fleet))
       AddItem(list, KeyOf(fleet), fleet->m_stat[statIndex & 0xffff]);
   }
@@ -316,8 +316,9 @@ AiRankedList* AiSideController::RankFleetsBySectorDistance(const ObjectKey* sect
   list = NewOrNull<AiRankedList>(descending);
   if (!list)
     return list;
-  for (AiFleetEval* fleet = static_cast<AiFleetEval*>(m_fleets.First()); fleet; fleet = Next(fleet))
+  for (const auto& entry : m_fleets.Entries())
   {
+    AiFleetEval* fleet = static_cast<AiFleetEval*>(entry.get());
     if (!masks.Matches(fleet))
       continue;
     ObjectKey fleetKey = KeyOf(fleet);
@@ -347,8 +348,9 @@ AiRankedList* AiSideController::RankFleetsBySystemDistance(const ObjectKey* syst
   list = NewOrNull<AiRankedList>(descending);
   if (!list)
     return list;
-  for (AiFleetEval* fleet = static_cast<AiFleetEval*>(m_fleets.First()); fleet; fleet = Next(fleet))
+  for (const auto& entry : m_fleets.Entries())
   {
+    AiFleetEval* fleet = static_cast<AiFleetEval*>(entry.get());
     if (!masks.Matches(fleet))
       continue;
     ObjectKey fleetKey = KeyOf(fleet);
@@ -367,8 +369,9 @@ AiSideController::RankFleetsByX34(uint32_t minX34, uint32_t requireFlags, uint32
   AiRankedList* list = NewOrNull<AiRankedList>(descending);
   if (!list)
     return list;
-  for (AiFleetEval* fleet = static_cast<AiFleetEval*>(m_fleets.First()); fleet; fleet = Next(fleet))
+  for (const auto& entry : m_fleets.Entries())
   {
+    AiFleetEval* fleet = static_cast<AiFleetEval*>(entry.get());
     if (minX34 < static_cast<uint32_t>(fleet->m_x34) && masks.Matches(fleet))
       AddItem(list, KeyOf(fleet), fleet->m_x34);
   }
@@ -398,8 +401,9 @@ AiRankedList* AiSideController::RankFleetsByTarget(int x30,
   AiRankedList* list = NewOrNull<AiRankedList>(descending);
   if (!list)
     return list;
-  for (AiFleetEval* fleet = static_cast<AiFleetEval*>(m_fleets.First()); fleet; fleet = Next(fleet))
+  for (const auto& entry : m_fleets.Entries())
   {
+    AiFleetEval* fleet = static_cast<AiFleetEval*>(entry.get());
     if (fleet->m_x30 == x30 && masks.Matches(fleet))
       AddItem(list, KeyOf(fleet), fleet->m_stat[statIndex & 0xffff]);
   }
@@ -426,8 +430,9 @@ AiRankedList* AiSideController::RankFleetsByTargetAndSystemDistance(const Object
   list = NewOrNull<AiRankedList>(descending);
   if (!list)
     return list;
-  for (AiFleetEval* fleet = static_cast<AiFleetEval*>(m_fleets.First()); fleet; fleet = Next(fleet))
+  for (const auto& entry : m_fleets.Entries())
   {
+    AiFleetEval* fleet = static_cast<AiFleetEval*>(entry.get());
     if (fleet->m_x30 != x30 || !masks.Matches(fleet))
       continue;
     ObjectKey fleetKey = KeyOf(fleet);
@@ -497,8 +502,9 @@ ObjectKey* AiSideController::FindNearestSystemWithFleets(ObjectKey* out,
     originKey = KeyOf(origin);
     const int16_t originX = origin->m_x;
     const int16_t originY = origin->m_y;
-    for (AiSectorEval* sector = static_cast<AiSectorEval*>(m_sectors.First()); sector; sector = Next(sector))
+    for (const auto& entry : m_sectors.Entries())
     {
+      AiSectorEval* sector = static_cast<AiSectorEval*>(entry.get());
       if (sector->m_key.m_value == originKey.m_value)
         continue;
       const int distance = DistanceSquared(originX, originY, sector->m_x, sector->m_y);

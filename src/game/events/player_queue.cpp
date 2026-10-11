@@ -190,7 +190,6 @@ void PlayerController::Write(ostream* out)
 
 int PlayerController::Virtual12(unsigned syncId)
 {
-  bool done = false;
   int result = 0;
   if (m_syncId != syncId)
   {
@@ -222,24 +221,21 @@ int PlayerController::Virtual12(unsigned syncId)
     }
     return result;
   }
-  IdNode* node = reinterpret_cast<IdNode*>(UiGetFirstMessage());
-  do
+  bool earlierMessage = false;
+  for (uint32_t id : UiQueuedMessageIds())
   {
-    unsigned id = node ? node->m_id : 0;
-    if (static_cast<unsigned>(m_lastVoteId) < id && id < static_cast<unsigned>(m_syncMessageId))
+    if (static_cast<uint32_t>(m_lastVoteId) < id && id < static_cast<uint32_t>(m_syncMessageId))
     {
-      done = true;
+      earlierMessage = true;
+      break;
     }
-    else if (id == 0)
-    {
-      Send(m_sync);
-      m_state.m_value |= 2;
-      m_sync = nullptr;
-      done = true;
-    }
-    if (node)
-      node = static_cast<IdNode*>(node->m_successor);
-  } while (!done);
+  }
+  if (!earlierMessage)
+  {
+    Send(m_sync);
+    m_state.m_value |= 2;
+    m_sync = nullptr;
+  }
   return result;
 }
 

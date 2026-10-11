@@ -1,3 +1,4 @@
+#include "ai/ai_task_base.h"
 #include "events/player_notices.h"
 
 #include <new>
@@ -38,7 +39,7 @@ Notice21::Notice21() : UiKeyNotice()
   m_unk40 = 0;
 }
 
-Notice21::Notice21(const LinkNode* payloads, int owner) : UiKeyNotice(owner)
+Notice21::Notice21(const AiNoticeGroup* payloads, int owner) : UiKeyNotice(owner)
 {
   m_unk40 = 0;
   m_categories = Virtual11();
@@ -144,7 +145,7 @@ Notice20::Notice20() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice20::Notice20(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice20::Notice20(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_categories = Virtual11();
@@ -275,15 +276,15 @@ void Notice20::Virtual05(int kind, intptr_t payload)
     m_unk40 = 0;
 }
 
-int Notice20::Virtual16(const LinkNode* payloads)
+int Notice20::Virtual16(const AiNoticeGroup* payloads)
 {
   int result = 1;
   m_unk28 = 0x14;
   if (!payloads)
     return 0;
   m_f78 = CountUnscheduled(payloads);
-  for (const LinkNode* node = payloads->m_next; node; node = node->m_next)
-    static_cast<NotifPayload*>(const_cast<LinkNode*>(node))->DispatchToSink(this);
+  for (const auto& node : payloads->Entries())
+    node.get()->DispatchToSink(this);
   if (m_unk40 != 0)
   {
     if (m_picture[0] == 0 && notice::inFamilies(m_unitKey, 0x3c, 0x40))
@@ -298,12 +299,12 @@ int Notice20::Virtual16(const LinkNode* payloads)
   return result;
 }
 
-int Notice20::CountUnscheduled(const LinkNode* payloads)
+int Notice20::CountUnscheduled(const AiNoticeGroup* payloads)
 {
   int count = 0;
-  for (const LinkNode* node = payloads->m_next; node; node = node->m_next)
+  for (const auto& node : payloads->Entries())
   {
-    NotifPayload* payload = static_cast<NotifPayload*>(const_cast<LinkNode*>(node));
+    NotifPayload* payload = node.get();
     if (payload->GetKind() == 0x200 && static_cast<IntPairPayload*>(payload)->m_valueB == 0)
       ++count;
   }

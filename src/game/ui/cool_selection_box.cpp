@@ -32,8 +32,11 @@ const char* ItemText(const CoolListItem* item)
 
 void CopyItems(CoolListItemList* target, CoolListItemList* source)
 {
-  for (CoolListItem* item = source->First(); item; item = item->Next())
+  for (const auto& entry : source->Entries())
+  {
+    auto* item = static_cast<CoolListItem*>(entry.get());
     target->Insert(NewOrNull<CoolListItem>(*item));
+  }
 }
 
 void PumpWhileMouseHeld()
@@ -173,9 +176,16 @@ CoolListItem* CoolSelectionBox::Select(uint32_t id)
 {
   if (m_current && id != 0 && m_current->m_id != id)
   {
-    m_current = m_items.First();
-    while (m_current && m_current->m_id != id)
-      m_current = m_current->Next();
+    m_current = nullptr;
+    for (const auto& entry : m_items.Entries())
+    {
+      auto* item = static_cast<CoolListItem*>(entry.get());
+      if (item->m_id == id)
+      {
+        m_current = item;
+        break;
+      }
+    }
     InvalidateRect(m_hwnd, nullptr, FALSE);
     if (m_parent)
       PostMessageA(m_parent->m_hwnd, WM_COMMAND, kSelectionChanged, 0);
@@ -248,8 +258,17 @@ int CoolSelectionBox::HandleKeyUp(WPARAM key, LPARAM)
         PostMessageA(m_hwnd, WM_COMMAND, kOpenCommand, 0);
         return 1;
       }
-      if (m_current && m_current->Previous())
-        m_current = m_current->Previous();
+      if (m_current)
+      {
+        auto position = m_items.PositionOf(m_current);
+        if (position != m_items.Entries().begin())
+        {
+          --position;
+          m_current = static_cast<CoolListItem*>(position->get());
+        }
+        else
+          m_current = m_items.First();
+      }
       else
         m_current = m_items.First();
       break;
@@ -259,8 +278,16 @@ int CoolSelectionBox::HandleKeyUp(WPARAM key, LPARAM)
         PostMessageA(m_hwnd, WM_COMMAND, kOpenCommand, 0);
         return 1;
       }
-      if (m_current && m_current->Next())
-        m_current = m_current->Next();
+      if (m_current)
+      {
+        auto position = m_items.PositionOf(m_current);
+        if (position != m_items.Entries().end())
+        {
+          ++position;
+          if (position != m_items.Entries().end())
+            m_current = static_cast<CoolListItem*>(position->get());
+        }
+      }
       break;
     default:
       return 0;
@@ -547,9 +574,16 @@ LRESULT CoolSelectionDropDown::WindowProc(UINT message, WPARAM wParam, LPARAM lP
       const uint32_t command = static_cast<uint32_t>(wParam);
       if ((command & 0xffff) != kListId || (command >> 16) != kSelectionChanged)
         return 0;
-      CoolListItem* item = m_list->FirstItem();
-      while (item && (item->m_state.m_value & kListItemSelected) == 0)
-        item = item->Next();
+      CoolListItem* item = nullptr;
+      for (const auto& entry : m_list->m_items->Entries())
+      {
+        auto* candidate = static_cast<CoolListItem*>(entry.get());
+        if (candidate->m_state.m_value & kListItemSelected)
+        {
+          item = candidate;
+          break;
+        }
+      }
       if (item)
         m_owner->Select(item->m_id);
       return 0;

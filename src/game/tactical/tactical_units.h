@@ -153,10 +153,7 @@ public:
 
   int CountItems()
   { // 0x5bdf20 (the code of TacticalCharacterTree::CountItems)
-    int count = 0;
-    for (IdNode* node = FirstItem(); node != nullptr; node = static_cast<IdNode*>(node->m_successor))
-      ++count;
-    return count;
+    return static_cast<int>(Entries().size());
   }
   void Read(istream* in); // 0x5bdf40
   void Write(ostream* out); // 0x5be030

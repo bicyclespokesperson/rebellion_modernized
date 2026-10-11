@@ -21,10 +21,6 @@ class FleetListItem : public CoolListItem
 public:
   explicit FleetListItem(const ObjectKey* key); // 0x4c7e10: id = the key's low 24 bits
   ~FleetListItem() override; // 0x4c7eb0 (scalar deleting destructor 0x4c7e90)
-  // The next/previous row, skipping hidden ones.
-  CoolListItem* Next() override; // slot 3, 0x4c7f10
-  CoolListItem* Previous() override; // slot 4, 0x4c7f30
-
   PersistentInt m_flags; // +0x68 FleetListItemFlags
   ObjectKey m_key; // +0x6c
 };

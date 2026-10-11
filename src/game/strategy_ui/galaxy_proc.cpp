@@ -277,8 +277,9 @@ LRESULT GalaxyWindow::OnKeyDown(WPARAM key, LPARAM lParam)
   bool popupOpen = false;
   if (key >= kKeyF1 && key <= kKeyF7)
   {
-    for (AvlNode* node = m_children.First(); node; node = node->m_successor)
+    for (const auto& ownedNode : m_children.Entries())
     {
+      auto* node = static_cast<AvlNode*>(ownedNode.get());
       if (static_cast<CoolGameWindow*>(node)->m_flags & kGameWindowPopup)
       {
         popupOpen = true;
@@ -362,8 +363,9 @@ LRESULT GalaxyWindow::OnMouseMove(WPARAM keys, LPARAM position)
     SetCursor(m_currentCursor);
     return 0;
   }
-  for (CoolListItem* node = m_sectorItems.First(); node; node = node->Next())
+  for (const auto& ownedNode : m_sectorItems.Entries())
   {
+    auto* node = static_cast<CoolListItem*>(ownedNode.get());
     ObjectListItem* item = static_cast<ObjectListItem*>(node);
     RECT area = item->m_rect;
     const BOOL inside = PtInRect(&area, cursor);

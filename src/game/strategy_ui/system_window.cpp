@@ -1,5 +1,6 @@
 #include "strategy_ui/system_window.h"
 #include "core/game_string.h"
+#include <iterator>
 #include <string>
 
 #include <cstdint>
@@ -521,8 +522,9 @@ void SystemWindow::GetSelection(ObjectKeyValueSet* out, CoolWindow* source)
     return;
   m_list->CopySelectionTo(&selection);
   const ObjectKey unset;
-  for (CoolListItem* picked = selection.First(); picked; picked = picked->Next())
+  for (const auto& ownedNode : selection.Entries())
   {
+    auto* picked = static_cast<CoolListItem*>(ownedNode.get());
     ObjectListItem* item = static_cast<ObjectListItem*>(m_items->FindById(picked->m_id));
     ObjectKey key;
     item->GetKey(&key);
@@ -609,17 +611,28 @@ void SystemWindow::OnKeyDown(WPARAM key, LPARAM lParam)
     {
       const bool backwards = key == VK_LEFT;
       AvlNode* tab = m_tabs->m_children.FindById(m_tabs->m_selected ? m_tabs->m_selected->m_childId : 0);
-      tab = backwards ? tab->Predecessor() : tab->m_successor;
-      if (tab)
+      auto position = m_tabs->m_children.PositionOf(tab);
+      if (position != m_tabs->m_children.Entries().end())
       {
-        for (; tab; tab = backwards ? tab->Predecessor() : tab->m_successor)
+        if (backwards)
+          position =
+            position == m_tabs->m_children.Entries().begin() ? m_tabs->m_children.Entries().end() : std::prev(position);
+        else
+          position = std::next(position);
+        for (; position != m_tabs->m_children.Entries().end();)
         {
+          tab = position->get();
           CoolWindow* window = static_cast<CoolWindow*>(tab);
           if (IsWindowVisible(window->m_hwnd))
           {
             m_tabs->SelectTab(window->m_childId, 1);
             return;
           }
+          if (backwards)
+            position = position == m_tabs->m_children.Entries().begin() ? m_tabs->m_children.Entries().end() :
+                                                                          std::prev(position);
+          else
+            position = std::next(position);
         }
         return;
       }

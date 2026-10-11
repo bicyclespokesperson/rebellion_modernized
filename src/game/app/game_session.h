@@ -46,7 +46,6 @@ public:
   void RouteMessage(MessageBase* message, int senderSide);
   void RouteNotice(NotifPayload* notice);
   void DeliverQueuedMessage(int id);
-  AvlNode* GetFirstMessage();
   void SendNotificationToSide(int side, intptr_t argument);
 
   // Sync points between the two sides.

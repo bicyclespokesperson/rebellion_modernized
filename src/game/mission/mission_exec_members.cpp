@@ -101,8 +101,9 @@ int MissionMgr::ReassignMissionMembers(Mission* mission, int* moved, NotifyConte
   if (movers.Count() != 0)
   {
     *moved = 1;
-    for (ObjectKeyNode* node = movers.First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+    for (const auto& entry : movers.Entries())
     {
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(entry.get());
       ObjectKey nodeKey;
       node->GetKey(&nodeKey);
       ok = mission->RemoveMember(&nodeKey, anyInMission, ctx) && ok;
@@ -165,8 +166,9 @@ int MissionMgr::ReleaseAdriftPersonsOfSystem(ObjectKey* systemKey, NotifyContext
     }
   }
   int ok = system != nullptr;
-  for (ObjectKeyNode* node = adrift.First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& entry : adrift.Entries())
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(entry.get());
     ObjectKey nodeKey;
     node->GetKey(&nodeKey);
     Role* person = personOf(&nodeKey);
@@ -219,9 +221,10 @@ int MissionMgr::ReleaseSystemPersons(GameObj* system, int* moved, NotifyContext*
     else
     {
       int hasFreePerson = 0;
-      for (ObjectKeyNode* node = persons.First(); node && !hasFreePerson;
-           node = static_cast<ObjectKeyNode*>(node->m_successor))
+      for (auto position = persons.Entries().begin(); position != persons.Entries().end() && (!hasFreePerson);
+           ++position)
       {
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
         ObjectKey nodeKey;
         node->GetKey(&nodeKey);
         if (InFamilies(&nodeKey, kFamilyPersonBegin, kFamilyPersonEnd))
@@ -253,8 +256,10 @@ int MissionMgr::ReleaseSystemPersons(GameObj* system, int* moved, NotifyContext*
 int MissionMgr::ReleasePersons(ObjectKeyValueSet* persons, NotifyContext* ctx)
 {
   int ok = 1;
-  for (ObjectKeyNode* node = persons->First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& nodeEntry : persons->Entries())
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(nodeEntry.get());
+
     ObjectKey nodeKey;
     node->GetKey(&nodeKey);
     Character* person = static_cast<Character*>(GetMasterInFamilies_30_40(&nodeKey));
@@ -304,8 +309,10 @@ int MissionMgr::ReleasePersons(ObjectKeyValueSet* persons, NotifyContext* ctx)
 int MissionMgr::ReleaseFreePersons(ObjectKeyValueSet* persons, NotifyContext* ctx)
 {
   int ok = 1;
-  for (ObjectKeyNode* node = persons->First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& nodeEntry : persons->Entries())
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(nodeEntry.get());
+
     ObjectKey nodeKey;
     node->GetKey(&nodeKey);
     Character* person = static_cast<Character*>(GetMasterInFamilies_30_40(&nodeKey));

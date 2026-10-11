@@ -37,8 +37,9 @@ void Notice8::BuildText()
       ExpandMessageTemplate(&m_text1, 0x7050, nullptr, nullptr, nullptr, nullptr);
       ObjectKeyValueSet dependencies;
       order->CollectTeamDependencies(&dependencies);
-      for (ObjectKeyNode* node = dependencies.First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+      for (const auto& entry : dependencies.Entries())
       {
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>(entry.get());
         ObjectKey key(node->m_key);
         GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, &key);
         if (object)
@@ -59,8 +60,10 @@ void Notice8::BuildText()
       m_sound[0] = 0x465;
       ExpandMessageTemplate(&m_text1, 0x7053, nullptr, nullptr, nullptr, nullptr);
       ObjectKeyValueSet* team = order->GetTeam();
-      for (ObjectKeyNode* node = team->First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+      for (const auto& nodeEntry : team->Entries())
       {
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>(nodeEntry.get());
+
         ObjectKey key(node->m_key);
         GameObjNotifier* object = GetObjectInFamilies_a0_b0(m_owner, &key);
         ExpandMessageTemplate(&m_text1, 0x7055, notice::nameOf(object), nullptr, nullptr, nullptr);
@@ -73,8 +76,10 @@ void Notice8::BuildText()
       m_sound[0] = sideVariant(m_owner, 0x461);
       ExpandMessageTemplate(&m_text1, 0x7051, nullptr, nullptr, nullptr, nullptr);
       ObjectKeyValueSet* team = order->GetTeam();
-      for (ObjectKeyNode* node = team->First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+      for (const auto& nodeEntry : team->Entries())
       {
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>(nodeEntry.get());
+
         ObjectKey key(node->m_key);
         GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, &key);
         if (object)
@@ -133,8 +138,9 @@ void Notice8::AppendOrderLines()
     ObjectKeyValueSet transitDays;
     StatusCode status;
     static_cast<MoveOrderBase*>(m_subject)->CollectTransitDays(&status, &transitDays);
-    for (ObjectKeyNode* node = transitDays.First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+    for (const auto& entry : transitDays.Entries())
     {
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(entry.get());
       ObjectKey key(node->m_key);
       GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, &key);
       if (!object)

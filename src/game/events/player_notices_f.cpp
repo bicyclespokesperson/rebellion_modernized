@@ -1,3 +1,4 @@
+#include "ai/ai_task_base.h"
 #include "events/player_notices.h"
 
 #include <new>
@@ -23,7 +24,7 @@ Notice19::Notice19() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice19::Notice19(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice19::Notice19(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_unk40 = 0;
   m_categories = Virtual11();
@@ -97,7 +98,7 @@ Notice7::Notice7() : UiTextNotice()
   m_categories = Virtual11();
 }
 
-Notice7::Notice7(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice7::Notice7(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_unk40 = 0;
   m_categories = Virtual11();

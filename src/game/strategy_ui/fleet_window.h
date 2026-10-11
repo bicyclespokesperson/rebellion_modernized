@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdint>
+#include <list>
+#include <memory>
 
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
@@ -34,6 +36,7 @@ enum FleetWindowFlags : uint32_t
 class FleetWindow : public CustomDialogBox
 {
 public:
+  using RowIterator = std::list<std::unique_ptr<LinkNode>>::const_iterator;
   FleetWindow(HINSTANCE instance,
               int x,
               int y,
@@ -68,11 +71,11 @@ public:
   // Brings the fleet rows (and, through SyncShipRows, the ship rows) up to date with the fleets at the system.
   void SyncFleetRows(); // 0x4a3340
   // Inserts a row for `fleet` before *position, then its ship rows; *position ends after them.
-  void AddFleetRow(GameObjNotifier* fleet, FleetListItem** position); // 0x4a37c0
+  void AddFleetRow(GameObjNotifier* fleet, RowIterator* position); // 0x4a37c0
   // Brings the ship rows after the fleet row *position up to date with the capital ships of `fleet`.
-  void SyncShipRows(GameObjNotifier* fleet, FleetListItem** position); // 0x4a3d40
+  void SyncShipRows(GameObjNotifier* fleet, RowIterator* position); // 0x4a3d40
   // Removes the row *position and the ship rows after it; *position ends at the next fleet row.
-  void RemoveRows(FleetListItem** position); // 0x4a4ac0
+  void RemoveRows(RowIterator* position); // 0x4a4ac0
   // Shows the selection: its name, its picture, the tabs and the right-hand list.
   void UpdateShipList(); // 0x4a5c00
   // Shows the tab control of the side of the selection with the tab `m_page`; greys out the tabs of kinds that the

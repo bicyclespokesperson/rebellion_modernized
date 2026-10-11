@@ -6,19 +6,3 @@ FleetListItem::FleetListItem(const ObjectKey* key) : CoolListItem(key->m_value &
 }
 
 FleetListItem::~FleetListItem() = default;
-
-CoolListItem* FleetListItem::Next()
-{
-  FleetListItem* next = static_cast<FleetListItem*>(m_next);
-  if (next && (next->m_flags.m_value & kFleetItemHidden) != 0)
-    return next->Next();
-  return next;
-}
-
-CoolListItem* FleetListItem::Previous()
-{
-  FleetListItem* previous = static_cast<FleetListItem*>(m_prev);
-  if (previous && (previous->m_flags.m_value & kFleetItemHidden) != 0)
-    return previous->Previous();
-  return previous;
-}

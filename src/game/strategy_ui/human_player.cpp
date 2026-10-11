@@ -1,4 +1,5 @@
 #include "strategy_ui/human_player.h"
+#include "ai/ai_task_base.h"
 #include <string>
 
 #include <new>
@@ -192,7 +193,7 @@ void HumanPlayer::Virtual10()
     m_advisor->Tick();
   if (AiNoticeGroup* group = m_alertList.DetachFinished())
   {
-    Dispatch()->HandleNotifications(reinterpret_cast<LinkNode*>(group));
+    Dispatch()->HandleNotifications(group);
     delete group;
   }
   if (m_syncTarget == 0 && !UiIsPauseTick())
@@ -211,8 +212,9 @@ void HumanPlayer::Virtual20(NotifPayload* notice)
 {
   if (!notice)
     return;
-  notice->Dispatch(this);
-  m_alertList.Add(notice);
+  std::unique_ptr<NotifPayload> incoming(notice);
+  incoming->Dispatch(this);
+  m_alertList.Add(std::move(incoming));
 }
 
 void HumanPlayer::Virtual17(int id, ObjectKey* key)

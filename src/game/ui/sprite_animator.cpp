@@ -6,20 +6,6 @@
 #include "ui/sprite.h"
 #include "ui/sprite_stage.h"
 
-AnimationStepQueue::AnimationStepQueue() = default;
-
-AnimationStepQueue::~AnimationStepQueue() = default;
-
-namespace
-{
-
-NodeQueue* QueueOf(SpriteAnimator* animator)
-{
-  return &animator->m_steps;
-}
-
-} // namespace
-
 SpriteAnimator::SpriteAnimator(int spriteCount)
 {
   *reinterpret_cast<int16_t*>(&m_endSequence) = 0;
@@ -66,7 +52,8 @@ int SpriteAnimator::Start(int kind, const uint32_t* sequence, SpriteStage* stage
     step->SetScript(sequence);
     step->SetStart(b, c);
   }
-  QueueOf(this)->Enqueue(step);
+  if (step)
+    m_steps.emplace_back(step);
   if (m_current)
   {
     m_current->Abort();
@@ -92,11 +79,21 @@ void SpriteAnimator::Step(RECT* area, int* changed)
   }
   if (m_current)
     return;
-  m_current = static_cast<AnimationStep*>(QueueOf(this)->Dequeue());
+  if (!m_steps.empty())
+  {
+    std::unique_ptr<AnimationStep> step = std::move(m_steps.front());
+    m_steps.pop_front();
+    m_current = step.release();
+  }
   if (!m_current && m_hasEndAction)
   {
     Start(m_endKind, &m_endSequence, m_endStage, m_endFrames, static_cast<intptr_t>(m_endCallback), 1);
-    m_current = static_cast<AnimationStep*>(QueueOf(this)->Dequeue());
+    if (!m_steps.empty())
+    {
+      std::unique_ptr<AnimationStep> step = std::move(m_steps.front());
+      m_steps.pop_front();
+      m_current = step.release();
+    }
   }
   if (!m_current)
     return;
@@ -162,7 +159,7 @@ int SpriteAnimator::HitTest(int x, int y)
 
 void SpriteAnimator::Stop()
 {
-  QueueOf(this)->Clear();
+  m_steps.clear();
   if (m_current)
     m_current->Abort();
 }

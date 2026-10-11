@@ -100,8 +100,9 @@ HWND GalaxyWindow::LastChildWindow()
 CoolWindow* GalaxyWindow::FindChildByHwnd(HWND hwnd)
 {
   CoolWindow* found = nullptr;
-  for (AvlNode* node = m_children.First(); node; node = node->m_successor)
+  for (const auto& ownedNode : m_children.Entries())
   {
+    auto* node = static_cast<AvlNode*>(ownedNode.get());
     found = static_cast<CoolWindow*>(node);
     if (found->m_hwnd == hwnd)
       return found;
@@ -127,8 +128,9 @@ void GalaxyWindow::LoadState(istream* in)
     SendMessageA(m_hwnd, WM_COMMAND, (static_cast<int>(packed) << 16) | kDisplayModeCommand, 0);
   }
   m_previousActiveChild = nullptr;
-  for (AvlNode* node = m_children.First(); node; node = node->m_successor)
+  for (const auto& ownedNode : m_children.Entries())
   {
+    auto* node = static_cast<AvlNode*>(ownedNode.get());
     CoolWindow* child = static_cast<CoolWindow*>(node);
     if ((child->m_childId & kWindowTypeMask) == kSectorWindowType)
       SetWindowPos(child->m_hwnd, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);

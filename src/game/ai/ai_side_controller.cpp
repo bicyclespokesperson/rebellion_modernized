@@ -571,8 +571,11 @@ int AiSideController::Step()
     case 3:
       if (m_sectors.BuildStep(&m_systems, this))
       {
-        for (AvlNode* sector = m_sectors.First(); sector; sector = sector->m_successor)
+        for (const auto& entry : m_sectors.Entries())
+        {
+          AvlNode* sector = static_cast<AvlNode*>(entry.get());
           Stat(0x18c) += 10;
+        }
         m_step = 4;
         return 0;
       }
@@ -613,16 +616,19 @@ int AiSideController::Analyze()
         m_cursor = static_cast<AiSectorEval*>(m_sectors.First());
       if (m_cursor)
       {
+        auto position = m_sectors.PositionOf(m_cursor);
         int refreshed = 0;
-        do
+        while (position != m_sectors.Entries().end())
         {
+          AiSectorEval* sector = static_cast<AiSectorEval*>(position->get());
+          ++position;
+          m_cursor = position == m_sectors.Entries().end() ? nullptr : static_cast<AiSectorEval*>(position->get());
           if (refreshed)
             break;
-          refreshed = m_cursor->Refresh();
+          refreshed = sector->Refresh();
           if (refreshed)
             m_flags.m_value |= 0xa0000000;
-          m_cursor = static_cast<AiSectorEval*>(m_cursor->m_successor);
-        } while (m_cursor);
+        }
         if (m_cursor)
           return 0;
       }
@@ -638,13 +644,16 @@ int AiSideController::Analyze()
         fleet = static_cast<AiFleetEval*>(m_fleets.First());
       if (fleet)
       {
+        auto position = m_fleets.PositionOf(fleet);
         int refreshed = 0;
-        while (!refreshed)
+        while (!refreshed && position != m_fleets.Entries().end())
         {
-          refreshed = fleet->Refresh();
+          AiFleetEval* current = static_cast<AiFleetEval*>(position->get());
+          ++position;
+          fleet = position == m_fleets.Entries().end() ? nullptr : static_cast<AiFleetEval*>(position->get());
+          refreshed = current->Refresh();
           if (refreshed)
             m_flags.m_value |= 0xc0000000;
-          fleet = static_cast<AiFleetEval*>(fleet->m_successor);
           if (!fleet)
           {
             m_cursorFleetKey.Reset();
@@ -671,13 +680,17 @@ int AiSideController::Analyze()
         character = static_cast<AiCharacterRecord*>(m_characters.First());
       if (character)
       {
+        auto position = m_characters.PositionOf(character);
         int refreshed = 0;
-        while (!refreshed)
+        while (!refreshed && position != m_characters.Entries().end())
         {
-          refreshed = character->Refresh();
+          AiCharacterRecord* current = character;
+          ++position;
+          character =
+            position == m_characters.Entries().end() ? nullptr : static_cast<AiCharacterRecord*>(position->get());
+          refreshed = current->Refresh();
           if (refreshed)
             m_flags.m_value |= 0x90000000;
-          character = static_cast<AiCharacterRecord*>(character->m_successor);
           if (!character)
           {
             m_cursorCharacterKey.Reset();
@@ -702,12 +715,14 @@ int AiSideController::Analyze()
           std::fill_n(&Stat(0x1ac), 0x28, 0);
           m_flags.m_value &= 0xfffffa6f;
           m_cursor = static_cast<AiSectorEval*>(m_sectors.First());
-          while (m_cursor)
+          auto position = m_sectors.PositionOf(m_cursor);
+          while (position != m_sectors.Entries().end())
           {
-            AiSectorEval* sector = m_cursor;
+            AiSectorEval* sector = static_cast<AiSectorEval*>(position->get());
+            ++position;
             AccumulateSector(sector->m_stat, &sector->m_flags24.m_value, &sector->m_flags2c.m_value,
                              &sector->m_flags28.m_value, sector->m_x30);
-            m_cursor = static_cast<AiSectorEval*>(m_cursor->m_successor);
+            m_cursor = position == m_sectors.Entries().end() ? nullptr : static_cast<AiSectorEval*>(position->get());
           }
           if (0 < Stat(0x214))
             Stat(0x214) = Stat(0x214) / 5 + 1;
@@ -718,9 +733,9 @@ int AiSideController::Analyze()
         {
           std::fill_n(&Stat(0x24c), 0x1e, 0);
           m_flags.m_value &= 0xfffffff3;
-          for (AiFleetEval* fleet = static_cast<AiFleetEval*>(m_fleets.First()); fleet;
-               fleet = static_cast<AiFleetEval*>(fleet->m_successor))
+          for (const auto& entry : m_fleets.Entries())
           {
+            auto* fleet = static_cast<AiFleetEval*>(entry.get());
             ObjectKey key;
             fleet->GetKey(&key);
             AccumulateFleet(&key, fleet->m_stat, &fleet->m_flags.m_value);
@@ -730,9 +745,9 @@ int AiSideController::Analyze()
         {
           std::fill_n(&Stat(0x2c4), 0x14, 0);
           m_flags.m_value &= 0xfffffdff;
-          for (AiCharacterRecord* character = static_cast<AiCharacterRecord*>(m_characters.First()); character;
-               character = static_cast<AiCharacterRecord*>(character->m_successor))
+          for (const auto& entry : m_characters.Entries())
           {
+            auto* character = static_cast<AiCharacterRecord*>(entry.get());
             ObjectKey key;
             character->GetKey(&key);
             AccumulateCharacter(&key, character->m_values, &character->m_flags.m_value,

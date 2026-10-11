@@ -84,20 +84,20 @@ void AiTaskBase::Write(ostream* out)
 
 // ---- AiNoticeGroup -----------------------------------------------------------------------------------------------------
 
-AiNoticeGroup::AiNoticeGroup() : SortedLinkList(), IdNode(), m_finished(0)
+AiNoticeGroup::AiNoticeGroup() : IdNode(), m_finished(0)
 {
 }
 
 AiNoticeGroup::~AiNoticeGroup() = default;
 
-int AiNoticeGroup::IsLess(LinkNode*, LinkNode*)
+void AiNoticeGroup::Clear()
 {
-  return 0;
+  m_notices.clear();
 }
 
 void AiNoticeGroup::Load(istream* in)
 {
-  SortedLinkList::Clear();
+  Clear();
   ReadId(in);
   uint32_t count = 0;
   ReadValue32(in, &count);
@@ -110,7 +110,7 @@ void AiNoticeGroup::Load(istream* in)
     ReadValue32(in, &kind);
     if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
       return;
-    NotifPayload* notice = static_cast<NotifPayload*>(CreateKeyedObject(kind));
+    std::unique_ptr<NotifPayload> notice(static_cast<NotifPayload*>(CreateKeyedObject(kind)));
     if (!notice)
     {
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
@@ -118,44 +118,35 @@ void AiNoticeGroup::Load(istream* in)
     }
     notice->Read(in);
     if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
-    {
-      delete notice;
       return;
-    }
-    const int priorCount = m_count;
-    Add(notice);
-    if (m_count == priorCount)
-    {
-      delete notice;
-      iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
-      return;
-    }
+    Add(std::move(notice));
   }
 }
 
 void AiNoticeGroup::Save(ostream* out)
 {
   WriteId(out);
-  int count = m_count;
-  WriteValue32(out, &count);
+  if (!WriteCount32(out, Count()))
+    return;
   WriteValue32(out, &m_finished);
-  for (LinkNode* node = m_head; node; node = node->m_next)
+  for (const auto& entry : Entries())
   {
-    int kind = static_cast<NotifPayload*>(node)->GetKind();
+    auto* notice = entry.get();
+    int kind = notice->GetKind();
     WriteValue32(out, &kind);
-    node->Write(out);
+    notice->Write(out);
   }
 }
 
-void AiNoticeGroup::Add(NotifPayload* notice)
+void AiNoticeGroup::Add(std::unique_ptr<NotifPayload> notice)
 {
   if (!notice)
     return;
-  if (m_head == nullptr && m_id == 0)
+  if (m_notices.empty() && m_id == 0)
     SetId(notice->m_value0c);
   if (notice->GetKind() == 2)
     m_finished = 1;
-  Insert(notice);
+  m_notices.emplace_back(std::move(notice));
 }
 
 // ---- AiTaskObject / AiTaskObjectSet ------------------------------------------------------------------------------------
@@ -224,14 +215,18 @@ void AiTaskObjectSet::Save(ostream* out)
 {
   if (!WriteCount32(out, Count()))
     return;
-  for (AvlNode* node = First(); node; node = node->m_successor)
+  for (const auto& entry : Entries())
+  {
+    AvlNode* node = entry.get();
     static_cast<AiTaskObject*>(node)->Write(out);
+  }
 }
 
 AiTaskObject* AiTaskObjectSet::FindByKey(const ObjectKey* key)
 {
-  for (AvlNode* node = First(); node; node = node->m_successor)
+  for (const auto& entry : Entries())
   {
+    AvlNode* node = entry.get();
     AiTaskObject* object = static_cast<AiTaskObject*>(node);
     if (object->m_key.m_value == key->m_value)
       return object;
@@ -311,8 +306,8 @@ int AiTaskEvaluator::Run()
 
 void AiTaskEvaluator::ClearRecordFlags()
 {
-  for (AvlNode* node = m_owner->m_systemRecords.First(); node; node = node->m_successor)
-    static_cast<AiSystemRecord*>(node)->m_flagsA.m_value &= 0xf7ffffff;
+  for (const auto& entry : m_owner->m_systemRecords.Entries())
+    static_cast<AiSystemRecord*>(entry.get())->m_flagsA.m_value &= 0xf7ffffff;
   m_flags.m_value = 0;
 }
 
@@ -334,8 +329,9 @@ void AiTaskEvaluator::PhaseUpdateTiers()
   int buildingCount = 0;
   m_x14 = 0;
   m_x18 = 0;
-  for (AvlNode* node = m_objects->First(); node; node = node->m_successor)
+  for (const auto& entry : m_objects->Entries())
   {
+    AvlNode* node = entry.get();
     AiTaskObject* object = static_cast<AiTaskObject*>(node);
     AiSectorEval* sector = static_cast<AiSectorEval*>(m_owner->m_sectors.Find(&object->m_key));
     if (!sector)
@@ -351,8 +347,9 @@ void AiTaskEvaluator::PhaseUpdateTiers()
   }
   if (!allReady)
     return;
-  for (AvlNode* node = m_objects->First(); node; node = node->m_successor)
+  for (const auto& entry : m_objects->Entries())
   {
+    AvlNode* node = entry.get();
     AiTaskObject* object = static_cast<AiTaskObject*>(node);
     AiSectorEval* sector = static_cast<AiSectorEval*>(m_owner->m_sectors.Find(&object->m_key));
     if (!sector)
@@ -404,8 +401,9 @@ void AiTaskEvaluator::PhasePickPlanner()
   if (plannerKind == 0)
     return;
   int bestPriority = 2000000;
-  for (AvlNode* node = m_owner->m_planners.First(); node; node = node->m_successor)
+  for (const auto& entry : m_owner->m_planners.Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(entry.get());
     AiMissionPlanner* planner = static_cast<AiMissionPlanner*>(node);
     if (static_cast<int>(planner->m_missionKey.Family()) == plannerKind && planner->GetSubtype() == plannerSubtype &&
         (planner->m_flags.m_value & 0x10000000) == 0 && planner->Virtual06() < bestPriority)
@@ -427,8 +425,10 @@ void AiTaskEvaluator::PhasePickAgent()
     m_owner->m_agentTarget = agentTarget;
   if (wantAgent == 0)
     return;
-  for (AvlNode* node = m_owner->m_agents.First(); node && agentId == 0; node = node->m_successor)
+  for (auto position = m_owner->m_agents.Entries().begin();
+       position != m_owner->m_agents.Entries().end() && (agentId == 0); ++position)
   {
+    AvlNode* node = static_cast<AvlNode*>(position->get());
     AiAgentBase* agent = static_cast<AiAgentBase*>(node);
     if (agent->GetAgentClass() == 2 && (agent->m_flags.m_value & 2) == 0)
       agentId = agent->m_id;

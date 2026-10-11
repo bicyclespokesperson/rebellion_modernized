@@ -129,8 +129,11 @@ void AiFleetEval::Save(ostream* out)
   if (m_cursor)
     m_cursor->GetKey(&cursorKey);
   cursorKey.Write(out);
-  for (ObjectKeyNode* node = m_shipKeys.First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& entry : m_shipKeys.Entries())
+  {
+    auto* node = static_cast<ObjectKeyNode*>(entry.get());
     node->Save(out);
+  }
   for (int& value : m_stat)
     WriteValue32(out, &value);
 }
@@ -164,14 +167,15 @@ void AiFleetEval::AddShip(const ObjectKey* key)
 int AiFleetEval::HasShip(const ObjectKey* key)
 {
   int found = 0;
-  ObjectKeyNode* node = m_shipKeys.First();
-  while (node && !found)
+  auto position = m_shipKeys.Entries().begin();
+  while (position != m_shipKeys.Entries().end() && !found)
   {
+    auto* node = static_cast<ObjectKeyNode*>(position->get());
     ObjectKey nodeKey;
     node->GetKey(&nodeKey);
     if (key->m_value == nodeKey.m_value)
       found = 1;
-    node = static_cast<ObjectKeyNode*>(node->m_successor);
+    ++position;
   }
   return found;
 }
@@ -181,8 +185,9 @@ AiRankedList* AiFleetEval::RankShips(uint32_t requireFlags, uint32_t forbidFlags
   AiRankedList* list = NewOrNull<AiRankedList>(descending);
   if (!list)
     return list;
-  for (ObjectKeyNode* node = m_shipKeys.First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& entry : m_shipKeys.Entries())
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(entry.get());
     ObjectKey key;
     node->GetKey(&key);
     AiShipRecord* record = static_cast<AiShipRecord*>(m_ships->Find(&key));
@@ -230,9 +235,10 @@ int AiFleetEval::Refresh()
       m_flags.m_value |= 2;
     ObjectKey parentKey;
     m_systemKey = *GetObjectKey(fleet->m_parent, &parentKey);
-    m_cursor = m_shipKeys.First();
-    while (m_cursor)
+    auto position = m_shipKeys.Entries().begin();
+    while (position != m_shipKeys.Entries().end())
     {
+      m_cursor = static_cast<ObjectKeyNode*>(position->get());
       ObjectKey key;
       m_cursor->GetKey(&key);
       AiShipRecord* record = static_cast<AiShipRecord*>(m_ships->Find(&key));
@@ -241,8 +247,9 @@ int AiFleetEval::Refresh()
         record->Refresh();
         AddShipStats(record->m_stat, &record->m_flags.m_value);
       }
-      m_cursor = static_cast<ObjectKeyNode*>(m_cursor->m_successor);
+      ++position;
     }
+    m_cursor = nullptr;
     if (0 < Stat(0xa8))
       m_flags.m_value |= 0x80000;
     if (0 < Stat(0xac))

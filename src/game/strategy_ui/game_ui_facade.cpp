@@ -243,12 +243,16 @@ int UiResetAllPlayerFlags()
   return result;
 }
 
-AvlNode* UiGetFirstMessage()
+std::vector<uint32_t> UiQueuedMessageIds()
 {
+  std::vector<uint32_t> ids;
   GameSession* session = GetGameSession();
-  if (session)
-    return session->GetFirstMessage();
-  return nullptr;
+  if (!session)
+    return ids;
+  ids.reserve(session->m_messages.Count());
+  for (const auto& ownedMessage : session->m_messages.Entries())
+    ids.push_back(static_cast<IdNode*>(ownedMessage.get())->m_id);
+  return ids;
 }
 
 int UiHumanHasPending()

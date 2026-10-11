@@ -364,22 +364,22 @@ void SoundManager::SweepSources(int)
     return;
   if (InterlockedExchange(&Audio().sweepBusy, 1) != 0)
     return;
-  AvlNode* node = Audio().soundCatalog.First();
-  while (node)
+  auto& catalog = Audio().soundCatalog;
+  for (auto entry = catalog.Entries().begin(); entry != catalog.Entries().end();)
   {
-    AvlNode* next = node->m_successor;
+    auto current = entry++;
+    AvlNode* node = current->get();
     if (static_cast<SoundSource*>(node)->m_users == 1)
       Audio().soundCatalog.DeleteNode(static_cast<SoundSource*>(node));
-    node = next;
   }
-  node = Audio().soundSources.First();
-  while (node)
+  auto& sources = Audio().soundSources;
+  for (auto entry = sources.Entries().begin(); entry != sources.Entries().end();)
   {
+    auto current = entry++;
+    AvlNode* node = current->get();
     SoundSource* source = static_cast<SoundSource*>(node);
-    AvlNode* next = node->m_successor;
     if (source->m_keepLoaded == 0 && source->IsAnyPlaying() == 0)
       Audio().soundSources.DeleteNode(source);
-    node = next;
   }
   InterlockedExchange(&Audio().sweepBusy, 0);
 }
@@ -470,14 +470,14 @@ void SoundManager::ReleaseAllImpl(int everything)
     Audio().soundSources.SoundIdTree::Clear();
     return;
   }
-  AvlNode* node = Audio().soundSources.First();
-  while (node)
+  auto& sources = Audio().soundSources;
+  for (auto entry = sources.Entries().begin(); entry != sources.Entries().end();)
   {
+    auto current = entry++;
+    AvlNode* node = current->get();
     SoundSource* source = static_cast<SoundSource*>(node);
-    AvlNode* next = node->m_successor;
     if (source->m_keepLoaded == 0)
       Audio().soundSources.DeleteNode(source);
-    node = next;
   }
 }
 
@@ -559,12 +559,17 @@ DWORD WINAPI SoundManager::EventThreadProc(void*)
       return 0;
     if (InterlockedExchange(&Audio().soundDispatchBusy, 1) == 0)
     {
-      if (Audio().soundEventCallback && !Audio().soundShuttingDown && Audio().soundEventQueue.m_count != 0)
+      if (Audio().soundEventCallback && !Audio().soundShuttingDown)
       {
-        do
+        while (true)
         {
           EnterCriticalSection(&Audio().soundQueueLock);
-          SoundEvent* event = static_cast<SoundEvent*>(Audio().soundEventQueue.Dequeue());
+          std::unique_ptr<SoundEvent> event;
+          if (!Audio().soundEventQueue.empty())
+          {
+            event = std::move(Audio().soundEventQueue.front());
+            Audio().soundEventQueue.pop_front();
+          }
           LeaveCriticalSection(&Audio().soundQueueLock);
           if (!event)
             break;
@@ -572,9 +577,8 @@ DWORD WINAPI SoundManager::EventThreadProc(void*)
           uint32_t first;
           uint32_t second;
           event->Get(&message, &first, &second);
-          delete event;
           Audio().soundEventCallback(message, first, second);
-        } while (Audio().soundEventQueue.m_count != 0);
+        }
       }
       InterlockedExchange(&Audio().soundDispatchBusy, 0);
     }
@@ -590,16 +594,18 @@ int SoundManager::QueueEvent(uint32_t message, uint32_t first, uint32_t second)
     return 0;
   if (Audio().soundEventCallback && Audio().soundEvents[kWakeEvent] && Audio().soundThreadReady)
   {
-    SoundEvent* event = NewOrNull<SoundEvent>(message, first, second);
+    std::unique_ptr<SoundEvent> event(NewOrNull<SoundEvent>(message, first, second));
+    if (!event)
+      return 0;
     EnterCriticalSection(&Audio().soundQueueLock);
-    if (Audio().soundEventQueue.Enqueue(event) == 0)
+    try
     {
-      if (event)
-        delete event;
-    }
-    else
-    {
+      Audio().soundEventQueue.push_back(std::move(event));
       result = SetEvent(Audio().soundEvents[kWakeEvent]);
+    }
+    catch (...)
+    {
+      result = 0;
     }
     LeaveCriticalSection(&Audio().soundQueueLock);
   }

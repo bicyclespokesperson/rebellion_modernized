@@ -47,8 +47,10 @@ int ClassifyCommands(ActivityRequest* request, CommandQueue* commands, int* anyC
 {
   *anyChecked = 0;
   *anyUnchecked = 0;
-  for (Command* command = commands->FirstCommand(); command; command = static_cast<Command*>(command->m_successor))
+  for (const auto& entry : commands->Entries())
   {
+    auto* command = static_cast<Command*>(entry.get());
+
     if (command->IsChecked() == 0)
       *anyUnchecked = 1;
     else
@@ -68,9 +70,13 @@ int CheckCommandsEnabled(ActivityRequest* request, CommandQueue* commands, Statu
   int first = 1;
   uint32_t firstSide = 1;
   uint32_t side = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(commands));
-  for (Command* command = commands->FirstCommand(); command && ok != 0 && isOk(*status);
-       command = static_cast<Command*>(command->m_successor))
+  for (auto position = commands->Entries().begin(); position != commands->Entries().end();)
   {
+    if (ok == 0 || !isOk(*status))
+      break;
+    auto current = position++;
+    auto* command = static_cast<Command*>(current->get());
+
     ok = command->CheckEnabled(status);
     if (ok != 0 && isOk(*status))
     {
@@ -104,9 +110,12 @@ int CheckCommandsValid(ActivityRequest* request, CommandQueue* commands, StatusC
 {
   int ok = 1;
   *status = okStatus();
-  for (Command* command = commands->FirstCommand(); command && ok != 0 && isOk(*status);
-       command = static_cast<Command*>(command->m_successor))
+  for (auto position = commands->Entries().begin(); position != commands->Entries().end();)
   {
+    if (ok == 0 || !isOk(*status))
+      break;
+    auto current = position++;
+    auto* command = static_cast<Command*>(current->get());
     ok = command->CheckValid(status);
   }
   return ok;
@@ -134,8 +143,9 @@ int CheckCommandForTeam(Command* prototype, ObjectKeyValueSet* team, CommandQueu
   int ok = CollectKeyDependencies(&prototype->m_request, team, &keys, status);
   if (ok != 0 && isOk(*status))
   {
-    for (ObjectKeyNode* node = keys.First(); node && ok != 0; node = static_cast<ObjectKeyNode*>(node->m_successor))
+    for (auto position = keys.Entries().begin(); position != keys.Entries().end() && (ok != 0); ++position)
     {
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
       Command* command = prototype->Clone();
       ok = command != nullptr;
       if (command)

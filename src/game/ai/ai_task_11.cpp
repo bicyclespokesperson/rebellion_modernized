@@ -358,8 +358,9 @@ OrderBase* AiTask11::BuildFleetMoveOrder()
   AiFleetEval* fleet = owner->m_fleets.FindEval(m_unit);
   if (fleet)
   {
-    for (ObjectKeyNode* ship = fleet->m_shipKeys.First(); ship; ship = NextNode(ship))
+    for (auto position = fleet->m_shipKeys.Entries().begin(); position != fleet->m_shipKeys.Entries().end(); ++position)
     {
+      ObjectKeyNode* ship = static_cast<ObjectKeyNode*>(position->get());
       ObjectKey key = KeyOfNode(ship);
       AiShipRecord* record = static_cast<AiShipRecord*>(owner->m_ships.Find(&key));
       if (record && (record->m_flags.m_value & 0x1000) != 0 && (record->m_flags.m_value & 0x800800) == 0)
@@ -623,16 +624,16 @@ int AiTask11::ChooseManager()
   int result = 0;
   bool found = false;
   m_owner->m_key24.Reset();
-  ObjectKeyNode* node = m_targets.First();
-  while (node && !found)
+  auto position = m_targets.Entries().begin();
+  while (position != m_targets.Entries().end() && !found)
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ++position;
     m_manager = KeyOfNode(node);
     if (!IsSystemKey(m_manager))
     {
-      ObjectKeyNode* next = NextNode(node);
       ObjectKey key = KeyOfNode(node);
       m_targets.RemoveKey(&key);
-      node = next;
       continue;
     }
     AiSystemEval* eval = m_owner->m_systems.FindEval(m_manager);
@@ -644,10 +645,8 @@ int AiTask11::ChooseManager()
         eval->m_flags28.m_value &= ~kSystemClaimed;
         eval->MarkChanged();
       }
-      ObjectKeyNode* next = NextNode(node);
       ObjectKey key = KeyOfNode(node);
       m_targets.RemoveKey(&key);
-      node = next;
       continue;
     }
     if (0 < eval->Stat(0x58) && (eval->m_flags28.m_value & 0x200) != 0 && (eval->m_flags28.m_value & 3) == 0)
@@ -655,7 +654,6 @@ int AiTask11::ChooseManager()
       m_owner->m_key24 = m_manager;
       found = true;
     }
-    node = NextNode(node);
   }
   if (!found)
   {
@@ -702,8 +700,9 @@ void AiTask11::ChooseClassMask()
   };
   m_classFlags = 0;
   m_classMask = 0;
-  for (AvlNode* node = m_owner->m_systemRecords.First(); node; node = node->m_successor)
+  for (const auto& entry : m_owner->m_systemRecords.Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(entry.get());
     const uint32_t flags = static_cast<AiSystemRecord*>(node)->m_flagsB.m_value;
     const uint32_t taken = m_flags28.m_value;
     if ((flags & 1) != 0 && (taken & 0x1000000) == 0)

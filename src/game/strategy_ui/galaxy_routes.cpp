@@ -146,13 +146,12 @@ void GalaxyWindow::BeginTargeting(void* command)
 
 void GalaxyWindow::BeginRename(TextMessage* request)
 {
-  AvlNode* child = m_children.First();
   ObjectKeyValueSet keys(*request->GetTeam());
   ObjectKey target;
   static_cast<ObjectKeyNode*>(keys.First())->GetKey(&target);
-  for (; child; child = child->m_successor)
+  for (const auto& ownedChild : m_children.Entries())
   {
-    CustomDialogBox* window = static_cast<CustomDialogBox*>(child);
+    CustomDialogBox* window = static_cast<CustomDialogBox*>(ownedChild.get());
     if (window->m_objects.Find(&target) && (window->m_childId & kWindowTypeMask) == kSystemWindowType)
     {
       static_cast<SystemWindow*>(window)->BeginRenameRequest(request);
@@ -182,8 +181,9 @@ CoolWindow* GalaxyWindow::OpenSectorWindow(const ObjectKey* sectorKey)
   const int rightLeft = (empire ? 0x41 : 0) + 300;
   CoolWindow* sameLeft = nullptr;
   CoolWindow* other = nullptr;
-  for (AvlNode* node = m_children.First(); node; node = node->m_successor)
+  for (const auto& ownedNode : m_children.Entries())
   {
+    auto* node = static_cast<AvlNode*>(ownedNode.get());
     CoolWindow* window = static_cast<CoolWindow*>(node);
     CoolWindow* previousOther = other;
     if ((window->m_childId & kWindowTypeMask) == kSectorWindowType)
@@ -455,7 +455,7 @@ bool IsContainerFamily(uint32_t family)
 
 void GalaxyWindow::BroadcastObjectChanged(const ObjectKey* key, GameObjNotifier* object)
 {
-  AvlNode* openWindow = m_openWindowIds.First();
+  auto openWindowPosition = m_openWindowIds.Entries().begin();
   UpdateSystemMarker(key, object, 1);
   if (!object)
     object = GetObjectInFamilies_01_ff(m_side, key);
@@ -465,10 +465,12 @@ void GalaxyWindow::BroadcastObjectChanged(const ObjectKey* key, GameObjNotifier*
     return;
   ObjectKey parentKey;
   GetObjectKey(object->m_parent, &parentKey);
-  if (!IsContainerFamily(parentKey.Family()) || !openWindow)
+  if (!IsContainerFamily(parentKey.Family()) || openWindowPosition == m_openWindowIds.Entries().end())
     return;
-  for (; openWindow; openWindow = openWindow->m_successor)
+  while (openWindowPosition != m_openWindowIds.Entries().end())
   {
+    auto current = openWindowPosition++;
+    auto* openWindow = current->get();
     CustomDialogBox* window =
       static_cast<CustomDialogBox*>(m_children.FindById(static_cast<IdNode*>(openWindow)->m_id));
     if (window && window->m_objects.Find(&parentKey))
@@ -487,10 +489,12 @@ void GalaxyWindow::BroadcastObjectMoved(const ObjectKey* key,
 {
   if (!object)
     object = GetObjectInFamilies_01_ff(m_side, key);
-  AvlNode* openWindow = m_openWindowIds.First();
+  auto openWindowPosition = m_openWindowIds.Entries().begin();
   UpdateSystemMarker(otherKey, otherObject, 1);
-  for (; openWindow; openWindow = openWindow->m_successor)
+  while (openWindowPosition != m_openWindowIds.Entries().end())
   {
+    auto current = openWindowPosition++;
+    auto* openWindow = current->get();
     CustomDialogBox* window =
       static_cast<CustomDialogBox*>(m_children.FindById(static_cast<IdNode*>(openWindow)->m_id));
     if (!window)
@@ -511,8 +515,9 @@ void GalaxyWindow::BroadcastObjectUpdated(const ObjectKey* key, GameObjNotifier*
   if (!object)
     return;
   UpdateSystemMarker(key, object, 1);
-  for (AvlNode* openWindow = m_openWindowIds.First(); openWindow; openWindow = openWindow->m_successor)
+  for (const auto& ownedNode : m_openWindowIds.Entries())
   {
+    auto* openWindow = static_cast<AvlNode*>(ownedNode.get());
     CustomDialogBox* window =
       static_cast<CustomDialogBox*>(m_children.FindById(static_cast<IdNode*>(openWindow)->m_id));
     if (window && window->m_objects.Find(key))
@@ -616,8 +621,9 @@ void GalaxyWindow::ShowObjectMenu(int x, int y, uint32_t kind)
   {
     return;
   }
-  for (AvlNode* entry = commands.First(); entry; entry = entry->m_successor)
+  for (const auto& ownedNode : commands.Entries())
   {
+    auto* entry = static_cast<AvlNode*>(ownedNode.get());
     EventKindNode* node = static_cast<EventKindNode*>(entry);
     uint32_t flags = node->m_value == 0 ? 1 : 0;
     if (node->m_unknown != 0)
@@ -631,8 +637,9 @@ void GalaxyWindow::ShowObjectMenu(int x, int y, uint32_t kind)
 
 void GalaxyWindow::RefreshChildWindows()
 {
-  for (AvlNode* node = m_openWindowIds.First(); node; node = node->m_successor)
+  for (const auto& ownedNode : m_openWindowIds.Entries())
   {
+    auto* node = static_cast<AvlNode*>(ownedNode.get());
     CoolWindow* window = m_children.FindById(static_cast<IdNode*>(node)->m_id);
     if (window)
       static_cast<CustomDialogBox*>(window)->Virtual35();

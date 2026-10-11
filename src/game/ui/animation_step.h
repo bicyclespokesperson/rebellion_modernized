@@ -19,11 +19,11 @@ class SpriteStage;
 // kinds, delta frames and sounds) the step shows on the animator's sprites.
 //
 // The concrete steps (kinds 4, 5, 0x11-0x15) are registered in g_animationSteps by static initializers and cloned by Create.
-class AnimationStep : public LinkNode
+class AnimationStep
 {
 public:
   AnimationStep(); // 0x403dd0
-  ~AnimationStep() override; // 0x403e50 (scalar deleting destructor), 0x403e70
+  virtual ~AnimationStep(); // 0x403e50 (scalar deleting destructor), 0x403e70
 
   virtual void Attach(SpriteAnimator* animator); // slot 3, 0x403e90
   virtual void SetScript(const uint32_t* sequence); // slot 4, 0x403ea0

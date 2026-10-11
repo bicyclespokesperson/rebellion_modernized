@@ -370,7 +370,7 @@ void TroopFinderWindow::OnCommand(int, int command, int)
     {
       CoolListItemList selection(kSortById);
       m_list->CopySelectionTo(&selection);
-      CoolListItem* first = static_cast<CoolListItem*>(selection.m_head);
+      CoolListItem* first = static_cast<CoolListItem*>(selection.First());
       if (!first)
         break;
       ObjectListItem* item = static_cast<ObjectListItem*>(m_items->FindById(first->m_id));

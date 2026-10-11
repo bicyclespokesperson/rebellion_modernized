@@ -19,22 +19,6 @@ void MessageListItem::Write(ostream*)
 {
 }
 
-CoolListItem* MessageListItem::Next()
-{
-  MessageListItem* next = static_cast<MessageListItem*>(m_next);
-  if (next && !next->m_visible)
-    return next->Next();
-  return next;
-}
-
-CoolListItem* MessageListItem::Previous()
-{
-  MessageListItem* previous = static_cast<MessageListItem*>(m_prev);
-  if (previous && !previous->m_visible)
-    return previous->Previous();
-  return previous;
-}
-
 MessageItemList::MessageItemList(int sortMode) : CoolListItemList(sortMode)
 {
 }
@@ -43,8 +27,11 @@ MessageItemList::~MessageItemList() = default;
 
 CoolListItem* MessageItemList::First()
 {
-  MessageListItem* first = static_cast<MessageListItem*>(m_head);
-  if (first && !first->m_visible)
-    return first->Next();
-  return first;
+  for (const auto& entry : Entries())
+  {
+    auto* item = static_cast<MessageListItem*>(entry.get());
+    if (item->m_visible)
+      return item;
+  }
+  return nullptr;
 }

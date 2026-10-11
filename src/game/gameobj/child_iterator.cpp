@@ -1,6 +1,7 @@
 #include "gameobj/child_iterator.h"
 
 #include "gameobj/game_obj.h"
+#include "gameobj/object_database.h"
 #include "gameobj/object_family.h"
 
 ChildIterator::ChildIterator(GameObjNotifier* parent, const FamilyRange* range, uint32_t stateFilter)
@@ -32,7 +33,13 @@ ChildIterator* ChildIterator::Advance()
   do
   {
     if (m_current)
-      m_current = static_cast<GameObjNotifier*>(m_current->m_successor);
+    {
+      auto position = m_parent->m_children->PositionOf(m_current);
+      if (position != m_parent->m_children->Entries().end())
+        ++position;
+      m_current =
+        position == m_parent->m_children->Entries().end() ? nullptr : static_cast<GameObjNotifier*>(position->get());
+    }
     atEnd = m_current == nullptr;
     accepted = atEnd ? 1 : Accepts();
   } while (!accepted);

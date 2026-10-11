@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <string>
+#include <vector>
 
 #include "app/player_controller_decl.h"
 #include "core/containers.h"
@@ -53,7 +54,7 @@ void UiRefreshAllPlayers(); // 0x41d030
 void UiComputeAllAdvisorChoices(); // 0x41d050
 int UiSyncAllPlayers(unsigned syncId); // 0x41d070 1 without a session
 int UiResetAllPlayerFlags(); // 0x41d0a0 1 without a session
-AvlNode* UiGetFirstMessage(); // 0x41d0c0
+std::vector<uint32_t> UiQueuedMessageIds();
 int UiHumanHasPending(); // 0x41d0e0
 int UiNextId(); // 0x41d120
 void UiSetHumanUiTarget(int a, int b); // 0x41d140

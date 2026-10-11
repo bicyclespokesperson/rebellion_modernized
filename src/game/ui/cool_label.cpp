@@ -282,12 +282,10 @@ int RectTree::IsLess(AvlNode* a, AvlNode* b)
 
 RectNode* RectTree::FindContaining(int x, int y)
 {
-  RectNode* node = static_cast<RectNode*>(First());
-  while (node)
+  for (const auto& entry : Entries())
   {
-    if (x < node->m_left || node->m_right < x || y < node->m_top || node->m_bottom < y)
-      node = static_cast<RectNode*>(node->m_successor);
-    else
+    auto* node = static_cast<RectNode*>(entry.get());
+    if (x >= node->m_left && node->m_right >= x && y >= node->m_top && node->m_bottom >= y)
       return node;
   }
   return nullptr;

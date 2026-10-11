@@ -120,7 +120,6 @@ SoundSource::~SoundSource()
 
 void SoundSource::Reset()
 {
-  ResetLinks();
   m_key = 0;
   m_users = 0;
   m_streamPosition = 0;
@@ -302,8 +301,9 @@ int SoundSource::QueryPlaying(SoundRequest* request)
 int SoundSource::IsAnyPlaying()
 {
   int anyPlaying = 0;
-  for (AvlNode* node = m_buffers.First(); node; node = node->m_successor)
+  for (const auto& entry : m_buffers.Entries())
   {
+    AvlNode* node = entry.get();
     DWORD status;
     if (static_cast<SoundBuffer*>(node)->GetStatus(&status) == 0 && (anyPlaying || (status & kStatusPlaying)))
       anyPlaying = 1;

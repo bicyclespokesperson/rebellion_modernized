@@ -4,6 +4,7 @@
 #include "gameobj/object_database.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_queries.h"
+#include "gameobj/object_type_db.h"
 #include "mission/mission_external.h"
 #include "mission/mission_rules.h"
 #include "story/mission_mgr.h"
@@ -30,11 +31,6 @@ constexpr size_t kTypeTableHeader = alignof(MissionTypeCheckEntry) > 4 ? alignof
 bool isMaster(const GameObjRoot* object)
 {
   return (object->m_flags & kViewSideMask) == 0;
-}
-
-DatRecord* nextRecord(DatRecord* record)
-{
-  return reinterpret_cast<DatRecord*>(static_cast<AvlNode*>(record)->m_successor);
 }
 
 } // namespace
@@ -108,8 +104,10 @@ int MissionMgr::BuildTypeTable()
   const int cleared = FreeTypeTable();
   if (cleared)
   {
-    for (DatRecord* record = GetFirstRecordOfType(kFamilyMissionTypeBegin); record; record = nextRecord(record))
+    for (DatRecord* record : GetRecordsOfType(kFamilyMissionTypeBegin))
+    {
       ++m_typeCount;
+    }
     if (cleared && m_typeCount != 0)
     {
       const int count = m_typeCount;
@@ -125,12 +123,12 @@ int MissionMgr::BuildTypeTable()
       m_typeTable = entries;
       if (entries)
       {
-        DatRecord* record = GetFirstRecordOfType(kFamilyMissionTypeBegin);
-        if (!record)
+        auto records = GetRecordsOfType(kFamilyMissionTypeBegin);
+        if (records.empty())
           return 1;
         bool ok = true;
         MissionTypeCheckEntry* entry = entries;
-        do
+        for (DatRecord* record : records)
         {
           ObjectKey recordKey;
           GameObj* mission = static_cast<GameObj*>(CreateObjectForKey(GetAiRecordKey(record, &recordKey)));
@@ -144,9 +142,8 @@ int MissionMgr::BuildTypeTable()
             ok = reported != 0 && ok;
             delete mission;
           }
-          record = nextRecord(record);
           ++entry;
-        } while (record);
+        }
         return 1;
       }
       m_typeCount = 0;

@@ -1,4 +1,5 @@
 #include "strategy_ui/system_forces_window.h"
+#include <iterator>
 #include <string>
 
 #include <new>
@@ -397,11 +398,15 @@ void SystemForcesWindow::OnKeyDown(WPARAM key, LPARAM lParam)
   AvlNode* tab = m_tabs->m_children.FindById(selectedId);
   if (!tab)
     return;
-  tab = key == VK_LEFT ? tab->Predecessor() : tab->m_successor;
-  if (!tab)
-    return;
-  do
+  auto position = m_tabs->m_children.PositionOf(tab);
+  if (key == VK_LEFT)
+    position =
+      position == m_tabs->m_children.Entries().begin() ? m_tabs->m_children.Entries().end() : std::prev(position);
+  else
+    position = std::next(position);
+  while (position != m_tabs->m_children.Entries().end())
   {
+    tab = position->get();
     CoolWindow* window = static_cast<CoolWindow*>(tab);
     if (IsWindowVisible(window->m_hwnd) != 0)
     {
@@ -410,9 +415,13 @@ void SystemForcesWindow::OnKeyDown(WPARAM key, LPARAM lParam)
     }
     else
     {
-      tab = key == VK_LEFT ? tab->Predecessor() : tab->m_successor;
+      if (key == VK_LEFT)
+        position =
+          position == m_tabs->m_children.Entries().begin() ? m_tabs->m_children.Entries().end() : std::prev(position);
+      else
+        position = std::next(position);
     }
-  } while (tab);
+  }
 }
 
 void SystemForcesWindow::SaveState(ostream* out)
@@ -513,8 +522,9 @@ void SystemForcesWindow::GetSelection(ObjectKeyValueSet* out, CoolWindow*)
   if (!m_list)
     return;
   m_list->CopySelectionTo(&selection);
-  for (CoolListItem* picked = static_cast<CoolListItem*>(selection.m_head); picked; picked = picked->Next())
+  for (const auto& ownedPicked : selection.Entries())
   {
+    auto* picked = static_cast<CoolListItem*>(ownedPicked.get());
     ObjectListItem* row = static_cast<ObjectListItem*>(m_items->FindById(picked->m_id));
     ObjectKey key;
     row->GetKey(&key);

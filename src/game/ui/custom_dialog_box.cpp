@@ -182,9 +182,9 @@ int CustomDialogBox::OnRightButtonUp(int x, int y, CoolWindow* sender)
     MapWindowPoints(sender->m_hwnd, mainWindow->m_hwnd, &point, 1);
   EventKindSet commands;
   UiBuildAvailableOrders(AppGetSide(), &m_selection, &commands);
-  for (EventKindNode* command = static_cast<EventKindNode*>(commands.First()); command;
-       command = static_cast<EventKindNode*>(command->m_successor))
+  for (const auto& entry : commands.Entries())
   {
+    auto* command = static_cast<EventKindNode*>(entry.get());
     uint32_t flags =
       (command->m_value == 0 ? kMenuEntryDisabled : 0) | (command->m_unknown != 0 ? kMenuEntryChecked : 0);
     AddMenuEntry(command->m_key, kMenuKind, flags, point.x, point.y, mainWindow, color, kMenuShadowColor,

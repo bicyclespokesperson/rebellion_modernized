@@ -1,7 +1,11 @@
 #pragma once
 
+#include <deque>
+#include <memory>
+
 #include "audio/music.h"
 #include "audio/sound_manager.h"
+#include "audio/sound_source.h"
 
 namespace reb::native
 {
@@ -21,7 +25,7 @@ public:
   SmackSound smackSound;
   SoundSourceList soundSources;
   SoundCatalogList soundCatalog;
-  NodeQueue soundEventQueue;
+  std::deque<std::unique_ptr<SoundEvent>> soundEventQueue;
   SoundEventCallback soundEventCallback = nullptr;
 
   HWND soundWindow = nullptr;

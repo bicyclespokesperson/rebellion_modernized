@@ -68,26 +68,6 @@ bool isSystem(const ObjectKey& key)
   return inFamilies(key, family::kSystems.m_first, family::kSystems.m_second);
 }
 
-Command* firstCommand(CommandQueue* commands)
-{
-  return commands->FirstCommand();
-}
-
-Command* nextCommand(Command* command)
-{
-  return static_cast<Command*>(command->m_successor);
-}
-
-OrderBase* firstSubOrder(MessageTree* orders)
-{
-  return static_cast<OrderBase*>(orders->First());
-}
-
-OrderBase* nextSubOrder(OrderBase* order)
-{
-  return static_cast<OrderBase*>(order->m_successor);
-}
-
 } // namespace
 
 // ---- MoveOrderBase --------------------------------------------------------------------------------------------
@@ -137,8 +117,12 @@ int MoveOrderBase::CheckEnabled(StatusCode* status)
   setOk(status);
   if (Expand(status))
   {
-    for (OrderBase* order = firstSubOrder(m_subOrders); isOk(status) && order != nullptr; order = nextSubOrder(order))
+    for (auto position = m_subOrders->Entries().begin(); position != m_subOrders->Entries().end();)
     {
+      if (!isOk(status))
+        break;
+      auto current = position++;
+      auto* order = static_cast<OrderBase*>(current->get());
       order->CheckEnabled(status);
     }
   }
@@ -150,8 +134,12 @@ int MoveOrderBase::CheckValid(StatusCode* status)
   setOk(status);
   if (Expand(status))
   {
-    for (OrderBase* order = firstSubOrder(m_subOrders); isOk(status) && order != nullptr; order = nextSubOrder(order))
+    for (auto position = m_subOrders->Entries().begin(); position != m_subOrders->Entries().end();)
     {
+      if (!isOk(status))
+        break;
+      auto current = position++;
+      auto* order = static_cast<OrderBase*>(current->get());
       order->CheckValid(status);
     }
   }
@@ -163,15 +151,15 @@ int MoveOrderBase::Execute(StatusCode* status)
   setOk(status);
   if (Expand(status))
   {
-    OrderBase* order = firstSubOrder(m_subOrders);
-    int proceed;
-    do
+    for (auto position = m_subOrders->Entries().begin(); position != m_subOrders->Entries().end();)
     {
-      if (!isOk(status) || order == nullptr)
-        return 1;
-      proceed = order->Execute(status);
-      order = nextSubOrder(order);
-    } while (proceed != 0);
+      if (!isOk(status))
+        break;
+      auto current = position++;
+      auto* order = static_cast<OrderBase*>(current->get());
+      if (order->Execute(status) == 0)
+        break;
+    }
   }
   return 1;
 }
@@ -184,8 +172,10 @@ int MoveOrderBase::CollectTransitDays(StatusCode* status, ObjectKeyValueSet* out
   if (result != 0 && isOk(status))
   {
     ObjectKeyValueSet days;
-    for (OrderBase* order = firstSubOrder(m_subOrders); order != nullptr; order = nextSubOrder(order))
+    for (auto position = m_subOrders->Entries().begin(); position != m_subOrders->Entries().end();)
     {
+      auto current = position++;
+      auto* order = static_cast<OrderBase*>(current->get());
       days.Clear();
       const int kind = order->GetKind();
       const bool collectable = kind == kObjectMoveKind || kind == kMissionOrderKind;
@@ -352,12 +342,12 @@ int TakeCharactersAtOneLocation(ObjectKeyValueSet* team, ObjectKeyValueSet* out,
   ObjectKey firstLocation;
   ObjectKey location;
   bool haveFirstLocation = false;
-  ObjectKeyNode* node = team->First();
-  do
+  for (auto position = team->Entries().begin(); position != team->Entries().end();)
   {
-    if (!isOk(status) || node == nullptr)
+    if (!isOk(status) || result == 0)
       break;
-    ObjectKeyNode* next = static_cast<ObjectKeyNode*>(node->m_successor);
+    auto current = position++;
+    auto* node = static_cast<ObjectKeyNode*>(current->get());
     ObjectKey key;
     node->GetKey(&key);
     if (inFamilies(key, family::kCharacters.m_first, family::kSpecialForces.m_second))
@@ -396,8 +386,7 @@ int TakeCharactersAtOneLocation(ObjectKeyValueSet* team, ObjectKeyValueSet* out,
         }
       }
     }
-    node = next;
-  } while (result != 0);
+  }
   if (result == 0)
     setStatus(status, kStatusRefused);
   return result;
@@ -492,9 +481,10 @@ int ObjectMoveOrder::CollectTransitDays(StatusCode* status, ObjectKeyValueSet* o
   if (ok && galaxy != nullptr && isOk(status))
   {
     ok = CollectTeamDependencies(out) != 0;
-    for (ObjectKeyValueNode* node = static_cast<ObjectKeyValueNode*>(out->First()); node != nullptr;
-         node = static_cast<ObjectKeyValueNode*>(node->m_successor))
+    for (const auto& nodeEntry : out->Entries())
     {
+      ObjectKeyValueNode* node = static_cast<ObjectKeyValueNode*>(nodeEntry.get());
+
       ObjectKey key;
       node->GetKey(&key);
       GameObjNotifier* object = GetMasterInFamilies_01_ff(&key);
@@ -542,9 +532,12 @@ int ObjectMoveOrder::CheckDestination(StatusCode* status)
     {
       int onlyFleetsAndCapitalShips = 1;
       int onlyRegiments = 1;
-      for (Command* command = firstCommand(m_commands);
-           command != nullptr && isOk(status) && onlyFleetsAndCapitalShips != 0; command = nextCommand(command))
+      for (const auto& entry : m_commands->Entries())
       {
+        if (!isOk(status) || onlyFleetsAndCapitalShips == 0)
+          break;
+        auto* command = static_cast<Command*>(entry.get());
+
         if (!isFleetOrCapitalShip(command->m_key))
           onlyFleetsAndCapitalShips = 0;
         if (!isTroopRegiment(command->m_key))
@@ -582,9 +575,12 @@ int ObjectMoveOrder::CheckDestination(StatusCode* status)
     {
       if (isOk(status))
       {
-        for (Command* command = firstCommand(m_commands); command != nullptr && result != 0 && isOk(status);
-             command = nextCommand(command))
+        for (const auto& entry : m_commands->Entries())
         {
+          if (result == 0 || !isOk(status))
+            break;
+          auto* command = static_cast<Command*>(entry.get());
+
           ObjectKey leg;
           CapacityScratch plan;
           ObjectKey object = command->m_key;
@@ -655,9 +651,12 @@ int RenameOrder::CheckDestination(StatusCode* status)
   {
     if (isOk(status))
     {
-      for (Command* command = firstCommand(m_commands); command != nullptr && isOk(status);
-           command = nextCommand(command))
+      for (const auto& entry : m_commands->Entries())
       {
+        if (!isOk(status))
+          break;
+        auto* command = static_cast<Command*>(entry.get());
+
         static_cast<RenameCommand*>(command)->m_name = m_text;
       }
     }

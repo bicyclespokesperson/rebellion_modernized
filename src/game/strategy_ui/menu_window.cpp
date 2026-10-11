@@ -462,9 +462,9 @@ MenuWindowBase::~MenuWindowBase()
     operator delete(m_remapTable);
   if (m_dc)
     DeleteDC(m_dc);
-  for (MenuItemBase* item = static_cast<MenuItemBase*>(m_items.m_head); item;
-       item = static_cast<MenuItemBase*>(item->m_next))
+  for (const auto& ownedItem : m_items.Entries())
   {
+    auto* item = static_cast<MenuItemBase*>(ownedItem.get());
     if (MenuWindowBase* sub = item->m_subMenu)
     {
       sub->DestroyNativeWindow();
@@ -507,9 +507,8 @@ void MenuWindowBase::AddTextEntry(HMODULE module,
 
 void MenuWindowBase::SetEntryColors(COLORREF color, COLORREF shadowColor, COLORREF disabledColor)
 {
-  for (MenuItemBase* item = static_cast<MenuItemBase*>(m_items.m_head); item;
-       item = static_cast<MenuItemBase*>(item->m_next))
-    item->SetColors(color, shadowColor, disabledColor);
+  for (const auto& ownedItem : m_items.Entries())
+    static_cast<MenuItemBase*>(ownedItem.get())->SetColors(color, shadowColor, disabledColor);
 }
 
 void MenuWindowBase::OnCreate1()
@@ -539,9 +538,9 @@ void MenuWindowBase::AttachSubMenu(HMODULE resources,
                                    uint32_t arrowId,
                                    uint32_t pressedArrowId)
 {
-  for (MenuItemBase* item = static_cast<MenuItemBase*>(m_items.m_head); item;
-       item = static_cast<MenuItemBase*>(item->m_next))
+  for (const auto& ownedItem : m_items.Entries())
   {
+    auto* item = static_cast<MenuItemBase*>(ownedItem.get());
     if (item->m_id != itemId)
       continue;
     item->AttachSubMenu(sub);
@@ -613,9 +612,9 @@ LRESULT MenuWindowBase::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
       const int blendWidth = m_paintBackground->Width();
       m_paintBackground->ApplyRemapTable(0, 0, static_cast<int16_t>(blendWidth), static_cast<int16_t>(blendHeight));
       HGDIOBJ savedBitmap = SelectIntoDc(m_dc, m_paintBackground);
-      for (MenuItemBase* item = static_cast<MenuItemBase*>(m_items.m_head); item;
-           item = static_cast<MenuItemBase*>(item->m_next))
+      for (const auto& ownedItem : m_items.Entries())
       {
+        auto* item = static_cast<MenuItemBase*>(ownedItem.get());
         if (MenuWindowBase* sub = item->m_subMenu)
         {
           if (item == m_hotItem)
@@ -701,9 +700,9 @@ LRESULT MenuWindowBase::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
   }
   else if (message == WM_MOUSEMOVE)
   {
-    for (MenuItemBase* item = static_cast<MenuItemBase*>(m_items.m_head); item;
-         item = static_cast<MenuItemBase*>(item->m_next))
+    for (const auto& ownedItem : m_items.Entries())
     {
+      auto* item = static_cast<MenuItemBase*>(ownedItem.get());
       if (!item->m_enabled)
         continue;
       const BOOL hit = PtInRect(&item->m_area, mouse);

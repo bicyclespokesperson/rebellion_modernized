@@ -264,9 +264,11 @@ int AiTask5::ChooseManager()
   int result = 0;
   bool found = false;
   m_owner->m_key18.Reset();
-  ObjectKeyNode* node = m_targets.First();
-  while (node && !found)
+  auto position = m_targets.Entries().begin();
+  while (position != m_targets.Entries().end() && !found)
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ++position;
     m_manager = KeyOfNode(node);
     AiSystemEval* eval = IsSystemKey(m_manager) ? m_owner->m_systems.FindEval(m_manager) : nullptr;
     const bool stale = !eval || (eval->m_flags30.m_value & 1) == 0 || (eval->m_flags28.m_value & kSystemClaimed) == 0;
@@ -277,10 +279,8 @@ int AiTask5::ChooseManager()
         eval->m_flags28.m_value &= ~kSystemClaimed;
         eval->MarkChanged();
       }
-      ObjectKeyNode* next = NextNode(node);
       ObjectKey key = KeyOfNode(node);
       m_targets.RemoveKey(&key);
-      node = next;
       continue;
     }
     if (0 < eval->Stat(0x5c) && (eval->m_flags28.m_value & 0x400) != 0 && (eval->m_flags28.m_value & 3) == 0)
@@ -288,7 +288,6 @@ int AiTask5::ChooseManager()
       m_owner->m_key18 = m_manager;
       found = true;
     }
-    node = NextNode(node);
   }
   if (!found)
   {

@@ -62,16 +62,22 @@ CoolStrobeButton* MultiPlayerWindow::* const kButtonMembers[] = {
 
 void DeleteProviderData(CoolDragList* list)
 {
-  for (CoolListItem* item = list->m_items->First(); item; item = item->Next())
+  for (const auto& ownedItem : list->m_items->Entries())
+  {
+    auto* item = static_cast<CoolListItem*>(ownedItem.get());
     if (item->m_userPointer)
       delete reinterpret_cast<ServiceProviderInfo*>(item->m_userPointer);
+  }
 }
 
 void DeleteSessionData(CoolDragList* list)
 {
-  for (CoolListItem* item = list->m_items->First(); item; item = item->Next())
+  for (const auto& ownedItem : list->m_items->Entries())
+  {
+    auto* item = static_cast<CoolListItem*>(ownedItem.get());
     if (item->m_userPointer)
       delete reinterpret_cast<SessionInfo*>(item->m_userPointer);
+  }
 }
 
 void DrawPageText(MultiPlayerWindow* window, UINT stringId, const RECT& area, UINT format)

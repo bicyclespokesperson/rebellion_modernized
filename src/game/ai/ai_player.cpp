@@ -161,7 +161,10 @@ int AiPlayer::Virtual09()
     if (m_currentTask == nullptr)
       m_currentTask = static_cast<AiTaskBase*>(m_tasks.First());
     m_currentTask->Evaluate();
-    m_currentTask = static_cast<AiTaskBase*>(m_currentTask->m_successor);
+    auto position = m_tasks.PositionOf(m_currentTask);
+    if (position != m_tasks.Entries().end())
+      ++position;
+    m_currentTask = position == m_tasks.Entries().end() ? nullptr : static_cast<AiTaskBase*>(position->get());
   }
   if (m_currentTask != nullptr)
     return result;
@@ -205,7 +208,7 @@ void AiPlayer::Virtual20(NotifPayload* notice)
   notice->Dispatch(this);
   if (notice->m_value0c != 0)
     notice->DispatchToSink(nullptr);
-  m_notices.Add(notice);
+  m_notices.Add(std::unique_ptr<NotifPayload>(notice));
 }
 
 void AiPlayer::Virtual21()

@@ -601,9 +601,13 @@ int LayoutStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* value
   SetRowLabelStyle(&right);
   int leftY = 0;
   int rightY = 0;
-  CoolListItem* label = labels->First();
-  for (CoolListItem* value = values->First(); label && value; value = value->Next())
+  auto labelPosition = labels->Entries().begin();
+  for (const auto& valueOwner : values->Entries())
   {
+    if (labelPosition == labels->Entries().end())
+      break;
+    auto* label = static_cast<CoolListItem*>(labelPosition->get());
+    auto* value = static_cast<CoolListItem*>(valueOwner.get());
     left.MoveTo(kLabelX, leftY);
     left.SetText(label->m_text.c_str());
     left.Measure(dc);
@@ -626,7 +630,7 @@ int LayoutStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* value
     leftY += rowHeight;
     total += rowHeight;
     rightY += rowHeight;
-    label = label->Next();
+    ++labelPosition;
   }
   return total;
 }
@@ -637,9 +641,13 @@ void DrawStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values
   CoolLabel right(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
   SetRowLabelStyle(&left);
   SetRowLabelStyle(&right);
-  CoolListItem* label = labels->First();
-  for (CoolListItem* value = values->First(); label && value; value = value->Next())
+  auto labelPosition = labels->Entries().begin();
+  for (const auto& valueOwner : values->Entries())
   {
+    if (labelPosition == labels->Entries().end())
+      break;
+    auto* label = static_cast<CoolListItem*>(labelPosition->get());
+    auto* value = static_cast<CoolListItem*>(valueOwner.get());
     left.MoveTo(label->m_x, label->m_y);
     left.SetText(label->m_text.c_str());
     left.Measure(dc);
@@ -648,7 +656,7 @@ void DrawStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values
     right.SetText(value->m_text.c_str());
     right.Measure(dc);
     right.Draw(dc);
-    label = label->Next();
+    ++labelPosition;
   }
 }
 
@@ -701,8 +709,9 @@ void ObjectStatusWindow::TallyUnitsByType(IdAvlTree* tally, GameObjNotifier* fir
 
 void ObjectStatusWindow::AddTallyItems(AvlTree* tally)
 {
-  for (AvlNode* entry = tally->First(); entry; entry = entry->m_successor)
+  for (const auto& ownedEntry : tally->Entries())
   {
+    auto* entry = ownedEntry.get();
     StatusTallyNode* node = static_cast<StatusTallyNode*>(entry);
     GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, &node->m_key);
     if (!object)

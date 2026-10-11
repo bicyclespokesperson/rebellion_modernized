@@ -26,8 +26,9 @@ int AiSabotagePlanner::Virtual06()
   int sum = 0;
   if ((m_flags.m_value & 0x20) == 0)
   {
-    for (ObjectKeyNode* node = m_leaders.First(); node; node = ai::NextNode(node))
+    for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position)
     {
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
       const ObjectKey key = ai::KeyOfNode(node);
       AiCharacterRecord* character = static_cast<AiCharacterRecord*>(m_characters->Find(&key));
       if (character)

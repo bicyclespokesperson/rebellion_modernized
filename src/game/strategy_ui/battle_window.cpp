@@ -1,6 +1,7 @@
 #include "strategy_ui/battle_window.h"
 #include "character/character.h"
 #include "core/game_string.h"
+#include <iterator>
 #include <string>
 
 #include <new>
@@ -614,19 +615,29 @@ void BattleWindow::OnKeyDown(WPARAM key, LPARAM lParam)
   }
   const uint32_t selectedId = m_kindTabs->m_selected ? m_kindTabs->m_selected->m_childId : 0;
   AvlNode* tab = m_kindTabs->m_children.FindById(selectedId);
-  tab = key == VK_LEFT ? tab->Predecessor() : tab->m_successor;
-  if (tab)
+  auto position = m_kindTabs->m_children.PositionOf(tab);
+  if (position != m_kindTabs->m_children.Entries().end())
   {
-    do
+    if (key == VK_LEFT)
+      position = position == m_kindTabs->m_children.Entries().begin() ? m_kindTabs->m_children.Entries().end() :
+                                                                        std::prev(position);
+    else
+      position = std::next(position);
+    while (position != m_kindTabs->m_children.Entries().end())
     {
+      tab = position->get();
       CoolWindow* window = static_cast<CoolWindow*>(tab);
       if (IsWindowVisible(window->m_hwnd) != 0)
       {
         m_kindTabs->SelectTab(window->m_childId, 1);
         return;
       }
-      tab = key == VK_LEFT ? tab->Predecessor() : tab->m_successor;
-    } while (tab);
+      if (key == VK_LEFT)
+        position = position == m_kindTabs->m_children.Entries().begin() ? m_kindTabs->m_children.Entries().end() :
+                                                                          std::prev(position);
+      else
+        position = std::next(position);
+    }
     return;
   }
   AvlNode* first = m_kindTabs->m_children.First();
@@ -727,14 +738,13 @@ void BattleWindow::ClearRows()
 {
   if (!m_items)
     return;
-  CoolListItem* item = m_items->First();
-  while (item)
+  auto position = m_items->Entries().begin();
+  while (position != m_items->Entries().end())
   {
-    CoolListItem* next = item->Next();
+    auto current = position++;
+    auto* item = static_cast<CoolListItem*>(current->get());
     m_items->Remove(item);
-    if (item)
-      delete item;
-    item = next;
+    delete item;
   }
 }
 
@@ -903,8 +913,9 @@ void BattleWindow::FillList(int kind, int force)
     m_list->SetItemSize(itemWidth, itemHeight);
   }
   const int viewSide = side != 1 ? 2 : 1;
-  for (ObjectKeyNode* node = m_battle->m_fleets.First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& ownedNode : m_battle->m_fleets.Entries())
   {
+    auto* node = static_cast<ObjectKeyNode*>(ownedNode.get());
     ObjectKey key;
     GameObjNotifier* fleet = GetObjectInFamilies_08_10(viewSide, node->GetKey(&key));
     if (fleet && fleet->ControlSide() == side)
@@ -921,9 +932,9 @@ void BattleWindow::FillList(int kind, int force)
       if ((StateFlags(squadrons.Current()) >> 2 & 1) != 0)
         shown.Add(NewKeyNode(squadrons.Current()));
     }
-    for (ObjectKeyNode* node = m_battle->m_fighters.First(); node;
-         node = static_cast<ObjectKeyNode*>(node->m_successor))
+    for (const auto& ownedNode : m_battle->m_fighters.Entries())
     {
+      auto* node = static_cast<ObjectKeyNode*>(ownedNode.get());
       ObjectKey key;
       GameObjNotifier* squadron = GetObjectInFamilies_1c_20(viewSide, node->GetKey(&key));
       if (squadron && squadron->ControlSide() == side)
@@ -932,17 +943,18 @@ void BattleWindow::FillList(int kind, int force)
   }
   else if (kind == kKindPersonnel && m_battle->m_characters.First())
   {
-    for (ObjectKeyNode* node = m_battle->m_characters.First(); node;
-         node = static_cast<ObjectKeyNode*>(node->m_successor))
+    for (const auto& ownedNode : m_battle->m_characters.Entries())
     {
+      auto* node = static_cast<ObjectKeyNode*>(ownedNode.get());
       ObjectKey key;
       GameObjNotifier* character = GetObjectInFamilies_30_3c(viewSide, node->GetKey(&key));
       if (character && character->ControlSide() == side)
         shown.Add(NewKeyNode(character));
     }
   }
-  for (ObjectKeyNode* node = participants.First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& ownedNode : participants.Entries())
   {
+    auto* node = static_cast<ObjectKeyNode*>(ownedNode.get());
     ObjectKey key;
     node->GetKey(&key);
     if (InFamilies(key, familyRange.m_first, familyRange.m_second))
@@ -952,9 +964,9 @@ void BattleWindow::FillList(int kind, int force)
     }
   }
 
-  ObjectKeyNode* shownNode = shown.First();
-  ObjectKeyNode* heldNode = held.First();
-  ObjectKeyNode* matchingNode = matching.First();
+  auto shownPosition = shown.Entries().begin();
+  auto heldPosition = held.Entries().begin();
+  auto matchingPosition = matching.Entries().begin();
   std::string heading;
   bool shownDone = false;
   bool matchingDone = false;
@@ -967,7 +979,7 @@ void BattleWindow::FillList(int kind, int force)
   };
   for (;;)
   {
-    if (shownNode == nullptr)
+    if (shownPosition == shown.Entries().end())
     {
       std::string* text = nullptr;
       if (!shownDone)
@@ -982,14 +994,15 @@ void BattleWindow::FillList(int kind, int force)
     }
     else
     {
-      AddRow(static_cast<GameObj*>(objectOf(shownNode, viewSide)), normalFlag, nullptr);
-      shownNode = static_cast<ObjectKeyNode*>(shownNode->m_successor);
-      if (shownNode == nullptr)
+      AddRow(static_cast<GameObj*>(objectOf(static_cast<ObjectKeyNode*>(shownPosition->get()), viewSide)), normalFlag,
+             nullptr);
+      ++shownPosition;
+      if (shownPosition == shown.Entries().end())
         shownDone = true;
     }
     if (kind == kKindPersonnel)
     {
-      if (heldNode == nullptr)
+      if (heldPosition == held.Entries().end())
       {
         std::string* text = nullptr;
         if (!heldDone)
@@ -1003,13 +1016,14 @@ void BattleWindow::FillList(int kind, int force)
       }
       else
       {
-        AddRow(static_cast<GameObj*>(objectOf(heldNode, galaxy->m_side)), normalFlag, nullptr);
-        heldNode = static_cast<ObjectKeyNode*>(heldNode->m_successor);
-        if (heldNode == nullptr)
+        AddRow(static_cast<GameObj*>(objectOf(static_cast<ObjectKeyNode*>(heldPosition->get()), galaxy->m_side)),
+               normalFlag, nullptr);
+        ++heldPosition;
+        if (heldPosition == held.Entries().end())
           heldDone = true;
       }
     }
-    if (matchingNode == nullptr)
+    if (matchingPosition == matching.Entries().end())
     {
       std::string* text = nullptr;
       if (!matchingDone)
@@ -1023,25 +1037,27 @@ void BattleWindow::FillList(int kind, int force)
     }
     else
     {
-      AddRow(static_cast<GameObj*>(objectOf(matchingNode, galaxy->m_side)), normalFlag, nullptr);
-      matchingNode = static_cast<ObjectKeyNode*>(matchingNode->m_successor);
-      if (matchingNode != nullptr)
+      AddRow(static_cast<GameObj*>(objectOf(static_cast<ObjectKeyNode*>(matchingPosition->get()), galaxy->m_side)),
+             normalFlag, nullptr);
+      ++matchingPosition;
+      if (matchingPosition != matching.Entries().end())
         continue;
       matchingDone = true;
     }
-    if (shownNode == nullptr)
+    if (shownPosition == shown.Entries().end())
       break;
   }
   shown.Clear();
   matching.Clear();
-  CoolListItem* item = m_items->First();
+  CoolListItem* item =
+    m_items->Entries().empty() ? nullptr : static_cast<CoolListItem*>(m_items->Entries().front().get());
   CoolListItem* first = item;
   DibBitmap* image = item ? item->m_image : nullptr;
-  while (image == nullptr)
+  auto position = m_items->Entries().begin();
+  while (position != m_items->Entries().end() && image == nullptr)
   {
-    item = item->Next();
-    if (!item)
-      break;
+    item = static_cast<CoolListItem*>(position->get());
+    ++position;
     image = item->m_image;
   }
   if (item && first)

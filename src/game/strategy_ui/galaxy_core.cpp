@@ -381,8 +381,9 @@ void GalaxyWindow::InitializeGameDisplay()
     ListAllDataRecordKeys(&records);
     void* memory = ::operator new(sizeof(CoolListItemList));
     m_encyclopediaItems = memory ? new (memory) CoolListItemList(2) : nullptr;
-    for (AvlNode* node = records.First(); node; node = node->m_successor)
+    for (const auto& ownedNode : records.Entries())
     {
+      auto* node = static_cast<AvlNode*>(ownedNode.get());
       const ObjectKey* recordKey = &static_cast<ObjectRefNode*>(node)->m_key;
       if (!IsListedRecord(recordKey))
         continue;

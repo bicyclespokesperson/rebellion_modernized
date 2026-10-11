@@ -213,8 +213,6 @@ public:
   virtual void Virtual34(); // 0x5b3a40
   virtual double GetRadius(); // 35: 0x5b6900
   virtual double GetSpeed(); // 36: capital 0x5b17f0, fighter 0x5ba190
-  virtual TacticalShipBase* GetNextShip(); // 37: 0x5b6960 the next ship in the registry order
-  virtual TacticalShipBase* GetNextShip2(); // 38: 0x5b6960 (the same code as slot 37)
   virtual void Virtual39(float step) = 0;
   virtual void ApplyCriticalHit(int kind); // 40: 0x5b1970
   virtual void RepairCriticalHit(int kind); // 41: 0x5b1ab0

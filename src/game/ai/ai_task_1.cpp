@@ -147,16 +147,16 @@ int AiTask1::ChooseTarget()
   int result = 0;
   bool found = false;
   m_cap = 0;
-  ObjectKeyNode* node = m_targets.First();
-  while (node && !found)
+  auto position = m_targets.Entries().begin();
+  while (position != m_targets.Entries().end() && !found)
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ++position;
     ObjectKey key = KeyOfNode(node);
     AiSystemEval* eval = m_owner->m_systems.FindEval(key);
     if (!eval)
     {
-      ObjectKeyNode* next = NextNode(node);
       m_targets.RemoveKey(&key);
-      node = next;
       continue;
     }
     if ((eval->m_flags30.m_value & 1) != 0 && (eval->m_flags28.m_value & kSystemClaimed) != 0)
@@ -167,9 +167,7 @@ int AiTask1::ChooseTarget()
         {
           eval->m_flags28.m_value &= ~kSystemClaimed;
           eval->MarkChanged();
-          ObjectKeyNode* next = NextNode(node);
           m_targets.RemoveKey(&key);
-          node = next;
           continue;
         }
       }
@@ -179,14 +177,11 @@ int AiTask1::ChooseTarget()
         m_manager = KeyOfNode(node);
         found = true;
       }
-      node = NextNode(node);
       continue;
     }
     eval->m_flags28.m_value &= ~kSystemClaimed;
     eval->MarkChanged();
-    ObjectKeyNode* next = NextNode(node);
     m_targets.RemoveKey(&key);
-    node = next;
   }
   if (IsSystemKey(m_manager))
   {
@@ -387,8 +382,9 @@ int AiTask1::SelectTarget()
   ObjectKey scratch;
   m_system.Reset();
   m_limit = 0;
-  for (ObjectKeyNode* node = m_targets.First(); node; node = NextNode(node))
+  for (auto position = m_targets.Entries().begin(); position != m_targets.Entries().end(); ++position)
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
     AiSystemEval* eval = m_owner->m_systems.FindEval(KeyOfNode(node));
     if (eval && (eval->m_flags30.m_value & 1) != 0 && (eval->m_flags28.m_value & 3) == 0 && 0 < eval->Stat(0x114) &&
         eval->Stat(0x60) < best)

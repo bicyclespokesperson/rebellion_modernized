@@ -149,8 +149,9 @@ int ChooseCharacterTarget(Planner* planner, const CharacterHunt& hunt)
     if (static_cast<uint16_t>(candidates.Count()) != 0)
     {
       bool chosen = false;
-      for (ObjectKeyNode* node = candidates.First(); node && !chosen; node = ai::NextNode(node))
+      for (auto position = candidates.Entries().begin(); position != candidates.Entries().end() && !chosen; ++position)
       {
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
         AiSystemEval* system = owner->m_systems.FindEval(ai::KeyOfNode(node));
         chosen = false;
         if (system && (membersAtDestination == planner->Virtual17() || system->Stat(0xbc) / 2 <= membersAtDestination))

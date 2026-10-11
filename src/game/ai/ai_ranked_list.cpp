@@ -110,10 +110,13 @@ void AiRankedList::Write(ostream* out)
 {
   IdLinkNode::Write(out);
   WriteValue32(out, &m_descending);
-  int count = m_count;
+  int count = static_cast<int>(Count());
   WriteValue32(out, &count);
-  for (AiRankedItem* item = First(); item; item = static_cast<AiRankedItem*>(item->m_next))
+  for (const auto& entry : Entries())
+  {
+    auto* item = static_cast<AiRankedItem*>(entry.get());
     item->Write(out);
+  }
 }
 
 void AiRankedListRead(IdLinkNode* base, istream* in)
@@ -160,24 +163,26 @@ __attribute__((noinline)) ObjectKey ReadItemKey(AiRankedItem* item)
 
 AiRankedItem* AiRankedList::FindKey(const ObjectKey* key)
 {
-  AiRankedItem* item = First();
-  while (item)
+  for (const auto& entry : Entries())
   {
+    auto* item = static_cast<AiRankedItem*>(entry.get());
     if (key->m_value == ReadItemKey(item).m_value)
       return item;
-    item = static_cast<AiRankedItem*>(item->m_next);
   }
   return nullptr;
 }
 
 AiRankedItem* AiRankedList::First() const
 {
-  return static_cast<AiRankedItem*>(m_head);
+  return Entries().empty() ? nullptr : static_cast<AiRankedItem*>(Entries().front().get());
 }
 
 void AiRankedList::Number()
 {
   int rank = 1;
-  for (AiRankedItem* item = First(); item; item = static_cast<AiRankedItem*>(item->m_next))
+  for (const auto& entry : Entries())
+  {
+    auto* item = static_cast<AiRankedItem*>(entry.get());
     item->m_rank = rank++;
+  }
 }

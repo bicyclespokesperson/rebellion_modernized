@@ -346,9 +346,9 @@ void AiCharacterRecord::FindMissionCapabilities()
     order->SetTeam(&team);
     if (order->CollectCandidatesA(reinterpret_cast<ObjectKeyValueSet*>(&candidates)))
     {
-      for (ObjectRefNode* entry = static_cast<ObjectRefNode*>(candidates.First()); entry;
-           entry = static_cast<ObjectRefNode*>(entry->m_successor))
+      for (const auto& candidate : candidates.Entries())
       {
+        auto* entry = static_cast<ObjectRefNode*>(candidate.get());
         ObjectKey missionKey;
         m_capabilities.m_value |= ValueOfMissionKey(entry->GetKey(&missionKey)->m_value);
       }
@@ -425,8 +425,11 @@ void AiCharacterRecordSet::Save(ostream* out)
   WriteValue32(out, &m_usableCount);
   if (!WriteCount32(out, Count()))
     return;
-  for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& entry : Entries())
+  {
+    auto* node = static_cast<ObjectKeyNode*>(entry.get());
     node->Save(out);
+  }
   WriteValue32(out, &m_built);
 }
 
@@ -492,11 +495,6 @@ struct RecordFilter
   }
 };
 
-AiCharacterRecord* NextRecord(AiCharacterRecord* record)
-{
-  return static_cast<AiCharacterRecord*>(record->m_successor);
-}
-
 } // namespace
 
 AiRankedList* AiCharacterRecordSet::RankByValue(uint32_t requireFlags,
@@ -512,8 +510,9 @@ AiRankedList* AiCharacterRecordSet::RankByValue(uint32_t requireFlags,
   if (!list)
     return list;
   const RecordFilter filter{requireFlags, requireCaps, forbidFlags, forbidCaps};
-  for (AiCharacterRecord* record = static_cast<AiCharacterRecord*>(First()); record; record = NextRecord(record))
+  for (const auto& entry : Entries())
   {
+    auto* record = static_cast<AiCharacterRecord*>(entry.get());
     if (!filter.Matches(record))
       continue;
     const int value = record->m_values[valueIndex & 0xffff];
@@ -540,8 +539,9 @@ AiRankedList* AiCharacterRecordSet::RankEligible(uint32_t rank,
   if (!list)
     return list;
   const RecordFilter filter{requireFlags, requireCaps, forbidFlags, forbidCaps};
-  for (AiCharacterRecord* record = static_cast<AiCharacterRecord*>(First()); record; record = NextRecord(record))
+  for (const auto& entry : Entries())
   {
+    auto* record = static_cast<AiCharacterRecord*>(entry.get());
     if (!filter.Matches(record))
       continue;
     if (!(rank < static_cast<uint32_t>(record->m_eligibilityRank) ||
@@ -577,8 +577,9 @@ AiRankedList* AiCharacterRecordSet::RankByDistance(const ObjectKey* target,
       if (list)
       {
         const RecordFilter filter{requireFlags, requireCaps, forbidFlags, forbidCaps};
-        for (AiCharacterRecord* record = static_cast<AiCharacterRecord*>(First()); record; record = NextRecord(record))
+        for (const auto& entry : Entries())
         {
+          auto* record = static_cast<AiCharacterRecord*>(entry.get());
           if (!filter.Matches(record))
             continue;
           ObjectKey recordKey;

@@ -213,8 +213,9 @@ MissionSelectionWindow::~MissionSelectionWindow()
     delete m_tabs;
   if (m_missionItems)
   {
-    for (CoolListItem* item = m_missionItems->First(); item; item = item->Next())
+    for (const auto& ownedItem : m_missionItems->Entries())
     {
+      auto* item = static_cast<CoolListItem*>(ownedItem.get());
       if (item->m_userPointer)
         operator delete(reinterpret_cast<void*>(item->m_userPointer));
     }
@@ -401,8 +402,9 @@ void MissionSelectionWindow::OnCreate1()
 
   OkIdAvlTree candidates;
   m_order->CollectCandidatesB(reinterpret_cast<ObjectKeyValueSet*>(&candidates));
-  for (AvlNode* node = candidates.First(); node; node = node->m_successor)
+  for (const auto& ownedNode : candidates.Entries())
   {
+    auto* node = static_cast<AvlNode*>(ownedNode.get());
     ObjectNameNode* nameNode = static_cast<ObjectNameNode*>(node);
     ObjectKey nameKey;
     ObjectKey candidateKey(*GetObjectNameNodeKey(nameNode, &nameKey));
@@ -441,37 +443,35 @@ void MissionSelectionWindow::OnCreate1()
   ObjectKey scratchKey;
   ObjectKeyValueSet team(*m_order->GetTeam());
   uint8_t fillColor = 0;
-  for (ObjectKeyNode* node = team.First(); node;)
+  for (auto position = team.Entries().begin(); position != team.Entries().end(); ++position)
   {
+    auto* node = static_cast<ObjectKeyNode*>(position->get());
     ObjectKey nodeKey;
     ObjectKey key(*node->GetKey(&nodeKey));
     GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, &key);
     if (!object)
     {
-      node = static_cast<ObjectKeyNode*>(node->m_successor);
       continue;
     }
     AddCharacterRow(this, m_availableItems, key, object, &fillColor);
-    node = static_cast<ObjectKeyNode*>(node->m_successor);
   }
   m_availableItems->First();
   m_availableList->m_fillColor = fillColor;
   m_availableList->Refresh();
 
   ObjectKeyValueSet chosen(m_order->m_characters);
-  for (ObjectKeyNode* node = chosen.First(); node;)
+  for (auto position = chosen.Entries().begin(); position != chosen.Entries().end(); ++position)
   {
+    auto* node = static_cast<ObjectKeyNode*>(position->get());
     ObjectKey nodeKey;
     ObjectKey key(*node->GetKey(&nodeKey));
     GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, &key);
     if (!object)
     {
-      node = static_cast<ObjectKeyNode*>(node->m_successor);
       continue;
     }
     uint8_t unusedFill = 0;
     AddCharacterRow(this, m_selectedItems, key, object, &unusedFill);
-    node = static_cast<ObjectKeyNode*>(node->m_successor);
   }
   m_selectedItems->First();
   m_selectedList->m_fillColor = fillColor;
@@ -609,9 +609,10 @@ bool MoveSelectedRows(CoolDragList* sourceList,
 {
   sourceList->CopySelectionTo(&selection);
   bool moved = false;
-  for (LinkNode* node = selection.m_head; node;)
+  for (const auto& ownedNode : selection.Entries())
   {
-    ObjectListItem* item = static_cast<ObjectListItem*>(sourceItems->FindById(static_cast<CoolListItem*>(node)->m_id));
+    auto* node = static_cast<CoolListItem*>(ownedNode.get());
+    ObjectListItem* item = static_cast<ObjectListItem*>(sourceItems->FindById(node->m_id));
     ObjectKey rowKey;
     item->GetKey(&rowKey);
     ObjectKeyNode* keyNode = sourceKeys->Find(&rowKey);
@@ -623,7 +624,6 @@ bool MoveSelectedRows(CoolDragList* sourceList,
     sourceItems->Remove(item);
     targetItems->Insert(item);
     moved = true;
-    node = static_cast<CoolListItem*>(node)->Next();
   }
   return moved;
 }

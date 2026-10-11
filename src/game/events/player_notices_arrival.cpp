@@ -194,19 +194,18 @@ void rememberOnce(ObjectKeySet* set, const ObjectKey& key)
 void Notice1::ReadVote(Notice2* vote)
 {
   m_f5c = vote->m_f4c;
-  ObjectKeyNode* firstList = vote->m_set6c.First();
-  ObjectKeyNode* secondList = vote->m_set74.First();
   struct List
   {
-    ObjectKeyNode* first;
+    const ObjectKeySet* objects;
     int side;
     ObjectKeySet* destroyed;
   };
-  const List lists[] = {{firstList, 1, &m_set78}, {secondList, 2, &m_set80}};
+  const List lists[] = {{&vote->m_set6c, 1, &m_set78}, {&vote->m_set74, 2, &m_set80}};
   for (const List& list : lists)
   {
-    for (ObjectKeyNode* node = list.first; node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+    for (const auto& entry : list.objects->Entries())
     {
+      auto* node = static_cast<ObjectKeyNode*>(entry.get());
       ObjectKey key(node->m_key);
       GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, &key);
       if (!object)

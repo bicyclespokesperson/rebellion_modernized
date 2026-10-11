@@ -6,16 +6,22 @@
 #include "gameobj/object_key.h"
 
 // Base of the small notification payload classes (VT 0x65ecf8; the leaf classes' vtables are 0x661300-0x661380, the
-// ObjectKey-carrying subclass built at 0x583fe0 adds a key at +0x20): a LinkNode followed by five ints that the leaf
-// classes' Read/Write call ReadFields/WriteFields for. Slots 3, 6 and 7 are pure; the UI notification handlers implement them.
+// ObjectKey-carrying subclass built at 0x583fe0 adds a key after the five ints): the leaf classes' Read/Write call
+// ReadFields/WriteFields for the payload. Slots 3, 6 and 7 are pure; the UI notification handlers implement them.
 class PlayerController;
 class UiNotice;
 
-class NotifPayload : public LinkNode
+class NotifPayload
 {
 public:
   NotifPayload();
-  ~NotifPayload() override;
+  virtual ~NotifPayload();
+  virtual void Read(istream*)
+  {
+  }
+  virtual void Write(ostream*)
+  {
+  }
   virtual int GetKind() = 0;
   virtual int Virtual04()
   {
@@ -27,15 +33,15 @@ public:
   virtual void Dispatch(PlayerController* controller) = 0; // the UI handlers (events/ui_notifs.h) tell a controller
   virtual void DispatchToSink(UiNotice* sink) = 0; // tells a notice (strategy_ui/advisor_notices.h) with slots 5-9
 
-  // LinkNode::Read (a no-op), then the five ints; always 1.
+  // The five ints; always 1.
   int ReadFields(istream* in);
   int WriteFields(ostream* out);
 
-  int m_value0c; // +0x0c
-  int m_value10; // +0x10
-  int m_value14; // +0x14
-  int m_value18; // +0x18
-  int m_value1c; // +0x1c
+  int m_value0c;
+  int m_value10;
+  int m_value14;
+  int m_value18;
+  int m_value1c;
 };
 
 // 0x583fe0 (VT 0x66a130): a payload that names the object it is about (the key at +0x20). Still abstract; the leaf

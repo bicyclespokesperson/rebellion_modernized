@@ -1,5 +1,7 @@
 #pragma once
 #include <cstdint>
+#include <list>
+#include <memory>
 #include <string>
 
 #include "core/containers.h"
@@ -42,13 +44,13 @@ public:
 };
 
 // One entry of g_popupStack: the HwndNode of an open popup window (owned by the entry).
-class PopupEntry : public LinkNode
+class PopupEntry
 {
 public:
   explicit PopupEntry(HwndNode* node); // 0x60f100
-  ~PopupEntry() override; // 0x60f120
+  ~PopupEntry(); // 0x60f120
 
-  HwndNode* m_node; // +0x0c
+  HwndNode* m_node; // owned popup window node
 };
 
 // The children of a window, ordered by child id (+0x24); the windows themselves are the nodes.
@@ -228,7 +230,6 @@ extern HHOOK g_tooltipHook; // 0x6be5a8
 extern HINSTANCE g_stringModule; // 0x6be5ac module LoadResourceString reads
 extern HHOOK g_mouseHook; // 0x6be5b0
 extern HCURSOR g_defaultCursor; // 0x6be5b4 cursor given to every window that does not set kCoolOwnCursor
-extern HwndNode* g_captureStack; // 0x6be598 linked through AvlNode::m_successor
-extern NodeStack g_popupStack; // 0x6be4e0 of PopupEntry
+extern std::list<std::unique_ptr<PopupEntry>> g_popupStack; // 0x6be4e0 of PopupEntry
 extern IdAvlTree g_windowRegistry; // 0x6be4e8 ids are CoolWindow addresses
 extern HPALETTE g_displayPalette; // 0x6be4c0 the palette SetIdentityPalette installed (DibBitmap::DrawToDc selects it)

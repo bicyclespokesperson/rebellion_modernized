@@ -80,8 +80,9 @@ int SeedList::Write(ostream* out)
   WriteValue32(out, &low);
   uint32_t high = m_range.m_high;
   WriteValue32(out, &high);
-  for (AvlNode* node = m_records.First(); node; node = node->m_successor)
+  for (const auto& entry : m_records.Entries())
   {
+    AvlNode* node = entry.get();
     ok = asRecord(node)->Write(out);
     if (!ok)
       break;
@@ -97,10 +98,10 @@ int SeedList::Checksum(Crc32* crc)
   crc->AddInt(static_cast<int32_t>(m_records.Count()));
   crc->AddInt(m_range.m_low);
   crc->AddInt(m_range.m_high);
-  for (AvlNode* node = m_records.First(); node;)
+  for (const auto& entry : m_records.Entries())
   {
+    AvlNode* node = entry.get();
     ok = asRecord(node)->Checksum(crc);
-    node = node->m_successor;
     if (!ok)
       break;
   }
@@ -184,8 +185,9 @@ SeedListFileTree::~SeedListFileTree() = default;
 
 SeedListFile* SeedListFileTree::FindByFamily(uint32_t family)
 {
-  for (AvlNode* node = First(); node; node = node->m_successor)
+  for (const auto& entry : Entries())
   {
+    AvlNode* node = entry.get();
     SeedListFile* file = static_cast<SeedListFile*>(static_cast<IdNode*>(node));
     if (family >= file->m_list.m_range.m_low && family < file->m_list.m_range.m_high)
       return file;

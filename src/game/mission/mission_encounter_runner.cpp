@@ -40,11 +40,6 @@ ObjectKeyValueNode* valueNode(ObjectKeyNode* node)
   return static_cast<ObjectKeyValueNode*>(node);
 }
 
-ObjectKeyNode* nextNode(ObjectKeyNode* node)
-{
-  return static_cast<ObjectKeyNode*>(node->m_successor);
-}
-
 } // namespace
 
 // ---- construction -------------------------------------------------------------------------------------------------------
@@ -515,15 +510,22 @@ int EncounterRunner::TakeRandomFreeKey(ObjectKeySet* set, ObjectKey* chosen)
 {
   chosen->Reset();
   int free = 0;
-  for (ObjectKeyNode* node = set->First(); node; node = nextNode(node))
+  for (auto nodePosition = set->Entries().begin(); nodePosition != set->Entries().end();)
+  {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
     if (valueNode(node)->m_value == 0)
       ++free;
+  }
   if (free != 0)
   {
     const int pick = GameRandom(free - 1);
     int index = 0;
-    for (ObjectKeyNode* node = set->First(); node && !chosen->OrNull(); node = nextNode(node))
+    for (auto nodePosition = set->Entries().begin(); nodePosition != set->Entries().end();)
     {
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+      if (!(true && !chosen->OrNull()))
+        break;
+
       if (valueNode(node)->m_value == 0)
       {
         if (index == pick)
@@ -542,7 +544,10 @@ int EncounterRunner::TakeRandomFreeKey(ObjectKeySet* set, ObjectKey* chosen)
 
 int EncounterRunner::ClearTakenFlags(ObjectKeySet* set)
 {
-  for (ObjectKeyNode* node = set->First(); node; node = nextNode(node))
+  for (auto nodePosition = set->Entries().begin(); nodePosition != set->Entries().end();)
+  {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
     valueNode(node)->m_value &= ~kKeyTaken;
+  }
   return 1;
 }

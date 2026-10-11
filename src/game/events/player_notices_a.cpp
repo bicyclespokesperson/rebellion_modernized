@@ -1,3 +1,4 @@
+#include "ai/ai_task_base.h"
 #include "events/player_notices.h"
 
 #include <new>
@@ -20,7 +21,7 @@ Notice44::Notice44() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice44::Notice44(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice44::Notice44(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_categories = Virtual11();
@@ -103,7 +104,7 @@ Notice45::Notice45() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice45::Notice45(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice45::Notice45(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_categories = Virtual11();
@@ -149,7 +150,7 @@ Notice43::Notice43() : UiTextNotice()
   m_f64 = 0;
 }
 
-Notice43::Notice43(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice43::Notice43(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_categories = Virtual11();
@@ -265,7 +266,7 @@ Notice41::Notice41() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice41::Notice41(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice41::Notice41(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_categories = Virtual11();
@@ -321,7 +322,7 @@ Notice34::Notice34() : UiTextNotice()
   m_f64 = 0;
 }
 
-Notice34::Notice34(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice34::Notice34(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_categories = Virtual11();
@@ -388,7 +389,7 @@ void Notice34::OnMessage(int kind, intptr_t a, intptr_t b)
   }
 }
 
-int Notice34::Virtual16(const LinkNode* payloads)
+int Notice34::Virtual16(const AiNoticeGroup* payloads)
 {
   int result = ForwardPayloads(this, payloads);
   if (m_unk40 != 0)
@@ -415,7 +416,7 @@ Notice33::Notice33() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice33::Notice33(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice33::Notice33(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_unk40 = 0;
   m_f68 = 0;

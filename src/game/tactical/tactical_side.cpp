@@ -1,6 +1,7 @@
 #include "tactical/tactical_side.h"
 
 #include <new>
+#include <vector>
 
 #include "tactical/tactical_externals_2b.h"
 #include "tactical/tactical_game.h"
@@ -16,25 +17,10 @@ constexpr int kFighterClass = 1;
 constexpr float kNoInterceptTime = -1.0f;
 constexpr int kStateActive = 2;
 
-UnitRefNode* firstUnitNode(UnitRefTree& tree)
-{
-  return tree.FirstNode();
-}
-
 TargetPriorityNode* newPriorityNode(float priority, TacticalShipBase* unit)
 {
   void* memory = ::operator new(sizeof(TargetPriorityNode));
   return memory ? new (memory) TargetPriorityNode(priority, unit) : nullptr;
-}
-
-TargetPriorityNode* firstNode(TargetPriorityTree& tree)
-{
-  return static_cast<TargetPriorityNode*>(tree.First());
-}
-
-TargetPriorityNode* successor(TargetPriorityNode* node)
-{
-  return static_cast<TargetPriorityNode*>(node->m_successor);
 }
 
 } // namespace
@@ -116,8 +102,9 @@ TacticalSideBase::~TacticalSideBase()
 
 int TacticalSideBase::HasDisabledUnit()
 {
-  for (UnitRefNode* node = firstUnitNode(m_fleet); node; node = node->Next())
+  for (const auto& entry : m_fleet.Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     if (node->Value()->m_hasGravityWell != 0)
       return 1;
   }
@@ -129,26 +116,27 @@ void TacticalSideBase::RecordFleetPriorities()
   const int count = Refresh(0);
   m_previousStrength = m_strength;
   m_unitCount = count;
-  for (UnitRefNode* node = firstUnitNode(m_fleet); node; node = node->Next())
+  for (const auto& entry : m_fleet.Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     const float strength = node->Value()->GetSpeed();
     const float spare = node->Value()->TacticalShipBase::MaxWeaponRange();
     const float priority = strength - spare * kFleetPriorityScale;
-    TargetPriorityNode* entry = nullptr;
+    TargetPriorityNode* priorityNode = nullptr;
     void* memory = ::operator new(sizeof(TargetPriorityNode));
     if (memory)
-      entry = new (memory) TargetPriorityNode(-priority, node->Value());
+      priorityNode = new (memory) TargetPriorityNode(-priority, node->Value());
     if (node->Value()->TacticalShipBase::HasOnlyKind1Weapons() == 1)
     {
-      m_targets[3].Insert(entry);
+      m_targets[3].Insert(priorityNode);
     }
     else if (node->Value()->TacticalShipBase::HasKind1Weapons() != 0)
     {
-      m_targets[2].Insert(entry);
+      m_targets[2].Insert(priorityNode);
     }
     else
     {
-      m_targets[1].Insert(entry);
+      m_targets[1].Insert(priorityNode);
     }
   }
 }
@@ -189,30 +177,42 @@ void TacticalSideBase::ReprioritiseTargets(float)
     return;
 
   TargetPriorityTree sorted;
-  for (TargetPriorityNode* node = firstNode(*list); node;)
+  std::vector<TargetPriorityNode*> initialNodes;
+  initialNodes.reserve(list->Count());
+  for (const auto& entry : list->Entries())
+    initialNodes.push_back(static_cast<TargetPriorityNode*>(entry.get()));
+  for (TargetPriorityNode* node : initialNodes)
   {
-    TargetPriorityNode* next = successor(node);
+    if (list->PositionOf(node) == list->Entries().end())
+      continue;
     if (node->m_unit.m_unit->GetUnitClass() == kFighterClass)
     {
       sorted.Insert(newPriorityNode(node->m_priority, node->m_unit.m_unit));
-      TargetPriorityNode* match = firstNode(*list);
-      while (match && !match->m_unit.SameUnit(&node->m_unit))
-        match = successor(match);
+      TargetPriorityNode* match = nullptr;
+      for (const auto& entry : list->Entries())
+      {
+        auto* candidate = static_cast<TargetPriorityNode*>(entry.get());
+        if (candidate->m_unit.SameUnit(&node->m_unit))
+        {
+          match = candidate;
+          break;
+        }
+      }
       if (match)
       {
         list->Remove(match);
         delete match;
       }
     }
-    node = next;
   }
 
   float rank = kRankStep;
   float base = 0.0f;
   if (sorted.Last())
     base = static_cast<TargetPriorityNode*>(sorted.Last())->m_priority;
-  for (TargetPriorityNode* node = firstNode(*list); node; node = successor(node))
+  for (const auto& entry : list->Entries())
   {
+    auto* node = static_cast<TargetPriorityNode*>(entry.get());
     sorted.Insert(newPriorityNode(base + rank, node->m_unit.m_unit));
     rank = rank - -kRankStep;
   }
@@ -221,17 +221,18 @@ void TacticalSideBase::ReprioritiseTargets(float)
   if (list->Last())
     base = static_cast<TargetPriorityNode*>(list->Last())->m_priority;
   rank = kRankStep;
-  for (TargetPriorityNode* node = firstNode(sorted); node; node = successor(node))
+  for (const auto& entry : sorted.Entries())
   {
+    auto* node = static_cast<TargetPriorityNode*>(entry.get());
     list->Insert(newPriorityNode(base + rank, node->m_unit.m_unit));
     rank = rank - -kRankStep;
   }
 
   GroupRefTree plainGroups;
   GroupRefTree flaggedGroups;
-  for (GroupRefNode* node = static_cast<GroupRefNode*>(m_groups.FirstNode()); node;
-       node = static_cast<GroupRefNode*>(node->Next()))
+  for (const auto& entry : m_groups.Entries())
   {
+    auto* node = static_cast<GroupRefNode*>(entry.get());
     if (EvaluateUnit3(node->Value()) != 0)
       continue;
     TacticalShipBase* first = node->Value()->FirstUnit();

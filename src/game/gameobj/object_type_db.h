@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <vector>
 
 #include "core/containers.h"
 #include "core/game_string.h"
@@ -40,7 +41,7 @@ public:
   // Calls the loader object of every family entry with `arg`; stops at the first failure.
   int ForEachFamily(Crc32* crc);
   DatRecord* FindRecord(const SeedKey* key);
-  DatRecord* FirstRecordOfFamily(uint32_t family);
+  std::vector<DatRecord*> RecordsOfFamily(uint32_t family);
   // Adds a key node for every record of every family to `out` (cleared first).
   int ListAllRecordKeys(ObjectRefList* out);
   // Builds in `out` one node per record of kind `kind` (0x28-0x2b) that is available to `view` (1 or 2), choosing by
@@ -80,7 +81,7 @@ inline const SeedKey* AsLookupKey(const void* key)
 {
   return static_cast<const SeedKey*>(key);
 }
-DatRecord* GetFirstRecordOfType(int family); // 0x51cad0
+std::vector<DatRecord*> GetRecordsOfType(int family);
 int ListAllDataRecordKeys(ObjectRefList* out); // 0x51caf0: clears `out` first
 int CollectDataRecords(int view,
                        uint32_t kind,

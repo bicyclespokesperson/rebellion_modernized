@@ -7,12 +7,6 @@
 namespace
 {
 
-// The lists are objects with their own vtable; the call must stay virtual even though the list is a member.
-__attribute__((noinline)) UnitRefNode* firstNode(UnitRefTree* list)
-{
-  return list->FirstNode();
-}
-
 constexpr float kStalemateSeconds = 1200.0f;
 constexpr float kDeathStarWins = -1.0f;
 
@@ -29,12 +23,12 @@ int deathStarHasFlag(TacticalUnit* deathStar)
 // Destroys every unit in the list (RetireUnit retires one unit; the successor is read first because the list changes).
 void retireAll(HeadlessSimulator* simulator, UnitRefTree* list)
 {
-  UnitRefNode* node = firstNode(list);
-  while (node)
+  auto entry = list->Entries().begin();
+  while (entry != list->Entries().end())
   {
-    UnitRefNode* next = node->Next();
+    auto current = entry++;
+    auto* node = static_cast<UnitRefNode*>(current->get());
     simulator->RetireUnit(node->Value());
-    node = next;
   }
 }
 
@@ -46,8 +40,9 @@ void retireSide(HeadlessSimulator* simulator, TacticalAiSide* side)
 
 bool anyUnitActive(UnitRefTree* list, bool found)
 {
-  for (UnitRefNode* node = firstNode(list); node; node = node->Next())
+  for (const auto& entry : list->Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     if (found)
       return found;
     if (node->Value()->m_state == kUnitActive)
@@ -142,8 +137,9 @@ int HeadlessSimulator::Step(float step)
     if (deathStarHasFlag(GetTacticalRegistry()->GetDeathStar()) != 0)
       sideHasDeathStar[1] = 1;
   }
-  for (UnitRefNode* node = firstNode(&m_units); node; node = node->Next())
+  for (const auto& entry : m_units.Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     TacticalShipBase* unit = node->Value();
     if (unit->m_state == kUnitDeathStarPresent)
       sideHasDeathStar[unit->m_side] = 1;
@@ -171,8 +167,9 @@ int HeadlessSimulator::Step(float step)
 
 void HeadlessSimulator::RecordSurvivors()
 {
-  for (UnitRefNode* outer = firstNode(&m_units); outer; outer = outer->Next())
+  for (const auto& outerEntry : m_units.Entries())
   {
+    auto* outer = static_cast<UnitRefNode*>(outerEntry.get());
     TacticalShipBase* unit = outer->Value();
     if (unit->GetUnitClass() != 1)
       continue;
@@ -183,8 +180,9 @@ void HeadlessSimulator::RecordSurvivors()
       continue;
     }
     bool covered = false;
-    for (UnitRefNode* inner = firstNode(&m_units); inner; inner = inner->Next())
+    for (const auto& innerEntry : m_units.Entries())
     {
+      auto* inner = static_cast<UnitRefNode*>(innerEntry.get());
       if (covered)
         break;
       TacticalShipBase* candidate = inner->Value();

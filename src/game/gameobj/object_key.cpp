@@ -172,9 +172,9 @@ ObjectKeySet::ObjectKeySet() : AvlTree()
 
 ObjectKeySet::ObjectKeySet(const ObjectKeySet& other) : AvlTree()
 {
-  for (AvlNode* node = other.AvlTree::First(); node; node = node->m_successor)
+  for (const auto& entry : other.AvlTree::Entries())
   {
-    if (ObjectKeyNode* copy = static_cast<ObjectKeyNode*>(node)->Clone())
+    if (ObjectKeyNode* copy = static_cast<ObjectKeyNode*>(entry.get())->Clone())
       Add(copy);
   }
 }
@@ -244,16 +244,17 @@ void ObjectKeySet::Write(ostream* out)
   }
   uint32_t count = static_cast<uint32_t>(Count());
   WriteValue32(out, &count);
-  for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
-    node->Write(out);
+  for (const auto& entry : Entries())
+    static_cast<ObjectKeyNode*>(entry.get())->Write(out);
 }
 
 int ObjectKeySet::Checksum(Crc32* crc)
 {
   int ok = 1;
   crc->AddInt(static_cast<uint32_t>(Count()));
-  for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& entry : Entries())
   {
+    auto* node = static_cast<ObjectKeyNode*>(entry.get());
     ok = node->Checksum(crc);
     if (!ok)
       break;
@@ -266,9 +267,9 @@ ObjectKeySet& ObjectKeySet::operator=(const ObjectKeySet& other)
   if (this != &other)
   {
     Clear();
-    for (AvlNode* node = other.AvlTree::First(); node; node = node->m_successor)
+    for (const auto& entry : other.AvlTree::Entries())
     {
-      if (ObjectKeyNode* copy = static_cast<ObjectKeyNode*>(node)->Clone())
+      if (ObjectKeyNode* copy = static_cast<ObjectKeyNode*>(entry.get())->Clone())
         Add(copy);
     }
   }
@@ -376,17 +377,19 @@ ObjectKeyValueSet& ObjectKeyValueSet::operator=(const ObjectKeyValueSet& other)
 int ObjectKeyValueSet::operator==(const ObjectKeyValueSet& other) const
 {
   bool same = true;
-  const ObjectKeyValueNode* a = static_cast<const ObjectKeyValueNode*>(AvlTree::First());
-  const ObjectKeyValueNode* b = static_cast<const ObjectKeyValueNode*>(other.AvlTree::First());
-  while (a && b)
+  auto aPosition = AvlTree::Entries().begin();
+  auto bPosition = other.AvlTree::Entries().begin();
+  while (aPosition != AvlTree::Entries().end() && bPosition != other.AvlTree::Entries().end())
   {
     if (!same)
       return false;
+    auto* a = static_cast<const ObjectKeyValueNode*>(aPosition->get());
+    auto* b = static_cast<const ObjectKeyValueNode*>(bPosition->get());
     same = a->HasSameKeyAndValue(*b);
-    a = static_cast<const ObjectKeyValueNode*>(a->m_successor);
-    b = static_cast<const ObjectKeyValueNode*>(b->m_successor);
+    ++aPosition;
+    ++bPosition;
   }
-  return same && !a && !b;
+  return same && aPosition == AvlTree::Entries().end() && bPosition == other.AvlTree::Entries().end();
 }
 
 int ObjectKeyValueSet::operator!=(const ObjectKeyValueSet& other) const
@@ -422,9 +425,11 @@ ObjectRefList& ObjectRefList::operator=(const ObjectRefList& other)
   if (this != &other)
   {
     IdAvlTree::Clear();
-    for (const AvlNode* node = other.AvlTree::First(); node && copied; node = node->m_successor)
+    for (const auto& entry : other.AvlTree::Entries())
     {
-      ObjectRefNode* copy = NewOrNull<ObjectRefNode>(*static_cast<const ObjectRefNode*>(node));
+      if (!copied)
+        break;
+      ObjectRefNode* copy = NewOrNull<ObjectRefNode>(*static_cast<const ObjectRefNode*>(entry.get()));
       copied = copy != nullptr;
       if (copied)
         Add(copy);
@@ -461,9 +466,9 @@ int ObjectRefList::Write(ostream* out)
   WriteValue32(out, &m_ok);
   uint32_t count = Size();
   WriteValue32(out, &count);
-  for (AvlNode* node = AvlTree::First(); node; node = node->m_successor)
+  for (const auto& entry : AvlTree::Entries())
   {
-    ok = static_cast<ObjectRefNode*>(node)->Write(out);
+    ok = static_cast<ObjectRefNode*>(entry.get())->Write(out);
   }
   return ok;
 }
@@ -473,8 +478,8 @@ int ObjectRefList::Checksum(Crc32* crc)
   int ok = 1;
   crc->AddInt(m_ok);
   crc->AddInt(Size());
-  for (AvlNode* node = AvlTree::First(); node; node = node->m_successor)
-    ok = static_cast<ObjectRefNode*>(node)->Checksum(crc);
+  for (const auto& entry : AvlTree::Entries())
+    ok = static_cast<ObjectRefNode*>(entry.get())->Checksum(crc);
   return ok;
 }
 

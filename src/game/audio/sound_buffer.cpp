@@ -136,23 +136,16 @@ uint32_t SoundIdTree::Add(KeyedSoundNode* node)
 
 int SoundIdTree::DeleteNode(KeyedSoundNode* node)
 {
-  int deleted = 0;
-  AvlNode* current = First();
-  while (current)
+  for (auto entry = Entries().begin(); entry != Entries().end(); ++entry)
   {
-    if (current == node)
+    if (entry->get() == node)
     {
       Remove(node);
       delete node;
-      current = nullptr;
-      deleted = 1;
-    }
-    else
-    {
-      current = current->m_successor;
+      return 1;
     }
   }
-  return deleted;
+  return 0;
 }
 
 SoundBufferList::SoundBufferList()
@@ -173,23 +166,16 @@ void SoundBufferList::Clear()
 
 int SoundBufferList::RemoveNode(KeyedSoundNode* node)
 {
-  int deleted = 0;
-  AvlNode* current = First();
-  while (current)
+  for (auto entry = Entries().begin(); entry != Entries().end(); ++entry)
   {
-    if (current == node)
+    if (entry->get() == node)
     {
       Remove(node);
       delete node;
-      current = nullptr;
-      deleted = 1;
-    }
-    else
-    {
-      current = current->m_successor;
+      return 1;
     }
   }
-  return deleted;
+  return 0;
 }
 
 // ---- SoundBuffer --------------------------------------------------------------------------------------------

@@ -17,18 +17,18 @@ EventBase* asEvent(AvlNode* node)
 
 // ---- EventQueue ------------------------------------------------------------------------------------------------
 
-EventQueue::EventQueue() : OrderedTree(), m_flag0c(1)
+EventQueue::EventQueue() : AvlTree(), m_flag0c(1)
 {
 }
 
 EventQueue::~EventQueue()
 {
-  OrderedTree::Clear();
+  AvlTree::Clear();
 }
 
 int EventQueue::Read(istream* in)
 {
-  OrderedTree::Clear();
+  AvlTree::Clear();
   uint32_t count = 0;
   ReadValue32(in, &count);
   if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
@@ -65,8 +65,10 @@ int EventQueue::Write(ostream* out)
   }
   uint32_t count = static_cast<uint32_t>(Count());
   WriteValue32(out, &count);
-  for (AvlNode* node = First(); node; node = node->m_successor)
+  for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();)
   {
+    AvlNode* node = static_cast<AvlNode*>((nodePosition++)->get());
+
     EventBase* event = asEvent(node);
     int kind = event->GetKind();
     WriteValue32(out, &kind);
@@ -78,8 +80,11 @@ int EventQueue::Write(ostream* out)
 int EventQueue::Checksum(Crc32* crc)
 {
   crc->AddInt(Count());
-  for (AvlNode* node = First(); node; node = node->m_successor)
+  for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();)
+  {
+    AvlNode* node = static_cast<AvlNode*>((nodePosition++)->get());
     asEvent(node)->Checksum(crc);
+  }
   return 1;
 }
 

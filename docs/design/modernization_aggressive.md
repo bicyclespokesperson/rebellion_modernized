@@ -342,6 +342,46 @@ Final formatting: LLVM 22.1.4 processed 896 maintained C/C++ sources and headers
 parsing is enabled and qualifier order is left unchanged. The repeat formatter check, post-format release and strict UBSan
 builds, all eight CTests in both builds and malloc-scribble save/reload smoke pass (150336 → 150346 → 150356).
 
+### Container clients and retirement of the remaining generic bases
+
+Use ordinary iteration over standard owning storage. Nodes no longer carry predecessor/successor or next/previous
+links, and containers no longer maintain borrowed head/tail/top pointers or duplicate list counts. Keep bounded borrows
+and stable identity where clients need them; increment an iterator before removing its current entry. ID cursors that
+span callbacks locate their position through the owning registry instead of walking an object's hidden links.
+
+- [x] Inventory link traversal and migrate gameplay, UI, multiplayer, audio and tactical clients to standard iteration.
+- [x] Remove node links, node-only traversal methods, copied list views and obsolete rewind operations.
+- [x] Delete `NodeQueue`, `NodeStack`, `OrderedTree` and `AnimationStepQueue`; use typed standard storage for posted
+      notifications, production keys, advisor payload groups, sound events, animation steps and popup entries.
+- [x] Replace notification sentinel casts with the actual typed payload group and bound notice payload borrows to dispatch.
+- [x] Review mutation, ordering, ownership and save readers; retain useful ownership/ID tests and add erase-during-iteration coverage.
+- [x] Complete host release/strict UBSan builds, useful tests and bounded save/reload, then commit this migration.
+
+The remaining `AvlTree`, `IdAvlTree`, `AvlSet`, `IntKeyedSet`, `IdValueTree`, `SortedLinkList` and `IdSortedLinkList` are
+transitional interfaces over standard storage, not the desired endpoint. Their consumers still encode domain-specific
+identity, comparisons and save behavior. Retire them through these concrete follow-ups; do not replace them with another
+generic custom container library:
+
+- [ ] Give each subsystem typed standard containers directly. Migrate ID registries and composite object-key registries
+      with explicit ID allocation/exhaustion, duplicate identity rules and legacy field codecs, then delete the unused bases.
+- [ ] Migrate ordered event, window, sound and tactical registries to typed standard storage and explicit comparisons;
+      remove virtual container comparators and generic node inheritance with their last clients.
+- [ ] Replace sorted UI rows and AI ranking facades with typed containers. Preserve UI grouping and meaningful ranking
+      order; generate explicit gameplay tie-break keys rather than give a sorting algorithm a random comparator. Delete
+      the final list/set facades and `core/containers.*` when their domain behavior has moved.
+- [ ] Reconsider linked storage after client migration. Prefer vectors, deques or value entries when they fit access and
+      lifetime needs; use `vector<unique_ptr<T>>` when contiguous owner storage and stable pointees are both useful.
+- [ ] Adopt standard algorithms where they clarify sorting, partitioning, bulk transformation, aggregation or lookup.
+      Keep straightforward loops when they already express the operation clearly; algorithm-count targets are not a goal.
+- [ ] Verify that no generic container adapters, legacy node APIs or duplicated traversal state remain in maintained code.
+
+Validation: macOS release and strict UBSan builds pass all eight native tests. Both builds pass the two-process
+save/reload smoke with malloc scribbling (ticks 150336 → 150346 → 150356). Independent reviews cover mutation,
+notification lifetimes and UI/audio traversal; changed C++ files pass the pinned formatter.
+
+Host-only validation and the existing desktop acceptance gap still apply; Linux and Windows are work for agents
+running on those hosts.
+
 ### Per-responsibility workflow
 
 Maintain a short worklist of responsibilities, not a speculative architecture document. Fan out this work across multiple luna or haiku subagents.

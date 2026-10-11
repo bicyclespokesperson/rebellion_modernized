@@ -15,7 +15,6 @@ using ai::IsSystemKey;
 using ai::KeyInFamilies;
 using ai::KeyOfNode;
 using ai::KeyOfObject;
-using ai::NextNode;
 
 namespace
 {
@@ -56,20 +55,20 @@ AiSystemEval* FindSystem(AiMissionPlanner* planner, const ObjectKey& key)
 template <class Visit>
 void ForEachKey(ObjectKeySet& set, Visit visit)
 {
-  for (ObjectKeyNode* node = set.First(); node; node = NextNode(node))
-    visit(KeyOfNode(node));
+  for (const auto& entry : set.Entries())
+    visit(KeyOfNode(static_cast<ObjectKeyNode*>(entry.get())));
 }
 
 // Removes every key of the set with `remove` (taking the successor first, as the originals do).
 template <class Remove>
 void RemoveAll(ObjectKeySet& set, Remove remove)
 {
-  ObjectKeyNode* node = set.First();
-  while (node)
+  auto position = set.Entries().begin();
+  while (position != set.Entries().end())
   {
-    ObjectKeyNode* next = NextNode(node);
+    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    ++position;
     remove(KeyOfNode(node));
-    node = next;
   }
 }
 
@@ -210,9 +209,11 @@ int AiMissionPlanner::AdvanceStall()
 void AiMissionPlanner::ReleaseUnfit()
 {
   m_flags.m_value &= 0x1fffffff;
-  ObjectKeyNode* node = m_leaders.First();
-  while (node)
+  auto leaderPosition = m_leaders.Entries().begin();
+  while (leaderPosition != m_leaders.Entries().end())
   {
+    auto* node = static_cast<ObjectKeyNode*>(leaderPosition->get());
+    ++leaderPosition;
     bool keep = false;
     AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
     if (character)
@@ -222,18 +223,18 @@ void AiMissionPlanner::ReleaseUnfit()
       if ((m_flags.m_value & kStalled) == 0 && (character->m_flags.m_value & kCharacterBusy) == 0)
         keep = true;
     }
-    ObjectKeyNode* next = NextNode(node);
     const ObjectKey key = KeyOfNode(node);
     if (!keep)
       RemoveLeader(&key);
-    node = next;
   }
   if ((m_flags.m_value & kStalled) != 0)
     m_destination.Reset();
   m_flags.m_value &= ~kStalled;
-  node = m_members.First();
-  while (node)
+  auto memberPosition = m_members.Entries().begin();
+  while (memberPosition != m_members.Entries().end())
   {
+    auto* node = static_cast<ObjectKeyNode*>(memberPosition->get());
+    ++memberPosition;
     bool keep = false;
     AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
     if (character)
@@ -243,11 +244,9 @@ void AiMissionPlanner::ReleaseUnfit()
       if ((character->m_flags.m_value & kCharacterBusy) == 0)
         keep = true;
     }
-    ObjectKeyNode* next = NextNode(node);
     const ObjectKey key = KeyOfNode(node);
     if (!keep)
       RemoveMember(&key);
-    node = next;
   }
 }
 
@@ -273,27 +272,27 @@ void AiMissionPlanner::Finish()
 void AiMissionPlanner::RefreshTeams()
 {
   m_flags.m_value &= 0xfffffeff;
-  ObjectKeyNode* node = m_leaders.First();
-  while (node)
+  auto leaderPosition = m_leaders.Entries().begin();
+  while (leaderPosition != m_leaders.Entries().end())
   {
+    auto* node = static_cast<ObjectKeyNode*>(leaderPosition->get());
+    ++leaderPosition;
     const ObjectKey key = KeyOfNode(node);
-    ObjectKeyNode* next = NextNode(node);
     if (IsUsable(&key) == 0)
       RemoveLeader(&key);
     else
       m_flags.m_value |= 0x100;
-    node = next;
   }
-  node = m_members.First();
-  while (node)
+  auto memberPosition = m_members.Entries().begin();
+  while (memberPosition != m_members.Entries().end())
   {
+    auto* node = static_cast<ObjectKeyNode*>(memberPosition->get());
+    ++memberPosition;
     const ObjectKey key = KeyOfNode(node);
-    ObjectKeyNode* next = NextNode(node);
     if (IsUsable(&key) == 0)
       RemoveMember(&key);
     else
       m_flags.m_value |= 0x100;
-    node = next;
   }
 }
 
@@ -341,8 +340,9 @@ OrderBase* AiMissionPlanner::StartMission()
       order->SetTarget(&m_target);
       mission->m_missionKey.m_value = m_missionKey.m_value;
       mission->m_unk44 = m_id;
-      for (ObjectKeyNode* node = m_leaders.First(); node; node = NextNode(node))
+      for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position)
       {
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
         AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
         if (character && (character->m_flags.m_value & kCharacterUnavailable) == 0)
         {
@@ -351,8 +351,9 @@ OrderBase* AiMissionPlanner::StartMission()
         }
       }
       order->SetTeam(&leaders);
-      for (ObjectKeyNode* node = m_members.First(); node; node = NextNode(node))
+      for (auto position = m_members.Entries().begin(); position != m_members.Entries().end(); ++position)
       {
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
         AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
         if (character && (character->m_flags.m_value & kCharacterUnavailable) == 0)
         {
@@ -665,8 +666,9 @@ int AiFreePlanner::ChooseDestination()
     m_flags.m_value |= kHasDestination;
   if ((m_flags.m_value & kHasDestination) != 0)
     return 1;
-  for (ObjectKeyNode* node = m_leaders.First(); node; node = NextNode(node))
+  for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position)
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
     if ((m_flags.m_value & kHasDestination) != 0)
       return 1;
     const ObjectKey leaderKey = KeyOfNode(node);
@@ -894,8 +896,9 @@ int AiSystemPlanner::ChooseSystem()
   }
   if ((m_flags.m_value & kHasDestination) != 0)
     return 1;
-  for (ObjectKeyNode* node = m_leaders.First(); node; node = NextNode(node))
+  for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position)
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
     if ((m_flags.m_value & kHasDestination) != 0)
       return 1;
     const ObjectKey leaderKey = KeyOfNode(node);
@@ -950,8 +953,9 @@ OrderBase* AiSystemPlanner::MoveTeams()
   bool allInPlace = static_cast<uint16_t>(m_leaders.Count()) != 0;
   auto gather = [&](ObjectKeySet& set)
   {
-    for (ObjectKeyNode* node = set.First(); node; node = NextNode(node))
+    for (auto position = set.Entries().begin(); position != set.Entries().end(); ++position)
     {
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
       AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
       if (!character)
         continue;

@@ -270,9 +270,11 @@ int AiTask10::ChooseManager()
   int result = 0;
   bool found = false;
   m_owner->m_key20.Reset();
-  ObjectKeyNode* node = m_targets.First();
-  while (node && !found)
+  auto position = m_targets.Entries().begin();
+  while (position != m_targets.Entries().end() && !found)
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ++position;
     m_manager = KeyOfNode(node);
     AiSystemEval* eval = IsSystemKey(m_manager) ? m_owner->m_systems.FindEval(m_manager) : nullptr;
     const bool stale = !eval || (eval->m_flags30.m_value & 1) == 0 || (eval->m_flags28.m_value & kSystemClaimed) == 0;
@@ -283,10 +285,8 @@ int AiTask10::ChooseManager()
         eval->m_flags28.m_value &= ~kSystemClaimed;
         eval->MarkChanged();
       }
-      ObjectKeyNode* next = NextNode(node);
       ObjectKey key = KeyOfNode(node);
       m_targets.RemoveKey(&key);
-      node = next;
       continue;
     }
     if (0 < eval->Stat(0x58) && (eval->m_flags28.m_value & 0x200) != 0 && (eval->m_flags28.m_value & 3) == 0)
@@ -294,7 +294,6 @@ int AiTask10::ChooseManager()
       m_owner->m_key20 = m_manager;
       found = true;
     }
-    node = NextNode(node);
   }
   const ObjectKey* fallbacks[] = {&m_owner->m_key1c, &m_owner->m_key24};
   for (const ObjectKey* fallback : fallbacks)
@@ -338,6 +337,7 @@ int AiTask10::NextRecord()
   AiSystemRecord* record = static_cast<AiSystemRecord*>(m_owner->m_systemRecords.FindById(m_recordCursor));
   if (!record)
     record = static_cast<AiSystemRecord*>(m_owner->m_systemRecords.First());
+  auto position = m_owner->m_systemRecords.PositionOf(record);
   if (record)
   {
     do
@@ -352,14 +352,17 @@ int AiTask10::NextRecord()
       }
       else
       {
-        record = static_cast<AiSystemRecord*>(record->m_successor);
+        ++position;
+        record = position == m_owner->m_systemRecords.Entries().end() ? nullptr :
+                                                                        static_cast<AiSystemRecord*>(position->get());
       }
     } while (record);
     if (record)
     {
       m_recordId = record->m_id;
-      AiSystemRecord* next = static_cast<AiSystemRecord*>(record->m_successor);
-      m_recordCursor = next ? next->m_id : 0;
+      ++position;
+      m_recordCursor =
+        position == m_owner->m_systemRecords.Entries().end() ? 0 : static_cast<AiSystemRecord*>(position->get())->m_id;
       return found;
     }
   }

@@ -18,7 +18,6 @@
 extern int g_characterMgrEventKindsReady; // 0x6bb7a0
 extern EventKindSet g_characterMgrEventKinds; // 0x6bb798
 
-DatRecord* GetFirstRecordOfType(int type); // 0x51cad0
 ObjectKey* GetAiRecordKey(DatRecord* record, ObjectKey* out); // 0x402e40
 // The starting number of minor characters of `side` for a galaxy of `size` (1-3); kind 1 is the Alliance's, 2 the Empire's.
 
@@ -70,11 +69,6 @@ ObjectKey keyOf(uint32_t value)
 GameObj* asGameObj(GameObjNotifier* object)
 {
   return static_cast<GameObj*>(object);
-}
-
-DatRecord* nextRecord(DatRecord* record)
-{
-  return reinterpret_cast<DatRecord*>(static_cast<AvlNode*>(record)->m_successor);
 }
 
 } // namespace

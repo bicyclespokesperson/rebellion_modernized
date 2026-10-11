@@ -29,7 +29,7 @@ void AudioContext::Shutdown() noexcept
   StopMusic();
   smackSound.Stop(1);
   soundCatalog.Clear();
-  soundEventQueue.Clear();
+  soundEventQueue.clear();
   SoundManager::Shutdown(1);
   soundSources.Clear();
   cdAudio.Close();

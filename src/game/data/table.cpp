@@ -89,20 +89,22 @@ void Table::Add(TableEntry* entry)
 
 TableEntry* Table::FindStepEntry(int value)
 {
-  AvlNode* node = m_entries.First();
-  if (node)
+  auto position = m_entries.Entries().begin();
+  if (position != m_entries.Entries().end())
   {
+    AvlNode* node = position->get();
     do
     {
       if (value < static_cast<TableEntry*>(node)->m_field20)
         break;
-      node = node->m_successor;
-    } while (node);
+      ++position;
+      node = position == m_entries.Entries().end() ? nullptr : position->get();
+    } while (position != m_entries.Entries().end());
     if (node)
     {
-      if (!node->Predecessor())
+      if (position == m_entries.Entries().begin())
         return static_cast<TableEntry*>(node);
-      return static_cast<TableEntry*>(node->Predecessor());
+      return static_cast<TableEntry*>(std::prev(position)->get());
     }
   }
   return static_cast<TableEntry*>(m_entries.Last());
@@ -157,10 +159,9 @@ int Table::Write(ostream* out)
   int length = static_cast<int>(std::strlen(m_name));
   WriteValue32(out, &length);
   ostream_write(out, m_name, length);
-  for (AvlNode* node = m_entries.First();; node = node->m_successor)
+  for (const auto& entry : m_entries.Entries())
   {
-    if (!node)
-      return ok;
+    AvlNode* node = entry.get();
     ok = static_cast<TableEntry*>(node)->Write(out);
     if (!ok)
       return 0;
@@ -176,10 +177,10 @@ int Table::Checksum(Crc32* crc)
   const int length = static_cast<int>(std::strlen(m_name));
   crc->AddInt(length);
   crc->Update(reinterpret_cast<const uint8_t*>(m_name), length);
-  for (AvlNode* node = m_entries.First(); node;)
+  for (const auto& entry : m_entries.Entries())
   {
+    AvlNode* node = entry.get();
     ok = static_cast<TableEntry*>(node)->Checksum(crc);
-    node = node->m_successor;
     if (!ok)
       break;
   }
@@ -326,8 +327,12 @@ int GDataTables::RegisterAllTables()
 int GDataTables::ChecksumAll(Crc32* crc)
 {
   int result = 1;
-  for (AvlNode* node = m_tables->First(); node && result; node = node->m_successor)
-    result = static_cast<TableFile*>(node)->m_table.Checksum(crc);
+  for (const auto& entry : m_tables->Entries())
+  {
+    if (!result)
+      break;
+    result = static_cast<TableFile*>(entry.get())->m_table.Checksum(crc);
+  }
   return result;
 }
 

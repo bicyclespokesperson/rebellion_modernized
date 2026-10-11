@@ -184,8 +184,7 @@ int GameRoot::CreateSectors(int galaxySize, NotifyContext* ctx)
   NotifyContext sectorContext(*ctx);
   sectorContext.m_flag04 = 1;
   sectorContext.m_flag08 = 2;
-  for (DatRecord* record = GetFirstRecordOfType(0x80); record != nullptr;
-       record = static_cast<DatRecord*>(record->m_successor))
+  for (DatRecord* record : GetRecordsOfType(0x80))
   {
     if (static_cast<SectorSD*>(record)->m_galaxySize <= galaxySize)
     {
@@ -218,8 +217,7 @@ int GameRoot::DistributeSystems(NotifyContext* ctx)
   }
 
   ObjectRefList core;
-  for (DatRecord* record = GetFirstRecordOfType(0x90); record != nullptr;
-       record = static_cast<DatRecord*>(record->m_successor))
+  for (DatRecord* record : GetRecordsOfType(0x90))
   {
     const ObjectKey sectorKey = ObjectKey::Make(family::kSector, static_cast<SystemSD*>(record)->m_sectorId);
     GameObjNotifier* sector = nullptr;
@@ -265,16 +263,17 @@ int GameRoot::DistributeSystems(NotifyContext* ctx)
   m_refLists[6].Add(static_cast<ObjectRefNode*>(node));
 
   int pick = GameRandom(farCount - 2);
-  AvlNode* cursor = m_refLists[5].First();
+  auto cursorPosition = m_refLists[5].Entries().begin();
   for (; pick != 0; --pick)
   {
-    if (cursor == nullptr)
+    if (cursorPosition == m_refLists[5].Entries().end())
       break;
-    cursor = cursor->m_successor;
+    ++cursorPosition;
   }
   uint32_t chosenId = farCount;
-  if (pick == 0 && cursor != nullptr)
+  if (pick == 0 && cursorPosition != m_refLists[5].Entries().end())
   {
+    AvlNode* cursor = cursorPosition->get();
     chosenId = static_cast<ObjectRefNode*>(cursor)->m_id;
     ObjectKey chosenKey;
     static_cast<ObjectRefNode*>(cursor)->GetKey(&chosenKey);
@@ -288,20 +287,21 @@ int GameRoot::DistributeSystems(NotifyContext* ctx)
   {
     --remaining;
     int skip = GameRandom(remaining);
-    AvlNode* entry = core.First();
+    auto entryPosition = core.Entries().begin();
     bool found = true;
     for (; skip != 0; --skip)
     {
-      if (entry == nullptr)
+      if (entryPosition == core.Entries().end())
       {
         found = false;
         break;
       }
-      entry = entry->m_successor;
+      ++entryPosition;
     }
-    if (!found || entry == nullptr)
+    if (!found || entryPosition == core.Entries().end())
       continue;
-    ObjectRefNode* refNode = static_cast<ObjectRefNode*>(core.DetachById(static_cast<ObjectRefNode*>(entry)->m_id));
+    auto* entry = static_cast<ObjectRefNode*>(entryPosition->get());
+    ObjectRefNode* refNode = static_cast<ObjectRefNode*>(core.DetachById(entry->m_id));
     if (toPool0x100 != 0)
     {
       m_refLists[2].Add(refNode);

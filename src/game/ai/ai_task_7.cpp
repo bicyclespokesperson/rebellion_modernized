@@ -512,16 +512,16 @@ int AiTask7::ChooseManager()
   bool found = false;
   m_cap = 0;
   m_owner->m_key1c.Reset();
-  ObjectKeyNode* node = m_targets.First();
-  while (node && !found)
+  auto position = m_targets.Entries().begin();
+  while (position != m_targets.Entries().end() && !found)
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ++position;
     m_manager = KeyOfNode(node);
     if (!IsSystemKey(m_manager))
     {
-      ObjectKeyNode* next = NextNode(node);
       ObjectKey key = KeyOfNode(node);
       m_targets.RemoveKey(&key);
-      node = next;
       continue;
     }
     AiSystemEval* eval = m_owner->m_systems.FindEval(m_manager);
@@ -533,10 +533,8 @@ int AiTask7::ChooseManager()
         eval->m_flags28.m_value &= ~kSystemClaimed;
         eval->MarkChanged();
       }
-      ObjectKeyNode* next = NextNode(node);
       ObjectKey key = KeyOfNode(node);
       m_targets.RemoveKey(&key);
-      node = next;
       continue;
     }
     if (0 < eval->Stat(0x58) && (eval->m_flags28.m_value & 0x200) != 0 && (eval->m_flags28.m_value & 3) == 0)
@@ -545,7 +543,6 @@ int AiTask7::ChooseManager()
       m_owner->m_key1c = m_manager;
       found = true;
     }
-    node = NextNode(node);
   }
   const ObjectKey* fallbacks[] = {&m_owner->m_key20, &m_owner->m_key24};
   for (const ObjectKey* fallback : fallbacks)

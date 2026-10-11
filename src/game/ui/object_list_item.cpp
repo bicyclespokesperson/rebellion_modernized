@@ -23,19 +23,3 @@ void ObjectListItem::Read(istream*)
 void ObjectListItem::Write(ostream*)
 {
 }
-
-CoolListItem* ObjectListItem::Next()
-{
-  ObjectListItem* next = static_cast<ObjectListItem*>(m_next);
-  if (next && !next->m_visible)
-    return next->Next();
-  return next;
-}
-
-CoolListItem* ObjectListItem::Previous()
-{
-  ObjectListItem* previous = static_cast<ObjectListItem*>(m_prev);
-  if (previous && !previous->m_visible)
-    return previous->Previous();
-  return previous;
-}

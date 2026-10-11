@@ -167,8 +167,9 @@ void GalaxyWindow::SetDisplayMode(int mode, IdAvlTree* selection)
     selection = nullptr;
   if (selection)
   {
-    for (AvlNode* node = selection->First(); node; node = node->m_successor)
+    for (const auto& ownedNode : selection->Entries())
     {
+      auto* node = ownedNode.get();
       void* memory = ::operator new(sizeof(IdNode));
       IdNode* copy = memory ? new (memory) IdNode(static_cast<IdNode*>(node)->m_id) : nullptr;
       m_selectedIds.AddWithId(copy);
@@ -282,8 +283,9 @@ void GalaxyWindow::SetDisplayMode(int mode, IdAvlTree* selection)
   request.m_soundId = kGidSoundId;
   request.m_moduleIndex = kSpriteSlot;
   SoundManager::Play(&request);
-  for (AvlNode* node = m_children.First(); node; node = node->m_successor)
+  for (const auto& ownedNode : m_children.Entries())
   {
+    auto* node = static_cast<AvlNode*>(ownedNode.get());
     CoolWindow* child = static_cast<CoolWindow*>(node);
     if ((child->m_childId & kChildTypeMask) == kSectorWindowType)
       InvalidateRect(child->m_hwnd, nullptr, FALSE);

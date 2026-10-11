@@ -1,11 +1,14 @@
 #include "app/app_control_cmds.h"
 
+#include <list>
+#include <memory>
 #include <new>
 
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
 #include "core/stream_io.h"
 #include "multiplayer/multiplayer_window.h"
+#include "ui/cool_window.h"
 
 extern const int g_rectA[4]; // 0x658b08 {left, top, right, bottom}
 extern int g_rectAWidth; // 0x6b14c4
@@ -244,9 +247,8 @@ HPALETTE g_displayPalette{};
 HPALETTE g_palette{};
 HPALETTE g_savedPalette{};
 HWND g_tooltipWindow{};
-HwndNode* g_captureStack{};
 IdAvlTree g_windowRegistry{};
-NodeStack g_popupStack{};
+std::list<std::unique_ptr<PopupEntry>> g_popupStack{};
 const RECT g_rectSessionList = {124, 277, 473, 352};
 const char* g_tooltipClassName = nullptr;
 const int g_rectA[4] = {144, 125, 500, 222};

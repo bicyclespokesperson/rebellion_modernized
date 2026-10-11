@@ -75,11 +75,6 @@ ObjectKey* nodeValueAsKey(AvlNode* node)
   return reinterpret_cast<ObjectKey*>(&static_cast<ObjectKeyValueNode*>(node)->m_value);
 }
 
-AvlNode* nextNode(AvlNode* node)
-{
-  return node->m_successor;
-}
-
 } // namespace
 
 // ---- rates and estimates -----------------------------------------------------------------------------------
@@ -276,14 +271,14 @@ int ManuMgr::EstimateQueuedBuildTime(const ObjectKey* queued, StatusCode* status
   int position = 1;
   if (!isOk(status))
     return 1;
-  AvlNode* node = static_cast<ManuMgr*>(ViewAs(0))->GetQueue()->First();
-  while (node)
+  for (const auto& entry : static_cast<ManuMgr*>(ViewAs(0))->GetQueue()->Entries())
   {
+    auto* node = entry.get();
     if (queued->m_value == nodeKey(node).m_value)
       break;
-    node = nextNode(node);
     ++position;
   }
+  auto* node = static_cast<ManuMgr*>(ViewAs(0))->GetQueue()->Find(queued);
   if (!node)
     setStatus(status, kManuStatusCategory, 5);
   if (!isOk(status))
@@ -472,11 +467,9 @@ int ManuMgr::UpdateTotalRequired(NotifyContext* ctx)
 {
   int ok = 1;
   int total = 0;
-  AvlNode* node = static_cast<ManuMgrData*>(m_data)->m_queue.First();
-  do
+  for (const auto& entry : static_cast<ManuMgrData*>(m_data)->m_queue.Entries())
   {
-    if (!node)
-      break;
+    AvlNode* node = entry.get();
     ObjectKey key = nodeKey(node);
     GameObjNotifier* product = GetMasterInFamilies_01_ff(&key);
     ok = 0;
@@ -488,8 +481,9 @@ int ManuMgr::UpdateTotalRequired(NotifyContext* ctx)
       if (ok)
         total += static_cast<int>(static_cast<SdRecord*>(record)->GetField48());
     }
-    node = nextNode(node);
-  } while (ok);
+    if (!ok)
+      break;
+  }
   int result = 0;
   if (ok)
     result = SetTotalRequiredPointCount(total, ctx);
@@ -512,9 +506,11 @@ int ManuMgr::ChooseProduct(NotifyContext* ctx)
   if (current && IsAcceptableProduct(static_cast<GameObj*>(current)))
     return result;
   ObjectKey chosen;
-  AvlNode* node = data->m_queue.First();
-  while (node && chosen.OrNull() == nullptr)
+  for (const auto& entry : data->m_queue.Entries())
   {
+    if (chosen.OrNull() != nullptr)
+      break;
+    AvlNode* node = entry.get();
     ObjectKey key = nodeKey(node);
     GameObjNotifier* candidate = GetMasterInFamilies_01_ff(&key);
     result = candidate != nullptr;
@@ -522,7 +518,6 @@ int ManuMgr::ChooseProduct(NotifyContext* ctx)
     {
       candidate->GetKey(&chosen);
     }
-    node = nextNode(node);
     if (!result)
       break;
   }
@@ -598,15 +593,16 @@ int ManuMgr::CompleteProduct(GameObj* product, NotifyContext* ctx)
 int ManuMgr::DestroyProducts(NotifyContext* ctx)
 {
   int result = 1;
-  AvlNode* node = static_cast<ManuMgrData*>(m_data)->m_queue.First();
-  while (node)
+  auto& queue = static_cast<ManuMgrData*>(m_data)->m_queue;
+  for (auto position = queue.Entries().begin(); position != queue.Entries().end();)
   {
+    auto current = position++;
+    AvlNode* node = current->get();
     ObjectKey key = nodeKey(node);
     GameObj* product = static_cast<GameObj*>(GetMasterInFamilies_01_ff(&key));
     result = 0;
     if (product)
       result = product->ChangeDestroyedReason(kDestroyedByReplacement, ctx);
-    node = nextNode(node);
     if (!result)
       return 0;
   }
@@ -616,9 +612,9 @@ int ManuMgr::DestroyProducts(NotifyContext* ctx)
 int ManuMgr::CreateProducts(ObjectKeySet* products, int unused, NotifyContext* ctx)
 {
   int result = 1;
-  AvlNode* node = products->First();
-  while (node)
+  for (const auto& entry : products->Entries())
   {
+    AvlNode* node = entry.get();
     ObjectKey key = nodeKey(node);
     GameObj* location = static_cast<GameObj*>(GetMasterInFamilies_01_ff(&key));
     result = 0;
@@ -634,7 +630,6 @@ int ManuMgr::CreateProducts(ObjectKeySet* products, int unused, NotifyContext* c
         result = child->SetBuilderKey(&self, ctx);
       }
     }
-    node = nextNode(node);
     if (!result)
       return 0;
   }
@@ -661,9 +656,10 @@ int ManuMgr::ReparentQueue(ObjectKeySet* products, const ObjectKey* target, Noti
   int result = SetTargetKey(&targetCopy, ctx);
   if (result)
   {
-    AvlNode* node = products->First();
-    while (node)
+    for (auto position = products->Entries().begin(); position != products->Entries().end();)
     {
+      auto current = position++;
+      AvlNode* node = current->get();
       GameObj* object = static_cast<GameObj*>(GetMasterInFamilies_01_ff(nodeValueAsKey(node)));
       result = 0;
       if (object)
@@ -671,7 +667,6 @@ int ManuMgr::ReparentQueue(ObjectKeySet* products, const ObjectKey* target, Noti
         ObjectKey newParent = nodeKey(node);
         result = object->Reparent(&newParent, ctx);
       }
-      node = nextNode(node);
       if (!result)
         break;
     }

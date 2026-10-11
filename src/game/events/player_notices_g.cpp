@@ -1,3 +1,4 @@
+#include "ai/ai_task_base.h"
 #include "events/player_notices.h"
 
 #include <new>
@@ -35,7 +36,7 @@ Notice16::Notice16() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice16::Notice16(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice16::Notice16(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_unk40 = 0;
   m_categories = Virtual11();
@@ -103,7 +104,7 @@ Notice14::Notice14() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice14::Notice14(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice14::Notice14(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_unk40 = 0;
   m_f68 = 0;
@@ -260,7 +261,7 @@ Notice13::Notice13() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice13::Notice13(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice13::Notice13(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_unk40 = 0;
   m_f68 = 0;
@@ -411,7 +412,7 @@ Notice12::Notice12() : UiTextNotice()
   m_f64 = 0;
 }
 
-Notice12::Notice12(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice12::Notice12(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_categories = Virtual11();
   m_f64 = 0;
@@ -474,7 +475,7 @@ void Notice12::OnMessage(int kind, intptr_t a, intptr_t b)
   }
 }
 
-int Notice12::Virtual16(const LinkNode* payloads)
+int Notice12::Virtual16(const AiNoticeGroup* payloads)
 {
   int result = ForwardPayloads(this, payloads);
   if (m_unk40 != 0)
@@ -499,7 +500,7 @@ Notice11::Notice11() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice11::Notice11(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice11::Notice11(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_categories = Virtual11();
   m_unk40 = 0;
@@ -624,7 +625,7 @@ Notice9::Notice9() : UiTextNotice()
   m_f68 = 0;
 }
 
-Notice9::Notice9(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice9::Notice9(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_categories = Virtual11();
@@ -726,7 +727,7 @@ Notice3::Notice3() : UiTextNotice()
   m_f64 = 0;
 }
 
-Notice3::Notice3(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice3::Notice3(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_categories = Virtual11();
   m_f64 = 0;
@@ -815,7 +816,7 @@ Notice4::Notice4() : UiTextNotice()
   m_categories = Virtual11();
 }
 
-Notice4::Notice4(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice4::Notice4(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_categories = Virtual11();
   Virtual16(payloads);
@@ -899,7 +900,7 @@ Notice5::Notice5() : UiTextNotice()
   m_categories = Virtual11();
 }
 
-Notice5::Notice5(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice5::Notice5(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_categories = Virtual11();
   Virtual16(payloads);
@@ -964,7 +965,7 @@ Notice6::Notice6() : UiTextNotice()
   m_categories = Virtual11();
 }
 
-Notice6::Notice6(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice6::Notice6(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_categories = Virtual11();
   Virtual16(payloads);

@@ -14,6 +14,7 @@
 #include "galaxy/system_rules.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/object_queries.h"
+#include "gameobj/object_type_db.h"
 #include "mission/mission_rules.h"
 #include "rules/loyalty_params.h"
 #include "rules/rules_mgr.h"
@@ -21,7 +22,6 @@
 
 // Setup of the people of a new game, the checks the person queries forward, and the reactions to what happens to people.
 
-DatRecord* GetFirstRecordOfType(int type); // 0x51cad0
 ObjectKey* GetAiRecordKey(DatRecord* record, ObjectKey* out); // 0x402e40
 
 namespace
@@ -78,11 +78,6 @@ GameObj* asGameObj(GameObjNotifier* object)
 Character* asCharacter(GameObjNotifier* object)
 {
   return static_cast<Character*>(object);
-}
-
-DatRecord* nextRecord(DatRecord* record)
-{
-  return reinterpret_cast<DatRecord*>(static_cast<AvlNode*>(record)->m_successor);
 }
 
 intptr_t contextAsArgument(NotifyContext* ctx)
@@ -298,10 +293,14 @@ int CharacterMgr::CreateRecordCharacter(DatRecord* record, NotifyContext* ctx)
 int CharacterMgr::CreateRecordCharacters(NotifyContext* ctx)
 {
   int result = 1;
-  for (DatRecord* record = GetFirstRecordOfType(0x30); record != nullptr; record = nextRecord(record))
+  for (DatRecord* record : GetRecordsOfType(0x30))
+  {
     result = CreateRecordCharacter(record, ctx) && result;
-  for (DatRecord* record = GetFirstRecordOfType(0x38); record != nullptr; record = nextRecord(record))
+  }
+  for (DatRecord* record : GetRecordsOfType(0x38))
+  {
     result = CreateRecordCharacter(record, ctx) && result;
+  }
   return result;
 }
 

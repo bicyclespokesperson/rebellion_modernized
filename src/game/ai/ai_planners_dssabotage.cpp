@@ -8,7 +8,6 @@ using ai::IsFleetKey;
 using ai::IsSystemKey;
 using ai::KeyOfNode;
 using ai::KeyOfObject;
-using ai::NextNode;
 
 AiDsSabotagePlanner::AiDsSabotagePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters)
 : AiFreePlanner(view, owner, characters)
@@ -23,8 +22,9 @@ int AiDsSabotagePlanner::Virtual06()
   int sum = 0;
   if ((m_flags.m_value & 0x20) == 0)
   {
-    for (ObjectKeyNode* node = m_leaders.First(); node; node = NextNode(node))
+    for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position)
     {
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
       const ObjectKey key = KeyOfNode(node);
       AiCharacterRecord* character = static_cast<AiCharacterRecord*>(m_characters->Find(&key));
       if (character)
@@ -60,8 +60,10 @@ void AiDsSabotagePlanner::FindTargetShip()
     AiFleetEval* fleet = m_owner->m_fleets.FindEval(KeyOfObject(fleets.m_current));
     if (fleet && (fleet->m_flags.m_value & 1) == 0 && (fleet->m_flags.m_value & 0x10) != 0)
     {
-      for (ObjectKeyNode* node = fleet->m_shipKeys.First(); node && !found; node = NextNode(node))
+      for (auto position = fleet->m_shipKeys.Entries().begin(); position != fleet->m_shipKeys.Entries().end() && !found;
+           ++position)
       {
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
         const ObjectKey shipKey = KeyOfNode(node);
         AiShipRecord* ship = static_cast<AiShipRecord*>(m_owner->m_ships.Find(&shipKey));
         if (ship && (ship->m_flags.m_value & 0x80) != 0)
@@ -102,8 +104,9 @@ int AiDsSabotagePlanner::ChooseTarget()
   if (static_cast<uint16_t>(fleetSystems.Count()) != 0)
   {
     bool found = false;
-    for (ObjectKeyNode* node = fleetSystems.First(); node && !found; node = NextNode(node))
+    for (auto position = fleetSystems.Entries().begin(); position != fleetSystems.Entries().end() && !found; ++position)
     {
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
       found = false;
       AiSystemEval* system = m_owner->m_systems.FindEval(KeyOfNode(node));
       if (system && (membersAtDestination == Virtual17() || system->Stat(0xbc) / 2 <= membersAtDestination))

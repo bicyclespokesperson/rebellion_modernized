@@ -203,7 +203,14 @@ GameObjNotifier* GameObjNotifier::FindFirstChildInRange(const FamilyRange* range
 
 GameObjNotifier* GameObjNotifier::NextSiblingInRange(const FamilyRange* range)
 {
-  GameObjNotifier* next = static_cast<GameObjNotifier*>(static_cast<AvlNode*>(this)->m_successor);
+  if (!m_parent)
+    return nullptr;
+  auto position = m_parent->m_children->PositionOf(this);
+  if (position == m_parent->m_children->Entries().end())
+    return nullptr;
+  ++position;
+  GameObjNotifier* next =
+    position == m_parent->m_children->Entries().end() ? nullptr : static_cast<GameObjNotifier*>(position->get());
   if (next)
   {
     const uint32_t family = next->GetFamily();
@@ -385,8 +392,11 @@ int GameObjNotifier::WriteTree(ostream* out)
       if (m_children->Count() != 0)
         WritePositionMarker(out);
     }
-    for (GameObjNotifier* child = FirstChild(); ok && child; child = static_cast<GameObjNotifier*>(child->m_successor))
+    for (const auto& entry : m_children->Entries())
     {
+      if (!ok)
+        break;
+      auto* child = static_cast<GameObjNotifier*>(entry.get());
       uint32_t family = child->GetFamily();
       WriteValue32(out, &family);
       ok = 0;
@@ -404,8 +414,9 @@ int GameObjNotifier::ChecksumTree(Crc32* crc)
   {
     crc->AddInt(m_children->m_ok);
     int included = 0;
-    for (GameObjNotifier* child = FirstChild(); child; child = static_cast<GameObjNotifier*>(child->m_successor))
+    for (const auto& entry : m_children->Entries())
     {
+      auto* child = static_cast<GameObjNotifier*>(entry.get());
       if (child->IncludeInChecksum())
       {
         ++included;

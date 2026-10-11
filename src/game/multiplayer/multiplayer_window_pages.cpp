@@ -143,16 +143,22 @@ bool SameGuid(const GUID& a, const GUID& b)
 
 void DeleteProviderData(CoolDragList* list)
 {
-  for (CoolListItem* item = list->m_items->First(); item; item = item->Next())
+  for (const auto& ownedItem : list->m_items->Entries())
+  {
+    auto* item = static_cast<CoolListItem*>(ownedItem.get());
     if (item->m_userPointer)
       delete reinterpret_cast<ServiceProviderInfo*>(item->m_userPointer);
+  }
 }
 
 void DeleteSessionData(CoolDragList* list)
 {
-  for (CoolListItem* item = list->m_items->First(); item; item = item->Next())
+  for (const auto& ownedItem : list->m_items->Entries())
+  {
+    auto* item = static_cast<CoolListItem*>(ownedItem.get());
     if (item->m_userPointer)
       delete reinterpret_cast<SessionInfo*>(item->m_userPointer);
+  }
 }
 
 CoolDragList*
@@ -316,9 +322,9 @@ void MultiPlayerWindow::FillProviderList()
   DeleteProviderData(m_providerList);
   m_providerList->RemoveAll();
   ServiceProviderList* providers = CommEnumerateServiceProviders();
-  for (auto* node = static_cast<ServiceProviderInfo*>(providers->First()); node;
-       node = static_cast<ServiceProviderInfo*>(node->m_successor))
+  for (const auto& ownedNode : providers->Entries())
   {
+    auto* node = static_cast<ServiceProviderInfo*>(ownedNode.get());
     auto* copy = NewOrNull<ServiceProviderInfo>(*node);
     m_providerList->AddItem(0, 0, 0, node->m_name.c_str(), 1, reinterpret_cast<uintptr_t>(copy));
   }
@@ -341,9 +347,9 @@ int MultiPlayerWindow::RefreshSessionList()
     return status;
   DeleteSessionData(m_sessionList);
   m_sessionList->RemoveAll();
-  for (auto* node = static_cast<SessionInfo*>(sessions->First()); node;
-       node = static_cast<SessionInfo*>(node->m_successor))
+  for (const auto& ownedNode : sessions->Entries())
   {
+    auto* node = static_cast<SessionInfo*>(ownedNode.get());
     auto* copy = NewOrNull<SessionInfo>(*node);
     m_sessionList->AddItem(0, 0, 0, node->m_name.c_str(), 1, reinterpret_cast<uintptr_t>(copy));
   }
@@ -368,14 +374,19 @@ int MultiPlayerWindow::SessionListUpToDate(SessionList* sessions)
   int differs = 0;
   if (!sessions || !m_sessionList)
     return differs;
-  if (static_cast<uint32_t>(sessions->Count()) != static_cast<uint32_t>(m_sessionList->m_items->m_count))
+  if (static_cast<uint32_t>(sessions->Count()) != static_cast<uint32_t>(m_sessionList->m_items->Count()))
     return 1;
-  for (auto* node = static_cast<SessionInfo*>(sessions->First()); node && !differs;
-       node = static_cast<SessionInfo*>(node->m_successor))
+  for (const auto& ownedNode : sessions->Entries())
   {
+    if (differs)
+      break;
+    auto* node = static_cast<SessionInfo*>(ownedNode.get());
     int found = 0;
-    for (CoolListItem* item = m_sessionList->FirstItem(); item && !found; item = item->Next())
+    for (const auto& ownedItem : m_sessionList->m_items->Entries())
     {
+      if (found)
+        break;
+      auto* item = static_cast<CoolListItem*>(ownedItem.get());
       const auto* known = reinterpret_cast<const SessionInfo*>(item->m_userPointer);
       found = SameGuid(known->m_instance, node->m_instance);
     }
@@ -395,7 +406,7 @@ void MultiPlayerWindow::RememberSelectedProvider()
     return;
   CoolListItemList selection(1);
   m_providerList->CopySelectionTo(&selection);
-  if (auto* item = static_cast<CoolListItem*>(selection.m_head))
+  if (auto* item = static_cast<CoolListItem*>(selection.First()))
   {
     const auto* source = reinterpret_cast<const ServiceProviderInfo*>(item->m_userPointer);
     m_selectedProvider = NewOrNull<ServiceProviderInfo>(*source);
@@ -413,7 +424,7 @@ void MultiPlayerWindow::RememberSelectedSession()
     return;
   CoolListItemList selection(1);
   m_sessionList->CopySelectionTo(&selection);
-  if (auto* item = static_cast<CoolListItem*>(selection.m_head))
+  if (auto* item = static_cast<CoolListItem*>(selection.First()))
   {
     const auto* source = reinterpret_cast<const SessionInfo*>(item->m_userPointer);
     m_selectedSession = NewOrNull<SessionInfo>(*source);

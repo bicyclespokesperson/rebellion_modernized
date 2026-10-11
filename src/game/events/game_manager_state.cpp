@@ -186,50 +186,72 @@ void LegacyTextTable::AllocateSlots()
 
 // ---- posted-event queues ----------------------------------------------------------------------------------------
 
-PostedEventQueue::PostedEventQueue() : NodeQueue(), m_flag(1)
+PostedEventQueue::PostedEventQueue() : m_flag(1)
 {
 }
 
-PostedEventQueue::~PostedEventQueue()
+PostedEventQueue::~PostedEventQueue() = default;
+
+void PostedEventQueue::Clear()
 {
-  NodeQueue::Clear();
+  m_payloads.clear();
+}
+
+void PostedEventQueue::Enqueue(std::unique_ptr<NotifPayload> payload)
+{
+  if (payload)
+    m_payloads.push_back(std::move(payload));
+}
+
+std::unique_ptr<NotifPayload> PostedEventQueue::Dequeue()
+{
+  if (m_payloads.empty())
+    return nullptr;
+  auto payload = std::move(m_payloads.front());
+  m_payloads.pop_front();
+  return payload;
 }
 
 int PostedEventQueue::Read(istream* in)
 {
-  int ok = 1;
-  NodeQueue::Clear();
+  Clear();
   ReadValue32(in, &m_flag);
-  int count;
+  uint32_t count = 0;
   ReadValue32(in, &count);
-  for (int i = 0; ok && i < count; ++i)
+  if (iostream_access::IosOf(in)->m_state & iostream_flags::kFail)
+    return 0;
+  for (uint32_t i = 0; i < count; ++i)
   {
-    int kind;
+    int kind = 0;
     ReadValue32(in, &kind);
-    NotifPayload* payload = static_cast<NotifPayload*>(CreateKeyedObject(kind));
-    ok = payload != nullptr;
-    if (ok)
+    if (iostream_access::IosOf(in)->m_state & iostream_flags::kFail)
+      return 0;
+    std::unique_ptr<NotifPayload> payload(static_cast<NotifPayload*>(CreateKeyedObject(kind)));
+    if (!payload)
     {
-      payload->Read(in);
-      Enqueue(payload);
+      iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+      return 0;
     }
+    payload->Read(in);
+    if (iostream_access::IosOf(in)->m_state & iostream_flags::kFail)
+      return 0;
+    Enqueue(std::move(payload));
   }
-  return ok;
+  return 1;
 }
 
 int PostedEventQueue::Write(ostream* out)
 {
   WriteValue32(out, &m_flag);
-  int count = m_count;
-  WriteValue32(out, &count);
-  for (LinkNode* node = m_head; node; node = node->m_next)
+  if (!WriteCount32(out, m_payloads.size()))
+    return 0;
+  for (const auto& payload : m_payloads)
   {
-    NotifPayload* payload = static_cast<NotifPayload*>(node);
     int kind = payload->GetKind();
     WriteValue32(out, &kind);
     payload->Write(out);
   }
-  return 1;
+  return (iostream_access::IosOf(out)->m_state & iostream_flags::kFail) == 0;
 }
 
 // ---- tick table -------------------------------------------------------------------------------------------------
@@ -304,8 +326,11 @@ int TickTable::WriteNodes(ostream* out)
   WriteValue32(out, &m_ready);
   uint32_t count = static_cast<uint32_t>(Count());
   WriteValue32(out, &count);
-  for (AvlNode* node = First(); node; node = node->m_successor)
+  for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();)
+  {
+    AvlNode* node = static_cast<AvlNode*>((nodePosition++)->get());
     static_cast<SeedKeyCountNode*>(node)->Write(out);
+  }
   return 1;
 }
 
@@ -314,8 +339,11 @@ int TickTable::Checksum(Crc32* crc)
   int result = 1;
   crc->AddInt(m_ready);
   crc->AddInt(static_cast<int32_t>(Count()));
-  for (AvlNode* node = First(); node; node = node->m_successor)
+  for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();)
+  {
+    AvlNode* node = static_cast<AvlNode*>((nodePosition++)->get());
     result = static_cast<SeedKeyCountNode*>(node)->Checksum(crc);
+  }
   return result;
 }
 

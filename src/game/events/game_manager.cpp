@@ -445,8 +445,12 @@ int GameManager::BuildAvailableOrders(int side, ObjectKeyValueSet* team, EventKi
   EventKindSet common;
 
   int ok = 1;
-  for (AvlNode* node = team->First(); node && ok; node = node->m_successor)
+  for (auto nodePosition = team->Entries().begin(); nodePosition != team->Entries().end();)
   {
+    AvlNode* node = static_cast<AvlNode*>((nodePosition++)->get());
+    if (!(true && ok))
+      break;
+
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     GameObj* object = static_cast<GameObj*>(GetMasterInFamilies_01_ff(&key));
@@ -462,8 +466,10 @@ int GameManager::BuildAvailableOrders(int side, ObjectKeyValueSet* team, EventKi
     }
   }
 
-  for (AvlNode* kindNode = common.First(); kindNode; kindNode = kindNode->m_successor)
+  for (const auto& kindNodeEntry : common.Entries())
   {
+    AvlNode* kindNode = static_cast<AvlNode*>(kindNodeEntry.get());
+
     if (!ok)
       return 0;
     EventKindNode* wanted = static_cast<EventKindNode*>(kindNode);
@@ -826,7 +832,7 @@ int GameManager::PostTickValue(int a, int b, int c)
     if (ok)
     {
       event->Virtual05();
-      m_secondQueue->Enqueue(event);
+      m_secondQueue->Enqueue(std::unique_ptr<NotifPayload>(event));
       NoteDispatch(event);
     }
   }
@@ -842,7 +848,7 @@ int GameManager::PostToFirstQueue(NotifPayload* event)
     if (ok)
     {
       event->Virtual05();
-      m_firstQueue->Enqueue(event);
+      m_firstQueue->Enqueue(std::unique_ptr<NotifPayload>(event));
       NoteDispatch(event);
     }
   }
@@ -854,8 +860,8 @@ int GameManager::FlushFirstQueue()
   const int ok = m_firstQueue != nullptr;
   if (ok)
   {
-    while (m_firstQueue->m_head)
-      CallGameHook2AE0(reinterpret_cast<HookArg>(m_firstQueue->Dequeue()));
+    while (auto payload = m_firstQueue->Dequeue())
+      CallGameHook2AE0(reinterpret_cast<HookArg>(payload.release()));
   }
   return ok;
 }
@@ -865,8 +871,8 @@ int GameManager::FlushSecondQueue()
   const int ok = m_secondQueue != nullptr;
   if (ok)
   {
-    while (m_secondQueue->m_head)
-      CallGameHook2AE0(reinterpret_cast<HookArg>(m_secondQueue->Dequeue()));
+    while (auto payload = m_secondQueue->Dequeue())
+      CallGameHook2AE0(reinterpret_cast<HookArg>(payload.release()));
   }
   return ok;
 }

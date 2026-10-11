@@ -18,25 +18,15 @@ TacticalAiSide* sideOf(HeadlessSimulator* simulator, int index)
   return simulator->m_sides[index];
 }
 
-// The lists have their own vtables; the call must stay virtual even for the simulator's own member.
-__attribute__((noinline)) UnitRefNode* firstNode(UnitRefTree* list)
-{
-  return list->FirstNode();
-}
-
-UnitRefNode* firstMemberNode(CapitalShipGroup* group)
-{
-  return static_cast<UnitRefNode*>(group->FirstNode());
-}
-
 // Counts the side's capital ships by type, forms one group per type present and then splits the biggest groups
 // (eight ships or more) to give a group to each type that has none.
 void formCapitalGroups(HeadlessSimulator* simulator, int side, int firstType)
 {
   unsigned counts[kTypeKinds] = {0, 0, 0, 0};
   CapitalShipGroup* groups[kTypeKinds];
-  for (UnitRefNode* node = firstNode(&simulator->m_units); node; node = node->Next())
+  for (const auto& entry : simulator->m_units.Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     if (node->Value()->m_side == side)
     {
       const unsigned offset = node->Value()->GetTypeIndex() - firstType;
@@ -72,20 +62,18 @@ void formCapitalGroups(HeadlessSimulator* simulator, int side, int firstType)
     counts[biggest] = counts[biggest] - moved;
     UnitRefTree movedUnits;
     CapitalShipGroup* donor = groups[biggest];
-    UnitRefNode* node = firstMemberNode(donor);
     int type = firstType;
-    UnitRefNode* next = nullptr;
+    auto nodePosition = donor->PositionOf(donor->FirstNode());
     for (unsigned remaining = counts[target]; remaining != 0; --remaining)
     {
-      if (node)
-      {
-        type = node->Value()->GetTypeIndex();
-        next = node->Next();
-        movedUnits.AddUnit(node->Value());
-        donor->Virtual21(node->Key());
-        donor->RemoveMember(node->Key());
-      }
-      node = next;
+      if (nodePosition == donor->Entries().end())
+        break;
+      auto current = nodePosition++;
+      auto* node = static_cast<UnitRefNode*>(current->get());
+      type = node->Value()->GetTypeIndex();
+      movedUnits.AddUnit(node->Value());
+      donor->Virtual21(node->Key());
+      donor->RemoveMember(node->Key());
     }
     groups[target] = simulator->FormCapitalGroup(&movedUnits, type, target);
   }
@@ -105,8 +93,9 @@ CapitalShipGroup* HeadlessSimulator::FormCapitalGroup(UnitRefTree* units, int un
 {
   bool first = true;
   CapitalShipGroup* group = nullptr;
-  for (UnitRefNode* node = firstNode(units); node; node = node->Next())
+  for (const auto& entry : units->Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     if (node->Value()->GetTypeIndex() != unitType)
       continue;
     TacticalShipBase* unit = node->Value();
@@ -131,8 +120,9 @@ CapitalShipGroup* HeadlessSimulator::FormCapitalGroup(UnitRefTree* units, int un
 
 void HeadlessSimulator::FormBattleGroups(int)
 {
-  for (UnitRefNode* node = firstNode(&m_units); node; node = node->Next())
+  for (const auto& entry : m_units.Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     TacticalShipBase* unit = node->Value();
     if (unit->GetUnitClass() == kFighterClass)
     {

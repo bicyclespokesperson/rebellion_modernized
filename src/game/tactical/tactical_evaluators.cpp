@@ -1,5 +1,6 @@
 #include <cmath>
 #include <new>
+#include <vector>
 
 #include "tactical/tactical_externals_2b.h"
 #include "tactical/tactical_formation.h"
@@ -30,11 +31,6 @@ constexpr float kScaleSlack = 0.65f;
 constexpr float kDistanceWeight = 0.001f;
 constexpr float kMinimumDistance = 1.0f;
 
-UnitRefNode* firstUnitNode(UnitRefTree& tree)
-{
-  return tree.FirstNode();
-}
-
 bool differs(float a, float b)
 {
   return a < b || a > b;
@@ -44,8 +40,9 @@ template <class Unit, class Tree>
 int countAboard(Tree& tree, int handle)
 {
   int count = 0;
-  for (AvlNode* node = tree.FirstItem(); node; node = node->m_successor)
+  for (const auto& entry : tree.Entries())
   {
+    AvlNode* node = entry.get();
     if (static_cast<Unit*>(node)->m_shipHandle == handle)
       ++count;
   }
@@ -108,8 +105,9 @@ int AttackEvaluator::Virtual03(ShipGroup* group)
     return 1;
   if (TacticalUnitKind(group) == kCapitalGroupKind)
   {
-    for (UnitRefNode* node = firstUnitNode(*group); node; node = node->Next())
+    for (const auto& entry : group->Entries())
     {
+      auto* node = static_cast<UnitRefNode*>(entry.get());
       if (node->Value()->m_state == kStateDocked)
         return 1;
       if (node->Value()->m_state == kStateLanding)
@@ -132,9 +130,9 @@ int AttackEvaluator::Virtual03(ShipGroup* group)
   }
   const int side = group->m_side;
   GroupRefTree& groups = reinterpret_cast<TacticalSideBase*>(GetHeadlessSimulator()->m_sides[side])->m_groups;
-  for (GroupRefNode* node = static_cast<GroupRefNode*>(groups.FirstNode()); node;
-       node = static_cast<GroupRefNode*>(node->Next()))
+  for (const auto& entry : groups.Entries())
   {
+    auto* node = static_cast<GroupRefNode*>(entry.get());
     if (node->m_id == group->m_id)
       continue;
     if (node->Value()->m_formationA.FirstUnit() != leader)
@@ -171,8 +169,9 @@ float AttackEvaluator::Evaluate(int a, TacticalShipBase* unit)
   const int side = unit->m_side;
   SideOrderTree& orders = reinterpret_cast<TacticalSideBase*>(GetHeadlessSimulator()->m_sides[side])->m_orders;
   float result = score;
-  for (AvlNode* node = orders.First(); node; node = node->m_successor)
+  for (const auto& entry : orders.Entries())
   {
+    AvlNode* node = entry.get();
     const SideOrderNode* order = reinterpret_cast<const SideOrderNode*>(node);
     if (order->m_unitHandle == static_cast<uint32_t>(static_cast<int>(unit->m_id)))
       result = order->m_weight * kOrderWeight + result;
@@ -191,31 +190,6 @@ ScoredGroupNode* newScored(float priority, ShipGroup* group)
 {
   void* memory = ::operator new(sizeof(ScoredGroupNode));
   return memory ? new (memory) ScoredGroupNode(priority, group) : nullptr;
-}
-
-TargetPriorityNode* firstTarget(TargetPriorityTree* tree)
-{
-  return static_cast<TargetPriorityNode*>(tree->First());
-}
-
-TargetPriorityNode* nextTarget(TargetPriorityNode* node)
-{
-  return static_cast<TargetPriorityNode*>(node->m_successor);
-}
-
-GroupRefNode* firstGroup(GroupRefTree& tree)
-{
-  return static_cast<GroupRefNode*>(tree.FirstNode());
-}
-
-GroupRefNode* nextGroup(GroupRefNode* node)
-{
-  return static_cast<GroupRefNode*>(node->Next());
-}
-
-ScoredGroupNode* previousScored(ScoredGroupNode* node)
-{
-  return static_cast<ScoredGroupNode*>(node->Predecessor());
 }
 
 bool timeIsUsable(float time, float limit)
@@ -262,19 +236,21 @@ int ScoredGroupTree::IsLess(AvlNode* a, AvlNode* b)
 
 int FormationEvaluator::Assign(TacticalSideBase* side, GroupRefTree* groups, TargetPriorityTree* targets, float limit)
 {
-  if (!targets->First())
+  if (targets->Empty())
     return 0;
-  if (!groups->FirstNode())
+  if (groups->Empty())
     return 0;
   GroupRefTree remaining(*groups);
 
-  for (TargetPriorityNode* target = firstTarget(targets); target; target = nextTarget(target))
+  for (const auto& targetEntry : targets->Entries())
   {
+    auto* target = static_cast<TargetPriorityNode*>(targetEntry.get());
     if (side->EvaluateUnit4(target->m_unit.m_unit) == 0)
       continue;
     ScoredGroupTree scored;
-    for (GroupRefNode* node = firstGroup(remaining); node; node = nextGroup(node))
+    for (const auto& groupEntry : remaining.Entries())
     {
+      auto* node = static_cast<GroupRefNode*>(groupEntry.get());
       float total = 0.0f;
       float speed = 0.0f;
       const float time = side->InterceptTime(target->m_unit.m_unit, node->Value(), &total, &speed);
@@ -303,16 +279,19 @@ int FormationEvaluator::Assign(TacticalSideBase* side, GroupRefTree* groups, Tar
 
     float strength = first->m_group.m_group->MemberStrengthAgainst(target->m_unit.m_unit);
     float speed;
-    for (ScoredGroupNode* candidate = last; candidate; candidate = previousScored(candidate))
+    for (auto candidatePosition = scored.Entries().rbegin(); candidatePosition != scored.Entries().rend();
+         ++candidatePosition)
     {
+      auto* candidate = static_cast<ScoredGroupNode*>(candidatePosition->get());
       if (!differs(candidate->m_priority, first->m_priority) && candidate->m_group.SameGroup(&first->m_group))
         break;
       const float time = side->InterceptTime(target->m_unit.m_unit, candidate->m_group.m_group, &strength, &speed);
       if (!timeIsUsable(time, limit))
         continue;
-      for (ScoredGroupNode* assigned = static_cast<ScoredGroupNode*>(scored.Last()); assigned;
-           assigned = previousScored(assigned))
+      for (auto assignedPosition = scored.Entries().rbegin(); assignedPosition != scored.Entries().rend();
+           ++assignedPosition)
       {
+        auto* assigned = static_cast<ScoredGroupNode*>(assignedPosition->get());
         TacticalShipBase* targetUnit = target->m_unit.m_unit;
         GetHeadlessSimulator()->AssignTarget(targetUnit, assigned->m_group.m_group);
         remaining.DeleteById(assigned->m_group.m_group->m_id);
@@ -323,19 +302,26 @@ int FormationEvaluator::Assign(TacticalSideBase* side, GroupRefTree* groups, Tar
     }
   }
 
-  for (GroupRefNode* leftover = firstGroup(remaining); leftover; leftover = nextGroup(leftover))
+  std::vector<GroupRefNode*> remainingGroups;
+  remainingGroups.reserve(remaining.Count());
+  for (const auto& entry : remaining.Entries())
+    remainingGroups.push_back(static_cast<GroupRefNode*>(entry.get()));
+  for (GroupRefNode* leftover : remainingGroups)
   {
-    TargetPriorityNode* pick = firstTarget(targets);
-    if (pick)
+    if (remaining.PositionOf(leftover) == remaining.Entries().end())
+      continue;
+    TargetPriorityNode* pick = nullptr;
+    for (const auto& targetEntry : targets->Entries())
     {
-      do
+      auto* candidate = static_cast<TargetPriorityNode*>(targetEntry.get());
+      if (side->EvaluateUnit4(candidate->m_unit.m_unit) == 1)
       {
-        if (side->EvaluateUnit4(pick->m_unit.m_unit) == 1)
-          break;
-        pick = nextTarget(pick);
-      } while (pick);
+        pick = candidate;
+        break;
+      }
     }
-    TacticalShipBase* chosen = pick ? pick->m_unit.m_unit : firstTarget(targets)->m_unit.m_unit;
+    TacticalShipBase* chosen =
+      pick ? pick->m_unit.m_unit : static_cast<TargetPriorityNode*>(targets->First())->m_unit.m_unit;
     GetHeadlessSimulator()->AssignTarget(chosen, leftover->Value());
   }
   return 1;

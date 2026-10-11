@@ -404,7 +404,13 @@ void TextScrollField::PopLineStart(int* charIndex)
   if (!last)
     return;
   *charIndex = last->m_charIndex;
-  m_lastLineStart = static_cast<TextLineStart*>(m_lastLineStart->m_prev);
+  auto position = m_lineStarts.PositionOf(last);
+  m_lastLineStart = nullptr;
+  if (position != m_lineStarts.Entries().begin() && position != m_lineStarts.Entries().end())
+  {
+    --position;
+    m_lastLineStart = static_cast<TextLineStart*>(position->get());
+  }
   if (m_lastLineStart)
   {
     m_lineStarts.DetachById(last->m_id);

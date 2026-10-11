@@ -17,7 +17,6 @@ using ai::IsShipKey;
 using ai::IsSystemKey;
 using ai::KeyOfNode;
 using ai::KeyOfObject;
-using ai::NextNode;
 
 namespace
 {
@@ -72,18 +71,18 @@ void PickRandomKey(ObjectKeySet* set, ObjectKey* out)
   if (count == 0)
     return;
   int steps = GameplayRandomNext(count);
-  ObjectKeyNode* node = set->First();
-  if (!node)
+  auto position = set->Entries().begin();
+  if (position == set->Entries().end())
     return;
   while (steps > 0)
   {
-    node = NextNode(node);
+    ++position;
     --steps;
-    if (!node)
+    if (position == set->Entries().end())
       break;
   }
-  if (node)
-    *out = KeyOfNode(node);
+  if (position != set->Entries().end())
+    *out = KeyOfNode(static_cast<ObjectKeyNode*>(position->get()));
 }
 
 // A character of the side's records that the AI may send somewhere: the character's record when the flags say it is a
@@ -148,8 +147,10 @@ void AiPosture::PickRandomCharacter(const ObjectKey* system, ObjectKey* out, uin
         AiFleetEval* fleet = FindFleet(m_owner, KeyOfObject(fleets.m_current));
         if (fleet && (fleet->m_flags.m_value & kFleetOurs) == 0 && (fleet->m_flags.m_value & 0x600000) != 0)
         {
-          for (ObjectKeyNode* ship = fleet->m_shipKeys.First(); ship; ship = NextNode(ship))
+          for (auto position = fleet->m_shipKeys.Entries().begin(); position != fleet->m_shipKeys.Entries().end();
+               ++position)
           {
+            ObjectKeyNode* ship = static_cast<ObjectKeyNode*>(position->get());
             ObjectKey shipKey = KeyOfNode(ship);
             GameObjNotifier* shipObject = GetObjectInFamilies_14_1c(m_view, &shipKey);
             if (shipObject)
@@ -172,8 +173,9 @@ void AiPosture::MarkFleetTargets()
     if (system)
       system->m_flags30.m_value &= 0xfe0fffff;
   }
-  for (ObjectKeyNode* node = m_record->m_fleets.First(); node; node = NextNode(node))
+  for (auto position = m_record->m_fleets.Entries().begin(); position != m_record->m_fleets.Entries().end(); ++position)
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
     AiFleetEval* fleet = FindFleet(m_owner, KeyOfNode(node));
     if (!fleet)
       continue;
@@ -381,6 +383,7 @@ int AiPosture::FindIdleFleet()
     node = m_record->m_fleets.First();
   if (node)
   {
+    auto position = m_record->m_fleets.PositionOf(node);
     firstKey = KeyOfNode(node);
     while (node)
     {
@@ -392,9 +395,10 @@ int AiPosture::FindIdleFleet()
         fleet->GetKey(&m_targetFleet);
         found = 1;
       }
-      node = NextNode(node);
-      if (!node)
-        node = m_record->m_fleets.First();
+      ++position;
+      if (position == m_record->m_fleets.Entries().end())
+        position = m_record->m_fleets.Entries().begin();
+      node = position == m_record->m_fleets.Entries().end() ? nullptr : static_cast<ObjectKeyNode*>(position->get());
       if (node && KeyOfNode(node).m_value == firstKey.m_value)
         node = nullptr;
     }
@@ -459,8 +463,9 @@ OrderBase* AiPosture::OrderCharacterFleet(int* found)
     return order;
   bool anyAssigned = false;
   team.Clear();
-  for (ObjectKeyNode* shipNode = fleet->m_shipKeys.First(); shipNode; shipNode = NextNode(shipNode))
+  for (auto position = fleet->m_shipKeys.Entries().begin(); position != fleet->m_shipKeys.Entries().end(); ++position)
   {
+    ObjectKeyNode* shipNode = static_cast<ObjectKeyNode*>(position->get());
     const ObjectKey shipKey = KeyOfNode(shipNode);
     AiShipRecord* shipRecord = FindShip(m_owner, shipKey);
     GameObjNotifier* shipObject = GetObjectInFamilies_14_1c(m_view, &shipKey);
@@ -573,6 +578,7 @@ OrderBase* AiPosture::OrderAssignedFleets(int* done)
     node = m_record->m_fleets.First();
   if (node)
   {
+    auto position = m_record->m_fleets.PositionOf(node);
     do
     {
       if (stop)
@@ -642,7 +648,8 @@ OrderBase* AiPosture::OrderAssignedFleets(int* done)
           }
         }
       }
-      node = NextNode(node);
+      ++position;
+      node = position == m_record->m_fleets.Entries().end() ? nullptr : static_cast<ObjectKeyNode*>(position->get());
       if (order != nullptr)
       {
         stop = true;
@@ -690,8 +697,10 @@ OrderBase* AiPosture::MakeTroopOrder(AiFleetEval* fleet)
   ObjectKeyValueSet team;
   if (!fleet)
     return order;
-  for (ObjectKeyNode* shipNode = fleet->m_shipKeys.First(); shipNode && !done; shipNode = NextNode(shipNode))
+  for (auto position = fleet->m_shipKeys.Entries().begin(); position != fleet->m_shipKeys.Entries().end() && !done;
+       ++position)
   {
+    ObjectKeyNode* shipNode = static_cast<ObjectKeyNode*>(position->get());
     AiShipRecord* ship = FindShip(m_owner, KeyOfNode(shipNode));
     if (!ship || ship->Stat(0x68) <= 0)
       continue;

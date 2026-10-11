@@ -15,8 +15,6 @@ public:
   void Read(istream* in) override; // slot 1, 0x5ae1e0: does nothing
   void Write(ostream* out) override; // slot 2, 0x5ae1e0: does nothing
   // The next/previous row, skipping invisible ones (linker-folded with RecordListItem's, 0x4ad730/0x4ad750).
-  CoolListItem* Next() override; // slot 3
-  CoolListItem* Previous() override; // slot 4
 
   // *out = m_key (0x42d170, shared with every class that keeps a key at +0x68).
   ObjectKey* GetKey(ObjectKey* out); // 0x42d170

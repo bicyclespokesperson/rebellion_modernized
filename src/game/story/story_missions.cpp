@@ -136,8 +136,12 @@ int checkMemberKeys(ObjectKeySet* keys, StatusCode* status, int* out)
   int result = 1;
   *status = StatusCode(story::kStatusCategory, story::kStatusOk);
   *out = 0;
-  for (AvlNode* node = keys->First(); node && result && statusOk(status); node = node->m_successor)
+  for (const auto& nodeEntry : keys->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    if (!(result && statusOk(status)))
+      break;
+
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     if (!IsAllowed(key))
@@ -165,8 +169,12 @@ int checkMemberRefs(ObjectRefList* refs, StatusCode* status, int* out)
 {
   *status = StatusCode(story::kStatusCategory, story::kStatusOk);
   *out = 0;
-  for (AvlNode* node = refs->First(); node && statusOk(status); node = node->m_successor)
+  for (const auto& nodeEntry : refs->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    if (!(statusOk(status)))
+      break;
+
     ObjectKey key;
     static_cast<ObjectRefNode*>(node)->GetKey(&key);
     if (!IsAllowed(key))
@@ -1076,8 +1084,12 @@ int MissionBounty::CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* chec
 {
   int result = 1;
   beginCheck(status, out);
-  for (AvlNode* node = keys->First(); node && result && statusOk(status); node = node->m_successor)
+  for (const auto& nodeEntry : keys->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    if (!(result && statusOk(status)))
+      break;
+
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     GameObj* any;

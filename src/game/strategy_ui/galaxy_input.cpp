@@ -28,6 +28,7 @@
 #include "ui/custom_dialog_box.h"
 #include "ui/object_list_item.h"
 #include "ui/sprite_stage.h"
+#include <iterator>
 
 namespace
 {
@@ -108,8 +109,9 @@ void PlaySpriteSound(uint32_t soundId)
 
 void ShowUnminimizedChildren(GalaxyWindow* galaxy)
 {
-  for (AvlNode* node = galaxy->m_children.First(); node; node = node->m_successor)
+  for (const auto& ownedNode : galaxy->m_children.Entries())
   {
+    auto* node = static_cast<AvlNode*>(ownedNode.get());
     CoolWindow* child = static_cast<CoolWindow*>(node);
     if (galaxy->FindMinimizedSlot(child->m_childId) == 0)
       child->Show(5);
@@ -142,7 +144,7 @@ bool CommandAvailable(EventKindSet* commands, int kind)
 
 bool NoPopupOpen()
 {
-  return g_popupStack.m_top == nullptr;
+  return g_popupStack.empty();
 }
 
 // Climbs the parents of `object` looking for the system it is in; if found, `*key` becomes that system's key.
@@ -262,8 +264,9 @@ LRESULT GalaxyWindow::OnCommandMessage(WPARAM wParam, LPARAM lParam)
       const int mode = HighWord(wParam);
       SetDisplayMode(mode, reinterpret_cast<IdAvlTree*>(lParam));
       ShowDisplayLegend(mode);
-      for (AvlNode* node = m_children.First(); node; node = node->m_successor)
+      for (const auto& ownedNode : m_children.Entries())
       {
+        auto* node = static_cast<AvlNode*>(ownedNode.get());
         CoolWindow* child = static_cast<CoolWindow*>(node);
         if (FindMinimizedSlot(child->m_childId) == 0)
           child->Show(5);
@@ -321,8 +324,8 @@ void GalaxyWindow::ToggleGidMenu()
     m_gidLegend->Hide();
     m_gidLegendIcon->Show(5);
   }
-  for (AvlNode* node = m_children.First(); node; node = node->m_successor)
-    static_cast<CoolWindow*>(node)->Hide();
+  for (const auto& ownedNode : m_children.Entries())
+    static_cast<CoolWindow*>(ownedNode.get())->Hide();
   if (!m_gidMenu)
   {
     void* memory = ::operator new(sizeof(GidMenuWindow));
@@ -840,8 +843,9 @@ void GalaxyWindow::OnAccelerator(WPARAM wParam)
     case 0xbb9:
       if (noPopup)
       {
-        for (AvlNode* node = m_children.First(); node; node = node->m_successor)
+        for (const auto& ownedNode : m_children.Entries())
         {
+          auto* node = static_cast<AvlNode*>(ownedNode.get());
           CoolWindow* child = static_cast<CoolWindow*>(node);
           if (FindMinimizedSlot(child->m_childId) == 0)
             static_cast<CoolGameWindow*>(child)->PostCloseRequest();
@@ -997,20 +1001,25 @@ void GalaxyWindow::ActivateNextOpenWindow(IdNode* current, bool backwards)
   const bool forwards = !backwards;
   bool wrapped = false;
   IdNode* found = nullptr;
-  IdNode* node = current;
+  auto position = m_openWindowIds.PositionOf(current);
   do
   {
-    node = static_cast<IdNode*>(forwards ? node->m_successor : node->Predecessor());
-    if (!node)
+    if (position == m_openWindowIds.Entries().end())
+      break;
+    if (forwards)
+      position = std::next(position);
+    else if (position == m_openWindowIds.Entries().begin())
+      position = m_openWindowIds.Entries().end();
+    else
+      position = std::prev(position);
+    if (position == m_openWindowIds.Entries().end())
     {
-      if (!wrapped)
-      {
-        node = static_cast<IdNode*>(forwards ? m_openWindowIds.First() : m_openWindowIds.Last());
-        wrapped = true;
-      }
-      if (!node && wrapped)
+      if (wrapped || m_openWindowIds.Entries().empty())
         break;
+      position = forwards ? m_openWindowIds.Entries().begin() : std::prev(m_openWindowIds.Entries().end());
+      wrapped = true;
     }
+    auto* node = static_cast<IdNode*>(position->get());
     if ((node->m_id & kOpenIdMask) != kSectorWindowType && FindMinimizedSlot(node->m_id) == 0)
       found = node;
   } while (!found);

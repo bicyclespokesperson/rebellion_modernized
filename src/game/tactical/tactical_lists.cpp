@@ -20,16 +20,6 @@ int UnitRefNode::Key()
   return m_id;
 }
 
-UnitRefNode* UnitRefNode::Next()
-{
-  return static_cast<UnitRefNode*>(m_successor);
-}
-
-UnitRefNode* UnitRefNode::Previous()
-{
-  return static_cast<UnitRefNode*>(Predecessor());
-}
-
 TacticalShipBase* UnitRefNode::Value()
 {
   return m_unit;
@@ -101,10 +91,7 @@ IdNode* UnitRefTree::Find(int handle)
 
 int UnitRefTree::CountNodes()
 {
-  int count = 0;
-  for (UnitRefNode* node = FirstNode(); node; node = node->Next())
-    ++count;
-  return count;
+  return static_cast<int>(Entries().size());
 }
 
 // ---- InsertionOrderTree ---------------------------------------------------------------------------------------------
@@ -120,8 +107,9 @@ int InsertionOrderTree::IsLess(AvlNode*, AvlNode*)
 
 IdNode* InsertionOrderTree::FindLinear(uint32_t id)
 {
-  for (AvlNode* node = First(); node; node = node->m_successor)
+  for (const auto& entry : Entries())
   {
+    AvlNode* node = entry.get();
     if (static_cast<IdNode*>(node)->m_id == id)
       return static_cast<IdNode*>(node);
   }
@@ -200,16 +188,6 @@ GroupRefNode::GroupRefNode(ShipGroup* group)
 
 GroupRefNode::~GroupRefNode() = default;
 
-AvlNode* GroupRefNode::Next()
-{
-  return m_successor;
-}
-
-AvlNode* GroupRefNode::Previous()
-{
-  return Predecessor();
-}
-
 ShipGroup* GroupRefNode::Value()
 {
   return m_group;
@@ -243,11 +221,10 @@ GroupRefTree& GroupRefTree::operator=(const GroupRefTree& other)
   if (&other != this)
   {
     Clear();
-    for (AvlNode* node = const_cast<GroupRefTree&>(other).FirstNode(); node;)
+    for (const auto& entry : other.Entries())
     {
-      GroupRefNode* groupNode = static_cast<GroupRefNode*>(node);
+      GroupRefNode* groupNode = static_cast<GroupRefNode*>(entry.get());
       AddGroup(groupNode->Value());
-      node = groupNode->Next();
     }
   }
   return *this;
@@ -300,8 +277,11 @@ UnitRefTree* UnitRefTree::CopyFrom(UnitRefTree* other)
 {
   if (other != this)
   {
-    for (UnitRefNode* node = other->FirstNode(); node; node = node->Next())
+    for (const auto& entry : other->Entries())
+    {
+      auto* node = static_cast<UnitRefNode*>(entry.get());
       AddUnit(node->Value());
+    }
   }
   return this;
 }

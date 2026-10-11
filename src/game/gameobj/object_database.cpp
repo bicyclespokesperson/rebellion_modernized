@@ -20,10 +20,6 @@ void SetStatus(StatusCode* status, uint32_t code)
   *status = StatusCode(1, code);
 }
 
-ObjectKeyNode* NextKeyNode(ObjectKeyNode* node)
-{
-  return static_cast<ObjectKeyNode*>(node->m_successor);
-}
 } // namespace
 
 // ---- ObjectEntry -------------------------------------------------------------------------------------------
@@ -99,14 +95,6 @@ int ObjectEntry::IsFullyLinked() const
       return 0;
   }
   return linked;
-}
-
-ObjectEntry* ObjectEntry::NextInRange(const FamilyRange* range) const
-{
-  ObjectEntry* next = static_cast<ObjectEntry*>(m_successor);
-  if (next && range->m_first <= next->m_family && next->m_family < range->m_second)
-    return next;
-  return nullptr;
 }
 
 // ---- ObjectDatabase ----------------------------------------------------------------------------------------
@@ -191,8 +179,12 @@ int ObjectDatabase::DeleteEntry(AvlNode* entry)
 int ObjectDatabase::AreAllLinked()
 {
   int linked = 1;
-  for (AvlNode* node = First(); node && linked; node = node->m_successor)
-    linked = static_cast<ObjectEntry*>(node)->IsFullyLinked();
+  for (const auto& entry : Entries())
+  {
+    if (!linked)
+      break;
+    linked = static_cast<ObjectEntry*>(entry.get())->IsFullyLinked();
+  }
   return linked;
 }
 
@@ -381,8 +373,15 @@ GameObjNotifier* FindNextObjectInRange(GameObjNotifier* object, const FamilyRang
   if (object && object->HasAllViews())
   {
     ObjectEntry* entry = object->m_entry;
-    while ((entry = entry->NextInRange(range)) != nullptr)
+    auto position = g_objectDatabase->PositionOf(entry);
+    if (position != g_objectDatabase->Entries().end())
+      ++position;
+    while (position != g_objectDatabase->Entries().end())
     {
+      entry = static_cast<ObjectEntry*>(position->get());
+      if (entry->m_family < range->m_first || entry->m_family >= range->m_second)
+        break;
+      ++position;
       if (entry->IsFullyLinked())
       {
         result = entry->GetObject(static_cast<int>(object->ViewSide()));
@@ -419,8 +418,9 @@ int DescribeKeyValueSet(ObjectKeyValueSet* keys, std::string* out)
   if (!keys->First())
     *out += std::string("<none>");
   bool first = true;
-  for (ObjectKeyNode* node = keys->First(); node; node = NextKeyNode(node))
+  for (const auto& entry : keys->Entries())
   {
+    auto* node = static_cast<ObjectKeyNode*>(entry.get());
     if (first)
       first = false;
     else
@@ -442,8 +442,11 @@ int CollectKeyDependencies(void* context, ObjectKeyValueSet* keys, ObjectKeyValu
   SetStatus(status, kStatusOk);
   *collected = ObjectKeyValueSet();
   ObjectKeyValueSet dependencies;
-  for (ObjectKeyNode* node = keys->First(); node && ok && status->m_second == kStatusOk; node = NextKeyNode(node))
+  for (const auto& keyEntry : keys->Entries())
   {
+    if (!ok || status->m_second != kStatusOk)
+      break;
+    auto* node = static_cast<ObjectKeyNode*>(keyEntry.get());
     dependencies.Clear();
     ObjectKey key;
     node->GetKey(&key);
@@ -453,8 +456,9 @@ int CollectKeyDependencies(void* context, ObjectKeyValueSet* keys, ObjectKeyValu
     if (object && status->m_second == kStatusOk)
     {
       ok = object->CollectDependencies(context, static_cast<ObjectKeyValueNode*>(node)->m_value, &dependencies);
-      for (ObjectKeyNode* dep = dependencies.First(); dep; dep = NextKeyNode(dep))
+      for (const auto& depEntry : dependencies.Entries())
       {
+        auto* dep = static_cast<ObjectKeyNode*>(depEntry.get());
         ObjectKey depKey;
         dep->GetKey(&depKey);
         if (!collected->Find(&depKey))

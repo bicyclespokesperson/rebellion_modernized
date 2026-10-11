@@ -740,7 +740,10 @@ int advanceDeltaFrames(DeltaFrameStep* step, RECT* area, int* changed, bool stop
       frame->ApplyTo(step->m_workBitmaps[i]);
       frame->GetBounds(area, replace);
       replace = 0;
-      step->m_cursors[i] = static_cast<DeltaFrame*>(static_cast<AvlNode*>(frame)->m_successor);
+      auto position = step->m_frameLists[i].PositionOf(frame);
+      ++position;
+      step->m_cursors[i] =
+        position == step->m_frameLists[i].Entries().end() ? nullptr : static_cast<DeltaFrame*>(position->get());
     }
     if (stopSoundsOnRequest)
     {

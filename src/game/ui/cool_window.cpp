@@ -1,5 +1,7 @@
 #include "ui/cool_window.h"
+#include <algorithm>
 #include <string>
+#include <utility>
 
 #include <cstring>
 
@@ -151,8 +153,9 @@ CoolWindow* ChildWindowTree::FindById(uint32_t id)
 
 CoolWindow* ChildWindowTree::FindByHwnd(HWND hwnd)
 {
-  for (CoolWindow* node = static_cast<CoolWindow*>(First()); node; node = static_cast<CoolWindow*>(node->m_successor))
+  for (const auto& entry : Entries())
   {
+    auto* node = static_cast<CoolWindow*>(entry.get());
     if (node->m_hwnd == hwnd)
       return node;
   }
@@ -235,26 +238,6 @@ CoolWindow::~CoolWindow()
   if (m_tooltipText)
     RemoveTool(this);
 
-  HwndNode* previous = nullptr;
-  for (HwndNode* node = g_captureStack; node;)
-  {
-    HwndNode* next = static_cast<HwndNode*>(node->m_successor);
-    if (node->m_hwnd == m_hwnd)
-    {
-      if (previous)
-        previous->m_successor = next;
-      else
-        g_captureStack = next;
-      delete node;
-    }
-    else
-    {
-      previous = node;
-    }
-    node = next;
-  }
-  if (g_captureStack && g_captureStack->m_hwnd != GetCapture())
-    SetCapture(g_captureStack->m_hwnd);
   EndPopup();
 }
 
@@ -411,8 +394,8 @@ LRESULT CoolWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
   {
     if (wParam)
     {
-      for (AvlNode* node = m_linkedWindows.First(); node; node = node->m_successor)
-        static_cast<HwndNode*>(node)->m_window->Show(SW_SHOW);
+      for (const auto& entry : m_linkedWindows.Entries())
+        static_cast<HwndNode*>(entry.get())->m_window->Show(SW_SHOW);
     }
     return 0;
   }
@@ -544,8 +527,6 @@ LRESULT HandleDestroy(HWND hwnd, WPARAM wParam, LPARAM lParam)
   const LRESULT result = Forward(window, WM_DESTROY, wParam, lParam);
   if (window->m_tooltipText)
     window->RemoveTool(window);
-  if (g_captureStack && g_captureStack->m_hwnd == GetCapture() && g_captureStack->m_hwnd == window->m_hwnd)
-    ReleaseCapture();
   return result;
 }
 
@@ -748,7 +729,7 @@ LRESULT CALLBACK TooltipHookProc(int code, WPARAM wParam, LPARAM lParam)
 LRESULT CALLBACK MouseHookProc(int code, WPARAM wParam, LPARAM lParam)
 {
   bool swallow = false;
-  PopupEntry* top = static_cast<PopupEntry*>(g_popupStack.m_top);
+  PopupEntry* top = g_popupStack.empty() ? nullptr : g_popupStack.back().get();
   if (code >= 0 && code != HC_NOREMOVE && top && top->m_node)
   {
     CoolWindow* popup = top->m_node->m_window;
@@ -766,12 +747,12 @@ LRESULT CALLBACK MouseHookProc(int code, WPARAM wParam, LPARAM lParam)
 
 int CoolWindow::BeginPopup()
 {
-  if (!g_popupStack.m_top)
+  if (g_popupStack.empty())
     g_mouseHook = SetWindowsHookExA(WH_MOUSE, MouseHookProc, m_instance, GetCurrentThreadId());
   HwndNode* node = NewOrNull<HwndNode>(m_hwnd);
   if (!node)
   {
-    if (!g_popupStack.m_top && g_mouseHook)
+    if (g_popupStack.empty() && g_mouseHook)
     {
       UnhookWindowsHookEx(g_mouseHook);
       g_mouseHook = nullptr;
@@ -779,37 +760,33 @@ int CoolWindow::BeginPopup()
     return false;
   }
   node->m_window = this;
-  PopupEntry* entry = NewOrNull<PopupEntry>(node);
+  std::unique_ptr<PopupEntry> entryOwner(NewOrNull<PopupEntry>(node));
   HwndNode* member = NewOrNull<HwndNode>(m_hwnd);
-  if (!entry || !member)
+  if (!entryOwner || !member)
   {
-    delete entry;
-    if (!entry)
+    if (!entryOwner)
       delete node;
     delete member;
-    if (!g_popupStack.m_top && g_mouseHook)
+    if (g_popupStack.empty() && g_mouseHook)
     {
       UnhookWindowsHookEx(g_mouseHook);
       g_mouseHook = nullptr;
     }
     return false;
   }
-  if (!g_popupStack.Push(entry))
-  {
-    delete entry;
-    delete member;
-    if (!g_popupStack.m_top && g_mouseHook)
-    {
-      UnhookWindowsHookEx(g_mouseHook);
-      g_mouseHook = nullptr;
-    }
-    return false;
-  }
+  PopupEntry* entry = entryOwner.get();
+  g_popupStack.emplace_back(std::move(entryOwner));
   if (!m_popupMembers.Insert(member))
   {
     delete member;
-    g_popupStack.RemoveAndDelete(entry);
-    if (!g_popupStack.m_top && g_mouseHook)
+    auto stackEntry = std::find_if(g_popupStack.begin(), g_popupStack.end(),
+                                   [entry](const auto& candidate)
+                                   {
+                                     return candidate.get() == entry;
+                                   });
+    if (stackEntry != g_popupStack.end())
+      g_popupStack.erase(stackEntry);
+    if (g_popupStack.empty() && g_mouseHook)
     {
       UnhookWindowsHookEx(g_mouseHook);
       g_mouseHook = nullptr;
@@ -822,16 +799,12 @@ int CoolWindow::BeginPopup()
 
 PopupEntry* FindPopupEntry(HWND hwnd)
 {
-  PopupEntry* entry = static_cast<PopupEntry*>(g_popupStack.m_top);
-  if (!entry)
-    return nullptr;
-  while (!entry->m_node || entry->m_node->m_hwnd != hwnd)
+  for (auto entry = g_popupStack.rbegin(); entry != g_popupStack.rend(); ++entry)
   {
-    entry = static_cast<PopupEntry*>(entry->m_next);
-    if (!entry)
-      return nullptr;
+    if ((*entry)->m_node && (*entry)->m_node->m_hwnd == hwnd)
+      return entry->get();
   }
-  return entry;
+  return nullptr;
 }
 
 int CoolWindow::EndPopup()
@@ -841,8 +814,14 @@ int CoolWindow::EndPopup()
     return false;
   if (entry->m_node && entry->m_node->m_window)
     entry->m_node->m_window->m_popupMembers.RemoveAndDelete(m_hwnd);
-  g_popupStack.RemoveAndDelete(entry);
-  if (!g_popupStack.m_top)
+  auto stackEntry = std::find_if(g_popupStack.begin(), g_popupStack.end(),
+                                 [entry](const auto& candidate)
+                                 {
+                                   return candidate.get() == entry;
+                                 });
+  if (stackEntry != g_popupStack.end())
+    g_popupStack.erase(stackEntry);
+  if (g_popupStack.empty())
   {
     UnhookWindowsHookEx(g_mouseHook);
     g_mouseHook = nullptr;
@@ -852,7 +831,7 @@ int CoolWindow::EndPopup()
 
 void CoolWindow::RegisterWithActivePopup()
 {
-  PopupEntry* top = static_cast<PopupEntry*>(g_popupStack.m_top);
+  PopupEntry* top = g_popupStack.empty() ? nullptr : g_popupStack.back().get();
   if (!top || !top->m_node || !top->m_node->m_window)
     return;
   HwndTree& members = top->m_node->m_window->m_popupMembers;
@@ -863,7 +842,7 @@ void CoolWindow::RegisterWithActivePopup()
 
 HWND CurrentPopupHwnd()
 {
-  PopupEntry* top = static_cast<PopupEntry*>(g_popupStack.m_top);
+  PopupEntry* top = g_popupStack.empty() ? nullptr : g_popupStack.back().get();
   if (top && top->m_node)
     return top->m_node->m_hwnd;
   return nullptr;
@@ -901,21 +880,8 @@ void CoolWindow::RemoveLinkedWindow(CoolWindow* window)
 
 int ReleaseAllCaptures()
 {
-  int hadCaptures = 0;
-  if (g_captureStack)
-  {
-    hadCaptures = 1;
-    do
-    {
-      HwndNode* next = static_cast<HwndNode*>(g_captureStack->m_successor);
-      if (g_captureStack)
-        delete g_captureStack;
-      g_captureStack = next;
-    } while (g_captureStack);
-    g_captureStack = nullptr;
-  }
   ReleaseCapture();
-  return hadCaptures;
+  return 0;
 }
 
 HWND SetCaptureWindow(HWND hwnd)
@@ -1054,9 +1020,11 @@ uint32_t FindSlotOfModule(HMODULE module)
   if (!resources)
     return 0;
   uint32_t slot = 0;
-  for (ResourceDll* dll = static_cast<ResourceDll*>(resources->libraries.m_head); dll && slot == 0;
-       dll = static_cast<ResourceDll*>(dll->m_next))
+  for (const auto& entry : resources->libraries.Entries())
   {
+    if (slot != 0)
+      break;
+    auto* dll = static_cast<ResourceDll*>(entry.get());
     if (module == dll->m_module)
       slot = dll->m_id;
   }

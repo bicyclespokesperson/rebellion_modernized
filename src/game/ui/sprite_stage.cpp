@@ -32,10 +32,13 @@ void SpriteTree::Add(Sprite* sprite)
 
 Sprite* SpriteTree::FindById(uint32_t id)
 {
-  AvlNode* node = First();
-  while (node && static_cast<Sprite*>(node)->m_id != id)
-    node = node->m_successor;
-  return static_cast<Sprite*>(node);
+  for (const auto& entry : Entries())
+  {
+    auto* sprite = static_cast<Sprite*>(entry.get());
+    if (sprite->m_id == id)
+      return sprite;
+  }
+  return nullptr;
 }
 
 AnimatorTree::AnimatorTree() = default;
@@ -133,9 +136,9 @@ void SpriteStage::Render(int frame)
     return;
   ClearBitmap(BackBuffer());
   m_resynced = 0;
-  for (AvlNode* node = m_animators.First(); node; node = node->m_successor)
+  for (const auto& entry : m_animators.Entries())
   {
-    SpriteAnimator* animator = static_cast<SpriteAnimator*>(node);
+    SpriteAnimator* animator = static_cast<SpriteAnimator*>(entry.get());
     changed = 0;
     for (int step = m_frame; step < frame && !m_resynced; ++step)
       animator->Step(&area, &changed);
@@ -154,8 +157,8 @@ void SpriteStage::Render(int frame)
   if (!m_resynced)
     m_frame = frame;
   m_resynced = 0;
-  for (AvlNode* node = m_sprites.First(); node; node = node->m_successor)
-    static_cast<Sprite*>(node)->DrawOnto(BackBuffer(), m_originX, m_originY, &area);
+  for (const auto& entry : m_sprites.Entries())
+    static_cast<Sprite*>(entry.get())->DrawOnto(BackBuffer(), m_originX, m_originY, &area);
   if (anyChanged)
     m_front = 1 - m_front;
 }
@@ -258,16 +261,17 @@ void SpriteStage::StopAnimator(uint32_t id)
 
 uint32_t SpriteStage::HitTest(int x, int y)
 {
-  AvlNode* node = m_animators.First();
   const int dx = m_originX - m_x;
   const int dy = m_originY - m_y;
   uint32_t id = 0;
-  while (node && !id)
+  for (const auto& entry : m_animators.Entries())
   {
-    SpriteAnimator* animator = static_cast<SpriteAnimator*>(node);
+    SpriteAnimator* animator = static_cast<SpriteAnimator*>(entry.get());
     if (animator->HitTest(x + dx, y + dy))
+    {
       id = animator->m_id;
-    node = node->m_successor;
+      break;
+    }
   }
   return id;
 }

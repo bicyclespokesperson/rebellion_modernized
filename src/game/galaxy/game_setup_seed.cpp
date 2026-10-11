@@ -106,11 +106,6 @@ uint32_t ApplyLoyaltyRuleToSystem(System* system, const LoyaltyRule* rule, Notif
   return result;
 }
 
-GameObjNotifier* GetNextSectorMaster(GameObjNotifier* sector)
-{
-  return static_cast<GameObj*>(sector)->FindNextSibling(&kSectorFamilies, 1);
-}
-
 GameObjNotifier* NextSystemMaster(GameObjNotifier* system)
 {
   return static_cast<GameObj*>(system)->FindNextSibling(&kSystemFamilies, 1);
@@ -168,8 +163,10 @@ int GameRoot::SumSeedValues(int factor, ObjectRefList* list, int* total)
 {
   int ok = 1;
   *total = 0;
-  for (AvlNode* node = list->First(); node != nullptr; node = node->m_successor)
+  for (const auto& nodeEntry : list->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+
     const ObjectKey key = static_cast<ObjectRefNode*>(node)->m_key;
     DatRecord* record = FindDataRecord(AsLookupKey(&key));
     ok = bothTrue(record != nullptr, ok);
@@ -215,8 +212,12 @@ int GameRoot::CreateChildrenFromList(GameObjNotifier* parent, int count, ObjectR
           ok = bothTrue(target != nullptr, ok);
         }
       }
-      for (AvlNode* next = node->m_successor; next != nullptr; next = next->m_successor)
+      auto position = list->PositionOf(node);
+      if (position != list->Entries().end())
+        ++position;
+      for (; position != list->Entries().end(); ++position)
       {
+        auto* next = position->get();
         if (target != nullptr)
         {
           ObjectRefNode* entry = static_cast<ObjectRefNode*>(next);

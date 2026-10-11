@@ -205,13 +205,16 @@ uint32_t CommMgr::QueueMessage(const void* data, uint32_t size, uint32_t categor
   CommMgr* comm = GetCommMgr();
   CommOutgoing* outgoing = NewOrNull<CommOutgoing>(data, size, category, reliable);
   auto* packet = static_cast<CommPacket*>(comm->m_pending.FindById(outgoing->m_firstPacketId));
+  auto packetPosition = packet ? comm->m_pending.PositionOf(packet) : comm->m_pending.Entries().end();
   while (packet && m_dplay)
   {
+    ++packetPosition;
     if (BroadcastPacket(packet, reliable) != 0)
       return 0;
     if (!m_dplay)
       return 1;
-    packet = static_cast<CommPacket*>(packet->m_successor);
+    packet =
+      packetPosition == comm->m_pending.Entries().end() ? nullptr : static_cast<CommPacket*>(packetPosition->get());
   }
   if (reliable)
   {
@@ -315,15 +318,17 @@ int CommMgr::ResendUnacked()
   int result = 0;
   const DWORD now = timeGetTime();
   bool anyPending = false;
-  auto* packet = static_cast<CommPacket*>(m_pending.First());
-  for (;;)
+  auto packetPosition = m_pending.Entries().begin();
+  for (; packetPosition != m_pending.Entries().end();)
   {
-    if (!packet || !m_dplay)
+    if (!m_dplay)
     {
       if (!anyPending)
         result = kCommWaitingForAcks;
       return result;
     }
+    auto current = packetPosition++;
+    auto* packet = static_cast<CommPacket*>(current->get());
     if (packet->m_wire.m_reliable)
     {
       for (uint32_t player = 0; player < GetEnumeratedCount(); ++player)
@@ -346,7 +351,6 @@ int CommMgr::ResendUnacked()
     }
     if (!m_dplay)
       break;
-    packet = static_cast<CommPacket*>(packet->m_successor);
   }
   return 1;
 }
@@ -418,10 +422,11 @@ void CommMgr::RegroupReceived()
 CommBuffer* CommMgr::TakeMessage(char category)
 {
   CommBuffer* message = nullptr;
-  auto* partial = static_cast<PartialMessage*>(m_assembling.First());
-  while (partial && m_dplay)
+  auto position = m_assembling.Entries().begin();
+  while (position != m_assembling.Entries().end() && m_dplay)
   {
-    auto* next = static_cast<PartialMessage*>(partial->m_successor);
+    auto current = position++;
+    auto* partial = static_cast<PartialMessage*>(current->get());
     if (partial->IsComplete())
     {
       if (static_cast<char>(partial->GetCategory()) == 0)
@@ -449,7 +454,6 @@ CommBuffer* CommMgr::TakeMessage(char category)
         }
       }
     }
-    partial = next;
   }
   ReceivedPacket* packet = ReceiveIncoming();
   for (;; packet = ReceiveIncoming())
@@ -545,13 +549,13 @@ void CommMgr::ClearCategoryFrom(IdAvlTree* tree, char category)
 {
   if (!m_dplay)
     return;
-  AvlNode* node = tree->First();
-  while (node)
+  auto position = tree->Entries().begin();
+  while (position != tree->Entries().end())
   {
-    AvlNode* next = node->m_successor;
+    auto current = position++;
+    AvlNode* node = current->get();
     if (static_cast<char>(CategoryOfNode(static_cast<IdNode*>(node))) == category)
       tree->DeleteById(static_cast<IdNode*>(node)->m_id);
-    node = next;
   }
 }
 
@@ -561,15 +565,15 @@ int CommMgr::DeactivatePlayer(uint32_t index)
     return kCommNoOtherPlayers;
   m_playerIds[index] = kNoPlayer;
   --m_playerCount;
-  auto* packet = static_cast<CommPacket*>(m_pending.First());
-  while (packet)
+  auto position = m_pending.Entries().begin();
+  while (position != m_pending.Entries().end())
   {
+    auto current = position++;
+    auto* packet = static_cast<CommPacket*>(current->get());
     if (packet->m_ack->GetState(index) == 1)
       packet->m_ack->SetState(index, 2);
-    auto* next = static_cast<CommPacket*>(packet->m_successor);
     if (packet->m_ack->IsSettled() == 1)
       m_pending.DeleteById(packet->m_id);
-    packet = next;
   }
   if (index != kNoPlayer && index != kBroadcastIndex)
   {

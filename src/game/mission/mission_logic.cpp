@@ -215,8 +215,10 @@ int ChooseMissionLeader(ObjectKeyValueSet* team, ObjectKey* leader, NullableKey*
   seed->m_value = 0;
   int bestLeadership = 0;
   int bestRank = 1;
-  for (AvlNode* node = team->First(); node; node = node->m_successor)
+  for (const auto& nodeEntry : team->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     if (!(key.Family() >= 0x30 && key.Family() < 0x40))

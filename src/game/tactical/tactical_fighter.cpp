@@ -160,8 +160,9 @@ double TacticalFighter::GetSpeed()
   float tractored = 0.0f;
   if (m_unk3b4 == 0.0f)
   {
-    for (UnitRefNode* node = m_unk360.FirstNode(); node; node = node->Next())
+    for (const auto& entry : m_unk360.Entries())
     {
+      auto* node = static_cast<UnitRefNode*>(entry.get());
       tractored = static_cast<float>(node->Value()->TractorPower() + tractored);
     }
 #ifdef REB_NO_TACTICAL_3D

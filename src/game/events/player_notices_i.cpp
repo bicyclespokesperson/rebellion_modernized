@@ -1,3 +1,4 @@
+#include "ai/ai_task_base.h"
 #include "events/player_notices.h"
 
 #include <new>
@@ -17,8 +18,9 @@ namespace
 
 void notifyKeys(int owner, ObjectKeySet& set)
 {
-  for (ObjectKeyNode* node = set.First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& entry : set.Entries())
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(entry.get());
     ObjectKey key(node->m_key);
     UiSendNotificationToSide(owner, asArg(&key));
   }
@@ -34,18 +36,16 @@ Notice23::Notice23() : UiTextNotice()
   m_kind = 0x17;
   m_f80 = 0;
   m_class = 3;
-  m_order90 = nullptr;
   m_categories = Virtual11();
   m_unk40 = 0;
 }
 
-Notice23::Notice23(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice23::Notice23(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_kind = 0x17;
   m_f80 = 0;
   m_class = 3;
-  m_order90 = nullptr;
   m_categories = Virtual11();
   m_unk40 = 0;
   Virtual16(payloads);
@@ -79,14 +79,13 @@ void Notice23::OnMessage(int kind, intptr_t a, intptr_t b)
   m_keys.Add(node);
 }
 
-int Notice23::Virtual16(const LinkNode* payloads)
+int Notice23::Virtual16(const AiNoticeGroup* payloads)
 {
   m_unk28 = 0x14;
-  m_order90 = const_cast<LinkNode*>(payloads);
   if (!payloads)
     return 0;
-  for (const LinkNode* node = payloads->m_next; node; node = node->m_next)
-    static_cast<NotifPayload*>(const_cast<LinkNode*>(node))->DispatchToSink(this);
+  for (const auto& node : payloads->Entries())
+    node.get()->DispatchToSink(this);
   return 1;
 }
 
@@ -126,7 +125,7 @@ Notice22::Notice22() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice22::Notice22(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice22::Notice22(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_f64 = 0;
   m_kind = 0x16;
@@ -182,24 +181,26 @@ void Notice22::Virtual15()
   m_order = nullptr;
 }
 
-int Notice22::Virtual16(const LinkNode* payloads)
+int Notice22::Virtual16(const AiNoticeGroup* payloads)
 {
   m_unk28 = 0x14;
   m_payloads = payloads;
   if (!payloads)
     return 0;
-  for (const LinkNode* node = payloads->m_next; node; node = node->m_next)
-    static_cast<NotifPayload*>(const_cast<LinkNode*>(node))->DispatchToSink(this);
+  for (const auto& node : payloads->Entries())
+    node.get()->DispatchToSink(this);
+  m_payloads = nullptr;
   return 1;
 }
 
 void Notice22::ListSecondKeys()
 {
-  const LinkNode* node = m_payloads ? m_payloads->m_next : nullptr;
+  if (!m_payloads)
+    return;
   bool first = true;
-  for (; node; node = node->m_next)
+  for (const auto& node : m_payloads->Entries())
   {
-    NotifPayload* payload = static_cast<NotifPayload*>(const_cast<LinkNode*>(node));
+    NotifPayload* payload = node.get();
     if (payload->GetKind() != 0x370)
       continue;
     ObjectKey scratch;

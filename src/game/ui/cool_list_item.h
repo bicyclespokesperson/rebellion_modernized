@@ -26,9 +26,6 @@ public:
   explicit CoolListItem(uint32_t id); // 0x60ba00
   CoolListItem(const CoolListItem& other); // 0x60bac0: deep copy (images are duplicated)
   ~CoolListItem() override; // 0x60bc60 (scalar deleting destructor 0x60baa0)
-  virtual CoolListItem* Next(); // slot 3, 0x60beb0: m_next (linker-folded getter)
-  virtual CoolListItem* Previous(); // slot 4, 0x60bec0: m_prev (linker-folded getter)
-
   DibBitmap* CurrentImage(); // 0x60bd00: the image for the current state
   // Loads RT_BITMAP `imageId` / `selectedImageId` from `module` when they differ from the current ids;
   // id 0 means no image.

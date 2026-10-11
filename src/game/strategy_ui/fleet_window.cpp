@@ -554,20 +554,21 @@ LRESULT FleetWindow::OnWmCommand(UINT message, WPARAM wParam, LPARAM lParam)
       {
         if (code != kDragListActivated)
           return 0;
-        FleetListItem* next = static_cast<FleetListItem*>(m_fleetItems->First());
-        while (next)
+        auto position = m_fleetItems->Entries().begin();
+        while (position != m_fleetItems->Entries().end())
         {
-          FleetListItem* position = next;
-          next = static_cast<FleetListItem*>(position->Next());
-          if ((position->m_flags.m_value & kFleetItemFleet) == 0)
+          auto current = position++;
+          auto* row = static_cast<FleetListItem*>(current->get());
+          if ((row->m_flags.m_value & (kFleetItemFleet | kFleetItemHidden)) != kFleetItemFleet)
             continue;
-          if ((position->m_state.m_value & kListItemSelected) == 0)
+          if ((row->m_state.m_value & kListItemSelected) == 0)
             continue;
-          GameObjNotifier* fleet = GetObjectInFamilies_08_10(m_galaxy->m_side, &position->m_key);
+          GameObjNotifier* fleet = GetObjectInFamilies_08_10(m_galaxy->m_side, &row->m_key);
           if (!fleet)
             continue;
-          position->m_flags.m_value ^= kFleetItemExpanded;
-          SyncShipRows(fleet, &position);
+          row->m_flags.m_value ^= kFleetItemExpanded;
+          auto rowPosition = m_fleetItems->PositionOf(row);
+          SyncShipRows(fleet, &rowPosition);
           m_fleetList->Refresh();
         }
         return result;
@@ -681,13 +682,16 @@ void FleetWindow::GetSelection(ObjectKeyValueSet* out, CoolWindow* source)
   {
     items = m_shipList->m_items;
   }
-  CoolListItem* row = items ? items->First() : nullptr;
-  for (; row; row = row->Next())
+  if (!items)
+    return;
+  for (const auto& ownedRow : items->Entries())
   {
-    FleetListItem* item = static_cast<FleetListItem*>(row);
-    if ((item->m_state.m_value & kListItemSelected) == 0)
+    auto* row = static_cast<FleetListItem*>(ownedRow.get());
+    if (row->m_flags.m_value & kFleetItemHidden)
       continue;
-    out->Add(NewOrNull<ObjectKeyValueNode>(item->m_key, 0));
+    if ((row->m_state.m_value & kListItemSelected) == 0)
+      continue;
+    out->Add(NewOrNull<ObjectKeyValueNode>(row->m_key, 0));
   }
 }
 
@@ -706,8 +710,8 @@ ObjectKey FleetWindow::GetKeyAt(int x, int y)
       CoolListItemList selection(1);
       CoolListItem* row = nullptr;
       m_fleetList->CopySelectionTo(&selection);
-      if (selection.m_head)
-        row = m_fleetItems->FindById(static_cast<CoolListItem*>(selection.m_head)->m_id);
+      if (selection.First())
+        row = m_fleetItems->FindById(static_cast<CoolListItem*>(selection.First())->m_id);
       if (row)
         result = static_cast<FleetListItem*>(row)->m_key;
       return result;
@@ -727,15 +731,15 @@ ObjectKey FleetWindow::GetKeyAt(int x, int y)
 ObjectKey FleetWindow::GetDropKeyAt(int x, int y)
 {
   ObjectKey result;
-  CoolListItem* row = m_fleetItems->First();
-  if (!row)
+  if (m_fleetItems->Entries().empty())
     result = m_systemKey;
   bool nothingOwn = true;
   bool haveSelectedOwn = false;
-  while (row)
+  for (const auto& ownedRow : m_fleetItems->Entries())
   {
-    CoolListItem* next = row->Next();
-    FleetListItem* item = static_cast<FleetListItem*>(row);
+    auto* item = static_cast<FleetListItem*>(ownedRow.get());
+    if (item->m_flags.m_value & kFleetItemHidden)
+      continue;
     nothingOwn = nothingOwn && (item->m_flags.m_value & kFleetItemOwn) == 0;
     if ((item->m_state.m_value & kListItemSelected) != 0 && (item->m_flags.m_value & kFleetItemOwn) != 0)
     {
@@ -749,7 +753,6 @@ ObjectKey FleetWindow::GetDropKeyAt(int x, int y)
         result = ObjectKey();
       }
     }
-    row = next;
   }
   if (nothingOwn)
     result = m_systemKey;
@@ -788,22 +791,17 @@ RECT* FleetWindow::GetRenameRect(RECT* out)
     items = m_shipItems;
     list = m_shipList;
   }
-  CoolListItem* row = items->First();
-  if (row)
+  for (const auto& ownedRow : items->Entries())
   {
-    while ((row->m_state.m_value & kListItemSelected) == 0)
-    {
-      row = row->Next();
-      if (!row)
-        break;
-    }
-    if (row)
+    auto* row = static_cast<FleetListItem*>(ownedRow.get());
+    if ((row->m_flags.m_value & kFleetItemHidden) == 0 && (row->m_state.m_value & kListItemSelected) != 0)
     {
       const RECT textRect = list->GetItemTextRect(row);
       rect.left = textRect.left + list->m_x;
       rect.top = textRect.top + list->m_y;
       rect.bottom = textRect.bottom + list->m_y;
       rect.right = list->m_width - 8 + list->m_x;
+      break;
     }
   }
   *out = rect;
@@ -853,7 +851,7 @@ void FleetWindow::ShowObjectPage(const ObjectKey* key)
   {
     m_uiFlags.m_value &= ~kFleetShipListActive;
     row->m_flags.m_value ^= kFleetItemExpanded;
-    FleetListItem* position = row;
+    auto position = m_fleetItems->PositionOf(row);
     SyncShipRows(fleet, &position);
     m_fleetList->Refresh();
     m_uiFlags.m_value |= kFleetShipListActive;
@@ -914,7 +912,7 @@ void FleetWindow::SyncFleetRows()
     return;
   HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
   FleetIterator fleets(system, 3);
-  FleetListItem* position = static_cast<FleetListItem*>(m_fleetItems->First());
+  auto position = m_fleetItems->Entries().begin();
   const int previousSide = m_controlSide;
   m_objects.Clear();
   ObjectKeyIdNode* systemNode = NewOrNull<ObjectKeyIdNode>();
@@ -934,7 +932,7 @@ void FleetWindow::SyncFleetRows()
       GameObjNotifier* fleet = fleets.Current();
       if (static_cast<int>(fleet->ControlSide()) == m_viewSide)
         m_controlSide = m_viewSide;
-      if (!position)
+      if (position == m_fleetItems->Entries().end())
       {
         AddFleetRow(fleet, &position);
         fleets.Advance();
@@ -943,7 +941,7 @@ void FleetWindow::SyncFleetRows()
       {
         ObjectKey fleetKey;
         fleet->GetKey(&fleetKey);
-        const uint32_t rowKey = position->m_key.m_value;
+        const uint32_t rowKey = static_cast<FleetListItem*>(position->get())->m_key.m_value;
         if (fleetKey.m_value < rowKey)
         {
           AddFleetRow(fleet, &position);
@@ -975,7 +973,7 @@ void FleetWindow::SyncFleetRows()
       }
     } while (fleets.Current());
   }
-  while (position)
+  while (position != m_fleetItems->Entries().end())
     RemoveRows(&position);
   if (m_controlSide != previousSide)
   {
@@ -1005,26 +1003,26 @@ void FleetWindow::SyncFleetRows()
   UpdateShipList();
 }
 
-void FleetWindow::RemoveRows(FleetListItem** position)
+void FleetWindow::RemoveRows(RowIterator* position)
 {
-  FleetListItem* row = *position;
-  FleetListItem* next = static_cast<FleetListItem*>(row->m_next);
-  while (row)
+  auto next = *position;
+  while (next != m_fleetItems->Entries().end())
   {
+    auto current = next++;
+    auto* row = static_cast<FleetListItem*>(current->get());
     if (m_fleetItems->Remove(row))
       delete row;
-    *position = nullptr;
-    if (next && (next->m_flags.m_value & kFleetItemFleet) == 0)
+    if (next != m_fleetItems->Entries().end() &&
+        (static_cast<FleetListItem*>(next->get())->m_flags.m_value & kFleetItemFleet) == 0)
     {
-      *position = next;
-      next = static_cast<FleetListItem*>(next->m_next);
+      continue;
     }
-    row = *position;
+    break;
   }
   *position = next;
 }
 
-void FleetWindow::AddFleetRow(GameObjNotifier* fleet, FleetListItem** position)
+void FleetWindow::AddFleetRow(GameObjNotifier* fleet, RowIterator* position)
 {
   HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
   ObjectKeyIdNode* node = NewOrNull<ObjectKeyIdNode>();
@@ -1093,7 +1091,8 @@ void FleetWindow::AddFleetRow(GameObjNotifier* fleet, FleetListItem** position)
     item->SetImages(image, selected);
   }
   item->m_flags.m_value = (item->m_flags.m_value & ~kFleetItemExpanded) | kFleetItemFleet;
-  FleetListItem* anchor = *position;
+  FleetListItem* anchor =
+    *position == m_fleetItems->Entries().end() ? nullptr : static_cast<FleetListItem*>((*position)->get());
   if (!anchor)
   {
     if (!m_fleetItems->Insert(item))
@@ -1107,18 +1106,18 @@ void FleetWindow::AddFleetRow(GameObjNotifier* fleet, FleetListItem** position)
     delete item;
     return;
   }
-  *position = item;
+  *position = m_fleetItems->PositionOf(item);
   SyncShipRows(fleet, position);
 }
 
-void FleetWindow::SyncShipRows(GameObjNotifier* fleet, FleetListItem** position)
+void FleetWindow::SyncShipRows(GameObjNotifier* fleet, RowIterator* position)
 {
   HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
-  FleetListItem* fleetRow = *position;
+  FleetListItem* fleetRow = static_cast<FleetListItem*>((*position)->get());
   FleetListItem* shipRow = nullptr;
   CapShipIterator ships(fleet, 3);
   const uint32_t fleetFlags = fleet->m_flags;
-  const bool expanded = ((*position)->m_flags.m_value >> 1 & 1) != 0;
+  const bool expanded = (fleetRow->m_flags.m_value >> 1 & 1) != 0;
   uint32_t contents = 0;
   DibBitmap* marker = LoadBitmap(art, ((fleetFlags & 0xc0) != 0x40 ? kSkinStep : 0) + 0x28a1);
   DibBitmap* fleetImage = fleetRow->m_image;
@@ -1143,7 +1142,7 @@ void FleetWindow::SyncShipRows(GameObjNotifier* fleet, FleetListItem** position)
     scratch->DrawKeyed(fleetSelected, 0, 0);
   }
   ships.Begin();
-  *position = static_cast<FleetListItem*>(fleetRow->m_next);
+  *position = std::next(*position);
 
   auto drawThroughLine = [&](FleetListItem* row)
   {
@@ -1167,7 +1166,7 @@ void FleetWindow::SyncShipRows(GameObjNotifier* fleet, FleetListItem** position)
     node->m_key = nodeKey;
     node->AddId(m_childId);
     m_objects.Add(node, 0);
-    if (!*position)
+    if (*position == m_fleetItems->Entries().end())
     {
       needNewRow = true;
     }
@@ -1175,11 +1174,12 @@ void FleetWindow::SyncShipRows(GameObjNotifier* fleet, FleetListItem** position)
     {
       ObjectKey currentKey;
       ships.Current()->GetKey(&currentKey);
-      if (currentKey.m_value == (*position)->m_key.m_value)
+      auto* positionedRow = static_cast<FleetListItem*>((*position)->get());
+      if (currentKey.m_value == positionedRow->m_key.m_value)
       {
         if (shipRow)
           drawThroughLine(shipRow);
-        shipRow = *position;
+        shipRow = positionedRow;
         GameObjNotifier* ship = ships.Current();
         shipContents = FleetContents(ship);
         if (shipContents != shipRow->m_userData)
@@ -1205,14 +1205,14 @@ void FleetWindow::SyncShipRows(GameObjNotifier* fleet, FleetListItem** position)
         }
         shipRow->m_text = NameOf(ships.Current());
         SetFlag(shipRow, kFleetItemHidden, !expanded);
-        *position = static_cast<FleetListItem*>((*position)->m_next);
+        ++*position;
         ships.Advance();
       }
-      else if (((*position)->m_flags.m_value & kFleetItemFleet) == 0)
+      else if ((positionedRow->m_flags.m_value & kFleetItemFleet) == 0)
       {
         ObjectKey shipKey;
         ships.Current()->GetKey(&shipKey);
-        const uint32_t rowKey = (*position)->m_key.m_value;
+        const uint32_t rowKey = positionedRow->m_key.m_value;
         if (shipKey.m_value < rowKey)
         {
           needNewRow = true;
@@ -1223,11 +1223,11 @@ void FleetWindow::SyncShipRows(GameObjNotifier* fleet, FleetListItem** position)
           ships.Current()->GetKey(&laterKey);
           if (rowKey < laterKey.m_value)
           {
-            FleetListItem* gone = *position;
-            LinkNode* following = gone->m_next;
+            FleetListItem* gone = positionedRow;
+            auto following = std::next(*position);
             if (m_fleetItems->Remove(gone))
               delete gone;
-            *position = static_cast<FleetListItem*>(following);
+            *position = following;
           }
         }
       }
@@ -1269,7 +1269,7 @@ void FleetWindow::SyncShipRows(GameObjNotifier* fleet, FleetListItem** position)
       marker->DrawKeyed(selected, 0, 0);
       SetFlag(row, kFleetItemHidden, !expanded);
       row->SetImages(image, selected);
-      if (!*position)
+      if (*position == m_fleetItems->Entries().end())
       {
         if (!m_fleetItems->Insert(row))
         {
@@ -1277,7 +1277,7 @@ void FleetWindow::SyncShipRows(GameObjNotifier* fleet, FleetListItem** position)
           shipRow = nullptr;
         }
       }
-      else if (!m_fleetItems->InsertBefore(row, *position))
+      else if (!m_fleetItems->InsertBefore(row, static_cast<FleetListItem*>((*position)->get())))
       {
         delete row;
         shipRow = nullptr;
@@ -1348,12 +1348,14 @@ void FleetWindow::UpdateShipList()
   bool hasOwn = false;
   bool changed = false;
   int selectedCount = 0;
-  FleetListItem* row = static_cast<FleetListItem*>(m_fleetItems->First());
   m_shipItems->Clear();
   m_primaryTotal = 0;
   m_capacityTotal = 0;
-  for (; row; row = static_cast<FleetListItem*>(row->Next()))
+  for (const auto& ownedRow : m_fleetItems->Entries())
   {
+    auto* row = static_cast<FleetListItem*>(ownedRow.get());
+    if (row->m_flags.m_value & kFleetItemHidden)
+      continue;
     if ((row->m_state.m_value & kListItemSelected) == 0)
       continue;
     if ((row->m_flags.m_value & kFleetItemOwn) != 0)
@@ -1361,10 +1363,14 @@ void FleetWindow::UpdateShipList()
     selectedCount++;
     last = row;
   }
-  row = static_cast<FleetListItem*>(m_fleetItems->First());
   FleetListItem* lastOwn = last;
-  while (row && hasOwn)
+  for (const auto& ownedRow : m_fleetItems->Entries())
   {
+    if (!hasOwn)
+      break;
+    auto* row = static_cast<FleetListItem*>(ownedRow.get());
+    if (row->m_flags.m_value & kFleetItemHidden)
+      continue;
     FleetListItem* keep = lastOwn;
     if ((row->m_state.m_value & kListItemSelected) != 0)
     {
@@ -1377,7 +1383,6 @@ void FleetWindow::UpdateShipList()
         keep = lastOwn;
       }
     }
-    row = static_cast<FleetListItem*>(row->Next());
     lastOwn = keep;
   }
   last = lastOwn;
@@ -1511,8 +1516,11 @@ void FleetWindow::UpdateShipList()
   }
 
   UpdateTabs();
-  for (row = static_cast<FleetListItem*>(m_fleetItems->First()); row; row = static_cast<FleetListItem*>(row->Next()))
+  for (const auto& ownedRow : m_fleetItems->Entries())
   {
+    auto* row = static_cast<FleetListItem*>(ownedRow.get());
+    if (row->m_flags.m_value & kFleetItemHidden)
+      continue;
     if ((row->m_state.m_value & kListItemSelected) == 0)
       continue;
     if (GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxySide, &row->m_key))
@@ -1616,9 +1624,11 @@ void FleetWindow::UpdateTabs()
   tabButtons->FindById(static_cast<uint32_t>(page));
   tabs->SelectTab(static_cast<uint32_t>(page), 0);
   m_page = page;
-  for (FleetListItem* row = static_cast<FleetListItem*>(m_fleetItems->First()); row;
-       row = static_cast<FleetListItem*>(row->Next()))
+  for (const auto& ownedRow : m_fleetItems->Entries())
   {
+    auto* row = static_cast<FleetListItem*>(ownedRow.get());
+    if (row->m_flags.m_value & kFleetItemHidden)
+      continue;
     if ((row->m_state.m_value & kListItemSelected) != 0)
       selectedContents |= row->m_userData;
   }
@@ -1699,10 +1709,12 @@ void FleetWindow::AddShipRow(GameObjNotifier* object)
   ObjectKey key;
   object->GetKey(&key);
   bool found = false;
-  FleetListItem* row = static_cast<FleetListItem*>(m_shipItems->First());
   HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
-  for (; row; row = static_cast<FleetListItem*>(row->m_next))
+  for (const auto& ownedRow : m_shipItems->Entries())
   {
+    auto* row = static_cast<FleetListItem*>(ownedRow.get());
+    if (row->m_flags.m_value & kFleetItemHidden)
+      continue;
     if (found)
       return;
     found = row->m_key.m_value == key.m_value;

@@ -17,7 +17,6 @@ int ApplyLoyaltyRuleToSector(GameObjNotifier* sector, const LoyaltyRule* rule, N
 // command's id (0 if it had none and was deleted again).
 uint32_t ApplyLoyaltyRuleToSystem(System* system, const LoyaltyRule* rule, NotifyContext* ctx); // 0x518be0
 // The sector master that follows `sector` (0x518ff0).
-GameObjNotifier* GetNextSectorMaster(GameObjNotifier* sector); // 0x518ff0
 // The system master that follows `system` (0x51a5d0).
 GameObjNotifier* NextSystemMaster(GameObjNotifier* system);
 

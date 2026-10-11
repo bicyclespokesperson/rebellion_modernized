@@ -108,8 +108,9 @@ void AiTask8::PrepareRecords()
   AiSideController* owner = m_owner;
   if (owner->Stat(0x204) < 0)
   {
-    for (AvlNode* node = owner->m_systemRecords.First(); node; node = node->m_successor)
+    for (const auto& entry : owner->m_systemRecords.Entries())
     {
+      AvlNode* node = static_cast<AvlNode*>(entry.get());
       if ((static_cast<AiSystemRecord*>(node)->m_flagsA.m_value & kRecordHasNoDemandFlag) == 0)
         anyWithDemand = true;
     }
@@ -138,8 +139,10 @@ int AiTask8::NextRecord()
   }
   found = 1;
   m_recordId = record->m_id;
-  AiSystemRecord* next = static_cast<AiSystemRecord*>(record->m_successor);
-  m_recordCursor = next ? next->m_id : 0;
+  auto position = m_owner->m_systemRecords.PositionOf(record);
+  ++position;
+  m_recordCursor =
+    position == m_owner->m_systemRecords.Entries().end() ? 0 : static_cast<AiSystemRecord*>(position->get())->m_id;
   return found;
 }
 
@@ -294,8 +297,9 @@ int AiTask9::NextRecord()
   }
   found = 1;
   m_recordId = record->m_id;
-  AiTaskRecord* next = static_cast<AiTaskRecord*>(record->m_successor);
-  m_recordCursor = next ? next->m_id : 0;
+  auto position = m_owner->m_tasks.PositionOf(record);
+  ++position;
+  m_recordCursor = position == m_owner->m_tasks.Entries().end() ? 0 : static_cast<AiTaskRecord*>(position->get())->m_id;
   return found;
 }
 

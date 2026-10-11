@@ -51,11 +51,6 @@ ObjectKey KeyOfNode(ObjectKeyNode* node)
   return key;
 }
 
-ObjectKeyNode* NextNode(ObjectKeyNode* node)
-{
-  return static_cast<ObjectKeyNode*>(node->m_successor);
-}
-
 void AddToTeam(ObjectKeyValueSet* team, const ObjectKey& key)
 {
   ObjectKeyValueNode* node = NewOrNull<ObjectKeyValueNode>(key, 0);
@@ -135,12 +130,13 @@ int AiTaskRecord::IsFinished()
 
 void AiTaskRecord::Release()
 {
-  for (ObjectKeyNode* node = m_ships.First(); node;)
+  auto position = m_ships.Entries().begin();
+  while (position != m_ships.Entries().end())
   {
-    ObjectKeyNode* next = NextNode(node);
+    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    ++position;
     ObjectKey key = KeyOfNode(node);
     RemoveShip(&key);
-    node = next;
   }
   ClearFleet();
   if (!IsSystemKey(m_systemKey))
@@ -273,9 +269,11 @@ void AiTaskRecord::ReleaseShips()
   }
   if (!keepFleet)
     ClearFleet();
-  ObjectKeyNode* node = m_ships.First();
-  while (node)
+  auto position = m_ships.Entries().begin();
+  while (position != m_ships.Entries().end())
   {
+    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    ++position;
     bool keep = false;
     ObjectKey key = KeyOfNode(node);
     AiShipRecord* ship = static_cast<AiShipRecord*>(m_owner->m_ships.Find(&key));
@@ -299,14 +297,8 @@ void AiTaskRecord::ReleaseShips()
     }
     if (!keep)
     {
-      ObjectKeyNode* next = NextNode(node);
       ObjectKey releasedKey = KeyOfNode(node);
       RemoveShip(&releasedKey);
-      node = next;
-    }
-    else
-    {
-      node = NextNode(node);
     }
   }
 }
@@ -321,8 +313,9 @@ OrderBase* AiTaskRecord::SendIdleMessage()
       (static_cast<uint32_t>(fleet->m_flags.m_value) & 0xf0000802) == 0)
   {
     systemKey = fleet->m_systemKey;
-    for (ObjectKeyNode* node = fleet->m_shipKeys.First(); node; node = NextNode(node))
+    for (auto position = fleet->m_shipKeys.Entries().begin(); position != fleet->m_shipKeys.Entries().end(); ++position)
     {
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
       ObjectKey key = KeyOfNode(node);
       AiShipRecord* ship = static_cast<AiShipRecord*>(m_owner->m_ships.Find(&key));
       if (ship && (ship->m_flags.m_value & 0x801000) != 0 && (ship->m_flags.m_value & 0x800) == 0)
@@ -435,8 +428,10 @@ OrderBase* AiTaskRecord::MoveCharacters()
     AiSystemEval* system = m_owner->m_systems.FindEval(fleet->m_systemKey);
     if (system && (system->m_flags30.m_value & 1) != 0)
     {
-      for (ObjectKeyNode* node = fleet->m_shipKeys.First(); node; node = NextNode(node))
+      for (auto position = fleet->m_shipKeys.Entries().begin(); position != fleet->m_shipKeys.Entries().end();
+           ++position)
       {
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
         ObjectKey recordKey = KeyOfNode(node);
         AiShipRecord* ship = static_cast<AiShipRecord*>(m_owner->m_ships.Find(&recordKey));
         ObjectKey objectKey = KeyOfNode(node);
@@ -517,8 +512,10 @@ struct ShipHarvest
       AiFleetEval* fleet = task->m_owner->m_fleets.FindEval(picked);
       if (fleet)
       {
-        for (ObjectKeyNode* node = fleet->m_shipKeys.First(); node && found == 0; node = NextNode(node))
+        for (auto position = fleet->m_shipKeys.Entries().begin();
+             position != fleet->m_shipKeys.Entries().end() && found == 0; ++position)
         {
+          ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
           ObjectKey key = KeyOfNode(node);
           AiShipRecord* ship = static_cast<AiShipRecord*>(task->m_owner->m_ships.Find(&key));
           if (!ship)
@@ -622,9 +619,11 @@ OrderBase* AiTaskRecord::Reinforce()
   OrderBase* order = nullptr;
   ObjectKeyValueSet team;
   bool found = false;
-  ObjectKeyNode* node = m_ships.First();
-  while (node && !found)
+  auto position = m_ships.Entries().begin();
+  while (position != m_ships.Entries().end() && !found)
   {
+    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    ++position;
     ObjectKey key = KeyOfNode(node);
     AiShipRecord* ship = static_cast<AiShipRecord*>(m_owner->m_ships.Find(&key));
     if (ship && (ship->m_flags.m_value & 0x2800) == 0 && ship->IsUnusable() == 0)
@@ -635,7 +634,6 @@ OrderBase* AiTaskRecord::Reinforce()
     }
     if (found)
     {
-      ObjectKeyNode* next = NextNode(node);
       ObjectKeyValueNode* teamNode = NewOrNull<ObjectKeyValueNode>(KeyOfNode(node), 0);
       if (teamNode)
       {
@@ -643,11 +641,6 @@ OrderBase* AiTaskRecord::Reinforce()
         ObjectKey shipKey = KeyOfNode(node);
         RemoveShip(&shipKey);
       }
-      node = next;
-    }
-    else
-    {
-      node = NextNode(node);
     }
   }
   if (team.First())

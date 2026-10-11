@@ -1,4 +1,5 @@
 #pragma once
+class AiNoticeGroup;
 #include <cstdint>
 #include <string>
 
@@ -61,7 +62,7 @@ public:
 // Tells `sink` about every payload of the list (slot 7 of each payload); 0 for a null list, else 1. 0x4974f0 is its
 // body in the UiTextNotice / UiKeyNotice slots.
 class LinkNode;
-int ForwardPayloads(UiNotice* sink, const LinkNode* payloads);
+int ForwardPayloads(UiNotice* sink, const AiNoticeGroup* payloads);
 
 // VT 0x65c4f0, 0x64 bytes: a notice with two texts and two object references; slots 13-16 are new.
 class UiTextNotice : public UiNotice
@@ -80,7 +81,7 @@ public:
   } // 0x619730
   virtual void Virtual15(); // 0x4c4cd0: Virtual13 through the vtable
   virtual int
-  Virtual16(const LinkNode* payloads); // 0x4974f0: hands every payload of the list to Virtual0x via DispatchToSink
+  Virtual16(const AiNoticeGroup* payloads); // 0x4974f0: hands every payload of the list to Virtual0x via DispatchToSink
 
   std::string m_text0; // +0x44
   std::string m_text1; // +0x50
@@ -100,7 +101,7 @@ public:
   void Virtual13() override
   {
   } // 0x619730 (shared no-op)
-  virtual int Virtual14(const LinkNode* payloads); // 0x4974f0 (shared)
+  virtual int Virtual14(const AiNoticeGroup* payloads); // 0x4974f0 (shared)
 
   std::string m_text0; // +0x44
   std::string m_text1; // +0x50

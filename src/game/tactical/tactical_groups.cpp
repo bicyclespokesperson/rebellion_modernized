@@ -25,23 +25,12 @@ TacticalShipBase* shipByHandle(int handle)
   return GetTacticalRegistry()->FindShip(handle);
 }
 
-UnitRefNode* firstUnitNode(UnitRefTree& tree)
-{
-  return tree.FirstNode();
-}
-
 int firstMemberOtherThan(UnitRefTree* members, int handle)
 {
-  UnitRefNode* node = members->FirstNode();
-  if (node)
+  for (const auto& entry : members->Entries())
   {
-    do
-    {
-      if (node->Key() != handle)
-        break;
-      node = node->Next();
-    } while (node);
-    if (node)
+    auto* node = static_cast<UnitRefNode*>(entry.get());
+    if (node->Key() != handle)
       return node->Key();
   }
   return 0;
@@ -225,8 +214,9 @@ void ShipGroup::RemoveMember(int handle)
 float ShipGroup::MemberStrengthAgainst(TacticalShipBase* target)
 {
   float total = 0.0f;
-  for (UnitRefNode* node = firstUnitNode(*this); node; node = node->Next())
+  for (const auto& entry : Entries())
   {
+    auto* node = static_cast<UnitRefNode*>(entry.get());
     if (node->Value()->m_state == kMemberStateActive || node->Value()->m_state == kMemberStateReturning ||
         node->Value()->m_state == kMemberStateEngaging)
     {

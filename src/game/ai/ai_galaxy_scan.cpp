@@ -690,8 +690,11 @@ void AiSectorScanSet::Save(ostream* out)
   WriteValue32(out, &m_view);
   if (!WriteCount32(out, Count()))
     return;
-  for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& entry : Entries())
+  {
+    auto* node = static_cast<ObjectKeyNode*>(entry.get());
     node->Save(out);
+  }
   if (!m_cursorObject)
   {
     uint32_t none = 0;
@@ -824,8 +827,11 @@ void AiSystemScanSet::Save(ostream* out)
   WriteValue32(out, &m_view);
   if (!WriteCount32(out, Count()))
     return;
-  for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& entry : Entries())
+  {
+    auto* node = static_cast<ObjectKeyNode*>(entry.get());
     node->Save(out);
+  }
   if (!m_cursorObject)
   {
     uint32_t none = 0;

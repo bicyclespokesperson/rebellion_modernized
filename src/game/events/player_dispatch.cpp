@@ -1,3 +1,4 @@
+#include "ai/ai_task_base.h"
 #include <new>
 
 #include "app/app_control_cmds.h"
@@ -77,7 +78,7 @@ void PlayerDispatch::ClearRecords()
   m_trees[1].Clear();
 }
 
-void PlayerDispatch::HandleNotifications(LinkNode* payloads)
+void PlayerDispatch::HandleNotifications(const AiNoticeGroup* payloads)
 {
   if (!payloads)
     return;
@@ -182,10 +183,10 @@ void PlayerDispatch::AddArrivalNotice(const ObjectKey* key, int attack)
   AddNotice(notice);
 }
 
-void PlayerDispatch::DiscardPayloads(LinkNode* payloads)
+void PlayerDispatch::DiscardPayloads(const AiNoticeGroup* payloads)
 {
-  for (LinkNode* node = payloads->m_next; node; node = node->m_next)
-    static_cast<NotifPayload*>(node)->DispatchToSink(nullptr);
+  for (const auto& node : payloads->Entries())
+    node.get()->DispatchToSink(nullptr);
 }
 
 void PlayerDispatch::AddNotice(UiNotice* notice)
@@ -282,12 +283,11 @@ void PlayerDispatch::RefreshRecords()
 {
   if ((m_flags.m_value & kFlagHeld) != 0)
     return;
-  AvlNode* next = m_trees[0].First();
+  auto position = m_trees[0].Entries().begin();
   m_unk50 = 0;
-  while (next)
+  while (position != m_trees[0].Entries().end())
   {
-    UiNotice* notice = static_cast<UiNotice*>(next);
-    next = notice->m_successor;
+    UiNotice* notice = static_cast<UiNotice*>((position++)->get());
     if (!notice->IsStale())
     {
       if ((notice->m_flags.m_value & 0x10) != 0)
@@ -361,8 +361,9 @@ void PlayerDispatch::ClearAlerts(unsigned mask)
     m_unk50 = ~mask & m_unk50;
     UiSetButtonHighlights(mask);
   }
-  for (AvlNode* node = m_trees[0].First(); node; node = node->m_successor)
+  for (const auto& entry : m_trees[0].Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(entry.get());
     UiNotice* notice = static_cast<UiNotice*>(node);
     if ((notice->m_categories & mask) != 0 || mask == 0)
       notice->m_flags.m_value &= 0xffffffef;
@@ -390,7 +391,7 @@ void PlayerDispatch::SetHold(int on)
   RefreshRecords();
 }
 
-UiNotice* PlayerDispatch::CreateNotice(int kind, LinkNode* payloads)
+UiNotice* PlayerDispatch::CreateNotice(int kind, const AiNoticeGroup* payloads)
 {
   UiNotice* notice = nullptr;
   switch (kind)
@@ -538,17 +539,17 @@ UiNotice* PlayerDispatch::CreateNotice(int kind, LinkNode* payloads)
   return notice;
 }
 
-int PlayerDispatch::ClassifyNotifications(LinkNode* payloads)
+int PlayerDispatch::ClassifyNotifications(const AiNoticeGroup* payloads)
 {
   int kind = 0;
   int fallback = 0;
   if (!payloads)
     return kind;
-  for (LinkNode* node = payloads->m_next; node; node = node->m_next)
+  for (const auto& node : payloads->Entries())
   {
     if (kind != 0)
       return kind;
-    KeyedNotifPayload* keyed = static_cast<KeyedNotifPayload*>(node);
+    KeyedNotifPayload* keyed = static_cast<KeyedNotifPayload*>(node.get());
     IntPairPayload* ints = static_cast<IntPairPayload*>(keyed);
     switch (keyed->GetKind())
     {

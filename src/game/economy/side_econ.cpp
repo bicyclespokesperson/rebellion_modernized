@@ -446,8 +446,12 @@ int Side::AddObjectRef(const ObjectKey* key, int* count, NotifyContext* unused)
   ObjectRefNode* found = nullptr;
   if (result)
   {
-    for (AvlNode* node = m_objectRefs->First(); node && !found; node = node->m_successor)
+    for (const auto& nodeEntry : m_objectRefs->Entries())
     {
+      AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+      if (!(!found))
+        break;
+
       ObjectRefNode* entry = static_cast<ObjectRefNode*>(node);
       if (entry->m_key.m_value == key->m_value)
         found = entry;
@@ -489,7 +493,7 @@ int Side::TakeRefinedMaterial(int* took, NotifyContext* ctx)
 int Side::PushRefineryQueue(KeyQueueNode* node, NotifyContext* ctx)
 {
   int result = 0;
-  if (node && m_refineryQueue && m_refineryQueue->Add(node))
+  if (node && m_refineryQueue && m_refineryQueue->Add(std::unique_ptr<KeyQueueNode>(node)))
   {
     result = SetWaitingRefineries(m_waitingRefineries + 1, ctx);
   }
@@ -499,7 +503,7 @@ int Side::PushRefineryQueue(KeyQueueNode* node, NotifyContext* ctx)
 int Side::PushManufacturerQueue(KeyQueueNode* node, NotifyContext* ctx)
 {
   int result = 0;
-  if (node && m_manufacturerQueue && m_manufacturerQueue->Add(node))
+  if (node && m_manufacturerQueue && m_manufacturerQueue->Add(std::unique_ptr<KeyQueueNode>(node)))
   {
     result = SetWaitingManufacturers(m_waitingManufacturers + 1, ctx);
   }

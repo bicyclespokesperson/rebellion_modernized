@@ -24,11 +24,6 @@ IdAvlTree* RecordsOf(void* entry)
   return &static_cast<SeedListFile*>(entry)->m_list.m_records;
 }
 
-AvlNode* NextNode(AvlNode* node)
-{
-  return node->m_successor;
-}
-
 DatRecord* AsRecord(AvlNode* node)
 {
   return static_cast<DatRecord*>(static_cast<IdNode*>(node));
@@ -123,9 +118,11 @@ int ObjectTypeDb::AddFamily(int a, int b)
   }
   if (entry)
   {
-    for (AvlNode* record = RecordsOf(entry)->First(); record && ok; record = NextNode(record))
+    for (const auto& ownedRecord : RecordsOf(entry)->Entries())
     {
-      DatRecord* datRecord = AsRecord(record);
+      if (!ok)
+        break;
+      DatRecord* datRecord = AsRecord(ownedRecord.get());
       datRecord->m_name = LoadStringResource(NameResource(datRecord));
     }
   }
@@ -137,8 +134,11 @@ int ObjectTypeDb::AddFamily(int a, int b)
 int ObjectTypeDb::ForEachFamily(Crc32* crc)
 {
   int ok = 1;
-  for (AvlNode* entry = m_families->First(); entry && ok; entry = NextNode(entry))
+  for (const auto& family : m_families->Entries())
   {
+    if (!ok)
+      break;
+    AvlNode* entry = family.get();
     ok = static_cast<SeedListFile*>(entry)->m_list.Checksum(crc);
   }
   return ok;
@@ -154,12 +154,17 @@ DatRecord* ObjectTypeDb::FindRecord(const SeedKey* key)
   return record;
 }
 
-DatRecord* ObjectTypeDb::FirstRecordOfFamily(uint32_t family)
+std::vector<DatRecord*> ObjectTypeDb::RecordsOfFamily(uint32_t family)
 {
-  DatRecord* record = nullptr;
-  if (SeedListFile* entry = m_families->FindByFamily(family))
-    record = AsRecord(RecordsOf(entry)->First());
-  return record;
+  std::vector<DatRecord*> records;
+  SeedListFile* entry = m_families ? m_families->FindByFamily(family) : nullptr;
+  if (!entry)
+    return records;
+  const auto& storedRecords = RecordsOf(entry)->Entries();
+  records.reserve(storedRecords.size());
+  for (const auto& storedRecord : storedRecords)
+    records.push_back(AsRecord(storedRecord.get()));
+  return records;
 }
 
 int ObjectTypeDb::ListAllRecordKeys(ObjectRefList* out)
@@ -168,10 +173,16 @@ int ObjectTypeDb::ListAllRecordKeys(ObjectRefList* out)
   int ok = m_families != nullptr;
   if (!ok)
     return 0;
-  for (AvlNode* entry = m_families->First(); entry && ok; entry = NextNode(entry))
+  for (const auto& family : m_families->Entries())
   {
-    for (AvlNode* record = RecordsOf(entry)->First(); record && ok; record = NextNode(record))
+    if (!ok)
+      break;
+    AvlNode* entry = family.get();
+    for (const auto& storedRecord : RecordsOf(entry)->Entries())
     {
+      if (!ok)
+        break;
+      AvlNode* record = storedRecord.get();
       ObjectKey key;
       key = ObjectKey::Make(AsRecord(record)->m_third, AsRecord(record)->m_id);
       ok = out->AddKey(key) != nullptr;
@@ -197,10 +208,13 @@ int ObjectTypeDb::CollectRecords(int view,
     return 0;
 
   int ok = m_families != nullptr;
-  for (AvlNode* entry = ok ? m_families->First() : nullptr; entry && ok; entry = NextNode(entry))
+  if (!ok)
+    return 0;
+  for (const auto& family : m_families->Entries())
   {
-    for (AvlNode* node = RecordsOf(entry)->First(); node && ok; node = NextNode(node))
+    for (const auto& ownedRecord : RecordsOf(family.get())->Entries())
     {
+      AvlNode* node = ownedRecord.get();
       DatRecord* record = AsRecord(node);
       IntPair range;
       GetRecordKindRange(record, &range);
@@ -376,10 +390,10 @@ DatRecord* FindDataRecord(const SeedKey* key)
   return db ? db->FindRecord(key) : nullptr;
 }
 
-DatRecord* GetFirstRecordOfType(int family)
+std::vector<DatRecord*> GetRecordsOfType(int family)
 {
   ObjectTypeDb* db = GetObjectTypeDb();
-  return db ? db->FirstRecordOfFamily(family) : nullptr;
+  return db ? db->RecordsOfFamily(static_cast<uint32_t>(family)) : std::vector<DatRecord*>{};
 }
 
 int ListAllDataRecordKeys(ObjectRefList* out)

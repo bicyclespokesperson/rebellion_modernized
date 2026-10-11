@@ -77,18 +77,20 @@ void HeadlessSimulator::RetireUnit(TacticalShipBase* unit)
   }
   m_sides[unit->m_side]->m_fleet.RemoveById(unit->m_id);
   TacticalCapitalShip* ship = static_cast<TacticalCapitalShip*>(unit);
-  for (UnitRefNode* node = ship->m_docked->FirstNode(); node;)
+  auto dockedEntry = ship->m_docked->Entries().begin();
+  while (dockedEntry != ship->m_docked->Entries().end())
   {
-    UnitRefNode* next = node->Next();
+    auto current = dockedEntry++;
+    auto* node = static_cast<UnitRefNode*>(current->get());
     RetireUnit(node->Value());
-    node = next;
   }
   ship->m_docked->Clear();
-  for (UnitRefNode* node = ship->m_launched->FirstNode(); node;)
+  auto launchedEntry = ship->m_launched->Entries().begin();
+  while (launchedEntry != ship->m_launched->Entries().end())
   {
-    UnitRefNode* next = node->Next();
+    auto current = launchedEntry++;
+    auto* node = static_cast<UnitRefNode*>(current->get());
     RetireUnit(node->Value());
-    node = next;
   }
   ship->m_launched->Clear();
 }
@@ -240,11 +242,12 @@ constexpr uint32_t kMaxVisits = 100;
 
 void retireAll(HeadlessSimulator* simulator, UnitRefTree* units, bool clearAfterwards)
 {
-  for (UnitRefNode* node = units->FirstNode(); node;)
+  auto entry = units->Entries().begin();
+  while (entry != units->Entries().end())
   {
-    UnitRefNode* next = node->Next();
+    auto current = entry++;
+    auto* node = static_cast<UnitRefNode*>(current->get());
     simulator->RetireUnit(node->Value());
-    node = next;
   }
   if (clearAfterwards)
     units->Clear();
@@ -260,14 +263,16 @@ void HeadlessSimulator::DeathStarAttackRun(ShipGroup* group)
   UnitRefTree units;
   units.CopyFrom(static_cast<UnitRefTree*>(group));
   uint32_t visits = 0;
-  UnitRefNode* node = units.FirstNode();
+  UnitRefNode* node = static_cast<UnitRefNode*>(units.First());
   if (node == nullptr)
     return;
   for (;;)
   {
-    UnitRefNode* next = node->Next();
-    if (next == nullptr)
-      next = units.FirstNode();
+    auto nextPosition = units.PositionOf(node);
+    ++nextPosition;
+    if (nextPosition == units.Entries().end())
+      nextPosition = units.Entries().begin();
+    auto* next = nextPosition == units.Entries().end() ? nullptr : static_cast<UnitRefNode*>(nextPosition->get());
     if (++visits > kMaxVisits)
     {
       retireAll(this, &units, false);

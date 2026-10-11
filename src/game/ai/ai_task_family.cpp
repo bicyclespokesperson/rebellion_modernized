@@ -61,8 +61,9 @@ int Need(const FamilyFields& f, const FamilyParams& p)
 int NeedForTargets(const FamilyFields& f, const FamilyParams& p)
 {
   int used = 0;
-  for (ObjectKeyNode* node = f.targets->First(); node; node = NextNode(node))
+  for (const auto& entry : f.targets->Entries())
   {
+    auto* node = static_cast<ObjectKeyNode*>(entry.get());
     AiSystemEval* eval = EvalOf(f, KeyOfNode(node));
     if (eval)
       used += eval->Stat(p.supplyStat);
@@ -148,9 +149,11 @@ OrderBase* BuildCapitalOrder(const FamilyFields& f, const FamilyParams& p, Facil
 {
   OrderBase* order = nullptr;
   bool found = false;
-  ObjectKeyNode* node = f.targets->First();
-  while (node)
+  auto position = f.targets->Entries().begin();
+  while (position != f.targets->Entries().end())
   {
+    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    ++position;
     if (found)
       break;
     AiSystemEval* eval = EvalOf(f, KeyOfNode(node));
@@ -160,15 +163,12 @@ OrderBase* BuildCapitalOrder(const FamilyFields& f, const FamilyParams& p, Facil
       const bool several = 1 < f.targets->Count();
       if (eval->Stat(p.shortStat) < 1)
       {
-        ObjectKeyNode* next = NextNode(node);
         ObjectKey key = KeyOfNode(node);
         f.targets->RemoveKey(&key);
         eval->m_flags28.m_value &= ~p.claimBit;
-        node = next;
       }
       else if ((eval->m_flags28.m_value & 0x1000) == 0)
       {
-        node = NextNode(node);
       }
       else if (eval->Stat(p.shortStat) < 2)
       {
@@ -222,8 +222,9 @@ int SelectTarget(const FamilyFields& f, const FamilyParams& p)
   AiSideController* owner = f.owner;
   f.system->Reset();
   *f.limit = 0;
-  for (ObjectKeyNode* node = f.targets->First(); node; node = NextNode(node))
+  for (const auto& entry : f.targets->Entries())
   {
+    auto* node = static_cast<ObjectKeyNode*>(entry.get());
     AiSystemEval* eval = EvalOf(f, KeyOfNode(node));
     if (eval && (eval->m_flags30.m_value & 1) != 0 && (eval->m_flags28.m_value & 3) == 0 && 0 < eval->Stat(0x114) &&
         eval->Stat(p.shortStat) < best)
@@ -355,8 +356,9 @@ void RefreshTargets(const FamilyFields& f, const FamilyParams& p)
   for (;;)
   {
     best.Reset();
-    for (ObjectKeyNode* node = f.targets->First(); node; node = NextNode(node))
+    for (const auto& entry : f.targets->Entries())
     {
+      auto* node = static_cast<ObjectKeyNode*>(entry.get());
       AiSystemEval* eval = EvalOf(f, KeyOfNode(node));
       if (eval && bestStat < eval->Stat(p.shortStat))
       {
@@ -386,24 +388,25 @@ void RefreshTargets(const FamilyFields& f, const FamilyParams& p)
     }
     if (budget < 1)
     {
-      for (ObjectKeyNode* node = f.dropped->First(); node; node = NextNode(node))
+      for (const auto& entry : f.dropped->Entries())
       {
+        auto* node = static_cast<ObjectKeyNode*>(entry.get());
         AiSystemEval* eval = EvalOf(f, KeyOfNode(node));
         if (eval)
           eval->m_flags30.m_value &= ~kSystemDropped;
       }
       f.dropped->Clear();
-      ObjectKeyNode* node = pending.First();
-      while (node)
+      auto position = pending.Entries().begin();
+      while (position != pending.Entries().end())
       {
+        auto* node = static_cast<ObjectKeyNode*>(position->get());
+        ++position;
         AiSystemEval* eval = EvalOf(f, KeyOfNode(node));
         if (eval)
           eval->m_flags30.m_value |= kSystemDropped;
-        ObjectKeyNode* next = NextNode(node);
         ObjectKey key = KeyOfNode(node);
         pending.Detach(&key);
         f.dropped->Add(node);
-        node = next;
       }
       return;
     }

@@ -1,3 +1,4 @@
+#include "ai/ai_task_base.h"
 #include "events/player_notices.h"
 
 #include <new>
@@ -19,8 +20,9 @@ namespace
 // The notices that hold sets of objects tell the side's UI about every one of them when they are destroyed.
 void notifyKeys(int owner, ObjectKeySet& set)
 {
-  for (ObjectKeyNode* node = set.First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
+  for (const auto& entry : set.Entries())
   {
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(entry.get());
     ObjectKey key(node->m_key);
     UiSendNotificationToSide(owner, asArg(&key));
   }
@@ -79,7 +81,7 @@ Notice1::Notice1() : UiNotice()
   m_f58 = 0;
 }
 
-Notice1::Notice1(const LinkNode* payloads, int owner, Notice2* vote) : UiNotice(owner)
+Notice1::Notice1(const AiNoticeGroup* payloads, int owner, Notice2* vote) : UiNotice(owner)
 {
   m_categories = Virtual11();
   m_f50 = 0;
@@ -121,10 +123,10 @@ void Notice1::Virtual08(int kind, intptr_t a, intptr_t b)
   }
 }
 
-int Notice1::DispatchAndFill(const LinkNode* payloads)
+int Notice1::DispatchAndFill(const AiNoticeGroup* payloads)
 {
-  for (const LinkNode* node = payloads->m_next; node; node = node->m_next)
-    static_cast<NotifPayload*>(const_cast<LinkNode*>(node))->DispatchToSink(this);
+  for (const auto& node : payloads->Entries())
+    node.get()->DispatchToSink(this);
   if (m_f50 != 0)
   {
     if (m_f50 != m_f58)
@@ -245,7 +247,7 @@ Notice15::Notice15() : UiTextNotice()
   m_unk40 = 0;
 }
 
-Notice15::Notice15(const LinkNode* payloads, int owner) : UiTextNotice(owner)
+Notice15::Notice15(const AiNoticeGroup* payloads, int owner) : UiTextNotice(owner)
 {
   m_unk40 = 0;
   m_categories = Virtual11();

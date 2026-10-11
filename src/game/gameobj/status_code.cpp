@@ -166,7 +166,7 @@ int EventKindSet::Write(ostream* out)
 {
   if (!WriteCount32(out, Count()))
     return 0;
-  for (AvlNode* node = AvlTree::First(); node; node = node->m_successor)
-    static_cast<EventKindNode*>(node)->Write(out);
+  for (const auto& entry : AvlTree::Entries())
+    static_cast<EventKindNode*>(entry.get())->Write(out);
   return 1;
 }

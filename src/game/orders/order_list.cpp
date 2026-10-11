@@ -42,8 +42,10 @@ void MessageTree::Write(ostream* out)
 {
   if (!WriteCount32(out, Count()))
     return;
-  for (AvlNode* node = First(); node; node = node->m_successor)
+  for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();)
   {
+    AvlNode* node = static_cast<AvlNode*>((nodePosition++)->get());
+
     MessageBase* message = static_cast<MessageBase*>(node);
     int kind = message->GetKind();
     WriteValue32(out, &kind);

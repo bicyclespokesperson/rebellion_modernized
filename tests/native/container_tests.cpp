@@ -2,6 +2,7 @@
 #include "core/iostream_lib.h"
 
 #include <cstdlib>
+#include <iterator>
 
 namespace
 {
@@ -19,59 +20,10 @@ struct CountedNode final : LinkNode
   }
   ~CountedNode() override
   {
-    Require(m_prev == nullptr && m_next == nullptr);
     ++destroyed;
   }
 
   int& destroyed;
-};
-
-struct QueueClearNode final : LinkNode
-{
-  QueueClearNode(NodeQueue& queue, int& destroyed, int& rejectedDestroyed)
-  : queue(queue),
-    destroyed(destroyed),
-    rejectedDestroyed(rejectedDestroyed)
-  {
-  }
-  ~QueueClearNode() override
-  {
-    Require(queue.m_head == nullptr && queue.m_tail == nullptr && queue.m_count == 0);
-    Require(m_prev == nullptr && m_next == nullptr);
-    queue.Clear();
-    auto* rejected = new CountedNode(rejectedDestroyed);
-    Require(queue.Enqueue(rejected) == 0);
-    delete rejected;
-    ++destroyed;
-  }
-
-  NodeQueue& queue;
-  int& destroyed;
-  int& rejectedDestroyed;
-};
-
-struct StackClearNode final : LinkNode
-{
-  StackClearNode(NodeStack& stack, int& destroyed, int& rejectedDestroyed)
-  : stack(stack),
-    destroyed(destroyed),
-    rejectedDestroyed(rejectedDestroyed)
-  {
-  }
-  ~StackClearNode() override
-  {
-    Require(stack.m_top == nullptr);
-    Require(m_prev == nullptr && m_next == nullptr);
-    stack.Clear();
-    auto* rejected = new CountedNode(rejectedDestroyed);
-    Require(stack.Push(rejected) == 0);
-    delete rejected;
-    ++destroyed;
-  }
-
-  NodeStack& stack;
-  int& destroyed;
-  int& rejectedDestroyed;
 };
 
 struct UnorderedList final : SortedLinkList
@@ -109,8 +61,7 @@ struct ListClearNode final : LinkNode
   }
   ~ListClearNode() override
   {
-    Require(list.m_head == nullptr && list.m_count == 0);
-    Require(m_prev == nullptr && m_next == nullptr);
+    Require(list.Empty());
     list.Clear();
     auto* rejected = new CountedNode(rejectedDestroyed);
     Require(list.Insert(rejected) == 0);
@@ -185,7 +136,7 @@ struct ReentrantTreeNode final : NumericNode
     tree.Clear();
     auto* rejected = new NumericNode(10);
     Require(tree.Insert(rejected) == 0);
-    Require(rejected->m_predecessor == nullptr && rejected->m_successor == nullptr);
+    Require(tree.PositionOf(rejected) == tree.Entries().end());
     delete rejected;
     ++rejectedDestroyed;
   }
@@ -194,96 +145,39 @@ struct ReentrantTreeNode final : NumericNode
   int& rejectedDestroyed;
 };
 
-void VerifyQueueOwnershipAndOrder()
-{
-  int destroyed = 0;
-  NodeQueue queue;
-  NodeStack stack;
-  auto* first = new CountedNode(destroyed);
-  auto* second = new CountedNode(destroyed);
-
-  Require(queue.Enqueue(nullptr) == 0);
-  Require(queue.Enqueue(first) == 1);
-  Require(queue.Enqueue(first) == 0);
-  Require(stack.Push(first) == 0);
-  Require(queue.Enqueue(second) == 1);
-  Require(queue.m_head == first && queue.m_tail == second && queue.m_count == 2);
-  Require(first->m_next == second && second->m_prev == first);
-
-  LinkNode* dequeued = queue.Dequeue();
-  Require(dequeued == first && dequeued->m_prev == nullptr && dequeued->m_next == nullptr);
-  delete dequeued;
-  Require(destroyed == 1 && queue.m_head == second && queue.m_tail == second && queue.m_count == 1);
-  queue.Clear();
-  Require(destroyed == 2 && queue.m_head == nullptr && queue.m_tail == nullptr && queue.m_count == 0);
-}
-
-void VerifyStackOwnershipAndOrder()
-{
-  int destroyed = 0;
-  NodeQueue queue;
-  NodeStack stack;
-  auto* bottom = new CountedNode(destroyed);
-  auto* middle = new CountedNode(destroyed);
-  auto* top = new CountedNode(destroyed);
-  auto* foreign = new CountedNode(destroyed);
-
-  Require(stack.Push(nullptr) == 0);
-  Require(queue.Enqueue(foreign) == 1);
-  Require(stack.Push(bottom) == 1);
-  Require(queue.Enqueue(bottom) == 0);
-  Require(stack.Push(middle) == 1);
-  Require(stack.Push(top) == 1);
-  Require(stack.m_top == top && top->m_next == middle && middle->m_next == bottom);
-  Require(stack.RemoveAndDelete(foreign) == 0);
-  Require(stack.RemoveAndDelete(middle) == 1);
-  Require(destroyed == 1 && top->m_next == bottom && bottom->m_prev == top);
-
-  Require(stack.Pop() == top);
-  delete top;
-  Require(stack.Pop() == bottom);
-  delete bottom;
-  Require(destroyed == 3 && stack.m_top == nullptr);
-  delete queue.Dequeue();
-  Require(destroyed == 4);
-}
-
 void VerifyCrossContainerListOwnership()
 {
   int destroyed = 0;
-  UnorderedList sorted;
-  NodeQueue queue;
+  UnorderedList source;
+  UnorderedList destination;
   auto* node = new CountedNode(destroyed);
-
-  Require(sorted.Insert(node) == 1);
-  Require(queue.Enqueue(node) == 0);
-  Require(sorted.Remove(node) == 1);
-  Require(queue.Enqueue(node) == 1);
-  Require(sorted.Insert(node) == 0);
-  delete queue.Dequeue();
+  Require(source.Insert(node) == 1);
+  Require(destination.Insert(node) == 0);
+  Require(source.Remove(node) == 1);
+  Require(destination.Insert(node) == 1);
+  Require(source.Insert(node) == 0);
+  destination.Clear();
   Require(destroyed == 1);
 }
 
 void VerifyLinkNodeCopiesStartUnlinked()
 {
   int destroyed = 0;
-  NodeQueue source;
-  NodeStack destination;
+  UnorderedList source;
+  UnorderedList destination;
   auto* owned = new CountedNode(destroyed);
-  Require(source.Enqueue(owned) == 1);
-
+  Require(source.Insert(owned) == 1);
   CountedNode copy(*owned);
-  Require(copy.m_prev == nullptr && copy.m_next == nullptr);
-  Require(destination.Push(&copy) == 1);
-  Require(destination.Pop() == &copy);
-  delete source.Dequeue();
+  Require(destination.Insert(&copy) == 1);
+  Require(destination.Remove(&copy) == 1);
+  source.Clear();
   Require(destroyed == 1);
 }
 
 void VerifySortedListOwnershipAndOrder()
 {
   KeyedList list;
-  NodeQueue queue;
+  UnorderedList foreign;
   auto* high = new KeyedLinkNode(7);
   auto* low = new KeyedLinkNode(1);
   auto* middle = new KeyedLinkNode(4);
@@ -292,23 +186,21 @@ void VerifySortedListOwnershipAndOrder()
   Require(list.Insert(low) == 1);
   Require(list.Insert(middle) == 1);
   Require(list.Insert(duplicateKey) == 1);
-  Require(list.m_count == 4 && list.m_head == low);
-  Require(low->m_next == middle && middle->m_next == duplicateKey && duplicateKey->m_next == high);
-  Require(queue.Enqueue(middle) == 0 && list.Insert(middle) == 0);
-
-  list.m_head = high;
-  list.RewindToFirst();
-  Require(list.m_head == low);
+  Require(list.Count() == 4 && list.First() == low);
+  auto position = list.Entries().begin();
+  Require((position++)->get() == low);
+  Require((position++)->get() == middle);
+  Require((position++)->get() == duplicateKey);
+  Require((position++)->get() == high && position == list.Entries().end());
+  Require(foreign.Insert(middle) == 0 && list.Insert(middle) == 0);
   Require(list.Remove(middle) == 1);
-  Require(middle->m_prev == nullptr && middle->m_next == nullptr);
-  Require(queue.Enqueue(middle) == 1);
-  Require(list.Insert(middle) == 0);
-  Require(queue.Dequeue() == middle);
+  Require(foreign.Insert(middle) == 1 && list.Insert(middle) == 0);
+  Require(foreign.Remove(middle) == 1);
   Require(list.Insert(middle) == 1);
   Require(list.Remove(high) == 1);
   delete high;
   list.Clear();
-  Require(list.m_head == nullptr && list.m_count == 0);
+  Require(list.Empty());
   list.Clear();
 }
 
@@ -341,10 +233,14 @@ void VerifySortedListExplicitInsertionOrderAndDetach()
   Require(foreign.Insert(foreignAnchor) == 1);
   Require(list.InsertBefore(inserted, foreignAnchor) == 0);
   Require(list.InsertBefore(inserted, anchor) == 1);
-  Require(list.m_head == first && first->m_next == inserted && inserted->m_next == anchor && anchor->m_next == last);
+  auto position = list.Entries().begin();
+  Require((position++)->get() == first);
+  Require((position++)->get() == inserted);
+  Require((position++)->get() == anchor);
+  Require((position++)->get() == last && position == list.Entries().end());
   Require(list.Remove(anchor) == 1);
   delete anchor;
-  Require(destroyed == 1 && inserted->m_next == last);
+  Require(destroyed == 1 && std::next(list.PositionOf(inserted))->get() == last);
   list.Clear();
   foreign.Clear();
   Require(destroyed == 5);
@@ -370,41 +266,6 @@ void VerifySortedListIds()
   list.Clear();
 }
 
-void VerifyClearDetachesBeforeDestruction()
-{
-  int queueDestroyed = 0;
-  int queueRejectedDestroyed = 0;
-  NodeQueue queue;
-  Require(queue.Enqueue(new QueueClearNode(queue, queueDestroyed, queueRejectedDestroyed)) == 1);
-  Require(queue.Enqueue(new QueueClearNode(queue, queueDestroyed, queueRejectedDestroyed)) == 1);
-  queue.Clear();
-  Require(queueDestroyed == 2);
-  Require(queueRejectedDestroyed == 2);
-  queue.Clear();
-  Require(queue.m_head == nullptr && queue.m_tail == nullptr && queue.m_count == 0);
-  int afterQueueClearDestroyed = 0;
-  auto* afterQueueClear = new CountedNode(afterQueueClearDestroyed);
-  Require(queue.Enqueue(afterQueueClear) == 1);
-  delete queue.Dequeue();
-  Require(afterQueueClearDestroyed == 1);
-
-  int stackDestroyed = 0;
-  int stackRejectedDestroyed = 0;
-  NodeStack stack;
-  Require(stack.Push(new StackClearNode(stack, stackDestroyed, stackRejectedDestroyed)) == 1);
-  Require(stack.Push(new StackClearNode(stack, stackDestroyed, stackRejectedDestroyed)) == 1);
-  stack.Clear();
-  Require(stackDestroyed == 2);
-  Require(stackRejectedDestroyed == 2);
-  stack.Clear();
-  Require(stack.m_top == nullptr);
-  int afterStackClearDestroyed = 0;
-  auto* afterStackClear = new CountedNode(afterStackClearDestroyed);
-  Require(stack.Push(afterStackClear) == 1);
-  delete stack.Pop();
-  Require(afterStackClearDestroyed == 1);
-}
-
 void VerifyAvlOwnershipOrderAndLookup()
 {
   NumericTree tree;
@@ -419,29 +280,22 @@ void VerifyAvlOwnershipOrderAndLookup()
   Require(tree.Insert(upperDuplicate) == 1);
   Require(tree.Count() == 4);
   Require(tree.First() == first && tree.Last() == middle);
-  Require(first->m_successor == lowerDuplicate && lowerDuplicate->m_predecessor == first);
-  Require(lowerDuplicate->m_successor == upperDuplicate && upperDuplicate->m_predecessor == lowerDuplicate);
-  Require(upperDuplicate->m_successor == middle && middle->m_predecessor == upperDuplicate);
+  auto position = tree.Entries().begin();
+  Require((position++)->get() == first);
+  Require((position++)->get() == lowerDuplicate);
+  Require((position++)->get() == upperDuplicate);
+  Require((position++)->get() == middle && position == tree.Entries().end());
   Require(tree.Find(4) == first && tree.Find(7) == middle && tree.Find(8) == nullptr);
   Require(foreign.Insert(first) == 0);
   foreign.Remove(first);
   Require(tree.Count() == 4 && tree.Find(4) == first);
 
   NumericNode copied(*first);
-  Require(copied.m_predecessor == nullptr && copied.m_successor == nullptr);
   Require(foreign.Insert(&copied) == 1);
   foreign.Remove(&copied);
 
-  NumericNode linked(1);
-  NumericNode linkedTo(2);
-  linked.m_successor = &linkedTo;
-  Require(foreign.Insert(&linked) == 0);
-  Require(linked.m_successor == &linkedTo);
-  linked.ResetLinks();
-
   tree.Remove(lowerDuplicate);
-  Require(lowerDuplicate->m_predecessor == nullptr && lowerDuplicate->m_successor == nullptr);
-  Require(tree.Find(4) == first && first->m_successor == upperDuplicate);
+  Require(tree.Find(4) == first && std::next(tree.PositionOf(first))->get() == upperDuplicate);
   delete lowerDuplicate;
   tree.Remove(first);
   tree.Clear();
@@ -449,6 +303,25 @@ void VerifyAvlOwnershipOrderAndLookup()
   Require(foreign.Insert(first) == 1);
   Require(foreign.Count() == 1);
   foreign.Clear();
+}
+
+void VerifyIterationDuringErase()
+{
+  NumericTree tree;
+  for (int key : {1, 2, 3, 4, 5})
+    Require(tree.Insert(new NumericNode(key)) == 1);
+  auto position = tree.Entries().begin();
+  while (position != tree.Entries().end())
+  {
+    auto* node = static_cast<NumericNode*>((position++)->get());
+    if (node->key % 2 == 0)
+    {
+      tree.Remove(node);
+      delete node;
+    }
+  }
+  Require(tree.Count() == 3 && tree.Find(1) && tree.Find(3) && tree.Find(5));
+  Require(tree.PositionOf(nullptr) == tree.Entries().end());
 }
 
 void VerifyAvlIdTransferAndLargeCount()
@@ -550,16 +423,14 @@ void VerifyAvlClearRejectsReentrantInsert()
 
 int main()
 {
-  VerifyQueueOwnershipAndOrder();
-  VerifyStackOwnershipAndOrder();
   VerifyCrossContainerListOwnership();
   VerifyLinkNodeCopiesStartUnlinked();
   VerifySortedListOwnershipAndOrder();
   VerifySortedListClearRejectsReentrantInsert();
   VerifySortedListExplicitInsertionOrderAndDetach();
   VerifySortedListIds();
-  VerifyClearDetachesBeforeDestruction();
   VerifyAvlOwnershipOrderAndLookup();
+  VerifyIterationDuringErase();
   VerifyAvlIdTransferAndLargeCount();
   VerifyCompositeIdTreeUniquenessUsesComparatorOrder();
   VerifyAvlClearRejectsReentrantInsert();

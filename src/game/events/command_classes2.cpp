@@ -506,25 +506,24 @@ int DestinationCommand::CheckValid(StatusCode* status)
         ok = route.FreeCarriedParents(static_cast<GameObj*>(manager), status);
     }
   }
-  AvlNode* node = m_pairs.First();
   if (!ok)
   {
     *status = StatusCode(kStatusCategory, kStatusRefused);
   }
   else
   {
-    do
+    for (const auto& entry : m_pairs.Entries())
     {
-      if (!succeeded(*status) || !node)
+      if (!ok || !succeeded(*status))
         break;
+      AvlNode* node = entry.get();
       CapacityScratch slot;
       if (ok && succeeded(*status))
       {
         ObjectKeyPairNode* pair = static_cast<ObjectKeyPairNode*>(node);
         ok = route.CheckUnitArrival(&pair->m_second, &pair->m_key, status, &slot);
       }
-      node = node->m_successor;
-    } while (ok);
+    }
     if (!ok)
       *status = StatusCode(kStatusCategory, kStatusRefused);
   }
@@ -797,8 +796,10 @@ int ManufactureCommand::CheckValid(StatusCode* status)
         previous.m_value = 0;
         int total = 0;
         int count = 0;
-        for (AvlNode* node = m_items.First(); ok && succeeded(*status) && node; node = node->m_successor)
+        for (auto position = m_items.Entries().begin();
+             position != m_items.Entries().end() && (ok && succeeded(*status)); ++position)
         {
+          AvlNode* node = static_cast<AvlNode*>(position->get());
           CapacityScratch slot;
           ObjectKeyNodeView item(node);
           if (ok)

@@ -89,8 +89,12 @@ int FindTrainerInKeySet(int side, ObjectKeyValueSet* set, void** out)
 { // 0x570e40
   int result = 1;
   *out = nullptr;
-  for (AvlNode* node = set->First(); node && !*out && result; node = node->m_successor)
+  for (const auto& nodeEntry : set->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    if (!(!*out && result))
+      break;
+
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     if (InCharacterFamilies(key.Family()))
@@ -117,8 +121,12 @@ int FindTrainerInRefList(int side, ObjectRefList* list, void** out)
 { // 0x570f80
   int result = 1;
   *out = nullptr;
-  for (AvlNode* node = list->First(); node && !*out && result; node = node->m_successor)
+  for (const auto& nodeEntry : list->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    if (!(!*out && result))
+      break;
+
     ObjectKey key;
     static_cast<ObjectRefNode*>(node)->GetKey(&key);
     if (InCharacterFamilies(key.Family()))
@@ -148,9 +156,12 @@ int CheckStudentKeySet(ObjectKeySet* set, TrainingOrderCheck* check, StatusCode*
     if (result && !teacher)
       Reject(status, out, kReasonNoTeacher, -1);
   }
-  for (AvlNode* node = set->First(); node && result && status->m_second == static_cast<uint32_t>(mission_status::kOk);
-       node = node->m_successor)
+  for (const auto& nodeEntry : set->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    if (!(result && status->m_second == static_cast<uint32_t>(mission_status::kOk)))
+      break;
+
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     GameObj* any;
@@ -188,9 +199,12 @@ int CheckStudentRefList(ObjectRefList* list, TrainingOrderCheck* check, StatusCo
     if (result && !teacher)
       Reject(status, out, kReasonNoTeacher, -1);
   }
-  for (AvlNode* node = list->First(); node && result && status->m_second == static_cast<uint32_t>(mission_status::kOk);
-       node = node->m_successor)
+  for (const auto& nodeEntry : list->Entries())
   {
+    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    if (!(result && status->m_second == static_cast<uint32_t>(mission_status::kOk)))
+      break;
+
     ObjectKey key;
     static_cast<ObjectRefNode*>(node)->GetKey(&key);
     DatRecord* any;

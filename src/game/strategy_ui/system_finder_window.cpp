@@ -320,7 +320,7 @@ void SystemFinderWindow::OnCommand(int, int command, int)
     {
       CoolListItemList selection(kSortById);
       m_list->CopySelectionTo(&selection);
-      if (CoolListItem* first = static_cast<CoolListItem*>(selection.m_head))
+      if (CoolListItem* first = static_cast<CoolListItem*>(selection.First()))
       {
         ObjectListItem* item = static_cast<ObjectListItem*>(m_items->FindById(first->m_id));
         ObjectKey key;

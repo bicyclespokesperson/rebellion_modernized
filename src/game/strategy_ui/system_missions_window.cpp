@@ -435,8 +435,9 @@ void SystemMissionsWindow::GetSelection(ObjectKeyValueSet* out, CoolWindow* sour
     m_missionList->CopySelectionTo(&selection);
     items = m_missions;
   }
-  for (CoolListItem* picked = static_cast<CoolListItem*>(selection.m_head); picked; picked = picked->Next())
+  for (const auto& ownedPicked : selection.Entries())
   {
+    auto* picked = static_cast<CoolListItem*>(ownedPicked.get());
     ObjectListItem* row = static_cast<ObjectListItem*>(items->FindById(picked->m_id));
     if (!row)
       continue;
@@ -680,9 +681,9 @@ ObjectListItem* SystemMissionsWindow::GetSelectedMission()
   CoolListItemList selection(1);
   ObjectListItem* row = nullptr;
   m_missionList->CopySelectionTo(&selection);
-  if (selection.m_head)
+  if (selection.First())
   {
-    row = static_cast<ObjectListItem*>(m_missions->FindById(static_cast<CoolListItem*>(selection.m_head)->m_id));
+    row = static_cast<ObjectListItem*>(m_missions->FindById(static_cast<CoolListItem*>(selection.First())->m_id));
   }
   return row;
 }
@@ -949,10 +950,11 @@ int SystemMissionsWindow::FillMissionList()
     sides.AddKeyValue(&sideKey, static_cast<int>(ControlSideOf(role)));
   }
 
-  ObjectListItem* row = static_cast<ObjectListItem*>(m_missions->First());
-  while (row)
+  auto rowPosition = m_missions->Entries().begin();
+  while (rowPosition != m_missions->Entries().end())
   {
-    ObjectListItem* next = static_cast<ObjectListItem*>(row->Next());
+    auto current = rowPosition++;
+    auto* row = static_cast<ObjectListItem*>(current->get());
     ObjectKey rowKey;
     row->GetKey(&rowKey);
     if (!seeds.Find(&rowKey))
@@ -962,13 +964,14 @@ int SystemMissionsWindow::FillMissionList()
       delete row;
       m_missionList->Refresh();
     }
-    row = next;
   }
 
-  IntPairNode* seedNode = static_cast<IntPairNode*>(seeds.First());
-  ObjectKeyValueNode* sideNode = static_cast<ObjectKeyValueNode*>(sides.First());
-  while (seedNode && sideNode)
+  auto seedPosition = seeds.Entries().begin();
+  auto sidePosition = sides.Entries().begin();
+  while (seedPosition != seeds.Entries().end() && sidePosition != sides.Entries().end())
   {
+    auto* seedNode = static_cast<IntPairNode*>(seedPosition->get());
+    auto* sideNode = static_cast<ObjectKeyValueNode*>(sidePosition->get());
     processed = 1;
     ObjectKey missionKey;
     seedNode->GetKey(&missionKey);
@@ -993,8 +996,8 @@ int SystemMissionsWindow::FillMissionList()
       m_missions->Insert(item);
       DeleteBitmap(picture);
     }
-    seedNode = static_cast<IntPairNode*>(seedNode->m_successor);
-    sideNode = static_cast<ObjectKeyValueNode*>(sideNode->m_successor);
+    ++seedPosition;
+    ++sidePosition;
   }
   LoadHeaderBitmaps();
   if (processed != 0)
@@ -1015,8 +1018,9 @@ void SystemMissionsWindow::FillCharacterList(int tab, int force)
   m_tab = tab;
   m_tabs->SelectTab(static_cast<uint32_t>(tab), 1);
   const bool decoys = m_tab == static_cast<int>(kDecoysTabId);
-  for (CoolListItem* row = m_characters->First(); row; row = row->Next())
+  for (const auto& ownedRow : m_characters->Entries())
   {
+    auto* row = static_cast<CoolListItem*>(ownedRow.get());
     ObjectKey rowKey;
     static_cast<ObjectListItem*>(row)->GetKey(&rowKey);
     if (ObjectKeyNode* node = m_objects.Find(&rowKey))
