@@ -38,6 +38,11 @@ It also rebuilds empty battle-participant lists for both sides and all four kind
 for total destruction, retreat and victory/defeat.
 Status-table checks cover blank labels/values, minimum row spacing, multiline wrapping, rendered text and label resets
 at nonzero coordinates.
+Report checks exercise actual Notice7 and Notice15 payloads, including empty participant sections, and create the
+assault report window in both faction skins to verify separately that its title and body render. They also check
+missing assault targets and the story report's artwork before and after Luke completes Dagobah. Victory checks
+temporarily change and restore loaded game state to verify HQ-only victory without character captures, Alliance
+control of Coruscant, and the additional capture requirements in standard mode.
 
 All of it is in the presentation path: `src/port/minwin_impl/user/present.{h,cpp}` (new), small hooks in `user/platform.cpp`, `user/misc.cpp`
 (cursor) and `user/message.cpp` (idle pacing), `audio/sdl_audio.cpp`, and `src/port/native/first_run.{h,cpp}`. Game code and simulation are untouched.

@@ -9,6 +9,7 @@
 #include "ai/ai_common.h"
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
+#include "events/player_notices.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
 #include "gfx/dib_bitmap.h"
@@ -107,6 +108,56 @@ uint32_t SelectedChildId(CoolTabControl* tabs)
   return tabs->m_selected ? tabs->m_selected->m_childId : 0;
 }
 
+Notice15* DetailedReport(UiTextNotice* notice)
+{
+  return notice->GetKind() == 15 ? static_cast<Notice15*>(notice) : nullptr;
+}
+
+int ReportSide(UiTextNotice* notice)
+{
+  if (Notice15* report = DetailedReport(notice))
+    return report->m_f6c;
+  return notice->m_owner;
+}
+
+int ReportOtherSide(UiTextNotice* notice)
+{
+  if (Notice15* report = DetailedReport(notice))
+    return report->m_f68;
+  return 0;
+}
+
+bool ShowsSecondList(UiTextNotice* notice)
+{
+  if (Notice15* report = DetailedReport(notice))
+    return report->m_f64 != 0;
+  return false;
+}
+
+ObjectKeySet* ReportSet(UiTextNotice* notice, int index)
+{
+  Notice15* report = DetailedReport(notice);
+  if (!report)
+    return nullptr;
+  switch (index)
+  {
+    case 0:
+      return &report->m_set70;
+    case 1:
+      return &report->m_set78;
+    case 2:
+      return &report->m_set80;
+    case 3:
+      return &report->m_set88;
+    case 4:
+      return &report->m_set90;
+    case 5:
+      return &report->m_set98;
+    default:
+      return nullptr;
+  }
+}
+
 struct UnitTab
 {
   uint32_t m_overlayId;
@@ -148,13 +199,13 @@ void CopyFamilyRange(ObjectKeySet* from, uint32_t first, uint32_t end, ObjectKey
 
 // ---- Construction ------------------------------------------------------------------------------------------
 
-ReportWindow::ReportWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childId, ReportMessage* report)
+ReportWindow::ReportWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childId, UiTextNotice* notice)
 : CoolGameWindow(instance, 0, 0, 0x1d6, 0x14b, parent, 0, kArtSlot, 0, childId, 0, 1, 0, 0),
   m_label(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u)
 {
   m_style = 0x46000000;
   m_galaxy = parent;
-  m_report = report;
+  m_notice = notice;
   m_list = nullptr;
   m_items = nullptr;
   m_pageTabs = nullptr;
@@ -201,7 +252,7 @@ void ReportWindow::OnCreate1()
   const int side = m_galaxy->m_side;
   const bool alliance = side == kAlliance;
 
-  DibBitmap* portrait = NewOrNull<DibBitmap>(art, static_cast<uint32_t>(m_report->m_bitmapId), kBitmapKind);
+  DibBitmap* portrait = NewOrNull<DibBitmap>(art, static_cast<uint32_t>(m_notice->m_picture[1]), kBitmapKind);
   DibBitmap* panel = NewOrNull<DibBitmap>(art, alliance ? 0x285fu : 0x2860u, kBitmapKind);
   DibBitmap* frame = NewOrNull<DibBitmap>(art, alliance ? 0x2a44u : 0x2a45u, kBitmapKind);
   DibBitmap* cornerA = NewOrNull<DibBitmap>(art, 0x2a09u, kBitmapKind);
@@ -212,7 +263,7 @@ void ReportWindow::OnCreate1()
   HDC dc = CreateCompatibleDC(window);
   ReleaseDC(m_hwnd, window);
   const int frameX = alliance ? 0x19c : 0x19f;
-  const COLORREF color = ReportColor(m_report->m_side);
+  const COLORREF color = ReportColor(ReportSide(m_notice));
 
   auto composePage = [&](DibBitmap* corner)
   {
@@ -234,14 +285,14 @@ void ReportWindow::OnCreate1()
   title.m_drawFlags = 1;
   title.m_width = 400;
   title.m_layoutFlags = 1;
-  title.SetText(m_report->m_title.c_str());
+  title.SetText(m_notice->MessageText0().c_str());
   title.Measure(dc);
   title.Draw(dc);
   text.SetFont(6);
   text.m_width = 0x15e;
   text.m_layoutFlags = 1;
   text.m_drawFlags = 0x110;
-  text.SetText(m_report->m_caption.c_str());
+  text.SetText(m_notice->MessageText1().c_str());
   text.SetColor(0, nullptr);
   text.MoveTo(0x1a, 0xe2);
   text.Measure(dc);
@@ -359,7 +410,7 @@ void ReportWindow::OnCreate1()
 
     uint32_t teamNormal;
     uint32_t teamPressed;
-    if (m_report->m_side == 1)
+    if (ReportSide(m_notice) == 1)
     {
       teamNormal = alliance ? 0x29ea : 0x29f4;
       teamPressed = alliance ? 0x29eb : 0x29f5;
@@ -375,12 +426,12 @@ void ReportWindow::OnCreate1()
     {
       teamTab->Create(0);
       teamTab->SetClickSound(kClickSound);
-      if (m_report->m_side == 1)
+      if (ReportSide(m_notice) == 1)
       {
         const ResourceStringId tip = StringId(0x1937);
         AddToolFromString(teamTab, &tip);
       }
-      else if (m_report->m_side == 2)
+      else if (ReportSide(m_notice) == 2)
       {
         const ResourceStringId tip = StringId(0x1938);
         AddToolFromString(teamTab, &tip);
@@ -390,7 +441,7 @@ void ReportWindow::OnCreate1()
 
     uint32_t otherNormal;
     uint32_t otherPressed;
-    const int variant = m_report->m_secondSide;
+    const int variant = ReportOtherSide(m_notice);
     if (alliance)
     {
       otherNormal = variant == 1 ? 0x29ea : (variant == 2 ? 0x29ec : 0x29f0);
@@ -423,12 +474,11 @@ void ReportWindow::OnCreate1()
       AddToolFromString(tab, &tip);
       m_unitTabs->AddTab(tab, select, notify);
     };
-    addUnitTab(0, 0x97, alliance ? 0x286c : 0x2878, alliance ? 0x286b : 0x2877, 0x1928,
-               m_report->m_showsSecondList == 0, 0);
+    addUnitTab(0, 0x97, alliance ? 0x286c : 0x2878, alliance ? 0x286b : 0x2877, 0x1928, !ShowsSecondList(m_notice), 0);
     addUnitTab(0x3e, 0x98, alliance ? 0x2872 : 0x287c, alliance ? 0x2871 : 0x287b, 0x1929, 0, 1);
     addUnitTab(0x7c, 0x99, alliance ? 0x2868 : 0x2874, alliance ? 0x2867 : 0x2873, 0x1835, 0, 1);
     addUnitTab(0xba, 0x9a, 0x2866, 0x2865, 0x1946, 0, 1);
-    addUnitTab(0xf8, 0x9b, alliance ? 0x2870 : 0x287a, alliance ? 0x286f : 0x2879, 0x1930, m_report->m_showsSecondList,
+    addUnitTab(0xf8, 0x9b, alliance ? 0x2870 : 0x287a, alliance ? 0x286f : 0x2879, 0x1930, ShowsSecondList(m_notice),
                0);
     addUnitTab(0x138, 0x9c, alliance ? 0x286a : 0x2876, alliance ? 0x2869 : 0x2875, 0x1931, 0, 1);
   }
@@ -474,7 +524,7 @@ void ReportWindow::OnCreate1()
                            FindOverlayBitmap(5), 1);
   if (m_nextButton)
   {
-    GameObjNotifier* reported = GetObjectInFamilies_01_ff(m_galaxy->m_side, &m_report->m_objectKey);
+    GameObjNotifier* reported = GetObjectInFamilies_01_ff(m_galaxy->m_side, &m_notice->MessageKey());
     DibBitmap* normal = m_nextButton->GetStateBitmap(0);
     DibBitmap* pressed = m_nextButton->GetStateBitmap(1);
     DibBitmap* combined = NewOrNull<DibBitmap>(normal->Width(), normal->Height(), normal);
@@ -500,7 +550,7 @@ void ReportWindow::OnCreate1()
   CenterIn(m_galaxy->m_panelArea.left, m_galaxy->m_panelArea.top, m_galaxy->m_panelArea.right,
            m_galaxy->m_panelArea.bottom);
   m_pageTabs->SelectTab(kReportPage, 1);
-  m_listKind = (m_report->m_showsSecondList != 0 ? 4 : 0) + 0x97;
+  m_listKind = (ShowsSecondList(m_notice) ? 4 : 0) + 0x97;
 }
 
 // ---- Painting and input ------------------------------------------------------------------------------------
@@ -510,7 +560,7 @@ void ReportWindow::DrawOverlay(HDC dc)
   if (!(m_currentPage > static_cast<int>(kReportPage) && m_currentPage < static_cast<int>(kOptionsPage)))
     return;
   CoolWindow* pageTab = m_pageTabs->m_children.FindById(SelectedChildId(m_pageTabs));
-  m_label.SetColor(ReportColor(m_report->m_side), nullptr);
+  m_label.SetColor(ReportColor(ReportSide(m_notice)), nullptr);
   m_label.MoveTo(0xc, 0x24);
   m_label.m_layoutFlags = 1;
   m_label.m_width = 0x15b;
@@ -536,12 +586,12 @@ void ReportWindow::OnCommand(int a, int b, int c)
   {
     case kCloseId:
       PostCloseRequest();
-      ModalReportClose(m_commandId, m_report->m_id);
+      ModalReportClose(m_commandId, m_notice->m_id);
       break;
     case kNextId:
     case kPreviousId:
     {
-      GameObjNotifier* reported = GetObjectInFamilies_01_ff(m_galaxy->m_side, &m_report->m_objectKey);
+      GameObjNotifier* reported = GetObjectInFamilies_01_ff(m_galaxy->m_side, &m_notice->MessageKey());
       if (reported)
       {
         ObjectKey sectorKey;
@@ -572,7 +622,7 @@ void ReportWindow::OnKeyDown(WPARAM key, LPARAM lParam)
   if (key == VK_ESCAPE)
   {
     PostCloseRequest();
-    ModalReportClose(m_commandId, m_report->m_id);
+    ModalReportClose(m_commandId, m_notice->m_id);
     return;
   }
   if (key != VK_LEFT && key != VK_RIGHT)
@@ -680,9 +730,16 @@ void ReportWindow::FillList(int subTabId, int force)
   if (selectedPage != kTeamPage && selectedPage != kOtherPage)
     return;
   const bool team = selectedPage == kTeamPage;
-  ObjectKeySet* source1 = team ? &m_report->m_sets[1] : &m_report->m_sets[0];
-  ObjectKeySet* source2 = team ? &m_report->m_sets[3] : &m_report->m_sets[2];
-  ObjectKeySet* source3 = team ? &m_report->m_sets[4] : &m_report->m_sets[5];
+  ObjectKeySet emptySet;
+  ObjectKeySet* source1 = ReportSet(m_notice, team ? 1 : 0);
+  ObjectKeySet* source2 = ReportSet(m_notice, team ? 3 : 2);
+  ObjectKeySet* source3 = ReportSet(m_notice, team ? 4 : 5);
+  if (!source1)
+    source1 = &emptySet;
+  if (!source2)
+    source2 = &emptySet;
+  if (!source3)
+    source3 = &emptySet;
   const int threeColumns = unitTab.m_threeColumns;
   const int flag = unitTab.m_threeColumns;
   CopyFamilyRange(source1, unitTab.m_firstFamily, unitTab.m_endFamily, &firstSet);

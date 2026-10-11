@@ -69,7 +69,7 @@ public:
   void HumanCommand(int command, void* a, void* b, const void* c);
   void HumanReceiveMessage(PlayerMessage* message, int flag);
   void HumanAdvisorNotify(const ObjectKey* key);
-  void HumanSetVote(int choice, int timed, PlayerMessage* reply);
+  void HumanSetVote(int choice, int timed, UiNotice* reply);
   void HumanConfirmVote(UiNotice* reply);
   void SetHumanUiTarget(int a, int b);
   void HumanRequestUpdate();

@@ -1,5 +1,6 @@
 #include <new>
 
+#include "character/character.h"
 #include "core/game_string.h"
 #include "data/dat_record.h"
 #include "economy/manu_mgr.h"
@@ -30,12 +31,10 @@ namespace
 constexpr int kEventDeleteDestroyed = 0x372;
 constexpr uint32_t kCoruscantId = 0x109;
 constexpr uint32_t kCoruscantKey = 0x90000109;
-constexpr uint32_t kStoryKeyEmperor = 0x32000242;
-constexpr uint32_t kStoryKey30000240 = 0x30000240;
-constexpr uint32_t kStoryKey35000281 = 0x35000281;
-constexpr uint32_t kStoryKey34000280 = 0x34000280;
-constexpr size_t kStoryFlagOffset = 0xac;
-constexpr size_t kRootVictoryModeOffset = 0x60;
+constexpr uint32_t kLukeKey = 0x32000242;
+constexpr uint32_t kMonMothmaKey = 0x30000240;
+constexpr uint32_t kEmperorKey = 0x35000281;
+constexpr uint32_t kVaderKey = 0x34000280;
 constexpr uint32_t kControllerMask = 3;
 constexpr uint32_t kGarrisonMask = 0x30;
 constexpr FamilyRange kSystemFamilies(0x90, 0x98);
@@ -53,14 +52,9 @@ GameObj* asObject(GameObjNotifier* object)
   return static_cast<GameObj*>(object);
 }
 
-int readInt(const void* object, size_t offset)
+uint32_t capturedFlag(GameObjNotifier* object)
 {
-  return *reinterpret_cast<const int*>(static_cast<const uint8_t*>(object) + offset);
-}
-
-uint32_t readFlag(const void* object, size_t offset)
-{
-  return static_cast<uint32_t>(readInt(object, offset)) & 1;
+  return object ? static_cast<Character*>(object)->m_flagsAc & 1 : 0;
 }
 
 } // namespace
@@ -307,54 +301,56 @@ int ApplyStrengthImbalance(GameObj* object, int side, int valueSide1, int valueS
 int UpdateVictoryState(NotifyContext* ctx)
 {
   GameRoot* root = static_cast<GameRoot*>(GetGameRootObjectCached());
-  const ObjectKey emperorKey(ObjectKey::Make(kStoryKeyEmperor >> 24, kStoryKeyEmperor & 0xffffff));
+  const ObjectKey lukeKey(ObjectKey::Make(kLukeKey >> 24, kLukeKey & 0xffffff));
+  GameObjNotifier* luke = GetMasterInFamilies_30_3c(&lukeKey);
+  const ObjectKey monMothmaKey(ObjectKey::Make(kMonMothmaKey >> 24, kMonMothmaKey & 0xffffff));
+  GameObjNotifier* monMothma = GetMasterInFamilies_30_3c(&monMothmaKey);
+  const ObjectKey emperorKey(ObjectKey::Make(kEmperorKey >> 24, kEmperorKey & 0xffffff));
   GameObjNotifier* emperor = GetMasterInFamilies_30_3c(&emperorKey);
-  const ObjectKey key30000240(ObjectKey::Make(kStoryKey30000240 >> 24, kStoryKey30000240 & 0xffffff));
-  GameObjNotifier* character30000240 = GetMasterInFamilies_30_3c(&key30000240);
-  const ObjectKey key35000281(ObjectKey::Make(kStoryKey35000281 >> 24, kStoryKey35000281 & 0xffffff));
-  GameObjNotifier* character35000281 = GetMasterInFamilies_30_3c(&key35000281);
-  const ObjectKey key34000280(ObjectKey::Make(kStoryKey34000280 >> 24, kStoryKey34000280 & 0xffffff));
-  GameObjNotifier* character34000280 = GetMasterInFamilies_30_3c(&key34000280);
+  const ObjectKey vaderKey(ObjectKey::Make(kVaderKey >> 24, kVaderKey & 0xffffff));
+  GameObjNotifier* vader = GetMasterInFamilies_30_3c(&vaderKey);
   const ObjectKey coruscantKey(ObjectKey::Make(kCoruscantKey >> 24, kCoruscantKey & 0xffffff));
   GameObjNotifier* coruscant = GetMasterInFamilies_90_98(&coruscantKey);
-  GameObjNotifier* deathStarSite = GetFirstMasterInFamilies_20_22();
+  GameObjNotifier* allianceHq = GetFirstMasterInFamilies_20_22();
 
   int available = 1;
-  if (emperor == nullptr || character30000240 == nullptr || character35000281 == nullptr ||
-      character34000280 == nullptr || coruscant == nullptr || root == nullptr)
+  if (coruscant == nullptr || root == nullptr)
+    available = 0;
+  else if (root->m_settings.m_field08 == 0 &&
+           (luke == nullptr || monMothma == nullptr || emperor == nullptr || vader == nullptr))
     available = 0;
 
   uint32_t flags = 0;
-  int noDeathStar = 0;
-  uint32_t emperorFlag = 0;
-  uint32_t flag30000240 = 0;
+  int allianceHqDestroyed = 0;
+  uint32_t lukeCaptured = 0;
+  uint32_t monMothmaCaptured = 0;
   int coruscantAlliance = 0;
-  uint32_t flag35000281 = 0;
-  uint32_t flag34000280 = 0;
+  uint32_t emperorCaptured = 0;
+  uint32_t vaderCaptured = 0;
   uint32_t coruscantDestroyed = 0;
   int oneSide = 0;
   int otherSide = 0;
   int either = 0;
   if (available != 0)
   {
-    noDeathStar = deathStarSite == nullptr || (asObject(deathStarSite)->m_stateFlags & kDestroyed) != 0;
-    emperorFlag = readFlag(emperor, kStoryFlagOffset);
-    flag30000240 = readFlag(character30000240, kStoryFlagOffset);
+    allianceHqDestroyed = allianceHq == nullptr || (asObject(allianceHq)->m_stateFlags & kDestroyed) != 0;
+    lukeCaptured = capturedFlag(luke);
+    monMothmaCaptured = capturedFlag(monMothma);
     coruscantAlliance = (asObject(coruscant)->m_flags & 0xc0) == 0x40;
-    flag35000281 = readFlag(character35000281, kStoryFlagOffset);
-    flag34000280 = readFlag(character34000280, kStoryFlagOffset);
+    emperorCaptured = capturedFlag(emperor);
+    vaderCaptured = capturedFlag(vader);
     coruscantDestroyed = (asObject(coruscant)->m_stateFlags >> 3) & 1;
-    const int mode = readInt(root, kRootVictoryModeOffset);
+    const int mode = root->m_settings.m_field08;
     int left = 0;
     int right = 0;
     if (mode == 0)
     {
-      left = emperorFlag != 0 && flag30000240 != 0 && noDeathStar;
-      right = flag35000281 != 0 && flag34000280 != 0 && (coruscantAlliance || coruscantDestroyed != 0);
+      left = lukeCaptured != 0 && monMothmaCaptured != 0 && allianceHqDestroyed;
+      right = emperorCaptured != 0 && vaderCaptured != 0 && (coruscantAlliance || coruscantDestroyed != 0);
     }
     else if (mode == 1)
     {
-      left = noDeathStar;
+      left = allianceHqDestroyed;
       right = coruscantAlliance || coruscantDestroyed != 0;
     }
     else
@@ -393,18 +389,18 @@ int UpdateVictoryState(NotifyContext* ctx)
   }
   if (available != 0)
   {
-    flags = noDeathStar ? 1 : 0;
-    if (emperorFlag != 0)
+    flags = allianceHqDestroyed ? 1 : 0;
+    if (lukeCaptured != 0)
       flags |= 0x10;
-    if (flag30000240 != 0)
+    if (monMothmaCaptured != 0)
       flags |= 0x20;
     if (coruscantAlliance)
       flags |= 0x100;
     if (coruscantDestroyed != 0)
       flags |= 0x200;
-    if (flag35000281 != 0)
+    if (emperorCaptured != 0)
       flags |= 0x1000;
-    if (flag34000280 != 0)
+    if (vaderCaptured != 0)
       flags |= 0x2000;
     if (oneSide)
       flags |= 0x100000;
@@ -430,6 +426,8 @@ int PublishVictoryState()
   if (side1 != nullptr && side2 != nullptr && root != nullptr)
   {
     NotifyContext ctx(root->m_ctx194);
+    if (root->IsSetupComplete())
+      UpdateVictoryState(&ctx);
     result = 0;
     ctx.m_flag04 = 1;
     ctx.m_flag08 = 1;

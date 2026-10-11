@@ -9,6 +9,7 @@
 #include "events/player_notice_util.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
+#include "story/story_characters.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "ui/message_template.h"
 
@@ -292,9 +293,14 @@ void Notice41::Virtual08(int kind, intptr_t a, intptr_t b)
   {
     m_f64 = 1;
     m_unk40 = 1;
-    const uint8_t* character = reinterpret_cast<const uint8_t*>(GetObject_32000242(m_owner));
+    auto* luke = static_cast<Luke*>(GetObject_32000242(m_owner));
+    if (!luke)
+    {
+      m_unk40 = 0;
+      return;
+    }
     uint32_t advice;
-    if ((character[0xb0] & 8) == 0)
+    if ((luke->m_storyFlags & Luke::kDagobahCompleted) == 0)
     {
       m_picture[1] = 0x42a;
       m_sound[0] = 0x479;

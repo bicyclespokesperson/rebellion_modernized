@@ -60,6 +60,11 @@ void Notice15::Virtual08(int kind, intptr_t a, intptr_t b)
     else if (m_f68 == 2)
       other = GetSideObject(m_owner, 2);
     GameObjNotifier* system = GetObjectInFamilies_90_98(m_owner, &m_key);
+    if (!system)
+    {
+      m_unk40 = 0;
+      return;
+    }
     if (m_f64 == 0)
     {
       if (m_owner != m_f6c)

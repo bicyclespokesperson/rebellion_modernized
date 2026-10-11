@@ -752,9 +752,11 @@ CoolWindow* GalaxyWindow::CreateModalWindow(WPARAM wParam, LPARAM lParam)
     case kReportWindowType:
     {
       void* memory = ::operator new(sizeof(ReportWindow));
-      window = memory ? new (memory) ReportWindow(m_instance, this, static_cast<uint32_t>(wParam),
-                                                  reinterpret_cast<ReportMessage*>(lParam)) :
-                        nullptr;
+      auto* notice = reinterpret_cast<UiNotice*>(lParam);
+      window = memory ?
+                 new (memory)
+                   ReportWindow(m_instance, this, static_cast<uint32_t>(wParam), static_cast<UiTextNotice*>(notice)) :
+                 nullptr;
       break;
     }
     default:

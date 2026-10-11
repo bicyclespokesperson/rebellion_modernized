@@ -476,7 +476,7 @@ void GameSession::HumanAdvisorNotify(const ObjectKey* key)
     m_human->NotifyAdvisor(key);
 }
 
-void GameSession::HumanSetVote(int choice, int timed, PlayerMessage* reply)
+void GameSession::HumanSetVote(int choice, int timed, UiNotice* reply)
 {
   if (m_human)
     m_human->SetVote(choice, timed, reply);

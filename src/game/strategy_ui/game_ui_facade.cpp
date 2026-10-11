@@ -105,7 +105,7 @@ void UiHumanAdvisorNotify(const ObjectKey* key)
     session->HumanAdvisorNotify(key);
 }
 
-void UiHumanSetVote(int choice, int timed, PlayerMessage* reply)
+void UiHumanSetVote(int choice, int timed, UiNotice* reply)
 {
   GameSession* session = GetGameSession();
   if (session)

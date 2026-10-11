@@ -427,6 +427,23 @@ reserve at least one normal line, including completely blank rows. The optional 
 and verifies nonzero origins, empty values, blank rows, wrapping and rendered text. Host release and halt-on-error UBSan
 save/reload smoke pass with malloc scribbling, including the existing fleet and battle-report checks.
 
+Report audit follow-up: the assault/fleet popup now reads its actual `UiTextNotice` / `Notice15` payload rather than
+the unrelated `PlayerMessage` layout stand-in. Text, artwork, navigation keys, faction data and participant sets come
+from their real owners; detailed sets are accessed only for Notice15. Vote submission also carries `UiNotice*`
+through the facade and session. Message dispatch uses the common text accessor, including Notice8, which does not
+inherit the text-notice layout. Assault completion suppresses a stale result if its system has disappeared; the
+Dagobah story report chooses artwork from Luke's typed story flags. Battle, assault/fleet, mission, vote, message-index,
+advisor and encyclopedia report paths were reviewed. Native UI smoke creates the real assault popup in both faction
+skins and checks title and body pixels separately, plus missing-target suppression and both Dagobah artwork branches.
+Creating and disposing that fixture also found an uninitialized galaxy offscreen bitmap pointer; the constructor now
+initializes it, making cleanup safe before native window creation.
+
+HQ victory follow-up: victory mode and captured-character flags use typed fields instead of original 32-bit memory
+offsets. HQ-only games do not require story-character availability or capture. The completed-step publication path
+recomputes victory after setup, catching Alliance HQ destruction independently of its cause. Native UI regression
+checks exercise HQ-only and standard predicates and both report payload shapes; release and halt-on-error UBSan
+save/reload smoke pass with malloc scribbling, and all eight host tests pass in both builds.
+
 Host-only validation and the existing desktop acceptance gap still apply; Linux and Windows are work for agents
 running on those hosts.
 

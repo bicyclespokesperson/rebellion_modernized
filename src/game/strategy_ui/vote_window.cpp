@@ -348,7 +348,7 @@ void VoteWindow::OnCommand(int a, int b, int c)
     default:
       return;
   }
-  UiHumanSetVote(choice, timed, reinterpret_cast<PlayerMessage*>(m_notice));
+  UiHumanSetVote(choice, timed, m_notice);
   StopMusic();
   PostCloseRequest();
   OpenBattleBanner();

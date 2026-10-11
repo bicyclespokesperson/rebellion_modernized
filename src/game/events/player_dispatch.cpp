@@ -252,8 +252,7 @@ void PlayerDispatch::AddNotice(UiNotice* notice)
     case 5:
     case 8:
     {
-      UiTextNotice* text = static_cast<UiTextNotice*>(notice);
-      if (!text->m_text0.c_str()[0])
+      if (notice->MessageText0().empty())
       {
         delete notice;
       }

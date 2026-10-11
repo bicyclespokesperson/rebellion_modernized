@@ -223,6 +223,7 @@ GalaxyWindow::GalaxyWindow(HINSTANCE instance,
   m_unknownAc = 0;
   m_currentCursor = nullptr;
   m_targetCursor = nullptr;
+  m_offscreen = nullptr;
   m_offscreenDc = nullptr;
   m_droidStage = nullptr;
   m_droidStage2 = nullptr;

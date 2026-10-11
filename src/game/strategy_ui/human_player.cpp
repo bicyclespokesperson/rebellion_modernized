@@ -818,7 +818,7 @@ void HumanPlayer::NotifyAdvisor(const ObjectKey* key)
     m_advisor->SetTaskState(key);
 }
 
-void HumanPlayer::SetVote(int choice, int timed, PlayerMessage* reply)
+void HumanPlayer::SetVote(int choice, int timed, UiNotice* reply)
 {
   ClearGameTime(&m_voteTime);
   if (choice == 0)
@@ -831,11 +831,11 @@ void HumanPlayer::SetVote(int choice, int timed, PlayerMessage* reply)
     if (timed != 0)
     {
       m_voteTime.m_value = 10000.0f;
-      Dispatch()->AddMessage(reinterpret_cast<UiNotice*>(reply));
+      Dispatch()->AddMessage(reply);
       return;
     }
   }
-  Dispatch()->AddMessage(reinterpret_cast<UiNotice*>(reply));
+  Dispatch()->AddMessage(reply);
 }
 
 void HumanPlayer::ConfirmVote(UiNotice* reply)

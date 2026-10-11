@@ -56,10 +56,11 @@ int ApplyDepartureRules(GameObj* unused, int value, ObjectKey* system, NotifyCon
 int ApplyEnrouteRules(GameObj* object, int unused, ObjectKey* system, NotifyContext* ctx); // 0x517de0
 // The loyalty pull of the two sides' unit strengths on `object`'s system.
 int ApplyStrengthImbalance(GameObj* object, int side, int valueSide1, int valueSide2, NotifyContext* ctx); // 0x517ee0
-// Recomputes the victory-condition flags of the game root (the four story characters, Coruscant and the Death Star);
-// when they changed they are stored with `ctx`. Returns whether all the objects it needs exist.
+// Recomputes victory flags from the Alliance HQ, Coruscant and (in standard mode) the four story characters.
+// Changes are stored with `ctx`. Returns whether the objects required by the selected mode exist.
 int UpdateVictoryState(NotifyContext* ctx); // 0x5180e0
-// Tells both sides the current victory flags. Returns 1 if the sides or the game root do not exist.
+// After setup, rechecks victory before publishing flags to both sides, covering HQ destruction from any cause.
+// Returns 1 if the sides or the game root do not exist.
 int PublishVictoryState(); // 0x518460
 
 // Look-ups of the objects an object belongs to. All store null in *out first.
