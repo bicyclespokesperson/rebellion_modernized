@@ -49,9 +49,9 @@ int checkOrder(int ready, EventKindSet& kinds, int orderKind, StatusCode* out) {
 
 // ---- MajorCharacter ------------------------------------------------------------------------------------------
 
-MajorCharacter::MajorCharacter() {}
+MajorCharacter::MajorCharacter() = default;
 
-MajorCharacter::~MajorCharacter() {  }
+MajorCharacter::~MajorCharacter() = default;
 
 int MajorCharacter::GetEventKinds(int unused, EventKindSet* out) {
     return copyKinds(BuildEventKinds(), g_majorCharacterEventKinds, out);
@@ -113,9 +113,9 @@ int MajorLeafChecksum(Character* self, Crc32* crc) { return CharacterLeafChecksu
 
 // ---- MajorChar30 ---------------------------------------------------------------------------------------------
 
-MajorChar30::MajorChar30() {}
+MajorChar30::MajorChar30() = default;
 
-MajorChar30::~MajorChar30() {  }
+MajorChar30::~MajorChar30() = default;
 
 uint32_t MajorChar30::GetFamily() { return kFamilyMajorChar30; }
 
@@ -155,9 +155,9 @@ int MajorChar30::BuildEventKinds() {
 
 // ---- MajorChar34 ---------------------------------------------------------------------------------------------
 
-MajorChar34::MajorChar34() {}
+MajorChar34::MajorChar34() = default;
 
-MajorChar34::~MajorChar34() {  }
+MajorChar34::~MajorChar34() = default;
 
 uint32_t MajorChar34::GetFamily() { return kFamilyMajorChar34; }
 
@@ -200,9 +200,9 @@ int MajorChar34::BuildEventKinds() {
 
 // ---- MajorChar35 ---------------------------------------------------------------------------------------------
 
-MajorChar35::MajorChar35() {}
+MajorChar35::MajorChar35() = default;
 
-MajorChar35::~MajorChar35() {  }
+MajorChar35::~MajorChar35() = default;
 
 uint32_t MajorChar35::GetFamily() { return kFamilyMajorChar35; }
 

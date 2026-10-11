@@ -18,9 +18,9 @@ int ControlSideIndex(uint32_t controlSide) {
 }
 }  // namespace
 
-MissionSubdue::MissionSubdue() {}
+MissionSubdue::MissionSubdue() = default;
 
-MissionSubdue::~MissionSubdue() {  }
+MissionSubdue::~MissionSubdue() = default;
 
 REB_MISSION_SHARED_PERSISTENCE(MissionSubdue)
 

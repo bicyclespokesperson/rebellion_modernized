@@ -34,7 +34,7 @@ POINTS PointsFromLParam(LPARAM lParam) {
 
 CoolListItemList::CoolListItemList(int sortMode) : m_sortMode(0) { m_sortMode.m_value = sortMode; }
 
-CoolListItemList::~CoolListItemList() {  }
+CoolListItemList::~CoolListItemList() = default;
 
 int CoolListItemList::IsLess(LinkNode* a, LinkNode* b) {
     const uint32_t mode = static_cast<uint32_t>(m_sortMode.m_value);

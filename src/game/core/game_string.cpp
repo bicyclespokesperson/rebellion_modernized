@@ -292,17 +292,13 @@ void String::Write(ostream* out) { WriteTo(out); }
 
 StringCursor::StringCursor() : m_current(nullptr), m_begin(nullptr) {}
 
-StringCursor::StringCursor(const StringCursor& other) : m_current(other.m_current), m_begin(other.m_begin) {}
+StringCursor::StringCursor(const StringCursor& other)  = default;
 
 StringCursor::StringCursor(const String& text) : m_current(text.m_text), m_begin(text.m_text) {}
 
-StringCursor::~StringCursor() {}
+StringCursor::~StringCursor() = default;
 
-StringCursor& StringCursor::operator=(const StringCursor& other) {
-    m_current = other.m_current;
-    m_begin = other.m_begin;
-    return *this;
-}
+StringCursor& StringCursor::operator=(const StringCursor& other) = default;
 
 StringCursor& StringCursor::Attach(const String& text) {
     m_begin = m_current = text.m_text;

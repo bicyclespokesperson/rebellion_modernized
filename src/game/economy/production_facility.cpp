@@ -32,7 +32,7 @@ bool controlledByNeutral(const ProductionFacility* facility) {
 
 ProductionFacility::ProductionFacility() : m_work(), m_productionModifier(kDefaultProductionModifier) {}
 
-ProductionFacility::~ProductionFacility() {  }
+ProductionFacility::~ProductionFacility() = default;
 
 IntPair* ProductionFacility::GetWork(IntPair* out) {
     *out = m_work;
@@ -312,4 +312,4 @@ int ProductionFacility::ValidateImpl() {
 ProductionFacilityIterator::ProductionFacilityIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kProductionFacilityFamilies, stateFilter) {}
 
-ProductionFacilityIterator::~ProductionFacilityIterator() {  }
+ProductionFacilityIterator::~ProductionFacilityIterator() = default;

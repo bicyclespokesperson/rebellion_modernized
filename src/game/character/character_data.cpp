@@ -4,9 +4,9 @@
 
 // ---- RoleData ---------------------------------------------------------------------------------------------
 
-RoleData::RoleData() {}
+RoleData::RoleData() = default;
 
-RoleData::~RoleData() {  }
+RoleData::~RoleData() = default;
 
 int RoleData::Read(istream* in) { return UnitObjData::Read(in); }
 
@@ -19,7 +19,7 @@ int RoleData::Checksum(Crc32* crc) { return UnitObjData::Checksum(crc); }
 CharacterData::CharacterData()
     : RoleData(), m_healingStat(), m_forceDiscoveryStat(), m_escapeStat(), m_holderKey(), m_field34(0) {}
 
-CharacterData::~CharacterData() {  }
+CharacterData::~CharacterData() = default;
 
 int CharacterData::Read(istream* in) {
     int result = 0;

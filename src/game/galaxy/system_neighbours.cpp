@@ -30,11 +30,11 @@ int SystemIndex(const GameObjNotifier* system) { return static_cast<int>(system-
 
 SystemNeighbourCursor::SystemNeighbourCursor() : m_begin(nullptr), m_current(nullptr) {}
 
-SystemNeighbourCursor::~SystemNeighbourCursor() {  }
+SystemNeighbourCursor::~SystemNeighbourCursor() = default;
 
 SystemNeighbourTable::SystemNeighbourTable() { std::memset(m_entries, 0, sizeof(m_entries)); }
 
-SystemNeighbourTable::~SystemNeighbourTable() {  }
+SystemNeighbourTable::~SystemNeighbourTable() = default;
 
 int SystemNeighbourTable::GetNeighbours(const ObjectKey* key, SystemNeighbourCursor* out) {
     out->m_begin = nullptr;

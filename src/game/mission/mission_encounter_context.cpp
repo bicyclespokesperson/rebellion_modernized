@@ -54,7 +54,7 @@ EncounterContext::EncounterContext()
       m_unitCount(0),
       m_betrayerKey() {}
 
-EncounterContext::~EncounterContext() {  }
+EncounterContext::~EncounterContext() = default;
 
 // ---- walkers over the units -----------------------------------------------------------------------------------------------
 

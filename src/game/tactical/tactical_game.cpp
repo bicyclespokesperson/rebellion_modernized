@@ -48,13 +48,13 @@ void copyOutcome(BattleOutcome* to, const BattleOutcome* from) { *to = *from; }
 
 // ---- type map ------------------------------------------------------------------------------------------------
 
-TypeMapNode::TypeMapNode() {}
+TypeMapNode::TypeMapNode() = default;
 
-TypeMapNode::~TypeMapNode() {}
+TypeMapNode::~TypeMapNode() = default;
 
-TypeMapTree::TypeMapTree() {}
+TypeMapTree::TypeMapTree() = default;
 
-TypeMapTree::~TypeMapTree() {}
+TypeMapTree::~TypeMapTree() = default;
 
 int TypeMapTree::IsLess(AvlNode* a, AvlNode* b) {
     const TypeMapNode* left = static_cast<const TypeMapNode*>(a);

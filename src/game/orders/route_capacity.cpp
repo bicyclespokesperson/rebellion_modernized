@@ -39,26 +39,16 @@ intptr_t rangeArgument(const FamilyRange* range) { return reinterpret_cast<intpt
 
 CapacitySlot::CapacitySlot() : m_unlimited(1), m_remaining(0), m_status(okStatus()), m_limitStatus(okStatus()) {}
 
-CapacitySlot::CapacitySlot(const CapacitySlot& other)
-    : m_unlimited(other.m_unlimited),
-      m_remaining(other.m_remaining),
-      m_status(other.m_status),
-      m_limitStatus(other.m_limitStatus) {}
+CapacitySlot::CapacitySlot(const CapacitySlot& other) = default;
 
-CapacitySlot::~CapacitySlot() {  }
+CapacitySlot::~CapacitySlot() = default;
 
 int CapacitySlot::MarkOverCapacity() {
     m_status = StatusCode(kStatusCategory, kStatusOverCapacity);
     return 1;
 }
 
-CapacitySlot& CapacitySlot::operator=(const CapacitySlot& other) {
-    m_unlimited = other.m_unlimited;
-    m_remaining = other.m_remaining;
-    m_status = other.m_status;
-    m_limitStatus = other.m_limitStatus;
-    return *this;
-}
+CapacitySlot& CapacitySlot::operator=(const CapacitySlot& other) = default;
 
 int CapacitySlot::Reset() {
     m_unlimited = 1;
@@ -129,15 +119,15 @@ int CapacitySlot::Commit(CapacitySlot* capacity, const UnitCount& count, int con
 
 CapacityScratch::CapacityScratch() = default;
 
-CapacityScratch::~CapacityScratch() {  }
+CapacityScratch::~CapacityScratch() = default;
 
 // ---- UnitCount ------------------------------------------------------------------------------------------------
 
 UnitCount::UnitCount() : m_counted(0), m_amount(0) {}
 
-UnitCount::UnitCount(const UnitCount& other) : m_counted(other.m_counted), m_amount(other.m_amount) {}
+UnitCount::UnitCount(const UnitCount& other)  = default;
 
-UnitCount::~UnitCount() {  }
+UnitCount::~UnitCount() = default;
 
 int UnitCount::Reset() {
     m_counted = 0;
@@ -155,7 +145,7 @@ CapacitySlotArray::CapacitySlotArray(const CapacitySlotArray& other) {
     for (int i = 0; i < kCapacityBuckets; ++i) m_slots[i] = other.m_slots[i];
 }
 
-CapacitySlotArray::~CapacitySlotArray() {  }
+CapacitySlotArray::~CapacitySlotArray() = default;
 
 CapacitySlotArray& CapacitySlotArray::operator=(const CapacitySlotArray& other) {
     for (int i = 0; i < kCapacityBuckets; ++i) m_slots[i] = other.m_slots[i];
@@ -169,7 +159,7 @@ int CapacitySlotArray::MarkAllOverCapacity() {
 
 UnitCountArray::UnitCountArray() = default;
 
-UnitCountArray::~UnitCountArray() {  }
+UnitCountArray::~UnitCountArray() = default;
 
 int UnitCountArray::ResetAll() {
     for (UnitCount& count : m_counts) count.Reset();
@@ -185,11 +175,11 @@ int UnitCountArray::AllNonNegative() const {
 
 CapacityTable::CapacityTable() = default;
 
-CapacityTable::~CapacityTable() {  }
+CapacityTable::~CapacityTable() = default;
 
 UnitCountTable::UnitCountTable() = default;
 
-UnitCountTable::~UnitCountTable() {  }
+UnitCountTable::~UnitCountTable() = default;
 
 int UnitCountTable::ResetAll() {
     if (m_own.ResetAll()) return m_carried.ResetAll();
@@ -257,7 +247,7 @@ int UnitCountTable::AddFamily(uint32_t family, int delta, StatusCode* status) {
 
 CapacityLeg::CapacityLeg() : ObjectKeyNode(), m_flag(1), m_parentKey(), m_table() {}
 
-CapacityLeg::~CapacityLeg() {  }
+CapacityLeg::~CapacityLeg() = default;
 
 int CapacityLeg::MarkAllIncomingOverCapacity() { return m_table.m_incoming.MarkAllOverCapacity(); }
 

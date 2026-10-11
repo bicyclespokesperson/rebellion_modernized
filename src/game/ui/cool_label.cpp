@@ -189,9 +189,9 @@ void CoolLabel::ReplaceTextFromStream(HWND hwnd, HDC dc, StrStream* stream) {
     Invalidate(hwnd, TRUE);
 }
 
-RectTree::RectTree() {}
+RectTree::RectTree() = default;
 
-RectTree::~RectTree() {  }
+RectTree::~RectTree() = default;
 
 int RectTree::IsLess(AvlNode* a, AvlNode* b) {
     const RectNode* first = static_cast<const RectNode*>(a);

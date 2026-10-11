@@ -8,9 +8,9 @@ namespace {
 constexpr uint32_t kFamilyMissionAutoroute = 0x43;
 }
 
-MissionAutoroute::MissionAutoroute() {}
+MissionAutoroute::MissionAutoroute() = default;
 
-MissionAutoroute::~MissionAutoroute() {  }
+MissionAutoroute::~MissionAutoroute() = default;
 
 uint32_t MissionAutoroute::GetFamily() { return kFamilyMissionAutoroute; }
 

@@ -4,18 +4,9 @@
 
 SeedKey::SeedKey() : m_key(0), m_second(0), m_third(0), m_fourth(0), m_fifth(0) {}
 
-SeedKey::SeedKey(const SeedKey& other)
-    : m_key(other.m_key), m_second(other.m_second), m_third(other.m_third), m_fourth(other.m_fourth),
-      m_fifth(other.m_fifth) {}
+SeedKey::SeedKey(const SeedKey& other) = default;
 
-SeedKey& SeedKey::operator=(const SeedKey& other) {
-    m_key = other.m_key;
-    m_second = other.m_second;
-    m_third = other.m_third;
-    m_fourth = other.m_fourth;
-    m_fifth = other.m_fifth;
-    return *this;
-}
+SeedKey& SeedKey::operator=(const SeedKey& other) = default;
 
 int SeedKey::operator==(const SeedKey& other) const {
     return m_key == other.m_key && m_second == other.m_second && m_third == other.m_third &&

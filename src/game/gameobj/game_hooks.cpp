@@ -79,15 +79,9 @@ int CallIdHook() {
 NotifyContext::NotifyContext()
     : m_flag04(1), m_flag08(1), m_notifyView1(1), m_notifyView2(1), m_reserved14(0), m_reserved18(0) {}
 
-NotifyContext::NotifyContext(const NotifyContext& other)
-    : m_flag04(other.m_flag04),
-      m_flag08(other.m_flag08),
-      m_notifyView1(other.m_notifyView1),
-      m_notifyView2(other.m_notifyView2),
-      m_reserved14(other.m_reserved14),
-      m_reserved18(other.m_reserved18) {}
+NotifyContext::NotifyContext(const NotifyContext& other) = default;
 
-NotifyContext::~NotifyContext() {  }
+NotifyContext::~NotifyContext() = default;
 
 NotifyContext& NotifyContext::operator=(const NotifyContext& other) {
     if (this != &other) {

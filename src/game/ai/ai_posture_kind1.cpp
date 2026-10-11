@@ -5,7 +5,7 @@ using namespace ai_posture;
 
 AiPostureKind1::AiPostureKind1(int view, AiSideController* owner, AiSystemRecord* record) : AiPosture(view, owner, record) {}
 
-AiPostureKind1::~AiPostureKind1() {  }
+AiPostureKind1::~AiPostureKind1() = default;
 
 void AiPostureKind1::GetPlannerRequest(int* createKind, int* createSubtype, int* releaseKind, int* releaseSubtype) {
     DefaultPlannerRequest(createKind, createSubtype, releaseKind, releaseSubtype);

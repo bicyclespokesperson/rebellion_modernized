@@ -6,9 +6,9 @@
 #include "ui/sprite.h"
 #include "ui/sprite_stage.h"
 
-AnimationStepQueue::AnimationStepQueue() {}
+AnimationStepQueue::AnimationStepQueue() = default;
 
-AnimationStepQueue::~AnimationStepQueue() {  }
+AnimationStepQueue::~AnimationStepQueue() = default;
 
 namespace {
 

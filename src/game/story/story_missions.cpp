@@ -231,9 +231,9 @@ int MissionStoryChecksumForward(Mission* self, Crc32* crc) { return self->Missio
 
 // ---- MissionPickup ----------------------------------------------------------------------------------------------
 
-MissionPickup::MissionPickup() {}
+MissionPickup::MissionPickup() = default;
 
-MissionPickup::~MissionPickup() {  }
+MissionPickup::~MissionPickup() = default;
 
 uint32_t MissionPickup::GetFamily() { return kFamilyPickup; }
 
@@ -327,9 +327,9 @@ int MissionPickup::BuildEventKinds() {
 
 // ---- MissionPalace ----------------------------------------------------------------------------------------------
 
-MissionPalace::MissionPalace() {}
+MissionPalace::MissionPalace() = default;
 
-MissionPalace::~MissionPalace() {  }
+MissionPalace::~MissionPalace() = default;
 
 uint32_t MissionPalace::GetFamily() { return kFamilyPalace; }
 
@@ -448,9 +448,9 @@ int MissionPalace::BuildEventKinds() {
 
 // ---- MissionVacation --------------------------------------------------------------------------------------------
 
-MissionVacation::MissionVacation() {}
+MissionVacation::MissionVacation() = default;
 
-MissionVacation::~MissionVacation() {  }
+MissionVacation::~MissionVacation() = default;
 
 uint32_t MissionVacation::GetFamily() { return kFamilyVacation; }
 
@@ -526,7 +526,7 @@ int MissionVacation::BuildEventKinds() {
 
 DagobahMission::DagobahMission() : m_firstTrainingDay(0) {}
 
-DagobahMission::~DagobahMission() {  }
+DagobahMission::~DagobahMission() = default;
 
 uint32_t DagobahMission::GetFamily() { return kFamilyDagobah; }
 
@@ -679,9 +679,9 @@ int DagobahMission::BuildEventKinds() {
 
 // ---- MissionBounty ----------------------------------------------------------------------------------------------
 
-MissionBounty::MissionBounty() {}
+MissionBounty::MissionBounty() = default;
 
-MissionBounty::~MissionBounty() {  }
+MissionBounty::~MissionBounty() = default;
 
 uint32_t MissionBounty::GetFamily() { return kFamilyBounty; }
 

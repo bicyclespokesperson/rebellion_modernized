@@ -24,11 +24,11 @@ constexpr float kDefaultDepth = 4.0f;
 
 FormationSlot::FormationSlot(TacticalShipBase* unit) : UnitRefNode(unit) {}
 
-FormationSlot::~FormationSlot() {}
+FormationSlot::~FormationSlot() = default;
 
-FormationSlotTree::~FormationSlotTree() {}
+FormationSlotTree::~FormationSlotTree() = default;
 
-FormationRankTree::~FormationRankTree() {}
+FormationRankTree::~FormationRankTree() = default;
 
 int FormationRankTree::IsLess(AvlNode* a, AvlNode* b) {
     struct RankKey {
@@ -70,7 +70,7 @@ FormationBase::FormationBase(int groupHandle, TacticalVector position) {
     }
 }
 
-FormationBase::~FormationBase() {}
+FormationBase::~FormationBase() = default;
 
 int FormationBase::AddMember(int handle) {
     TacticalShipBase* ship = GetTacticalRegistry()->FindShip(handle);
@@ -128,7 +128,7 @@ CapitalShipFormation::CapitalShipFormation(int groupHandle, TacticalVector posit
     m_unk140 = 0;
 }
 
-CapitalShipFormation::~CapitalShipFormation() {}
+CapitalShipFormation::~CapitalShipFormation() = default;
 
 void CapitalShipFormation::Virtual06() {}
 
@@ -172,7 +172,7 @@ FighterFormation::FighterFormation(int groupHandle, TacticalVector position) : F
     m_position = position;
 }
 
-FighterFormation::~FighterFormation() {}
+FighterFormation::~FighterFormation() = default;
 
 void FighterFormation::Virtual06() {}
 

@@ -13,7 +13,7 @@ ObjectKey ObjectKey::Make(uint32_t family, uint32_t id) {
 
 ObjectKey::ObjectKey() : m_value(kUnsetValue) {}
 
-ObjectKey::ObjectKey(const ObjectKey& other) : m_value(other.m_value) {}
+ObjectKey::ObjectKey(const ObjectKey& other)  = default;
 
 void ObjectKey::Reset() { m_value = kUnsetValue; }
 
@@ -56,7 +56,7 @@ ObjectKeyNode::ObjectKeyNode(const ObjectKey& key) : AvlNode(), m_key(key) {}
 
 ObjectKeyNode::ObjectKeyNode(const ObjectKeyNode& other) : AvlNode(), m_key(other.m_key) {}
 
-ObjectKeyNode::~ObjectKeyNode() {  }
+ObjectKeyNode::~ObjectKeyNode() = default;
 
 ObjectKeyNode* ObjectKeyNode::Clone() { return NewOrNull<ObjectKeyNode>(*this); }
 
@@ -78,9 +78,9 @@ ObjectKeyValueNode::ObjectKeyValueNode() : ObjectKeyNode(), m_value(0) {}
 
 ObjectKeyValueNode::ObjectKeyValueNode(const ObjectKey& key, int value) : ObjectKeyNode(key), m_value(value) {}
 
-ObjectKeyValueNode::ObjectKeyValueNode(const ObjectKeyValueNode& other) : ObjectKeyNode(other), m_value(other.m_value) {}
+ObjectKeyValueNode::ObjectKeyValueNode(const ObjectKeyValueNode& other)  = default;
 
-ObjectKeyValueNode::~ObjectKeyValueNode() {  }
+ObjectKeyValueNode::~ObjectKeyValueNode() = default;
 
 ObjectKeyNode* ObjectKeyValueNode::Clone() { return NewOrNull<ObjectKeyValueNode>(*this); }
 
@@ -215,9 +215,9 @@ ObjectKeyNode* ObjectKeySet::Find(const ObjectKey* key) {
 
 ObjectKeyValueSet::ObjectKeyValueSet() : ObjectKeySet() {}
 
-ObjectKeyValueSet::ObjectKeyValueSet(const ObjectKeyValueSet& other) : ObjectKeySet(other) {}
+ObjectKeyValueSet::ObjectKeyValueSet(const ObjectKeyValueSet& other)  = default;
 
-ObjectKeyValueSet::~ObjectKeyValueSet() {  }
+ObjectKeyValueSet::~ObjectKeyValueSet() = default;
 
 ObjectKeyNode* ObjectKeyValueSet::NewNode() { return NewOrNull<ObjectKeyValueNode>(); }
 
@@ -334,7 +334,7 @@ ObjectRefNode::ObjectRefNode() : IdNode(), m_flag(1), m_count(0) {
 // The copy constructor clears m_flag instead of copying it.
 ObjectRefNode::ObjectRefNode(const ObjectRefNode& other) : IdNode(), m_flag(0), m_count(other.m_count), m_key(other.m_key) {}
 
-ObjectRefNode::~ObjectRefNode() {  }
+ObjectRefNode::~ObjectRefNode() = default;
 
 int ObjectRefNode::Read(istream* in) {
     ReadValue32(in, &m_flag);

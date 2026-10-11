@@ -75,7 +75,7 @@ Character::Character()
       m_commandingKey(),
       m_flagsAc(0) {}
 
-Character::~Character() {  }
+Character::~Character() = default;
 
 // The secondary vtable slot is entered with `this` pointing at the ObjectBase subobject.
 void AppendCharacterName(ObjectBase* base, String* out, int kind) {
@@ -328,7 +328,7 @@ CharacterIterator::CharacterIterator(GameObjNotifier* parent, uint32_t stateFilt
 CharacterIterator::CharacterIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &family::kCharacters, stateFilter) {}
 
-CharacterIterator::~CharacterIterator() {  }
+CharacterIterator::~CharacterIterator() = default;
 EventKindSet g_characterEventKinds{};
 int g_characterEventKindsBuilt{};
 int g_gnprtb1C00{};

@@ -24,7 +24,7 @@ constexpr int kStreamHeaderBytes = 8;  // "data" tag and chunk size
 
 // ---- SoundSourceList / SoundCatalogList ---------------------------------------------------------------------
 
-SoundSourceList::SoundSourceList() {}
+SoundSourceList::SoundSourceList() = default;
 
 SoundSourceList::~SoundSourceList() { SoundIdTree::Clear(); }
 
@@ -36,7 +36,7 @@ void SoundSourceList::DeleteByKey(uint32_t key) {
     }
 }
 
-SoundCatalogList::SoundCatalogList() {}
+SoundCatalogList::SoundCatalogList() = default;
 
 SoundCatalogList::~SoundCatalogList() { SoundIdTree::Clear(); }
 

@@ -83,7 +83,7 @@ bool isCapitalShip(GameObjNotifier* object) { return inFamilies(object->GetFamil
 
 DestinationOrder::DestinationOrder() : OrderBase() {}
 
-DestinationOrder::~DestinationOrder() {  }
+DestinationOrder::~DestinationOrder() = default;
 
 int DestinationOrder::GetKind() { return 0x214; }
 
@@ -198,7 +198,7 @@ int DestinationOrder::CheckDestination(StatusCode* status) {
 
 RenameOrder215::RenameOrder215() : TextMessage() {}
 
-RenameOrder215::~RenameOrder215() {  }
+RenameOrder215::~RenameOrder215() = default;
 
 int RenameOrder215::GetKind() { return 0x215; }
 
@@ -239,7 +239,7 @@ ManufactureOrderBase::ManufactureOrderBase() : OrderBase() {
     m_count = 0;
 }
 
-ManufactureOrderBase::~ManufactureOrderBase() {  }
+ManufactureOrderBase::~ManufactureOrderBase() = default;
 
 int ManufactureOrderBase::Read(istream* in) {
     int result = OrderBase::Read(in);
@@ -459,17 +459,17 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
 // ---- ManufactureOrder210/211/212 --------------------------------------------------------------------------------
 
 ManufactureOrder210::ManufactureOrder210() : ManufactureOrderBase() {}
-ManufactureOrder210::~ManufactureOrder210() {  }
+ManufactureOrder210::~ManufactureOrder210() = default;
 int ManufactureOrder210::GetKind() { return 0x210; }
 void* CreateManufactureOrder210() { return NewOrNull<ManufactureOrder210>(); }
 
 ManufactureOrder211::ManufactureOrder211() : ManufactureOrderBase() {}
-ManufactureOrder211::~ManufactureOrder211() {  }
+ManufactureOrder211::~ManufactureOrder211() = default;
 int ManufactureOrder211::GetKind() { return 0x211; }
 void* CreateManufactureOrder211() { return NewOrNull<ManufactureOrder211>(); }
 
 ManufactureOrder212::ManufactureOrder212() : ManufactureOrderBase() {}
-ManufactureOrder212::~ManufactureOrder212() {  }
+ManufactureOrder212::~ManufactureOrder212() = default;
 int ManufactureOrder212::GetKind() { return 0x212; }
 void* CreateManufactureOrder212() { return NewOrNull<ManufactureOrder212>(); }
 
@@ -477,7 +477,7 @@ void* CreateManufactureOrder212() { return NewOrNull<ManufactureOrder212>(); }
 
 Order213::Order213() : OrderBase() {}
 
-Order213::~Order213() {  }
+Order213::~Order213() = default;
 
 int Order213::GetKind() { return 0x213; }
 
@@ -492,7 +492,7 @@ void* CreateOrder213() { return NewOrNull<Order213>(); }
 
 Order216::Order216() : OrderBase() {}
 
-Order216::~Order216() {  }
+Order216::~Order216() = default;
 
 int Order216::GetKind() { return 0x216; }
 

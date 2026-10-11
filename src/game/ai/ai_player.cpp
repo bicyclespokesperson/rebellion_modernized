@@ -40,7 +40,7 @@ AiPlayer::AiPlayer(int side) : PlayerController(side), m_notices(), m_tasks(), m
     m_ordersPerBudget = 0;
 }
 
-AiPlayer::~AiPlayer() {  }
+AiPlayer::~AiPlayer() = default;
 
 void AiPlayer::Read(istream* in) {
     uint32_t currentId = 0;

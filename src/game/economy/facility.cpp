@@ -25,9 +25,9 @@ constexpr FamilyRange kFacilityFamilies(0x20, 0x30);
 SdRecordExt2* recordOf(Facility* facility) { return static_cast<SdRecordExt2*>(facility->m_record); }
 }  // namespace
 
-Facility::Facility() {}
+Facility::Facility() = default;
 
-Facility::~Facility() {  }
+Facility::~Facility() = default;
 
 int Facility::GetEventKinds(int unused, EventKindSet* out) {
     const int result = BuildEventKinds();
@@ -46,9 +46,9 @@ GameObjData* Facility::CreateData() {
     return NewOrNull<FacilityData>();
 }
 
-FacilityData::FacilityData() {}
+FacilityData::FacilityData() = default;
 
-FacilityData::~FacilityData() {  }
+FacilityData::~FacilityData() = default;
 
 int Facility::OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) {
     return UnitObjBase::OnControlKindChanged(oldKind, newKind, ctx);
@@ -104,6 +104,6 @@ FacilityIterator::FacilityIterator(GameObjNotifier* parent, uint32_t stateFilter
 FacilityIterator::FacilityIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kFacilityFamilies, stateFilter) {}
 
-FacilityIterator::~FacilityIterator() {  }
+FacilityIterator::~FacilityIterator() = default;
 EventKindSet g_facilityEventKinds{};
 int g_facilityEventKindsReady{};

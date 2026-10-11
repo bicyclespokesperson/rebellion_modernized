@@ -15,7 +15,7 @@ NetMsg1::NetMsg1() : SidedMessage(), m_syncPoint(0), m_checksums() {}
 
 NetMsg1::NetMsg1(int syncPoint) : SidedMessage(), m_syncPoint(syncPoint), m_checksums() {}
 
-NetMsg1::~NetMsg1() {  }
+NetMsg1::~NetMsg1() = default;
 
 int NetMsg1::Read(istream* in) {
     int result = SidedMessage::Read(in);
@@ -46,7 +46,7 @@ void* CreateNetMsg1() { return NewOrNull<NetMsg1>(); }
 
 NetMsg2::NetMsg2() : SidedMessage(), m_syncPoint(0) {}
 
-NetMsg2::~NetMsg2() {  }
+NetMsg2::~NetMsg2() = default;
 
 int NetMsg2::Read(istream* in) {
     int result = SidedMessage::Read(in);
@@ -72,7 +72,7 @@ void* CreateNetMsg2() { return NewOrNull<NetMsg2>(); }
 
 NetMsg280::NetMsg280() : SidedMessage() {}
 
-NetMsg280::~NetMsg280() {  }
+NetMsg280::~NetMsg280() = default;
 
 int NetMsg280::Read(istream* in) {
     int result = SidedMessage::Read(in);
@@ -104,7 +104,7 @@ void* CreateNetMsg280() { return NewOrNull<NetMsg280>(); }
 
 NetMsg4::NetMsg4() : MessageBase(), m_voteId(0), m_voteState(0), m_voteKey() { m_voteTime.m_value = 0; }
 
-NetMsg4::~NetMsg4() {  }
+NetMsg4::~NetMsg4() = default;
 
 int NetMsg4::Read(istream* in) {
     int result = MessageBase::Read(in);
@@ -130,7 +130,7 @@ void* CreateNetMsg4() { return NewOrNull<NetMsg4>(); }
 
 NetMsg5::NetMsg5() : SidedMessage(), m_value(0) {}
 
-NetMsg5::~NetMsg5() {  }
+NetMsg5::~NetMsg5() = default;
 
 int NetMsg5::Read(istream* in) {
     int result = SidedMessage::Read(in);
@@ -153,7 +153,7 @@ void* CreateNetMsg5() { return NewOrNull<NetMsg5>(); }
 
 NetMsg13::NetMsg13() : MessageBase() {}
 
-NetMsg13::~NetMsg13() {  }
+NetMsg13::~NetMsg13() = default;
 
 int NetMsg13::Read(istream* in) { return MessageBase::Read(in); }
 
@@ -165,7 +165,7 @@ void* CreateNetMsg13() { return NewOrNull<NetMsg13>(); }
 
 NetMsg15::NetMsg15() : MessageBase(), m_valueA(0), m_valueB(0), m_valueC(0) {}
 
-NetMsg15::~NetMsg15() {  }
+NetMsg15::~NetMsg15() = default;
 
 int NetMsg15::Read(istream* in) {
     int result = MessageBase::Read(in);

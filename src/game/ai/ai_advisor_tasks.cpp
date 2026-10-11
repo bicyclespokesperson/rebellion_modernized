@@ -98,7 +98,7 @@ AdvisorTask20::AdvisorTask20(int view) : AdvisorTaskBase(0x14, view), m_selector
     m_state = 0;
 }
 
-AdvisorTask20::~AdvisorTask20() {  }
+AdvisorTask20::~AdvisorTask20() = default;
 
 void AdvisorTask20::Read(istream* in) {
     AdvisorTaskBase::Read(in);
@@ -249,7 +249,7 @@ AdvisorTask21::AdvisorTask21(int view) : AdvisorTaskBase(0x15, view), m_selector
     m_state = 0;
 }
 
-AdvisorTask21::~AdvisorTask21() {  }
+AdvisorTask21::~AdvisorTask21() = default;
 
 void AdvisorTask21::Read(istream* in) {
     AdvisorTaskBase::Read(in);
@@ -805,7 +805,7 @@ AdvisorTaskBase* AdvisorTaskManager::PickBest() {
 
 AdvisorEntryTree::AdvisorEntryTree() : IdAvlTree() {}
 
-AdvisorEntryTree::~AdvisorEntryTree() {  }
+AdvisorEntryTree::~AdvisorEntryTree() = default;
 
 void AdvisorEntryTree::Save(ostream* out) {
     uint32_t count = static_cast<uint16_t>(Count());

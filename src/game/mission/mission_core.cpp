@@ -28,7 +28,7 @@ Mission::Mission()
     m_leaderSeedKey.m_value = 0;
 }
 
-Mission::~Mission() {  }
+Mission::~Mission() = default;
 
 // ---- overrides of GameObj slots ---------------------------------------------------------------------------
 
@@ -117,6 +117,6 @@ int Mission::HasCompletionStatus() { return m_completionStatus != 0; }
 MissionIterator::MissionIterator(GameObjNotifier* parent)
     : ChildIterator(parent, &family::kMissions, 1) {}
 
-MissionIterator::~MissionIterator() {  }
+MissionIterator::~MissionIterator() = default;
 EventKindSet g_missionEventKinds{};
 int g_missionEventKindsBuilt{};

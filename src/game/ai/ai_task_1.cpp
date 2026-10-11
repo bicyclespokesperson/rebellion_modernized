@@ -37,7 +37,7 @@ AiTask1::AiTask1(int view)
     m_x24 = 4;
 }
 
-AiTask1::~AiTask1() {  }
+AiTask1::~AiTask1() = default;
 
 FamilyFields AiTask1::Fields() {
     return {m_owner, m_view, m_x24, &m_selector, &m_targets, &m_dropped, &m_system, &m_manager, &m_classKey, &m_count, &m_cap, &m_limit};

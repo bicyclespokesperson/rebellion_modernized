@@ -16,9 +16,9 @@ constexpr int kStatusTargetIsCharacter = 0x25;
 constexpr int kStatusCategoryOrder = 0x40;
 }  // namespace
 
-MissionSabotage::MissionSabotage() {}
+MissionSabotage::MissionSabotage() = default;
 
-MissionSabotage::~MissionSabotage() {  }
+MissionSabotage::~MissionSabotage() = default;
 
 REB_MISSION_SHARED_PERSISTENCE(MissionSabotage)
 

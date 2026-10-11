@@ -48,7 +48,7 @@ AiTask5::AiTask5(int view) : AiStagedTask(5, view), m_key58(), m_system(), m_man
     m_dropped.Clear();
 }
 
-AiTask5::~AiTask5() {  }
+AiTask5::~AiTask5() = default;
 
 FamilyFields AiTask5::Fields() {
     return {m_owner, m_view, m_x24, &m_selector, &m_targets, &m_dropped, &m_system, &m_manager, &m_classKey, &m_x48, &m_x4c, &m_x44};

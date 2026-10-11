@@ -67,7 +67,7 @@ SoundRequest::SoundRequest(const SoundRequest& other) {
     m_playing = other.m_playing;
 }
 
-SoundRequest::~SoundRequest() {  }
+SoundRequest::~SoundRequest() = default;
 
 // ---- statics ------------------------------------------------------------------------------------------------
 

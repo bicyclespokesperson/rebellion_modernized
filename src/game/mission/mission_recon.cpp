@@ -12,9 +12,9 @@ constexpr int kTaskSucceeded = 3;
 constexpr int kSystemViewEventMode = 8;
 }  // namespace
 
-MissionRecon::MissionRecon() {}
+MissionRecon::MissionRecon() = default;
 
-MissionRecon::~MissionRecon() {  }
+MissionRecon::~MissionRecon() = default;
 
 REB_MISSION_SHARED_PERSISTENCE(MissionRecon)
 

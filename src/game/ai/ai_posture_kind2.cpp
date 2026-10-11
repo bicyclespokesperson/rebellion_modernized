@@ -17,7 +17,7 @@ void RememberSystem(ObjectKeySet* set, const ObjectKey& key) {
 AiPostureKind2::AiPostureKind2(int view, AiSideController* owner, AiSystemRecord* record)
     : AiPosture(view, owner, record), m_chosen() {}
 
-AiPostureKind2::~AiPostureKind2() {  }
+AiPostureKind2::~AiPostureKind2() = default;
 
 void AiPostureKind2::Read(istream* in) {
     AiPosture::Read(in);

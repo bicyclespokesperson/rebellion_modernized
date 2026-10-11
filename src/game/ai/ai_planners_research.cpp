@@ -10,7 +10,7 @@ AiResearchPlanner1::AiResearchPlanner1(int view, AiSideController* owner, AiChar
     m_missionKey = ObjectKey::Make(0x53, 0x20);
 }
 
-AiResearchPlanner1::~AiResearchPlanner1() {  }
+AiResearchPlanner1::~AiResearchPlanner1() = default;
 
 int AiResearchPlanner1::Virtual06() { return SumLeaderValue(this, 2); }
 
@@ -29,7 +29,7 @@ AiResearchPlanner2::AiResearchPlanner2(int view, AiSideController* owner, AiChar
     m_missionKey = ObjectKey::Make(0x53, 0x22);
 }
 
-AiResearchPlanner2::~AiResearchPlanner2() {  }
+AiResearchPlanner2::~AiResearchPlanner2() = default;
 
 int AiResearchPlanner2::Virtual06() { return SumLeaderValue(this, 3); }
 
@@ -48,7 +48,7 @@ AiResearchPlanner3::AiResearchPlanner3(int view, AiSideController* owner, AiChar
     m_missionKey = ObjectKey::Make(0x53, 0x21);
 }
 
-AiResearchPlanner3::~AiResearchPlanner3() {  }
+AiResearchPlanner3::~AiResearchPlanner3() = default;
 
 int AiResearchPlanner3::Virtual06() { return SumLeaderValue(this, 4); }
 
@@ -67,7 +67,7 @@ AiSubduePlanner::AiSubduePlanner(int view, AiSideController* owner, AiCharacterR
     m_missionKey = ObjectKey::Make(0x57, 0x80);
 }
 
-AiSubduePlanner::~AiSubduePlanner() {  }
+AiSubduePlanner::~AiSubduePlanner() = default;
 
 int AiSubduePlanner::Virtual06() { return SumLeaderValue(this, 6); }
 

@@ -30,9 +30,9 @@ int OpposingSideIndex(uint32_t controlSide) {
 }
 }  // namespace
 
-MissionEspionage::MissionEspionage() {}
+MissionEspionage::MissionEspionage() = default;
 
-MissionEspionage::~MissionEspionage() {  }
+MissionEspionage::~MissionEspionage() = default;
 
 uint32_t MissionEspionage::GetFamily() { return kFamilyMissionEspionage; }
 

@@ -28,9 +28,9 @@ void BitmapOverlay::GetRect(RECT* rect) {
     rect->bottom = bitmap->Height() + m_y;
 }
 
-BitmapOverlayTree::BitmapOverlayTree() {}
+BitmapOverlayTree::BitmapOverlayTree() = default;
 
-BitmapOverlayTree::~BitmapOverlayTree() {  }
+BitmapOverlayTree::~BitmapOverlayTree() = default;
 
 int BitmapOverlayTree::IsLess(AvlNode* a, AvlNode* b) {
     if (!a || !b) return 0;

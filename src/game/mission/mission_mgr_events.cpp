@@ -16,9 +16,9 @@ MissionMgr* getMissionMgr() { return reinterpret_cast<MissionMgr*>(GetGameRootMe
 
 MissionMgrEvent30c::MissionMgrEvent30c() : SourceEvent() {}
 
-MissionMgrEvent30c::MissionMgrEvent30c(const MissionMgrEvent30c& other) : SourceEvent(other) {}
+MissionMgrEvent30c::MissionMgrEvent30c(const MissionMgrEvent30c& other)  = default;
 
-MissionMgrEvent30c::~MissionMgrEvent30c() {  }
+MissionMgrEvent30c::~MissionMgrEvent30c() = default;
 
 MissionMgrEvent30c* MissionMgrEvent30c::Clone() { return NewOrNull<MissionMgrEvent30c>(*this); }
 
@@ -38,9 +38,9 @@ MissionMgrEvent30c* CreateMissionMgrEvent30c() { return NewOrNull<MissionMgrEven
 
 MissionMgrEvent30d::MissionMgrEvent30d() : SourceEvent() {}
 
-MissionMgrEvent30d::MissionMgrEvent30d(const MissionMgrEvent30d& other) : SourceEvent(other) {}
+MissionMgrEvent30d::MissionMgrEvent30d(const MissionMgrEvent30d& other)  = default;
 
-MissionMgrEvent30d::~MissionMgrEvent30d() {  }
+MissionMgrEvent30d::~MissionMgrEvent30d() = default;
 
 MissionMgrEvent30d* MissionMgrEvent30d::Clone() { return NewOrNull<MissionMgrEvent30d>(*this); }
 

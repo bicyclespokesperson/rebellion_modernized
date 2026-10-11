@@ -54,7 +54,7 @@ UiNotice::UiNotice(int owner) : IdNode(), m_flags(0) {
     m_flags.m_value |= kNoticeFlagUi;
 }
 
-UiNotice::~UiNotice() {  }
+UiNotice::~UiNotice() = default;
 
 void UiNotice::Read(istream* in) {
     ReadValue32(in, &m_unk1c);
@@ -98,7 +98,7 @@ UiTextNotice::UiTextNotice() : UiNotice() { m_target.m_value = 0; }
 
 UiTextNotice::UiTextNotice(int owner) : UiNotice(owner) { m_target.m_value = 0; }
 
-UiTextNotice::~UiTextNotice() {  }
+UiTextNotice::~UiTextNotice() = default;
 
 void UiTextNotice::Read(istream* in) {
     UiNotice::Read(in);
@@ -133,7 +133,7 @@ UiKeyNotice::UiKeyNotice() : UiNotice() {}
 
 UiKeyNotice::UiKeyNotice(int owner) : UiNotice(owner) {}
 
-UiKeyNotice::~UiKeyNotice() {  }
+UiKeyNotice::~UiKeyNotice() = default;
 
 void UiKeyNotice::Read(istream* in) {
     UiNotice::Read(in);

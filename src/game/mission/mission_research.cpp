@@ -77,7 +77,7 @@ MissionResearch::MissionResearch() {
     m_rdOrders = 0;
 }
 
-MissionResearch::~MissionResearch() {  }
+MissionResearch::~MissionResearch() = default;
 
 int MissionResearch::Read(istream* in) {
     const int result = this->Mission::ReadImpl(in);

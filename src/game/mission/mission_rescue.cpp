@@ -12,9 +12,9 @@ constexpr uint32_t kFamilyMissionRescue = 0x61;
 constexpr int kTaskSucceeded = 3;
 }  // namespace
 
-MissionRescue::MissionRescue() {}
+MissionRescue::MissionRescue() = default;
 
-MissionRescue::~MissionRescue() {  }
+MissionRescue::~MissionRescue() = default;
 
 REB_MISSION_SHARED_PERSISTENCE(MissionRescue)
 

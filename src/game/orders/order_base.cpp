@@ -35,13 +35,13 @@ extern int g_orderFactoryCount;               // 0x6b8fd8
 ActivityRequest::ActivityRequest() : m_side(0), m_unk04(0), m_target(), m_kind(0) {}
 
 ActivityRequest::ActivityRequest(const ActivityRequest& other)
-    : m_side(other.m_side), m_unk04(other.m_unk04), m_target(other.m_target), m_kind(other.m_kind) {}
+     = default;
 
 // ---- MessageBase ----------------------------------------------------------------------------------------------
 
 MessageBase::MessageBase() : IdNode() { m_unk1c = 1; }
 
-MessageBase::~MessageBase() {  }
+MessageBase::~MessageBase() = default;
 
 int MessageBase::Read(istream* in) {
     // BUG(original): the id is read into the argument slot that held the stream pointer, so a failed read leaves
@@ -68,7 +68,7 @@ SidedMessage::SidedMessage() : MessageBase() {
     m_unk24 = 1;
 }
 
-SidedMessage::~SidedMessage() {  }
+SidedMessage::~SidedMessage() = default;
 
 int SidedMessage::Read(istream* in) {
     int result = MessageBase::Read(in);
@@ -267,7 +267,7 @@ int OrderBase::CheckDestination(StatusCode* status) {
 
 TextMessage::TextMessage() : OrderBase(), m_text() {}
 
-TextMessage::~TextMessage() {  }
+TextMessage::~TextMessage() = default;
 
 int TextMessage::Read(istream* in) {
     int result = OrderBase::Read(in);

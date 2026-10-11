@@ -45,7 +45,7 @@ constexpr TableFileSpec kTableFiles[] = {
 
 TableBase::TableBase() : m_version(1) {}
 
-TableBase::~TableBase() {  }
+TableBase::~TableBase() = default;
 
 int TableBase::ReadVersion(istream* in) {
     ReadValue32(in, &m_version);
@@ -66,7 +66,7 @@ int TableBase::ChecksumVersion(Crc32* crc) {
 
 Table::Table() { m_name[0] = '\0'; }
 
-Table::~Table() {  }
+Table::~Table() = default;
 
 void Table::Add(TableEntry* entry) {
     if (entry) m_entries.AddWithId(entry);
@@ -194,7 +194,7 @@ int TableBase::Open(uint16_t firstId, uint16_t secondId, const char* directory) 
 
 TableFile::TableFile() { m_version = m_table.m_version; }
 
-TableFile::~TableFile() {  }
+TableFile::~TableFile() = default;
 
 int TableFile::Load(uint16_t firstId, uint16_t secondId, const char* directory) {
     return m_table.Open(firstId, secondId, directory);
@@ -202,7 +202,7 @@ int TableFile::Load(uint16_t firstId, uint16_t secondId, const char* directory) 
 
 TableFileList::TableFileList() : m_ready(1) {}
 
-TableFileList::~TableFileList() {  }
+TableFileList::~TableFileList() = default;
 
 // ---- GDataTables -------------------------------------------------------------------------------------------
 

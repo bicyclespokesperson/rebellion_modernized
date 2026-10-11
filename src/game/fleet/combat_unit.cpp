@@ -32,7 +32,7 @@ SdRecordGrid* gridRecordOf(CombatUnit* unit) { return static_cast<SdRecordGrid*>
 
 CombatUnit::CombatUnit() { m_combatFlags = 0; }
 
-CombatUnit::~CombatUnit() {  }
+CombatUnit::~CombatUnit() = default;
 
 int CombatUnit::GetEventKinds(int unused, EventKindSet* out) {
     const int ready = EnsureEventKinds();

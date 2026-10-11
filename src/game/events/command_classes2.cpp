@@ -45,9 +45,9 @@ struct ObjectKeyNodeView {
 
 MoveCommand::MoveCommand() : Command() {}
 
-MoveCommand::MoveCommand(const MoveCommand& other) : Command(other) {}
+MoveCommand::MoveCommand(const MoveCommand& other)  = default;
 
-MoveCommand::~MoveCommand() {  }
+MoveCommand::~MoveCommand() = default;
 
 MoveCommand* MoveCommand::Clone() { return NewOrNull<MoveCommand>(*this); }
 
@@ -125,9 +125,9 @@ MoveCommand* CreateMoveCommand() { return NewOrNull<MoveCommand>(); }
 
 RenameCommand::RenameCommand() : Command(), m_name() {}
 
-RenameCommand::RenameCommand(const RenameCommand& other) : Command(other), m_name(other.m_name) {}
+RenameCommand::RenameCommand(const RenameCommand& other)  = default;
 
-RenameCommand::~RenameCommand() {  }
+RenameCommand::~RenameCommand() = default;
 
 RenameCommand* RenameCommand::Clone() { return NewOrNull<RenameCommand>(*this); }
 
@@ -157,9 +157,9 @@ RenameCommand* CreateRenameCommand() { return NewOrNull<RenameCommand>(); }
 
 ScrapCommand::ScrapCommand() : Command() {}
 
-ScrapCommand::ScrapCommand(const ScrapCommand& other) : Command(other) {}
+ScrapCommand::ScrapCommand(const ScrapCommand& other)  = default;
 
-ScrapCommand::~ScrapCommand() {  }
+ScrapCommand::~ScrapCommand() = default;
 
 ScrapCommand* ScrapCommand::Clone() { return NewOrNull<ScrapCommand>(*this); }
 
@@ -179,9 +179,9 @@ ScrapCommand* CreateScrapCommand() { return NewOrNull<ScrapCommand>(); }
 
 ReadyForDeleteCommand::ReadyForDeleteCommand() : Command() {}
 
-ReadyForDeleteCommand::ReadyForDeleteCommand(const ReadyForDeleteCommand& other) : Command(other) {}
+ReadyForDeleteCommand::ReadyForDeleteCommand(const ReadyForDeleteCommand& other)  = default;
 
-ReadyForDeleteCommand::~ReadyForDeleteCommand() {  }
+ReadyForDeleteCommand::~ReadyForDeleteCommand() = default;
 
 ReadyForDeleteCommand* ReadyForDeleteCommand::Clone() { return NewOrNull<ReadyForDeleteCommand>(*this); }
 
@@ -204,9 +204,9 @@ ReadyForDeleteCommand* CreateReadyForDeleteCommand() { return NewOrNull<ReadyFor
 
 RootCommand240::RootCommand240() : Command() {}
 
-RootCommand240::RootCommand240(const RootCommand240& other) : Command(other) {}
+RootCommand240::RootCommand240(const RootCommand240& other)  = default;
 
-RootCommand240::~RootCommand240() {  }
+RootCommand240::~RootCommand240() = default;
 
 RootCommand240* RootCommand240::Clone() { return NewOrNull<RootCommand240>(*this); }
 
@@ -256,9 +256,9 @@ RootCommand240* CreateRootCommand240() { return NewOrNull<RootCommand240>(); }
 
 RootCommand242::RootCommand242() : Command() {}
 
-RootCommand242::RootCommand242(const RootCommand242& other) : Command(other) {}
+RootCommand242::RootCommand242(const RootCommand242& other)  = default;
 
-RootCommand242::~RootCommand242() {  }
+RootCommand242::~RootCommand242() = default;
 
 RootCommand242* RootCommand242::Clone() { return NewOrNull<RootCommand242>(*this); }
 
@@ -298,9 +298,9 @@ RootCommand242* CreateRootCommand242() { return NewOrNull<RootCommand242>(); }
 
 DestinationCommand::DestinationCommand() : Command(), m_pairs() {}
 
-DestinationCommand::DestinationCommand(const DestinationCommand& other) : Command(other), m_pairs(other.m_pairs) {}
+DestinationCommand::DestinationCommand(const DestinationCommand& other)  = default;
 
-DestinationCommand::~DestinationCommand() {  }
+DestinationCommand::~DestinationCommand() = default;
 
 DestinationCommand* DestinationCommand::Clone() { return NewOrNull<DestinationCommand>(*this); }
 
@@ -379,9 +379,9 @@ DestinationCommand* CreateDestinationCommand() { return NewOrNull<DestinationCom
 
 ManagerRenameCommand::ManagerRenameCommand() : Command(), m_name() {}
 
-ManagerRenameCommand::ManagerRenameCommand(const ManagerRenameCommand& other) : Command(other), m_name(other.m_name) {}
+ManagerRenameCommand::ManagerRenameCommand(const ManagerRenameCommand& other)  = default;
 
-ManagerRenameCommand::~ManagerRenameCommand() {  }
+ManagerRenameCommand::~ManagerRenameCommand() = default;
 
 ManagerRenameCommand* ManagerRenameCommand::Clone() { return NewOrNull<ManagerRenameCommand>(*this); }
 
@@ -411,9 +411,9 @@ ManagerRenameCommand* CreateManagerRenameCommand() { return NewOrNull<ManagerRen
 
 ManagerCommand213::ManagerCommand213() : Command() {}
 
-ManagerCommand213::ManagerCommand213(const ManagerCommand213& other) : Command(other) {}
+ManagerCommand213::ManagerCommand213(const ManagerCommand213& other)  = default;
 
-ManagerCommand213::~ManagerCommand213() {  }
+ManagerCommand213::~ManagerCommand213() = default;
 
 ManagerCommand213* ManagerCommand213::Clone() { return NewOrNull<ManagerCommand213>(*this); }
 
@@ -433,9 +433,9 @@ ManagerCommand213* CreateManagerCommand213() { return NewOrNull<ManagerCommand21
 
 ManagerCommand216::ManagerCommand216() : Command(), m_value(0) {}
 
-ManagerCommand216::ManagerCommand216(const ManagerCommand216& other) : Command(other), m_value(other.m_value) {}
+ManagerCommand216::ManagerCommand216(const ManagerCommand216& other)  = default;
 
-ManagerCommand216::~ManagerCommand216() {  }
+ManagerCommand216::~ManagerCommand216() = default;
 
 ManagerCommand216* ManagerCommand216::Clone() { return NewOrNull<ManagerCommand216>(*this); }
 
@@ -480,9 +480,9 @@ ManagerCommand216* CreateManagerCommand216() { return NewOrNull<ManagerCommand21
 
 ManufactureCommand::ManufactureCommand() : Command(), m_items() {}
 
-ManufactureCommand::ManufactureCommand(const ManufactureCommand& other) : Command(other), m_items(other.m_items) {}
+ManufactureCommand::ManufactureCommand(const ManufactureCommand& other)  = default;
 
-ManufactureCommand::~ManufactureCommand() {  }
+ManufactureCommand::~ManufactureCommand() = default;
 
 ManufactureCommand* ManufactureCommand::Clone() { return NewOrNull<ManufactureCommand>(*this); }
 
@@ -573,9 +573,9 @@ ManufactureCommand* CreateManufactureCommand() { return NewOrNull<ManufactureCom
 
 FleetCommand221::FleetCommand221() : Command() {}
 
-FleetCommand221::FleetCommand221(const FleetCommand221& other) : Command(other) {}
+FleetCommand221::FleetCommand221(const FleetCommand221& other)  = default;
 
-FleetCommand221::~FleetCommand221() {  }
+FleetCommand221::~FleetCommand221() = default;
 
 FleetCommand221* FleetCommand221::Clone() { return NewOrNull<FleetCommand221>(*this); }
 
@@ -595,9 +595,9 @@ FleetCommand221* CreateFleetCommand221() { return NewOrNull<FleetCommand221>(); 
 
 FleetCommand220::FleetCommand220() : Command() {}
 
-FleetCommand220::FleetCommand220(const FleetCommand220& other) : Command(other) {}
+FleetCommand220::FleetCommand220(const FleetCommand220& other)  = default;
 
-FleetCommand220::~FleetCommand220() {  }
+FleetCommand220::~FleetCommand220() = default;
 
 FleetCommand220* FleetCommand220::Clone() { return NewOrNull<FleetCommand220>(*this); }
 
@@ -617,9 +617,9 @@ FleetCommand220* CreateFleetCommand220() { return NewOrNull<FleetCommand220>(); 
 
 PayloadEvent3f0::PayloadEvent3f0() : TimedEvent(), m_valueA(0), m_valueB(0), m_valueC(0) {}
 
-PayloadEvent3f0::PayloadEvent3f0(const PayloadEvent3f0& other) : TimedEvent(other), m_valueA(other.m_valueA), m_valueB(other.m_valueB), m_valueC(other.m_valueC) {}
+PayloadEvent3f0::PayloadEvent3f0(const PayloadEvent3f0& other)  = default;
 
-PayloadEvent3f0::~PayloadEvent3f0() {  }
+PayloadEvent3f0::~PayloadEvent3f0() = default;
 
 PayloadEvent3f0* PayloadEvent3f0::Clone() { return NewOrNull<PayloadEvent3f0>(*this); }
 

@@ -15,9 +15,9 @@ using events::succeedWithoutChecks;
 
 RefineryQueueEvent::RefineryQueueEvent() : PlainEvent() {}
 
-RefineryQueueEvent::RefineryQueueEvent(const RefineryQueueEvent& other) : PlainEvent(other) {}
+RefineryQueueEvent::RefineryQueueEvent(const RefineryQueueEvent& other)  = default;
 
-RefineryQueueEvent::~RefineryQueueEvent() {  }
+RefineryQueueEvent::~RefineryQueueEvent() = default;
 
 RefineryQueueEvent* RefineryQueueEvent::Clone() { return NewOrNull<RefineryQueueEvent>(*this); }
 
@@ -44,9 +44,9 @@ RefineryQueueEvent* CreateRefineryQueueEvent() { return NewOrNull<RefineryQueueE
 
 ManufacturerQueueEvent::ManufacturerQueueEvent() : PlainEvent() {}
 
-ManufacturerQueueEvent::ManufacturerQueueEvent(const ManufacturerQueueEvent& other) : PlainEvent(other) {}
+ManufacturerQueueEvent::ManufacturerQueueEvent(const ManufacturerQueueEvent& other)  = default;
 
-ManufacturerQueueEvent::~ManufacturerQueueEvent() {  }
+ManufacturerQueueEvent::~ManufacturerQueueEvent() = default;
 
 ManufacturerQueueEvent* ManufacturerQueueEvent::Clone() { return NewOrNull<ManufacturerQueueEvent>(*this); }
 
@@ -73,9 +73,9 @@ ManufacturerQueueEvent* CreateManufacturerQueueEvent() { return NewOrNull<Manufa
 
 ReparentToRootEvent::ReparentToRootEvent() : PlainEvent() {}
 
-ReparentToRootEvent::ReparentToRootEvent(const ReparentToRootEvent& other) : PlainEvent(other) {}
+ReparentToRootEvent::ReparentToRootEvent(const ReparentToRootEvent& other)  = default;
 
-ReparentToRootEvent::~ReparentToRootEvent() {  }
+ReparentToRootEvent::~ReparentToRootEvent() = default;
 
 ReparentToRootEvent* ReparentToRootEvent::Clone() { return NewOrNull<ReparentToRootEvent>(*this); }
 

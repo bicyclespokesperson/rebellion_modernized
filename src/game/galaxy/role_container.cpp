@@ -40,7 +40,7 @@ bool coversOnlyRoleFamilies(const FamilyRange* range) {
 
 RoleContainer::RoleContainer() : GameObj() {}
 
-RoleContainer::~RoleContainer() {  }
+RoleContainer::~RoleContainer() = default;
 
 uint32_t RoleContainer::GetFamily() { return kContainerFamily; }
 

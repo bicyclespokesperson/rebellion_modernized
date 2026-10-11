@@ -8,7 +8,7 @@ using ai::IsSystemKey;
 AiPostureKind4::AiPostureKind4(int view, AiSideController* owner, AiSystemRecord* record)
     : AiPosture(view, owner, record), m_target() {}
 
-AiPostureKind4::~AiPostureKind4() {  }
+AiPostureKind4::~AiPostureKind4() = default;
 
 void AiPostureKind4::Read(istream* in) {
     AiPosture::Read(in);

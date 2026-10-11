@@ -34,9 +34,9 @@ FamilyRange* GetMissionMgrFamilyRange(FamilyRange* out) {
 
 MissionStatATimer::MissionStatATimer() : TimerEvent() {}
 
-MissionStatATimer::MissionStatATimer(const MissionStatATimer& other) : TimerEvent(other) {}
+MissionStatATimer::MissionStatATimer(const MissionStatATimer& other)  = default;
 
-MissionStatATimer::~MissionStatATimer() {  }
+MissionStatATimer::~MissionStatATimer() = default;
 
 MissionStatATimer* MissionStatATimer::Clone() { return NewOrNull<MissionStatATimer>(*this); }
 
@@ -56,9 +56,9 @@ MissionStatATimer* CreateMissionStatATimer() { return NewOrNull<MissionStatATime
 
 MissionStatBTimer::MissionStatBTimer() : TimerEvent() {}
 
-MissionStatBTimer::MissionStatBTimer(const MissionStatBTimer& other) : TimerEvent(other) {}
+MissionStatBTimer::MissionStatBTimer(const MissionStatBTimer& other)  = default;
 
-MissionStatBTimer::~MissionStatBTimer() {  }
+MissionStatBTimer::~MissionStatBTimer() = default;
 
 MissionStatBTimer* MissionStatBTimer::Clone() { return NewOrNull<MissionStatBTimer>(*this); }
 
@@ -78,9 +78,9 @@ MissionStatBTimer* CreateMissionStatBTimer() { return NewOrNull<MissionStatBTime
 
 MissionMgrStatATimer::MissionMgrStatATimer() : TimerEvent() {}
 
-MissionMgrStatATimer::MissionMgrStatATimer(const MissionMgrStatATimer& other) : TimerEvent(other) {}
+MissionMgrStatATimer::MissionMgrStatATimer(const MissionMgrStatATimer& other)  = default;
 
-MissionMgrStatATimer::~MissionMgrStatATimer() {  }
+MissionMgrStatATimer::~MissionMgrStatATimer() = default;
 
 MissionMgrStatATimer* MissionMgrStatATimer::Clone() { return NewOrNull<MissionMgrStatATimer>(*this); }
 
@@ -100,9 +100,9 @@ MissionMgrStatATimer* CreateMissionMgrStatATimer() { return NewOrNull<MissionMgr
 
 MissionMgrStatBTimer::MissionMgrStatBTimer() : TimerEvent() {}
 
-MissionMgrStatBTimer::MissionMgrStatBTimer(const MissionMgrStatBTimer& other) : TimerEvent(other) {}
+MissionMgrStatBTimer::MissionMgrStatBTimer(const MissionMgrStatBTimer& other)  = default;
 
-MissionMgrStatBTimer::~MissionMgrStatBTimer() {  }
+MissionMgrStatBTimer::~MissionMgrStatBTimer() = default;
 
 MissionMgrStatBTimer* MissionMgrStatBTimer::Clone() { return NewOrNull<MissionMgrStatBTimer>(*this); }
 

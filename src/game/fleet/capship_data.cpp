@@ -11,7 +11,7 @@ constexpr FamilyRange kCombatUnitFamilies(0x10, 0x20);
 
 CapShipData::CapShipData() : m_word20(0), m_word24(0), m_word28(0) {}
 
-CapShipData::~CapShipData() {  }
+CapShipData::~CapShipData() = default;
 
 int CapShipData::Read(istream* in) {
     const int result = CombatUnitData::Read(in);
@@ -46,7 +46,7 @@ int CapShipData::Checksum(Crc32* crc) {
 CombatUnitIterator::CombatUnitIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kCombatUnitFamilies, stateFilter) {}
 
-CombatUnitIterator::~CombatUnitIterator() {  }
+CombatUnitIterator::~CombatUnitIterator() = default;
 
 int BindGnprtb08() {
     const int first = BindGnprtbParameter(0x800, &g_gnprtb0800);

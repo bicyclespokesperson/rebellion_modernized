@@ -174,9 +174,9 @@ ScoredGroupNode::ScoredGroupNode(float priority, ShipGroup* group) {
     m_group.m_group = group;
 }
 
-ScoredGroupNode::~ScoredGroupNode() {}
+ScoredGroupNode::~ScoredGroupNode() = default;
 
-ScoredGroupTree::~ScoredGroupTree() {}
+ScoredGroupTree::~ScoredGroupTree() = default;
 
 int ScoredGroupTree::IsLess(AvlNode* a, AvlNode* b) {
     ScoredGroupNode* left = static_cast<ScoredGroupNode*>(a);

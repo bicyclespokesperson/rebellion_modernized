@@ -7,7 +7,7 @@
 
 KeyQueueNode::KeyQueueNode() : LinkNode(), m_flag(1), m_value(0) {}
 
-KeyQueueNode::~KeyQueueNode() {  }
+KeyQueueNode::~KeyQueueNode() = default;
 
 ObjectKey* KeyQueueNode::GetKey(ObjectKey* out) const {
     out->m_value = m_key.m_value;
@@ -102,9 +102,9 @@ int KeyQueue::Add(LinkNode* node) {
 
 ObjectKeyPairSet::ObjectKeyPairSet() : ObjectKeySet() {}
 
-ObjectKeyPairSet::ObjectKeyPairSet(const ObjectKeyPairSet& other) : ObjectKeySet(other) {}
+ObjectKeyPairSet::ObjectKeyPairSet(const ObjectKeyPairSet& other)  = default;
 
-ObjectKeyPairSet::~ObjectKeyPairSet() {  }
+ObjectKeyPairSet::~ObjectKeyPairSet() = default;
 
 ObjectKeyNode* ObjectKeyPairSet::NewNode() { return NewOrNull<ObjectKeyPairNode>(); }
 

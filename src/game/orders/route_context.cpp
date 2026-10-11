@@ -45,7 +45,7 @@ GameObj* asObject(GameObjNotifier* object) { return static_cast<GameObj*>(object
 RouteContext::RouteContext()
     : ObjectKeySet(), m_flag(1), m_status(kStatusCategory, kStatusRefused), m_side(0), m_arg(0), m_kind(0), m_filter(0) {}
 
-RouteContext::~RouteContext() {  }
+RouteContext::~RouteContext() = default;
 
 int RouteContext::Init(int side, int arg, int kind, const int* filter) {
     m_side = side;

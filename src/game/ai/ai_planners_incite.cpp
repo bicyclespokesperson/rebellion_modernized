@@ -9,7 +9,7 @@ AiIncitePlanner::AiIncitePlanner(int view, AiSideController* owner, AiCharacterR
     m_missionKey = ObjectKey::Make(0x56, 0x40);
 }
 
-AiIncitePlanner::~AiIncitePlanner() {  }
+AiIncitePlanner::~AiIncitePlanner() = default;
 
 int AiIncitePlanner::Virtual06() { return SumLeaderValue(this, 6); }
 

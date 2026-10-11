@@ -62,7 +62,7 @@ AiCharacterRecord* CurrentCharacter(AiAgentBase* agent) {
 AiAgentKind6::AiAgentKind6(int view, AiSideController* owner, AiCharacterRecordSet* characters)
     : AiAgentSimple(view, owner, characters) {}
 
-AiAgentKind6::~AiAgentKind6() {  }
+AiAgentKind6::~AiAgentKind6() = default;
 
 int AiAgentKind6::GetCountSlot() { return 1; }
 
@@ -138,7 +138,7 @@ ObjectKey* AiAgentKind6::ChooseTarget(ObjectKey* out) {
 AiAgentKind1::AiAgentKind1(int view, AiSideController* owner, AiCharacterRecordSet* characters)
     : AiAgentSimple(view, owner, characters) {}
 
-AiAgentKind1::~AiAgentKind1() {  }
+AiAgentKind1::~AiAgentKind1() = default;
 
 int AiAgentKind1::GetCountSlot() { return 0; }
 
@@ -233,7 +233,7 @@ AiAgentKind5::AiAgentKind5(int view, AiSideController* owner, AiCharacterRecordS
     m_x50 = 0x2000000;
 }
 
-AiAgentKind5::~AiAgentKind5() {  }
+AiAgentKind5::~AiAgentKind5() = default;
 
 int AiAgentKind5::GetOrderKind() { return 0x261; }
 
@@ -242,7 +242,7 @@ AiAgentKind3::AiAgentKind3(int view, AiSideController* owner, AiCharacterRecordS
     m_x50 = 0x1000000;
 }
 
-AiAgentKind3::~AiAgentKind3() {  }
+AiAgentKind3::~AiAgentKind3() = default;
 
 int AiAgentKind3::GetOrderKind() { return 0x262; }
 
@@ -251,7 +251,7 @@ AiAgentKind4::AiAgentKind4(int view, AiSideController* owner, AiCharacterRecordS
     m_x50 = 0x4000000;
 }
 
-AiAgentKind4::~AiAgentKind4() {  }
+AiAgentKind4::~AiAgentKind4() = default;
 
 int AiAgentKind4::GetOrderKind() { return 0x263; }
 

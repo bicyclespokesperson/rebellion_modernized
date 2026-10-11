@@ -403,7 +403,7 @@ int AiMissionPlanner::IsReachable(const ObjectKey* character) {
 AiFreePlanner::AiFreePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters)
     : AiMissionPlanner(view, owner, characters) {}
 
-AiFreePlanner::~AiFreePlanner() {  }
+AiFreePlanner::~AiFreePlanner() = default;
 
 void AiFreePlanner::Read(istream* in) { AiMissionPlanner::Read(in); }
 
@@ -567,7 +567,7 @@ OrderBase* AiFreePlanner::MoveTeams() {
 AiSystemPlanner::AiSystemPlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters)
     : AiMissionPlanner(view, owner, characters), m_sectorKey() {}
 
-AiSystemPlanner::~AiSystemPlanner() {  }
+AiSystemPlanner::~AiSystemPlanner() = default;
 
 void AiSystemPlanner::Read(istream* in) {
     AiMissionPlanner::Read(in);

@@ -15,9 +15,9 @@ constexpr int kStatusMissingTarget = 0x12;
 
 TimerEvent::TimerEvent() : TimedEvent(), m_spec() {}
 
-TimerEvent::TimerEvent(const TimerEvent& other) : TimedEvent(other), m_spec(other.m_spec) {}
+TimerEvent::TimerEvent(const TimerEvent& other)  = default;
 
-TimerEvent::~TimerEvent() {  }
+TimerEvent::~TimerEvent() = default;
 
 void TimerEvent::Read(istream* in) { ReadTimer(in); }
 

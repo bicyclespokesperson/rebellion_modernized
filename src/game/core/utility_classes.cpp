@@ -7,9 +7,9 @@ extern int g_crcTableReady;
 
 // ---- ObjectBase --------------------------------------------------------------------------------------------
 
-ObjectBase::ObjectBase() {}
+ObjectBase::ObjectBase() = default;
 
-ObjectBase::~ObjectBase() {  }
+ObjectBase::~ObjectBase() = default;
 
 // ---- PersistentInt -----------------------------------------------------------------------------------------
 
@@ -37,7 +37,7 @@ RandomGenerator::RandomGenerator() : m_seed(-1) {}
 
 RandomGenerator::RandomGenerator(int seed) { m_seed = Seed(seed); }
 
-RandomGenerator::~RandomGenerator() {  }
+RandomGenerator::~RandomGenerator() = default;
 
 int RandomGenerator::Seed(int seed) {
     m_seed = -1;
@@ -90,14 +90,11 @@ void RandomGenerator::Write(ostream* out) { WriteValue32(out, &m_seed); }
 
 Crc32::Crc32() { Reset(); }
 
-Crc32::Crc32(const Crc32& other) : m_state(other.m_state) {}
+Crc32::Crc32(const Crc32& other)  = default;
 
-Crc32::~Crc32() {  }
+Crc32::~Crc32() = default;
 
-Crc32& Crc32::operator=(const Crc32& other) {
-    m_state = other.m_state;
-    return *this;
-}
+Crc32& Crc32::operator=(const Crc32& other) = default;
 
 void Crc32::Reset() { m_state = 0xffffffff; }
 

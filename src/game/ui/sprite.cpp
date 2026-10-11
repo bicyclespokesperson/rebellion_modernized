@@ -176,7 +176,7 @@ Sprite::Sprite(DibBitmap* bitmap) {
     m_drawMode = kSpriteKeyed;
 }
 
-Sprite::~Sprite() {  }
+Sprite::~Sprite() = default;
 
 DibBitmap* Sprite::GetBitmap() { return m_bitmap; }
 

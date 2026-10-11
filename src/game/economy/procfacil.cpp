@@ -72,7 +72,7 @@ const char* stateName(int state) {
 
 ProcFacil::ProcFacil() : m_state(kStateIdle), m_etc(0), m_procFlags(0) {}
 
-ProcFacil::~ProcFacil() {  }
+ProcFacil::~ProcFacil() = default;
 
 // ---- virtuals ------------------------------------------------------------------------------------------------
 
@@ -84,7 +84,7 @@ GameObjData* ProcFacil::CreateData() {
 
 ProcFacilData::ProcFacilData() : m_duration(0), m_cycleCount(0) {}
 
-ProcFacilData::~ProcFacilData() {  }
+ProcFacilData::~ProcFacilData() = default;
 
 int ProcFacilData::Read(istream* in) {
     int result = UnitObjData::Read(in);
@@ -440,6 +440,6 @@ ProcFacilIterator::ProcFacilIterator(GameObjNotifier* parent, uint32_t stateFilt
 ProcFacilIterator::ProcFacilIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kProcFacilFamilies, stateFilter) {}
 
-ProcFacilIterator::~ProcFacilIterator() {  }
+ProcFacilIterator::~ProcFacilIterator() = default;
 
 int g_procFacilNotifyLog{};

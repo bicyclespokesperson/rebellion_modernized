@@ -13,7 +13,7 @@ AiMissionHistoryEntry::AiMissionHistoryEntry() : AvlNode(), m_time(), m_key() {
     m_x20 = 0;
 }
 
-AiMissionHistoryEntry::~AiMissionHistoryEntry() {  }
+AiMissionHistoryEntry::~AiMissionHistoryEntry() = default;
 
 void AiMissionHistoryEntry::Read(istream* in) {
     ReadValue32(in, &m_id);
@@ -254,7 +254,7 @@ AiTaskBase* AiTaskManager::PickBest() {
 
 AiNoticeQueue::AiNoticeQueue() : IdAvlTree() { m_x0c = 1; }
 
-AiNoticeQueue::~AiNoticeQueue() {  }
+AiNoticeQueue::~AiNoticeQueue() = default;
 
 void AiNoticeQueue::Load(istream* in) {
     Clear();

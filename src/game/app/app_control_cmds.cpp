@@ -31,7 +31,7 @@ MpSlotTableMsg::MpSlotTableMsg() {
     for (int& value : m_values) value = 0;
 }
 
-MpSlotTableMsg::~MpSlotTableMsg() {  }
+MpSlotTableMsg::~MpSlotTableMsg() = default;
 
 int MpSlotTableMsg::Read(istream* in) {
     int result = MessageBase::Read(in);
@@ -71,7 +71,7 @@ MpLobbySettingsMsg::MpLobbySettingsMsg(int setting130, int setting120, int setti
       m_setting128(setting128),
       m_startGame(startGame) {}
 
-MpLobbySettingsMsg::~MpLobbySettingsMsg() {  }
+MpLobbySettingsMsg::~MpLobbySettingsMsg() = default;
 
 int MpLobbySettingsMsg::Read(istream* in) {
     MessageBase::Read(in);
@@ -99,9 +99,9 @@ MessageBase* CreateMpLobbySettingsMsg() { return NewOrNull<MpLobbySettingsMsg>(0
 
 // ---- MpChatMsg (kind 0x11) -----------------------------------------------------------------------------------
 
-MpChatMsg::MpChatMsg() {}
+MpChatMsg::MpChatMsg() = default;
 
-MpChatMsg::~MpChatMsg() {  }
+MpChatMsg::~MpChatMsg() = default;
 
 int MpChatMsg::Read(istream* in) {
     TextMessage::Read(in);
@@ -136,7 +136,7 @@ void ComputeRectBWidth() { g_rectBWidth = rectWidth(g_rectB); }
 
 MpPlayerInfoMsg::MpPlayerInfoMsg() : m_action(0), m_playerId(0), m_extra(0) {}
 
-MpPlayerInfoMsg::~MpPlayerInfoMsg() {  }
+MpPlayerInfoMsg::~MpPlayerInfoMsg() = default;
 
 int MpPlayerInfoMsg::Read(istream* in) {
     int result = MessageBase::Read(in);

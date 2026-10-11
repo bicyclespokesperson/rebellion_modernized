@@ -49,7 +49,7 @@ Order* newOrder(ShipGroup* group) {
 
 // ---- behavior -------------------------------------------------------------------------------------------------------
 
-BehaviorLink::~BehaviorLink() {}
+BehaviorLink::~BehaviorLink() = default;
 
 GroupBehavior::GroupBehavior(ShipGroup* group) {
     m_unk04 = 0;
@@ -62,11 +62,11 @@ GroupBehavior::GroupBehavior(ShipGroup* group) {
     m_unk38 = 0;
 }
 
-GroupBehavior::~GroupBehavior() {}
+GroupBehavior::~GroupBehavior() = default;
 
 ShipGroupBehavior::ShipGroupBehavior(ShipGroup* group) : GroupBehavior(group) { m_unk04 = 2; }
 
-ShipGroupBehavior::~ShipGroupBehavior() {}
+ShipGroupBehavior::~ShipGroupBehavior() = default;
 
 // ---- orders ---------------------------------------------------------------------------------------------------------
 
@@ -297,7 +297,7 @@ CapitalShipGroup::CapitalShipGroup(int seedHandle) : ShipGroup(seedHandle) {
     SetMode(0);
 }
 
-CapitalShipGroup::~CapitalShipGroup() {}
+CapitalShipGroup::~CapitalShipGroup() = default;
 
 void CapitalShipGroup::SetRole(int role) { m_role = role; }
 
@@ -314,7 +314,7 @@ FighterGroup::FighterGroup(int seedHandle) : ShipGroup(seedHandle) {
     m_unk5c = 2;
 }
 
-FighterGroup::~FighterGroup() {}
+FighterGroup::~FighterGroup() = default;
 
 void RemoveMemberFromGroup(ShipGroup* group, int handle) {
     if (group) group->RemoveMember(handle);

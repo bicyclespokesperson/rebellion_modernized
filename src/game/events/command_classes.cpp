@@ -45,9 +45,9 @@ GameObjNotifier* NextCharacterSibling(GameObj* object) {
 
 LoyaltyEvent373::LoyaltyEvent373() : PlainEvent(), m_delta(0) {}
 
-LoyaltyEvent373::LoyaltyEvent373(const LoyaltyEvent373& other) : PlainEvent(other), m_delta(other.m_delta) {}
+LoyaltyEvent373::LoyaltyEvent373(const LoyaltyEvent373& other)  = default;
 
-LoyaltyEvent373::~LoyaltyEvent373() {  }
+LoyaltyEvent373::~LoyaltyEvent373() = default;
 
 LoyaltyEvent373* LoyaltyEvent373::Clone() { return NewOrNull<LoyaltyEvent373>(*this); }
 
@@ -93,9 +93,9 @@ void* CreateLoyaltyEvent373() { return NewOrNull<LoyaltyEvent373>(); }
 
 SystemCommand225::SystemCommand225() : Command() {}
 
-SystemCommand225::SystemCommand225(const SystemCommand225& other) : Command(other) {}
+SystemCommand225::SystemCommand225(const SystemCommand225& other)  = default;
 
-SystemCommand225::~SystemCommand225() {  }
+SystemCommand225::~SystemCommand225() = default;
 
 SystemCommand225* SystemCommand225::Clone() { return NewOrNull<SystemCommand225>(*this); }
 
@@ -143,9 +143,9 @@ void* CreateSystemCommand225() { return NewOrNull<SystemCommand225>(); }
 
 SystemCommand224::SystemCommand224() : Command() {}
 
-SystemCommand224::SystemCommand224(const SystemCommand224& other) : Command(other) {}
+SystemCommand224::SystemCommand224(const SystemCommand224& other)  = default;
 
-SystemCommand224::~SystemCommand224() {  }
+SystemCommand224::~SystemCommand224() = default;
 
 SystemCommand224* SystemCommand224::Clone() { return NewOrNull<SystemCommand224>(*this); }
 

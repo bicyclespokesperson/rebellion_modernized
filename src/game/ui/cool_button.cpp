@@ -624,7 +624,7 @@ IndexedRectNode::IndexedRectNode() {
     m_index = 0;
 }
 
-IndexedRectNode::~IndexedRectNode() {  }
+IndexedRectNode::~IndexedRectNode() = default;
 
 // ---- CoolCycleButton ------------------------------------------------------------------------------------------
 

@@ -35,7 +35,7 @@ DefenseFacilitySD* defenseRecordOf(DefenseFacility* facility) { return static_ca
 
 AllFacility::AllFacility() { SetId(5); }
 
-AllFacility::~AllFacility() {  }
+AllFacility::~AllFacility() = default;
 
 uint32_t AllFacility::GetFamily() { return kAllFacilityFamily; }
 
@@ -107,13 +107,13 @@ AllFacilityIterator::AllFacilityIterator(GameObjNotifier* parent, uint32_t state
 AllFacilityIterator::AllFacilityIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kAllFacilityFamilies, stateFilter) {}
 
-AllFacilityIterator::~AllFacilityIterator() {  }
+AllFacilityIterator::~AllFacilityIterator() = default;
 
 // ---- DefenseFacility ------------------------------------------------------------------------------------------------
 
-DefenseFacility::DefenseFacility() {}
+DefenseFacility::DefenseFacility() = default;
 
-DefenseFacility::~DefenseFacility() {  }
+DefenseFacility::~DefenseFacility() = default;
 
 int DefenseFacility::Read(istream* in) { return LeafReadForward(this, in); }
 
@@ -164,12 +164,12 @@ DefenseFacilityIterator::DefenseFacilityIterator(GameObjNotifier* parent, uint32
 DefenseFacilityIterator::DefenseFacilityIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kDefenseFacilityFamilies, stateFilter) {}
 
-DefenseFacilityIterator::~DefenseFacilityIterator() {  }
+DefenseFacilityIterator::~DefenseFacilityIterator() = default;
 
 // ---- leaves ---------------------------------------------------------------------------------------------------------
 
-DefenseFacility22::DefenseFacility22() {}
-DefenseFacility22::~DefenseFacility22() {  }
+DefenseFacility22::DefenseFacility22() = default;
+DefenseFacility22::~DefenseFacility22() = default;
 uint32_t DefenseFacility22::GetFamily() { return 0x22; }
 GameObj* DefenseFacility22::CreateViewObject() { return new DefenseFacility22(); }
 GameObjNotifier* CreateDefenseFacility22() { return new DefenseFacility22(); }
@@ -180,10 +180,10 @@ DefenseFacility22Iterator::DefenseFacility22Iterator(GameObjNotifier* parent, ui
     : ChildIterator(parent, &kDefenseFacility22Families, stateFilter) {}
 DefenseFacility22Iterator::DefenseFacility22Iterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kDefenseFacility22Families, stateFilter) {}
-DefenseFacility22Iterator::~DefenseFacility22Iterator() {  }
+DefenseFacility22Iterator::~DefenseFacility22Iterator() = default;
 
-DefenseFacility23::DefenseFacility23() {}
-DefenseFacility23::~DefenseFacility23() {  }
+DefenseFacility23::DefenseFacility23() = default;
+DefenseFacility23::~DefenseFacility23() = default;
 uint32_t DefenseFacility23::GetFamily() { return 0x23; }
 GameObj* DefenseFacility23::CreateViewObject() { return new DefenseFacility23(); }
 GameObjNotifier* CreateDefenseFacility23() { return new DefenseFacility23(); }
@@ -192,10 +192,10 @@ int CountDefenseFacilities23(GameObj* parent, uint32_t side, uint32_t filter) {
 }
 DefenseFacility23Iterator::DefenseFacility23Iterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kDefenseFacility23Families, stateFilter) {}
-DefenseFacility23Iterator::~DefenseFacility23Iterator() {  }
+DefenseFacility23Iterator::~DefenseFacility23Iterator() = default;
 
-DefenseFacility24::DefenseFacility24() {}
-DefenseFacility24::~DefenseFacility24() {  }
+DefenseFacility24::DefenseFacility24() = default;
+DefenseFacility24::~DefenseFacility24() = default;
 uint32_t DefenseFacility24::GetFamily() { return 0x24; }
 GameObj* DefenseFacility24::CreateViewObject() { return new DefenseFacility24(); }
 GameObjNotifier* CreateDefenseFacility24() { return new DefenseFacility24(); }
@@ -206,10 +206,10 @@ DefenseFacility24Iterator::DefenseFacility24Iterator(GameObjNotifier* parent, ui
     : ChildIterator(parent, &kDefenseFacility24Families, stateFilter) {}
 DefenseFacility24Iterator::DefenseFacility24Iterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kDefenseFacility24Families, stateFilter) {}
-DefenseFacility24Iterator::~DefenseFacility24Iterator() {  }
+DefenseFacility24Iterator::~DefenseFacility24Iterator() = default;
 
-DefenseFacility25::DefenseFacility25() {}
-DefenseFacility25::~DefenseFacility25() {  }
+DefenseFacility25::DefenseFacility25() = default;
+DefenseFacility25::~DefenseFacility25() = default;
 uint32_t DefenseFacility25::GetFamily() { return 0x25; }
 GameObj* DefenseFacility25::CreateViewObject() { return new DefenseFacility25(); }
 GameObjNotifier* CreateDefenseFacility25() { return new DefenseFacility25(); }
@@ -218,6 +218,6 @@ int CountDefenseFacilities25(GameObj* parent, uint32_t side, uint32_t filter) {
 }
 DefenseFacility25Iterator::DefenseFacility25Iterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kDefenseFacility25Families, stateFilter) {}
-DefenseFacility25Iterator::~DefenseFacility25Iterator() {  }
+DefenseFacility25Iterator::~DefenseFacility25Iterator() = default;
 EventKindSet g_allFacilityEventKinds{};
 int g_allFacilityEventKindsReady{};

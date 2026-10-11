@@ -34,7 +34,7 @@ MessageTemplate::MessageTemplate(UINT endMarkerId, UINT fieldMarkerId, HMODULE m
     m_noField = nullptr;
 }
 
-MessageTemplate::~MessageTemplate() {}
+MessageTemplate::~MessageTemplate() = default;
 
 void MessageTemplate::Expand(String* out, UINT templateId, ObjectBase* field1, ObjectBase* field2,
                              ObjectBase* field3, ObjectBase* field4) {

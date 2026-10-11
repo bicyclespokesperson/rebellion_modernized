@@ -17,7 +17,7 @@ AiSabotagePlanner::AiSabotagePlanner(int view, AiSideController* owner, AiCharac
     m_missionKey = ObjectKey::Make(0x69, 0x12);
 }
 
-AiSabotagePlanner::~AiSabotagePlanner() {  }
+AiSabotagePlanner::~AiSabotagePlanner() = default;
 
 int AiSabotagePlanner::Virtual06() {
     int sum = 0;
@@ -46,7 +46,7 @@ AiMission54Planner::AiMission54Planner(int view, AiSideController* owner, AiChar
     m_missionKey = ObjectKey::Make(0x54, 0x15);
 }
 
-AiMission54Planner::~AiMission54Planner() {  }
+AiMission54Planner::~AiMission54Planner() = default;
 
 int AiMission54Planner::Virtual06() { return SumLeaderValue(this, 1); }
 
@@ -78,7 +78,7 @@ AiEspionagePlanner::AiEspionagePlanner(int view, AiSideController* owner, AiChar
     m_missionKey = ObjectKey::Make(0x52, 0x13);
 }
 
-AiEspionagePlanner::~AiEspionagePlanner() {  }
+AiEspionagePlanner::~AiEspionagePlanner() = default;
 
 int AiEspionagePlanner::Virtual06() { return SumLeaderValue(this, 1); }
 
@@ -121,7 +121,7 @@ AiAbductionPlanner::AiAbductionPlanner(int view, AiSideController* owner, AiChar
     }
 }
 
-AiAbductionPlanner::~AiAbductionPlanner() {  }
+AiAbductionPlanner::~AiAbductionPlanner() = default;
 
 void AiAbductionPlanner::Read(istream* in) {
     AiSystemPlanner::Read(in);

@@ -13,7 +13,7 @@ ChildIterator::ChildIterator(GameObjNotifier* parent, uint32_t side, const Famil
     m_stateFilter = stateFilter;
 }
 
-ChildIterator::~ChildIterator() {  }
+ChildIterator::~ChildIterator() = default;
 
 ChildIterator* ChildIterator::Advance() {
     bool atEnd;
@@ -69,4 +69,4 @@ int ChildIterator::Accepts() {
 UnitIterator::UnitIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &family::kUnits, stateFilter) {}
 
-UnitIterator::~UnitIterator() {  }
+UnitIterator::~UnitIterator() = default;

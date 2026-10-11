@@ -26,7 +26,7 @@ class TacticalShipBase;
 class TacticalShipFacetA {
 public:
     TacticalShipFacetA() : m_fA_04(0), m_fA_08(0) {}
-    virtual ~TacticalShipFacetA() {  }
+    virtual ~TacticalShipFacetA() = default;
     int m_fA_04;  // +0x04
     int m_fA_08;  // +0x08
 };
@@ -34,14 +34,14 @@ public:
 class TacticalShipFacetB {
 public:
     TacticalShipFacetB() : m_fB_04(0) {}
-    virtual ~TacticalShipFacetB() {  }
+    virtual ~TacticalShipFacetB() = default;
     int m_fB_04;  // +0x04
 };
 
 class TacticalShipFacetC {
 public:
     TacticalShipFacetC() : m_fC_04(0) {}
-    virtual ~TacticalShipFacetC() {  }
+    virtual ~TacticalShipFacetC() = default;
     virtual void Write(ostream* out);  // 0x5a0750
     virtual void Read(istream* in);    // 0x5a0770
     int m_fC_04;                       // +0x04
@@ -50,7 +50,7 @@ public:
 class TacticalShipFacetD {
 public:
     TacticalShipFacetD() : m_fD_04(0), m_fD_08(0) {}
-    virtual ~TacticalShipFacetD() {  }
+    virtual ~TacticalShipFacetD() = default;
     int m_fD_04;  // +0x04
     int m_fD_08;  // +0x08
 };

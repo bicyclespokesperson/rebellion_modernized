@@ -361,7 +361,7 @@ void AiPlanEvaluator::Finish() {
 
 AiEvaluatorPlan1::AiEvaluatorPlan1(int view, AiSideController* owner) : AiPlanEvaluator(view, owner) {}
 
-AiEvaluatorPlan1::~AiEvaluatorPlan1() {  }
+AiEvaluatorPlan1::~AiEvaluatorPlan1() = default;
 
 int AiEvaluatorPlan1::GetKind() { return 1; }
 
@@ -376,7 +376,7 @@ void AiEvaluatorPlan1::Prepare() {
 
 AiEvaluatorPlan2::AiEvaluatorPlan2(int view, AiSideController* owner) : AiPlanEvaluator(view, owner) {}
 
-AiEvaluatorPlan2::~AiEvaluatorPlan2() {  }
+AiEvaluatorPlan2::~AiEvaluatorPlan2() = default;
 
 int AiEvaluatorPlan2::GetKind() { return 2; }
 
@@ -392,7 +392,7 @@ void AiEvaluatorPlan2::Prepare() {
 
 AiEvaluatorPlan3::AiEvaluatorPlan3(int view, AiSideController* owner) : AiPlanEvaluator(view, owner) {}
 
-AiEvaluatorPlan3::~AiEvaluatorPlan3() {  }
+AiEvaluatorPlan3::~AiEvaluatorPlan3() = default;
 
 int AiEvaluatorPlan3::GetKind() { return 3; }
 
@@ -422,7 +422,7 @@ void AiEvaluatorPlan3::Prepare() {
 
 AiEvaluatorPlan4::AiEvaluatorPlan4(int view, AiSideController* owner) : AiPlanEvaluator(view, owner) {}
 
-AiEvaluatorPlan4::~AiEvaluatorPlan4() {  }
+AiEvaluatorPlan4::~AiEvaluatorPlan4() = default;
 
 int AiEvaluatorPlan4::GetKind() { return 4; }
 
@@ -441,7 +441,7 @@ void AiEvaluatorPlan4::Prepare() {
 
 AiEvaluatorPlan5::AiEvaluatorPlan5(int view, AiSideController* owner) : AiPlanEvaluator(view, owner) {}
 
-AiEvaluatorPlan5::~AiEvaluatorPlan5() {  }
+AiEvaluatorPlan5::~AiEvaluatorPlan5() = default;
 
 int AiEvaluatorPlan5::GetKind() { return 5; }
 
@@ -467,7 +467,7 @@ void AiEvaluatorPlan5::Prepare() {
 
 AiEvaluatorPlan6::AiEvaluatorPlan6(int view, AiSideController* owner) : AiPlanEvaluator(view, owner) {}
 
-AiEvaluatorPlan6::~AiEvaluatorPlan6() {  }
+AiEvaluatorPlan6::~AiEvaluatorPlan6() = default;
 
 int AiEvaluatorPlan6::GetKind() { return 6; }
 
@@ -506,7 +506,7 @@ void AiEvaluatorPlan6::Prepare() {
 
 AiEvaluatorPlan7::AiEvaluatorPlan7(int view, AiSideController* owner) : AiPlanEvaluator(view, owner) {}
 
-AiEvaluatorPlan7::~AiEvaluatorPlan7() {  }
+AiEvaluatorPlan7::~AiEvaluatorPlan7() = default;
 
 int AiEvaluatorPlan7::GetKind() { return 7; }
 

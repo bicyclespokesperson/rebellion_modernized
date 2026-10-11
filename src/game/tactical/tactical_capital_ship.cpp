@@ -129,7 +129,7 @@ TacticalCapitalShip::TacticalCapitalShip(uint32_t family, uint32_t id, int notAl
     }
 }
 
-TacticalCapitalShip::~TacticalCapitalShip() {  }
+TacticalCapitalShip::~TacticalCapitalShip() = default;
 
 double TacticalCapitalShip::GetWeaponRecharge() {
     const float scaled = static_cast<float>(ScaleByHull(m_weaponRecharge));

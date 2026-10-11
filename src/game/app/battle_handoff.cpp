@@ -102,7 +102,7 @@ BattleSetup::BattleSetup() {
     m_timeB.m_value = 0;
 }
 
-BattleSetup::~BattleSetup() {}
+BattleSetup::~BattleSetup() = default;
 
 unsigned BattleSetup::Convert() {
     m_system = nullptr;

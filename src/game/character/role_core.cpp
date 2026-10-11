@@ -43,7 +43,7 @@ Role::Role()
     m_missionSeedKey.m_value = 0;
 }
 
-Role::~Role() {  }
+Role::~Role() = default;
 
 GameObjData* Role::CreateData() {
     void* memory = operator new(sizeof(RoleData));
@@ -359,6 +359,6 @@ RoleIterator::RoleIterator(GameObjNotifier* parent, uint32_t stateFilter)
 RoleIterator::RoleIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kRoleFamilies, stateFilter) {}
 
-RoleIterator::~RoleIterator() {  }
+RoleIterator::~RoleIterator() = default;
 EventKindSet g_roleEventKinds{};
 int g_roleEventKindsBuilt{};

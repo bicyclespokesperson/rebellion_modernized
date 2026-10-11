@@ -19,7 +19,7 @@ struct Object {
     bool deleteRequested = false;
     int selectCount = 0;
     explicit Object(ObjType t) : type(t) {}
-    virtual ~Object() {}
+    virtual ~Object() = default;
 };
 
 struct Pen : Object {

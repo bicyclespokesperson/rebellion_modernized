@@ -19,7 +19,7 @@ uint32_t makeKey(uint32_t family, uint32_t id) { return (family << 24) | (id & k
 
 SeedTableEntry::SeedTableEntry() : m_key(0) {}
 
-SeedTableEntry::~SeedTableEntry() {  }
+SeedTableEntry::~SeedTableEntry() = default;
 
 void* CreateSeedTableEntry() { return NewOrNull<SeedTableEntry>(); }
 
@@ -60,9 +60,7 @@ int SeedTableEntry::ParseText(istream* in) {
 
 SeedFamilyTableEntry::SeedFamilyTableEntry() : m_field24(0) {}
 
-SeedFamilyTableEntry::~SeedFamilyTableEntry() {
-
-}
+SeedFamilyTableEntry::~SeedFamilyTableEntry() = default;
 
 void* CreateSeedFamilyTableEntry() { return NewOrNull<SeedFamilyTableEntry>(); }
 
@@ -116,7 +114,7 @@ int SeedFamilyTableEntry::ParseText(istream* in) {
 
 IntTableEntry::IntTableEntry() : m_value(0) {}
 
-IntTableEntry::~IntTableEntry() {  }
+IntTableEntry::~IntTableEntry() = default;
 
 void* CreateIntTableEntry() { return NewOrNull<IntTableEntry>(); }
 

@@ -117,7 +117,7 @@ UiRecordTree::UiRecordTree() {
     g_uiHandlerTableNeedsInit = 0;
 }
 
-UiRecordTree::~UiRecordTree() {}
+UiRecordTree::~UiRecordTree() = default;
 
 void UiRecordTree::Read(istream* in) {
     int16_t count;

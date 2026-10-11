@@ -43,9 +43,9 @@ FamilyRange* GetCharacterFamilyRange(FamilyRange* out) {
 
 SideScrapTimer::SideScrapTimer() : TimerEvent() {}
 
-SideScrapTimer::SideScrapTimer(const SideScrapTimer& other) : TimerEvent(other) {}
+SideScrapTimer::SideScrapTimer(const SideScrapTimer& other)  = default;
 
-SideScrapTimer::~SideScrapTimer() {  }
+SideScrapTimer::~SideScrapTimer() = default;
 
 SideScrapTimer* SideScrapTimer::Clone() { return NewOrNull<SideScrapTimer>(*this); }
 
@@ -61,9 +61,9 @@ SideScrapTimer* CreateSideScrapTimer() { return NewOrNull<SideScrapTimer>(); }
 
 SideResearchTimer::SideResearchTimer() : TimerEvent() {}
 
-SideResearchTimer::SideResearchTimer(const SideResearchTimer& other) : TimerEvent(other) {}
+SideResearchTimer::SideResearchTimer(const SideResearchTimer& other)  = default;
 
-SideResearchTimer::~SideResearchTimer() {  }
+SideResearchTimer::~SideResearchTimer() = default;
 
 SideResearchTimer* SideResearchTimer::Clone() { return NewOrNull<SideResearchTimer>(*this); }
 
@@ -79,9 +79,9 @@ SideResearchTimer* CreateSideResearchTimer() { return NewOrNull<SideResearchTime
 
 ProcFacilTimer::ProcFacilTimer() : TimerEvent() {}
 
-ProcFacilTimer::ProcFacilTimer(const ProcFacilTimer& other) : TimerEvent(other) {}
+ProcFacilTimer::ProcFacilTimer(const ProcFacilTimer& other)  = default;
 
-ProcFacilTimer::~ProcFacilTimer() {  }
+ProcFacilTimer::~ProcFacilTimer() = default;
 
 ProcFacilTimer* ProcFacilTimer::Clone() { return NewOrNull<ProcFacilTimer>(*this); }
 
@@ -97,9 +97,9 @@ ProcFacilTimer* CreateProcFacilTimer() { return NewOrNull<ProcFacilTimer>(); }
 
 HyperdriveTimer::HyperdriveTimer() : TimerEvent() {}
 
-HyperdriveTimer::HyperdriveTimer(const HyperdriveTimer& other) : TimerEvent(other) {}
+HyperdriveTimer::HyperdriveTimer(const HyperdriveTimer& other)  = default;
 
-HyperdriveTimer::~HyperdriveTimer() {  }
+HyperdriveTimer::~HyperdriveTimer() = default;
 
 HyperdriveTimer* HyperdriveTimer::Clone() { return NewOrNull<HyperdriveTimer>(*this); }
 
@@ -115,9 +115,9 @@ HyperdriveTimer* CreateHyperdriveTimer() { return NewOrNull<HyperdriveTimer>(); 
 
 FleetSlot138Timer::FleetSlot138Timer() : TimerEvent() {}
 
-FleetSlot138Timer::FleetSlot138Timer(const FleetSlot138Timer& other) : TimerEvent(other) {}
+FleetSlot138Timer::FleetSlot138Timer(const FleetSlot138Timer& other)  = default;
 
-FleetSlot138Timer::~FleetSlot138Timer() {  }
+FleetSlot138Timer::~FleetSlot138Timer() = default;
 
 FleetSlot138Timer* FleetSlot138Timer::Clone() { return NewOrNull<FleetSlot138Timer>(*this); }
 
@@ -133,9 +133,9 @@ FleetSlot138Timer* CreateFleetSlot138Timer() { return NewOrNull<FleetSlot138Time
 
 CharacterInjuryTimer::CharacterInjuryTimer() : TimerEvent() {}
 
-CharacterInjuryTimer::CharacterInjuryTimer(const CharacterInjuryTimer& other) : TimerEvent(other) {}
+CharacterInjuryTimer::CharacterInjuryTimer(const CharacterInjuryTimer& other)  = default;
 
-CharacterInjuryTimer::~CharacterInjuryTimer() {  }
+CharacterInjuryTimer::~CharacterInjuryTimer() = default;
 
 CharacterInjuryTimer* CharacterInjuryTimer::Clone() { return NewOrNull<CharacterInjuryTimer>(*this); }
 
@@ -151,9 +151,9 @@ CharacterInjuryTimer* CreateCharacterInjuryTimer() { return NewOrNull<CharacterI
 
 CharacterTimer389::CharacterTimer389() : TimerEvent() {}
 
-CharacterTimer389::CharacterTimer389(const CharacterTimer389& other) : TimerEvent(other) {}
+CharacterTimer389::CharacterTimer389(const CharacterTimer389& other)  = default;
 
-CharacterTimer389::~CharacterTimer389() {  }
+CharacterTimer389::~CharacterTimer389() = default;
 
 CharacterTimer389* CharacterTimer389::Clone() { return NewOrNull<CharacterTimer389>(*this); }
 
@@ -173,9 +173,9 @@ CharacterTimer389* CreateCharacterTimer389() { return NewOrNull<CharacterTimer38
 
 CharacterEscapeTimer::CharacterEscapeTimer() : TimerEvent() {}
 
-CharacterEscapeTimer::CharacterEscapeTimer(const CharacterEscapeTimer& other) : TimerEvent(other) {}
+CharacterEscapeTimer::CharacterEscapeTimer(const CharacterEscapeTimer& other)  = default;
 
-CharacterEscapeTimer::~CharacterEscapeTimer() {  }
+CharacterEscapeTimer::~CharacterEscapeTimer() = default;
 
 CharacterEscapeTimer* CharacterEscapeTimer::Clone() { return NewOrNull<CharacterEscapeTimer>(*this); }
 

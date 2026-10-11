@@ -31,7 +31,7 @@ MissionMemberIterator::MissionMemberIterator(Mission* mission, const FamilyRange
       m_inCaptured(0),
       m_current(nullptr) {}
 
-MissionMemberIterator::~MissionMemberIterator() {  }
+MissionMemberIterator::~MissionMemberIterator() = default;
 
 void MissionMemberIterator::StepKey() {
     if (m_inTeam) {

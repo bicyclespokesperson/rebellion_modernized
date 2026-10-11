@@ -79,7 +79,7 @@ T* asPointer(intptr_t value) {
 
 Fleet::Fleet() : GameObj(), m_fleetFlags(0) {}
 
-Fleet::~Fleet() {  }
+Fleet::~Fleet() = default;
 
 Fleet* CreateFleet() { return new Fleet(); }
 

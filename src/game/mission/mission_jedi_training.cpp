@@ -180,9 +180,9 @@ int CheckStudentRefList(ObjectRefList* list, TrainingOrderCheck* check, StatusCo
     return result;
 }
 
-MissionJediTraining::MissionJediTraining() {}
+MissionJediTraining::MissionJediTraining() = default;
 
-MissionJediTraining::~MissionJediTraining() {  }
+MissionJediTraining::~MissionJediTraining() = default;
 
 uint32_t MissionJediTraining::GetFamily() { return kFamilyMissionJediTraining; }
 
@@ -358,6 +358,6 @@ int MissionJediTraining::BuildEventKinds() {
 MissionJediTrainingIterator::MissionJediTrainingIterator(GameObjNotifier* parent)
     : ChildIterator(parent, &kJediTrainingFamilies, 1) {}
 
-MissionJediTrainingIterator::~MissionJediTrainingIterator() {  }
+MissionJediTrainingIterator::~MissionJediTrainingIterator() = default;
 EventKindSet g_missionJediTrainingEventKinds{};
 int g_missionJediTrainingEventKindsReady{};

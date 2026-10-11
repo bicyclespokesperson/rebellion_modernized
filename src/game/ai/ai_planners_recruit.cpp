@@ -12,7 +12,7 @@ AiRecruitPlanner::AiRecruitPlanner(int view, AiSideController* owner, AiCharacte
     m_missionKey = ObjectKey::Make(0x55, 0x16);
 }
 
-AiRecruitPlanner::~AiRecruitPlanner() {  }
+AiRecruitPlanner::~AiRecruitPlanner() = default;
 
 int AiRecruitPlanner::Virtual06() { return SumLeaderValue(this, 6); }
 

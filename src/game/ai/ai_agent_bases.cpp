@@ -157,7 +157,7 @@ AiAgentSimple::AiAgentSimple(int view, AiSideController* owner, AiCharacterRecor
     m_x48 = 0;
 }
 
-AiAgentSimple::~AiAgentSimple() {  }
+AiAgentSimple::~AiAgentSimple() = default;
 
 void AiAgentSimple::Read(istream* in) {
     AiAgentBase::Read(in);
@@ -239,7 +239,7 @@ AiAgentTargeted::AiAgentTargeted(int view, AiSideController* owner, AiCharacterR
     m_x50 = 0;
 }
 
-AiAgentTargeted::~AiAgentTargeted() {  }
+AiAgentTargeted::~AiAgentTargeted() = default;
 
 void AiAgentTargeted::Read(istream* in) {
     AiAgentBase::Read(in);

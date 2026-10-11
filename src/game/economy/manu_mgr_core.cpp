@@ -45,7 +45,7 @@ ManuMgr::ManuMgr()
     m_seedKey.m_value = 0;
 }
 
-ManuMgr::~ManuMgr() {  }
+ManuMgr::~ManuMgr() = default;
 
 GameObjData* ManuMgr::CreateData() {
     void* memory = operator new(sizeof(ManuMgrData));
@@ -221,7 +221,7 @@ ManuMgrIterator::ManuMgrIterator(GameObjNotifier* parent)
 ManuMgrIterator::ManuMgrIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &family::kManufacturingManagers, stateFilter) {}
 
-ManuMgrIterator::~ManuMgrIterator() {  }
+ManuMgrIterator::~ManuMgrIterator() = default;
 EventKindSet g_manuMgrEventKinds{};
 ObjectKeyValueSet g_manuMgrEmptyQueue{};
 ObjectTypeDb * g_objectTypeDb{};

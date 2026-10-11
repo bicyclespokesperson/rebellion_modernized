@@ -1,9 +1,9 @@
 #include "mission/mission_extra_key.h"
 #include "galaxy/mission_decl.h"
 
-MissionExtraKeyBase::MissionExtraKeyBase() {}
+MissionExtraKeyBase::MissionExtraKeyBase() = default;
 
-MissionExtraKeyBase::~MissionExtraKeyBase() {  }
+MissionExtraKeyBase::~MissionExtraKeyBase() = default;
 
 int MissionExtraKeyBase::Read(istream* in) {
     if (!this->Mission::ReadImpl(in)) return 0;

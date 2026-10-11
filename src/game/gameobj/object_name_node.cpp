@@ -13,7 +13,7 @@ uint32_t RecordKeyValue(const DatRecord* record) {
 
 ObjectNameNode::ObjectNameNode() : IdNode(), m_key(), m_name() { m_nameValid = m_name.m_valid; }
 
-ObjectNameNode::~ObjectNameNode() {  }
+ObjectNameNode::~ObjectNameNode() = default;
 
 int ObjectNameNode::Load(DatRecord* record) {
     m_key.m_value = RecordKeyValue(record);

@@ -10,12 +10,12 @@ constexpr uint32_t kStateFilter = 1;
 
 MissionSubdueIterator::MissionSubdueIterator(GameObjNotifier* parent) : ChildIterator(parent, &kFamilySubdue, kStateFilter) {}
 
-MissionSubdueIterator::~MissionSubdueIterator() {  }
+MissionSubdueIterator::~MissionSubdueIterator() = default;
 
 MissionResearchIterator::MissionResearchIterator(GameObjNotifier* parent) : ChildIterator(parent, &kFamilyResearch, kStateFilter) {}
 
-MissionResearchIterator::~MissionResearchIterator() {  }
+MissionResearchIterator::~MissionResearchIterator() = default;
 
 MissionInciteIterator::MissionInciteIterator(GameObjNotifier* parent) : ChildIterator(parent, &kFamilyIncite, kStateFilter) {}
 
-MissionInciteIterator::~MissionInciteIterator() {  }
+MissionInciteIterator::~MissionInciteIterator() = default;

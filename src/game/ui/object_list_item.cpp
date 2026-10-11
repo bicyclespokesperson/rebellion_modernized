@@ -13,7 +13,7 @@ ObjectListItem::ObjectListItem(const ObjectKey* key) : CoolListItem(key->m_value
     m_visible = 1;
 }
 
-ObjectListItem::~ObjectListItem() {  }
+ObjectListItem::~ObjectListItem() = default;
 
 void ObjectListItem::Read(istream*) {}
 

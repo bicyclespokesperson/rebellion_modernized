@@ -23,7 +23,7 @@ AiRankedItem::AiRankedItem(AiRankedItem* other) : LinkNode(), m_key() {
     m_rank = other->m_rank;
 }
 
-AiRankedItem::~AiRankedItem() {  }
+AiRankedItem::~AiRankedItem() = default;
 
 void AiRankedItem::Read(istream* in) {
     m_key.Read(in);

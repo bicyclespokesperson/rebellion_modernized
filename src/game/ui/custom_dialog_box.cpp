@@ -40,14 +40,14 @@ CoolWindow* AppMainWindow() { return static_cast<RebellionApplication*>(g_app)->
 
 // ---- ObjectKeyIdNode / ObjectKeyIdSet ------------------------------------------------------------------------
 
-ObjectKeyIdNode::ObjectKeyIdNode() {}
+ObjectKeyIdNode::ObjectKeyIdNode() = default;
 
 ObjectKeyIdNode::ObjectKeyIdNode(const ObjectKey* key, uint32_t id) {
     m_key = *key;
     if (id) AddId(id);
 }
 
-ObjectKeyIdNode::~ObjectKeyIdNode() {  }
+ObjectKeyIdNode::~ObjectKeyIdNode() = default;
 
 void ObjectKeyIdNode::AddId(uint32_t id) {
     if (m_ids.FindById(id)) return;
@@ -56,9 +56,9 @@ void ObjectKeyIdNode::AddId(uint32_t id) {
     m_ids.AddWithId(node);
 }
 
-ObjectKeyIdSet::ObjectKeyIdSet() {}
+ObjectKeyIdSet::ObjectKeyIdSet() = default;
 
-ObjectKeyIdSet::~ObjectKeyIdSet() {  }
+ObjectKeyIdSet::~ObjectKeyIdSet() = default;
 
 void ObjectKeyIdSet::Add(ObjectKeyIdNode* node, uint32_t id) {
     if (!node) return;

@@ -12,7 +12,7 @@ Stopwatch::Stopwatch() {
     Reset();
 }
 
-Stopwatch::~Stopwatch() {  }
+Stopwatch::~Stopwatch() = default;
 
 void Stopwatch::Reset() {
     if (m_secondsPerTick != 0.0f) {

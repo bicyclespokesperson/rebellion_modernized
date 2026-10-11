@@ -22,7 +22,7 @@ DatRecord* createRecord(const RecordFamilyRange& range) {
 
 SeedList::SeedList() : m_range{0, 0} {}
 
-SeedList::~SeedList() {  }
+SeedList::~SeedList() = default;
 
 void SeedList::AddRecord(IdNode* record) {
     if (record) m_records.AddWithId(record);
@@ -128,7 +128,7 @@ void InitSeedListClassRegistration() { g_seedListClassRegistered = RegisterTable
 
 SeedListFile::SeedListFile() { m_version = m_list.m_version; }
 
-SeedListFile::~SeedListFile() {  }
+SeedListFile::~SeedListFile() = default;
 
 int SeedListFile::Load(uint16_t firstId, uint16_t secondId) {
     return m_list.Open(firstId, secondId, GetGameDataDirectory());
@@ -138,7 +138,7 @@ int SeedListFile::Load(uint16_t firstId, uint16_t secondId) {
 
 SeedListFileTree::SeedListFileTree() : m_ready(1) {}
 
-SeedListFileTree::~SeedListFileTree() {  }
+SeedListFileTree::~SeedListFileTree() = default;
 
 SeedListFile* SeedListFileTree::FindByFamily(uint32_t family) {
     for (AvlNode* node = First(); node; node = node->m_successor) {
@@ -152,7 +152,7 @@ SeedListFile* SeedListFileTree::FindByFamily(uint32_t family) {
 
 RecordNameNode::RecordNameNode() : m_key(0) { m_ready = m_name.m_valid; }
 
-RecordNameNode::~RecordNameNode() {  }
+RecordNameNode::~RecordNameNode() = default;
 
 int RecordNameNode::SetFromRecord(DatRecord* record) {
     m_key = (record->m_third << 24) | (record->m_id & 0xffffff);
@@ -170,7 +170,7 @@ SeedKeyCountNode::SeedKeyCountNode(const SeedKey& key) : m_key(key), m_count(0) 
 
 SeedKeyCountNode::SeedKeyCountNode(const SeedKeyCountNode& other) : m_key(other.m_key), m_count(other.m_count) {}
 
-SeedKeyCountNode::~SeedKeyCountNode() {  }
+SeedKeyCountNode::~SeedKeyCountNode() = default;
 
 SeedKey* SeedKeyCountNode::GetKey(SeedKey* out) const {
     new (out) SeedKey(m_key);

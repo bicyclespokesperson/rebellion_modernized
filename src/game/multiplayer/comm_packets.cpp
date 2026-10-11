@@ -42,7 +42,7 @@ ServiceProviderInfo::ServiceProviderInfo(const ServiceProviderInfo& other) : IdN
     m_context = other.m_context;
 }
 
-ServiceProviderInfo::~ServiceProviderInfo() {  }
+ServiceProviderInfo::~ServiceProviderInfo() = default;
 
 SessionInfo::SessionInfo(const DPSESSIONDESC2* description) : IdNode(), m_name() {
     if (description) {
@@ -56,19 +56,19 @@ SessionInfo::SessionInfo(const SessionInfo& other) : IdNode(), m_name() {
     m_name.Assign(other.m_name);
 }
 
-SessionInfo::~SessionInfo() {  }
+SessionInfo::~SessionInfo() = default;
 
 ServiceProviderList::ServiceProviderList() : IdAvlTree() {}
 
-ServiceProviderList::~ServiceProviderList() {  }
+ServiceProviderList::~ServiceProviderList() = default;
 
 SessionList::SessionList() : IdAvlTree() {}
 
-SessionList::~SessionList() {  }
+SessionList::~SessionList() = default;
 
 LobbyConnection::LobbyConnection() : m_launched(0), m_host(0), m_dplay(nullptr) {}
 
-LobbyConnection::~LobbyConnection() {  }
+LobbyConnection::~LobbyConnection() = default;
 
 // ---- CommMessage -----------------------------------------------------------------------------------------------
 
@@ -219,7 +219,7 @@ ReceivedPacket::ReceivedPacket(const void* wire, uint32_t size) : IdNode() {
     SetId(m_wire.m_id);
 }
 
-ReceivedPacket::~ReceivedPacket() {  }
+ReceivedPacket::~ReceivedPacket() = default;
 
 uint16_t ReceivedPacket::CopyPayload(void* out, uint16_t capacity) const {
     if (m_wire.m_length > capacity) return 0;
@@ -254,7 +254,7 @@ CommOutgoing::CommOutgoing(const void* data, uint32_t size, uint32_t category, i
     SetId(m_firstPacketId);
 }
 
-CommOutgoing::~CommOutgoing() {  }
+CommOutgoing::~CommOutgoing() = default;
 
 // ---- PartialMessage --------------------------------------------------------------------------------------------
 
@@ -266,7 +266,7 @@ PartialMessage::PartialMessage(uint32_t firstPacketId) : IdNode() {
     SetId(firstPacketId);
 }
 
-PartialMessage::~PartialMessage() {  }
+PartialMessage::~PartialMessage() = default;
 
 int PartialMessage::IsComplete() const { return m_partsSeen == m_partCount; }
 
@@ -324,7 +324,7 @@ int PartialMessage::ReleaseFragments() {
 
 PacketBuffer::PacketBuffer() : m_count(0), m_used(1) { m_write = m_data; }
 
-PacketBuffer::~PacketBuffer() {  }
+PacketBuffer::~PacketBuffer() = default;
 
 int8_t PacketBuffer::GetCount() const { return m_count; }
 
@@ -362,7 +362,7 @@ void SendBuffer::Reset() {
     m_used = 1;
 }
 
-SendBuffer::~SendBuffer() {  }
+SendBuffer::~SendBuffer() = default;
 
 ReceiveBuffer::ReceiveBuffer() : PacketBuffer() {
     m_write = reinterpret_cast<uint8_t*>(&m_count);
@@ -378,4 +378,4 @@ void ReceiveBuffer::Reset() {
     m_used = 0;
 }
 
-ReceiveBuffer::~ReceiveBuffer() {  }
+ReceiveBuffer::~ReceiveBuffer() = default;

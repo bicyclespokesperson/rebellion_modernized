@@ -15,16 +15,16 @@ WeaponProfile::WeaponProfile() {
     m_f10 = 1.0f;
 }
 
-WeaponProfile::~WeaponProfile() {  }
+WeaponProfile::~WeaponProfile() = default;
 
 WeaponProfileA::WeaponProfileA() { m_f08 = kHalf; }
 
-WeaponProfileA::~WeaponProfileA() {  }
+WeaponProfileA::~WeaponProfileA() = default;
 
 WeaponProfileB::WeaponProfileB() { m_f0c = kCapitalFactorB; }
 
-WeaponProfileB::~WeaponProfileB() {  }
+WeaponProfileB::~WeaponProfileB() = default;
 
 WeaponProfileC::WeaponProfileC() { m_f08 = kHalf; }
 
-WeaponProfileC::~WeaponProfileC() {  }
+WeaponProfileC::~WeaponProfileC() = default;

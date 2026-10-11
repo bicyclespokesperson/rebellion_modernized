@@ -12,7 +12,7 @@ UnitRefNode::UnitRefNode(TacticalShipBase* unit) {
     SetId(unit->m_id);
 }
 
-UnitRefNode::~UnitRefNode() {}
+UnitRefNode::~UnitRefNode() = default;
 
 int UnitRefNode::Key() { return m_id; }
 
@@ -24,7 +24,7 @@ TacticalShipBase* UnitRefNode::Value() { return m_unit; }
 
 // ---- UnitRefTree ----------------------------------------------------------------------------------------------------
 
-UnitRefTree::~UnitRefTree() {}
+UnitRefTree::~UnitRefTree() = default;
 
 uint32_t UnitRefTree::AddUnique(UnitRefNode* node) {
     if (!Find(node->Key())) return AddWithId(node);
@@ -75,9 +75,9 @@ int UnitRefTree::CountNodes() {
 
 // ---- InsertionOrderTree ---------------------------------------------------------------------------------------------
 
-InsertionOrderTree::InsertionOrderTree() {}
+InsertionOrderTree::InsertionOrderTree() = default;
 
-InsertionOrderTree::~InsertionOrderTree() {}
+InsertionOrderTree::~InsertionOrderTree() = default;
 
 int InsertionOrderTree::IsLess(AvlNode*, AvlNode*) { return 0; }
 
@@ -108,9 +108,9 @@ uint32_t InsertionOrderTree::AddUnitLinear(TacticalShipBase* unit) {
     return AddUniqueLinear(node);
 }
 
-TargetOrderTree::TargetOrderTree() {}
+TargetOrderTree::TargetOrderTree() = default;
 
-TargetOrderTree::~TargetOrderTree() {}
+TargetOrderTree::~TargetOrderTree() = default;
 
 AvlNode* TargetOrderTree::FirstNode() { return First(); }
 
@@ -119,7 +119,7 @@ uint32_t TargetOrderTree::AddUniqueChecked(IdNode* node) {
     return 0;
 }
 
-FormationOrderTree::~FormationOrderTree() {}
+FormationOrderTree::~FormationOrderTree() = default;
 
 uint32_t FormationOrderTree::AddUniqueLinearSlot(IdNode* node) { return AddUniqueLinear(node); }
 
@@ -138,7 +138,7 @@ GroupRefNode::GroupRefNode(ShipGroup* group) {
     SetId(reinterpret_cast<IdNode*>(group)->m_id);
 }
 
-GroupRefNode::~GroupRefNode() {}
+GroupRefNode::~GroupRefNode() = default;
 
 AvlNode* GroupRefNode::Next() { return m_successor; }
 
@@ -148,7 +148,7 @@ ShipGroup* GroupRefNode::Value() { return m_group; }
 
 GroupRefTree::GroupRefTree(const GroupRefTree& other) { *this = other; }
 
-GroupRefTree::~GroupRefTree() {}
+GroupRefTree::~GroupRefTree() = default;
 
 AvlNode* GroupRefTree::FirstNode() { return First(); }
 
@@ -195,9 +195,9 @@ TargetPriorityNode::TargetPriorityNode(float priority, TacticalShipBase* unit) {
     m_unit.m_unit = unit;
 }
 
-TargetPriorityNode::~TargetPriorityNode() {}
+TargetPriorityNode::~TargetPriorityNode() = default;
 
-TargetPriorityTree::~TargetPriorityTree() {}
+TargetPriorityTree::~TargetPriorityTree() = default;
 
 int TargetPriorityTree::IsLess(AvlNode* a, AvlNode* b) {
     TargetPriorityNode* left = static_cast<TargetPriorityNode*>(a);

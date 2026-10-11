@@ -93,7 +93,7 @@ int EventQueue::CountSubtree(AvlNode* node) {
 
 TimerQueue::TimerQueue() : EventQueue() {}
 
-TimerQueue::~TimerQueue() {  }
+TimerQueue::~TimerQueue() = default;
 
 int TimerQueue::IsLess(AvlNode* a, AvlNode* b) {
     if (a == nullptr || b == nullptr) return 1;
@@ -114,7 +114,7 @@ EventBase* TimerQueue::GetNext() {
 
 CommandQueue::CommandQueue() : EventQueue() {}
 
-CommandQueue::~CommandQueue() {  }
+CommandQueue::~CommandQueue() = default;
 
 int CommandQueue::IsLess(AvlNode*, AvlNode*) { return 0; }
 
@@ -126,7 +126,7 @@ void CommandQueue::AddCommand(EventBase* event) { Add(event); }
 
 TypeQueue::TypeQueue() : EventQueue() {}
 
-TypeQueue::~TypeQueue() {  }
+TypeQueue::~TypeQueue() = default;
 
 int TypeQueue::IsLess(AvlNode* a, AvlNode* b) {
     if (a == nullptr || b == nullptr) return 1;

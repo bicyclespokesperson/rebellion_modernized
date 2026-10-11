@@ -63,11 +63,11 @@ CoolWindow* GetCoolWindow(HWND hwnd) {
 
 HwndNode::HwndNode(HWND hwnd) : m_hwnd(hwnd), m_window(nullptr) {}
 
-HwndNode::~HwndNode() {  }
+HwndNode::~HwndNode() = default;
 
-HwndTree::HwndTree() {}
+HwndTree::HwndTree() = default;
 
-HwndTree::~HwndTree() {  }
+HwndTree::~HwndTree() = default;
 
 // Linker-folded with IdAvlTree::IsLess (0x5f5560), which compares the dword at +0x18.
 int HwndTree::IsLess(AvlNode* a, AvlNode* b) {
@@ -102,9 +102,9 @@ PopupEntry::~PopupEntry() {
 
 }
 
-ChildWindowTree::ChildWindowTree() {}
+ChildWindowTree::ChildWindowTree() = default;
 
-ChildWindowTree::~ChildWindowTree() {  }
+ChildWindowTree::~ChildWindowTree() = default;
 
 int ChildWindowTree::IsLess(AvlNode* a, AvlNode* b) {
     return static_cast<CoolWindow*>(a)->m_childId < static_cast<CoolWindow*>(b)->m_childId;
@@ -130,9 +130,9 @@ CoolWindow* ChildWindowTree::FindByHwnd(HWND hwnd) {
     return nullptr;
 }
 
-IdAvlTreeElement::IdAvlTreeElement() {}
+IdAvlTreeElement::IdAvlTreeElement() = default;
 
-IdAvlTreeElement::~IdAvlTreeElement() {  }
+IdAvlTreeElement::~IdAvlTreeElement() = default;
 
 // ---- CoolWindow: construction and destruction ---------------------------------------------------------------
 

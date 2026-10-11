@@ -12,7 +12,7 @@ constexpr int kDefaultThreshold = 100;
 
 LoyaltyRule::LoyaltyRule() : m_familyRange() { Reset(); }
 
-LoyaltyRule::~LoyaltyRule() {}
+LoyaltyRule::~LoyaltyRule() = default;
 
 LoyaltyRule& LoyaltyRule::operator=(const LoyaltyRule& other) {
     if (this != &other) CopyFrom(other);

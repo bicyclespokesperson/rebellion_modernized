@@ -25,9 +25,9 @@ int ControlSideIndex(uint32_t controlSide) {
 int CheckedSideOf(int kind) { return kind == 1 ? 1 : (kind == 2 ? 2 : 0); }
 }  // namespace
 
-MissionDiplomacy::MissionDiplomacy() {}
+MissionDiplomacy::MissionDiplomacy() = default;
 
-MissionDiplomacy::~MissionDiplomacy() {  }
+MissionDiplomacy::~MissionDiplomacy() = default;
 
 REB_MISSION_SHARED_PERSISTENCE(MissionDiplomacy)
 

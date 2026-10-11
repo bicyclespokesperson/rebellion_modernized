@@ -27,7 +27,7 @@ Notice44::Notice44(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice44::~Notice44() {  }
+Notice44::~Notice44() = default;
 
 int Notice44::GetKind() { return 44; }
 
@@ -87,7 +87,7 @@ Notice45::Notice45(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice45::~Notice45() {  }
+Notice45::~Notice45() = default;
 
 int Notice45::GetKind() { return 45; }
 
@@ -120,7 +120,7 @@ Notice43::Notice43(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice43::~Notice43() {  }
+Notice43::~Notice43() = default;
 
 int Notice43::GetKind() { return 43; }
 
@@ -187,7 +187,7 @@ Notice42::Notice42(int owner, const IdNode* record) : UiTextNotice(owner) {
     ExpandMessageTemplate(&m_text1, secondText, nullptr, nullptr, nullptr, nullptr);
 }
 
-Notice42::~Notice42() {  }
+Notice42::~Notice42() = default;
 
 int Notice42::GetKind() { return 42; }
 
@@ -208,7 +208,7 @@ Notice41::Notice41(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice41::~Notice41() {  }
+Notice41::~Notice41() = default;
 
 int Notice41::GetKind() { return 41; }
 
@@ -251,7 +251,7 @@ Notice34::Notice34(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice34::~Notice34() {  }
+Notice34::~Notice34() = default;
 
 int Notice34::GetKind() { return 34; }
 
@@ -321,7 +321,7 @@ Notice33::Notice33(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice33::~Notice33() {  }
+Notice33::~Notice33() = default;
 
 int Notice33::GetKind() { return 33; }
 

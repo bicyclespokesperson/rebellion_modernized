@@ -14,9 +14,9 @@ ResourceDll::~ResourceDll() {
 
 }
 
-ResourceDllList::ResourceDllList() {}
+ResourceDllList::ResourceDllList() = default;
 
-ResourceDllList::~ResourceDllList() {  }
+ResourceDllList::~ResourceDllList() = default;
 
 void ResourceDllList::UnloadSlot(uint32_t slot) {
     for (IdLinkNode* node = DetachById(slot); node; node = DetachById(slot)) delete node;

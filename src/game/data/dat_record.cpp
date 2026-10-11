@@ -32,7 +32,7 @@ void appendWithArticle(String* out, const String& name) {
 
 DatRecord::DatRecord() : m_hasData(0), m_first(0), m_second(0), m_third(0), m_small(0), m_small2(0), m_name("<not set>") {}
 
-DatRecord::~DatRecord() {  }
+DatRecord::~DatRecord() = default;
 
 void DatRecord::WriteName(String* out, int kind) {
     switch (kind) {
@@ -131,7 +131,7 @@ int DatRecord::ParseFields(istream* in, int* endOfLine) {
 
 SdRecord::SdRecord() : m_field40(0), m_field44(0), m_field48(0), m_field4c(0), m_field50(0), m_field54(0) {}
 
-SdRecord::~SdRecord() {  }
+SdRecord::~SdRecord() = default;
 
 uint32_t SdRecord::GetField48() const { return m_field48; }
 

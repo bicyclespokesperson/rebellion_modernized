@@ -25,7 +25,7 @@ TacticalCharacterUnit::TacticalCharacterUnit(uint32_t family, uint32_t id, uint1
     m_injured = injured;
 }
 
-TacticalCharacterUnit::~TacticalCharacterUnit() {}
+TacticalCharacterUnit::~TacticalCharacterUnit() = default;
 
 TacticalSpecialForceUnit::TacticalSpecialForceUnit(uint32_t family, uint32_t id, uint16_t spriteId, String name,
                                                    int notAlliance, int shipHandle) {
@@ -39,7 +39,7 @@ TacticalSpecialForceUnit::TacticalSpecialForceUnit(uint32_t family, uint32_t id,
     m_shipHandle = shipHandle;
 }
 
-TacticalSpecialForceUnit::~TacticalSpecialForceUnit() {}
+TacticalSpecialForceUnit::~TacticalSpecialForceUnit() = default;
 
 // ---- streaming of the records (synchronisation and checksums of the 3D battle) -------------------------------------------
 
@@ -233,6 +233,6 @@ int TacticalCharacterUnit::Virtual01() { return 7; }
 
 IdNode* TacticalCharacterTree::FirstItem() { return static_cast<IdNode*>(First()); }
 
-TurnSyncChannelA::~TurnSyncChannelA() {  }
+TurnSyncChannelA::~TurnSyncChannelA() = default;
 
-TurnSyncChannelB::~TurnSyncChannelB() {  }
+TurnSyncChannelB::~TurnSyncChannelB() = default;

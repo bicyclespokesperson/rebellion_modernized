@@ -15,9 +15,9 @@ using events::succeedWithoutChecks;
 
 Event301::Event301() : SourceEvent() {}
 
-Event301::Event301(const Event301& other) : SourceEvent(other) {}
+Event301::Event301(const Event301& other)  = default;
 
-Event301::~Event301() {  }
+Event301::~Event301() = default;
 
 Event301* Event301::Clone() { return NewOrNull<Event301>(*this); }
 
@@ -39,9 +39,9 @@ Event301* CreateEvent301() { return NewOrNull<Event301>(); }
 
 Event31d::Event31d() : SourceEvent() {}
 
-Event31d::Event31d(const Event31d& other) : SourceEvent(other) {}
+Event31d::Event31d(const Event31d& other)  = default;
 
-Event31d::~Event31d() {  }
+Event31d::~Event31d() = default;
 
 Event31d* Event31d::Clone() { return NewOrNull<Event31d>(*this); }
 
@@ -63,9 +63,9 @@ Event31d* CreateEvent31d() { return NewOrNull<Event31d>(); }
 
 Event300::Event300() : SourceEvent() {}
 
-Event300::Event300(const Event300& other) : SourceEvent(other) {}
+Event300::Event300(const Event300& other)  = default;
 
-Event300::~Event300() {  }
+Event300::~Event300() = default;
 
 Event300* Event300::Clone() { return NewOrNull<Event300>(*this); }
 
@@ -87,9 +87,9 @@ Event300* CreateEvent300() { return NewOrNull<Event300>(); }
 
 Event308::Event308() : SourceEvent() {}
 
-Event308::Event308(const Event308& other) : SourceEvent(other) {}
+Event308::Event308(const Event308& other)  = default;
 
-Event308::~Event308() {  }
+Event308::~Event308() = default;
 
 Event308* Event308::Clone() { return NewOrNull<Event308>(*this); }
 
@@ -111,9 +111,9 @@ Event308* CreateEvent308() { return NewOrNull<Event308>(); }
 
 Event306::Event306() : SourceEvent() {}
 
-Event306::Event306(const Event306& other) : SourceEvent(other) {}
+Event306::Event306(const Event306& other)  = default;
 
-Event306::~Event306() {  }
+Event306::~Event306() = default;
 
 Event306* Event306::Clone() { return NewOrNull<Event306>(*this); }
 
@@ -135,9 +135,9 @@ Event306* CreateEvent306() { return NewOrNull<Event306>(); }
 
 Event316::Event316() : SourceEvent() {}
 
-Event316::Event316(const Event316& other) : SourceEvent(other) {}
+Event316::Event316(const Event316& other)  = default;
 
-Event316::~Event316() {  }
+Event316::~Event316() = default;
 
 Event316* Event316::Clone() { return NewOrNull<Event316>(*this); }
 
@@ -159,9 +159,9 @@ Event316* CreateEvent316() { return NewOrNull<Event316>(); }
 
 Event307::Event307() : SourceEvent() {}
 
-Event307::Event307(const Event307& other) : SourceEvent(other) {}
+Event307::Event307(const Event307& other)  = default;
 
-Event307::~Event307() {  }
+Event307::~Event307() = default;
 
 Event307* Event307::Clone() { return NewOrNull<Event307>(*this); }
 
@@ -183,9 +183,9 @@ Event307* CreateEvent307() { return NewOrNull<Event307>(); }
 
 Event302::Event302() : SourceEvent() {}
 
-Event302::Event302(const Event302& other) : SourceEvent(other) {}
+Event302::Event302(const Event302& other)  = default;
 
-Event302::~Event302() {  }
+Event302::~Event302() = default;
 
 Event302* Event302::Clone() { return NewOrNull<Event302>(*this); }
 
@@ -207,9 +207,9 @@ Event302* CreateEvent302() { return NewOrNull<Event302>(); }
 
 Event318::Event318() : SourceEvent() {}
 
-Event318::Event318(const Event318& other) : SourceEvent(other) {}
+Event318::Event318(const Event318& other)  = default;
 
-Event318::~Event318() {  }
+Event318::~Event318() = default;
 
 Event318* Event318::Clone() { return NewOrNull<Event318>(*this); }
 
@@ -231,9 +231,9 @@ Event318* CreateEvent318() { return NewOrNull<Event318>(); }
 
 Event315::Event315() : SourceEvent() {}
 
-Event315::Event315(const Event315& other) : SourceEvent(other) {}
+Event315::Event315(const Event315& other)  = default;
 
-Event315::~Event315() {  }
+Event315::~Event315() = default;
 
 Event315* Event315::Clone() { return NewOrNull<Event315>(*this); }
 
@@ -255,9 +255,9 @@ Event315* CreateEvent315() { return NewOrNull<Event315>(); }
 
 Event30a::Event30a() : SourceEvent() {}
 
-Event30a::Event30a(const Event30a& other) : SourceEvent(other) {}
+Event30a::Event30a(const Event30a& other)  = default;
 
-Event30a::~Event30a() {  }
+Event30a::~Event30a() = default;
 
 Event30a* Event30a::Clone() { return NewOrNull<Event30a>(*this); }
 
@@ -279,9 +279,9 @@ Event30a* CreateEvent30a() { return NewOrNull<Event30a>(); }
 
 Event320::Event320() : TwoKeyEvent() {}
 
-Event320::Event320(const Event320& other) : TwoKeyEvent(other) {}
+Event320::Event320(const Event320& other)  = default;
 
-Event320::~Event320() {  }
+Event320::~Event320() = default;
 
 Event320* Event320::Clone() { return NewOrNull<Event320>(*this); }
 
@@ -303,9 +303,9 @@ Event320* CreateEvent320() { return NewOrNull<Event320>(); }
 
 Event313::Event313() : SourceEvent() {}
 
-Event313::Event313(const Event313& other) : SourceEvent(other) {}
+Event313::Event313(const Event313& other)  = default;
 
-Event313::~Event313() {  }
+Event313::~Event313() = default;
 
 Event313* Event313::Clone() { return NewOrNull<Event313>(*this); }
 
@@ -328,9 +328,9 @@ Event313* CreateEvent313() { return NewOrNull<Event313>(); }
 
 Event31a::Event31a() : SourceEvent() {}
 
-Event31a::Event31a(const Event31a& other) : SourceEvent(other) {}
+Event31a::Event31a(const Event31a& other)  = default;
 
-Event31a::~Event31a() {  }
+Event31a::~Event31a() = default;
 
 Event31a* Event31a::Clone() { return NewOrNull<Event31a>(*this); }
 
@@ -352,9 +352,9 @@ Event31a* CreateEvent31a() { return NewOrNull<Event31a>(); }
 
 Event317::Event317() : SourceEvent() {}
 
-Event317::Event317(const Event317& other) : SourceEvent(other) {}
+Event317::Event317(const Event317& other)  = default;
 
-Event317::~Event317() {  }
+Event317::~Event317() = default;
 
 Event317* Event317::Clone() { return NewOrNull<Event317>(*this); }
 

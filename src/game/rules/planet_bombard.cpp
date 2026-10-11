@@ -51,13 +51,13 @@ int commanderLeadership(GameObjNotifier* commander) {
 // ---- visitors ----------------------------------------------------------------------------------------------------
 
 ShipVisitor::ShipVisitor(BombardWalker* walker) : m_walker(walker) {}
-ShipVisitor::~ShipVisitor() {  }
+ShipVisitor::~ShipVisitor() = default;
 
 DefenderVisitor::DefenderVisitor(BombardWalker* walker) : m_walker(walker) {}
-DefenderVisitor::~DefenderVisitor() {  }
+DefenderVisitor::~DefenderVisitor() = default;
 
 ShipCounter::ShipCounter(BombardWalker* walker) : ShipVisitor(walker), m_count(0) {}
-ShipCounter::~ShipCounter() {  }
+ShipCounter::~ShipCounter() = default;
 
 int ShipCounter::Visit(GameObj*, GameObj*, uint32_t* stop, NotifyContext*) {
     ++m_count;
@@ -67,7 +67,7 @@ int ShipCounter::Visit(GameObj*, GameObj*, uint32_t* stop, NotifyContext*) {
 
 ShipPicker::ShipPicker(BombardWalker* walker)
     : ShipVisitor(walker), m_index(0), m_target(0), m_ship(nullptr), m_fleet(nullptr) {}
-ShipPicker::~ShipPicker() {  }
+ShipPicker::~ShipPicker() = default;
 
 int ShipPicker::Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext*) {
     *stop = 0;
@@ -85,7 +85,7 @@ int ShipPicker::Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyConte
 }
 
 DeathStarFinder::DeathStarFinder(BombardWalker* walker) : ShipVisitor(walker), m_found(0) {}
-DeathStarFinder::~DeathStarFinder() {  }
+DeathStarFinder::~DeathStarFinder() = default;
 
 int DeathStarFinder::Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext*) {
     *stop = 0;
@@ -99,7 +99,7 @@ int DeathStarFinder::Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, Notify
 }
 
 ShipDamager::ShipDamager(BombardWalker* walker) : ShipVisitor(walker) {}
-ShipDamager::~ShipDamager() {  }
+ShipDamager::~ShipDamager() = default;
 
 int ShipDamager::Visit(GameObj* shipObject, GameObj*, uint32_t* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -130,7 +130,7 @@ int ShipDamager::Visit(GameObj* shipObject, GameObj*, uint32_t* stop, NotifyCont
 }
 
 ShipCleaner::ShipCleaner(BombardWalker* walker) : ShipVisitor(walker) {}
-ShipCleaner::~ShipCleaner() {  }
+ShipCleaner::~ShipCleaner() = default;
 
 int ShipCleaner::Visit(GameObj* shipObject, GameObj* fleet, uint32_t* stop, NotifyContext*) {
     *stop = 0;
@@ -144,7 +144,7 @@ int ShipCleaner::Visit(GameObj* shipObject, GameObj* fleet, uint32_t* stop, Noti
 }
 
 DefenderCounter::DefenderCounter(BombardWalker* walker) : DefenderVisitor(walker), m_count(0) {}
-DefenderCounter::~DefenderCounter() {  }
+DefenderCounter::~DefenderCounter() = default;
 
 int DefenderCounter::Visit(GameObj*, GameObj*, int, int, uint32_t* stop, NotifyContext*) {
     ++m_count;
@@ -154,7 +154,7 @@ int DefenderCounter::Visit(GameObj*, GameObj*, int, int, uint32_t* stop, NotifyC
 
 DefenderPicker::DefenderPicker(BombardWalker* walker)
     : DefenderVisitor(walker), m_index(0), m_target(0), m_picked{nullptr, nullptr, 0, 0} {}
-DefenderPicker::~DefenderPicker() {  }
+DefenderPicker::~DefenderPicker() = default;
 
 int DefenderPicker::Visit(GameObj* facility, GameObj* troop, int energy, int rawMaterial, uint32_t* stop,
                           NotifyContext*) {
@@ -199,7 +199,7 @@ BombardWalker::BombardWalker()
     : m_unused4(1), m_system(nullptr), m_attackerSide(0), m_shipCount(0), m_defenderCount(0), m_collateral(0),
       m_damaged(0), m_planetDestroyed(0), m_shipsGone(0), m_hitDefenses(0), m_hitProduction(0), m_hitResources(0),
       m_collateralAllowed(0), m_deathStar(0) {}
-BombardWalker::~BombardWalker() {  }
+BombardWalker::~BombardWalker() = default;
 
 int BombardWalker::ForEachBombardingShip(ShipVisitor* visitor, NotifyContext* ctx) {
     int ok = 1;
@@ -350,7 +350,7 @@ int BombardWalker::PickRandomProcFacility(int* found, DefenderRef* ref) {
 // ---- resolver ----------------------------------------------------------------------------------------------------
 
 BombardResolver::BombardResolver() : m_unused4(1), m_walker() {}
-BombardResolver::~BombardResolver() {  }
+BombardResolver::~BombardResolver() = default;
 
 int BombardResolver::Run(GameObjNotifier* system, ActivityRequest* request, NotifyContext* ctx) {
     int consistent = 1;

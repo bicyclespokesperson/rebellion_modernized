@@ -10,7 +10,7 @@ constexpr int kDefaultField0c = 7;
 
 GameSettings::GameSettings() : m_field04(0), m_field08(0), m_field0c(kDefaultField0c), m_field10(0) {}
 
-GameSettings::~GameSettings() {  }
+GameSettings::~GameSettings() = default;
 
 GameSettings& GameSettings::operator=(const GameSettings& other) {
     if (this != &other) {

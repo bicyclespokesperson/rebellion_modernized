@@ -29,7 +29,7 @@ void parseValues(istream* in, strstream* token, int* endOfLine, uint32_t (&value
 
 SdRecordExt2::SdRecordExt2() : m_field58(0), m_field5c(0) {}
 
-SdRecordExt2::~SdRecordExt2() {  }
+SdRecordExt2::~SdRecordExt2() = default;
 
 int SdRecordExt2::Read(istream* in) {
     SdRecord::Read(in);
@@ -66,7 +66,7 @@ SdRecordGrid::SdRecordGrid()
     : m_field60(0), m_field64(0), m_field68(0), m_field6c(0), m_field70(0), m_grid{}, m_fieldA4{},
       m_columnTotals{}, m_total(0) {}
 
-SdRecordGrid::~SdRecordGrid() {  }
+SdRecordGrid::~SdRecordGrid() = default;
 
 uint32_t SdRecordGrid::GetGridValue(int row, int column) const {
     if (row < 0 || row >= kGridRows || column < 0 || column >= kGridColumns) return 0;
@@ -148,7 +148,7 @@ int SdRecordGrid::ParseFields(istream* in, int* endOfLine) {
 
 SdRecordExt16::SdRecordExt16() : m_fields{} {}
 
-SdRecordExt16::~SdRecordExt16() {  }
+SdRecordExt16::~SdRecordExt16() = default;
 
 namespace {
 
@@ -209,7 +209,7 @@ int SdRecordExt16::ParseFields(istream* in, int* endOfLine) {
 
 SdRecordExt25::SdRecordExt25() : m_moreFields{} {}
 
-SdRecordExt25::~SdRecordExt25() {  }
+SdRecordExt25::~SdRecordExt25() = default;
 
 int SdRecordExt25::Read(istream* in) {
     SdRecordExt16::Read(in);
@@ -240,7 +240,7 @@ int SdRecordExt25::ParseFields(istream* in, int* endOfLine) {
 
 SdRecordExt1::SdRecordExt1() : m_field58(0) {}
 
-SdRecordExt1::~SdRecordExt1() {  }
+SdRecordExt1::~SdRecordExt1() = default;
 
 int SdRecordExt1::Read(istream* in) {
     SdRecord::Read(in);

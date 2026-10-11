@@ -41,7 +41,7 @@ Notice21::Notice21(const LinkNode* payloads, int owner) : UiKeyNotice(owner) {
     Virtual14(payloads);
 }
 
-Notice21::~Notice21() {  }
+Notice21::~Notice21() = default;
 
 int Notice21::GetKind() { return 21; }
 
@@ -123,7 +123,7 @@ Notice20::Notice20(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice20::~Notice20() {  }
+Notice20::~Notice20() = default;
 
 int Notice20::GetKind() { return 20; }
 

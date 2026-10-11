@@ -12,9 +12,9 @@ constexpr int kStatusNoSuchOrder = 1;
 
 // ---- UnitObjData ------------------------------------------------------------------------------------------
 
-UnitObjData::UnitObjData() {}
+UnitObjData::UnitObjData() = default;
 
-UnitObjData::~UnitObjData() {  }
+UnitObjData::~UnitObjData() = default;
 
 int UnitObjData::Read(istream* in) { return GameObjData::Read(in); }
 
@@ -24,9 +24,9 @@ int UnitObjData::Checksum(Crc32* crc) { return GameObjData::Checksum(crc); }
 
 // ---- UnitObjBase ------------------------------------------------------------------------------------------
 
-UnitObjBase::UnitObjBase() {}
+UnitObjBase::UnitObjBase() = default;
 
-UnitObjBase::~UnitObjBase() {  }
+UnitObjBase::~UnitObjBase() = default;
 
 int UnitObjBase::GetEventKinds(int unused, EventKindSet* out) {
     EventKindSet kinds;

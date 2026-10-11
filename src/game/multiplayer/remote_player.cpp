@@ -41,7 +41,7 @@ RemotePlayer::RemotePlayer(int side) : PlayerController(side), m_history() {
     m_unknown54 = 0;
 }
 
-RemotePlayer::~RemotePlayer() {  }
+RemotePlayer::~RemotePlayer() = default;
 
 void RemotePlayer::Read(istream* in) {
     PlayerController::Read(in);

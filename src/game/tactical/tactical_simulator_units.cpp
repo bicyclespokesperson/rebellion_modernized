@@ -152,9 +152,9 @@ void HeadlessSimulator::AssignCharacterHandle(TacticalUnit* unit) {
 
 // ---- construction ---------------------------------------------------------------------------------------------------
 
-SimulatorSideA::~SimulatorSideA() {  }
+SimulatorSideA::~SimulatorSideA() = default;
 
-SimulatorSideB::~SimulatorSideB() {  }
+SimulatorSideB::~SimulatorSideB() = default;
 
 HeadlessSimulator::HeadlessSimulator() {
     m_elapsed = 0;

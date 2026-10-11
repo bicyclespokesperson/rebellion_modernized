@@ -37,7 +37,7 @@ Notice8::Notice8(int owner, MessageBase* subject) : UiNotice(owner) {
     BuildText();
 }
 
-Notice8::~Notice8() {  }
+Notice8::~Notice8() = default;
 
 UiNotice* Notice8::Virtual10() { return NewOrNull<Notice8>(); }
 
@@ -172,7 +172,7 @@ Notice2::Notice2(const ObjectKey* key, int owner) : UiNotice(owner) {
     m_unk1c = FillText();
 }
 
-Notice2::~Notice2() {  }
+Notice2::~Notice2() = default;
 
 UiNotice* Notice2::Virtual10() { return NewOrNull<Notice2>(); }
 

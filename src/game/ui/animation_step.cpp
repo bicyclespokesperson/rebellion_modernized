@@ -109,7 +109,7 @@ DibBitmap* copyOf(DibBitmap* source) {
 
 AnimationStep::AnimationStep() : m_stage(nullptr), m_animator(nullptr), m_script(0), m_sound(0, 0, 0, 0, 0, 0), m_effectSound(0, 0, 0, 0, 0, 0) {}
 
-AnimationStep::~AnimationStep() {  }
+AnimationStep::~AnimationStep() = default;
 
 void AnimationStep::Attach(SpriteAnimator* animator) { m_animator = animator; }
 

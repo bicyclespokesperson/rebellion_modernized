@@ -29,7 +29,7 @@ ObjectEntry::ObjectEntry() : IdNode(), m_flag(1), m_family(0) {
     m_objects[2] = nullptr;
 }
 
-ObjectEntry::~ObjectEntry() {  }
+ObjectEntry::~ObjectEntry() = default;
 
 ObjectKey* ObjectEntry::GetKey(ObjectKey* out) const {
     out->m_value = (m_family << 24) | (m_id & 0xffffff);
@@ -92,7 +92,7 @@ ObjectEntry* ObjectEntry::NextInRange(const FamilyRange* range) const {
 
 ObjectDatabase::ObjectDatabase() : IdAvlTree(), m_ok(1) {}
 
-ObjectDatabase::~ObjectDatabase() {  }
+ObjectDatabase::~ObjectDatabase() = default;
 
 int ObjectDatabase::IsLess(AvlNode* a, AvlNode* b) {
     bool less = false;
@@ -201,7 +201,7 @@ ObjectEntry* ObjectDatabase::FindEntryInRange(const FamilyRange* range) {
 
 ChildList::ChildList() : IdAvlTree(), m_ok(1) {}
 
-ChildList::~ChildList() {  }
+ChildList::~ChildList() = default;
 
 int ChildList::IsLess(AvlNode* a, AvlNode* b) {
     if (!a || !b) return 0;

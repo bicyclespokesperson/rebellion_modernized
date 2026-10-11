@@ -107,7 +107,7 @@ AppNoticeDialog::AppNoticeDialog(HINSTANCE instance, int x, int y, int width, in
     m_buttonTooltipId = buttonTooltipId;
 }
 
-AppNoticeDialog::~AppNoticeDialog() {  }
+AppNoticeDialog::~AppNoticeDialog() = default;
 
 void AppNoticeDialog::OnCreate3() {
     AddButton(0xb0, 0x86, kButtonBitmapId, kButtonPressedBitmapId, kAcknowledgeButtonId, m_buttonTooltipId, 0, 0, 0, 0,
@@ -131,7 +131,7 @@ AppWaitDialog::AppWaitDialog(HINSTANCE instance, int x, int y, int width, int he
     : AppDialog(instance, x, y, width, height, parent, stringSlot, bitmapSlot, backgroundId, childId, style, flags,
                 message, headlineId, detailId) {}
 
-AppWaitDialog::~AppWaitDialog() {  }
+AppWaitDialog::~AppWaitDialog() = default;
 
 void AppWaitDialog::OnCreate3() {}
 

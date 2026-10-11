@@ -30,7 +30,7 @@ int NextTabStop(int x, int tabWidth) { return x + 1 + (tabWidth - (x + 1) % tabW
 
 TextLineStart::TextLineStart(int charIndex) : IdLinkNode(), m_charIndex(charIndex) {}
 
-TextLineStart::~TextLineStart() {  }
+TextLineStart::~TextLineStart() = default;
 
 // ---- TextScrollField ---------------------------------------------------------------------------------------
 

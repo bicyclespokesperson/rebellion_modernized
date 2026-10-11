@@ -37,7 +37,7 @@ TroopReg::TroopReg() {
     m_withdrawPercent = kFullWithdrawPercent;
 }
 
-TroopReg::~TroopReg() {  }
+TroopReg::~TroopReg() = default;
 
 int TroopReg::Read(istream* in) { return ReadState(in); }
 
@@ -238,6 +238,6 @@ TroopRegIterator::TroopRegIterator(GameObjNotifier* parent, uint32_t stateFilter
 TroopRegIterator::TroopRegIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kTroopFamilies, stateFilter) {}
 
-TroopRegIterator::~TroopRegIterator() {  }
+TroopRegIterator::~TroopRegIterator() = default;
 EventKindSet g_troopRegEventKinds{};
 int g_troopRegEventKindsReady{};

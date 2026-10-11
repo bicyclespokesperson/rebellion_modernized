@@ -23,7 +23,7 @@ AiTask4::AiTask4(int view) : AiStagedTask(4, view), m_selector() {
     m_plannerCursor = 0;
 }
 
-AiTask4::~AiTask4() {  }
+AiTask4::~AiTask4() = default;
 
 void AiTask4::Read(istream* in) {
     AiTaskBase::Read(in);
@@ -189,7 +189,7 @@ AiTask12::AiTask12(int view) : AiStagedTask(12, view), m_selector() {
     m_agentCursor = 0;
 }
 
-AiTask12::~AiTask12() {  }
+AiTask12::~AiTask12() = default;
 
 void AiTask12::Read(istream* in) {
     AiTaskBase::Read(in);

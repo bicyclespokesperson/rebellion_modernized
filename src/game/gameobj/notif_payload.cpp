@@ -3,7 +3,7 @@
 
 NotifPayload::NotifPayload() : LinkNode(), m_value0c(0), m_value10(0), m_value14(0), m_value18(0), m_value1c(0) {}
 
-NotifPayload::~NotifPayload() {  }
+NotifPayload::~NotifPayload() = default;
 
 int NotifPayload::ReadFields(istream* in) {
     LinkNode::Read(in);
@@ -27,7 +27,7 @@ int NotifPayload::WriteFields(ostream* out) {
 
 KeyedNotifPayload::KeyedNotifPayload() : NotifPayload(), m_key() {}
 
-KeyedNotifPayload::~KeyedNotifPayload() {  }
+KeyedNotifPayload::~KeyedNotifPayload() = default;
 
 int KeyedNotifPayload::ReadKeyed(istream* in) {
     int result = NotifPayload::ReadFields(in);

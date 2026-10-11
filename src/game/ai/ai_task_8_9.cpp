@@ -23,7 +23,7 @@ AiTask8::AiTask8(int view) : AiStagedTask(8, view), m_selector() {
     m_recordCursor = 0;
 }
 
-AiTask8::~AiTask8() {  }
+AiTask8::~AiTask8() = default;
 
 void AiTask8::Read(istream* in) {
     AiTaskBase::Read(in);
@@ -174,7 +174,7 @@ AiTask9::AiTask9(int view) : AiStagedTask(9, view), m_selector() {
     m_recordCursor = 0;
 }
 
-AiTask9::~AiTask9() {  }
+AiTask9::~AiTask9() = default;
 
 void AiTask9::Read(istream* in) {
     AiTaskBase::Read(in);

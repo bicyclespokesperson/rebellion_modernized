@@ -23,7 +23,7 @@ SdRecordExt2* recordOf(Detector* detector) { return static_cast<SdRecordExt2*>(d
 
 Detector::Detector() { m_detectorFlags = 0; }
 
-Detector::~Detector() {  }
+Detector::~Detector() = default;
 
 int Detector::GetEventKinds(int unused, EventKindSet* out) {
     const int ready = EnsureEventKinds();

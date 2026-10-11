@@ -25,7 +25,7 @@ private:
 
 IntPair::IntPair() : m_first(0), m_second(0) {}
 
-IntPair::IntPair(const IntPair& other) : m_first(other.m_first), m_second(other.m_second) {}
+IntPair::IntPair(const IntPair& other)  = default;
 
 IntPair* IntPair::Set(uint32_t first, uint32_t second) {
     m_first = first;
@@ -60,7 +60,7 @@ int IntPair::NotEquals(const IntPair& other) { return Equals(other) == 0; }
 
 EventKindSet::EventKindSet() : IntKeyedSet() {}
 
-EventKindSet::~EventKindSet() {  }
+EventKindSet::~EventKindSet() = default;
 
 EventKindSet& EventKindSet::operator=(const EventKindSet& other) {
     if (this != &other) IntKeyedSet::operator=(other);

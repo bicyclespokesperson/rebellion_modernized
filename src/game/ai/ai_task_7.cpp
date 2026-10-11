@@ -105,7 +105,7 @@ AiTask7::AiTask7(int view) : AiFacilityTaskBase(7, view) {
     m_x24 = 0x11;
 }
 
-AiTask7::~AiTask7() {  }
+AiTask7::~AiTask7() = default;
 
 OrderBase* AiTask7::Step() {
     if (m_flags.Get() != 1) {

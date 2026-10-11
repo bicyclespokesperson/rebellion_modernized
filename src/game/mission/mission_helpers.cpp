@@ -45,9 +45,9 @@ void MissionMemberSummary::CopyAllButFirst(const MissionMemberSummary& other) {
 EventKindNode::EventKindNode() : m_value(1), m_unknown(0) {}
 
 EventKindNode::EventKindNode(const EventKindNode& other)
-    : IntKeyNode(other), m_value(other.m_value), m_unknown(other.m_unknown) {}
+     = default;
 
-EventKindNode::~EventKindNode() {  }
+EventKindNode::~EventKindNode() = default;
 
 CloneableNode* EventKindNode::Clone() {
     void* memory = ::operator new(sizeof(EventKindNode));
@@ -74,9 +74,9 @@ int EventKindNode::Write(ostream* out) {
 
 // ---- ManuMgrData (the class belongs to the economy module, its methods sit in this address range) ---------
 
-ManuMgrData::ManuMgrData() {}
+ManuMgrData::ManuMgrData() = default;
 
-ManuMgrData::~ManuMgrData() {  }
+ManuMgrData::~ManuMgrData() = default;
 
 int ManuMgrData::Read(istream* in) {
     const int result = GameObjData::Read(in);
@@ -100,7 +100,7 @@ int ManuMgrData::Checksum(Crc32* crc) {
 
 MissionPhaseLevels::MissionPhaseLevels() : m_levels(0) {}
 
-MissionPhaseLevels::~MissionPhaseLevels() {  }
+MissionPhaseLevels::~MissionPhaseLevels() = default;
 
 MissionPhaseLevels& MissionPhaseLevels::operator=(const MissionPhaseLevels& other) {
     if (this != &other) m_levels = other.m_levels;
@@ -129,7 +129,7 @@ int MissionPhaseLevels::Checksum(Crc32* crc) {
 
 MissionData::MissionData() : m_unk18(1), m_unk1c(0) {}
 
-MissionData::~MissionData() {  }
+MissionData::~MissionData() = default;
 
 int MissionData::Read(istream* in) {
     int result = GameObjData::Read(in);
@@ -197,7 +197,7 @@ MissionCheckArgs::MissionCheckArgs(int a04, int a08, int a0c, int controlSide, D
       m_target(target),
       m_objective(objective) {}
 
-MissionCheckArgs::~MissionCheckArgs() {  }
+MissionCheckArgs::~MissionCheckArgs() = default;
 
 // ---- person resolution ------------------------------------------------------------------------------------
 

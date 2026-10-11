@@ -114,7 +114,7 @@ TacticalUnit* TacticalRegistry::GetDeathStar() { return m_deathStar; }
 
 TacticalUnit::TacticalUnit() { SetId(0); }
 
-TacticalUnit::~TacticalUnit() {}
+TacticalUnit::~TacticalUnit() = default;
 
 void TacticalUnit::AssignHandle(int side) { SetId(GetTacticalRegistry()->NextUnitHandle(side)); }
 

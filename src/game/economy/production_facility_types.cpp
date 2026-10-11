@@ -41,9 +41,9 @@ int ProductionFacilityChecksumBody(ProductionFacility* self, Crc32* crc) { retur
 
 // ---- family 0x2d ---------------------------------------------------------------------------------------------
 
-ProductionFacilityType2D::ProductionFacilityType2D() {}
+ProductionFacilityType2D::ProductionFacilityType2D() = default;
 
-ProductionFacilityType2D::~ProductionFacilityType2D() {  }
+ProductionFacilityType2D::~ProductionFacilityType2D() = default;
 
 int ProductionFacilityType2D::Read(istream* in) { return ProductionFacilityReadBody(this, in); }
 
@@ -87,13 +87,13 @@ ProductionFacilityType2DIterator::ProductionFacilityType2DIterator(GameObjNotifi
 ProductionFacilityType2DIterator::ProductionFacilityType2DIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kType2DFamilies, stateFilter) {}
 
-ProductionFacilityType2DIterator::~ProductionFacilityType2DIterator() {  }
+ProductionFacilityType2DIterator::~ProductionFacilityType2DIterator() = default;
 
 // ---- family 0x2c ---------------------------------------------------------------------------------------------
 
-ProductionFacilityType2C::ProductionFacilityType2C() {}
+ProductionFacilityType2C::ProductionFacilityType2C() = default;
 
-ProductionFacilityType2C::~ProductionFacilityType2C() {  }
+ProductionFacilityType2C::~ProductionFacilityType2C() = default;
 
 int ProductionFacilityType2C::Read(istream* in) { return ProductionFacilityReadBody(this, in); }
 
@@ -141,4 +141,4 @@ ProductionFacilityType2CIterator::ProductionFacilityType2CIterator(GameObjNotifi
 ProductionFacilityType2CIterator::ProductionFacilityType2CIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kType2CFamilies, stateFilter) {}
 
-ProductionFacilityType2CIterator::~ProductionFacilityType2CIterator() {  }
+ProductionFacilityType2CIterator::~ProductionFacilityType2CIterator() = default;

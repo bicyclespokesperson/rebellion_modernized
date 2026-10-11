@@ -72,7 +72,7 @@ DatRecord* nextRecord(DatRecord* record) { return reinterpret_cast<DatRecord*>(s
 
 CharacterMgr::CharacterMgr() : m_flags58(0), m_galaxySize(0) { SetId(8); }
 
-CharacterMgr::~CharacterMgr() {  }
+CharacterMgr::~CharacterMgr() = default;
 
 uint32_t CharacterMgr::GetFamily() { return family::kCharacterManager; }
 

@@ -7,4 +7,4 @@ MovingObject::MovingObject() {
     m_forward.Set(0, 0, 1.0f);
 }
 
-MovingObject::~MovingObject() {  }
+MovingObject::~MovingObject() = default;

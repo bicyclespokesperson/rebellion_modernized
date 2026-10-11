@@ -17,9 +17,9 @@ constexpr int kStatusNotSupported = 0x17;
 
 }  // namespace
 
-Character38::Character38() {}
+Character38::Character38() = default;
 
-Character38::~Character38() {  }
+Character38::~Character38() = default;
 
 uint32_t Character38::GetFamily() { return kFamilyCharacter38; }
 

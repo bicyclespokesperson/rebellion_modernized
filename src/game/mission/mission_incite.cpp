@@ -18,9 +18,9 @@ int ControlSideIndex(uint32_t controlSide) {
 }
 }  // namespace
 
-MissionIncite::MissionIncite() {}
+MissionIncite::MissionIncite() = default;
 
-MissionIncite::~MissionIncite() {  }
+MissionIncite::~MissionIncite() = default;
 
 REB_MISSION_SHARED_PERSISTENCE(MissionIncite)
 

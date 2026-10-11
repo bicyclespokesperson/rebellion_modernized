@@ -37,11 +37,11 @@ int commanderLeadership(GameObjNotifier* commander) {
 // ---- visitors and walker ----------------------------------------------------------------------------------------
 
 TroopVisitor::TroopVisitor(AssaultWalker* walker) : m_walker(walker) {}
-TroopVisitor::~TroopVisitor() {  }
+TroopVisitor::~TroopVisitor() = default;
 
 AssaultWalker::AssaultWalker() : m_unused4(1), m_system(nullptr), m_attackerSide(0), m_attackersAtStart(0),
                                  m_defendersAtStart(0), m_attackersLeft(0), m_defendersLeft(0), m_rounds(0) {}
-AssaultWalker::~AssaultWalker() {  }
+AssaultWalker::~AssaultWalker() = default;
 
 int AssaultWalker::ForEachAttackerTroop(TroopVisitor* visitor, NotifyContext* ctx) {
     int ok = 1;
@@ -88,7 +88,7 @@ int AssaultWalker::ForEachDefenderTroop(TroopVisitor* visitor, NotifyContext* ct
 }
 
 TroopCounter::TroopCounter(AssaultWalker* walker) : TroopVisitor(walker), m_count(0) {}
-TroopCounter::~TroopCounter() {  }
+TroopCounter::~TroopCounter() = default;
 
 int TroopCounter::Visit(GameObj*, GameObj*, GameObj*, uint32_t* stop, NotifyContext*) {
     ++m_count;
@@ -97,7 +97,7 @@ int TroopCounter::Visit(GameObj*, GameObj*, GameObj*, uint32_t* stop, NotifyCont
 }
 
 TroopPicker::TroopPicker(AssaultWalker* walker) : TroopVisitor(walker), m_index(0), m_target(0), m_picked(nullptr) {}
-TroopPicker::~TroopPicker() {  }
+TroopPicker::~TroopPicker() = default;
 
 int TroopPicker::Visit(GameObj* troop, GameObj*, GameObj*, uint32_t* stop, NotifyContext*) {
     *stop = 0;
@@ -114,7 +114,7 @@ int TroopPicker::Visit(GameObj* troop, GameObj*, GameObj*, uint32_t* stop, Notif
 }
 
 TroopReparenter::TroopReparenter(AssaultWalker* walker) : TroopVisitor(walker), m_index(0), m_target(0) {}
-TroopReparenter::~TroopReparenter() {  }
+TroopReparenter::~TroopReparenter() = default;
 
 int TroopReparenter::Visit(GameObj* troop, GameObj*, GameObj*, uint32_t* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -130,7 +130,7 @@ int TroopReparenter::Visit(GameObj* troop, GameObj*, GameObj*, uint32_t* stop, N
 }
 
 AssaultCombat::AssaultCombat(AssaultWalker* walker) : TroopVisitor(walker) {}
-AssaultCombat::~AssaultCombat() {  }
+AssaultCombat::~AssaultCombat() = default;
 
 int AssaultCombat::Visit(GameObj* troop, GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -186,7 +186,7 @@ int AssaultCombat::Visit(GameObj* troop, GameObj* ship, GameObj* fleet, uint32_t
 // ---- the resolver -----------------------------------------------------------------------------------------------
 
 AssaultResolver::AssaultResolver() : m_unused4(1), m_walker() {}
-AssaultResolver::~AssaultResolver() {  }
+AssaultResolver::~AssaultResolver() = default;
 
 int AssaultResolver::Run(GameObjNotifier* system, ActivityRequest*, NotifyContext* ctx) {
     int consistent = 1;

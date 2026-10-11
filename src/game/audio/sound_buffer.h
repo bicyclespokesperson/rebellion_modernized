@@ -30,7 +30,7 @@ public:
 class SoundIdTree : public AvlTree {
 public:
     SoundIdTree() : m_nextKey(1) {}
-    ~SoundIdTree() override {}
+    ~SoundIdTree() override = default;
     void Clear() override;
     int IsLess(AvlNode* a, AvlNode* b) override;
 

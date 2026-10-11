@@ -32,7 +32,7 @@ BattleInProgressWindow::BattleInProgressWindow(HINSTANCE instance, GalaxyWindow*
     m_style = 0x46000000;
 }
 
-BattleInProgressWindow::~BattleInProgressWindow() {  }
+BattleInProgressWindow::~BattleInProgressWindow() = default;
 
 void BattleInProgressWindow::SaveState(ostream* out) {
     uint32_t childId = m_childId;

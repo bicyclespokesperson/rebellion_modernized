@@ -38,7 +38,7 @@ AiTask3::AiTask3(int view) : AiFacilityTaskBase(3, view) {
     m_x24 = 9;
 }
 
-AiTask3::~AiTask3() {  }
+AiTask3::~AiTask3() = default;
 
 OrderBase* AiTask3::Step() {
     if (m_flags.Get() != 1) {

@@ -131,4 +131,4 @@ SystemIterator::SystemIterator(GameObjNotifier* parent) : ChildIterator(parent, 
 SystemIterator::SystemIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &family::kSystems, stateFilter) {}
 
-SystemIterator::~SystemIterator() {  }
+SystemIterator::~SystemIterator() = default;

@@ -58,7 +58,7 @@ BattleResults::BattleResults() {
     m_abstract = 0;
 }
 
-BattleResults::~BattleResults() {}
+BattleResults::~BattleResults() = default;
 
 unsigned BattleResults::Apply(int* inconclusive) {
     *inconclusive = 0;

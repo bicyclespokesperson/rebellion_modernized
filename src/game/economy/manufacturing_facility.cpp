@@ -16,9 +16,9 @@ int applyAllOnSideView(ManufacturingFacility* facility, NotifyContext* ctx) {
 }
 }  // namespace
 
-ManufacturingFacility::ManufacturingFacility() {}
+ManufacturingFacility::ManufacturingFacility() = default;
 
-ManufacturingFacility::~ManufacturingFacility() {  }
+ManufacturingFacility::~ManufacturingFacility() = default;
 
 int ManufacturingFacility::OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) {
     return ProcFacil::OnControlKindChanged(oldKind, newKind, ctx);
@@ -61,9 +61,9 @@ int ManufacturingFacility::CreateViewsImpl(int controlKind, NotifyContext* ctx) 
 
 // ---- family 0x2a --------------------------------------------------------------------------------------------------
 
-ManufacturingFacility2A::ManufacturingFacility2A() {}
+ManufacturingFacility2A::ManufacturingFacility2A() = default;
 
-ManufacturingFacility2A::~ManufacturingFacility2A() {  }
+ManufacturingFacility2A::~ManufacturingFacility2A() = default;
 
 int ManufacturingFacility2A::Read(istream* in) { return ReadForward(in); }
 
@@ -81,9 +81,9 @@ GameObjNotifier* CreateManufacturingFacility2A() { return new ManufacturingFacil
 
 // ---- family 0x29 --------------------------------------------------------------------------------------------------
 
-ManufacturingFacility29::ManufacturingFacility29() {}
+ManufacturingFacility29::ManufacturingFacility29() = default;
 
-ManufacturingFacility29::~ManufacturingFacility29() {  }
+ManufacturingFacility29::~ManufacturingFacility29() = default;
 
 int ManufacturingFacility29::Read(istream* in) { return ReadForward(in); }
 
@@ -101,9 +101,9 @@ GameObjNotifier* CreateManufacturingFacility29() { return new ManufacturingFacil
 
 // ---- family 0x28 --------------------------------------------------------------------------------------------------
 
-ManufacturingFacility28::ManufacturingFacility28() {}
+ManufacturingFacility28::ManufacturingFacility28() = default;
 
-ManufacturingFacility28::~ManufacturingFacility28() {  }
+ManufacturingFacility28::~ManufacturingFacility28() = default;
 
 int ManufacturingFacility28::Read(istream* in) { return ReadForward(in); }
 
@@ -145,7 +145,7 @@ ManufacturingFacilityIterator::ManufacturingFacilityIterator(GameObjNotifier* pa
 ManufacturingFacilityIterator::ManufacturingFacilityIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kManufacturingFamilies, stateFilter) {}
 
-ManufacturingFacilityIterator::~ManufacturingFacilityIterator() {  }
+ManufacturingFacilityIterator::~ManufacturingFacilityIterator() = default;
 
 ManufacturingFacility2AIterator::ManufacturingFacility2AIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kFamily2A, stateFilter) {}
@@ -153,7 +153,7 @@ ManufacturingFacility2AIterator::ManufacturingFacility2AIterator(GameObjNotifier
 ManufacturingFacility2AIterator::ManufacturingFacility2AIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kFamily2A, stateFilter) {}
 
-ManufacturingFacility2AIterator::~ManufacturingFacility2AIterator() {  }
+ManufacturingFacility2AIterator::~ManufacturingFacility2AIterator() = default;
 
 ManufacturingFacility29Iterator::ManufacturingFacility29Iterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kFamily29, stateFilter) {}
@@ -161,7 +161,7 @@ ManufacturingFacility29Iterator::ManufacturingFacility29Iterator(GameObjNotifier
 ManufacturingFacility29Iterator::ManufacturingFacility29Iterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kFamily29, stateFilter) {}
 
-ManufacturingFacility29Iterator::~ManufacturingFacility29Iterator() {  }
+ManufacturingFacility29Iterator::~ManufacturingFacility29Iterator() = default;
 
 ManufacturingFacility28Iterator::ManufacturingFacility28Iterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kFamily28, stateFilter) {}
@@ -169,4 +169,4 @@ ManufacturingFacility28Iterator::ManufacturingFacility28Iterator(GameObjNotifier
 ManufacturingFacility28Iterator::ManufacturingFacility28Iterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kFamily28, stateFilter) {}
 
-ManufacturingFacility28Iterator::~ManufacturingFacility28Iterator() {  }
+ManufacturingFacility28Iterator::~ManufacturingFacility28Iterator() = default;

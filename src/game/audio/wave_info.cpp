@@ -34,7 +34,7 @@ struct TagBuffer {
 
 WaveInfo::WaveInfo() { Reset(); }
 
-WaveInfo::~WaveInfo() {  }
+WaveInfo::~WaveInfo() = default;
 
 void WaveInfo::Reset() {
     m_format.wFormatTag = 0;

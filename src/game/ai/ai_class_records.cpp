@@ -48,7 +48,7 @@ AiClassRecordBase::AiClassRecordBase(const ObjectKey& key)
     m_key = key;
 }
 
-AiClassRecordBase::~AiClassRecordBase() {  }
+AiClassRecordBase::~AiClassRecordBase() = default;
 
 // ---- AiSpecialForceClass --------------------------------------------------------------------------------------------
 
@@ -56,7 +56,7 @@ AiSpecialForceClass::AiSpecialForceClass(DatRecord* record) : AiClassRecordBase(
     Fill(static_cast<SpecialForceSD*>(record));
 }
 
-AiSpecialForceClass::~AiSpecialForceClass() {  }
+AiSpecialForceClass::~AiSpecialForceClass() = default;
 
 int AiSpecialForceClass::GetValue(const PersistentInt* mask) {
     const uint32_t bits = mask->m_value;
@@ -96,7 +96,7 @@ AiManufacturingClass::AiManufacturingClass(DatRecord* record) : AiClassRecordBas
     Fill(static_cast<ManufacturingFacilitySD*>(record));
 }
 
-AiManufacturingClass::~AiManufacturingClass() {  }
+AiManufacturingClass::~AiManufacturingClass() = default;
 
 int AiManufacturingClass::GetValue(const PersistentInt* mask) {
     const uint32_t bits = mask->m_value;
@@ -129,7 +129,7 @@ AiDefenseClass::AiDefenseClass(DatRecord* record) : AiClassRecordBase(AiRecordKe
     Fill(static_cast<DefenseFacilitySD*>(record));
 }
 
-AiDefenseClass::~AiDefenseClass() {  }
+AiDefenseClass::~AiDefenseClass() = default;
 
 int AiDefenseClass::GetValue(const PersistentInt* mask) {
     const uint32_t bits = mask->m_value;
@@ -166,7 +166,7 @@ AiTroopClass::AiTroopClass(DatRecord* record)
     Fill(static_cast<TroopSD*>(record));
 }
 
-AiTroopClass::~AiTroopClass() {  }
+AiTroopClass::~AiTroopClass() = default;
 
 int AiTroopClass::GetValue(const PersistentInt* mask) {
     const uint32_t bits = mask->m_value;
@@ -198,7 +198,7 @@ AiFighterClass::AiFighterClass(DatRecord* record)
     Fill(static_cast<SdRecordGrid*>(static_cast<SdRecord*>(record)));
 }
 
-AiFighterClass::~AiFighterClass() {  }
+AiFighterClass::~AiFighterClass() = default;
 
 int AiFighterClass::ScaleX30(int amount) { return (m_x30 * amount) / m_squadronSize; }
 int AiFighterClass::ScaleX34(int amount) { return (m_x34 * amount) / m_squadronSize; }
@@ -257,7 +257,7 @@ AiCapitalShipClass::AiCapitalShipClass(DatRecord* record)
     Fill(static_cast<SdRecordGrid*>(static_cast<SdRecord*>(record)));
 }
 
-AiCapitalShipClass::~AiCapitalShipClass() {  }
+AiCapitalShipClass::~AiCapitalShipClass() = default;
 
 int AiCapitalShipClass::ScaleA(int amount) {
     int result = 0;

@@ -113,7 +113,7 @@ GidMenuWindow::GidMenuWindow(HINSTANCE instance, int x, int y, int width, int he
     m_owner = parent;
 }
 
-GidMenuWindow::~GidMenuWindow() {  }
+GidMenuWindow::~GidMenuWindow() = default;
 
 void GidMenuWindow::OnCreate1() {
     GalaxyWindow* galaxy = GetGalaxyWindow();

@@ -12,7 +12,7 @@ SideRoot::SideRoot() : GameObj() {
     SetFlag31(GetFlag31());
 }
 
-SideRoot::~SideRoot() {  }
+SideRoot::~SideRoot() = default;
 
 uint32_t SideRoot::GetFamily() { return family::kSideRoot; }
 

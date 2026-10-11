@@ -29,9 +29,9 @@ bool isLockable(const ObjectKey& key) { return key.IsSet() && key.Family() >= kL
 
 RoleActivityCommand::RoleActivityCommand() : Command() {}
 
-RoleActivityCommand::RoleActivityCommand(const RoleActivityCommand& other) : Command(other) {}
+RoleActivityCommand::RoleActivityCommand(const RoleActivityCommand& other)  = default;
 
-RoleActivityCommand::~RoleActivityCommand() {  }
+RoleActivityCommand::~RoleActivityCommand() = default;
 
 Command* RoleActivityCommand::Clone() { return NewOrNull<RoleActivityCommand>(*this); }
 
@@ -77,9 +77,9 @@ int RoleActivityCommand::Execute() {
 
 RemoveRequestEvent::RemoveRequestEvent() : SourceEvent() {}
 
-RemoveRequestEvent::RemoveRequestEvent(const RemoveRequestEvent& other) : SourceEvent(other) {}
+RemoveRequestEvent::RemoveRequestEvent(const RemoveRequestEvent& other)  = default;
 
-RemoveRequestEvent::~RemoveRequestEvent() {  }
+RemoveRequestEvent::~RemoveRequestEvent() = default;
 
 EventBase* RemoveRequestEvent::Clone() { return NewOrNull<RemoveRequestEvent>(*this); }
 
@@ -109,9 +109,9 @@ int RemoveRequestEvent::Execute() {
 
 RoleStateEvent::RoleStateEvent() : SourceEvent() {}
 
-RoleStateEvent::RoleStateEvent(const RoleStateEvent& other) : SourceEvent(other) {}
+RoleStateEvent::RoleStateEvent(const RoleStateEvent& other)  = default;
 
-RoleStateEvent::~RoleStateEvent() {  }
+RoleStateEvent::~RoleStateEvent() = default;
 
 EventBase* RoleStateEvent::Clone() { return NewOrNull<RoleStateEvent>(*this); }
 
@@ -141,9 +141,9 @@ int RoleStateEvent::Execute() {
 
 PersonRemovedEvent::PersonRemovedEvent() : SourceEvent() {}
 
-PersonRemovedEvent::PersonRemovedEvent(const PersonRemovedEvent& other) : SourceEvent(other) {}
+PersonRemovedEvent::PersonRemovedEvent(const PersonRemovedEvent& other)  = default;
 
-PersonRemovedEvent::~PersonRemovedEvent() {  }
+PersonRemovedEvent::~PersonRemovedEvent() = default;
 
 EventBase* PersonRemovedEvent::Clone() { return NewOrNull<PersonRemovedEvent>(*this); }
 
@@ -171,9 +171,9 @@ int PersonRemovedEvent::Execute() {
 
 ResignRequestEvent::ResignRequestEvent() : SourceEvent() {}
 
-ResignRequestEvent::ResignRequestEvent(const ResignRequestEvent& other) : SourceEvent(other) {}
+ResignRequestEvent::ResignRequestEvent(const ResignRequestEvent& other)  = default;
 
-ResignRequestEvent::~ResignRequestEvent() {  }
+ResignRequestEvent::~ResignRequestEvent() = default;
 
 EventBase* ResignRequestEvent::Clone() { return NewOrNull<ResignRequestEvent>(*this); }
 
@@ -203,9 +203,9 @@ int ResignRequestEvent::Execute() {
 
 LockTransferEvent::LockTransferEvent() : TwoKeyEvent() {}
 
-LockTransferEvent::LockTransferEvent(const LockTransferEvent& other) : TwoKeyEvent(other) {}
+LockTransferEvent::LockTransferEvent(const LockTransferEvent& other)  = default;
 
-LockTransferEvent::~LockTransferEvent() {  }
+LockTransferEvent::~LockTransferEvent() = default;
 
 EventBase* LockTransferEvent::Clone() { return NewOrNull<LockTransferEvent>(*this); }
 

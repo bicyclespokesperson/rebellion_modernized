@@ -32,7 +32,7 @@ FighterSD* fighterRecordOf(FightSquad* squad) { return static_cast<FighterSD*>(s
 
 FightSquad::FightSquad() { m_squadSizeDamage = 0; }
 
-FightSquad::~FightSquad() {  }
+FightSquad::~FightSquad() = default;
 
 uint32_t FightSquad::GetFamily() { return family::kFighterSquadron; }
 
@@ -305,6 +305,6 @@ FightSquadIterator::FightSquadIterator(GameObjNotifier* parent, uint32_t stateFi
 FightSquadIterator::FightSquadIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kFighterFamilies, stateFilter) {}
 
-FightSquadIterator::~FightSquadIterator() {  }
+FightSquadIterator::~FightSquadIterator() = default;
 EventKindSet g_fightSquadEventKinds{};
 int g_fightSquadEventKindsReady{};

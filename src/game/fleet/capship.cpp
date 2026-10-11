@@ -135,7 +135,7 @@ CapShip::CapShip() {
     m_criticalHits = 0;
 }
 
-CapShip::~CapShip() {  }
+CapShip::~CapShip() = default;
 
 int CapShip::GetTransitSpeed(int arg) {
     int speed = 0;
@@ -713,7 +713,7 @@ CapShipIterator::CapShipIterator(GameObjNotifier* parent, uint32_t stateFilter)
 CapShipIterator::CapShipIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &family::kCapitalShips, stateFilter) {}
 
-CapShipIterator::~CapShipIterator() {  }
+CapShipIterator::~CapShipIterator() = default;
 
 int CapShip::CreateViews(int controlKind, NotifyContext* ctx) { return CreateViewsState(controlKind, ctx); }
 

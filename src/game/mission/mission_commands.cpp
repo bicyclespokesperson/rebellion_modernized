@@ -38,17 +38,9 @@ MissionOrderCommand::MissionOrderCommand() : Command(), m_unk50(0), m_unk54(0), 
     m_missionKey.m_value = 0;
 }
 
-MissionOrderCommand::MissionOrderCommand(const MissionOrderCommand& other)
-    : Command(other),
-      m_unk50(other.m_unk50),
-      m_unk54(other.m_unk54),
-      m_side(other.m_side),
-      m_missionKey(other.m_missionKey),
-      m_resultKey(other.m_resultKey),
-      m_team(other.m_team),
-      m_characters(other.m_characters) {}
+MissionOrderCommand::MissionOrderCommand(const MissionOrderCommand& other) = default;
 
-MissionOrderCommand::~MissionOrderCommand() {  }
+MissionOrderCommand::~MissionOrderCommand() = default;
 
 Command* MissionOrderCommand::Clone() { return NewOrNull<MissionOrderCommand>(*this); }
 
@@ -123,9 +115,9 @@ MissionOrderCommand* CreateMissionOrderCommand() { return NewOrNull<MissionOrder
 
 MissionActivityCommand::MissionActivityCommand() : Command() {}
 
-MissionActivityCommand::MissionActivityCommand(const MissionActivityCommand& other) : Command(other) {}
+MissionActivityCommand::MissionActivityCommand(const MissionActivityCommand& other)  = default;
 
-MissionActivityCommand::~MissionActivityCommand() {  }
+MissionActivityCommand::~MissionActivityCommand() = default;
 
 Command* MissionActivityCommand::Clone() { return NewOrNull<MissionActivityCommand>(*this); }
 

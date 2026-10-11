@@ -3,7 +3,7 @@
 
 MessageTree::MessageTree() : IdAvlTree() { m_unk0c = 1; }
 
-MessageTree::~MessageTree() {  }
+MessageTree::~MessageTree() = default;
 
 void MessageTree::Read(istream* in) {
     uint32_t count;

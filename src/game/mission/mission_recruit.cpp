@@ -63,9 +63,9 @@ int CheckThreeSets(MissionCheckArgs* check, StatusCode* status, int* out, ThreeS
 }
 }  // namespace
 
-MissionRecruit::MissionRecruit() {}
+MissionRecruit::MissionRecruit() = default;
 
-MissionRecruit::~MissionRecruit() {  }
+MissionRecruit::~MissionRecruit() = default;
 
 int MissionRecruit::Read(istream* in) {
     if (!this->Mission::ReadImpl(in)) return 0;

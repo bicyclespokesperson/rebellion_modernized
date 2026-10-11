@@ -58,7 +58,7 @@ uint32_t controlSideOf(const GameObjNotifier* object) { return object->ControlSi
 
 Order242::Order242() : OrderBase() {}
 
-Order242::~Order242() {  }
+Order242::~Order242() = default;
 
 Command* Order242::CreateCommand() {
     void* memory = ::operator new(sizeof(RoleActivityCommand));
@@ -71,7 +71,7 @@ Order242* CreateOrder242() { return NewOrNull<Order242>(); }
 
 MissionOrder::MissionOrder() : OrderBase(), m_unk44(0), m_unk48(0) { m_missionKey.m_value = 0; }
 
-MissionOrder::~MissionOrder() {  }
+MissionOrder::~MissionOrder() = default;
 
 int MissionOrder::Read(istream* in) {
     int ok = OrderBase::Read(in);
@@ -254,7 +254,7 @@ int MissionOrder::CheckDestination(StatusCode* status) {
 
 MissionOrder240::MissionOrder240() : MissionOrder() {}
 
-MissionOrder240::~MissionOrder240() {  }
+MissionOrder240::~MissionOrder240() = default;
 
 int MissionOrder240::CollectCandidatesA(ObjectKeyValueSet* out) {
     out->Clear();
@@ -282,7 +282,7 @@ int MissionOrder240::CollectCandidatesB(ObjectKeyValueSet* out) {
 
 MissionOrder241::MissionOrder241() : MissionOrder() {}
 
-MissionOrder241::~MissionOrder241() {  }
+MissionOrder241::~MissionOrder241() = default;
 
 MissionOrder240* CreateMissionOrder240() { return NewOrNull<MissionOrder240>(); }
 

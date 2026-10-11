@@ -10,9 +10,9 @@ int applyAllOnSideView(CapShip* ship, NotifyContext* ctx) {
 }
 }  // namespace
 
-CapitalShip::CapitalShip() {}
+CapitalShip::CapitalShip() = default;
 
-CapitalShip::~CapitalShip() {  }
+CapitalShip::~CapitalShip() = default;
 
 int CapitalShip::CreateViews(int controlKind, NotifyContext* ctx) { return CapShip::CreateViews(controlKind, ctx); }
 
@@ -26,9 +26,9 @@ int CapitalShip::Checksum(Crc32* crc) { return CapShip::Checksum(crc); }
 
 int CapitalShip::ApplyAll(NotifyContext* ctx) { return applyAllOnSideView(this, ctx); }
 
-DeathStar::DeathStar() {}
+DeathStar::DeathStar() = default;
 
-DeathStar::~DeathStar() {  }
+DeathStar::~DeathStar() = default;
 
 int DeathStar::CreateViews(int controlKind, NotifyContext* ctx) { return CapShip::CreateViews(controlKind, ctx); }
 
@@ -49,7 +49,7 @@ GameObjNotifier* CreateDeathStar() { return new DeathStar(); }
 CapitalShipIterator::CapitalShipIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kCapitalShipFamilies, stateFilter) {}
 
-CapitalShipIterator::~CapitalShipIterator() {  }
+CapitalShipIterator::~CapitalShipIterator() = default;
 
 DeathStarIterator::DeathStarIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kDeathStarFamilies, stateFilter) {}
@@ -57,4 +57,4 @@ DeathStarIterator::DeathStarIterator(GameObjNotifier* parent, uint32_t stateFilt
 DeathStarIterator::DeathStarIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kDeathStarFamilies, stateFilter) {}
 
-DeathStarIterator::~DeathStarIterator() {  }
+DeathStarIterator::~DeathStarIterator() = default;

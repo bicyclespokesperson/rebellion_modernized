@@ -21,7 +21,7 @@ bool inFamilyRange(const ObjectKey& key, uint32_t first, uint32_t last) { return
 
 UiNotif200::UiNotif200() : IntPairPayload(), m_missionKey() { m_leadsMission = 0; }
 
-UiNotif200::~UiNotif200() {  }
+UiNotif200::~UiNotif200() = default;
 
 void UiNotif200::Read(istream* in) {
     ReadPayload(in);
@@ -52,7 +52,7 @@ void* CreateUiNotif200() { return NewOrNull<UiNotif200>(); }
 
 UiNotif1e0::UiNotif1e0() : IntPairPayload(), m_shipKey(), m_grandparentKey(), m_systemKey(), m_locationKey() {}
 
-UiNotif1e0::~UiNotif1e0() {  }
+UiNotif1e0::~UiNotif1e0() = default;
 
 int UiNotif1e0::GetKind() { return 0x1e0; }
 

@@ -146,7 +146,8 @@ stream clients and teardown. Linux/Windows checks remain future host work under 
 - [x] Apply `modernize-use-nullptr` as a reviewed, buildable batch (nine sites; use value initialization for
   `pthread_t` because its host representation varies).
 - [x] Apply `modernize-use-override` as a reviewed, buildable batch (declaration-only changes).
-- [ ] Apply `modernize-use-equals-default` as a reviewed, buildable batch.
+- [x] Apply `modernize-use-equals-default` as a reviewed, buildable batch. Retain first-declaration inline
+  constructor bodies where defaulting could change value-initialization behavior.
 - [ ] Apply `modernize-redundant-void-arg` as a reviewed, buildable batch.
 - [x] Survey bugprone and performance checks across maintained translation units. Fix the path-concatenation
   finding, make intentional pointer-sized copies explicit, and enable five selected diagnostics. Keep virtual-name

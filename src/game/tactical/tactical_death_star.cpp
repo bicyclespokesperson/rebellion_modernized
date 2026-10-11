@@ -26,7 +26,7 @@ TacticalDeathStar::TacticalDeathStar(uint32_t family, uint32_t id, int notComple
     m_fired = 0;
 }
 
-TacticalDeathStar::~TacticalDeathStar() {  }
+TacticalDeathStar::~TacticalDeathStar() = default;
 
 int TacticalDeathStar::IsOperational() {
     if (m_hasFacility != 0) return 0;

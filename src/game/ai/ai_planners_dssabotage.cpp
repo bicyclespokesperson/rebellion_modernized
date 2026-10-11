@@ -15,7 +15,7 @@ AiDsSabotagePlanner::AiDsSabotagePlanner(int view, AiSideController* owner, AiCh
     m_missionKey = ObjectKey::Make(0x6a, 0x41);
 }
 
-AiDsSabotagePlanner::~AiDsSabotagePlanner() {  }
+AiDsSabotagePlanner::~AiDsSabotagePlanner() = default;
 
 int AiDsSabotagePlanner::Virtual06() {
     int sum = 0;

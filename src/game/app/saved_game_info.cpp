@@ -25,7 +25,7 @@ SavedGameInfo::SavedGameInfo(const SavedGameInfo& other) : m_name() {
     m_unknown24 = other.m_unknown24;
 }
 
-SavedGameInfo::~SavedGameInfo() {  }
+SavedGameInfo::~SavedGameInfo() = default;
 
 SavedGameInfo& SavedGameInfo::operator=(const SavedGameInfo& other) {
     if (this != &other) {

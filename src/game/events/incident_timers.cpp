@@ -27,9 +27,9 @@ FamilyRange* GetFamilyF9Range(FamilyRange* out) {
 
 UprisingEndTimer::UprisingEndTimer() : TimerEvent() {}
 
-UprisingEndTimer::UprisingEndTimer(const UprisingEndTimer& other) : TimerEvent(other) {}
+UprisingEndTimer::UprisingEndTimer(const UprisingEndTimer& other)  = default;
 
-UprisingEndTimer::~UprisingEndTimer() {  }
+UprisingEndTimer::~UprisingEndTimer() = default;
 
 UprisingEndTimer* UprisingEndTimer::Clone() { return NewOrNull<UprisingEndTimer>(*this); }
 
@@ -45,9 +45,9 @@ UprisingEndTimer* CreateUprisingEndTimer() { return NewOrNull<UprisingEndTimer>(
 
 UprisingLoyaltyTimer::UprisingLoyaltyTimer() : TimerEvent() {}
 
-UprisingLoyaltyTimer::UprisingLoyaltyTimer(const UprisingLoyaltyTimer& other) : TimerEvent(other) {}
+UprisingLoyaltyTimer::UprisingLoyaltyTimer(const UprisingLoyaltyTimer& other)  = default;
 
-UprisingLoyaltyTimer::~UprisingLoyaltyTimer() {  }
+UprisingLoyaltyTimer::~UprisingLoyaltyTimer() = default;
 
 UprisingLoyaltyTimer* UprisingLoyaltyTimer::Clone() { return NewOrNull<UprisingLoyaltyTimer>(*this); }
 
@@ -63,9 +63,9 @@ UprisingLoyaltyTimer* CreateUprisingLoyaltyTimer() { return NewOrNull<UprisingLo
 
 AssaultLoyaltyTimer::AssaultLoyaltyTimer() : TimerEvent() {}
 
-AssaultLoyaltyTimer::AssaultLoyaltyTimer(const AssaultLoyaltyTimer& other) : TimerEvent(other) {}
+AssaultLoyaltyTimer::AssaultLoyaltyTimer(const AssaultLoyaltyTimer& other)  = default;
 
-AssaultLoyaltyTimer::~AssaultLoyaltyTimer() {  }
+AssaultLoyaltyTimer::~AssaultLoyaltyTimer() = default;
 
 AssaultLoyaltyTimer* AssaultLoyaltyTimer::Clone() { return NewOrNull<AssaultLoyaltyTimer>(*this); }
 
@@ -81,9 +81,9 @@ AssaultLoyaltyTimer* CreateAssaultLoyaltyTimer() { return NewOrNull<AssaultLoyal
 
 BlockadeLoyaltyTimer::BlockadeLoyaltyTimer() : TimerEvent() {}
 
-BlockadeLoyaltyTimer::BlockadeLoyaltyTimer(const BlockadeLoyaltyTimer& other) : TimerEvent(other) {}
+BlockadeLoyaltyTimer::BlockadeLoyaltyTimer(const BlockadeLoyaltyTimer& other)  = default;
 
-BlockadeLoyaltyTimer::~BlockadeLoyaltyTimer() {  }
+BlockadeLoyaltyTimer::~BlockadeLoyaltyTimer() = default;
 
 BlockadeLoyaltyTimer* BlockadeLoyaltyTimer::Clone() { return NewOrNull<BlockadeLoyaltyTimer>(*this); }
 
@@ -99,9 +99,9 @@ BlockadeLoyaltyTimer* CreateBlockadeLoyaltyTimer() { return NewOrNull<BlockadeLo
 
 UprisingPulseTimer::UprisingPulseTimer() : TimerEvent() {}
 
-UprisingPulseTimer::UprisingPulseTimer(const UprisingPulseTimer& other) : TimerEvent(other) {}
+UprisingPulseTimer::UprisingPulseTimer(const UprisingPulseTimer& other)  = default;
 
-UprisingPulseTimer::~UprisingPulseTimer() {  }
+UprisingPulseTimer::~UprisingPulseTimer() = default;
 
 UprisingPulseTimer* UprisingPulseTimer::Clone() { return NewOrNull<UprisingPulseTimer>(*this); }
 
@@ -117,9 +117,9 @@ UprisingPulseTimer* CreateUprisingPulseTimer() { return NewOrNull<UprisingPulseT
 
 InformantIncidentTimer::InformantIncidentTimer() : TimerEvent() {}
 
-InformantIncidentTimer::InformantIncidentTimer(const InformantIncidentTimer& other) : TimerEvent(other) {}
+InformantIncidentTimer::InformantIncidentTimer(const InformantIncidentTimer& other)  = default;
 
-InformantIncidentTimer::~InformantIncidentTimer() {  }
+InformantIncidentTimer::~InformantIncidentTimer() = default;
 
 InformantIncidentTimer* InformantIncidentTimer::Clone() { return NewOrNull<InformantIncidentTimer>(*this); }
 
@@ -135,9 +135,9 @@ InformantIncidentTimer* CreateInformantIncidentTimer() { return NewOrNull<Inform
 
 SideStatATimer::SideStatATimer() : TimerEvent() {}
 
-SideStatATimer::SideStatATimer(const SideStatATimer& other) : TimerEvent(other) {}
+SideStatATimer::SideStatATimer(const SideStatATimer& other)  = default;
 
-SideStatATimer::~SideStatATimer() {  }
+SideStatATimer::~SideStatATimer() = default;
 
 SideStatATimer* SideStatATimer::Clone() { return NewOrNull<SideStatATimer>(*this); }
 
@@ -153,9 +153,9 @@ SideStatATimer* CreateSideStatATimer() { return NewOrNull<SideStatATimer>(); }
 
 SideStatBTimer::SideStatBTimer() : TimerEvent() {}
 
-SideStatBTimer::SideStatBTimer(const SideStatBTimer& other) : TimerEvent(other) {}
+SideStatBTimer::SideStatBTimer(const SideStatBTimer& other)  = default;
 
-SideStatBTimer::~SideStatBTimer() {  }
+SideStatBTimer::~SideStatBTimer() = default;
 
 SideStatBTimer* SideStatBTimer::Clone() { return NewOrNull<SideStatBTimer>(*this); }
 

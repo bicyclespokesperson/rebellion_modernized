@@ -21,9 +21,9 @@ void MakeAllViewsContext(NotifyContext* context) {
 
 }  // namespace
 
-SystemType90::SystemType90() {}
+SystemType90::SystemType90() = default;
 
-SystemType90::~SystemType90() {  }
+SystemType90::~SystemType90() = default;
 
 uint32_t SystemType90::GetFamily() { return kFamilySystemType90; }
 
@@ -155,4 +155,4 @@ int UpdateSystemType90Children(GameObj* parent, NotifyContext* ctx) { return par
 SystemType90Iterator::SystemType90Iterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kType90Families, stateFilter) {}
 
-SystemType90Iterator::~SystemType90Iterator() {  }
+SystemType90Iterator::~SystemType90Iterator() = default;

@@ -36,7 +36,7 @@ RECT* AreaOf(MenuItemBase* item) { return reinterpret_cast<RECT*>(reinterpret_ca
 
 // ---- Lists ---------------------------------------------------------------------------------------------------
 
-OwningIdList::OwningIdList() {}
+OwningIdList::OwningIdList() = default;
 
 OwningIdList::~OwningIdList() {
     Reset();
@@ -47,9 +47,9 @@ int OwningIdList::IsLessById(LinkNode* a, LinkNode* b) {
     return static_cast<IdLinkNode*>(a)->m_id < static_cast<IdLinkNode*>(b)->m_id;
 }
 
-MenuItemList::MenuItemList() {}
+MenuItemList::MenuItemList() = default;
 
-MenuItemList::~MenuItemList() {  }
+MenuItemList::~MenuItemList() = default;
 
 // ---- MenuCommand -----------------------------------------------------------------------------------------------
 
@@ -292,7 +292,7 @@ MenuItem::MenuItem(uint32_t command, uint32_t flags, HMODULE module, const Resou
     m_command.m_flags = flags;
 }
 
-MenuItem::~MenuItem() {  }
+MenuItem::~MenuItem() = default;
 
 int MenuItem::Virtual03() { return m_command.m_flags & 8; }
 

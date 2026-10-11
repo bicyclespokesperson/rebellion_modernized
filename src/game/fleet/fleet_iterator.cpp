@@ -14,4 +14,4 @@ FleetIterator::FleetIterator(GameObjNotifier* parent, uint32_t stateFilter)
 FleetIterator::FleetIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &family::kFleets, stateFilter) {}
 
-FleetIterator::~FleetIterator() {  }
+FleetIterator::~FleetIterator() = default;

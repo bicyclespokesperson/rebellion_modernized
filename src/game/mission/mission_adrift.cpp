@@ -9,9 +9,9 @@ constexpr uint32_t kFamilyMissionAdrift = 0x44;
 constexpr uint32_t kInitialPhaseLevels = 0x4103;
 }
 
-MissionAdrift::MissionAdrift() {}
+MissionAdrift::MissionAdrift() = default;
 
-MissionAdrift::~MissionAdrift() {  }
+MissionAdrift::~MissionAdrift() = default;
 
 uint32_t MissionAdrift::GetFamily() { return kFamilyMissionAdrift; }
 

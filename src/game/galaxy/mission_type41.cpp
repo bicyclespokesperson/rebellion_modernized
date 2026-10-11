@@ -19,9 +19,9 @@ constexpr int kStatusNotSupported = 0x17;
 
 }  // namespace
 
-Mission41::Mission41() {}
+Mission41::Mission41() = default;
 
-Mission41::~Mission41() {  }
+Mission41::~Mission41() = default;
 
 uint32_t Mission41::GetFamily() { return kFamilyMission41; }
 

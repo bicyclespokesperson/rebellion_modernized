@@ -113,7 +113,7 @@ PlayerController::PlayerController(int side) : PlayerQueue(side), m_voteKey() {
     m_unk4c = 0;
 }
 
-PlayerController::~PlayerController() {  }
+PlayerController::~PlayerController() = default;
 
 void PlayerController::Virtual05(int firstVoteId) {
     m_nextVoteId = firstVoteId;

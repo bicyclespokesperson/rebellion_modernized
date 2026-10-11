@@ -58,7 +58,7 @@ CommandQueue* newCommandQueue() { return NewOrNull<CommandQueue>(); }
 
 Order250::Order250() : OrderBase() {}
 
-Order250::~Order250() {  }
+Order250::~Order250() = default;
 
 Command* Order250::CreateCommand() { return NewOrNull<MissionActivityCommand>(); }
 
@@ -68,7 +68,7 @@ void* CreateOrder250() { return NewOrNull<Order250>(); }
 
 PayloadMessage::PayloadMessage() : SidedMessage(), m_delay(0), m_valueA(0), m_valueB(0) {}
 
-PayloadMessage::~PayloadMessage() {  }
+PayloadMessage::~PayloadMessage() = default;
 
 int PayloadMessage::Read(istream* in) {
     int result = SidedMessage::Read(in);
@@ -112,7 +112,7 @@ void* CreatePayloadMessage() { return NewOrNull<PayloadMessage>(); }
 
 Order270::Order270() : OrderBase() {}
 
-Order270::~Order270() {  }
+Order270::~Order270() = default;
 
 int Order270::GetKind() { return 0x270; }
 
@@ -159,7 +159,7 @@ void* CreateOrder270() { return NewOrNull<Order270>(); }
 
 RootCommandOrder::RootCommandOrder() : OrderBase() {}
 
-RootCommandOrder::~RootCommandOrder() {  }
+RootCommandOrder::~RootCommandOrder() = default;
 
 int RootCommandOrder::IsChecked() {
     const int ownsQueue = static_cast<int>(m_unk1c);
@@ -183,25 +183,25 @@ int RootCommandOrder::CheckEnabled(StatusCode* status) {
 Command* RootCommandOrder::CreateCommand() { return NewOrNull<RootCommand240>(); }
 
 RootOrder260::RootOrder260() : RootCommandOrder() {}
-RootOrder260::~RootOrder260() {  }
+RootOrder260::~RootOrder260() = default;
 int RootOrder260::Read(istream* in) { return OrderBase::Read(in); }
 int RootOrder260::Write(ostream* out) { return OrderBase::Write(out); }
 void* CreateRootOrder260() { return NewOrNull<RootOrder260>(); }
 
 RootOrder261::RootOrder261() : RootCommandOrder() {}
-RootOrder261::~RootOrder261() {  }
+RootOrder261::~RootOrder261() = default;
 int RootOrder261::Read(istream* in) { return OrderBase::Read(in); }
 int RootOrder261::Write(ostream* out) { return OrderBase::Write(out); }
 void* CreateRootOrder261() { return NewOrNull<RootOrder261>(); }
 
 RootOrder262::RootOrder262() : RootCommandOrder() {}
-RootOrder262::~RootOrder262() {  }
+RootOrder262::~RootOrder262() = default;
 int RootOrder262::Read(istream* in) { return OrderBase::Read(in); }
 int RootOrder262::Write(ostream* out) { return OrderBase::Write(out); }
 void* CreateRootOrder262() { return NewOrNull<RootOrder262>(); }
 
 RootOrder263::RootOrder263() : RootCommandOrder() {}
-RootOrder263::~RootOrder263() {  }
+RootOrder263::~RootOrder263() = default;
 int RootOrder263::Read(istream* in) { return OrderBase::Read(in); }
 int RootOrder263::Write(ostream* out) { return OrderBase::Write(out); }
 void* CreateRootOrder263() { return NewOrNull<RootOrder263>(); }
@@ -210,7 +210,7 @@ void* CreateRootOrder263() { return NewOrNull<RootOrder263>(); }
 
 Order268::Order268() : OrderBase() {}
 
-Order268::~Order268() {  }
+Order268::~Order268() = default;
 
 Command* Order268::CreateCommand() { return NewOrNull<RootCommand242>(); }
 
@@ -409,25 +409,25 @@ int FleetCommandOrder::CheckDestination(StatusCode* status) {
 }
 
 Order221::Order221() : FleetCommandOrder() {}
-Order221::~Order221() {  }
+Order221::~Order221() = default;
 int Order221::Read(istream* in) { return OrderBase::Read(in); }
 int Order221::Write(ostream* out) { return OrderBase::Write(out); }
 void* CreateOrder221() { return NewOrNull<Order221>(); }
 
 Order223::Order223() : FleetCommandOrder() {}
-Order223::~Order223() {  }
+Order223::~Order223() = default;
 int Order223::Read(istream* in) { return OrderBase::Read(in); }
 int Order223::Write(ostream* out) { return OrderBase::Write(out); }
 void* CreateOrder223() { return NewOrNull<Order223>(); }
 
 Order222::Order222() : FleetCommandOrder() {}
-Order222::~Order222() {  }
+Order222::~Order222() = default;
 int Order222::Read(istream* in) { return OrderBase::Read(in); }
 int Order222::Write(ostream* out) { return OrderBase::Write(out); }
 void* CreateOrder222() { return NewOrNull<Order222>(); }
 
 Order220::Order220() : FleetCommandOrder() {}
-Order220::~Order220() {  }
+Order220::~Order220() = default;
 int Order220::Read(istream* in) { return OrderBase::Read(in); }
 int Order220::Write(ostream* out) { return OrderBase::Write(out); }
 void* CreateOrder220() { return NewOrNull<Order220>(); }

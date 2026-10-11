@@ -32,7 +32,7 @@ TacticalWeaponArc::TacticalWeaponArc() {
     m_chargeState = 1;
 }
 
-TacticalWeaponArc::~TacticalWeaponArc() {}
+TacticalWeaponArc::~TacticalWeaponArc() = default;
 
 // ---- construction -------------------------------------------------------------------------------------------------
 
@@ -94,7 +94,7 @@ TacticalShipBase::TacticalShipBase() {
     m_unk410 = 0;
 }
 
-TacticalShipBase::~TacticalShipBase() {  }
+TacticalShipBase::~TacticalShipBase() = default;
 
 TacticalHangar::TacticalHangar() {
     m_unk24 = 0;

@@ -71,9 +71,9 @@ int initFrom(int (*build)(), EventKindSet* kinds, EventKindSet* out) {
 
 // ==== MissionRuleBase ====================================================================================
 
-MissionRuleBase::MissionRuleBase() {}
+MissionRuleBase::MissionRuleBase() = default;
 
-MissionRuleBase::~MissionRuleBase() {  }
+MissionRuleBase::~MissionRuleBase() = default;
 
 int MissionRuleBase::BuildEventKinds() {
     return buildFromParent(&g_ruleBaseEventKindsBuilt, &g_ruleBaseEventKinds, Mission::GetBaseEventKinds);
@@ -294,9 +294,9 @@ int MissionRuleBase::OnPhaseChanged(int oldValue, int newValue, NotifyContext* c
 
 // ==== MissionSystemTargetBase ============================================================================
 
-MissionSystemTargetBase::MissionSystemTargetBase() {}
+MissionSystemTargetBase::MissionSystemTargetBase() = default;
 
-MissionSystemTargetBase::~MissionSystemTargetBase() {  }
+MissionSystemTargetBase::~MissionSystemTargetBase() = default;
 
 int MissionSystemTargetBase::BuildEventKinds() {
     return buildFromParent(&g_systemTargetBaseEventKindsBuilt, &g_systemTargetBaseEventKinds,
@@ -360,13 +360,13 @@ int MissionSystemTargetBase::CheckTarget(MissionCheckArgs* args, StatusCode* sta
 MissionTargetKindIterator::MissionTargetKindIterator(GameObjNotifier* parent)
     : ChildIterator(parent, &kTargetKindFamilies, 1) {}
 
-MissionTargetKindIterator::~MissionTargetKindIterator() {  }
+MissionTargetKindIterator::~MissionTargetKindIterator() = default;
 
 // ==== MissionCharacterTargetBase =========================================================================
 
-MissionCharacterTargetBase::MissionCharacterTargetBase() {}
+MissionCharacterTargetBase::MissionCharacterTargetBase() = default;
 
-MissionCharacterTargetBase::~MissionCharacterTargetBase() {  }
+MissionCharacterTargetBase::~MissionCharacterTargetBase() = default;
 
 int MissionCharacterTargetBase::BuildEventKinds() {
     return buildFromParent(&g_characterTargetBaseEventKindsBuilt, &g_characterTargetBaseEventKinds,
@@ -431,9 +431,9 @@ int MissionCharacterTargetBase::CheckTarget(MissionCheckArgs* args, StatusCode* 
 
 // ==== MissionObjectTargetBase ============================================================================
 
-MissionObjectTargetBase::MissionObjectTargetBase() {}
+MissionObjectTargetBase::MissionObjectTargetBase() = default;
 
-MissionObjectTargetBase::~MissionObjectTargetBase() {  }
+MissionObjectTargetBase::~MissionObjectTargetBase() = default;
 
 int MissionObjectTargetBase::BuildEventKinds() {
     return buildFromParent(&g_objectTargetBaseEventKindsBuilt, &g_objectTargetBaseEventKinds,
@@ -480,9 +480,9 @@ int MissionObjectTargetBase::CheckTarget(MissionCheckArgs* args, StatusCode* sta
 
 // ==== MissionStoryBase ===================================================================================
 
-MissionStoryBase::MissionStoryBase() {}
+MissionStoryBase::MissionStoryBase() = default;
 
-MissionStoryBase::~MissionStoryBase() {  }
+MissionStoryBase::~MissionStoryBase() = default;
 
 int MissionStoryBase::BuildEventKinds() {
     return buildFromParent(&g_storyBaseEventKindsBuilt, &g_storyBaseEventKinds, MissionRuleBase::InitEventKinds);
@@ -574,9 +574,9 @@ int MissionTypeBase::AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSe
     return ok;
 }
 
-MissionTypeBase::MissionTypeBase() {}
+MissionTypeBase::MissionTypeBase() = default;
 
-MissionTypeBase::~MissionTypeBase() {  }
+MissionTypeBase::~MissionTypeBase() = default;
 
 int MissionTypeBase::CreateViewsBody(int controlKind, NotifyContext* ctx) { return CreateViewsImpl(controlKind, ctx); }
 

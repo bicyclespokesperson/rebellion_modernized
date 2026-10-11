@@ -36,7 +36,7 @@ int StoryCharacterCreateViews(Character* self, int controlKind, NotifyContext* c
 
 StoryCharacter::StoryCharacter() : m_storyFlags(0) {}
 
-StoryCharacter::~StoryCharacter() {  }
+StoryCharacter::~StoryCharacter() = default;
 
 int StoryCharacter::ReadBody(istream* in) {
     const int result = CharacterLeafRead(this, in);
@@ -58,9 +58,9 @@ int StoryCharacter::ChecksumBody(Crc32* crc) {
 
 // ---- Luke -------------------------------------------------------------------------------------------------------
 
-Luke::Luke() {}
+Luke::Luke() = default;
 
-Luke::~Luke() {  }
+Luke::~Luke() = default;
 
 uint32_t Luke::GetFamily() { return kFamilyLuke; }
 
@@ -198,9 +198,9 @@ int Luke::BuildEventKinds() {
 
 // ---- Leia -------------------------------------------------------------------------------------------------------
 
-Leia::Leia() {}
+Leia::Leia() = default;
 
-Leia::~Leia() {  }
+Leia::~Leia() = default;
 
 uint32_t Leia::GetFamily() { return kFamilyLeia; }
 
@@ -267,9 +267,9 @@ int Leia::BuildEventKinds() {
 
 // ---- Han --------------------------------------------------------------------------------------------------------
 
-Han::Han() {}
+Han::Han() = default;
 
-Han::~Han() {  }
+Han::~Han() = default;
 
 uint32_t Han::GetFamily() { return kFamilyHan; }
 
@@ -380,7 +380,7 @@ MinorCharacterIterator::MinorCharacterIterator(GameObjNotifier* parent, uint32_t
 MinorCharacterIterator::MinorCharacterIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kMinorCharacters, stateFilter) {}
 
-MinorCharacterIterator::~MinorCharacterIterator() {  }
+MinorCharacterIterator::~MinorCharacterIterator() = default;
 EventKindSet g_hanEventKinds{};
 EventKindSet g_leiaEventKinds{};
 EventKindSet g_lukeEventKinds{};

@@ -16,9 +16,9 @@ constexpr int kStartingLoyalty = 100;
 
 }  // namespace
 
-SystemType92::SystemType92() {}
+SystemType92::SystemType92() = default;
 
-SystemType92::~SystemType92() {  }
+SystemType92::~SystemType92() = default;
 
 uint32_t SystemType92::GetFamily() { return kFamilySystemType92; }
 

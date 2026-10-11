@@ -39,7 +39,7 @@ AiTask2::AiTask2(int view)
     m_x24 = 3;
 }
 
-AiTask2::~AiTask2() {  }
+AiTask2::~AiTask2() = default;
 
 FamilyFields AiTask2::Fields() {
     return {m_owner, m_view, m_x24, &m_selector, &m_targets, &m_dropped, &m_system, &m_manager, &m_classKey, &m_count, &m_cap, &m_limit};

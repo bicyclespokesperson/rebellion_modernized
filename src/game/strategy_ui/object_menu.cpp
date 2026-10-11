@@ -263,7 +263,7 @@ PopupMenuWindow::PopupMenuWindow(HINSTANCE resources, int x, int y, int width, i
     m_owner = owner;
 }
 
-PopupMenuWindow::~PopupMenuWindow() {  }
+PopupMenuWindow::~PopupMenuWindow() = default;
 
 void PopupMenuWindow::Hide() { Show(0); }
 

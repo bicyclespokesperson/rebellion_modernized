@@ -8,7 +8,7 @@ MessageListItem::MessageListItem(MessageRecord* record) : CoolListItem(record->m
     m_visible = 1;
 }
 
-MessageListItem::~MessageListItem() {  }
+MessageListItem::~MessageListItem() = default;
 
 void MessageListItem::Read(istream*) {}
 
@@ -28,7 +28,7 @@ CoolListItem* MessageListItem::Previous() {
 
 MessageItemList::MessageItemList(int sortMode) : CoolListItemList(sortMode) {}
 
-MessageItemList::~MessageItemList() {  }
+MessageItemList::~MessageItemList() = default;
 
 CoolListItem* MessageItemList::First() {
     MessageListItem* first = static_cast<MessageListItem*>(m_head);

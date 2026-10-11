@@ -49,7 +49,7 @@ int CreateViewsStubDefense(GameObj* self, int controlKind, NotifyContext* ctx) {
 
 TrainingFacilManuMgr::TrainingFacilManuMgr() : ManuMgr() { SetFlag31(GetFlag31()); }
 
-TrainingFacilManuMgr::~TrainingFacilManuMgr() {  }
+TrainingFacilManuMgr::~TrainingFacilManuMgr() = default;
 
 int TrainingFacilManuMgr::Read(istream* in) { return ManuMgrReadBody(this, in); }
 
@@ -96,7 +96,7 @@ int CountTrainingFacilManuMgrChildren(GameObj* parent, uint32_t side, uint32_t f
 
 ConstructionYardManuMgr::ConstructionYardManuMgr() : ManuMgr() { SetFlag31(GetFlag31()); }
 
-ConstructionYardManuMgr::~ConstructionYardManuMgr() {  }
+ConstructionYardManuMgr::~ConstructionYardManuMgr() = default;
 
 int ConstructionYardManuMgr::Read(istream* in) { return ManuMgrReadBody(this, in); }
 
@@ -143,7 +143,7 @@ int CountConstructionYardManuMgrChildren(GameObj* parent, uint32_t side, uint32_
 
 ShipyardManuMgr::ShipyardManuMgr() : ManuMgr() { SetFlag31(GetFlag31()); }
 
-ShipyardManuMgr::~ShipyardManuMgr() {  }
+ShipyardManuMgr::~ShipyardManuMgr() = default;
 
 int ShipyardManuMgr::Read(istream* in) { return ManuMgrReadBody(this, in); }
 

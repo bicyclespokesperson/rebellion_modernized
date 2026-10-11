@@ -24,7 +24,7 @@ AiTaskNode::AiTaskNode(int id) : IdNode(), m_flags(0) {
     m_flags.m_value = 0;
 }
 
-AiTaskNode::~AiTaskNode() {  }
+AiTaskNode::~AiTaskNode() = default;
 
 void AiTaskNode::Read(istream* in) {
     ReadId(in);
@@ -71,7 +71,7 @@ void AiTaskBase::Write(ostream* out) {
 
 AiNoticeGroup::AiNoticeGroup() : SortedLinkList(), IdNode(), m_finished(0) {}
 
-AiNoticeGroup::~AiNoticeGroup() {  }
+AiNoticeGroup::~AiNoticeGroup() = default;
 
 int AiNoticeGroup::IsLess(LinkNode*, LinkNode*) { return 0; }
 
@@ -120,7 +120,7 @@ AiTaskObject::AiTaskObject(const ObjectKey& key, int first, int second) : IdNode
     m_second = second;
 }
 
-AiTaskObject::~AiTaskObject() {  }
+AiTaskObject::~AiTaskObject() = default;
 
 void AiTaskObject::Read(istream* in) {
     ReadId(in);
@@ -138,7 +138,7 @@ void AiTaskObject::Write(ostream* out) {
 
 AiTaskObjectSet::AiTaskObjectSet() : IdAvlTree() {}
 
-AiTaskObjectSet::~AiTaskObjectSet() {  }
+AiTaskObjectSet::~AiTaskObjectSet() = default;
 
 void AiTaskObjectSet::Load(istream* in) {
     Clear();

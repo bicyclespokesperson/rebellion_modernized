@@ -15,9 +15,9 @@ constexpr int kTaskSucceeded = 3;
 constexpr uint32_t kDestroyedState = 0x8;
 }  // namespace
 
-MissionAssassination::MissionAssassination() {}
+MissionAssassination::MissionAssassination() = default;
 
-MissionAssassination::~MissionAssassination() {  }
+MissionAssassination::~MissionAssassination() = default;
 
 REB_MISSION_SHARED_PERSISTENCE(MissionAssassination)
 

@@ -316,20 +316,20 @@ int TakeCharactersAtOneLocation(ObjectKeyValueSet* team, ObjectKeyValueSet* out,
 // ---- MoveOrder, ConfirmedMoveOrder ----------------------------------------------------------------------------
 
 MoveOrder::MoveOrder() : MoveOrderBase() {}
-MoveOrder::~MoveOrder() {  }
+MoveOrder::~MoveOrder() = default;
 int MoveOrder::Write(ostream* out) { return OrderBase::Write(out); }
 int MoveOrder::GetKind() { return 0x201; }
 void* CreateMoveOrder() { return NewOrNull<MoveOrder>(); }
 
 ConfirmedMoveOrder::ConfirmedMoveOrder() : MoveOrderBase() {}
-ConfirmedMoveOrder::~ConfirmedMoveOrder() {  }
+ConfirmedMoveOrder::~ConfirmedMoveOrder() = default;
 int ConfirmedMoveOrder::GetKind() { return 0x202; }
 void* CreateConfirmedMoveOrder() { return NewOrNull<ConfirmedMoveOrder>(); }
 
 // ---- ObjectMoveOrder ------------------------------------------------------------------------------------------
 
 ObjectMoveOrder::ObjectMoveOrder() : OrderBase() {}
-ObjectMoveOrder::~ObjectMoveOrder() {  }
+ObjectMoveOrder::~ObjectMoveOrder() = default;
 int ObjectMoveOrder::Read(istream* in) { return OrderBase::Read(in); }
 int ObjectMoveOrder::Write(ostream* out) { return OrderBase::Write(out); }
 int ObjectMoveOrder::GetKind() { return 0x204; }
@@ -452,7 +452,7 @@ done:
 // ---- RenameOrder ----------------------------------------------------------------------------------------------
 
 RenameOrder::RenameOrder() : TextMessage() {}
-RenameOrder::~RenameOrder() {  }
+RenameOrder::~RenameOrder() = default;
 int RenameOrder::Read(istream* in) { return TextMessage::Read(in); }
 int RenameOrder::Write(ostream* out) { return TextMessage::Write(out); }
 int RenameOrder::GetKind() { return 0x203; }
@@ -494,7 +494,7 @@ int RenameOrder::CheckDestination(StatusCode* status) {
 // ---- ScrapOrder, ReadyForDeleteOrder --------------------------------------------------------------------------
 
 ScrapOrder::ScrapOrder() : OrderBase() {}
-ScrapOrder::~ScrapOrder() {  }
+ScrapOrder::~ScrapOrder() = default;
 void* CreateScrapOrder() { return NewOrNull<ScrapOrder>(); }
 
 Command* ScrapOrder::CreateCommand() {
@@ -503,7 +503,7 @@ Command* ScrapOrder::CreateCommand() {
 }
 
 ReadyForDeleteOrder::ReadyForDeleteOrder() : OrderBase() {}
-ReadyForDeleteOrder::~ReadyForDeleteOrder() {  }
+ReadyForDeleteOrder::~ReadyForDeleteOrder() = default;
 int ReadyForDeleteOrder::GetKind() { return 0x205; }
 void* CreateReadyForDeleteOrder() { return NewOrNull<ReadyForDeleteOrder>(); }
 
@@ -515,8 +515,8 @@ Command* ReadyForDeleteOrder::CreateCommand() {
 // ---- ObjectKeyIntSet ------------------------------------------------------------------------------------------
 
 ObjectKeyIntSet::ObjectKeyIntSet() : ObjectKeySet() {}
-ObjectKeyIntSet::ObjectKeyIntSet(const ObjectKeyIntSet& other) : ObjectKeySet(other) {}
-ObjectKeyIntSet::~ObjectKeyIntSet() {  }
+ObjectKeyIntSet::ObjectKeyIntSet(const ObjectKeyIntSet& other)  = default;
+ObjectKeyIntSet::~ObjectKeyIntSet() = default;
 ObjectKeyNode* ObjectKeyIntSet::NewNode() { return NewOrNull<IntPairNode>(); }
 
 int ObjectKeyIntSet::AddPair(const ObjectKey& key, const int& value) {

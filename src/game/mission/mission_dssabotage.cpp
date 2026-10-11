@@ -15,9 +15,9 @@ constexpr int kStatusTargetNotDeathStar = 0x29;
 constexpr int kStatusCategoryOrder = 0x40;
 }  // namespace
 
-MissionDSSabotage::MissionDSSabotage() {}
+MissionDSSabotage::MissionDSSabotage() = default;
 
-MissionDSSabotage::~MissionDSSabotage() {  }
+MissionDSSabotage::~MissionDSSabotage() = default;
 
 REB_MISSION_SHARED_PERSISTENCE(MissionDSSabotage)
 

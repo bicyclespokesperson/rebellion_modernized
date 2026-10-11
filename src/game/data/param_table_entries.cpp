@@ -38,7 +38,7 @@ int parseTextValues(TableEntry* entry, istream* in, int* values, size_t count) {
 
 GeneralParamTableEntry::GeneralParamTableEntry() : m_values{} {}
 
-GeneralParamTableEntry::~GeneralParamTableEntry() {  }
+GeneralParamTableEntry::~GeneralParamTableEntry() = default;
 
 int GeneralParamTableEntry::Read(istream* in) {
     TableEntry::Read(in);
@@ -67,7 +67,7 @@ void* CreateGeneralParamTableEntry() { return NewOrNull<GeneralParamTableEntry>(
 
 SideParamTableEntry::SideParamTableEntry() : m_values{} {}
 
-SideParamTableEntry::~SideParamTableEntry() {  }
+SideParamTableEntry::~SideParamTableEntry() = default;
 
 int SideParamTableEntry::Read(istream* in) {
     TableEntry::Read(in);

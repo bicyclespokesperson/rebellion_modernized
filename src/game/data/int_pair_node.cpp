@@ -7,9 +7,9 @@ IntPairNode::IntPairNode() : m_value(0) {}
 
 IntPairNode::IntPairNode(const ObjectKey& key, const int& value) : ObjectKeyNode(key), m_value(value) {}
 
-IntPairNode::IntPairNode(const IntPairNode& other) : ObjectKeyNode(other), m_value(other.m_value) {}
+IntPairNode::IntPairNode(const IntPairNode& other)  = default;
 
-IntPairNode::~IntPairNode() {  }
+IntPairNode::~IntPairNode() = default;
 
 ObjectKeyNode* IntPairNode::Clone() { return NewOrNull<IntPairNode>(*this); }
 

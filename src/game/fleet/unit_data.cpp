@@ -1,13 +1,13 @@
 #include "core/utility_classes.h"
 #include "fleet/unit_data_decl.h"
 
-DetectorData::DetectorData() {}
+DetectorData::DetectorData() = default;
 
-DetectorData::~DetectorData() {  }
+DetectorData::~DetectorData() = default;
 
-CombatUnitData::CombatUnitData() {}
+CombatUnitData::CombatUnitData() = default;
 
-CombatUnitData::~CombatUnitData() {  }
+CombatUnitData::~CombatUnitData() = default;
 
 int CombatUnitData::Read(istream* in) {
     int result = UnitObjData::Read(in);

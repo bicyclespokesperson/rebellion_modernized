@@ -6,7 +6,7 @@
 
 Sector::Sector() : GameObj() { SetFlag31(GetFlag31()); }
 
-Sector::~Sector() {  }
+Sector::~Sector() = default;
 
 uint32_t Sector::GetFamily() { return family::kSector; }
 
@@ -56,4 +56,4 @@ void Sector::GetPosition(uint32_t* out) {
 SectorIterator::SectorIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &family::kSectors, stateFilter) {}
 
-SectorIterator::~SectorIterator() {  }
+SectorIterator::~SectorIterator() = default;

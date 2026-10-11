@@ -14,9 +14,9 @@ constexpr uint32_t kFamilyMissionAbduction = 0x62;
 constexpr int kTaskSucceeded = 3;
 }  // namespace
 
-MissionAbduction::MissionAbduction() {}
+MissionAbduction::MissionAbduction() = default;
 
-MissionAbduction::~MissionAbduction() {  }
+MissionAbduction::~MissionAbduction() = default;
 
 REB_MISSION_SHARED_PERSISTENCE(MissionAbduction)
 

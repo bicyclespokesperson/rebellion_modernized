@@ -528,7 +528,7 @@ void DrawStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values
 
 StatusTallyNode::StatusTallyNode() : m_total(0), m_count(0) {}
 
-StatusTallyNode::~StatusTallyNode() {  }
+StatusTallyNode::~StatusTallyNode() = default;
 
 void ObjectStatusWindow::TallyUnitsByType(IdAvlTree* tally, GameObjNotifier* first, const FamilyRange* range) {
     tally->Clear();

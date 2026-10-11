@@ -29,9 +29,9 @@ constexpr int kDestroyedReasonSpecial = 9;
 // initializer 0x503fd0.
 
 
-SpecialForces::SpecialForces() {}
+SpecialForces::SpecialForces() = default;
 
-SpecialForces::~SpecialForces() {  }
+SpecialForces::~SpecialForces() = default;
 
 uint32_t SpecialForces::GetFamily() { return kSpecialForcesFamily; }
 
@@ -152,6 +152,6 @@ SpecialForceIterator::SpecialForceIterator(GameObjNotifier* parent, uint32_t sta
 SpecialForceIterator::SpecialForceIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &family::kSpecialForces, stateFilter) {}
 
-SpecialForceIterator::~SpecialForceIterator() {  }
+SpecialForceIterator::~SpecialForceIterator() = default;
 EventKindSet g_specialForcesEventKinds{};
 int g_specialForcesEventKindsReady{};

@@ -6,7 +6,7 @@
 
 AvlNode::AvlNode() : m_left(nullptr), m_right(nullptr), m_parent(nullptr), m_successor(nullptr), m_height(0) {}
 
-AvlNode::~AvlNode() {  }
+AvlNode::~AvlNode() = default;
 
 AvlNode* AvlNode::Predecessor() {
     AvlNode* node = m_left;
@@ -239,7 +239,7 @@ IdNode::IdNode() : m_id(0) {}
 
 IdNode::IdNode(uint32_t id) : m_id(id) {}
 
-IdNode::~IdNode() {  }
+IdNode::~IdNode() = default;
 
 void IdNode::SetId(uint32_t id) { m_id = id; }
 
@@ -249,7 +249,7 @@ void IdNode::WriteId(ostream* out) { WriteValue32(out, &m_id); }
 
 IdValueNode::IdValueNode(int value) : IdNode(), m_value(value) {}
 
-IdValueNode::~IdValueNode() {  }
+IdValueNode::~IdValueNode() = default;
 
 void IdValueNode::Read(istream* in) {
     ReadId(in);
@@ -338,7 +338,7 @@ IdNode* IdAvlTree::DetachById(uint32_t id) {
 
 IdValueTree::IdValueTree() : IdAvlTree() {}
 
-IdValueTree::~IdValueTree() {  }
+IdValueTree::~IdValueTree() = default;
 
 void IdValueTree::Read(istream* in) {
     uint16_t count;
@@ -365,13 +365,13 @@ CloneableNode::CloneableNode() : AvlNode() {}
 
 CloneableNode::CloneableNode(const CloneableNode&) : AvlNode() {}
 
-CloneableNode::~CloneableNode() {  }
+CloneableNode::~CloneableNode() = default;
 
 IntKeyNode::IntKeyNode() : CloneableNode(), m_key(0) {}
 
-IntKeyNode::IntKeyNode(const IntKeyNode& other) : CloneableNode(other), m_key(other.m_key) {}
+IntKeyNode::IntKeyNode(const IntKeyNode& other)  = default;
 
-IntKeyNode::~IntKeyNode() {  }
+IntKeyNode::~IntKeyNode() = default;
 
 int IntKeyNode::Read(istream* in) {
     ReadValue32(in, &m_key);
@@ -387,7 +387,7 @@ int IntKeyNode::Write(ostream* out) {
 
 AvlSet::AvlSet() : AvlTree() {}
 
-AvlSet::~AvlSet() {  }
+AvlSet::~AvlSet() = default;
 
 int AvlSet::IsLess(AvlNode* a, AvlNode* b) { return Precedes(a, b); }
 
@@ -442,7 +442,7 @@ AvlSet& AvlSet::Intersect(AvlSet& other) {
 
 IntKeyedSet::IntKeyedSet() : AvlSet() {}
 
-IntKeyedSet::~IntKeyedSet() {  }
+IntKeyedSet::~IntKeyedSet() = default;
 
 IntKeyedSet& IntKeyedSet::operator=(const IntKeyedSet& other) {
     if (this != &other) CopyFrom(other);
@@ -524,7 +524,7 @@ short OrderedTree::Count() const {
 
 LinkNode::LinkNode() : m_prev(nullptr), m_next(nullptr) {}
 
-LinkNode::~LinkNode() {  }
+LinkNode::~LinkNode() = default;
 
 void LinkNode::Read(istream*) {}
 
@@ -532,7 +532,7 @@ void LinkNode::Write(ostream*) {}
 
 IdLinkNode::IdLinkNode() : LinkNode(), m_id(0) {}
 
-IdLinkNode::~IdLinkNode() {  }
+IdLinkNode::~IdLinkNode() = default;
 
 void IdLinkNode::Read(istream* in) { ReadValue32(in, &m_id); }
 
@@ -614,7 +614,7 @@ void SortedLinkList::RewindToFirst() {
 
 IdSortedLinkList::IdSortedLinkList() : SortedLinkList(), m_nextId(1) {}
 
-IdSortedLinkList::~IdSortedLinkList() {  }
+IdSortedLinkList::~IdSortedLinkList() = default;
 
 int IdSortedLinkList::IsLess(LinkNode* a, LinkNode* b) {
     if (a && b && static_cast<IdLinkNode*>(a)->m_id < static_cast<IdLinkNode*>(b)->m_id) return 1;

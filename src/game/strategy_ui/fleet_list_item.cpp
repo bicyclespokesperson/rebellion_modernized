@@ -3,7 +3,7 @@
 
 FleetListItem::FleetListItem(const ObjectKey* key) : CoolListItem(key->m_value & 0xffffff), m_flags(0) { m_key = *key; }
 
-FleetListItem::~FleetListItem() {  }
+FleetListItem::~FleetListItem() = default;
 
 CoolListItem* FleetListItem::Next() {
     FleetListItem* next = static_cast<FleetListItem*>(m_next);

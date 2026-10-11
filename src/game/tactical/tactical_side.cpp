@@ -31,11 +31,11 @@ TargetPriorityNode* successor(TargetPriorityNode* node) { return static_cast<Tar
 
 // ---- scorers ----------------------------------------------------------------------------------------------------------
 
-AttackEvaluatorBase::~AttackEvaluatorBase() {  }
+AttackEvaluatorBase::~AttackEvaluatorBase() = default;
 
-FormationEvaluatorBase::~FormationEvaluatorBase() {  }
+FormationEvaluatorBase::~FormationEvaluatorBase() = default;
 
-SideOrderTree::~SideOrderTree() {}
+SideOrderTree::~SideOrderTree() = default;
 
 int SideOrderTree::IsLess(AvlNode* a, AvlNode* b) {
     const SideOrderNode* left = reinterpret_cast<const SideOrderNode*>(a);

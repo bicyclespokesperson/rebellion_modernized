@@ -32,7 +32,7 @@ bool sameName(const char* a, const char* b) {
 
 TableEntry::TableEntry() : m_field1c(1), m_field20(0) {}
 
-TableEntry::~TableEntry() {  }
+TableEntry::~TableEntry() = default;
 
 int TableEntry::Read(istream* in) {
     ReadId(in);

@@ -2,7 +2,7 @@
 
 #include "ui/object_list_item.h"
 
-VisibleItemList::~VisibleItemList() {  }
+VisibleItemList::~VisibleItemList() = default;
 
 CoolListItem* VisibleItemList::First() {
     ObjectListItem* head = static_cast<ObjectListItem*>(m_head);

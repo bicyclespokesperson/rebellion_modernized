@@ -8,7 +8,7 @@
 
 SpriteTree::SpriteTree() { m_nextId = 0; }
 
-SpriteTree::~SpriteTree() {  }
+SpriteTree::~SpriteTree() = default;
 
 int SpriteTree::IsLess(AvlNode* a, AvlNode* b) {
     int less = 0;
@@ -28,9 +28,9 @@ Sprite* SpriteTree::FindById(uint32_t id) {
     return static_cast<Sprite*>(node);
 }
 
-AnimatorTree::AnimatorTree() {}
+AnimatorTree::AnimatorTree() = default;
 
-AnimatorTree::~AnimatorTree() {  }
+AnimatorTree::~AnimatorTree() = default;
 
 namespace {
 

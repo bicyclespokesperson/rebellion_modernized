@@ -69,7 +69,7 @@ CoolVerticalScrollBar::CoolVerticalScrollBar(HINSTANCE instance, int x, int y, i
     : CoolScrollBar(instance, x, y, width, height, parent, owner, artSlot, artId, total, first, last,
                     buttonFlags) {}
 
-CoolVerticalScrollBar::~CoolVerticalScrollBar() {  }
+CoolVerticalScrollBar::~CoolVerticalScrollBar() = default;
 
 void CoolVerticalScrollBar::OnCommand(WPARAM command) {
     if (!m_owner) return;
@@ -265,7 +265,7 @@ CoolHorizontalScrollBar::CoolHorizontalScrollBar(HINSTANCE instance, int x, int 
     : CoolScrollBar(instance, x, y, width, height, parent, owner, artSlot, artId, total, first, last,
                     buttonFlags) {}
 
-CoolHorizontalScrollBar::~CoolHorizontalScrollBar() {  }
+CoolHorizontalScrollBar::~CoolHorizontalScrollBar() = default;
 
 void CoolHorizontalScrollBar::OnCommand(WPARAM command) {
     if (!m_owner) return;

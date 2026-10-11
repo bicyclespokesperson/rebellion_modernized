@@ -6,7 +6,7 @@ using ai::IsSystemKey;
 
 AiPostureKind6::AiPostureKind6(int view, AiSideController* owner, AiSystemRecord* record) : AiPosture(view, owner, record) {}
 
-AiPostureKind6::~AiPostureKind6() {  }
+AiPostureKind6::~AiPostureKind6() = default;
 
 int AiPostureKind6::Virtual03() {
     int result = 0;

@@ -38,7 +38,7 @@ GameObjRoot::GameObjRoot() : IdNode(), m_parent(nullptr), m_entry(nullptr), m_fl
     SetFlag31(1);
 }
 
-GameObjRoot::~GameObjRoot() {  }
+GameObjRoot::~GameObjRoot() = default;
 
 int GameObjRoot::GetFlag31() const { return static_cast<int>(m_flags >> kFlag31Shift); }
 

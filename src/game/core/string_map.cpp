@@ -12,13 +12,13 @@ void Advance(StringCursor* cursor) { ++*cursor; }
 
 StringMapNode::StringMapNode(const String& key, int value) : LinkNode(), m_key(key.m_text), m_value(value) {}
 
-StringMapNode::~StringMapNode() {  }
+StringMapNode::~StringMapNode() = default;
 
 StringMap::StringMap() : SortedLinkList() {}
 
 StringMap::StringMap(const StringMap& other) : SortedLinkList() { *this = other; }
 
-StringMap::~StringMap() {  }
+StringMap::~StringMap() = default;
 
 int StringMap::IsLess(LinkNode*, LinkNode*) { return 1; }
 

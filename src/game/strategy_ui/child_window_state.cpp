@@ -25,7 +25,7 @@ ChildWindowState::ChildWindowState(CoolWindow* window) {
     m_valid = 1;
 }
 
-ChildWindowState::~ChildWindowState() {  }
+ChildWindowState::~ChildWindowState() = default;
 
 void ChildWindowState::Write(ostream* out) {
     WriteValue32(out, &m_type);

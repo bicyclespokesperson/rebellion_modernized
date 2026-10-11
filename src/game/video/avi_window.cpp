@@ -50,7 +50,7 @@ VideoWindow::VideoWindow(const char* path, HINSTANCE instance, int x, int y, int
     m_autoStart = autoStart;
 }
 
-VideoWindow::~VideoWindow() {  }
+VideoWindow::~VideoWindow() = default;
 
 LRESULT VideoWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND window = m_hwnd;

@@ -108,7 +108,7 @@ TacticalFighter::TacticalFighter(uint32_t family, uint32_t id, int notAlliance, 
     }
 }
 
-TacticalFighter::~TacticalFighter() {  }
+TacticalFighter::~TacticalFighter() = default;
 
 double TacticalFighter::GetWeaponRecharge() {
     const double value = (static_cast<double>(m_hull) * 3.751f) / 8.0f;

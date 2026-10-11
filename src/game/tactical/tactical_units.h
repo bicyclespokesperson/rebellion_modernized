@@ -103,7 +103,7 @@ public:
 class TacticalCharacterTree : public IdAvlTree {
 public:
     TacticalCharacterTree() {}
-    ~TacticalCharacterTree() override {  }  // 0x5bdaa0 (scalar deleting destructor 0x5a8860)
+    ~TacticalCharacterTree() override = default;  // 0x5bdaa0 (scalar deleting destructor 0x5a8860)
     virtual IdNode* FirstItem();                                 // 0x5f6590 (shared stub; the special-force tree has an inline copy)
 
     int CountItems();           // 0x5bdf20 (shared with TacticalSpecialForceTree)
@@ -115,7 +115,7 @@ public:
 class TacticalSpecialForceTree : public IdAvlTree {
 public:
     TacticalSpecialForceTree() {}
-    ~TacticalSpecialForceTree() override {  }  // 0x5bdf10 (scalar deleting destructor 0x5a8880)
+    ~TacticalSpecialForceTree() override = default;  // 0x5bdf10 (scalar deleting destructor 0x5a8880)
     virtual IdNode* FirstItem() { return static_cast<IdNode*>(First()); }  // 0x5f6590 (shared stub)
 
     int CountItems() {          // 0x5bdf20 (the code of TacticalCharacterTree::CountItems)

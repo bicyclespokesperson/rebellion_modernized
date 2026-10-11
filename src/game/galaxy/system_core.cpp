@@ -83,7 +83,7 @@ System::System()
     SetFlag31(GetFlag31() != 0);
 }
 
-System::~System() {  }
+System::~System() = default;
 
 // ---- event kinds and order checks -----------------------------------------------------------------------
 

@@ -52,7 +52,7 @@ PanelDragButton::PanelDragButton(HINSTANCE instance, int x, int y, int width, in
     m_limits.bottom = limitBottom;
 }
 
-PanelDragButton::~PanelDragButton() {  }
+PanelDragButton::~PanelDragButton() = default;
 
 LRESULT PanelDragButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {

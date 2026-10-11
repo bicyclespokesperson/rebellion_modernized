@@ -50,7 +50,7 @@ AiClassTable::AiClassTable()
     : AvlTree(), m_maxShipTier(0), m_maxTroopTier(0), m_maxFacilityTier(0), m_majorCharacters(0), m_capitalTier(0),
       m_troopTier(0), m_facilityTier(0), m_bestDefense(0), m_x28(0), m_x2c(0), m_x30(0), m_x34(0), m_x38(0), m_x3c(0) {}
 
-AiClassTable::~AiClassTable() {  }
+AiClassTable::~AiClassTable() = default;
 
 int AiClassTable::IsLess(AvlNode* a, AvlNode* b) {
     if (!a || !b) return 0;
@@ -324,7 +324,7 @@ uint32_t AiTaskRecordSet::DeleteFirstUnassigned() {
 
 AiAgentSet::AiAgentSet() : IdAvlTree(), m_view(0) {}
 
-AiAgentSet::~AiAgentSet() {  }
+AiAgentSet::~AiAgentSet() = default;
 
 void AiAgentSet::Load(istream* in) {
     ReadValue32(in, &m_view);
@@ -479,7 +479,7 @@ uint32_t AiSystemRecordSet::DeleteFirstIdle() {
 
 AiPlannerSet::AiPlannerSet() : IdAvlTree(), m_view(0) {}
 
-AiPlannerSet::~AiPlannerSet() {  }
+AiPlannerSet::~AiPlannerSet() = default;
 
 void AiPlannerSet::Load(istream* in) {
     ReadValue32(in, &m_view);
