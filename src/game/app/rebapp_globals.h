@@ -20,7 +20,7 @@ char* GetTooBigLocation();     // 0x401660 "TooBigLocation"
 char* GetInstalledLocation();  // 0x401760 "InstalledLocation"
 
 // ---- Application settings ---------------------------------------------------------------------------------
-StringMap* GetNetworkSettings(StringMap* out);   // 0x401000: copy of the network tuning values (empty without an app)
+StringMap GetNetworkSettings();                  // 0x401000: copy of the network tuning values (empty without an app)
 int AppGetSide();                                // 0x401060: 1: Alliance
 int AppGetGameType();                            // 0x401080: 1: single player, 2: network game
 void AppSetGameParams(int side, int gameType, int param8, int param10, int connectionKind, int networkMode);  // 0x4010a0

@@ -50,10 +50,9 @@ char* GetTooBigLocation() { return ReadGameRegistryValue(g_tooBigLocationName); 
 
 char* GetInstalledLocation() { return ReadGameRegistryValue(g_installedLocationName); }
 
-StringMap* GetNetworkSettings(StringMap* out) {
-    if (g_app) return App()->CopyNetworkSettings(out);
-    new (out) StringMap();
-    return out;
+StringMap GetNetworkSettings() {
+    if (g_app) return App()->CopyNetworkSettings();
+    return {};
 }
 
 void AppForwardToStrategicWindow() {

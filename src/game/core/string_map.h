@@ -1,45 +1,31 @@
 #pragma once
-#include <cstdint>
 
-#include "core/containers.h"
+#include <string>
+#include <vector>
+
 #include "core/game_string.h"
 
-class StringCursor;
-
-// Entry of a StringMap: a name and an integer value.
-class StringMapNode : public LinkNode {
+// Name -> int dictionary. Duplicate keys are retained; lookup returns the newest entry.
+// Text values use spaces and dashes as legacy separators.
+class StringMap {
 public:
-    StringMapNode(const String& key, int value);
-    ~StringMapNode() override;
+    StringMap() = default;
+    StringMap(const StringMap& other) = default;
+    StringMap& operator=(const StringMap& other) = default;
 
-    String m_key;  // +0x0c
-    int m_value;   // +0x18
-};
-
-// Name -> int dictionary, a linked list searched front to back (newest entry first). It also reads
-// "name value name value ..." text where words are separated by spaces and dashes.
-class StringMap : public SortedLinkList {
-public:
-    StringMap();
-    StringMap(const StringMap& other);
-    ~StringMap() override;
-    int IsLess(LinkNode* a, LinkNode* b) override;
-
-    StringMap& operator=(const StringMap& other);
-
-    // Adds an entry even if the name exists; Set() overwrites an existing entry's value instead.
     int Add(const String* key, int value);
     int Set(const String* key, int value);
-    int Find(const String* key, int* value);
-    int FindFloat(const String* key, float* value);
-    // Looks for each word of `text` as a name, then for the whole text.
-    int FindInText(const String* text, int* value);
-    // Parses "name number" pairs from `text`, updating the values of names that already exist.
+    int Find(const String* key, int* value) const;
+    int FindFloat(const String* key, float* value) const;
+    int FindInText(const String* text, int* value) const;
     void LoadValues(const String* text);
+    void Clear();
 
-    // Text scanning helpers over a cursor into the text being parsed.
-    int SkipSeparators(StringCursor* cursor);
-    int AtWordCharacter(StringCursor* cursor);
-    void ReadWord(StringCursor* cursor, String* word);
-    int ReadNumber(StringCursor* cursor, int* value);
+private:
+    struct Entry {
+        std::string key;
+        int value;
+    };
+
+    std::vector<Entry> entries_;
 };

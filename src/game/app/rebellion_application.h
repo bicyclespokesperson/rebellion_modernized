@@ -113,7 +113,7 @@ public:
     void SetVolume(int volume);                 // 0x416360
     void SetDisplayOptions(uint32_t options);   // 0x4163a0
     void SetIdentityPaletteForDisplay();        // 0x4163d0
-    StringMap* CopyNetworkSettings(StringMap* out);  // 0x401b20
+    StringMap CopyNetworkSettings() const;  // 0x401b20
 
     // Pieces of Run and WindowProc (the original has them inline).
     void PumpMessages(MSG* message, int* quit);

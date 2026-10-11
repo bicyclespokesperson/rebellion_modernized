@@ -373,9 +373,8 @@ void RebellionApplication::SetIdentityPaletteForDisplay() {
     ReleaseDC(m_hwnd, dc);
 }
 
-StringMap* RebellionApplication::CopyNetworkSettings(StringMap* out) {
-    new (out) StringMap(m_networkSettings);
-    return out;
+StringMap RebellionApplication::CopyNetworkSettings() const {
+    return m_networkSettings;
 }
 
 // ---- Static initialisers (constants no other function reads) ----------------------------------------------------

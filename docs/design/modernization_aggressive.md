@@ -180,6 +180,41 @@ up-front gate. Newly cleaned code should stay clean; remove suppressions and leg
 
 ## A3 — Rewrite loop
 
+### Current responsibility worklist
+
+Settings dictionary: own names and values in a standard container, retain newest-first duplicate lookup, and return
+settings copies as ordinary values. Copying preserves lookup priority; malformed, missing or overflowing numeric values
+leave existing settings unchanged. Spaces and dashes remain legacy separators, and negative stored values convert to
+signed floating-point values correctly. This dictionary has no save representation.
+
+- [x] Read responsibility, clients and lifetime/serialization dependencies; define API and invariants.
+- [x] Replace intrusive list ownership with `std::vector`/`std::string` and migrate settings-copy clients.
+- [x] Run selected tidy checks, host builds, focused parser/copy tests and save/reload smoke.
+- [x] Complete independent review of callers, parser progress, copy order and error paths.
+- [x] Address findings, verify and commit the coherent change.
+
+Elapsed-time clock: use `std::chrono::steady_clock` for construction/reset-to-now and elapsed seconds. The app's wait and
+tactical frame timing borrow this value; it is not serialized. Retire split performance-counter words, truncated
+frequency, platform fallback and reconstructed padding.
+
+- [x] Read responsibility, timing callers and lifetime/serialization dependencies; define API and invariants.
+- [x] Replace platform counter emulation with a private monotonic time point and retain timing clients.
+- [x] Run selected tidy checks, host builds and save/reload smoke.
+- [x] Complete independent review of clients and confirm no raw layout dependency.
+- [x] Address findings, verify and commit the coherent change.
+
+Validation for these completed units: macOS arm64, Apple Clang 17; release and halt-on-error UBSan builds, stream and
+settings CTests, and two-process simulation/save/reload (150336 → 150346 → 150356). LLVM 22.1.4 selected tidy checks
+report no findings in the rewritten implementations. Formatting remains deferred.
+
+Next units:
+
+- [ ] Integer rules math and map distance: defined wide arithmetic, signed ceiling division and corrected floor square root.
+- [ ] String ownership and editing: standard string storage, bounded legacy-save boundary, and migration of borrowed text clients.
+- [ ] Container families and identity/save boundary: inventory mutation/lifetime rules before replacing intrusive structures.
+
+### Per-responsibility workflow
+
 Maintain a short worklist of responsibilities, not a speculative architecture document. Fan out this work across multiple luna or haiku subagents.
 Seed it with the existing code map and `BUG(original)` sites. Each work item copies and completes this checklist:
 

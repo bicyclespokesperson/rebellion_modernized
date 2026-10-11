@@ -113,8 +113,7 @@ reb_native_platform_package(rebellion)
 
 include(CTest)
 if(BUILD_TESTING)
-  add_executable(reb_stream_tests
-    tests/stream_io_tests.cpp
+  set(REB_STREAM_TEST_SOURCES
     tests/stream_io_test_support.cpp
     src/game/iostream/filebuf.cpp
     src/game/iostream/ios.cpp
@@ -123,9 +122,19 @@ if(BUILD_TESTING)
     src/game/iostream/stream_ctors.cpp
     src/game/iostream/streambuf.cpp
     src/game/iostream/strstreambuf.cpp)
+  add_executable(reb_stream_tests tests/stream_io_tests.cpp ${REB_STREAM_TEST_SOURCES})
   target_include_directories(reb_stream_tests PRIVATE src/game src src/port/native/crt)
   target_compile_options(reb_stream_tests PRIVATE ${REB_NATIVE_FLAGS} ${REB_NATIVE_RUNTIME})
   target_compile_definitions(reb_stream_tests PRIVATE ${REB_NATIVE_DEFS})
   target_link_libraries(reb_stream_tests PRIVATE ${REB_PLATFORM_LIBS} ${REB_NATIVE_LINK_FLAGS})
   add_test(NAME native_stream_io COMMAND reb_stream_tests)
+  add_executable(reb_settings_tests
+    tests/string_map_tests.cpp ${REB_STREAM_TEST_SOURCES}
+    src/game/core/game_string.cpp src/game/core/string_map.cpp
+    src/game/core/stream_io.cpp src/game/core/icf_stubs.cpp)
+  target_include_directories(reb_settings_tests PRIVATE src/game src src/port/native/crt)
+  target_compile_options(reb_settings_tests PRIVATE ${REB_NATIVE_FLAGS} ${REB_NATIVE_RUNTIME})
+  target_compile_definitions(reb_settings_tests PRIVATE ${REB_NATIVE_DEFS})
+  target_link_libraries(reb_settings_tests PRIVATE ${REB_PLATFORM_LIBS} ${REB_NATIVE_LINK_FLAGS})
+  add_test(NAME native_settings COMMAND reb_settings_tests)
 endif()

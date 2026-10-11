@@ -368,11 +368,9 @@ void MultiPlayerWindow::OnCreate1() {
         m_gameSeed = generator.Seed(0);
     }
     RegisterStrategicFactoriesOnce();
-    alignas(StringMap) char settingsStorage[sizeof(StringMap)];
-    StringMap* settings = GetNetworkSettings(reinterpret_cast<StringMap*>(settingsStorage));
-    CommInit(kApplicationGuid[0], kApplicationGuid[1], kApplicationGuid[2], kApplicationGuid[3], settings,
+    StringMap settings = GetNetworkSettings();
+    CommInit(kApplicationGuid[0], kApplicationGuid[1], kApplicationGuid[2], kApplicationGuid[3], &settings,
              m_parent->m_hwnd, 2, 1, 1, 1, 10000, 0);
-    settings->~StringMap();
     m_closing = 0;
     CommSetSessionFlags(0);
 }
