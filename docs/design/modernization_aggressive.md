@@ -141,7 +141,8 @@ stream clients and teardown. Linux/Windows checks remain future host work under 
 
 ## A2 — Mechanical cleanup in bulk
 
-- [ ] Add a curated `.clang-tidy`.
+- [x] Add a curated `.clang-tidy` limited to the four reviewed mechanical modernization checks.
+  Bugprone/performance checks are surveyed separately before enabling any automatic fixes.
 - [ ] Apply `modernize-use-nullptr` as a reviewed, buildable batch.
 - [ ] Apply `modernize-use-override` as a reviewed, buildable batch.
 - [ ] Apply `modernize-use-equals-default` as a reviewed, buildable batch.

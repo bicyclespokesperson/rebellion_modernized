@@ -1,0 +1,9 @@
+Checks: >-
+  -*,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-equals-default,
+  modernize-redundant-void-arg
+HeaderFilterRegex: '(^|/)src/(game|port)/'
+WarningsAsErrors: ''
+FormatStyle: none
