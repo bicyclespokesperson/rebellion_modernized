@@ -29,8 +29,6 @@ public:
     // deleted. Returns 1 if there was an event.
     int RunFirst();  // 0x54ec90
     void Add(EventBase* event);  // 0x54ece0
-    // Number of nodes in the subtree below `node`, itself included.
-    static int CountSubtree(AvlNode* node);  // 0x54ed00
 
     int m_flag0c;  // +0x0c, 1
 };
@@ -55,7 +53,7 @@ public:
     // Forwards to Add (0x54ee30).
     void AddCommand(EventBase* event);
 
-    Command* FirstCommand() const { return static_cast<Command*>(m_first); }
+    Command* FirstCommand() const { return static_cast<Command*>(First()); }
 };
 
 // Ordered by the events' priority (slot 10, 0x10 for the events found so far); GetNext is the first one.

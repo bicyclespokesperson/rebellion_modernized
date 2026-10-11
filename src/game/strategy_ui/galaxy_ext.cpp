@@ -96,13 +96,12 @@ CoolWindow* GalaxyWindow::FindChildByHwnd(HWND hwnd) {
 
 void GalaxyWindow::LoadState(istream* in) {
     m_mouseMode |= kMouseModeRestoring;
-    // BUG(original): only the low half is read; the upper half keeps whatever the stack slot held, here the object address.
-    uint32_t packed = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(this));
+    uint32_t packed = 0;
     ReadValue16(in, reinterpret_cast<uint16_t*>(&packed));
     const uint32_t modeBits = packed & 0xffff;
     packed &= kDisplayModeMask;
     m_alternateDisplayMode = modeBits >> 8;
-    uint32_t count = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(in));
+    uint32_t count = 0;
     ReadValue16(in, reinterpret_cast<uint16_t*>(&count));
     for (uint16_t i = 0; i < static_cast<uint16_t>(count); ++i) LoadChildWindow(in);
     InitializeGameDisplay();

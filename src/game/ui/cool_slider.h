@@ -23,7 +23,6 @@ public:
                DibBitmap* backdrop, uint32_t trackBitmapId, uint32_t knobBitmapId, uint32_t value, uint32_t range);  // 0x604570
     ~CoolSlider() override;  // 0x604850 (scalar deleting destructor 0x604830)
 
-    // BUG(original): WM_CREATE is answered without calling CoolWindow::WindowProc.
     LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x604b80
 
     int IsCursorOverTrack();  // 0x6048f0

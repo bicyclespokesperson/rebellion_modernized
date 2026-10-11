@@ -4,6 +4,8 @@
 #include "ai/ai_side_controller.h"
 #include "character/character.h"
 #include "core/checked_new.h"
+#include "core/iostream_lib.h"
+#include "core/stream_io.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_lookup.h"
@@ -286,17 +288,30 @@ void AiCharacterRecordSet::Load(istream* in) {
     ReadValue32(in, &m_view);
     ReadValue32(in, &m_usableCount);
     Clear();
-    int count;
+    uint32_t count = 0;
     ReadValue32(in, &count);
-    for (; count != 0; --count) {
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return;
+    for (uint32_t index = 0; index < count; ++index) {
         AiCharacterRecord* record = NewOrNull<AiCharacterRecord>();
-        if (record) {
-            record->ReadRecord(in, m_owner);
-            ObjectKey key;
-            if (!ObjectKeySet::Find(record->GetRecordKey(&key))) {
-                ObjectKeySet::Add(record);
-                record->MarkChanged();
+        if (!record) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
+        record->ReadRecord(in, m_owner);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
+            delete record;
+            return;
+        }
+        ObjectKey key;
+        if (!ObjectKeySet::Find(record->GetRecordKey(&key))) {
+            if (!ObjectKeySet::Add(record)) {
+                delete record;
+                iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+                return;
             }
+            record->MarkChanged();
+        } else {
+            delete record;
         }
     }
     ReadValue32(in, &m_built);
@@ -306,8 +321,7 @@ void AiCharacterRecordSet::Save(ostream* out) {
     ObjectKey scratch;
     WriteValue32(out, &m_view);
     WriteValue32(out, &m_usableCount);
-    uint32_t count = static_cast<uint16_t>(Count());
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, Count())) return;
     for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor))
         node->Save(out);
     WriteValue32(out, &m_built);

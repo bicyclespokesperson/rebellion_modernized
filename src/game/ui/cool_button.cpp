@@ -243,7 +243,6 @@ uint32_t CoolStrobeButton::GetState() { return m_state; }
 
 void CoolStrobeButton::LoadStateBitmap(int state, uint32_t resourceId) {
     DibBitmap* bitmap = NewOrNull<DibBitmap>(m_instance, resourceId, kFrameResourceKind);
-    // BUG(original): if the allocation failed the original asks the null bitmap whether it is loaded and crashes.
     if (!bitmap) return;
     const int16_t id = static_cast<int16_t>(resourceId);
     switch (state) {
@@ -284,7 +283,6 @@ void CoolStrobeButton::LoadStateBitmap(int state, uint32_t resourceId) {
 }
 
 void CoolStrobeButton::ReplaceBitmap(int state, DibBitmap* bitmap) {
-    // BUG(original): a null bitmap is asked whether it is loaded and the original crashes.
     if (!bitmap) return;
     switch (state) {
     case 0:
@@ -344,9 +342,7 @@ DibBitmap* CoolStrobeButton::GetStateBitmap(int state) {
 void CoolStrobeButton::UpdateHot(uint32_t lParam) {
     const uint32_t state = m_state;
     DibBitmap* image = m_normal;
-    // BUG(original): `state & kButtonDisabled | kButtonHighlight` is always non-zero, so the checked bitmap is never
-    // considered and the disabled bitmap decides.
-    if (state & kButtonDisabled | kButtonHighlight) {
+    if (state & (kButtonDisabled | kButtonHighlight)) {
         if (m_disabled) image = m_disabled;
     } else if (state & kButtonChecked) {
         if (m_checked) image = m_checked;
@@ -587,11 +583,15 @@ void CoolFrameButton::LoadFrames(uint32_t firstId, uint32_t count) {
     if (count != 0) {
         do {
             DibBitmap* bitmap = NewOrNull<DibBitmap>(instance, index + firstId, kFrameResourceKind);
-            // BUG(original): a frame that fails to load is leaked.
             if (bitmap && bitmap->IsLoaded()) {
                 void* memory = operator new(sizeof(StrobeFrame));
                 void* node = memory ? new (memory) BitmapFrame(bitmap) : nullptr;
-                m_frames.Append(reinterpret_cast<BitmapFrame*>(node));
+                if (node)
+                    m_frames.Append(reinterpret_cast<BitmapFrame*>(node));
+                else
+                    delete bitmap;
+            } else {
+                delete bitmap;
             }
             ++index;
         } while ((index & 0xffff) < count);

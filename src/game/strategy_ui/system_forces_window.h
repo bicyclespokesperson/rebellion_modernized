@@ -46,7 +46,7 @@ public:
     // The title bar and row pictures of the controlling side, and the pictures of the tabs (greyed when empty).
     void LoadHeaderBitmaps();  // 0x4a9ce0
 
-    uint32_t m_unknown140;           // +0x140 BUG(original): not initialised
+    uint32_t m_unknown140;           // +0x140
     ObjectKey m_systemKey;           // +0x144
     int m_side;                      // +0x148 the side that controls the system
     GalaxyWindow* m_galaxy;          // +0x14c

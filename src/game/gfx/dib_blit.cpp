@@ -9,7 +9,6 @@
 
 namespace {
 constexpr int kBitsPerPixelRgb = 24;
-constexpr uint32_t kCompressionRle8 = 1;
 constexpr int kColorTableOffset = sizeof(BITMAPINFOHEADER);
 constexpr int kRemapTableEntries = 0x100;
 constexpr int kRemapScratchWidth = 0x100;
@@ -51,10 +50,8 @@ uint32_t DibBitmap::Blit(DibBitmap* dest, int destX, int destY, int srcX, int sr
     if (!dest->IsLoaded()) return 0;
     if (dest->Compression() != 0) return 0;
     if (dest->BitCount() == kBitsPerPixelRgb) {
-        Blit24(dest, destX, destY, srcX, srcY, width, height);
-        return 1;
+        return Blit24(dest, destX, destY, srcX, srcY, width, height);
     }
-    if (Compression() == kCompressionRle8) return BlitRle(dest, destX, destY, srcX, srcY, width, height);
 
     const uint8_t* srcBits = m_bits;
     uint8_t* destBits = dest->m_bits;
@@ -102,6 +99,9 @@ uint32_t DibBitmap::Blit(DibBitmap* dest, int destX, int destY, int srcX, int sr
     }
     if (height > srcHeight - srcY) height = srcHeight - srcY;
     if (width > srcWidth - srcX) width = srcWidth - srcX;
+    if (destX >= destWidth || destY >= destHeight || width <= 0 || height <= 0) return 0;
+    if (width > destWidth - destX) width = destWidth - destX;
+    if (height > destHeight - destY) height = destHeight - destY;
 
     const int destRow = dest->RowIndex(destY);
     const int srcRow = RowIndex(srcY);
@@ -133,7 +133,6 @@ int DibBitmap::BlitKeyed(DibBitmap* dest, int destX, int destY, uint8_t colorKey
     }
     if (BitCount() == kBitsPerPixelRgb) return 0;
     if (dest->Compression() != 0) return 0;
-    if (Compression() == kCompressionRle8) return BlitKeyedRle(dest, destX, destY, colorKey, srcX, srcY, width, height);
 
     const uint8_t* srcBits = m_bits;
     uint8_t* destBits = dest->m_bits;
@@ -152,19 +151,23 @@ int DibBitmap::BlitKeyed(DibBitmap* dest, int destX, int destY, uint8_t colorKey
         if (width != 0) width -= destX;
         destX = 0;
     }
+    if (srcX < 0) { width += srcX; destX -= srcX; srcX = 0; }
+    if (srcY < 0) { height += srcY; destY -= srcY; srcY = 0; }
     const int destDirection = RowDirection(destSignedHeight);
     const int destHeight = AbsoluteHeight(destSignedHeight);
     const int srcSignedHeight = Height();
     const int srcDirection = RowDirection(srcSignedHeight);
     const int srcHeight = AbsoluteHeight(srcSignedHeight);
-    const int destRow = dest->RowIndex(destY);
-    const int srcRow = RowIndex(srcY);
-
     if (width == 0) width = srcWidth - srcX;
     if (height == 0) height = srcHeight - srcY;
+    if (srcX >= srcWidth || srcY >= srcHeight || destX >= destWidth || destY >= destHeight) return 1;
+    if (width > srcWidth - srcX) width = srcWidth - srcX;
+    if (height > srcHeight - srcY) height = srcHeight - srcY;
     if (height > destHeight - destY) height = destHeight - destY;
     if (width > destWidth - destX) width = destWidth - destX;
     if (height <= 0) return 1;
+    const int destRow = dest->RowIndex(destY);
+    const int srcRow = RowIndex(srcY);
 
     const ptrdiff_t destAdvance = static_cast<ptrdiff_t>(destStride) * destDirection;
     const ptrdiff_t srcAdvance = static_cast<ptrdiff_t>(srcStride) * srcDirection;
@@ -191,6 +194,9 @@ int DibBitmap::FillRect(int x, int y, int width, int height, uint8_t value) {
     const int stride = RowStride();
     if (Compression() != 0) return 0;
     const int imageHeight = AbsoluteHeight(Height());
+    if (width <= 0 || height <= 0 || x >= Width() || y >= imageHeight) return 0;
+    if (x < 0) { width += x; x = 0; }
+    if (y < 0) { height += y; y = 0; }
     if (y + height > imageHeight) height = imageHeight - y;
     if (x + width > Width()) width = Width() - x;
     if (height > 0 && width > 0) {
@@ -205,10 +211,9 @@ int DibBitmap::FillRect(int x, int y, int width, int height, uint8_t value) {
 
 int DibBitmap::IsPixelOpaque(int x, int y) {
     const int height = Height();
-    if (Compression() != 0) return IsPixelOpaqueRle(x, y);
+    if (Compression() != 0) return 0;
     const int imageHeight = AbsoluteHeight(height);
-    // BUG(original): column 0 and row 0 are never reported as opaque.
-    if (y < imageHeight && y > 0 && x < Width() && x > 0) {
+    if (m_bits && y >= 0 && y < imageHeight && x >= 0 && x < Width()) {
         const uint8_t pixel = m_bits[static_cast<ptrdiff_t>(RowStride()) * RowIndex(y) + x];
         if (pixel != m_colorKey) return 1;
     }
@@ -264,9 +269,9 @@ void DibBitmap::ApplyRemapTable(int16_t x, int16_t y, int16_t width, int16_t hei
     const int stride = RowStride();
     if (Compression() != 0 || !m_remapTable) return;
     const int imageHeight = AbsoluteHeight(Height());
-    // BUG(original): the clamped extents are one pixel larger than what is left of the bitmap.
-    if (height + y > imageHeight) height = static_cast<int16_t>(imageHeight - y + 1);
-    if (width + x > Width()) width = static_cast<int16_t>(Width() - x + 1);
+    if (x < 0 || y < 0 || x >= Width() || y >= imageHeight) return;
+    if (height + y > imageHeight) height = static_cast<int16_t>(imageHeight - y);
+    if (width + x > Width()) width = static_cast<int16_t>(Width() - x);
     if (height <= 0 || width <= 0) return;
     for (int row = 0; row < height; ++row) {
         uint8_t* rowPtr = m_bits + static_cast<ptrdiff_t>(stride) * RowIndex(y + row) + x;
@@ -274,16 +279,12 @@ void DibBitmap::ApplyRemapTable(int16_t x, int16_t y, int16_t width, int16_t hei
     }
 }
 
-int DibBitmap::BlitRemapDestinationRleStub(DibBitmap*, int, int, uint8_t, int, int, int, int) { return 1; }
-
 int DibBitmap::BlitRemapDestination(DibBitmap* dest, int destX, int destY, int srcX, int srcY, int width, int height) {
     const int srcWidth = Width();
     if (!IsLoaded()) return 1;
     if (!m_remapTable) return 0;
     const uint8_t colorKey = m_colorKey;
     if (dest->Compression() != 0) return 0;
-    if (Compression() == kCompressionRle8)
-        return BlitRemapDestinationRleStub(dest, destX, destY, colorKey, srcX, srcY, width, height);
 
     const uint8_t* srcBits = m_bits;
     uint8_t* destBits = dest->m_bits;
@@ -338,8 +339,6 @@ int DibBitmap::BlitRemapped(DibBitmap* dest, int destX, int destY, int srcX, int
     if (!IsLoaded()) return 1;
     if (!m_remapTable) return 0;
     if (dest->Compression() != 0) return 0;
-    if (Compression() == kCompressionRle8)
-        return BlitRemappedRle(dest, destX, destY, colorKey, srcX, srcY, width, height);
 
     const uint8_t* srcBits = m_bits;
     uint8_t* destBits = dest->m_bits;
@@ -394,8 +393,6 @@ int DibBitmap::BlitRemappedOverlay(DibBitmap* dest, int destX, int destY, int sr
     if (!m_remapTable) return 0;
     const uint8_t colorKey = m_colorKey;
     if (dest->Compression() != 0) return 0;
-    // The original hands RLE sources to an empty stub.
-    if (Compression() == kCompressionRle8) return 1;
 
     const uint8_t* srcBits = m_bits;
     uint8_t* destBits = dest->m_bits;

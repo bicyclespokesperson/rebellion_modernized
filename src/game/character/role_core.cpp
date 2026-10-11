@@ -311,8 +311,6 @@ int Role::ApplyAll(NotifyContext* ctx) {
         ApplyOnMission(ctx);
         ApplyOnHiddenMission(ctx);
         ApplyOnMandatoryMission(ctx);
-        // BUG(original): Adrift is applied a second time, after the last flag.
-        ApplyAdrift(ctx);
     }
     return result;
 }

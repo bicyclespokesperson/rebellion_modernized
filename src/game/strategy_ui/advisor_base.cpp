@@ -421,7 +421,6 @@ void AdvisorBase::SpeakTopic(unsigned topic) {
             told = true;
             m_lastSpeechTime = GameHookTickCount();
             IdNode* removed = m_notices.DetachById(notice->m_id);
-            // BUG(original): the loop reads the successor of the node it has just deleted (harmless, the loop ends).
             if (removed) delete removed;
             break;
         }

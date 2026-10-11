@@ -68,29 +68,38 @@ int SoundIdTree::IsLess(AvlNode* a, AvlNode* b) {
 }
 
 KeyedSoundNode* SoundIdTree::Find(uint32_t key) {
-    AvlNode* node = m_root;
-    while (node && key != static_cast<KeyedSoundNode*>(node)->m_key) {
-        if (static_cast<KeyedSoundNode*>(node)->m_key < key)
-            node = node->m_right;
-        else
-            node = node->m_left;
-    }
+    AvlNode* node = LowerBound([key](const AvlNode* candidate) {
+        return static_cast<const KeyedSoundNode*>(candidate)->m_key < key;
+    });
+    if (node && static_cast<KeyedSoundNode*>(node)->m_key != key) node = nullptr;
     return static_cast<KeyedSoundNode*>(node);
 }
 
 uint32_t SoundIdTree::Add(KeyedSoundNode* node) {
     uint32_t key = 0;
-    if (node) {
+    if (CanInsert(node)) {
         key = node->m_key;
         if (key == 0) {
+            if (m_nextKey == 0) return 0;
             node->m_key = m_nextKey;
             key = m_nextKey;
+            int inserted = 0;
+            try {
+                inserted = Insert(node);
+            } catch (...) {
+                node->m_key = 0;
+                throw;
+            }
+            if (!inserted) {
+                node->m_key = 0;
+                return 0;
+            }
             m_nextKey = key + 1;
-            Insert(node);
             return key;
         }
-        if (m_nextKey <= key) m_nextKey = key + 1;
-        Insert(node);
+        if (Find(key)) return 0;
+        if (!Insert(node)) return 0;
+        if (m_nextKey != 0 && m_nextKey <= key) m_nextKey = key + 1;
     }
     return key;
 }
@@ -368,16 +377,15 @@ HRESULT SoundBuffer::SetVolume(LONG volume) {
 }
 
 HRESULT SoundBuffer::GetStatus(DWORD* status) {
-    if (!m_buffer) return kFailure;
+    if (!status) return kFailure;
     *status = 0;
+    if (!m_buffer) return kFailure;
     return m_buffer->GetStatus(status);
 }
 
 int SoundBuffer::IsPlaying() {
-    // BUG(original): without a DirectSound buffer GetStatus leaves the status untouched, and the uninitialised
-    // local happens to hold `this`.
-    DWORD status = static_cast<DWORD>(reinterpret_cast<uintptr_t>(this));
-    GetStatus(&status);
+    DWORD status = 0;
+    if (GetStatus(&status) != DS_OK) return 0;
     return (status & kStatusPlayingOrLooping) != 0;
 }
 

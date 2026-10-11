@@ -62,16 +62,14 @@ void CoolwinStatusBar::SetBackgroundColor(COLORREF color) {
 }
 
 void CoolwinStatusBar::SetTickColor(COLORREF color) {
-    // BUG(original): m_tickColor is never updated, so the pen is recreated on every call.
     if (color == m_tickColor) return;
     if (m_tickPen) DeleteObject(m_tickPen);
     m_tickPen = CreatePen(PS_SOLID, 1, color);
+    m_tickColor = color;
     if (m_hwnd) InvalidateRect(m_hwnd, nullptr, FALSE);
 }
 
 void CoolwinStatusBar::SetRange(uint32_t range, uint32_t tickStep) {
-    // BUG(original): tests the current range instead of the new one, so a zero range can never be left again.
-    if (m_range == 0) return;
     m_range = range;
     m_tickStep = tickStep;
     if (m_hwnd) InvalidateRect(m_hwnd, nullptr, FALSE);
@@ -86,14 +84,17 @@ LRESULT CoolwinStatusBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
     if (message != WM_PAINT) return DefWindowProcA(m_hwnd, message, wParam, lParam);
 
     PAINTSTRUCT paint;
-    // BUG(original): EndPaint is never called.
     HDC dc = BeginPaint(m_hwnd, &paint);
     if (m_backgroundBrush) FillWithBrush(dc, m_backgroundBrush, m_clientWidth + 1, m_clientHeight + 1);
-    if (m_barBrush && m_position) {
+    if (m_barBrush && m_position && m_range != 0) {
         const uint32_t barWidth = static_cast<uint32_t>(m_clientWidth) * m_position / m_range;
         FillWithBrush(dc, m_barBrush, static_cast<int>(barWidth + 1), m_clientHeight + 1);
     }
     if (m_tickStep) {
+        if (m_range == 0) {
+            EndPaint(m_hwnd, &paint);
+            return 0;
+        }
         HGDIOBJ previousPen = SelectObject(dc, m_tickPen ? static_cast<HGDIOBJ>(m_tickPen) : GetStockObject(BLACK_PEN));
         for (uint32_t tick = 0; tick < m_range; tick += m_tickStep) {
             const int x = static_cast<int>(tick * static_cast<uint32_t>(m_clientWidth) / m_range);
@@ -102,5 +103,6 @@ LRESULT CoolwinStatusBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
         }
         SelectObject(dc, previousPen);
     }
+    EndPaint(m_hwnd, &paint);
     return 0;
 }

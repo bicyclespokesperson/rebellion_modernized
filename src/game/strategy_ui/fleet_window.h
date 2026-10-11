@@ -74,7 +74,7 @@ public:
     void AddShipRows(GameObjNotifier* object);  // 0x4a6be0
     void AddShipRow(GameObjNotifier* object);   // 0x4a6e70
 
-    uint32_t m_unknown140;              // +0x140 BUG(original): not initialised
+    uint32_t m_unknown140;              // +0x140
     ObjectKey m_systemKey;              // +0x144
     GalaxyWindow* m_galaxy;             // +0x148
     PersistentInt m_uiFlags;            // +0x14c FleetWindowFlags

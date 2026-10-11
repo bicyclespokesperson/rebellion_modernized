@@ -1,13 +1,9 @@
 // SmackerWindow: a child window that plays a Smacker (.smk) movie from a dedicated thread.
 #include <cmath>
-#include <cstring>
 
 #include "audio/sound_manager.h"
 #include "core/reb_x87.h"
 #include "video/video_manager.h"
-
-// BUG(original): the playback thread procedure is cdecl, not stdcall as CreateThread expects.
-#pragma clang diagnostic ignored "-Wcast-calling-convention"
 
 namespace {
 constexpr int kFirstSkipKey = VK_ESCAPE;
@@ -30,8 +26,7 @@ SmackerWindow::SmackerWindow(const char* path, HINSTANCE instance, int x, int y,
                              CoolWindow* parent, int autoStart, uint32_t smackFlags)
     : CoolWindow(instance, "Smacker Window", kStyleChildVisible, x, y, width, height, parent, nullptr,
                  static_cast<HBRUSH>(GetStockObject(kBlackBrush)), nullptr, LoadCursorA(nullptr, IDC_ARROW), nullptr, 0, 0) {
-    // BUG(original): the path is copied into the fixed 0x100-byte buffer without a length check.
-    std::memcpy(m_path, path, std::strlen(path) + 1);
+    m_path = StringFromText(path);
     m_unk194 = 0;
     m_unk198 = 0;
     m_scale = 1;
@@ -63,7 +58,7 @@ LRESULT SmackerWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND window = m_hwnd;
     switch (message) {
         case WM_CREATE:
-            if (!OpenMovie()) return 0;
+            if (!OpenMovie()) return -1;
             if (!m_autoStart) return 0;
             StartPlayback(0);
             return 0;
@@ -103,10 +98,11 @@ int SmackerWindow::StartPlayback(int loop) {
                       buffer->m_width, buffer->m_height, buffer->m_buffer, buffer->m_reversed);
         if (m_thread) {
             TerminateThread(m_thread, 0);
+            CloseHandle(m_thread);
             m_thread = nullptr;
+            m_threadId = 0;
         }
-        m_thread = CreateThread(nullptr, 0, reinterpret_cast<LPTHREAD_START_ROUTINE>(&PlaybackThreadProc), this, 0,
-                                &m_threadId);
+        m_thread = CreateThread(nullptr, 0, &PlaybackThreadProc, this, 0, &m_threadId);
         if (m_thread) SetThreadPriority(m_thread, kThreadPriorityAboveNormal);
     }
     return 0;
@@ -120,7 +116,7 @@ int SmackerWindow::PrepareDestroy(HWND) {
 int SmackerWindow::OpenMovie() {
     int opened = 0;
     SmackSoundUseDirectSound(nullptr);
-    m_smack = SmackOpen(m_path, m_smackFlags, kSmackAutoExtraBuffer);
+    m_smack = SmackOpen(m_path.c_str(), m_smackFlags, kSmackAutoExtraBuffer);
     if (m_smack) {
         // The original multiplies 16-bit halves of the movie size by the zoom; the upper halves it passes on are
         // whatever the registers held.
@@ -128,10 +124,15 @@ int SmackerWindow::OpenMovie() {
         const uint32_t height = LowWord(m_smack->m_height);
         const uint32_t scale = LowWord(m_scale);
         m_smackBuffer = SmackBufferOpen(m_hwnd, kSmackBufferBlitType, width, height, width * scale, height * scale);
-        SetWindowPos(m_hwnd, nullptr, 0, 0, static_cast<int>(LowWord(m_smackBuffer->m_width) * m_scale),
-                     static_cast<int>(LowWord(m_smackBuffer->m_height) * m_scale), kSetWindowPosFlags);
-        if (m_smackBuffer) SmackBufferSetPalette(m_smackBuffer);
-        opened = 1;
+        if (m_smackBuffer) {
+            SetWindowPos(m_hwnd, nullptr, 0, 0, static_cast<int>(LowWord(m_smackBuffer->m_width) * m_scale),
+                         static_cast<int>(LowWord(m_smackBuffer->m_height) * m_scale), kSetWindowPosFlags);
+            SmackBufferSetPalette(m_smackBuffer);
+            opened = 1;
+        } else {
+            SmackClose(m_smack);
+            m_smack = nullptr;
+        }
     }
     return opened;
 }
@@ -139,6 +140,7 @@ int SmackerWindow::OpenMovie() {
 void SmackerWindow::StopPlayback() {
     if (m_thread) {
         TerminateThread(m_thread, 0);
+        CloseHandle(m_thread);
         m_thread = nullptr;
         m_threadId = 0;
     }
@@ -153,6 +155,7 @@ void SmackerWindow::StopPlayback() {
 }
 
 int SmackerWindow::GetMovieSize(int* width, int* height, HWND, const char* path) {
+    if (!width || !height || !path) return 0;
     *width = 0;
     *height = 0;
     Smack* smack = SmackOpen(path, kSmackAllAudioTracks, kSmackAutoExtraBuffer);
@@ -164,6 +167,7 @@ int SmackerWindow::GetMovieSize(int* width, int* height, HWND, const char* path)
 }
 
 int SmackerWindow::AdvanceFrame() {
+    if (!m_smack || !m_smackBuffer) return 1;
     HWND window = m_hwnd;
     int finished = 0;
     if (SmackWait(m_smack) != 0) {
@@ -171,17 +175,16 @@ int SmackerWindow::AdvanceFrame() {
         const int secondKey = static_cast<int>(GetAsyncKeyState(kSecondSkipKey));
         if ((secondKey | firstKey) & kKeyDownInSignExtendedWord) {
             finished = 1;
-            SendMessageA(m_parent->m_hwnd, kMovieMessageSkipped, 0, 0);
+            if (m_parent) PostMessageA(m_parent->m_hwnd, kMovieMessageSkipped, 0, 0);
         }
         return finished;
     }
 
     HDC dc = GetDC(window);
+    if (!dc) return 0;
     Smack* smack = m_smack;
     if (smack->m_newPalette) {
-        // BUG(original): the palette type argument keeps the upper half of m_newPalette.
-        SmackBufferNewPalette(m_smackBuffer, smack->m_palette,
-                              (smack->m_newPalette & 0xffff0000u) | LowWord(smack->m_paletteType));
+        SmackBufferNewPalette(m_smackBuffer, smack->m_palette, LowWord(smack->m_paletteType));
     }
     SmackDoFrame(m_smack);
     while (SmackToBufferRect(m_smack, LowWord(m_smackBuffer->m_surfaceType))) {
@@ -191,7 +194,7 @@ int SmackerWindow::AdvanceFrame() {
                                                   LowWord(smack->m_lastRectHeight))) != 0)
             break;
     }
-    ReleaseDC(window, dc);
+    if (dc) ReleaseDC(window, dc);
 
     smack = m_smack;
     if (smack->m_frameNumber == smack->m_frameCount - 1) {
@@ -200,14 +203,15 @@ int SmackerWindow::AdvanceFrame() {
             SmackGoto(smack, 1);
             finished = 0;
         }
-        SendMessageA(m_parent->m_hwnd, kMovieMessageFinished, 0, 0);
+        if (m_parent) PostMessageA(m_parent->m_hwnd, kMovieMessageFinished, 0, 0);
         return finished;
     }
     SmackNextFrame(smack);
     return finished;
 }
 
-uint32_t SmackerWindow::PlaybackThreadProc(SmackerWindow* window) {
+DWORD REB_STDCALL SmackerWindow::PlaybackThreadProc(LPVOID context) {
+    auto* window = static_cast<SmackerWindow*>(context);
     if (window) {
         while (window->AdvanceFrame() == 0) {
         }

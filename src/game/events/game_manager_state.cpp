@@ -1,6 +1,7 @@
 #include "events/game_manager_state.h"
 
 #include <cstring>
+#include <limits>
 #include <new>
 
 #include "core/checked_new.h"
@@ -79,9 +80,14 @@ void ResetLegacyTexts() {
 }
 
 void ReadLegacyTexts(istream* in) {
-    ReadValue32(in, &g_legacyTextCount);
+    int count = 0;
+    ReadValue32(in, &count);
     ReadValue32(in, &g_legacyTextExtra);
-    // BUG(original): the saved count is not checked against the ten slots.
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || count < 0 || count > 10) {
+        iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+        return;
+    }
+    g_legacyTextCount = count;
     std::string* text = g_legacyTexts;
     for (int i = 0; i < g_legacyTextCount; ++i, ++text) ReadLegacyString(in, *text);
 }
@@ -210,12 +216,22 @@ int TickTable::Read(istream* in) { return ReadNodes(in); }
 int TickTable::ReadNodes(istream* in) {
     Clear();
     ReadValue32(in, &m_ready);
-    uint32_t count;
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return 0;
+    uint32_t count = 0;
     ReadValue32(in, &count);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return 0;
     for (uint32_t i = 0; i < count; ++i) {
         SeedKeyCountNode* node = NewOrNull<SeedKeyCountNode>();
+        if (!node) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return 0;
+        }
         node->Read(in);
-        AddNode(node);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || !Insert(node)) {
+            delete node;
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return 0;
+        }
     }
     return 1;
 }
@@ -223,8 +239,12 @@ int TickTable::ReadNodes(istream* in) {
 int TickTable::Write(ostream* out) { return WriteNodes(out); }
 
 int TickTable::WriteNodes(ostream* out) {
+    if (Count() > std::numeric_limits<uint32_t>::max()) {
+        iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
+        return 0;
+    }
     WriteValue32(out, &m_ready);
-    uint32_t count = static_cast<uint16_t>(Count());
+    uint32_t count = static_cast<uint32_t>(Count());
     WriteValue32(out, &count);
     for (AvlNode* node = First(); node; node = node->m_successor) static_cast<SeedKeyCountNode*>(node)->Write(out);
     return 1;
@@ -233,29 +253,24 @@ int TickTable::WriteNodes(ostream* out) {
 int TickTable::Checksum(Crc32* crc) {
     int result = 1;
     crc->AddInt(m_ready);
-    crc->AddInt(static_cast<uint16_t>(Count()));
+    crc->AddInt(static_cast<int32_t>(Count()));
     for (AvlNode* node = First(); node; node = node->m_successor) result = static_cast<SeedKeyCountNode*>(node)->Checksum(crc);
     return result;
 }
 
 SeedKeyCountNode* TickTable::Find(SeedKey* key) {
-    AvlNode* cursor = m_root;
-    SeedKeyCountNode* found = nullptr;
-    while (cursor != nullptr && found == nullptr) {
+    AvlNode* cursor = LowerBound([key](const AvlNode* candidate) {
+        SeedKey current;
+        static_cast<const SeedKeyCountNode*>(candidate)->GetKey(&current);
+        return current < *key;
+    });
+    if (cursor) {
         SeedKeyCountNode* node = static_cast<SeedKeyCountNode*>(cursor);
         SeedKey current;
         node->GetKey(&current);
-        if (*key < current || *key == current) {
-            if (*key < current) {
-                cursor = node->m_left;
-            } else {
-                found = node;
-            }
-        } else {
-            cursor = node->m_right;
-        }
+        if (!(current == *key)) cursor = nullptr;
     }
-    return found;
+    return static_cast<SeedKeyCountNode*>(cursor);
 }
 
 SeedKeyCountNode* TickTable::Create(SeedKey* key) {

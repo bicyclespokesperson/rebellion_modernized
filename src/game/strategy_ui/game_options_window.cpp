@@ -132,8 +132,7 @@ CoolLabel* NewLabel(uint16_t stringId, int x, int y, int width, int height, COLO
 
 void DrawLabel(CoolLabel* label, HDC dc, bool dimmed) {
     if (!label) return;
-    // BUG(original): the DC is passed where SetColor expects the window to invalidate.
-    if (dimmed) label->SetColor(kLabelDisabled, reinterpret_cast<HWND>(dc));
+    if (dimmed) label->SetColor(kLabelDisabled, nullptr);
     label->Draw(dc);
 }
 
@@ -285,8 +284,7 @@ LRESULT GameOptionsWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam
             return 0;
         }
         if (id >= kNameFirst && id <= kNameLast) {
-            // BUG(original): the name field ids start at 0x83, so this is not the slot number the buttons store.
-            m_selectedSlot = id - 0x78;
+            m_selectedSlot = static_cast<int>(id - kNameFirst + 1);
             return 0;
         }
         switch (id) {

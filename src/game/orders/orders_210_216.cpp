@@ -46,7 +46,7 @@ bool inFamilies(uint32_t family, uint32_t first, uint32_t end) { return family >
 
 bool inFamilies(const ObjectKey& key, uint32_t first, uint32_t end) { return inFamilies(key.Family(), first, end); }
 
-Command* firstCommand(CommandQueue* commands) { return static_cast<Command*>(commands->m_first); }
+Command* firstCommand(CommandQueue* commands) { return static_cast<Command*>(commands->First()); }
 
 Command* nextCommand(Command* command) { return static_cast<Command*>(command->m_successor); }
 
@@ -138,7 +138,10 @@ int DestinationOrder::CheckDestination(StatusCode* status) {
                 for (Command* command = firstCommand(m_commands); command && ok != 0 && isOk(status);
                      command = nextCommand(command)) {
                     GameObjNotifier* manager = managerOfCommand(command);
-                    // BUG(original): a command whose object is not a manager is dereferenced unchecked.
+                    if (!manager || !inFamilies(manager->GetFamily(), 0xa0, 0xb0)) {
+                        setStatus(status, kStatusRefused);
+                        break;
+                    }
                     if (static_cast<ManuMgr*>(manager)->m_remainingGameObjCount == 0) {
                         GameObjNotifier* target = nullptr;
                         StatusCode missing(kStatusCategory, kStatusNoDestination);

@@ -493,10 +493,10 @@ int AiTask7::ComputeShipCount() {
         return result;
     }
     AiSystemEval* eval = m_owner->m_systems.FindEval(m_unit);
-    // BUG(original): without a system record the two arguments are the task's own address.
-    int mode = static_cast<int>(reinterpret_cast<intptr_t>(this));
-    int order = mode;
-    if (eval) {
+    if (!eval) return 0;
+    int mode;
+    int order;
+    {
         m_count = -eval->Stat(0xe0);
         if ((eval->m_flags28.m_value & 0x83e00000) == 0) {
             mode = 1;

@@ -104,7 +104,6 @@ int NumberUnitName(GameObj* object, NotifyContext* ctx) {
             if (CompareStrings(record->m_name, *unitName) == 0) {
                 GameObjNotifier* sideObject = nullptr;
                 GetControlSideObject(object, &sideObject);
-                // BUG(original): without a side object the number is read uninitialised.
                 int number = 0;
                 if (sideObject != nullptr) {
                     ObjectKey recordKey;

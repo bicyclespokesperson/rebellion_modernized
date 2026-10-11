@@ -107,15 +107,26 @@ void AddHiddenArrow(MissionSelectionWindow* window, HMODULE art, int y, uint32_t
 }
 
 // A row of `items` for the character `object` (key `key`): its picture over a transparent frame, named after the object.
-// BUG(original): the original code spins forever on a team member the human player cannot see.
 void AddCharacterRow(MissionSelectionWindow* window, CoolListItemList* items, const ObjectKey& key, GameObjNotifier* object,
                      uint8_t* fillColor) {
     ObjectListItem* item = NewOrNull<ObjectListItem>(&key);
     DibBitmap* picture = CreateObjectPicture(window->m_gokres, &key, object, 0, 1);
+    if (!item || !picture) {
+        delete item;
+        DeleteBitmap(picture);
+        return;
+    }
     const int left = (kCharacterPictureWidth - picture->Width()) / 2;
     const int top = (kCharacterPictureHeight - picture->Height()) / 2;
     DibBitmap* normal = NewOrNull<DibBitmap>(kCharacterPictureWidth, kCharacterPictureHeight, picture);
     DibBitmap* highlighted = NewOrNull<DibBitmap>(kCharacterPictureWidth, kCharacterPictureHeight, picture);
+    if (!normal || !highlighted) {
+        DeleteBitmap(normal);
+        DeleteBitmap(highlighted);
+        DeleteBitmap(picture);
+        delete item;
+        return;
+    }
     *fillColor = picture->m_colorKey;
     normal->FillRect(0, 0, kCharacterPictureWidth, kCharacterPictureHeight, *fillColor);
     highlighted->FillRect(0, 0, kCharacterPictureWidth, kCharacterPictureHeight, *fillColor);
@@ -364,7 +375,10 @@ void MissionSelectionWindow::OnCreate1() {
         ObjectKey nodeKey;
         ObjectKey key(*node->GetKey(&nodeKey));
         GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, &key);
-        if (!object) continue;
+        if (!object) {
+            node = static_cast<ObjectKeyNode*>(node->m_successor);
+            continue;
+        }
         AddCharacterRow(this, m_availableItems, key, object, &fillColor);
         node = static_cast<ObjectKeyNode*>(node->m_successor);
     }
@@ -377,11 +391,12 @@ void MissionSelectionWindow::OnCreate1() {
         ObjectKey nodeKey;
         ObjectKey key(*node->GetKey(&nodeKey));
         GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, &key);
-        if (!object) continue;
+        if (!object) {
+            node = static_cast<ObjectKeyNode*>(node->m_successor);
+            continue;
+        }
         uint8_t unusedFill = 0;
         AddCharacterRow(this, m_selectedItems, key, object, &unusedFill);
-        // BUG(original): the original advances with the cursor of the first loop (null by now), so it would crash
-        // for a selected character; the order has none when the window opens.
         node = static_cast<ObjectKeyNode*>(node->m_successor);
     }
     m_selectedItems->First();

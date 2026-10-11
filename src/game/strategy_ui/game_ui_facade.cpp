@@ -534,7 +534,7 @@ void UiSetDisplayModeTitled(int mode, LPARAM argument, const ResourceStringId* t
 
 void UiSetDisplayMode(int mode, LPARAM argument) {
     GalaxyWindow* galaxy = GetGalaxyWindow();
-    SendMessageA(galaxy->m_hwnd, kCommandMessage, (mode << 16) | kSetDisplayModeCommand, argument);
+    if (galaxy) SendMessageA(galaxy->m_hwnd, kCommandMessage, (mode << 16) | kSetDisplayModeCommand, argument);
 }
 
 void UiClearButtonHighlights(uint32_t mask) {

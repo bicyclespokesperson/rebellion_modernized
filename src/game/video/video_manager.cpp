@@ -35,6 +35,7 @@ VideoManager* VideoManager::GetInstance() { return g_videoManager; }
 int VideoManager::IsDefaultPlacement(int x, int y) { return x == 0 && y == 0; }
 
 int VideoManager::GetMovieSize(const char* path, int* width, int* height, int type) {
+    if (!path || !width || !height) return 0;
     if (!g_videoParentWindow) return 0;
     HWND window = g_videoParentWindow->m_hwnd;
     if (type == kMovieAvi) return VideoWindow::GetMovieSize(width, height, window, path);
@@ -52,7 +53,7 @@ int VideoManager::Play(const char* path, CoolWindow* parent, int x, int y, int t
     int width = 0;
     int height = 0;
     m_movieType = type;
-    result = GetMovieSize(path, &width, &height, type);
+    result = path && *path ? GetMovieSize(path, &width, &height, type) : 0;
     if (IsDefaultPlacement(x, y) && parent->m_hwnd) {
         RECT client;
         GetClientRect(parent->m_hwnd, &client);
@@ -63,7 +64,7 @@ int VideoManager::Play(const char* path, CoolWindow* parent, int x, int y, int t
     HINSTANCE instance = parent->m_instance;
     CoolWindow* movieWindow = nullptr;
     if (!result) {
-        ShowErrorMessage(path, g_pathUnknownCaption);
+        ShowErrorMessage(path ? path : "", g_pathUnknownCaption);
         PostMessageA(parent->m_hwnd, kMovieMessageNotFound, 0, 0);
     } else if (m_movieType == kMovieAvi) {
         m_videoWindow = NewOrNull<VideoWindow>(path, instance, x, y, width, height, parent, 1);
@@ -74,7 +75,12 @@ int VideoManager::Play(const char* path, CoolWindow* parent, int x, int y, int t
         movieWindow = m_smackerWindow;
     }
     if (movieWindow) {
-        movieWindow->Create(0);
+        if (!movieWindow->Create(0)) {
+            delete movieWindow;
+            m_videoWindow = nullptr;
+            m_smackerWindow = nullptr;
+            return 0;
+        }
         movieWindow->Show(kShowWindowNormal);
         result = 1;
         m_playing = 1;

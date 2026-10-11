@@ -135,8 +135,8 @@ int SdRecordGrid::ParseFields(istream* in, int* endOfLine) {
     ParseLongField(in, token.get(), endOfLine, &m_field70);
     for (auto& row : m_grid) parseValues(in, token.get(), endOfLine, row);
     parseValues(in, token.get(), endOfLine, m_fieldA4);
-    // BUG(original): the column totals and the grand total are accumulated onto whatever they held before, not
-    // recomputed, so parsing a record that already has totals double counts.
+    for (uint32_t& total : m_columnTotals) total = 0;
+    m_total = 0;
     for (const auto& row : m_grid)
         for (int column = 0; column < kGridColumns; ++column) m_columnTotals[column] += row[column];
     for (const auto& row : m_grid)

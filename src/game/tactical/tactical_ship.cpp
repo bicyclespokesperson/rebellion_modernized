@@ -429,11 +429,13 @@ void TacticalShipBase::Recharge(float step) {
             }
         }
     }
-    // BUG(original): when an entry is removed the one that shifts into its place is not examined.
-    for (uint32_t position = 0; position < m_chargingCount; ++position) {
-        if (m_arcs[m_chargeQueue[position]].m_chargeState != 1) continue;
-        for (uint32_t i = position; i < 3; ++i) m_chargeQueue[i] = m_chargeQueue[i + 1];
-        if (m_chargingCount == 4) m_chargeQueue[3] = 0;
+    for (uint32_t position = 0; position < m_chargingCount;) {
+        if (m_arcs[m_chargeQueue[position]].m_chargeState != 1) {
+            ++position;
+            continue;
+        }
+        for (uint32_t i = position; i < m_chargingCount - 1; ++i) m_chargeQueue[i] = m_chargeQueue[i + 1];
+        m_chargeQueue[m_chargingCount - 1] = 0;
         --m_chargingCount;
     }
 }

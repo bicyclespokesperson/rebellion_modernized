@@ -76,16 +76,12 @@ int HwndTree::IsLess(AvlNode* a, AvlNode* b) {
 }
 
 HwndNode* HwndTree::FindByHwnd(HWND hwnd) {
-    HwndNode* node = static_cast<HwndNode*>(m_root);
-    while (node) {
-        if (node->m_hwnd < hwnd)
-            node = static_cast<HwndNode*>(node->m_right);
-        else if (hwnd < node->m_hwnd)
-            node = static_cast<HwndNode*>(node->m_left);
-        else
-            return node;
-    }
-    return nullptr;
+    AvlNode* found = LowerBound([hwnd](const AvlNode* candidate) {
+        return static_cast<const HwndNode*>(candidate)->m_hwnd < hwnd;
+    });
+    auto* node = static_cast<HwndNode*>(found);
+    if (node && node->m_hwnd != hwnd) node = nullptr;
+    return node;
 }
 
 void HwndTree::RemoveAndDelete(HWND hwnd) {
@@ -112,16 +108,12 @@ int ChildWindowTree::IsLess(AvlNode* a, AvlNode* b) {
 }
 
 CoolWindow* ChildWindowTree::FindById(uint32_t id) {
-    CoolWindow* node = static_cast<CoolWindow*>(m_root);
-    while (node) {
-        if (id < node->m_childId)
-            node = static_cast<CoolWindow*>(node->m_left);
-        else if (node->m_childId < id)
-            node = static_cast<CoolWindow*>(node->m_right);
-        else
-            return node;
-    }
-    return nullptr;
+    AvlNode* found = LowerBound([id](const AvlNode* candidate) {
+        return static_cast<const CoolWindow*>(candidate)->m_childId < id;
+    });
+    auto* node = static_cast<CoolWindow*>(found);
+    if (node && node->m_childId != id) node = nullptr;
+    return node;
 }
 
 CoolWindow* ChildWindowTree::FindByHwnd(HWND hwnd) {
@@ -227,9 +219,8 @@ int CoolWindow::Create(int useExStyle) {
     HWND parentWindow = m_parent ? m_parent->m_hwnd : nullptr;
     HMENU menu = m_parent ? reinterpret_cast<HMENU>(static_cast<UINT_PTR>(m_childId)) : m_menu;
     CoolWindow* creationParameter = this;
-    // BUG(original): the extended style is used whichever value useExStyle has.
-    (void)useExStyle;
-    m_hwnd = CreateWindowExA(m_exStyle, m_className, m_windowName, m_style, m_x, m_y, m_width, m_height, parentWindow,
+    const DWORD extendedStyle = useExStyle ? m_exStyle : 0;
+    m_hwnd = CreateWindowExA(extendedStyle, m_className, m_windowName, m_style, m_x, m_y, m_width, m_height, parentWindow,
                              menu, m_instance, &creationParameter);
     if (!m_hwnd) GetLastError();
     RegisterWithActivePopup();
@@ -581,12 +572,44 @@ LRESULT CALLBACK MouseHookProc(int code, WPARAM wParam, LPARAM lParam) {
 int CoolWindow::BeginPopup() {
     if (!g_popupStack.m_top) g_mouseHook = SetWindowsHookExA(WH_MOUSE, MouseHookProc, m_instance, GetCurrentThreadId());
     HwndNode* node = NewOrNull<HwndNode>(m_hwnd);
-    // BUG(original): a failed allocation is dereferenced here.
+    if (!node) {
+        if (!g_popupStack.m_top && g_mouseHook) {
+            UnhookWindowsHookEx(g_mouseHook);
+            g_mouseHook = nullptr;
+        }
+        return false;
+    }
     node->m_window = this;
     PopupEntry* entry = NewOrNull<PopupEntry>(node);
-    g_popupStack.Push(entry);
     HwndNode* member = NewOrNull<HwndNode>(m_hwnd);
-    m_popupMembers.Insert(member);
+    if (!entry || !member) {
+        delete entry;
+        if (!entry) delete node;
+        delete member;
+        if (!g_popupStack.m_top && g_mouseHook) {
+            UnhookWindowsHookEx(g_mouseHook);
+            g_mouseHook = nullptr;
+        }
+        return false;
+    }
+    if (!g_popupStack.Push(entry)) {
+        delete entry;
+        delete member;
+        if (!g_popupStack.m_top && g_mouseHook) {
+            UnhookWindowsHookEx(g_mouseHook);
+            g_mouseHook = nullptr;
+        }
+        return false;
+    }
+    if (!m_popupMembers.Insert(member)) {
+        delete member;
+        g_popupStack.RemoveAndDelete(entry);
+        if (!g_popupStack.m_top && g_mouseHook) {
+            UnhookWindowsHookEx(g_mouseHook);
+            g_mouseHook = nullptr;
+        }
+        return false;
+    }
     ReleaseAllCaptures();
     return true;
 }
@@ -787,9 +810,8 @@ HMODULE LoadResourceModule(const char* basePath, const char* fileName, uint32_t 
     ostream_operator_ls_char(ostream_operator_ls_cstr(path.Out(), fileName), 0);
 
     ResourceDll* dll = NewOrNull<ResourceDll>(fileName);
-    // BUG(original): a failed allocation is dereferenced here.
-    if (!dll->m_module) {
-        if (dll) delete dll;
+    if (!dll || !dll->m_module) {
+        delete dll;
         dll = NewOrNull<ResourceDll>(strstreambuf_str(StreambufOf(&path)));
         strstreambuf_freeze(StreambufOf(&path), 0);
         ClearIosState(&path);

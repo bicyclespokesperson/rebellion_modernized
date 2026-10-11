@@ -1,6 +1,7 @@
 #include "data/seed_list.h"
 
 #include "core/checked_new.h"
+#include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "data/dat_record.h"
 #include "data/int_pair_node.h"
@@ -31,31 +32,33 @@ void SeedList::AddRecord(IdNode* record) {
 int SeedList::Read(istream* in) {
     m_records.Clear();
     int ok = ReadVersion(in);
-    if (!ok) return 0;
-    int count;
+    if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return 0;
+    uint32_t count = 0;
     ReadValue32(in, &count);
     ReadValue32(in, &m_range.m_low);
     ReadValue32(in, &m_range.m_high);
-    for (;;) {
-        if (count == 0) return ok;
-        --count;
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return 0;
+    for (uint32_t index = 0; index < count; ++index) {
         DatRecord* record = createRecord(m_range);
-        if (record) {
-            ok = record->Read(in);
-            if (ok)
-                AddRecord(record);
-            else
-                delete record;
+        if (!record) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return 0;
         }
-        if (!ok) return 0;
+        ok = record->Read(in);
+        if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 ||
+            m_records.AddWithId(record) == 0) {
+            delete record;
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return 0;
+        }
     }
+    return ok;
 }
 
 int SeedList::Write(ostream* out) {
     int ok = WriteVersion(out);
     if (!ok) return 0;
-    uint32_t count = static_cast<uint16_t>(m_records.Count());
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, m_records.Count())) return 0;
     uint32_t low = m_range.m_low;
     WriteValue32(out, &low);
     uint32_t high = m_range.m_high;
@@ -70,7 +73,7 @@ int SeedList::Write(ostream* out) {
 int SeedList::Checksum(Crc32* crc) {
     int ok = ChecksumVersion(crc);
     if (!ok) return ok;
-    crc->AddInt(static_cast<uint16_t>(m_records.Count()));
+    crc->AddInt(static_cast<int32_t>(m_records.Count()));
     crc->AddInt(m_range.m_low);
     crc->AddInt(m_range.m_high);
     for (AvlNode* node = m_records.First(); node;) {

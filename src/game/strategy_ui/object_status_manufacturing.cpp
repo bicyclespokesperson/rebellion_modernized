@@ -65,9 +65,9 @@ void ObjectStatusWindow::FillManufacturingPage(CoolListItemList* labels, CoolLis
     AddStatusRow(3, &text, labels);
     text.clear();
 
-    int lastRow = 3;
     if (facilityCount == 0) {
         SetText(&text, 0x8772);
+        AddStatusRow(3, &text, values);
     } else if (manager->m_remainingGameObjCount == 0) {
         SetText(&text, 0x8769);
         AddStatusRow(3, &text, values);
@@ -76,7 +76,6 @@ void ObjectStatusWindow::FillManufacturingPage(CoolListItemList* labels, CoolLis
         AddStatusRow(3, &text, values);
         text.clear();
         SetText(&text, 0x8768);
-        lastRow = 4;
         AddStatusRow(4, &text, labels);
         text.clear();
         text.append(std::to_string(static_cast<long>(manager->m_remainingGameObjCount)));
@@ -85,7 +84,6 @@ void ObjectStatusWindow::FillManufacturingPage(CoolListItemList* labels, CoolLis
         if (manager->m_remainingGameObjCount != 0 && sameSide) {
             text.clear();
             SetText(&text, 0x8765);
-            lastRow = 5;
             AddStatusRow(5, &text, labels);
             StatusCode status(1, static_cast<uint32_t>(-1));
             int ruleValue = 0;
@@ -95,6 +93,4 @@ void ObjectStatusWindow::FillManufacturingPage(CoolListItemList* labels, CoolLis
             AddStatusRow(5, &text, values);
         }
     }
-    // BUG(original): the last value row is added a second time here.
-    AddStatusRow(lastRow, &text, values);
 }

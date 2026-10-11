@@ -405,9 +405,8 @@ void ObjectStatusWindow::FillSystemPage(CoolListItemList* labels, CoolListItemLi
     text.append(std::to_string(static_cast<unsigned long>(CountTroopRegs(system, side, 3))));
     AddStatusRow(19, &text, values);
     AddLabelRow(&text, 0x8699, 20, labels);
-    // BUG(original): the squadron count goes into row 21, one below its label.
     text.append(std::to_string(static_cast<unsigned long>(CountFightSquads(system, side, 3))));
-    AddStatusRow(21, &text, values);
+    AddStatusRow(20, &text, values);
 }
 
 void ObjectStatusWindow::FillProductionFacilityPage(CoolListItemList* labels, CoolListItemList* values) {

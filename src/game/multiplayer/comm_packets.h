@@ -29,8 +29,7 @@ constexpr uint32_t kCommMessageMagic = 0xabcddcba;
 
 // ---- Service provider and session lists -----------------------------------------------------------------------
 
-// A DirectPlay service provider as DirectPlayEnumerate reports it (0x38 bytes, VT 0x66de1c).
-// BUG(original): m_guid keeps the pointer the callback received; DirectPlay only guarantees it during the callback.
+// A DirectPlay service provider as DirectPlayEnumerate reports it (VT 0x66de1c).
 class ServiceProviderInfo : public IdNode {
 public:
     ServiceProviderInfo(const GUID* guid, const char* name, DWORD majorVersion, DWORD minorVersion,
@@ -38,11 +37,11 @@ public:
     explicit ServiceProviderInfo(const ServiceProviderInfo& other);  // 0x5f7a50
     ~ServiceProviderInfo() override;                           // 0x5f7ae0 (deleting 0x5f7a30)
 
-    const GUID* m_guid;    // +0x1c
-    DWORD m_majorVersion;  // +0x20
-    DWORD m_minorVersion;  // +0x24
-    DWORD_PTR m_context;   // +0x28
-    std::string m_name;         // +0x2c
+    GUID m_guid;
+    DWORD m_majorVersion;
+    DWORD m_minorVersion;
+    DWORD_PTR m_context;
+    std::string m_name;
 };
 
 // A game session as IDirectPlay2::EnumSessions reports it (0x38 bytes, VT 0x66de20): the instance GUID and the name.

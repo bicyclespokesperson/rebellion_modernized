@@ -144,8 +144,8 @@ void CoolDragList::SetBackground(DibBitmap* source, int srcX, int srcY) {
 
 void CoolDragList::SetDragTarget(HWND target) {
     if (target && IsWindow(target) && IsWindowVisible(target)) m_dragWindow = target;
-    // BUG(original): m_dragImage keeps pointing at the deleted object when `target` is not a Cool window.
     if (m_dragImage) delete m_dragImage;
+    m_dragImage = nullptr;
     CoolWindow* window = GetCoolWindow(target);
     if (window) m_dragImage = NewOrNull<CoolDragImage>(window);
 }
@@ -226,11 +226,11 @@ void CoolDragList::SelectRect(POINTS from, POINTS to) {
 }
 
 // Selects the item whose text shares the longest prefix with `prefix` (the first such item; the scan stops at
-// the first item that matches less). BUG(original): when no text starts with the prefix, the first item wins.
+// the first item that matches less).
 uint32_t CoolDragList::SelectByPrefix(const std::string* prefix, int notify, int caseSensitive) {
     int bestLength = 0;
     CoolListItem* item = m_items->First();
-    CoolListItem* best = item;
+    CoolListItem* best = nullptr;
     if (prefix->empty()) return 0;
     for (; item; item = item->Next()) {
         std::string& text = item->m_text;
@@ -259,10 +259,10 @@ uint32_t CoolDragList::SelectByPrefix(const std::string* prefix, int notify, int
 CoolListItem* CoolDragList::AddItem(uint32_t id, uint16_t imageId, uint16_t selectedImageId, const char* text,
                                     int redraw, uintptr_t userData) {
     CoolListItem* item = NewOrNull<CoolListItem>(id);
-    // BUG(original): a failed allocation is dereferenced here.
+    if (!item) return nullptr;
     item->m_userPointer = userData;
     item->SetImageIds(imageId, selectedImageId, m_instance);
-    item->m_text = text;
+    item->m_text = StringFromText(text);
     m_items->Insert(item);
     Layout();
     if (redraw) Redraw();
@@ -272,10 +272,10 @@ CoolListItem* CoolDragList::AddItem(uint32_t id, uint16_t imageId, uint16_t sele
 CoolListItem* CoolDragList::AddItemWithImages(uint32_t id, DibBitmap* image, DibBitmap* selectedImage,
                                               const char* text, int redraw, uintptr_t userData) {
     CoolListItem* item = NewOrNull<CoolListItem>(id);
-    // BUG(original): a failed allocation is dereferenced here.
+    if (!item) return nullptr;
     item->m_userPointer = userData;
     item->SetImages(image, selectedImage);
-    item->m_text = text;
+    item->m_text = StringFromText(text);
     m_items->Insert(item);
     Layout();
     if (redraw) Redraw();
@@ -303,12 +303,11 @@ CoolListItem* CoolDragList::FirstItem() { return m_items ? m_items->First() : nu
 // ---- Drawing and layout --------------------------------------------------------------------------------------------
 
 // Draws the item's image into the canvas and, when it is selected, into the selection image (in client
-// coordinates, as it is dragged from there). BUG(original): m_selectionImage is read before any check, so this
-// crashes before WM_CREATE has made it.
+// coordinates, as it is dragged from there).
 void CoolDragList::DrawItem(CoolListItem* item) {
+    if (!item || !m_canvas) return;
     const int y = item->m_y;
     const int x = item->m_x;
-    const uint8_t savedColorKey = m_selectionImage->m_colorKey;
     DibBitmap* image = item->CurrentImage();
     if (!image) return;
     image->DrawKeyed(m_canvas, x, y);
@@ -316,7 +315,8 @@ void CoolDragList::DrawItem(CoolListItem* item) {
     position.x = static_cast<SHORT>(x);
     position.y = static_cast<SHORT>(y);
     POINTS client = ListToClient(position);
-    if (item->m_state.m_value & kListItemSelected) {
+    if ((item->m_state.m_value & kListItemSelected) && m_selectionImage) {
+        const uint8_t savedColorKey = m_selectionImage->m_colorKey;
         image->DrawKeyed(m_selectionImage, client.x, client.y);
         m_selectionImage->m_colorKey = savedColorKey;
     }
@@ -486,8 +486,7 @@ void CoolDragList::Refresh() {
     Redraw();
 }
 
-// The rectangle DrawText would fill with the item's text using the list's format. BUG(original): centred text is
-// centred within the item's width but not offset by the item's left edge.
+// The rectangle DrawText would fill with the item's text using the list's format.
 RECT CoolDragList::GetItemTextRect(CoolListItem* item) {
     const int itemRight = item->m_rect.right;
     RECT area = item->m_rect;
@@ -509,7 +508,7 @@ RECT CoolDragList::GetItemTextRect(CoolListItem* item) {
             area.right = itemRight;
         } else if (format & DT_CENTER) {
             const int width = area.right - area.left;
-            area.left = (itemRight - itemLeft) / 2 - width / 2;
+            area.left = itemLeft + (itemRight - itemLeft) / 2 - width / 2;
             area.right = width + area.left;
         }
         area.right += m_textOffsetX;

@@ -2,6 +2,8 @@
 
 #include "ai/ai_common.h"
 #include "core/checked_new.h"
+#include "core/iostream_lib.h"
+#include "core/stream_io.h"
 #include "economy/side.h"
 #include "fleet/fleet.h"
 #include "gameobj/game_obj.h"
@@ -714,16 +716,28 @@ void AdvisorTaskManager::Save(ostream* out) {
 void AdvisorTaskManager::Load(istream* in, AiGalaxyAnalysis* analysis) {
     Clear();
     ReadValue32(in, &m_view);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return;
     int16_t count;
     ReadValue16(in, &count);
-    while (count != 0) {
-        int type;
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || count < 0) {
+        iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+        return;
+    }
+    while (count > 0) {
+        int type = 0;
         ReadValue32(in, &type);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return;
         AdvisorTaskBase* task = MakeTask(type);
-        if (task) {
-            task->SetAnalysis(analysis);
-            task->Read(in);
-            AddWithId(task);
+        if (!task) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
+        task->SetAnalysis(analysis);
+        task->Read(in);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddWithId(task) == 0) {
+            delete task;
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
         }
         --count;
     }
@@ -808,18 +822,26 @@ AdvisorEntryTree::AdvisorEntryTree() : IdAvlTree() {}
 AdvisorEntryTree::~AdvisorEntryTree() = default;
 
 void AdvisorEntryTree::Save(ostream* out) {
-    uint32_t count = static_cast<uint16_t>(Count());
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, Count())) return;
     for (AvlNode* node = First(); node; node = node->m_successor) static_cast<DroidScript*>(node)->Write(out);
 }
 
 void AdvisorEntryTree::Load(istream* in) {
-    uint32_t count;
+    uint32_t count = 0;
     ReadValue32(in, &count);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return;
     for (uint32_t index = 0; index < count; ++index) {
-        DroidScript* entry = new DroidScript();
+        DroidScript* entry = NewOrNull<DroidScript>();
+        if (!entry) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
         entry->Read(in);
-        AddWithId(entry);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddWithId(entry) == 0) {
+            delete entry;
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
     }
 }
 

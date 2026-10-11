@@ -144,8 +144,7 @@ int NetMsg5::Write(ostream* out) {
     return result;
 }
 
-// BUG(original): Execute has no return statement; EAX still holds the object pointer.
-int NetMsg5::Execute(StatusCode*) { return static_cast<int>(reinterpret_cast<uintptr_t>(this)); }
+int NetMsg5::Execute(StatusCode*) { return 1; }
 
 void* CreateNetMsg5() { return NewOrNull<NetMsg5>(); }
 

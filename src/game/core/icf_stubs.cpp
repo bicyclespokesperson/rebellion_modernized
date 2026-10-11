@@ -2,6 +2,5 @@
 
 int ReturnOne() { return 1; }
 
-int16_t ReturnOneShort() { return 1; }
 
 void IgnoreOneArgument(void*, uintptr_t) {}

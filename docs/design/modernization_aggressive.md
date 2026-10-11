@@ -263,11 +263,67 @@ malloc pre-scribble/scribble two-process simulation/save/reload pass (150336 →
 covered string clients/codecs, reentrant container teardown and both RNG streams. LLVM 22.1.4 selected tidy checks run
 on the core implementations. Formatting remains deferred.
 
-Next units:
+Ordered containers and identity: replace AVL balancing and intrusive list ownership with standard containers owning
+stable nodes. Tree queries remain logarithmic; sorted lists retain insertion-time comparisons, including AI tie breaks.
+`Remove` transfers ownership to its caller, while `Clear` destroys held nodes. Reject foreign membership, duplicate
+identity and exhausted generated IDs; composite family/ID trees use their actual comparator for identity.
 
-- [ ] Ordered trees, sets and ID allocation: standard stable ownership, logarithmic lookup and safe mutation.
-- [ ] Save transaction boundary: replace destination only after successful serialization and close.
-- [ ] Rules/AI/events and UI bug responsibilities: resolve live original bug sites and record concrete deferrals.
+- [x] Read ownership-transfer, composite-key lookup and mutation clients.
+- [x] Replace trees and sorted-list storage and migrate binary lookup clients.
+- [x] Complete final host builds, malformed-count and ownership tests, and save/reload smoke.
+- [x] Complete independent reviews; fix detach/delete mismatch and composite-key identity findings.
+- [x] Commit the checked container and serialization integration.
+
+Save and stream boundary: use typed input/output interfaces and preserve explicit legacy field encodings. Write a sibling
+temporary save and replace the destination only after serialization and close succeed. Propagate failed restores, reject
+bad position markers and check count widths. Reallocate legacy stream buffers using offsets within their own allocation;
+zero new capacity so seeking into unwritten space cannot expose heap bytes.
+
+- [x] Read save/load callers, stream lifetime, marker and collection codecs.
+- [x] Implement atomic replacement, typed restore/save results and checked codecs.
+- [x] Complete final host builds, failure preservation/stream tests and save/reload smoke.
+- [x] Independently review failure cleanup, close state, count symmetry and seek growth.
+- [x] Commit after resolving the final count-reader and seek-test findings.
+
+Gameplay and UI responsibilities: fix live original bug sites rather than preserve erroneous behavior. Changes include
+AI ranked misses, restored notice groups, sector scan field order, target-sector selection, rescue flags, planner type
+checks, finished states, retained surplus orders, single application of effects, record totals, random facility selection,
+and failed allocation/resource/event cleanup. Jedi training now checksums its persisted teacher key through its existing
+base implementation. Death Star sabotage deliberately retains the current fresh ranked selection on each pass; the old
+comment described a retention branch absent from the maintained implementation.
+
+UI fixes cover invisible selection rows, empty lists, manufacturing rows, advisor controls, drag-image lifetime,
+paint/bitmap lifetime, scrolling and font bounds. Movie callbacks post completion before teardown; paths use ordinary
+strings and callback GUIDs are owned values. Message templates parse bounded resource records. All 320 shipped TEXTSTRA
+message templates use direct field codes 1–4; undefined high-bit fields are safely skipped rather than indexing object memory.
+
+- [x] Read annotated sites and their callers across rules/AI/events/UI/audio/video/multiplayer.
+- [x] Fix live bugs and remove annotations already made obsolete by earlier changes.
+- [x] Complete final host build and cheap simulation/save/reload checks.
+- [x] Independently review gameplay/UI changes and callback/ownership behavior.
+- [x] Commit the validated behavior fixes and record the intentional gameplay changes.
+
+Bitmap responsibility: own software bitmap bytes with a vector, validate file/resource extents and decode RLE8 once at
+load. Rendering and hit tests then share the uncompressed path, preserving row orientation and transparency. Remove the
+unbounded runtime RLE walkers; fix palette expansion, clipping, row/column zero and destination coordinates.
+
+- [x] Read resource/file ownership, pixel consumers, orientation and all RLE commands.
+- [x] Replace RLE walkers and bitmap storage, migrate consumers and fix blitter bugs.
+- [x] Complete final host builds, bounded decoder tests and desktop rendering checks.
+- [x] Review pixel extent, palette, constructor and reload failures; fix actionable findings.
+- [x] Commit the validated bitmap unit.
+
+Validation for this integration: macOS arm64, Apple Clang 17 release and halt-on-error UBSan; all eight CTests pass.
+Malloc pre-scribble/scribble simulation/save/reload passes in both builds (150336 → 150346 → 150356). Desktop intro,
+main-menu bitmaps and quit confirmation render correctly. Selected LLVM 22.1.4 tidy review found only an override annotation,
+which is corrected. The broader desktop acceptance and final formatting remain pending.
+
+Final A3 integration:
+
+- [x] Complete the host build and all eight useful native tests in release and halt-on-error UBSan.
+- [x] Complete the bounded simulation/save/reload smoke with malloc scribble enabled.
+- [ ] Finish the structured desktop acceptance pass below and fix findings.
+- [ ] Complete the dedicated formatting commit and post-format checks below.
 
 ### Per-responsibility workflow
 

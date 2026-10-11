@@ -66,7 +66,6 @@ int AiDsSabotagePlanner::ChooseTarget() {
     m_target.Reset();
     m_flags.m_value &= ~0x10u;
     const int membersAtDestination = CountMembersAtDestination();
-    // BUG(original): the target was reset above, so the branch that would keep a ship target never runs.
     m_selector.Add(m_owner->RankFleets(0x10, 1, 0x15, 2));
     fleetKey = *m_selector.PickBest(&scratch);
     while (IsFleetKey(fleetKey)) {

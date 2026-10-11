@@ -46,36 +46,32 @@ void UseBuiltInTexts() {
 
 // Decodes the file in place and returns where its quoted strings start. Every second quote ends a string (and is
 // overwritten with a NUL); a backslash becomes a space followed by a newline.
-void DecodeTexts(char* text, int size, ErrorTexts* out) {
+bool DecodeTexts(char* text, size_t size, ErrorTexts* out) {
+    if (!text || size == 0 || !out) return false;
     const bool encrypted = text[0] != '#';
     unsigned quotes = 0;
-    int index = 0;
-    char* cursor = text;
-    // BUG(original): the first pointer starts out as the 0/1 'encrypted' flag, and the others are uninitialised, so
-    // a file with fewer than five strings makes sprintf read through a bad pointer.
     *out = ErrorTexts{};
-    out->cdErrorTitle = reinterpret_cast<char*>(static_cast<uintptr_t>(encrypted));
-    while (index < size) {
-        char* next = cursor + 1;
+    for (size_t index = 0; index < size; ++index) {
         if (encrypted) text[index] ^= kTextXorKey;
         if (text[index] == '"') {
             ++quotes;
-            if (quotes == 1) out->cdErrorTitle = next;
-            if (quotes == 3) out->cdErrorText = next;
-            if (quotes == 5) out->versionErrorTitle = next;
-            if (quotes == 7) out->versionOlderText = next;
-            if (quotes == 9) out->versionNewerText = next;
+            if (quotes == 1) out->cdErrorTitle = text + index + 1;
+            if (quotes == 3) out->cdErrorText = text + index + 1;
+            if (quotes == 5) out->versionErrorTitle = text + index + 1;
+            if (quotes == 7) out->versionOlderText = text + index + 1;
+            if (quotes == 9) out->versionNewerText = text + index + 1;
             if ((quotes & 1) == 0) text[index] = '\0';
         }
         if (text[index] == '\\') {
             text[index] = ' ';
-            *next = '\n';
-            ++index;
-            next = cursor + 2;
+            if (index + 1 < size) {
+                text[index + 1] = '\n';
+                ++index;
+            }
         }
-        ++index;
-        cursor = next;
     }
+    return out->cdErrorTitle && out->cdErrorText && out->versionErrorTitle && out->versionOlderText &&
+           out->versionNewerText && (quotes >= 10) && (quotes % 2 == 0);
 }
 
 }  // namespace
@@ -88,15 +84,38 @@ void InitCdAndVersionCheck() {
         g_versionCheckResult = CheckTextstraVersion();
         return;
     }
-    fseek(file, 0, SEEK_END);
-    const int size = ftell(file);
-    fseek(file, 0, SEEK_SET);
-    char* text = static_cast<char*>(malloc(size));
-    fread(text, size, 1, file);
+    if (fseek(file, 0, SEEK_END) != 0) {
+        fclose(file);
+        UseBuiltInTexts();
+        g_versionCheckResult = CheckTextstraVersion();
+        return;
+    }
+    const long fileSize = ftell(file);
+    if (fileSize <= 0 || static_cast<unsigned long>(fileSize) > 1024 * 1024 || fseek(file, 0, SEEK_SET) != 0) {
+        fclose(file);
+        UseBuiltInTexts();
+        g_versionCheckResult = CheckTextstraVersion();
+        return;
+    }
+    const size_t size = static_cast<size_t>(fileSize);
+    char* text = static_cast<char*>(malloc(size + 1));
+    if (!text) {
+        fclose(file);
+        UseBuiltInTexts();
+        g_versionCheckResult = CheckTextstraVersion();
+        return;
+    }
+    const size_t bytesRead = fread(text, 1, size, file);
     fclose(file);
+    text[size] = '\0';
 
     ErrorTexts texts;
-    DecodeTexts(text, size, &texts);
+    if (bytesRead != size || !DecodeTexts(text, size, &texts)) {
+        free(text);
+        UseBuiltInTexts();
+        g_versionCheckResult = CheckTextstraVersion();
+        return;
+    }
     std::snprintf(g_cdErrorText, sizeof(g_cdErrorText), "%s", texts.cdErrorText);
     std::snprintf(g_cdErrorTitle, sizeof(g_cdErrorTitle), "%s", texts.cdErrorTitle);
     std::snprintf(g_versionOlderText, sizeof(g_versionOlderText), "%s", texts.versionOlderText);

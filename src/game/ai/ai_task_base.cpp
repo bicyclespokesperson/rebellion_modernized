@@ -6,6 +6,8 @@
 #include "ai/ai_side_controller.h"
 #include "ai/ai_system_record.h"
 #include "core/checked_new.h"
+#include "core/iostream_lib.h"
+#include "core/stream_io.h"
 #include "gameobj/factory_registries.h"
 
 using ai::KeyInFamilies;
@@ -78,16 +80,30 @@ int AiNoticeGroup::IsLess(LinkNode*, LinkNode*) { return 0; }
 void AiNoticeGroup::Load(istream* in) {
     SortedLinkList::Clear();
     ReadId(in);
-    int count;
+    uint32_t count = 0;
     ReadValue32(in, &count);
     ReadValue32(in, &m_finished);
-    for (; count != 0; --count) {
-        int kind;
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return;
+    for (uint32_t index = 0; index < count; ++index) {
+        int kind = 0;
         ReadValue32(in, &kind);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return;
         NotifPayload* notice = static_cast<NotifPayload*>(CreateKeyedObject(kind));
-        if (notice) {
-            notice->Read(in);
-            Add(notice);
+        if (!notice) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
+        notice->Read(in);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
+            delete notice;
+            return;
+        }
+        const int priorCount = m_count;
+        Add(notice);
+        if (m_count == priorCount) {
+            delete notice;
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
         }
     }
 }
@@ -142,20 +158,26 @@ AiTaskObjectSet::~AiTaskObjectSet() = default;
 
 void AiTaskObjectSet::Load(istream* in) {
     Clear();
-    uint32_t count;
+    uint32_t count = 0;
     ReadValue32(in, &count);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return;
     for (uint32_t index = 0; index < count; ++index) {
         AiTaskObject* object = NewOrNull<AiTaskObject>();
-        if (object) {
-            object->Read(in);
-            AddWithId(object);
+        if (!object) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
+        object->Read(in);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddWithId(object) == 0) {
+            delete object;
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
         }
     }
 }
 
 void AiTaskObjectSet::Save(ostream* out) {
-    uint32_t count = static_cast<uint16_t>(Count());
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, Count())) return;
     for (AvlNode* node = First(); node; node = node->m_successor) static_cast<AiTaskObject*>(node)->Write(out);
 }
 

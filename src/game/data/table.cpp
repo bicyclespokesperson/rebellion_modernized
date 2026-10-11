@@ -4,6 +4,8 @@
 
 #include "core/checked_new.h"
 #include "core/file_util.h"
+#include "core/stream_io.h"
+#include "iostream/iostream.h"
 #include "core/utility_classes.h"
 #include "data/dat_record.h"
 
@@ -90,34 +92,40 @@ TableEntry* Table::FindStepEntry(int value) {
 int Table::Read(istream* in) {
     m_entries.Clear();
     int ok = ReadVersion(in);
-    if (!ok) return 0;
-    int count;
-    int nameLength;
+    if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return 0;
+    uint32_t count = 0;
+    int nameLength = 0;
     ReadValue32(in, &count);
     ReadValue32(in, &nameLength);
-    // BUG(original): the name length from the file is not checked against the size of m_name.
-    istream_read(in, m_name, nameLength);
-    m_name[nameLength] = '\0';
-    for (;;) {
-        if (count == 0) return ok;
-        --count;
-        TableEntry* entry = static_cast<TableEntry*>(CreateTableEntryByClassName(m_name));
-        if (entry) {
-            ok = entry->Read(in);
-            if (ok)
-                Add(entry);
-            else
-                delete entry;
-        }
-        if (!ok) return 0;
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 ||
+        nameLength < 1 || nameLength >= static_cast<int>(sizeof(m_name))) {
+        iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+        return 0;
     }
+    istream_read(in, m_name, nameLength);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return 0;
+    m_name[nameLength] = '\0';
+    for (uint32_t index = 0; index < count; ++index) {
+        TableEntry* entry = static_cast<TableEntry*>(CreateTableEntryByClassName(m_name));
+        if (!entry) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return 0;
+        }
+        ok = entry->Read(in);
+        if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 ||
+            m_entries.AddWithId(entry) == 0) {
+            delete entry;
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return 0;
+        }
+    }
+    return ok;
 }
 
 int Table::Write(ostream* out) {
     int ok = WriteVersion(out);
     if (!ok) return 0;
-    uint32_t count = static_cast<uint16_t>(m_entries.Count());
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, m_entries.Count())) return 0;
     int length = static_cast<int>(std::strlen(m_name));
     WriteValue32(out, &length);
     ostream_write(out, m_name, length);
@@ -131,7 +139,7 @@ int Table::Write(ostream* out) {
 int Table::Checksum(Crc32* crc) {
     int ok = ChecksumVersion(crc);
     if (!ok) return ok;
-    crc->AddInt(static_cast<uint16_t>(m_entries.Count()));
+    crc->AddInt(static_cast<int32_t>(m_entries.Count()));
     const int length = static_cast<int>(std::strlen(m_name));
     crc->AddInt(length);
     crc->Update(reinterpret_cast<const uint8_t*>(m_name), length);
@@ -228,11 +236,15 @@ int GDataTables::CreateTableList() {
 
 uint32_t GDataTables::LoadTable(uint16_t firstId, uint16_t secondId, uint32_t tableId) {
     TableFile* file = NewOrNull<TableFile>();
-    if (!file || file->m_version == 0) return 0;
-    // BUG(original): a file that fails to load is leaked.
-    if (!file->Load(firstId, secondId, GetGameDataDirectory())) return 0;
+    if (!file) return 0;
+    if (file->m_version == 0 || !file->Load(firstId, secondId, GetGameDataDirectory())) {
+        delete file;
+        return 0;
+    }
     file->SetId(tableId);
-    return m_tables->AddWithId(file);
+    const uint32_t id = m_tables->AddWithId(file);
+    if (id == 0) delete file;
+    return id;
 }
 
 int GDataTables::RegisterAllTables() {

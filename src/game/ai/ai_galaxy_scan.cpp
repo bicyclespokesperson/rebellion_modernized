@@ -4,6 +4,7 @@
 #include "ai/ai_common.h"
 #include "ai/ai_galaxy_analysis.h"
 #include "core/checked_new.h"
+#include "core/stream_io.h"
 #include "economy/defense_facility.h"
 #include "economy/manu_mgr.h"
 #include "economy/manufacturing_facility.h"
@@ -346,9 +347,9 @@ void AiSectorScan::ReadRecord(istream* in, AiSystemScanSet* systems) {
     ReadValue32(in, &m_view);
     m_flagsA.Read(in);
     m_flagsB.Read(in);
-    ReadValue16(in, &m_x2c);
     ReadValue16(in, &m_x);
     ReadValue16(in, &m_y);
+    ReadValue16(in, &m_x2c);
     for (uint16_t index = 0; index < kSystemCount; ++index) {
         key.Read(in);
         SetSystem(index, &key, systems);
@@ -357,7 +358,6 @@ void AiSectorScan::ReadRecord(istream* in, AiSystemScanSet* systems) {
     m_dirty = 1;
 }
 
-// BUG(original): the position is written before the first halfword but read after it.
 void AiSectorScan::Save(ostream* out) {
     ObjectKeyNode::Save(out);
     WriteValue32(out, &m_dirty);
@@ -504,7 +504,7 @@ void AiSectorScan::Accumulate(const int* stats, const int* flagsA, const int* fl
 
 namespace {
 
-uint32_t CountOf(AvlTree& tree) { return static_cast<uint16_t>(tree.Count()); }
+size_t CountOf(AvlTree& tree) { return tree.Count(); }
 
 }  // namespace
 
@@ -545,8 +545,7 @@ void AiSectorScanSet::LoadAll(istream* in, AiSystemScanSet* systems, AiGalaxyAna
 void AiSectorScanSet::Save(ostream* out) {
     ObjectKey key;
     WriteValue32(out, &m_view);
-    uint32_t count = CountOf(*this);
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, Count())) return;
     for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor)) node->Save(out);
     if (!m_cursorObject) {
         uint32_t none = 0;
@@ -646,8 +645,7 @@ void AiSystemScanSet::Load(istream* in) {
 void AiSystemScanSet::Save(ostream* out) {
     ObjectKey key;
     WriteValue32(out, &m_view);
-    uint32_t count = CountOf(*this);
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, Count())) return;
     for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor)) node->Save(out);
     if (!m_cursorObject) {
         uint32_t none = 0;

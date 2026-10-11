@@ -1,5 +1,7 @@
 #include "gameobj/object_key.h"
 
+#include <limits>
+
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
 
@@ -134,27 +136,39 @@ void ObjectKeySet::Load(istream* in) { Read(in); }
 
 void ObjectKeySet::Read(istream* in) {
     Clear();
-    uint32_t count;
+    uint32_t count = 0;
     ReadValue32(in, &count);
+    if (iostream_access::State(in) != 0) return;
     for (uint32_t i = 0; i < count; ++i) {
-        ObjectKeyNode* node = NewNode();
-        // BUG(original): a failed allocation is not checked before the node is used.
+        auto node = std::unique_ptr<ObjectKeyNode>(NewNode());
+        if (!node) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
         node->Read(in);
-        Add(node);
+        if (iostream_access::State(in) != 0 || !Add(node.get())) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
+        node.release();
     }
 }
 
 void ObjectKeySet::Save(ostream* out) { Write(out); }
 
 void ObjectKeySet::Write(ostream* out) {
-    uint32_t count = static_cast<uint16_t>(Count());
+    if (Count() > std::numeric_limits<uint32_t>::max()) {
+        iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
+        return;
+    }
+    uint32_t count = static_cast<uint32_t>(Count());
     WriteValue32(out, &count);
     for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor)) node->Write(out);
 }
 
 int ObjectKeySet::Checksum(Crc32* crc) {
     int ok = 1;
-    crc->AddInt(static_cast<uint16_t>(Count()));
+    crc->AddInt(static_cast<uint32_t>(Count()));
     for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor)) {
         ok = node->Checksum(crc);
         if (!ok) break;
@@ -176,14 +190,17 @@ uint32_t ObjectKeySet::Add(ObjectKeyNode* node) {
     ObjectKey key;
     if (node) {
         node->GetKey(&key);
-        if (key.IsComplete()) Insert(node);
+        if (!key.IsComplete() || !Insert(node)) return 0;
     }
     return key.Id();
 }
 
 int ObjectKeySet::AddKey(const ObjectKey* key) {
     ObjectKeyNode* node = NewOrNull<ObjectKeyNode>(*key);
-    return node && Add(node) != 0;
+    if (!node) return 0;
+    if (Add(node)) return 1;
+    delete node;
+    return 0;
 }
 
 void ObjectKeySet::RemoveKey(const ObjectKey* key) {
@@ -201,12 +218,16 @@ ObjectKeyNode* ObjectKeySet::Detach(const ObjectKey* key) {
 }
 
 ObjectKeyNode* ObjectKeySet::Find(const ObjectKey* key) {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(m_root);
-    while (node) {
+    AvlNode* found = LowerBound([key](const AvlNode* candidate) {
+        ObjectKey nodeKey;
+        static_cast<const ObjectKeyNode*>(candidate)->GetKey(&nodeKey);
+        return nodeKey.m_value < key->m_value;
+    });
+    auto* node = static_cast<ObjectKeyNode*>(found);
+    if (node) {
         ObjectKey nodeKey;
         node->GetKey(&nodeKey);
-        if (key->m_value == nodeKey.m_value) break;
-        node = static_cast<ObjectKeyNode*>(nodeKey.m_value < key->m_value ? node->m_right : node->m_left);
+        if (nodeKey.m_value != key->m_value) node = nullptr;
     }
     return node;
 }
@@ -249,7 +270,10 @@ int ObjectKeyValueSet::operator!=(const ObjectKeyValueSet& other) const { return
 
 int ObjectKeyValueSet::AddKeyValue(const ObjectKey* key, int value) {
     ObjectKeyValueNode* node = NewOrNull<ObjectKeyValueNode>(*key, value);
-    return node && Add(node) != 0;
+    if (!node) return 0;
+    if (Add(node)) return 1;
+    delete node;
+    return 0;
 }
 
 // ---- ObjectRefList -----------------------------------------------------------------------------------------

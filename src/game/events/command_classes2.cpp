@@ -530,9 +530,7 @@ int ManufactureCommand::CheckValid(StatusCode* status) {
                 ObjectKey previous;
                 previous.m_value = 0;
                 int total = 0;
-                // BUG(original): the per-item count shares its stack slot with the manager key above and keeps that
-                // value for items that neither differ from the previous one nor have a record.
-                int count = static_cast<int>(managerKey.m_value);
+                int count = 0;
                 for (AvlNode* node = m_items.First(); ok && succeeded(*status) && node; node = node->m_successor) {
                     CapacityScratch slot;
                     ObjectKeyNodeView item(node);
@@ -541,6 +539,7 @@ int ManufactureCommand::CheckValid(StatusCode* status) {
                         if (ok && succeeded(*status)) {
                             if (item.unit()->m_value != previous.m_value) {
                                 previous = *item.unit();
+                                count = 0;
                                 if (previous.Family() >= 0x10 && previous.Family() < 0x40) {
                                     SdRecord* record = static_cast<SdRecord*>(FindDataRecord(AsLookupKey(&previous)));
                                     ok = record != nullptr;

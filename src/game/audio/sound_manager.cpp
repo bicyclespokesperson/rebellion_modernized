@@ -191,8 +191,7 @@ int SoundManager::SetPrimaryBufferFormat(uint32_t packedFormat) {
         DSBUFFERDESC1 description = {};
         description.dwSize = sizeof(description);
         description.dwFlags = DSBCAPS_PRIMARYBUFFER | DSBCAPS_CTRLVOLUME;
-        // BUG(original): Audio().directSound is null when DirectSoundCreate failed (no audio device), and SetMasterVolume and
-        // GetMasterVolume reach this without checking it.
+        if (!Audio().directSound) return kSoundCreatePrimaryFailed;
         if (Audio().directSound->CreateSoundBuffer(reinterpret_cast<LPCDSBUFFERDESC>(&description), &Audio().primaryBuffer, nullptr) != DS_OK)
             return kSoundCreatePrimaryFailed;
     }

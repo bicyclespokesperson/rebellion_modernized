@@ -96,8 +96,8 @@ public:
     virtual void Virtual08(int a, int b, int c);                             // slot 8, 0x48b3d0: does nothing
 
     ATOM RegisterWindowClass(UINT classStyle);  // 0x5ffc80: RegisterClassA with CoolWindowProc
-    // Registers the class if needed and creates the window; true if m_hwnd is non-null. BUG(original):
-    // useExStyle has no effect, m_exStyle is always the extended style.
+    // Registers the class if needed and creates the window; true if m_hwnd is non-null. `useExStyle` selects whether
+    // the window's extended style is applied.
     int Create(int useExStyle);                // 0x5ffce0
     BOOL IsEnabled();                           // 0x5ffea0
     void CenterInParent();                      // 0x5ffeb0

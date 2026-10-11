@@ -246,11 +246,10 @@ void ManufactureOrderWindow::OnCreate1() {
     m_unitLabelA = NewSpaceLabel(0x8c, 0x91, 0x3c, 0xf, 0x26, 10);
     m_unitLabelB = NewSpaceLabel(0x8c, 0xa5, 0x3c, 0xf, 0x26, 10);
     ShowUnitLabels(0, 0, 0);
-    // BUG(original): the new field's own address is passed as its HINSTANCE.
     void* fieldMemory = ::operator new(sizeof(CoolStringField));
     m_quantityField =
         fieldMemory ? new (fieldMemory)
-                          CoolStringField(reinterpret_cast<HINSTANCE>(fieldMemory), 0x8d, 0xc4, 0x2d, 0x11, this,
+                          CoolStringField(m_instance, 0x8d, 0xc4, 0x2d, 0x11, this,
                                           GetPaintBackgroundIfOwned(), 0u)
                     : nullptr;
     if (m_quantityField) {

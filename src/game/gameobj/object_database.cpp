@@ -37,9 +37,8 @@ ObjectKey* ObjectEntry::GetKey(ObjectKey* out) const {
 }
 
 int ObjectEntry::AddObject(GameObjNotifier* object) {
-    bool matches = false;
-    if (object) matches = m_family == object->GetFamily();
-    // BUG(original): the view side is read from `object` before it is known to be non-null.
+    if (!object) return 0;
+    bool matches = m_family == object->GetFamily();
     const uint32_t view = object->ViewSide();
     if (view > 2) matches = false;
     if (matches && m_objects[view] == nullptr) {
@@ -51,9 +50,8 @@ int ObjectEntry::AddObject(GameObjNotifier* object) {
 }
 
 int ObjectEntry::RemoveObject(GameObjNotifier* object) {
-    bool matches = false;
-    if (object) matches = m_family == object->GetFamily();
-    // BUG(original): the view side is read from `object` before it is known to be non-null.
+    if (!object) return 0;
+    bool matches = m_family == object->GetFamily();
     const uint32_t view = object->ViewSide();
     if (view > 2) matches = false;
     if (matches && object == m_objects[view]) {
@@ -155,44 +153,29 @@ int ObjectDatabase::AreAllLinked() {
 }
 
 ObjectEntry* ObjectDatabase::FindEntry(const ObjectKey* key) {
-    AvlNode* node = m_root;
-    bool found = false;
-    while (node && !found) {
+    AvlNode* node = LowerBound([key](const AvlNode* candidate) {
         ObjectKey nodeKey;
-        if (static_cast<ObjectEntry*>(node)->GetKey(&nodeKey)->m_value < key->m_value) {
-            node = node->m_right;
-        } else if (key->m_value < static_cast<ObjectEntry*>(node)->GetKey(&nodeKey)->m_value) {
-            node = node->m_left;
-        } else {
-            found = true;
-        }
+        static_cast<const ObjectEntry*>(candidate)->GetKey(&nodeKey);
+        return nodeKey.m_value < key->m_value;
+    });
+    if (node) {
+        ObjectKey nodeKey;
+        static_cast<ObjectEntry*>(node)->GetKey(&nodeKey);
+        if (nodeKey.m_value != key->m_value) node = nullptr;
     }
     return static_cast<ObjectEntry*>(node);
 }
 
 ObjectEntry* ObjectDatabase::FindEntryInRange(const FamilyRange* range) {
     const uint32_t probe = (range->m_first << 24) | 1;
-    AvlNode* node = m_root;
-    AvlNode* last = nullptr;
-    bool found = false;
-    while (node && !found) {
+    AvlNode* node = LowerBound([probe](const AvlNode* candidate) {
         ObjectKey nodeKey;
-        last = node;
-        if (static_cast<ObjectEntry*>(node)->GetKey(&nodeKey)->m_value < probe) {
-            node = node->m_right;
-        } else if (probe < static_cast<ObjectEntry*>(node)->GetKey(&nodeKey)->m_value) {
-            node = node->m_left;
-        } else {
-            found = true;
-        }
-    }
-    if (!node && last) {
-        ObjectKey lastKey;
-        if (static_cast<ObjectEntry*>(last)->GetKey(&lastKey)->m_value < probe) last = last->m_successor;
-        if (last) {
-            const uint32_t family = static_cast<ObjectEntry*>(last)->m_family;
-            if (range->m_first <= family && family < range->m_second) node = last;
-        }
+        static_cast<const ObjectEntry*>(candidate)->GetKey(&nodeKey);
+        return nodeKey.m_value < probe;
+    });
+    if (node) {
+        const uint32_t family = static_cast<ObjectEntry*>(node)->m_family;
+        if (family < range->m_first || family >= range->m_second) node = nullptr;
     }
     return static_cast<ObjectEntry*>(node);
 }
@@ -232,45 +215,27 @@ int ChildList::RemoveChild(GameObjNotifier* child) {
 }
 
 GameObjNotifier* ChildList::Find(uint32_t family, uint32_t id) const {
-    GameObjNotifier* node = static_cast<GameObjNotifier*>(m_root);
-    bool found = false;
-    while (node && !found) {
+    AvlNode* found = LowerBound([family, id](const AvlNode* candidate) {
+        auto* node = const_cast<GameObjNotifier*>(static_cast<const GameObjNotifier*>(candidate));
         const uint32_t nodeFamily = node->GetFamily();
-        const uint32_t nodeId = node->m_id;
-        if (family > nodeFamily || (family == nodeFamily && id > nodeId)) {
-            node = static_cast<GameObjNotifier*>(node->m_right);
-        } else if (family < nodeFamily || (family == nodeFamily && id < nodeId)) {
-            node = static_cast<GameObjNotifier*>(node->m_left);
-        } else {
-            found = true;
-        }
-    }
+        return nodeFamily < family || (nodeFamily == family && node->m_id < id);
+    });
+    auto* node = static_cast<GameObjNotifier*>(found);
+    if (node && (node->GetFamily() != family || node->m_id != id)) node = nullptr;
     return node;
 }
 
 GameObjNotifier* ChildList::FindFirstInRange(const FamilyRange* range) const {
-    bool found = false;
-    GameObjNotifier* node = static_cast<GameObjNotifier*>(m_root);
-    GameObjNotifier* last = nullptr;
-    while (node && !found) {
+    const uint32_t first = range->m_first;
+    AvlNode* found = LowerBound([first](const AvlNode* candidate) {
+        auto* node = const_cast<GameObjNotifier*>(static_cast<const GameObjNotifier*>(candidate));
         const uint32_t family = node->GetFamily();
-        const uint32_t first = range->m_first;
-        last = node;
-        if (family < first || (first == family && node->m_id == 0)) {
-            node = static_cast<GameObjNotifier*>(node->m_right);
-        } else if (first < family || (first == family && 1 < node->m_id)) {
-            node = static_cast<GameObjNotifier*>(node->m_left);
-        } else {
-            found = true;
-        }
-    }
-    if (!node && last) {
-        if (last->GetFamily() < range->m_first) last = static_cast<GameObjNotifier*>(last->m_successor);
-        if (last) {
-            last->GetFamily();
-            const uint32_t family = last->GetFamily();
-            if (range->m_first <= family && family < range->m_second) node = last;
-        }
+        return family < first || (family == first && node->m_id < 1);
+    });
+    auto* node = static_cast<GameObjNotifier*>(found);
+    if (node) {
+        const uint32_t family = node->GetFamily();
+        if (family < range->m_first || family >= range->m_second) node = nullptr;
     }
     return node;
 }
@@ -298,11 +263,10 @@ GameObjNotifier* GetMasterObject(const ObjectKey* key) { return LookupObject(key
 GameObjNotifier* GetFirstMasterObjectInRange(const FamilyRange* range) { return FindObjectInRange(range, 0, 1); }
 
 GameObjNotifier* LookupObject(const ObjectKey* key, int view) {
-    ObjectEntry* entry = reinterpret_cast<ObjectEntry*>(const_cast<ObjectKey*>(key));
-    // BUG(original): with no database the key itself is used as the entry.
-    if (g_objectDatabase) entry = g_objectDatabase->FindEntry(key);
+    if (!key) return nullptr;
+    ObjectEntry* entry = g_objectDatabase ? g_objectDatabase->FindEntry(key) : nullptr;
     if (!entry) {
-        if (key->IsSet() && g_unresolvedKeys && g_unresolvedKeys->m_root) g_unresolvedKeys->Find(key);
+        if (key->IsSet() && g_unresolvedKeys) g_unresolvedKeys->Find(key);
         return nullptr;
     }
     return entry->GetObject(view);
@@ -314,7 +278,7 @@ GameObjNotifier* FindObjectInRange(const FamilyRange* range, int view, int resol
         ObjectEntry* entry = g_objectDatabase->FindEntryInRange(range);
         if (entry && entry->IsFullyLinked()) {
             object = entry->GetObject(view);
-            if (resolve && object->IsUnderSideRoot()) object = FindNextObjectInRange(object, range, 1);
+            if (resolve && object && object->IsUnderSideRoot()) object = FindNextObjectInRange(object, range, 1);
         }
     }
     return object;
@@ -429,7 +393,7 @@ int CheckObjectDatabase() {
 
 int NoteUnresolvedKeyOf(GameObjNotifier* object) {
     const bool haveSet = g_unresolvedKeys != nullptr;
-    if (haveSet && g_unresolvedKeys->m_root) {
+    if (haveSet) {
         ObjectKey key;
         object->GetKey(&key);
         g_unresolvedKeys->AddKey(&key);

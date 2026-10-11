@@ -523,8 +523,7 @@ void TextScrollField::OnKeyDown(HWND hwnd, WPARAM key, LPARAM lParam) {
         return;
     case VK_NEXT:
         PageDown();
-        // BUG(original): no break, so Page Down also pages back up (and is forwarded to the parent).
-        [[fallthrough]];
+        break;
     case VK_PRIOR:
         PageUp();
         break;

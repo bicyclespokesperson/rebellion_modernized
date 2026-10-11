@@ -3,7 +3,11 @@
 #include "ai/ai_order_util.h"
 #include "ai/ai_task_types.h"
 #include "core/checked_new.h"
+#include "iostream/iostream.h"
+#include "core/stream_io.h"
 #include "events/game_clock_hooks.h"
+
+#include <limits>
 
 // ---- AiMissionHistoryEntry ----------------------------------------------------------------------------------------------
 
@@ -65,17 +69,30 @@ int AiMissionHistory::IsLess(AvlNode* a, AvlNode* b) {
 
 void AiMissionHistory::Load(istream* in) {
     Clear();
-    uint32_t count;
+    uint32_t count = 0;
     ReadValue32(in, &count);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return;
     for (uint32_t index = 0; index < count; ++index) {
         AiMissionHistoryEntry* entry = NewOrNull<AiMissionHistoryEntry>();
+        if (!entry) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
         entry->Read(in);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
+            delete entry;
+            return;
+        }
         Insert(entry);
     }
 }
 
 void AiMissionHistory::Save(ostream* out) {
-    uint32_t count = static_cast<uint16_t>(Count());
+    if (Count() > std::numeric_limits<uint32_t>::max()) {
+        iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
+        return;
+    }
+    uint32_t count = static_cast<uint32_t>(Count());
     WriteValue32(out, &count);
     for (AvlNode* node = First(); node; node = node->m_successor) static_cast<AiMissionHistoryEntry*>(node)->Write(out);
 }
@@ -84,7 +101,10 @@ int AiMissionHistory::Add(const void* mission) {
     if (!mission) return 0;
     AiMissionHistoryEntry* entry = NewOrNull<AiMissionHistoryEntry>();
     if (!entry) return 0;
-    entry->Fill(mission);
+    if (!entry->Fill(mission)) {
+        delete entry;
+        return 0;
+    }
     Insert(entry);
     return 1;
 }
@@ -122,14 +142,25 @@ void AiTaskManager::Load(istream* in, AiSideController* owner) {
     ReadValue32(in, &m_view);
     int16_t count;
     ReadValue16(in, &count);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || count < 0) {
+        iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+        return;
+    }
     while (count != 0) {
-        int type;
+        int type = 0;
         ReadValue32(in, &type);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return;
         AiTaskBase* task = MakeTask(type);
-        if (task) {
-            task->SetOwner(owner);
-            task->Read(in);
-            AddWithId(task);
+        if (!task) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
+        task->SetOwner(owner);
+        task->Read(in);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddWithId(task) == 0) {
+            delete task;
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
         }
         --count;
     }
@@ -258,17 +289,26 @@ AiNoticeQueue::~AiNoticeQueue() = default;
 
 void AiNoticeQueue::Load(istream* in) {
     Clear();
-    uint32_t count;
+    uint32_t count = 0;
     ReadValue32(in, &count);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return;
     for (; count != 0; --count) {
         AiNoticeGroup* group = NewOrNull<AiNoticeGroup>();
-        group->Load(in);  // BUG(original): the group is never added to the queue, so a loaded queue is empty (and leaks)
+        if (!group) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
+        group->Load(in);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddWithId(group) == 0) {
+            delete group;
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
     }
 }
 
 void AiNoticeQueue::Save(ostream* out) {
-    uint32_t count = static_cast<uint16_t>(Count());
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, Count())) return;
     for (AvlNode* node = First(); node; node = node->m_successor)
         static_cast<AiNoticeGroup*>(static_cast<IdNode*>(node))->Save(out);
 }
@@ -307,6 +347,6 @@ void AiNoticeQueue::NewGroup(NotifPayload* notice) {
     AiNoticeGroup* group = NewOrNull<AiNoticeGroup>();
     if (group) {
         group->Add(notice);
-        AddWithId(group);
-    }
+        if (AddWithId(group) == 0) delete group;
+    } else delete notice;
 }

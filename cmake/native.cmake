@@ -151,11 +151,12 @@ if(BUILD_TESTING)
   target_compile_options(reb_math_tests PRIVATE ${REB_NATIVE_FLAGS})
   target_link_libraries(reb_math_tests PRIVATE ${REB_NATIVE_LINK_FLAGS})
   add_test(NAME native_integer_math COMMAND reb_math_tests)
-  add_executable(reb_container_tests tests/native/container_tests.cpp src/game/core/containers.cpp)
+  add_executable(reb_container_tests tests/native/container_tests.cpp ${REB_STREAM_TEST_SOURCES}
+    src/game/core/containers.cpp src/game/core/game_string.cpp src/game/core/stream_io.cpp)
   target_include_directories(reb_container_tests PRIVATE src/game src src/port/native/crt)
   target_compile_options(reb_container_tests PRIVATE ${REB_NATIVE_FLAGS} ${REB_NATIVE_RUNTIME})
   target_compile_definitions(reb_container_tests PRIVATE ${REB_NATIVE_DEFS})
-  target_link_libraries(reb_container_tests PRIVATE ${REB_NATIVE_LINK_FLAGS})
+  target_link_libraries(reb_container_tests PRIVATE ${REB_PLATFORM_LIBS} ${REB_NATIVE_LINK_FLAGS})
   add_test(NAME native_containers COMMAND reb_container_tests)
   add_executable(reb_random_tests
     tests/native/random_tests.cpp ${REB_STREAM_TEST_SOURCES}
@@ -166,4 +167,18 @@ if(BUILD_TESTING)
   target_compile_definitions(reb_random_tests PRIVATE ${REB_NATIVE_DEFS})
   target_link_libraries(reb_random_tests PRIVATE ${REB_PLATFORM_LIBS} ${REB_NATIVE_LINK_FLAGS})
   add_test(NAME native_randomness COMMAND reb_random_tests)
+  add_executable(reb_save_transaction_tests
+    tests/native/save_transaction_tests.cpp ${REB_STREAM_TEST_SOURCES}
+    src/game/core/game_string.cpp src/game/core/stream_io.cpp
+    src/port/native/save_transaction.cpp src/port/minwin_impl/res/path.cpp)
+  target_include_directories(reb_save_transaction_tests PRIVATE src/game src src/port/native/crt)
+  target_compile_options(reb_save_transaction_tests PRIVATE ${REB_NATIVE_FLAGS} ${REB_NATIVE_RUNTIME})
+  target_compile_definitions(reb_save_transaction_tests PRIVATE ${REB_NATIVE_DEFS})
+  target_link_libraries(reb_save_transaction_tests PRIVATE ${REB_PLATFORM_LIBS} ${REB_NATIVE_LINK_FLAGS})
+  add_test(NAME native_save_transaction COMMAND reb_save_transaction_tests)
+  add_executable(reb_rle8_tests tests/native/rle8_decoder_tests.cpp src/game/gfx/rle8_decoder.cpp)
+  target_include_directories(reb_rle8_tests PRIVATE src/game)
+  target_compile_options(reb_rle8_tests PRIVATE ${REB_NATIVE_FLAGS})
+  target_link_libraries(reb_rle8_tests PRIVATE ${REB_NATIVE_LINK_FLAGS})
+  add_test(NAME native_rle8_decoder COMMAND reb_rle8_tests)
 endif()

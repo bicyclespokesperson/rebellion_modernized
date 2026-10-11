@@ -6,6 +6,7 @@
 #include "tactical/tactical_game.h"
 #include "tactical/tactical_ship.h"
 #include "tactical/tactical_simulator.h"
+#include "core/checked_new.h"
 
 // Death Star (0x5ba3a0-0x5ba8b0) and the headless simulator's handling of it.
 
@@ -91,9 +92,10 @@ void TacticalDeathStar::ResetCharged() {
 
 int HeadlessSimulator::AddDeathStar(int family, int id, int notCompleted, int hasFacility, float hull, float hullNow,
                                     int hangarFree) {
-    TacticalDeathStar* deathStar = new TacticalDeathStar(family, id, notCompleted, hasFacility, hull, hullNow, hangarFree);
+    TacticalDeathStar* deathStar = NewOrNull<TacticalDeathStar>(family, id, notCompleted, hasFacility, hull, hullNow,
+                                                                  hangarFree);
+    if (!deathStar) return 0;
     RegisterDeathStar(deathStar);
-    // BUG(original): a failed allocation is dereferenced here and above.
     return deathStar->m_id;
 }
 

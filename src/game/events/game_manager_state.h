@@ -86,7 +86,7 @@ public:
 
 // ---- tick table ---------------------------------------------------------------------------------------------
 // The table at GameManager +0xbc (VT 0x663990): the per-seed-key tick values, an AVL tree of SeedKeyCountNodes
-// ordered by key. The saved form is a flag, a 16-bit-truncated count and the nodes.
+// ordered by key. The saved form is a flag, a 32-bit count and the nodes.
 class TickTable : public AvlTree {
 public:
     TickTable();           // 0x568b40

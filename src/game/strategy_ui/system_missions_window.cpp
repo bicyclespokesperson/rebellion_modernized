@@ -264,9 +264,8 @@ void SystemMissionsWindow::OnCreate1() {
 
     if (FillMissionList() != 0) {
         m_missionList->Show(kShow);
-        // BUG(original): crashes when no mission row could be made (the record of a mission may be missing).
         CoolListItem* first = m_missions->First();
-        m_missionList->SelectById(first->m_id, 1);
+        if (first) m_missionList->SelectById(first->m_id, 1);
     }
     SetFocus(m_missionList->m_hwnd);
     if ((m_galaxy->m_mouseMode & 4) == 0) {
@@ -389,8 +388,7 @@ void SystemMissionsWindow::OnChildAdded(const ObjectKey* key, GameObjNotifier* o
 
 void SystemMissionsWindow::OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
                                         GameObjNotifier*) {
-    // BUG(original): the object found here is never used.
-    if (!object) GetObjectInFamilies_01_ff(m_galaxy->m_side, key);
+    (void)object;
     GameObjNotifier* system = GetSystem();
     if (!system) return;
     if (!FamilyIn(*key, kAgentsFamilyFirst, kCharacterFamilyEnd)) return;

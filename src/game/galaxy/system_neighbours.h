@@ -40,7 +40,7 @@ public:
     virtual ~SystemNeighbourTable();  // 0x58afc0 (scalar deleting 0x58afa0)
 
     // Points `out` at the neighbour list of the system `key` names. Returns 1 if the key is a system's, else 0 with
-    // `out` null. BUG(original): the id is not checked against the table size.
+    // `out` null.
     int GetNeighbours(const ObjectKey* key, SystemNeighbourCursor* out);  // 0x58afd0
     // Fills every system's list from the current master systems. Always returns 1.
     int Build();  // 0x58b060

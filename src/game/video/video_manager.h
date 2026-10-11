@@ -1,6 +1,8 @@
 #pragma once
 #include <cstdint>
+#include <string>
 
+#include "core/reb_abi.h"
 #include "platform/smacker.h"
 #include "platform/win32.h"
 #include "ui/cool_window.h"
@@ -40,9 +42,9 @@ public:
     void SetVolume(int volume);
 
     static int GetMovieSize(int* width, int* height, HWND unusedWindow, const char* path);
-    static uint32_t PlaybackThreadProc(SmackerWindow* window);
+    static DWORD REB_STDCALL PlaybackThreadProc(LPVOID context);
 
-    char m_path[0x100];        // +0x094
+    std::string m_path;
     uint32_t m_unk194;         // +0x194
     uint32_t m_unk198;         // +0x198
     uint32_t m_scale;          // +0x19c, integer window zoom
@@ -72,7 +74,7 @@ public:
 
     static int GetMovieSize(int* width, int* height, HWND unusedWindow, const char* path);
 
-    char m_path[0x100];        // +0x094
+    std::string m_path;
     MCIDEVICEID m_device;      // +0x194
     uint32_t m_unk198;         // +0x198
     uint32_t m_unk19c;         // +0x19c

@@ -683,9 +683,10 @@ void FleetWindow::ShowObjectPage(const ObjectKey* key) {
         ObjectKey fleetKey;
         fleet->GetKey(&fleetKey);
         row = static_cast<FleetListItem*>(m_fleetItems->FindById(fleetKey.Id()));
-        // BUG(original): crashes when the fleet has no row.
-        row->m_state.m_value |= kListItemSelected;
-        m_fleetList->Refresh();
+        if (row) {
+            row->m_state.m_value |= kListItemSelected;
+            m_fleetList->Refresh();
+        }
     }
     if (!row || !ship) return;
     CoolTabControl* tabs;

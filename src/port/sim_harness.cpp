@@ -27,6 +27,7 @@
 #include "strategy_ui/human_player.h"
 
 #include "port/sim_harness.h"
+#include "port/native/save_transaction.h"
 
 
 namespace {
@@ -131,9 +132,6 @@ bool LoadGame(RebellionApplication* app, const char* path, SavedGameInfo* info) 
 }
 
 bool SaveGame(RebellionApplication* app, const SavedGameInfo& source, const char* path) {
-    ScopedOfstream file;
-    OpenOutputFile(file.get(), path);
-    if (GetFileError() != 0) return false;
     SavedGameInfo info;
     info.m_gameType = app->m_gameType;
     info.m_unknown10 = 1;
@@ -142,11 +140,10 @@ bool SaveGame(RebellionApplication* app, const SavedGameInfo& source, const char
     info.SetName(source.GetName());
     info.m_side = app->m_side;
     info.m_unknown24 = app->m_autosaveTick;
-    info.Write(file.get()->Out());
-    AppSaveGame(file.get()->Out());
-    const int writeState = iostream_access::State(file.get());
-    CloseFileStream(file.get());
-    return writeState == 0 && iostream_access::State(file.get()) == 0;
+    return reb::native::WriteSaveAtomically(path, [&](ostream* out) {
+        info.Write(out);
+        return AppSaveGame(out);
+    });
 }
 
 const char* ValidateReferences() {

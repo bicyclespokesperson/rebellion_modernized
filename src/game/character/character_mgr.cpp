@@ -153,8 +153,6 @@ int CharacterMgr::ChecksumBody(Crc32* crc) {
 int CharacterMgr::ApplyAllBody(NotifyContext* ctx) {
     const int result = GameObj::ApplyAll(ctx);
     if (result) {
-        // BUG(original): the base ApplyAll runs twice.
-        GameObj::ApplyAll(ctx);
         if (ctx->m_flag04 == 1) {
             ApplySeatOfPower(ctx);
             ApplyPickupInProgress(ctx);

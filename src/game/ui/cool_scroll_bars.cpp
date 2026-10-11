@@ -314,14 +314,13 @@ int CoolHorizontalScrollBar::Layout() {
         left->m_backdropX = 0;
         left->m_backdropY = leftTop;
     }
-    CoolWindow* right = m_forwardButton;
+    CoolStrobeButton* right = static_cast<CoolStrobeButton*>(m_forwardButton);
     const int rightTop = CenteredOn(m_thickness, right->m_height);
     moved = MoveWindow(right->m_hwnd, rightArrowLeft, rightTop, right->m_width, right->m_height, TRUE);
     if (moved && m_background) {
-        // BUG(original): the right arrow's background position is stored in the left arrow.
-        left->m_backdrop = m_background;
-        left->m_backdropX = rightArrowLeft;
-        left->m_backdropY = rightTop;
+        right->m_backdrop = m_background;
+        right->m_backdropX = rightArrowLeft;
+        right->m_backdropY = rightTop;
     }
     return moved;
 }
@@ -339,8 +338,7 @@ RECT* CoolHorizontalScrollBar::GetThumbRect(RECT* out) {
             left = 0;
             right = trackLength;
         } else {
-            // BUG(original): grows the thumb by 12 minus its thickness instead of up to 12 pixels long.
-            right += kMinimumThumbLength - height;
+            right += kMinimumThumbLength - (right - left);
             if (right > track.right) {
                 left = track.right - kMinimumThumbLength;
                 right = track.right;

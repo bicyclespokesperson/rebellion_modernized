@@ -1,5 +1,8 @@
 #include "events/event_queue.h"
 
+#include <limits>
+
+#include "core/iostream_lib.h"
 #include "core/utility_classes.h"
 
 namespace {
@@ -19,25 +22,36 @@ EventQueue::~EventQueue() {
 
 int EventQueue::Read(istream* in) {
     OrderedTree::Clear();
-    int count;
+    uint32_t count = 0;
     ReadValue32(in, &count);
-    while (count != 0) {
-        --count;
-        int kind;
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return 0;
+    for (uint32_t index = 0; index < count; ++index) {
+        int kind = 0;
         ReadValue32(in, &kind);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return 0;
         EventBase* event = static_cast<EventBase*>(CreateEventById(kind));
-        if (event) {
-            event->Read(in);
-            Add(event);
+        if (!event) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return 0;
+        }
+        event->Read(in);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || !Insert(event)) {
+            delete event;
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return 0;
         }
     }
     return 1;
 }
 
 int EventQueue::Write(ostream* out) {
-    uint32_t count = static_cast<uint16_t>(Count());
+    if (Count() > std::numeric_limits<uint32_t>::max()) {
+        iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
+        return 0;
+    }
+    uint32_t count = static_cast<uint32_t>(Count());
     WriteValue32(out, &count);
-    for (AvlNode* node = m_first; node; node = node->m_successor) {
+    for (AvlNode* node = First(); node; node = node->m_successor) {
         EventBase* event = asEvent(node);
         int kind = event->GetKind();
         WriteValue32(out, &kind);
@@ -48,12 +62,11 @@ int EventQueue::Write(ostream* out) {
 
 int EventQueue::Checksum(Crc32* crc) {
     crc->AddInt(Count());
-    for (AvlNode* node = m_first; node; node = node->m_successor) asEvent(node)->Checksum(crc);
+    for (AvlNode* node = First(); node; node = node->m_successor) asEvent(node)->Checksum(crc);
     return 1;
 }
 
 int EventQueue::Validate() {
-    if (m_root) CountSubtree(m_root);
     return 1;
 }
 
@@ -64,7 +77,7 @@ int EventQueue::RunNext() {
 
 int EventQueue::RunFirst() {
     int ran = 0;
-    AvlNode* first = m_first;
+    AvlNode* first = First();
     if (first) {
         Remove(first);
         ran = 1;
@@ -82,13 +95,6 @@ void EventQueue::Add(EventBase* event) {
     if (event) Insert(event);
 }
 
-int EventQueue::CountSubtree(AvlNode* node) {
-    int count = 1;
-    if (node->m_left) count = CountSubtree(node->m_left) + 1;
-    if (node->m_right) count += CountSubtree(node->m_right);
-    return count;
-}
-
 // ---- TimerQueue ------------------------------------------------------------------------------------------------
 
 TimerQueue::TimerQueue() : EventQueue() {}
@@ -102,7 +108,7 @@ int TimerQueue::IsLess(AvlNode* a, AvlNode* b) {
 }
 
 EventBase* TimerQueue::GetNext() {
-    AvlNode* first = m_first;
+    AvlNode* first = First();
     if (first) {
         int due = static_cast<TimedEvent*>(static_cast<EventBase*>(first))->m_dueDay;
         if (CallGameHook2B08() < due) first = nullptr;
@@ -118,7 +124,7 @@ CommandQueue::~CommandQueue() = default;
 
 int CommandQueue::IsLess(AvlNode*, AvlNode*) { return 0; }
 
-EventBase* CommandQueue::GetNext() { return static_cast<EventBase*>(m_first); }
+EventBase* CommandQueue::GetNext() { return static_cast<EventBase*>(First()); }
 
 void CommandQueue::AddCommand(EventBase* event) { Add(event); }
 
@@ -133,4 +139,4 @@ int TypeQueue::IsLess(AvlNode* a, AvlNode* b) {
     return static_cast<PlainEvent*>(a)->GetPriority() < static_cast<PlainEvent*>(b)->GetPriority();
 }
 
-EventBase* TypeQueue::GetNext() { return static_cast<EventBase*>(m_first); }
+EventBase* TypeQueue::GetNext() { return static_cast<EventBase*>(First()); }

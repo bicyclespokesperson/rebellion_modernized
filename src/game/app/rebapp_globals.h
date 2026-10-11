@@ -73,9 +73,9 @@ SavedGameInfo AppReadSaveHeader(int slot, int isNetworkGame);  // 0x401860
 int AppGetSavedGameType(int slot, int isNetworkGame);  // 0x401910: without an app returns its second argument
 
 // ---- Battle-flow object (the game session driver, 0x409230-0x40a050) ----------------------------------------
-void AppRestoreGame(void* stream);               // 0x401b70
+bool AppRestoreGame(istream* stream);               // 0x401b70
 void AppStartGame(void* setup, int gameType, int side);  // 0x401b90
-void AppSaveGame(void* stream);                  // 0x401bb0
+bool AppSaveGame(ostream* stream);
 void AppStepGame(int* stepped);                  // 0x401bd0: sets *stepped = 1, then lets the game advance
 void AppReleaseBattleFlow();                     // 0x401bf0
 int AppGetBattleFlowState();                     // 0x401c10

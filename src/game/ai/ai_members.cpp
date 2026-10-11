@@ -11,6 +11,7 @@
 #include "ai/ai_side_controller.h"
 #include "ai/ai_system_record.h"
 #include "core/checked_new.h"
+#include "core/stream_io.h"
 #include "data/dat_record.h"
 #include "data/random.h"
 #include "economy/side.h"
@@ -26,14 +27,13 @@ namespace {
 
 constexpr uint32_t kDirty = 0x80000000;
 
-uint32_t CountOf(AvlTree& tree) { return static_cast<uint16_t>(tree.Count()); }
+size_t CountOf(AvlTree& tree) { return tree.Count(); }
 
 // Shared by the sets that save their id-keyed nodes with the node's own Write (AiSystemRecordSet, AiTaskRecordSet).
 template <class Set>
 void SaveIdNodes(Set* set, ostream* out) {
     WriteValue32(out, &set->m_view);
-    uint32_t count = CountOf(*set);
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, set->Count())) return;
     for (AvlNode* node = set->First(); node; node = node->m_successor) static_cast<AiTaskRecord*>(node)->Write(out);
 }
 
@@ -75,20 +75,16 @@ void AiClassTable::SaveValues(ostream* out) {
 }
 
 AiClassRecordBase* AiClassTable::Find(const ObjectKey* key) {
-    AvlNode* node = m_root;
-    bool found = false;
     const uint32_t id = key->m_value & 0xffffff;
     const uint32_t family = key->m_value >> 24;
-    while (node && !found) {
-        const uint32_t nodeKey = static_cast<AiClassRecordBase*>(node)->m_key.m_value;
+    AvlNode* node = LowerBound([family, id](const AvlNode* candidate) {
+        const uint32_t nodeKey = static_cast<const AiClassRecordBase*>(candidate)->m_key.m_value;
         const uint32_t nodeFamily = nodeKey >> 24;
-        if (family < nodeFamily || (family == nodeFamily && id < (nodeKey & 0xffffff))) {
-            node = node->m_left;
-        } else if (nodeFamily < family || (family == nodeFamily && (nodeKey & 0xffffff) < id)) {
-            node = node->m_right;
-        } else {
-            found = true;
-        }
+        return nodeFamily < family || (nodeFamily == family && (nodeKey & 0xffffff) < id);
+    });
+    if (node) {
+        const uint32_t nodeKey = static_cast<AiClassRecordBase*>(node)->m_key.m_value;
+        if (nodeKey != key->m_value) node = nullptr;
     }
     return static_cast<AiClassRecordBase*>(node);
 }
@@ -346,8 +342,7 @@ void AiAgentSet::Load(istream* in) {
 
 void AiAgentSet::Save(ostream* out) {
     WriteValue32(out, &m_view);
-    uint32_t count = CountOf(*this);
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, Count())) return;
     for (AvlNode* node = First(); node; node = node->m_successor) {
         AiAgentBase* agent = static_cast<AiAgentBase*>(node);
         int kind = agent->GetKind();
@@ -421,8 +416,7 @@ void AiSystemRecordSet::Load(istream* in) {
 
 void AiSystemRecordSet::Save(ostream* out) {
     WriteValue32(out, &m_view);
-    uint32_t count = CountOf(*this);
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, Count())) return;
     for (AvlNode* node = First(); node; node = node->m_successor) static_cast<AiSystemRecord*>(node)->Write(out);
 }
 
@@ -504,8 +498,7 @@ void AiPlannerSet::Load(istream* in) {
 
 void AiPlannerSet::Save(ostream* out) {
     WriteValue32(out, &m_view);
-    uint32_t count = CountOf(*this);
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, Count())) return;
     for (AvlNode* node = First(); node; node = node->m_successor) {
         AiMissionPlanner* planner = static_cast<AiMissionPlanner*>(node);
         uint32_t kind = planner->m_missionKey.m_value >> 24;
@@ -647,8 +640,7 @@ void AiFleetEvalSet::Load(istream* in) {
 void AiFleetEvalSet::Save(ostream* out) {
     ObjectKey scratch;
     WriteValue32(out, &m_view);
-    uint32_t count = CountOf(*this);
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, Count())) return;
     for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor)) node->Save(out);
 }
 
@@ -737,8 +729,7 @@ void AiShipRecordSet::Load(istream* in) {
 void AiShipRecordSet::Save(ostream* out) {
     ObjectKey scratch;
     WriteValue32(out, &m_view);
-    uint32_t count = CountOf(*this);
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, Count())) return;
     for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor)) node->Save(out);
     WriteValue32(out, &m_done);
 }
@@ -873,8 +864,7 @@ void AiSectorEvalSet::LoadAll(istream* in, AiSystemEvalSet* systems, AiSideContr
 void AiSectorEvalSet::Save(ostream* out) {
     ObjectKey key;
     WriteValue32(out, &m_view);
-    uint32_t count = CountOf(*this);
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, Count())) return;
     for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor)) node->Save(out);
     if (!m_cursorObject) {
         uint32_t none = 0;
@@ -971,8 +961,7 @@ void AiSystemEvalSet::Load(istream* in) {
 void AiSystemEvalSet::Save(ostream* out) {
     ObjectKey key;
     WriteValue32(out, &m_view);
-    uint32_t count = CountOf(*this);
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, Count())) return;
     for (ObjectKeyNode* node = First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor)) node->Save(out);
     if (!m_cursorObject) {
         uint32_t none = 0;

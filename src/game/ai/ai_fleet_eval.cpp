@@ -4,6 +4,8 @@
 #include "ai/ai_members.h"
 #include "ai/ai_side_controller.h"
 #include "core/checked_new.h"
+#include "core/iostream_lib.h"
+#include "core/stream_io.h"
 #include "events/game_clock_hooks.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
@@ -71,13 +73,23 @@ void AiFleetEval::ReadRecord(istream* in, AiShipRecordSet* ships, AiSideControll
     m_x2c.Read(in);
     m_flags.Read(in);
     m_shipKeys.Clear();
-    uint32_t count;
+    uint32_t count = 0;
     ReadValue32(in, &count);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return;
     cursorKey.Read(in);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return;
     for (uint32_t i = 0; i < count; ++i) {
         ObjectKeyNode* node = NewOrNull<ObjectKeyNode>();
+        if (!node) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
         node->Load(in);
-        m_shipKeys.Add(node);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || !m_shipKeys.Add(node)) {
+            delete node;
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
     }
     m_cursor = m_shipKeys.Find(&cursorKey);
     for (int& value : m_stat) ReadValue32(in, &value);
@@ -96,8 +108,7 @@ void AiFleetEval::Save(ostream* out) {
     m_systemKey.Write(out);
     m_x2c.Write(out);
     m_flags.Write(out);
-    uint32_t count = static_cast<uint16_t>(m_shipKeys.Count());
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, m_shipKeys.Count())) return;
     if (m_cursor) m_cursor->GetKey(&cursorKey);
     cursorKey.Write(out);
     for (ObjectKeyNode* node = m_shipKeys.First(); node; node = static_cast<ObjectKeyNode*>(node->m_successor)) node->Save(out);

@@ -90,7 +90,7 @@ public:
 
     SystemSlot& Slot(int number) { return m_slots[number - 1]; }
 
-    uint32_t m_unknown140;              // +0x140 BUG(original): not initialised
+    uint32_t m_unknown140;              // +0x140
     ObjectKey m_systemKey;              // +0x144
     int m_controlSide;                  // +0x148 the side in control of the system (0-3)
     GalaxyWindow* m_galaxy;             // +0x14c

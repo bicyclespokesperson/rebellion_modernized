@@ -265,10 +265,11 @@ void AiSystemRecord::AddPlanner(AiMissionPlanner* planner) {
     if (!node) return;
     m_planners.AddWithId(node);
     ++m_plannerCount[static_cast<uint16_t>(PlannerClassOf(planner))];
-    // BUG(original): planners that do not work for a system record are shorter than this, the writes go past their end.
-    AiSystemPlanner* systemPlanner = static_cast<AiSystemPlanner*>(planner);
-    systemPlanner->m_systemRecordId = m_id;
-    systemPlanner->m_sectorKey = m_sectorKey;
+    if (planner->Virtual04() == 1) {
+        AiSystemPlanner* systemPlanner = static_cast<AiSystemPlanner*>(planner);
+        systemPlanner->m_systemRecordId = m_id;
+        systemPlanner->m_sectorKey = m_sectorKey;
+    }
     planner->SetTier(m_tier);
 }
 
@@ -279,10 +280,11 @@ void AiSystemRecord::RemovePlanner(AiMissionPlanner* planner) {
     delete node;
     --m_plannerCount[static_cast<uint16_t>(PlannerClassOf(planner))];
     planner->SetTier(0);
-    AiSystemPlanner* systemPlanner = static_cast<AiSystemPlanner*>(planner);
-    systemPlanner->m_systemRecordId = 0;
-    systemPlanner->m_sectorKey.Reset();
-    planner->SetTier(0);
+    if (planner->Virtual04() == 1) {
+        AiSystemPlanner* systemPlanner = static_cast<AiSystemPlanner*>(planner);
+        systemPlanner->m_systemRecordId = 0;
+        systemPlanner->m_sectorKey.Reset();
+    }
 }
 
 int AiSystemRecord::HasAgents() { return m_xe0 != 0 || m_xe4 != 0; }
@@ -485,7 +487,7 @@ OrderBase* AiSystemRecord::Step(int* done) {
             UpdateShortage();
             m_state = 0;
             *done = 1;
-            [[fallthrough]];  // BUG(original): the finished pass falls into the default case and restarts at state 1
+            break;
         default:
             m_state = 1;
             m_dirty = 1;
@@ -636,7 +638,7 @@ OrderBase* AiSystemRecord::CheckShortfall(int* done) {
         if (m_sum[9] < 0) m_flagsB.m_value |= 0x80;
         if (m_sum[6] < 0) m_flagsB.m_value |= 0x800;
     }
-    if (order == nullptr && surplus()) ReleaseSurplus();  // BUG(original): the order it builds is dropped
+    if (order == nullptr && surplus()) order = ReleaseSurplus();
     *done = 1;
     return order;
 }

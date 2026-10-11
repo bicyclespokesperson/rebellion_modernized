@@ -339,7 +339,6 @@ int istream_getint(istream* in, char* buffer) {
         buffer[length] = 0;
         UnlockBufferAndStream(stream);
     }
-    // BUG(original): the length is at most 15, so this failbit test never fires.
-    if (length == 0x10) stream->m_state |= iostream_flags::kFail;
+    if (length == kMaxNumberDigits) stream->m_state |= iostream_flags::kFail;
     return base;
 }

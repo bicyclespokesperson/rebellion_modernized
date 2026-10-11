@@ -133,7 +133,7 @@ void UiMarkGalaxyViewUnknownAc();                                               
 void UiSetAlternateDisplayMode(uint32_t flags);                                          // 0x41d830
 void UiSetPendingMovie(LPARAM movie);                                                    // 0x41d850
 void UiRefreshMessageIndex();                                                            // 0x41d870
-// Switches the GID to `mode` (the title string of the switch is *titleStringId); BUG(original): crashes without a view.
+// Switches the GID to `mode` (the title string of the switch is *titleStringId); safe when no galaxy view is open.
 void UiSetDisplayModeTitled(int mode, LPARAM argument, const ResourceStringId* titleStringId);  // 0x41d890
 void UiSetDisplayMode(int mode, LPARAM argument);                                        // 0x41d8c0
 void UiClearButtonHighlights(uint32_t mask);                                             // 0x41db20

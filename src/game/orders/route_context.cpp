@@ -147,8 +147,8 @@ int RouteContext::AddLeg(GameObj* object) {
         return 0;
     }
     ok = leg->Build(m_side, m_arg, m_kind, &m_filter, object);
-    // BUG(original): a leg that cannot be built is neither added nor freed.
     if (ok) Add(leg);
+    else delete leg;
     return ok;
 }
 

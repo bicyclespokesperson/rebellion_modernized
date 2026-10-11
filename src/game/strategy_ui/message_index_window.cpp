@@ -924,6 +924,8 @@ void MessageIndexWindow::ShowMessage(MessageListItem* item) {
     ChildWindowTree* children = &m_children;
     children->FindById(kSendButtonId)->Hide();
     children->FindById(kAcceptButtonId)->Hide();
+    CoolStrobeButton* openButton = AsButton(children->FindById(kOpenButtonId));
+    if (openButton) openButton->Hide();
     CoolStrobeButton* decline = AsButton(children->FindById(kDeclineButtonId));
     decline->Hide();
     const bool alliance = IsAlliance(m_galaxy);
@@ -931,7 +933,6 @@ void MessageIndexWindow::ShowMessage(MessageListItem* item) {
                  SWP_NOMOVE | SWP_NOZORDER);
     const int recordClass = record->GetClass();
     if (recordClass == 3 || recordClass == 4) {
-        CoolStrobeButton* openButton = AsButton(children->FindById(kOpenButtonId));
         const OpenButtonLook look = recordClass == 3 ? ObjectLook(alliance) : EncyclopediaLook(alliance);
         SetButtonPictures(openButton, look.normal, look.pressed);
         const ResourceStringId tip = StringId(look.tooltip);
@@ -939,16 +940,16 @@ void MessageIndexWindow::ShowMessage(MessageListItem* item) {
         openButton->Show(kShow);
         openButton->Enable();
     } else if (recordClass == 5) {
+        CoolStrobeButton* openButton = AsButton(children->FindById(kOpenButtonId));
         if (record->m_key.IsSet() == 0) {
-            children->FindById(kOpenButtonId)->Disable();
+            if (openButton) openButton->Disable();
         } else {
-            // BUG(original): the code keeps using the button looked up last (the decline button) here, not the open button.
             const OpenButtonLook look = ObjectLook(alliance);
-            SetButtonPictures(decline, look.normal, look.pressed);
+            SetButtonPictures(openButton, look.normal, look.pressed);
             const ResourceStringId tip = StringId(look.tooltip);
-            UpdateToolFromString(decline, &tip);
-            decline->Show(kShow);
-            decline->Enable();
+            UpdateToolFromString(openButton, &tip);
+            openButton->Show(kShow);
+            openButton->Enable();
         }
         CoolStrobeButton* accept = AsButton(children->FindById(kAcceptButtonId));
         SetButtonPictures(accept, 0x2aae, 0x2aaf);

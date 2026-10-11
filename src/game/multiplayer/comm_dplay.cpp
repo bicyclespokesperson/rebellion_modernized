@@ -115,7 +115,7 @@ private:
 BOOL CommEnumServiceProviderCallback(GUID* guid, LPSTR name, DWORD majorVersion, DWORD minorVersion,
                                                LPVOID context) {  // 0x5f88d0
     auto* info = NewOrNull<ServiceProviderInfo>(guid, name, majorVersion, minorVersion, reinterpret_cast<DWORD_PTR>(context));
-    g_serviceProviderList.AddWithId(info);
+    if (info && !g_serviceProviderList.AddWithId(info)) delete info;
     return TRUE;
 }
 
@@ -123,7 +123,7 @@ BOOL CommEnumSessionsCallback(const DPSESSIONDESC2* description, LPDWORD timeout
                                         LPVOID context) {  // 0x5f8950
     if (!description) return FALSE;
     auto* info = NewOrNull<SessionInfo>(description);
-    g_sessionList.AddWithId(info);
+    if (info && !g_sessionList.AddWithId(info)) delete info;
     return TRUE;
 }
 
@@ -302,9 +302,9 @@ ServiceProviderList* CommMgr::EnumerateServiceProviders() {
 
 int CommMgr::OpenProvider(ServiceProviderInfo* provider) {
     if (!provider) return kCommBadParameter;
-    g_commProviderGuid = provider->m_guid;
+    g_commProviderGuid = &provider->m_guid;
     IUnknown* created = nullptr;
-    HRESULT result = DirectPlayCreate(const_cast<GUID*>(provider->m_guid), &created, nullptr);
+    HRESULT result = DirectPlayCreate(&provider->m_guid, &created, nullptr);
     if (created) {
         result = created->QueryInterface(g_iidDirectPlay2A, reinterpret_cast<void**>(&m_dplay));
         created->Release();
@@ -345,7 +345,6 @@ int CommMgr::HostNewSession(const char* sessionName) {
     int result = kCommBadParameter;
     if (!m_dplay) return result;
     DPSESSIONDESC2 description;
-    // BUG(original): the instance GUID passed to FillSessionDesc is uninitialised stack; Open ignores it when creating.
     GUID unused = {};
     result = FillSessionDesc(&description, unused, g_commSessionFlags, sessionName);
     if (result != 0) return result;
@@ -366,7 +365,6 @@ SessionList* CommMgr::GetSessionList(uint32_t timeoutMs, int* status) {
     if (m_dplay && IsEnumeratingSessions() == 0) {
         g_sessionList.Clear();
         DPSESSIONDESC2 description;
-        // BUG(original): the instance GUID passed to FillSessionDesc is uninitialised stack.
         GUID unused = {};
         *status = FillSessionDesc(&description, unused, 0, nullptr);
         if (*status == 0) {

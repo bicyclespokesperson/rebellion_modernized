@@ -112,8 +112,9 @@ int GameStepDriver::Load(istream* in) {
     if (ok) ok = InitFields();
     if (ok) ok = CheckPositionMarker(in);
     if (ok) {
-        int* fields = &m_ok;
-        for (int i = 0; i < 7; ++i) ReadValue32(in, fields + i);
+        for (int* field : {&m_ok, &m_phase, &m_setupStage, &m_pauseTick, &m_hold, &m_unk18, &m_unk1c}) {
+            ReadValue32(in, field);
+        }
         ok = CheckPositionMarker(in);
         if (ok) {
             CreateManager();
@@ -129,8 +130,9 @@ int GameStepDriver::Load(istream* in) {
 
 int GameStepDriver::Save(ostream* out) {
     WritePositionMarker(out);
-    const int* fields = &m_ok;
-    for (int i = 0; i < 7; ++i) WriteValue32(out, fields + i);
+    for (const int* field : {&m_ok, &m_phase, &m_setupStage, &m_pauseTick, &m_hold, &m_unk18, &m_unk1c}) {
+        WriteValue32(out, field);
+    }
     WritePositionMarker(out);
     int ok = m_manager != nullptr;
     if (ok) {

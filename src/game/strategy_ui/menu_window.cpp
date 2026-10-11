@@ -29,8 +29,6 @@ int16_t Narrow(int value) { return static_cast<int16_t>(value); }
 
 constexpr size_t kAreaOffset = 0x60;
 
-// BUG(original): the Return key handler invalidates the area of the hot item after it has cleared the pointer, so
-// the rectangle is read at address 0x60.
 RECT* AreaOf(MenuItemBase* item) { return reinterpret_cast<RECT*>(reinterpret_cast<char*>(item) + kAreaOffset); }
 
 }  // namespace
@@ -540,7 +538,6 @@ LRESULT MenuWindowBase::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
 uint32_t DimMenuColor(uint32_t color) {
     constexpr uint32_t kRedBlueMask = 0xff;
     const auto dim = [](uint32_t channel) { return static_cast<uint8_t>((channel & kRedBlueMask) / 6 + 0x32); };
-    // BUG(original): the fourth byte of the result is whatever the caller left in ECX; it is never read
-    // (BuildRemapTable compares three bytes).
+    // BuildRemapTable consumes the RGB bytes; the unused high byte remains zero.
     return dim(color) | dim(color >> 8) << 8 | dim(color >> 16) << 16;
 }

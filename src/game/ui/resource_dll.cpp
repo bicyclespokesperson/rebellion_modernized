@@ -49,8 +49,8 @@ void FontTable::CreateSlotFont(int slot) {
     LOGFONTA font;
     std::memset(&font, 0, sizeof(font));
     font.lfQuality = PROOF_QUALITY;
-    // BUG(original): the face name is copied without a bound (LF_FACESIZE is 32, m_faceName holds 100).
-    std::memcpy(font.lfFaceName, m_faceName, std::strlen(m_faceName) + 1);
+    std::strncpy(font.lfFaceName, m_faceName, sizeof(font.lfFaceName) - 1);
+    font.lfFaceName[sizeof(font.lfFaceName) - 1] = '\0';
     switch (slot) {
         case 1:
         case 5:

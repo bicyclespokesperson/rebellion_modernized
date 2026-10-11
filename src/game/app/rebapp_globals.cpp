@@ -272,9 +272,11 @@ int AppGetNetworkMode() {
     return mode;
 }
 
-void AppRestoreGame(void* stream) {
+bool AppRestoreGame(istream* stream) {
     BattleFlow* battleFlow = GetBattleFlow();
-    if (battleFlow) battleFlow->Restore(static_cast<istream*>(stream));
+    if (!battleFlow) return false;
+    battleFlow->Restore(stream);
+    return battleFlow->m_ok != 0 && iostream_access::State(stream) == 0;
 }
 
 void AppStartGame(void* setup, int gameType, int side) {
@@ -282,9 +284,9 @@ void AppStartGame(void* setup, int gameType, int side) {
     if (battleFlow) battleFlow->StartGame(static_cast<GameSettings*>(setup), gameType, side);
 }
 
-void AppSaveGame(void* stream) {
+bool AppSaveGame(ostream* stream) {
     BattleFlow* battleFlow = GetBattleFlow();
-    if (battleFlow) battleFlow->Save(static_cast<ostream*>(stream));
+    return battleFlow && battleFlow->Save(stream) != 0;
 }
 
 void AppStepGame(int* stepped) {

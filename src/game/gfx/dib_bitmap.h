@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <vector>
 
 #include "platform/win32.h"
 
@@ -32,6 +33,10 @@ public:
     DibBitmap(int width, int height, DibBitmap* format);            // 0x5fbda0: zeroed heap bitmap in `format`'s layout
     DibBitmap(LONG width, LONG height, DibBitmap* format, HDC dc);  // 0x5fbea0: DIB section in `format`'s layout
     ~DibBitmap();
+    DibBitmap(const DibBitmap&) = delete;
+    DibBitmap& operator=(const DibBitmap&) = delete;
+    DibBitmap(DibBitmap&&) = delete;
+    DibBitmap& operator=(DibBitmap&&) = delete;
 
     int IsLoaded() const;
     int Width() const;
@@ -61,19 +66,12 @@ public:
     uint32_t Blit(DibBitmap* dest, int destX, int destY, int srcX, int srcY, int width, int height);
     int BlitKeyed(DibBitmap* dest, int destX, int destY, uint8_t colorKey, int srcX, int srcY, int width, int height);
     int DrawKeyed(DibBitmap* dest, int destX, int destY);
-    int BlitRle(DibBitmap* dest, int destX, int destY, int srcX, int srcY, int width, int height);
-    int BlitKeyedRle(DibBitmap* dest, int destX, int destY, uint8_t colorKey, int srcX, int srcY, int width, int height);
     int BlitRemapDestination(DibBitmap* dest, int destX, int destY, int srcX, int srcY, int width, int height);
     int BlitRemapped(DibBitmap* dest, int destX, int destY, int srcX, int srcY, int width, int height);
     int BlitRemappedOverlay(DibBitmap* dest, int destX, int destY, int srcX, int srcY, int width, int height);
-    int BlitRemappedRle(DibBitmap* dest, int destX, int destY, uint8_t colorKey, int srcX, int srcY, int width,
-                        int height);
-    int BlitRemapDestinationRleStub(DibBitmap* dest, int destX, int destY, uint8_t colorKey, int srcX, int srcY,
-                                    int width, int height);
     int FillRect(int x, int y, int width, int height, uint8_t value);
 
     int IsPixelOpaque(int x, int y);
-    int IsPixelOpaqueRle(int x, uint32_t y);
 
     uint8_t* BuildRemapTable(uint32_t (*transform)(uint32_t));
     void SetRemapTable(uint8_t* table);
@@ -85,8 +83,6 @@ public:
                      int width, int height);
     void BlitKeyedRgb24(DibBitmap* dest, int destX, int destY, Rgb24 colorKey, int srcX, int srcY, int width,
                         int height);
-    // What Blit24 does for an RLE source: nothing, returns 0.
-    int Blit24RleStub(DibBitmap* dest, int destX, int destY, int srcX, int srcY, int width, int height);  // 0x60ed00
 
     BITMAPINFOHEADER* m_info;  // +0x00 header followed by the colour table; null when nothing is loaded
     uint8_t* m_bits;           // +0x04
@@ -100,4 +96,5 @@ public:
     HBITMAP m_dibSection;      // +0x1c
     HPALETTE m_palette;        // +0x20 lazily built by DrawToDc
     uint8_t* m_remapTable;     // +0x24 256-entry colour remap (BuildRemapTable / SetRemapTable)
+    std::vector<uint8_t> m_storage; // owns the header, palette and software pixels when not a DIB section
 };

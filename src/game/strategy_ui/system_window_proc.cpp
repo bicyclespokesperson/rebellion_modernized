@@ -384,7 +384,7 @@ void SystemWindow::LoadTabArt() {
         normalId = 0x284e;
         pressedId = 0x284d;
     }
-    // BUG(original): for a system nobody controls the bitmap ids are never set.
+    // An uncontrolled system has no side-specific status bitmaps.
     if (normalId == 0) {
         ReleaseDC(m_hwnd, window);
         return;

@@ -36,17 +36,15 @@ void GameWindowObject::SetBackground(DibBitmap* image, int srcX, int srcY) {
         m_background = NewOrNull<DibBitmap>(static_cast<LONG>(m_clientWidth), static_cast<LONG>(m_clientHeight), image, dc);
 
     if (image) {
-        bool consumed = true;
         if (!m_source) {
             image->Blit(m_background, 0, 0, 0, 0, 0, 0);
         } else if (m_background) {
             m_source->Blit(m_background, 0, 0, srcX, srcY, 0, 0);
             image->DrawKeyed(m_background, 0, 0);
         } else {
-            // BUG(original): the image leaks when the background could not be allocated.
-            consumed = false;
+            // The image is consumed even when allocation of the background fails.
         }
-        if (consumed) delete image;
+        delete image;
     } else {
         if (m_background) delete m_background;
         m_background = nullptr;
@@ -69,9 +67,8 @@ void GameWindowObject::DrawRect(HDC dc, const RECT* area) {
         HPALETTE previous = SelectPalette(dc, g_palette, FALSE);
         const int top = area->top;
         const int left = area->left;
-        // BUG(original): the call omits the raster-operation argument, so every argument after the mode lands one
-        // parameter too early (rop = left, destX = top, destY = left, srcX = top, srcY = width, width = height).
-        m_background->DrawToDc(dc, kBitBltMode, left, top, left, top, area->right - left, area->bottom - top, 0);
+        m_background->DrawToDc(dc, kBitBltMode, SRCCOPY, left, top, left, top, area->right - left,
+                               area->bottom - top);
         SelectPalette(dc, previous, FALSE);
     }
 }

@@ -297,11 +297,7 @@ int GalaxyWindow::GidIconId(int value, int kind, int high, int midHigh, int midL
     } else if (value <= lowHigh && value >= lowLow) {
         index = 1;
     }
-    // BUG(original): the result keeps the upper half of the row's address instead of the icon id's.
-    uint32_t rowAddress = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(row));
-    __asm__("" : "+r"(rowAddress));
-    const uint16_t iconLow = static_cast<uint16_t>(row[index]);
-    return static_cast<int>(((rowAddress >> 16) << 16) | iconLow);
+    return row[index];
 }
 
 void GalaxyWindow::LoadGidIcons(HMODULE module) {

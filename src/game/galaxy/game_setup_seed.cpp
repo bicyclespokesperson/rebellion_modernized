@@ -71,21 +71,15 @@ uint32_t ApplyLoyaltyRuleToSystem(System* system, const LoyaltyRule* rule, Notif
             void* memory = ::operator new(sizeof(LoyaltyEvent373));
             LoyaltyEvent373* command = memory ? new (memory) LoyaltyEvent373() : nullptr;
             result = command != nullptr;
+            if (result != 0) result = command->m_flag;
             if (result != 0) {
-                result = command->m_flag;
-                if (result == 0) {
-                    // BUG(original): the command is deleted but still filled in and queued below.
-                    delete command;
-                }
-            }
-            if (command != nullptr) {
                 ObjectKey systemKey;
                 system->GetKey(&systemKey);
                 command->m_key = ObjectKey(systemKey);
                 command->m_delta = amount;
                 new (&command->m_context) NotifyContext(*ctx);
                 QueueEvent(command);
-            }
+            } else if (command) delete command;
         }
     }
     return result;

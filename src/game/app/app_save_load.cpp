@@ -17,6 +17,7 @@
 #include "strategy_ui/game_ui_facade.h"
 #include "tactical/comm2.h"
 #include "ui/cool_app.h"
+#include "port/native/save_transaction.h"
 
 // Save and load of games, the small state hooks the other screens call, and a few settings. The save file starts
 // with a SavedGameInfo header followed by the battle-flow object's state.
@@ -198,8 +199,7 @@ int RebellionApplication::LoadPendingGame() {
             if (dllLocation) operator delete(dllLocation);
         }
         CreateBattleFlow();
-        AppRestoreGame(file.get());
-        loaded = 1;
+        loaded = iostream_access::State(file.get()) == 0 && AppRestoreGame(file.get()->In());
         SetCursor(previousCursor);
     }
     CloseFileStream(file.get());
@@ -219,10 +219,8 @@ int RebellionApplication::SavePendingGame() {
         if (name.empty()) AppendSpaces(name, 1);
     }
     m_pendingSaveSlot = 0;
-    ScopedOfstream file;
-    OpenOutputFile(file.get(), fileName.c_str());
-    if (GetFileError() == 0) {
-        HCURSOR previousCursor = ShowWaitCursor();
+    HCURSOR previousCursor = ShowWaitCursor();
+    saved = reb::native::WriteSaveAtomically(fileName.c_str(), [&](ostream* out) {
         SavedGameInfo info;
         info.m_gameType = m_gameType;
         info.m_unknown10 = 1;
@@ -231,12 +229,10 @@ int RebellionApplication::SavePendingGame() {
         info.SetName(name);
         info.m_side = m_side;
         info.m_unknown24 = m_autosaveTick;
-        info.Write(file.get()->Out());
-        AppSaveGame(file.get());
-        saved = 1;
-        SetCursor(previousCursor);
-    }
-    CloseFileStream(file.get());
+        info.Write(out);
+        return AppSaveGame(out);
+    });
+    SetCursor(previousCursor);
     if ((m_state == kStateOptionsMenu || m_state == kStateOptionsInGame) && m_activeWindow)
         static_cast<GameOptionsWindow*>(m_activeWindow)->GameOptionsWindow::OnSaveResult(saved, slot);
     return saved;
@@ -315,15 +311,12 @@ void RebellionApplication::ShowResumeNotice() {
 // ---- Help, settings and display ------------------------------------------------------------------------------
 
 BOOL RebellionApplication::ShowHelp() {
-    ScopedStrstream path;
-    ostream* out = iostream_access::AsOstream(path.get());
     char* dllLocation = GetDllLocation();
-    // BUG(original): the heap copy of the location is never freed.
-    if (dllLocation) ostream_operator_ls_cstr(ostream_operator_ls_cstr(out, dllLocation), kBackslash);
-    ostream_operator_ls_char(ostream_operator_ls_cstr(out, kHelpFile), 0);
-    const BOOL shown = WinHelpA(m_hwnd, strstreambuf_str(iostream_access::BufferOf(path.get())), HELP_FINDER, 0);
-    strstreambuf_freeze(iostream_access::BufferOf(path.get()), 0);
-    return shown;
+    std::string path = StringFromText(dllLocation);
+    operator delete(dllLocation);
+    if (!path.empty()) path += kBackslash;
+    path += kHelpFile;
+    return WinHelpA(m_hwnd, path.c_str(), HELP_FINDER, 0);
 }
 
 void RebellionApplication::SetVolume(int volume) {

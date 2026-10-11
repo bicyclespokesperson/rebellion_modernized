@@ -1,11 +1,7 @@
 #include "core/containers.h"
+#include "core/iostream_lib.h"
 
 #include <cstdlib>
-
-void ReadValue16(istream*, void*) {}
-void WriteValue16(ostream*, const void*) {}
-void ReadValue32(istream*, void*) {}
-void WriteValue32(ostream*, const void*) {}
 
 namespace {
 
@@ -61,6 +57,84 @@ struct StackClearNode final : LinkNode {
 
 struct UnorderedList final : SortedLinkList {
     int IsLess(LinkNode*, LinkNode*) override { return 0; }
+};
+
+struct KeyedLinkNode final : IdLinkNode {
+    explicit KeyedLinkNode(int key) : key(key) { m_id = static_cast<uint32_t>(key); }
+    int key;
+};
+
+struct KeyedList final : SortedLinkList {
+    int IsLess(LinkNode* first, LinkNode* second) override {
+        return static_cast<KeyedLinkNode*>(first)->key < static_cast<KeyedLinkNode*>(second)->key;
+    }
+};
+
+struct ListClearNode final : LinkNode {
+    ListClearNode(SortedLinkList& list, int& destroyed, int& rejectedDestroyed)
+        : list(list), destroyed(destroyed), rejectedDestroyed(rejectedDestroyed) {}
+    ~ListClearNode() override {
+        Require(list.m_head == nullptr && list.m_count == 0);
+        Require(m_prev == nullptr && m_next == nullptr);
+        list.Clear();
+        auto* rejected = new CountedNode(rejectedDestroyed);
+        Require(list.Insert(rejected) == 0);
+        delete rejected;
+        ++destroyed;
+    }
+
+    SortedLinkList& list;
+    int& destroyed;
+    int& rejectedDestroyed;
+};
+
+struct NumericNode : AvlNode {
+    explicit NumericNode(int key) : key(key) {}
+    NumericNode(const NumericNode& other) : AvlNode(other), key(other.key) {}
+    int key;
+};
+
+struct NumericTree final : AvlTree {
+    int IsLess(AvlNode* first, AvlNode* second) override {
+        return static_cast<NumericNode*>(first)->key < static_cast<NumericNode*>(second)->key;
+    }
+
+    NumericNode* Find(int key) const {
+        AvlNode* found = LowerBound([key](const AvlNode* candidate) {
+            return static_cast<const NumericNode*>(candidate)->key < key;
+        });
+        auto* node = static_cast<NumericNode*>(found);
+        return node && node->key == key ? node : nullptr;
+    }
+};
+
+struct FamilyIdNode final : IdNode {
+    FamilyIdNode(uint32_t family, uint32_t id) : IdNode(id), family(family) {}
+    uint32_t family;
+};
+
+struct FamilyIdTree final : IdAvlTree {
+    int IsLess(AvlNode* first, AvlNode* second) override {
+        const auto* a = static_cast<FamilyIdNode*>(first);
+        const auto* b = static_cast<FamilyIdNode*>(second);
+        return a->family < b->family || (a->family == b->family && a->m_id < b->m_id);
+    }
+};
+
+struct ReentrantTreeNode final : NumericNode {
+    ReentrantTreeNode(NumericTree& tree, int& rejectedDestroyed) : NumericNode(9), tree(tree), rejectedDestroyed(rejectedDestroyed) {}
+    ~ReentrantTreeNode() override {
+        Require(tree.First() == nullptr && tree.Count() == 0);
+        tree.Clear();
+        auto* rejected = new NumericNode(10);
+        Require(tree.Insert(rejected) == 0);
+        Require(rejected->m_predecessor == nullptr && rejected->m_successor == nullptr);
+        delete rejected;
+        ++rejectedDestroyed;
+    }
+
+    NumericTree& tree;
+    int& rejectedDestroyed;
 };
 
 void VerifyQueueOwnershipAndOrder() {
@@ -145,6 +219,68 @@ void VerifyLinkNodeCopiesStartUnlinked() {
     Require(destroyed == 1);
 }
 
+void VerifySortedListOwnershipAndOrder() {
+    KeyedList list;
+    NodeQueue queue;
+    auto* high = new KeyedLinkNode(7);
+    auto* low = new KeyedLinkNode(1);
+    auto* middle = new KeyedLinkNode(4);
+    auto* duplicateKey = new KeyedLinkNode(4);
+    Require(list.Insert(high) == 1);
+    Require(list.Insert(low) == 1);
+    Require(list.Insert(middle) == 1);
+    Require(list.Insert(duplicateKey) == 1);
+    Require(list.m_count == 4 && list.m_head == low);
+    Require(low->m_next == middle && middle->m_next == duplicateKey && duplicateKey->m_next == high);
+    Require(queue.Enqueue(middle) == 0 && list.Insert(middle) == 0);
+
+    list.m_head = high;
+    list.RewindToFirst();
+    Require(list.m_head == low);
+    Require(list.Remove(middle) == 1);
+    Require(middle->m_prev == nullptr && middle->m_next == nullptr);
+    Require(queue.Enqueue(middle) == 1);
+    Require(list.Insert(middle) == 0);
+    Require(queue.Dequeue() == middle);
+    Require(list.Insert(middle) == 1);
+    Require(list.Remove(high) == 1);
+    delete high;
+    list.Clear();
+    Require(list.m_head == nullptr && list.m_count == 0);
+    list.Clear();
+}
+
+void VerifySortedListClearRejectsReentrantInsert() {
+    UnorderedList list;
+    int destroyed = 0;
+    int rejectedDestroyed = 0;
+    Require(list.Insert(new ListClearNode(list, destroyed, rejectedDestroyed)) == 1);
+    Require(list.Insert(new ListClearNode(list, destroyed, rejectedDestroyed)) == 1);
+    list.Clear();
+    Require(destroyed == 2 && rejectedDestroyed == 2);
+    Require(list.Insert(new CountedNode(rejectedDestroyed)) == 1);
+    list.Clear();
+}
+
+void VerifySortedListIds() {
+    IdSortedLinkList list;
+    auto* first = new IdLinkNode();
+    auto* duplicate = new IdLinkNode();
+    duplicate->m_id = 1;
+    auto* maximum = new IdLinkNode();
+    maximum->m_id = UINT32_MAX;
+    Require(list.AddWithId(first) == 1);
+    Require(list.AddWithId(duplicate) == 0);
+    delete duplicate;
+    Require(list.AddWithId(maximum) == UINT32_MAX);
+    auto* exhausted = new IdLinkNode();
+    Require(list.AddWithId(exhausted) == 0 && exhausted->m_id == 0);
+    delete exhausted;
+    Require(list.DetachById(1) == first);
+    delete first;
+    list.Clear();
+}
+
 void VerifyClearDetachesBeforeDestruction() {
     int queueDestroyed = 0;
     int queueRejectedDestroyed = 0;
@@ -179,6 +315,138 @@ void VerifyClearDetachesBeforeDestruction() {
     Require(afterStackClearDestroyed == 1);
 }
 
+void VerifyAvlOwnershipOrderAndLookup() {
+    NumericTree tree;
+    NumericTree foreign;
+    auto* first = new NumericNode(4);
+    auto* lowerDuplicate = new NumericNode(4);
+    auto* middle = new NumericNode(7);
+    auto* upperDuplicate = new NumericNode(4);
+    Require(tree.Insert(first) == 1);
+    Require(tree.Insert(lowerDuplicate) == 1);
+    Require(tree.Insert(middle) == 1);
+    Require(tree.Insert(upperDuplicate) == 1);
+    Require(tree.Count() == 4);
+    Require(tree.First() == first && tree.Last() == middle);
+    Require(first->m_successor == lowerDuplicate && lowerDuplicate->m_predecessor == first);
+    Require(lowerDuplicate->m_successor == upperDuplicate && upperDuplicate->m_predecessor == lowerDuplicate);
+    Require(upperDuplicate->m_successor == middle && middle->m_predecessor == upperDuplicate);
+    Require(tree.Find(4) == first && tree.Find(7) == middle && tree.Find(8) == nullptr);
+    Require(foreign.Insert(first) == 0);
+    foreign.Remove(first);
+    Require(tree.Count() == 4 && tree.Find(4) == first);
+
+    NumericNode copied(*first);
+    Require(copied.m_predecessor == nullptr && copied.m_successor == nullptr);
+    Require(foreign.Insert(&copied) == 1);
+    foreign.Remove(&copied);
+
+    NumericNode linked(1);
+    NumericNode linkedTo(2);
+    linked.m_successor = &linkedTo;
+    Require(foreign.Insert(&linked) == 0);
+    Require(linked.m_successor == &linkedTo);
+    linked.ResetLinks();
+
+    tree.Remove(lowerDuplicate);
+    Require(lowerDuplicate->m_predecessor == nullptr && lowerDuplicate->m_successor == nullptr);
+    Require(tree.Find(4) == first && first->m_successor == upperDuplicate);
+    delete lowerDuplicate;
+    tree.Remove(first);
+    tree.Clear();
+    Require(tree.Count() == 0 && tree.First() == nullptr && tree.Last() == nullptr);
+    Require(foreign.Insert(first) == 1);
+    Require(foreign.Count() == 1);
+    foreign.Clear();
+}
+
+void VerifyAvlIdTransferAndLargeCount() {
+    IdAvlTree ids;
+    IdAvlTree destination;
+    auto* automatic = new IdNode();
+    Require(ids.AddWithId(automatic) == 1);
+    Require(destination.AddWithId(automatic) == 0 && automatic->m_id == 1);
+    Require(destination.FindById(1) == nullptr && ids.FindById(1) == automatic);
+    Require(ids.DetachById(1) == automatic);
+    Require(destination.AddWithId(automatic) == 1);
+    Require(destination.FindById(1) == automatic);
+    auto* duplicate = new IdNode(1);
+    Require(destination.AddWithId(duplicate) == 0 && duplicate->m_id == 1);
+    delete duplicate;
+    destination.DeleteById(1);
+    Require(destination.Count() == 0);
+
+    IdAvlTree exhausted;
+    Require(exhausted.AddWithId(new IdNode(0xffffffffu)) == 0xffffffffu);
+    auto* afterMaximum = new IdNode();
+    Require(exhausted.AddWithId(afterMaximum) == 0 && afterMaximum->m_id == 0);
+    delete afterMaximum;
+
+    NumericTree large;
+    constexpr int nodeCount = 70000;
+    for (int i = nodeCount - 1; i >= 0; --i) Require(large.Insert(new NumericNode(i)) == 1);
+    Require(large.Count() == static_cast<size_t>(nodeCount));
+    Require(large.Find(0)->key == 0 && large.Find(nodeCount - 1)->key == nodeCount - 1);
+    large.Clear();
+    Require(large.Count() == 0);
+}
+
+void VerifyCompositeIdTreeUniquenessUsesComparatorOrder() {
+    FamilyIdTree tree;
+    auto* firstFamily = new FamilyIdNode(10, 7);
+    auto* secondFamily = new FamilyIdNode(20, 7);
+    auto* duplicate = new FamilyIdNode(10, 7);
+    Require(tree.AddWithId(firstFamily) == 7);
+    Require(tree.AddWithId(secondFamily) == 7);
+    Require(tree.AddWithId(duplicate) == 0);
+    delete duplicate;
+    Require(tree.Count() == 2);
+    tree.Clear();
+}
+
+void Rewind(ScopedStrstream& stream) {
+    Require(istream_seekg_pos(stream.get()->In(), 0) == stream.get()->In());
+}
+
+void VerifyIdTreeCountSerialization() {
+    IdAvlTree source;
+    Require(source.AddWithId(new IdNode(7)) == 7);
+    Require(source.AddWithId(new IdNode(2)) == 2);
+    Require(source.AddWithId(new IdNode(11)) == 11);
+
+    ScopedStrstream stream;
+    source.Write(stream.get()->Out());
+    Rewind(stream);
+
+    IdAvlTree restored;
+    restored.Read(stream.get()->In());
+    Require(restored.Count() == 3);
+    Require(restored.FindById(2) && restored.FindById(7) && restored.FindById(11));
+}
+
+void VerifyIdValueTreeRejectsCountOverflow() {
+    IdValueTree tree;
+    constexpr uint32_t nodeCount = 65536;
+    for (uint32_t i = 1; i <= nodeCount; ++i) Require(tree.AddWithId(new IdValueNode(static_cast<int>(i))) == i);
+    Require(tree.Count() == nodeCount);
+
+    ScopedStrstream stream;
+    tree.Write(stream.get()->Out());
+    Require((stream.get()->Ios()->m_state & iostream_flags::kFail) != 0);
+    const auto* buffer = iostream_access::BufferOf(stream.get());
+    Require(buffer->m_pptr == buffer->m_pbase);
+}
+
+void VerifyAvlClearRejectsReentrantInsert() {
+    NumericTree tree;
+    int rejectedDestroyed = 0;
+    Require(tree.Insert(new ReentrantTreeNode(tree, rejectedDestroyed)) == 1);
+    tree.Clear();
+    Require(tree.Count() == 0 && rejectedDestroyed == 1);
+    Require(tree.Insert(new NumericNode(11)) == 1);
+    tree.Clear();
+}
+
 }  // namespace
 
 int main() {
@@ -186,5 +454,14 @@ int main() {
     VerifyStackOwnershipAndOrder();
     VerifyCrossContainerListOwnership();
     VerifyLinkNodeCopiesStartUnlinked();
+    VerifySortedListOwnershipAndOrder();
+    VerifySortedListClearRejectsReentrantInsert();
+    VerifySortedListIds();
     VerifyClearDetachesBeforeDestruction();
+    VerifyAvlOwnershipOrderAndLookup();
+    VerifyAvlIdTransferAndLargeCount();
+    VerifyCompositeIdTreeUniquenessUsesComparatorOrder();
+    VerifyAvlClearRejectsReentrantInsert();
+    VerifyIdTreeCountSerialization();
+    VerifyIdValueTreeRejectsCountOverflow();
 }

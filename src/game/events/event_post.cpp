@@ -50,17 +50,23 @@ int CreateKeyedEvent(int kind, GameObjNotifier* object, NotifyContext* ctx, Keye
     if (g_setupComplete) {
         auto* event = static_cast<KeyedEvent*>(CreateEventById(kind));
         *out = event;
-        result = 0;
-        if (event && (result = event->m_flag) == 0) {
+        if (!event) return 0;
+        result = event->m_flag;
+        if (result == 0) {
             delete event;
             *out = nullptr;
+            return 0;
         }
         ObjectKey parentKey;
         int gotParent = 0;
-        if (result != 0) gotParent = object->GetParentKey(&parentKey);
+        gotParent = object->GetParentKey(&parentKey);
         ObjectKey ownerKey;
-        result = 0;
-        if (gotParent != 0) result = object->GetOwnerKey(&ownerKey);
+        result = gotParent != 0 ? object->GetOwnerKey(&ownerKey) : 0;
+        if (result == 0) {
+            delete event;
+            *out = nullptr;
+            return 0;
+        }
         KeyedEvent* built = *out;
         built->m_key = keyOf(object);
         built->m_keyA = parentKey;

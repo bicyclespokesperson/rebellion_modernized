@@ -1,6 +1,8 @@
 #include "gameobj/game_obj_root.h"
 
 #include "core/checked_new.h"
+#include "core/iostream_lib.h"
+#include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "data/dat_record.h"
 #include "gameobj/game_hooks.h"
@@ -228,31 +230,46 @@ int GameObjNotifier::NotifyIfComplete() {
 
 int GameObjNotifier::ReadTree(istream* in) {
     int ok = 1;
-    int hasChildren;
+    int hasChildren = 0;
     ReadValue32(in, &hasChildren);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return 0;
     if (hasChildren == 0) return ok;
 
     m_children = NewOrNull<ChildList>();
     ok = 0;
-    if (m_children && m_children->m_ok != 0) ok = m_children->Read(in);
+    if (!m_children) {
+        iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+        return 0;
+    }
+    if (m_children->m_ok != 0) ok = m_children->Read(in);
+    else iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
 
-    int count = 0;
+    uint32_t count = 0;
     if (ok) {
         ReadValue32(in, &count);
-        if (ok && count != 0) ok = CheckPositionMarker(in);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return 0;
+        if (count != 0) ok = CheckPositionMarker(in);
     }
-    for (int i = 0; ok && i < count; ++i) {
-        uint32_t family;
+    for (uint32_t i = 0; ok && i < count; ++i) {
+        uint32_t family = 0;
         ReadValue32(in, &family);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return 0;
         GameObjNotifier* child = CreateObjectOfFamily(family);
         ok = 0;
         if (child) {
             ok = child->Read(in);
             if (ok) {
-                child->m_parent = this;
                 ok = m_children->AddWithId(child) != 0;
-                if (ok) ok = child->ReadTree(in);
+                if (!ok) delete child;
+                else {
+                    child->m_parent = this;
+                    ok = child->ReadTree(in);
+                }
+            } else {
+                delete child;
             }
+        } else {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
         }
     }
     return ok;
@@ -264,12 +281,11 @@ int GameObjNotifier::WriteTree(ostream* out) {
     int ok = 1;
     if (m_children) {
         ok = m_children->Write(out);
-        uint32_t count = static_cast<uint16_t>(m_children->Count());
         if (ok) {
-            WriteValue32(out, &count);
-            if (ok && count != 0) WritePositionMarker(out);
+            if (!WriteCount32(out, m_children->Count())) return 0;
+            if (m_children->Count() != 0) WritePositionMarker(out);
         }
-        for (GameObjNotifier* child = FirstChild(); child; child = static_cast<GameObjNotifier*>(child->m_successor)) {
+        for (GameObjNotifier* child = FirstChild(); ok && child; child = static_cast<GameObjNotifier*>(child->m_successor)) {
             uint32_t family = child->GetFamily();
             WriteValue32(out, &family);
             ok = 0;

@@ -24,11 +24,9 @@ class TimerEvent;
 
 // ---- events -----------------------------------------------------------------------------------------------
 
-// Builds the event of `kind` for `object` (a KeyedEvent: its key, the parent key, the owner key, the context and the
-// object's view side) and stores it in *out. Returns 0, and deletes the event, if the object has no parent key or no
-// owner key; *out is null then (and when nothing was created at all, with result 1).
-// BUG(original): when the factory yields nothing (or an event whose flag is 0) the keys are still written through the
-// null *out.
+// Builds the event of `kind` for `object` (its key, parent key, owner key, context and view side) and stores it in *out.
+// Returns 1 when setup has not started or the event is built, 0 when no factory/event is available or the object lacks
+// a parent/owner; *out is null on failure or when setup has not started.
 int CreateKeyedEvent(int kind, GameObjNotifier* object, NotifyContext* ctx, KeyedEvent** out);  // 0x53ff90
 
 // Events 0x300-0x31f (SourceEvent): sets the two values and queues the event.

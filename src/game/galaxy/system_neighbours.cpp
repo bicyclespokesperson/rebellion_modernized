@@ -41,7 +41,9 @@ int SystemNeighbourTable::GetNeighbours(const ObjectKey* key, SystemNeighbourCur
     out->m_current = nullptr;
     const int valid = IsSystemFamily(key->Family());
     if (valid) {
-        SystemNeighbours* entry = m_entries + (static_cast<int>(key->Id()) - kFirstSystemId);
+        const int index = static_cast<int>(key->Id()) - kFirstSystemId;
+        if (index < 0 || index >= kSystemCount) return 0;
+        SystemNeighbours* entry = m_entries + index;
         out->m_begin = entry->m_systems;
         if (entry) out->m_current = entry->m_systems;
     }

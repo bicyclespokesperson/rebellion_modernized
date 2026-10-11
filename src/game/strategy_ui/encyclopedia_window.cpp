@@ -615,7 +615,7 @@ void EncyclopediaWindow::SetFilter(int tabId, uint32_t reload) {
             if (range.m_first <= family && family < range.m_second) {
                 ObjectKey itemKey;
                 ObjectListItem* copy = NewOrNull<ObjectListItem>(item->m_id, static_cast<ObjectListItem*>(item)->GetKey(&itemKey));
-                // BUG(original): no null check after a failed allocation.
+                if (!copy) continue;
                 copy->m_text = item->m_text.c_str();
                 m_filteredItems->Insert(copy);
             }

@@ -422,8 +422,7 @@ void ReportWindow::OnCreate1() {
         normal->Blit(combined, 0, 0, 0, 0, 0, 0);
         pressed->DrawKeyed(combined, 0, 0);
         m_nextButton->ReplaceBitmap(1, combined);
-        // BUG(original): the style of the previous button is copied, not the next button's own.
-        m_nextButton->m_style = m_previousButton->m_style & ~kStyleVisible;
+        m_nextButton->m_style &= ~kStyleVisible;
         if (!reported) {
             const ResourceStringId nextLabel = StringId(0x1945);
             m_nextButton->SetLabelFromResource(&nextLabel);
@@ -570,7 +569,6 @@ void ReportWindow::FillList(int subTabId, int force) {
     ObjectKeySet thirdSet;
     m_items->Clear();
     UnitTab unitTab;
-    // BUG(original): any other tab id leaves the sizes uninitialised; the list is only filled for 0x97-0x9c.
     if (!FindUnitTab(subTabId, &unitTab)) return;
 
     if (FindOverlayBitmap(unitTab.m_overlayId) == GetPaintBackgroundIfOwned()) {

@@ -3,6 +3,7 @@
 #include "core/checked_new.h"
 
 #include <algorithm>
+#include <limits>
 
 namespace {
 
@@ -15,233 +16,115 @@ void DetachLinkNode(LinkNode* node) {
 
 // ---- AvlNode ---------------------------------------------------------------------------------------------
 
-AvlNode::AvlNode() : m_left(nullptr), m_right(nullptr), m_parent(nullptr), m_successor(nullptr), m_height(0) {}
+AvlNode::AvlNode() = default;
+
+AvlNode::AvlNode(const AvlNode&) : m_predecessor(nullptr), m_successor(nullptr) {}
 
 AvlNode::~AvlNode() = default;
 
-AvlNode* AvlNode::Predecessor() {
-    AvlNode* node = m_left;
-    if (node) {
-        for (AvlNode* right = node->m_right; right; right = node->m_right) node = right;
-        return node;
-    }
-    AvlNode* child = this;
-    for (AvlNode* ancestor = m_parent; ancestor; ancestor = ancestor->m_parent) {
-        if (ancestor->m_right == child) return ancestor;
-        child = ancestor;
-    }
-    return nullptr;
-}
+AvlNode* AvlNode::Predecessor() { return m_predecessor; }
 
-// The three helpers below are linker-folded copies shared with other tree users (0x5ee3f0, 0x5ee410, 0x5ee440).
 void AvlNode::ResetLinks() {
-    m_left = nullptr;
-    m_right = nullptr;
-    m_parent = nullptr;
+    m_predecessor = nullptr;
     m_successor = nullptr;
-    m_height = 0;
-}
-
-void AvlNode::ReplaceChild(AvlNode* oldChild, AvlNode* newChild) {
-    if (oldChild == m_right) {
-        m_right = newChild;
-        return;
-    }
-    if (oldChild == m_left) m_left = newChild;
-}
-
-int AvlNode::UpdateHeight() {
-    uint16_t rightHeight = 0;
-    uint16_t leftHeight = 0;
-    if (m_right) rightHeight = static_cast<uint16_t>(m_right->m_height + 1);
-    if (m_left) leftHeight = static_cast<uint16_t>(m_left->m_height + 1);
-    m_height = rightHeight > leftHeight ? rightHeight : leftHeight;
-    return static_cast<int>(rightHeight) - static_cast<int>(leftHeight);
 }
 
 // ---- AvlTree ---------------------------------------------------------------------------------------------
 
-AvlTree::AvlTree() : m_root(nullptr) {}
+AvlTree::AvlTree() : m_nodes(NodeCompare{this}) {}
 
-AvlTree::~AvlTree() { Clear();  }
+AvlTree::~AvlTree() { AvlTree::Clear(); }
+
+bool AvlTree::NodeCompare::operator()(const std::unique_ptr<AvlNode>& a,
+                                      const std::unique_ptr<AvlNode>& b) const {
+    return tree->IsLess(a.get(), b.get()) != 0;
+}
+
+bool AvlTree::NodeCompare::operator()(const std::unique_ptr<AvlNode>& node, const Probe& probe) const {
+    return probe.precedes(node.get());
+}
 
 void AvlTree::Clear() {
-    while (AvlNode* node = First()) {
-        Remove(node);
-        delete node;
+    const bool wasClearing = m_clearing;
+    m_clearing = true;
+    struct RestoreClearingState {
+        bool& state;
+        bool previous;
+        ~RestoreClearingState() { state = previous; }
+    } restore{m_clearing, wasClearing};
+
+    for (const auto& owned : m_nodes) {
+        owned->ResetLinks();
+        owned->m_owner = nullptr;
     }
+    m_index.clear();
+    NodeSet detached(NodeCompare{this});
+    m_nodes.swap(detached);
 }
 
-void AvlTree::Insert(AvlNode* node) {
+int AvlTree::Insert(AvlNode* node) {
+    if (!CanInsert(node)) return 0;
     node->ResetLinks();
-    AvlNode* predecessor = nullptr;
-    AvlNode* current = m_root;
-    if (!current) {
-        m_root = node;
-        Rebalance(node);
-        return;
+    std::unique_ptr<AvlNode> pending(node);
+    NodeSet::iterator position;
+    try {
+        position = m_nodes.insert(std::move(pending));
+    } catch (...) {
+        pending.release();
+        throw;
     }
-    do {
-        AvlNode* child;
-        if (IsLess(node, current)) {
-            child = current->m_left;
-            if (!child) {
-                current->m_left = node;
-                node->m_parent = current;
-                if (predecessor) predecessor->m_successor = node;
-            }
-            node->m_successor = current;
-        } else {
-            if (node == current) return;
-            child = current->m_right;
-            predecessor = current;
-            if (!child) {
-                current->m_right = node;
-                node->m_parent = current;
-                current->m_successor = node;
-            }
+    auto* predecessor = position == m_nodes.begin() ? nullptr : std::prev(position)->get();
+    auto next = std::next(position);
+    auto* successor = next == m_nodes.end() ? nullptr : next->get();
+    try {
+        const bool inserted = m_index.emplace(node, position).second;
+        if (!inserted) {
+            auto rejected = m_nodes.extract(position);
+            rejected.value().release();
+            return 0;
         }
-        current = child;
-    } while (current);
-    Rebalance(node);
-}
-
-namespace {
-
-// Splices `node` out of the tree below `root` (children and parent links only) and returns the node from which
-// the tree has to be rebalanced.
-AvlNode* UnlinkNode(AvlNode*& root, AvlNode* node) {
-    AvlNode* left = node->m_left;
-    AvlNode* right = node->m_right;
-    AvlNode* parent = node->m_parent;
-    AvlNode* replacement;
-    AvlNode* rebalanceFrom = parent;
-    if (!left) {
-        if (right) right->m_parent = parent;
-        if (parent) parent->ReplaceChild(node, right);
-        replacement = right;
-    } else if (!right) {
-        left->m_parent = parent;
-        if (parent) parent->ReplaceChild(node, left);
-        replacement = left;
-    } else {
-        right->m_parent = parent;
-        if (parent) parent->ReplaceChild(node, right);
-        AvlNode* leftmost = right;
-        for (AvlNode* next = right->m_left; next; next = leftmost->m_left) leftmost = next;
-        left->m_parent = leftmost;
-        leftmost->m_left = left;
-        rebalanceFrom = leftmost;
-        replacement = right;
+    } catch (...) {
+        auto rejected = m_nodes.extract(position);
+        rejected.value().release();
+        throw;
     }
-    if (root == node) root = replacement;
-    return rebalanceFrom;
+    node->m_predecessor = predecessor;
+    node->m_successor = successor;
+    node->m_owner = this;
+    if (predecessor) predecessor->m_successor = node;
+    if (successor) successor->m_predecessor = node;
+    return 1;
 }
-
-void SetPredecessorSuccessor(AvlNode* node, AvlNode*& fallbackSlot) {
-    AvlNode* predecessor = node->Predecessor();
-    if (predecessor)
-        predecessor->m_successor = node->m_successor;
-    else
-        fallbackSlot = node->m_successor;
-}
-
-}  // namespace
 
 void AvlTree::Remove(AvlNode* node) {
-    AvlNode* predecessor = node->Predecessor();
-    if (predecessor) predecessor->m_successor = node->m_successor;
-    AvlNode* rebalanceFrom = UnlinkNode(m_root, node);
+    if (!node || node->m_owner != this) return;
+    const auto found = m_index.find(node);
+    if (found == m_index.end()) return;
+    if (node->m_predecessor) node->m_predecessor->m_successor = node->m_successor;
+    if (node->m_successor) node->m_successor->m_predecessor = node->m_predecessor;
     node->ResetLinks();
-    Rebalance(rebalanceFrom);
+    node->m_owner = nullptr;
+    const auto position = found->second;
+    m_index.erase(found);
+    auto detached = m_nodes.extract(position);
+    detached.value().release();
 }
 
-AvlNode* AvlTree::First() const {
-    AvlNode* node = m_root;
-    AvlNode* first = nullptr;
-    if (node) {
-        first = node;
-        for (node = node->m_left; node; node = node->m_left) first = node;
-    }
-    return first;
+AvlNode* AvlTree::First() const { return m_nodes.empty() ? nullptr : m_nodes.begin()->get(); }
+
+AvlNode* AvlTree::Last() const { return m_nodes.empty() ? nullptr : m_nodes.rbegin()->get(); }
+
+size_t AvlTree::Count() const { return m_nodes.size(); }
+
+AvlNode* AvlTree::LowerBound(const std::function<bool(const AvlNode*)>& candidatePrecedesProbe) const {
+    const auto found = m_nodes.lower_bound(Probe{candidatePrecedesProbe});
+    return found == m_nodes.end() ? nullptr : found->get();
 }
 
-AvlNode* AvlTree::Last() const {
-    AvlNode* node = m_root;
-    AvlNode* last = nullptr;
-    if (node) {
-        last = node;
-        for (node = node->m_right; node; node = node->m_right) last = node;
-    }
-    return last;
-}
+bool AvlTree::Owns(const AvlNode* node) const { return node && node->m_owner == this; }
 
-short AvlTree::Count() const {
-    short count = 0;
-    for (AvlNode* node = First(); node; node = node->m_successor) ++count;
-    return count;
-}
-
-void AvlTree::Rebalance(AvlNode* node) {
-    for (; node; node = node->m_parent) {
-        short balance = static_cast<short>(node->UpdateHeight());
-        while (balance < -1) {
-            AvlNode* leftChild = node->m_left;
-            if (static_cast<short>(leftChild->UpdateHeight()) > 0) RotateLeft(leftChild);
-            node = RotateRight(node);
-            balance = static_cast<short>(node->UpdateHeight());
-        }
-        while (balance > 1) {
-            AvlNode* rightChild = node->m_right;
-            if (static_cast<short>(rightChild->UpdateHeight()) < 0) RotateRight(rightChild);
-            node = RotateLeft(node);
-            balance = static_cast<short>(node->UpdateHeight());
-        }
-    }
-}
-
-AvlNode* AvlTree::RotateLeft(AvlNode* node) {
-    AvlNode* pivot = node->m_right;
-    AvlNode* parent = node->m_parent;
-    if (!pivot) return node;
-    AvlNode* inner = pivot->m_left;
-    if (inner) inner->m_parent = node;
-    node->m_right = inner;
-    pivot->m_left = node;
-    node->m_parent = pivot;
-    node->UpdateHeight();
-    if (parent) {
-        parent->ReplaceChild(node, pivot);
-        pivot->m_parent = parent;
-        pivot->UpdateHeight();
-        return pivot;
-    }
-    m_root = pivot;
-    pivot->m_parent = nullptr;
-    pivot->UpdateHeight();
-    return pivot;
-}
-
-AvlNode* AvlTree::RotateRight(AvlNode* node) {
-    AvlNode* pivot = node->m_left;
-    AvlNode* parent = node->m_parent;
-    if (!pivot) return node;
-    AvlNode* inner = pivot->m_right;
-    if (inner) inner->m_parent = node;
-    node->m_left = inner;
-    pivot->m_right = node;
-    node->m_parent = pivot;
-    node->UpdateHeight();
-    if (parent) {
-        parent->ReplaceChild(node, pivot);
-        pivot->m_parent = parent;
-        pivot->UpdateHeight();
-        return pivot;
-    }
-    m_root = pivot;
-    pivot->m_parent = nullptr;
-    pivot->UpdateHeight();
-    return pivot;
+bool AvlTree::CanInsert(const AvlNode* node) const {
+    return !m_clearing && node && !node->m_owner && !node->m_predecessor && !node->m_successor;
 }
 
 // ---- IdNode / IdValueNode ----------------------------------------------------------------------------------
@@ -288,46 +171,76 @@ int IdAvlTree::IsLess(AvlNode* a, AvlNode* b) {
     return 0;
 }
 
+int IdAvlTree::Insert(AvlNode* node) {
+    if (!CanInsert(node) || static_cast<IdNode*>(node)->m_id == 0) return 0;
+    AvlNode* equivalent = LowerBound([this, node](const AvlNode* candidate) {
+        return IsLess(const_cast<AvlNode*>(candidate), node) != 0;
+    });
+    if (equivalent && !IsLess(node, equivalent)) return 0;
+    return AvlTree::Insert(node);
+}
+
 void IdAvlTree::Read(istream* in) {
     Clear();
-    uint32_t count;
+    uint32_t count = 0;
     ReadValue32(in, &count);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return;
     for (uint32_t i = 0; i < count; ++i) {
         IdNode* node = NewOrNull<IdNode>();
-        // BUG(original): a failed allocation is not checked before the node is used.
+        if (!node) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
         node->ReadId(in);
-        AddWithId(node);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || !AddWithId(node)) {
+            delete node;
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
     }
 }
 
 void IdAvlTree::Write(ostream* out) {
-    uint32_t count = static_cast<uint16_t>(Count());
+    if (Count() > std::numeric_limits<uint32_t>::max()) {
+        iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
+        return;
+    }
+    uint32_t count = static_cast<uint32_t>(Count());
     WriteValue32(out, &count);
     for (AvlNode* node = First(); node; node = node->m_successor) static_cast<IdNode*>(node)->WriteId(out);
 }
 
 uint32_t IdAvlTree::AddWithId(IdNode* node) {
-    if (!node) return 0;
+    if (!CanInsert(node)) return 0;
     uint32_t id = node->m_id;
     if (id == 0) {
-        node->SetId(m_nextId);
-        id = m_nextId++;
-        Insert(node);
+        if (m_nextId == 0) return 0;
+        id = m_nextId;
+        node->SetId(id);
+        int inserted = 0;
+        try {
+            inserted = Insert(node);
+        } catch (...) {
+            node->SetId(0);
+            throw;
+        }
+        if (!inserted) {
+            node->SetId(0);
+            return 0;
+        }
+        m_nextId = id + 1;
         return id;
     }
-    if (m_nextId <= id) m_nextId = id + 1;
-    Insert(node);
+    if (!Insert(node)) return 0;
+    if (m_nextId != 0 && m_nextId <= id) m_nextId = id + 1;
     return id;
 }
 
 IdNode* IdAvlTree::FindById(uint32_t id) const {
-    AvlNode* node = m_root;
-    while (node && id != static_cast<IdNode*>(node)->m_id) {
-        if (static_cast<IdNode*>(node)->m_id < id)
-            node = node->m_right;
-        else
-            node = node->m_left;
-    }
+    AvlNode* node = LowerBound([id](const AvlNode* candidate) {
+        return static_cast<const IdNode*>(candidate)->m_id < id;
+    });
+    if (node && static_cast<IdNode*>(node)->m_id != id) node = nullptr;
     return static_cast<IdNode*>(node);
 }
 
@@ -352,19 +265,30 @@ IdValueTree::IdValueTree() : IdAvlTree() {}
 IdValueTree::~IdValueTree() = default;
 
 void IdValueTree::Read(istream* in) {
-    uint16_t count;
+    uint16_t count = 0;
     ReadValue16(in, &count);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return;
     while (count != 0) {
         --count;
         IdValueNode* node = NewOrNull<IdValueNode>(0);
-        if (node) {
-            node->Read(in);
-            AddWithId(node);
+        if (!node) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
+        }
+        node->Read(in);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || !AddWithId(node)) {
+            delete node;
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return;
         }
     }
 }
 
 void IdValueTree::Write(ostream* out) {
+    if (Count() > std::numeric_limits<uint16_t>::max()) {
+        iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
+        return;
+    }
     uint16_t count = static_cast<uint16_t>(Count());
     WriteValue16(out, &count);
     for (AvlNode* node = First(); node; node = node->m_successor) static_cast<IdValueNode*>(node)->Write(out);
@@ -405,13 +329,10 @@ int AvlSet::IsLess(AvlNode* a, AvlNode* b) { return Precedes(a, b); }
 int AvlSet::Contains(AvlNode* probe) { return Find(probe) != nullptr; }
 
 AvlNode* AvlSet::Find(AvlNode* probe) {
-    AvlNode* node = m_root;
-    while (node && !Matches(probe, node)) {
-        if (!Precedes(probe, node) && !Matches(probe, node))
-            node = node->m_right;
-        else
-            node = node->m_left;
-    }
+    AvlNode* node = LowerBound([this, probe](const AvlNode* candidate) {
+        return Precedes(const_cast<AvlNode*>(candidate), probe);
+    });
+    if (node && !Matches(probe, node)) node = nullptr;
     return node;
 }
 
@@ -470,66 +391,9 @@ int IntKeyedSet::Matches(AvlNode* probe, AvlNode* node) {
 
 // ---- OrderedTree -------------------------------------------------------------------------------------------
 
-OrderedTree::OrderedTree() : m_root(nullptr), m_first(nullptr) {}
+OrderedTree::OrderedTree() = default;
 
-OrderedTree::~OrderedTree() { OrderedTree::Clear();  }
-
-void OrderedTree::Clear() {
-    while (AvlNode* node = m_first) {
-        Remove(node);
-        delete node;
-    }
-}
-
-void OrderedTree::Insert(AvlNode* node) {
-    AvlNode* predecessor = nullptr;
-    AvlNode* current = m_root;
-    if (!current) {
-        m_root = node;
-        m_first = node;
-        node->m_left = nullptr;
-        node->m_right = nullptr;
-        node->m_parent = nullptr;
-        node->m_successor = nullptr;
-        return;
-    }
-    do {
-        AvlNode* child;
-        if (IsLess(node, current)) {
-            child = current->m_left;
-            if (!child) {
-                current->m_left = node;
-                node->m_parent = current;
-                if (predecessor)
-                    predecessor->m_successor = node;
-                else
-                    m_first = node;
-            }
-            node->m_successor = current;
-        } else {
-            child = current->m_right;
-            predecessor = current;
-            if (!child) {
-                current->m_right = node;
-                node->m_parent = current;
-                current->m_successor = node;
-            }
-        }
-        current = child;
-    } while (current);
-}
-
-void OrderedTree::Remove(AvlNode* node) {
-    SetPredecessorSuccessor(node, m_first);
-    UnlinkNode(m_root, node);
-    node->ResetLinks();
-}
-
-short OrderedTree::Count() const {
-    short count = 0;
-    for (AvlNode* node = m_first; node; node = node->m_successor) ++count;
-    return count;
-}
+OrderedTree::~OrderedTree() = default;
 
 // ---- LinkNode / IdLinkNode ---------------------------------------------------------------------------------
 
@@ -558,76 +422,94 @@ SortedLinkList::SortedLinkList() : m_count(0), m_head(nullptr) {}
 SortedLinkList::~SortedLinkList() { Clear();  }
 
 int SortedLinkList::Insert(LinkNode* node) {
-    if (!node || node->m_owner || node->m_prev || node->m_next) return 0;
-    if (!m_head) {
-        m_head = node;
-        node->m_prev = nullptr;
-        m_head->m_next = nullptr;
-    } else {
-        if (IsLess(node, m_head)) {
-            m_head->m_prev = node;
-            node->m_next = m_head;
-            ++m_count;
-            m_head = node;
-            node->m_owner = this;
-            return 1;
-        }
-        LinkNode* previous = m_head;
-        if (previous == node) return 0;
-        LinkNode* next = previous->m_next;
-        while (next && !IsLess(node, next)) {
-            if (next == node) return 0;
-            previous = next;
-            next = next->m_next;
-        }
-        previous->m_next = node;
-        node->m_prev = previous;
-        node->m_next = next;
-        if (next) {
-            next->m_prev = node;
-            ++m_count;
-            node->m_owner = this;
-            return 1;
-        }
+    if (!CanInsert(node)) return 0;
+
+    auto position = m_nodes.begin();
+    while (position != m_nodes.end() && !IsLess(node, position->get())) ++position;
+    std::unique_ptr<LinkNode> pending(node);
+    NodeList::iterator inserted;
+    try {
+        inserted = m_nodes.insert(position, std::move(pending));
+    } catch (...) {
+        pending.release();
+        throw;
     }
+
+    auto previous = inserted == m_nodes.begin() ? m_nodes.end() : std::prev(inserted);
+    auto next = std::next(inserted);
+    try {
+        const bool indexed = m_index.emplace(node, inserted).second;
+        if (!indexed) {
+            node = inserted->release();
+            m_nodes.erase(inserted);
+            return 0;
+        }
+    } catch (...) {
+        inserted->release();
+        m_nodes.erase(inserted);
+        throw;
+    }
+
+    node->m_prev = previous == m_nodes.end() ? nullptr : previous->get();
+    node->m_next = next == m_nodes.end() ? nullptr : next->get();
     node->m_owner = this;
+    if (node->m_prev) node->m_prev->m_next = node;
+    if (node->m_next) node->m_next->m_prev = node;
+    m_head = m_nodes.empty() ? nullptr : m_nodes.front().get();
     ++m_count;
     return 1;
 }
 
+bool SortedLinkList::CanInsert(const LinkNode* node) const {
+    return !m_clearing && node && !node->m_owner && !node->m_prev && !node->m_next;
+}
+
+LinkNode* SortedLinkList::FirstOwned() const { return m_nodes.empty() ? nullptr : m_nodes.front().get(); }
+
 int SortedLinkList::Remove(LinkNode* node) {
     if (!node || node->m_owner != this) return 0;
-    if (node == m_head) {
-        LinkNode* next = m_head->m_next;
-        m_head = next;
-        if (next) next->m_prev = nullptr;
-    } else {
-        LinkNode* previous = node->m_prev;
-        LinkNode* next = node->m_next;
-        if (previous) previous->m_next = next;
-        if (next) next->m_prev = previous;
-    }
+    const auto found = m_index.find(node);
+    if (found == m_index.end()) return 0;
+    const auto position = found->second;
+    auto previous = position == m_nodes.begin() ? m_nodes.end() : std::prev(position);
+    auto next = std::next(position);
+    if (previous != m_nodes.end()) previous->get()->m_next = next == m_nodes.end() ? nullptr : next->get();
+    if (next != m_nodes.end()) next->get()->m_prev = previous == m_nodes.end() ? nullptr : previous->get();
     node->m_prev = nullptr;
     node->m_next = nullptr;
     node->m_owner = nullptr;
+    m_index.erase(found);
+    auto detached = std::move(*position);
+    m_nodes.erase(position);
+    detached.release();
+    m_head = m_nodes.empty() ? nullptr : m_nodes.front().get();
     --m_count;
     return 1;
 }
 
 void SortedLinkList::Clear() {
-    LinkNode* next = m_head;
-    while (LinkNode* node = next) {
-        next = node->m_next;
-        Remove(node);
-        delete node;
+    const bool wasClearing = m_clearing;
+    m_clearing = true;
+    struct RestoreClearingState {
+        bool& state;
+        bool previous;
+        ~RestoreClearingState() { state = previous; }
+    } restore{m_clearing, wasClearing};
+
+    for (const auto& owned : m_nodes) {
+        owned->m_prev = nullptr;
+        owned->m_next = nullptr;
+        owned->m_owner = nullptr;
     }
+    m_index.clear();
+    m_head = nullptr;
     m_count = 0;
+    NodeList detached;
+    m_nodes.swap(detached);
 }
 
 void SortedLinkList::RewindToFirst() {
-    if (m_head) {
-        for (LinkNode* previous = m_head->m_prev; previous; previous = previous->m_prev) m_head = previous;
-    }
+    m_head = m_nodes.empty() ? nullptr : m_nodes.front().get();
 }
 
 IdSortedLinkList::IdSortedLinkList() : SortedLinkList(), m_nextId(1) {}
@@ -645,24 +527,28 @@ void IdSortedLinkList::Reset() {
 }
 
 uint32_t IdSortedLinkList::AddWithId(IdLinkNode* node) {
-    uint32_t id = 0;
-    if (node) {
-        id = node->m_id;
-        if (id == 0) node->m_id = m_nextId;
-        if (Insert(node)) {
-            if (id == 0) {
-                id = m_nextId;
-                m_nextId = id + 1;
-                return id;
-            }
-            if (m_nextId <= id) m_nextId = id + 1;
-        }
+    if (!CanInsert(node)) return 0;
+    const uint32_t priorId = node->m_id;
+    const uint32_t id = priorId == 0 ? m_nextId : priorId;
+    if (id == 0 || FindById(id)) return 0;
+    if (priorId == 0) node->m_id = id;
+    int inserted = 0;
+    try {
+        inserted = Insert(node);
+    } catch (...) {
+        if (priorId == 0) node->m_id = 0;
+        throw;
     }
+    if (!inserted) {
+        if (priorId == 0) node->m_id = 0;
+        return 0;
+    }
+    if (m_nextId != 0 && m_nextId <= id) m_nextId = id + 1;
     return id;
 }
 
 IdLinkNode* IdSortedLinkList::FindById(uint32_t id) const {
-    LinkNode* node = m_head;
+    LinkNode* node = FirstOwned();
     while (node && static_cast<IdLinkNode*>(node)->m_id != id) node = node->m_next;
     return static_cast<IdLinkNode*>(node);
 }

@@ -13,7 +13,7 @@ public:
     MessageTree();  // 0x536eb0
     ~MessageTree() override;
 
-    // Appends the messages read from the stream (kinds the factory table does not know are skipped).
+    // Appends messages from the stream; an unknown kind or malformed body sets fail state.
     void Read(istream* in);  // 0x536f00
     void Write(ostream* out);  // 0x536f70
     // Takes ownership of `message` (any message, only its id is used): queued under its id, or deleted when it has no id

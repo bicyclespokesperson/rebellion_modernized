@@ -10,9 +10,8 @@ namespace {
 constexpr uint32_t kHasLeaders = 1;
 constexpr uint32_t kTargetChosen = 0x10;
 
-// BUG(original): the last test is `(flags | 0x20) == 0`, which is never true, so a rescue target is never kept.
 bool RescueKeepsTarget(uint32_t flags) {
-    return (flags & 0x20000000) != 0 && (flags & 2) != 0 && (flags & 0x40) != 0 && (flags | 0x20) == 0;
+    return (flags & 0x20000000) != 0 && (flags & 2) != 0 && (flags & 0x40) != 0 && (flags & 0x20) == 0;
 }
 
 bool Mission62KeepsTarget(uint32_t flags) { return (flags & 8) != 0 && (flags & 4) != 0 && (flags & 0x60) == 0; }

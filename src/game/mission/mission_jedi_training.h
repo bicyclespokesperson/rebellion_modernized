@@ -10,7 +10,6 @@ public:
     ~MissionJediTraining() override;  // 0x570230 (deleting), 0x570250
 
     uint32_t GetFamily() override;                                      // 1, 0x5705a0: 0x58
-    int Checksum(Crc32* crc) override;                                  // 7, 0x56dee0: the rule-base sum only
     int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x570580
     int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x5702b0
     int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x5702d0

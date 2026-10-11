@@ -1,62 +1,84 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <list>
 #include <memory>
+#include <set>
+#include <unordered_map>
 
 #include "core/game_string.h"
 #include "core/stream_io.h"
 
-// The game's own intrusive containers (no STL). Nodes carry their links and are owned by the container that
-// holds them: Clear()/destructors delete every node through its virtual destructor.
+// Owning container APIs accept borrowed node pointers and take ownership after a successful insertion. Removal
+// transfers the node back to the caller; Clear()/destructors delete nodes through their virtual destructors.
 //
-//   AvlNode / AvlTree        height-balanced binary tree with a threaded in-order successor pointer
+//   AvlNode / AvlTree        ordered owning tree with borrowed in-order neighbor views
 //     IdNode / IdAvlTree     nodes keyed by a 32-bit id the tree hands out; IdValueNode / IdValueTree add a payload
 //     CloneableNode / AvlSet set of cloneable nodes (IntKeyNode / IntKeyedSet: keyed by a signed int)
-//   OrderedTree              unbalanced threaded tree that caches its first node
+//   OrderedTree              ordered-tree compatibility type
 //   LinkNode / SortedLinkList  doubly linked list (IdLinkNode / IdSortedLinkList: ids assigned by the list)
 //   NodeQueue, NodeStack     FIFO / LIFO of LinkNodes
 
 class AvlNode {
 public:
     AvlNode();
+    AvlNode(const AvlNode&);
+    AvlNode& operator=(const AvlNode&) = delete;
+    AvlNode(AvlNode&&) = delete;
+    AvlNode& operator=(AvlNode&&) = delete;
     virtual ~AvlNode();
 
-    // In-order predecessor (the node whose m_successor is this one), or null.
+    // Borrowed in-order predecessor, or null.
     AvlNode* Predecessor();
 
     void ResetLinks();
-    void ReplaceChild(AvlNode* oldChild, AvlNode* newChild);
-    // Recomputes m_height from the children and returns height(right) - height(left) (modulo 2^16).
-    int UpdateHeight();
 
-    AvlNode* m_left;       // +0x04
-    AvlNode* m_right;      // +0x08
-    AvlNode* m_parent;     // +0x0c
-    AvlNode* m_successor;  // +0x10
-    uint16_t m_height;     // +0x14
-    uint16_t m_pad16;      // +0x16
+    AvlNode* m_predecessor = nullptr;
+    AvlNode* m_successor = nullptr;
+
+private:
+    friend class AvlTree;
+    const void* m_owner = nullptr;
 };
 
 class AvlTree {
 public:
     AvlTree();
     virtual ~AvlTree();
+    AvlTree(const AvlTree&) = delete;
+    AvlTree& operator=(const AvlTree&) = delete;
+    AvlTree(AvlTree&&) = delete;
+    AvlTree& operator=(AvlTree&&) = delete;
     virtual void Clear();
     virtual int IsLess(AvlNode* a, AvlNode* b) = 0;
 
-    // Duplicates (nodes for which neither IsLess(a,b) nor IsLess(b,a)) go to the right; re-inserting a node that
-    // is already in the tree is detected only when the search reaches it.
-    void Insert(AvlNode* node);
+    // Equivalent keys retain insertion order. Inserts reject nodes already owned by a tree.
+    virtual int Insert(AvlNode* node);
     void Remove(AvlNode* node);
     AvlNode* First() const;  // leftmost
     AvlNode* Last() const;   // rightmost
-    short Count() const;
-    void Rebalance(AvlNode* node);
-    AvlNode* RotateLeft(AvlNode* node);
-    AvlNode* RotateRight(AvlNode* node);
+    size_t Count() const;
 
-    AvlNode* m_root;  // +0x04
+protected:
+    AvlNode* LowerBound(const std::function<bool(const AvlNode*)>& candidatePrecedesProbe) const;
+    bool Owns(const AvlNode* node) const;
+    bool CanInsert(const AvlNode* node) const;
+
+private:
+    struct Probe {
+        std::function<bool(const AvlNode*)> precedes;
+    };
+    struct NodeCompare {
+        using is_transparent = void;
+        AvlTree* tree;
+        bool operator()(const std::unique_ptr<AvlNode>& a, const std::unique_ptr<AvlNode>& b) const;
+        bool operator()(const std::unique_ptr<AvlNode>& node, const Probe& probe) const;
+    };
+    using NodeSet = std::multiset<std::unique_ptr<AvlNode>, NodeCompare>;
+    NodeSet m_nodes;
+    std::unordered_map<AvlNode*, NodeSet::iterator> m_index;
+    bool m_clearing = false;
 };
 
 // Node with a 32-bit id.
@@ -89,6 +111,7 @@ public:
     IdAvlTree();
     ~IdAvlTree() override;
     void Clear() override;
+    int Insert(AvlNode* node) override;
     int IsLess(AvlNode* a, AvlNode* b) override;
 
     // Saves/loads the ids only (32-bit count); Read creates plain IdNodes.
@@ -163,19 +186,11 @@ public:
     IntKeyedSet& operator=(const IntKeyedSet& other);
 };
 
-// Like AvlTree but never rebalances, and keeps its first (lowest) node in m_first.
-class OrderedTree {
+// Compatibility name for ordered event trees; ordering and ownership come from AvlTree.
+class OrderedTree : public AvlTree {
 public:
     OrderedTree();
-    virtual ~OrderedTree();
-    virtual void Clear();
-    virtual int IsLess(AvlNode* a, AvlNode* b) = 0;
-    void Insert(AvlNode* node);
-    void Remove(AvlNode* node);
-    short Count() const;
-
-    AvlNode* m_root;   // +0x04
-    AvlNode* m_first;  // +0x08
+    ~OrderedTree() override;
 };
 
 // Doubly linked list node. Read/Write are no-ops unless a derived class saves something.
@@ -215,6 +230,10 @@ class SortedLinkList {
 public:
     SortedLinkList();
     virtual ~SortedLinkList();
+    SortedLinkList(const SortedLinkList&) = delete;
+    SortedLinkList& operator=(const SortedLinkList&) = delete;
+    SortedLinkList(SortedLinkList&&) = delete;
+    SortedLinkList& operator=(SortedLinkList&&) = delete;
     virtual int IsLess(LinkNode* a, LinkNode* b) = 0;
 
     int Insert(LinkNode* node);
@@ -222,8 +241,19 @@ public:
     void Clear();
     void RewindToFirst();
 
+protected:
+    bool CanInsert(const LinkNode* node) const;
+    LinkNode* FirstOwned() const;
+
+public:
     int m_count;        // +0x04
     LinkNode* m_head;   // +0x08
+
+private:
+    using NodeList = std::list<std::unique_ptr<LinkNode>>;
+    NodeList m_nodes;
+    std::unordered_map<LinkNode*, NodeList::iterator> m_index;
+    bool m_clearing = false;
 };
 
 class IdSortedLinkList : public SortedLinkList {

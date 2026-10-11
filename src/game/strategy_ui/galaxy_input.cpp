@@ -253,8 +253,7 @@ void GalaxyWindow::ToggleGidMenu() {
         legendFrame.left = m_gidLegend->m_x;
         legendFrame.top = m_gidLegend->m_y;
         legendFrame.right = m_gidLegend->m_clientWidth + m_gidLegend->m_x;
-        // BUG(original): the bottom edge forgets the window's y offset.
-        legendFrame.bottom = m_gidLegend->m_clientHeight;
+        legendFrame.bottom = m_gidLegend->m_clientHeight + m_gidLegend->m_y;
         AnimateZoomRect(m_hwnd, &iconFrame, &legendFrame);
         m_gidLegend->Hide();
         m_gidLegendIcon->Show(5);

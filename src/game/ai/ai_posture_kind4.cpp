@@ -136,9 +136,10 @@ void AiPostureKind4::Virtual20() {
     budget = ((sector->Stat(0x198) + sector->Stat(0x138)) * 11) / 10;
     if (budget < classes.m_x34) budget = classes.m_x34;
     if (m_budget[3] < budget) m_budget[3] = budget;
-    // BUG(original): without a target the previous budget is reused for slot 2.
-    if (target) budget = target->Stat(0x118);
-    if (m_budget[2] < budget) m_budget[2] = budget;
+    if (target) {
+        budget = target->Stat(0x118);
+        if (m_budget[2] < budget) m_budget[2] = budget;
+    }
     if ((m_owner->m_flags.Get() & 4) != 0 && 0 < sector->Stat(0x19c)) m_budget[4] = 1;
     if ((m_owner->m_flags.Get() & 0x1000000) != 0) m_budget[6] = 1;
     m_budget[7] = m_record->m_x94;

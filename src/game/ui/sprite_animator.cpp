@@ -100,8 +100,7 @@ void SpriteAnimator::Step(RECT* area, int* changed) {
 }
 
 void SpriteAnimator::SetSprite(int index, Sprite* sprite) {
-    // BUG(original): the lower bound is `index < 1`, so only slot 0 (and negative indices) can be set.
-    if (index < 1 && index < m_spriteCount) m_sprites[index] = sprite;
+    if (index >= 0 && index < m_spriteCount) m_sprites[index] = sprite;
 }
 
 void SpriteAnimator::SetEndAction(int kind, const uint32_t* sequence, SpriteStage* stage, int frames,

@@ -3,6 +3,7 @@
 #include <new>
 
 #include "core/checked_new.h"
+#include "core/iostream_lib.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_database.h"
 #include "orders/order_checks.h"
@@ -44,13 +45,12 @@ MessageBase::MessageBase() : IdNode() { m_unk1c = 1; }
 MessageBase::~MessageBase() = default;
 
 int MessageBase::Read(istream* in) {
-    // BUG(original): the id is read into the argument slot that held the stream pointer, so a failed read leaves
-    // the stream pointer as the id.
-    uint32_t id = static_cast<uint32_t>(reinterpret_cast<uintptr_t>(in));
+    uint32_t id = 0;
     StreamRead32(in, &id);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return 0;
     SetId(id);
     StreamRead32(in, &m_unk1c);
-    return 1;
+    return (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) == 0;
 }
 
 int MessageBase::Write(ostream* out) {

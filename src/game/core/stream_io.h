@@ -1,4 +1,5 @@
 #pragma once
+#include <cstddef>
 #include <cstdint>
 
 #include "core/game_string.h"
@@ -25,6 +26,7 @@ void ReadValue16(istream* in, void* value);
 void WriteValue16(ostream* out, const void* value);
 void ReadValue32(istream* in, void* value);
 void WriteValue32(ostream* out, const void* value);
+bool WriteCount32(ostream* out, size_t count);
 
 template <class T>
 inline void ReadValue8(istream* in, T* value) {

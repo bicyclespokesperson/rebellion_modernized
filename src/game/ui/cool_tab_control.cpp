@@ -84,8 +84,7 @@ LRESULT CoolTabControl::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
         CoolStrobeButton* tab = static_cast<CoolStrobeButton*>(m_children.FindById(static_cast<uint32_t>(wParam)));
         if (!tab) return 0;
         if (m_selected != tab) {
-            // BUG(original): crashes if no tab is selected yet (AddTab always selects the first one).
-            if (m_selected->HasStateFlags(kButtonChecked)) {
+            if (m_selected && m_selected->HasStateFlags(kButtonChecked)) {
                 m_selected->ClearStateFlags(kButtonChecked);
                 UpdateWindow(m_selected->m_hwnd);
             }

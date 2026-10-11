@@ -1,6 +1,8 @@
 #include "gameobj/status_code.h"
 
 #include "core/checked_new.h"
+#include "core/iostream_lib.h"
+#include "core/stream_io.h"
 
 namespace {
 
@@ -93,26 +95,35 @@ EventKindNode* EventKindSet::Find(int kind) {
 
 int EventKindSet::Read(istream* in) {
     AvlTree::Clear();
-    int ok = 1;
-    int count;
+    uint32_t count = 0;
     ReadValue32(in, &count);
-    for (int i = 0; i < count; ++i) {
-        int kind;
-        ReadValue32(in, &kind);
-        void* memory = ::operator new(sizeof(EventKindNode));
-        EventKindNode* node = memory ? new (memory) EventKindNode() : nullptr;
-        if (node) {
-            node->m_key = kind;
-            AddIfAbsent(node);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return 0;
+    for (uint32_t i = 0; i < count; ++i) {
+        EventKindNode* node = NewOrNull<EventKindNode>();
+        if (!node) {
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return 0;
+        }
+        node->Read(in);
+        if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) {
+            delete node;
+            return 0;
+        }
+        if (Contains(node->m_key)) {
+            delete node;
+            continue;
+        }
+        if (!Insert(node)) {
+            delete node;
+            iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+            return 0;
         }
     }
-    return ok;
+    return 1;
 }
 
 int EventKindSet::Write(ostream* out) {
-    int ok = 1;
-    uint32_t count = static_cast<uint16_t>(Count());
-    WriteValue32(out, &count);
+    if (!WriteCount32(out, Count())) return 0;
     for (AvlNode* node = AvlTree::First(); node; node = node->m_successor) static_cast<EventKindNode*>(node)->Write(out);
-    return ok;
+    return 1;
 }

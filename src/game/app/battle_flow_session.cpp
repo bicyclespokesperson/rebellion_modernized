@@ -161,11 +161,11 @@ void BattleFlow::Restore(istream* in) {
             ok = 0;
             if (created != 0) {
                 CheckPositionMarker(in);
-                if (m_stepDriver.get()) m_stepDriver.get()->Load(in);
-                CheckPositionMarker(in);
-                AppLoadStrategicState(in);
-                CheckPositionMarker(in);
-                m_ok = 1;
+                ok = m_stepDriver && m_stepDriver->Load(in);
+                if (ok) ok = CheckPositionMarker(in);
+                if (ok) ok = AppLoadStrategicState(in);
+                if (ok) ok = CheckPositionMarker(in);
+                m_ok = ok && iostream_access::State(in) == 0;
                 return;
             }
         } else if (m_state == 0x14) {
@@ -199,11 +199,10 @@ int BattleFlow::Save(ostream* out) {
     StreamWrite32(out, &m_voteTimeB);
     if (m_state == 2) {
         WritePositionMarker(out);
-        if (m_stepDriver.get()) m_stepDriver.get()->Save(out);
+        ok = m_stepDriver && m_stepDriver->Save(out);
         WritePositionMarker(out);
         AppSaveStrategicState(out);
         WritePositionMarker(out);
-        ok = 1;
         m_ok = ok;
         return ok;
     }

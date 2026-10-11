@@ -119,16 +119,13 @@ __attribute__((noinline)) ObjectKey ReadItemKey(AiRankedItem* item) {
 
 }  // namespace
 
-// BUG(original): the key of the node after the last one is read too, so searching for a key that is not in the list
-// (or in an empty list) reads the key from address 0xc.
 AiRankedItem* AiRankedList::FindKey(const ObjectKey* key) {
     AiRankedItem* item = First();
-    ObjectKey current = ReadItemKey(item);
-    while (item && key->m_value != current.m_value) {
+    while (item) {
+        if (key->m_value == ReadItemKey(item).m_value) return item;
         item = static_cast<AiRankedItem*>(item->m_next);
-        current = ReadItemKey(item);
     }
-    return item;
+    return nullptr;
 }
 
 AiRankedItem* AiRankedList::First() const { return static_cast<AiRankedItem*>(m_head); }

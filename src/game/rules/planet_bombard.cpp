@@ -334,15 +334,16 @@ int BombardWalker::PickRandomProcFacility(int* found, DefenderRef* ref) {
         int index = 0;
         GameObjNotifier* chosen = nullptr;
         production.Begin();
-        // BUG(original): the iterator is never advanced, so the first facility is the only candidate.
         while (production.Current() != nullptr && chosen == nullptr) {
-            if (index < pick)
+            if (index < pick) {
                 ++index;
+                production.Advance();
+            }
             else
                 chosen = production.Current();
         }
         ref->m_facility = chosen;
-        *found = 1;
+        *found = chosen != nullptr;
     }
     return 1;
 }

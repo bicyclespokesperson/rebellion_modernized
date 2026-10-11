@@ -10,7 +10,8 @@ class ObjectBase;
 // Expands the RT_RCDATA text templates of a string DLL (TEXTSTRA's player messages). A template is plain text in
 // which a field marker byte introduces a 6-byte field: marker, field code, int32 argument. Field code n (1..4)
 // appends the name of the n-th object passed to Expand (ObjectBase::WriteName with the argument as the kind).
-// The text ends at the end marker byte. The two marker bytes are themselves one-byte RT_RCDATA resources.
+// High-bit indirect field codes are unsupported and skipped. The text ends at the end marker byte. The two marker
+// bytes are themselves one-byte RT_RCDATA resources.
 class MessageTemplate {
 public:
     MessageTemplate(UINT endMarkerId, UINT fieldMarkerId, HMODULE module);  // 0x60b7b0

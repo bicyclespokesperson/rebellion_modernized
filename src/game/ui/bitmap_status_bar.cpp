@@ -31,28 +31,29 @@ BitmapStatusBar::~BitmapStatusBar() {
 }
 
 void BitmapStatusBar::SetPicture(DibBitmap* image) {
+    if (!image) return;
     HDC dc = GetDC(m_hwnd);
-    // BUG(original): the old picture is freed but m_picture keeps pointing at it, so the image is then copied into
-    // freed memory instead of a new picture being made.
-    if (m_picture && image && m_picture) delete m_picture;
-    if (image->IsLoaded() && !m_picture) {
-        if (m_canvas) delete m_canvas;
+    delete m_picture;
+    delete m_canvas;
+    m_picture = nullptr;
+    m_canvas = nullptr;
+    if (image->IsLoaded()) {
         const int width = image->Width();
         const int height = image->Height();
         m_picture = NewOrNull<DibBitmap>(width, height, image);
-        m_canvas = NewOrNull<DibBitmap>(static_cast<LONG>(width), static_cast<LONG>(height), image, dc);
-        MoveWindow(m_hwnd, m_x, m_y, width, height - 1, FALSE);
+        if (dc) m_canvas = NewOrNull<DibBitmap>(static_cast<LONG>(width), static_cast<LONG>(height), image, dc);
+        if (m_picture && m_canvas) {
+            image->Blit(m_picture, 0, 0, 0, 0, 0, 0);
+            MoveWindow(m_hwnd, m_x, m_y, width, height - 1, FALSE);
+        } else {
+            delete m_picture;
+            delete m_canvas;
+            m_picture = nullptr;
+            m_canvas = nullptr;
+        }
     }
-    if (!image->IsLoaded()) {
-        if (m_picture) delete m_picture;
-        if (m_canvas) delete m_canvas;
-        m_picture = nullptr;
-        m_canvas = nullptr;
-    } else {
-        image->Blit(m_picture, 0, 0, 0, 0, 0, 0);
-        if (image) delete image;
-    }
-    ReleaseDC(m_hwnd, dc);
+    delete image;
+    if (dc) ReleaseDC(m_hwnd, dc);
 }
 
 LRESULT BitmapStatusBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
@@ -81,13 +82,12 @@ LRESULT BitmapStatusBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) 
     }
 
     PAINTSTRUCT paint;
-    // BUG(original): EndPaint is never called (as in CoolwinStatusBar).
     HDC dc = BeginPaint(hwnd, &paint);
-    SelectPalette(dc, g_palette, FALSE);
+    HPALETTE previousPalette = SelectPalette(dc, g_palette, FALSE);
     HDC memory = CreateCompatibleDC(dc);
     HBITMAP scratch = nullptr;
     HGDIOBJ previousBitmap;
-    if (m_picture) {
+    if (m_picture && m_canvas) {
         previousBitmap = SelectObject(memory, m_canvas->DibSectionHandle());
     } else {
         scratch = CreateCompatibleBitmap(dc, m_clientWidth, m_clientHeight);
@@ -139,10 +139,12 @@ LRESULT BitmapStatusBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) 
         }
         SelectObject(memory, previousPen);
     }
-    if (m_picture) m_picture->DrawKeyed(m_canvas, 0, 0);
+    if (m_picture && m_canvas) m_picture->DrawKeyed(m_canvas, 0, 0);
     BitBlt(dc, 0, 0, m_clientWidth, m_clientHeight, memory, 0, 0, SRCCOPY);
     SelectObject(memory, previousBitmap);
-    if (!m_picture) DeleteObject(scratch);
+    if (scratch) DeleteObject(scratch);
     DeleteDC(memory);
+    SelectPalette(dc, previousPalette, FALSE);
+    EndPaint(hwnd, &paint);
     return 0;
 }

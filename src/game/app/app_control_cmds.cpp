@@ -4,6 +4,7 @@
 
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
+#include "core/stream_io.h"
 #include "multiplayer/multiplayer_window.h"
 
 extern const int g_rectA[4];  // 0x658b08 {left, top, right, bottom}
@@ -35,12 +36,13 @@ MpSlotTableMsg::~MpSlotTableMsg() = default;
 
 int MpSlotTableMsg::Read(istream* in) {
     int result = MessageBase::Read(in);
-    // BUG(original): the values are read into the function's own argument slot, which starts out holding the
-    // stream pointer and keeps the last value read; a failed read therefore stores that stale value.
-    int staged = static_cast<int>(reinterpret_cast<uintptr_t>(in));
-    for (int& value : m_values) {
-        StreamRead32(in, &staged);
-        value = staged;
+    int values[kSlotCount]{};
+    for (int& value : values) StreamRead32(in, &value);
+    const ios* state = iostream_access::IosOf(in);
+    if ((state->m_state & iostream_flags::kFail) == 0) {
+        for (int i = 0; i < kSlotCount; ++i) m_values[i] = values[i];
+    } else {
+        result = 0;
     }
     return result;
 }

@@ -92,7 +92,6 @@ void FillSidePage(CoolListItemList* items, int side, const SideItem& first, cons
     GetGameSettings(&settings);
     HMODULE module = CoolAppGetResourceModule(kSideIconsSlot);
     const bool allVictoryPictures = settings.m_field08 == 0;
-    // BUG(original): without a side object the victory flags are read uninitialised.
     const uint32_t victoryFlags = sideObject ? static_cast<uint32_t>(static_cast<Side*>(sideObject)->m_victoryConditions) : 0;
 
     DibBitmap* base = NewOrNull<DibBitmap>(module, first.m_bitmapId, kPanelBitmapKind);

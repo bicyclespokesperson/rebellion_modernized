@@ -154,9 +154,7 @@ void GalaxyWindow::CreateConsoleButtonWindows(HMODULE stringModule) {
         if (!button) continue;
         button->Create(0);
         button->SetClickSound(i == 5 ? kOptionsSoundId : kConsoleSoundId);
-        // BUG(original): the last button moves the second button's window to the bottom instead of its own.
-        HWND hwndToLower = i == 6 ? m_consoleButtons[1]->m_hwnd : button->m_hwnd;
-        SetWindowPos(hwndToLower, SendToBottom(), 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
+        SetWindowPos(button->m_hwnd, SendToBottom(), 0, 0, 0, 0, SWP_NOSIZE | SWP_NOMOVE);
         AddToolFromResource(button, kConsoleTooltips[i]);
     }
     if (m_gidLegendIcon) {

@@ -67,9 +67,9 @@ public:
     // The control side (0-3) of the characters on the selected mission.
     uint32_t SelectedMissionSide();  // 0x4a24b0
 
-    uint32_t m_unknown140;                 // +0x140 BUG(original): not initialised
+    uint32_t m_unknown140;                 // +0x140
     ObjectKey m_systemKey;                 // +0x144
-    uint32_t m_unknown148;                 // +0x148 BUG(original): not initialised
+    uint32_t m_unknown148;                 // +0x148
     GalaxyWindow* m_galaxy;                // +0x14c
     CoolStrobeButton* m_closeButton;       // +0x150 child id 0x14
     CoolStrobeButton* m_sideButton;        // +0x154 child id 0x15: to the other side of the screen

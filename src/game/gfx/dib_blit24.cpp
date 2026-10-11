@@ -5,7 +5,6 @@
 namespace {
 constexpr int kBitsPerPixelRgb = 24;
 constexpr int kBitsPerPixelPalette = 8;
-constexpr uint32_t kCompressionRle8 = 1;
 constexpr int kColorTableOffset = sizeof(BITMAPINFOHEADER);
 constexpr uint32_t kOpaqueKeyWhite = 0xff;
 
@@ -14,7 +13,7 @@ int RowDirection(int signedHeight) { return signedHeight < 0 ? 1 : -1; }
 int AbsoluteHeight(int signedHeight) { return signedHeight < 0 ? -signedHeight : signedHeight; }
 
 const uint8_t* paletteEntry(const DibBitmap* bitmap, uint8_t index) {
-    return reinterpret_cast<const uint8_t*>(bitmap->m_info) + kColorTableOffset + index * 4;
+    return reinterpret_cast<const uint8_t*>(bitmap->m_info) + bitmap->HeaderSize() + index * 4;
 }
 }  // namespace
 
@@ -34,8 +33,6 @@ int Rgb24::DiffersFrom(uint32_t rgbQuad) {
     return static_cast<uint8_t>(rgbQuad >> 16) != r || static_cast<uint8_t>(rgbQuad >> 8) != g ||
            static_cast<uint8_t>(rgbQuad) != b;
 }
-
-int DibBitmap::Blit24RleStub(DibBitmap*, int, int, int, int, int, int) { return 0; }
 
 void DibBitmap::BlitKeyed24(DibBitmap* dest, int destX, int destY, uint32_t paletteIndexOrColor, int srcX, int srcY,
                             int width, int height) {
@@ -72,12 +69,18 @@ void DibBitmap::BlitKeyedRgb24(DibBitmap* dest, int destX, int destY, Rgb24 colo
     const int destDirection = RowDirection(destSignedHeight);
     const int srcHeight = AbsoluteHeight(srcSignedHeight);
     const int srcDirection = RowDirection(srcSignedHeight);
-    const int destRow = dest->RowIndex(destY);
-    const int srcRow = RowIndex(srcY);
     if (width == 0) width = srcWidth - srcX;
     if (height == 0) height = srcHeight - srcY;
+    if (srcX < 0) { width += srcX; destX -= srcX; srcX = 0; }
+    if (srcY < 0) { height += srcY; destY -= srcY; srcY = 0; }
+    if (width <= 0 || height <= 0 || srcX >= srcWidth || srcY >= srcHeight || destX >= destWidth || destY >= destHeight) return;
+    if (width > srcWidth - srcX) width = srcWidth - srcX;
+    if (height > srcHeight - srcY) height = srcHeight - srcY;
     if (destHeight - destY < height) height = destHeight - destY;
     if (destWidth - destX < width) width = destWidth - destX;
+    if (width <= 0 || height <= 0) return;
+    const int destRow = dest->RowIndex(destY);
+    const int srcRow = RowIndex(srcY);
 
     if (bitCount == kBitsPerPixelRgb) {
         int destRowOffset = destRow * destStride;
@@ -86,7 +89,7 @@ void DibBitmap::BlitKeyedRgb24(DibBitmap* dest, int destX, int destY, Rgb24 colo
             const uint8_t* source = srcBits + srcRowOffset + srcX * 3;
             uint8_t* target = destBits + destRowOffset + destX * 3;
             for (int column = 0; column < width; ++column) {
-                if (colorKey.DiffersFrom(*reinterpret_cast<const uint32_t*>(source))) {
+                if (source[0] != colorKey.b || source[1] != colorKey.g || source[2] != colorKey.r) {
                     target[0] = source[0];
                     target[1] = source[1];
                     target[2] = source[2];
@@ -120,8 +123,6 @@ void DibBitmap::BlitKeyedRgb24(DibBitmap* dest, int destX, int destY, Rgb24 colo
 }
 
 uint32_t DibBitmap::Blit24(DibBitmap* dest, int destX, int destY, int srcX, int srcY, int width, int height) {
-    if (Compression() == kCompressionRle8) return Blit24RleStub(dest, destX, destY, srcX, srcY, width, height);
-
     uint8_t* destBits = dest->m_bits;
     const int destWidth = dest->Width();
     const int destSignedHeight = dest->Height();
@@ -146,25 +147,33 @@ uint32_t DibBitmap::Blit24(DibBitmap* dest, int destX, int destY, int srcX, int 
         height = destHeight - destY;
     }
     if (destX < 0) {
+        srcX -= destX;
         width += destX;
         destX = 0;
     }
     if (destY < 0) {
+        srcY -= destY;
         height += destY;
         destY = 0;
     }
-    if (srcHeight - srcY < height) height = srcHeight - srcY;
-    if (srcWidth - srcX < width) width = srcWidth - srcX;
     if (srcX < 0) {
         width += srcX;
+        destX -= srcX;
         if (width < 1) return 0;
         srcX = 0;
     }
     if (srcY < 0) {
         height += srcY;
+        destY -= srcY;
         if (height < 1) return 0;
         srcY = 0;
     }
+    if (width <= 0 || height <= 0 || srcX >= srcWidth || srcY >= srcHeight || destX >= destWidth || destY >= destHeight) return 0;
+    if (srcHeight - srcY < height) height = srcHeight - srcY;
+    if (srcWidth - srcX < width) width = srcWidth - srcX;
+    if (destHeight - destY < height) height = destHeight - destY;
+    if (destWidth - destX < width) width = destWidth - destX;
+    if (width <= 0 || height <= 0) return 0;
     const int destRow = dest->RowIndex(destY);
     const int srcRow = RowIndex(srcY);
     if (bitCount == kBitsPerPixelRgb) {
@@ -176,16 +185,19 @@ uint32_t DibBitmap::Blit24(DibBitmap* dest, int destX, int destY, int srcX, int 
             source += srcStride * srcDirection;
         }
     } else {
-        // BUG(original): a palette source copies only the first pixel of every row.
         const uint8_t* source = srcBits + srcRow * srcStride + srcX;
         uint8_t* target = destBits + destX * 3 + destRow * destStride;
         for (int row = 0; row < height; ++row) {
-            const uint8_t index = *source;
+            const uint8_t* sourcePixel = source;
+            uint8_t* targetPixel = target;
+            for (int column = 0; column < width; ++column) {
+                const uint8_t* entry = paletteEntry(this, *sourcePixel++);
+                targetPixel[0] = entry[0];
+                targetPixel[1] = entry[1];
+                targetPixel[2] = entry[2];
+                targetPixel += 3;
+            }
             source += srcStride * srcDirection;
-            const uint8_t* entry = paletteEntry(this, index);
-            target[0] = entry[0];
-            target[1] = entry[1];
-            target[2] = entry[2];
             target += destStride * destDirection;
         }
     }

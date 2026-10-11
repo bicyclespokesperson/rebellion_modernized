@@ -58,7 +58,7 @@ public:
     // How much the defender is worth against the bombardment (the `this` is not used).
     int GetDefenderStrength(const DefenderRef* ref, int* out);             // 0x58cf80
     int DestroyDefenderRef(const DefenderRef* ref, NotifyContext* ctx);    // 0x58d020
-    // A random production facility of the system. BUG(original): see the definition.
+    // A random usable production facility of the system.
     int PickRandomProcFacility(int* found, DefenderRef* ref);              // 0x58d080
 
     int m_unused4;             // +0x04, 1

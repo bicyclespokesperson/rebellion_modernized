@@ -208,7 +208,7 @@ LRESULT CoolSelectionBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
             if (m_buttonBitmapId == 0) return 0;
             DibBitmap* picture = NewOrNull<DibBitmap>(instance, static_cast<uint32_t>(m_buttonBitmapId),
                                                       static_cast<uint32_t>(kDibResource));
-            // BUG(original): the size is read from the picture even when it could not be allocated.
+            if (!picture) return -1;
             const int x = m_clientWidth - picture->Width();
             const int width = picture->Width();
             const int height = picture->Height();
@@ -217,7 +217,7 @@ LRESULT CoolSelectionBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
             CoolStrobeButton* button = NewOrNull<CoolStrobeButton>(instance, x, y, width, height, this, kButtonId,
                                                                    m_buttonBitmapId, m_buttonPressedBitmapId, m_image,
                                                                    0, 0);
-            // BUG(original): a failed allocation is dereferenced here.
+            if (!button) return -1;
             button->Create(0);
             m_children.Insert(button);
             return 0;
@@ -323,7 +323,7 @@ CoolSelectionDropDown::~CoolSelectionDropDown() {
 
 void CoolSelectionDropDown::SyncSelection() {
     CoolListItem* current = m_owner->GetSelection();
-    if (m_list) {
+    if (m_list && current) {
         m_list->SelectById(current->m_id, 1);
         m_list->ScrollIntoView(current->m_id);
     }
@@ -335,10 +335,20 @@ void CoolSelectionDropDown::BuildBackground() {
     HPALETTE palette = g_palette;
     m_image = NewOrNull<DibBitmap>(static_cast<LONG>(m_clientWidth), static_cast<LONG>(m_clientHeight),
                                    m_owner->m_image, dc);
+    if (!dc || !m_image) {
+        delete m_image;
+        m_image = nullptr;
+        if (dc) ReleaseDC(hwnd, dc);
+        return;
+    }
     HGDIOBJ hollowBrush = GetStockObject(NULL_BRUSH);
     HDC memoryDc = CreateCompatibleDC(dc);
-    // BUG(original): DibSectionHandle is called even when the bitmap could not be allocated, and in that case the
-    // memory DC and both palettes are never restored.
+    if (!memoryDc) {
+        delete m_image;
+        m_image = nullptr;
+        ReleaseDC(hwnd, dc);
+        return;
+    }
     HGDIOBJ previousBitmap = SelectObject(memoryDc, m_image->DibSectionHandle());
     HPALETTE previousMemoryPalette = SelectPalette(memoryDc, palette, FALSE);
     HPALETTE previousPalette = SelectPalette(dc, palette, FALSE);
@@ -346,9 +356,12 @@ void CoolSelectionDropDown::BuildBackground() {
         BitBlt(memoryDc, 0, 0, m_clientWidth, m_clientHeight, dc, 0, 0, SRCCOPY);
         if (m_shade) {
             uint8_t* table = m_image->BuildRemapTable(m_shade);
-            m_image->ApplyRemapTable(0, 0, static_cast<int16_t>(m_clientWidth), static_cast<int16_t>(m_clientHeight));
-            m_image->SetRemapTable(nullptr);
-            operator delete(table);
+            if (table) {
+                m_image->ApplyRemapTable(0, 0, static_cast<int16_t>(m_clientWidth),
+                                         static_cast<int16_t>(m_clientHeight));
+                m_image->SetRemapTable(nullptr);
+                operator delete(table);
+            }
         } else if (DibBitmap* tile = m_owner->m_dropDownTile) {
             if (tile->Height() == m_clientHeight) {
                 for (int x = 0; x < m_clientWidth; x += tile->Width()) tile->Blit(m_image, x, 0, 0, 0, 0, 0);
@@ -367,6 +380,7 @@ void CoolSelectionDropDown::BuildBackground() {
         SelectObject(memoryDc, previousBitmap);
         DeleteDC(memoryDc);
         SetBackground(m_image, 0, 0);
+        m_image = nullptr;
     }
     ReleaseDC(hwnd, dc);
 }
@@ -379,12 +393,14 @@ LRESULT CoolSelectionDropDown::WindowProc(UINT message, WPARAM wParam, LPARAM lP
             SetCapture(hwnd);
             GetCapture();
             BuildBackground();
+            if (!GetBackground()) return -1;
             const int width = m_clientWidth - kDropDownFrame;
             m_list = NewOrNull<CoolDragList>(instance, kListInset, kListInset, width, m_clientHeight - kDropDownFrame,
                                              this, GetBackground(), kListId, width, m_owner->m_rowHeight, 0, 0, 0, 0,
                                              0, 1, nullptr);
+            if (!m_list) return -1;
             m_list->SetSortMode(m_sortMode);
-            m_list->Create(0);
+            if (!m_list->Create(0)) return -1;
             m_list->CreateVerticalScrollBar(instance, m_list, m_owner->m_scrollResourceSlot,
                                             m_owner->m_scrollResourceId, m_clientHeight, 0, m_clientHeight, 1,
                                             m_list->m_background);

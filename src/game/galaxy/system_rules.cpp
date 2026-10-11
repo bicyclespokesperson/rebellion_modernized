@@ -55,14 +55,17 @@ int System::RecomputeEnergyAllocated(NotifyContext* ctx) {
                 candidates.RemoveKey(&protectedKey);
             }
             ObjectKeyValueSet doomed;
-            int remaining = static_cast<uint16_t>(candidates.Count());
-            for (int i = 0; i < excess; ++i) {
+            int remaining = static_cast<int>(candidates.Count());
+            for (int i = 0; i < excess && remaining > 0; ++i) {
                 const int last = remaining - 1;
                 int skip = GameRandom(last);
                 ObjectKeyNode* node = candidates.First();
                 if (node) {
-                    // BUG(original): the random skip walks no list, so the first node is always taken.
-                    while (skip != 0) --skip;
+                    while (skip != 0 && node) {
+                        node = static_cast<ObjectKeyNode*>(node->m_successor);
+                        --skip;
+                    }
+                    if (!node) continue;
                     ObjectKey key;
                     node->GetKey(&key);
                     candidates.RemoveKey(&key);

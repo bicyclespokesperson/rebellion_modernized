@@ -582,8 +582,6 @@ int MissionTypeBase::CreateViewsBody(int controlKind, NotifyContext* ctx) { retu
 
 int MissionTypeBase::ApplyAllBody(NotifyContext* ctx) {
     const int result = ApplyAllImpl(ctx);
-    // BUG(original): the body is applied a second time when the first succeeded.
-    if (result) ApplyAllImpl(ctx);
     return result;
 }
 

@@ -27,8 +27,8 @@ CommMgr* TraceTarget() { return GetCommMgr(); }
 ServiceProviderInfo::ServiceProviderInfo(const GUID* guid, const char* name, DWORD majorVersion, DWORD minorVersion,
                                          DWORD_PTR context)
     : IdNode(), m_name() {
-    m_guid = guid;
-    m_name = name;
+    m_guid = guid ? *guid : GUID{};
+    m_name = StringFromText(name);
     m_context = context;
     m_minorVersion = minorVersion;
     m_majorVersion = majorVersion;
@@ -47,7 +47,7 @@ ServiceProviderInfo::~ServiceProviderInfo() = default;
 SessionInfo::SessionInfo(const DPSESSIONDESC2* description) : IdNode(), m_name() {
     if (description) {
         m_instance = description->guidInstance;
-        m_name = description->lpszSessionNameA;
+        m_name = StringFromText(description->lpszSessionNameA);
     }
 }
 

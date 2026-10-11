@@ -37,8 +37,6 @@ int ApplyEvent315(ObjectKey* key, int kind, int value, NotifyContext* ctx);
 
 namespace {
 
-constexpr size_t kPastAllFacilityOffset = 0x58;
-
 constexpr uint32_t kViewSideShift = 6;
 constexpr uint32_t kYavinKey = 0x92000121;
 constexpr uint32_t kCoruscantKey = 0x90000109;
@@ -627,8 +625,7 @@ int GameRoot::InitializeAllObjects(NotifyContext* ctx) {
         ok = bothTrue(static_cast<GameObj*>(object)->Virtual48(reinterpret_cast<intptr_t>(ctx)), ok);
         const uint32_t objectFamily = object->GetFamily();
         if (objectFamily >= kStationFamilies.m_first && objectFamily < kStationFamilies.m_second) {
-            // BUG(original): AllFacility is 0x58 bytes, so this reads the word after the object (heap contents); the offset is the original's, not sizeof(AllFacility).
-            const int level = *reinterpret_cast<int*>(reinterpret_cast<uint8_t*>(object) + kPastAllFacilityOffset);
+            const int level = static_cast<int>(static_cast<Facility*>(object)->GetRecordField58());
             ObjectKey key;
             object->GetKey(&key);
             ok = bothTrue(ApplyEvent315(&key, 4, level, ctx), ok);

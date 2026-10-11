@@ -198,14 +198,12 @@ int CoolGameWindow::DrawTextResource(UINT stringId, RECT area, int fontSlot, COL
 }
 
 int CoolGameWindow::DrawResourceBitmap(int x, int y, uint32_t bitmapId) {
-    bool drawn = false;
     DibBitmap* bitmap = NewOrNull<DibBitmap>(CoolAppGetResourceModule(m_bitmapSlot), bitmapId, kResourceBitmapKind);
-    // BUG(original): the bitmap leaks when it is not drawn.
-    if (m_paintBackground && bitmap && bitmap->IsLoaded()) {
+    const bool drawn = m_paintBackground && bitmap && bitmap->IsLoaded();
+    if (drawn) {
         bitmap->DrawKeyed(m_paintBackground, x, y);
-        delete bitmap;
-        drawn = true;
     }
+    delete bitmap;
     return drawn;
 }
 

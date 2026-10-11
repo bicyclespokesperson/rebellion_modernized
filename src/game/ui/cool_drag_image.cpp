@@ -11,7 +11,7 @@ constexpr char kBitBltMode = '@';
 
 }  // namespace
 
-CoolDragImage::CoolDragImage(CoolWindow* window) : m_image(nullptr), m_window(window), m_saved(nullptr) {
+CoolDragImage::CoolDragImage(CoolWindow* window) : m_image(nullptr), m_window(window), m_saved(nullptr), m_composite(nullptr) {
     m_window = g_app;
     m_flags = 0;
 }
@@ -24,7 +24,7 @@ CoolDragImage::~CoolDragImage() {
 int CoolDragImage::IsDragging() { return m_flags & kDragImageDragging; }
 
 int CoolDragImage::SetImage(DibBitmap* source) {
-    if (IsDragging()) return 0;
+    if (IsDragging() || !source) return 0;
     ClearImage();
     DibBitmap* copy = NewOrNull<DibBitmap>(source->Width(), source->Height(), source);
     if (!copy) return 0;
@@ -47,7 +47,7 @@ int CoolDragImage::SetHotspot(int x, int y) {
 }
 
 int CoolDragImage::BeginDrag(POINT cursor) {
-    if (IsDragging()) return 0;
+    if (IsDragging() || !m_image || !m_window || !m_window->m_hwnd) return 0;
     DibBitmap* image = m_image;
     const int width = m_window->m_width;
     const int height = m_window->m_height;
@@ -55,27 +55,45 @@ int CoolDragImage::BeginDrag(POINT cursor) {
     m_savedStyle = GetWindowLongA(m_window->m_hwnd, GWL_STYLE);
     SetWindowLongA(m_window->m_hwnd, GWL_STYLE, m_savedStyle & ~WS_CLIPCHILDREN);
     HDC dc = GetDC(m_window->m_hwnd);
+    if (!dc) {
+        SetWindowLongA(m_window->m_hwnd, GWL_STYLE, m_savedStyle);
+        m_flags &= ~kDragImageDragging;
+        return 0;
+    }
     HPALETTE previous = SelectPalette(dc, g_palette, FALSE);
-    // BUG(original): the early returns below leave the flag set, the style changed and the DC unreleased.
     m_saved = NewOrNull<DibBitmap>(static_cast<LONG>(width), static_cast<LONG>(height), image, dc);
-    if (!m_saved) return 0;
-    m_composite = NewOrNull<DibBitmap>(static_cast<LONG>(m_image->Width()), static_cast<LONG>(m_image->Height()), image, dc);
-    if (!m_composite) return 0;
-    POINT topLeft;
-    TopLeftFor(&topLeft, &cursor);
-    SaveBackground(dc, &topLeft);
+    if (m_saved)
+        m_composite = NewOrNull<DibBitmap>(static_cast<LONG>(m_image->Width()), static_cast<LONG>(m_image->Height()),
+                                            image, dc);
+    bool ready = m_saved && m_composite;
+    if (ready) {
+        POINT topLeft;
+        TopLeftFor(&topLeft, &cursor);
+        ready = SaveBackground(dc, &topLeft) != 0;
+    }
     SelectPalette(dc, previous, FALSE);
     ReleaseDC(m_window->m_hwnd, dc);
+    if (!ready) {
+        delete m_saved;
+        m_saved = nullptr;
+        delete m_composite;
+        m_composite = nullptr;
+        SetWindowLongA(m_window->m_hwnd, GWL_STYLE, m_savedStyle);
+        m_flags &= ~kDragImageDragging;
+        return 0;
+    }
     return 1;
 }
 
 int CoolDragImage::EndDrag() {
     if (!IsDragging()) return 0;
     HDC dc = GetDC(m_window->m_hwnd);
-    HPALETTE previous = SelectPalette(dc, g_palette, FALSE);
-    RestoreBackground(dc);
-    SelectPalette(dc, previous, FALSE);
-    ReleaseDC(m_window->m_hwnd, dc);
+    if (dc) {
+        HPALETTE previous = SelectPalette(dc, g_palette, FALSE);
+        RestoreBackground(dc);
+        SelectPalette(dc, previous, FALSE);
+        ReleaseDC(m_window->m_hwnd, dc);
+    }
     SetWindowLongA(m_window->m_hwnd, GWL_STYLE, m_savedStyle);
     if (m_saved) delete m_saved;
     m_saved = nullptr;
@@ -88,6 +106,7 @@ int CoolDragImage::EndDrag() {
 int CoolDragImage::MoveTo(const POINT* cursor) {
     if (!IsDragging()) return 0;
     HDC dc = GetDC(m_window->m_hwnd);
+    if (!dc) return 0;
     HPALETTE previous = SelectPalette(dc, g_palette, FALSE);
     RestoreBackground(dc);
     POINT topLeft;
@@ -101,6 +120,7 @@ int CoolDragImage::MoveTo(const POINT* cursor) {
 int CoolDragImage::SaveBackground(HDC dc, const POINT* topLeft) {
     if (!m_saved) return 0;
     HDC memory = CreateCompatibleDC(dc);
+    if (!memory) return 0;
     HGDIOBJ previousBitmap = SelectObject(memory, m_saved->DibSectionHandle());
     HPALETTE palette = m_saved->CreatePaletteFromColorTable();
     HPALETTE previousPalette = SelectPalette(memory, palette, FALSE);

@@ -129,8 +129,7 @@ void CoolLabel::Measure(HDC dc) {
 void CoolLabel::SetFont(int fontSlot) {
     m_fontSlot = fontSlot;
     m_font = CoolGetFont(fontSlot);
-    // BUG(original): ((flags & 1) | 2) is never zero, so this reset never happens.
-    if (((m_layoutFlags & kLabelFixedWidth) | kLabelFixedHeight) == 0) {
+    if ((m_layoutFlags & (kLabelFixedWidth | kLabelFixedHeight)) == 0) {
         m_rect.right = 0;
         m_rect.bottom = 0;
     }

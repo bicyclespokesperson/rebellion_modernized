@@ -566,8 +566,7 @@ void MultiPlayerWindow::ShowSetupPage() {
     int result = 0;
     KillTimer(m_hwnd, kLobbyTimerSessions);
     if (CommLaunchedFromLobby() == 0) {
-        // BUG(original): with a missing name field the original reads an uninitialised local instead.
-        std::string* nameSource = nullptr;
+        const std::string* nameSource = nullptr;
         if (m_isHost != 0) {
             std::string gameName = m_gameNameField ? m_gameNameField->m_text : std::string();
             if (gameName.empty()) GetDefaultGameName(&gameName);
@@ -578,7 +577,7 @@ void MultiPlayerWindow::ShowSetupPage() {
             result = CommJoinSession(m_selectedSession);
             nameSource = m_joinNameField ? &m_joinNameField->m_text : nullptr;
         }
-        CommSetPlayerName(*nameSource);
+        CommSetPlayerName(nameSource ? *nameSource : std::string());
     }
     if (result != 0) {
         if (m_isHost == 0) {
