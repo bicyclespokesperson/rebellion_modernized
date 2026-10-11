@@ -11,6 +11,7 @@ class ObjectKeyValueSet;
 class OrderBase;
 class EventKindSet;
 class GameObjNotifier;
+class UiNotice;
 
 // The local (human) controller of a side (0xc4 bytes, VT 0x65ad70, ctors 0x486120 / 0x4861b0): it turns the player's UI
 // commands into orders, sends them (directly, or through the dispatch queue when a blockade is involved) and forwards
@@ -194,7 +195,7 @@ public:
   void NotifyAdvisor(const ObjectKey* key); // 0x487810
   // Sets this side's answer to a vote (`choice` 0: declined, else accepted; `timed`: with a timeout).
   void SetVote(int choice, int timed, PlayerMessage* reply); // 0x487830
-  void ConfirmVote(PlayerMessage* reply); // 0x487890
+  void ConfirmVote(UiNotice* reply); // 0x487890
   void SubmitMessage(PlayerMessage* message); // 0x4878f0
   void FillCommandMenu(EventKindSet* commands); // 0x487900
   void FillOrderMenu(EventKindSet* commands); // 0x487a60

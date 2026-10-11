@@ -1,5 +1,6 @@
 #pragma once
 class UiRecordTree;
+class UiNotice;
 #include <cstddef>
 #include <cstdint>
 #include <unordered_map>
@@ -69,7 +70,7 @@ public:
   void HumanReceiveMessage(PlayerMessage* message, int flag);
   void HumanAdvisorNotify(const ObjectKey* key);
   void HumanSetVote(int choice, int timed, PlayerMessage* reply);
-  void HumanConfirmVote(PlayerMessage* reply);
+  void HumanConfirmVote(UiNotice* reply);
   void SetHumanUiTarget(int a, int b);
   void HumanRequestUpdate();
   void HumanRefreshMenus(intptr_t value);

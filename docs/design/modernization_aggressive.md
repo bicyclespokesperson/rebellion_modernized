@@ -411,6 +411,15 @@ range and visibility-aware navigation, while owning storage and sorting retain e
 check exercises collapse → expand → collapse, rendered pixels, hit testing, keyboard navigation, hidden selections and
 sorting with actual fleet rows. Host release and halt-on-error UBSan save/reload smoke pass this check.
 
+Battle-report follow-up: an empty participant section contains headings and blank rows without images. Its fill-color
+lookup now checks the image itself before reading it, fixing the reported battle-end null dereference. The window reads
+the actual `Notice1` payload rather than a layout stand-in, and vote confirmation carries that notice type through the UI
+facade. Total-destruction artwork now requires both no winner and no retreating side; a retreat with no winner uses the
+side-specific fleet artwork. The optional native UI smoke covers empty sections for both factions and all four kinds,
+plus summary-art selection for destruction, retreat and victory/defeat.
+Host release and halt-on-error UBSan builds pass the expanded UI check and two-process malloc-scribble save/reload smoke
+(ticks 150336 → 150346 → 150356); independent review and pinned LLVM formatting/tidy checks pass.
+
 Host-only validation and the existing desktop acceptance gap still apply; Linux and Windows are work for agents
 running on those hosts.
 

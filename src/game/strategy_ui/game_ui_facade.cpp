@@ -112,7 +112,7 @@ void UiHumanSetVote(int choice, int timed, PlayerMessage* reply)
     session->HumanSetVote(choice, timed, reply);
 }
 
-void UiHumanConfirmVote(PlayerMessage* reply)
+void UiHumanConfirmVote(UiNotice* reply)
 {
   GameSession* session = GetGameSession();
   if (session)

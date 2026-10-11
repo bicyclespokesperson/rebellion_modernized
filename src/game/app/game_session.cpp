@@ -482,7 +482,7 @@ void GameSession::HumanSetVote(int choice, int timed, PlayerMessage* reply)
     m_human->SetVote(choice, timed, reply);
 }
 
-void GameSession::HumanConfirmVote(PlayerMessage* reply)
+void GameSession::HumanConfirmVote(UiNotice* reply)
 {
   if (m_human)
     m_human->ConfirmVote(reply);

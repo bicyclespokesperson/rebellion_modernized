@@ -10,6 +10,7 @@
 #include "core/game_string.h"
 #include "economy/side.h"
 #include "events/game_clock_hooks.h"
+#include "events/player_notices.h"
 #include "galaxy/sector.h"
 #include "galaxy/system.h"
 #include "gameobj/game_obj.h"
@@ -367,8 +368,9 @@ void GalaxyWindow::OpenType8Window(LPARAM argument)
   if (CoolWindow* previous = m_children.FindById(kTypeSevenId))
     DestroyChildById(previous->m_childId);
   void* memory = ::operator new(sizeof(BattleWindow));
-  CoolWindow* window = memory ? static_cast<CoolWindow*>(new (memory) BattleWindow(
-                                  m_instance, this, kTypeEightId, reinterpret_cast<BattleMessage*>(argument))) :
+  auto* notice = reinterpret_cast<UiNotice*>(argument);
+  CoolWindow* window = memory ? static_cast<CoolWindow*>(new (memory) BattleWindow(m_instance, this, kTypeEightId,
+                                                                                   static_cast<Notice1*>(notice))) :
                                 nullptr;
   window->Create(0);
   static_cast<CoolGameWindow*>(window)->ShowAndTrack(5);

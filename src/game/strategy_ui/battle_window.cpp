@@ -1,6 +1,7 @@
 #include "strategy_ui/battle_window.h"
 #include "character/character.h"
 #include "core/game_string.h"
+#include "events/player_notices.h"
 #include <iterator>
 #include <string>
 
@@ -183,19 +184,45 @@ void PrepareFlatButton(CoolStrobeButton* button)
 
 } // namespace
 
+uint32_t BattleSummaryBitmapId(int viewSide, int winningSide, int retreatSide)
+{
+  if (winningSide == 0 && retreatSide == 0)
+    return 0x2d63;
+  if (winningSide == viewSide)
+  {
+    if (viewSide == kAlliance)
+      return (retreatSide != kEmpire ? 1u : 0u) + 0x2a06;
+    if (viewSide == kEmpire)
+      return (retreatSide != kAlliance ? 3u : 0u) + 0x2a05;
+  }
+  else if (retreatSide == viewSide)
+  {
+    if (viewSide == kAlliance)
+      return 0x2a05;
+    if (viewSide == kEmpire)
+      return 0x2a06;
+  }
+  else if (viewSide == kAlliance)
+    return 0x2a08;
+  else if (viewSide == kEmpire)
+    return 0x2a07;
+  return 0;
+}
+
 // ---- Construction ---------------------------------------------------------------------------------------------
 
-BattleWindow::BattleWindow(HINSTANCE instance, CoolWindow* parent, uint32_t childId, BattleMessage* battle)
+BattleWindow::BattleWindow(HINSTANCE instance, CoolWindow* parent, uint32_t childId, Notice1* notice)
 : CoolGameWindow(instance, 0, 0, 0x1d6, 0x14b, parent, kStringSlot, kBitmapSlot, 0, childId, 0, 1, 0, 0),
   m_label(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u)
 {
   m_style = 0x46000000;
   m_galaxy = static_cast<GalaxyWindow*>(parent);
-  m_battle = battle;
+  m_notice = notice;
   m_list = nullptr;
   m_items = nullptr;
   m_pageTabs = nullptr;
   m_kindTabs = nullptr;
+  m_closeButton = nullptr;
   m_page = 0;
   m_fleetButton = nullptr;
   m_systemButton = nullptr;
@@ -240,51 +267,16 @@ void BattleWindow::OnCreate1()
   CoolLabel title(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
   HINSTANCE instance = m_instance;
   HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
-  m_system = GetObjectInFamilies_90_98(m_galaxy->m_side, &m_battle->m_systemKey);
+  m_system = GetObjectInFamilies_90_98(m_galaxy->m_side, &m_notice->m_systemKey);
   const int viewSide = m_galaxy->m_side == kAlliance ? 1 : (m_galaxy->m_side == kEmpire ? 2 : 0);
   m_advicePlaying = 1;
-  uint32_t bannerId = 0;
-  if (m_battle->m_attackerSide == 0)
-  {
-    bannerId = 0x2d63;
-    m_adviceId = viewSide == kAlliance ? 0xd : 0xf;
-  }
-  else if (m_battle->m_attackerSide == viewSide)
-  {
-    if (viewSide == kAlliance)
-    {
-      m_adviceId = 0xc;
-      bannerId = (m_battle->m_defenderSide != 2 ? 1 : 0) + 0x2a06;
-    }
-    else if (viewSide == kEmpire)
-    {
-      m_adviceId = 0xe;
-      bannerId = ((m_battle->m_defenderSide != 1 ? 3u : 0u)) + 0x2a05;
-    }
-  }
-  else if (m_battle->m_defenderSide == viewSide)
-  {
-    if (viewSide == kAlliance)
-    {
-      m_adviceId = 0xd;
-      bannerId = 0x2a05;
-    }
-    else if (viewSide == kEmpire)
-    {
-      m_adviceId = 0xf;
-      bannerId = 0x2a06;
-    }
-  }
-  else if (viewSide == kAlliance)
-  {
-    m_adviceId = 0xd;
-    bannerId = 0x2a08;
-  }
-  else if (viewSide == kEmpire)
-  {
-    m_adviceId = 0xf;
-    bannerId = 0x2a07;
-  }
+  const int winningSide = m_notice->m_f50;
+  const int retreatSide = m_notice->m_f54;
+  const uint32_t bannerId = BattleSummaryBitmapId(viewSide, winningSide, retreatSide);
+  if (viewSide == kAlliance)
+    m_adviceId = winningSide == viewSide ? 0xc : 0xd;
+  else
+    m_adviceId = winningSide == viewSide ? 0xe : 0xf;
   DibBitmap* banner = LoadBitmap(art, bannerId);
   DibBitmap* frame;
   DibBitmap* rightEdge;
@@ -305,7 +297,7 @@ void BattleWindow::OnCreate1()
   HDC dc = CreateCompatibleDC(windowDc);
   ReleaseDC(m_hwnd, windowDc);
   const COLORREF color = m_galaxy->m_side == kEmpire ? 0xff00 : 0xff;
-  title.SetText(m_battle->m_title.c_str());
+  title.SetText(m_notice->m_text88.c_str());
   title.SetFont(0xb);
   title.m_drawFlags = 1;
   title.MoveTo(0xc, 0x12);
@@ -325,7 +317,7 @@ void BattleWindow::OnCreate1()
   title.Draw(dc);
   m_label.MoveTo(0xc, 0xe1);
   m_label.m_width = 400;
-  m_label.SetText(m_battle->m_summary.c_str());
+  m_label.SetText(m_notice->m_text94.c_str());
   m_label.Draw(dc);
   m_label.SetFont(6);
   m_label.m_drawFlags = 0x110;
@@ -335,7 +327,7 @@ void BattleWindow::OnCreate1()
   m_label.SetColor(0, nullptr);
   m_label.Measure(dc);
   m_label.Draw(dc);
-  m_label.SetText(m_battle->m_caption.c_str());
+  m_label.SetText(m_notice->m_texta0.c_str());
   m_label.SetColor(color, nullptr);
   m_label.MoveTo(0x18, 0xff);
   m_label.Measure(dc);
@@ -354,7 +346,7 @@ void BattleWindow::OnCreate1()
   m_label.m_layoutFlags = 1;
   m_label.m_width = 0x148;
   m_label.MoveTo(0x18, 0x28);
-  m_label.SetText(m_battle->m_sideTextA.c_str());
+  m_label.SetText(m_notice->m_textac.c_str());
   m_label.Draw(dc);
   m_label.SetFont(7);
   m_label.m_drawFlags = 0x110;
@@ -362,7 +354,7 @@ void BattleWindow::OnCreate1()
   m_label.m_layoutFlags = 1;
   m_label.m_width = 0x148;
   m_label.MoveTo(0x18, 0x82);
-  m_label.SetText(m_battle->m_sideTextB.c_str());
+  m_label.SetText(m_notice->m_textb8.c_str());
   m_label.Draw(dc);
   AddOverlay(page, kBackgroundGoTo);
   m_label.MoveTo(0x18, 0xff);
@@ -370,7 +362,7 @@ void BattleWindow::OnCreate1()
   m_label.SetColor(color, nullptr);
   m_label.m_drawFlags = 1;
   m_label.m_layoutFlags = 1;
-  title.SetText(m_battle->m_title.c_str());
+  title.SetText(m_notice->m_text88.c_str());
 
   page = NewPage(frame, dc);
   summaryBanner->Blit(page, 0xc, 0xd, 0, 0, 0, 0);
@@ -494,7 +486,7 @@ void BattleWindow::OnCreate1()
   ObjectKeySet unusedSet;
   bool hasFleet = false;
   ObjectKey fleetKey;
-  m_battle->GetFleetKey(&fleetKey);
+  fleetKey = m_notice->m_keyC;
   if (fleetKey.IsSet() != 0)
   {
     GameObjNotifier* fleet = GetObjectInFamilies_08_10(m_galaxy->m_side, &fleetKey);
@@ -604,7 +596,7 @@ void BattleWindow::OnKeyDown(WPARAM key, LPARAM lParam)
   if (key == VK_ESCAPE)
   {
     PostCloseRequest();
-    UiHumanConfirmVote(reinterpret_cast<PlayerMessage*>(m_battle));
+    UiHumanConfirmVote(m_notice);
     AppEnableSpeedAfterDialog();
     return;
   }
@@ -663,7 +655,7 @@ void BattleWindow::OnCommand(int a, int b, int c)
     {
       if (!m_fleetSystem)
         return;
-      if (!m_battle)
+      if (!m_notice)
         return;
       ObjectKey sectorKey;
       m_fleetSystem->m_parent->GetKey(&sectorKey);
@@ -675,9 +667,9 @@ void BattleWindow::OnCommand(int a, int b, int c)
     }
     case 0xcb:
     {
-      if (!m_battle)
+      if (!m_notice)
         return;
-      ObjectKey systemKey = m_battle->m_systemKey;
+      ObjectKey systemKey = m_notice->m_systemKey;
       GameObjNotifier* system = GetObjectInFamilies_90_98(m_galaxy->m_side, &systemKey);
       if (system)
       {
@@ -689,7 +681,7 @@ void BattleWindow::OnCommand(int a, int b, int c)
     }
   }
   PostCloseRequest();
-  UiHumanConfirmVote(reinterpret_cast<PlayerMessage*>(m_battle));
+  UiHumanConfirmVote(m_notice);
   AppEnableSpeedAfterDialog();
 }
 
@@ -862,12 +854,12 @@ void BattleWindow::FillList(int kind, int force)
   uint32_t side;
   if (selectedPage == static_cast<uint32_t>(kPageAlliance))
   {
-    participants = m_battle->m_allianceSide;
+    participants = m_notice->m_set78;
     side = 1;
   }
   else if (selectedPage == static_cast<uint32_t>(kPageEmpire))
   {
-    participants = m_battle->m_empireSide;
+    participants = m_notice->m_set80;
     side = 2;
   }
   else
@@ -913,7 +905,7 @@ void BattleWindow::FillList(int kind, int force)
     m_list->SetItemSize(itemWidth, itemHeight);
   }
   const int viewSide = side != 1 ? 2 : 1;
-  for (const auto& ownedNode : m_battle->m_fleets.Entries())
+  for (const auto& ownedNode : m_notice->m_set60.Entries())
   {
     auto* node = static_cast<ObjectKeyNode*>(ownedNode.get());
     ObjectKey key;
@@ -932,7 +924,7 @@ void BattleWindow::FillList(int kind, int force)
       if ((StateFlags(squadrons.Current()) >> 2 & 1) != 0)
         shown.Add(NewKeyNode(squadrons.Current()));
     }
-    for (const auto& ownedNode : m_battle->m_fighters.Entries())
+    for (const auto& ownedNode : m_notice->m_set68.Entries())
     {
       auto* node = static_cast<ObjectKeyNode*>(ownedNode.get());
       ObjectKey key;
@@ -941,9 +933,9 @@ void BattleWindow::FillList(int kind, int force)
         shown.Add(NewKeyNode(squadron));
     }
   }
-  else if (kind == kKindPersonnel && m_battle->m_characters.First())
+  else if (kind == kKindPersonnel && m_notice->m_set70.First())
   {
-    for (const auto& ownedNode : m_battle->m_characters.Entries())
+    for (const auto& ownedNode : m_notice->m_set70.Entries())
     {
       auto* node = static_cast<ObjectKeyNode*>(ownedNode.get());
       ObjectKey key;
@@ -1049,29 +1041,19 @@ void BattleWindow::FillList(int kind, int force)
   }
   shown.Clear();
   matching.Clear();
-  CoolListItem* item =
-    m_items->Entries().empty() ? nullptr : static_cast<CoolListItem*>(m_items->Entries().front().get());
-  CoolListItem* first = item;
-  DibBitmap* image = item ? item->m_image : nullptr;
-  auto position = m_items->Entries().begin();
-  while (position != m_items->Entries().end() && image == nullptr)
+  for (const auto& item : m_items->Entries())
   {
-    item = static_cast<CoolListItem*>((*position).get());
-    ++position;
-    image = item->m_image;
+    if (item->m_image)
+    {
+      m_list->m_fillColor = item->m_image->m_colorKey;
+      break;
+    }
   }
-  if (item && first)
-    m_list->m_fillColor = image->m_colorKey;
   m_list->Refresh();
   RECT area;
   SetRect(&area, 0xc, 0x28, 0x167, 0x88);
   InvalidateRect(m_hwnd, &area, 0);
   m_kind = kind;
-}
-
-ObjectKey* BattleMessage::GetFleetKey(ObjectKey* out)
-{
-  return new (out) ObjectKey(m_fleetKey);
 }
 
 const char* g_gokresDllName = nullptr;

@@ -838,9 +838,9 @@ void HumanPlayer::SetVote(int choice, int timed, PlayerMessage* reply)
   Dispatch()->AddMessage(reinterpret_cast<UiNotice*>(reply));
 }
 
-void HumanPlayer::ConfirmVote(PlayerMessage* reply)
+void HumanPlayer::ConfirmVote(UiNotice* reply)
 {
-  Dispatch()->AddMessage(reinterpret_cast<UiNotice*>(reply));
+  Dispatch()->AddMessage(reply);
   m_voteState = 3;
 }
 

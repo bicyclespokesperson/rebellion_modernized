@@ -6,10 +6,14 @@
 
 #include "app/rebapp_globals.h"
 #include "app/rebellion_application.h"
+#include "events/player_notices.h"
 #include "gfx/dib_bitmap.h"
+#include "strategy_ui/battle_window.h"
 #include "strategy_ui/fleet_list_item.h"
+#include "ui/cool_button.h"
 #include "ui/cool_drag_list.h"
 #include "ui/cool_game_window.h"
+#include "ui/cool_tab_control.h"
 
 namespace
 {
@@ -17,6 +21,12 @@ void Require(bool condition)
 {
   if (!condition)
     throw std::runtime_error("Native UI smoke: fleet-row visibility regression");
+}
+
+void RequireBattle(bool condition)
+{
+  if (!condition)
+    throw std::runtime_error("Native UI smoke: battle UI regression");
 }
 
 FleetListItem* AddRow(CoolListItemList& items, DibBitmap& format, uint32_t id, uint32_t flags, uint8_t color)
@@ -36,6 +46,49 @@ FleetListItem* AddRow(CoolListItemList& items, DibBitmap& format, uint32_t id, u
 uint8_t Pixel(const DibBitmap& bitmap, int x, int y)
 {
   return bitmap.m_bits[bitmap.RowIndex(y) * bitmap.RowStride() + x];
+}
+
+void CheckEmptyBattleList(RebellionApplication& app, DibBitmap& background)
+{
+  struct BannerCase
+  {
+    int viewSide;
+    int winningSide;
+    int retreatSide;
+    uint32_t bitmapId;
+  };
+  constexpr BannerCase bannerCases[] = {
+    {1, 0, 0, 0x2d63}, {2, 0, 0, 0x2d63}, {1, 0, 1, 0x2a05}, {2, 0, 2, 0x2a06}, {1, 1, 2, 0x2a06}, {1, 1, 1, 0x2a07},
+    {2, 2, 1, 0x2a05}, {2, 2, 2, 0x2a08}, {1, 2, 2, 0x2a08}, {2, 1, 1, 0x2a07}, {1, 2, 0, 0x2a08}, {2, 1, 0, 0x2a07},
+  };
+  for (const BannerCase& test : bannerCases)
+    RequireBattle(BattleSummaryBitmapId(test.viewSide, test.winningSide, test.retreatSide) == test.bitmapId);
+
+  Notice1 notice;
+  auto window = std::make_unique<BattleWindow>(app.m_instance, nullptr, 0, &notice);
+  window->m_system = nullptr;
+  window->m_items = new CoolListItemList(4);
+  window->m_list =
+    new CoolDragList(app.m_instance, 0, 0, 100, 40, window.get(), &background, 200, 10, 10, 0, 0, 0, 0, 10, 1, nullptr);
+  window->m_list->SetItemList(window->m_items);
+  window->m_pageTabs = new CoolTabControl(app.m_instance, 0, 0, 10, 10, 0x6e, window.get(), &background);
+  CoolStrobeButton alliance(app.m_instance, 0, 0, 1, 1, window->m_pageTabs, 0x70, 0, 0, &background, 0, 0);
+  CoolStrobeButton empire(app.m_instance, 0, 0, 1, 1, window->m_pageTabs, 0x71, 0, 0, &background, 0, 0);
+
+  for (CoolStrobeButton* page : {&alliance, &empire})
+  {
+    window->m_pageTabs->m_selected = page;
+    for (int kind : {0x65, 0x66, 0x67, 0x68})
+    {
+      window->m_list->m_fillColor = 0x7f;
+      window->FillList(kind, 1);
+      const size_t expectedRows = kind == 0x68 ? 3 : 2;
+      RequireBattle(window->m_items->Count() == expectedRows);
+      for (const auto& row : window->m_items->Entries())
+        RequireBattle(row->m_image == nullptr);
+      RequireBattle(window->m_list->m_fillColor == 0x7f);
+    }
+  }
 }
 } // namespace
 
@@ -93,4 +146,6 @@ void RunNativeUiSmoke(RebellionApplication& app)
   list.SetSortMode(kSortById);
   Require(list.m_items->Count() == 3 && std::ranges::distance(list.m_items->VisibleEntries()) == 2);
   Require(list.HitTest(POINTS{5, 15}) == nextFleet);
+
+  CheckEmptyBattleList(app, background);
 }

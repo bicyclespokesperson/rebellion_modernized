@@ -17,32 +17,9 @@ class GalaxyWindow;
 class GameObjNotifier;
 class GameObj;
 
-// The message the battle prompt shows (stand-in until its module publishes the class; only the layout the window reads):
-// where the battle is, the fleet that triggered it, the two sides and the participants of each side.
-class BattleMessage : public PlayerMessage
-{
-public:
-  uint8_t m_unk24[0x20]; // +0x24
-  ObjectKey m_systemKey; // +0x44 the system the battle is in
-  int m_unk48; // +0x48
-  ObjectKey m_fleetKey; // +0x4c the fleet that arrived
-  int m_attackerSide; // +0x50 0 for none
-  int m_defenderSide; // +0x54
-  int m_unk58; // +0x58
-  int m_unk5c; // +0x5c
-  ObjectKeySet m_fleets; // +0x60 the fleets that fight
-  ObjectKeySet m_fighters; // +0x68 fighter squadrons
-  ObjectKeySet m_characters; // +0x70 characters
-  ObjectKeySet m_allianceSide; // +0x78 participants chosen for the Alliance
-  ObjectKeySet m_empireSide; // +0x80 participants chosen for the Empire
-  std::string m_title; // +0x88
-  std::string m_summary; // +0x94
-  std::string m_caption; // +0xa0
-  std::string m_sideTextA; // +0xac
-  std::string m_sideTextB; // +0xb8
-
-  ObjectKey* GetFleetKey(ObjectKey* out); // 0x4727c0
-};
+// Runtime payload for the battle prompt.
+class Notice1;
+uint32_t BattleSummaryBitmapId(int viewSide, int winningSide, int retreatSide);
 
 // The window of galaxy view child 8 (GalaxyWindow::OpenType8Window, galaxy view message "battle"): the prompt that comes up
 // when forces meet in a system. Four pages (tabs 0x6f-0x72 on the right: the summary, the Alliance forces, the Empire
@@ -52,7 +29,7 @@ public:
 class BattleWindow : public CoolGameWindow
 {
 public:
-  BattleWindow(HINSTANCE instance, CoolWindow* parent, uint32_t childId, BattleMessage* battle); // 0x46f140
+  BattleWindow(HINSTANCE instance, CoolWindow* parent, uint32_t childId, Notice1* notice); // 0x46f140
   ~BattleWindow() override; // 0x46f280 (scalar deleting destructor 0x46f260)
 
   void PostCloseRequest() override; // slot 12, 0x4727a0
@@ -85,7 +62,7 @@ public:
   CoolStrobeButton* m_fleetButton; // +0x168 child id 0xca: go to the fleet
   CoolStrobeButton* m_systemButton; // +0x16c child id 0xcb: go to the system
   GameObjNotifier* m_fleetSystem; // +0x170 the system the fleet is in
-  BattleMessage* m_battle; // +0x174 not owned
+  Notice1* m_notice; // +0x174 not owned
   HMODULE m_gokres; // +0x178 resource slot 10 (GOKRES.DLL)
   int m_page; // +0x17c
   int m_kind; // +0x180
