@@ -11,6 +11,14 @@ Apple SDK explicitly because the Apple Clang compilation database may omit its i
 
 Apply one modernization family at a time. For example, on macOS:
 
+The final formatting pass uses the same pinned LLVM version. `.clang-format` parses current C++ syntax and leaves
+qualifier order unchanged, keeping this pass limited to presentation. Format tracked C/C++ sources and headers in
+`src/game`, `src/port/native`, and the maintained `src/port/minwin_impl` implementation directories, plus the minwin
+interface headers, native tests, stream test support and compiled port trace/simulation files. Exclude third-party code,
+generated include data, `src/hybrid`, `src/standalone`, archival platform comparison tests and minwin layout checks.
+Record the formatting-only commit in `.git-blame-ignore-revs`; use `git config blame.ignoreRevsFile .git-blame-ignore-revs`
+locally to omit it from blame.
+
 ```bash
 LLVM_ROOT="/path/to/LLVM-22.1.4-macOS-ARM64"
 BUILD_DIR="build/native"
