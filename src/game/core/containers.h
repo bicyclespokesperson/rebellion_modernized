@@ -237,6 +237,8 @@ public:
     virtual int IsLess(LinkNode* a, LinkNode* b) = 0;
 
     int Insert(LinkNode* node);
+    // Inserts before an owned anchor, or appends when anchor is null.
+    int InsertBefore(LinkNode* node, LinkNode* anchor);
     int Remove(LinkNode* node);
     void Clear();
     void RewindToFirst();
@@ -254,6 +256,8 @@ private:
     NodeList m_nodes;
     std::unordered_map<LinkNode*, NodeList::iterator> m_index;
     bool m_clearing = false;
+
+    int InsertAt(LinkNode* node, NodeList::const_iterator position);
 };
 
 class IdSortedLinkList : public SortedLinkList {

@@ -116,26 +116,6 @@ const char* NameOf(GameObjNotifier* object) { return static_cast<GameObj*>(objec
 // The skin of the pictures of the side: the Alliance's, or the Empire's 0x32 further.
 int SkinOffset(int side) { return side != 1 ? kSkinStep : 0; }
 
-void InsertRowBefore(CoolListItemList* list, FleetListItem* item, FleetListItem* anchor) {
-    LinkNode* previous = anchor->m_prev;
-    anchor->m_prev = item;
-    item->m_prev = previous;
-    item->m_next = anchor;
-    if (!previous) {
-        list->RewindToFirst();
-    } else {
-        previous->m_next = item;
-    }
-}
-
-void InsertShipRowBefore(FleetListItem* item, FleetListItem* anchor) {
-    LinkNode* previous = anchor->m_prev;
-    previous->m_next = item;
-    anchor->m_prev = item;
-    item->m_next = anchor;
-    item->m_prev = previous;
-}
-
 void SetFlag(FleetListItem* item, uint32_t flag, bool on) {
     if (on) {
         item->m_flags.m_value |= flag;
@@ -810,8 +790,7 @@ void FleetWindow::RemoveRows(FleetListItem** position) {
     FleetListItem* row = *position;
     FleetListItem* next = static_cast<FleetListItem*>(row->m_next);
     while (row) {
-        m_fleetItems->Remove(row);
-        if (*position) delete *position;
+        if (m_fleetItems->Remove(row)) delete row;
         *position = nullptr;
         if (next && (next->m_flags.m_value & kFleetItemFleet) == 0) {
             *position = next;
@@ -884,9 +863,13 @@ void FleetWindow::AddFleetRow(GameObjNotifier* fleet, FleetListItem** position) 
     item->m_flags.m_value = (item->m_flags.m_value & ~kFleetItemExpanded) | kFleetItemFleet;
     FleetListItem* anchor = *position;
     if (!anchor) {
-        m_fleetItems->Insert(item);
-    } else {
-        InsertRowBefore(m_fleetItems, item, anchor);
+        if (!m_fleetItems->Insert(item)) {
+            delete item;
+            return;
+        }
+    } else if (!m_fleetItems->InsertBefore(item, anchor)) {
+        delete item;
+        return;
     }
     *position = item;
     SyncShipRows(fleet, position);
@@ -987,11 +970,8 @@ void FleetWindow::SyncShipRows(GameObjNotifier* fleet, FleetListItem** position)
                     ships.Current()->GetKey(&laterKey);
                     if (rowKey < laterKey.m_value) {
                         FleetListItem* gone = *position;
-                        LinkNode* previous = gone->m_prev;
                         LinkNode* following = gone->m_next;
-                        previous->m_next = following;
-                        if (following) following->m_prev = previous;
-                        delete gone;
+                        if (m_fleetItems->Remove(gone)) delete gone;
                         *position = static_cast<FleetListItem*>(following);
                     }
                 }
@@ -1031,9 +1011,13 @@ void FleetWindow::SyncShipRows(GameObjNotifier* fleet, FleetListItem** position)
             SetFlag(row, kFleetItemHidden, !expanded);
             row->SetImages(image, selected);
             if (!*position) {
-                m_fleetItems->Insert(row);
-            } else {
-                InsertShipRowBefore(row, *position);
+                if (!m_fleetItems->Insert(row)) {
+                    delete row;
+                    shipRow = nullptr;
+                }
+            } else if (!m_fleetItems->InsertBefore(row, *position)) {
+                delete row;
+                shipRow = nullptr;
             }
             ships.Advance();
         }

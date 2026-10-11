@@ -262,6 +262,30 @@ void VerifySortedListClearRejectsReentrantInsert() {
     list.Clear();
 }
 
+void VerifySortedListExplicitInsertionOrderAndDetach() {
+    UnorderedList list;
+    UnorderedList foreign;
+    int destroyed = 0;
+    auto* first = new CountedNode(destroyed);
+    auto* anchor = new CountedNode(destroyed);
+    auto* last = new CountedNode(destroyed);
+    auto* inserted = new CountedNode(destroyed);
+    auto* foreignAnchor = new CountedNode(destroyed);
+    Require(list.Insert(first) == 1);
+    Require(list.Insert(anchor) == 1);
+    Require(list.Insert(last) == 1);
+    Require(foreign.Insert(foreignAnchor) == 1);
+    Require(list.InsertBefore(inserted, foreignAnchor) == 0);
+    Require(list.InsertBefore(inserted, anchor) == 1);
+    Require(list.m_head == first && first->m_next == inserted && inserted->m_next == anchor && anchor->m_next == last);
+    Require(list.Remove(anchor) == 1);
+    delete anchor;
+    Require(destroyed == 1 && inserted->m_next == last);
+    list.Clear();
+    foreign.Clear();
+    Require(destroyed == 5);
+}
+
 void VerifySortedListIds() {
     IdSortedLinkList list;
     auto* first = new IdLinkNode();
@@ -456,6 +480,7 @@ int main() {
     VerifyLinkNodeCopiesStartUnlinked();
     VerifySortedListOwnershipAndOrder();
     VerifySortedListClearRejectsReentrantInsert();
+    VerifySortedListExplicitInsertionOrderAndDetach();
     VerifySortedListIds();
     VerifyClearDetachesBeforeDestruction();
     VerifyAvlOwnershipOrderAndLookup();

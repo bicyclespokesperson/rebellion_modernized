@@ -1,5 +1,8 @@
 #pragma once
+#include <cstddef>
 #include <cstdint>
+#include <memory>
+#include <vector>
 
 #include "platform/win32.h"
 #include "ui/cool_timer.h"
@@ -18,27 +21,32 @@ public:
     CoolStrobeButton* m_button;  // +0x38
 };
 
-// One animation frame of a strobe button; owns its bitmap.
+// One animation frame of a strobe button; its bitmap is owned exclusively by the frame.
 class BitmapFrame {
 public:
-    explicit BitmapFrame(DibBitmap* bitmap);  // 0x60f3c0
-    virtual ~BitmapFrame();                   // 0x60f400 (scalar deleting destructor 0x60f3e0)
+    explicit BitmapFrame(std::unique_ptr<DibBitmap> bitmap);
+    ~BitmapFrame();
+    BitmapFrame(const BitmapFrame&) = delete;
+    BitmapFrame& operator=(const BitmapFrame&) = delete;
+    DibBitmap* Bitmap() const;
 
-    DibBitmap* m_bitmap;  // +0x04
-    BitmapFrame* m_next;  // +0x08
-    BitmapFrame* m_prev;  // +0x0c
+private:
+    std::unique_ptr<DibBitmap> m_bitmap;
 };
 
-// Circular doubly linked list of BitmapFrames (a strobe button's animation); owns the frames.
+// Owns stable heap-allocated frames; pointers returned by First/Next are borrowed until Clear/destruction.
 class BitmapFrameList {
 public:
-    BitmapFrameList();           // 0x60f2d0
-    virtual ~BitmapFrameList();  // 0x60f310 (scalar deleting destructor 0x60f2f0)
+    BitmapFrameList() = default;
+    BitmapFrameList(const BitmapFrameList&) = delete;
+    BitmapFrameList& operator=(const BitmapFrameList&) = delete;
 
-    // Appends after the last frame. Nothing happens for a null frame.
-    void Append(BitmapFrame* frame);  // 0x60f320
-    void Clear();                     // 0x60f370: deletes every frame
+    void Append(std::unique_ptr<BitmapFrame> frame);
+    void Clear();
+    BitmapFrame* First() const;
+    BitmapFrame* Next(const BitmapFrame* frame) const;
+    std::size_t Count() const;
 
-    int m_count;          // +0x04
-    BitmapFrame* m_head;  // +0x08
+private:
+    std::vector<std::unique_ptr<BitmapFrame>> m_frames;
 };

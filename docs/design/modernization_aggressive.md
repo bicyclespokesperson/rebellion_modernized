@@ -325,6 +325,15 @@ Final A3 integration:
 - [ ] Finish the structured desktop acceptance pass below and fix findings.
 - [ ] Complete the dedicated formatting commit and post-format checks below.
 
+Final ownership review found and repaired fleet-row insertion/removal that bypassed the owning sorted list. Explicit
+insertion now updates owned storage and borrowed links together; removal detaches ownership before deletion. Button
+animation frames and their bitmaps now use standard exclusive ownership with stable borrowed frame pointers.
+
+Desktop acceptance remains open: the macOS automation service captures the SDL window and sends keyboard input, but
+coordinate clicks fail with `noWindowsAvailable`, including with only one running instance and after rebinding/relaunch.
+The main menu has no keyboard start/load navigation. Intro/menu/confirmation rendering was inspected; this does not
+substitute for the substantial gameplay acceptance pass. Linux/Windows testing remains work for agents on those hosts.
+
 ### Per-responsibility workflow
 
 Maintain a short worklist of responsibilities, not a speculative architecture document. Fan out this work across multiple luna or haiku subagents.

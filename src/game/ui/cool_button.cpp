@@ -1,4 +1,7 @@
 #include <string>
+#include <memory>
+#include <limits>
+#include <utility>
 #include "ui/cool_button.h"
 
 #include "core/checked_new.h"
@@ -14,13 +17,6 @@ constexpr uint32_t kButtonWindowStyle = WS_CHILD | WS_CLIPSIBLINGS | WS_CLIPCHIL
 constexpr char kBitBltMode = '@';
 constexpr uint32_t kBitmapResourceKind = 10;
 constexpr uint32_t kFrameResourceKind = 2;
-
-struct StrobeFrame {
-    const void* m_vtable;
-    DibBitmap* m_bitmap;  // +0x04
-    StrobeFrame* m_next;  // +0x08
-    StrobeFrame* m_previous;  // +0x0c
-};
 
 void DeleteBitmap(DibBitmap* bitmap) {
     if (bitmap) delete bitmap;
@@ -542,7 +538,9 @@ LRESULT CoolStrobeButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
 CoolFrameButton::CoolFrameButton(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                                    uint32_t childId, uint32_t firstFrameId, uint32_t pressedBitmapId,
                                    uint16_t frameCount, DibBitmap* backdrop, int repeatRate, int pixelHit)
-    : CoolStrobeButton(instance, x, y, width, height, parent, childId, 0, pressedBitmapId, backdrop, repeatRate, pixelHit) {
+    : CoolStrobeButton(instance, x, y, width, height, parent, childId, 0, pressedBitmapId, backdrop, repeatRate,
+                       pixelHit),
+      m_currentFrame(nullptr) {
     LoadFrames(firstFrameId, frameCount);
 }
 
@@ -553,7 +551,7 @@ CoolFrameButton::~CoolFrameButton() {
 
 LRESULT CoolFrameButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_CREATE) {
-        m_normal = m_currentFrame ? static_cast<StrobeFrame*>(m_currentFrame)->m_bitmap : nullptr;
+        m_normal = m_currentFrame ? m_currentFrame->Bitmap() : nullptr;
         return CoolStrobeButton::WindowProc(WM_CREATE, wParam, lParam);
     }
     if (message != WM_PAINT) return CoolStrobeButton::WindowProc(message, wParam, lParam);
@@ -568,9 +566,8 @@ LRESULT CoolFrameButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) 
 void CoolFrameButton::StepFrame() {
     if (HasStateFlags(kButtonHighlight)) return;
     if (m_currentFrame) {
-        StrobeFrame* next = static_cast<StrobeFrame*>(m_currentFrame)->m_next;
-        m_currentFrame = next;
-        m_normal = next->m_bitmap;
+        m_currentFrame = m_frames.Next(m_currentFrame);
+        m_normal = m_currentFrame ? m_currentFrame->Bitmap() : nullptr;
         InvalidateRect(m_hwnd, nullptr, FALSE);
     } else {
         m_normal = nullptr;
@@ -578,25 +575,15 @@ void CoolFrameButton::StepFrame() {
 }
 
 void CoolFrameButton::LoadFrames(uint32_t firstId, uint32_t count) {
+    if (count != 0 && count - 1 > std::numeric_limits<uint32_t>::max() - firstId) return;
     HINSTANCE instance = m_instance;
-    uint32_t index = 0;
-    if (count != 0) {
-        do {
-            DibBitmap* bitmap = NewOrNull<DibBitmap>(instance, index + firstId, kFrameResourceKind);
-            if (bitmap && bitmap->IsLoaded()) {
-                void* memory = operator new(sizeof(StrobeFrame));
-                void* node = memory ? new (memory) BitmapFrame(bitmap) : nullptr;
-                if (node)
-                    m_frames.Append(reinterpret_cast<BitmapFrame*>(node));
-                else
-                    delete bitmap;
-            } else {
-                delete bitmap;
-            }
-            ++index;
-        } while ((index & 0xffff) < count);
+    for (uint32_t index = 0; index < count; ++index) {
+        std::unique_ptr<DibBitmap> bitmap(NewOrNull<DibBitmap>(instance, index + firstId, kFrameResourceKind));
+        if (bitmap && bitmap->IsLoaded()) {
+            m_frames.Append(std::make_unique<BitmapFrame>(std::move(bitmap)));
+        }
     }
-    m_currentFrame = m_frames.m_head;
+    m_currentFrame = m_frames.First();
 }
 
 // ---- CoolStrobeTimer ------------------------------------------------------------------------------------------

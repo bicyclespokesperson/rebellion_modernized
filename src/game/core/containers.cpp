@@ -426,6 +426,19 @@ int SortedLinkList::Insert(LinkNode* node) {
 
     auto position = m_nodes.begin();
     while (position != m_nodes.end() && !IsLess(node, position->get())) ++position;
+    return InsertAt(node, position);
+}
+
+int SortedLinkList::InsertBefore(LinkNode* node, LinkNode* anchor) {
+    if (!CanInsert(node)) return 0;
+    if (!anchor) return InsertAt(node, m_nodes.end());
+    if (anchor->m_owner != this) return 0;
+    const auto found = m_index.find(anchor);
+    if (found == m_index.end()) return 0;
+    return InsertAt(node, found->second);
+}
+
+int SortedLinkList::InsertAt(LinkNode* node, NodeList::const_iterator position) {
     std::unique_ptr<LinkNode> pending(node);
     NodeList::iterator inserted;
     try {

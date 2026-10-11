@@ -120,8 +120,8 @@ public:
     void StepFrame();                                  // 0x603a50: the timer callback shows the next frame
     void LoadFrames(uint32_t firstId, uint32_t count);  // 0x603aa0
 
-    BitmapFrameList m_frames;  // +0x114 ring of frame nodes (batch B list class, vftable 0x66e2b8; count +4, head +8)
-    void* m_currentFrame;    // +0x120 node whose bitmap is m_normal; node: vptr, bitmap +4, next +8, previous +0xc
+    BitmapFrameList m_frames;
+    BitmapFrame* m_currentFrame;  // borrowed from m_frames; its bitmap is m_normal
 };
 
 // A button that cycles through three images (up, middle, down) on every click: "tri-state" slider-like switch.
