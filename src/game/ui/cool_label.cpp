@@ -97,9 +97,9 @@ void CoolLabel::SetTextFromResource(const ResourceStringId* stringId)
     delete m_text;
   m_text = NewOrNull<std::string>(LoadStringResource(stringId));
   if ((m_layoutFlags & kLabelFixedWidth) == 0)
-    m_rect.right = 0;
+    m_rect.right = m_rect.left;
   if ((m_layoutFlags & kLabelFixedHeight) == 0)
-    m_rect.bottom = 0;
+    m_rect.bottom = m_rect.top;
 }
 
 void CoolLabel::SetText(const char* text)
@@ -109,13 +109,12 @@ void CoolLabel::SetText(const char* text)
     delete m_text;
     m_text = nullptr;
   }
-  if (!text)
-    return;
-  m_text = NewOrNull<std::string>(StringFromText(text));
+  if (text)
+    m_text = NewOrNull<std::string>(StringFromText(text));
   if ((m_layoutFlags & kLabelFixedWidth) == 0)
-    m_rect.right = 0;
+    m_rect.right = m_rect.left;
   if ((m_layoutFlags & kLabelFixedHeight) == 0)
-    m_rect.bottom = 0;
+    m_rect.bottom = m_rect.top;
 }
 
 void CoolLabel::SetTextFromStream(StrStream* stream)
@@ -178,11 +177,10 @@ void CoolLabel::SetFont(int fontSlot)
 {
   m_fontSlot = fontSlot;
   m_font = CoolGetFont(fontSlot);
-  if ((m_layoutFlags & (kLabelFixedWidth | kLabelFixedHeight)) == 0)
-  {
-    m_rect.right = 0;
-    m_rect.bottom = 0;
-  }
+  if ((m_layoutFlags & kLabelFixedWidth) == 0)
+    m_rect.right = m_rect.left;
+  if ((m_layoutFlags & kLabelFixedHeight) == 0)
+    m_rect.bottom = m_rect.top;
 }
 
 void CoolLabel::SetColor(COLORREF color, HWND invalidateIn)

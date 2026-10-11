@@ -1,5 +1,6 @@
 #include "strategy_ui/object_status_window.h"
 #include "core/game_string.h"
+#include <algorithm>
 #include <string>
 
 #include <cstdint>
@@ -618,14 +619,14 @@ int LayoutStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* value
     right.Measure(dc);
     label->m_x = kLabelX;
     label->m_y = leftY;
-    const uint32_t leftHeight = leftBottom - leftTop;
-    uint32_t rowHeight = right.m_rect.bottom - right.m_rect.top;
+    const int leftHeight = leftBottom - leftTop;
+    const int rightHeight = right.m_rect.bottom - right.m_rect.top;
+    const int rowHeight = std::max({kRowHeight, leftHeight, rightHeight});
     value->m_x = kValueX;
     value->m_y = rightY;
-    if (rowHeight < leftHeight)
+    if (rightHeight < leftHeight)
     {
-      value->m_y = (leftHeight - rowHeight) + rightY;
-      rowHeight = leftHeight;
+      value->m_y = (leftHeight - rightHeight) + rightY;
     }
     leftY += rowHeight;
     total += rowHeight;

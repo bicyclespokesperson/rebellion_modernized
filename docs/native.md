@@ -36,6 +36,8 @@ hit testing, keyboard navigation, selection and sorting. It uses the configured 
 and logs `UI visibility checks passed` before running the usual simulation and save/reload checks.
 It also rebuilds empty battle-participant lists for both sides and all four kinds, and checks the outcome artwork IDs
 for total destruction, retreat and victory/defeat.
+Status-table checks cover blank labels/values, minimum row spacing, multiline wrapping, rendered text and label resets
+at nonzero coordinates.
 
 All of it is in the presentation path: `src/port/minwin_impl/user/present.{h,cpp}` (new), small hooks in `user/platform.cpp`, `user/misc.cpp`
 (cursor) and `user/message.cpp` (idle pacing), `audio/sdl_audio.cpp`, and `src/port/native/first_run.{h,cpp}`. Game code and simulation are untouched.

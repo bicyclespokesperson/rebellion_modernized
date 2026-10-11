@@ -420,6 +420,13 @@ plus summary-art selection for destruction, retreat and victory/defeat.
 Host release and halt-on-error UBSan builds pass the expanded UI check and two-process malloc-scribble save/reload smoke
 (ticks 150336 → 150346 → 150356); independent review and pinned LLVM formatting/tidy checks pass.
 
+Ship-status overlap follow-up: clearing dynamic label text reset its bottom edge to absolute zero, producing a negative
+height at nonzero row positions. Unsigned status-row heights then wrapped and placed later rows over earlier ones.
+Text/resource/font resets now collapse unfixed bounds at the label's own origin; status rows use signed heights and
+reserve at least one normal line, including completely blank rows. The optional UI check reproduces the old failure
+and verifies nonzero origins, empty values, blank rows, wrapping and rendered text. Host release and halt-on-error UBSan
+save/reload smoke pass with malloc scribbling, including the existing fleet and battle-report checks.
+
 Host-only validation and the existing desktop acceptance gap still apply; Linux and Windows are work for agents
 running on those hosts.
 

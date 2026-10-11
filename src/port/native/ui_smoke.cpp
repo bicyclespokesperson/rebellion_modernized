@@ -3,6 +3,8 @@
 #include <memory>
 #include <ranges>
 #include <stdexcept>
+#include <string>
+#include <utility>
 
 #include "app/rebapp_globals.h"
 #include "app/rebellion_application.h"
@@ -10,9 +12,11 @@
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/battle_window.h"
 #include "strategy_ui/fleet_list_item.h"
+#include "strategy_ui/object_status_window.h"
 #include "ui/cool_button.h"
 #include "ui/cool_drag_list.h"
 #include "ui/cool_game_window.h"
+#include "ui/cool_label.h"
 #include "ui/cool_tab_control.h"
 
 namespace
@@ -27,6 +31,12 @@ void RequireBattle(bool condition)
 {
   if (!condition)
     throw std::runtime_error("Native UI smoke: battle UI regression");
+}
+
+void RequireStatus(bool condition, const char* check)
+{
+  if (!condition)
+    throw std::runtime_error(std::string("Native UI smoke: ship status label layout regression: ") + check);
 }
 
 FleetListItem* AddRow(CoolListItemList& items, DibBitmap& format, uint32_t id, uint32_t flags, uint8_t color)
@@ -90,6 +100,97 @@ void CheckEmptyBattleList(RebellionApplication& app, DibBitmap& background)
     }
   }
 }
+
+void CheckStatusLayout(DibBitmap& format)
+{
+  CoolLabel empty("existing text", 0, 0, 0, 0, DT_WORDBREAK, 0);
+  empty.MoveTo(13, 40);
+  empty.SetText("");
+  RequireStatus(empty.m_rect.left == 13 && empty.m_rect.right >= empty.m_rect.left && empty.m_rect.top == 40 &&
+                  empty.m_rect.bottom >= empty.m_rect.top,
+                "empty string clear preserves nonzero origin");
+  empty.SetText(nullptr);
+  RequireStatus(empty.m_rect.left == 13 && empty.m_rect.right >= empty.m_rect.left && empty.m_rect.top == 40 &&
+                  empty.m_rect.bottom >= empty.m_rect.top,
+                "nullptr clear preserves nonzero origin");
+  empty.SetText("font reset");
+  empty.MoveTo(13, 40);
+  empty.SetFont(10);
+  RequireStatus(empty.m_rect.left == 13 && empty.m_rect.right >= empty.m_rect.left && empty.m_rect.top == 40 &&
+                  empty.m_rect.bottom >= empty.m_rect.top,
+                "font reset preserves nonzero origin");
+  const ResourceStringId emptyResource{0x7fff, 0x7fff};
+  empty.SetTextFromResource(&emptyResource);
+  RequireStatus(empty.m_rect.left == 13 && empty.m_rect.right >= empty.m_rect.left && empty.m_rect.top == 40 &&
+                  empty.m_rect.bottom >= empty.m_rect.top,
+                "resource clear preserves nonzero origin");
+  RequireStatus(!empty.GetText() || *empty.GetText() == '\0', "missing resource resolves to empty text");
+
+  constexpr uint32_t kStatusWidth = 0xcf;
+  constexpr int kStatusRowCount = 7;
+  const std::pair<const char*, const char*> rows[kStatusRowCount] = {
+    {"Hull", "120"},
+    {"Shields", ""},
+    {"", "This longer value should wrap across more than one line in the status panel."},
+    {"", ""},
+    {"Hyperdrive", "Online"},
+    {"Crew", ""},
+    {"Capacity", "This second deliberately long value should wrap too."},
+  };
+  CoolListItemList labels(kSortById);
+  CoolListItemList values(kSortById);
+  for (uint32_t id = 0; id < kStatusRowCount; ++id)
+  {
+    const std::string label(rows[id].first);
+    const std::string value(rows[id].second);
+    AddStatusRow(id, &label, &labels);
+    AddStatusRow(id, &value, &values);
+  }
+
+  HDC dc = CreateCompatibleDC(nullptr);
+  RequireStatus(dc != nullptr, "compatible DC created");
+  const int height = LayoutStatusLabels(dc, &labels, &values);
+  RequireStatus(height > 0, "total layout height is positive");
+  int previousY = -1;
+  int shortRowHeight = 0;
+  int wrappedRowHeight = 0;
+  for (uint32_t id = 0; id < kStatusRowCount; ++id)
+  {
+    auto* label = labels.FindById(id);
+    auto* value = values.FindById(id);
+    RequireStatus(label && value, "matching label and value rows exist");
+    RequireStatus(label->m_y > previousY, "label row positions increase");
+    RequireStatus(label->m_y == value->m_y || value->m_y > label->m_y, "value row is aligned within its label row");
+    if (id == 0)
+      shortRowHeight = static_cast<CoolListItem*>(labels.FindById(id + 1))->m_y - label->m_y;
+    if (id == 2)
+      wrappedRowHeight = static_cast<CoolListItem*>(labels.FindById(id + 1))->m_y - label->m_y;
+    if (id == 3)
+      RequireStatus(static_cast<CoolListItem*>(labels.FindById(id + 1))->m_y - label->m_y == 10,
+                    "fully blank status row receives minimum line height");
+    previousY = label->m_y;
+  }
+  RequireStatus(previousY < height, "total height includes all status rows");
+  RequireStatus(wrappedRowHeight > shortRowHeight, "long value wraps to multiple lines");
+
+  DibBitmap canvas(kStatusWidth, height, &format, dc);
+  RequireStatus(canvas.IsLoaded(), "DIB section canvas created");
+  canvas.FillRect(0, 0, kStatusWidth, height, 0);
+  HGDIOBJ previousBitmap = SelectObject(dc, canvas.DibSectionHandle());
+  DrawStatusLabels(dc, &labels, &values);
+  SelectObject(dc, previousBitmap);
+  DeleteDC(dc);
+
+  bool hasRenderedText = false;
+  for (int y = 0; y < height && !hasRenderedText; ++y)
+    for (int x = 0; x < static_cast<int>(kStatusWidth); ++x)
+      if (Pixel(canvas, x, y) != 0)
+      {
+        hasRenderedText = true;
+        break;
+      }
+  RequireStatus(hasRenderedText, "status labels render into the canvas");
+}
 } // namespace
 
 void RunNativeUiSmoke(RebellionApplication& app)
@@ -148,4 +249,5 @@ void RunNativeUiSmoke(RebellionApplication& app)
   Require(list.HitTest(POINTS{5, 15}) == nextFleet);
 
   CheckEmptyBattleList(app, background);
+  CheckStatusLayout(background);
 }
