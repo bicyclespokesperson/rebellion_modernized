@@ -1,4 +1,5 @@
 #pragma once
+class ObjectNameList;
 // Orders 0x210-0x216 (0x536eb0-0x539290 minus the message tree, see order_list.h), registered by RegisterOrderFactories
 // (0x51f4b0):
 //
@@ -77,7 +78,7 @@ public:
   // Called by the manufacture dialog (0x437880). Empties `choices`, then, when the team's managers all belong to one
   // side, fills it with what that side can offer for the first manager's item kind (side object's 0x52e580).
   // Returns 0 when the team is not made of managers of one side.
-  uint32_t FillChoices(AvlTree* choices); // 0x537ff0
+  uint32_t FillChoices(ObjectNameList* choices); // 0x537ff0
   // Called by the manufacture dialog (0x439160). Totals for the item: out1 = record field 0x4c x count, out2 = field
   // 0x48 x count; out3/out4 = the largest per-manager figures from 0x555f00 and 0x555f90. Zero when the order is refused.
   int ComputeTotals(int* out1, int* out2, int* out3, int* out4, StatusCode* status); // 0x538220

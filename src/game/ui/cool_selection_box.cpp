@@ -264,7 +264,7 @@ int CoolSelectionBox::HandleKeyUp(WPARAM key, LPARAM)
         if (position != m_items.Entries().begin())
         {
           --position;
-          m_current = static_cast<CoolListItem*>(position->get());
+          m_current = static_cast<CoolListItem*>((*position).get());
         }
         else
           m_current = m_items.First();
@@ -285,7 +285,7 @@ int CoolSelectionBox::HandleKeyUp(WPARAM key, LPARAM)
         {
           ++position;
           if (position != m_items.Entries().end())
-            m_current = static_cast<CoolListItem*>(position->get());
+            m_current = static_cast<CoolListItem*>((*position).get());
         }
       }
       break;

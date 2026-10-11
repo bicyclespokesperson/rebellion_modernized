@@ -68,7 +68,7 @@ BitmapFrame* BitmapFrameList::Next(const BitmapFrame* frame) const
   if (found == m_frames.end() || m_frames.empty())
     return nullptr;
   const auto next = std::next(found);
-  return next == m_frames.end() ? m_frames.front().get() : next->get();
+  return next == m_frames.end() ? m_frames.front().get() : (*next).get();
 }
 
 std::size_t BitmapFrameList::Count() const

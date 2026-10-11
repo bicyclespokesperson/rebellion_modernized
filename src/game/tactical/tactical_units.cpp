@@ -191,7 +191,57 @@ void TacticalSpecialForceUnit::Write(ostream* out)
 
 int TacticalCharacterTree::CountItems()
 {
-  return static_cast<int>(Entries().size());
+  return static_cast<int>(m_entries.Count());
+}
+
+TacticalCharacterTree::~TacticalCharacterTree()
+{
+  Clear();
+}
+
+void TacticalCharacterTree::Clear()
+{
+  m_entries.Clear();
+}
+
+TacticalCharacterUnit* TacticalCharacterTree::FirstItem()
+{
+  return m_entries.First();
+}
+
+TacticalCharacterUnit* TacticalCharacterTree::FindById(uint32_t id) const
+{
+  return m_entries.FindById(id);
+}
+
+uint32_t TacticalCharacterTree::AddWithId(TacticalCharacterUnit* node)
+{
+  return m_entries.AddWithId(node);
+}
+
+TacticalSpecialForceTree::~TacticalSpecialForceTree()
+{
+  Clear();
+}
+
+void TacticalSpecialForceTree::Clear()
+{
+  m_entries.Clear();
+}
+
+TacticalSpecialForceUnit* TacticalSpecialForceTree::FirstItem()
+{
+  return m_entries.First();
+}
+
+TacticalSpecialForceUnit* TacticalSpecialForceTree::FindById(uint32_t id) const
+{
+  return m_entries.FindById(id);
+}
+
+uint32_t TacticalSpecialForceTree::AddWithId(TacticalSpecialForceUnit* node)
+{
+  return m_entries.AddWithId(node);
 }
 
 namespace
@@ -223,8 +273,7 @@ void writeRecords(Tree* tree, ostream* out)
   WriteValue32(out, &count);
   for (const auto& entry : tree->Entries())
   {
-    IdNode* node = static_cast<IdNode*>(entry.get());
-    static_cast<Record*>(node)->Write(out);
+    entry.second->Write(out);
   }
 }
 
@@ -234,8 +283,7 @@ void checksumRecords(Tree* tree, Crc32* crc)
   crc->AddInt(tree->CountItems());
   for (const auto& entry : tree->Entries())
   {
-    IdNode* node = static_cast<IdNode*>(entry.get());
-    static_cast<Record*>(node)->Checksum(crc);
+    entry.second->Checksum(crc);
   }
 }
 
@@ -291,11 +339,6 @@ void TacticalCharacterStatusEvent(TacticalEvent* event)
 int TacticalCharacterUnit::Virtual01()
 {
   return 7;
-}
-
-IdNode* TacticalCharacterTree::FirstItem()
-{
-  return static_cast<IdNode*>(First());
 }
 
 TurnSyncChannelA::~TurnSyncChannelA() = default;

@@ -33,7 +33,7 @@ void SelectNeighbourTab(CoolTabControl* tabs, WPARAM key)
       position = std::next(position);
     while (position != children.Entries().end())
     {
-      CoolWindow* tab = static_cast<CoolWindow*>(position->get());
+      CoolWindow* tab = static_cast<CoolWindow*>((*position).get());
       if (IsWindowVisible(tab->m_hwnd))
       {
         tabs->SelectTab(tab->m_childId, 1);
@@ -51,7 +51,7 @@ void SelectNeighbourTab(CoolTabControl* tabs, WPARAM key)
     }
     return;
   }
-  if (AvlNode* first = tabs->m_children.First())
+  if (auto* first = tabs->m_children.First())
     tabs->SelectTab(static_cast<CoolWindow*>(first)->m_childId, 1);
 }
 

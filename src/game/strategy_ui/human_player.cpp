@@ -548,7 +548,7 @@ void HumanPlayer::ExecuteCommand(int command, ObjectKeyValueSet* selection, Obje
     ObjectKey selected;
     NullableKey type;
     type.m_value = 0;
-    if (AvlNode* first = selection->First())
+    if (auto* first = selection->First())
     {
       static_cast<ObjectKeyNode*>(first)->GetKey(&selected);
       if (command == 0x103)
@@ -758,7 +758,7 @@ void HumanPlayer::ExecuteCommand(int command, ObjectKeyValueSet* selection, Obje
     case 0x270:
     {
       ObjectKey holderKey;
-      if (AvlNode* first = selection->First())
+      if (auto* first = selection->First())
       {
         static_cast<ObjectKeyNode*>(first)->GetKey(&holderKey);
         GameObjNotifier* holder = GetObjectInFamilies_01_ff(m_side, &holderKey);
@@ -949,7 +949,7 @@ int HumanPlayer::IsQueuedOrder(PlayerMessage* order)
   {
     case 0x201:
     {
-      AvlNode* first = static_cast<OrderBase*>(message)->GetTeam()->First();
+      auto* first = static_cast<OrderBase*>(message)->GetTeam()->First();
       if (!first)
         break;
       ObjectKey shipKey;
@@ -1123,7 +1123,7 @@ void HumanPlayer::SpeakOrderAdvice(PlayerMessage* order)
   }
   else if (kind == 0x250)
   {
-    AvlNode* first = orderBase->GetTeam()->First();
+    auto* first = orderBase->GetTeam()->First();
     GameObjNotifier* mission =
       first ? GetObjectInFamilies_40_80(m_side, &static_cast<ObjectKeyNode*>(first)->m_key) : nullptr;
     if (mission)

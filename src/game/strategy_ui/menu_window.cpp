@@ -34,32 +34,43 @@ int16_t Narrow(int value)
   return static_cast<int16_t>(value);
 }
 
-constexpr size_t kAreaOffset = 0x60;
-
 RECT* AreaOf(MenuItemBase* item)
 {
-  return reinterpret_cast<RECT*>(reinterpret_cast<char*>(item) + kAreaOffset);
+  return &item->m_area;
 }
 
 } // namespace
 
 // ---- Lists ---------------------------------------------------------------------------------------------------
 
-OwningIdList::OwningIdList() = default;
-
-OwningIdList::~OwningIdList()
-{
-  Reset();
-}
-
-int OwningIdList::IsLessById(LinkNode* a, LinkNode* b)
-{
-  return static_cast<IdLinkNode*>(a)->m_id < static_cast<IdLinkNode*>(b)->m_id;
-}
-
 MenuItemList::MenuItemList() = default;
 
-MenuItemList::~MenuItemList() = default;
+MenuItemList::~MenuItemList()
+{
+  Clear();
+}
+
+uint32_t MenuItemList::AddWithId(MenuItemBase* item)
+{
+  return m_items.AddWithId(item);
+}
+
+MenuItemBase* MenuItemList::FindById(uint32_t id) const
+{
+  return m_items.FindById(id);
+}
+
+int MenuItemList::Remove(MenuItemBase* item)
+{
+  if (!item || m_items.FindById(item->m_id) != item)
+    return 0;
+  return m_items.DetachById(item->m_id) != nullptr;
+}
+
+void MenuItemList::Clear()
+{
+  m_items.Clear();
+}
 
 // ---- MenuCommand -----------------------------------------------------------------------------------------------
 
@@ -501,7 +512,16 @@ void MenuWindowBase::AddTextEntry(HMODULE module,
   if (item)
   {
     item->m_backdrop = m_paintBackground;
-    m_items.AddWithId(item);
+    try
+    {
+      if (m_items.AddWithId(item) == 0)
+        delete item;
+    }
+    catch (...)
+    {
+      delete item;
+      throw;
+    }
   }
 }
 
@@ -523,13 +543,23 @@ void MenuWindowBase::OnCreate1()
   ReleaseDC(m_hwnd, windowDc);
 }
 
-void MenuWindowBase::AddItem(MenuItemBase* item)
+bool MenuWindowBase::AddItem(MenuItemBase* item)
 {
-  if (item)
+  if (!item)
+    return false;
+  item->m_backdrop = m_paintBackground;
+  try
   {
-    item->m_backdrop = m_paintBackground;
-    m_items.AddWithId(item);
+    if (m_items.AddWithId(item) != 0)
+      return true;
   }
+  catch (...)
+  {
+    delete item;
+    throw;
+  }
+  delete item;
+  return false;
 }
 
 void MenuWindowBase::AttachSubMenu(HMODULE resources,

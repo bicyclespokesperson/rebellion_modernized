@@ -1,6 +1,8 @@
 #include "tactical/tactical_side.h"
 
+#include <compare>
 #include <new>
+#include <tuple>
 #include <vector>
 
 #include "tactical/tactical_externals_2b.h"
@@ -31,35 +33,53 @@ AttackEvaluatorBase::~AttackEvaluatorBase() = default;
 
 FormationEvaluatorBase::~FormationEvaluatorBase() = default;
 
-SideOrderTree::~SideOrderTree() = default;
-
-int SideOrderTree::IsLess(AvlNode* a, AvlNode* b)
+namespace
 {
-  const SideOrderNode* left = reinterpret_cast<const SideOrderNode*>(a);
-  const SideOrderNode* right = reinterpret_cast<const SideOrderNode*>(b);
-  if (left->m_primary == right->m_primary)
+
+bool sideOrderBefore(const SideOrderNode* left, const SideOrderNode* right)
+{
+  if (auto order = std::weak_order(left->m_primary, right->m_primary); order != 0)
+    return order < 0;
+  if (auto order = std::weak_order(left->m_secondary, right->m_secondary); order != 0)
+    return order < 0;
+  const auto leftKey = std::tie(left->m_unitHandle, left->m_second);
+  const auto rightKey = std::tie(right->m_unitHandle, right->m_second);
+  if (leftKey != rightKey)
+    return leftKey < rightKey;
+  return std::weak_order(left->m_weight, right->m_weight) < 0;
+}
+
+} // namespace
+
+SideOrderTree::~SideOrderTree()
+{
+  m_clearing = true;
+  decltype(m_nodes) detached;
+  detached.swap(m_nodes);
+  detached.clear();
+}
+
+bool SideOrderTree::NodeOrder::operator()(const std::unique_ptr<SideOrderNode>& a,
+                                          const std::unique_ptr<SideOrderNode>& b) const
+{
+  return sideOrderBefore(a.get(), b.get());
+}
+
+void SideOrderTree::Insert(SideOrderNode* node)
+{
+  if (!m_clearing && node)
   {
-    if (left->m_secondary == right->m_secondary)
+    std::unique_ptr<SideOrderNode> pending(node);
+    try
     {
-      const bool firstLess = left->m_unitHandle < right->m_unitHandle;
-      if (left->m_unitHandle != right->m_unitHandle)
-        return firstLess;
-      const bool secondLess = left->m_second < right->m_second;
-      if (left->m_second != right->m_second)
-        return secondLess;
-      if (left->m_weight < right->m_weight)
-        return true;
+      m_nodes.insert(std::move(pending));
     }
-    else if (left->m_secondary < right->m_secondary)
+    catch (...)
     {
-      return true;
+      pending.release();
+      throw;
     }
   }
-  else if (left->m_primary < right->m_primary)
-  {
-    return true;
-  }
-  return false;
 }
 
 // ---- the side -----------------------------------------------------------------------------------------------------------

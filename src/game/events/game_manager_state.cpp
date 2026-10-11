@@ -256,25 +256,33 @@ int PostedEventQueue::Write(ostream* out)
 
 // ---- tick table -------------------------------------------------------------------------------------------------
 
-TickTable::TickTable() : AvlTree(), m_ready(1)
+TickTable::TickTable() : m_ready(1)
 {
 }
 
 TickTable::~TickTable()
 {
-  AvlTree::Clear();
+  Clear();
 }
 
-int TickTable::IsLess(AvlNode* a, AvlNode* b)
+void TickTable::Clear()
 {
-  int less = 0;
-  if (a && b)
-  {
-    SeedKey first = static_cast<SeedKeyCountNode*>(a)->m_key;
-    SeedKey second = static_cast<SeedKeyCountNode*>(b)->m_key;
-    less = first < second;
-  }
-  return less;
+  if (m_clearing)
+    return;
+  m_clearing = true;
+  decltype(m_nodes) detached;
+  detached.swap(m_nodes);
+  detached.clear();
+  m_clearing = false;
+}
+
+int TickTable::Insert(SeedKeyCountNode* node)
+{
+  if (m_clearing || !node)
+    return 0;
+  auto position = m_nodes.emplace(node->m_key, nullptr);
+  position->second.reset(node);
+  return 1;
 }
 
 int TickTable::Read(istream* in)
@@ -326,10 +334,9 @@ int TickTable::WriteNodes(ostream* out)
   WriteValue32(out, &m_ready);
   uint32_t count = static_cast<uint32_t>(Count());
   WriteValue32(out, &count);
-  for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();)
+  for (auto nodePosition = Entries().begin(); nodePosition != Entries().end(); ++nodePosition)
   {
-    AvlNode* node = static_cast<AvlNode*>((nodePosition++)->get());
-    static_cast<SeedKeyCountNode*>(node)->Write(out);
+    nodePosition->second->Write(out);
   }
   return 1;
 }
@@ -339,32 +346,17 @@ int TickTable::Checksum(Crc32* crc)
   int result = 1;
   crc->AddInt(m_ready);
   crc->AddInt(static_cast<int32_t>(Count()));
-  for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();)
+  for (auto nodePosition = Entries().begin(); nodePosition != Entries().end(); ++nodePosition)
   {
-    AvlNode* node = static_cast<AvlNode*>((nodePosition++)->get());
-    result = static_cast<SeedKeyCountNode*>(node)->Checksum(crc);
+    result = nodePosition->second->Checksum(crc);
   }
   return result;
 }
 
 SeedKeyCountNode* TickTable::Find(SeedKey* key)
 {
-  AvlNode* cursor = LowerBound(
-    [key](const AvlNode* candidate)
-    {
-      SeedKey current;
-      static_cast<const SeedKeyCountNode*>(candidate)->GetKey(&current);
-      return current < *key;
-    });
-  if (cursor)
-  {
-    SeedKeyCountNode* node = static_cast<SeedKeyCountNode*>(cursor);
-    SeedKey current;
-    node->GetKey(&current);
-    if (!(current == *key))
-      cursor = nullptr;
-  }
-  return static_cast<SeedKeyCountNode*>(cursor);
+  auto cursor = m_nodes.lower_bound(*key);
+  return cursor != m_nodes.end() && cursor->first == *key ? cursor->second.get() : nullptr;
 }
 
 SeedKeyCountNode* TickTable::Create(SeedKey* key)

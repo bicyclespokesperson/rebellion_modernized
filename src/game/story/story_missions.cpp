@@ -138,7 +138,7 @@ int checkMemberKeys(ObjectKeySet* keys, StatusCode* status, int* out)
   *out = 0;
   for (const auto& nodeEntry : keys->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
     if (!(result && statusOk(status)))
       break;
 
@@ -171,7 +171,7 @@ int checkMemberRefs(ObjectRefList* refs, StatusCode* status, int* out)
   *out = 0;
   for (const auto& nodeEntry : refs->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
     if (!(statusOk(status)))
       break;
 
@@ -1086,7 +1086,7 @@ int MissionBounty::CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* chec
   beginCheck(status, out);
   for (const auto& nodeEntry : keys->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
     if (!(result && statusOk(status)))
       break;
 

@@ -3,7 +3,7 @@
 #include <deque>
 #include <memory>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "platform/win32.h"
 #include "ui/animation_step.h"
 

@@ -76,7 +76,7 @@ void PickRandomKey(ObjectKeySet* set, ObjectKey* out)
       break;
   }
   if (position != set->Entries().end())
-    *out = KeyOfNode(static_cast<ObjectKeyNode*>(position->get()));
+    *out = KeyOfNode(static_cast<ObjectKeyNode*>((*position).get()));
 }
 
 } // namespace

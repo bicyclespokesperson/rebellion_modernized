@@ -69,7 +69,7 @@ void formCapitalGroups(HeadlessSimulator* simulator, int side, int firstType)
       if (nodePosition == donor->Entries().end())
         break;
       auto current = nodePosition++;
-      auto* node = static_cast<UnitRefNode*>(current->get());
+      auto* node = static_cast<UnitRefNode*>((*current).get());
       type = node->Value()->GetTypeIndex();
       movedUnits.AddUnit(node->Value());
       donor->Virtual21(node->Key());

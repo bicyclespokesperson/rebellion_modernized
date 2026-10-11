@@ -152,7 +152,9 @@ if(BUILD_TESTING)
   target_link_libraries(reb_math_tests PRIVATE ${REB_NATIVE_LINK_FLAGS})
   add_test(NAME native_integer_math COMMAND reb_math_tests)
   add_executable(reb_container_tests tests/native/container_tests.cpp ${REB_STREAM_TEST_SOURCES}
-    src/game/core/containers.cpp src/game/core/game_string.cpp src/game/core/stream_io.cpp)
+    src/game/ai/ai_ranked_list.cpp src/game/ai/ai_selector.cpp
+    src/game/core/entry_identity.cpp src/game/core/game_string.cpp src/game/core/stream_io.cpp
+    src/game/core/utility_classes.cpp src/game/gameobj/object_key.cpp src/game/gameobj/status_code.cpp)
   target_include_directories(reb_container_tests PRIVATE src/game src src/port/native/crt)
   target_compile_options(reb_container_tests PRIVATE ${REB_NATIVE_FLAGS} ${REB_NATIVE_RUNTIME})
   target_compile_definitions(reb_container_tests PRIVATE ${REB_NATIVE_DEFS})

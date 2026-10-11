@@ -1,7 +1,12 @@
 #pragma once
+#include "core/id_registry.h"
+#include <algorithm>
 #include <cstdint>
+#include <map>
+#include <memory>
+#include <ranges>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "core/stream_io.h"
 #include "data/seed_key.h"
@@ -31,10 +36,16 @@ public:
   virtual int Checksum(Crc32* crc);
 
   // Adds a record to the list (nothing for null).
-  void AddRecord(IdNode* record);
+  void AddRecord(DatRecord* record);
+  uint32_t InsertRecord(DatRecord* record);
+  auto Records() const
+  {
+    return m_records.Entries();
+  }
+  DatRecord* FindRecord(uint32_t id) const;
 
   RecordFamilyRange m_range; // +0x08
-  IdAvlTree m_records; // +0x10
+  IdRegistry<DatRecord> m_records; // +0x10
 };
 
 // A SeedList loaded from a file, keyed by the id the SD record registry gives it.
@@ -52,16 +63,66 @@ public:
 };
 
 // All loaded SeedListFiles.
-class SeedListFileTree : public IdAvlTree
+class SeedListFileTree
 {
 public:
+  void Clear()
+  {
+    m_registry.Clear();
+  }
+  size_t Count() const
+  {
+    return m_registry.Count();
+  }
+  bool Empty() const
+  {
+    return m_registry.Empty();
+  }
+  auto Entries() const
+  {
+    return m_registry.Entries();
+  }
+  auto PositionOf(const SeedListFile* node) const
+  {
+    return m_registry.PositionOf(node);
+  }
+  SeedListFile* First() const
+  {
+    return m_registry.First();
+  }
+  SeedListFile* Last() const
+  {
+    return m_registry.Last();
+  }
+  SeedListFile* FindById(uint32_t id) const
+  {
+    return m_registry.FindById(id);
+  }
+  SeedListFile* DetachById(uint32_t id)
+  {
+    return m_registry.DetachById(id);
+  }
+  void DeleteById(uint32_t id)
+  {
+    m_registry.DeleteById(id);
+  }
+  void Remove(SeedListFile* node)
+  {
+    m_registry.Remove(node);
+  }
+  uint32_t AddWithId(SeedListFile* node)
+  {
+    return m_registry.AddWithId(node);
+  }
   SeedListFileTree();
-  ~SeedListFileTree() override;
+  ~SeedListFileTree();
 
   // The file whose family range contains `family` (the top byte of a record key), or null.
   SeedListFile* FindByFamily(uint32_t family);
 
   int m_ready; // +0x0c, 1
+private:
+  IdRegistry<SeedListFile> m_registry;
 };
 
 // Display data cached for one record: its key and its localized name.

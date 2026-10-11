@@ -11,6 +11,7 @@
 
 class CoolDragList;
 class CoolLabel;
+class CoolListItem;
 class CoolListItemList;
 class CoolTabControl;
 class DibBitmap;
@@ -36,7 +37,7 @@ enum FleetWindowFlags : uint32_t
 class FleetWindow : public CustomDialogBox
 {
 public:
-  using RowIterator = std::list<std::unique_ptr<LinkNode>>::const_iterator;
+  using RowIterator = std::list<std::unique_ptr<CoolListItem>>::const_iterator;
   FleetWindow(HINSTANCE instance,
               int x,
               int y,

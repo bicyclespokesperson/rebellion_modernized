@@ -129,7 +129,7 @@ int Side::IsScrapCandidate(GameObj* unit, int* out)
   return 1;
 }
 
-int Side::CollectRdRecords(int kind, IdAvlTree* out)
+int Side::CollectRdRecords(int kind, ObjectNameList* out)
 {
   int level = 0;
   bool valid = true;
@@ -448,7 +448,7 @@ int Side::AddObjectRef(const ObjectKey* key, int* count, NotifyContext* unused)
   {
     for (const auto& nodeEntry : m_objectRefs->Entries())
     {
-      AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+      auto* node = nodeEntry.get();
       if (!(!found))
         break;
 

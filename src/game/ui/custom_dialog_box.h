@@ -1,7 +1,8 @@
 #pragma once
 #include <cstdint>
+#include <set>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
@@ -24,7 +25,7 @@ public:
 
   void AddId(uint32_t id); // 0x4ace40: unless already present
 
-  IdAvlTree m_ids; // +0x1c
+  std::set<uint32_t> m_ids; // +0x1c
 };
 
 // ObjectKeySet of ObjectKeyIdNodes: the objects a CustomDialogBox shows.

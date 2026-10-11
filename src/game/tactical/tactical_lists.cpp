@@ -1,5 +1,8 @@
 #include "tactical/tactical_lists.h"
 
+#include <cmath>
+
+#include <algorithm>
 #include <new>
 
 #include "core/checked_new.h"
@@ -27,7 +30,120 @@ TacticalShipBase* UnitRefNode::Value()
 
 // ---- UnitRefTree ----------------------------------------------------------------------------------------------------
 
-UnitRefTree::~UnitRefTree() = default;
+UnitRefTree::~UnitRefTree()
+{
+  Clear();
+}
+
+void UnitRefTree::Clear()
+{
+  if (m_clearing)
+    return;
+  m_clearing = true;
+  decltype(m_nodes) detached;
+  detached.swap(m_nodes);
+  m_nextId = 1;
+  detached.clear();
+  m_clearing = false;
+}
+
+int UnitRefTree::Insert(UnitRefNode* node)
+{
+  if (m_clearing || !node || node->m_id == 0 || FindById(node->m_id))
+    return 0;
+  std::unique_ptr<UnitRefNode> pending(node);
+  try
+  {
+    m_nodes.insert(std::move(pending));
+  }
+  catch (...)
+  {
+    pending.release();
+    throw;
+  }
+  return 1;
+}
+
+void UnitRefTree::Remove(UnitRefNode* node)
+{
+  auto found = std::find_if(m_nodes.begin(), m_nodes.end(),
+                            [node](const auto& entry)
+                            {
+                              return entry.get() == node;
+                            });
+  if (found == m_nodes.end())
+    return;
+  auto owned = m_nodes.extract(found);
+  owned.value().release();
+}
+
+UnitRefNode* UnitRefTree::First() const
+{
+  return m_nodes.empty() ? nullptr : m_nodes.begin()->get();
+}
+
+UnitRefNode* UnitRefTree::Last() const
+{
+  return m_nodes.empty() ? nullptr : m_nodes.rbegin()->get();
+}
+
+UnitRefNode* UnitRefTree::FindById(uint32_t id) const
+{
+  auto found = std::find_if(m_nodes.begin(), m_nodes.end(),
+                            [id](const auto& entry)
+                            {
+                              return entry->m_id == id;
+                            });
+  return found == m_nodes.end() ? nullptr : (*found).get();
+}
+
+uint32_t UnitRefTree::AddWithId(UnitRefNode* node)
+{
+  if (!node)
+    return 0;
+  const bool assignedId = node->m_id == 0;
+  uint32_t id = node->m_id;
+  if (assignedId)
+  {
+    if (m_nextId == 0)
+      return 0;
+    id = m_nextId;
+    node->SetId(id);
+  }
+  if (!Insert(node))
+  {
+    if (assignedId)
+      node->SetId(0);
+    return 0;
+  }
+  if (m_nextId != 0 && m_nextId <= id)
+    m_nextId = id + 1;
+  return id;
+}
+
+void UnitRefTree::DeleteById(uint32_t id)
+{
+  auto found = std::find_if(m_nodes.begin(), m_nodes.end(),
+                            [id](const auto& entry)
+                            {
+                              return entry->m_id == id;
+                            });
+  if (found != m_nodes.end())
+    m_nodes.erase(found);
+}
+
+IdNode* UnitRefTree::DetachById(uint32_t id)
+{
+  auto found = std::find_if(m_nodes.begin(), m_nodes.end(),
+                            [id](const auto& entry)
+                            {
+                              return entry->m_id == id;
+                            });
+  if (found == m_nodes.end())
+    return nullptr;
+  auto owned = m_nodes.extract(found);
+  return owned.value().release();
+}
 
 uint32_t UnitRefTree::AddUnique(UnitRefNode* node)
 {
@@ -38,12 +154,12 @@ uint32_t UnitRefTree::AddUnique(UnitRefNode* node)
 
 UnitRefNode* UnitRefTree::FirstNode()
 {
-  return static_cast<UnitRefNode*>(First());
+  return First();
 }
 
 UnitRefNode* UnitRefTree::LastNode()
 {
-  return static_cast<UnitRefNode*>(Last());
+  return Last();
 }
 
 uint32_t UnitRefTree::AddUnit(TacticalShipBase* unit)
@@ -98,34 +214,85 @@ int UnitRefTree::CountNodes()
 
 InsertionOrderTree::InsertionOrderTree() = default;
 
-InsertionOrderTree::~InsertionOrderTree() = default;
-
-int InsertionOrderTree::IsLess(AvlNode*, AvlNode*)
+InsertionOrderTree::~InsertionOrderTree()
 {
-  return 0;
+  Clear();
 }
 
-IdNode* InsertionOrderTree::FindLinear(uint32_t id)
+void InsertionOrderTree::Clear()
 {
-  for (const auto& entry : Entries())
+  if (m_clearing)
+    return;
+  m_clearing = true;
+  decltype(m_nodes) detached;
+  detached.swap(m_nodes);
+  m_nextId = 1;
+  detached.clear();
+  m_clearing = false;
+}
+
+UnitRefNode* InsertionOrderTree::First() const
+{
+  return m_nodes.empty() ? nullptr : m_nodes.front().get();
+}
+
+void InsertionOrderTree::Remove(UnitRefNode* node)
+{
+  auto found = std::find_if(m_nodes.begin(), m_nodes.end(),
+                            [node](const auto& entry)
+                            {
+                              return entry.get() == node;
+                            });
+  if (found == m_nodes.end())
+    return;
+  std::unique_ptr<UnitRefNode> owned = std::move(*found);
+  m_nodes.erase(found);
+  owned.release();
+}
+
+UnitRefNode* InsertionOrderTree::FindLinear(uint32_t id)
+{
+  for (const auto& entry : m_nodes)
   {
-    AvlNode* node = entry.get();
-    if (static_cast<IdNode*>(node)->m_id == id)
-      return static_cast<IdNode*>(node);
+    if (entry->m_id == id)
+      return entry.get();
   }
   return nullptr;
 }
 
-uint32_t InsertionOrderTree::AddUniqueLinear(IdNode* node)
+uint32_t InsertionOrderTree::AddUniqueLinear(UnitRefNode* node)
 {
-  if (!FindLinear(node->m_id))
-    return AddWithId(node);
-  return 0;
+  if (!node || m_clearing || FindLinear(node->m_id))
+    return 0;
+  const bool assignedId = node->m_id == 0;
+  uint32_t id = node->m_id;
+  if (assignedId)
+  {
+    if (m_nextId == 0)
+      return 0;
+    id = m_nextId;
+    node->SetId(id);
+  }
+  std::unique_ptr<UnitRefNode> pending(node);
+  try
+  {
+    m_nodes.push_back(std::move(pending));
+  }
+  catch (...)
+  {
+    pending.release();
+    if (assignedId)
+      node->SetId(0);
+    throw;
+  }
+  if (m_nextId != 0 && m_nextId <= id)
+    m_nextId = id + 1;
+  return id;
 }
 
 void InsertionOrderTree::RemoveLinear(uint32_t id)
 {
-  IdNode* node = FindLinear(id);
+  UnitRefNode* node = FindLinear(id);
   if (node)
   {
     Remove(node);
@@ -151,7 +318,7 @@ AvlNode* TargetOrderTree::FirstNode()
   return First();
 }
 
-uint32_t TargetOrderTree::AddUniqueChecked(IdNode* node)
+uint32_t TargetOrderTree::AddUniqueChecked(UnitRefNode* node)
 {
   if (!FindLinear(node->m_id))
     return AddUniqueLinear(node);
@@ -160,7 +327,7 @@ uint32_t TargetOrderTree::AddUniqueChecked(IdNode* node)
 
 FormationOrderTree::~FormationOrderTree() = default;
 
-uint32_t FormationOrderTree::AddUniqueLinearSlot(IdNode* node)
+uint32_t FormationOrderTree::AddUniqueLinearSlot(UnitRefNode* node)
 {
   return AddUniqueLinear(node);
 }
@@ -198,7 +365,91 @@ GroupRefTree::GroupRefTree(const GroupRefTree& other)
   *this = other;
 }
 
-GroupRefTree::~GroupRefTree() = default;
+GroupRefTree::~GroupRefTree()
+{
+  Clear();
+}
+
+void GroupRefTree::Clear()
+{
+  if (m_clearing)
+    return;
+  m_clearing = true;
+  decltype(m_nodes) detached;
+  detached.swap(m_nodes);
+  m_nextId = 1;
+  detached.clear();
+  m_clearing = false;
+}
+
+IdNode* GroupRefTree::First() const
+{
+  return m_nodes.empty() ? nullptr : m_nodes.begin()->get();
+}
+
+IdNode* GroupRefTree::FindById(uint32_t id) const
+{
+  auto found = std::find_if(m_nodes.begin(), m_nodes.end(),
+                            [id](const auto& entry)
+                            {
+                              return entry->m_id == id;
+                            });
+  return found == m_nodes.end() ? nullptr : (*found).get();
+}
+
+uint32_t GroupRefTree::AddWithId(GroupRefNode* node)
+{
+  if (!node || m_clearing)
+    return 0;
+  const bool assignedId = node->m_id == 0;
+  uint32_t id = node->m_id;
+  if (assignedId)
+  {
+    if (m_nextId == 0)
+      return 0;
+    id = m_nextId;
+    node->SetId(id);
+  }
+  if (FindById(id))
+  {
+    if (assignedId)
+      node->SetId(0);
+    return 0;
+  }
+  std::unique_ptr<GroupRefNode> pending(node);
+  try
+  {
+    m_nodes.insert(std::move(pending));
+  }
+  catch (...)
+  {
+    pending.release();
+    if (assignedId)
+      node->SetId(0);
+    throw;
+  }
+  if (m_nextId != 0 && m_nextId <= id)
+    m_nextId = id + 1;
+  return id;
+}
+
+IdNode* GroupRefTree::DetachById(uint32_t id)
+{
+  auto found = std::find_if(m_nodes.begin(), m_nodes.end(),
+                            [id](const auto& entry)
+                            {
+                              return entry->m_id == id;
+                            });
+  if (found == m_nodes.end())
+    return nullptr;
+  auto owned = m_nodes.extract(found);
+  return owned.value().release();
+}
+
+void GroupRefTree::DeleteById(uint32_t id)
+{
+  delete DetachById(id);
+}
 
 AvlNode* GroupRefTree::FirstNode()
 {
@@ -207,7 +458,7 @@ AvlNode* GroupRefTree::FirstNode()
 
 ShipGroup* GroupRefTree::FirstGroup()
 {
-  AvlNode* first = FirstNode();
+  auto* first = FirstNode();
   return first ? static_cast<GroupRefNode*>(first)->Value() : nullptr;
 }
 
@@ -262,15 +513,65 @@ TargetPriorityNode::TargetPriorityNode(float priority, TacticalShipBase* unit)
 
 TargetPriorityNode::~TargetPriorityNode() = default;
 
-TargetPriorityTree::~TargetPriorityTree() = default;
-
-int TargetPriorityTree::IsLess(AvlNode* a, AvlNode* b)
+TargetPriorityTree::~TargetPriorityTree()
 {
-  TargetPriorityNode* left = static_cast<TargetPriorityNode*>(a);
-  TargetPriorityNode* right = static_cast<TargetPriorityNode*>(b);
-  if (left->m_priority == right->m_priority)
-    return left->m_unit.UnitBefore(&right->m_unit);
-  return left->m_priority < right->m_priority;
+  Clear();
+}
+
+void TargetPriorityTree::Clear()
+{
+  if (m_clearing)
+    return;
+  m_clearing = true;
+  decltype(m_nodes) detached;
+  detached.swap(m_nodes);
+  detached.clear();
+  m_clearing = false;
+}
+
+bool TargetPriorityTree::NodeOrder::operator()(const std::unique_ptr<TargetPriorityNode>& a,
+                                               const std::unique_ptr<TargetPriorityNode>& b) const
+{
+  const bool aNan = std::isnan(a->m_priority);
+  const bool bNan = std::isnan(b->m_priority);
+  if (aNan != bNan)
+    return !aNan;
+  if (!aNan && a->m_priority != b->m_priority)
+    return a->m_priority < b->m_priority;
+  if (a->m_unit.m_unit == b->m_unit.m_unit)
+    return false;
+  if (!a->m_unit.m_unit || !b->m_unit.m_unit)
+    return a->m_unit.m_unit == nullptr;
+  return a->m_unit.m_unit->m_id < b->m_unit.m_unit->m_id;
+}
+
+void TargetPriorityTree::Insert(TargetPriorityNode* node)
+{
+  if (!m_clearing && node)
+    m_nodes.emplace(node);
+}
+
+void TargetPriorityTree::Remove(TargetPriorityNode* node)
+{
+  auto found = std::find_if(m_nodes.begin(), m_nodes.end(),
+                            [node](const auto& entry)
+                            {
+                              return entry.get() == node;
+                            });
+  if (found == m_nodes.end())
+    return;
+  auto owned = m_nodes.extract(found);
+  owned.value().release();
+}
+
+TargetPriorityNode* TargetPriorityTree::First() const
+{
+  return m_nodes.empty() ? nullptr : m_nodes.begin()->get();
+}
+
+TargetPriorityNode* TargetPriorityTree::Last() const
+{
+  return m_nodes.empty() ? nullptr : m_nodes.rbegin()->get();
 }
 
 UnitRefTree* UnitRefTree::CopyFrom(UnitRefTree* other)

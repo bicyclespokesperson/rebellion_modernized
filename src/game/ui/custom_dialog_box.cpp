@@ -58,11 +58,8 @@ ObjectKeyIdNode::~ObjectKeyIdNode() = default;
 
 void ObjectKeyIdNode::AddId(uint32_t id)
 {
-  if (m_ids.FindById(id))
-    return;
-  IdNode* node = NewOrNull<IdNode>();
-  node->SetId(id);
-  m_ids.AddWithId(node);
+  if (id)
+    m_ids.insert(id);
 }
 
 ObjectKeyIdSet::ObjectKeyIdSet() = default;
@@ -84,7 +81,7 @@ void ObjectKeyIdSet::Add(ObjectKeyIdNode* node, uint32_t id)
     delete node;
     return;
   }
-  Insert(node);
+  ObjectKeySet::Add(node);
   if (id)
     node->AddId(id);
 }
@@ -182,12 +179,10 @@ int CustomDialogBox::OnRightButtonUp(int x, int y, CoolWindow* sender)
     MapWindowPoints(sender->m_hwnd, mainWindow->m_hwnd, &point, 1);
   EventKindSet commands;
   UiBuildAvailableOrders(AppGetSide(), &m_selection, &commands);
-  for (const auto& entry : commands.Entries())
+  for (const auto& [kind, command] : commands.Entries())
   {
-    auto* command = static_cast<EventKindNode*>(entry.get());
-    uint32_t flags =
-      (command->m_value == 0 ? kMenuEntryDisabled : 0) | (command->m_unknown != 0 ? kMenuEntryChecked : 0);
-    AddMenuEntry(command->m_key, kMenuKind, flags, point.x, point.y, mainWindow, color, kMenuShadowColor,
+    uint32_t flags = (command.m_value == 0 ? kMenuEntryDisabled : 0) | (command.m_unknown != 0 ? kMenuEntryChecked : 0);
+    AddMenuEntry(command.m_key, kMenuKind, flags, point.x, point.y, mainWindow, color, kMenuShadowColor,
                  kMenuDisabledColor);
   }
   ShowMenu(point.x, point.y, CoolAppGetResourceModule(kMenuKind), mainWindow, this, nullptr);

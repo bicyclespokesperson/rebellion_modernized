@@ -2,34 +2,37 @@
 #include <cstdint>
 #include <string>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
+#include "core/id_registry.h"
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
 
 class CoolLabel;
 class CoolWindow;
 class DibBitmap;
+class MenuItemBase;
 struct ResourceStringId;
 
 // The menu windows of the strategic game (the object pop-up menu and the Galactic Information Display menu): one
 // MenuWindowBase per menu level, painted from a list of MenuItems.
 
-// IdSortedLinkList whose destructor deletes the nodes (VT 0x65c6a8).
-class OwningIdList : public IdSortedLinkList
-{
-public:
-  OwningIdList(); // 0x4c7f50
-  ~OwningIdList() override; // 0x4c7f90 (scalar deleting destructor 0x4c7f70)
-  // Slot 2, 0x4c7fe0: whether `a`'s id is below `b`'s (what IdSortedLinkList::IsLess does without the null checks).
-  virtual int IsLessById(LinkNode* a, LinkNode* b);
-};
-
 // The entries of one menu level, by command id (VT 0x65bee0).
-class MenuItemList : public OwningIdList
+class MenuItemList
 {
 public:
-  MenuItemList(); // 0x4aa910
-  ~MenuItemList() override; // 0x4aa950 (scalar deleting destructor 0x4aa930)
+  MenuItemList();
+  ~MenuItemList();
+  auto Entries() const
+  {
+    return m_items.Entries();
+  }
+  uint32_t AddWithId(MenuItemBase* item);
+  MenuItemBase* FindById(uint32_t id) const;
+  int Remove(MenuItemBase* item);
+  void Clear();
+
+private:
+  IdRegistry<MenuItemBase> m_items;
 };
 
 class MenuWindowBase;
@@ -182,7 +185,7 @@ public:
   // Gives every entry the text colours (disabled: the shadow colour when 0).
   void SetEntryColors(COLORREF color, COLORREF shadowColor, COLORREF disabledColor); // 0x4ab1b0
   // Appends the item (it takes the menu's background as backdrop).
-  void AddItem(MenuItemBase* item); // 0x4ab370
+  bool AddItem(MenuItemBase* item); // 0x4ab370
   // Opens `sub` beside the item `itemId` of this menu, with the two arrow pictures (RT_BITMAP of `resources`).
   void AttachSubMenu(HMODULE resources,
                      uint32_t itemId,
@@ -199,7 +202,7 @@ public:
   DibBitmap* m_backdrop; // +0x12c not owned
   uint32_t m_unknown130; // +0x130
   UINT_PTR m_timer; // +0x134 the timer that opens sub-menus
-  OwningIdList m_items; // +0x138
+  MenuItemList m_items; // +0x138
   CoolWindow* m_parentMenu; // +0x148 the menu this one is the sub-menu of
 };
 

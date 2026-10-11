@@ -68,7 +68,7 @@ void PlayerQueue::Virtual07(PlayerMessage* message)
 {
   if (!message)
     return;
-  MessageBase* queued = reinterpret_cast<MessageBase*>(message);
+  MessageBase* queued = message;
   if (queued->GetKind() == 1)
   {
     unsigned syncPoint = static_cast<NetMsg1*>(queued)->m_syncPoint;
@@ -98,8 +98,8 @@ int PlayerQueue::Virtual11()
       return result;
   }
   m_deliveredId = node->m_id;
-  IdNode* message = m_pending.Detach(node->m_id);
-  result = reinterpret_cast<MessageBase*>(message)->GetKind() == 1;
+  MessageBase* message = m_pending.Detach(node->m_id);
+  result = message->GetKind() == 1;
   if (result)
     m_state.m_value |= 4;
   UiAddManagerNotice(message);

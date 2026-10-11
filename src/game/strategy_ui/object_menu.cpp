@@ -3,6 +3,7 @@
 #include <cstdint>
 #include <cstring>
 #include <new>
+#include <ranges>
 
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
@@ -71,18 +72,18 @@ int ReadMenuRecord(uint32_t command, uint32_t kind, MenuRecord* out)
   return status;
 }
 
-IdSortedLinkList* AddMenuEntry(uint32_t command,
-                               uint32_t kind,
-                               uint32_t flags,
-                               int x,
-                               int y,
-                               CoolWindow* window,
-                               uint32_t color,
-                               uint32_t shadowColor,
-                               uint32_t disabledColor)
+MenuItemList* AddMenuEntry(uint32_t command,
+                           uint32_t kind,
+                           uint32_t flags,
+                           int x,
+                           int y,
+                           CoolWindow* window,
+                           uint32_t color,
+                           uint32_t shadowColor,
+                           uint32_t disabledColor)
 {
   MenuRecord record = {};
-  IdSortedLinkList* list = &g_menuRoot;
+  MenuItemList* list = &g_menuRoot;
   if (ReadMenuRecord(command, kind, &record) == 1)
     return list;
   if (record.m_words[1] != 0)
@@ -93,6 +94,8 @@ IdSortedLinkList* AddMenuEntry(uint32_t command,
   {
     AddMenuEntry(record.m_words[3], kind, kSiblingFlag, x, y, window, color, shadowColor, disabledColor);
   }
+  if (!list)
+    return nullptr;
   MenuItem* item = static_cast<MenuItem*>(list->FindById(record.m_words[2]));
   if (!item)
   {
@@ -105,15 +108,26 @@ IdSortedLinkList* AddMenuEntry(uint32_t command,
       static_cast<uint32_t>(record.m_words[2]), window, static_cast<int>(enabled), static_cast<int>(checked));
     if (item)
       item->SetColors(color, shadowColor, disabledColor);
-    if (list)
-      list->AddWithId(item);
     if (!item)
       return list;
+    try
+    {
+      if (list->AddWithId(item) == 0)
+      {
+        delete item;
+        return list;
+      }
+    }
+    catch (...)
+    {
+      delete item;
+      throw;
+    }
   }
   return &item->m_subItems;
 }
 
-void LayoutMenu(int x, int y, IdSortedLinkList* list, int* outX, int* outY, uint32_t* outWidth, int* outHeight)
+void LayoutMenu(int x, int y, MenuItemList* list, int* outX, int* outY, uint32_t* outWidth, int* outHeight)
 {
   if (!list)
     return;
@@ -158,7 +172,7 @@ void LayoutMenu(int x, int y, IdSortedLinkList* list, int* outX, int* outY, uint
 
 PopupMenuWindow* BuildMenuWindow(int x,
                                  int y,
-                                 IdSortedLinkList* list,
+                                 MenuItemList* list,
                                  HMODULE resources,
                                  PopupMenuWindow* parentMenu,
                                  CoolWindow* window,
@@ -187,7 +201,7 @@ PopupMenuWindow* BuildMenuWindow(int x,
       if (parentMenu)
         menuX -= parentMenu->m_width;
     }
-    MenuItem* first = list->Entries().empty() ? nullptr : static_cast<MenuItem*>(list->Entries().begin()->get());
+    MenuItem* first = list->Entries().empty() ? nullptr : static_cast<MenuItem*>((*list->Entries().begin()).get());
     if (first)
     {
       void* memory = ::operator new(sizeof(PopupMenuWindow));
@@ -206,9 +220,8 @@ PopupMenuWindow* BuildMenuWindow(int x,
     }
     while (first && menu)
     {
-      if (list->Remove(first) != 0)
+      if (list->Remove(first) != 0 && menu->AddItem(first))
       {
-        menu->AddItem(first);
         PopupMenuWindow* sub = BuildMenuWindow(first->m_area.left, first->m_area.top, &first->m_subItems, resources,
                                                menu, window, owner, backdrop);
         if (sub)
@@ -218,18 +231,18 @@ PopupMenuWindow* BuildMenuWindow(int x,
                               arrowDelta + kArrowAlliance + 1);
         }
       }
-      first = list->Entries().empty() ? nullptr : static_cast<MenuItem*>(list->Entries().begin()->get());
+      first = list->Entries().empty() ? nullptr : static_cast<MenuItem*>((*list->Entries().begin()).get());
     }
   }
   return menu;
 }
 
-int CleanupMenuTree(IdSortedLinkList& items)
+int CleanupMenuTree(MenuItemList& items)
 {
   int result = 0;
-  for (auto position = items.Entries().rbegin(); position != items.Entries().rend(); ++position)
+  for (const auto& ownedItem : std::views::reverse(items.Entries()))
   {
-    auto* item = static_cast<MenuItem*>(position->get());
+    auto* item = static_cast<MenuItem*>(ownedItem.get());
     if (!item->m_subItems.Entries().empty())
       item->m_enabled = CleanupMenuTree(item->m_subItems);
     if (result == 0)

@@ -4,7 +4,8 @@
 #include "ai/ai_galaxy_analysis.h"
 #include "ai/ai_selector.h"
 #include "ai/ai_task_base.h"
-#include "core/containers.h"
+#include "core/entry_identity.h"
+#include "core/id_registry.h"
 #include "core/stream_io.h"
 #include "gameobj/object_key.h"
 #include "strategy_ui/advisor_notices.h"
@@ -134,11 +135,35 @@ public:
 // ---- the collections --------------------------------------------------------------------------------------------------
 
 // The advisor's tasks (VT 0x65bc88, 0x1c bytes): AiTaskManager's twin for the three advisor task types.
-class AdvisorTaskManager : public IdAvlTree
+class AdvisorTaskManager
 {
 public:
   AdvisorTaskManager(); // 0x49dcf0
-  ~AdvisorTaskManager() override; // 0: 0x49dd10 (deleting), 0x49dd30
+  ~AdvisorTaskManager(); // 0: 0x49dd10 (deleting), 0x49dd30
+  void Clear();
+  size_t Count() const
+  {
+    return m_tasks.Count();
+  }
+  const auto& Entries() const
+  {
+    return m_tasks.Storage();
+  }
+  auto PositionOf(const AdvisorTaskBase* task) const
+  {
+    const auto& entries = m_tasks.Storage();
+    auto position = entries.cbegin();
+    for (; position != entries.cend(); ++position)
+      if (position->second.get() == task)
+        return position;
+    return position;
+  }
+  uint32_t AddWithId(AdvisorTaskBase* task);
+  AdvisorTaskBase* FindById(uint32_t id) const;
+  AdvisorTaskBase* First() const
+  {
+    return m_tasks.First();
+  }
   void Load(istream* in, AiGalaxyAnalysis* analysis); // 0x49dd50
   void Save(ostream* out); // 0x49de40 (the code AiTaskManager::Save shares)
   uint32_t CreateTask(int type, AiGalaxyAnalysis* analysis); // 0x49df20
@@ -150,14 +175,34 @@ public:
   AdvisorTaskBase* m_current; // +0x10
   AdvisorTaskBase* m_cursor; // +0x14
   AdvisorTaskBase* m_last; // +0x18
+
+private:
+  IdRegistry<AdvisorTaskBase> m_tasks;
 };
 
 // The tree of DroidScript (VT 0x65bc78, 0xc bytes).
-class AdvisorEntryTree : public IdAvlTree
+class AdvisorEntryTree
 {
 public:
+  void Clear();
   AdvisorEntryTree(); // 0x49c6a0
-  ~AdvisorEntryTree() override; // 0: 0x49c6c0 (deleting), 0x49c6e0
+  ~AdvisorEntryTree(); // 0: 0x49c6c0 (deleting), 0x49c6e0
+  size_t Count() const
+  {
+    return m_entries.Count();
+  }
+  const auto& Entries() const
+  {
+    return m_entries.Storage();
+  }
+  DroidScript* FindById(uint32_t id) const
+  {
+    return m_entries.FindById(id);
+  }
+  uint32_t AddWithId(DroidScript* entry);
   void Load(istream* in); // 0x49c6f0
   void Save(ostream* out); // 0x4e5210 (the code AiTaskObjectSet::Save shares)
+
+private:
+  IdRegistry<DroidScript> m_entries;
 };

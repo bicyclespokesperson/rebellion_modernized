@@ -1,7 +1,8 @@
 #pragma once
 #include <cstdint>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
+#include "core/id_registry.h"
 #include "platform/win32.h"
 
 class DibBitmap;
@@ -27,15 +28,15 @@ public:
   int m_y; // +0x24
 };
 
-// The overlays of a CoolGameWindow in drawing order: by the vertical centre of their bitmaps, so lower ones
-// are drawn over higher ones.
-class BitmapOverlayTree : public IdAvlTree
+// Overlays of a CoolGameWindow, indexed by their serialized id.
+class BitmapOverlayTree
 {
 public:
-  BitmapOverlayTree(); // 0x60f420
-  ~BitmapOverlayTree() override; // 0x60f460 (scalar deleting destructor 0x60f440)
-  int IsLess(AvlNode* a, AvlNode* b) override; // 0x60f490
+  ~BitmapOverlayTree() = default;
+  uint32_t AddWithId(BitmapOverlay* overlay);
 
-  // Linear search (the tree is not ordered by id).
   BitmapOverlay* FindOverlay(uint32_t id); // 0x60f470
+
+private:
+  IdRegistry<BitmapOverlay> m_overlays;
 };

@@ -610,7 +610,7 @@ void SystemWindow::OnKeyDown(WPARAM key, LPARAM lParam)
     case VK_RIGHT:
     {
       const bool backwards = key == VK_LEFT;
-      AvlNode* tab = m_tabs->m_children.FindById(m_tabs->m_selected ? m_tabs->m_selected->m_childId : 0);
+      auto* tab = m_tabs->m_children.FindById(m_tabs->m_selected ? m_tabs->m_selected->m_childId : 0);
       auto position = m_tabs->m_children.PositionOf(tab);
       if (position != m_tabs->m_children.Entries().end())
       {
@@ -621,7 +621,7 @@ void SystemWindow::OnKeyDown(WPARAM key, LPARAM lParam)
           position = std::next(position);
         for (; position != m_tabs->m_children.Entries().end();)
         {
-          tab = position->get();
+          tab = (*position).get();
           CoolWindow* window = static_cast<CoolWindow*>(tab);
           if (IsWindowVisible(window->m_hwnd))
           {
@@ -636,7 +636,7 @@ void SystemWindow::OnKeyDown(WPARAM key, LPARAM lParam)
         }
         return;
       }
-      if (AvlNode* first = m_tabs->m_children.First())
+      if (auto* first = m_tabs->m_children.First())
       {
         m_tabs->SelectTab(static_cast<CoolWindow*>(first)->m_childId, 1);
       }

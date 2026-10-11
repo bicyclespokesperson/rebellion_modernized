@@ -1,6 +1,3 @@
-#include "core/checked_new.h"
-
-#include "core/containers.h"
 #include "platform/win32.h"
 #include "strategy_ui/advisor_decl.h"
 #include "ui/cool_window.h"
@@ -17,7 +14,7 @@ constexpr int kEntryResourceStride = 3;
 
 // Reads the side's list of advisor notices out of the RCDATA resources: the first resource is a count, each of the
 // following ones names a notice (id in the second word, kind in the low nibble of the first byte).
-int LoadAdvisorNotices(int side, IdValueTree* notices)
+int LoadAdvisorNotices(int side, std::map<uint32_t, int>* notices)
 {
   UINT first = side == 1 ? kAllianceNoticeList : kEmpireNoticeList;
   int loaded = 0;
@@ -42,16 +39,9 @@ int LoadAdvisorNotices(int side, IdValueTree* notices)
       const uint8_t* bytes = static_cast<const uint8_t*>(LockResource(resource));
       if (bytes && SizeofResource(module, entryInfo) >= 4)
       {
-        IdValueNode* node = NewOrNull<IdValueNode>(0);
-        if (node)
-        {
-          node->m_value = (bytes[0] & 0xf) + kindBase;
-          uint16_t id;
-          std::memcpy(&id, bytes + 2, sizeof(id));
-          node->SetId(id);
-          if (!notices->AddWithId(node))
-            delete node;
-        }
+        uint16_t id;
+        std::memcpy(&id, bytes + 2, sizeof(id));
+        notices->emplace(id, (bytes[0] & 0xf) + kindBase);
       }
       FreeResource(resource);
     }

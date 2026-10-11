@@ -391,7 +391,7 @@ int GameManager::SetSnapshot(GameStateSnapshot* snapshot, int which)
   return ok;
 }
 
-void GameManager::AddNotice(IdNode* notice)
+void GameManager::AddNotice(MessageBase* notice)
 {
   if (notice && m_notices)
     m_notices->Adopt(notice);
@@ -440,14 +440,14 @@ int GameManager::DispatchPostedEvent(NotifPayload* event)
 
 int GameManager::BuildAvailableOrders(int side, ObjectKeyValueSet* team, EventKindSet* orders)
 {
-  orders->AvlTree::Clear();
+  orders->Clear();
   EventKindSet perObject;
   EventKindSet common;
 
   int ok = 1;
   for (auto nodePosition = team->Entries().begin(); nodePosition != team->Entries().end();)
   {
-    AvlNode* node = static_cast<AvlNode*>((nodePosition++)->get());
+    auto* node = (*(nodePosition++)).get();
     if (!(true && ok))
       break;
 
@@ -457,7 +457,7 @@ int GameManager::BuildAvailableOrders(int side, ObjectKeyValueSet* team, EventKi
     ok = object != nullptr;
     if (ok)
     {
-      perObject.AvlTree::Clear();
+      perObject.Clear();
       ok = object->GetEventKinds(static_cast<ObjectKeyValueNode*>(node)->m_value, &perObject);
       if (node == team->First())
         common = perObject;
@@ -466,16 +466,13 @@ int GameManager::BuildAvailableOrders(int side, ObjectKeyValueSet* team, EventKi
     }
   }
 
-  for (const auto& kindNodeEntry : common.Entries())
+  for (const auto& [kind, wanted] : common.Entries())
   {
-    AvlNode* kindNode = static_cast<AvlNode*>(kindNodeEntry.get());
-
     if (!ok)
       return 0;
-    EventKindNode* wanted = static_cast<EventKindNode*>(kindNode);
-    if (wanted->m_value == 0)
+    if (wanted.m_value == 0)
       break;
-    OrderBase* order = static_cast<OrderBase*>(CreateMessageByKind(wanted->m_key));
+    OrderBase* order = static_cast<OrderBase*>(CreateMessageByKind(wanted.m_key));
     ok = order != nullptr;
     if (ok)
     {
@@ -485,7 +482,7 @@ int GameManager::BuildAvailableOrders(int side, ObjectKeyValueSet* team, EventKi
       order->SetTarget(&noTarget);
       if (order->IsListed())
       {
-        if (EventKindNode* entry = orders->Add(wanted->m_key, 1))
+        if (EventKindNode* entry = orders->Add(wanted.m_key, 1))
         {
           StatusCode status;
           const int enabled = !HasPendingBattle() && order->CheckEnabled(&status);

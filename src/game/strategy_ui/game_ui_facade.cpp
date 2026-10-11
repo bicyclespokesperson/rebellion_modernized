@@ -251,7 +251,7 @@ std::vector<uint32_t> UiQueuedMessageIds()
     return ids;
   ids.reserve(session->m_messages.Count());
   for (const auto& ownedMessage : session->m_messages.Entries())
-    ids.push_back(static_cast<IdNode*>(ownedMessage.get())->m_id);
+    ids.push_back(ownedMessage->m_id);
   return ids;
 }
 
@@ -298,13 +298,10 @@ void UiHumanRefreshOrderMenus(EventKindSet* commands)
     session->HumanRefreshOrderMenus(reinterpret_cast<intptr_t>(commands));
 }
 
-IdAvlTree* UiGetHumanOrderTree()
+UiRecordTree* UiGetHumanOrderTree()
 {
   GameSession* session = GetGameSession();
-  IdAvlTree* result = nullptr;
-  if (session)
-    result = session->GetHumanOrderTree();
-  return result;
+  return session ? session->GetHumanOrderTree() : nullptr;
 }
 
 void UiDeleteHumanMessage(int id)
@@ -460,10 +457,10 @@ void UiSendNotificationToSide(int side, intptr_t argument)
 
 // ---- Game step driver ----------------------------------------------------------------------------------------
 
-void UiAddManagerNotice(void* notice)
+void UiAddManagerNotice(MessageBase* notice)
 {
   if (notice)
-    AddManagerNotice(static_cast<IdNode*>(notice));
+    AddManagerNotice(notice);
 }
 
 unsigned UiRaisePauseTo(unsigned tick)

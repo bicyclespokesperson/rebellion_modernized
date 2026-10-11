@@ -1,4 +1,5 @@
 #include "orders/mission_orders.h"
+#include "economy/side.h"
 
 #include "core/checked_new.h"
 #include "events/person_events.h"
@@ -334,7 +335,7 @@ MissionOrder240::MissionOrder240() : MissionOrder()
 
 MissionOrder240::~MissionOrder240() = default;
 
-int MissionOrder240::CollectCandidatesA(ObjectKeyValueSet* out)
+int MissionOrder240::CollectCandidatesA(ObjectRefList* out)
 {
   out->Clear();
   MissionMgr* manager = getMissionMgr();
@@ -344,12 +345,11 @@ int MissionOrder240::CollectCandidatesA(ObjectKeyValueSet* out)
   initRequest(&request);
   BuildRequest(&request);
   if (ok)
-    ok = manager->MissionMgr::CollectMissionTypesForTeam(&request, GetTeam(), &m_characters,
-                                                         reinterpret_cast<ObjectRefList*>(out), &status);
+    ok = manager->MissionMgr::CollectMissionTypesForTeam(&request, GetTeam(), &m_characters, out, &status);
   return ok;
 }
 
-int MissionOrder240::CollectCandidatesB(ObjectKeyValueSet* out)
+int MissionOrder240::CollectCandidatesB(ObjectNameList* out)
 {
   out->Clear();
   MissionMgr* manager = getMissionMgr();
@@ -359,8 +359,7 @@ int MissionOrder240::CollectCandidatesB(ObjectKeyValueSet* out)
   initRequest(&request);
   BuildRequest(&request);
   if (ok)
-    ok = manager->MissionMgr::CollectMissionTypeNamesAtTarget(&request, GetTeam(), &m_characters,
-                                                              reinterpret_cast<ObjectRefList*>(out), &status);
+    ok = manager->MissionMgr::CollectMissionTypeNamesAtTarget(&request, GetTeam(), &m_characters, out, &status);
   return ok;
 }
 

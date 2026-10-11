@@ -1,8 +1,9 @@
 #pragma once
 #include <cstdint>
+#include <set>
 #include <string>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
@@ -141,7 +142,7 @@ public:
   void SetPendingMovie(LPARAM movie); // 0x425ce0
   // Switches the Galactic Information Display to `mode` (0x80: off); `selection` (modes 0x92/0x93 only; the ids the
   // display was showing) becomes the selected ids.
-  void SetDisplayMode(int mode, IdAvlTree* selection); // 0x425d00
+  void SetDisplayMode(int mode, const std::set<uint32_t>* selection); // 0x425d00
   // Opens (or, for mode 0x80, hides) the GID legend panel for `mode`.
   void ShowDisplayLegend(int mode); // 0x426d00
   // Icon id for a value against thresholds: m_gidIconIds[kind - 1][...].
@@ -183,7 +184,7 @@ public:
   void ToggleGidMenu(); // the GID button
   // Accelerators 0xbd3 / 0xbd4: brings the next (previous) open non-sector window of m_openWindowIds after `current`
   // to the front.
-  void ActivateNextOpenWindow(IdNode* current, bool backwards);
+  void ActivateNextOpenWindow(uint32_t currentId, bool backwards);
 
   // ---- strategy_window_ext (0x440ea0-0x441a60) ----
   HWND LastChildWindow(); // 0x440f20: the bottom of the z-order
@@ -299,7 +300,7 @@ public:
   int m_gidIconIds[3][4]; // +0x294 per kind: the four threshold icons
   DibBitmap* m_gidIcons; // +0x2c4 owned
   DibBitmap* m_gidIcons2; // +0x2c8 owned
-  IdAvlTree m_selectedIds; // +0x2cc
+  std::set<uint32_t> m_selectedIds; // +0x2cc
   MinimizedWindowSlot m_minimized[12]; // +0x2d8
   uint32_t m_minimizedOrder[12]; // +0x428 child ids in the order they were minimised
   int m_minimizedCount; // +0x458
@@ -310,7 +311,7 @@ public:
   HCURSOR m_currentCursor; // +0x46c
   uint32_t m_unknown470; // +0x470
   CoolListItemList* m_encyclopediaItems; // +0x474 every encyclopedia entry (ObjectListItems, id 0x1000 + record id)
-  IdAvlTree m_openWindowIds; // +0x478 ids of the open strategy child windows
+  std::set<uint32_t> m_openWindowIds; // +0x478 ids of the open strategy child windows
   CoolListItemList m_systemItems; // +0x484 GID markers of the systems
   ResourceStringId m_titleStringId; // +0x494 title of the next GID mode switch (id 0: by mode), then reset
   LPARAM m_pendingMovie; // +0x498 owned (game_ui_facade 0x41d330 deletes it)

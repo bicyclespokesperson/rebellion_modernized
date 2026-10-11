@@ -10,8 +10,11 @@
 // ids. Reliable packets are re-sent until every other player has acknowledged them (CommAckRecord); an ack is a
 // packet with the id of the acknowledged packet whose payload is the sender's name (see CommMgr::SendAck).
 #include <cstdint>
+#include <map>
+#include <memory>
+#include <ranges>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "core/strstream_io.h"
 #include "platform/win32.h"
@@ -60,19 +63,47 @@ public:
   std::string m_name; // +0x2c
 };
 
-// The two lists of the lobby (globals 0x6be340 and 0x6be330): IdAvlTrees that own their nodes.
-class ServiceProviderList : public IdAvlTree
+// The two lists of the lobby (globals 0x6be340 and 0x6be330), keyed by assigned ID.
+class ServiceProviderList
 {
 public:
   ServiceProviderList(); // 0x5fb670
-  ~ServiceProviderList() override; // 0x5fb6b0 (deleting 0x5fb690)
+  ~ServiceProviderList(); // 0x5fb6b0 (deleting 0x5fb690)
+  void Clear();
+  size_t Count() const
+  {
+    return m_entries.size();
+  }
+  auto Entries() const
+  {
+    return std::views::values(m_entries);
+  }
+  uint32_t AddWithId(ServiceProviderInfo* info);
+
+private:
+  std::map<uint32_t, std::unique_ptr<ServiceProviderInfo>> m_entries;
+  uint32_t m_nextId = 1;
 };
 
-class SessionList : public IdAvlTree
+class SessionList
 {
 public:
   SessionList(); // 0x5fb6c0
-  ~SessionList() override; // 0x5fb700 (deleting 0x5fb6e0)
+  ~SessionList(); // 0x5fb700 (deleting 0x5fb6e0)
+  void Clear();
+  size_t Count() const
+  {
+    return m_entries.size();
+  }
+  auto Entries() const
+  {
+    return std::views::values(m_entries);
+  }
+  uint32_t AddWithId(SessionInfo* info);
+
+private:
+  std::map<uint32_t, std::unique_ptr<SessionInfo>> m_entries;
+  uint32_t m_nextId = 1;
 };
 
 // What the lobby launcher left for the game (global 0x6be350, VT 0x66de6c, 0x10 bytes). `m_launched` is set by

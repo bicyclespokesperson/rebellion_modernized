@@ -195,7 +195,7 @@ void SetManagerUnk44(int value)
   writeManagerField(&GameManager::m_unk44, value);
 }
 
-int AddManagerNotice(IdNode* notice)
+int AddManagerNotice(MessageBase* notice)
 {
   if (GameManager* manager = GetGameManager())
   {

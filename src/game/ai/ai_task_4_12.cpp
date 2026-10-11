@@ -139,15 +139,16 @@ int AiTask4::NextRecordWithPlanners()
       {
         ++position;
         record = position == m_owner->m_systemRecords.Entries().end() ? nullptr :
-                                                                        static_cast<AiSystemRecord*>(position->get());
+                                                                        static_cast<AiSystemRecord*>((*position).get());
       }
     } while (record);
     if (record)
     {
       m_recordId = record->m_id;
       ++position;
-      m_recordCursor =
-        position == m_owner->m_systemRecords.Entries().end() ? 0 : static_cast<AiSystemRecord*>(position->get())->m_id;
+      m_recordCursor = position == m_owner->m_systemRecords.Entries().end() ?
+                         0 :
+                         static_cast<AiSystemRecord*>((*position).get())->m_id;
       return found;
     }
   }
@@ -199,7 +200,7 @@ int AiTask4::NextPlanner()
       {
         ++position;
         planner =
-          position == m_owner->m_planners.Entries().end() ? nullptr : static_cast<AiMissionPlanner*>(position->get());
+          position == m_owner->m_planners.Entries().end() ? nullptr : static_cast<AiMissionPlanner*>((*position).get());
       }
     } while (planner);
     if (planner)
@@ -207,7 +208,7 @@ int AiTask4::NextPlanner()
       m_plannerId = planner->m_id;
       ++position;
       m_plannerCursor =
-        position == m_owner->m_planners.Entries().end() ? 0 : static_cast<AiMissionPlanner*>(position->get())->m_id;
+        position == m_owner->m_planners.Entries().end() ? 0 : static_cast<AiMissionPlanner*>((*position).get())->m_id;
       return found;
     }
   }
@@ -353,15 +354,16 @@ int AiTask12::NextRecordWithAgents()
       {
         ++position;
         record = position == m_owner->m_systemRecords.Entries().end() ? nullptr :
-                                                                        static_cast<AiSystemRecord*>(position->get());
+                                                                        static_cast<AiSystemRecord*>((*position).get());
       }
     } while (record);
     if (record)
     {
       m_recordId = record->m_id;
       ++position;
-      m_recordCursor =
-        position == m_owner->m_systemRecords.Entries().end() ? 0 : static_cast<AiSystemRecord*>(position->get())->m_id;
+      m_recordCursor = position == m_owner->m_systemRecords.Entries().end() ?
+                         0 :
+                         static_cast<AiSystemRecord*>((*position).get())->m_id;
       return found;
     }
   }
@@ -413,7 +415,7 @@ int AiTask12::NextAgent()
       if (!found)
       {
         ++position;
-        agent = position == m_owner->m_agents.Entries().end() ? nullptr : static_cast<AiAgentBase*>(position->get());
+        agent = position == m_owner->m_agents.Entries().end() ? nullptr : static_cast<AiAgentBase*>((*position).get());
       }
     } while (agent);
     if (agent)
@@ -421,7 +423,7 @@ int AiTask12::NextAgent()
       m_agentId = agent->m_id;
       ++position;
       m_agentCursor =
-        position == m_owner->m_agents.Entries().end() ? 0 : static_cast<AiAgentBase*>(position->get())->m_id;
+        position == m_owner->m_agents.Entries().end() ? 0 : static_cast<AiAgentBase*>((*position).get())->m_id;
       return found;
     }
   }

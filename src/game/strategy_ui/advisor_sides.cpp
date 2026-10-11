@@ -54,7 +54,7 @@ void advisor_sides::RefusedGeneric(AdvisorBase* advisor,
     bool missionOrder = false;
     if (order->GetTarget(&target)->IsSet() != 0 && order->GetKind() == kOrderKindMission)
     {
-      AvlTree* secondTeam = &static_cast<MissionOrder*>(order)->m_characters;
+      ObjectKeyValueSet* secondTeam = &static_cast<MissionOrder*>(order)->m_characters;
       missionOrder = order->GetTeam()->First() == nullptr && secondTeam->First() != nullptr;
     }
     if (missionOrder)

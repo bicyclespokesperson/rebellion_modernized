@@ -35,14 +35,6 @@ int NextTabStop(int x, int tabWidth)
 
 } // namespace
 
-// ---- TextLineStart -----------------------------------------------------------------------------------------
-
-TextLineStart::TextLineStart(int charIndex) : IdLinkNode(), m_charIndex(charIndex)
-{
-}
-
-TextLineStart::~TextLineStart() = default;
-
 // ---- TextScrollField ---------------------------------------------------------------------------------------
 
 TextScrollField::TextScrollField(HINSTANCE instance,
@@ -163,8 +155,7 @@ void TextScrollField::Reset()
   if (!m_hwnd)
     return;
   m_state |= kTextInsertMode;
-  m_lineStarts.Reset();
-  m_lastLineStart = nullptr;
+  m_lineStarts.clear();
   m_caret.m_index = 0;
   m_topIndex = 0;
   LocatePosition(&m_caret);
@@ -393,29 +384,15 @@ void TextScrollField::ScrollDown(int update)
 
 void TextScrollField::PushLineStart(int charIndex)
 {
-  TextLineStart* node = NewOrNull<TextLineStart>(charIndex);
-  m_lastLineStart = node;
-  m_lineStarts.AddWithId(node);
+  m_lineStarts.push_back(charIndex);
 }
 
 void TextScrollField::PopLineStart(int* charIndex)
 {
-  TextLineStart* last = m_lastLineStart;
-  if (!last)
+  if (m_lineStarts.empty())
     return;
-  *charIndex = last->m_charIndex;
-  auto position = m_lineStarts.PositionOf(last);
-  m_lastLineStart = nullptr;
-  if (position != m_lineStarts.Entries().begin() && position != m_lineStarts.Entries().end())
-  {
-    --position;
-    m_lastLineStart = static_cast<TextLineStart*>(position->get());
-  }
-  if (m_lastLineStart)
-  {
-    m_lineStarts.DetachById(last->m_id);
-    delete last;
-  }
+  *charIndex = m_lineStarts.back();
+  m_lineStarts.pop_back();
 }
 
 void TextScrollField::SetTextFont(int fontSlot)

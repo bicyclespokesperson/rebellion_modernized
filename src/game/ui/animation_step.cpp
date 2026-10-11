@@ -1,4 +1,5 @@
 #include "ui/animation_step.h"
+#include "ui/cool_window.h"
 
 #include <cstring>
 #include <new>
@@ -25,6 +26,60 @@ extern int g_animationStep12Registered; // 0x6b1388
 extern AnimationStep13 g_animationStep13; // 0x6b13f0
 extern int g_animationStep13Registered; // 0x6b13e8
 extern int g_animationStepSignal; // 0x6b12b0
+
+DeltaFrameList::DeltaFrameList() : m_nextId(1)
+{
+}
+
+DeltaFrameList::~DeltaFrameList()
+{
+  decltype(m_frames) detached;
+  detached.swap(m_frames);
+}
+
+uint32_t DeltaFrameList::AddWithId(DeltaFrame* frame)
+{
+  if (!frame)
+    return 0;
+  uint32_t id = frame->m_id;
+  const bool assignedId = id == 0;
+  if (assignedId)
+  {
+    if (m_nextId == 0)
+      return 0;
+    id = m_nextId;
+    frame->SetId(id);
+  }
+  std::map<uint32_t, std::unique_ptr<DeltaFrame>>::iterator position;
+  bool inserted = false;
+  try
+  {
+    auto result = m_frames.try_emplace(id);
+    position = result.first;
+    inserted = result.second;
+  }
+  catch (...)
+  {
+    if (assignedId)
+      frame->SetId(0);
+    throw;
+  }
+  if (!inserted)
+  {
+    if (assignedId)
+      frame->SetId(0);
+    return 0;
+  }
+  position->second.reset(frame);
+  if (m_nextId != 0 && m_nextId <= id)
+    m_nextId = id + 1;
+  return id;
+}
+
+DeltaFrame* DeltaFrameList::First() const
+{
+  return m_frames.empty() ? nullptr : m_frames.begin()->second.get();
+}
 
 namespace
 {
@@ -89,26 +144,26 @@ void showBitmap(AnimationStep* step, int index, DibBitmap* bitmap)
 }
 
 // An array of `count` frame lists with the element count in front, as the compiler lays out new[] of a class with a destructor.
-constexpr size_t kArrayCookie = alignof(IdAvlTreeElement) > sizeof(int) ? alignof(IdAvlTreeElement) : sizeof(int);
+constexpr size_t kArrayCookie = alignof(DeltaFrameList) > sizeof(int) ? alignof(DeltaFrameList) : sizeof(int);
 
-IdAvlTreeElement* newFrameLists(int count)
+DeltaFrameList* newFrameLists(int count)
 {
-  char* block = static_cast<char*>(::operator new(count * sizeof(IdAvlTreeElement) + kArrayCookie));
+  char* block = static_cast<char*>(::operator new(count * sizeof(DeltaFrameList) + kArrayCookie));
   if (block == nullptr)
     return nullptr;
   *reinterpret_cast<int*>(block) = count;
-  IdAvlTreeElement* lists = reinterpret_cast<IdAvlTreeElement*>(block + kArrayCookie);
+  DeltaFrameList* lists = reinterpret_cast<DeltaFrameList*>(block + kArrayCookie);
   for (int i = 0; i < count; ++i)
-    new (&lists[i]) IdAvlTreeElement();
+    new (&lists[i]) DeltaFrameList();
   return lists;
 }
 
 // The vector deleting destructor (0x404310) the original reaches through the first element's vtable.
-void deleteFrameLists(IdAvlTreeElement* lists)
+void deleteFrameLists(DeltaFrameList* lists)
 {
   char* block = reinterpret_cast<char*>(lists) - kArrayCookie;
   for (int i = *reinterpret_cast<int*>(block) - 1; i >= 0; --i)
-    lists[i].~IdAvlTreeElement();
+    lists[i].~DeltaFrameList();
   ::operator delete(block);
 }
 
@@ -743,7 +798,7 @@ int advanceDeltaFrames(DeltaFrameStep* step, RECT* area, int* changed, bool stop
       auto position = step->m_frameLists[i].PositionOf(frame);
       ++position;
       step->m_cursors[i] =
-        position == step->m_frameLists[i].Entries().end() ? nullptr : static_cast<DeltaFrame*>(position->get());
+        position == step->m_frameLists[i].Entries().end() ? nullptr : static_cast<DeltaFrame*>((*position).get());
     }
     if (stopSoundsOnRequest)
     {

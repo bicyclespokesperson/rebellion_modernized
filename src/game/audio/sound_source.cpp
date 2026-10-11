@@ -303,7 +303,7 @@ int SoundSource::IsAnyPlaying()
   int anyPlaying = 0;
   for (const auto& entry : m_buffers.Entries())
   {
-    AvlNode* node = entry.get();
+    KeyedSoundNode* node = entry.second.get();
     DWORD status;
     if (static_cast<SoundBuffer*>(node)->GetStatus(&status) == 0 && (anyPlaying || (status & kStatusPlaying)))
       anyPlaying = 1;

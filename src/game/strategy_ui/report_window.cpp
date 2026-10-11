@@ -581,7 +581,7 @@ void ReportWindow::OnKeyDown(WPARAM key, LPARAM lParam)
     return;
   }
   const bool backwards = key == VK_LEFT;
-  AvlNode* tab = m_unitTabs->m_children.FindById(SelectedChildId(m_unitTabs));
+  auto* tab = m_unitTabs->m_children.FindById(SelectedChildId(m_unitTabs));
   auto position = m_unitTabs->m_children.PositionOf(tab);
   if (position != m_unitTabs->m_children.Entries().end())
   {
@@ -592,7 +592,7 @@ void ReportWindow::OnKeyDown(WPARAM key, LPARAM lParam)
       position = std::next(position);
     for (; position != m_unitTabs->m_children.Entries().end();)
     {
-      tab = position->get();
+      tab = (*position).get();
       CoolWindow* window = static_cast<CoolWindow*>(tab);
       if (IsWindowVisible(window->m_hwnd))
       {
@@ -607,7 +607,7 @@ void ReportWindow::OnKeyDown(WPARAM key, LPARAM lParam)
     }
     return;
   }
-  if (AvlNode* first = m_unitTabs->m_children.First())
+  if (auto* first = m_unitTabs->m_children.First())
   {
     m_unitTabs->SelectTab(static_cast<CoolWindow*>(first)->m_childId, 1);
   }
@@ -713,7 +713,7 @@ void ReportWindow::FillList(int subTabId, int force)
       return;
     }
     ObjectKey key;
-    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    auto* node = static_cast<ObjectKeyNode*>((*position).get());
     node->GetKey(&key);
     GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, &key);
     AddListItem(object, flag, nullptr);

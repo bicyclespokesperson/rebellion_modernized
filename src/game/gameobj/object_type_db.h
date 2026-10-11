@@ -1,8 +1,9 @@
 #pragma once
+class ObjectNameList;
 #include <cstdint>
 #include <vector>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "data/seed_key.h"
 #include "data/seed_list.h"
@@ -16,8 +17,8 @@
 // here.
 //
 // Layout of the pieces this module touches (all defined by the data-table module):
-//   SeedListFileTree   IdAvlTree of loaded seed-list files (0x58ec40), m_ready at +0xc
-//   family entry  0x3c bytes: +0x1c ok flag, +0x20 loader object, +0x28/+0x2c family range, +0x30 IdAvlTree of records
+//   SeedListFileTree   ID registry of loaded seed-list files (0x58ec40), m_ready at +0xc
+//   family entry  0x3c bytes: +0x1c ok flag, +0x20 loader object, +0x28/+0x2c family range, +0x30 ID registry of records
 //   record        a DatRecord: kind range (m_first/m_second), name resource id (m_small); records used for level
 //                 queries are actual SdRecord-derived objects with per-view availability and level fields
 
@@ -53,7 +54,7 @@ public:
                      int whenBelow,
                      int whenEqual,
                      int whenAbove,
-                     IdAvlTree* out,
+                     ObjectNameList* out,
                      int* maxLevel);
   // The record of exactly `level` among the available ones (null if none).
   int FindRecordAtLevel(int view, uint32_t kind, int level, DatRecord** out);
@@ -89,7 +90,7 @@ int CollectDataRecords(int view,
                        int whenBelow,
                        int whenEqual,
                        int whenAbove,
-                       IdAvlTree* out,
+                       ObjectNameList* out,
                        int* maxLevel); // 0x51cb20
 int FindDataRecordAtLevel(int view, uint32_t kind, int level, DatRecord** out); // 0x51cb60
 int FindNextDataLevel(int view, int kind, int level, int* found, int* foundLevel, int* extraValue); // 0x51cb90

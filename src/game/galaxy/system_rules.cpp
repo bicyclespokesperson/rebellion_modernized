@@ -82,7 +82,7 @@ int System::RecomputeEnergyAllocated(NotifyContext* ctx)
           }
           if (position == candidates.Entries().end())
             continue;
-          auto* node = static_cast<ObjectKeyNode*>(position->get());
+          auto* node = static_cast<ObjectKeyNode*>((*position).get());
           ObjectKey key;
           node->GetKey(&key);
           candidates.RemoveKey(&key);

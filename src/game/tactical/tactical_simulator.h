@@ -2,7 +2,7 @@
 #include <cstdint>
 
 #include "app/player_controller_decl.h"
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "core/utility_classes.h"
 #include "tactical/tactical_lists.h"

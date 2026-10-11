@@ -153,7 +153,7 @@ HWND SendToBottom()
 
 } // namespace
 
-void GalaxyWindow::SetDisplayMode(int mode, IdAvlTree* selection)
+void GalaxyWindow::SetDisplayMode(int mode, const std::set<uint32_t>* selection)
 {
   SoundRequest request(0, 0, 0, 0, 0, 0);
   ResourceStringId overrideTitle{0, 0};
@@ -162,18 +162,12 @@ void GalaxyWindow::SetDisplayMode(int mode, IdAvlTree* selection)
   m_titleStringId = ResourceStringId{0, 0};
   if (m_gidMenu)
     m_gidMenu->Hide();
-  m_selectedIds.Clear();
+  m_selectedIds.clear();
   if (mode != kDisplayKeepsSelectionFirst && mode != kDisplayKeepsSelectionLast)
     selection = nullptr;
   if (selection)
   {
-    for (const auto& ownedNode : selection->Entries())
-    {
-      auto* node = ownedNode.get();
-      void* memory = ::operator new(sizeof(IdNode));
-      IdNode* copy = memory ? new (memory) IdNode(static_cast<IdNode*>(node)->m_id) : nullptr;
-      m_selectedIds.AddWithId(copy);
-    }
+    m_selectedIds.insert(selection->begin(), selection->end());
   }
   if (m_displayMode == mode && !selection)
     return;
@@ -285,7 +279,7 @@ void GalaxyWindow::SetDisplayMode(int mode, IdAvlTree* selection)
   SoundManager::Play(&request);
   for (const auto& ownedNode : m_children.Entries())
   {
-    auto* node = static_cast<AvlNode*>(ownedNode.get());
+    auto* node = ownedNode.get();
     CoolWindow* child = static_cast<CoolWindow*>(node);
     if ((child->m_childId & kChildTypeMask) == kSectorWindowType)
       InvalidateRect(child->m_hwnd, nullptr, FALSE);

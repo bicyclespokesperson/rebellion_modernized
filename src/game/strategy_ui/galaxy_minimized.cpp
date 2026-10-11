@@ -86,7 +86,7 @@ int GalaxyWindow::MinimizeChildWindow(CoolWindow* window)
       MinimizedWindowSlot& slot = m_minimized[i];
       if (slot.m_childId != oldest)
         continue;
-      m_openWindowIds.DeleteById(oldest);
+      m_openWindowIds.erase(oldest);
       DestroyChildById(oldest);
       CopyRect(&to, &slot.m_area);
       slot.m_iconId = 0;

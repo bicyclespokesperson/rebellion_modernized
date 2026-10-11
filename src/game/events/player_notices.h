@@ -6,7 +6,7 @@ class AiNoticeGroup;
 // resulting texts, pictures and sounds for the message index and the advisor. Names are numbered by GetKind().
 #include <cstdint>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "gameobj/object_key.h"
 #include "orders/order_base.h"
 #include "strategy_ui/advisor_notices.h"
@@ -91,7 +91,7 @@ class Notice42 : public UiTextNotice
 {
 public:
   Notice42(); // 0x48b270
-  Notice42(int owner, const IdNode* record); // 0x48b2e0
+  Notice42(int owner, int value); // 0x48b2e0
   ~Notice42() override; // 0x48b3c0 (deleting 0x48b2c0)
 
   int GetKind() override; // 0x48b5d0
@@ -1254,6 +1254,14 @@ public:
   void BuildText(); // 0x49a350
   void AppendName(GameObjNotifier* object); // 0x49a880
   void AppendOrderLines(); // 0x49a8b0
+  const std::string& MessageText0() const override
+  {
+    return m_text0;
+  }
+  const std::string& MessageText1() const override
+  {
+    return m_text1;
+  }
   void Read(istream* in) override; // 0x49a290
   void Write(ostream* out) override; // 0x49a2c0
 

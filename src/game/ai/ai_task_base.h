@@ -4,7 +4,8 @@
 #include <memory>
 
 #include "ai/ai_selector.h"
-#include "core/containers.h"
+#include "core/entry_identity.h"
+#include "core/id_registry.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/notif_payload.h"
@@ -61,7 +62,7 @@ public:
 
 // ---- AiNoticeGroup -----------------------------------------------------------------------------------------------------
 
-// The notes with one group id, in arrival order. The IdNode part at +0xc is what AiNoticeQueue keeps in its tree.
+// The notes with one group id, in arrival order. AiNoticeQueue keys groups by their IdNode id.
 class AiNoticeGroup : public IdNode
 {
 public:
@@ -105,14 +106,32 @@ public:
   int m_second; // +0x24
 };
 
-class AiTaskObjectSet : public IdAvlTree
+class AiTaskObjectSet
 {
 public:
   AiTaskObjectSet(); // 0x4e5110
-  ~AiTaskObjectSet() override; // 0: 0x4e5130 (deleting), 0x4e5150
+  ~AiTaskObjectSet(); // 0: 0x4e5130 (deleting), 0x4e5150
+  void Clear();
+  size_t Count() const
+  {
+    return m_objects.Count();
+  }
+  AiTaskObject* First() const
+  {
+    return m_objects.First();
+  }
+  const auto& Entries() const
+  {
+    return m_objects.Storage();
+  }
+  uint32_t AddWithId(AiTaskObject* object);
+  AiTaskObject* DetachById(uint32_t id);
   void Load(istream* in); // 0x4e5160
   void Save(ostream* out); // 0x4e5210
   AiTaskObject* FindByKey(const ObjectKey* key); // 0x4e5260
+
+private:
+  IdRegistry<AiTaskObject> m_objects;
 };
 
 // ---- AiTaskEvaluator ---------------------------------------------------------------------------------------------------

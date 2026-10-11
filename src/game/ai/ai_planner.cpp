@@ -66,7 +66,7 @@ void RemoveAll(ObjectKeySet& set, Remove remove)
   auto position = set.Entries().begin();
   while (position != set.Entries().end())
   {
-    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ++position;
     remove(KeyOfNode(node));
   }
@@ -212,7 +212,7 @@ void AiMissionPlanner::ReleaseUnfit()
   auto leaderPosition = m_leaders.Entries().begin();
   while (leaderPosition != m_leaders.Entries().end())
   {
-    auto* node = static_cast<ObjectKeyNode*>(leaderPosition->get());
+    auto* node = static_cast<ObjectKeyNode*>((*leaderPosition).get());
     ++leaderPosition;
     bool keep = false;
     AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
@@ -233,7 +233,7 @@ void AiMissionPlanner::ReleaseUnfit()
   auto memberPosition = m_members.Entries().begin();
   while (memberPosition != m_members.Entries().end())
   {
-    auto* node = static_cast<ObjectKeyNode*>(memberPosition->get());
+    auto* node = static_cast<ObjectKeyNode*>((*memberPosition).get());
     ++memberPosition;
     bool keep = false;
     AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
@@ -275,7 +275,7 @@ void AiMissionPlanner::RefreshTeams()
   auto leaderPosition = m_leaders.Entries().begin();
   while (leaderPosition != m_leaders.Entries().end())
   {
-    auto* node = static_cast<ObjectKeyNode*>(leaderPosition->get());
+    auto* node = static_cast<ObjectKeyNode*>((*leaderPosition).get());
     ++leaderPosition;
     const ObjectKey key = KeyOfNode(node);
     if (IsUsable(&key) == 0)
@@ -286,7 +286,7 @@ void AiMissionPlanner::RefreshTeams()
   auto memberPosition = m_members.Entries().begin();
   while (memberPosition != m_members.Entries().end())
   {
-    auto* node = static_cast<ObjectKeyNode*>(memberPosition->get());
+    auto* node = static_cast<ObjectKeyNode*>((*memberPosition).get());
     ++memberPosition;
     const ObjectKey key = KeyOfNode(node);
     if (IsUsable(&key) == 0)
@@ -342,7 +342,7 @@ OrderBase* AiMissionPlanner::StartMission()
       mission->m_unk44 = m_id;
       for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position)
       {
-        ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
         AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
         if (character && (character->m_flags.m_value & kCharacterUnavailable) == 0)
         {
@@ -353,7 +353,7 @@ OrderBase* AiMissionPlanner::StartMission()
       order->SetTeam(&leaders);
       for (auto position = m_members.Entries().begin(); position != m_members.Entries().end(); ++position)
       {
-        ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
         AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
         if (character && (character->m_flags.m_value & kCharacterUnavailable) == 0)
         {
@@ -668,7 +668,7 @@ int AiFreePlanner::ChooseDestination()
     return 1;
   for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
     if ((m_flags.m_value & kHasDestination) != 0)
       return 1;
     const ObjectKey leaderKey = KeyOfNode(node);
@@ -898,7 +898,7 @@ int AiSystemPlanner::ChooseSystem()
     return 1;
   for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
     if ((m_flags.m_value & kHasDestination) != 0)
       return 1;
     const ObjectKey leaderKey = KeyOfNode(node);
@@ -955,7 +955,7 @@ OrderBase* AiSystemPlanner::MoveTeams()
   {
     for (auto position = set.Entries().begin(); position != set.Entries().end(); ++position)
     {
-      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
       AiCharacterRecord* character = FindCharacter(this, KeyOfNode(node));
       if (!character)
         continue;

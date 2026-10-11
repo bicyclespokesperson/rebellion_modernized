@@ -3,26 +3,43 @@
 // (+0xa8 a TimerQueue, +0xac a CommandQueue-like queue, +0xb0 a TypeQueue) and serves them in order; orders keep a
 // CommandQueue of the commands that carry them out.
 #include <cstdint>
+#include <memory>
+#include <set>
+#include <unordered_map>
+#include <vector>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/stream_io.h"
 #include "events/event_base.h"
 
 class Crc32;
 
-// Abstract base (VT 0x661fb8). Slot 2 (IsLess, from AvlTree) decides where Add puts a node; slot 7 returns the
-// node that is next to run.
-class EventQueue : public AvlTree
+// Abstract base (VT 0x661fb8). Its typed ordering rule decides where Add puts an event; GetNext returns the event that
+// is next to run.
+class EventQueue
 {
 public:
   EventQueue(); // 0x54ea70
-  ~EventQueue() override; // 0x54eab0
+  virtual ~EventQueue(); // 0x54eab0
 
-  virtual int Read(istream* in); // 3: 0x54eb00 clears, then reads count + (kind, event) pairs
-  virtual int Write(ostream* out); // 4: 0x54eb80
-  virtual int Checksum(Crc32* crc); // 5: 0x54ebf0
-  virtual int Validate(); // 6: 0x54ec30 walks the tree (the result is dropped)
-  virtual EventBase* GetNext() = 0; // 7: the event to run next, or null
+  virtual int Read(istream* in); // clears, then reads count + (kind, event) pairs
+  virtual int Write(ostream* out);
+  virtual int Checksum(Crc32* crc);
+  virtual int Validate();
+  virtual EventBase* GetNext() = 0;
+
+  void Clear();
+  int Insert(EventBase* event);
+  void Remove(EventBase* event);
+  EventBase* First() const;
+  size_t Count() const
+  {
+    return m_events.size();
+  }
+  const auto& Entries() const
+  {
+    return m_events;
+  }
 
   // Pops GetNext() if there is one and runs it.
   int RunNext(); // 0x54ec70
@@ -32,6 +49,20 @@ public:
   void Add(EventBase* event); // 0x54ece0
 
   int m_flag0c; // +0x0c, 1
+
+protected:
+  virtual bool EventBefore(const EventBase* a, const EventBase* b) const = 0;
+
+private:
+  struct EventCompare
+  {
+    const EventQueue* queue;
+    bool operator()(const std::unique_ptr<EventBase>& a, const std::unique_ptr<EventBase>& b) const;
+  };
+  using EventSet = std::multiset<std::unique_ptr<EventBase>, EventCompare>;
+  EventSet m_events;
+  std::unordered_map<EventBase*, EventSet::iterator> m_index;
+  bool m_clearing = false;
 };
 
 // Ordered by due day (TimedEvent +0x40); GetNext returns the first event only if it is due today (0x54edc0).
@@ -40,7 +71,7 @@ class TimerQueue : public EventQueue
 public:
   TimerQueue(); // 0x54ed40
   ~TimerQueue() override; // 0x54ed80
-  int IsLess(AvlNode* a, AvlNode* b) override; // 0x54ed90, true if either is null
+  bool EventBefore(const EventBase* a, const EventBase* b) const override;
   EventBase* GetNext() override; // 0x54edc0
 };
 
@@ -50,7 +81,7 @@ class CommandQueue : public EventQueue
 public:
   CommandQueue(); // 0x54ede0
   ~CommandQueue() override; // 0x54ee20
-  int IsLess(AvlNode* a, AvlNode* b) override; // 0x5c61f0
+  bool EventBefore(const EventBase* a, const EventBase* b) const override;
   EventBase* GetNext() override; // 0x54eed0
 
   // Forwards to Add (0x54ee30).
@@ -68,6 +99,6 @@ class TypeQueue : public EventQueue
 public:
   TypeQueue(); // 0x54ee40
   ~TypeQueue() override; // 0x54ee80
-  int IsLess(AvlNode* a, AvlNode* b) override; // 0x54ee90, true if either is null
+  bool EventBefore(const EventBase* a, const EventBase* b) const override;
   EventBase* GetNext() override; // 0x54eed0
 };

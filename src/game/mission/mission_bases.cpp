@@ -124,7 +124,7 @@ int MissionRuleBase::AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSe
   int ok = 1;
   for (const auto& nodeEntry : team->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
 
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
@@ -132,7 +132,7 @@ int MissionRuleBase::AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSe
   }
   for (const auto& nodeEntry : decoys->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
 
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
@@ -329,12 +329,12 @@ int MissionRuleBase::OnPhaseChanged(int oldValue, int newValue, NotifyContext* c
       ok = (added && step) ? 1 : 0;
       characters.Advance();
     }
-    while (AvlNode* first = scores.First())
+    while (auto* first = scores.First())
     {
       auto* best = static_cast<ObjectKeyValueNode*>(first);
       for (auto position = scores.PositionOf(first); position != scores.Entries().end(); ++position)
       {
-        auto* node = position->get();
+        auto* node = (*position).get();
         auto* candidate = static_cast<ObjectKeyValueNode*>(node);
         if (candidate->m_value < best->m_value)
           best = candidate;
@@ -703,7 +703,7 @@ int MissionTypeBase::AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSe
   }
   for (const auto& nodeEntry : team->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
 
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
@@ -718,7 +718,7 @@ int MissionTypeBase::AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSe
   }
   for (const auto& nodeEntry : decoys->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
 
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);

@@ -1,7 +1,9 @@
 #pragma once
 #include <cstdint>
+#include <memory>
+#include <set>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "tactical/tactical_groups.h"
 #include "tactical/tactical_lists.h"
 #include "tactical/tactical_units.h"
@@ -81,38 +83,62 @@ public:
   GroupRefSlot m_group; // +0x1c
 };
 
-// AvlTree of ScoredGroupNodes (VT 0x66da60).
-class ScoredGroupTree : public AvlTree
+// ScoredGroupNodes (VT 0x66da60), ordered by score and then by group handle.
+class ScoredGroupTree
 {
 public:
   ScoredGroupTree()
   {
   }
-  ~ScoredGroupTree() override; // 0x5ed0d0 (scalar deleting destructor 0x5ed120)
-  int IsLess(AvlNode* a, AvlNode* b) override; // 0x5ed0e0
+  ~ScoredGroupTree();
+  void Insert(ScoredGroupNode* node);
+  ScoredGroupNode* First() const;
+  ScoredGroupNode* Last() const;
+  const auto& Entries() const
+  {
+    return m_nodes;
+  }
+
+private:
+  struct NodeOrder
+  {
+    bool operator()(const std::unique_ptr<ScoredGroupNode>& a, const std::unique_ptr<ScoredGroupNode>& b) const;
+  };
+  std::multiset<std::unique_ptr<ScoredGroupNode>, NodeOrder> m_nodes;
+  bool m_clearing = false;
 };
 
 // A node of the side's order tree (0x30 bytes): the keys the tree sorts by, and the weight the evaluator reads.
-struct SideOrderNode
+struct SideOrderNode : AvlNode
 {
-  uint8_t m_node[0x18];
-  float m_primary; // +0x18
-  void* m_vptr; // +0x1c (the position record's vtable)
-  uint32_t m_unitHandle; // +0x20
-  uint32_t m_second; // +0x24
-  float m_weight; // +0x28
-  float m_secondary; // +0x2c
+  float m_primary;
+  uint32_t m_unitHandle;
+  uint32_t m_second;
+  float m_weight;
+  float m_secondary;
 };
 
 // A tree of orders the side issues (VT 0x66cc28); the nodes are SideOrderNodes.
-class SideOrderTree : public AvlTree
+class SideOrderTree
 {
 public:
   SideOrderTree()
   {
   }
-  ~SideOrderTree() override; // 0x5c9560 (scalar deleting destructor 0x5c9650)
-  int IsLess(AvlNode* a, AvlNode* b) override; // 0x5c9570
+  ~SideOrderTree();
+  void Insert(SideOrderNode* node);
+  const auto& Entries() const
+  {
+    return m_nodes;
+  }
+
+private:
+  struct NodeOrder
+  {
+    bool operator()(const std::unique_ptr<SideOrderNode>& a, const std::unique_ptr<SideOrderNode>& b) const;
+  };
+  std::multiset<std::unique_ptr<SideOrderNode>, NodeOrder> m_nodes;
+  bool m_clearing = false;
 };
 
 // ---- the side ------------------------------------------------------------------------------------------------------

@@ -32,10 +32,20 @@ SeedList::SeedList() : m_range{0, 0}
 
 SeedList::~SeedList() = default;
 
-void SeedList::AddRecord(IdNode* record)
+DatRecord* SeedList::FindRecord(uint32_t id) const
+{
+  return m_records.FindById(id);
+}
+
+uint32_t SeedList::InsertRecord(DatRecord* record)
+{
+  return m_records.AddWithId(record);
+}
+
+void SeedList::AddRecord(DatRecord* record)
 {
   if (record)
-    m_records.AddWithId(record);
+    InsertRecord(record);
 }
 
 int SeedList::Read(istream* in)
@@ -59,7 +69,7 @@ int SeedList::Read(istream* in)
       return 0;
     }
     ok = record->Read(in);
-    if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || m_records.AddWithId(record) == 0)
+    if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || InsertRecord(record) == 0)
     {
       delete record;
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
@@ -80,9 +90,9 @@ int SeedList::Write(ostream* out)
   WriteValue32(out, &low);
   uint32_t high = m_range.m_high;
   WriteValue32(out, &high);
-  for (const auto& entry : m_records.Entries())
+  for (const auto& entry : Records())
   {
-    AvlNode* node = entry.get();
+    auto* node = entry.get();
     ok = asRecord(node)->Write(out);
     if (!ok)
       break;
@@ -98,9 +108,9 @@ int SeedList::Checksum(Crc32* crc)
   crc->AddInt(static_cast<int32_t>(m_records.Count()));
   crc->AddInt(m_range.m_low);
   crc->AddInt(m_range.m_high);
-  for (const auto& entry : m_records.Entries())
+  for (const auto& entry : Records())
   {
-    AvlNode* node = entry.get();
+    auto* node = entry.get();
     ok = asRecord(node)->Checksum(crc);
     if (!ok)
       break;
@@ -187,7 +197,7 @@ SeedListFile* SeedListFileTree::FindByFamily(uint32_t family)
 {
   for (const auto& entry : Entries())
   {
-    AvlNode* node = entry.get();
+    auto* node = entry.get();
     SeedListFile* file = static_cast<SeedListFile*>(static_cast<IdNode*>(node));
     if (family >= file->m_list.m_range.m_low && family < file->m_list.m_range.m_high)
       return file;

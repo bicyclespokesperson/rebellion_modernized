@@ -1,14 +1,18 @@
 #include "strategy_ui/message_index_window.h"
+#include <algorithm>
 #include <iterator>
+#include <set>
 #include <string>
+#include <vector>
 
 #include <new>
 
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "gfx/dib_bitmap.h"
+#include "orders/order_list.h"
 #include "strategy_ui/advisor_notices.h"
 #include "strategy_ui/encyclopedia_window.h"
 #include "strategy_ui/galaxy_window.h"
@@ -578,12 +582,9 @@ int16_t CategoryPicture(uint32_t categories, bool alliance)
   return 0;
 }
 
-void AddSelected(IdAvlTree* selected, uint32_t id)
+void AddSelected(std::set<uint32_t>* selected, uint32_t id)
 {
-  void* memory = ::operator new(sizeof(IdNode));
-  IdNode* node = memory ? new (memory) IdNode() : nullptr;
-  node->SetId(id);
-  selected->AddWithId(node);
+  selected->insert(id);
 }
 
 } // namespace
@@ -591,7 +592,7 @@ void AddSelected(IdAvlTree* selected, uint32_t id)
 int MessageIndexWindow::RebuildList(int keepAllSelected)
 {
   HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
-  IdAvlTree selected;
+  std::set<uint32_t> selected;
   const bool alliance = IsAlliance(m_galaxy);
   DibBitmap rowFrame(art, (alliance ? 0u : 1u) + 0x2aa2, kHelperBitmapKind);
   if (keepAllSelected == 0)
@@ -610,11 +611,14 @@ int MessageIndexWindow::RebuildList(int keepAllSelected)
   }
   m_items->Clear();
   m_list->SetItemSize(0x15a, 0x15);
-  IdAvlTree* notices = UiGetHumanOrderTree();
-  for (auto position = notices->Entries().rbegin(); position != notices->Entries().rend(); ++position)
+  UiRecordTree* notices = UiGetHumanOrderTree();
+  std::vector<MessageRecord*> messages;
+  messages.reserve(notices->Count());
+  for (const auto& message : notices->Entries())
+    messages.push_back(static_cast<MessageRecord*>(message.get()));
+  std::reverse(messages.begin(), messages.end());
+  for (MessageRecord* record : messages)
   {
-    auto* node = position->get();
-    MessageRecord* record = static_cast<MessageRecord*>(node);
     MessageListItem* item = NewOrNull<MessageListItem>(record);
     const int16_t picture = CategoryPicture(record->m_categories, alliance);
     if (picture != 0)
@@ -631,14 +635,13 @@ int MessageIndexWindow::RebuildList(int keepAllSelected)
     item->m_textOffsetY = 1;
     item->m_fontSlot = (record->m_flags.m_value & 1) == 0 ? kNoticeFontUnread : kNoticeFontRead;
     m_items->Insert(item);
-    if (selected.FindById(item->m_id))
+    if (selected.find(item->m_id) != selected.end())
       m_list->SelectById(item->m_id, 1);
   }
   UpdateRowVisibility();
   if (keepAllSelected == 0)
   {
-    IdNode* first = static_cast<IdNode*>(selected.First());
-    m_current = first ? static_cast<MessageListItem*>(m_items->FindById(first->m_id)) : nullptr;
+    m_current = selected.empty() ? nullptr : static_cast<MessageListItem*>(m_items->FindById(*selected.begin()));
   }
   return 1;
 }
@@ -676,7 +679,7 @@ void MessageIndexWindow::UpdateNavButtons()
   CoolWindow* next = m_children.FindById(kNextButtonId);
   auto position = m_items->PositionOf(m_current);
   auto nextPosition = position == m_items->Entries().end() ? position : std::next(position);
-  while (nextPosition != m_items->Entries().end() && !static_cast<MessageListItem*>(nextPosition->get())->m_visible)
+  while (nextPosition != m_items->Entries().end() && !static_cast<MessageListItem*>((*nextPosition).get())->m_visible)
     ++nextPosition;
   if (nextPosition == m_items->Entries().end())
   {
@@ -693,11 +696,11 @@ void MessageIndexWindow::UpdateNavButtons()
     while (previousPosition != m_items->Entries().begin())
     {
       --previousPosition;
-      if (static_cast<MessageListItem*>(previousPosition->get())->m_visible)
+      if (static_cast<MessageListItem*>((*previousPosition).get())->m_visible)
         break;
     }
     if (position == m_items->Entries().end() || previousPosition == position ||
-        !static_cast<MessageListItem*>(previousPosition->get())->m_visible)
+        !static_cast<MessageListItem*>((*previousPosition).get())->m_visible)
     {
       previous->Disable();
     }
@@ -957,7 +960,6 @@ void MessageIndexWindow::SelectCategory(int tab)
     UiClearHumanAlerts(m_filter);
   m_tab = tab;
   DibBitmap* backdrop = FindOverlayBitmap(m_mode == kIndexModeList ? kBackgroundList : kBackgroundMessage);
-  IdAvlTree unused;
   m_filter = 0;
   switch (tab)
   {
@@ -1027,7 +1029,7 @@ void MessageIndexWindow::SelectCategory(int tab)
         const int recordClass = record->GetClass();
         bool known = true;
         OpenButtonLook look{};
-        if (recordClass == 3 || (record->GetClass() == 5 && record->m_key.IsSet() != 0))
+        if (recordClass == 3 || (record->GetClass() == 5 && record->MessageKey().IsSet() != 0))
         {
           look = ObjectLook(alliance);
         }
@@ -1126,7 +1128,7 @@ void MessageIndexWindow::ShowMessage(MessageListItem* item)
     PostCloseRequest();
     return;
   }
-  std::string text(record->m_text1);
+  std::string text(record->MessageText1());
   m_text->m_text = text;
   m_text->m_caret.m_index = 0;
   m_text->Reset();
@@ -1156,7 +1158,7 @@ void MessageIndexWindow::ShowMessage(MessageListItem* item)
   else if (recordClass == 5)
   {
     CoolStrobeButton* openButton = AsButton(children->FindById(kOpenButtonId));
-    if (record->m_key.IsSet() == 0)
+    if (record->MessageKey().IsSet() == 0)
     {
       if (openButton)
         openButton->Disable();
@@ -1205,7 +1207,7 @@ namespace
 bool OpensObject(MessageRecord* record)
 {
   const int recordClass = record->GetClass();
-  return recordClass == 3 || (record->GetClass() == 5 && record->m_key.IsSet() != 0);
+  return recordClass == 3 || (record->GetClass() == 5 && record->MessageKey().IsSet() != 0);
 }
 
 } // namespace
@@ -1332,7 +1334,7 @@ void MessageIndexWindow::OnCommand(int a, int b, int c)
       }
       if (!record)
         return;
-      ObjectKey target = record->m_key;
+      ObjectKey target = record->MessageKey();
       record->m_flags.m_value = 1;
       bool opened = false;
       const int recordClass = record->GetClass();
@@ -1346,7 +1348,7 @@ void MessageIndexWindow::OnCommand(int a, int b, int c)
       }
       else if (recordClass == 4)
       {
-        ObjectKey type(record->m_target);
+        ObjectKey type(record->MessageTarget());
         UiOpenEncyclopedia(&target, reinterpret_cast<NullableKey*>(&type));
         opened = true;
       }
@@ -1401,7 +1403,7 @@ void MessageIndexWindow::OnCommand(int a, int b, int c)
         while (position != m_items->Entries().end())
         {
           auto current = position++;
-          auto* row = static_cast<MessageListItem*>(current->get());
+          auto* row = static_cast<MessageListItem*>((*current).get());
           if (!row->m_visible)
             continue;
           if (row->m_state.m_value & 1)
@@ -1410,17 +1412,17 @@ void MessageIndexWindow::OnCommand(int a, int b, int c)
             {
               auto following = position;
               while (following != m_items->Entries().end() &&
-                     !static_cast<MessageListItem*>(following->get())->m_visible)
+                     !static_cast<MessageListItem*>((*following).get())->m_visible)
                 ++following;
               if (following != m_items->Entries().end())
-                neighbour = static_cast<MessageListItem*>(following->get());
+                neighbour = static_cast<MessageListItem*>((*following).get());
               else
               {
                 auto previous = current;
                 while (previous != m_items->Entries().begin())
                 {
                   --previous;
-                  auto* previousRow = static_cast<MessageListItem*>(previous->get());
+                  auto* previousRow = static_cast<MessageListItem*>((*previous).get());
                   if (previousRow->m_visible)
                   {
                     neighbour = previousRow;
@@ -1444,17 +1446,17 @@ void MessageIndexWindow::OnCommand(int a, int b, int c)
         auto position = m_items->PositionOf(m_current);
         auto nextPosition = position == m_items->Entries().end() ? position : std::next(position);
         while (nextPosition != m_items->Entries().end() &&
-               !static_cast<MessageListItem*>(nextPosition->get())->m_visible)
+               !static_cast<MessageListItem*>((*nextPosition).get())->m_visible)
           ++nextPosition;
         MessageListItem* neighbour =
-          nextPosition == m_items->Entries().end() ? nullptr : static_cast<MessageListItem*>(nextPosition->get());
+          nextPosition == m_items->Entries().end() ? nullptr : static_cast<MessageListItem*>((*nextPosition).get());
         if (!neighbour && position != m_items->Entries().end())
         {
           auto previousPosition = position;
           while (previousPosition != m_items->Entries().begin())
           {
             --previousPosition;
-            auto* previous = static_cast<MessageListItem*>(previousPosition->get());
+            auto* previous = static_cast<MessageListItem*>((*previousPosition).get());
             if (previous->m_visible)
             {
               neighbour = previous;
@@ -1480,11 +1482,12 @@ void MessageIndexWindow::OnCommand(int a, int b, int c)
       markCurrentRead();
       auto position = m_items->PositionOf(m_current);
       auto nextPosition = position == m_items->Entries().end() ? position : std::next(position);
-      while (nextPosition != m_items->Entries().end() && !static_cast<MessageListItem*>(nextPosition->get())->m_visible)
+      while (nextPosition != m_items->Entries().end() &&
+             !static_cast<MessageListItem*>((*nextPosition).get())->m_visible)
         ++nextPosition;
       if (nextPosition == m_items->Entries().end())
         return;
-      auto* next = static_cast<MessageListItem*>(nextPosition->get());
+      auto* next = static_cast<MessageListItem*>((*nextPosition).get());
       m_current = next;
       ShowMessage(next);
       SetFocus(m_text->m_hwnd);
@@ -1505,7 +1508,7 @@ void MessageIndexWindow::OnCommand(int a, int b, int c)
       }
       m_current->m_visible = 0;
       m_current->m_record->m_flags.m_value = 1;
-      m_current->m_record->Virtual14();
+      m_current->m_record->AcceptFromMessageIndex();
       OnCommand(kBackButtonId, 0, 0);
       SetFocus(m_list->m_hwnd);
       break;
@@ -1515,7 +1518,7 @@ void MessageIndexWindow::OnCommand(int a, int b, int c)
         m_current->m_visible = 0;
         m_current->m_record->m_flags.m_value = 1;
         m_current->m_fontSlot = kNoticeFontRead;
-        m_current->m_record->Virtual15();
+        m_current->m_record->DeclineFromMessageIndex();
       }
       else if (m_mode != kIndexModeCompose)
       {
@@ -1532,13 +1535,13 @@ void MessageIndexWindow::OnCommand(int a, int b, int c)
       while (previousPosition != m_items->Entries().begin())
       {
         --previousPosition;
-        if (static_cast<MessageListItem*>(previousPosition->get())->m_visible)
+        if (static_cast<MessageListItem*>((*previousPosition).get())->m_visible)
           break;
       }
       if (position == m_items->Entries().end() || previousPosition == position ||
-          !static_cast<MessageListItem*>(previousPosition->get())->m_visible)
+          !static_cast<MessageListItem*>((*previousPosition).get())->m_visible)
         return;
-      auto* previous = static_cast<MessageListItem*>(previousPosition->get());
+      auto* previous = static_cast<MessageListItem*>((*previousPosition).get());
       m_current = previous;
       ShowMessage(previous);
       SetFocus(m_text->m_hwnd);
@@ -1598,7 +1601,7 @@ void MessageIndexWindow::OnKeyDown(WPARAM key, LPARAM lParam)
     case VK_RIGHT:
     {
       const uint32_t selectedId = m_tabs->m_selected ? m_tabs->m_selected->m_childId : 0;
-      AvlNode* tab = m_tabs->m_children.FindById(selectedId);
+      CoolWindow* tab = m_tabs->m_children.FindById(selectedId);
       auto position = m_tabs->m_children.PositionOf(tab);
       if (position != m_tabs->m_children.Entries().end())
       {
@@ -1609,8 +1612,8 @@ void MessageIndexWindow::OnKeyDown(WPARAM key, LPARAM lParam)
           position = std::next(position);
         while (position != m_tabs->m_children.Entries().end())
         {
-          tab = position->get();
-          CoolWindow* window = static_cast<CoolWindow*>(tab);
+          tab = (*position).get();
+          CoolWindow* window = tab;
           if (IsWindowVisible(window->m_hwnd) != 0)
           {
             m_tabs->SelectTab(window->m_childId, 1);
@@ -1624,9 +1627,9 @@ void MessageIndexWindow::OnKeyDown(WPARAM key, LPARAM lParam)
         }
         return;
       }
-      AvlNode* first = m_tabs->m_children.First();
+      CoolWindow* first = m_tabs->m_children.First();
       if (first)
-        m_tabs->SelectTab(static_cast<CoolWindow*>(first)->m_childId, 1);
+        m_tabs->SelectTab(first->m_childId, 1);
       return;
     }
     case VK_DELETE:

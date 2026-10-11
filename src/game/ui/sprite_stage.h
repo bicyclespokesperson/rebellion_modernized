@@ -1,7 +1,9 @@
 #pragma once
 #include <cstdint>
+#include <memory>
+#include <set>
 
-#include "core/containers.h"
+#include "core/id_registry.h"
 #include "platform/win32.h"
 
 class CoolWindow;
@@ -10,26 +12,52 @@ class Sprite;
 class SpriteAnimator;
 
 // The sprites of a SpriteStage in drawing order (by Sprite::m_depth); hands out sprite ids.
-class SpriteTree : public AvlTree
+class SpriteTree
 {
 public:
   SpriteTree(); // 0x4aa7f0
-  ~SpriteTree() override; // 0x4aa830 (scalar deleting destructor 0x4aa810)
-  int IsLess(AvlNode* a, AvlNode* b) override; // 0x4aa890
+  ~SpriteTree(); // 0x4aa830 (scalar deleting destructor 0x4aa810)
+  SpriteTree(const SpriteTree&) = delete;
+  SpriteTree& operator=(const SpriteTree&) = delete;
 
   // Gives the sprite the next id unless it has one, then inserts it.
   void Add(Sprite* sprite); // 0x4aa840
   Sprite* FindById(uint32_t id); // 0x4aa870: linear search
+  void Remove(Sprite* sprite);
+  void Clear();
+  const auto& Entries() const
+  {
+    return m_sprites;
+  }
 
+private:
+  struct SpriteDepthLess
+  {
+    bool operator()(const std::unique_ptr<Sprite>& first, const std::unique_ptr<Sprite>& second) const;
+  };
+  std::multiset<std::unique_ptr<Sprite>, SpriteDepthLess> m_sprites;
   uint32_t m_nextId; // +0x08
 };
 
 // The animators of a SpriteStage, by id.
-class AnimatorTree : public IdAvlTree
+class AnimatorTree
 {
 public:
   AnimatorTree(); // 0x4aa8c0
-  ~AnimatorTree() override; // 0x4aa900 (scalar deleting destructor 0x4aa8e0)
+  ~AnimatorTree(); // 0x4aa900 (scalar deleting destructor 0x4aa8e0)
+  AnimatorTree(const AnimatorTree&) = delete;
+  AnimatorTree& operator=(const AnimatorTree&) = delete;
+  uint32_t AddWithId(SpriteAnimator* animator);
+  SpriteAnimator* FindById(uint32_t id) const;
+  void Remove(SpriteAnimator* animator);
+  void Clear();
+  auto Entries() const
+  {
+    return m_animators.Entries();
+  }
+
+private:
+  IdRegistry<SpriteAnimator> m_animators;
 };
 
 // A double-buffered animation area inside a window (the galaxy view's advisor/droid animations, 0x42adb0): each

@@ -69,35 +69,45 @@ void SoundCallbackTimer::OnTick()
 
 // ---- SoundIdTree / SoundBufferList --------------------------------------------------------------------------
 
-void SoundIdTree::Clear()
+SoundIdTree::~SoundIdTree()
 {
-  AvlTree::Clear();
-  m_nextKey = 1;
+  Clear();
 }
 
-int SoundIdTree::IsLess(AvlNode* a, AvlNode* b)
+void SoundIdTree::Clear()
 {
-  if (a && b && static_cast<KeyedSoundNode*>(a)->m_key < static_cast<KeyedSoundNode*>(b)->m_key)
-    return 1;
-  return 0;
+  if (m_clearing)
+    return;
+  m_clearing = true;
+  decltype(m_nodes) detached;
+  detached.swap(m_nodes);
+  m_nextKey = 1;
+  detached.clear();
+  m_clearing = false;
 }
 
 KeyedSoundNode* SoundIdTree::Find(uint32_t key)
 {
-  AvlNode* node = LowerBound(
-    [key](const AvlNode* candidate)
-    {
-      return static_cast<const KeyedSoundNode*>(candidate)->m_key < key;
-    });
-  if (node && static_cast<KeyedSoundNode*>(node)->m_key != key)
-    node = nullptr;
-  return static_cast<KeyedSoundNode*>(node);
+  auto found = m_nodes.find(key);
+  return found == m_nodes.end() ? nullptr : found->second.get();
+}
+
+void SoundIdTree::Remove(KeyedSoundNode* node)
+{
+  if (!node)
+    return;
+  auto found = m_nodes.find(node->m_key);
+  if (found == m_nodes.end() || found->second.get() != node)
+    return;
+  std::unique_ptr<KeyedSoundNode> owned = std::move(found->second);
+  m_nodes.erase(found);
+  owned.release();
 }
 
 uint32_t SoundIdTree::Add(KeyedSoundNode* node)
 {
   uint32_t key = 0;
-  if (CanInsert(node))
+  if (!m_clearing && node)
   {
     key = node->m_key;
     if (key == 0)
@@ -106,10 +116,13 @@ uint32_t SoundIdTree::Add(KeyedSoundNode* node)
         return 0;
       node->m_key = m_nextKey;
       key = m_nextKey;
-      int inserted = 0;
+      std::map<uint32_t, std::unique_ptr<KeyedSoundNode>>::iterator position;
+      bool inserted = false;
       try
       {
-        inserted = Insert(node);
+        auto result = m_nodes.emplace(key, nullptr);
+        position = result.first;
+        inserted = result.second;
       }
       catch (...)
       {
@@ -121,13 +134,16 @@ uint32_t SoundIdTree::Add(KeyedSoundNode* node)
         node->m_key = 0;
         return 0;
       }
+      position->second.reset(node);
       m_nextKey = key + 1;
       return key;
     }
     if (Find(key))
       return 0;
-    if (!Insert(node))
+    auto position = m_nodes.emplace(key, nullptr);
+    if (!position.second)
       return 0;
+    position.first->second.reset(node);
     if (m_nextKey != 0 && m_nextKey <= key)
       m_nextKey = key + 1;
   }
@@ -136,14 +152,13 @@ uint32_t SoundIdTree::Add(KeyedSoundNode* node)
 
 int SoundIdTree::DeleteNode(KeyedSoundNode* node)
 {
-  for (auto entry = Entries().begin(); entry != Entries().end(); ++entry)
+  if (!node)
+    return 0;
+  auto found = m_nodes.find(node->m_key);
+  if (found != m_nodes.end() && found->second.get() == node)
   {
-    if (entry->get() == node)
-    {
-      Remove(node);
-      delete node;
-      return 1;
-    }
+    m_nodes.erase(found);
+    return 1;
   }
   return 0;
 }
@@ -160,22 +175,19 @@ SoundBufferList::~SoundBufferList()
 
 void SoundBufferList::Clear()
 {
-  AvlTree::Clear();
+  if (m_clearing)
+    return;
+  m_clearing = true;
+  decltype(m_nodes) detached;
+  detached.swap(m_nodes);
   m_nextKey = 2;
+  detached.clear();
+  m_clearing = false;
 }
 
 int SoundBufferList::RemoveNode(KeyedSoundNode* node)
 {
-  for (auto entry = Entries().begin(); entry != Entries().end(); ++entry)
-  {
-    if (entry->get() == node)
-    {
-      Remove(node);
-      delete node;
-      return 1;
-    }
-  }
-  return 0;
+  return DeleteNode(node);
 }
 
 // ---- SoundBuffer --------------------------------------------------------------------------------------------

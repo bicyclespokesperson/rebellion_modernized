@@ -25,7 +25,7 @@ public:
   int CheckValid(StatusCode* status) override; // 7: 0x562f00
   int Execute() override; // 8: 0x562fb0
   int GetKind() override; // 9: 0x562d60, 0x373
-  int GetPriority() override
+  int GetPriority() const override
   {
     return 0x100;
   } // 10: 0x48bc60

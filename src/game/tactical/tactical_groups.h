@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "tactical/tactical_formation.h"
 #include "tactical/tactical_lists.h"
 #include "tactical/tactical_units.h"
@@ -251,8 +251,8 @@ inline ShipGroup* ShipGroupOf(IdNode* node)
 }
 
 // Gives a new group a handle for its side and registers it (0x5afde0 a fighter group, 0x5afe10 a capital-ship group).
-void RegisterFighterGroup(ShipGroup* group);
-void RegisterCapitalShipGroup(ShipGroup* group);
+void RegisterFighterGroup(FighterGroup* group);
+void RegisterCapitalShipGroup(CapitalShipGroup* group);
 
 // Removes a unit from its group (a null group is ignored); 0x5caed0.
 void RemoveMemberFromGroup(ShipGroup* group, int handle);

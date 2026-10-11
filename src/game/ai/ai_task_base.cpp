@@ -92,7 +92,8 @@ AiNoticeGroup::~AiNoticeGroup() = default;
 
 void AiNoticeGroup::Clear()
 {
-  m_notices.clear();
+  decltype(m_notices) detached;
+  m_notices.swap(detached);
 }
 
 void AiNoticeGroup::Load(istream* in)
@@ -180,11 +181,29 @@ void AiTaskObject::Write(ostream* out)
   WriteValue32(out, &m_second);
 }
 
-AiTaskObjectSet::AiTaskObjectSet() : IdAvlTree()
+AiTaskObjectSet::AiTaskObjectSet()
 {
 }
 
-AiTaskObjectSet::~AiTaskObjectSet() = default;
+AiTaskObjectSet::~AiTaskObjectSet()
+{
+  Clear();
+}
+
+void AiTaskObjectSet::Clear()
+{
+  m_objects.Clear();
+}
+
+uint32_t AiTaskObjectSet::AddWithId(AiTaskObject* object)
+{
+  return m_objects.AddWithId(object);
+}
+
+AiTaskObject* AiTaskObjectSet::DetachById(uint32_t id)
+{
+  return m_objects.DetachById(id);
+}
 
 void AiTaskObjectSet::Load(istream* in)
 {
@@ -217,8 +236,7 @@ void AiTaskObjectSet::Save(ostream* out)
     return;
   for (const auto& entry : Entries())
   {
-    AvlNode* node = entry.get();
-    static_cast<AiTaskObject*>(node)->Write(out);
+    entry.second->Write(out);
   }
 }
 
@@ -226,8 +244,7 @@ AiTaskObject* AiTaskObjectSet::FindByKey(const ObjectKey* key)
 {
   for (const auto& entry : Entries())
   {
-    AvlNode* node = entry.get();
-    AiTaskObject* object = static_cast<AiTaskObject*>(node);
+    AiTaskObject* object = entry.second.get();
     if (object->m_key.m_value == key->m_value)
       return object;
   }
@@ -331,8 +348,7 @@ void AiTaskEvaluator::PhaseUpdateTiers()
   m_x18 = 0;
   for (const auto& entry : m_objects->Entries())
   {
-    AvlNode* node = entry.get();
-    AiTaskObject* object = static_cast<AiTaskObject*>(node);
+    AiTaskObject* object = entry.second.get();
     AiSectorEval* sector = static_cast<AiSectorEval*>(m_owner->m_sectors.Find(&object->m_key));
     if (!sector)
       continue;
@@ -349,8 +365,7 @@ void AiTaskEvaluator::PhaseUpdateTiers()
     return;
   for (const auto& entry : m_objects->Entries())
   {
-    AvlNode* node = entry.get();
-    AiTaskObject* object = static_cast<AiTaskObject*>(node);
+    AiTaskObject* object = entry.second.get();
     AiSectorEval* sector = static_cast<AiSectorEval*>(m_owner->m_sectors.Find(&object->m_key));
     if (!sector)
       continue;
@@ -403,7 +418,7 @@ void AiTaskEvaluator::PhasePickPlanner()
   int bestPriority = 2000000;
   for (const auto& entry : m_owner->m_planners.Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(entry.get());
+    auto* node = entry.get();
     AiMissionPlanner* planner = static_cast<AiMissionPlanner*>(node);
     if (static_cast<int>(planner->m_missionKey.Family()) == plannerKind && planner->GetSubtype() == plannerSubtype &&
         (planner->m_flags.m_value & 0x10000000) == 0 && planner->Virtual06() < bestPriority)
@@ -428,7 +443,7 @@ void AiTaskEvaluator::PhasePickAgent()
   for (auto position = m_owner->m_agents.Entries().begin();
        position != m_owner->m_agents.Entries().end() && (agentId == 0); ++position)
   {
-    AvlNode* node = static_cast<AvlNode*>(position->get());
+    auto* node = (*position).get();
     AiAgentBase* agent = static_cast<AiAgentBase*>(node);
     if (agent->GetAgentClass() == 2 && (agent->m_flags.m_value & 2) == 0)
       agentId = agent->m_id;
@@ -534,9 +549,9 @@ int AiTaskEvaluator::ChooseSector(int useAge, ObjectKey* sector)
         sectorStat = 5;
         kind = 2;
     }
-    AvlNode* firstObject = m_objects->First();
+    AiTaskObject* firstObject = m_objects->First();
     if (firstObject)
-      origin = static_cast<AiTaskObject*>(firstObject)->m_key;
+      origin = firstObject->m_key;
     m_selector.Add(m_owner->RankSectors(0, 0, 2, 0, 0, 0, 0xc, 2));
     if (IsSectorKey(origin))
       m_selector.Add(m_owner->RankSectorsByDistance(&origin, 0, 0, 2, 0, 0, 0, 2));

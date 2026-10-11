@@ -344,7 +344,7 @@ void AiCharacterRecord::FindMissionCapabilities()
   {
     team.Add(node);
     order->SetTeam(&team);
-    if (order->CollectCandidatesA(reinterpret_cast<ObjectKeyValueSet*>(&candidates)))
+    if (order->CollectCandidatesA(&candidates))
     {
       for (const auto& candidate : candidates.Entries())
       {
@@ -371,6 +371,7 @@ AiCharacterRecordSet::AiCharacterRecordSet()
 
 AiCharacterRecordSet::~AiCharacterRecordSet()
 {
+  Clear();
   m_cursor = nullptr;
   m_owner = nullptr;
 }

@@ -5,7 +5,7 @@
 #include "audio/smack_sound.h"
 #include "audio/sound_buffer.h"
 #include "audio/sound_source.h"
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "platform/win32.h"
 
 class SoundSource;

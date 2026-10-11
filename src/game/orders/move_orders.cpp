@@ -122,7 +122,7 @@ int MoveOrderBase::CheckEnabled(StatusCode* status)
       if (!isOk(status))
         break;
       auto current = position++;
-      auto* order = static_cast<OrderBase*>(current->get());
+      auto* order = static_cast<OrderBase*>((*current).get());
       order->CheckEnabled(status);
     }
   }
@@ -139,7 +139,7 @@ int MoveOrderBase::CheckValid(StatusCode* status)
       if (!isOk(status))
         break;
       auto current = position++;
-      auto* order = static_cast<OrderBase*>(current->get());
+      auto* order = static_cast<OrderBase*>((*current).get());
       order->CheckValid(status);
     }
   }
@@ -156,7 +156,7 @@ int MoveOrderBase::Execute(StatusCode* status)
       if (!isOk(status))
         break;
       auto current = position++;
-      auto* order = static_cast<OrderBase*>(current->get());
+      auto* order = static_cast<OrderBase*>((*current).get());
       if (order->Execute(status) == 0)
         break;
     }
@@ -175,7 +175,7 @@ int MoveOrderBase::CollectTransitDays(StatusCode* status, ObjectKeyValueSet* out
     for (auto position = m_subOrders->Entries().begin(); position != m_subOrders->Entries().end();)
     {
       auto current = position++;
-      auto* order = static_cast<OrderBase*>(current->get());
+      auto* order = static_cast<OrderBase*>((*current).get());
       days.Clear();
       const int kind = order->GetKind();
       const bool collectable = kind == kObjectMoveKind || kind == kMissionOrderKind;
@@ -282,7 +282,7 @@ int MoveOrderBase::BuildMissionOrder(ObjectKeyValueSet* team, MissionOrder** out
     result = order != nullptr;
     if (result != 0)
     {
-      order->SetId(m_subOrders->m_nextId);
+      order->SetId(m_subOrders->NextId());
       order->m_unk1c = m_unk1c;
       order->m_side = m_side;
       order->m_unk44 = 0;
@@ -316,7 +316,7 @@ int MoveOrderBase::BuildMoveOrder(ObjectKeyValueSet* team, ObjectMoveOrder** out
     *out = order;
     if (built)
     {
-      order->SetId(m_subOrders->m_nextId);
+      order->SetId(m_subOrders->NextId());
       order->m_unk1c = m_unk1c;
       order->m_side = m_side;
       order->SetTeam(team);
@@ -347,7 +347,7 @@ int TakeCharactersAtOneLocation(ObjectKeyValueSet* team, ObjectKeyValueSet* out,
     if (!isOk(status) || result == 0)
       break;
     auto current = position++;
-    auto* node = static_cast<ObjectKeyNode*>(current->get());
+    auto* node = static_cast<ObjectKeyNode*>((*current).get());
     ObjectKey key;
     node->GetKey(&key);
     if (inFamilies(key, family::kCharacters.m_first, family::kSpecialForces.m_second))

@@ -9,8 +9,11 @@
 // The game talks to it through the thin wrappers of tactical/comm2.h; the lobby (MultiPlayerWindow) also uses the
 // session functions. Player indices run 0..15 (one nibble of a packet id): index 0xf is the broadcast buffer.
 #include <cstdint>
+#include <map>
+#include <memory>
+#include <set>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "core/string_map.h"
 #include "multiplayer/comm_packets.h"
@@ -59,8 +62,6 @@ public:
   CommBuffer* TakeMessage(char category); // 0x5f9550
   // Drops the pending incoming and outgoing messages of `category`.
   void ClearCategory(char category); // 0x5fa720
-  // Deletes the nodes of `tree` (PartialMessages or CommOutgoings) that belong to `category`.
-  void ClearCategoryFrom(IdAvlTree* tree, char category); // 0x5fa750
 
   // ---- packets ---------------------------------------------------------------------------------------------
   // Puts `packet` into player `player`'s datagram buffer (flushing it first when full); 0 on success.
@@ -125,17 +126,17 @@ public:
   int CloseSessionToNewPlayers(); // 0x5fa540
 
   // ---- state -----------------------------------------------------------------------------------------------
-  IdAvlTree m_pending; // +0x00 CommPackets by id: everything queued and not yet settled
-  IdAvlTree m_received; // +0x0c ReceivedPackets by id: the parts of messages being received
-  IdAvlTree m_seen; // +0x18 IdNodes: ids of the packets delivered already
+  std::map<uint32_t, std::unique_ptr<CommPacket>> m_pending; // CommPackets by id: everything queued and not yet settled
+  std::map<uint32_t, std::unique_ptr<ReceivedPacket>> m_received; // ReceivedPackets by packet ID
+  std::set<uint32_t> m_seen; // packet IDs delivered already
   int m_isHost; // +0x24
   int m_clientMode; // +0x28 1 after Init
   HWND m_notifyWindow; // +0x2c
   HANDLE m_receiveEvent; // +0x30 signalled by DirectPlay when a message arrives
   uint32_t m_playerIds[16]; // +0x34 DirectPlay ids by player index, 0xffffffff for none; [15] is cleared to 0
   uint32_t m_unknown74; // +0x74
-  IdAvlTree m_assembling; // +0x78 PartialMessages by id of their first packet
-  IdAvlTree m_outgoing; // +0x84 CommOutgoings of the reliable messages by id of their first packet
+  std::map<uint32_t, std::unique_ptr<PartialMessage>> m_assembling; // PartialMessages by first packet ID
+  std::map<uint32_t, std::unique_ptr<CommOutgoing>> m_outgoing; // reliable messages by first packet ID
   uint32_t m_enumeratedCount; // +0x90 players DirectPlay listed
   uint32_t m_playerCount; // +0x94 players in the session
   std::string m_playerName; // +0x98
@@ -167,6 +168,9 @@ public:
   StringMap m_unknown1a4; // +0x1a4
   SendBuffer m_sendBuffers[17]; // +0x1b0 one per player index; [15] is the broadcast buffer
   ReceiveBuffer m_receiveBuffer; // +0x247c
+
+private:
+  void ClearOwnedRegistries();
 };
 
 // The singleton: created on first use, null after DestroyCommMgr.

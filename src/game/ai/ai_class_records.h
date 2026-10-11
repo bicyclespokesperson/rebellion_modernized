@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
 

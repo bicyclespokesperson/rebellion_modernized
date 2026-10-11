@@ -343,7 +343,7 @@ int MissionResearch::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* c
     result = ResearchKindOfCheck(check, &kind);
   for (const auto& nodeEntry : refs->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
     if (!(result && StatusIsOk(status)))
       break;
 

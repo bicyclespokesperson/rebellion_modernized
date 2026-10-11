@@ -368,7 +368,7 @@ void SoundManager::SweepSources(int)
   for (auto entry = catalog.Entries().begin(); entry != catalog.Entries().end();)
   {
     auto current = entry++;
-    AvlNode* node = current->get();
+    auto* node = current->second.get();
     if (static_cast<SoundSource*>(node)->m_users == 1)
       Audio().soundCatalog.DeleteNode(static_cast<SoundSource*>(node));
   }
@@ -376,7 +376,7 @@ void SoundManager::SweepSources(int)
   for (auto entry = sources.Entries().begin(); entry != sources.Entries().end();)
   {
     auto current = entry++;
-    AvlNode* node = current->get();
+    auto* node = current->second.get();
     SoundSource* source = static_cast<SoundSource*>(node);
     if (source->m_keepLoaded == 0 && source->IsAnyPlaying() == 0)
       Audio().soundSources.DeleteNode(source);
@@ -474,7 +474,7 @@ void SoundManager::ReleaseAllImpl(int everything)
   for (auto entry = sources.Entries().begin(); entry != sources.Entries().end();)
   {
     auto current = entry++;
-    AvlNode* node = current->get();
+    auto* node = current->second.get();
     SoundSource* source = static_cast<SoundSource*>(node);
     if (source->m_keepLoaded == 0)
       Audio().soundSources.DeleteNode(source);

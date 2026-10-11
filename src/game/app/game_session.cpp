@@ -546,7 +546,7 @@ void GameSession::SetHumanUiFlag4000(int on)
     m_human->SetAdvisorFlag4000(on);
 }
 
-IdAvlTree* GameSession::GetHumanOrderTree()
+UiRecordTree* GameSession::GetHumanOrderTree()
 {
   return m_human ? &m_human->Dispatch()->m_trees[0] : nullptr;
 }

@@ -5,10 +5,10 @@
 #include "ai/ai_common.h"
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "data/dat_record.h"
-#include "economy/facility_misc.h"
+#include "economy/side.h"
 #include "galaxy/system.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
@@ -400,12 +400,11 @@ void MissionSelectionWindow::OnCreate1()
   AddHiddenArrow(this, art, 0x88, kMoveRightId, 0x2b6d, 0x2b6e, 0x8505);
   AddHiddenArrow(this, art, 0xdd, kMoveLeftId, 0x2b6f, 0x2b70, 0x8506);
 
-  OkIdAvlTree candidates;
-  m_order->CollectCandidatesB(reinterpret_cast<ObjectKeyValueSet*>(&candidates));
+  ObjectNameList candidates;
+  m_order->CollectCandidatesB(&candidates);
   for (const auto& ownedNode : candidates.Entries())
   {
-    auto* node = static_cast<AvlNode*>(ownedNode.get());
-    ObjectNameNode* nameNode = static_cast<ObjectNameNode*>(node);
+    ObjectNameNode* nameNode = ownedNode.get();
     ObjectKey nameKey;
     ObjectKey candidateKey(*GetObjectNameNodeKey(nameNode, &nameKey));
     DatRecord* record = FindDataRecord(AsLookupKey(reinterpret_cast<NullableKey*>(&candidateKey)));
@@ -445,7 +444,7 @@ void MissionSelectionWindow::OnCreate1()
   uint8_t fillColor = 0;
   for (auto position = team.Entries().begin(); position != team.Entries().end(); ++position)
   {
-    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ObjectKey nodeKey;
     ObjectKey key(*node->GetKey(&nodeKey));
     GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, &key);
@@ -462,7 +461,7 @@ void MissionSelectionWindow::OnCreate1()
   ObjectKeyValueSet chosen(m_order->m_characters);
   for (auto position = chosen.Entries().begin(); position != chosen.Entries().end(); ++position)
   {
-    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ObjectKey nodeKey;
     ObjectKey key(*node->GetKey(&nodeKey));
     GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, &key);

@@ -27,7 +27,7 @@ void NextMemberKey(ObjectKeyValueSet* set, ObjectKey* key)
     ++position;
   }
   if (position != set->Entries().end())
-    static_cast<ObjectKeyNode*>(position->get())->GetKey(key);
+    static_cast<ObjectKeyNode*>((*position).get())->GetKey(key);
 }
 
 MissionMemberIterator::MissionMemberIterator(Mission* mission,

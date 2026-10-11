@@ -1,5 +1,7 @@
 #include "ai/ai_ranked_list.h"
 
+#include <algorithm>
+
 #include "core/checked_new.h"
 #include "data/random.h"
 
@@ -58,35 +60,55 @@ ObjectKey* AiRankedItem::GetKey(ObjectKey* out)
 
 // ---- AiRankedList -------------------------------------------------------------------------------------------------
 
-AiRankedList::AiRankedList() : SortedLinkList(), IdLinkNode(), m_descending(0)
+AiRankedList::AiRankedList() : IdLinkNode(), m_descending(0)
 {
 }
 
-AiRankedList::AiRankedList(int descending) : SortedLinkList(), IdLinkNode(), m_descending(descending)
+AiRankedList::AiRankedList(int descending) : IdLinkNode(), m_descending(descending)
 {
 }
 
 AiRankedList::~AiRankedList()
 {
-  SortedLinkList::Clear();
+  Clear();
 }
 
 void AiRankedList::Clear()
 {
-  SortedLinkList::Clear();
+  decltype(m_items) detached;
+  m_items.swap(detached);
 }
 
-int AiRankedList::IsLess(LinkNode* a, LinkNode* b)
+int AiRankedList::Insert(AiRankedItem* item)
 {
-  if (!a || !b)
+  if (!item || PositionOf(item) != m_items.cend())
     return 0;
-  const AiRankedItem* left = static_cast<AiRankedItem*>(a);
-  const AiRankedItem* right = static_cast<AiRankedItem*>(b);
-  if (left->m_score < right->m_score)
-    return m_descending == 1;
-  if (right->m_score < left->m_score)
-    return m_descending != 1;
-  return GameplayRandomNext(kTieBreakRange) < kTieBreakThreshold;
+  auto position = m_items.begin();
+  for (; position != m_items.end(); ++position)
+  {
+    const AiRankedItem* other = (*position).get();
+    const bool precedes = item->m_score < other->m_score ? m_descending == 1 :
+                          other->m_score < item->m_score ? m_descending != 1 :
+                                                           GameplayRandomNext(kTieBreakRange) < kTieBreakThreshold;
+    if (precedes)
+      break;
+  }
+  m_items.emplace(position, item);
+  return 1;
+}
+
+int AiRankedList::Remove(AiRankedItem* item)
+{
+  const auto position = std::find_if(m_items.begin(), m_items.end(),
+                                     [item](const auto& owned)
+                                     {
+                                       return owned.get() == item;
+                                     });
+  if (position == m_items.end())
+    return 0;
+  position->release();
+  m_items.erase(position);
+  return 1;
 }
 
 void AiRankedList::Read(istream* in)

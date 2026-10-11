@@ -166,33 +166,38 @@ int ObjectKeyValueNode::HasSameKeyAndValue(const ObjectKeyValueNode& other) cons
 
 // ---- ObjectKeySet ------------------------------------------------------------------------------------------
 
-ObjectKeySet::ObjectKeySet() : AvlTree()
-{
-}
+ObjectKeySet::ObjectKeySet() = default;
 
-ObjectKeySet::ObjectKeySet(const ObjectKeySet& other) : AvlTree()
+ObjectKeySet::ObjectKeySet(const ObjectKeySet& other)
 {
-  for (const auto& entry : other.AvlTree::Entries())
+  for (const auto& entry : other.Entries())
   {
     if (ObjectKeyNode* copy = static_cast<ObjectKeyNode*>(entry.get())->Clone())
       Add(copy);
   }
 }
 
-ObjectKeySet::~ObjectKeySet()
+ObjectKeySet::~ObjectKeySet() = default;
+
+void ObjectKeySet::Clear()
 {
-  AvlTree::Clear();
+  decltype(m_keys) detached;
+  m_keys.swap(detached);
 }
 
-int ObjectKeySet::IsLess(AvlNode* a, AvlNode* b)
+void ObjectKeySet::Remove(ObjectKeyNode* node)
 {
-  if (!a || !b)
-    return 0;
-  ObjectKey keyA;
-  ObjectKey keyB;
-  static_cast<ObjectKeyNode*>(a)->GetKey(&keyA);
-  static_cast<ObjectKeyNode*>(b)->GetKey(&keyB);
-  return keyA.m_value < keyB.m_value;
+  if (!node)
+    return;
+  const auto [first, last] = m_keys.equal_range(node->m_key.m_value);
+  for (auto position = first; position != last; ++position)
+  {
+    if ((*position).get() == node)
+    {
+      m_keys.extract(position).value().release();
+      return;
+    }
+  }
 }
 
 ObjectKeyNode* ObjectKeySet::NewNode()
@@ -267,7 +272,7 @@ ObjectKeySet& ObjectKeySet::operator=(const ObjectKeySet& other)
   if (this != &other)
   {
     Clear();
-    for (const auto& entry : other.AvlTree::Entries())
+    for (const auto& entry : other.Entries())
     {
       if (ObjectKeyNode* copy = static_cast<ObjectKeyNode*>(entry.get())->Clone())
         Add(copy);
@@ -278,14 +283,23 @@ ObjectKeySet& ObjectKeySet::operator=(const ObjectKeySet& other)
 
 uint32_t ObjectKeySet::Add(ObjectKeyNode* node)
 {
-  ObjectKey key;
-  if (node)
-  {
-    node->GetKey(&key);
-    if (!key.IsComplete() || !Insert(node))
+  if (!node || !node->m_key.IsComplete())
+    return 0;
+  const auto [first, last] = m_keys.equal_range(node->m_key.m_value);
+  for (auto position = first; position != last; ++position)
+    if ((*position).get() == node)
       return 0;
+  std::unique_ptr<ObjectKeyNode> pending(node);
+  try
+  {
+    m_keys.insert(std::move(pending));
   }
-  return key.Id();
+  catch (...)
+  {
+    pending.release();
+    throw;
+  }
+  return node->m_key.Id();
 }
 
 int ObjectKeySet::AddKey(const ObjectKey* key)
@@ -304,7 +318,7 @@ void ObjectKeySet::RemoveKey(const ObjectKey* key)
   ObjectKeyNode* node = Find(key);
   if (node)
   {
-    AvlTree::Remove(node);
+    Remove(node);
     delete node;
   }
 }
@@ -313,28 +327,14 @@ ObjectKeyNode* ObjectKeySet::Detach(const ObjectKey* key)
 {
   ObjectKeyNode* node = Find(key);
   if (node)
-    AvlTree::Remove(node);
+    Remove(node);
   return node;
 }
 
 ObjectKeyNode* ObjectKeySet::Find(const ObjectKey* key)
 {
-  AvlNode* found = LowerBound(
-    [key](const AvlNode* candidate)
-    {
-      ObjectKey nodeKey;
-      static_cast<const ObjectKeyNode*>(candidate)->GetKey(&nodeKey);
-      return nodeKey.m_value < key->m_value;
-    });
-  auto* node = static_cast<ObjectKeyNode*>(found);
-  if (node)
-  {
-    ObjectKey nodeKey;
-    node->GetKey(&nodeKey);
-    if (nodeKey.m_value != key->m_value)
-      node = nullptr;
-  }
-  return node;
+  const auto found = m_keys.find(key->m_value);
+  return found == m_keys.end() ? nullptr : (*found).get();
 }
 
 // ---- ObjectKeyValueSet -------------------------------------------------------------------------------------
@@ -377,19 +377,19 @@ ObjectKeyValueSet& ObjectKeyValueSet::operator=(const ObjectKeyValueSet& other)
 int ObjectKeyValueSet::operator==(const ObjectKeyValueSet& other) const
 {
   bool same = true;
-  auto aPosition = AvlTree::Entries().begin();
-  auto bPosition = other.AvlTree::Entries().begin();
-  while (aPosition != AvlTree::Entries().end() && bPosition != other.AvlTree::Entries().end())
+  auto aPosition = Entries().begin();
+  auto bPosition = other.Entries().begin();
+  while (aPosition != Entries().end() && bPosition != other.Entries().end())
   {
     if (!same)
       return false;
-    auto* a = static_cast<const ObjectKeyValueNode*>(aPosition->get());
-    auto* b = static_cast<const ObjectKeyValueNode*>(bPosition->get());
+    auto* a = static_cast<const ObjectKeyValueNode*>((*aPosition).get());
+    auto* b = static_cast<const ObjectKeyValueNode*>((*bPosition).get());
     same = a->HasSameKeyAndValue(*b);
     ++aPosition;
     ++bPosition;
   }
-  return same && aPosition == AvlTree::Entries().end() && bPosition == other.AvlTree::Entries().end();
+  return same && aPosition == Entries().end() && bPosition == other.Entries().end();
 }
 
 int ObjectKeyValueSet::operator!=(const ObjectKeyValueSet& other) const
@@ -410,13 +410,13 @@ int ObjectKeyValueSet::AddKeyValue(const ObjectKey* key, int value)
 
 // ---- ObjectRefList -----------------------------------------------------------------------------------------
 
-ObjectRefList::ObjectRefList() : IdAvlTree(), m_ok(1)
+ObjectRefList::ObjectRefList() : m_ok(1)
 {
 }
 
 ObjectRefList::~ObjectRefList()
 {
-  IdAvlTree::Clear();
+  Clear();
 }
 
 ObjectRefList& ObjectRefList::operator=(const ObjectRefList& other)
@@ -424,15 +424,15 @@ ObjectRefList& ObjectRefList::operator=(const ObjectRefList& other)
   bool copied = true;
   if (this != &other)
   {
-    IdAvlTree::Clear();
-    for (const auto& entry : other.AvlTree::Entries())
+    Clear();
+    for (const auto& entry : other.Entries())
     {
       if (!copied)
         break;
-      ObjectRefNode* copy = NewOrNull<ObjectRefNode>(*static_cast<const ObjectRefNode*>(entry.get()));
-      copied = copy != nullptr;
+      std::unique_ptr<ObjectRefNode> copy(NewOrNull<ObjectRefNode>(*entry));
+      copied = copy && Add(copy.get());
       if (copied)
-        Add(copy);
+        copy.release();
     }
   }
   m_ok = copied;
@@ -441,34 +441,34 @@ ObjectRefList& ObjectRefList::operator=(const ObjectRefList& other)
 
 int ObjectRefList::Read(istream* in)
 {
-  int ok = 1;
-  IdAvlTree::Clear();
+  Clear();
   ReadValue32(in, &m_ok);
-  int count;
+  uint32_t count = 0;
   ReadValue32(in, &count);
-  for (int i = 0; i < count && ok; ++i)
+  if (iostream_access::State(in) != 0)
+    return 0;
+  for (uint32_t i = 0; i < count; ++i)
   {
-    ObjectRefNode* node = NewOrNull<ObjectRefNode>();
-    ok = 0;
-    if (node)
+    std::unique_ptr<ObjectRefNode> node(NewOrNull<ObjectRefNode>());
+    if (!node || !node->Read(in) || iostream_access::State(in) != 0 || !Add(node.get()))
     {
-      ok = node->Read(in);
-      if (ok)
-        ok = Add(node);
+      iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+      return 0;
     }
+    node.release();
   }
-  return ok;
+  return 1;
 }
 
 int ObjectRefList::Write(ostream* out)
 {
   int ok = 1;
   WriteValue32(out, &m_ok);
-  uint32_t count = Size();
-  WriteValue32(out, &count);
-  for (const auto& entry : AvlTree::Entries())
+  if (!WriteCount32(out, Count()))
+    return 0;
+  for (const auto& entry : Entries())
   {
-    ok = static_cast<ObjectRefNode*>(entry.get())->Write(out);
+    ok = entry->Write(out);
   }
   return ok;
 }
@@ -478,32 +478,28 @@ int ObjectRefList::Checksum(Crc32* crc)
   int ok = 1;
   crc->AddInt(m_ok);
   crc->AddInt(Size());
-  for (const auto& entry : AvlTree::Entries())
-    ok = static_cast<ObjectRefNode*>(entry.get())->Checksum(crc);
+  for (const auto& entry : Entries())
+    ok = entry->Checksum(crc);
   return ok;
 }
 
 int ObjectRefList::Add(ObjectRefNode* node)
 {
-  if (node)
-    AddWithId(node);
-  return node != nullptr;
+  return AddWithId(node) != 0;
 }
 
-uint16_t ObjectRefList::Size() const
+size_t ObjectRefList::Size() const
 {
-  return static_cast<uint16_t>(Count());
+  return Count();
 }
 
 ObjectRefNode* ObjectRefList::AddKey(ObjectKey key)
 {
-  ObjectRefNode* node = NewOrNull<ObjectRefNode>();
-  if (node)
-  {
-    node->Set(key);
-    Add(node);
-  }
-  return node;
+  std::unique_ptr<ObjectRefNode> node(NewOrNull<ObjectRefNode>());
+  if (!node)
+    return nullptr;
+  node->Set(key);
+  return Add(node.get()) ? node.release() : nullptr;
 }
 
 ObjectRefNode::ObjectRefNode() : IdNode(), m_flag(1), m_count(0)

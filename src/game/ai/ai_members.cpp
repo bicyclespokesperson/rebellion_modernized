@@ -1,6 +1,7 @@
 #include "ai/ai_members.h"
 #include "mission/mission.h"
 
+#include <algorithm>
 #include <new>
 
 #include "ai/ai_agent_bases.h"
@@ -29,11 +30,6 @@ namespace
 
 constexpr uint32_t kDirty = 0x80000000;
 
-size_t CountOf(AvlTree& tree)
-{
-  return tree.Count();
-}
-
 // Shared by the sets that save their id-keyed nodes with the node's own Write (AiSystemRecordSet, AiTaskRecordSet).
 template <class Set>
 void SaveIdNodes(Set* set, ostream* out)
@@ -43,7 +39,7 @@ void SaveIdNodes(Set* set, ostream* out)
     return;
   for (const auto& entry : set->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(entry.get());
+    auto* node = entry.get();
     static_cast<AiTaskRecord*>(node)->Write(out);
   }
 }
@@ -59,8 +55,7 @@ ObjectKeyNode* FirstNode(Set& set)
 // ---- AiClassTable -----------------------------------------------------------------------------------------------------
 
 AiClassTable::AiClassTable()
-: AvlTree(),
-  m_maxShipTier(0),
+: m_maxShipTier(0),
   m_maxTroopTier(0),
   m_maxFacilityTier(0),
   m_majorCharacters(0),
@@ -77,19 +72,32 @@ AiClassTable::AiClassTable()
 {
 }
 
-AiClassTable::~AiClassTable() = default;
-
-int AiClassTable::IsLess(AvlNode* a, AvlNode* b)
+AiClassTable::~AiClassTable()
 {
-  if (!a || !b)
+  Clear();
+}
+
+void AiClassTable::Clear()
+{
+  decltype(m_records) detached;
+  m_records.swap(detached);
+}
+
+int AiClassTable::Insert(AiClassRecordBase* record)
+{
+  if (!record)
     return 0;
-  const uint32_t keyA = static_cast<AiClassRecordBase*>(a)->m_key.m_value;
-  const uint32_t keyB = static_cast<AiClassRecordBase*>(b)->m_key.m_value;
-  const uint32_t familyA = keyA >> 24;
-  const uint32_t familyB = keyB >> 24;
-  if (familyA < familyB || (familyA == familyB && (keyA & 0xffffff) < (keyB & 0xffffff)))
-    return 1;
-  return 0;
+  std::unique_ptr<AiClassRecordBase> pending(record);
+  try
+  {
+    m_records.emplace(record->m_key.m_value, std::move(pending));
+  }
+  catch (...)
+  {
+    pending.release();
+    throw;
+  }
+  return 1;
 }
 
 void AiClassTable::LoadValues(istream* in)
@@ -110,20 +118,9 @@ AiClassRecordBase* AiClassTable::Find(const ObjectKey* key)
 {
   const uint32_t id = key->m_value & 0xffffff;
   const uint32_t family = key->m_value >> 24;
-  AvlNode* node = LowerBound(
-    [family, id](const AvlNode* candidate)
-    {
-      const uint32_t nodeKey = static_cast<const AiClassRecordBase*>(candidate)->m_key.m_value;
-      const uint32_t nodeFamily = nodeKey >> 24;
-      return nodeFamily < family || (nodeFamily == family && (nodeKey & 0xffffff) < id);
-    });
-  if (node)
-  {
-    const uint32_t nodeKey = static_cast<AiClassRecordBase*>(node)->m_key.m_value;
-    if (nodeKey != key->m_value)
-      node = nullptr;
-  }
-  return static_cast<AiClassRecordBase*>(node);
+  const uint32_t value = (family << 24) | id;
+  const auto node = m_records.find(value);
+  return node == m_records.end() ? nullptr : node->second.get();
 }
 
 void AiClassTable::Build(int side)
@@ -230,8 +227,7 @@ int AiClassTable::Select(ObjectKey* out, int view, int maxTier, uint32_t flagMas
   {
     for (const auto& entry : Entries())
     {
-      AvlNode* node = entry.get();
-      AiClassRecordBase* classRecord = static_cast<AiClassRecordBase*>(node);
+      AiClassRecordBase* classRecord = entry.second.get();
       if (classRecord->m_view == view && (flagMask & classRecord->m_flags.m_value) != 0 &&
           classRecord->m_valueC <= maxTier)
       {
@@ -265,7 +261,7 @@ void FilterByClassFlags(AiClassTable* table, ObjectNameList* list, uint32_t requ
   auto position = list->Entries().begin();
   while (position != list->Entries().end())
   {
-    AvlNode* node = position->get();
+    auto* node = (*position).get();
     ++position;
     ObjectKey key;
     ObjectNameNode* name = static_cast<ObjectNameNode*>(node);
@@ -299,7 +295,7 @@ int AiClassTable::ChooseFromSide(ObjectKey* out,
 
   if (mode == 0)
   {
-    const int count = static_cast<int>(CountOf(list));
+    const int count = static_cast<int>(list.Count());
     const int choice = GameplayRandomNext(count);
     int index = 0;
     auto position = list.Entries().begin();
@@ -315,7 +311,7 @@ int AiClassTable::ChooseFromSide(ObjectKey* out,
       if (position != list.Entries().end())
       {
         ObjectKey key;
-        GetObjectNameNodeKey(static_cast<ObjectNameNode*>(position->get()), &key);
+        GetObjectNameNodeKey(static_cast<ObjectNameNode*>((*position).get()), &key);
         *out = key;
       }
     }
@@ -329,7 +325,7 @@ int AiClassTable::ChooseFromSide(ObjectKey* out,
     {
       for (const auto& entry : list.Entries())
       {
-        AvlNode* node = static_cast<AvlNode*>(entry.get());
+        auto* node = entry.get();
         ObjectKey nameKey;
         GetObjectNameNodeKey(static_cast<ObjectNameNode*>(node), &nameKey);
         AiClassRecordBase* classRecord = Find(&nameKey);
@@ -372,7 +368,7 @@ AiRankedList* AiClassTable::RankClasses(GameObjNotifier* side,
   {
     for (const auto& entry : list.Entries())
     {
-      AvlNode* node = static_cast<AvlNode*>(entry.get());
+      auto* node = entry.get();
       ObjectKey nameKey;
       GetObjectNameNodeKey(static_cast<ObjectNameNode*>(node), &nameKey);
       AiClassRecordBase* classRecord = Find(&nameKey);
@@ -392,13 +388,34 @@ AiRankedList* AiClassTable::RankClasses(GameObjNotifier* side,
 
 // ---- AiTaskRecordSet ----------------------------------------------------------------------------------------------------
 
-AiTaskRecordSet::AiTaskRecordSet() : IdAvlTree(), m_view(0), m_owner(nullptr)
+AiTaskRecordSet::AiTaskRecordSet() : m_view(0), m_owner(nullptr)
 {
 }
 
 AiTaskRecordSet::~AiTaskRecordSet()
 {
+  Clear();
   m_owner = nullptr;
+}
+
+void AiTaskRecordSet::Clear()
+{
+  m_records.Clear();
+}
+
+uint32_t AiTaskRecordSet::AddWithId(AiTaskRecord* record)
+{
+  return m_records.AddWithId(record);
+}
+
+AiTaskRecord* AiTaskRecordSet::FindById(uint32_t id) const
+{
+  return m_records.FindById(id);
+}
+
+void AiTaskRecordSet::DeleteById(uint32_t id)
+{
+  m_records.DeleteById(id);
 }
 
 void AiTaskRecordSet::Load(istream* in)
@@ -451,11 +468,46 @@ uint32_t AiTaskRecordSet::DeleteFirstUnassigned()
 
 // ---- AiAgentSet -------------------------------------------------------------------------------------------------------
 
-AiAgentSet::AiAgentSet() : IdAvlTree(), m_view(0)
+AiAgentSet::AiAgentSet() : m_view(0)
 {
 }
 
-AiAgentSet::~AiAgentSet() = default;
+AiAgentSet::~AiAgentSet()
+{
+  Clear();
+  m_characters = nullptr;
+  m_owner = nullptr;
+}
+
+auto AiAgentSet::PositionOf(const AiAgentBase* agent) const -> decltype(m_agents.Entries().begin())
+{
+  return m_agents.PositionOf(agent);
+}
+
+void AiAgentSet::Clear()
+{
+  m_agents.Clear();
+}
+
+uint32_t AiAgentSet::AddWithId(AiAgentBase* agent)
+{
+  return m_agents.AddWithId(agent);
+}
+
+AiAgentBase* AiAgentSet::FindById(uint32_t id) const
+{
+  return m_agents.FindById(id);
+}
+
+AiAgentBase* AiAgentSet::DetachById(uint32_t id)
+{
+  return m_agents.DetachById(id);
+}
+
+void AiAgentSet::DeleteById(uint32_t id)
+{
+  m_agents.DeleteById(id);
+}
 
 void AiAgentSet::Load(istream* in)
 {
@@ -543,13 +595,39 @@ AiAgentBase* AiAgentSet::CreateAgent(int kind)
 
 // ---- AiSystemRecordSet ------------------------------------------------------------------------------------------------
 
-AiSystemRecordSet::AiSystemRecordSet() : IdAvlTree(), m_view(0), m_owner(nullptr)
+AiSystemRecordSet::AiSystemRecordSet() : m_view(0), m_owner(nullptr)
 {
 }
 
 AiSystemRecordSet::~AiSystemRecordSet()
 {
+  Clear();
   m_owner = nullptr;
+}
+
+auto AiSystemRecordSet::PositionOf(const AiSystemRecord* record) const -> decltype(m_records.Entries().begin())
+{
+  return m_records.PositionOf(record);
+}
+
+void AiSystemRecordSet::Clear()
+{
+  m_records.Clear();
+}
+
+uint32_t AiSystemRecordSet::AddWithId(AiSystemRecord* record)
+{
+  return m_records.AddWithId(record);
+}
+
+AiSystemRecord* AiSystemRecordSet::FindById(uint32_t id) const
+{
+  return m_records.FindById(id);
+}
+
+void AiSystemRecordSet::DeleteById(uint32_t id)
+{
+  m_records.DeleteById(id);
 }
 
 void AiSystemRecordSet::Load(istream* in)
@@ -582,7 +660,7 @@ void AiSystemRecordSet::Save(ostream* out)
 AiSystemRecord* AiSystemRecordSet::FindByTarget(const ObjectKey* key)
 {
   auto position = Entries().begin();
-  AiSystemRecord* record = position == Entries().end() ? nullptr : static_cast<AiSystemRecord*>(position->get());
+  AiSystemRecord* record = position == Entries().end() ? nullptr : static_cast<AiSystemRecord*>((*position).get());
   bool found = false;
   while (record && !found)
   {
@@ -593,7 +671,7 @@ AiSystemRecord* AiSystemRecordSet::FindByTarget(const ObjectKey* key)
     else
     {
       ++position;
-      record = position == Entries().end() ? nullptr : static_cast<AiSystemRecord*>(position->get());
+      record = position == Entries().end() ? nullptr : static_cast<AiSystemRecord*>((*position).get());
     }
   }
   return record;
@@ -648,11 +726,46 @@ uint32_t AiSystemRecordSet::DeleteFirstIdle()
 
 // ---- AiPlannerSet -----------------------------------------------------------------------------------------------------
 
-AiPlannerSet::AiPlannerSet() : IdAvlTree(), m_view(0)
+AiPlannerSet::AiPlannerSet() : m_view(0)
 {
 }
 
-AiPlannerSet::~AiPlannerSet() = default;
+AiPlannerSet::~AiPlannerSet()
+{
+  Clear();
+  m_characters = nullptr;
+  m_owner = nullptr;
+}
+
+auto AiPlannerSet::PositionOf(const AiMissionPlanner* planner) const -> decltype(m_planners.Entries().begin())
+{
+  return m_planners.PositionOf(planner);
+}
+
+void AiPlannerSet::Clear()
+{
+  m_planners.Clear();
+}
+
+uint32_t AiPlannerSet::AddWithId(AiMissionPlanner* planner)
+{
+  return m_planners.AddWithId(planner);
+}
+
+AiMissionPlanner* AiPlannerSet::FindById(uint32_t id) const
+{
+  return m_planners.FindById(id);
+}
+
+AiMissionPlanner* AiPlannerSet::DetachById(uint32_t id)
+{
+  return m_planners.DetachById(id);
+}
+
+void AiPlannerSet::DeleteById(uint32_t id)
+{
+  m_planners.DeleteById(id);
+}
 
 void AiPlannerSet::Load(istream* in)
 {
@@ -731,7 +844,7 @@ void AiPlannerSet::ReleasePlanner(uint32_t id)
 AiMissionPlanner* AiPlannerSet::FindByTarget(const int* key)
 {
   auto position = Entries().begin();
-  AiMissionPlanner* planner = position == Entries().end() ? nullptr : static_cast<AiMissionPlanner*>(position->get());
+  AiMissionPlanner* planner = position == Entries().end() ? nullptr : static_cast<AiMissionPlanner*>((*position).get());
   bool found = false;
   while (planner && !found)
   {
@@ -740,7 +853,7 @@ AiMissionPlanner* AiPlannerSet::FindByTarget(const int* key)
     else
     {
       ++position;
-      planner = position == Entries().end() ? nullptr : static_cast<AiMissionPlanner*>(position->get());
+      planner = position == Entries().end() ? nullptr : static_cast<AiMissionPlanner*>((*position).get());
     }
   }
   return planner;
@@ -839,6 +952,7 @@ AiFleetEvalSet::AiFleetEvalSet() : ObjectKeySet(), m_view(0), m_owner(nullptr), 
 
 AiFleetEvalSet::~AiFleetEvalSet()
 {
+  Clear();
   m_ships = nullptr;
   m_owner = nullptr;
 }
@@ -916,7 +1030,7 @@ void AiFleetEvalSet::RemoveShip(ObjectKey* fleetKey, const ObjectKey* shipKey)
   if (!eval)
     return;
   eval->RemoveShip(const_cast<ObjectKey*>(shipKey));
-  if (CountOf(eval->m_shipKeys) == 0)
+  if (eval->m_shipKeys.Count() == 0)
   {
     ObjectKey evalKey;
     eval->GetKey(&evalKey);
@@ -965,6 +1079,7 @@ AiShipRecordSet::AiShipRecordSet()
 
 AiShipRecordSet::~AiShipRecordSet()
 {
+  Clear();
   m_cursor = nullptr;
   m_fleets = nullptr;
   m_classes = nullptr;
@@ -1125,6 +1240,7 @@ AiSectorEvalSet::AiSectorEvalSet() : ObjectKeySet(), m_view(0), m_cursor(nullptr
 
 AiSectorEvalSet::~AiSectorEvalSet()
 {
+  Clear();
   m_cursorObject = nullptr;
   m_cursor = nullptr;
 }
@@ -1267,6 +1383,7 @@ AiSystemEvalSet::AiSystemEvalSet()
 
 AiSystemEvalSet::~AiSystemEvalSet()
 {
+  Clear();
   m_cursorObject = nullptr;
   m_cursor = nullptr;
   m_classes = nullptr;

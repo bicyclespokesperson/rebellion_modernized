@@ -8,27 +8,88 @@
 namespace
 {
 
-EventBase* asEvent(AvlNode* node)
-{
-  return static_cast<EventBase*>(node);
-}
-
 } // namespace
 
 // ---- EventQueue ------------------------------------------------------------------------------------------------
 
-EventQueue::EventQueue() : AvlTree(), m_flag0c(1)
+EventQueue::EventQueue() : m_events(EventCompare{this}), m_flag0c(1)
 {
 }
 
 EventQueue::~EventQueue()
 {
-  AvlTree::Clear();
+  Clear();
+}
+
+bool EventQueue::EventCompare::operator()(const std::unique_ptr<EventBase>& a,
+                                          const std::unique_ptr<EventBase>& b) const
+{
+  return queue->EventBefore(a.get(), b.get());
+}
+
+void EventQueue::Clear()
+{
+  if (m_clearing)
+    return;
+  m_clearing = true;
+  m_index.clear();
+  EventSet detached(EventCompare{this});
+  detached.swap(m_events);
+  detached.clear();
+  m_clearing = false;
+}
+
+int EventQueue::Insert(EventBase* event)
+{
+  if (m_clearing || !event || m_index.contains(event))
+    return 0;
+  std::unique_ptr<EventBase> pending(event);
+  EventSet::iterator position;
+  try
+  {
+    position = m_events.insert(std::move(pending));
+  }
+  catch (...)
+  {
+    pending.release();
+    throw;
+  }
+  try
+  {
+    if (!m_index.emplace(event, position).second)
+    {
+      auto rejected = m_events.extract(position);
+      rejected.value().release();
+      return 0;
+    }
+  }
+  catch (...)
+  {
+    auto rejected = m_events.extract(position);
+    rejected.value().release();
+    throw;
+  }
+  return 1;
+}
+
+void EventQueue::Remove(EventBase* event)
+{
+  auto found = m_index.find(event);
+  if (found == m_index.end())
+    return;
+  auto owned = m_events.extract(found->second);
+  m_index.erase(found);
+  owned.value().release();
+}
+
+EventBase* EventQueue::First() const
+{
+  return m_events.empty() ? nullptr : m_events.begin()->get();
 }
 
 int EventQueue::Read(istream* in)
 {
-  AvlTree::Clear();
+  Clear();
   uint32_t count = 0;
   ReadValue32(in, &count);
   if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
@@ -67,9 +128,7 @@ int EventQueue::Write(ostream* out)
   WriteValue32(out, &count);
   for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();)
   {
-    AvlNode* node = static_cast<AvlNode*>((nodePosition++)->get());
-
-    EventBase* event = asEvent(node);
+    EventBase* event = (*(nodePosition++)).get();
     int kind = event->GetKind();
     WriteValue32(out, &kind);
     event->Write(out);
@@ -82,8 +141,8 @@ int EventQueue::Checksum(Crc32* crc)
   crc->AddInt(Count());
   for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();)
   {
-    AvlNode* node = static_cast<AvlNode*>((nodePosition++)->get());
-    asEvent(node)->Checksum(crc);
+    EventBase* event = (*(nodePosition++)).get();
+    event->Checksum(crc);
   }
   return 1;
 }
@@ -103,12 +162,12 @@ int EventQueue::RunNext()
 int EventQueue::RunFirst()
 {
   int ran = 0;
-  AvlNode* first = First();
+  EventBase* first = First();
   if (first)
   {
     Remove(first);
     ran = 1;
-    EventBase* event = asEvent(first);
+    EventBase* event = first;
     if (event->Execute() != 0)
     {
       Add(event);
@@ -133,24 +192,23 @@ TimerQueue::TimerQueue() : EventQueue()
 
 TimerQueue::~TimerQueue() = default;
 
-int TimerQueue::IsLess(AvlNode* a, AvlNode* b)
+bool TimerQueue::EventBefore(const EventBase* a, const EventBase* b) const
 {
   if (a == nullptr || b == nullptr)
-    return 1;
-  return static_cast<TimedEvent*>(static_cast<EventBase*>(a))->m_dueDay <
-         static_cast<TimedEvent*>(static_cast<EventBase*>(b))->m_dueDay;
+    return true;
+  return static_cast<const TimedEvent*>(a)->m_dueDay < static_cast<const TimedEvent*>(b)->m_dueDay;
 }
 
 EventBase* TimerQueue::GetNext()
 {
-  AvlNode* first = First();
+  EventBase* first = First();
   if (first)
   {
-    int due = static_cast<TimedEvent*>(static_cast<EventBase*>(first))->m_dueDay;
+    int due = static_cast<TimedEvent*>(first)->m_dueDay;
     if (CallGameHook2B08() < due)
       first = nullptr;
   }
-  return static_cast<EventBase*>(first);
+  return first;
 }
 
 // ---- CommandQueue ----------------------------------------------------------------------------------------------
@@ -161,14 +219,14 @@ CommandQueue::CommandQueue() : EventQueue()
 
 CommandQueue::~CommandQueue() = default;
 
-int CommandQueue::IsLess(AvlNode*, AvlNode*)
+bool CommandQueue::EventBefore(const EventBase*, const EventBase*) const
 {
-  return 0;
+  return false;
 }
 
 EventBase* CommandQueue::GetNext()
 {
-  return static_cast<EventBase*>(First());
+  return First();
 }
 
 void CommandQueue::AddCommand(EventBase* event)
@@ -184,14 +242,14 @@ TypeQueue::TypeQueue() : EventQueue()
 
 TypeQueue::~TypeQueue() = default;
 
-int TypeQueue::IsLess(AvlNode* a, AvlNode* b)
+bool TypeQueue::EventBefore(const EventBase* a, const EventBase* b) const
 {
   if (a == nullptr || b == nullptr)
-    return 1;
-  return static_cast<PlainEvent*>(a)->GetPriority() < static_cast<PlainEvent*>(b)->GetPriority();
+    return true;
+  return static_cast<const PlainEvent*>(a)->GetPriority() < static_cast<const PlainEvent*>(b)->GetPriority();
 }
 
 EventBase* TypeQueue::GetNext()
 {
-  return static_cast<EventBase*>(First());
+  return First();
 }

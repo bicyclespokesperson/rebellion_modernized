@@ -3,7 +3,7 @@
 
 #include "ai/ai_members.h"
 #include "ai/ai_ranked_list.h"
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"

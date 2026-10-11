@@ -602,7 +602,7 @@ int CollectTeamSystems(ActivityRequest* request, ObjectKeyValueSet* team, Object
     {
       for (auto position = dependencies.Entries().begin(); position != dependencies.Entries().end(); ++position)
       {
-        AvlNode* node = static_cast<AvlNode*>(position->get());
+        auto* node = (*position).get();
         if (ok == 0)
         {
           *status = StatusCode(1, 1);

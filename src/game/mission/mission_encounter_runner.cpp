@@ -512,7 +512,7 @@ int EncounterRunner::TakeRandomFreeKey(ObjectKeySet* set, ObjectKey* chosen)
   int free = 0;
   for (auto nodePosition = set->Entries().begin(); nodePosition != set->Entries().end();)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*(nodePosition++)).get());
     if (valueNode(node)->m_value == 0)
       ++free;
   }
@@ -522,7 +522,7 @@ int EncounterRunner::TakeRandomFreeKey(ObjectKeySet* set, ObjectKey* chosen)
     int index = 0;
     for (auto nodePosition = set->Entries().begin(); nodePosition != set->Entries().end();)
     {
-      ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*(nodePosition++)).get());
       if (!(true && !chosen->OrNull()))
         break;
 
@@ -546,7 +546,7 @@ int EncounterRunner::ClearTakenFlags(ObjectKeySet* set)
 {
   for (auto nodePosition = set->Entries().begin(); nodePosition != set->Entries().end();)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*(nodePosition++)).get());
     valueNode(node)->m_value &= ~kKeyTaken;
   }
   return 1;

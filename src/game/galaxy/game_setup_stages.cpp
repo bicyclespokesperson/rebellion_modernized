@@ -273,7 +273,7 @@ int GameRoot::DistributeSystems(NotifyContext* ctx)
   uint32_t chosenId = farCount;
   if (pick == 0 && cursorPosition != m_refLists[5].Entries().end())
   {
-    AvlNode* cursor = cursorPosition->get();
+    auto* cursor = (*cursorPosition).get();
     chosenId = static_cast<ObjectRefNode*>(cursor)->m_id;
     ObjectKey chosenKey;
     static_cast<ObjectRefNode*>(cursor)->GetKey(&chosenKey);
@@ -300,7 +300,7 @@ int GameRoot::DistributeSystems(NotifyContext* ctx)
     }
     if (!found || entryPosition == core.Entries().end())
       continue;
-    auto* entry = static_cast<ObjectRefNode*>(entryPosition->get());
+    auto* entry = static_cast<ObjectRefNode*>((*entryPosition).get());
     ObjectRefNode* refNode = static_cast<ObjectRefNode*>(core.DetachById(entry->m_id));
     if (toPool0x100 != 0)
     {

@@ -3,7 +3,7 @@
 #include <deque>
 #include <memory>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/stream_io.h"
 #include "events/misc_helpers.h"
 #include "gameobj/object_key.h"

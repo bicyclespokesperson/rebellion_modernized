@@ -2,7 +2,7 @@
 #include <cstdint>
 #include <string>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "core/utility_classes.h"
 #include "platform/win32.h"

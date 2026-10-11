@@ -383,7 +383,7 @@ void GalaxyWindow::InitializeGameDisplay()
     m_encyclopediaItems = memory ? new (memory) CoolListItemList(2) : nullptr;
     for (const auto& ownedNode : records.Entries())
     {
-      auto* node = static_cast<AvlNode*>(ownedNode.get());
+      auto* node = ownedNode.get();
       const ObjectKey* recordKey = &static_cast<ObjectRefNode*>(node)->m_key;
       if (!IsListedRecord(recordKey))
         continue;

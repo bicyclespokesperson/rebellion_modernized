@@ -10,7 +10,7 @@
 #include "audio/music.h"
 #include "character/role.h"
 #include "core/checked_new.h"
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "fleet/capship.h"
 #include "fleet/fight_squad.h"
 #include "fleet/fleet_iterator.h"
@@ -614,7 +614,7 @@ void BattleWindow::OnKeyDown(WPARAM key, LPARAM lParam)
     return;
   }
   const uint32_t selectedId = m_kindTabs->m_selected ? m_kindTabs->m_selected->m_childId : 0;
-  AvlNode* tab = m_kindTabs->m_children.FindById(selectedId);
+  auto* tab = m_kindTabs->m_children.FindById(selectedId);
   auto position = m_kindTabs->m_children.PositionOf(tab);
   if (position != m_kindTabs->m_children.Entries().end())
   {
@@ -625,7 +625,7 @@ void BattleWindow::OnKeyDown(WPARAM key, LPARAM lParam)
       position = std::next(position);
     while (position != m_kindTabs->m_children.Entries().end())
     {
-      tab = position->get();
+      tab = (*position).get();
       CoolWindow* window = static_cast<CoolWindow*>(tab);
       if (IsWindowVisible(window->m_hwnd) != 0)
       {
@@ -640,7 +640,7 @@ void BattleWindow::OnKeyDown(WPARAM key, LPARAM lParam)
     }
     return;
   }
-  AvlNode* first = m_kindTabs->m_children.First();
+  auto* first = m_kindTabs->m_children.First();
   if (first)
     m_kindTabs->SelectTab(static_cast<CoolWindow*>(first)->m_childId, 1);
 }
@@ -742,7 +742,7 @@ void BattleWindow::ClearRows()
   while (position != m_items->Entries().end())
   {
     auto current = position++;
-    auto* item = static_cast<CoolListItem*>(current->get());
+    auto* item = static_cast<CoolListItem*>((*current).get());
     m_items->Remove(item);
     delete item;
   }
@@ -994,7 +994,7 @@ void BattleWindow::FillList(int kind, int force)
     }
     else
     {
-      AddRow(static_cast<GameObj*>(objectOf(static_cast<ObjectKeyNode*>(shownPosition->get()), viewSide)), normalFlag,
+      AddRow(static_cast<GameObj*>(objectOf(static_cast<ObjectKeyNode*>((*shownPosition).get()), viewSide)), normalFlag,
              nullptr);
       ++shownPosition;
       if (shownPosition == shown.Entries().end())
@@ -1016,7 +1016,7 @@ void BattleWindow::FillList(int kind, int force)
       }
       else
       {
-        AddRow(static_cast<GameObj*>(objectOf(static_cast<ObjectKeyNode*>(heldPosition->get()), galaxy->m_side)),
+        AddRow(static_cast<GameObj*>(objectOf(static_cast<ObjectKeyNode*>((*heldPosition).get()), galaxy->m_side)),
                normalFlag, nullptr);
         ++heldPosition;
         if (heldPosition == held.Entries().end())
@@ -1037,7 +1037,7 @@ void BattleWindow::FillList(int kind, int force)
     }
     else
     {
-      AddRow(static_cast<GameObj*>(objectOf(static_cast<ObjectKeyNode*>(matchingPosition->get()), galaxy->m_side)),
+      AddRow(static_cast<GameObj*>(objectOf(static_cast<ObjectKeyNode*>((*matchingPosition).get()), galaxy->m_side)),
              normalFlag, nullptr);
       ++matchingPosition;
       if (matchingPosition != matching.Entries().end())
@@ -1056,7 +1056,7 @@ void BattleWindow::FillList(int kind, int force)
   auto position = m_items->Entries().begin();
   while (position != m_items->Entries().end() && image == nullptr)
   {
-    item = static_cast<CoolListItem*>(position->get());
+    item = static_cast<CoolListItem*>((*position).get());
     ++position;
     image = item->m_image;
   }

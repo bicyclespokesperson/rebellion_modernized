@@ -357,27 +357,45 @@ span callbacks locate their position through the owning registry instead of walk
 - [x] Review mutation, ordering, ownership and save readers; retain useful ownership/ID tests and add erase-during-iteration coverage.
 - [x] Complete host release/strict UBSan builds, useful tests and bounded save/reload, then commit this migration.
 
-The remaining `AvlTree`, `IdAvlTree`, `AvlSet`, `IntKeyedSet`, `IdValueTree`, `SortedLinkList` and `IdSortedLinkList` are
-transitional interfaces over standard storage, not the desired endpoint. Their consumers still encode domain-specific
-identity, comparisons and save behavior. Retire them through these concrete follow-ups; do not replace them with another
-generic custom container library:
+The inherited generic owners `AvlTree`, `IdAvlTree`, `AvlSet`, `IntKeyedSet`, `IdValueTree`, `SortedLinkList` and
+`IdSortedLinkList` have been retired. Keep shared abstractions when they make ownership or domain behavior clearer;
+removing every custom class is not a goal. Domain objects compose `IdRegistry<T>`, backed by
+`std::map<uint32_t, unique_ptr<T>>`, to share ID allocation, exhaustion, duplicate rejection and ownership transfer.
+Standard maps already provide a balanced tree; a separate AVL implementation is unnecessary.
 
-- [ ] Give each subsystem typed standard containers directly. Migrate ID registries and composite object-key registries
-      with explicit ID allocation/exhaustion, duplicate identity rules and legacy field codecs, then delete the unused bases.
-- [ ] Migrate ordered event, window, sound and tactical registries to typed standard storage and explicit comparisons;
-      remove virtual container comparators and generic node inheritance with their last clients.
-- [ ] Replace sorted UI rows and AI ranking facades with typed containers. Preserve UI grouping and meaningful ranking
-      order; generate explicit gameplay tie-break keys rather than give a sorting algorithm a random comparator. Delete
-      the final list/set facades and `core/containers.*` when their domain behavior has moved.
-- [ ] Reconsider linked storage after client migration. Prefer vectors, deques or value entries when they fit access and
-      lifetime needs; use `vector<unique_ptr<T>>` when contiguous owner storage and stable pointees are both useful.
+- [x] Migrate ID registries and composite object-key registries to concrete entry types, preserving legacy field codecs.
+      Share ordinary ID ownership through composition; retain explicit multi-registry teardown where destructors call back
+      across registries.
+- [x] Migrate ordered event, window, sound and tactical owners to typed standard storage and domain comparisons.
+      Store integer-keyed event kinds, status tallies and advisor/player notice values directly in standard maps.
+- [x] Replace inherited sorted UI rows and AI ranking owners. Preserve UI grouping and existing ranking insertion behavior;
+      use strict comparisons for standard ordered storage, including null pointers and floating-point NaNs. Existing random
+      ranking ties remain in explicit insertion scans, never in a standard sorting comparator.
+- [x] Delete the seven generic owner classes and `core/containers.*`. Payload identity and polymorphic lifetime support
+      remain in `core/entry_identity.*`; these bases carry no container storage or traversal links.
+- [x] Replace message-index casts between unrelated notice layouts with a common notice interface for text, keys and
+      actions, including the confirmation notice's independently stored text.
+- [x] Test registry duplicate rejection, ID exhaustion, ownership transfer and destructor callbacks; test domain ordering,
+      copying and save codecs, including reference counts larger than 65535 and malformed input. Cover ranked-item
+      duplicate-pointer rejection and detach ownership, including winner/missing-candidate deletion in the selector.
+- [x] Complete the host release/strict UBSan builds, all eight tests and bounded save/reload for this retirement checkpoint.
+- [ ] Reconsider linked storage when it improves a particular client. Prefer vectors, deques or value entries when they
+      fit access and lifetime needs; use `vector<unique_ptr<T>>` where stable pointees are useful.
 - [ ] Adopt standard algorithms where they clarify sorting, partitioning, bulk transformation, aggregation or lookup.
       Keep straightforward loops when they already express the operation clearly; algorithm-count targets are not a goal.
-- [ ] Verify that no generic container adapters, legacy node APIs or duplicated traversal state remain in maintained code.
+- [ ] Remove empty legacy payload bases where concrete types can supply their own polymorphic lifetime without obscuring
+      domain relationships. Generate explicit random tie-break keys before any future replacement of ranking insertion
+      scans with standard sorting.
+- [ ] Give confirmation notices a stable object key if their message-index Open action is needed. Their retained subject
+      order is a borrowed pointer with no proven lifetime; it must not be reinterpreted as key bits or dereferenced after
+      the order is destroyed. The common notice interface currently exposes an unset key for this notice.
 
-Validation: macOS release and strict UBSan builds pass all eight native tests. Both builds pass the two-process
-save/reload smoke with malloc scribbling (ticks 150336 → 150346 → 150356). Independent reviews cover mutation,
-notification lifetimes and UI/audio traversal; changed C++ files pass the pinned formatter.
+Validation for this retirement checkpoint: macOS release and halt-on-error UBSan builds pass all eight native tests,
+including the ranking regression test. Both builds pass two-process save/reload smoke with malloc scribbling
+(ticks 150336 → 150346 → 150356). The first integration smoke caught ranked-item removal destroying an object that
+its caller expected to delete; removal now detaches ownership, and the focused test covers this contract. Independent
+reviews checked registry lifetime, codecs, event ordering and detach/delete callers across AI, UI, multiplayer, audio
+and tactical code. Changed C++ files pass the pinned LLVM 22.1.4 formatter.
 
 Host-only validation and the existing desktop acceptance gap still apply; Linux and Windows are work for agents
 running on those hosts.

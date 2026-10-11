@@ -1,9 +1,11 @@
 #include "ai/ai_task_base.h"
+#include <limits>
 #include <new>
 
 #include "app/app_control_cmds.h"
 #include "app/player_controller_decl.h"
 #include "core/checked_new.h"
+#include "core/iostream_lib.h"
 #include "events/notif_event_payloads.h"
 #include "events/player_notices.h"
 #include "events/ui_notifs_ext.h"
@@ -50,8 +52,35 @@ void PlayerDispatch::Read(istream* in)
   ReadValuePersistentInt(in, &m_flags);
   m_trees[0].Read(in);
   m_trees[1].Read(in);
-  m_states.Clear();
-  m_states.Read(in);
+  m_states.clear();
+  uint16_t stateCount = 0;
+  ReadValue16(in, &stateCount);
+  uint32_t nextStateKey = 1;
+  for (uint16_t i = 0; i < stateCount && (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) == 0; ++i)
+  {
+    uint32_t key = 0;
+    int value = 0;
+    ReadValue32(in, &key);
+    ReadValue32(in, &value);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+      break;
+    if (key == 0)
+    {
+      if (nextStateKey == 0)
+      {
+        iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+        break;
+      }
+      key = nextStateKey;
+    }
+    if (!m_states.emplace(key, value).second)
+    {
+      iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+      break;
+    }
+    if (nextStateKey != 0 && nextStateKey <= key)
+      nextStateKey = key + 1;
+  }
   m_defaultState.Read(in);
   ReadValue32(in, &m_unk40);
   ReadValue32(in, &m_unk50);
@@ -65,7 +94,22 @@ void PlayerDispatch::Write(ostream* out)
   WriteValuePersistentInt(out, &m_flags);
   m_trees[0].Write(out);
   m_trees[1].Write(out);
-  m_states.Write(out);
+  if (m_states.size() > std::numeric_limits<uint16_t>::max())
+  {
+    iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
+  }
+  else
+  {
+    uint16_t stateCount = static_cast<uint16_t>(m_states.size());
+    WriteValue16(out, &stateCount);
+    for (const auto& [key, value] : m_states)
+    {
+      uint32_t serializedKey = key;
+      int serializedValue = value;
+      WriteValue32(out, &serializedKey);
+      WriteValue32(out, &serializedValue);
+    }
+  }
   m_defaultState.Write(out);
   WriteValue32(out, &m_unk40);
   WriteValue32(out, &m_unk50);
@@ -98,7 +142,7 @@ void PlayerDispatch::Update()
   {
     if ((m_flags.m_value & kFlagDialogShown) == 0)
     {
-      AvlNode* dialog = m_trees[2].First();
+      auto* dialog = m_trees[2].First();
       if (dialog)
       {
         UiSetPendingMovie(reinterpret_cast<LPARAM>(dialog));
@@ -255,28 +299,28 @@ void PlayerDispatch::RemoveRecord(int id)
 
 unsigned PlayerDispatch::GetStateValue(int key)
 {
-  IdValueNode* node = static_cast<IdValueNode*>(m_states.FindById(key));
-  if (node)
-    return node->m_value;
+  auto found = m_states.find(static_cast<uint32_t>(key));
+  if (found != m_states.end())
+    return static_cast<unsigned>(found->second);
   return m_defaultState.Get();
 }
 
 void PlayerDispatch::SetDefaultState(int state)
 {
-  m_states.Clear();
+  m_states.clear();
   m_defaultState.m_value = state;
 }
 
 void PlayerDispatch::SetStateValue(int key, int value)
 {
-  IdValueNode* node = static_cast<IdValueNode*>(m_states.FindById(key));
-  if (!node)
+  uint32_t stateKey = static_cast<uint32_t>(key);
+  if (stateKey == 0)
   {
-    node = NewOrNull<IdValueNode>(0);
-    node->SetId(key);
-    m_states.AddWithId(node);
+    if (!m_states.empty() && m_states.rbegin()->first == std::numeric_limits<uint32_t>::max())
+      return;
+    stateKey = m_states.empty() ? 1 : m_states.rbegin()->first + 1;
   }
-  node->m_value = value;
+  m_states[stateKey] = value;
 }
 
 void PlayerDispatch::RefreshRecords()
@@ -287,7 +331,7 @@ void PlayerDispatch::RefreshRecords()
   m_unk50 = 0;
   while (position != m_trees[0].Entries().end())
   {
-    UiNotice* notice = static_cast<UiNotice*>((position++)->get());
+    UiNotice* notice = static_cast<UiNotice*>((*(position++)).get());
     if (!notice->IsStale())
     {
       if ((notice->m_flags.m_value & 0x10) != 0)
@@ -363,16 +407,16 @@ void PlayerDispatch::ClearAlerts(unsigned mask)
   }
   for (const auto& entry : m_trees[0].Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(entry.get());
+    auto* node = entry.get();
     UiNotice* notice = static_cast<UiNotice*>(node);
     if ((notice->m_categories & mask) != 0 || mask == 0)
       notice->m_flags.m_value &= 0xffffffef;
   }
 }
 
-void PlayerDispatch::AddCharacterNotice(const IdNode* record)
+void PlayerDispatch::AddCharacterNotice(int value)
 {
-  Notice42* notice = NewOrNull<Notice42>(m_side, record);
+  Notice42* notice = NewOrNull<Notice42>(m_side, value);
   if (notice->m_unk40 != 0)
   {
     notice->SetId(UiNextId());

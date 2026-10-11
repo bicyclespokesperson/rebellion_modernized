@@ -1,5 +1,4 @@
 #include "ui/bitmap_overlay.h"
-
 #include "gfx/dib_bitmap.h"
 
 BitmapOverlay::BitmapOverlay() : m_bitmap(nullptr), m_x(0), m_y(0)
@@ -44,26 +43,12 @@ void BitmapOverlay::GetRect(RECT* rect)
   rect->bottom = bitmap->Height() + m_y;
 }
 
-BitmapOverlayTree::BitmapOverlayTree() = default;
-
-BitmapOverlayTree::~BitmapOverlayTree() = default;
-
-int BitmapOverlayTree::IsLess(AvlNode* a, AvlNode* b)
+uint32_t BitmapOverlayTree::AddWithId(BitmapOverlay* overlay)
 {
-  if (!a || !b)
-    return 0;
-  BitmapOverlay* first = static_cast<BitmapOverlay*>(a);
-  BitmapOverlay* second = static_cast<BitmapOverlay*>(b);
-  return first->GetBitmap()->Height() / 2 + first->m_y < second->GetBitmap()->Height() / 2 + second->m_y;
+  return m_overlays.AddWithId(overlay);
 }
 
 BitmapOverlay* BitmapOverlayTree::FindOverlay(uint32_t id)
 {
-  for (const auto& entry : Entries())
-  {
-    auto* overlay = static_cast<BitmapOverlay*>(entry.get());
-    if (overlay->m_id == id)
-      return overlay;
-  }
-  return nullptr;
+  return m_overlays.FindById(id);
 }

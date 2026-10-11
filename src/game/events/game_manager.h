@@ -1,4 +1,5 @@
 #pragma once
+class MessageBase;
 // The game manager (0x51cd00-0x51ebc0, VT 0x65ecf4): owned by the game-step driver; it owns the game clock, the
 // three scheduler queues, the notification tree, and the game root. Everything that happens on a schedule in the
 // game is an item in one of its queues; the frame step (game_step_driver.h) calls AdvanceTick once per game tick and
@@ -64,7 +65,7 @@ public:
   // which 1 or 2: replaces the snapshot of that side. Returns 0 for any other value.
   int SetSnapshot(GameStateSnapshot* snapshot, int which); // 0x51d830
   // Hands a received notification to the tree.
-  void AddNotice(IdNode* notice); // 0x51d880
+  void AddNotice(MessageBase* notice); // 0x51d880
 
   void ScheduleTimer(TimedEvent* timer, int delay); // 0x51d8a0, queue +0xa8; due day = today + delay
   void ScheduleCommand(EventBase* event); // 0x51d8d0, queue +0xac

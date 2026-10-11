@@ -1,8 +1,10 @@
 #pragma once
 #include <cstdint>
+#include <list>
+#include <memory>
 #include <string>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/strstream_io.h"
 #include "platform/win32.h"
 
@@ -92,13 +94,16 @@ public:
 };
 
 // Tree of RectNodes ordered by (left, right, top, bottom).
-class RectTree : public AvlTree
+class RectTree
 {
 public:
-  RectTree(); // 0x601500
-  ~RectTree() override; // 0x601540 (scalar deleting destructor 0x601520)
-  int IsLess(AvlNode* a, AvlNode* b) override; // 0x6015a0
+  ~RectTree();
+  void Clear();
+  void Insert(RectNode* node);
 
   // First node, in tree order, whose rectangle contains the point.
   RectNode* FindContaining(int x, int y); // 0x601550
+
+private:
+  std::list<std::unique_ptr<RectNode>> m_rectangles;
 };

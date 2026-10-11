@@ -180,7 +180,7 @@ ManufactureOrderWindow::ManufactureOrderWindow(HINSTANCE instance,
   uint32_t nextItemId = 0;
   for (const auto& ownedNode : names.Entries())
   {
-    auto* node = static_cast<AvlNode*>(ownedNode.get());
+    auto* node = ownedNode.get();
     ObjectNameNode* nameNode = static_cast<ObjectNameNode*>(node);
     std::string name;
     nameNode->GetName(&name);

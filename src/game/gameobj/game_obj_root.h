@@ -2,7 +2,7 @@
 #include <cstddef>
 #include <cstdint>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/stream_io.h"
 #include "gameobj/object_key.h"
 #include "gameobj/status_code.h"

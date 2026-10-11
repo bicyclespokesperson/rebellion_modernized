@@ -440,7 +440,7 @@ int AiTask3::ChooseManager()
   auto position = m_targets.Entries().begin();
   while (position != m_targets.Entries().end() && !found)
   {
-    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ++position;
     m_manager = KeyOfNode(node);
     if (!IsSystemKey(m_manager))

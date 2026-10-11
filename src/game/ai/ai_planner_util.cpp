@@ -32,7 +32,7 @@ int SumLeaderValue(AiMissionPlanner* planner, int valueIndex)
     for (auto position = planner->m_leaders.Entries().begin(); position != planner->m_leaders.Entries().end();
          ++position)
     {
-      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
       const ObjectKey key = KeyOfNode(node);
       AiCharacterRecord* character = static_cast<AiCharacterRecord*>(planner->m_characters->Find(&key));
       if (character)
@@ -285,7 +285,7 @@ void ChooseCandidateTarget(AiFreePlanner* planner, const CharacterHunt& hunt)
           for (auto position = fleet->m_shipKeys.Entries().begin(); position != fleet->m_shipKeys.Entries().end();
                ++position)
           {
-            ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+            ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
             const ObjectKey shipKey = ai::KeyOfNode(node);
             GameObjNotifier* ship = GetObjectInFamilies_14_1c(planner->m_view, &shipKey);
             if (ship)
@@ -310,7 +310,7 @@ void ChooseCandidateTarget(AiFreePlanner* planner, const CharacterHunt& hunt)
       --steps;
     } while (position != candidates.Entries().end());
     if (position != candidates.Entries().end())
-      planner->m_target = ai::KeyOfNode(static_cast<ObjectKeyNode*>(position->get()));
+      planner->m_target = ai::KeyOfNode(static_cast<ObjectKeyNode*>((*position).get()));
   }
 }
 

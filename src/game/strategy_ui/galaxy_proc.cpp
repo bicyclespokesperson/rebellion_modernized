@@ -279,7 +279,7 @@ LRESULT GalaxyWindow::OnKeyDown(WPARAM key, LPARAM lParam)
   {
     for (const auto& ownedNode : m_children.Entries())
     {
-      auto* node = static_cast<AvlNode*>(ownedNode.get());
+      auto* node = ownedNode.get();
       if (static_cast<CoolGameWindow*>(node)->m_flags & kGameWindowPopup)
       {
         popupOpen = true;

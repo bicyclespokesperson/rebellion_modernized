@@ -130,7 +130,7 @@ void TacticalShipBase::BuildStatusRecord(TacticalShipStatusRecord* out)
       UnitRefNode* first = static_cast<UnitRefNode*>(group->m_formationB.FirstNode());
       if (first != nullptr)
         record.m_firstMember = static_cast<UnitRefNode*>(group->m_formationB.FirstNode())->Key();
-      AvlNode* second = group->m_targetsB.FirstNode();
+      auto* second = group->m_targetsB.FirstNode();
       if (second != nullptr)
         record.m_secondGroupItem = static_cast<IdNode*>(group->m_targetsB.FirstNode())->m_id;
     }

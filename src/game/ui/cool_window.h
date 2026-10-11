@@ -1,10 +1,12 @@
 #pragma once
 #include <cstdint>
 #include <list>
+#include <map>
 #include <memory>
+#include <ranges>
 #include <string>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "platform/win32.h"
 
 // "Cool" is Coolhand's in-house GUI toolkit (shared with their StarTrader). Every screen, panel and control of
@@ -31,16 +33,27 @@ public:
   CoolWindow* m_window; // +0x1c
 };
 
-// Tree of HwndNodes ordered by window handle (shares IdAvlTree's comparison, which reads the dword at +0x18).
-class HwndTree : public AvlTree
+// HwndNodes ordered by numeric window handle.
+class HwndTree
 {
 public:
   HwndTree(); // 0x60f020
-  ~HwndTree() override; // 0x60f060
-  int IsLess(AvlNode* a, AvlNode* b) override;
+  ~HwndTree(); // 0x60f060
+  HwndTree(const HwndTree&) = delete;
+  HwndTree& operator=(const HwndTree&) = delete;
+  int Insert(HwndNode* node);
+  void Remove(HwndNode* node);
+  const auto& Entries() const
+  {
+    return m_nodes;
+  }
 
   HwndNode* FindByHwnd(HWND hwnd); // 0x60f070
   void RemoveAndDelete(HWND hwnd); // 0x60f0b0
+
+private:
+  using NodeList = std::list<std::unique_ptr<HwndNode>>;
+  NodeList m_nodes;
 };
 
 // One entry of g_popupStack: the HwndNode of an open popup window (owned by the entry).
@@ -54,23 +67,46 @@ public:
 };
 
 // The children of a window, ordered by child id (+0x24); the windows themselves are the nodes.
-class ChildWindowTree : public AvlTree
+class ChildWindowTree
 {
 public:
   ChildWindowTree(); // 0x604490
-  ~ChildWindowTree() override; // 0x6044d0
-  int IsLess(AvlNode* a, AvlNode* b) override; // 0x6044e0
+  ~ChildWindowTree(); // 0x6044d0
+  ChildWindowTree(const ChildWindowTree&) = delete;
+  ChildWindowTree& operator=(const ChildWindowTree&) = delete;
+  int Insert(CoolWindow* window);
+  void Remove(CoolWindow* window);
+  void Clear();
+  size_t Count() const
+  {
+    return m_children.size();
+  }
+  bool Empty() const
+  {
+    return m_children.empty();
+  }
+  CoolWindow* First() const
+  {
+    return m_children.empty() ? nullptr : m_children.begin()->second.get();
+  }
+  auto Entries() const
+  {
+    return std::views::values(m_children);
+  }
+  auto PositionOf(const CoolWindow* window) const
+  {
+    return std::ranges::find_if(Entries(),
+                                [window](const auto& owned)
+                                {
+                                  return owned.get() == window;
+                                });
+  }
 
   CoolWindow* FindById(uint32_t id); // 0x604500
   CoolWindow* FindByHwnd(HWND hwnd); // 0x604540
-};
 
-// IdAvlTree used as an array element by the animation resource classes (0x404220, 0x412a90).
-class IdAvlTreeElement : public IdAvlTree
-{
-public:
-  IdAvlTreeElement(); // 0x5fef50
-  ~IdAvlTreeElement() override; // 0x5fef70
+private:
+  std::map<uint32_t, std::unique_ptr<CoolWindow>> m_children;
 };
 
 // ---- CoolWindow -------------------------------------------------------------------------------------------
@@ -231,5 +267,5 @@ extern HINSTANCE g_stringModule; // 0x6be5ac module LoadResourceString reads
 extern HHOOK g_mouseHook; // 0x6be5b0
 extern HCURSOR g_defaultCursor; // 0x6be5b4 cursor given to every window that does not set kCoolOwnCursor
 extern std::list<std::unique_ptr<PopupEntry>> g_popupStack; // 0x6be4e0 of PopupEntry
-extern IdAvlTree g_windowRegistry; // 0x6be4e8 ids are CoolWindow addresses
+extern std::map<uint32_t, CoolWindow*> g_windowRegistry; // 0x6be4e8 ids are CoolWindow addresses
 extern HPALETTE g_displayPalette; // 0x6be4c0 the palette SetIdentityPalette installed (DibBitmap::DrawToDc selects it)

@@ -1,8 +1,12 @@
 #pragma once
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <map>
+#include <memory>
+#include <ranges>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "core/stream_io.h"
 #include "gameobj/game_obj_root.h"
@@ -42,12 +46,44 @@ public:
 };
 
 // A parent's children, sorted by (family, id). m_ok is saved with the list.
-class ChildList : public IdAvlTree
+class ChildList
 {
 public:
+  void Clear()
+  {
+    decltype(m_nodes) detached;
+    m_nodes.swap(detached);
+    m_nextId = 1;
+  }
+  size_t Count() const
+  {
+    return m_nodes.size();
+  }
+  bool Empty() const
+  {
+    return m_nodes.empty();
+  }
+  auto Entries() const
+  {
+    return std::views::values(m_nodes);
+  }
+  auto PositionOf(const GameObjNotifier* node) const
+  {
+    return std::ranges::find(Entries(), node,
+                             [](const auto& owned)
+                             {
+                               return owned.get();
+                             });
+  }
+  GameObjNotifier* First() const
+  {
+    return Empty() ? nullptr : m_nodes.begin()->second.get();
+  }
+  void Remove(GameObjNotifier* node);
+  uint32_t AddWithId(GameObjNotifier* node);
+
   ChildList();
-  ~ChildList() override;
-  int IsLess(AvlNode* a, AvlNode* b) override;
+  ~ChildList();
 
   int Read(istream* in);
   int Write(ostream* out);
@@ -58,22 +94,57 @@ public:
   GameObjNotifier* FindFirstInRange(const FamilyRange* range) const;
 
   int m_ok; // +0x0c
+private:
+  std::map<uint32_t, std::unique_ptr<GameObjNotifier>> m_nodes;
+  uint32_t m_nextId = 1;
 };
 
-// The database itself (VT 0x66a220, 0x585b20-0x585f80): an IdAvlTree of ObjectEntries ordered by key.
-class ObjectDatabase : public IdAvlTree
+// The database itself (VT 0x66a220, 0x585b20-0x585f80): an ID registry of ObjectEntries ordered by key.
+class ObjectDatabase
 {
 public:
+  void Clear()
+  {
+    decltype(m_nodes) detached;
+    m_nodes.swap(detached);
+    m_nextId = 1;
+  }
+  size_t Count() const
+  {
+    return m_nodes.size();
+  }
+  bool Empty() const
+  {
+    return m_nodes.empty();
+  }
+  auto Entries() const
+  {
+    return std::views::values(m_nodes);
+  }
+  auto PositionOf(const ObjectEntry* node) const
+  {
+    return std::ranges::find(Entries(), node,
+                             [](const auto& owned)
+                             {
+                               return owned.get();
+                             });
+  }
+  ObjectEntry* First() const
+  {
+    return Empty() ? nullptr : m_nodes.begin()->second.get();
+  }
+  void Remove(ObjectEntry* node);
+  uint32_t AddWithId(ObjectEntry* node);
+
   ObjectDatabase(); // 0x585b20
-  ~ObjectDatabase() override; // 0: 0x585b40 (deleting), 0x585b60
-  int IsLess(AvlNode* a, AvlNode* b) override; // 2: 0x585f50
+  ~ObjectDatabase(); // 0: 0x585b40 (deleting), 0x585b60
 
   // Puts the object in the entry of its key (creating the entry); 0 for a null object.
   int AddObject(GameObjNotifier* object); // 0x585b70
   // Takes the object out of its entry and deletes the entry once it holds no object; 1 if the object was in it.
   int RemoveObject(GameObjNotifier* object); // 0x585c70
-  int DetachEntry(AvlNode* entry); // 0x585d40: unlinks the node; 1 unless it is null
-  int DeleteEntry(AvlNode* entry); // 0x585d60
+  int DetachEntry(ObjectEntry* entry); // 0x585d40: unlinks the node; 1 unless it is null
+  int DeleteEntry(ObjectEntry* entry); // 0x585d60
   int AreAllLinked(); // 0x585d90
   ObjectEntry* FindEntry(const ObjectKey* key); // 0x585dc0
   // The entry with the lowest key whose family is the range's first family or, failing that, the next entry if it lies in
@@ -81,6 +152,9 @@ public:
   ObjectEntry* FindEntryInRange(const FamilyRange* range); // 0x585e40
 
   int m_ok; // +0x0c
+private:
+  std::map<uint32_t, std::unique_ptr<ObjectEntry>> m_nodes;
+  uint32_t m_nextId = 1;
 };
 
 extern ObjectDatabase* g_objectDatabase; // 0x6b90e4

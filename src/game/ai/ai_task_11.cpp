@@ -360,7 +360,7 @@ OrderBase* AiTask11::BuildFleetMoveOrder()
   {
     for (auto position = fleet->m_shipKeys.Entries().begin(); position != fleet->m_shipKeys.Entries().end(); ++position)
     {
-      ObjectKeyNode* ship = static_cast<ObjectKeyNode*>(position->get());
+      ObjectKeyNode* ship = static_cast<ObjectKeyNode*>((*position).get());
       ObjectKey key = KeyOfNode(ship);
       AiShipRecord* record = static_cast<AiShipRecord*>(owner->m_ships.Find(&key));
       if (record && (record->m_flags.m_value & 0x1000) != 0 && (record->m_flags.m_value & 0x800800) == 0)
@@ -627,7 +627,7 @@ int AiTask11::ChooseManager()
   auto position = m_targets.Entries().begin();
   while (position != m_targets.Entries().end() && !found)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
     ++position;
     m_manager = KeyOfNode(node);
     if (!IsSystemKey(m_manager))
@@ -702,7 +702,7 @@ void AiTask11::ChooseClassMask()
   m_classMask = 0;
   for (const auto& entry : m_owner->m_systemRecords.Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(entry.get());
+    auto* node = entry.get();
     const uint32_t flags = static_cast<AiSystemRecord*>(node)->m_flagsB.m_value;
     const uint32_t taken = m_flags28.m_value;
     if ((flags & 1) != 0 && (taken & 0x1000000) == 0)

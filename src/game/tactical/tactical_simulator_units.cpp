@@ -24,7 +24,7 @@ ShipGroup* findGroup(int handle)
   return ShipGroupOf(GetTacticalRegistry()->FindShipGroup(handle));
 }
 
-TacticalCharacterUnit* findCharacter(IdAvlTree& characters, int handle)
+TacticalCharacterUnit* findCharacter(TacticalCharacterTree& characters, int handle)
 {
   return static_cast<TacticalCharacterUnit*>(characters.FindById(handle));
 }
@@ -81,7 +81,7 @@ void HeadlessSimulator::RetireUnit(TacticalShipBase* unit)
   while (dockedEntry != ship->m_docked->Entries().end())
   {
     auto current = dockedEntry++;
-    auto* node = static_cast<UnitRefNode*>(current->get());
+    auto* node = static_cast<UnitRefNode*>((*current).get());
     RetireUnit(node->Value());
   }
   ship->m_docked->Clear();
@@ -89,7 +89,7 @@ void HeadlessSimulator::RetireUnit(TacticalShipBase* unit)
   while (launchedEntry != ship->m_launched->Entries().end())
   {
     auto current = launchedEntry++;
-    auto* node = static_cast<UnitRefNode*>(current->get());
+    auto* node = static_cast<UnitRefNode*>((*current).get());
     RetireUnit(node->Value());
   }
   ship->m_launched->Clear();
@@ -246,7 +246,7 @@ void retireAll(HeadlessSimulator* simulator, UnitRefTree* units, bool clearAfter
   while (entry != units->Entries().end())
   {
     auto current = entry++;
-    auto* node = static_cast<UnitRefNode*>(current->get());
+    auto* node = static_cast<UnitRefNode*>((*current).get());
     simulator->RetireUnit(node->Value());
   }
   if (clearAfterwards)
@@ -272,7 +272,7 @@ void HeadlessSimulator::DeathStarAttackRun(ShipGroup* group)
     ++nextPosition;
     if (nextPosition == units.Entries().end())
       nextPosition = units.Entries().begin();
-    auto* next = nextPosition == units.Entries().end() ? nullptr : static_cast<UnitRefNode*>(nextPosition->get());
+    auto* next = nextPosition == units.Entries().end() ? nullptr : static_cast<UnitRefNode*>((*nextPosition).get());
     if (++visits > kMaxVisits)
     {
       retireAll(this, &units, false);

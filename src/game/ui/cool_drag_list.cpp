@@ -1,5 +1,6 @@
 #include "ui/cool_drag_list.h"
 #include "core/game_string.h"
+#include <algorithm>
 #include <string>
 
 #include <cstring>
@@ -41,33 +42,112 @@ CoolListItemList::CoolListItemList(int sortMode) : m_sortMode(0)
   m_sortMode.m_value = sortMode;
 }
 
-CoolListItemList::~CoolListItemList() = default;
+CoolListItemList::~CoolListItemList()
+{
+  Clear();
+}
 
-int CoolListItemList::IsLess(LinkNode* a, LinkNode* b)
+bool CoolListItemList::IsLess(const CoolListItem* first, const CoolListItem* second) const
 {
   const uint32_t mode = static_cast<uint32_t>(m_sortMode.m_value);
-  CoolListItem* first = static_cast<CoolListItem*>(a);
-  CoolListItem* second = static_cast<CoolListItem*>(b);
   if (mode & kSortById)
     return first->m_id < second->m_id;
   if (mode & kSortByLabel)
     return _stricmp(first->m_text.c_str(), second->m_text.c_str()) < 0;
   if (mode & kSortByUserData)
     return static_cast<int>(first->m_userData) < static_cast<int>(second->m_userData);
-  return 0;
+  return false;
+}
+
+int CoolListItemList::Insert(CoolListItem* item)
+{
+  if (!item || PositionOf(item) != m_items.cend())
+    return false;
+  auto position = m_items.begin();
+  while (position != m_items.end() && !IsLess(item, (*position).get()))
+    ++position;
+  std::unique_ptr<CoolListItem> pending(item);
+  try
+  {
+    m_items.insert(position, std::move(pending));
+  }
+  catch (...)
+  {
+    pending.release();
+    throw;
+  }
+  return true;
+}
+
+int CoolListItemList::InsertBefore(CoolListItem* item, CoolListItem* anchor)
+{
+  if (!item || PositionOf(item) != m_items.cend())
+    return false;
+  auto position = m_items.cend();
+  if (anchor)
+  {
+    position = PositionOf(anchor);
+    if (position == m_items.cend())
+      return false;
+  }
+  std::unique_ptr<CoolListItem> pending(item);
+  try
+  {
+    m_items.insert(position, std::move(pending));
+  }
+  catch (...)
+  {
+    pending.release();
+    throw;
+  }
+  return true;
+}
+
+int CoolListItemList::Remove(CoolListItem* item)
+{
+  const auto position = std::find_if(m_items.begin(), m_items.end(),
+                                     [item](const auto& owned)
+                                     {
+                                       return owned.get() == item;
+                                     });
+  if (position == m_items.end())
+    return false;
+  position->release();
+  m_items.erase(position);
+  return true;
+}
+
+void CoolListItemList::Clear()
+{
+  ItemList detached;
+  detached.swap(m_items);
+}
+
+std::list<std::unique_ptr<CoolListItem>>::const_iterator CoolListItemList::PositionOf(const CoolListItem* item) const
+{
+  return std::find_if(m_items.cbegin(), m_items.cend(),
+                      [item](const auto& owned)
+                      {
+                        return owned.get() == item;
+                      });
 }
 
 // Return the first item through the owning sorted list.
 CoolListItem* CoolListItemList::First()
 {
-  return static_cast<CoolListItem*>(SortedLinkList::First());
+  return m_items.empty() ? nullptr : m_items.front().get();
+}
+
+CoolListItem* CoolListItemList::Last()
+{
+  return m_items.empty() ? nullptr : m_items.back().get();
 }
 
 CoolListItem* CoolListItemList::FindById(uint32_t id)
 {
-  for (const auto& entry : Entries())
+  for (const auto& entry : m_items)
   {
-    auto* item = static_cast<CoolListItem*>(entry.get());
+    auto* item = entry.get();
     if (item->m_id == id)
       return item;
   }
@@ -949,7 +1029,7 @@ LRESULT Paint(CoolDragList* list, HWND hwnd)
     auto position = list->m_items->PositionOf(item);
     for (; position != list->m_items->Entries().end(); ++position)
     {
-      item = static_cast<CoolListItem*>(position->get());
+      item = static_cast<CoolListItem*>((*position).get());
       if (item->m_x > right || item->m_y > bottom)
         break;
       if (!item->m_text.empty())
@@ -1022,7 +1102,7 @@ LRESULT KeyDown(CoolDragList* list, WPARAM key, LPARAM lParam)
           else
           {
             --position;
-            target = static_cast<CoolListItem*>(position->get());
+            target = static_cast<CoolListItem*>((*position).get());
           }
         }
       }
@@ -1050,7 +1130,7 @@ LRESULT KeyDown(CoolDragList* list, WPARAM key, LPARAM lParam)
               continue;
             }
             position = next;
-            target = static_cast<CoolListItem*>(position->get());
+            target = static_cast<CoolListItem*>((*position).get());
           }
         }
       }
@@ -1075,7 +1155,7 @@ LRESULT KeyDown(CoolDragList* list, WPARAM key, LPARAM lParam)
       {
         auto position = list->m_items->PositionOf(current);
         --position;
-        target = static_cast<CoolListItem*>(position->get());
+        target = static_cast<CoolListItem*>((*position).get());
       }
       break;
     case VK_DOWN:
@@ -1094,7 +1174,7 @@ LRESULT KeyDown(CoolDragList* list, WPARAM key, LPARAM lParam)
         }
         else
         {
-          target = static_cast<CoolListItem*>(position->get());
+          target = static_cast<CoolListItem*>((*position).get());
         }
       }
       break;

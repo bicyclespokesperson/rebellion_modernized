@@ -38,7 +38,7 @@ ChildIterator* ChildIterator::Advance()
       if (position != m_parent->m_children->Entries().end())
         ++position;
       m_current =
-        position == m_parent->m_children->Entries().end() ? nullptr : static_cast<GameObjNotifier*>(position->get());
+        position == m_parent->m_children->Entries().end() ? nullptr : static_cast<GameObjNotifier*>((*position).get());
     }
     atEnd = m_current == nullptr;
     accepted = atEnd ? 1 : Accepts();

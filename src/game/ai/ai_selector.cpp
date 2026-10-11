@@ -2,14 +2,7 @@
 
 #include "core/checked_new.h"
 
-namespace
-{
-
-} // namespace
-
-AiRankedSelector::AiRankedSelector() : IdSortedLinkList()
-{
-}
+AiRankedSelector::AiRankedSelector() = default;
 
 AiRankedSelector::~AiRankedSelector()
 {
@@ -49,10 +42,31 @@ void AiRankedSelector::Write(ostream* out)
 
 void AiRankedSelector::Add(AiRankedList* list)
 {
-  if (list)
-    AddWithId(list);
-  else
-    AddWithId(nullptr);
+  if (!list)
+    return;
+  const uint32_t oldId = list->m_id;
+  const uint32_t id = oldId == 0 ? m_nextId : oldId;
+  if (id == 0)
+    return;
+  for (const auto& entry : m_lists)
+    if (entry->m_id == id)
+      return;
+  if (oldId == 0)
+    list->m_id = id;
+  auto position = m_lists.begin();
+  for (; position != m_lists.end() && (*position)->m_id < id; ++position)
+  {
+  }
+  m_lists.emplace(position, list);
+  if (m_nextId != 0 && m_nextId <= id)
+    m_nextId = id + 1;
+}
+
+void AiRankedSelector::Reset()
+{
+  decltype(m_lists) detached;
+  m_lists.swap(detached);
+  m_nextId = 1;
 }
 
 int AiRankedSelector::AddRankOf(const ObjectKey* key, int* total, AiRankedList* list)
@@ -61,7 +75,7 @@ int AiRankedSelector::AddRankOf(const ObjectKey* key, int* total, AiRankedList* 
   auto position = list->Entries().begin();
   while (position != list->Entries().end() && !found)
   {
-    auto* item = static_cast<AiRankedItem*>(position->get());
+    auto* item = static_cast<AiRankedItem*>((*position).get());
     ObjectKey itemKey;
     if (item->GetKey(&itemKey)->m_value == key->m_value)
     {
@@ -88,7 +102,7 @@ ObjectKey* AiRankedSelector::PickBest(ObjectKey* out)
     auto position = first->Entries().begin();
     while (position != first->Entries().end())
     {
-      auto* item = static_cast<AiRankedItem*>(position->get());
+      auto* item = static_cast<AiRankedItem*>((*position).get());
       int inAll = 1;
       ObjectKey itemKey;
       current = *item->GetKey(&itemKey);
@@ -97,7 +111,7 @@ ObjectKey* AiRankedSelector::PickBest(ObjectKey* out)
       ++listPosition;
       for (; listPosition != Entries().end(); ++listPosition)
       {
-        auto* other = static_cast<AiRankedList*>(listPosition->get());
+        auto* other = static_cast<AiRankedList*>((*listPosition).get());
         if (!inAll)
           break;
         inAll = AddRankOf(&current, &score, other);

@@ -313,7 +313,7 @@ int ManuMgr::EstimateLastQueuedBuildTime(StatusCode* status, int* turns)
     setStatus(status, kManuStatusCategory, 1);
   if ((m_flags & kSideMaskBits) == kAllianceOnly && isOk(status))
   {
-    AvlNode* last = static_cast<ManuMgr*>(ViewAs(0))->GetQueue()->Last();
+    auto* last = static_cast<ManuMgr*>(ViewAs(0))->GetQueue()->Last();
     ok = last != nullptr;
     if (last)
     {
@@ -469,7 +469,7 @@ int ManuMgr::UpdateTotalRequired(NotifyContext* ctx)
   int total = 0;
   for (const auto& entry : static_cast<ManuMgrData*>(m_data)->m_queue.Entries())
   {
-    AvlNode* node = entry.get();
+    auto* node = entry.get();
     ObjectKey key = nodeKey(node);
     GameObjNotifier* product = GetMasterInFamilies_01_ff(&key);
     ok = 0;
@@ -510,7 +510,7 @@ int ManuMgr::ChooseProduct(NotifyContext* ctx)
   {
     if (chosen.OrNull() != nullptr)
       break;
-    AvlNode* node = entry.get();
+    auto* node = entry.get();
     ObjectKey key = nodeKey(node);
     GameObjNotifier* candidate = GetMasterInFamilies_01_ff(&key);
     result = candidate != nullptr;
@@ -597,7 +597,7 @@ int ManuMgr::DestroyProducts(NotifyContext* ctx)
   for (auto position = queue.Entries().begin(); position != queue.Entries().end();)
   {
     auto current = position++;
-    AvlNode* node = current->get();
+    auto* node = (*current).get();
     ObjectKey key = nodeKey(node);
     GameObj* product = static_cast<GameObj*>(GetMasterInFamilies_01_ff(&key));
     result = 0;
@@ -614,7 +614,7 @@ int ManuMgr::CreateProducts(ObjectKeySet* products, int unused, NotifyContext* c
   int result = 1;
   for (const auto& entry : products->Entries())
   {
-    AvlNode* node = entry.get();
+    auto* node = entry.get();
     ObjectKey key = nodeKey(node);
     GameObj* location = static_cast<GameObj*>(GetMasterInFamilies_01_ff(&key));
     result = 0;
@@ -659,7 +659,7 @@ int ManuMgr::ReparentQueue(ObjectKeySet* products, const ObjectKey* target, Noti
     for (auto position = products->Entries().begin(); position != products->Entries().end();)
     {
       auto current = position++;
-      AvlNode* node = current->get();
+      auto* node = (*current).get();
       GameObj* object = static_cast<GameObj*>(GetMasterInFamilies_01_ff(nodeValueAsKey(node)));
       result = 0;
       if (object)

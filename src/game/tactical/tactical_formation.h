@@ -1,7 +1,9 @@
 #pragma once
 #include <cstdint>
+#include <memory>
+#include <set>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "tactical/tactical_lists.h"
 #include "tactical/tactical_math.h"
 #include "tactical/tactical_moving_object.h"
@@ -30,14 +32,35 @@ public:
 };
 
 // Slots sorted by (float, int) (VT 0x66d928).
-class FormationRankTree : public AvlTree
+struct FormationRankNode : AvlNode
+{
+  float m_primary;
+  float m_secondary;
+};
+
+class FormationRankTree
 {
 public:
   FormationRankTree()
   {
   }
-  ~FormationRankTree() override; // 0x5ec5e0 (scalar deleting destructor 0x5ec5c0)
-  int IsLess(AvlNode* a, AvlNode* b) override; // 0x5ec570
+  ~FormationRankTree();
+  void Insert(FormationRankNode* node);
+  void Remove(FormationRankNode* node);
+  void Clear();
+  FormationRankNode* First() const;
+  const auto& Entries() const
+  {
+    return m_nodes;
+  }
+
+private:
+  struct NodeOrder
+  {
+    bool operator()(const std::unique_ptr<FormationRankNode>& a, const std::unique_ptr<FormationRankNode>& b) const;
+  };
+  std::multiset<std::unique_ptr<FormationRankNode>, NodeOrder> m_nodes;
+  bool m_clearing = false;
 };
 
 // The formation of a group (0x140 bytes; the class of a group's formation is the base of CapitalShipFormation and

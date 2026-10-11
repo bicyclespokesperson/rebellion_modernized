@@ -2,7 +2,7 @@
 #include <cstdint>
 
 #include "ai/ai_selector.h"
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
 

@@ -133,7 +133,7 @@ void AiTaskRecord::Release()
   auto position = m_ships.Entries().begin();
   while (position != m_ships.Entries().end())
   {
-    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ++position;
     ObjectKey key = KeyOfNode(node);
     RemoveShip(&key);
@@ -272,7 +272,7 @@ void AiTaskRecord::ReleaseShips()
   auto position = m_ships.Entries().begin();
   while (position != m_ships.Entries().end())
   {
-    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ++position;
     bool keep = false;
     ObjectKey key = KeyOfNode(node);
@@ -315,7 +315,7 @@ OrderBase* AiTaskRecord::SendIdleMessage()
     systemKey = fleet->m_systemKey;
     for (auto position = fleet->m_shipKeys.Entries().begin(); position != fleet->m_shipKeys.Entries().end(); ++position)
     {
-      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
       ObjectKey key = KeyOfNode(node);
       AiShipRecord* ship = static_cast<AiShipRecord*>(m_owner->m_ships.Find(&key));
       if (ship && (ship->m_flags.m_value & 0x801000) != 0 && (ship->m_flags.m_value & 0x800) == 0)
@@ -431,7 +431,7 @@ OrderBase* AiTaskRecord::MoveCharacters()
       for (auto position = fleet->m_shipKeys.Entries().begin(); position != fleet->m_shipKeys.Entries().end();
            ++position)
       {
-        ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
         ObjectKey recordKey = KeyOfNode(node);
         AiShipRecord* ship = static_cast<AiShipRecord*>(m_owner->m_ships.Find(&recordKey));
         ObjectKey objectKey = KeyOfNode(node);
@@ -515,7 +515,7 @@ struct ShipHarvest
         for (auto position = fleet->m_shipKeys.Entries().begin();
              position != fleet->m_shipKeys.Entries().end() && found == 0; ++position)
         {
-          ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+          ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
           ObjectKey key = KeyOfNode(node);
           AiShipRecord* ship = static_cast<AiShipRecord*>(task->m_owner->m_ships.Find(&key));
           if (!ship)
@@ -622,7 +622,7 @@ OrderBase* AiTaskRecord::Reinforce()
   auto position = m_ships.Entries().begin();
   while (position != m_ships.Entries().end() && !found)
   {
-    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ++position;
     ObjectKey key = KeyOfNode(node);
     AiShipRecord* ship = static_cast<AiShipRecord*>(m_owner->m_ships.Find(&key));

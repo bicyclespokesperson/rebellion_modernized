@@ -1,5 +1,7 @@
 #include "ui/sprite_stage.h"
 
+#include <algorithm>
+
 #include "core/checked_new.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/cool_window.h"
@@ -11,39 +13,98 @@ SpriteTree::SpriteTree()
   m_nextId = 0;
 }
 
-SpriteTree::~SpriteTree() = default;
-
-int SpriteTree::IsLess(AvlNode* a, AvlNode* b)
+SpriteTree::~SpriteTree()
 {
-  int less = 0;
-  if (a && b && static_cast<Sprite*>(a)->m_depth < static_cast<Sprite*>(b)->m_depth)
-    less = 1;
-  return less;
+  Clear();
+}
+
+bool SpriteTree::SpriteDepthLess::operator()(const std::unique_ptr<Sprite>& first,
+                                             const std::unique_ptr<Sprite>& second) const
+{
+  return first->m_depth < second->m_depth;
 }
 
 void SpriteTree::Add(Sprite* sprite)
 {
+  if (!sprite || std::ranges::any_of(m_sprites,
+                                     [sprite](const auto& owned)
+                                     {
+                                       return owned.get() == sprite;
+                                     }))
+    return;
   if (sprite->m_id == 0)
     sprite->m_id = ++m_nextId;
   if (m_nextId < sprite->m_id)
     m_nextId = sprite->m_id;
-  Insert(sprite);
+  std::unique_ptr<Sprite> pending(sprite);
+  try
+  {
+    m_sprites.insert(std::move(pending));
+  }
+  catch (...)
+  {
+    pending.release();
+    throw;
+  }
 }
 
 Sprite* SpriteTree::FindById(uint32_t id)
 {
-  for (const auto& entry : Entries())
+  for (const auto& entry : m_sprites)
   {
-    auto* sprite = static_cast<Sprite*>(entry.get());
+    auto* sprite = entry.get();
     if (sprite->m_id == id)
       return sprite;
   }
   return nullptr;
 }
 
+void SpriteTree::Remove(Sprite* sprite)
+{
+  const auto found = std::find_if(m_sprites.begin(), m_sprites.end(),
+                                  [sprite](const auto& owned)
+                                  {
+                                    return owned.get() == sprite;
+                                  });
+  if (found != m_sprites.end())
+  {
+    auto detached = m_sprites.extract(found);
+    detached.value().release();
+  }
+}
+
+void SpriteTree::Clear()
+{
+  decltype(m_sprites) detached;
+  detached.swap(m_sprites);
+}
+
 AnimatorTree::AnimatorTree() = default;
 
-AnimatorTree::~AnimatorTree() = default;
+AnimatorTree::~AnimatorTree()
+{
+  Clear();
+}
+
+uint32_t AnimatorTree::AddWithId(SpriteAnimator* animator)
+{
+  return m_animators.AddWithId(animator);
+}
+
+SpriteAnimator* AnimatorTree::FindById(uint32_t id) const
+{
+  return m_animators.FindById(id);
+}
+
+void AnimatorTree::Remove(SpriteAnimator* animator)
+{
+  m_animators.Remove(animator);
+}
+
+void AnimatorTree::Clear()
+{
+  m_animators.Clear();
+}
 
 namespace
 {
@@ -138,7 +199,7 @@ void SpriteStage::Render(int frame)
   m_resynced = 0;
   for (const auto& entry : m_animators.Entries())
   {
-    SpriteAnimator* animator = static_cast<SpriteAnimator*>(entry.get());
+    SpriteAnimator* animator = entry.get();
     changed = 0;
     for (int step = m_frame; step < frame && !m_resynced; ++step)
       animator->Step(&area, &changed);
@@ -158,7 +219,7 @@ void SpriteStage::Render(int frame)
     m_frame = frame;
   m_resynced = 0;
   for (const auto& entry : m_sprites.Entries())
-    static_cast<Sprite*>(entry.get())->DrawOnto(BackBuffer(), m_originX, m_originY, &area);
+    entry->DrawOnto(BackBuffer(), m_originX, m_originY, &area);
   if (anyChanged)
     m_front = 1 - m_front;
 }
@@ -206,7 +267,7 @@ int SpriteStage::RemoveAnimator(SpriteAnimator* animator)
   int removed = 0;
   if (animator)
   {
-    IdNode* found = m_animators.FindById(animator->m_id);
+    SpriteAnimator* found = m_animators.FindById(animator->m_id);
     if (found && found == animator)
     {
       removed = 1;
@@ -266,7 +327,7 @@ uint32_t SpriteStage::HitTest(int x, int y)
   uint32_t id = 0;
   for (const auto& entry : m_animators.Entries())
   {
-    SpriteAnimator* animator = static_cast<SpriteAnimator*>(entry.get());
+    SpriteAnimator* animator = entry.get();
     if (animator->HitTest(x + dx, y + dy))
     {
       id = animator->m_id;

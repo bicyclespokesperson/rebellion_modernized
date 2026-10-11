@@ -10,6 +10,7 @@
 #include "tactical/tactical_ship.h"
 #include "tactical/tactical_side.h"
 #include "tactical/tactical_units.h"
+#include <compare>
 
 namespace
 {
@@ -42,7 +43,7 @@ int countAboard(Tree& tree, int handle)
   int count = 0;
   for (const auto& entry : tree.Entries())
   {
-    AvlNode* node = entry.get();
+    auto* node = entry.second.get();
     if (static_cast<Unit*>(node)->m_shipHandle == handle)
       ++count;
   }
@@ -171,8 +172,7 @@ float AttackEvaluator::Evaluate(int a, TacticalShipBase* unit)
   float result = score;
   for (const auto& entry : orders.Entries())
   {
-    AvlNode* node = entry.get();
-    const SideOrderNode* order = reinterpret_cast<const SideOrderNode*>(node);
+    const SideOrderNode* order = entry.get();
     if (order->m_unitHandle == static_cast<uint32_t>(static_cast<int>(unit->m_id)))
       result = order->m_weight * kOrderWeight + result;
   }
@@ -221,17 +221,51 @@ ScoredGroupNode::ScoredGroupNode(float priority, ShipGroup* group)
 
 ScoredGroupNode::~ScoredGroupNode() = default;
 
-ScoredGroupTree::~ScoredGroupTree() = default;
-
-int ScoredGroupTree::IsLess(AvlNode* a, AvlNode* b)
+ScoredGroupTree::~ScoredGroupTree()
 {
-  ScoredGroupNode* left = static_cast<ScoredGroupNode*>(a);
-  ScoredGroupNode* right = static_cast<ScoredGroupNode*>(b);
-  if (!differs(left->m_priority, right->m_priority))
-    return left->m_group.GroupBefore(&right->m_group);
-  if (left->m_priority < right->m_priority)
-    return 1;
-  return 0;
+  m_clearing = true;
+  decltype(m_nodes) detached;
+  detached.swap(m_nodes);
+  detached.clear();
+}
+
+bool ScoredGroupTree::NodeOrder::operator()(const std::unique_ptr<ScoredGroupNode>& left,
+                                            const std::unique_ptr<ScoredGroupNode>& right) const
+{
+  if (auto order = std::weak_order(left->m_priority, right->m_priority); order != 0)
+    return order < 0;
+  const ShipGroup* leftGroup = left->m_group.m_group;
+  const ShipGroup* rightGroup = right->m_group.m_group;
+  if (!leftGroup || !rightGroup)
+    return !leftGroup && rightGroup;
+  return leftGroup->m_id < rightGroup->m_id;
+}
+
+void ScoredGroupTree::Insert(ScoredGroupNode* node)
+{
+  if (!m_clearing && node)
+  {
+    std::unique_ptr<ScoredGroupNode> pending(node);
+    try
+    {
+      m_nodes.insert(std::move(pending));
+    }
+    catch (...)
+    {
+      pending.release();
+      throw;
+    }
+  }
+}
+
+ScoredGroupNode* ScoredGroupTree::First() const
+{
+  return m_nodes.empty() ? nullptr : m_nodes.begin()->get();
+}
+
+ScoredGroupNode* ScoredGroupTree::Last() const
+{
+  return m_nodes.empty() ? nullptr : m_nodes.rbegin()->get();
 }
 
 int FormationEvaluator::Assign(TacticalSideBase* side, GroupRefTree* groups, TargetPriorityTree* targets, float limit)
@@ -282,7 +316,7 @@ int FormationEvaluator::Assign(TacticalSideBase* side, GroupRefTree* groups, Tar
     for (auto candidatePosition = scored.Entries().rbegin(); candidatePosition != scored.Entries().rend();
          ++candidatePosition)
     {
-      auto* candidate = static_cast<ScoredGroupNode*>(candidatePosition->get());
+      auto* candidate = static_cast<ScoredGroupNode*>((*candidatePosition).get());
       if (!differs(candidate->m_priority, first->m_priority) && candidate->m_group.SameGroup(&first->m_group))
         break;
       const float time = side->InterceptTime(target->m_unit.m_unit, candidate->m_group.m_group, &strength, &speed);
@@ -291,7 +325,7 @@ int FormationEvaluator::Assign(TacticalSideBase* side, GroupRefTree* groups, Tar
       for (auto assignedPosition = scored.Entries().rbegin(); assignedPosition != scored.Entries().rend();
            ++assignedPosition)
       {
-        auto* assigned = static_cast<ScoredGroupNode*>(assignedPosition->get());
+        auto* assigned = static_cast<ScoredGroupNode*>((*assignedPosition).get());
         TacticalShipBase* targetUnit = target->m_unit.m_unit;
         GetHeadlessSimulator()->AssignTarget(targetUnit, assigned->m_group.m_group);
         remaining.DeleteById(assigned->m_group.m_group->m_id);

@@ -81,33 +81,39 @@ Table::Table()
 
 Table::~Table() = default;
 
+uint32_t Table::AddEntry(TableEntry* entry)
+{
+  return m_entries.AddWithId(entry);
+}
+
 void Table::Add(TableEntry* entry)
 {
   if (entry)
-    m_entries.AddWithId(entry);
+    AddEntry(entry);
 }
 
 TableEntry* Table::FindStepEntry(int value)
 {
-  auto position = m_entries.Entries().begin();
-  if (position != m_entries.Entries().end())
+  const auto entries = m_entries.Entries();
+  auto position = entries.begin();
+  if (position != entries.end())
   {
-    AvlNode* node = position->get();
+    auto* node = (*position).get();
     do
     {
       if (value < static_cast<TableEntry*>(node)->m_field20)
         break;
       ++position;
-      node = position == m_entries.Entries().end() ? nullptr : position->get();
-    } while (position != m_entries.Entries().end());
+      node = position == entries.end() ? nullptr : (*position).get();
+    } while (position != entries.end());
     if (node)
     {
-      if (position == m_entries.Entries().begin())
+      if (position == entries.begin())
         return static_cast<TableEntry*>(node);
-      return static_cast<TableEntry*>(std::prev(position)->get());
+      return static_cast<TableEntry*>((*std::prev(position)).get());
     }
   }
-  return static_cast<TableEntry*>(m_entries.Last());
+  return m_entries.Last();
 }
 
 int Table::Read(istream* in)
@@ -139,7 +145,7 @@ int Table::Read(istream* in)
       return 0;
     }
     ok = entry->Read(in);
-    if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || m_entries.AddWithId(entry) == 0)
+    if (!ok || (iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || AddEntry(entry) == 0)
     {
       delete entry;
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
@@ -161,7 +167,7 @@ int Table::Write(ostream* out)
   ostream_write(out, m_name, length);
   for (const auto& entry : m_entries.Entries())
   {
-    AvlNode* node = entry.get();
+    auto* node = entry.get();
     ok = static_cast<TableEntry*>(node)->Write(out);
     if (!ok)
       return 0;
@@ -179,7 +185,7 @@ int Table::Checksum(Crc32* crc)
   crc->Update(reinterpret_cast<const uint8_t*>(m_name), length);
   for (const auto& entry : m_entries.Entries())
   {
-    AvlNode* node = entry.get();
+    auto* node = entry.get();
     ok = static_cast<TableEntry*>(node)->Checksum(crc);
     if (!ok)
       break;

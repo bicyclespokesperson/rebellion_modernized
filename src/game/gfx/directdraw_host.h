@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "platform/win32.h"
 
 // Owns the display interfaces and mode state used by the application.

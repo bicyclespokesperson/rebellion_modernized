@@ -1,5 +1,7 @@
 #include "ui/cool_label.h"
+#include <algorithm>
 #include <string>
+#include <tuple>
 
 #include "core/checked_new.h"
 #include "core/game_string.h"
@@ -252,39 +254,33 @@ void CoolLabel::ReplaceTextFromStream(HWND hwnd, HDC dc, StrStream* stream)
   Invalidate(hwnd, TRUE);
 }
 
-RectTree::RectTree() = default;
-
-RectTree::~RectTree() = default;
-
-int RectTree::IsLess(AvlNode* a, AvlNode* b)
+RectTree::~RectTree()
 {
-  const RectNode* first = static_cast<const RectNode*>(a);
-  const RectNode* second = static_cast<const RectNode*>(b);
-  if (second->m_left <= first->m_left)
-  {
-    if (second->m_left < first->m_left)
-      return 0;
-    if (second->m_right <= first->m_right)
-    {
-      if (second->m_right < first->m_right)
-        return 0;
-      if (second->m_top <= first->m_top)
-      {
-        if (second->m_top < first->m_top)
-          return 0;
-        if (second->m_bottom <= first->m_bottom)
-          return 0;
-      }
-    }
-  }
-  return 1;
+  Clear();
+}
+
+void RectTree::Clear()
+{
+  std::list<std::unique_ptr<RectNode>> oldRectangles;
+  oldRectangles.swap(m_rectangles);
+}
+
+void RectTree::Insert(RectNode* node)
+{
+  auto position = std::find_if(m_rectangles.begin(), m_rectangles.end(),
+                               [node](const auto& other)
+                               {
+                                 return std::tie(node->m_left, node->m_right, node->m_top, node->m_bottom) <
+                                        std::tie(other->m_left, other->m_right, other->m_top, other->m_bottom);
+                               });
+  m_rectangles.emplace(position, node);
 }
 
 RectNode* RectTree::FindContaining(int x, int y)
 {
-  for (const auto& entry : Entries())
+  for (const auto& entry : m_rectangles)
   {
-    auto* node = static_cast<RectNode*>(entry.get());
+    auto* node = entry.get();
     if (x >= node->m_left && node->m_right >= x && y >= node->m_top && node->m_bottom >= y)
       return node;
   }

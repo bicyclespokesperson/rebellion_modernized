@@ -1,8 +1,9 @@
 #pragma once
 #include <cstdint>
+#include <list>
+#include <memory>
 #include <string>
 
-#include "core/containers.h"
 #include "core/game_string.h"
 #include "core/utility_classes.h"
 #include "platform/win32.h"
@@ -25,17 +26,41 @@ enum CoolListSortMode : uint32_t
 };
 
 // The items of a drag list, kept sorted. Also used on its own by many game windows.
-class CoolListItemList : public SortedLinkList
+class CoolListItemList
 {
 public:
   explicit CoolListItemList(int sortMode); // 0x60a790
-  ~CoolListItemList() override; // 0x60a810 (scalar deleting destructor 0x60a7f0)
-  int IsLess(LinkNode* a, LinkNode* b) override; // 0x60a890
+  virtual ~CoolListItemList(); // 0x60a810 (scalar deleting destructor 0x60a7f0)
+  CoolListItemList(const CoolListItemList&) = delete;
+  CoolListItemList& operator=(const CoolListItemList&) = delete;
+  int Insert(CoolListItem* item);
+  int InsertBefore(CoolListItem* item, CoolListItem* anchor);
+  int Remove(CoolListItem* item);
+  void Clear();
+  bool Empty() const
+  {
+    return m_items.empty();
+  }
+  size_t Count() const
+  {
+    return m_items.size();
+  }
+  const auto& Entries() const
+  {
+    return m_items;
+  }
+  std::list<std::unique_ptr<CoolListItem>>::const_iterator PositionOf(const CoolListItem* item) const;
   virtual CoolListItem* First(); // slot 2, 0x60beb0 (linker-folded with CoolListItem::Next)
+  CoolListItem* Last();
 
   CoolListItem* FindById(uint32_t id); // 0x60a860
 
   PersistentInt m_sortMode; // +0x0c CoolListSortMode
+
+private:
+  using ItemList = std::list<std::unique_ptr<CoolListItem>>;
+  ItemList m_items;
+  bool IsLess(const CoolListItem* a, const CoolListItem* b) const;
 };
 
 // ---- CoolDragList ----------------------------------------------------------------------------------------------

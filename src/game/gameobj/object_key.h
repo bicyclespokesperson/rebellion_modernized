@@ -1,8 +1,13 @@
 #pragma once
+#include "core/id_registry.h"
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
+#include <map>
+#include <memory>
+#include <ranges>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 
@@ -13,11 +18,11 @@
 //
 //   ObjectKey            4-byte key value; a default-constructed key is the "unset" value 2
 //   NullableKey          4-byte key where 0 means empty
-//   ObjectKeyNode        AVL node holding a key (VT 0x65ca50)
+//   ObjectKeyNode        polymorphic record holding a key (VT 0x65ca50)
 //   ObjectKeyValueNode   ObjectKeyNode + an int payload (VT 0x65d1f0)
 //   ObjectKeySet         tree of ObjectKeyNodes ordered by key (VT 0x65d1c8)
 //   ObjectKeyValueSet    ObjectKeySet of ObjectKeyValueNodes (VT 0x65d040)
-//   ObjectRefNode/List   IdAvlTree of {id, int, int, ObjectKey} records (VT 0x661aec / 0x65d030)
+//   ObjectRefNode/List   ID registry of {id, int, int, ObjectKey} records (VT 0x661aec / 0x65d030)
 
 class Crc32;
 
@@ -110,14 +115,13 @@ public:
   int m_value; // +0x1c
 };
 
-class ObjectKeySet : public AvlTree
+class ObjectKeySet
 {
 public:
   ObjectKeySet();
   // Copies the other set's nodes (through Clone).
   explicit ObjectKeySet(const ObjectKeySet& other);
-  ~ObjectKeySet() override;
-  int IsLess(AvlNode* a, AvlNode* b) override;
+  virtual ~ObjectKeySet();
   virtual ObjectKeyNode* NewNode();
   virtual void Load(istream* in);
   virtual void Read(istream* in);
@@ -127,18 +131,62 @@ public:
 
   ObjectKeySet& operator=(const ObjectKeySet& other);
 
-  // Inserts the node unless its key is incomplete (then the node is leaked). Returns the id part of the node's key
-  // (of the unset key, 2, for a null node), so a non-zero result does not mean the node was inserted.
+  // Adopts a complete key and returns its ID; rejected nodes remain with the caller.
   uint32_t Add(ObjectKeyNode* node);
   int AddKey(const ObjectKey* key);
   void RemoveKey(const ObjectKey* key);
   ObjectKeyNode* Detach(const ObjectKey* key);
   ObjectKeyNode* Find(const ObjectKey* key);
 
+  void Clear();
+  size_t Count() const
+  {
+    return m_keys.size();
+  }
+  bool Empty() const
+  {
+    return m_keys.empty();
+  }
   ObjectKeyNode* First() const
   {
-    return static_cast<ObjectKeyNode*>(AvlTree::First());
+    return Empty() ? nullptr : m_keys.begin()->get();
   }
+  ObjectKeyNode* Last() const
+  {
+    return Empty() ? nullptr : m_keys.rbegin()->get();
+  }
+  const auto& Entries() const
+  {
+    return m_keys;
+  }
+  auto PositionOf(const ObjectKeyNode* node) const
+  {
+    return std::ranges::find_if(m_keys,
+                                [node](const auto& owned)
+                                {
+                                  return owned.get() == node;
+                                });
+  }
+  void Remove(ObjectKeyNode* node);
+
+private:
+  struct KeyOrder
+  {
+    using is_transparent = void;
+    bool operator()(const std::unique_ptr<ObjectKeyNode>& a, const std::unique_ptr<ObjectKeyNode>& b) const
+    {
+      return a->m_key.m_value < b->m_key.m_value;
+    }
+    bool operator()(const std::unique_ptr<ObjectKeyNode>& a, uint32_t key) const
+    {
+      return a->m_key.m_value < key;
+    }
+    bool operator()(uint32_t key, const std::unique_ptr<ObjectKeyNode>& b) const
+    {
+      return key < b->m_key.m_value;
+    }
+  };
+  std::multiset<std::unique_ptr<ObjectKeyNode>, KeyOrder> m_keys;
 };
 
 class ObjectKeyValueSet : public ObjectKeySet
@@ -179,21 +227,71 @@ public:
   ObjectKey m_key; // +0x24
 };
 
-// IdAvlTree of ObjectRefNodes; m_ok records whether the last Copy/Read/Add succeeded.
-class ObjectRefList : public IdAvlTree
+// ID registry of ObjectRefNodes; m_ok records whether the last Copy/Read/Add succeeded.
+class ObjectRefList
 {
 public:
+  void Clear()
+  {
+    m_registry.Clear();
+  }
+  size_t Count() const
+  {
+    return m_registry.Count();
+  }
+  bool Empty() const
+  {
+    return m_registry.Empty();
+  }
+  auto Entries() const
+  {
+    return m_registry.Entries();
+  }
+  auto PositionOf(const ObjectRefNode* node) const
+  {
+    return m_registry.PositionOf(node);
+  }
+  ObjectRefNode* First() const
+  {
+    return m_registry.First();
+  }
+  ObjectRefNode* Last() const
+  {
+    return m_registry.Last();
+  }
+  ObjectRefNode* FindById(uint32_t id) const
+  {
+    return m_registry.FindById(id);
+  }
+  ObjectRefNode* DetachById(uint32_t id)
+  {
+    return m_registry.DetachById(id);
+  }
+  void DeleteById(uint32_t id)
+  {
+    m_registry.DeleteById(id);
+  }
+  void Remove(ObjectRefNode* node)
+  {
+    m_registry.Remove(node);
+  }
+  uint32_t AddWithId(ObjectRefNode* node)
+  {
+    return m_registry.AddWithId(node);
+  }
   ObjectRefList();
-  ~ObjectRefList() override;
+  ~ObjectRefList();
 
   ObjectRefList& operator=(const ObjectRefList& other);
   int Read(istream* in);
   int Write(ostream* out);
   int Checksum(Crc32* crc);
   int Add(ObjectRefNode* node);
-  uint16_t Size() const;
+  size_t Size() const;
   // Appends a new node for `key`; returns it, or null if allocation or insertion failed.
   ObjectRefNode* AddKey(ObjectKey key);
 
   int m_ok; // +0x0c
+private:
+  IdRegistry<ObjectRefNode> m_registry;
 };

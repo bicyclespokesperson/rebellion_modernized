@@ -91,7 +91,7 @@ int FindTrainerInKeySet(int side, ObjectKeyValueSet* set, void** out)
   *out = nullptr;
   for (const auto& nodeEntry : set->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
     if (!(!*out && result))
       break;
 
@@ -123,7 +123,7 @@ int FindTrainerInRefList(int side, ObjectRefList* list, void** out)
   *out = nullptr;
   for (const auto& nodeEntry : list->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
     if (!(!*out && result))
       break;
 
@@ -158,7 +158,7 @@ int CheckStudentKeySet(ObjectKeySet* set, TrainingOrderCheck* check, StatusCode*
   }
   for (const auto& nodeEntry : set->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
     if (!(result && status->m_second == static_cast<uint32_t>(mission_status::kOk)))
       break;
 
@@ -201,7 +201,7 @@ int CheckStudentRefList(ObjectRefList* list, TrainingOrderCheck* check, StatusCo
   }
   for (const auto& nodeEntry : list->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
     if (!(result && status->m_second == static_cast<uint32_t>(mission_status::kOk)))
       break;
 

@@ -3,7 +3,7 @@
 #include "core/iostream_lib.h"
 #include "core/stream_io.h"
 
-MessageTree::MessageTree() : IdAvlTree()
+MessageTree::MessageTree()
 {
   m_unk0c = 1;
 }
@@ -29,7 +29,7 @@ void MessageTree::Read(istream* in)
       return;
     }
     message->Read(in);
-    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || !AddWithId(static_cast<IdNode*>(message)))
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0 || !AddWithId(message))
     {
       delete message;
       iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
@@ -44,7 +44,7 @@ void MessageTree::Write(ostream* out)
     return;
   for (auto nodePosition = Entries().begin(); nodePosition != Entries().end();)
   {
-    AvlNode* node = static_cast<AvlNode*>((nodePosition++)->get());
+    auto* node = (*(nodePosition++)).get();
 
     MessageBase* message = static_cast<MessageBase*>(node);
     int kind = message->GetKind();
@@ -53,7 +53,7 @@ void MessageTree::Write(ostream* out)
   }
 }
 
-void MessageTree::Adopt(IdNode* message)
+void MessageTree::Adopt(MessageBase* message)
 {
   if (!message)
     return;
@@ -65,7 +65,7 @@ void MessageTree::Adopt(IdNode* message)
   AddWithId(message);
 }
 
-IdNode* MessageTree::Detach(uint32_t id)
+MessageBase* MessageTree::Detach(uint32_t id)
 {
   return DetachById(id);
 }

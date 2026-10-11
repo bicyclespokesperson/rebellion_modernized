@@ -558,7 +558,7 @@ LRESULT FleetWindow::OnWmCommand(UINT message, WPARAM wParam, LPARAM lParam)
         while (position != m_fleetItems->Entries().end())
         {
           auto current = position++;
-          auto* row = static_cast<FleetListItem*>(current->get());
+          auto* row = static_cast<FleetListItem*>((*current).get());
           if ((row->m_flags.m_value & (kFleetItemFleet | kFleetItemHidden)) != kFleetItemFleet)
             continue;
           if ((row->m_state.m_value & kListItemSelected) == 0)
@@ -941,7 +941,7 @@ void FleetWindow::SyncFleetRows()
       {
         ObjectKey fleetKey;
         fleet->GetKey(&fleetKey);
-        const uint32_t rowKey = static_cast<FleetListItem*>(position->get())->m_key.m_value;
+        const uint32_t rowKey = static_cast<FleetListItem*>((*position).get())->m_key.m_value;
         if (fleetKey.m_value < rowKey)
         {
           AddFleetRow(fleet, &position);
@@ -1009,11 +1009,11 @@ void FleetWindow::RemoveRows(RowIterator* position)
   while (next != m_fleetItems->Entries().end())
   {
     auto current = next++;
-    auto* row = static_cast<FleetListItem*>(current->get());
+    auto* row = static_cast<FleetListItem*>((*current).get());
     if (m_fleetItems->Remove(row))
       delete row;
     if (next != m_fleetItems->Entries().end() &&
-        (static_cast<FleetListItem*>(next->get())->m_flags.m_value & kFleetItemFleet) == 0)
+        (static_cast<FleetListItem*>((*next).get())->m_flags.m_value & kFleetItemFleet) == 0)
     {
       continue;
     }

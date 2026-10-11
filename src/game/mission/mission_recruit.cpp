@@ -228,7 +228,7 @@ int MissionRecruit::CheckCandidateRefs(ObjectRefList* refs, MissionCheckArgs* ch
   *out = 0;
   for (const auto& nodeEntry : refs->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
     if (!(StatusIsOk(status)))
       break;
 

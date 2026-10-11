@@ -1,4 +1,5 @@
 #pragma once
+class ObjectNameList;
 #include <cstdint>
 
 #include "character/character.h"
@@ -237,7 +238,7 @@ public:
   int CollectMissionTypeNamesAtTarget(const ActivityRequest* request,
                                       ObjectKeyValueSet* team,
                                       ObjectKeyValueSet* characters,
-                                      ObjectRefList* out,
+                                      ObjectNameList* out,
                                       StatusCode* status); // 0x5422f0
   // Gathers the people of the order into `everyone` and finds how the mission travels: *resultKey and the travel mode that is
   // stored as the value of every node of `everyone`.
@@ -283,7 +284,7 @@ public:
                            ObjectKeyValueSet* captured,
                            ObjectKeyValueSet* everyone,
                            StatusCode* status); // 0x54bb90
-  int AddRecordName(DatRecord* record, ObjectRefList* out); // 0x54bac0
+  int AddRecordName(DatRecord* record, ObjectNameList* out); // 0x54bac0
   // The location all people share (*out unset if there is none; the status says why).
   int FindCommonOrigin(ObjectKeyValueSet* team, ObjectKey* out, StatusCode* status); // 0x54bf00
   int CheckTeamActivity(const ActivityRequest* request, ObjectKeyValueSet* team, StatusCode* status); // 0x54c110

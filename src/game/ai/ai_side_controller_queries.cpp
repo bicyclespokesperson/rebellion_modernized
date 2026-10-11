@@ -528,7 +528,7 @@ ObjectKey* AiSideController::FindNearestSystemWithFleets(ObjectKey* out,
 
 void AiSideController::RetirePlanner(uint32_t id)
 {
-  IdNode* planner = m_planners.DetachById(id);
+  AiMissionPlanner* planner = m_planners.DetachById(id);
   if (!planner)
     return;
   MarkDirty();
@@ -555,7 +555,7 @@ void AiSideController::CountAgent(AiAgentSimple* agent)
 
 void AiSideController::RetireAgent(uint32_t id)
 {
-  IdNode* agent = m_agents.DetachById(id);
+  AiAgentBase* agent = m_agents.DetachById(id);
   if (!agent)
     return;
   MarkDirty();

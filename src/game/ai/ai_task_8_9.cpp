@@ -110,7 +110,7 @@ void AiTask8::PrepareRecords()
   {
     for (const auto& entry : owner->m_systemRecords.Entries())
     {
-      AvlNode* node = static_cast<AvlNode*>(entry.get());
+      auto* node = entry.get();
       if ((static_cast<AiSystemRecord*>(node)->m_flagsA.m_value & kRecordHasNoDemandFlag) == 0)
         anyWithDemand = true;
     }
@@ -142,7 +142,7 @@ int AiTask8::NextRecord()
   auto position = m_owner->m_systemRecords.PositionOf(record);
   ++position;
   m_recordCursor =
-    position == m_owner->m_systemRecords.Entries().end() ? 0 : static_cast<AiSystemRecord*>(position->get())->m_id;
+    position == m_owner->m_systemRecords.Entries().end() ? 0 : static_cast<AiSystemRecord*>((*position).get())->m_id;
   return found;
 }
 
@@ -299,7 +299,8 @@ int AiTask9::NextRecord()
   m_recordId = record->m_id;
   auto position = m_owner->m_tasks.PositionOf(record);
   ++position;
-  m_recordCursor = position == m_owner->m_tasks.Entries().end() ? 0 : static_cast<AiTaskRecord*>(position->get())->m_id;
+  m_recordCursor =
+    position == m_owner->m_tasks.Entries().end() ? 0 : static_cast<AiTaskRecord*>((*position).get())->m_id;
   return found;
 }
 

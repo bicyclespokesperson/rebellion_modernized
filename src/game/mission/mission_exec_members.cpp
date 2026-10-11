@@ -224,7 +224,7 @@ int MissionMgr::ReleaseSystemPersons(GameObj* system, int* moved, NotifyContext*
       for (auto position = persons.Entries().begin(); position != persons.Entries().end() && (!hasFreePerson);
            ++position)
       {
-        ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
         ObjectKey nodeKey;
         node->GetKey(&nodeKey);
         if (InFamilies(&nodeKey, kFamilyPersonBegin, kFamilyPersonEnd))

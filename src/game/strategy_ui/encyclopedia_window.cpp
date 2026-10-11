@@ -626,7 +626,7 @@ void EncyclopediaWindow::OnCommand(int, int command, int)
           position = items.Entries().end();
         else
           position = std::prev(position);
-        while (position != items.Entries().end() && !static_cast<ObjectListItem*>(position->get())->m_visible)
+        while (position != items.Entries().end() && !static_cast<ObjectListItem*>((*position).get())->m_visible)
         {
           if (forwards)
             position = std::next(position);
@@ -638,7 +638,7 @@ void EncyclopediaWindow::OnCommand(int, int command, int)
       }
       if (position != items.Entries().end())
       {
-        CoolListItem* item = static_cast<CoolListItem*>(position->get());
+        CoolListItem* item = static_cast<CoolListItem*>((*position).get());
         SetRect(&area, 0xc, 0x1f, 0x19c, 0xe7);
         m_list->SelectById(item->m_id, 0);
         m_searchField->SetText(item->m_text.c_str());
@@ -681,11 +681,11 @@ void EncyclopediaWindow::OnKeyDown(WPARAM key, LPARAM lParam)
       {
         CoolStrobeButton* current = m_filterTabs->m_selected;
         uint32_t currentId = current ? current->m_childId : 0;
-        AvlNode* tab = m_filterTabs->m_children.FindById(currentId);
+        auto* tab = m_filterTabs->m_children.FindById(currentId);
         auto position = m_filterTabs->m_children.PositionOf(tab);
         if (position == m_filterTabs->m_children.Entries().end())
         {
-          AvlNode* first = m_filterTabs->m_children.First();
+          auto* first = m_filterTabs->m_children.First();
           if (first)
             m_filterTabs->SelectTab(static_cast<CoolWindow*>(first)->m_childId, 1);
         }
@@ -699,7 +699,7 @@ void EncyclopediaWindow::OnKeyDown(WPARAM key, LPARAM lParam)
             position = std::next(position);
           while (position != m_filterTabs->m_children.Entries().end())
           {
-            tab = position->get();
+            tab = (*position).get();
             CoolWindow* window = static_cast<CoolWindow*>(tab);
             if (IsWindowVisible(window->m_hwnd))
             {
@@ -922,16 +922,16 @@ void EncyclopediaWindow::UpdateNavigationButtons(CoolListItem* item)
   while (previous != items.Entries().begin() && previous != items.Entries().end())
   {
     --previous;
-    if (static_cast<ObjectListItem*>(previous->get())->m_visible)
+    if (static_cast<ObjectListItem*>((*previous).get())->m_visible)
       break;
   }
   if (position != items.Entries().end() && previous != position &&
-      static_cast<ObjectListItem*>(previous->get())->m_visible)
+      static_cast<ObjectListItem*>((*previous).get())->m_visible)
     m_previousButton->Enable();
   else
     m_previousButton->Disable();
   auto next = position == items.Entries().end() ? position : std::next(position);
-  while (next != items.Entries().end() && !static_cast<ObjectListItem*>(next->get())->m_visible)
+  while (next != items.Entries().end() && !static_cast<ObjectListItem*>((*next).get())->m_visible)
     ++next;
   if (next != items.Entries().end())
     m_nextButton->Enable();

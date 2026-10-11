@@ -1,24 +1,15 @@
 #pragma once
 #include <cstdint>
 #include <string>
+#include <vector>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "platform/win32.h"
 #include "ui/cool_scrollable.h"
 #include "ui/cool_window.h"
 
 class DibBitmap;
-
-// Character index of the first character of a line that was scrolled past (TextScrollField::m_lineStarts).
-class TextLineStart : public IdLinkNode
-{
-public:
-  explicit TextLineStart(int charIndex); // inlined in 0x420450
-  ~TextLineStart() override; // 0x4204f0 (scalar deleting destructor 0x4204d0)
-
-  int m_charIndex; // +0x10
-};
 
 // A place in the text: character index and the pixel position of the caret in front of it.
 struct TextPosition
@@ -123,7 +114,6 @@ public:
   TextPosition m_caret; // +0x13c
   TextPosition m_selectionStart; // +0x148 never set
   TextPosition m_selectionEnd; // +0x154 never set
-  IdSortedLinkList m_lineStarts; // +0x160 of TextLineStart
-  TextLineStart* m_lastLineStart; // +0x170
+  std::vector<int> m_lineStarts;
   int m_topIndex; // +0x174 index of the first visible character
 };

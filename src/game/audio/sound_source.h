@@ -3,7 +3,7 @@
 
 #include "audio/sound_buffer.h"
 #include "audio/wave_info.h"
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/stream_io.h"
 
 class SoundRequest;

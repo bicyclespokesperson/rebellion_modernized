@@ -152,7 +152,7 @@ OrderBase* BuildCapitalOrder(const FamilyFields& f, const FamilyParams& p, Facil
   auto position = f.targets->Entries().begin();
   while (position != f.targets->Entries().end())
   {
-    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ++position;
     if (found)
       break;
@@ -399,7 +399,7 @@ void RefreshTargets(const FamilyFields& f, const FamilyParams& p)
       auto position = pending.Entries().begin();
       while (position != pending.Entries().end())
       {
-        auto* node = static_cast<ObjectKeyNode*>(position->get());
+        auto* node = static_cast<ObjectKeyNode*>((*position).get());
         ++position;
         AiSystemEval* eval = EvalOf(f, KeyOfNode(node));
         if (eval)

@@ -172,12 +172,36 @@ void AiSystemRecord::Read(istream* in)
   ReadValue32(in, &m_xbc);
   ReadValue32(in, &m_xc0);
   ReadValue32(in, &m_xc4);
-  m_planners.Read(in);
+  m_planners.clear();
+  uint32_t plannerCount = 0;
+  ReadValue32(in, &plannerCount);
+  for (uint32_t index = 0; index < plannerCount; ++index)
+  {
+    uint32_t id = 0;
+    ReadValue32(in, &id);
+    if (id == 0 || !m_planners.insert(id).second)
+    {
+      iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+      return;
+    }
+  }
   for (int& value : m_agentCount)
     ReadValue32(in, &value);
   ReadValue32(in, &m_xe0);
   ReadValue32(in, &m_xe4);
-  m_agents.Read(in);
+  m_agents.clear();
+  uint32_t agentCount = 0;
+  ReadValue32(in, &agentCount);
+  for (uint32_t index = 0; index < agentCount; ++index)
+  {
+    uint32_t id = 0;
+    ReadValue32(in, &id);
+    if (id == 0 || !m_agents.insert(id).second)
+    {
+      iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+      return;
+    }
+  }
   ReadValue32(in, &m_dirty);
   m_ships.Load(in);
   m_fleets.Load(in);
@@ -214,12 +238,18 @@ void AiSystemRecord::Write(ostream* out)
   WriteValue32(out, &m_xbc);
   WriteValue32(out, &m_xc0);
   WriteValue32(out, &m_xc4);
-  m_planners.Write(out);
+  uint32_t plannerCount = static_cast<uint32_t>(m_planners.size());
+  WriteValue32(out, &plannerCount);
+  for (uint32_t id : m_planners)
+    WriteValue32(out, &id);
   for (int& value : m_agentCount)
     WriteValue32(out, &value);
   WriteValue32(out, &m_xe0);
   WriteValue32(out, &m_xe4);
-  m_agents.Write(out);
+  uint32_t agentCount = static_cast<uint32_t>(m_agents.size());
+  WriteValue32(out, &agentCount);
+  for (uint32_t id : m_agents)
+    WriteValue32(out, &id);
   WriteValue32(out, &m_dirty);
   m_ships.Save(out);
   m_fleets.Save(out);
@@ -268,7 +298,7 @@ void AiSystemRecord::SetTier(uint32_t tier)
   m_tier = tier;
   for (auto position = m_ships.Entries().begin(); position != m_ships.Entries().end(); ++position)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
     ObjectKey key = KeyOfNode(node);
     AiShipRecord* ship = static_cast<AiShipRecord*>(m_owner->m_ships.Find(&key));
     if (ship && ship->m_x30 == static_cast<int>(m_id))
@@ -276,23 +306,20 @@ void AiSystemRecord::SetTier(uint32_t tier)
   }
   for (auto position = m_fleets.Entries().begin(); position != m_fleets.Entries().end(); ++position)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
     AiFleetEval* fleet = m_owner->m_fleets.FindEval(KeyOfNode(node));
     if (fleet && fleet->m_x30 == static_cast<int>(m_id))
       fleet->m_x34 = tier;
   }
-  for (const auto& entry : m_planners.Entries())
+  for (uint32_t id : m_planners)
   {
-    AvlNode* node = static_cast<AvlNode*>(entry.get());
-    AiMissionPlanner* planner =
-      static_cast<AiMissionPlanner*>(m_owner->m_planners.FindById(static_cast<IdNode*>(node)->m_id));
+    AiMissionPlanner* planner = static_cast<AiMissionPlanner*>(m_owner->m_planners.FindById(id));
     if (planner)
       planner->SetTier(tier);
   }
-  for (const auto& entry : m_agents.Entries())
+  for (uint32_t id : m_agents)
   {
-    AvlNode* node = static_cast<AvlNode*>(entry.get());
-    AiAgentBase* agent = static_cast<AiAgentBase*>(m_owner->m_agents.FindById(static_cast<IdNode*>(node)->m_id));
+    AiAgentBase* agent = static_cast<AiAgentBase*>(m_owner->m_agents.FindById(id));
     if (agent)
       agent->SetTier(tier);
   }
@@ -350,12 +377,9 @@ void AiSystemRecord::AddPlanner(AiMissionPlanner* planner)
   const uint32_t id = planner->m_id;
   m_xbc = 0;
   m_xc0 = 0;
-  if (m_planners.FindById(id))
+  if (m_planners.contains(id))
     return;
-  IdNode* node = NewOrNull<IdNode>(id);
-  if (!node)
-    return;
-  m_planners.AddWithId(node);
+  m_planners.insert(id);
   ++m_plannerCount[static_cast<uint16_t>(PlannerClassOf(planner))];
   if (planner->Virtual04() == 1)
   {
@@ -370,10 +394,8 @@ void AiSystemRecord::RemovePlanner(AiMissionPlanner* planner)
 {
   if (!planner)
     return;
-  IdNode* node = m_planners.DetachById(planner->m_id);
-  if (!node)
+  if (m_planners.erase(planner->m_id) == 0)
     return;
-  delete node;
   --m_plannerCount[static_cast<uint16_t>(PlannerClassOf(planner))];
   planner->SetTier(0);
   if (planner->Virtual04() == 1)
@@ -395,12 +417,9 @@ void AiSystemRecord::AddAgent(AiAgentTargeted* agent)
     return;
   m_xe0 = 0;
   const uint32_t id = agent->m_id;
-  if (m_agents.FindById(id))
+  if (m_agents.contains(id))
     return;
-  IdNode* node = NewOrNull<IdNode>(id);
-  if (!node)
-    return;
-  m_agents.AddWithId(node);
+  m_agents.insert(id);
   ++m_agentCount[static_cast<uint16_t>(AgentClassOf(agent))];
   agent->m_systemRecordId = m_id;
   agent->m_sectorKey = m_sectorKey;
@@ -411,10 +430,8 @@ void AiSystemRecord::RemoveAgent(AiAgentTargeted* agent)
 {
   if (!agent)
     return;
-  IdNode* node = m_agents.DetachById(agent->m_id);
-  if (!node)
+  if (m_agents.erase(agent->m_id) == 0)
     return;
-  delete node;
   --m_agentCount[static_cast<uint16_t>(AgentClassOf(agent))];
   agent->m_systemRecordId = 0;
   agent->m_sectorKey.Reset();
@@ -423,7 +440,7 @@ void AiSystemRecord::RemoveAgent(AiAgentTargeted* agent)
 
 int AiSystemRecord::HasAgent(uint32_t id)
 {
-  return m_agents.FindById(id) != nullptr;
+  return m_agents.contains(id);
 }
 
 void AiSystemRecord::GetOrderTargets(int orderKind, ObjectKey* first, ObjectKey* second)
@@ -504,7 +521,7 @@ void AiSystemRecord::Reset()
   auto shipPosition = m_ships.Entries().begin();
   while (shipPosition != m_ships.Entries().end())
   {
-    auto* node = static_cast<ObjectKeyNode*>(shipPosition->get());
+    auto* node = static_cast<ObjectKeyNode*>((*shipPosition).get());
     ObjectKey key = KeyOfNode(node);
     ++shipPosition;
     RemoveShip(&key);
@@ -512,25 +529,24 @@ void AiSystemRecord::Reset()
   auto fleetPosition = m_fleets.Entries().begin();
   while (fleetPosition != m_fleets.Entries().end())
   {
-    auto* node = static_cast<ObjectKeyNode*>(fleetPosition->get());
+    auto* node = static_cast<ObjectKeyNode*>((*fleetPosition).get());
     ObjectKey key = KeyOfNode(node);
     ++fleetPosition;
     RemoveFleet(&key);
   }
-  auto plannerPosition = m_planners.Entries().begin();
-  while (plannerPosition != m_planners.Entries().end())
+  auto plannerPosition = m_planners.begin();
+  while (plannerPosition != m_planners.end())
   {
-    AvlNode* node = plannerPosition->get();
-    const uint32_t id = static_cast<IdNode*>(node)->m_id;
+    const uint32_t id = *plannerPosition;
     ++plannerPosition;
     m_owner->m_planners.ReleasePlanner(id);
   }
-  auto agentPosition = m_agents.Entries().begin();
-  while (agentPosition != m_agents.Entries().end())
+  auto agentPosition = m_agents.begin();
+  while (agentPosition != m_agents.end())
   {
-    AvlNode* node = agentPosition->get();
+    const uint32_t id = *agentPosition;
     ++agentPosition;
-    m_owner->m_agents.ReleaseAgent(static_cast<IdNode*>(node)->m_id);
+    m_owner->m_agents.ReleaseAgent(id);
   }
   for (int& value : m_sum)
     value = 0;
@@ -680,7 +696,7 @@ void AiSystemRecord::ReleaseLostShips()
   auto position = m_ships.Entries().begin();
   while (position != m_ships.Entries().end())
   {
-    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ++position;
     bool keep = false;
     ObjectKey key = KeyOfNode(node);
@@ -712,7 +728,7 @@ void AiSystemRecord::ReleaseLostFleets()
   auto position = m_fleets.Entries().begin();
   while (position != m_fleets.Entries().end())
   {
-    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ++position;
     bool keep = false;
     AiFleetEval* fleet = m_owner->m_fleets.FindEval(KeyOfNode(node));
@@ -740,7 +756,7 @@ OrderBase* AiSystemRecord::RequestReinforcements()
   int moved = 0;
   for (auto position = m_fleets.Entries().begin(); position != m_fleets.Entries().end() && moved == 0; ++position)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
     AiFleetEval* fleet = m_owner->m_fleets.FindEval(KeyOfNode(node));
     if (!fleet || (fleet->m_flags.m_value & 0x3000) == 0 ||
         (static_cast<uint32_t>(fleet->m_flags.m_value) & 0xf0000802) != 0)
@@ -748,7 +764,7 @@ OrderBase* AiSystemRecord::RequestReinforcements()
     systemKey = fleet->m_systemKey;
     for (auto position = fleet->m_shipKeys.Entries().begin(); position != fleet->m_shipKeys.Entries().end(); ++position)
     {
-      ObjectKeyNode* shipNode = static_cast<ObjectKeyNode*>(position->get());
+      ObjectKeyNode* shipNode = static_cast<ObjectKeyNode*>((*position).get());
       ObjectKey key = KeyOfNode(shipNode);
       AiShipRecord* ship = static_cast<AiShipRecord*>(m_owner->m_ships.Find(&key));
       if (ship && (ship->m_flags.m_value & 0x801000) != 0 && (ship->m_flags.m_value & 0x800) == 0)
@@ -771,7 +787,7 @@ void AiSystemRecord::SumCommittedStats()
     value = 0;
   for (auto position = m_fleets.Entries().begin(); position != m_fleets.Entries().end(); ++position)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
     AiFleetEval* fleet = m_owner->m_fleets.FindEval(KeyOfNode(node));
     if (!fleet)
       continue;
@@ -865,11 +881,9 @@ void AiSystemRecord::CountPlanners()
   if (m_xbc != 0)
     m_flagsB.m_value |= 0x100;
   int bestPriority = 2000000000;
-  for (const auto& entry : m_planners.Entries())
+  for (uint32_t id : m_planners)
   {
-    AvlNode* node = static_cast<AvlNode*>(entry.get());
-    AiMissionPlanner* planner =
-      static_cast<AiMissionPlanner*>(m_owner->m_planners.FindById(static_cast<IdNode*>(node)->m_id));
+    AiMissionPlanner* planner = static_cast<AiMissionPlanner*>(m_owner->m_planners.FindById(id));
     if (!planner)
       continue;
     m_flagsB.m_value |= 0x20000000;
@@ -892,10 +906,9 @@ void AiSystemRecord::CountAgents()
   m_xe0 = 0;
   m_xe4 = 0;
   m_flagsA.m_value &= 0xf8ffffff;
-  for (const auto& entry : m_agents.Entries())
+  for (uint32_t id : m_agents)
   {
-    AvlNode* node = static_cast<AvlNode*>(entry.get());
-    AiAgentBase* agent = static_cast<AiAgentBase*>(m_owner->m_agents.FindById(static_cast<IdNode*>(node)->m_id));
+    AiAgentBase* agent = static_cast<AiAgentBase*>(m_owner->m_agents.FindById(id));
     if (!agent)
       continue;
     const uint32_t flags = agent->m_flags.m_value;
@@ -918,11 +931,10 @@ void AiSystemRecord::CountAgents()
   m_posture->GetAgentRequest(&m_xe0);
   if (m_xe0 != 0)
     m_flagsB.m_value |= 0x200;
-  auto position = m_agents.Entries().begin();
-  while (position != m_agents.Entries().end() && m_xe4 == 0)
+  auto position = m_agents.begin();
+  while (position != m_agents.end() && m_xe4 == 0)
   {
-    AvlNode* node = position->get();
-    const uint32_t id = static_cast<IdNode*>(node)->m_id;
+    const uint32_t id = *position;
     if (m_posture->AgentIsNeeded(id) != 0)
       m_xe4 = id;
     ++position;
@@ -958,7 +970,7 @@ struct ShortfallScan
         for (auto position = fleet->m_shipKeys.Entries().begin();
              position != fleet->m_shipKeys.Entries().end() && !settled; ++position)
         {
-          ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+          ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
           ObjectKey key = KeyOfNode(node);
           AiShipRecord* ship = static_cast<AiShipRecord*>(record->m_owner->m_ships.Find(&key));
           if (!ship)
@@ -1099,7 +1111,7 @@ OrderBase* AiSystemRecord::ReleaseSurplus()
   auto position = m_ships.Entries().begin();
   while (position != m_ships.Entries().end() && !found)
   {
-    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ++position;
     ObjectKey key = KeyOfNode(node);
     AiShipRecord* ship = static_cast<AiShipRecord*>(m_owner->m_ships.Find(&key));
@@ -1378,7 +1390,7 @@ void AiSystemRecord::UpdateReserve()
     m_reserveShip.Reset();
     for (auto position = m_fleets.Entries().begin(); position != m_fleets.Entries().end(); ++position)
     {
-      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
       ObjectKey fleetKey = KeyOfNode(node);
       m_selector.Add(m_owner->RankShipsOfFleet(&fleetKey, 0x4000, 0x2803800, 3, 1));
       candidate = *m_selector.PickBest(&scratch);
@@ -1401,7 +1413,7 @@ void AiSystemRecord::UpdateReserve()
   }
   for (auto position = m_ships.Entries().begin(); position != m_ships.Entries().end(); ++position)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
     ObjectKey key = KeyOfNode(node);
     AiShipRecord* ship = static_cast<AiShipRecord*>(m_owner->m_ships.Find(&key));
     if (ship)

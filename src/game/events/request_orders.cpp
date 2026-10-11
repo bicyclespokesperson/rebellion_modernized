@@ -194,7 +194,7 @@ int Order270::CheckDestination(StatusCode* status)
         {
           for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();)
           {
-            Command* command = static_cast<Command*>((commandPosition++)->get());
+            Command* command = static_cast<Command*>((*(commandPosition++)).get());
             if (!(true && ok != 0 && isOk(status)))
               break;
 
@@ -675,7 +675,7 @@ int CheckFleetsCanInvade(ActivityRequest* request, ObjectKeyValueSet* team, Stat
     for (auto position = dependencies.Entries().begin();
          position != dependencies.Entries().end() && (regimentsAboard == 0); ++position)
     {
-      AvlNode* node = static_cast<AvlNode*>(position->get());
+      auto* node = (*position).get();
       ObjectKey fleetKey = keyOfNode(node);
       if (!isFleetKey(fleetKey))
         continue;
@@ -719,7 +719,7 @@ int CheckFleetsCanBeUsed(ActivityRequest* request, ObjectKeyValueSet* team, Stat
     {
       if (stop)
         break;
-      AvlNode* node = entry.get();
+      auto* node = entry.get();
       ObjectKey fleetKey = keyOfNode(node);
       if (isFleetKey(fleetKey))
       {

@@ -534,7 +534,7 @@ void GalaxyWindow::UpdateSystemMarker(const ObjectKey* key, GameObjNotifier* obj
       {
         ObjectKey selectedKey;
         GetObjectKey(system, &selectedKey);
-        if (!m_selectedIds.FindById(selectedKey.Id()))
+        if (!m_selectedIds.contains(selectedKey.Id()))
         {
           reading.m_value = 0;
           reading.m_kind = 0;

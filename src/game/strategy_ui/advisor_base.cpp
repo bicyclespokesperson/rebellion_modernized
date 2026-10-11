@@ -1,3 +1,4 @@
+#include <limits>
 #include <new>
 
 #include "ai/ai_advisor_tasks.h"
@@ -35,9 +36,61 @@ void SetTaskStateRaw(AdvisorTaskBase* task, int value)
 {
   task->m_flags.m_value = value;
 }
-int NoticeKind(IdValueNode* notice)
+int NoticeKind(int notice)
 {
-  return notice->m_value & kNoticeKindMask;
+  return notice & kNoticeKindMask;
+}
+
+void ReadNotices(istream* in, std::map<uint32_t, int>& notices)
+{
+  uint16_t count = 0;
+  ReadValue16(in, &count);
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+    return;
+  uint32_t nextId = 1;
+  while (count-- != 0)
+  {
+    uint32_t id = 0;
+    int value = 0;
+    ReadValue32(in, &id);
+    ReadValue32(in, &value);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+      return;
+    if (id == 0)
+    {
+      if (nextId == 0)
+      {
+        iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+        return;
+      }
+      id = nextId++;
+    }
+    else if (nextId != 0 && nextId <= id)
+      nextId = id + 1;
+    if (!notices.emplace(id, value).second)
+    {
+      iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+      return;
+    }
+  }
+}
+
+void WriteNotices(ostream* out, const std::map<uint32_t, int>& notices)
+{
+  if (notices.size() > std::numeric_limits<uint16_t>::max())
+  {
+    iostream_access::SetState(iostream_access::IosOf(out), iostream_flags::kFail);
+    return;
+  }
+  uint16_t count = static_cast<uint16_t>(notices.size());
+  WriteValue16(out, &count);
+  for (const auto& [id, value] : notices)
+  {
+    uint32_t idValue = id;
+    int noticeValue = value;
+    WriteValue32(out, &idValue);
+    WriteValue32(out, &noticeValue);
+  }
 }
 
 } // namespace
@@ -138,8 +191,8 @@ void AdvisorBase::Read(istream* in, HumanPlayer* player)
   ReadValue32(in, &m_lastSpeechTime);
   ReadValue32(in, &m_unk14c);
   m_flags.Read(in);
-  m_notices.Clear();
-  m_notices.Read(in);
+  m_notices.clear();
+  ReadNotices(in, m_notices);
   m_primaryTask = static_cast<AdvisorTask23*>(Tasks()->FindById(kPrimaryTaskId));
   m_primaryTask->m_advisor = this;
 }
@@ -178,7 +231,7 @@ void AdvisorBase::Write(ostream* out)
   WriteValue32(out, &m_lastSpeechTime);
   WriteValue32(out, &m_unk14c);
   m_flags.Write(out);
-  m_notices.Write(out);
+  WriteNotices(out, m_notices);
 }
 
 // ---- The task machine -----------------------------------------------------------------------------------------
@@ -265,11 +318,10 @@ int AdvisorBase::StepTasks()
       taskPosition = Tasks()->Entries().begin();
     if (taskPosition == Tasks()->Entries().end())
       return 0;
-    m_currentTask = static_cast<AdvisorTaskBase*>(taskPosition->get());
+    m_currentTask = taskPosition->second.get();
     m_currentTask->Evaluate();
     ++taskPosition;
-    m_currentTask =
-      taskPosition == Tasks()->Entries().end() ? nullptr : static_cast<AdvisorTaskBase*>(taskPosition->get());
+    m_currentTask = taskPosition == Tasks()->Entries().end() ? nullptr : taskPosition->second.get();
     if (!m_currentTask)
     {
       m_state = 4;
@@ -443,35 +495,28 @@ void AdvisorBase::FlushPending()
     return;
   if (LoadAdvisorNotices(m_side, &m_notices) != 0)
     m_flags.m_value |= kFlagNoticesCollected;
-  IdValueNode* notice = static_cast<IdValueNode*>(m_notices.Last());
-  while (notice)
+  auto notice = m_notices.end();
+  while (notice != m_notices.begin())
   {
-    auto position = m_notices.PositionOf(notice);
-    auto previousPosition = position;
-    const bool hasPrevious = previousPosition != m_notices.Entries().begin();
-    if (hasPrevious)
-      --previousPosition;
-    if (NoticeKind(notice) == 7 || g_advisorFlushAll != 0)
+    --notice;
+    if (NoticeKind(notice->second) == 7 || g_advisorFlushAll != 0)
     {
-      m_player->Dispatch()->AddCharacterNotice(notice);
-      m_notices.DetachById(notice->m_id);
-      delete notice;
+      m_player->Dispatch()->AddCharacterNotice(notice->second);
+      notice = m_notices.erase(notice);
     }
-    notice = hasPrevious ? static_cast<IdValueNode*>(previousPosition->get()) : nullptr;
   }
 }
 
 void AdvisorBase::SpeakNow()
 {
-  auto noticePosition = m_notices.Entries().begin();
-  IdValueNode* notice =
-    noticePosition == m_notices.Entries().end() ? nullptr : static_cast<IdValueNode*>(noticePosition->get());
-  uint32_t found = 0;
+  auto noticeEnd = m_notices.end();
   if ((m_flags.m_value & kFlagNoticesCollected) == 0)
     FlushPending();
-  while (notice && found == 0)
+  auto noticePosition = m_notices.begin();
+  uint32_t found = 0;
+  while (noticePosition != noticeEnd && found == 0)
   {
-    switch (notice->m_value & kNoticeKindMask)
+    switch (noticePosition->second & kNoticeKindMask)
     {
       default:
         found = 1;
@@ -494,15 +539,11 @@ void AdvisorBase::SpeakNow()
     if (found == 0)
     {
       ++noticePosition;
-      notice = noticePosition == m_notices.Entries().end() ? nullptr : static_cast<IdValueNode*>(noticePosition->get());
     }
     else
     {
-      m_player->Dispatch()->AddCharacterNotice(notice);
-      IdNode* removed = m_notices.DetachById(notice->m_id);
-      if (!removed)
-        break;
-      delete removed;
+      m_player->Dispatch()->AddCharacterNotice(noticePosition->second);
+      m_notices.erase(noticePosition);
       break;
     }
   }
@@ -539,23 +580,19 @@ void AdvisorBase::SpeakTopic(unsigned topic)
   if (kind == 0)
     return;
   bool told = false;
-  auto noticePosition = m_notices.Entries().begin();
-  IdValueNode* notice =
-    noticePosition == m_notices.Entries().end() ? nullptr : static_cast<IdValueNode*>(noticePosition->get());
-  while (notice && !told)
+  auto noticePosition = m_notices.begin();
+  auto noticeEnd = m_notices.end();
+  while (noticePosition != noticeEnd && !told)
   {
-    if (static_cast<uint32_t>(NoticeKind(notice)) == kind)
+    if (static_cast<uint32_t>(NoticeKind(noticePosition->second)) == kind)
     {
-      m_player->Dispatch()->AddCharacterNotice(notice);
+      m_player->Dispatch()->AddCharacterNotice(noticePosition->second);
       told = true;
       m_lastSpeechTime = GameHookTickCount();
-      IdNode* removed = m_notices.DetachById(notice->m_id);
-      if (removed)
-        delete removed;
+      m_notices.erase(noticePosition);
       break;
     }
     ++noticePosition;
-    notice = noticePosition == m_notices.Entries().end() ? nullptr : static_cast<IdValueNode*>(noticePosition->get());
   }
 }
 
@@ -571,7 +608,7 @@ void AdvisorBase::ClearAiHelperFlag(int value)
 void AdvisorBase::ResetTasks()
 {
   for (const auto& ownedNode : Tasks()->Entries())
-    static_cast<IdValueNode*>(ownedNode.get())->m_value = kTaskReady;
+    ownedNode.second->m_flags.m_value = kTaskReady;
 }
 
 int AdvisorBase::PickAdvice()

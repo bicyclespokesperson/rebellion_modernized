@@ -165,7 +165,7 @@ int AiGalaxyAnalysis::AnalyzeStep()
             m_stat[index] = 0;
           for (const auto& entry : m_sectorScans.Entries())
           {
-            AvlNode* node = static_cast<AvlNode*>(entry.get());
+            auto* node = entry.get();
             m_cursor = static_cast<AiSectorScan*>(node);
             AddSectorTotals(m_cursor->m_stat, &m_cursor->m_flagsA.m_value);
           }
@@ -197,7 +197,7 @@ int AiGalaxyAnalysis::AnalyzeStep()
       m_flags.m_value |= kSectorsChanged;
     auto position = m_sectorScans.PositionOf(m_cursor);
     ++position;
-    m_cursor = position == m_sectorScans.Entries().end() ? nullptr : static_cast<AiSectorScan*>(position->get());
+    m_cursor = position == m_sectorScans.Entries().end() ? nullptr : static_cast<AiSectorScan*>((*position).get());
   } while (m_cursor != nullptr);
   if (m_cursor != nullptr)
     return 0;
@@ -293,7 +293,7 @@ AiRankedList* AiGalaxyAnalysis::RankSectors(uint32_t requireA,
     return list;
   for (const auto& entry : m_sectorScans.Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(entry.get());
+    auto* node = entry.get();
     AiSectorScan* scan = static_cast<AiSectorScan*>(node);
     const uint32_t a = scan->m_flagsA.m_value;
     const uint32_t b = scan->m_flagsB.m_value;
@@ -336,7 +336,7 @@ AiRankedList* AiGalaxyAnalysis::RankSectorsByDistance(const ObjectKey* target,
       {
         for (const auto& entry : m_sectorScans.Entries())
         {
-          AvlNode* node = static_cast<AvlNode*>(entry.get());
+          auto* node = entry.get();
           AiSectorScan* scan = static_cast<AiSectorScan*>(node);
           const uint32_t a = scan->m_flagsA.m_value;
           const uint32_t b = scan->m_flagsB.m_value;

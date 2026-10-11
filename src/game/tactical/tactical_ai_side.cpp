@@ -110,7 +110,7 @@ TargetPriorityTree* TacticalAiSide::BuildTargetList()
   for (auto entry = deferred.Entries().begin(); entry != deferred.Entries().end();)
   {
     auto current = entry++;
-    AvlNode* node = current->get();
+    auto* node = (*current).get();
     deferred.Remove(node);
     TargetPriorityNode* last = static_cast<TargetPriorityNode*>(list->Last());
     if (last)
@@ -371,7 +371,7 @@ int TacticalAiSide::StepSide(float step)
         BuildTargetList();
         for (const auto& entry : m_targets[0].Entries())
         {
-          AvlNode* node = entry.get();
+          auto* node = entry.get();
           TacticalShipBase* unit = static_cast<TargetPriorityNode*>(node)->m_unit.m_unit;
           if (unit->GetUnitClass() == kCapitalShipClass)
           {
@@ -416,7 +416,7 @@ int TacticalAiSide::StepSide(float step)
     while (hangarEntry != m_hangars.Entries().end())
     {
       auto current = hangarEntry++;
-      auto* node = static_cast<UnitRefNode*>(current->get());
+      auto* node = static_cast<UnitRefNode*>((*current).get());
       if (node->Value()->TacticalShipBase::UpdateHyperdriveReady() == 0)
       {
         if (GetHeadlessSimulator()->HeadlessSimulator::DockInHangar(node->Value()) == 0)
@@ -437,7 +437,7 @@ int TacticalAiSide::StepSide(float step)
     while (fleetEntry != m_fleet.Entries().end())
     {
       auto current = fleetEntry++;
-      auto* node = static_cast<UnitRefNode*>(current->get());
+      auto* node = static_cast<UnitRefNode*>((*current).get());
       if (node->Value()->TacticalShipBase::UpdateHyperdriveReady() == 1)
       {
         GetHeadlessSimulator()->HeadlessSimulator::DockAtDeathStar(node->Value());

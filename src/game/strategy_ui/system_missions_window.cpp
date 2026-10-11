@@ -954,7 +954,7 @@ int SystemMissionsWindow::FillMissionList()
   while (rowPosition != m_missions->Entries().end())
   {
     auto current = rowPosition++;
-    auto* row = static_cast<ObjectListItem*>(current->get());
+    auto* row = static_cast<ObjectListItem*>((*current).get());
     ObjectKey rowKey;
     row->GetKey(&rowKey);
     if (!seeds.Find(&rowKey))
@@ -970,8 +970,8 @@ int SystemMissionsWindow::FillMissionList()
   auto sidePosition = sides.Entries().begin();
   while (seedPosition != seeds.Entries().end() && sidePosition != sides.Entries().end())
   {
-    auto* seedNode = static_cast<IntPairNode*>(seedPosition->get());
-    auto* sideNode = static_cast<ObjectKeyValueNode*>(sidePosition->get());
+    auto* seedNode = static_cast<IntPairNode*>((*seedPosition).get());
+    auto* sideNode = static_cast<ObjectKeyValueNode*>((*sidePosition).get());
     processed = 1;
     ObjectKey missionKey;
     seedNode->GetKey(&missionKey);

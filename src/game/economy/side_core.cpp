@@ -63,13 +63,13 @@ ProductionFacility* asFacility(GameObjNotifier* object)
 
 // ---- ObjectNameList -----------------------------------------------------------------------------------------
 
-ObjectNameList::ObjectNameList() : IdAvlTree(), m_ok(1)
+ObjectNameList::ObjectNameList() : m_ok(1)
 {
 }
 
 ObjectNameList::~ObjectNameList()
 {
-  IdAvlTree::Clear();
+  Clear();
 }
 
 // ---- construction -------------------------------------------------------------------------------------------

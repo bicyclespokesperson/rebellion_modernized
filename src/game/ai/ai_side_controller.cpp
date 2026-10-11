@@ -573,7 +573,7 @@ int AiSideController::Step()
       {
         for (const auto& entry : m_sectors.Entries())
         {
-          AvlNode* sector = static_cast<AvlNode*>(entry.get());
+          auto* sector = entry.get();
           Stat(0x18c) += 10;
         }
         m_step = 4;
@@ -620,9 +620,9 @@ int AiSideController::Analyze()
         int refreshed = 0;
         while (position != m_sectors.Entries().end())
         {
-          AiSectorEval* sector = static_cast<AiSectorEval*>(position->get());
+          AiSectorEval* sector = static_cast<AiSectorEval*>((*position).get());
           ++position;
-          m_cursor = position == m_sectors.Entries().end() ? nullptr : static_cast<AiSectorEval*>(position->get());
+          m_cursor = position == m_sectors.Entries().end() ? nullptr : static_cast<AiSectorEval*>((*position).get());
           if (refreshed)
             break;
           refreshed = sector->Refresh();
@@ -648,9 +648,9 @@ int AiSideController::Analyze()
         int refreshed = 0;
         while (!refreshed && position != m_fleets.Entries().end())
         {
-          AiFleetEval* current = static_cast<AiFleetEval*>(position->get());
+          AiFleetEval* current = static_cast<AiFleetEval*>((*position).get());
           ++position;
-          fleet = position == m_fleets.Entries().end() ? nullptr : static_cast<AiFleetEval*>(position->get());
+          fleet = position == m_fleets.Entries().end() ? nullptr : static_cast<AiFleetEval*>((*position).get());
           refreshed = current->Refresh();
           if (refreshed)
             m_flags.m_value |= 0xc0000000;
@@ -687,7 +687,7 @@ int AiSideController::Analyze()
           AiCharacterRecord* current = character;
           ++position;
           character =
-            position == m_characters.Entries().end() ? nullptr : static_cast<AiCharacterRecord*>(position->get());
+            position == m_characters.Entries().end() ? nullptr : static_cast<AiCharacterRecord*>((*position).get());
           refreshed = current->Refresh();
           if (refreshed)
             m_flags.m_value |= 0x90000000;
@@ -718,11 +718,11 @@ int AiSideController::Analyze()
           auto position = m_sectors.PositionOf(m_cursor);
           while (position != m_sectors.Entries().end())
           {
-            AiSectorEval* sector = static_cast<AiSectorEval*>(position->get());
+            AiSectorEval* sector = static_cast<AiSectorEval*>((*position).get());
             ++position;
             AccumulateSector(sector->m_stat, &sector->m_flags24.m_value, &sector->m_flags2c.m_value,
                              &sector->m_flags28.m_value, sector->m_x30);
-            m_cursor = position == m_sectors.Entries().end() ? nullptr : static_cast<AiSectorEval*>(position->get());
+            m_cursor = position == m_sectors.Entries().end() ? nullptr : static_cast<AiSectorEval*>((*position).get());
           }
           if (0 < Stat(0x214))
             Stat(0x214) = Stat(0x214) / 5 + 1;

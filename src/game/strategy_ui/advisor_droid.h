@@ -1,9 +1,9 @@
 #pragma once
 #include <cstdint>
+#include <map>
 
 #include "ai/ai_advisor_tasks.h"
 #include "ai/ai_galaxy_analysis.h"
-#include "core/containers.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/status_code.h"
@@ -68,11 +68,11 @@ public:
     return m_cueDue[byteOffset / sizeof(uint32_t)];
   }
 
-  IdAvlTree* Tasks()
+  AdvisorTaskManager* Tasks()
   {
     return &m_taskTree;
   }
-  IdAvlTree* Cues()
+  AdvisorEntryTree* Cues()
   {
     return &m_cueTree;
   }
@@ -91,7 +91,7 @@ public:
   uint32_t m_lastSpeechTime; // +0x148
   int m_unk14c; // +0x14c 8
   PersistentInt m_flags; // +0x150 bit 0x10000000: the pending notices were collected; low bits: topics already told
-  IdValueTree m_notices; // +0x154 notices waiting to be told (nodes: +0x1c & 0xf = topic)
+  std::map<uint32_t, int> m_notices; // +0x154 notices waiting to be told (value low nibble = topic)
   int m_unk160; // +0x160
   uint32_t m_cueCount; // +0x164
   uint32_t* m_cueDue; // +0x168 per cue: the tick until which it is raised (0 = not raised)

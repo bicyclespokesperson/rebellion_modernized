@@ -49,25 +49,17 @@ TTTOOLINFOA MakeToolInfo(HWND owner, HINSTANCE instance, UINT flags, UINT_PTR to
 int RegisterWindowObject(CoolWindow* window)
 {
   const uint32_t id = WindowObjectId(window);
-  if (g_windowRegistry.FindById(id))
-    return false;
-  IdNode* node = NewOrNull<IdNode>(id);
-  if (!node)
-    return false;
-  return g_windowRegistry.AddWithId(node) == id;
+  return g_windowRegistry.emplace(id, window).second;
 }
 
 int IsWindowObjectRegistered(CoolWindow* window)
 {
-  return g_windowRegistry.FindById(WindowObjectId(window)) != nullptr;
+  return g_windowRegistry.find(WindowObjectId(window)) != g_windowRegistry.end();
 }
 
 int UnregisterWindowObject(CoolWindow* window)
 {
-  IdNode* node = g_windowRegistry.DetachById(WindowObjectId(window));
-  if (node)
-    delete node;
-  return node != nullptr;
+  return g_windowRegistry.erase(WindowObjectId(window)) != 0;
 }
 
 CoolWindow* GetCoolWindow(HWND hwnd)
@@ -90,23 +82,47 @@ HwndTree::HwndTree() = default;
 
 HwndTree::~HwndTree() = default;
 
-// Linker-folded with IdAvlTree::IsLess (0x5f5560), which compares the dword at +0x18.
-int HwndTree::IsLess(AvlNode* a, AvlNode* b)
+int HwndTree::Insert(HwndNode* node)
 {
-  return static_cast<HwndNode*>(a)->m_hwnd < static_cast<HwndNode*>(b)->m_hwnd;
+  if (!node || std::any_of(m_nodes.begin(), m_nodes.end(),
+                           [node](const auto& owned)
+                           {
+                             return owned.get() == node;
+                           }))
+    return false;
+  auto position =
+    std::find_if(m_nodes.begin(), m_nodes.end(),
+                 [node](const auto& owned)
+                 {
+                   return reinterpret_cast<uintptr_t>(owned->m_hwnd) > reinterpret_cast<uintptr_t>(node->m_hwnd);
+                 });
+  position = m_nodes.emplace(position);
+  position->reset(node);
+  return true;
+}
+
+void HwndTree::Remove(HwndNode* node)
+{
+  const auto found = std::find_if(m_nodes.begin(), m_nodes.end(),
+                                  [node](const auto& owned)
+                                  {
+                                    return owned.get() == node;
+                                  });
+  if (found != m_nodes.end())
+  {
+    found->release();
+    m_nodes.erase(found);
+  }
 }
 
 HwndNode* HwndTree::FindByHwnd(HWND hwnd)
 {
-  AvlNode* found = LowerBound(
-    [hwnd](const AvlNode* candidate)
-    {
-      return static_cast<const HwndNode*>(candidate)->m_hwnd < hwnd;
-    });
-  auto* node = static_cast<HwndNode*>(found);
-  if (node && node->m_hwnd != hwnd)
-    node = nullptr;
-  return node;
+  const auto found = std::find_if(m_nodes.begin(), m_nodes.end(),
+                                  [hwnd](const auto& owned)
+                                  {
+                                    return owned->m_hwnd == hwnd;
+                                  });
+  return found == m_nodes.end() ? nullptr : (*found).get();
 }
 
 void HwndTree::RemoveAndDelete(HWND hwnd)
@@ -131,40 +147,56 @@ PopupEntry::~PopupEntry()
 
 ChildWindowTree::ChildWindowTree() = default;
 
-ChildWindowTree::~ChildWindowTree() = default;
-
-int ChildWindowTree::IsLess(AvlNode* a, AvlNode* b)
+ChildWindowTree::~ChildWindowTree()
 {
-  return static_cast<CoolWindow*>(a)->m_childId < static_cast<CoolWindow*>(b)->m_childId;
+  Clear();
+}
+
+int ChildWindowTree::Insert(CoolWindow* window)
+{
+  if (!window)
+    return false;
+  auto [position, inserted] = m_children.try_emplace(window->m_childId);
+  if (!inserted)
+    return false;
+  position->second.reset(window);
+  return true;
+}
+
+void ChildWindowTree::Remove(CoolWindow* window)
+{
+  if (!window)
+    return;
+  const auto found = m_children.find(window->m_childId);
+  if (found != m_children.end() && found->second.get() == window)
+  {
+    found->second.release();
+    m_children.erase(found);
+  }
+}
+
+void ChildWindowTree::Clear()
+{
+  decltype(m_children) detached;
+  detached.swap(m_children);
 }
 
 CoolWindow* ChildWindowTree::FindById(uint32_t id)
 {
-  AvlNode* found = LowerBound(
-    [id](const AvlNode* candidate)
-    {
-      return static_cast<const CoolWindow*>(candidate)->m_childId < id;
-    });
-  auto* node = static_cast<CoolWindow*>(found);
-  if (node && node->m_childId != id)
-    node = nullptr;
-  return node;
+  const auto found = m_children.find(id);
+  return found == m_children.end() ? nullptr : found->second.get();
 }
 
 CoolWindow* ChildWindowTree::FindByHwnd(HWND hwnd)
 {
   for (const auto& entry : Entries())
   {
-    auto* node = static_cast<CoolWindow*>(entry.get());
+    auto* node = entry.get();
     if (node->m_hwnd == hwnd)
       return node;
   }
   return nullptr;
 }
-
-IdAvlTreeElement::IdAvlTreeElement() = default;
-
-IdAvlTreeElement::~IdAvlTreeElement() = default;
 
 // ---- CoolWindow: construction and destruction ---------------------------------------------------------------
 
@@ -802,7 +834,7 @@ PopupEntry* FindPopupEntry(HWND hwnd)
   for (auto entry = g_popupStack.rbegin(); entry != g_popupStack.rend(); ++entry)
   {
     if ((*entry)->m_node && (*entry)->m_node->m_hwnd == hwnd)
-      return entry->get();
+      return (*entry).get();
   }
   return nullptr;
 }
@@ -1057,8 +1089,18 @@ HMODULE LoadResourceModule(const char* basePath, const char* fileName, uint32_t 
   if (dll)
   {
     dll->m_id = slot;
-    resources->libraries.AddWithId(dll);
-    module = dll->m_module;
+    try
+    {
+      if (resources->libraries.AddWithId(dll) != 0)
+        module = dll->m_module;
+      else
+        delete dll;
+    }
+    catch (...)
+    {
+      delete dll;
+      throw;
+    }
   }
   strstream_dtor(path.Ios());
   ios_dtor(path.Ios());

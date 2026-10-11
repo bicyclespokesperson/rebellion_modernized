@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "platform/win32.h"
 #include "strategy_ui/menu_window.h"
 #include "ui/cool_game_window.h"
@@ -44,15 +44,15 @@ public:
 // Adds the entry for `command` (RCDATA `command` of the resource DLL of slot `kind`: its parent, sibling, texts and
 // pictures) to the menu that is about to be shown, creating its parents first; returns the entry's list of
 // sub-entries. `flags`: 1 = unavailable, 2 = checked. Colours: text, shadow, unavailable text.
-IdSortedLinkList* AddMenuEntry(uint32_t command,
-                               uint32_t kind,
-                               uint32_t flags,
-                               int x,
-                               int y,
-                               CoolWindow* window,
-                               uint32_t color,
-                               uint32_t shadowColor,
-                               uint32_t disabledColor); // 0x442590
+MenuItemList* AddMenuEntry(uint32_t command,
+                           uint32_t kind,
+                           uint32_t flags,
+                           int x,
+                           int y,
+                           CoolWindow* window,
+                           uint32_t color,
+                           uint32_t shadowColor,
+                           uint32_t disabledColor); // 0x442590
 // Opens the menu built by the AddMenuEntry calls at (x, y) over `owner`, closing the one that is open. The last
 // argument is ignored.
 PopupMenuWindow* ShowMenu(int x,
@@ -73,24 +73,19 @@ struct MenuRecord
 // Copies the menu record `command` of the resource DLL in slot `kind`; 1 if there is no such record.
 int ReadMenuRecord(uint32_t command, uint32_t kind, MenuRecord* out); // 0x442790
 // Sizes the entries of `list` to the widest / tallest, stacks them and returns the size of the menu.
-void LayoutMenu(int x,
-                int y,
-                IdSortedLinkList* list,
-                int* outX,
-                int* outY,
-                uint32_t* outWidth,
+void LayoutMenu(int x, int y, MenuItemList* list, int* outX, int* outY, uint32_t* outWidth,
                 int* outHeight); // 0x442a80
 // Builds the window of one menu level from `list` (emptying it) and, recursively, those of its sub-menus.
 PopupMenuWindow* BuildMenuWindow(int x,
                                  int y,
-                                 IdSortedLinkList* list,
+                                 MenuItemList* list,
                                  HMODULE resources,
                                  PopupMenuWindow* parentMenu,
                                  CoolWindow* window,
                                  CoolWindow* owner,
                                  DibBitmap* backdrop); // 0x442860
-int CleanupMenuTree(MenuItem* item); // 0x442c90
-LinkNode* GetSubItemsHead(MenuItem* item); // 0x442cd0
+int CleanupMenuTree(MenuItemList& items); // 0x442c90
+IdLinkNode* GetSubItemsHead(MenuItem* item); // 0x442cd0
 BOOL RemoveMenuHook(); // 0x442c60
 LRESULT CALLBACK MenuMouseHook(int code, WPARAM wParam, LPARAM lParam); // 0x442b90
 

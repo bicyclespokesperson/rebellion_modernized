@@ -1,4 +1,5 @@
 #pragma once
+class MessageBase;
 // The game manager's side of the object model's hook table (0x4fcd90-0x4fd280). The installer (0x4fcde0) fills the
 // callbacks declared in gameobj/game_hooks.h with the wrappers below; each one forwards to the game manager (0x6b2fcc)
 // and does nothing, or returns its default, while there is none. The remaining wrappers are plain accessors that
@@ -49,4 +50,4 @@ void SetManagerUnk3c(int value); // 0x4fd1a0
 int GetManagerUnk40(); // 0x4fd1c0
 int GetManagerUnk44(); // 0x4fd1e0
 void SetManagerUnk44(int value); // 0x4fd200
-int AddManagerNotice(IdNode* notice); // 0x4fd220, always 1
+int AddManagerNotice(MessageBase* notice); // 0x4fd220, always 1

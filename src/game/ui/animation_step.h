@@ -1,13 +1,42 @@
 #pragma once
+#include <algorithm>
 #include <cstdint>
+#include <map>
+#include <memory>
+#include <ranges>
 
 #include "audio/sound_manager.h"
-#include "core/containers.h"
 #include "platform/win32.h"
-#include "ui/cool_window.h"
 
 class DibBitmap;
 class DeltaFrame;
+
+class DeltaFrameList
+{
+public:
+  DeltaFrameList();
+  ~DeltaFrameList();
+  DeltaFrameList(const DeltaFrameList&) = delete;
+  DeltaFrameList& operator=(const DeltaFrameList&) = delete;
+  uint32_t AddWithId(DeltaFrame* frame);
+  DeltaFrame* First() const;
+  auto Entries() const
+  {
+    return std::views::values(m_frames);
+  }
+  auto PositionOf(const DeltaFrame* frame) const
+  {
+    return std::ranges::find_if(Entries(),
+                                [frame](const auto& owned)
+                                {
+                                  return owned.get() == frame;
+                                });
+  }
+
+private:
+  std::map<uint32_t, std::unique_ptr<DeltaFrame>> m_frames;
+  uint32_t m_nextId;
+};
 class Sprite;
 class SpriteAnimator;
 class SpriteStage;
@@ -193,7 +222,7 @@ public:
   int m_frameCount; // +0x4c
   int m_unk50; // +0x50
   DibBitmap** m_bitmaps; // +0x54 the original bitmaps
-  IdAvlTreeElement* m_frameLists; // +0x58 per sprite the delta frames 1..m_frameCount-1
+  DeltaFrameList* m_frameLists; // +0x58 per sprite the delta frames 1..m_frameCount-1
   DeltaFrame** m_cursors; // +0x5c per sprite the next frame to apply
   DibBitmap** m_workBitmaps; // +0x60 the copies the frames are applied to and the sprites show
   int m_stopRequested; // +0x64

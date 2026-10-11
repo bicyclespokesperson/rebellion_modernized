@@ -1,7 +1,8 @@
 #pragma once
 #include <cstdint>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
+#include "core/id_registry.h"
 #include "platform/win32.h"
 
 // A resource DLL (TEXTCOMM.DLL, STRATEGY.DLL ...) kept loaded for the lifetime of its slot. The node id (+0x0c) is
@@ -16,14 +17,22 @@ public:
 };
 
 // g_resourceDlls: the loaded resource DLLs by slot.
-class ResourceDllList : public IdSortedLinkList
+class ResourceDllList
 {
 public:
-  ResourceDllList(); // 0x604410
-  ~ResourceDllList() override; // 0x604450 (scalar deleting destructor 0x604430)
+  ~ResourceDllList();
+  auto Entries() const
+  {
+    return m_libraries.Entries();
+  }
+  ResourceDll* FindById(uint32_t slot) const;
+  uint32_t AddWithId(ResourceDll* library);
 
   // Unloads every DLL registered under `slot`.
   void UnloadSlot(uint32_t slot); // 0x604460
+
+private:
+  IdRegistry<ResourceDll> m_libraries;
 };
 
 // Number of font slots a FontTable hands out.

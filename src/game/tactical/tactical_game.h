@@ -1,9 +1,10 @@
 #pragma once
 #include <cstdint>
 #include <memory>
+#include <set>
 
 #include "app/player_controller_decl.h"
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "core/stopwatch.h"
 #include "tactical/tactical_types.h"
@@ -38,12 +39,25 @@ public:
   uint16_t m_value; // +0x1a
 };
 
-class TypeMapTree : public AvlTree
+class TypeMapTree
 {
 public:
-  TypeMapTree(); // 0x5f4ed0 base
-  ~TypeMapTree() override; // 0x59a7c0 (scalar deleting destructor 0x59a800)
-  int IsLess(AvlNode* a, AvlNode* b) override; // 0x59a7d0
+  TypeMapTree();
+  ~TypeMapTree();
+  void Insert(TypeMapNode* node);
+  void Clear();
+  const auto& Entries() const
+  {
+    return m_nodes;
+  }
+
+private:
+  struct NodeOrder
+  {
+    bool operator()(const std::unique_ptr<TypeMapNode>& a, const std::unique_ptr<TypeMapNode>& b) const;
+  };
+  std::multiset<std::unique_ptr<TypeMapNode>, NodeOrder> m_nodes;
+  bool m_clearing = false;
 };
 
 class TacticalGame

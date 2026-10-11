@@ -582,7 +582,7 @@ void TacticalHangar::ReleaseDocked()
   while (entry != m_docked->Entries().end())
   {
     auto current = entry++;
-    auto* node = static_cast<UnitRefNode*>(current->get());
+    auto* node = static_cast<UnitRefNode*>((*current).get());
     if (TacticalShipIsInState3(node->Key()) == 0)
     {
       m_launched->AddUnit(node->Value());

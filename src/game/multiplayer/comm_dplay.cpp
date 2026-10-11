@@ -235,17 +235,14 @@ int CommMgr::CleanUp()
   m_pingSent = 0;
   m_isHost = 0;
   g_commPacketCounter = 0;
-  m_seen.Clear();
+  m_seen.clear();
   m_unknown198.Clear();
   m_unknown1a4.Clear();
   m_playerCount = 0;
   m_enumeratedCount = 0;
   g_serviceProviderList.Clear();
   g_sessionList.Clear();
-  m_pending.Clear();
-  m_received.Clear();
-  m_assembling.Clear();
-  m_outgoing.Clear();
+  ClearOwnedRegistries();
   if (!m_dplay)
     return 1;
   if (m_localIndex != -1)
@@ -321,7 +318,7 @@ uint32_t CommMgr::ResetPlayerList()
     if (m_playerCount != previousCount)
     {
       g_commPacketCounter = static_cast<uint32_t>(GetLocalIndex()) << 28;
-      m_seen.Clear();
+      m_seen.clear();
       if (m_playerCount < previousCount && m_playerCount == 1)
       {
         CleanUp();
@@ -637,11 +634,15 @@ ReceivedPacket* CommMgr::ReceiveIncoming()
         const uint32_t packetId = packet->m_wire.m_id;
         if ((packetId & kPingIdLowBits) != kPingIdLowBits)
         {
-          if (!m_seen.FindById(packetId))
+          if (packetId != 0 && !m_seen.contains(packetId))
           {
-            IdNode* seen = NewOrNull<IdNode>();
-            seen->SetId(packetId);
-            m_seen.AddWithId(seen);
+            try
+            {
+              m_seen.insert(packetId);
+            }
+            catch (const std::bad_alloc&)
+            {
+            }
             char text[kIdTextBuffer];
             sprintf(text, kTraceAckId, packetId & 0xffffff, (packetId >> 24) & 0xf);
             return packet;
@@ -745,11 +746,15 @@ ReceivedPacket* CommMgr::ReceiveIncoming()
       const uint32_t packetId = packet->m_wire.m_id;
       if ((packetId & kPingIdLowBits) != kPingIdLowBits)
       {
-        if (!m_seen.FindById(packetId))
+        if (packetId != 0 && !m_seen.contains(packetId))
         {
-          IdNode* seen = NewOrNull<IdNode>();
-          seen->SetId(packetId);
-          m_seen.AddWithId(seen);
+          try
+          {
+            m_seen.insert(packetId);
+          }
+          catch (const std::bad_alloc&)
+          {
+          }
           char text[kIdTextBuffer];
           sprintf(text, kTraceAckId, packet->m_wire.m_id & 0xffffff, (packet->m_wire.m_id >> 24) & 0xf);
           return packet;

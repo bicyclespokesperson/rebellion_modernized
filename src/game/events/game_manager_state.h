@@ -4,9 +4,10 @@
 // tick table that hands out the per-key tick values. GameManager::Read/Write (game_manager.h) call them.
 #include <cstdint>
 #include <deque>
+#include <map>
 #include <memory>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "core/stream_io.h"
 #include "data/seed_key.h"
@@ -108,18 +109,28 @@ private:
 // ---- tick table ---------------------------------------------------------------------------------------------
 // The table at GameManager +0xbc (VT 0x663990): the per-seed-key tick values, an AVL tree of SeedKeyCountNodes
 // ordered by key. The saved form is a flag, a 32-bit count and the nodes.
-class TickTable : public AvlTree
+class TickTable
 {
 public:
   TickTable(); // 0x568b40
-  ~TickTable() override; // 0x568b80 (scalar deleting destructor 0x568b60)
+  ~TickTable(); // 0x568b80 (scalar deleting destructor 0x568b60)
 
-  int IsLess(AvlNode* a, AvlNode* b) override; // 2: 0x568f00, false if either is null
-  virtual int Read(istream* in); // 3: 0x568d40, forwards to ReadNodes
-  virtual int ReadNodes(istream* in); // 4: 0x568bd0, clears the table first
-  virtual int Write(ostream* out); // 5: 0x586290 (shared with TimerEvent::CheckValid), forwards to WriteNodes
-  virtual int WriteNodes(ostream* out); // 6: 0x568c80
-  virtual int Checksum(Crc32* crc); // 7: 0x568ce0
+  virtual int Read(istream* in);
+  virtual int ReadNodes(istream* in);
+  virtual int Write(ostream* out);
+  virtual int WriteNodes(ostream* out);
+  virtual int Checksum(Crc32* crc);
+
+  void Clear();
+  int Insert(SeedKeyCountNode* node);
+  size_t Count() const
+  {
+    return m_nodes.size();
+  }
+  const auto& Entries() const
+  {
+    return m_nodes;
+  }
 
   // The node of `key`, or null.
   SeedKeyCountNode* Find(SeedKey* key); // 0x568de0
@@ -128,4 +139,8 @@ public:
   void AddNode(SeedKeyCountNode* node); // 0x568d50, ignores null
 
   int m_ready; // +0x08, 1 once built
+
+private:
+  std::multimap<SeedKey, std::unique_ptr<SeedKeyCountNode>> m_nodes;
+  bool m_clearing = false;
 };

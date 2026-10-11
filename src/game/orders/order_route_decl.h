@@ -4,7 +4,7 @@
 // that call them. Replace each by the owner's real declaration when the module is merged and drop this header.
 #include <cstdint>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/game_obj_root.h"
 #include "gameobj/object_key.h"

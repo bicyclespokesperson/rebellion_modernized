@@ -242,7 +242,7 @@ int MissionEspionage::PickExtraSystems(GameObj* target,
     }
     if (position == candidates.Entries().end())
       continue;
-    AvlNode* node = position->get();
+    auto* node = (*position).get();
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);
     result = SetExtraSystemKey(&key, ctx) && result;

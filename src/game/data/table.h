@@ -1,7 +1,12 @@
 #pragma once
+#include "core/id_registry.h"
+#include <algorithm>
 #include <cstdint>
+#include <map>
+#include <memory>
+#include <ranges>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/iostream_lib.h"
 #include "core/stream_io.h"
 #include "data/table_entry.h"
@@ -45,12 +50,13 @@ public:
   virtual int Checksum(Crc32* crc);
 
   void Add(TableEntry* entry);
+  uint32_t AddEntry(TableEntry* entry);
   // The entry with the largest threshold (TableEntry::m_field20) not above `value`; the first entry if every
   // threshold is above it, the last entry if none is.
   TableEntry* FindStepEntry(int value);
 
   char m_name[kNameSize]; // +0x08, entry class name; uninitialised beyond its terminator
-  IdAvlTree m_entries; // +0x30
+  IdRegistry<TableEntry> m_entries; // +0x30
 };
 
 // A Table loaded under a table id. m_version mirrors the table's version when the object is built.
@@ -67,13 +73,63 @@ public:
 };
 
 // All loaded tables, keyed by table id.
-class TableFileList : public IdAvlTree
+class TableFileList
 {
 public:
+  void Clear()
+  {
+    m_registry.Clear();
+  }
+  size_t Count() const
+  {
+    return m_registry.Count();
+  }
+  bool Empty() const
+  {
+    return m_registry.Empty();
+  }
+  auto Entries() const
+  {
+    return m_registry.Entries();
+  }
+  auto PositionOf(const TableFile* node) const
+  {
+    return m_registry.PositionOf(node);
+  }
+  TableFile* First() const
+  {
+    return m_registry.First();
+  }
+  TableFile* Last() const
+  {
+    return m_registry.Last();
+  }
+  TableFile* FindById(uint32_t id) const
+  {
+    return m_registry.FindById(id);
+  }
+  TableFile* DetachById(uint32_t id)
+  {
+    return m_registry.DetachById(id);
+  }
+  void DeleteById(uint32_t id)
+  {
+    m_registry.DeleteById(id);
+  }
+  void Remove(TableFile* node)
+  {
+    m_registry.Remove(node);
+  }
+  uint32_t AddWithId(TableFile* node)
+  {
+    return m_registry.AddWithId(node);
+  }
   TableFileList();
-  ~TableFileList() override;
+  ~TableFileList();
 
   int m_ready; // +0x0c, 1
+private:
+  IdRegistry<TableFile> m_registry;
 };
 
 // The registry of every GData table of the game.

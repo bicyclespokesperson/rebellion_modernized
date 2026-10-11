@@ -1,7 +1,8 @@
 #pragma once
 #include <cstdint>
+#include <map>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/stream_io.h"
 
 // A pair of 32-bit values that is copied around as a unit. The game uses it for two things:
@@ -38,13 +39,13 @@ using FamilyRange = IntPair;
 // describing the kinds it can raise; nodes carry an int that classes set to 1.
 class EventKindNode;
 
-class EventKindSet : public IntKeyedSet
+class EventKindSet
 {
 public:
   EventKindSet();
-  ~EventKindSet() override;
-  int Read(istream* in) override;
-  int Write(ostream* out) override;
+  ~EventKindSet();
+  int Read(istream* in);
+  int Write(ostream* out);
 
   EventKindSet& operator=(const EventKindSet& other);
 
@@ -52,19 +53,29 @@ public:
   // Adds `kind` unless present. Returns the new node, or null if the kind was already there (or allocation failed).
   EventKindNode* Add(int kind, int value);
   EventKindNode* Find(int kind);
+  void Clear();
+  size_t Count() const;
+  const auto& Entries() const
+  {
+    return m_kinds;
+  }
+  EventKindSet& Intersect(const EventKindSet& other);
+
+private:
+  std::map<int, EventKindNode> m_kinds;
 };
 
-// Set node: IntKeyNode (key = kind) plus the value and a field that is only ever 0.
-class EventKindNode : public IntKeyNode
+// Set node: event kind key plus the value and a field that is only ever 0.
+class EventKindNode
 {
 public:
   EventKindNode(); // 0x582a00, value 1
   EventKindNode(const EventKindNode& other); // 0x582a40
-  ~EventKindNode() override; // 0x582a70 (scalar deleting destructor 0x582a20)
-  CloneableNode* Clone() override; // 0x582a80
-  int Read(istream* in) override; // 0x582ae0
-  int Write(ostream* out) override; // 0x582b20
+  ~EventKindNode(); // 0x582a70 (scalar deleting destructor 0x582a20)
+  int Read(istream* in); // 0x582ae0
+  int Write(ostream* out); // 0x582b20
 
+  int m_key = 0;
   int m_value; // +0x1c
   int m_unknown; // +0x20
 };

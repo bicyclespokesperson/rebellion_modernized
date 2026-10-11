@@ -1,8 +1,11 @@
 #pragma once
 #include <cstdint>
+#include <map>
+#include <memory>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
+#include "core/id_registry.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 
@@ -122,42 +125,54 @@ public:
   int m_shipHandle; // +0x48
 };
 
-// The simulator's trees of characters (VT 0x66c380) and of special forces and troops (VT 0x66c370) by handle: an IdAvlTree
-// with an accessor for the first node.
-class TacticalCharacterTree : public IdAvlTree
+// The simulator's characters (VT 0x66c380) and special forces / troops (VT 0x66c370), keyed by handle.
+class TacticalCharacterTree
 {
 public:
-  TacticalCharacterTree()
+  TacticalCharacterTree() = default;
+  virtual ~TacticalCharacterTree();
+  TacticalCharacterUnit* FirstItem();
+  TacticalCharacterUnit* FindById(uint32_t id) const;
+  uint32_t AddWithId(TacticalCharacterUnit* node);
+  void Clear();
+  const auto& Entries() const
   {
+    return m_entries.Storage();
   }
-  ~TacticalCharacterTree() override = default; // 0x5bdaa0 (scalar deleting destructor 0x5a8860)
-  virtual IdNode* FirstItem(); // 0x5f6590 (shared stub; the special-force tree has an inline copy)
 
   int CountItems(); // 0x5bdf20 (shared with TacticalSpecialForceTree)
   void Read(istream* in); // 0x5bdab0 replaces the contents with the records of the stream
   void Write(ostream* out); // 0x5bdba0
   void Checksum(Crc32* crc); // 0x5bdbf0
+
+private:
+  IdRegistry<TacticalCharacterUnit> m_entries;
 };
 
-class TacticalSpecialForceTree : public IdAvlTree
+class TacticalSpecialForceTree
 {
 public:
-  TacticalSpecialForceTree()
+  TacticalSpecialForceTree() = default;
+  virtual ~TacticalSpecialForceTree();
+  TacticalSpecialForceUnit* FirstItem();
+  TacticalSpecialForceUnit* FindById(uint32_t id) const;
+  uint32_t AddWithId(TacticalSpecialForceUnit* node);
+  void Clear();
+  const auto& Entries() const
   {
+    return m_entries.Storage();
   }
-  ~TacticalSpecialForceTree() override = default; // 0x5bdf10 (scalar deleting destructor 0x5a8880)
-  virtual IdNode* FirstItem()
-  {
-    return static_cast<IdNode*>(First());
-  } // 0x5f6590 (shared stub)
 
   int CountItems()
   { // 0x5bdf20 (the code of TacticalCharacterTree::CountItems)
-    return static_cast<int>(Entries().size());
+    return static_cast<int>(m_entries.Count());
   }
   void Read(istream* in); // 0x5bdf40
   void Write(ostream* out); // 0x5be030
   void Checksum(Crc32* crc); // 0x5be080
+
+private:
+  IdRegistry<TacticalSpecialForceUnit> m_entries;
 };
 
 // What the object manager hands an event handler: the payload is an array of 32-bit words.

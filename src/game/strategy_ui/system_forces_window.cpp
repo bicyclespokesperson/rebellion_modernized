@@ -395,7 +395,7 @@ void SystemForcesWindow::OnKeyDown(WPARAM key, LPARAM lParam)
     return;
   }
   const uint32_t selectedId = m_tabs->m_selected ? m_tabs->m_selected->m_childId : 0;
-  AvlNode* tab = m_tabs->m_children.FindById(selectedId);
+  auto* tab = m_tabs->m_children.FindById(selectedId);
   if (!tab)
     return;
   auto position = m_tabs->m_children.PositionOf(tab);
@@ -406,7 +406,7 @@ void SystemForcesWindow::OnKeyDown(WPARAM key, LPARAM lParam)
     position = std::next(position);
   while (position != m_tabs->m_children.Entries().end())
   {
-    tab = position->get();
+    tab = (*position).get();
     CoolWindow* window = static_cast<CoolWindow*>(tab);
     if (IsWindowVisible(window->m_hwnd) != 0)
     {

@@ -61,7 +61,7 @@ public:
   int CheckValid(StatusCode* status) override; // 7: 0x541a40
   int Execute() override; // 8: 0x541ab0
   int GetKind() override; // 9: 0x541940
-  int GetPriority() override; // 10: 0x541950, 0x150
+  int GetPriority() const override; // 10: 0x541950, 0x150
 };
 
 // Kind 0x30e: Execute hands (m_key, m_valueB) to the role-state handler 0x515970.
@@ -89,7 +89,7 @@ public:
   int CheckValid(StatusCode* status) override; // 7: 0x541200
   int Execute() override; // 8: 0x541270
   int GetKind() override; // 9: 0x541100
-  int GetPriority() override; // 10: 0x48b450, 0x200
+  int GetPriority() const override; // 10: 0x48b450, 0x200
 };
 
 // Kind 0x312: Execute asks OnPersonRemoved (0x545e90) to handle the loss of the person named by m_key, unless there is
@@ -145,7 +145,7 @@ public:
   int CheckValid(StatusCode* status) override; // 7: 0x541780
   int Execute() override; // 8: 0x5417f0
   int GetKind() override; // 9: 0x541670
-  int GetPriority() override; // 10: 0x541680, 0x152
+  int GetPriority() const override; // 10: 0x541680, 0x152
 };
 
 // Kind 0x321: moves a lock from one object to another: Execute locks the master named by m_keyD and unlocks the one

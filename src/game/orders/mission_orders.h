@@ -1,4 +1,5 @@
 #pragma once
+class ObjectNameList;
 // The mission orders (0x4f4560-0x4f5510): orders that start a mission with the characters of a team, and the order
 // 0x242 that is a bare OrderBase. Order kinds 0x240-0x242 come from the factory table (0x51f4b0); the three factories
 // of this file are registered there.
@@ -74,8 +75,8 @@ public:
 
   // Ask the mission manager for the characters of the team and of the mission that qualify (the two differ in the
   // manager function used, 0x5420d0 / 0x5422f0). Both clear *out first and return 0 without a mission manager.
-  int CollectCandidatesA(ObjectKeyValueSet* out); // 0x4f52c0
-  int CollectCandidatesB(ObjectKeyValueSet* out); // 0x4f5380
+  int CollectCandidatesA(ObjectRefList* out); // 0x4f52c0
+  int CollectCandidatesB(ObjectNameList* out); // 0x4f5380
 };
 
 class MissionOrder241 : public MissionOrder

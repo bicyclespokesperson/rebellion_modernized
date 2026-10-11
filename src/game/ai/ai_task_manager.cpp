@@ -60,20 +60,49 @@ int AiMissionHistoryEntry::Fill(const void* mission)
 
 // ---- AiMissionHistory ---------------------------------------------------------------------------------------------------
 
-AiMissionHistory::AiMissionHistory() : AvlTree()
-{
-}
+AiMissionHistory::AiMissionHistory() = default;
 
 AiMissionHistory::~AiMissionHistory()
 {
   Clear();
 }
 
-int AiMissionHistory::IsLess(AvlNode* a, AvlNode* b)
+void AiMissionHistory::Clear()
 {
-  if (a && b && static_cast<AiMissionHistoryEntry*>(a)->m_id < static_cast<AiMissionHistoryEntry*>(b)->m_id)
-    return 1;
-  return 0;
+  decltype(m_entries) detached;
+  m_entries.swap(detached);
+}
+
+int AiMissionHistory::Insert(AiMissionHistoryEntry* entry)
+{
+  if (!entry)
+    return 0;
+  std::unique_ptr<AiMissionHistoryEntry> pending(entry);
+  try
+  {
+    m_entries.emplace(entry->m_id, std::move(pending));
+  }
+  catch (...)
+  {
+    pending.release();
+    throw;
+  }
+  return 1;
+}
+
+void AiMissionHistory::Remove(AiMissionHistoryEntry* entry)
+{
+  if (!entry)
+    return;
+  const auto [first, last] = m_entries.equal_range(entry->m_id);
+  for (auto position = first; position != last; ++position)
+  {
+    if (position->second.get() == entry)
+    {
+      m_entries.extract(position).mapped().release();
+      return;
+    }
+  }
 }
 
 void AiMissionHistory::Load(istream* in)
@@ -111,7 +140,7 @@ void AiMissionHistory::Save(ostream* out)
   uint32_t count = static_cast<uint32_t>(Count());
   WriteValue32(out, &count);
   for (const auto& node : Entries())
-    static_cast<AiMissionHistoryEntry*>(node.get())->Write(out);
+    node.second->Write(out);
 }
 
 int AiMissionHistory::Add(const void* mission)
@@ -136,8 +165,7 @@ AiMissionHistoryEntry* AiMissionHistory::Find(const int* key, uint32_t id, int x
   auto position = Entries().begin();
   while (position != Entries().end() && !found)
   {
-    AvlNode* node = position->get();
-    AiMissionHistoryEntry* entry = static_cast<AiMissionHistoryEntry*>(node);
+    AiMissionHistoryEntry* entry = position->second.get();
     found = entry->m_id == id && entry->m_key.m_value == static_cast<uint32_t>(*key) && entry->m_x20 == x20;
     if (found)
       return entry;
@@ -150,7 +178,7 @@ AiMissionHistoryEntry* AiMissionHistory::Find(const int* key, uint32_t id, int x
 
 // ---- AiTaskManager ------------------------------------------------------------------------------------------------------
 
-AiTaskManager::AiTaskManager() : IdAvlTree()
+AiTaskManager::AiTaskManager()
 {
   m_view = 0;
   m_current = nullptr;
@@ -163,6 +191,22 @@ AiTaskManager::~AiTaskManager()
   m_current = nullptr;
   m_cursor = nullptr;
   m_last = nullptr;
+  Clear();
+}
+
+void AiTaskManager::Clear()
+{
+  m_tasks.Clear();
+}
+
+uint32_t AiTaskManager::AddWithId(AiTaskBase* task)
+{
+  return m_tasks.AddWithId(task);
+}
+
+AiTaskBase* AiTaskManager::FindById(uint32_t id) const
+{
+  return m_tasks.FindById(id);
 }
 
 void AiTaskManager::Load(istream* in, AiSideController* owner)
@@ -214,8 +258,7 @@ void AiTaskManager::Save(ostream* out)
   WriteValue16(out, &count);
   for (const auto& entry : Entries())
   {
-    AvlNode* node = entry.get();
-    AiTaskBase* task = static_cast<AiTaskBase*>(node);
+    AiTaskBase* task = entry.second.get();
     uint32_t id = task->m_id;
     WriteValue32(out, &id);
     task->Write(out);
@@ -251,7 +294,7 @@ AiTaskBase* AiTaskManager::SelectNext()
   auto position = PositionOf(m_current);
   if (position == Entries().end() || ++position == Entries().end())
     position = Entries().begin();
-  m_current = position == Entries().end() ? nullptr : static_cast<AiTaskBase*>(position->get());
+  m_current = position == Entries().end() ? nullptr : position->second.get();
   AiTaskBase* start = m_current;
   bool wrapped = false;
   int wants = m_current->m_flags.Get();
@@ -264,7 +307,7 @@ AiTaskBase* AiTaskManager::SelectNext()
     }
     if (++position == Entries().end())
       position = Entries().begin();
-    m_current = position == Entries().end() ? nullptr : static_cast<AiTaskBase*>(position->get());
+    m_current = position == Entries().end() ? nullptr : position->second.get();
     wrapped = start == m_current;
     wants = m_current->m_flags.Get();
   }
@@ -320,7 +363,7 @@ AiTaskBase* AiTaskManager::PickBest()
   auto position = PositionOf(m_cursor);
   if (position == Entries().end() || ++position == Entries().end())
     position = Entries().begin();
-  m_cursor = position == Entries().end() ? nullptr : static_cast<AiTaskBase*>(position->get());
+  m_cursor = position == Entries().end() ? nullptr : position->second.get();
   AiTaskBase* task = m_cursor;
   while (task)
   {
@@ -331,7 +374,7 @@ AiTaskBase* AiTaskManager::PickBest()
     }
     if (++position == Entries().end())
       position = Entries().begin();
-    task = position == Entries().end() ? nullptr : static_cast<AiTaskBase*>(position->get());
+    task = position == Entries().end() ? nullptr : position->second.get();
     if (task == m_cursor)
       task = nullptr;
   }
@@ -340,12 +383,35 @@ AiTaskBase* AiTaskManager::PickBest()
 
 // ---- AiNoticeQueue ------------------------------------------------------------------------------------------------------
 
-AiNoticeQueue::AiNoticeQueue() : IdAvlTree()
+AiNoticeQueue::AiNoticeQueue()
 {
   m_x0c = 1;
 }
 
-AiNoticeQueue::~AiNoticeQueue() = default;
+AiNoticeQueue::~AiNoticeQueue()
+{
+  Clear();
+}
+
+void AiNoticeQueue::Clear()
+{
+  m_groups.Clear();
+}
+
+uint32_t AiNoticeQueue::AddWithId(AiNoticeGroup* group)
+{
+  return m_groups.AddWithId(group);
+}
+
+AiNoticeGroup* AiNoticeQueue::FindById(uint32_t id) const
+{
+  return m_groups.FindById(id);
+}
+
+AiNoticeGroup* AiNoticeQueue::DetachById(uint32_t id)
+{
+  return m_groups.DetachById(id);
+}
 
 void AiNoticeQueue::Load(istream* in)
 {
@@ -377,7 +443,7 @@ void AiNoticeQueue::Save(ostream* out)
   if (!WriteCount32(out, Count()))
     return;
   for (const auto& entry : Entries())
-    static_cast<AiNoticeGroup*>(entry.get())->Save(out);
+    entry.second->Save(out);
 }
 
 void AiNoticeQueue::Add(std::unique_ptr<NotifPayload> notice)
@@ -388,9 +454,9 @@ void AiNoticeQueue::Add(std::unique_ptr<NotifPayload> notice)
   {
     return;
   }
-  IdNode* node = FindById(notice->m_value0c);
+  AiNoticeGroup* node = FindById(notice->m_value0c);
   if (node)
-    static_cast<AiNoticeGroup*>(node)->Add(std::move(notice));
+    node->Add(std::move(notice));
   else
     NewGroup(std::move(notice));
 }
@@ -399,21 +465,19 @@ AiNoticeGroup* AiNoticeQueue::DetachFinished()
 {
   bool detached = false;
   AiNoticeGroup* group = nullptr;
-  AvlNode* node = First();
-  if (node)
-    group = static_cast<AiNoticeGroup*>(static_cast<IdNode*>(node));
+  group = m_groups.First();
   while (group && !detached)
   {
     if (group->m_finished != 0)
     {
-      DetachById(static_cast<IdNode*>(group)->m_id);
+      DetachById(group->m_id);
       detached = true;
     }
     else
     {
       auto position = PositionOf(group);
       ++position;
-      group = position == Entries().end() ? nullptr : static_cast<AiNoticeGroup*>(position->get());
+      group = position == Entries().end() ? nullptr : position->second.get();
     }
   }
   return group;

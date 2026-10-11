@@ -217,7 +217,7 @@ int ChooseMissionLeader(ObjectKeyValueSet* team, ObjectKey* leader, NullableKey*
   int bestRank = 1;
   for (const auto& nodeEntry : team->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
 
     ObjectKey key;
     static_cast<ObjectKeyNode*>(node)->GetKey(&key);

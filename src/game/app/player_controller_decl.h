@@ -2,8 +2,9 @@
 class AiNoticeGroup;
 #include <cstddef>
 #include <cstdint>
+#include <map>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
@@ -25,7 +26,7 @@ class AiNoticeGroup;
 
 class PlayerController;
 class HumanPlayer;
-using PlayerMessage = IdNode;
+using PlayerMessage = MessageBase;
 
 class NotifPayload;
 class MessageBase;
@@ -77,7 +78,7 @@ public:
   void QueueChat(std::string* text, int unused); // 0x48a470
   int IsIdle(); // 0x48a500
   void ClearAlerts(unsigned mask); // 0x48a530
-  void AddCharacterNotice(const IdNode* record); // 0x48a590
+  void AddCharacterNotice(int value); // 0x48a590
   void SetHold(int on); // 0x48a610
 
   int m_side; // +0x00
@@ -86,7 +87,7 @@ public:
   PersistentInt m_defaultState; // +0x0c
   UiRecordTree m_trees[4]; // +0x10 [0]: notices of the message index, [1]: dialogs, [2]: report windows, [3]: saved
   int m_unk40; // +0x40
-  IdValueTree m_states; // +0x44 per-key state values (see GetStateValue)
+  std::map<uint32_t, int> m_states; // +0x44 per-key state values (see GetStateValue)
   int m_unk50; // +0x50 the highlighted message index tabs
 };
 

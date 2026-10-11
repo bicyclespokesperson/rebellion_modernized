@@ -2,6 +2,7 @@
 #include "core/checked_new.h"
 #include "data/gnprtb.h"
 #include "data/sd_records.h"
+#include "economy/side.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/object_name_node.h"
@@ -104,7 +105,7 @@ int MissionMgr::GatherMissionMembers(const ActivityRequest* request,
       for (auto position = members->Entries().begin(); position != members->Entries().end();)
       {
         auto current = position++;
-        auto* node = static_cast<ObjectKeyNode*>(current->get());
+        auto* node = static_cast<ObjectKeyNode*>((*current).get());
         GameObj* role = nullptr;
         ObjectKey key;
         node->GetKey(&key);
@@ -118,7 +119,7 @@ int MissionMgr::GatherMissionMembers(const ActivityRequest* request,
       for (auto position = decoys->Entries().begin(); position != decoys->Entries().end() && ok;)
       {
         auto current = position++;
-        auto* node = static_cast<ObjectKeyNode*>(current->get());
+        auto* node = static_cast<ObjectKeyNode*>((*current).get());
         GameObj* role = nullptr;
         ObjectKey key;
         node->GetKey(&key);
@@ -141,7 +142,7 @@ int MissionMgr::GatherMissionMembers(const ActivityRequest* request,
     {
       for (auto nodePosition = set->Entries().begin(); nodePosition != set->Entries().end();)
       {
-        ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*(nodePosition++)).get());
 
         ObjectKey key;
         ok = everyone->AddKeyValue(node->GetKey(&key), 0) && ok ? 1 : 0;
@@ -161,7 +162,7 @@ int MissionMgr::FindCommonOrigin(ObjectKeyValueSet* team, ObjectKey* out, Status
   bool aborted = false;
   for (auto nodePosition = team->Entries().begin(); nodePosition != team->Entries().end();)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*(nodePosition++)).get());
 
     if (!statusOk(status))
     {
@@ -201,7 +202,7 @@ int MissionMgr::CheckTeamActivity(const ActivityRequest* request, ObjectKeyValue
   setStatus(status, kStatusCategory, kStatusOk);
   for (auto nodePosition = team->Entries().begin(); nodePosition != team->Entries().end();)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*(nodePosition++)).get());
     if (!(true && statusOk(status)))
       break;
 
@@ -232,7 +233,7 @@ int MissionMgr::CheckTeamActivities(const ActivityRequest* request,
   {
     for (auto nodePosition = group.set->Entries().begin(); nodePosition != group.set->Entries().end();)
     {
-      ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*(nodePosition++)).get());
       if (!(true && statusOk(status)))
         break;
 
@@ -247,7 +248,7 @@ int MissionMgr::CheckTeamActivities(const ActivityRequest* request,
   return result;
 }
 
-int MissionMgr::AddRecordName(DatRecord* record, ObjectRefList* out)
+int MissionMgr::AddRecordName(DatRecord* record, ObjectNameList* out)
 {
   ObjectNameNode* node = NewOrNull<ObjectNameNode>();
   int ok = node != nullptr;
@@ -255,7 +256,7 @@ int MissionMgr::AddRecordName(DatRecord* record, ObjectRefList* out)
   {
     ok = node->m_nameValid != 0 && ok ? 1 : 0;
     ok = node->Load(record) && ok ? 1 : 0;
-    ok = out->Add(static_cast<ObjectRefNode*>(static_cast<IdNode*>(node))) && ok ? 1 : 0;
+    ok = out->AddWithId(node) && ok ? 1 : 0;
   }
   return ok;
 }
@@ -376,7 +377,7 @@ int MissionMgr::CollectMissionTypesForTeam(const ActivityRequest* request,
 int MissionMgr::CollectMissionTypeNamesAtTarget(const ActivityRequest* request,
                                                 ObjectKeyValueSet* team,
                                                 ObjectKeyValueSet* characters,
-                                                ObjectRefList* out,
+                                                ObjectNameList* out,
                                                 StatusCode* status)
 {
   out->Clear();
@@ -539,7 +540,7 @@ int MissionMgr::ResolveMissionTravel(const ActivityRequest* request,
     {
       for (auto nodePosition = set->Entries().begin(); nodePosition != set->Entries().end();)
       {
-        ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*(nodePosition++)).get());
         if (!(true && !hasForces))
           break;
 
@@ -561,7 +562,7 @@ int MissionMgr::ResolveMissionTravel(const ActivityRequest* request,
   }
   for (auto nodePosition = everyone->Entries().begin(); nodePosition != everyone->Entries().end();)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((nodePosition++)->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*(nodePosition++)).get());
     static_cast<ObjectKeyValueNode*>(node)->m_value = travelMode;
   }
   return ok;

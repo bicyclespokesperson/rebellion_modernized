@@ -1,9 +1,10 @@
 #pragma once
 #include <cstdint>
+#include <set>
 
 #include "ai/ai_posture.h"
 #include "ai/ai_selector.h"
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
 
@@ -86,12 +87,12 @@ public:
   int m_x98; // +0x98
   int m_x9c; // +0x9c
   int m_plannerCount[4]; // +0xa0 planners per class (PlannerClassOf)
-  IdAvlTree m_planners; // +0xb0
+  std::set<uint32_t> m_planners; // +0xb0
   int m_xbc; // +0xbc
   int m_xc0; // +0xc0
   int m_xc4; // +0xc4
   int m_agentCount[3]; // +0xc8 agents per class (AgentClassOf)
-  IdAvlTree m_agents; // +0xd4
+  std::set<uint32_t> m_agents; // +0xd4
   int m_xe0; // +0xe0
   int m_xe4; // +0xe4
 };

@@ -1,7 +1,13 @@
 #pragma once
+#include "core/id_registry.h"
+#include "gameobj/object_name_node.h"
+#include <algorithm>
 #include <cstdint>
+#include <map>
+#include <memory>
+#include <ranges>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "economy/production_facility.h"
 #include "gameobj/game_obj.h"
@@ -9,16 +15,66 @@
 #include "gameobj/object_key.h"
 #include "gameobj/tracked_stat.h"
 
-// ObjectNameList (VT 0x660ae8, 0x10 bytes): an IdAvlTree of ObjectNameNodes with the same "last operation worked" flag
+// ObjectNameList (VT 0x660ae8, 0x10 bytes): an ID registry of ObjectNameNodes with the same "last operation worked" flag
 // as ObjectRefList. The object-type database builds one for its record queries. (The link order put its code
 // in front of the Side class, 0x52d720-0x52d760.)
-class ObjectNameList : public IdAvlTree
+class ObjectNameList
 {
 public:
+  void Clear()
+  {
+    m_registry.Clear();
+  }
+  size_t Count() const
+  {
+    return m_registry.Count();
+  }
+  bool Empty() const
+  {
+    return m_registry.Empty();
+  }
+  auto Entries() const
+  {
+    return m_registry.Entries();
+  }
+  auto PositionOf(const ObjectNameNode* node) const
+  {
+    return m_registry.PositionOf(node);
+  }
+  ObjectNameNode* First() const
+  {
+    return m_registry.First();
+  }
+  ObjectNameNode* Last() const
+  {
+    return m_registry.Last();
+  }
+  ObjectNameNode* FindById(uint32_t id) const
+  {
+    return m_registry.FindById(id);
+  }
+  ObjectNameNode* DetachById(uint32_t id)
+  {
+    return m_registry.DetachById(id);
+  }
+  void DeleteById(uint32_t id)
+  {
+    m_registry.DeleteById(id);
+  }
+  void Remove(ObjectNameNode* node)
+  {
+    m_registry.Remove(node);
+  }
+  uint32_t AddWithId(ObjectNameNode* node)
+  {
+    return m_registry.AddWithId(node);
+  }
   ObjectNameList(); // 0x52d720
-  ~ObjectNameList() override; // 0x52d760 (scalar deleting destructor 0x52d740)
+  ~ObjectNameList(); // 0x52d760 (scalar deleting destructor 0x52d740)
 
   int m_ok; // +0x0c
+private:
+  IdRegistry<ObjectNameNode> m_registry;
 };
 
 class System;
@@ -233,7 +289,7 @@ public:
   // *out = 1 for a completed, existing unit of this side with a maintenance cost (a scrap candidate); always 1.
   int IsScrapCandidate(GameObj* unit, int* out); // 0x52e530
   // Collects the research records of family `kind` (0x28-0x2a) at this side's current level into `out`.
-  int CollectRdRecords(int kind, IdAvlTree* out); // 0x52e580
+  int CollectRdRecords(int kind, ObjectNameList* out); // 0x52e580
   // Whether `count` more units of record `key` fit into the maintenance capacity; *status becomes {0xf3,1} if not.
   int CheckMaintCapacity(const ObjectKey* key, int count, StatusCode* status); // 0x52e970
   int GetRdProgress(int kind, int* out); // 0x52ea70 (kind 0 shipyard, 1 construction yard, 2 training facility)

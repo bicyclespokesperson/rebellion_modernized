@@ -219,12 +219,12 @@ Notice42::Notice42() : UiTextNotice()
   m_categories = Virtual11();
 }
 
-Notice42::Notice42(int owner, const IdNode* record) : UiTextNotice(owner)
+Notice42::Notice42(int owner, int value) : UiTextNotice(owner)
 {
   m_categories = Virtual11();
   m_unk28 = 0x2a;
   m_unk40 = 1;
-  int group = static_cast<const IdValueNode*>(record)->m_value >> 4;
+  int group = value >> 4;
   int firstText;
   int secondText;
   if (m_owner == 1)

@@ -122,7 +122,7 @@ int RemoveRequestEvent::GetKind()
   return 0x30b;
 }
 
-int RemoveRequestEvent::GetPriority()
+int RemoveRequestEvent::GetPriority() const
 {
   return 0x150;
 }
@@ -172,7 +172,7 @@ int RoleStateEvent::GetKind()
   return 0x30e;
 }
 
-int RoleStateEvent::GetPriority()
+int RoleStateEvent::GetPriority() const
 {
   return 0x200;
 }
@@ -266,7 +266,7 @@ int ResignRequestEvent::GetKind()
   return 0x314;
 }
 
-int ResignRequestEvent::GetPriority()
+int ResignRequestEvent::GetPriority() const
 {
   return 0x152;
 }

@@ -150,7 +150,7 @@ int AiTask1::ChooseTarget()
   auto position = m_targets.Entries().begin();
   while (position != m_targets.Entries().end() && !found)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
     ++position;
     ObjectKey key = KeyOfNode(node);
     AiSystemEval* eval = m_owner->m_systems.FindEval(key);
@@ -384,7 +384,7 @@ int AiTask1::SelectTarget()
   m_limit = 0;
   for (auto position = m_targets.Entries().begin(); position != m_targets.Entries().end(); ++position)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
     AiSystemEval* eval = m_owner->m_systems.FindEval(KeyOfNode(node));
     if (eval && (eval->m_flags30.m_value & 1) != 0 && (eval->m_flags28.m_value & 3) == 0 && 0 < eval->Stat(0x114) &&
         eval->Stat(0x60) < best)

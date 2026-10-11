@@ -273,7 +273,7 @@ int AiTask10::ChooseManager()
   auto position = m_targets.Entries().begin();
   while (position != m_targets.Entries().end() && !found)
   {
-    ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+    ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
     ++position;
     m_manager = KeyOfNode(node);
     AiSystemEval* eval = IsSystemKey(m_manager) ? m_owner->m_systems.FindEval(m_manager) : nullptr;
@@ -354,15 +354,16 @@ int AiTask10::NextRecord()
       {
         ++position;
         record = position == m_owner->m_systemRecords.Entries().end() ? nullptr :
-                                                                        static_cast<AiSystemRecord*>(position->get());
+                                                                        static_cast<AiSystemRecord*>((*position).get());
       }
     } while (record);
     if (record)
     {
       m_recordId = record->m_id;
       ++position;
-      m_recordCursor =
-        position == m_owner->m_systemRecords.Entries().end() ? 0 : static_cast<AiSystemRecord*>(position->get())->m_id;
+      m_recordCursor = position == m_owner->m_systemRecords.Entries().end() ?
+                         0 :
+                         static_cast<AiSystemRecord*>((*position).get())->m_id;
       return found;
     }
   }

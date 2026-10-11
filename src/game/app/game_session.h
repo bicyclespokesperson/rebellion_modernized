@@ -1,10 +1,11 @@
 #pragma once
+class UiRecordTree;
 #include <cstddef>
 #include <cstdint>
 #include <unordered_map>
 
 #include "app/player_controller_decl.h"
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
@@ -79,7 +80,7 @@ public:
   void HumanBeginHold();
   void HumanEndHold();
   void SetHumanUiFlag4000(int on);
-  IdAvlTree* GetHumanOrderTree();
+  UiRecordTree* GetHumanOrderTree();
   void DeleteHumanMessage(int id);
   void SetHumanDispatchFlag(int on);
   void SetHumanStateValue(int key, int value);

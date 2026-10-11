@@ -75,7 +75,7 @@ int CheckCommandsEnabled(ActivityRequest* request, CommandQueue* commands, Statu
     if (ok == 0 || !isOk(*status))
       break;
     auto current = position++;
-    auto* command = static_cast<Command*>(current->get());
+    auto* command = static_cast<Command*>((*current).get());
 
     ok = command->CheckEnabled(status);
     if (ok != 0 && isOk(*status))
@@ -115,7 +115,7 @@ int CheckCommandsValid(ActivityRequest* request, CommandQueue* commands, StatusC
     if (ok == 0 || !isOk(*status))
       break;
     auto current = position++;
-    auto* command = static_cast<Command*>(current->get());
+    auto* command = static_cast<Command*>((*current).get());
     ok = command->CheckValid(status);
   }
   return ok;
@@ -145,7 +145,7 @@ int CheckCommandForTeam(Command* prototype, ObjectKeyValueSet* team, CommandQueu
   {
     for (auto position = keys.Entries().begin(); position != keys.Entries().end() && (ok != 0); ++position)
     {
-      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
       Command* command = prototype->Clone();
       ok = command != nullptr;
       if (command)

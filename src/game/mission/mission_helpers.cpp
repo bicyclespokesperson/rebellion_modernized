@@ -46,44 +46,6 @@ void MissionMemberSummary::CopyAllButFirst(const MissionMemberSummary& other)
   }
 }
 
-// ---- EventKindNode ----------------------------------------------------------------------------------------
-
-EventKindNode::EventKindNode() : m_value(1), m_unknown(0)
-{
-}
-
-EventKindNode::EventKindNode(const EventKindNode& other) = default;
-
-EventKindNode::~EventKindNode() = default;
-
-CloneableNode* EventKindNode::Clone()
-{
-  void* memory = ::operator new(sizeof(EventKindNode));
-  return memory ? new (memory) EventKindNode(*this) : nullptr;
-}
-
-int EventKindNode::Read(istream* in)
-{
-  const int result = IntKeyNode::Read(in);
-  if (result)
-  {
-    ReadValue32(in, &m_value);
-    ReadValue32(in, &m_unknown);
-  }
-  return result;
-}
-
-int EventKindNode::Write(ostream* out)
-{
-  const int result = IntKeyNode::Write(out);
-  if (result)
-  {
-    WriteValue32(out, &m_value);
-    WriteValue32(out, &m_unknown);
-  }
-  return result;
-}
-
 // ---- ManuMgrData (the class belongs to the economy module, its methods sit in this address range) ---------
 
 ManuMgrData::ManuMgrData() = default;
@@ -372,7 +334,7 @@ int addKeysToSummary(ObjectKeyValueSet* set, int a, MissionMemberSummary* summar
 {
   for (const auto& nodeEntry : set->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
     if (!(ok && status->m_second == static_cast<uint32_t>(kStatusOk)))
       break;
 
@@ -400,7 +362,7 @@ int FillMemberSummaryForMission(ObjectKeyValueSet* team,
   ok = addKeysToSummary(decoys, 1, summary, status, ok);
   for (const auto& nodeEntry : captured->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
 
     if (!ok)
       return 0;

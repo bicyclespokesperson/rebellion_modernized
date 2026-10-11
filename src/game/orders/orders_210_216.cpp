@@ -326,7 +326,7 @@ int RenameOrder215::CheckDestination(StatusCode* status)
   {
     for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();)
     {
-      Command* command = static_cast<Command*>((commandPosition++)->get());
+      Command* command = static_cast<Command*>((*(commandPosition++)).get());
       if (!(true && isOk(status)))
         break;
       static_cast<ManagerRenameCommand*>(command)->m_name = m_text;
@@ -375,7 +375,7 @@ Command* ManufactureOrderBase::CreateCommand()
   return memory ? new (memory) ManufactureCommand() : nullptr;
 }
 
-uint32_t ManufactureOrderBase::FillChoices(AvlTree* choices)
+uint32_t ManufactureOrderBase::FillChoices(ObjectNameList* choices)
 {
   choices->Clear();
   ActivityRequest request;
@@ -390,7 +390,7 @@ uint32_t ManufactureOrderBase::FillChoices(AvlTree* choices)
     bool first = true;
     for (const auto& entry : dependencies.Entries())
     {
-      AvlNode* node = static_cast<AvlNode*>(entry.get());
+      auto* node = entry.get();
       if (inFamilies(keyOfNode(node), 0xa0, 0xb0))
       {
         ObjectKey managerKey = keyOfNode(node);
@@ -422,9 +422,7 @@ uint32_t ManufactureOrderBase::FillChoices(AvlTree* choices)
           kind = 0x29;
         else
           known = false;
-        result = known ?
-                   static_cast<Side*>(sideObject)->Side::CollectRdRecords(kind, reinterpret_cast<IdAvlTree*>(choices)) :
-                   0;
+        result = known ? static_cast<Side*>(sideObject)->Side::CollectRdRecords(kind, choices) : 0;
       }
     }
   }
@@ -461,7 +459,7 @@ int ManufactureOrderBase::ComputeTotals(int* out1, int* out2, int* out3, int* ou
   {
     for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();)
     {
-      Command* command = static_cast<Command*>((commandPosition++)->get());
+      Command* command = static_cast<Command*>((*(commandPosition++)).get());
       if (!(true && isOk(status)))
         break;
 
@@ -515,7 +513,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status)
   {
     for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();)
     {
-      Command* command = static_cast<Command*>((commandPosition++)->get());
+      Command* command = static_cast<Command*>((*(commandPosition++)).get());
 
       if (!(ok != 0 && isOk(status)))
         break;
@@ -566,7 +564,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status)
   {
     for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();)
     {
-      Command* command = static_cast<Command*>((commandPosition++)->get());
+      Command* command = static_cast<Command*>((*(commandPosition++)).get());
       if (!(true && ok != 0))
         break;
 
@@ -589,7 +587,7 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status)
   {
     for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();)
     {
-      Command* command = static_cast<Command*>((commandPosition++)->get());
+      Command* command = static_cast<Command*>((*(commandPosition++)).get());
       if (!(true && ok != 0 && isOk(status)))
         break;
 
@@ -733,7 +731,7 @@ int Order216::CheckDestination(StatusCode* status)
     {
       for (auto commandPosition = m_commands->Entries().begin(); commandPosition != m_commands->Entries().end();)
       {
-        Command* command = static_cast<Command*>((commandPosition++)->get());
+        Command* command = static_cast<Command*>((*(commandPosition++)).get());
         if (!(true && isOk(status)))
           break;
         static_cast<ManagerCommand216*>(command)->m_value = flag;

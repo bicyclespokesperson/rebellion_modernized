@@ -1,5 +1,6 @@
 #include "strategy_ui/ui_handler_table.h"
 
+#include "core/iostream_lib.h"
 #include "core/stream_io.h"
 #include "events/player_notices.h"
 
@@ -124,18 +125,35 @@ UiRecordTree::UiRecordTree()
 
 UiRecordTree::~UiRecordTree() = default;
 
+uint32_t UiRecordTree::AddWithId(UiNotice* notice)
+{
+  return m_notices.AddWithId(notice);
+}
+
 void UiRecordTree::Read(istream* in)
 {
-  int16_t count;
+  int16_t count = 0;
   ReadValue16(in, &count);
   while (count != 0)
   {
     --count;
-    uint32_t kind;
+    uint32_t kind = 0;
     ReadValue32(in, &kind);
-    UiNotice* notice = CreateUiRecord(static_cast<int>(kind));
+    if (iostream_access::State(in) != 0)
+      return;
+    std::unique_ptr<UiNotice> notice(CreateUiRecord(static_cast<int>(kind)));
+    if (!notice)
+    {
+      iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+      return;
+    }
     notice->Read(in);
-    AddWithId(notice);
+    if (iostream_access::State(in) != 0 || !AddWithId(notice.get()))
+    {
+      iostream_access::SetState(iostream_access::IosOf(in), iostream_flags::kFail);
+      return;
+    }
+    notice.release();
   }
 }
 

@@ -819,7 +819,7 @@ void AdvisorTask23::OpenWindow(ManufactureOrderBase* order)
 
 // ---- AdvisorTaskManager -------------------------------------------------------------------------------------------------
 
-AdvisorTaskManager::AdvisorTaskManager() : IdAvlTree()
+AdvisorTaskManager::AdvisorTaskManager()
 {
   m_current = nullptr;
   m_cursor = nullptr;
@@ -831,6 +831,22 @@ AdvisorTaskManager::~AdvisorTaskManager()
   m_current = nullptr;
   m_cursor = nullptr;
   m_last = nullptr;
+  Clear();
+}
+
+void AdvisorTaskManager::Clear()
+{
+  m_tasks.Clear();
+}
+
+uint32_t AdvisorTaskManager::AddWithId(AdvisorTaskBase* task)
+{
+  return m_tasks.AddWithId(task);
+}
+
+AdvisorTaskBase* AdvisorTaskManager::FindById(uint32_t id) const
+{
+  return m_tasks.FindById(id);
 }
 
 void AdvisorTaskManager::Save(ostream* out)
@@ -840,7 +856,7 @@ void AdvisorTaskManager::Save(ostream* out)
   WriteValue16(out, &count);
   for (const auto& entry : Entries())
   {
-    AdvisorTaskBase* task = static_cast<AdvisorTaskBase*>(entry.get());
+    AdvisorTaskBase* task = entry.second.get();
     uint32_t id = task->m_id;
     WriteValue32(out, &id);
     task->Write(out);
@@ -920,7 +936,7 @@ AdvisorTaskBase* AdvisorTaskManager::SelectNext()
   auto position = PositionOf(m_current);
   if (position == Entries().end() || ++position == Entries().end())
     position = Entries().begin();
-  m_current = position == Entries().end() ? nullptr : static_cast<AdvisorTaskBase*>(position->get());
+  m_current = position == Entries().end() ? nullptr : position->second.get();
   AdvisorTaskBase* start = m_current;
   bool wrapped = false;
   int wants = m_current->m_flags.Get();
@@ -933,7 +949,7 @@ AdvisorTaskBase* AdvisorTaskManager::SelectNext()
     }
     if (++position == Entries().end())
       position = Entries().begin();
-    m_current = position == Entries().end() ? nullptr : static_cast<AdvisorTaskBase*>(position->get());
+    m_current = position == Entries().end() ? nullptr : position->second.get();
     wrapped = start == m_current;
     wants = m_current->m_flags.Get();
   }
@@ -967,7 +983,7 @@ AdvisorTaskBase* AdvisorTaskManager::PickBest()
   auto position = PositionOf(m_cursor);
   if (position == Entries().end() || ++position == Entries().end())
     position = Entries().begin();
-  m_cursor = position == Entries().end() ? nullptr : static_cast<AdvisorTaskBase*>(position->get());
+  m_cursor = position == Entries().end() ? nullptr : position->second.get();
   AdvisorTaskBase* task = m_cursor;
   while (task)
   {
@@ -978,7 +994,7 @@ AdvisorTaskBase* AdvisorTaskManager::PickBest()
     }
     if (++position == Entries().end())
       position = Entries().begin();
-    task = position == Entries().end() ? nullptr : static_cast<AdvisorTaskBase*>(position->get());
+    task = position == Entries().end() ? nullptr : position->second.get();
     if (task == m_cursor)
       task = nullptr;
   }
@@ -987,18 +1003,29 @@ AdvisorTaskBase* AdvisorTaskManager::PickBest()
 
 // ---- AdvisorEntryTree ---------------------------------------------------------------------------------------------------
 
-AdvisorEntryTree::AdvisorEntryTree() : IdAvlTree()
+AdvisorEntryTree::AdvisorEntryTree() = default;
+
+AdvisorEntryTree::~AdvisorEntryTree()
 {
+  Clear();
 }
 
-AdvisorEntryTree::~AdvisorEntryTree() = default;
+void AdvisorEntryTree::Clear()
+{
+  m_entries.Clear();
+}
+
+uint32_t AdvisorEntryTree::AddWithId(DroidScript* entry)
+{
+  return m_entries.AddWithId(entry);
+}
 
 void AdvisorEntryTree::Save(ostream* out)
 {
   if (!WriteCount32(out, Count()))
     return;
   for (const auto& entry : Entries())
-    static_cast<DroidScript*>(entry.get())->Write(out);
+    entry.second->Write(out);
 }
 
 void AdvisorEntryTree::Load(istream* in)

@@ -627,22 +627,13 @@ void AiSectorScan::Accumulate(const int* stats, const int* flagsA, const int* fl
 
 // ---- AiSectorScanSet ----------------------------------------------------------------------------------------------------
 
-namespace
-{
-
-size_t CountOf(AvlTree& tree)
-{
-  return tree.Count();
-}
-
-} // namespace
-
 AiSectorScanSet::AiSectorScanSet() : ObjectKeySet(), m_view(0), m_cursor(nullptr), m_cursorObject(nullptr)
 {
 }
 
 AiSectorScanSet::~AiSectorScanSet()
 {
+  Clear();
   m_cursorObject = nullptr;
   m_cursor = nullptr;
 }
@@ -779,6 +770,7 @@ AiSystemScanSet::AiSystemScanSet()
 
 AiSystemScanSet::~AiSystemScanSet()
 {
+  Clear();
   m_cursorObject = nullptr;
   m_cursor = nullptr;
   m_classes = nullptr;

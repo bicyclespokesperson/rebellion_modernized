@@ -1,6 +1,7 @@
 #include "app/app_control_cmds.h"
 
 #include <list>
+#include <map>
 #include <memory>
 #include <new>
 
@@ -247,7 +248,7 @@ HPALETTE g_displayPalette{};
 HPALETTE g_palette{};
 HPALETTE g_savedPalette{};
 HWND g_tooltipWindow{};
-IdAvlTree g_windowRegistry{};
+std::map<uint32_t, CoolWindow*> g_windowRegistry{};
 std::list<std::unique_ptr<PopupEntry>> g_popupStack{};
 const RECT g_rectSessionList = {124, 277, 473, 352};
 const char* g_tooltipClassName = nullptr;

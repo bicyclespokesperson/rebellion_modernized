@@ -1,7 +1,9 @@
 #pragma once
 #include <cstdint>
+#include <map>
+#include <memory>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "platform/win32.h"
 #include "ui/cool_timer.h"
 
@@ -29,23 +31,30 @@ public:
   uint32_t m_key; // +0x18
 };
 
-// AVL tree of KeyedSoundNodes that hands out keys, like IdAvlTree (the original compiled separate copies of its
-// members for these trees, so they have their own addresses). Keys given to Add() as 0 are assigned m_nextKey.
-class SoundIdTree : public AvlTree
+// KeyedSoundNode registry that hands out keys. Keys given to Add() as 0 are assigned m_nextKey.
+class SoundIdTree
 {
 public:
   SoundIdTree() : m_nextKey(1)
   {
   }
-  ~SoundIdTree() override = default;
-  void Clear() override;
-  int IsLess(AvlNode* a, AvlNode* b) override;
+  virtual ~SoundIdTree();
+  virtual void Clear();
 
   KeyedSoundNode* Find(uint32_t key); // 0x612bd0
   uint32_t Add(KeyedSoundNode* node); // 0x612b30
+  void Remove(KeyedSoundNode* node);
   int DeleteNode(KeyedSoundNode* node); // 0x612100: unlinks and deletes `node` if it is in the tree
 
+  const auto& Entries() const
+  {
+    return m_nodes;
+  }
+
+protected:
   uint32_t m_nextKey; // +0x08
+  std::map<uint32_t, std::unique_ptr<KeyedSoundNode>> m_nodes;
+  bool m_clearing = false;
 };
 
 enum SoundBufferMode : int

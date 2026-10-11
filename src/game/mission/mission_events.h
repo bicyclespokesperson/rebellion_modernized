@@ -195,7 +195,7 @@ public:
   {
     return 0x30c;
   } // 9, 0x54dbf0
-  int GetPriority() override
+  int GetPriority() const override
   {
     return 0x30c;
   } // 10, shared 0x54dbf0
@@ -228,7 +228,7 @@ public:
   {
     return 0x30d;
   } // 9, 0x54dea0
-  int GetPriority() override
+  int GetPriority() const override
   {
     return 0x156;
   } // 10, 0x54deb0

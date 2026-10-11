@@ -1,10 +1,11 @@
 #pragma once
+class MessageBase;
+class UiRecordTree;
 #include <cstdint>
 #include <string>
 #include <vector>
 
 #include "app/player_controller_decl.h"
-#include "core/containers.h"
 #include "core/stream_io.h"
 #include "gameobj/object_key.h"
 #include "platform/win32.h"
@@ -15,6 +16,7 @@ class ObjectKeyValueSet;
 class EventKindSet;
 class GameObjNotifier;
 class TextMessage;
+class MessageTree;
 
 class ManufactureOrderBase;
 struct ResourceStringId;
@@ -60,7 +62,7 @@ int UiNextId(); // 0x41d120
 void UiSetHumanUiTarget(int a, int b); // 0x41d140
 void UiHumanRefreshMenus(EventKindSet* commands, int requestUpdate); // 0x41d160 fills `commands`
 void UiHumanRefreshOrderMenus(EventKindSet* commands); // 0x41d190
-IdAvlTree* UiGetHumanOrderTree(); // 0x41d1b0
+UiRecordTree* UiGetHumanOrderTree(); // 0x41d1b0
 void UiDeleteHumanMessage(int id); // 0x41d1d0
 void UiSetHumanDispatchFlag(int on); // 0x41d1f0
 void UiSetHumanUiFlag4000(int on); // 0x41d210
@@ -83,7 +85,7 @@ void UiHumanEndHold(); // 0x41d410
 void UiSendNotificationToSide(int side, intptr_t argument); // 0x41dc80
 
 // ---- Game step driver (null outside a game) ------------------------------------------------------------------
-void UiAddManagerNotice(void* notice); // 0x41db80
+void UiAddManagerNotice(MessageBase* notice); // 0x41db80
 unsigned UiRaisePauseTo(unsigned tick); // 0x41dba0 returns `tick` without a driver
 int UiBeginPause(); // 0x41dbc0
 void UiClearHold(); // 0x41dbe0

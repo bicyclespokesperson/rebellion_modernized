@@ -210,7 +210,7 @@ GameObjNotifier* GameObjNotifier::NextSiblingInRange(const FamilyRange* range)
     return nullptr;
   ++position;
   GameObjNotifier* next =
-    position == m_parent->m_children->Entries().end() ? nullptr : static_cast<GameObjNotifier*>(position->get());
+    position == m_parent->m_children->Entries().end() ? nullptr : static_cast<GameObjNotifier*>((*position).get());
   if (next)
   {
     const uint32_t family = next->GetFamily();

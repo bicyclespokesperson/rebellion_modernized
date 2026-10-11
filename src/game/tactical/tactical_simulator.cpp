@@ -27,7 +27,7 @@ void retireAll(HeadlessSimulator* simulator, UnitRefTree* list)
   while (entry != list->Entries().end())
   {
     auto current = entry++;
-    auto* node = static_cast<UnitRefNode*>(current->get());
+    auto* node = static_cast<UnitRefNode*>((*current).get());
     simulator->RetireUnit(node->Value());
   }
 }
@@ -231,7 +231,7 @@ int HeadlessSimulator::AddCharacter(TacticalUnit* character)
 
 int HeadlessSimulator::AddSpecialForce(TacticalUnit* force)
 {
-  m_specialForces.AddWithId(force);
+  m_specialForces.AddWithId(static_cast<TacticalSpecialForceUnit*>(force));
   return force->m_id;
 }
 

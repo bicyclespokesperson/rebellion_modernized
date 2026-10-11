@@ -8,7 +8,7 @@
 // what the destination accepts ("incoming") and what leaving frees ("outgoing").
 #include <cstdint>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_key.h"
 #include "gameobj/status_code.h"

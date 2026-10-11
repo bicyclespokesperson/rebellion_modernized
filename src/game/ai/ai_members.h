@@ -1,16 +1,20 @@
 #pragma once
 #include <cstdint>
+#include <map>
+#include <memory>
+#include <utility>
 
 #include "ai/ai_class_records.h"
 #include "ai/ai_ranked_list.h"
 #include "ai/ai_records.h"
-#include "core/containers.h"
+#include "core/entry_identity.h"
+#include "core/id_registry.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
 
 // The collections an AiSideController (ai_side_controller.h) is built from (0x42dc10-0x431270). Each holds the records of
 // one kind for one side and knows how to build them from the game objects, save and load them. They are sets keyed by
-// object key (ObjectKeySet) or by id (IdAvlTree). Every set stores the view it is for (1 Alliance, 2 Empire) and back
+// object key (ObjectKeySet) or by id. Every set stores the view it is for (1 Alliance, 2 Empire) and back
 // pointers to the sets it needs; AiSideController's constructor wires them up.
 //
 //   AiClassTable        VT 0x658c40 (0x40): the AiClassRecordBase records of the unit classes and the best classes found
@@ -34,12 +38,17 @@ class System;
 
 // ---- AiClassTable -----------------------------------------------------------------------------------------------------
 
-class AiClassTable : public AvlTree
+class AiClassTable
 {
 public:
   AiClassTable(); // 0x42dc10
-  ~AiClassTable() override; // 0: 0x42dc50 (deleting), 0x42dc70
-  int IsLess(AvlNode* a, AvlNode* b) override; // 2: 0x42ebc0
+  ~AiClassTable(); // 0: 0x42dc50 (deleting), 0x42dc70
+  void Clear();
+  int Insert(AiClassRecordBase* record);
+  const auto& Entries() const
+  {
+    return m_records;
+  }
 
   void LoadValues(istream* in); // 0x42dc80: the three selected tiers
   void SaveValues(ostream* out); // 0x42dcc0
@@ -83,15 +92,38 @@ public:
   int m_x34; // +0x34 flag 0x100000, stat 0x80
   int m_x38; // +0x38 flag 0x100000, stat 0x100
   int m_x3c; // +0x3c flag 0x800, stat 0x800
+
+private:
+  std::multimap<uint32_t, std::unique_ptr<AiClassRecordBase>> m_records;
 };
 
 // ---- AiTaskRecordSet --------------------------------------------------------------------------------------------------
 
-class AiTaskRecordSet : public IdAvlTree
+class AiTaskRecordSet
 {
 public:
   AiTaskRecordSet(); // 0x42ec30
-  ~AiTaskRecordSet() override; // 0: 0x42ec50 (deleting), 0x42ec70
+  ~AiTaskRecordSet(); // 0: 0x42ec50 (deleting), 0x42ec70
+  void Clear();
+  size_t Count() const
+  {
+    return m_records.Count();
+  }
+  auto Entries() const
+  {
+    return m_records.Entries();
+  }
+  AiTaskRecord* First() const
+  {
+    return m_records.First();
+  }
+  auto PositionOf(const AiTaskRecord* record) const
+  {
+    return m_records.PositionOf(record);
+  }
+  uint32_t AddWithId(AiTaskRecord* record);
+  AiTaskRecord* FindById(uint32_t id) const;
+  void DeleteById(uint32_t id);
   void Load(istream* in); // 0x42ec90
   void Save(ostream* out); // (shares the code of AiSystemRecordSet::Save, 0x42f2b0)
   uint32_t CreateRecord(); // 0x42ed50: adds a new record, returns its id
@@ -99,15 +131,37 @@ public:
 
   int m_view; // +0x0c
   AiSideController* m_owner; // +0x10
+
+private:
+  IdRegistry<AiTaskRecord> m_records;
 };
 
 // ---- AiAgentSet ------------------------------------------------------------------------------------------------------
 
-class AiAgentSet : public IdAvlTree
+class AiAgentSet
 {
 public:
   AiAgentSet(); // 0x42ee00
-  ~AiAgentSet() override; // 0: 0x42ee20 (deleting), 0x42ee40
+  ~AiAgentSet(); // 0: 0x42ee20 (deleting), 0x42ee40
+  void Clear();
+  size_t Count() const
+  {
+    return m_agents.Count();
+  }
+  auto Entries() const
+  {
+    return m_agents.Entries();
+  }
+  AiAgentBase* First() const
+  {
+    return m_agents.First();
+  }
+  auto PositionOf(const AiAgentBase* agent) const
+    -> decltype(std::declval<const IdRegistry<AiAgentBase>&>().Entries().begin());
+  uint32_t AddWithId(AiAgentBase* agent);
+  AiAgentBase* FindById(uint32_t id) const;
+  AiAgentBase* DetachById(uint32_t id);
+  void DeleteById(uint32_t id);
   void Load(istream* in); // 0x42ee50
   void Save(ostream* out); // 0x42eee0
   uint32_t AddAgent(int kind); // 0x42ef50: creates the agent, adds it, returns its id (or `kind` if it cannot be made)
@@ -117,17 +171,38 @@ public:
   int m_view; // +0x0c
   AiCharacterRecordSet* m_characters; // +0x10
   AiSideController* m_owner; // +0x14
+
+private:
+  IdRegistry<AiAgentBase> m_agents;
 };
 
 // ---- AiSystemRecordSet ------------------------------------------------------------------------------------------------
 
 class AiSystemRecord;
 
-class AiSystemRecordSet : public IdAvlTree
+class AiSystemRecordSet
 {
 public:
   AiSystemRecordSet(); // 0x42f190
-  ~AiSystemRecordSet() override; // 0: 0x42f1b0 (deleting), 0x42f1d0
+  ~AiSystemRecordSet(); // 0: 0x42f1b0 (deleting), 0x42f1d0
+  void Clear();
+  size_t Count() const
+  {
+    return m_records.Count();
+  }
+  auto Entries() const
+  {
+    return m_records.Entries();
+  }
+  AiSystemRecord* First() const
+  {
+    return m_records.First();
+  }
+  auto PositionOf(const AiSystemRecord* record) const
+    -> decltype(std::declval<const IdRegistry<AiSystemRecord>&>().Entries().begin());
+  uint32_t AddWithId(AiSystemRecord* record);
+  AiSystemRecord* FindById(uint32_t id) const;
+  void DeleteById(uint32_t id);
   void Load(istream* in); // 0x42f1f0
   void Save(ostream* out); // 0x42f2b0
   AiSystemRecord* FindByTarget(const ObjectKey* key); // 0x42f310 (the record whose system key is *key)
@@ -136,15 +211,37 @@ public:
 
   int m_view; // +0x0c
   AiSideController* m_owner; // +0x10
+
+private:
+  IdRegistry<AiSystemRecord> m_records;
 };
 
 // ---- AiPlannerSet -----------------------------------------------------------------------------------------------------
 
-class AiPlannerSet : public IdAvlTree
+class AiPlannerSet
 {
 public:
   AiPlannerSet(); // 0x42f4c0
-  ~AiPlannerSet() override; // 0: 0x42f4e0 (deleting), 0x42f500
+  ~AiPlannerSet(); // 0: 0x42f4e0 (deleting), 0x42f500
+  void Clear();
+  size_t Count() const
+  {
+    return m_planners.Count();
+  }
+  auto Entries() const
+  {
+    return m_planners.Entries();
+  }
+  AiMissionPlanner* First() const
+  {
+    return m_planners.First();
+  }
+  auto PositionOf(const AiMissionPlanner* planner) const
+    -> decltype(std::declval<const IdRegistry<AiMissionPlanner>&>().Entries().begin());
+  uint32_t AddWithId(AiMissionPlanner* planner);
+  AiMissionPlanner* FindById(uint32_t id) const;
+  AiMissionPlanner* DetachById(uint32_t id);
+  void DeleteById(uint32_t id);
   void Load(istream* in); // 0x42f510
   void Save(ostream* out); // 0x42f5b0
   uint32_t AddPlanner(int kind, int subtype); // 0x42f640
@@ -160,6 +257,9 @@ public:
   int m_view; // +0x0c
   AiCharacterRecordSet* m_characters; // +0x10
   AiSideController* m_owner; // +0x14
+
+private:
+  IdRegistry<AiMissionPlanner> m_planners;
 };
 
 // ---- AiFleetEvalSet ---------------------------------------------------------------------------------------------------

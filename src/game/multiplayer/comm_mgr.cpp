@@ -51,11 +51,6 @@ void NotifyOwner(CommMgr* comm, int code, uint32_t player)
   PostMessageA(comm->m_notifyWindow, kCommNotifyMessage, code, player);
 }
 
-uint32_t CategoryOfNode(IdNode* node)
-{
-  return reinterpret_cast<PartialMessage*>(node)->GetCategory();
-}
-
 void DeleteMessage(CommBuffer* message)
 {
   if (message->m_data)
@@ -66,11 +61,19 @@ void DeleteMessage(CommBuffer* message)
 
 PartialMessage* FindOrCreatePartial(CommMgr* comm, uint32_t firstId)
 {
-  auto* partial = static_cast<PartialMessage*>(comm->m_assembling.FindById(firstId));
+  const auto found = comm->m_assembling.find(firstId);
+  auto* partial = found == comm->m_assembling.end() ? nullptr : found->second.get();
   if (!partial)
   {
     partial = NewOrNull<PartialMessage>(firstId);
-    comm->m_assembling.AddWithId(partial);
+    if (partial)
+    {
+      if (partial->m_id == 0 || !comm->m_assembling.try_emplace(partial->m_id, partial).second)
+      {
+        delete partial;
+        partial = nullptr;
+      }
+    }
   }
   return partial;
 }
@@ -78,7 +81,9 @@ PartialMessage* FindOrCreatePartial(CommMgr* comm, uint32_t firstId)
 void RemovePartial(CommMgr* comm, PartialMessage* partial)
 {
   partial->ReleaseFragments();
-  comm->m_assembling.DeleteById(partial->m_id);
+  auto removed = comm->m_assembling.extract(partial->m_id);
+  if (!removed.empty())
+    removed.mapped().reset();
 }
 
 } // namespace
@@ -161,6 +166,20 @@ CommMgr::~CommMgr()
   Trace(this, kTraceDestroying);
   g_commMgr = nullptr;
   g_commEnumerating = 0;
+  ClearOwnedRegistries();
+  m_seen.clear();
+}
+
+void CommMgr::ClearOwnedRegistries()
+{
+  decltype(m_pending) pending;
+  decltype(m_received) received;
+  decltype(m_assembling) assembling;
+  decltype(m_outgoing) outgoing;
+  m_pending.swap(pending);
+  m_received.swap(received);
+  m_assembling.swap(assembling);
+  m_outgoing.swap(outgoing);
 }
 
 // ---- trivial accessors -----------------------------------------------------------------------------------------
@@ -204,8 +223,8 @@ uint32_t CommMgr::QueueMessage(const void* data, uint32_t size, uint32_t categor
     return result;
   CommMgr* comm = GetCommMgr();
   CommOutgoing* outgoing = NewOrNull<CommOutgoing>(data, size, category, reliable);
-  auto* packet = static_cast<CommPacket*>(comm->m_pending.FindById(outgoing->m_firstPacketId));
-  auto packetPosition = packet ? comm->m_pending.PositionOf(packet) : comm->m_pending.Entries().end();
+  auto packetPosition = comm->m_pending.find(outgoing->m_firstPacketId);
+  CommPacket* packet = packetPosition == comm->m_pending.end() ? nullptr : packetPosition->second.get();
   while (packet && m_dplay)
   {
     ++packetPosition;
@@ -213,14 +232,14 @@ uint32_t CommMgr::QueueMessage(const void* data, uint32_t size, uint32_t categor
       return 0;
     if (!m_dplay)
       return 1;
-    packet =
-      packetPosition == comm->m_pending.Entries().end() ? nullptr : static_cast<CommPacket*>(packetPosition->get());
+    packet = packetPosition == comm->m_pending.end() ? nullptr : packetPosition->second.get();
   }
   if (reliable)
   {
     outgoing->SetId(outgoing->m_id);
     result = outgoing->m_id;
-    comm->m_outgoing.AddWithId(outgoing);
+    if (outgoing->m_id != 0)
+      comm->m_outgoing.try_emplace(outgoing->m_id, outgoing);
   }
   else if (outgoing)
   {
@@ -318,8 +337,8 @@ int CommMgr::ResendUnacked()
   int result = 0;
   const DWORD now = timeGetTime();
   bool anyPending = false;
-  auto packetPosition = m_pending.Entries().begin();
-  for (; packetPosition != m_pending.Entries().end();)
+  auto packetPosition = m_pending.begin();
+  for (; packetPosition != m_pending.end();)
   {
     if (!m_dplay)
     {
@@ -328,7 +347,7 @@ int CommMgr::ResendUnacked()
       return result;
     }
     auto current = packetPosition++;
-    auto* packet = static_cast<CommPacket*>(current->get());
+    auto* packet = current->second.get();
     if (packet->m_wire.m_reliable)
     {
       for (uint32_t player = 0; player < GetEnumeratedCount(); ++player)
@@ -374,7 +393,8 @@ int CommMgr::HandleAck(ReceivedPacket* packet, uint32_t from)
   const uint32_t id = packet->m_wire.m_id;
   if (id == 0 || (id >> 28) != static_cast<uint32_t>(m_localIndex))
     return 0;
-  auto* sent = static_cast<CommPacket*>(comm->m_pending.FindById(id));
+  const auto sentPosition = comm->m_pending.find(id);
+  auto* sent = sentPosition == comm->m_pending.end() ? nullptr : sentPosition->second.get();
   if (!sent)
     return 1;
   const DWORD now = timeGetTime();
@@ -392,14 +412,21 @@ int CommMgr::HandleAck(ReceivedPacket* packet, uint32_t from)
   if (sent->m_ack->Acknowledge(from) == 1 && sent->m_ack->IsSettled() == 1)
   {
     const uint32_t firstId = sent->FirstFragmentId();
-    auto* outgoing = static_cast<CommOutgoing*>(m_outgoing.FindById(firstId));
+    const auto outgoingPosition = m_outgoing.find(firstId);
+    auto* outgoing = outgoingPosition == m_outgoing.end() ? nullptr : outgoingPosition->second.get();
     if (outgoing)
     {
       ++outgoing->m_unused1d;
       if (outgoing->m_partCount <= outgoing->m_unused1d)
-        m_outgoing.DeleteById(firstId);
+      {
+        auto removed = m_outgoing.extract(firstId);
+        if (!removed.empty())
+          removed.mapped().reset();
+      }
     }
-    comm->m_pending.DeleteById(id);
+    auto removed = comm->m_pending.extract(id);
+    if (!removed.empty())
+      removed.mapped().reset();
   }
   return 1;
 }
@@ -422,11 +449,11 @@ void CommMgr::RegroupReceived()
 CommBuffer* CommMgr::TakeMessage(char category)
 {
   CommBuffer* message = nullptr;
-  auto position = m_assembling.Entries().begin();
-  while (position != m_assembling.Entries().end() && m_dplay)
+  auto position = m_assembling.begin();
+  while (position != m_assembling.end() && m_dplay)
   {
     auto current = position++;
-    auto* partial = static_cast<PartialMessage*>(current->get());
+    auto* partial = current->second.get();
     if (partial->IsComplete())
     {
       if (static_cast<char>(partial->GetCategory()) == 0)
@@ -539,23 +566,29 @@ void CommMgr::PingOpponents()
 
 void CommMgr::ClearCategory(char category)
 {
-  if (category == 0)
+  if (category == 0 || !m_dplay)
     return;
-  ClearCategoryFrom(&m_assembling, category);
-  ClearCategoryFrom(&m_outgoing, category);
-}
-
-void CommMgr::ClearCategoryFrom(IdAvlTree* tree, char category)
-{
-  if (!m_dplay)
-    return;
-  auto position = tree->Entries().begin();
-  while (position != tree->Entries().end())
+  auto partialPosition = m_assembling.begin();
+  while (partialPosition != m_assembling.end())
   {
-    auto current = position++;
-    AvlNode* node = current->get();
-    if (static_cast<char>(CategoryOfNode(static_cast<IdNode*>(node))) == category)
-      tree->DeleteById(static_cast<IdNode*>(node)->m_id);
+    auto current = partialPosition++;
+    PartialMessage* partial = current->second.get();
+    if (static_cast<char>(partial->GetCategory()) == category)
+    {
+      auto removed = m_assembling.extract(current);
+      removed.mapped().reset();
+    }
+  }
+  auto outgoingPosition = m_outgoing.begin();
+  while (outgoingPosition != m_outgoing.end())
+  {
+    auto current = outgoingPosition++;
+    CommOutgoing* outgoing = current->second.get();
+    if (static_cast<char>((outgoing->m_firstPacketId >> 24) & 0xf) == category)
+    {
+      auto removed = m_outgoing.extract(current);
+      removed.mapped().reset();
+    }
   }
 }
 
@@ -565,15 +598,18 @@ int CommMgr::DeactivatePlayer(uint32_t index)
     return kCommNoOtherPlayers;
   m_playerIds[index] = kNoPlayer;
   --m_playerCount;
-  auto position = m_pending.Entries().begin();
-  while (position != m_pending.Entries().end())
+  auto position = m_pending.begin();
+  while (position != m_pending.end())
   {
     auto current = position++;
-    auto* packet = static_cast<CommPacket*>(current->get());
+    auto* packet = current->second.get();
     if (packet->m_ack->GetState(index) == 1)
       packet->m_ack->SetState(index, 2);
     if (packet->m_ack->IsSettled() == 1)
-      m_pending.DeleteById(packet->m_id);
+    {
+      auto removed = m_pending.extract(current);
+      removed.mapped().reset();
+    }
   }
   if (index != kNoPlayer && index != kBroadcastIndex)
   {

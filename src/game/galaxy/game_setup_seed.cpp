@@ -165,7 +165,7 @@ int GameRoot::SumSeedValues(int factor, ObjectRefList* list, int* total)
   *total = 0;
   for (const auto& nodeEntry : list->Entries())
   {
-    AvlNode* node = static_cast<AvlNode*>(nodeEntry.get());
+    auto* node = nodeEntry.get();
 
     const ObjectKey key = static_cast<ObjectRefNode*>(node)->m_key;
     DatRecord* record = FindDataRecord(AsLookupKey(&key));
@@ -201,7 +201,7 @@ int GameRoot::CreateChildrenFromList(GameObjNotifier* parent, int count, ObjectR
   {
     do
     {
-      AvlNode* node = list->First();
+      ObjectRefNode* node = list->First();
       if (node != nullptr)
       {
         ObjectRefNode* entry = static_cast<ObjectRefNode*>(node);
@@ -217,7 +217,7 @@ int GameRoot::CreateChildrenFromList(GameObjNotifier* parent, int count, ObjectR
         ++position;
       for (; position != list->Entries().end(); ++position)
       {
-        auto* next = position->get();
+        auto* next = (*position).get();
         if (target != nullptr)
         {
           ObjectRefNode* entry = static_cast<ObjectRefNode*>(next);

@@ -1,6 +1,8 @@
 #include "tactical/tactical_formation.h"
 #include "core/reb_x87.h"
 
+#include <algorithm>
+#include <cmath>
 #include <new>
 
 #include "tactical/tactical_facade.h"
@@ -31,28 +33,83 @@ FormationSlot::~FormationSlot() = default;
 
 FormationSlotTree::~FormationSlotTree() = default;
 
-FormationRankTree::~FormationRankTree() = default;
-
-int FormationRankTree::IsLess(AvlNode* a, AvlNode* b)
+namespace
 {
-  struct RankKey
+bool floatBefore(float first, float second)
+{
+  const bool firstNan = std::isnan(first);
+  const bool secondNan = std::isnan(second);
+  if (firstNan != secondNan)
+    return !firstNan;
+  return !firstNan && first < second;
+}
+
+bool rankBefore(const FormationRankNode* left, const FormationRankNode* right)
+{
+  if (floatBefore(left->m_primary, right->m_primary))
+    return true;
+  if (floatBefore(right->m_primary, left->m_primary))
+    return false;
+  return floatBefore(left->m_secondary, right->m_secondary);
+}
+
+} // namespace
+
+FormationRankTree::~FormationRankTree()
+{
+  Clear();
+}
+
+bool FormationRankTree::NodeOrder::operator()(const std::unique_ptr<FormationRankNode>& a,
+                                              const std::unique_ptr<FormationRankNode>& b) const
+{
+  return rankBefore(a.get(), b.get());
+}
+
+void FormationRankTree::Insert(FormationRankNode* node)
+{
+  if (!m_clearing && node)
   {
-    uint8_t m_node[0x18];
-    float m_primary; // +0x18
-    float m_secondary; // +0x1c
-  };
-  const RankKey* left = reinterpret_cast<const RankKey*>(a);
-  const RankKey* right = reinterpret_cast<const RankKey*>(b);
-  if (left->m_primary == right->m_primary)
-  {
-    if (left->m_secondary < right->m_secondary)
-      return 1;
+    std::unique_ptr<FormationRankNode> pending(node);
+    try
+    {
+      m_nodes.insert(std::move(pending));
+    }
+    catch (...)
+    {
+      pending.release();
+      throw;
+    }
   }
-  else if (left->m_primary < right->m_primary)
-  {
-    return 1;
-  }
-  return 0;
+}
+
+void FormationRankTree::Remove(FormationRankNode* node)
+{
+  auto found = std::find_if(m_nodes.begin(), m_nodes.end(),
+                            [node](const auto& entry)
+                            {
+                              return entry.get() == node;
+                            });
+  if (found == m_nodes.end())
+    return;
+  auto owned = m_nodes.extract(found);
+  owned.value().release();
+}
+
+void FormationRankTree::Clear()
+{
+  if (m_clearing)
+    return;
+  m_clearing = true;
+  decltype(m_nodes) detached;
+  detached.swap(m_nodes);
+  detached.clear();
+  m_clearing = false;
+}
+
+FormationRankNode* FormationRankTree::First() const
+{
+  return m_nodes.empty() ? nullptr : m_nodes.begin()->get();
 }
 
 // ---- the formation -----------------------------------------------------------------------------------------------------

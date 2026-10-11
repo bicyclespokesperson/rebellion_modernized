@@ -100,9 +100,9 @@ public:
     }
     if (findOrigin)
     {
-      AvlNode* first = e->m_objects->First();
+      AiTaskObject* first = e->m_objects->First();
       if (first)
-        origin = static_cast<AiTaskObject*>(first)->m_key;
+        origin = first->m_key;
     }
   }
 
@@ -206,8 +206,8 @@ public:
       return;
     for (const auto& entry : e->m_objects->Entries())
     {
-      AvlNode* node = entry.get();
-      if (AiSectorEval* sector = FindSector(static_cast<AiTaskObject*>(node)))
+      AiTaskObject* object = entry.second.get();
+      if (AiSectorEval* sector = FindSector(object))
       {
         sector->m_flags2c.m_value &= ~kObjectSectorHeld;
         sector->ClearTarget();
@@ -218,8 +218,7 @@ public:
     auto position = picked.Entries().begin();
     while (position != picked.Entries().end())
     {
-      AvlNode* node = position->get();
-      AiTaskObject* object = static_cast<AiTaskObject*>(node);
+      AiTaskObject* object = position->second.get();
       if (AiSectorEval* sector = FindSector(object))
       {
         sector->m_flags2c.m_value |= kObjectSectorHeld;

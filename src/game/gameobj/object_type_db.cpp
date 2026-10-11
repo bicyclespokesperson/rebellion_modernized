@@ -19,9 +19,9 @@ constexpr uint32_t kFamilyResourceBase = 0x642;
 constexpr int kFamilyNameResources[] = {0x6b4, 0x6a9, 0x6ac, 0x6a8, 0x6ab, 0x6b2, 0x6ad, 0x6a7, 0x6b5,
                                         0x6ae, 0x6b0, 0x6a6, 0x6a4, 0x6af, 0x6a5, 0x6aa, 0x6b3};
 
-IdAvlTree* RecordsOf(void* entry)
+SeedList* RecordsOf(void* entry)
 {
-  return &static_cast<SeedListFile*>(entry)->m_list.m_records;
+  return &static_cast<SeedListFile*>(entry)->m_list;
 }
 
 DatRecord* AsRecord(AvlNode* node)
@@ -118,7 +118,7 @@ int ObjectTypeDb::AddFamily(int a, int b)
   }
   if (entry)
   {
-    for (const auto& ownedRecord : RecordsOf(entry)->Entries())
+    for (const auto& ownedRecord : RecordsOf(entry)->Records())
     {
       if (!ok)
         break;
@@ -127,7 +127,7 @@ int ObjectTypeDb::AddFamily(int a, int b)
     }
   }
   if (ok)
-    ok = static_cast<int>(m_families->AddWithId(static_cast<IdNode*>(entry)));
+    ok = static_cast<int>(m_families->AddWithId(static_cast<SeedListFile*>(entry)));
   return ok;
 }
 
@@ -138,7 +138,7 @@ int ObjectTypeDb::ForEachFamily(Crc32* crc)
   {
     if (!ok)
       break;
-    AvlNode* entry = family.get();
+    auto* entry = family.get();
     ok = static_cast<SeedListFile*>(entry)->m_list.Checksum(crc);
   }
   return ok;
@@ -149,7 +149,7 @@ DatRecord* ObjectTypeDb::FindRecord(const SeedKey* key)
   DatRecord* record = nullptr;
   if (SeedListFile* entry = m_families->FindByFamily(key->m_key >> 24))
   {
-    record = AsRecord(RecordsOf(entry)->FindById(key->m_key & 0xffffff));
+    record = AsRecord(RecordsOf(entry)->FindRecord(key->m_key & 0xffffff));
   }
   return record;
 }
@@ -160,7 +160,7 @@ std::vector<DatRecord*> ObjectTypeDb::RecordsOfFamily(uint32_t family)
   SeedListFile* entry = m_families ? m_families->FindByFamily(family) : nullptr;
   if (!entry)
     return records;
-  const auto& storedRecords = RecordsOf(entry)->Entries();
+  const auto& storedRecords = RecordsOf(entry)->Records();
   records.reserve(storedRecords.size());
   for (const auto& storedRecord : storedRecords)
     records.push_back(AsRecord(storedRecord.get()));
@@ -177,12 +177,12 @@ int ObjectTypeDb::ListAllRecordKeys(ObjectRefList* out)
   {
     if (!ok)
       break;
-    AvlNode* entry = family.get();
-    for (const auto& storedRecord : RecordsOf(entry)->Entries())
+    auto* entry = family.get();
+    for (const auto& storedRecord : RecordsOf(entry)->Records())
     {
       if (!ok)
         break;
-      AvlNode* record = storedRecord.get();
+      auto* record = storedRecord.get();
       ObjectKey key;
       key = ObjectKey::Make(AsRecord(record)->m_third, AsRecord(record)->m_id);
       ok = out->AddKey(key) != nullptr;
@@ -197,7 +197,7 @@ int ObjectTypeDb::CollectRecords(int view,
                                  int whenBelow,
                                  int whenEqual,
                                  int whenAbove,
-                                 IdAvlTree* out,
+                                 ObjectNameList* out,
                                  int* maxLevel)
 {
   *maxLevel = 0;
@@ -212,9 +212,9 @@ int ObjectTypeDb::CollectRecords(int view,
     return 0;
   for (const auto& family : m_families->Entries())
   {
-    for (const auto& ownedRecord : RecordsOf(family.get())->Entries())
+    for (const auto& ownedRecord : RecordsOf(family.get())->Records())
     {
-      AvlNode* node = ownedRecord.get();
+      auto* node = ownedRecord.get();
       DatRecord* record = AsRecord(node);
       IntPair range;
       GetRecordKindRange(record, &range);
@@ -257,7 +257,7 @@ int ObjectTypeDb::FindRecordAtLevel(int view, uint32_t kind, int level, DatRecor
   int ok = CollectRecords(view, kind, level, 0, 1, 0, &names, &maxLevel);
   if (ok)
   {
-    if (AvlNode* first = names.First())
+    if (auto* first = names.First())
     {
       ObjectKey key;
       GetObjectNameNodeKey(static_cast<ObjectNameNode*>(first), &key);
@@ -409,7 +409,7 @@ int CollectDataRecords(int view,
                        int whenBelow,
                        int whenEqual,
                        int whenAbove,
-                       IdAvlTree* out,
+                       ObjectNameList* out,
                        int* maxLevel)
 {
   ObjectTypeDb* db = GetObjectTypeDb();

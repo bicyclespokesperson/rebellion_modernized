@@ -12,7 +12,7 @@
 //            +- TwoKeyEvent (0x66a298) + two object keys
 #include <cstdint>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/stream_io.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/game_obj.h"
@@ -110,7 +110,7 @@ public:
 
   // Slot 10, introduced by the concrete classes (PlainEvent's own vtable stops at slot 9): the sort key of the
   // TypeQueue. 0x48af30 returns 0x10 (KeyedEvent and its subclasses), 0x48bc60 returns 0x100.
-  virtual int GetPriority()
+  virtual int GetPriority() const
   {
     return 0x10;
   }

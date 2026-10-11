@@ -6,7 +6,7 @@
 // submits them. The messages are created by kind through the factory table at 0x6b6fe0 (RegisterOrderFactory).
 #include <cstdint>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "core/stream_io.h"
 #include "gameobj/game_obj.h"

@@ -60,6 +60,38 @@ UiNotice::UiNotice(int owner) : IdNode(), m_flags(0)
 
 UiNotice::~UiNotice() = default;
 
+const std::string& UiNotice::MessageText0() const
+{
+  static const std::string empty;
+  return empty;
+}
+
+const std::string& UiNotice::MessageText1() const
+{
+  static const std::string empty;
+  return empty;
+}
+
+const ObjectKey& UiNotice::MessageKey() const
+{
+  static const ObjectKey empty;
+  return empty;
+}
+
+const ObjectKey& UiNotice::MessageTarget() const
+{
+  static const ObjectKey empty;
+  return empty;
+}
+
+void UiNotice::AcceptFromMessageIndex()
+{
+}
+
+void UiNotice::DeclineFromMessageIndex()
+{
+}
+
 void UiNotice::Read(istream* in)
 {
   ReadValue32(in, &m_unk1c);
@@ -138,6 +170,16 @@ void UiTextNotice::Write(ostream* out)
 void UiTextNotice::Virtual15()
 {
   Virtual13();
+}
+
+void UiTextNotice::AcceptFromMessageIndex()
+{
+  Virtual14();
+}
+
+void UiTextNotice::DeclineFromMessageIndex()
+{
+  Virtual15();
 }
 
 int ForwardPayloads(UiNotice* sink, const AiNoticeGroup* payloads)

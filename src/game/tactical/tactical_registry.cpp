@@ -3,6 +3,7 @@
 #include "tactical/tactical_externals.h"
 #include "tactical/tactical_facade.h"
 #include "tactical/tactical_game.h"
+#include "tactical/tactical_groups.h"
 #include "tactical/tactical_objmgr.h"
 #include "tactical/tactical_ship.h"
 #include "tactical/tactical_simulator.h"
@@ -21,12 +22,7 @@ int kindOf(TacticalUnit* unit)
 
 IdNode* shipNode(TacticalShipBase* ship)
 {
-  return ship;
-}
-
-TacticalShipBase* shipOfNode(IdNode* node)
-{
-  return static_cast<TacticalShipBase*>(static_cast<TacticalUnit*>(node));
+  return static_cast<TacticalUnit*>(ship);
 }
 
 TacticalHangar* hangarOfDeathStar(TacticalUnit* deathStar)
@@ -53,8 +49,22 @@ TacticalRegistry::TacticalRegistry()
 
 TacticalRegistry::~TacticalRegistry()
 {
-  delete m_deathStar;
+  m_clearing = true;
+  TacticalUnit* deathStar = m_deathStar;
   m_deathStar = nullptr;
+  decltype(m_ships) ships;
+  decltype(m_viewGroups) viewGroups;
+  decltype(m_fighterGroups) fighterGroups;
+  decltype(m_capitalGroups) capitalGroups;
+  ships.swap(m_ships);
+  viewGroups.swap(m_viewGroups);
+  fighterGroups.swap(m_fighterGroups);
+  capitalGroups.swap(m_capitalGroups);
+  delete deathStar;
+  ships.clear();
+  viewGroups.clear();
+  fighterGroups.clear();
+  capitalGroups.clear();
 }
 
 uint32_t TacticalRegistry::NextUnitHandle(unsigned side)
@@ -73,8 +83,8 @@ uint32_t TacticalRegistry::NextGroupHandle(unsigned side)
 
 TacticalShipBase* TacticalRegistry::FindShip(int handle)
 {
-  IdNode* node = m_ships.FindById(handle);
-  return node ? shipOfNode(node) : nullptr;
+  auto found = m_ships.find(static_cast<uint32_t>(handle));
+  return found == m_ships.end() ? nullptr : found->second.get();
 }
 
 TacticalHangar* TacticalRegistry::FindLaunchInterface(int handle)
@@ -103,66 +113,217 @@ IdNode* TacticalRegistry::FindShipOrViewGroup(int handle)
   TacticalShipBase* ship = FindShip(handle);
   if (ship)
     return shipNode(ship);
-  return m_viewGroups.FindById(handle);
+  auto found = m_viewGroups.find(static_cast<uint32_t>(handle));
+  return found == m_viewGroups.end() ? nullptr : static_cast<IdNode*>(found->second.get());
 }
 
 IdNode* TacticalRegistry::FindViewGroup(int handle)
 {
-  return m_viewGroups.FindById(handle);
+  auto found = m_viewGroups.find(static_cast<uint32_t>(handle));
+  return found == m_viewGroups.end() ? nullptr : static_cast<IdNode*>(found->second.get());
 }
 
 IdNode* TacticalRegistry::FindFighterGroup(int handle)
 {
-  return m_fighterGroups.FindById(handle);
+  auto found = m_fighterGroups.find(static_cast<uint32_t>(handle));
+  return found == m_fighterGroups.end() ? nullptr : static_cast<IdNode*>(found->second.get());
 }
 
 IdNode* TacticalRegistry::FindCapitalShipGroup(int handle)
 {
-  return m_capitalGroups.FindById(handle);
+  auto found = m_capitalGroups.find(static_cast<uint32_t>(handle));
+  return found == m_capitalGroups.end() ? nullptr : static_cast<IdNode*>(found->second.get());
 }
 
 IdNode* TacticalRegistry::FindShipGroup(int handle)
 {
-  IdNode* found = m_fighterGroups.FindById(handle);
-  if (!found)
-    found = m_capitalGroups.FindById(handle);
-  return found;
+  IdNode* node = FindFighterGroup(handle);
+  return node ? node : FindCapitalShipGroup(handle);
 }
 
 IdNode* TacticalRegistry::RemoveShipGroup(int handle)
 {
-  IdNode* found = m_fighterGroups.DetachById(handle);
-  if (!found)
-    found = m_capitalGroups.DetachById(handle);
-  return found;
+  auto fighter = m_fighterGroups.find(static_cast<uint32_t>(handle));
+  if (fighter != m_fighterGroups.end())
+  {
+    IdNode* node = static_cast<IdNode*>(fighter->second.release());
+    m_fighterGroups.erase(fighter);
+    return node;
+  }
+  auto capital = m_capitalGroups.find(static_cast<uint32_t>(handle));
+  if (capital == m_capitalGroups.end())
+    return nullptr;
+  IdNode* node = static_cast<IdNode*>(capital->second.release());
+  m_capitalGroups.erase(capital);
+  return node;
 }
 
 uint32_t TacticalRegistry::AddShip(TacticalShipBase* ship)
 {
-  return m_ships.AddWithId(ship ? shipNode(ship) : nullptr);
+  if (m_clearing)
+    return 0;
+  if (!ship)
+    return 0;
+  TacticalUnit* node = static_cast<TacticalUnit*>(ship);
+  uint32_t id = node->m_id;
+  const bool assignedId = id == 0;
+  if (assignedId)
+  {
+    if (m_nextShipId == 0)
+      return 0;
+    id = m_nextShipId;
+    node->SetId(id);
+  }
+  decltype(m_ships)::iterator position;
+  bool inserted = false;
+  try
+  {
+    auto result = m_ships.emplace(id, nullptr);
+    position = result.first;
+    inserted = result.second;
+  }
+  catch (...)
+  {
+    if (assignedId)
+      node->SetId(0);
+    throw;
+  }
+  if (!inserted)
+  {
+    if (assignedId)
+      node->SetId(0);
+    return 0;
+  }
+  position->second.reset(ship);
+  if (m_nextShipId != 0 && m_nextShipId <= id)
+    m_nextShipId = id + 1;
+  return id;
 }
 
-uint32_t TacticalRegistry::AddViewGroup(IdNode* group)
+uint32_t TacticalRegistry::AddViewGroup(TacticalUnit* group)
 {
-  return m_viewGroups.AddWithId(group);
+  if (m_clearing)
+    return 0;
+  if (!group)
+    return 0;
+  const bool assignedId = group->m_id == 0;
+  uint32_t id = assignedId ? m_nextViewGroupId : group->m_id;
+  if (id == 0)
+    return 0;
+  if (assignedId)
+    group->SetId(id);
+  decltype(m_viewGroups)::iterator position;
+  bool inserted = false;
+  try
+  {
+    auto result = m_viewGroups.emplace(id, nullptr);
+    position = result.first;
+    inserted = result.second;
+  }
+  catch (...)
+  {
+    if (assignedId)
+      group->SetId(0);
+    throw;
+  }
+  if (!inserted)
+  {
+    if (assignedId)
+      group->SetId(0);
+    return 0;
+  }
+  position->second.reset(group);
+  if (m_nextViewGroupId != 0 && m_nextViewGroupId <= id)
+    m_nextViewGroupId = id + 1;
+  return id;
 }
 
-uint32_t TacticalRegistry::AddFighterGroup(IdNode* group)
+uint32_t TacticalRegistry::AddFighterGroup(FighterGroup* group)
 {
-  return m_fighterGroups.AddWithId(group);
+  if (m_clearing)
+    return 0;
+  if (!group)
+    return 0;
+  TacticalUnit* unit = group;
+  const bool assignedId = unit->m_id == 0;
+  uint32_t id = assignedId ? m_nextFighterGroupId : unit->m_id;
+  if (id == 0)
+    return 0;
+  if (assignedId)
+    unit->SetId(id);
+  decltype(m_fighterGroups)::iterator position;
+  bool inserted = false;
+  try
+  {
+    auto result = m_fighterGroups.emplace(id, nullptr);
+    position = result.first;
+    inserted = result.second;
+  }
+  catch (...)
+  {
+    if (assignedId)
+      unit->SetId(0);
+    throw;
+  }
+  if (!inserted)
+  {
+    if (assignedId)
+      unit->SetId(0);
+    return 0;
+  }
+  position->second.reset(group);
+  if (m_nextFighterGroupId != 0 && m_nextFighterGroupId <= id)
+    m_nextFighterGroupId = id + 1;
+  return id;
 }
 
-uint32_t TacticalRegistry::AddCapitalShipGroup(IdNode* group)
+uint32_t TacticalRegistry::AddCapitalShipGroup(CapitalShipGroup* group)
 {
-  return m_capitalGroups.AddWithId(group);
+  if (m_clearing)
+    return 0;
+  if (!group)
+    return 0;
+  TacticalUnit* unit = group;
+  const bool assignedId = unit->m_id == 0;
+  uint32_t id = assignedId ? m_nextCapitalGroupId : unit->m_id;
+  if (id == 0)
+    return 0;
+  if (assignedId)
+    unit->SetId(id);
+  decltype(m_capitalGroups)::iterator position;
+  bool inserted = false;
+  try
+  {
+    auto result = m_capitalGroups.emplace(id, nullptr);
+    position = result.first;
+    inserted = result.second;
+  }
+  catch (...)
+  {
+    if (assignedId)
+      unit->SetId(0);
+    throw;
+  }
+  if (!inserted)
+  {
+    if (assignedId)
+      unit->SetId(0);
+    return 0;
+  }
+  position->second.reset(group);
+  if (m_nextCapitalGroupId != 0 && m_nextCapitalGroupId <= id)
+    m_nextCapitalGroupId = id + 1;
+  return id;
 }
 
 uint32_t TacticalRegistry::AddShipGroup(TacticalUnit* group)
 {
+  if (m_clearing || !group)
+    return 0;
   if (kindOf(group) == kFighterGroupKind)
-    return m_fighterGroups.AddWithId(group);
+    return AddFighterGroup(static_cast<FighterGroup*>(group));
   if (kindOf(group) == kCapitalGroupKind)
-    return m_capitalGroups.AddWithId(group);
+    return AddCapitalShipGroup(static_cast<CapitalShipGroup*>(group));
   return 0;
 }
 

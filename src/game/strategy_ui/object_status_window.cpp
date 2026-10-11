@@ -309,7 +309,7 @@ void ObjectStatusWindow::OnCreate1()
   }
   else if (IsRootFamily(m_key.Family()))
   {
-    IdAvlTree tally;
+    std::map<uint32_t, StatusTallyNode> tally;
     AddNameRow(0, nullptr, nullptr);
     ReplaceItemList();
     picture = NewOrNull<DibBitmap>(module, 0x2d46u, kBitmapKind);
@@ -335,7 +335,7 @@ void ObjectStatusWindow::OnCreate1()
       GameObjNotifier* first = census.m_first(view);
       const FamilyRange range(census.m_firstFamily, census.m_lastFamily);
       TallyUnitsByType(&tally, first, &range);
-      AddTallyItems(&tally);
+      AddTallyItems(tally);
     }
     CoolListItem* firstItem = m_items->First();
     if (firstItem && firstItem->m_image)
@@ -606,7 +606,7 @@ int LayoutStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* value
   {
     if (labelPosition == labels->Entries().end())
       break;
-    auto* label = static_cast<CoolListItem*>(labelPosition->get());
+    auto* label = static_cast<CoolListItem*>((*labelPosition).get());
     auto* value = static_cast<CoolListItem*>(valueOwner.get());
     left.MoveTo(kLabelX, leftY);
     left.SetText(label->m_text.c_str());
@@ -646,7 +646,7 @@ void DrawStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values
   {
     if (labelPosition == labels->Entries().end())
       break;
-    auto* label = static_cast<CoolListItem*>(labelPosition->get());
+    auto* label = static_cast<CoolListItem*>((*labelPosition).get());
     auto* value = static_cast<CoolListItem*>(valueOwner.get());
     left.MoveTo(label->m_x, label->m_y);
     left.SetText(label->m_text.c_str());
@@ -668,9 +668,11 @@ StatusTallyNode::StatusTallyNode() : m_total(0), m_count(0)
 
 StatusTallyNode::~StatusTallyNode() = default;
 
-void ObjectStatusWindow::TallyUnitsByType(IdAvlTree* tally, GameObjNotifier* first, const FamilyRange* range)
+void ObjectStatusWindow::TallyUnitsByType(std::map<uint32_t, StatusTallyNode>* tally,
+                                          GameObjNotifier* first,
+                                          const FamilyRange* range)
 {
-  tally->Clear();
+  tally->clear();
   ObjectKey lastKey;
   GameObjNotifier* object = first;
   if (!object)
@@ -686,20 +688,18 @@ void ObjectStatusWindow::TallyUnitsByType(IdAvlTree* tally, GameObjNotifier* fir
       {
         GetObjectKey(object, &lastKey);
         const uint32_t recordId = object->m_record->m_small & 0xffff;
-        StatusTallyNode* node = static_cast<StatusTallyNode*>(tally->FindById(recordId));
-        if (!node)
+        auto [position, inserted] = tally->try_emplace(recordId);
+        StatusTallyNode& node = position->second;
+        if (inserted)
         {
-          node = NewOrNull<StatusTallyNode>();
-          if (node)
-            node->m_key = lastKey;
-          node->SetId(recordId);
-          tally->AddWithId(node);
+          node.SetId(recordId);
+          node.m_key = lastKey;
         }
-        node->m_count += 1;
+        node.m_count += 1;
         const FamilyRange units(0x10, 0x40);
         if (lastKey.Family() >= units.m_first && lastKey.Family() < units.m_second)
         {
-          node->m_total += static_cast<UnitObjBase*>(object)->GetRecordField4c();
+          node.m_total += static_cast<UnitObjBase*>(object)->GetRecordField4c();
         }
       }
     }
@@ -707,13 +707,12 @@ void ObjectStatusWindow::TallyUnitsByType(IdAvlTree* tally, GameObjNotifier* fir
   } while (object);
 }
 
-void ObjectStatusWindow::AddTallyItems(AvlTree* tally)
+void ObjectStatusWindow::AddTallyItems(const std::map<uint32_t, StatusTallyNode>& tally)
 {
-  for (const auto& ownedEntry : tally->Entries())
+  for (const auto& entry : tally)
   {
-    auto* entry = ownedEntry.get();
-    StatusTallyNode* node = static_cast<StatusTallyNode*>(entry);
-    GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, &node->m_key);
+    const StatusTallyNode& node = entry.second;
+    GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, &node.m_key);
     if (!object)
       continue;
     const uint32_t typeBits = static_cast<GameObj*>(object)->GetRecordTypeBits();
@@ -731,10 +730,10 @@ void ObjectStatusWindow::AddTallyItems(AvlTree* tally)
     ios* streamBase = iostream_access::IosOf(&stream);
     streamBase->m_fill = '0';
     streamBase->m_width = 3;
-    ostream_operator_ls_int(stream.Out(), node->m_count);
+    ostream_operator_ls_int(stream.Out(), node.m_count);
     ostream_operator_ls_cstr(stream.Out(), g_tallySeparator);
     iostream_access::IosOf(&stream)->m_width = 4;
-    ostream_operator_ls_int(stream.Out(), node->m_total);
+    ostream_operator_ls_int(stream.Out(), node.m_total);
     ostream_operator_ls_char(stream.Out(), 0);
     text = strstreambuf_str(StreambufOf(&stream));
     strstreambuf_freeze(StreambufOf(&stream), 0);

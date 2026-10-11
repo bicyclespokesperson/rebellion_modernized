@@ -111,7 +111,7 @@ void ShowUnminimizedChildren(GalaxyWindow* galaxy)
 {
   for (const auto& ownedNode : galaxy->m_children.Entries())
   {
-    auto* node = static_cast<AvlNode*>(ownedNode.get());
+    auto* node = ownedNode.get();
     CoolWindow* child = static_cast<CoolWindow*>(node);
     if (galaxy->FindMinimizedSlot(child->m_childId) == 0)
       child->Show(5);
@@ -262,11 +262,11 @@ LRESULT GalaxyWindow::OnCommandMessage(WPARAM wParam, LPARAM lParam)
         AnimateZoomRect(m_hwnd, &buttonFrame, &menuFrame);
       }
       const int mode = HighWord(wParam);
-      SetDisplayMode(mode, reinterpret_cast<IdAvlTree*>(lParam));
+      SetDisplayMode(mode, reinterpret_cast<const std::set<uint32_t>*>(lParam));
       ShowDisplayLegend(mode);
       for (const auto& ownedNode : m_children.Entries())
       {
-        auto* node = static_cast<AvlNode*>(ownedNode.get());
+        auto* node = ownedNode.get();
         CoolWindow* child = static_cast<CoolWindow*>(node);
         if (FindMinimizedSlot(child->m_childId) == 0)
           child->Show(5);
@@ -610,7 +610,7 @@ LRESULT GalaxyWindow::OnRightButtonUp(WPARAM keys, LPARAM position)
 void GalaxyWindow::OnCloseChild(WPARAM childId)
 {
   bool destroy = true;
-  m_openWindowIds.DeleteById(static_cast<uint32_t>(childId));
+  m_openWindowIds.erase(static_cast<uint32_t>(childId));
   uint32_t soundId = 0;
   switch (childId & kTypeMask)
   {
@@ -682,7 +682,7 @@ void GalaxyWindow::OnActivateChild(WPARAM window)
     while (m_activeChild && !found)
     {
       CoolWindow* candidate = m_children.FindByHwnd(m_activeChild);
-      if (candidate && m_openWindowIds.FindById(candidate->m_childId) && FindMinimizedSlot(candidate->m_childId) == 0)
+      if (candidate && m_openWindowIds.contains(candidate->m_childId) && FindMinimizedSlot(candidate->m_childId) == 0)
       {
         found = true;
       }
@@ -845,7 +845,7 @@ void GalaxyWindow::OnAccelerator(WPARAM wParam)
       {
         for (const auto& ownedNode : m_children.Entries())
         {
-          auto* node = static_cast<AvlNode*>(ownedNode.get());
+          auto* node = ownedNode.get();
           CoolWindow* child = static_cast<CoolWindow*>(node);
           if (FindMinimizedSlot(child->m_childId) == 0)
             static_cast<CoolGameWindow*>(child)->PostCloseRequest();
@@ -980,9 +980,8 @@ void GalaxyWindow::OnAccelerator(WPARAM wParam)
       if (IsWindow(m_activeChild) && IsWindowVisible(m_activeChild) && noPopup)
       {
         CoolWindow* active = m_children.FindByHwnd(m_activeChild);
-        IdNode* openId = active ? m_openWindowIds.FindById(active->m_childId) : nullptr;
-        if (active && openId)
-          ActivateNextOpenWindow(openId, (wParam & 0xffff) == 0xbd4);
+        if (active && m_openWindowIds.contains(active->m_childId))
+          ActivateNextOpenWindow(active->m_childId, (wParam & 0xffff) == 0xbd4);
       }
       break;
     case 0xbd5:
@@ -996,36 +995,36 @@ void GalaxyWindow::OnAccelerator(WPARAM wParam)
   }
 }
 
-void GalaxyWindow::ActivateNextOpenWindow(IdNode* current, bool backwards)
+void GalaxyWindow::ActivateNextOpenWindow(uint32_t currentId, bool backwards)
 {
   const bool forwards = !backwards;
   bool wrapped = false;
-  IdNode* found = nullptr;
-  auto position = m_openWindowIds.PositionOf(current);
+  uint32_t found = 0;
+  auto position = m_openWindowIds.find(currentId);
   do
   {
-    if (position == m_openWindowIds.Entries().end())
+    if (position == m_openWindowIds.end())
       break;
     if (forwards)
       position = std::next(position);
-    else if (position == m_openWindowIds.Entries().begin())
-      position = m_openWindowIds.Entries().end();
+    else if (position == m_openWindowIds.begin())
+      position = m_openWindowIds.end();
     else
       position = std::prev(position);
-    if (position == m_openWindowIds.Entries().end())
+    if (position == m_openWindowIds.end())
     {
-      if (wrapped || m_openWindowIds.Entries().empty())
+      if (wrapped || m_openWindowIds.empty())
         break;
-      position = forwards ? m_openWindowIds.Entries().begin() : std::prev(m_openWindowIds.Entries().end());
+      position = forwards ? m_openWindowIds.begin() : std::prev(m_openWindowIds.end());
       wrapped = true;
     }
-    auto* node = static_cast<IdNode*>(position->get());
-    if ((node->m_id & kOpenIdMask) != kSectorWindowType && FindMinimizedSlot(node->m_id) == 0)
-      found = node;
+    const uint32_t candidateId = *position;
+    if ((candidateId & kOpenIdMask) != kSectorWindowType && FindMinimizedSlot(candidateId) == 0)
+      found = candidateId;
   } while (!found);
   if (!found)
     return;
-  CoolWindow* window = m_children.FindById(found->m_id);
+  CoolWindow* window = m_children.FindById(found);
   SendMessageA(m_hwnd, kGalaxyActivateChild, reinterpret_cast<WPARAM>(window->m_hwnd), 0);
 }
 

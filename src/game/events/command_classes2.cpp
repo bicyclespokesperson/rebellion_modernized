@@ -516,7 +516,7 @@ int DestinationCommand::CheckValid(StatusCode* status)
     {
       if (!ok || !succeeded(*status))
         break;
-      AvlNode* node = entry.get();
+      auto* node = entry.get();
       CapacityScratch slot;
       if (ok && succeeded(*status))
       {
@@ -799,7 +799,7 @@ int ManufactureCommand::CheckValid(StatusCode* status)
         for (auto position = m_items.Entries().begin();
              position != m_items.Entries().end() && (ok && succeeded(*status)); ++position)
         {
-          AvlNode* node = static_cast<AvlNode*>(position->get());
+          auto* node = (*position).get();
           CapacityScratch slot;
           ObjectKeyNodeView item(node);
           if (ok)

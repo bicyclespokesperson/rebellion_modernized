@@ -390,7 +390,7 @@ LRESULT SectorWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
       }
       for (const auto& ownedNode : m_galaxy->m_children.Entries())
       {
-        auto* node = static_cast<AvlNode*>(ownedNode.get());
+        auto* node = ownedNode.get();
         CoolWindow* other = static_cast<CoolWindow*>(node);
         if ((other->m_childId & 0x3f) == 1 && other->m_childId != m_childId)
         {

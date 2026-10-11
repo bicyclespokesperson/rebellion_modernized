@@ -3,7 +3,7 @@
 // hubs, rules). Dropped at merge once the owning modules provide real headers.
 #include <cstdint>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "data/gnprtb.h"
 #include "data/random.h"
 #include "gameobj/game_hooks.h"

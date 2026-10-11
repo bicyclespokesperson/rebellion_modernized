@@ -16,14 +16,21 @@ ResourceDll::~ResourceDll()
     FreeLibrary(m_module);
 }
 
-ResourceDllList::ResourceDllList() = default;
-
 ResourceDllList::~ResourceDllList() = default;
+
+ResourceDll* ResourceDllList::FindById(uint32_t slot) const
+{
+  return m_libraries.FindById(slot);
+}
+
+uint32_t ResourceDllList::AddWithId(ResourceDll* library)
+{
+  return m_libraries.AddWithId(library);
+}
 
 void ResourceDllList::UnloadSlot(uint32_t slot)
 {
-  for (IdLinkNode* node = DetachById(slot); node; node = DetachById(slot))
-    delete node;
+  delete m_libraries.DetachById(slot);
 }
 
 FontTable::FontTable(const char* faceName)

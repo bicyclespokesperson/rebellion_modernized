@@ -159,12 +159,12 @@ int AiPlayer::Virtual09()
   if (m_tasksOff == 0)
   {
     if (m_currentTask == nullptr)
-      m_currentTask = static_cast<AiTaskBase*>(m_tasks.First());
+      m_currentTask = m_tasks.First();
     m_currentTask->Evaluate();
     auto position = m_tasks.PositionOf(m_currentTask);
     if (position != m_tasks.Entries().end())
       ++position;
-    m_currentTask = position == m_tasks.Entries().end() ? nullptr : static_cast<AiTaskBase*>(position->get());
+    m_currentTask = position == m_tasks.Entries().end() ? nullptr : position->second.get();
   }
   if (m_currentTask != nullptr)
     return result;

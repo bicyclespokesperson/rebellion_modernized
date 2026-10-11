@@ -1,8 +1,9 @@
 #pragma once
 #include <cstdint>
+#include <map>
 #include <string>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "gameobj/object_key.h"
 #include "gameobj/status_code.h"
@@ -16,6 +17,18 @@ class DatRecord;
 class DibBitmap;
 class GalaxyWindow;
 class GameObjNotifier;
+
+// One unit type in the status window's tally, keyed in a local map by its record id.
+class StatusTallyNode : public IdNode
+{
+public:
+  StatusTallyNode();
+  ~StatusTallyNode() override;
+
+  int m_total;
+  int m_count;
+  ObjectKey m_key;
+};
 
 // The "Status" window of a game object (galaxy view child 0x1a): a picture of the object, its name and a list of
 // label/value rows that depend on the object's family (one Fill...Page per family range). Opened from the object
@@ -55,9 +68,11 @@ public:
   // Counts the units of the window's side that start at `first` and follow it in key order within `range` into
   // `tally` (cleared first; one StatusTallyNode per record id, only units whose control side is the side of the
   // galaxy view and whose state flag 0x40 is set).
-  void TallyUnitsByType(IdAvlTree* tally, GameObjNotifier* first, const FamilyRange* range); // 0x44a7a0
+  void TallyUnitsByType(std::map<uint32_t, StatusTallyNode>* tally,
+                        GameObjNotifier* first,
+                        const FamilyRange* range); // 0x44a7a0
   // One picture item per node of the tally tree (a unit type and its count) appended to m_items.
-  void AddTallyItems(AvlTree* tally); // 0x44aa20
+  void AddTallyItems(const std::map<uint32_t, StatusTallyNode>& tally); // 0x44aa20
 
   void FillFighterSquadronPage(CoolListItemList* labels, CoolListItemList* values); // 0x4444c0 families 0x1c-0x1f
   void FillFacilityPage(CoolListItemList* labels, CoolListItemList* values); // 0x444e20 families 0x20-0x27
@@ -95,16 +110,3 @@ void AddStatusRow(uint32_t id, const std::string* text, CoolListItemList* list);
 int LayoutStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values); // 0x449e00
 // Draws the rows laid out by LayoutStatusLabels into `dc`.
 void DrawStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values); // 0x44a050
-
-// One unit type of the picture list: how many units of the type exist (m_count) and their summed record field 0x4c
-// (m_total); the tree key is the record id.
-class StatusTallyNode : public IdNode
-{
-public:
-  StatusTallyNode(); // inlined at 0x44a7a0
-  ~StatusTallyNode() override; // 0x44a9d0 (scalar deleting destructor 0x44a9b0)
-
-  int m_total; // +0x1c
-  int m_count; // +0x20
-  ObjectKey m_key; // +0x24 key of the first unit of the type
-};

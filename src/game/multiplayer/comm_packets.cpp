@@ -70,17 +70,89 @@ SessionInfo::SessionInfo(const SessionInfo& other) : IdNode(), m_name()
 
 SessionInfo::~SessionInfo() = default;
 
-ServiceProviderList::ServiceProviderList() : IdAvlTree()
-{
-}
+ServiceProviderList::ServiceProviderList() = default;
 
 ServiceProviderList::~ServiceProviderList() = default;
 
-SessionList::SessionList() : IdAvlTree()
+void ServiceProviderList::Clear()
 {
+  decltype(m_entries) oldEntries;
+  m_entries.swap(oldEntries);
+  m_nextId = 1;
 }
 
+uint32_t ServiceProviderList::AddWithId(ServiceProviderInfo* info)
+{
+  if (!info)
+    return 0;
+  const uint32_t oldId = info->m_id;
+  const uint32_t id = oldId == 0 ? m_nextId : oldId;
+  if (id == 0 || m_entries.contains(id))
+    return 0;
+  if (oldId == 0)
+    info->SetId(id);
+  try
+  {
+    const bool inserted = m_entries.try_emplace(id, info).second;
+    if (!inserted)
+    {
+      if (oldId == 0)
+        info->SetId(0);
+      return 0;
+    }
+  }
+  catch (...)
+  {
+    if (oldId == 0)
+      info->SetId(0);
+    throw;
+  }
+  if (m_nextId != 0 && m_nextId <= id)
+    m_nextId = id + 1;
+  return id;
+}
+
+SessionList::SessionList() = default;
+
 SessionList::~SessionList() = default;
+
+void SessionList::Clear()
+{
+  decltype(m_entries) oldEntries;
+  m_entries.swap(oldEntries);
+  m_nextId = 1;
+}
+
+uint32_t SessionList::AddWithId(SessionInfo* info)
+{
+  if (!info)
+    return 0;
+  const uint32_t oldId = info->m_id;
+  const uint32_t id = oldId == 0 ? m_nextId : oldId;
+  if (id == 0 || m_entries.contains(id))
+    return 0;
+  if (oldId == 0)
+    info->SetId(id);
+  try
+  {
+    const bool inserted = m_entries.try_emplace(id, info).second;
+    if (!inserted)
+    {
+      if (oldId == 0)
+        info->SetId(0);
+      return 0;
+    }
+  }
+  catch (...)
+  {
+    if (oldId == 0)
+      info->SetId(0);
+    throw;
+  }
+  if (m_nextId != 0 && m_nextId <= id)
+    m_nextId = id + 1;
+  return id;
+}
 
 LobbyConnection::LobbyConnection() : m_launched(0), m_host(0), m_dplay(nullptr)
 {
@@ -216,8 +288,8 @@ CommPacket::CommPacket(const void* data, uint32_t size, uint8_t category, char p
   const uint32_t id = (g_commPacketCounter & 0xf0ffffff) | (static_cast<uint32_t>(category & 0xf) << 24);
   m_ack = NewOrNull<CommAckRecord>(id);
   SetId(id);
-  if (reliable)
-    comm->m_pending.AddWithId(this);
+  if (reliable && id != 0)
+    comm->m_pending.try_emplace(id, this);
   m_wire.m_id = id;
 }
 
@@ -232,8 +304,8 @@ CommPacket::CommPacket(const void* data, uint32_t size, uint32_t id, char part, 
   m_wire.m_reliable = static_cast<uint8_t>(reliable);
   m_ack = NewOrNull<CommAckRecord>(id);
   SetId(id);
-  if (reliable)
-    comm->m_pending.AddWithId(this);
+  if (reliable && id != 0)
+    comm->m_pending.try_emplace(id, this);
   m_wire.m_id = id;
 }
 
@@ -296,8 +368,8 @@ CommOutgoing::CommOutgoing(const void* data, uint32_t size, uint32_t category, i
       NewOrNull<CommPacket>(bytes, length, static_cast<uint8_t>(category), part, m_partCount, reliable);
     if (m_firstPacketId == 0)
       m_firstPacketId = packet->m_ack ? packet->m_ack->m_packetId : 0;
-    if (!packet->m_wire.m_reliable)
-      comm->m_pending.AddWithId(packet);
+    if (!packet->m_wire.m_reliable && packet->m_id != 0)
+      comm->m_pending.try_emplace(packet->m_id, packet);
     if (lastPart)
     {
       size = 0;
@@ -342,12 +414,12 @@ int PartialMessage::AddFragment(ReceivedPacket* packet)
   CommMgr* comm = GetCommMgr();
   if (comm && packet)
   {
-    if (!comm->m_received.FindById(packet->m_wire.m_id))
+    if (packet->m_wire.m_id != 0 && !comm->m_received.contains(packet->m_wire.m_id))
     {
       m_partCount = packet->m_wire.m_partCount;
       ++m_partsSeen;
       m_length += packet->m_wire.m_length;
-      comm->m_received.AddWithId(packet);
+      comm->m_received.try_emplace(packet->m_wire.m_id, packet);
     }
   }
   return IsComplete();
@@ -359,7 +431,7 @@ CommBuffer* PartialMessage::Assemble()
   uint32_t total = 0;
   for (int8_t part = 1; part <= m_partsSeen; ++part)
   {
-    auto* packet = static_cast<ReceivedPacket*>(comm->m_received.FindById(part + m_firstId - 1));
+    auto* packet = comm->m_received.at(part + m_firstId - 1).get();
     total += packet->m_wire.m_length;
   }
   if (total >= kLongMessageLength)
@@ -380,7 +452,7 @@ CommBuffer* PartialMessage::Assemble()
   uint8_t* out = static_cast<uint8_t*>(buffer->m_data);
   for (int8_t part = 1; part <= m_partsSeen; ++part)
   {
-    auto* packet = static_cast<ReceivedPacket*>(comm->m_received.FindById(part + m_firstId - 1));
+    auto* packet = comm->m_received.at(part + m_firstId - 1).get();
     const uint16_t copied = packet->CopyPayload(out, static_cast<uint16_t>(total));
     out += copied;
     total -= copied;
@@ -392,7 +464,11 @@ int PartialMessage::ReleaseFragments()
 {
   CommMgr* comm = GetCommMgr();
   for (int8_t part = 0; part < m_partsSeen; ++part)
-    comm->m_received.DeleteById(m_firstId + part);
+  {
+    auto removed = comm->m_received.extract(m_firstId + part);
+    if (!removed.empty())
+      removed.mapped().reset();
+  }
   return 1;
 }
 

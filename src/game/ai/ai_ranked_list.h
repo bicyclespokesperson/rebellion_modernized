@@ -1,13 +1,15 @@
 #pragma once
 #include <cstdint>
+#include <list>
+#include <memory>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "gameobj/object_key.h"
 
 // Ranked candidate lists used by the AI's selectors (0x41be00-0x41c590).
 //
 //   AiRankedItem   a key and a score, VT 0x658a78 (0x18 bytes); the rank (1 = best) is filled in by Number()
-//   AiRankedList   SortedLinkList of AiRankedItems ordered by score, VT 0x658a58 (0x20 bytes). The IdLinkNode base at
+//   AiRankedList   owns AiRankedItems ordered by score, VT 0x658a58 (0x20 bytes). The IdLinkNode base at
 //                  +0xc has its own vtable (0x658a68) that carries the list's Read/Write: it is how the list is saved.
 //                  m_descending (+0x1c) selects the order: 1 sorts the highest score first. Equal scores are ordered by
 //                  a draw from the session random generator.
@@ -30,14 +32,34 @@ public:
   int m_rank; // +0x14
 };
 
-class AiRankedList : public SortedLinkList, public IdLinkNode
+class AiRankedList : public IdLinkNode
 {
 public:
   AiRankedList(); // 0x41be00
   explicit AiRankedList(int descending); // 0x41be80
   ~AiRankedList() override; // 0: 0x41be60 (deleting), 0x41bee0
-  int IsLess(LinkNode* a, LinkNode* b) override; // 1: 0x41c250
-  virtual void Clear(); // 2: 0x41c220 (jumps to SortedLinkList::Clear)
+  void Clear(); // 0x41c220
+  int Insert(AiRankedItem* item);
+  int Remove(AiRankedItem* item);
+  size_t Count() const
+  {
+    return m_items.size();
+  }
+  bool Empty() const
+  {
+    return m_items.empty();
+  }
+  const auto& Entries() const
+  {
+    return m_items;
+  }
+  auto PositionOf(const AiRankedItem* item) const
+  {
+    for (auto position = m_items.cbegin(); position != m_items.cend(); ++position)
+      if ((*position).get() == item)
+        return position;
+    return m_items.cend();
+  }
 
   // IdLinkNode vtable slots 1 and 2: the original functions take the IdLinkNode subobject.
   void Read(istream* in) override; // 0x41bf50
@@ -50,6 +72,10 @@ public:
   void Number(); // 0x41c230
 
   int m_descending; // +0x1c
+
+private:
+  using ItemList = std::list<std::unique_ptr<AiRankedItem>>;
+  ItemList m_items;
 };
 
 void AiRankedListRead(IdLinkNode* base, istream* in); // 0x41bf50

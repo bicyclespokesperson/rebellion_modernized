@@ -1,5 +1,5 @@
 #pragma once
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "gameobj/object_key.h"
 

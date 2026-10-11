@@ -1,5 +1,6 @@
 #include "economy/side.h"
 #include <new>
+#include <set>
 
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
@@ -14,7 +15,7 @@
 #include "strategy_ui/advisor_sides.h"
 #include "strategy_ui/game_ui_facade.h"
 
-extern IdAvlTree g_allianceChoices; // 0x6b2928 the list the display-mode switches show
+extern std::set<uint32_t> g_allianceChoices; // 0x6b2928 the list the display-mode switches show
 
 using namespace advisor_sides;
 
@@ -30,18 +31,17 @@ constexpr uint32_t kUiFlagIdleRequested = 0x2000;
 constexpr uint32_t kUiFlagSleep = 0x4000000;
 constexpr uint32_t kUiFlagWake = 0x8000000;
 
-IdAvlTree* ChoicesTree()
+std::set<uint32_t>* ChoicesTree()
 {
   return &g_allianceChoices;
 }
 
-void AddChoice(IdAvlTree* tree, uint32_t id)
+void AddChoice(std::set<uint32_t>* tree, uint32_t id)
 {
-  IdNode* node = NewOrNull<IdNode>(id);
-  tree->AddWithId(node);
+  tree->insert(id);
 }
 
-void ShowChoices(int mode, IdAvlTree* tree, int16_t titleId)
+void ShowChoices(int mode, std::set<uint32_t>* tree, int16_t titleId)
 {
   const ResourceStringId title = {titleId, 2};
   UiSetDisplayModeTitled(mode, reinterpret_cast<LPARAM>(tree), &title);
@@ -58,7 +58,7 @@ GameObjNotifier* FindSystemAbove(GameObjNotifier* object)
   return nullptr;
 }
 
-void ShowFirstSystemChoice(AllianceAdvisor* advisor, IdAvlTree* tree, ObjectKey key, int16_t titleId, int mode)
+void ShowFirstSystemChoice(AllianceAdvisor* advisor, std::set<uint32_t>* tree, ObjectKey key, int16_t titleId, int mode)
 {
   GameObjNotifier* object = GetObjectInFamilies_01_ff(advisor->m_side, &key);
   if (object)
@@ -362,7 +362,7 @@ void AllianceAdvisor::RunPendingCommand()
 
 void AllianceAdvisor::RunCommand(int command)
 {
-  IdAvlTree* choices = ChoicesTree();
+  std::set<uint32_t>* choices = ChoicesTree();
   switch (command)
   {
     case 1:
@@ -370,12 +370,12 @@ void AllianceAdvisor::RunCommand(int command)
       break;
     case 2:
     case 0xe:
-      choices->Clear();
+      choices->clear();
       UiSetDisplayMode(0x13, 0);
       break;
     case 3:
     {
-      choices->Clear();
+      choices->clear();
       ObjectKey key = ObjectKey::Make(0x20, 5);
       GameObjNotifier* object = GetObjectInFamilies_01_ff(m_side, &key);
       if (!object)
@@ -384,33 +384,29 @@ void AllianceAdvisor::RunCommand(int command)
         break;
       }
       ObjectKey parentKey;
-      void* memory = ::operator new(sizeof(IdNode));
-      IdNode* node = nullptr;
-      if (memory)
-        node = new (memory) IdNode(object->m_parent->GetKey(&parentKey)->Id());
-      choices->AddWithId(node);
+      choices->insert(object->m_parent->GetKey(&parentKey)->Id());
       ShowChoices(0x93, choices, 0x1623);
       break;
     }
     case 4:
-      choices->Clear();
+      choices->clear();
       AddChoice(choices, 0x109);
       ShowChoices(0x92, choices, 0x1624);
       break;
     case 5:
-      choices->Clear();
+      choices->clear();
       UiSetDisplayMode(0x20, 0);
       break;
     case 6:
       UiSetDisplayMode(0x91, 0);
       break;
     case 7:
-      choices->Clear();
+      choices->clear();
       ShowFirstSystemChoice(this, choices, ObjectKey::Make(0x30, 0x240), 0x1625, 0x93);
       break;
     case 8:
     case 0x14:
-      choices->Clear();
+      choices->clear();
       AddChoice(choices, 0x109);
       ShowChoices(0x92, choices, 0x1624);
       break;
@@ -434,24 +430,24 @@ void AllianceAdvisor::RunCommand(int command)
       UiRemoveInputHooks();
       break;
     case 0xf:
-      choices->Clear();
+      choices->clear();
       UiSetDisplayMode(0x15, 0);
       break;
     case 0x10:
-      choices->Clear();
+      choices->clear();
       UiSetDisplayMode(0x16, 0);
       break;
     case 0x11:
-      choices->Clear();
+      choices->clear();
       UiSetDisplayMode(0x17, 0);
       break;
     case 0x12:
-      choices->Clear();
+      choices->clear();
       AddChoice(choices, 0x121);
       ShowChoices(0x93, choices, 0x1622);
       break;
     case 0x13:
-      choices->Clear();
+      choices->clear();
       ShowFirstSystemChoice(this, choices, ObjectKey::Make(0x32, 0x242), 0x1626, 0x93);
       break;
   }
@@ -705,4 +701,4 @@ int AllianceAdvisor::PickMoodCue()
       return UiSessionRandom(3) + 1;
   }
 }
-IdAvlTree g_allianceChoices{};
+std::set<uint32_t> g_allianceChoices{};

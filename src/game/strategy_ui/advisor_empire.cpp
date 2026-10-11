@@ -1,5 +1,6 @@
 #include "economy/side.h"
 #include <new>
+#include <set>
 
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
@@ -15,7 +16,7 @@
 #include "strategy_ui/advisor_sides.h"
 #include "strategy_ui/game_ui_facade.h"
 
-extern IdAvlTree g_empireChoices; // 0x6b2918 the list the display-mode switches show
+extern std::set<uint32_t> g_empireChoices; // 0x6b2918 the list the display-mode switches show
 extern const char* g_invalidCommandText; // 0x6a8838 "Processing Invalid Command"
 
 using namespace advisor_sides;
@@ -32,18 +33,17 @@ constexpr uint32_t kUiFlagIdleRequested = 0x2000;
 constexpr uint32_t kUiFlagSleep = 0x4000000;
 constexpr uint32_t kUiFlagWake = 0x8000000;
 
-IdAvlTree* ChoicesTree()
+std::set<uint32_t>* ChoicesTree()
 {
   return &g_empireChoices;
 }
 
-void AddChoice(IdAvlTree* tree, uint32_t id)
+void AddChoice(std::set<uint32_t>* tree, uint32_t id)
 {
-  IdNode* node = NewOrNull<IdNode>(id);
-  tree->AddWithId(node);
+  tree->insert(id);
 }
 
-void ShowChoices(int mode, IdAvlTree* tree, int16_t titleId)
+void ShowChoices(int mode, std::set<uint32_t>* tree, int16_t titleId)
 {
   const ResourceStringId title = {titleId, 2};
   UiSetDisplayModeTitled(mode, reinterpret_cast<LPARAM>(tree), &title);
@@ -60,7 +60,7 @@ GameObjNotifier* FindSystemAbove(GameObjNotifier* object)
   return nullptr;
 }
 
-void ShowFirstSystemChoice(EmpireAdvisor* advisor, IdAvlTree* tree, ObjectKey key, int16_t titleId, int mode)
+void ShowFirstSystemChoice(EmpireAdvisor* advisor, std::set<uint32_t>* tree, ObjectKey key, int16_t titleId, int mode)
 {
   GameObjNotifier* object = GetObjectInFamilies_01_ff(advisor->m_side, &key);
   if (object)
@@ -364,7 +364,7 @@ void EmpireAdvisor::RunPendingCommand()
 
 void EmpireAdvisor::RunCommand(int command)
 {
-  IdAvlTree* choices = ChoicesTree();
+  std::set<uint32_t>* choices = ChoicesTree();
   switch (command)
   {
     case 1:
@@ -372,17 +372,17 @@ void EmpireAdvisor::RunCommand(int command)
       break;
     case 2:
     case 0x12:
-      choices->Clear();
+      choices->clear();
       AddChoice(choices, 0x109);
       ShowChoices(0x92, choices, 0x1624);
       break;
     case 3:
-      choices->Clear();
+      choices->clear();
       AddChoice(choices, 0x121);
       ShowChoices(0x93, choices, 0x1622);
       break;
     case 4:
-      choices->Clear();
+      choices->clear();
       UiSetDisplayMode(0x17, 0);
       break;
     case 0x11:
@@ -395,12 +395,12 @@ void EmpireAdvisor::RunCommand(int command)
       UiSetDisplayMode(0x91, 0);
       break;
     case 7:
-      choices->Clear();
+      choices->clear();
       ShowFirstSystemChoice(this, choices, ObjectKey::Make(0x34, 0x280), 0x1627, 0x92);
       break;
     case 8:
     case 0x14:
-      choices->Clear();
+      choices->clear();
       AddChoice(choices, 0x121);
       ShowChoices(0x93, choices, 0x1622);
       break;
@@ -433,7 +433,7 @@ void EmpireAdvisor::RunCommand(int command)
       UiSetDisplayMode(0x14, 0);
       break;
     case 0x13:
-      choices->Clear();
+      choices->clear();
       ShowFirstSystemChoice(this, choices, ObjectKey::Make(0x35, 0x281), 0x1628, 0x92);
       break;
   }
@@ -679,5 +679,5 @@ int EmpireAdvisor::PickMoodCue()
       return UiSessionRandom(3) + 1;
   }
 }
-IdAvlTree g_empireChoices{};
+std::set<uint32_t> g_empireChoices{};
 const char* g_invalidCommandText = nullptr;

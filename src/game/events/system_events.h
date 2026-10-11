@@ -242,7 +242,7 @@ public:
   {
     return 0x311;
   } // 9: 0x564cd0
-  int GetPriority() override
+  int GetPriority() const override
   {
     return 0x400;
   } // 10: 0x48e670
@@ -276,7 +276,7 @@ public:
   {
     return 0x319;
   } // 9: 0x564f90
-  int GetPriority() override
+  int GetPriority() const override
   {
     return 0x801;
   } // 10: 0x5651c0

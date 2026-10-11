@@ -1,7 +1,7 @@
 #include "ui/cool_game_window.h"
 
 #include "core/checked_new.h"
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/bitmap_overlay.h"
 #include "ui/cool_app.h"
@@ -550,7 +550,7 @@ uint32_t CoolGameWindow::AddOverlay(DibBitmap* bitmap, uint32_t overlayId)
   {
     static_cast<IdNode*>(node)->SetId(overlayId);
     static_cast<BitmapOverlay*>(node)->SetBitmap(bitmap);
-    result = m_overlays.AddWithId(static_cast<IdNode*>(node));
+    result = m_overlays.AddWithId(static_cast<BitmapOverlay*>(node));
   }
   return result;
 }

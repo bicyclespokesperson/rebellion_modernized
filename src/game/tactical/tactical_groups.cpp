@@ -371,13 +371,13 @@ void RemoveMemberFromGroup(ShipGroup* group, int handle)
     group->RemoveMember(handle);
 }
 
-void RegisterFighterGroup(ShipGroup* group)
+void RegisterFighterGroup(FighterGroup* group)
 {
   group->AssignHandle(group->m_side);
   GetTacticalRegistry()->AddFighterGroup(group);
 }
 
-void RegisterCapitalShipGroup(ShipGroup* group)
+void RegisterCapitalShipGroup(CapitalShipGroup* group)
 {
   group->AssignHandle(group->m_side);
   GetTacticalRegistry()->AddCapitalShipGroup(group);

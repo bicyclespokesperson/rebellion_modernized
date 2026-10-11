@@ -170,7 +170,7 @@ int AiFleetEval::HasShip(const ObjectKey* key)
   auto position = m_shipKeys.Entries().begin();
   while (position != m_shipKeys.Entries().end() && !found)
   {
-    auto* node = static_cast<ObjectKeyNode*>(position->get());
+    auto* node = static_cast<ObjectKeyNode*>((*position).get());
     ObjectKey nodeKey;
     node->GetKey(&nodeKey);
     if (key->m_value == nodeKey.m_value)
@@ -238,7 +238,7 @@ int AiFleetEval::Refresh()
     auto position = m_shipKeys.Entries().begin();
     while (position != m_shipKeys.Entries().end())
     {
-      m_cursor = static_cast<ObjectKeyNode*>(position->get());
+      m_cursor = static_cast<ObjectKeyNode*>((*position).get());
       ObjectKey key;
       m_cursor->GetKey(&key);
       AiShipRecord* record = static_cast<AiShipRecord*>(m_ships->Find(&key));

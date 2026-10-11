@@ -5,7 +5,7 @@
 // module's header provides it.
 #include <cstdint>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "data/seed_key.h"

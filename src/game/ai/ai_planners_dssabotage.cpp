@@ -24,7 +24,7 @@ int AiDsSabotagePlanner::Virtual06()
   {
     for (auto position = m_leaders.Entries().begin(); position != m_leaders.Entries().end(); ++position)
     {
-      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
       const ObjectKey key = KeyOfNode(node);
       AiCharacterRecord* character = static_cast<AiCharacterRecord*>(m_characters->Find(&key));
       if (character)
@@ -63,7 +63,7 @@ void AiDsSabotagePlanner::FindTargetShip()
       for (auto position = fleet->m_shipKeys.Entries().begin(); position != fleet->m_shipKeys.Entries().end() && !found;
            ++position)
       {
-        ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+        ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
         const ObjectKey shipKey = KeyOfNode(node);
         AiShipRecord* ship = static_cast<AiShipRecord*>(m_owner->m_ships.Find(&shipKey));
         if (ship && (ship->m_flags.m_value & 0x80) != 0)
@@ -106,7 +106,7 @@ int AiDsSabotagePlanner::ChooseTarget()
     bool found = false;
     for (auto position = fleetSystems.Entries().begin(); position != fleetSystems.Entries().end() && !found; ++position)
     {
-      ObjectKeyNode* node = static_cast<ObjectKeyNode*>(position->get());
+      ObjectKeyNode* node = static_cast<ObjectKeyNode*>((*position).get());
       found = false;
       AiSystemEval* system = m_owner->m_systems.FindEval(KeyOfNode(node));
       if (system && (membersAtDestination == Virtual17() || system->Stat(0xbc) / 2 <= membersAtDestination))

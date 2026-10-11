@@ -3,7 +3,7 @@ class AiNoticeGroup;
 #include <cstdint>
 #include <string>
 
-#include "core/containers.h"
+#include "core/entry_identity.h"
 #include "core/game_string.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
@@ -47,6 +47,13 @@ public:
   {
   } // 0x619730 (shared no-op)
 
+  virtual const std::string& MessageText0() const;
+  virtual const std::string& MessageText1() const;
+  virtual const ObjectKey& MessageKey() const;
+  virtual const ObjectKey& MessageTarget() const;
+  virtual void AcceptFromMessageIndex();
+  virtual void DeclineFromMessageIndex();
+
   int m_unk1c; // +0x1c
   int m_owner; // +0x20 the side the notice is for
   PersistentInt m_flags; // +0x24 bit 0x10 is set by the constructor
@@ -83,6 +90,25 @@ public:
   virtual int
   Virtual16(const AiNoticeGroup* payloads); // 0x4974f0: hands every payload of the list to Virtual0x via DispatchToSink
 
+  const std::string& MessageText0() const override
+  {
+    return m_text0;
+  }
+  const std::string& MessageText1() const override
+  {
+    return m_text1;
+  }
+  const ObjectKey& MessageKey() const override
+  {
+    return m_key;
+  }
+  const ObjectKey& MessageTarget() const override
+  {
+    return m_target;
+  }
+  void AcceptFromMessageIndex() override;
+  void DeclineFromMessageIndex() override;
+
   std::string m_text0; // +0x44
   std::string m_text1; // +0x50
   ObjectKey m_key; // +0x5c
@@ -102,6 +128,19 @@ public:
   {
   } // 0x619730 (shared no-op)
   virtual int Virtual14(const AiNoticeGroup* payloads); // 0x4974f0 (shared)
+
+  const std::string& MessageText0() const override
+  {
+    return m_text0;
+  }
+  const std::string& MessageText1() const override
+  {
+    return m_text1;
+  }
+  const ObjectKey& MessageKey() const override
+  {
+    return m_key;
+  }
 
   std::string m_text0; // +0x44
   std::string m_text1; // +0x50

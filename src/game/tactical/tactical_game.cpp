@@ -62,16 +62,43 @@ TypeMapNode::~TypeMapNode() = default;
 
 TypeMapTree::TypeMapTree() = default;
 
-TypeMapTree::~TypeMapTree() = default;
-
-int TypeMapTree::IsLess(AvlNode* a, AvlNode* b)
+TypeMapTree::~TypeMapTree()
 {
-  const TypeMapNode* left = static_cast<const TypeMapNode*>(a);
-  const TypeMapNode* right = static_cast<const TypeMapNode*>(b);
-  bool less = left->m_key < right->m_key;
-  if (left->m_key == right->m_key)
-    less = left->m_value < right->m_value;
-  return less;
+  Clear();
+}
+
+bool TypeMapTree::NodeOrder::operator()(const std::unique_ptr<TypeMapNode>& a,
+                                        const std::unique_ptr<TypeMapNode>& b) const
+{
+  return a->m_key < b->m_key || (a->m_key == b->m_key && a->m_value < b->m_value);
+}
+
+void TypeMapTree::Insert(TypeMapNode* node)
+{
+  if (!m_clearing && node)
+  {
+    std::unique_ptr<TypeMapNode> pending(node);
+    try
+    {
+      m_nodes.insert(std::move(pending));
+    }
+    catch (...)
+    {
+      pending.release();
+      throw;
+    }
+  }
+}
+
+void TypeMapTree::Clear()
+{
+  if (m_clearing)
+    return;
+  m_clearing = true;
+  decltype(m_nodes) detached;
+  detached.swap(m_nodes);
+  detached.clear();
+  m_clearing = false;
 }
 
 // ---- singletons -----------------------------------------------------------------------------------------------
@@ -166,8 +193,7 @@ uint16_t TacticalGame::LookupTypeSprite(int16_t key)
 {
   for (const auto& entry : m_typeMap.Entries())
   {
-    AvlNode* node = entry.get();
-    const TypeMapNode* typeEntry = static_cast<const TypeMapNode*>(node);
+    const TypeMapNode* typeEntry = entry.get();
     if (static_cast<int16_t>(typeEntry->m_key) == key)
       return typeEntry->m_value;
   }

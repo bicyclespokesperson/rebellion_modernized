@@ -127,7 +127,7 @@ OrderBase* AiTask14::Step()
   }
   auto position = m_owner->m_ships.PositionOf(m_cursor);
   ++position;
-  m_cursor = position == m_owner->m_ships.Entries().end() ? nullptr : static_cast<AiShipRecord*>(position->get());
+  m_cursor = position == m_owner->m_ships.Entries().end() ? nullptr : static_cast<AiShipRecord*>((*position).get());
   if (!m_cursor)
   {
     m_count = 0;
