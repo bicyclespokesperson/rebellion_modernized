@@ -397,6 +397,14 @@ its caller expected to delete; removal now detaches ownership, and the focused t
 reviews checked registry lifetime, codecs, event ordering and detach/delete callers across AI, UI, multiplayer, audio
 and tactical code. Changed C++ files pass the pinned LLVM 22.1.4 formatter.
 
+Mission-panel crash follow-up: the reported executable still contained the retired `IdAvlTree` owner. Its duplicate
+check used the overlay's drawing-depth comparator, so the mission and team pages (both 355 pixels high at y=0) compared
+equal despite IDs 0x32 and 0x33. The team page was rejected, and character-list construction dereferenced its missing
+background. The composed registry introduced in `5e81240` uses ID identity and already fixes this failure. A targeted
+host probe with the actual STRATEGY.DLL pages verified both registrations and both character-list constructors in release
+and halt-on-error UBSan, with malloc scribbling enabled. Temporary diagnostic code was removed after verification.
+Rebuilt the normal `build/native` executable; all eight tests and its two-process malloc-scribble save/reload smoke pass.
+
 Host-only validation and the existing desktop acceptance gap still apply; Linux and Windows are work for agents
 running on those hosts.
 
