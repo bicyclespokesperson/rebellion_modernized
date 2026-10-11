@@ -323,7 +323,7 @@ Final A3 integration:
 - [x] Complete the host build and all eight useful native tests in release and halt-on-error UBSan.
 - [x] Complete the bounded simulation/save/reload smoke with malloc scribble enabled.
 - [ ] Finish the structured desktop acceptance pass below and fix findings.
-- [ ] Complete the dedicated formatting commit and post-format checks below.
+- [x] Complete the dedicated formatting commit and post-format checks below.
 
 Final ownership review found and repaired fleet-row insertion/removal that bypassed the owning sorted list. Explicit
 insertion now updates owned storage and borrowed links together; removal detaches ownership before deletion. Button
@@ -331,8 +331,16 @@ animation frames and their bitmaps now use standard exclusive ownership with sta
 
 Desktop acceptance remains open: the macOS automation service captures the SDL window and sends keyboard input, but
 coordinate clicks fail with `noWindowsAvailable`, including with only one running instance and after rebinding/relaunch.
-The main menu has no keyboard start/load navigation. Intro/menu/confirmation rendering was inspected; this does not
-substitute for the substantial gameplay acceptance pass. Linux/Windows testing remains work for agents on those hosts.
+Using a uniquely identified test bundle avoids that service error, but message tracing shows that clicks and drags at
+different requested coordinates all deliver the same stale SDL mouse position (629,12), so reliable interaction is still
+blocked. The main menu has no keyboard start/load navigation. Intro/menu/confirmation rendering was inspected; this does
+not substitute for the substantial gameplay acceptance pass. The disposable process and temporary default configuration
+were cleaned up. Linux/Windows testing remains work for agents on those hosts.
+
+Final formatting: LLVM 22.1.4 processed 896 maintained C/C++ sources and headers; 874 changed in formatting-only commit
+`0204a34`, recorded in `.git-blame-ignore-revs`. Third-party, generated and archival files are excluded. Current-language
+parsing is enabled and qualifier order is left unchanged. The repeat formatter check, post-format release and strict UBSan
+builds, all eight CTests in both builds and malloc-scribble save/reload smoke pass (150336 → 150346 → 150356).
 
 ### Per-responsibility workflow
 
@@ -409,10 +417,10 @@ Keep CI possible without publishing game data: compile in public jobs where feas
 private installation. If a platform check is unavailable, leave its roadmap box unchecked. A failure found later on
 another platform is an ordinary follow-up and does not invalidate a change that passed on its development platform.
 
-- [ ] Check the root `.clang-format` options against the pinned formatter and C++23 syntax.
-- [ ] Run one final formatting pass over first-party maintained code, excluding third-party, generated and archival code.
-- [ ] Put the formatting-only pass in a dedicated commit and record it in `.git-blame-ignore-revs`.
-- [ ] Run the host-platform build and automated checks on the formatted tree.
+- [x] Check the root `.clang-format` options against the pinned formatter and C++23 syntax.
+- [x] Run one final formatting pass over first-party maintained code, excluding third-party, generated and archival code.
+- [x] Put the formatting-only pass in a dedicated commit and record it in `.git-blame-ignore-revs`.
+- [x] Run the host-platform build and automated checks on the formatted tree.
 
 - [ ] On the current primary desktop, complete one substantial play session using representative saves to reach both
       factions, missions/research/recruitment, fleet movement, economy, combat resolution, and save/reload without waiting
@@ -427,7 +435,7 @@ inspect the responsible code, or bisect when the regression is reproducible. Bis
 and a reusable fixture. Save-format transitions and nondeterministic failures can complicate it, so it is a recovery tool,
 not a substitute for the minute-long smoke check.
 
-- [ ] The old layout/startup coupling is gone.
+- [x] The old layout/startup coupling is gone.
 - [ ] Core interfaces and ownership are clear.
 - [ ] Known bug sites are fixed or explicitly deferred with a concrete reason.
 - [ ] Every first-party area has been assessed; not every file needs a diff.
