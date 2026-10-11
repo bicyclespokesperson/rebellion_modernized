@@ -1,3 +1,5 @@
+#include <string>
+#include "core/game_string.h"
 #include "character/character.h"
 #include "strategy_ui/battle_window.h"
 
@@ -226,7 +228,7 @@ void BattleWindow::OnCreate1() {
     HDC dc = CreateCompatibleDC(windowDc);
     ReleaseDC(m_hwnd, windowDc);
     const COLORREF color = m_galaxy->m_side == kEmpire ? 0xff00 : 0xff;
-    title.SetText(m_battle->m_title.m_text);
+    title.SetText(m_battle->m_title.c_str());
     title.SetFont(0xb);
     title.m_drawFlags = 1;
     title.MoveTo(0xc, 0x12);
@@ -246,7 +248,7 @@ void BattleWindow::OnCreate1() {
     title.Draw(dc);
     m_label.MoveTo(0xc, 0xe1);
     m_label.m_width = 400;
-    m_label.SetText(m_battle->m_summary.m_text);
+    m_label.SetText(m_battle->m_summary.c_str());
     m_label.Draw(dc);
     m_label.SetFont(6);
     m_label.m_drawFlags = 0x110;
@@ -256,7 +258,7 @@ void BattleWindow::OnCreate1() {
     m_label.SetColor(0, nullptr);
     m_label.Measure(dc);
     m_label.Draw(dc);
-    m_label.SetText(m_battle->m_caption.m_text);
+    m_label.SetText(m_battle->m_caption.c_str());
     m_label.SetColor(color, nullptr);
     m_label.MoveTo(0x18, 0xff);
     m_label.Measure(dc);
@@ -275,7 +277,7 @@ void BattleWindow::OnCreate1() {
     m_label.m_layoutFlags = 1;
     m_label.m_width = 0x148;
     m_label.MoveTo(0x18, 0x28);
-    m_label.SetText(m_battle->m_sideTextA.m_text);
+    m_label.SetText(m_battle->m_sideTextA.c_str());
     m_label.Draw(dc);
     m_label.SetFont(7);
     m_label.m_drawFlags = 0x110;
@@ -283,7 +285,7 @@ void BattleWindow::OnCreate1() {
     m_label.m_layoutFlags = 1;
     m_label.m_width = 0x148;
     m_label.MoveTo(0x18, 0x82);
-    m_label.SetText(m_battle->m_sideTextB.m_text);
+    m_label.SetText(m_battle->m_sideTextB.c_str());
     m_label.Draw(dc);
     AddOverlay(page, kBackgroundGoTo);
     m_label.MoveTo(0x18, 0xff);
@@ -291,7 +293,7 @@ void BattleWindow::OnCreate1() {
     m_label.SetColor(color, nullptr);
     m_label.m_drawFlags = 1;
     m_label.m_layoutFlags = 1;
-    title.SetText(m_battle->m_title.m_text);
+    title.SetText(m_battle->m_title.c_str());
 
     page = NewPage(frame, dc);
     summaryBanner->Blit(page, 0xc, 0xd, 0, 0, 0, 0);
@@ -439,7 +441,7 @@ void BattleWindow::OnCreate1() {
     if (m_systemButton) {
         PrepareFlatButton(m_systemButton);
         HGDIOBJ previous = SelectObject(dc, FindOverlayBitmap(kBackgroundGoTo)->DibSectionHandle());
-        if (m_system) m_label.SetText(static_cast<GameObj*>(m_system)->GetName()->m_text);
+        if (m_system) m_label.SetText(static_cast<GameObj*>(m_system)->GetName()->c_str());
         m_label.SetFont(4);
         m_label.SetColor(0xffffff, nullptr);
         m_label.m_drawFlags = 0x101;
@@ -615,7 +617,7 @@ void BattleWindow::ClearRows() {
     }
 }
 
-void BattleWindow::AddRow(GameObj* object, int normal, String* heading) {
+void BattleWindow::AddRow(GameObj* object, int normal, const std::string* heading) {
     const int itemHeight = m_list->m_itemHeight;
     const int itemWidth = m_list->m_itemWidth;
     if (!object) {
@@ -625,7 +627,7 @@ void BattleWindow::AddRow(GameObj* object, int normal, String* heading) {
             item = new (memory) ObjectListItem(++m_nextItemId, &unset);
         }
         if (heading != nullptr) {
-            item->m_text = heading->m_text;
+            item->m_text = heading->c_str();
             item->m_fontSlot = 6;
             item->m_textOffsetY = 10;
             item->m_textFormat = 5;
@@ -649,7 +651,7 @@ void BattleWindow::AddRow(GameObj* object, int normal, String* heading) {
     }
     item->SetImages(image, nullptr);
     item->m_state.m_value |= 4;
-    item->m_text = object->GetName()->m_text;
+    item->m_text = object->GetName()->c_str();
     item->m_fontSlot = 10;
     item->m_textOffsetY = picture->Height() + top;
     item->m_textFormat = 1;
@@ -789,7 +791,7 @@ void BattleWindow::FillList(int kind, int force) {
     ObjectKeyNode* shownNode = shown.First();
     ObjectKeyNode* heldNode = held.First();
     ObjectKeyNode* matchingNode = matching.First();
-    String heading;
+    std::string heading;
     bool shownDone = false;
     bool matchingDone = false;
     bool heldDone = false;
@@ -800,11 +802,11 @@ void BattleWindow::FillList(int kind, int force) {
     };
     for (;;) {
         if (shownNode == nullptr) {
-            String* text = nullptr;
+            std::string* text = nullptr;
             if (!shownDone) {
                 shownDone = true;
                 const ResourceStringId id = (matching.First() == nullptr && held.First() == nullptr) ? StringId(0x8526) : StringId(0x1940);
-                heading.SetFromResource(&id);
+                heading = LoadStringResource(&id);
                 text = &heading;
             }
             AddRow(nullptr, 0, text);
@@ -815,11 +817,11 @@ void BattleWindow::FillList(int kind, int force) {
         }
         if (kind == kKindPersonnel) {
             if (heldNode == nullptr) {
-                String* text = nullptr;
+                std::string* text = nullptr;
                 if (!heldDone) {
                     heldDone = true;
                     const ResourceStringId id = StringId(0x8526);
-                    heading.SetFromResource(&id);
+                    heading = LoadStringResource(&id);
                     text = &heading;
                 }
                 AddRow(nullptr, 0, text);
@@ -830,11 +832,11 @@ void BattleWindow::FillList(int kind, int force) {
             }
         }
         if (matchingNode == nullptr) {
-            String* text = nullptr;
+            std::string* text = nullptr;
             if (!matchingDone) {
                 matchingDone = true;
                 const ResourceStringId id = StringId(0x1941);
-                heading.SetFromResource(&id);
+                heading = LoadStringResource(&id);
                 text = &heading;
             }
             AddRow(nullptr, 0, text);

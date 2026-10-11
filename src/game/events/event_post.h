@@ -77,5 +77,5 @@ int PostPayloadKeysA(uint32_t kind, GameObjNotifier* object, const ObjectKey* ke
 int PostPayloadKeysB(uint32_t kind, GameObjNotifier* object, const ObjectKey* keyA, const ObjectKey* keyB,
                      NotifyContext* ctx);  // 0x53feb0
 // StringPairPayload kinds 0x500-0x541.
-int PostPayloadStrings(uint32_t kind, GameObjNotifier* object, const String* textA, const String* textB,
+int PostPayloadStrings(uint32_t kind, GameObjNotifier* object, const std::string* textA, const std::string* textB,
                        NotifyContext* ctx);  // 0x53ff20

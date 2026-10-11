@@ -115,16 +115,16 @@ void Notice8::AppendOrderLines() {
             GameObjNotifier* object = GetObjectInFamilies_01_ff(m_owner, &key);
             if (!object) continue;
             const int days = static_cast<ObjectKeyValueNode*>(node)->m_value;
-            String name;
+            std::string name;
             static_cast<GameObj*>(object)->GetNameCopy(&name);
             ostream* out = ostream_operator_ls_char(stream.Out(), '\n');
-            out = ostream_operator_ls_cstr(out, name.m_text);
+            out = ostream_operator_ls_cstr(out, name.c_str());
             out = ostream_operator_ls_cstr(out, g_transitDaysSeparator);
             ostream_operator_ls_long(out, days);
         }
         ostream_operator_ls_char(stream.Out(), 0);
         {
-            String text(strstreambuf_str(StreambufOf(&stream)));
+            std::string text(strstreambuf_str(StreambufOf(&stream)));
             m_text1 += text;
         }
         strstreambuf_freeze(StreambufOf(&stream), 0);

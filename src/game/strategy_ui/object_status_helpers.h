@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "core/game_string.h"
@@ -19,26 +20,26 @@ inline ResourceStringId StringId(uint16_t id) {
     return ResourceStringId{static_cast<int16_t>(id), g_stringGroup65d424};
 }
 
-inline void SetText(String* text, uint16_t id) {
+inline void SetText(std::string* text, uint16_t id) {
     const ResourceStringId resource = StringId(id);
-    text->SetFromResource(&resource);
+    *(text) = LoadStringResource(&resource);
 }
 
-// text += `literal` (the original builds a temporary String for it).
-inline void Append(String* text, const char* literal) {
-    String part(literal);
+// text += `literal` (the original builds a temporary std::string for it).
+inline void Append(std::string* text, const char* literal) {
+    std::string part(literal);
     *text += part;
 }
 
 // Sets `text` to the string `id`, adds it as the label of `row` and clears it for the value.
-inline void AddLabelRow(String* text, uint16_t id, int row, CoolListItemList* labels) {
+inline void AddLabelRow(std::string* text, uint16_t id, int row, CoolListItemList* labels) {
     SetText(text, id);
     AddStatusRow(row, text, labels);
-    text->Clear();
+    text->clear();
 }
 
 // Like AddLabelRow, but leaves the label in `text` (the following SetText replaces it).
-inline void AddLabelRowKeepText(String* text, uint16_t id, int row, CoolListItemList* labels) {
+inline void AddLabelRowKeepText(std::string* text, uint16_t id, int row, CoolListItemList* labels) {
     SetText(text, id);
     AddStatusRow(row, text, labels);
 }
@@ -46,38 +47,38 @@ inline void AddLabelRowKeepText(String* text, uint16_t id, int row, CoolListItem
 inline uint16_t YesNoId(int value) { return value == 0 ? 0x8755 : 0x8756; }
 
 // text += "<left>:<total>"
-inline void AppendLeftOfTotal(String* text, uint32_t left, uint32_t total) {
-    text->AppendUnsigned(left);
+inline void AppendLeftOfTotal(std::string* text, uint32_t left, uint32_t total) {
+    text->append(std::to_string(static_cast<unsigned long>(left)));
     Append(text, g_statusSeparator);
-    text->AppendUnsigned(total);
+    text->append(std::to_string(static_cast<unsigned long>(total)));
 }
 
 // The optional "rule value" rows (a GNPRTB-style value of the object, when the rule lookup succeeds). `nextRow` is the
 // row it would occupy; returns the row of the last row added (`nextRow - 1` when none).
-inline int AddRuleValueRows(String* text, GameObjNotifier* object, int nextRow, CoolListItemList* labels,
+inline int AddRuleValueRows(std::string* text, GameObjNotifier* object, int nextRow, CoolListItemList* labels,
                             CoolListItemList* values) {
     StatusCode status(1, static_cast<uint32_t>(-1));
     int ruleValue = 0;
     QueryRuleValueB(static_cast<GameObj*>(object), &status, &ruleValue);
     if (status.m_second != static_cast<uint32_t>(-1) || ruleValue == 0) return nextRow - 1;
     const ResourceStringId ruleLabelId = StringId(0x3814);
-    String ruleLabel(&ruleLabelId);
-    text->Clear();
+    std::string ruleLabel = LoadStringResource(&ruleLabelId);
+    text->clear();
     {
         const ResourceStringId id = StringId(0x8766);
-        String ruleName(&id);
-        String ruleNameCopy(ruleName.m_text);
+        std::string ruleName = LoadStringResource(&id);
+        std::string ruleNameCopy(ruleName.c_str());
         *text += ruleNameCopy;
     }
     AddStatusRow(nextRow, text, labels);
-    text->Clear();
+    text->clear();
     {
-        String labelCopy(ruleLabel.m_text);
+        std::string labelCopy(ruleLabel.c_str());
         *text += labelCopy;
-        text->AppendSigned(ruleValue);
+        text->append(std::to_string(static_cast<long>(ruleValue)));
     }
     AddStatusRow(nextRow, text, values);
-    text->Clear();
+    text->clear();
     return nextRow;
 }
 

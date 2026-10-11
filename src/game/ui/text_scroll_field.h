@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "core/containers.h"
@@ -66,7 +67,7 @@ public:
     void SetTextFont(int fontSlot);  // 0x420550
     // Moves `position` (x, y in client pixels) to the nearest character: sets m_index, snaps x and y.
     void LocatePosition(TextPosition* position);  // 0x420580
-    void InsertText(const String& text, int position);  // 0x420b70
+    void InsertText(const std::string& text, int position);  // 0x420b70
     void ClearText();                                    // 0x420ba0
     void NormalizeRect(RECT* rect);                      // 0x41fb20: left <= right, top <= bottom
     void TrackSelection(POINT* point);  // 0x5ae1e0 (linker-folded empty function): selection was never written
@@ -91,7 +92,7 @@ private:
     void OnMouseMove(HWND hwnd, LPARAM lParam);
 
 public:
-    String m_text;                   // +0xa0
+    std::string m_text;                   // +0xa0
     DibBitmap* m_background;         // +0xac owned: the backdrop under the window
     HFONT m_textFont;                // +0xb0
     COLORREF m_textColor;            // +0xb4

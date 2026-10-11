@@ -226,7 +226,7 @@ int RenameOrder215::CheckDestination(StatusCode* status) {
     int ok = OrderBase::CheckDestination(status);
     if (ok != 0) {
         for (Command* command = firstCommand(m_commands); command && isOk(status); command = nextCommand(command))
-            static_cast<ManagerRenameCommand*>(command)->m_name.Assign(m_text);
+            static_cast<ManagerRenameCommand*>(command)->m_name = m_text;
     }
     if (ok == 0) setStatus(status, kStatusRefused);
     return ok;

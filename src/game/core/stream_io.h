@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 
+#include "core/game_string.h"
 #include "iostream/iostream.h"
 
 // Binary I/O of 1, 2 and 4 bytes. Every persistent object in the game saves and loads itself with these.
@@ -76,11 +77,10 @@ inline void StreamWrite32(ostream* out, const T* value) {
     StreamWrite32(out, static_cast<const void*>(value));
 }
 
-class String;
-void ReadString(istream* in, String* value);
-void WriteString(ostream* out, String* value);
-void ReadValueString(istream* in, String* value);
-void WriteValueString(ostream* out, String* value);
+void ReadString(istream* in, std::string* value);
+void WriteString(ostream* out, std::string* value);
+void ReadValueString(istream* in, std::string* value);
+void WriteValueString(ostream* out, std::string* value);
 
 // Save files interleave position markers with the data: the writer stores its own stream position, the reader
 // checks that the stored position matches where it is, to detect a desynchronised file.

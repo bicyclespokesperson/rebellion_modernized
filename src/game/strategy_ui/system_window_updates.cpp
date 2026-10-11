@@ -1,3 +1,4 @@
+#include <string>
 #include <cstdint>
 #include <new>
 
@@ -195,7 +196,7 @@ void SystemWindow::OnChildMoved(const ObjectKey* key, GameObjNotifier* object, c
     HMODULE art = CoolAppGetResourceModule(7);
     CoolWindow* tab = nullptr;
     uint16_t tabBitmap = 0;
-    String unusedText;
+    std::string unusedText;
     GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     if (!system) return;
     GameObj* systemObject = static_cast<GameObj*>(system);

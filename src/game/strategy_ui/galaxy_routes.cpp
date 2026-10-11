@@ -1,6 +1,8 @@
+#include <string>
 #include <cstdint>
 #include <new>
 
+#include "core/game_string.h"
 #include "ai/ai_common.h"
 #include "orders/order_base.h"
 #include "app/app_dialogs.h"
@@ -328,7 +330,7 @@ void GalaxyWindow::OnManagerCharacterChanged(const ObjectKey* managerKey, const 
     }
 }
 
-void GalaxyWindow::OnManagerStatusTextChanged(const ObjectKey* managerKey, String* text) {
+void GalaxyWindow::OnManagerStatusTextChanged(const ObjectKey* managerKey, std::string* text) {
     GameObjNotifier* manager = GetObjectInFamilies_a0_b0(m_side, managerKey);
     SystemWindow* window = SystemWindowOfManager(this, manager);
     if (window) {
@@ -589,10 +591,10 @@ void GalaxyWindow::ResumePendingRequest() {
 }
 
 void GalaxyWindow::ShowLatency() {
-    String text;
-    text += String(g_currentLatencyText);
-    text.AppendUnsigned(CommGetLastLatency());
-    m_latencyLabel.SetText(text.m_text);
+    std::string text;
+    text += StringFromText(g_currentLatencyText);
+    text.append(std::to_string(static_cast<unsigned long>(CommGetLastLatency())));
+    m_latencyLabel.SetText(text.c_str());
     RECT area = m_latencyLabel.m_rect;
     InvalidateRect(m_hwnd, &area, FALSE);
 }
@@ -628,10 +630,10 @@ void GalaxyWindow::RedrawSectorMarkers(GameObjNotifier* sector) {
 }
 
 void GalaxyWindow::SetDateAndSpeed(int day, int speed, int force) {
-    String text;
+    std::string text;
     if (day != 0) {
-        text.AppendUnsigned(day);
-        m_dateLabel.SetText(text.m_text);
+        text.append(std::to_string(static_cast<unsigned long>(day)));
+        m_dateLabel.SetText(text.c_str());
         m_dateLabel.Measure(m_offscreenDc);
         RECT area = m_dateLabel.m_rect;
         InvalidateRect(m_hwnd, &area, FALSE);

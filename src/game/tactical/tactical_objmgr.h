@@ -94,7 +94,7 @@ public:
     void SetSideFlag(int side, int value);       // 0x5a8af0 (+0x80 of the side record)
     void SetControlFlags(int sideA, int sideB);  // 0x5ae1b0 (+0x20 of both side records)
     // The system's id and name for the battle's backdrop and title.
-    void SetSystemInfo(int field44, String name);  // 0x59a850
+    void SetSystemInfo(int field44, std::string name);  // 0x59a850
     unsigned Step(float milliseconds);           // 0x5aacb0
     void ForwardEvent(int a, int b, int c);      // 0x5aafc0
     void ResetView();                            // 0x5ab0e0
@@ -118,7 +118,7 @@ public:
     uint8_t m_pad8cc[4];
     int m_systemField44;                // +0x8d0
     uint8_t m_pad8d4[0x8dc - 0x8d4];
-    String m_systemName;                // +0x8dc
+    std::string m_systemName;                // +0x8dc
     int m_battleKindNotAlliance;        // +0x8e8
     uint8_t m_pad8ec[0x9ec - 0x8ec];
     int m_playerSide;                   // +0x9ec

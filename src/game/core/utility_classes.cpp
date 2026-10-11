@@ -2,6 +2,11 @@
 
 #include "core/runtime_environment.h"
 
+#include <algorithm>
+#include <random>
+
+#include "iostream/iostream.h"
+
 extern uint32_t g_crcTable[256];
 extern int g_crcTableReady;
 
@@ -35,7 +40,7 @@ void WriteValuePersistentInt(ostream* out, PersistentInt* value) { WritePersiste
 
 RandomGenerator::RandomGenerator() : m_seed(-1) {}
 
-RandomGenerator::RandomGenerator(int seed) { m_seed = Seed(seed); }
+RandomGenerator::RandomGenerator(int seed) { Seed(seed); }
 
 RandomGenerator::~RandomGenerator() = default;
 
@@ -49,10 +54,20 @@ int RandomGenerator::Seed(int seed) {
 
 int RandomGenerator::Next(int limit) {
     if (limit <= 1) return 0;
-    if (m_seed == -1) m_seed = Seed(-1);
+    return std::uniform_int_distribution<int>(0, limit - 1)(*this);
+}
+
+int RandomGenerator::Between(int low, int high) {
+    if (low > high) std::swap(low, high);
+    if (low == high) return low;
+    return std::uniform_int_distribution<int>(low, high)(*this);
+}
+
+RandomGenerator::result_type RandomGenerator::operator()() {
+    if (m_seed == -1) Seed(-1);
     const int state = Step(m_seed);
     m_seed = state;
-    return state / (0x7ffffffe / limit);
+    return static_cast<result_type>(state);
 }
 
 int RandomGenerator::GenerateSeed() {
@@ -68,21 +83,27 @@ int RandomGenerator::GenerateSeed() {
         const int c = draw();
         const int d = draw();
         seed = a * b + c * d;
-    } while (seed > 0x7ffffffe);
+    } while (seed < 1 || seed > 0x7ffffffe);
     return seed;
 }
 
 int RandomGenerator::Step(int state) {
-    constexpr uint32_t kMultiplier = 0xa18e;
-    constexpr int kQuotient = 0xcad4;
-    constexpr int kModulus = 0x7fffffff;
-    int next = static_cast<int>(static_cast<uint32_t>(state) * kMultiplier -
-                                static_cast<uint32_t>(state / kQuotient) * static_cast<uint32_t>(kModulus));
-    if (next < 0) next += kModulus;
-    return next;
+    if (state < 1 || state > static_cast<int>(max())) return 0;
+    constexpr uint64_t kModulus = 0x7fffffff;
+    constexpr uint64_t kMultiplier = 0xa18e;
+    return static_cast<int>((static_cast<uint64_t>(state) * kMultiplier) % kModulus);
 }
 
-void RandomGenerator::Read(istream* in) { ReadValue32(in, &m_seed); }
+void RandomGenerator::Read(istream* in) {
+    int seed = 0;
+    ReadValue32(in, &seed);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) return;
+    if (seed != -1 && (seed < 1 || seed > static_cast<int>(max()))) {
+        iostream_access::IosOf(in)->m_state |= iostream_flags::kFail;
+        return;
+    }
+    m_seed = seed;
+}
 
 void RandomGenerator::Write(ostream* out) { WriteValue32(out, &m_seed); }
 

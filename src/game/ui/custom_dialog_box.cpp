@@ -1,3 +1,4 @@
+#include <string>
 #include "ui/custom_dialog_box.h"
 #include "orders/order_base.h"
 
@@ -199,9 +200,9 @@ void CustomDialogBox::BeginRename(TextMessage* target) {
     if (!m_renameField) return;
     m_renameField->SetFont(kRenameFieldFontSlot);
     {
-        String name;
+        std::string name;
         object->GetNameCopy(&name);
-        m_renameField->SetText(name.m_text);
+        m_renameField->SetText(name.c_str());
     }
     m_renameField->Create(0);
     m_renameField->SetSelection(0, -1);
@@ -212,10 +213,10 @@ void CustomDialogBox::BeginRename(TextMessage* target) {
 void CustomDialogBox::CommitRename() {
     SetFocus(m_hwnd);
     if (!m_renameField || !m_renameTarget) return;
-    if (m_renameField->m_text.Length() == 0) return;
+    if (m_renameField->m_text.size() == 0) return;
     {
-        String name(m_renameField->m_text.m_text);
-        m_renameTarget->m_text.Assign(name);
+        std::string name(m_renameField->m_text.c_str());
+        m_renameTarget->m_text = name;
     }
     UiHumanReceiveMessage(reinterpret_cast<PlayerMessage*>(m_renameTarget), 0);
     m_renameTarget = nullptr;

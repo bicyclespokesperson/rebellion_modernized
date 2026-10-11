@@ -102,7 +102,7 @@ public:
     virtual int DestroyIfAllowed(const ActivityRequest* request, NotifyContext* ctx);        // 38
     virtual int TryRename(const ActivityRequest* request, intptr_t name, NotifyContext* ctx);  // 39
     virtual int Destroy(NotifyContext* ctx);               // 40
-    virtual int Rename(String* name, NotifyContext* ctx);  // 41: SetName
+    virtual int Rename(std::string* name, NotifyContext* ctx);  // 41: SetName
     virtual int Reparent(ObjectKey* key, NotifyContext* ctx);  // 42
     virtual int ChangeDestroyedReason(int reason, NotifyContext* ctx);   // 43: SetDestroyedReason
     virtual int Virtual44(NotifyContext* ctx);               // 44
@@ -124,7 +124,7 @@ public:
     virtual GameObjData* CreateData();
 
     // ---- slots 59-84: OnXChanged events on the master ----
-    virtual int OnNameChanged(String* oldName, String* newName, NotifyContext* ctx) { return 1; }                      // 59
+    virtual int OnNameChanged(std::string* oldName, std::string* newName, NotifyContext* ctx) { return 1; }                      // 59
     virtual int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx);              // 60
     virtual int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx);  // 61
     virtual int OnBuilderKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) { return 1; }             // 62
@@ -152,7 +152,7 @@ public:
     virtual int OnDeployedChanged(int newValue, NotifyContext* ctx) { return 1; }                                       // 84
 
     // ---- slots 85-110: OnXNotified events on a side view ----
-    virtual int OnNameNotified(String* oldName, String* newName, NotifyContext* ctx);                         // 85
+    virtual int OnNameNotified(std::string* oldName, std::string* newName, NotifyContext* ctx);                         // 85
     virtual int OnControlKindNotified(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx);             // 86
     virtual int OnParentNotified(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx);  // 87
     virtual int OnBuilderKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx);            // 88
@@ -180,7 +180,7 @@ public:
     virtual int OnDeployedNotified(int value, NotifyContext* ctx);                                      // 110
 
     // ObjectBase slot 0 (secondary vtable): appends the object's name to *out; `kind` as in DatRecord::WriteName.
-    void WriteName(String* out, int kind) override;
+    void WriteName(std::string* out, int kind) override;
 
     // ==== SECTION core (0x4f5ea0-0x4f6c00): see game_obj.cpp ====
     // The object's copy in `view` (0 master, 1 Alliance, 2 Empire); every view of a GameObj is a GameObj.
@@ -188,8 +188,8 @@ public:
     // The next object in key order whose family is in `range` (same view); with `resolve`, hidden ones are skipped.
     GameObjNotifier* FindNextSibling(const FamilyRange* range, int resolve);  // 0x4f6010
     // Copy of the object's name: its own, else the record's, else "".
-    String* GetNameCopy(String* out);  // 0x4f6270
-    String* GetName();                 // 0x4f62d0, same lookup, no copy (a static empty String if there is none)
+    std::string* GetNameCopy(std::string* out);  // 0x4f6270
+    std::string* GetName();                 // 0x4f62d0, same lookup, no copy (a static empty String if there is none)
     // Stores the parent in *out; true if there is one.
     int GetParent(GameObjNotifier** out);  // 0x4f6b50
     // Parent key into *out; 1 only if it is set.
@@ -225,7 +225,7 @@ public:
     int UpdateEnroute(NotifyContext* ctx);                             // 0x4f8240
     int RequestDeleteIfReady(NotifyContext* ctx);                      // 0x4f82d0, always 1
     int ReleaseIfDestroyed(NotifyContext* ctx);                        // 0x4f8310, always 1
-    int SetName(String* value, NotifyContext* ctx);  // 0x4f6e60
+    int SetName(std::string* value, NotifyContext* ctx);  // 0x4f6e60
     int SetControlKind(uint32_t value, NotifyContext* ctx);  // 0x4f6f40
     int SetParent(GameObjNotifier* value, NotifyContext* ctx);  // 0x4f6fd0
     int SetBuilderKey(ObjectKey* value, NotifyContext* ctx);  // 0x4f7070
@@ -260,7 +260,7 @@ public:
                 NotifyContext* ctx);  // 0x4f88d0
     int LogInt(const char* tag, const char* property, int newValue, int oldValue, intptr_t unused,
                NotifyContext* ctx);  // 0x4f8980
-    int LogString(const char* tag, const char* property, String* newValue, String* oldValue, intptr_t unused,
+    int LogString(const char* tag, const char* property, std::string* newValue, std::string* oldValue, intptr_t unused,
                   NotifyContext* ctx);  // 0x4f8a50
     int LogKey(const char* tag, const char* property, ObjectKey* newKey, ObjectKey* oldKey, intptr_t unused,
                NotifyContext* ctx);  // 0x4f8aa0
@@ -317,7 +317,7 @@ public:
     int DestroyData();  // 0x4fc5e0
 
     // ---- fields ----
-    String* m_name;               // +0x34, null = use the record's name
+    std::string* m_name;               // +0x34, null = use the record's name
     ObjectKey m_builderKey;       // +0x38
     ObjectKey m_departureKey;     // +0x3c
     uint32_t m_packed;            // +0x40, byte 0 DestroyedReason, byte 1 DeploymentCount, byte 2 DestinationCount

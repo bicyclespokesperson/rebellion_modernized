@@ -1,3 +1,4 @@
+#include <string>
 #include "ui/cool_label.h"
 
 #include "core/checked_new.h"
@@ -36,29 +37,29 @@ CoolLabel::CoolLabel(uint16_t stringId, int left, int top, int width, int height
     SetColor(color, nullptr);
     SetFont(fontSlot);
     if (stringId != 0) {
-        char text[0x100];
+        char text[0x100] = {};
         LoadResourceString(stringId, text, sizeof(text));
-        m_text = NewOrNull<String>(static_cast<const char*>(text));
+        m_text = NewOrNull<std::string>(StringFromText(static_cast<const char*>(text)));
     }
 }
 
 CoolLabel::CoolLabel(const ResourceStringId* stringId, int left, int top, int width, int height, UINT drawFlags, UINT layoutFlags) {
     InitializeRect(left, top, width, height, drawFlags, layoutFlags);
-    m_text = NewOrNull<String>(stringId);
+    m_text = NewOrNull<std::string>(LoadStringResource(stringId));
     SetFont(GetDefaultFontSlot());
 }
 
 CoolLabel::CoolLabel(uint16_t stringId, int left, int top, int width, int height, UINT drawFlags, UINT layoutFlags) {
     InitializeRect(left, top, width, height, drawFlags, layoutFlags);
-    char text[0x100];
+    char text[0x100] = {};
     LoadResourceString(stringId, text, sizeof(text));
-    m_text = NewOrNull<String>(static_cast<const char*>(text));
+    m_text = NewOrNull<std::string>(StringFromText(static_cast<const char*>(text)));
     SetFont(GetDefaultFontSlot());
 }
 
 CoolLabel::CoolLabel(const char* text, int left, int top, int width, int height, UINT drawFlags, UINT layoutFlags) {
     InitializeRect(left, top, width, height, drawFlags, layoutFlags);
-    m_text = text ? NewOrNull<String>(text) : nullptr;
+    m_text = text ? NewOrNull<std::string>(StringFromText(text)) : nullptr;
     SetFont(GetDefaultFontSlot());
 }
 
@@ -68,7 +69,7 @@ CoolLabel::~CoolLabel() {
 
 void CoolLabel::SetTextFromResource(const ResourceStringId* stringId) {
     if (m_text) delete m_text;
-    m_text = NewOrNull<String>(stringId);
+    m_text = NewOrNull<std::string>(LoadStringResource(stringId));
     if ((m_layoutFlags & kLabelFixedWidth) == 0) m_rect.right = 0;
     if ((m_layoutFlags & kLabelFixedHeight) == 0) m_rect.bottom = 0;
 }
@@ -79,7 +80,7 @@ void CoolLabel::SetText(const char* text) {
         m_text = nullptr;
     }
     if (!text) return;
-    m_text = NewOrNull<String>(text);
+    m_text = NewOrNull<std::string>(StringFromText(text));
     if ((m_layoutFlags & kLabelFixedWidth) == 0) m_rect.right = 0;
     if ((m_layoutFlags & kLabelFixedHeight) == 0) m_rect.bottom = 0;
 }
@@ -92,7 +93,7 @@ void CoolLabel::SetTextFromStream(StrStream* stream) {
     ClearIosState(stream);
 }
 
-const char* CoolLabel::GetText() const { return m_text ? m_text->m_text : nullptr; }
+const char* CoolLabel::GetText() const { return m_text ? m_text->c_str() : nullptr; }
 
 void CoolLabel::MoveTo(int left, int top) {
     const int width = (m_layoutFlags & kLabelFixedWidth) == 0 ? m_rect.right - m_rect.left : m_width;
@@ -104,12 +105,12 @@ void CoolLabel::MoveTo(int left, int top) {
 }
 
 void CoolLabel::Measure(HDC dc) {
-    if (!m_text || !m_text->m_text) return;
+    if (!m_text || m_text->empty()) return;
     HGDIOBJ previousFont = nullptr;
     if (m_font) previousFont = SelectObject(dc, m_font);
     const UINT format = (m_drawFlags & ~kDrawTextTabStop) | kDrawTextCalcRect;
     const LONG previousRight = m_rect.right;
-    DrawTextA(dc, m_text->m_text, -1, &m_rect, format);
+    DrawTextA(dc, m_text->c_str(), -1, &m_rect, format);
     if ((m_drawFlags & DT_CENTER) != 0 && (m_layoutFlags & kLabelFixedWidth) == 0) {
         m_drawFlags &= ~static_cast<UINT>(DT_CENTER);
         const LONG measuredRight = m_rect.right;
@@ -146,7 +147,7 @@ void CoolLabel::SetColor(COLORREF color, HWND invalidateIn) {
 
 void CoolLabel::Draw(HDC dc) {
     if (m_hidden != 0) return;
-    if (!m_text || !m_text->m_text) return;
+    if (!m_text || m_text->empty()) return;
     bool measured = false;
     if (m_rect.right != m_rect.left) {
         const LONG bottom = m_rect.bottom;
@@ -161,7 +162,7 @@ void CoolLabel::Draw(HDC dc) {
     SetBkMode(dc, TRANSPARENT);
     const COLORREF previousColor = SetTextColor(dc, m_color);
     const UINT format = ((~m_layoutFlags & kLabelClip) << 4) | m_drawFlags;
-    DrawTextA(dc, m_text->m_text, -1, &m_rect, format);
+    DrawTextA(dc, m_text->c_str(), -1, &m_rect, format);
     SetTextColor(dc, previousColor);
     if (m_font) SelectObject(dc, previousFont);
 }

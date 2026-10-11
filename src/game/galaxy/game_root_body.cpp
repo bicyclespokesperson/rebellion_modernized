@@ -1,5 +1,6 @@
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
+#include "iostream/iostream.h"
 #include "data/random.h"
 #include "character/role.h"
 #include "economy/manu_mgr.h"
@@ -74,7 +75,10 @@ int GameRoot::ReadBody(istream* in) {
                         ok = m_key8c.Read(in);
                         if (ok != 0) {
                             ok = m_ctx90.Read(in);
-                            if (ok != 0) m_random->Read(in);
+                            if (ok != 0) {
+                                m_random->Read(in);
+                                if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) ok = 0;
+                            }
                         }
                     }
                 }

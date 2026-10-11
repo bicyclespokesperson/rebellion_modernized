@@ -180,21 +180,21 @@ int AddChildKeys(ChildIterator* children, ObjectKeyValueSet* out, int onlySide, 
 
 GameObjNotifier* GetMasterObjectForKey(const ObjectKey* key) { return GetMasterObject(key); }
 
-void AppendObjectDescription(ObjectKey* key, String* out) {
-    out->Assign(String(""));
+void AppendObjectDescription(ObjectKey* key, std::string* out) {
+    out->clear();
     if (key->OrNull() == nullptr) {
-        out->Assign(String("<empty GameObjKey>"));
+        *out = "<empty GameObjKey>";
         return;
     }
     GameObjNotifier* object = GetMasterObject(key);
     if (object == nullptr) {
-        *out += String("<can't find name, type = ");
-        out->AppendUnsigned(key->Family());
-        *out += String("> ");
+        *out += std::string("<can't find name, type = ");
+        out->append(std::to_string(key->Family()));
+        *out += std::string("> ");
     } else {
         *out += *static_cast<GameObj*>(object)->GetName();
     }
-    *out += String(" (ID=");
-    out->AppendUnsigned(key->Id());
-    *out += String(")");
+    *out += std::string(" (ID=");
+    out->append(std::to_string(key->Id()));
+    *out += std::string(")");
 }

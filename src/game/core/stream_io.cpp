@@ -15,10 +15,10 @@ void ReadValue16(istream* in, void* value) { StreamRead16(in, value); }
 void WriteValue16(ostream* out, const void* value) { StreamWrite16(out, value); }
 void ReadValue8(istream* in, void* value) { StreamRead8(in, value); }
 void WriteValue8(ostream* out, const void* value) { StreamWrite8(out, value); }
-void ReadString(istream* in, String* value) { value->ReadFrom(in); }
-void WriteString(ostream* out, String* value) { value->WriteTo(out); }
-void ReadValueString(istream* in, String* value) { ReadString(in, value); }
-void WriteValueString(ostream* out, String* value) { WriteString(out, value); }
+void ReadString(istream* in, std::string* value) { ReadLegacyString(in, *value); }
+void WriteString(ostream* out, std::string* value) { WriteLegacyString(out, *value); }
+void ReadValueString(istream* in, std::string* value) { ReadString(in, value); }
+void WriteValueString(ostream* out, std::string* value) { WriteString(out, value); }
 
 int CheckPositionMarker(istream* in) {
     const int32_t position = static_cast<int32_t>(istream_tellg(in));

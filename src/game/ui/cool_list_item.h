@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "core/containers.h"
@@ -36,7 +37,7 @@ public:
     uint32_t m_id;               // +0x0c
     uint16_t m_imageId;          // +0x10
     uint16_t m_selectedImageId;  // +0x12
-    String m_text;               // +0x14
+    std::string m_text;               // +0x14
     DibBitmap* m_image;          // +0x20 owned
     DibBitmap* m_selectedImage;  // +0x24 owned
     int m_x;                     // +0x28 position in the list's canvas

@@ -55,7 +55,7 @@ GameObjData* ManuMgr::CreateData() {
 
 // ---- names ---------------------------------------------------------------------------------------------------
 
-void AppendManuMgrName(ObjectBase* base, String* out, int kind) {
+void AppendManuMgrName(ObjectBase* base, std::string* out, int kind) {
     ManuMgr* self = static_cast<ManuMgr*>(static_cast<GameObj*>(base));
     if (kind == kWriteNameSeedRecord) {
         ObjectKey key;
@@ -68,10 +68,10 @@ void AppendManuMgrName(ObjectBase* base, String* out, int kind) {
         self->GameObj::WriteName(out, kind);
         return;
     }
-    out->AppendSigned(self->m_remainingGameObjCount);
+    out->append(std::to_string(self->m_remainingGameObjCount));
 }
 
-void ManuMgr::WriteName(String* out, int kind) { AppendManuMgrName(this, out, kind); }
+void ManuMgr::WriteName(std::string* out, int kind) { AppendManuMgrName(this, out, kind); }
 
 ObjectKey* ManuMgr::GetSeedKey(ObjectKey* out) {
     out->m_value = m_seedKey.m_value;

@@ -25,8 +25,8 @@ public:
     virtual int Parse(istream* in);
     virtual int Checksum(Crc32* crc) = 0;
     virtual int ParseFields(istream* in, int* endOfLine) = 0;
-    void WriteName(String* out, int kind) override;
-    String* GetNameCopy(String* out);  // 0x4486d0, constructs a copy of m_name into out
+    void WriteName(std::string* out, int kind) override;
+    std::string* GetNameCopy(std::string* out);  // 0x4486d0, constructs a copy of m_name into out
 
     int m_hasData;     // +0x20, set to 1 by ParseFields
     uint32_t m_first;  // +0x24
@@ -34,7 +34,7 @@ public:
     uint32_t m_third;  // +0x2c
     uint16_t m_small;  // +0x30
     uint16_t m_small2; // +0x32
-    String m_name;     // +0x34, "<not set>" until set
+    std::string m_name;     // +0x34, "<not set>" until set
 };
 
 // Record base with six more numbers. 0x48 and 0x4c have getters.

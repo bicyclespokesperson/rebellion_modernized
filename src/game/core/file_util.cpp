@@ -53,22 +53,22 @@ char* LoadRcdataString(unsigned id) {
 
 void OpenInputFile(ifstream* stream, const char* fileName) {
     g_fileError = kFileOk;
-    String name(fileName);
-    if (!name.m_text) {
+    std::string name = StringFromText(fileName);
+    if (name.empty()) {
         g_fileError = kFileNoName;
     } else {
-        ifstream_open(stream, name.m_text, kOpenBinaryInput, g_filebufOpenprot);
+        ifstream_open(stream, name.c_str(), kOpenBinaryInput, g_filebufOpenprot);
         if (FilebufDescriptor(stream) == kInvalidDescriptor) g_fileError = kFileOpenFailed;
     }
 }
 
 void OpenOutputFile(ofstream* stream, const char* fileName) {
     g_fileError = kFileOk;
-    String name(fileName);
-    if (!name.m_text) {
+    std::string name = StringFromText(fileName);
+    if (name.empty()) {
         g_fileError = kFileNoName;
     } else {
-        ofstream_open(stream, name.m_text, kOpenBinaryOutput, g_filebufOpenprot);
+        ofstream_open(stream, name.c_str(), kOpenBinaryOutput, g_filebufOpenprot);
         if (FilebufDescriptor(stream) == kInvalidDescriptor) g_fileError = kFileOpenFailed;
     }
 }
@@ -78,8 +78,8 @@ void CloseFileStream(ofstream* stream) { fstreambase_close(stream->Out()); }
 
 int DeleteGameFile(const char* fileName) {
     int deleted = 0;
-    String name(fileName);
-    if (name.m_text) deleted = DeleteFileA(name.m_text);
+    std::string name = StringFromText(fileName);
+    if (!name.empty()) deleted = DeleteFileA(name.c_str());
     return deleted;
 }
 

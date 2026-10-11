@@ -218,7 +218,7 @@ LRESULT GalaxyWindow::OnPaint() {
            dirty.left, dirty.top, SRCCOPY);
     if (m_hoveredSector) {
         m_sectorLabel.MoveTo(m_hoveredSector->m_x, m_hoveredSector->m_y);
-        m_sectorLabel.SetText(m_hoveredSector->m_text.m_text);
+        m_sectorLabel.SetText(m_hoveredSector->m_text.c_str());
         m_sectorLabel.Measure(paintDc);
         m_sectorLabel.Draw(paintDc);
     }

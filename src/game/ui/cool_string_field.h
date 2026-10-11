@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "core/game_string.h"
@@ -42,7 +43,7 @@ public:
     int CharIndexFromX(int x, int y);            // 0x6062d0: character under the point (y is ignored)
 
     uint32_t m_flags;        // +0x94 CoolStringFieldFlags
-    String m_text;           // +0x98
+    std::string m_text;           // +0x98
     int m_maxLength;         // +0xa4 0: unlimited
     DibBitmap* m_backdrop;   // +0xa8 not owned
     DibBitmap* m_buffer;     // +0xac owned: wider than the window when the text is

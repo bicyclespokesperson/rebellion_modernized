@@ -2,6 +2,7 @@
 #include <cstdint>
 
 #include "core/containers.h"
+#include "core/game_string.h"
 #include "data/seed_list.h"
 #include "data/seed_key.h"
 #include "gameobj/game_obj_root.h"
@@ -20,7 +21,6 @@
 //                 queries are actual SdRecord-derived objects with per-view availability and level fields
 
 class DatRecord;
-class String;
 class Crc32;
 class ObjectRefList;
 
@@ -54,7 +54,7 @@ public:
     // *unique is 0 if some level has more than one record.
     int AreLevelsUnique(int view, uint32_t kind, int* unique);
     // "<name> (ID=n)" for the record named by `key`, a "can't find name" form if it has none, "<empty SeedKey>" if empty.
-    void DescribeKey(const SeedKey* key, String* out);
+    void DescribeKey(const SeedKey* key, std::string* out);
 
     int m_ok;                // +0x04
     SeedListFileTree* m_families;  // +0x08
@@ -83,7 +83,7 @@ int GetTierRecord2a(int view, int level, DatRecord** out);    // 0x51cc10
 int FindNextTier28(int view, int level, int* found, int* foundLevel, int* extraValue);   // 0x51cc30
 int FindNextTier29(int view, int level, int* found, int* foundLevel, int* extraValue);   // 0x51cc60
 int FindNextTier2a(int view, int level, int* found, int* foundLevel, int* extraValue);   // 0x51cc90
-void DescribeDataKey(const SeedKey* key, String* out);        // 0x51ccc0
+void DescribeDataKey(const SeedKey* key, std::string* out);        // 0x51ccc0
 int ForEachDataFamily(Crc32* crc);                             // 0x51cce0
 
 // The kind range of a record (copies record+0x24).

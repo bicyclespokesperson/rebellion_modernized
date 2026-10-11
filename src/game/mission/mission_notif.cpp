@@ -12,11 +12,11 @@ int logSetChange(Mission* self, const char* tag, const char* property, ObjectKey
                  ObjectKeyValueSet* newSet, NotifyContext* ctx) {
     const int result = self->IsSideView();
     if (result) {
-        String newText;
-        String oldText;
+        std::string newText;
+        std::string oldText;
         DescribeKeyValueSet(newSet, &newText);
         DescribeKeyValueSet(oldSet, &oldText);
-        self->LogChange(tag, property, newText.m_text, oldText.m_text, nullptr, ctx);
+        self->LogChange(tag, property, newText.c_str(), oldText.c_str(), nullptr, ctx);
     }
     return result;
 }

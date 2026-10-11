@@ -2,6 +2,17 @@
 
 #include "core/checked_new.h"
 
+#include <algorithm>
+
+namespace {
+
+void DetachLinkNode(LinkNode* node) {
+    node->m_prev = nullptr;
+    node->m_next = nullptr;
+}
+
+}  // namespace
+
 // ---- AvlNode ---------------------------------------------------------------------------------------------
 
 AvlNode::AvlNode() : m_left(nullptr), m_right(nullptr), m_parent(nullptr), m_successor(nullptr), m_height(0) {}
@@ -524,6 +535,8 @@ short OrderedTree::Count() const {
 
 LinkNode::LinkNode() : m_prev(nullptr), m_next(nullptr) {}
 
+LinkNode::LinkNode(const LinkNode&) : m_prev(nullptr), m_next(nullptr) {}
+
 LinkNode::~LinkNode() = default;
 
 void LinkNode::Read(istream*) {}
@@ -545,6 +558,7 @@ SortedLinkList::SortedLinkList() : m_count(0), m_head(nullptr) {}
 SortedLinkList::~SortedLinkList() { Clear();  }
 
 int SortedLinkList::Insert(LinkNode* node) {
+    if (!node || node->m_owner || node->m_prev || node->m_next) return 0;
     if (!m_head) {
         m_head = node;
         node->m_prev = nullptr;
@@ -555,6 +569,7 @@ int SortedLinkList::Insert(LinkNode* node) {
             node->m_next = m_head;
             ++m_count;
             m_head = node;
+            node->m_owner = this;
             return 1;
         }
         LinkNode* previous = m_head;
@@ -571,15 +586,17 @@ int SortedLinkList::Insert(LinkNode* node) {
         if (next) {
             next->m_prev = node;
             ++m_count;
+            node->m_owner = this;
             return 1;
         }
     }
+    node->m_owner = this;
     ++m_count;
     return 1;
 }
 
 int SortedLinkList::Remove(LinkNode* node) {
-    if (!node) return 0;
+    if (!node || node->m_owner != this) return 0;
     if (node == m_head) {
         LinkNode* next = m_head->m_next;
         m_head = next;
@@ -592,6 +609,7 @@ int SortedLinkList::Remove(LinkNode* node) {
     }
     node->m_prev = nullptr;
     node->m_next = nullptr;
+    node->m_owner = nullptr;
     --m_count;
     return 1;
 }
@@ -667,10 +685,12 @@ void IdSortedLinkList::DeleteById(uint32_t id) {
 
 NodeQueue::NodeQueue() : m_head(nullptr), m_tail(nullptr), m_count(0) {}
 
-NodeQueue::~NodeQueue() { Clear();  }
+NodeQueue::~NodeQueue() { Clear(); }
 
 int NodeQueue::Enqueue(LinkNode* node) {
-    if (!node) return 0;
+    if (m_clearing || !node || node->m_owner || node->m_prev || node->m_next) return 0;
+    m_nodes.emplace_back(node);
+    node->m_owner = this;
     if (m_tail) {
         m_tail->m_next = node;
         node->m_prev = m_tail;
@@ -694,31 +714,67 @@ LinkNode* NodeQueue::Dequeue() {
     } else {
         m_tail = nullptr;
     }
-    head->m_next = nullptr;
+    DetachLinkNode(head);
+    head->m_owner = nullptr;
+    m_nodes.front().release();
+    m_nodes.pop_front();
     --m_count;
     return head;
 }
 
 void NodeQueue::Clear() {
-    while (LinkNode* node = Dequeue()) delete node;
+    const bool wasClearing = m_clearing;
+    m_clearing = true;
+    struct RestoreClearingState {
+        bool& state;
+        bool previous;
+        ~RestoreClearingState() { state = previous; }
+    } restore{m_clearing, wasClearing};
+
+    m_head = nullptr;
+    m_tail = nullptr;
+    m_count = 0;
+    std::list<std::unique_ptr<LinkNode>> detached;
+    detached.splice(detached.end(), m_nodes);
+    for (const auto& node : detached) {
+        node->m_owner = nullptr;
+        DetachLinkNode(node.get());
+    }
 }
 
 NodeStack::NodeStack() : m_top(nullptr) {}
 
-NodeStack::~NodeStack() { NodeStack::Clear();  }
+NodeStack::~NodeStack() { NodeStack::Clear(); }
 
 void NodeStack::Clear() {
-    while (LinkNode* node = Pop()) delete node;
+    const bool wasClearing = m_clearing;
+    m_clearing = true;
+    struct RestoreClearingState {
+        bool& state;
+        bool previous;
+        ~RestoreClearingState() { state = previous; }
+    } restore{m_clearing, wasClearing};
+
+    m_top = nullptr;
+    std::list<std::unique_ptr<LinkNode>> detached;
+    detached.splice(detached.end(), m_nodes);
+    for (const auto& node : detached) {
+        node->m_owner = nullptr;
+        DetachLinkNode(node.get());
+    }
 }
 
 int NodeStack::Virtual02() { return 0; }
 
 int NodeStack::Push(LinkNode* node) {
-    if (!node) return 0;
+    if (m_clearing || !node || node->m_owner || node->m_prev || node->m_next) return 0;
+    m_nodes.emplace_front(node);
+    node->m_owner = this;
     if (m_top) {
         m_top->m_prev = node;
         node->m_next = m_top;
     }
+    node->m_prev = nullptr;
     m_top = node;
     return 1;
 }
@@ -729,23 +785,28 @@ LinkNode* NodeStack::Pop() {
     LinkNode* next = top->m_next;
     m_top = next;
     if (next) next->m_prev = nullptr;
-    top->m_next = nullptr;
+    DetachLinkNode(top);
+    top->m_owner = nullptr;
+    m_nodes.front().release();
+    m_nodes.pop_front();
     return top;
 }
 
 int NodeStack::RemoveAndDelete(LinkNode* target) {
-    NodeStack scratch;
-    int removed = 0;
-    LinkNode* node = Pop();
-    while (node) {
-        if (node == target) {
-            delete node;
-            removed = 1;
-            break;
-        }
-        scratch.Push(node);
-        node = Pop();
+    const auto found = std::find_if(m_nodes.begin(), m_nodes.end(), [target](const auto& owned) {
+        return owned.get() == target;
+    });
+    if (found == m_nodes.end()) return 0;
+    LinkNode* node = found->get();
+    if (node == m_top) {
+        m_top = node->m_next;
+        if (m_top) m_top->m_prev = nullptr;
+    } else {
+        if (node->m_prev) node->m_prev->m_next = node->m_next;
+        if (node->m_next) node->m_next->m_prev = node->m_prev;
     }
-    while (LinkNode* held = scratch.Pop()) Push(held);
-    return removed;
+    node->m_owner = nullptr;
+    DetachLinkNode(node);
+    m_nodes.erase(found);
+    return 1;
 }

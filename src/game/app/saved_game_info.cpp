@@ -3,7 +3,7 @@
 #include "core/stream_io.h"
 
 SavedGameInfo::SavedGameInfo() : m_name() {
-    m_name.Clear();
+    m_name.clear();
     m_unknown10 = 0;
     m_unknown14 = 0;
     m_gameType = 0;
@@ -14,8 +14,8 @@ SavedGameInfo::SavedGameInfo() : m_name() {
 
 SavedGameInfo::SavedGameInfo(const SavedGameInfo& other) : m_name() {
     {
-        String name = other.GetName();
-        m_name.Assign(name);
+        std::string name = other.GetName();
+        (m_name = name);
     }
     m_unknown10 = other.m_unknown10;
     m_unknown14 = other.m_unknown14;
@@ -30,8 +30,8 @@ SavedGameInfo::~SavedGameInfo() = default;
 SavedGameInfo& SavedGameInfo::operator=(const SavedGameInfo& other) {
     if (this != &other) {
         {
-            String name = other.GetName();
-            m_name.Assign(name);
+            std::string name = other.GetName();
+            (m_name = name);
         }
         m_unknown10 = other.m_unknown10;
         m_unknown14 = other.m_unknown14;
@@ -44,7 +44,7 @@ SavedGameInfo& SavedGameInfo::operator=(const SavedGameInfo& other) {
 }
 
 void SavedGameInfo::Read(istream* in) {
-    m_name.ReadFrom(in);
+    ReadLegacyString(in, m_name);
     StreamRead32(in, &m_unknown10);
     StreamRead32(in, &m_unknown14);
     StreamRead32(in, &m_gameType);
@@ -54,7 +54,7 @@ void SavedGameInfo::Read(istream* in) {
 }
 
 void SavedGameInfo::Write(ostream* out) {
-    m_name.WriteTo(out);
+    WriteLegacyString(out, m_name);
     StreamWrite32(out, &m_unknown10);
     StreamWrite32(out, &m_unknown14);
     StreamWrite32(out, &m_gameType);

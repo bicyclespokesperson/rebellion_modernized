@@ -1,3 +1,4 @@
+#include <string>
 #include "strategy_ui/human_player.h"
 
 #include <new>
@@ -345,7 +346,7 @@ void HumanPlayer::Virtual53(const ObjectKey* manager, const ObjectKey* character
     UiOnManagerCharacterChanged(manager, character);
 }
 
-void HumanPlayer::Virtual54(const ObjectKey* manager, String* text) { UiOnManagerStatusTextChanged(manager, text); }
+void HumanPlayer::Virtual54(const ObjectKey* manager, std::string* text) { UiOnManagerStatusTextChanged(manager, text); }
 
 void HumanPlayer::Virtual62(const ObjectKey* key, int redraw) {
     if (redraw) m_advisor->m_aiHelper.AiGalaxyAnalysis::NoteChanged(key, 0);
@@ -425,7 +426,7 @@ void HumanPlayer::Virtual91(const ObjectKey* key, const ObjectKey* newParent) {
 
 // ---- Commands and orders (0x486fb0-0x488460) ----------------------------------------------------------------
 
-void HumanPlayer::ExecuteCommand(int command, ObjectKeyValueSet* selection, ObjectKey* key, String* name) {
+void HumanPlayer::ExecuteCommand(int command, ObjectKeyValueSet* selection, ObjectKey* key, std::string* name) {
     OrderBase* order;
     auto toggleDispatchFlag = [&](uint32_t kind) {
         const unsigned state = Dispatch()->GetStateValue(kind);
@@ -566,7 +567,7 @@ void HumanPlayer::ExecuteCommand(int command, ObjectKeyValueSet* selection, Obje
             UiBeginRename(reinterpret_cast<TextMessage*>(order));
             return;
         }
-        static_cast<TextMessage*>(static_cast<OrderBase*>(order))->m_text.Assign(*name);
+        static_cast<TextMessage*>(static_cast<OrderBase*>(order))->m_text = *name;
         SubmitOrder(reinterpret_cast<PlayerMessage*>(order), 0);
         return;
     case 0x210:

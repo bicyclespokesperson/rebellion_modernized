@@ -38,7 +38,7 @@ public:
 
     // ---- overrides of GameObj / UnitObjBase / Role slots ----
     int SetRecord(DatRecord* record) override;                 // 10, 0x50e1c0
-    void WriteName(String* out, int kind) override;            // ObjectBase slot 0, 0x4ed060 (AppendCharacterName)
+    void WriteName(std::string* out, int kind) override;            // ObjectBase slot 0, 0x4ed060 (AppendCharacterName)
     int GetTransitSpeed(int arg) override;                     // 13, 0x4ed370: the hyperdrive modifier while existing
     int GetEventKinds(int unused, EventKindSet* out) override;  // 15, 0x4ed350
     int Virtual17() override { return 0; }                     // 17
@@ -322,7 +322,7 @@ int GetCharacterMemberMask();  // 0x4ed260
 // Static initializer pieces of the event-kind set (see Character::InitStatics).
 
 // The AppendCharacterName free function (secondary vtable slot, takes the ObjectBase subobject).
-void AppendCharacterName(ObjectBase* base, String* out, int kind);  // 0x4ed060
+void AppendCharacterName(ObjectBase* base, std::string* out, int kind);  // 0x4ed060
 
 // Iterator over the children of a game object in the character families 0x30-0x3b (vtable 0x65ce5c).
 class CharacterIterator : public ChildIterator {

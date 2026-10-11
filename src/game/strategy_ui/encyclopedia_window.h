@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "gameobj/object_key.h"
@@ -14,7 +15,7 @@ class CoolStringField;
 class CoolTabControl;
 class DibBitmap;
 class GalaxyWindow;
-class String;
+
 class TextScrollField;
 
 // The two pages of the encyclopedia window.
@@ -66,7 +67,7 @@ public:
     CoolStrobeButton* m_previousButton;  // +0x144 child id 0x83
     CoolListItem* m_selected;            // +0x148 entry of the galaxy view's list
     DibBitmap* m_picture;                // +0x14c owned
-    String* m_text;                      // +0x150 owned scratch copy of the article text
+    std::string* m_text;                      // +0x150 owned scratch copy of the article text
     uint32_t m_unknown154;               // +0x154
     HMODULE m_textModule;                // +0x158 ENCYTEXT.DLL (resource slot 4)
     HMODULE m_bitmapModule;              // +0x15c ENCYBMAP.DLL (resource slot 5)
@@ -75,6 +76,6 @@ public:
 
 // Heap copy (delete with operator delete) of the EData directory: the registry value EncyLocation, or "EDATA\",
 // always ending in a backslash.
-char* GetEncyclopediaDataPath();  // 0x45f7b0
+std::string GetEncyclopediaDataPath();  // 0x45f7b0
 // Loads the BMP file named by string `pictureId` of `module` from the EData directory.
 DibBitmap* LoadEncyclopediaPicture(uint32_t pictureId, HMODULE module);  // 0x45f970

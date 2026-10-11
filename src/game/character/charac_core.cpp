@@ -10,7 +10,7 @@ extern int g_characterEventKindsBuilt;       // 0x6b2938
 extern EventKindSet g_characterEventKinds;   // 0x6b2940
 
 // The kind-name formatter shared with GameObj (0x4f6030).
-void AppendGameObjName(ObjectBase* base, String* out, int kind);
+void AppendGameObjName(ObjectBase* base, std::string* out, int kind);
 
 namespace {
 
@@ -78,19 +78,19 @@ Character::Character()
 Character::~Character() = default;
 
 // The secondary vtable slot is entered with `this` pointing at the ObjectBase subobject.
-void AppendCharacterName(ObjectBase* base, String* out, int kind) {
+void AppendCharacterName(ObjectBase* base, std::string* out, int kind) {
     if (kind != kNameKindForceTitle) {
         AppendGameObjName(base, out, kind);
         return;
     }
     const Character* character = static_cast<Character*>(base);
     const ResourceStringId title = {forceTitleStringId(static_cast<uint16_t>(character->m_force)), kForceTitleGroup};
-    String text;
-    text.SetFromResource(&title);
+    std::string text;
+    (text = LoadStringResource(&title));
     *out += text;
 }
 
-void Character::WriteName(String* out, int kind) { AppendCharacterName(this, out, kind); }
+void Character::WriteName(std::string* out, int kind) { AppendCharacterName(this, out, kind); }
 
 int Character::SetRecord(DatRecord* record) {
     if (!record) return 0;

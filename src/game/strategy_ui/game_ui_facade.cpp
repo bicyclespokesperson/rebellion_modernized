@@ -1,3 +1,4 @@
+#include <string>
 #include "strategy_ui/game_ui_facade.h"
 
 #include "app/game_session.h"
@@ -398,7 +399,7 @@ void UiOnManagerCharacterChanged(const ObjectKey* manager, const ObjectKey* char
     if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->OnManagerCharacterChanged(manager, character);
 }
 
-void UiOnManagerStatusTextChanged(const ObjectKey* manager, String* text) {
+void UiOnManagerStatusTextChanged(const ObjectKey* manager, std::string* text) {
     if (GalaxyWindow* galaxy = GetGalaxyWindow()) galaxy->OnManagerStatusTextChanged(manager, text);
 }
 

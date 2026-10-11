@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "app/player_controller_decl.h"
@@ -33,11 +34,11 @@ public:
     ObjectKeySet m_characters;    // +0x70 characters
     ObjectKeySet m_allianceSide;  // +0x78 participants chosen for the Alliance
     ObjectKeySet m_empireSide;    // +0x80 participants chosen for the Empire
-    String m_title;               // +0x88
-    String m_summary;             // +0x94
-    String m_caption;             // +0xa0
-    String m_sideTextA;           // +0xac
-    String m_sideTextB;           // +0xb8
+    std::string m_title;               // +0x88
+    std::string m_summary;             // +0x94
+    std::string m_caption;             // +0xa0
+    std::string m_sideTextA;           // +0xac
+    std::string m_sideTextB;           // +0xb8
 
     ObjectKey* GetFleetKey(ObjectKey* out);  // 0x4727c0
 };
@@ -66,7 +67,7 @@ public:
     void FillList(int kind, int force);          // 0x4714e0
     // Adds one row to the list: the picture and name of `object` (alternate picture when `normal` is 0), or a heading
     // (`heading`) / a blank row when there is no object.
-    void AddRow(GameObj* object, int normal, String* heading);  // 0x4724a0
+    void AddRow(GameObj* object, int normal, const std::string* heading);  // 0x4724a0
     // Deletes every row of the list.
     void ClearRows();                            // 0x472750
 

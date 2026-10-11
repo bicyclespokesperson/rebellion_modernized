@@ -2,9 +2,8 @@
 #include <cstddef>
 #include <cstdint>
 
+#include "core/game_string.h"
 #include "core/stream_io.h"
-
-class String;
 
 // Secondary base of GameObj and the SD record classes (at +0x30 / +0x1c in them). Its single pure virtual
 // appends the object's localized name to a String, with a prefix chosen by `kind` (1, 2, 4, 0x20, 0x21 ...);
@@ -13,7 +12,7 @@ class ObjectBase {
 public:
     ObjectBase();
     ~ObjectBase();
-    virtual void WriteName(String* out, int kind) = 0;
+    virtual void WriteName(std::string* out, int kind) = 0;
 };
 
 // A 32-bit value that saves and loads itself.
@@ -33,18 +32,22 @@ void WritePersistentInt(ostream* out, PersistentInt* value);
 void ReadValuePersistentInt(istream* in, PersistentInt* value);
 void WriteValuePersistentInt(ostream* out, PersistentInt* value);
 
-// Park-Miller style generator (multiplier 41358, modulus 2^31-1) used by the game's gameplay randomness.
-// BUG(original): Seed() returns the requested seed, not the warmed-up state, and the constructors and Next()
-// store that return value in m_seed, discarding the 16 warm-up steps.
+// Park-Miller style generator (multiplier 41358, modulus 2^31-1).
 class RandomGenerator {
 public:
+    using result_type = uint32_t;
+    static constexpr result_type min() { return 1; }
+    static constexpr result_type max() { return 0x7ffffffe; }
     RandomGenerator();
     explicit RandomGenerator(int seed);
     virtual ~RandomGenerator();
 
     int Seed(int seed);
-    // Uniform-ish value in [0, limit); 0 unless limit > 1.
+    // Uniform value in [0, limit); zero without consuming state when limit <= 1.
     int Next(int limit);
+    // Uniform value between either pair of inclusive bounds, normalizing reversed bounds.
+    int Between(int low, int high);
+    result_type operator()();
     int GenerateSeed();
     int Step(int state);
     void Read(istream* in);

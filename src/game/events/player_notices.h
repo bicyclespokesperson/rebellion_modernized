@@ -306,7 +306,7 @@ public:
     void Write(ostream* out) override;  // 0x48e820
 
     PersistentInt m_state;  // +0x64 bit 1: attackers outnumber, 2: blockade, 4: siege, 8: cleared, 0x10: unit given
-    String m_name;  // +0x68
+    std::string m_name;  // +0x68
 };
 
 // kind 29: event 0x1e1: a character gained the Force
@@ -478,7 +478,7 @@ public:
     void Write(ostream* out) override;  // 0x495580
 
     int m_f64;  // +0x64
-    String m_name;  // +0x68
+    std::string m_name;  // +0x68
     ObjectKey m_unitKey;  // +0x74
     int m_f78;  // +0x78 number of 0x200 payloads
 };
@@ -777,8 +777,8 @@ public:
     void Read(istream* in) override;  // 0x49a290
     void Write(ostream* out) override;  // 0x49a2c0
 
-    String m_text0;  // +0x44
-    String m_text1;  // +0x50
+    std::string m_text0;  // +0x44
+    std::string m_text1;  // +0x50
     MessageBase* m_subject;  // +0x5c the order that is confirmed
 };
 
@@ -818,11 +818,11 @@ public:
     ObjectKeySet m_set70;  // +0x70
     ObjectKeySet m_set78;  // +0x78
     ObjectKeySet m_set80;  // +0x80
-    String m_text88;  // +0x88
-    String m_text94;  // +0x94
-    String m_texta0;  // +0xa0
-    String m_textac;  // +0xac
-    String m_textb8;  // +0xb8
+    std::string m_text88;  // +0x88
+    std::string m_text94;  // +0x94
+    std::string m_texta0;  // +0xa0
+    std::string m_textac;  // +0xac
+    std::string m_textb8;  // +0xb8
 };
 
 // kind 2: the dialog that reports the arrival of a fleet at a system
@@ -848,8 +848,8 @@ public:
     int m_side;  // +0x48 1 or 2 for the side that owns the notice
     int m_f4c;  // +0x4c
     int m_attack;  // +0x50
-    String m_text54;  // +0x54
-    String m_text60;  // +0x60
+    std::string m_text54;  // +0x54
+    std::string m_text60;  // +0x60
     ObjectKeySet m_set6c;  // +0x6c
     ObjectKeySet m_set74;  // +0x74
 };
@@ -905,7 +905,7 @@ public:
     void Write(ostream* out) override;  // 0x4914a0
 
     int m_f64;  // +0x64
-    String m_name;  // +0x68
+    std::string m_name;  // +0x68
     ObjectKey m_key74;  // +0x74
     ObjectKey m_key78;  // +0x78
     int m_kind;  // +0x7c what GetKind returns
@@ -938,7 +938,7 @@ public:
     void Write(ostream* out) override;  // 0x492740
 
     int m_f64;  // +0x64
-    String m_name;  // +0x68
+    std::string m_name;  // +0x68
     ObjectKey m_key74;  // +0x74
     ObjectKey m_key78;  // +0x78
     int m_kind;  // +0x7c what GetKind returns

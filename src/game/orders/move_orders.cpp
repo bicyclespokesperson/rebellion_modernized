@@ -482,7 +482,7 @@ int RenameOrder::CheckDestination(StatusCode* status) {
         if (isOk(status)) {
             for (Command* command = firstCommand(m_commands); command != nullptr && isOk(status);
                  command = nextCommand(command)) {
-                static_cast<RenameCommand*>(command)->m_name.Assign(m_text);
+                static_cast<RenameCommand*>(command)->m_name = m_text;
             }
         }
         if (result != 0) return result;

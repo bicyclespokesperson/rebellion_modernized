@@ -68,8 +68,8 @@ StringPairPayload::~StringPairPayload() = default;
 int StringPairPayload::ReadPayload(istream* in) {
     int result = ReadKeyed(in);
     if (result) {
-        m_textA.Read(in);
-        m_textB.Read(in);
+        ReadLegacyString(in, m_textA);
+        ReadLegacyString(in, m_textB);
     }
     return result;
 }
@@ -77,8 +77,8 @@ int StringPairPayload::ReadPayload(istream* in) {
 int StringPairPayload::WritePayload(ostream* out) {
     int result = WriteKeyed(out);
     if (result) {
-        m_textA.Write(out);
-        m_textB.Write(out);
+        WriteLegacyString(out, m_textA);
+        WriteLegacyString(out, m_textB);
     }
     return result;
 }

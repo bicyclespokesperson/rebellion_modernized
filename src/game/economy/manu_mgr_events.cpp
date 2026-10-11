@@ -89,11 +89,11 @@ int ManuMgr::OnTargetKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyCont
     return UpdateDeploymentKey(ctx);
 }
 
-int ManuMgr::OnProductNameChanged(String* oldName, String* newName, NotifyContext* ctx) {
+int ManuMgr::OnProductNameChanged(std::string* oldName, std::string* newName, NotifyContext* ctx) {
     GameObjNotifier* product = GetProduct();
     if (product) return static_cast<GameObj*>(product)->SetName(newName, ctx);
-    const String empty(g_emptyText);
-    return newName->Compare(empty) == 0;
+    const std::string empty(g_emptyText);
+    return CompareStrings(*newName, empty) == 0;
 }
 
 const char *g_emptyText = "";

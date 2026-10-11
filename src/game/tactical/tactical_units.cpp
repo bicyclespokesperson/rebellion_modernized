@@ -5,7 +5,7 @@
 #include "tactical/tactical_externals.h"
 #include "tactical/tactical_objmgr.h"
 
-TacticalCharacterUnit::TacticalCharacterUnit(uint32_t family, uint32_t id, uint16_t spriteId, String name,
+TacticalCharacterUnit::TacticalCharacterUnit(uint32_t family, uint32_t id, uint16_t spriteId, std::string name,
                                              int notAlliance, int isMajor, int isFirstCommander,
                                              int isSecondCommander, float scaleA, float scaleB,
                                              int shipHandle, int injured) {
@@ -14,7 +14,7 @@ TacticalCharacterUnit::TacticalCharacterUnit(uint32_t family, uint32_t id, uint1
     m_objectFamily = family;
     m_objectId = id;
     m_spriteId = spriteId;
-    m_name.Assign(name);
+    (m_name = name);
     m_notAlliance = notAlliance;
     m_isMajor = isMajor;
     m_scaleA = scaleA;
@@ -27,14 +27,14 @@ TacticalCharacterUnit::TacticalCharacterUnit(uint32_t family, uint32_t id, uint1
 
 TacticalCharacterUnit::~TacticalCharacterUnit() = default;
 
-TacticalSpecialForceUnit::TacticalSpecialForceUnit(uint32_t family, uint32_t id, uint16_t spriteId, String name,
+TacticalSpecialForceUnit::TacticalSpecialForceUnit(uint32_t family, uint32_t id, uint16_t spriteId, std::string name,
                                                    int notAlliance, int shipHandle) {
     m_channelA.m_data = nullptr;
     m_channelB.m_data = nullptr;
     m_objectFamily = family;
     m_objectId = id;
     m_spriteId = spriteId;
-    m_name.Assign(name);
+    (m_name = name);
     m_notAlliance = notAlliance;
     m_shipHandle = shipHandle;
 }
@@ -86,7 +86,7 @@ void TacticalCharacterUnit::Read(istream* in) {
     ReadValue32(in, &m_objectFamily);
     ReadValue32(in, &m_objectId);
     ReadValue16(in, &m_spriteId);
-    m_name.Read(in);
+    ReadLegacyString(in, m_name);
     ReadValue32(in, &m_notAlliance);
     ReadValue32(in, &m_isMajor);
     ReadValue32(in, &m_isFirstCommander);
@@ -107,7 +107,7 @@ void TacticalCharacterUnit::Write(ostream* out) {
     WriteValue32(out, &m_objectFamily);
     WriteValue32(out, &m_objectId);
     WriteValue16(out, &m_spriteId);
-    m_name.Write(out);
+    WriteLegacyString(out, m_name);
     WriteValue32(out, &m_notAlliance);
     WriteValue32(out, &m_isMajor);
     WriteValue32(out, &m_isFirstCommander);
@@ -141,7 +141,7 @@ void TacticalSpecialForceUnit::Read(istream* in) {
     ReadValue32(in, &m_objectFamily);
     ReadValue32(in, &m_objectId);
     ReadValue16(in, &m_spriteId);
-    m_name.Read(in);
+    ReadLegacyString(in, m_name);
     ReadValue32(in, &m_notAlliance);
     ReadValue32(in, &m_shipHandle);
 }
@@ -156,7 +156,7 @@ void TacticalSpecialForceUnit::Write(ostream* out) {
     WriteValue32(out, &m_objectFamily);
     WriteValue32(out, &m_objectId);
     WriteValue16(out, &m_spriteId);
-    m_name.Write(out);
+    WriteLegacyString(out, m_name);
     WriteValue32(out, &m_notAlliance);
     WriteValue32(out, &m_shipHandle);
 }

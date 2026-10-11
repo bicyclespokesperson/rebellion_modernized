@@ -30,14 +30,14 @@ void AppConfirmWaitDialog() {
 
 void InitMusic() {
     if (!reb::native::CurrentAudioContext()) return;
-    MusicAudio().musicDirectory.Clear();
+    MusicAudio().musicDirectory.clear();
     char* location = GetTooBigLocation();
     if (location) {
-        MusicAudio().musicDirectory += String(location);
-        MusicAudio().musicDirectory += String("\\");
+        MusicAudio().musicDirectory += StringFromText(location);
+        MusicAudio().musicDirectory += std::string("\\");
         ::operator delete(location);
     }
-    MusicAudio().musicDirectory += String("MDATA\\");
+    MusicAudio().musicDirectory += std::string("MDATA\\");
     SoundManager::SetEventCallback(MusicEventCallback);
     MusicAudio().musicVolume = -static_cast<int>(ReadRegistryDword(g_registryKeyPath, g_musicVolumeName));
     const int musicOff = static_cast<int>(ReadRegistryDword(g_registryKeyPath, g_musicSwitchName));
@@ -54,9 +54,9 @@ void StartMusicTrack(uint32_t index) {
         SoundManager::Query(&MusicAudio().musicRequest);
         if (MusicAudio().musicRequest.m_playing) StopMusic();
         MusicAudio().musicRequest.m_soundId = static_cast<int>(index) + 1;
-        String path(MusicAudio().musicDirectory);
-        path += String(g_musicFileNames[index]);
-        SoundManager::PlayFromFile(&MusicAudio().musicRequest, path.m_text, 0);
+        std::string path(MusicAudio().musicDirectory);
+        path += StringFromText(g_musicFileNames[index]);
+        SoundManager::PlayFromFile(&MusicAudio().musicRequest, path.c_str(), 0);
         SoundManager::SetVolume(&MusicAudio().musicRequest, MusicAudio().musicVolume);
     }
 }

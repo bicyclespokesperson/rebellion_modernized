@@ -1,3 +1,4 @@
+#include <string>
 #include "ui/cool_window.h"
 
 #include <cstring>
@@ -489,8 +490,8 @@ void CoolWindow::AddToolFromResource(CoolWindow* tool, UINT stringId) {
 }
 
 void CoolWindow::AddToolFromString(CoolWindow* tool, const ResourceStringId* stringId) {
-    String text(stringId);
-    if (text.m_text) AddTool(tool, text.m_text);
+    std::string text = LoadStringResource(stringId);
+    if (!text.empty()) AddTool(tool, text.c_str());
 }
 
 void CoolWindow::AddRectTool(RECT area, UINT toolId, const char* text) {
@@ -506,13 +507,13 @@ void CoolWindow::AddRectToolFromResource(RECT area, UINT toolId, UINT stringId) 
 }
 
 void CoolWindow::AddRectToolFromString(RECT area, UINT toolId, const ResourceStringId* stringId) {
-    String text(stringId);
-    if (text.m_text) AddRectTool(area, toolId, text.m_text);
+    std::string text = LoadStringResource(stringId);
+    if (!text.empty()) AddRectTool(area, toolId, text.c_str());
 }
 
 void CoolWindow::UpdateToolFromString(CoolWindow* tool, const ResourceStringId* stringId) {
-    String text(stringId);
-    if (text.m_text) UpdateToolText(tool, text.m_text);
+    std::string text = LoadStringResource(stringId);
+    if (!text.empty()) UpdateToolText(tool, text.c_str());
 }
 
 void CoolWindow::UpdateToolText(CoolWindow* tool, const char* text) {

@@ -1,3 +1,4 @@
+#include <string>
 #include "strategy_ui/manufacture_order_window.h"
 
 #include <cstdlib>
@@ -87,8 +88,8 @@ CoolLabel* NewSpaceLabel(int x, int y, int width, int height, UINT drawFlags, in
 
 int ClampTotal(int value) { return value > kMaxShownTotal ? kMaxShownTotal : value; }
 
-void SetLabelText(CoolLabel* label, HWND hwnd, const String& text) {
-    label->SetText(text.m_text);
+void SetLabelText(CoolLabel* label, HWND hwnd, const std::string& text) {
+    label->SetText(text.c_str());
     label->Invalidate(hwnd, TRUE);
 }
 
@@ -130,7 +131,7 @@ ManufactureOrderWindow::ManufactureOrderWindow(HINSTANCE instance, int x, int y,
     uint32_t nextItemId = 0;
     for (AvlNode* node = names.First(); node; node = node->m_successor) {
         ObjectNameNode* nameNode = static_cast<ObjectNameNode*>(node);
-        String name;
+        std::string name;
         nameNode->GetName(&name);
         ObjectKey typeKey;
         GetObjectNameNodeKey(nameNode, &typeKey);
@@ -151,7 +152,7 @@ ManufactureOrderWindow::ManufactureOrderWindow(HINSTANCE instance, int x, int y,
             picture->DrawKeyed(selected, left, top);
             item->SetImages(normal, selected);
             item->m_userPointer = reinterpret_cast<uintptr_t>(keyCopy);
-            item->m_text = name.m_text;
+            item->m_text = name.c_str();
             item->m_textOffsetY = picture->Height();
             item->m_ownColors = 1;
             item->m_color = 0x808080;
@@ -419,7 +420,7 @@ void ManufactureOrderWindow::UpdateQuantityField() {
 }
 
 void ManufactureOrderWindow::ReadQuantityField() {
-    m_quantity = atoi(m_quantityField->m_text.m_text);
+    m_quantity = atoi(m_quantityField->m_text.c_str());
     if (m_quantity < 1) {
         m_quantity = 1;
         return;
@@ -439,22 +440,22 @@ void ManufactureOrderWindow::ShowCostLabels(int ok, int cost, int available) {
     const int shownCost = ClampTotal(cost);
     available = ClampTotal(available);
     if (m_costLabelA) {
-        String text;
+        std::string text;
         if (ok == 0) {
             ResourceStringId id = kUnavailableText;
-            text.SetFromResource(&id);
+            text = LoadStringResource(&id);
         } else {
-            text.AppendSigned(shownCost);
+            text.append(std::to_string(static_cast<long>(shownCost)));
         }
         SetLabelText(m_costLabelA, hwnd, text);
     }
     if (m_costLabelB) {
-        String text;
+        std::string text;
         if (ok == 0) {
             ResourceStringId id = kUnavailableText;
-            text.SetFromResource(&id);
+            text = LoadStringResource(&id);
         } else {
-            text.AppendSigned(available);
+            text.append(std::to_string(static_cast<long>(available)));
         }
         SetLabelText(m_costLabelB, hwnd, text);
     }
@@ -465,28 +466,26 @@ void ManufactureOrderWindow::ShowUnitLabels(int ok, int cost, int available) {
     const int shownCost = ClampTotal(cost);
     available = ClampTotal(available);
     if (m_unitLabelA) {
-        String text;
+        std::string text;
         if (ok == 0) {
             ResourceStringId id = kUnavailableText;
-            text.SetFromResource(&id);
+            text = LoadStringResource(&id);
         } else {
             ResourceStringId id = kUnitSuffixText;
-            String suffixResource(&id);
-            String suffix(suffixResource.m_text);
-            text.AppendSigned(shownCost) += suffix;
+            std::string suffixResource = LoadStringResource(&id);
+            text += std::to_string(static_cast<long>(shownCost)) + suffixResource;
         }
         SetLabelText(m_unitLabelA, hwnd, text);
     }
     if (m_unitLabelB) {
-        String text;
+        std::string text;
         if (ok == 0) {
             ResourceStringId id = kUnavailableText;
-            text.SetFromResource(&id);
+            text = LoadStringResource(&id);
         } else {
             ResourceStringId id = kUnitSuffixText;
-            String suffixResource(&id);
-            String suffix(suffixResource.m_text);
-            text.AppendSigned(available) += suffix;
+            std::string suffixResource = LoadStringResource(&id);
+            text += std::to_string(static_cast<long>(available)) + suffixResource;
         }
         SetLabelText(m_unitLabelB, hwnd, text);
     }
@@ -515,8 +514,8 @@ void ManufactureOrderWindow::RefreshTotals() {
     }
 }
 
-String* ObjectNameNode::GetName(String* out) {
-    new (out) String(m_name);
+std::string* ObjectNameNode::GetName(std::string* out) {
+    new (out) std::string(m_name);
     return out;
 }
 

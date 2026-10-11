@@ -89,7 +89,7 @@ public:
 
     // ---- overrides of GameObj / GameObjRoot slots ----
     uint32_t GetFamily() override;                         // 1, 0x52e4e0 (0xf3)
-    void WriteName(String* out, int kind) override;       // ObjectBase slot 0, 0x52d920 (AppendSideName)
+    void WriteName(std::string* out, int kind) override;       // ObjectBase slot 0, 0x52d920 (AppendSideName)
     int Read(istream* in) override;                        // 5, 0x530d10
     int Write(ostream* out) override;                      // 6, 0x530d20
     int Checksum(Crc32* crc) override;                     // 7, 0x530d50
@@ -313,9 +313,9 @@ GameObjNotifier* CreateSide();
 // Maps a record key's id (0xf Alliance, 0x10 Empire) to the side number 1/2, 0 for anything else (0x530a20, cdecl).
 int SideNumberFromKey(const ObjectKey* key);
 // "AD LC MC ..." style listing of the victory condition bits into *out (0x530a50, cdecl); always 1.
-int FormatVictoryConditions(uint32_t conditions, String* out);
+int FormatVictoryConditions(uint32_t conditions, std::string* out);
 // The secondary vtable's WriteName for the Side (0x52d920; `base` is the ObjectBase subobject).
-void AppendSideName(ObjectBase* base, String* out, int kind);
+void AppendSideName(ObjectBase* base, std::string* out, int kind);
 // Helpers of the process facilities that live in this range (0x52e740, 0x52e8b0, 0x530650).
 GameObjNotifier* FindNextUnit(GameObjNotifier* unit);
 int MarkFacilityWaiting(ProductionFacility* facility, NotifyContext* ctx);

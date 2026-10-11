@@ -216,7 +216,7 @@ int Character::OnCommandKindChanged(int oldValue, int newValue, NotifyContext* c
     }
     int result = 0;
     if (named) {
-        String name(&nameId);
+        std::string name = LoadStringResource(&nameId);
         result = SetName(&name, ctx);
     }
     if (result) {

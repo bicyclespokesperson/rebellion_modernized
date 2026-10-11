@@ -216,7 +216,7 @@ void ChooseCandidateTarget(AiFreePlanner* planner, const CharacterHunt& hunt) {
     }
     const uint16_t count = static_cast<uint16_t>(candidates.Count());
     if (count == 0) return;
-    int steps = SessionRandomNext(count);
+    int steps = GameplayRandomNext(count);
     ObjectKeyNode* node = candidates.First();
     if (node) {
         do {

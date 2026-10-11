@@ -180,7 +180,7 @@ int GameObj::OnConstructedChanged(int newValue, NotifyContext* ctx) {
 
 // ---- OnXNotified: events on a side view ---------------------------------------------------------------------
 
-int GameObj::OnNameNotified(String* oldName, String* newName, NotifyContext* ctx) {
+int GameObj::OnNameNotified(std::string* oldName, std::string* newName, NotifyContext* ctx) {
     int result = IsSideView();
     if (result) {
         LogString("GameObjNameNotif", "Name", newName, oldName, 0, ctx);

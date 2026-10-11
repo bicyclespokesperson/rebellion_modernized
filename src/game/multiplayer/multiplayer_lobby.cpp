@@ -74,8 +74,8 @@ MessageBase* TakeLobbyMessage(int firstCategory) {
     return result;
 }
 
-void AppendMarker(String* text, const char* marker) {
-    const String piece(marker);
+void AppendMarker(std::string* text, const char* marker) {
+    const std::string piece(marker);
     *text += piece;
 }
 
@@ -102,8 +102,8 @@ void LaunchGame(MultiPlayerWindow* window) {
 
 // ---- helpers shared with the other modules ----------------------------------------------------------------------
 
-String* GetMessageText(TextMessage* message, String* out) {  // 0x411710
-    new (out) String(message->m_text);
+std::string* GetMessageText(TextMessage* message, std::string* out) {  // 0x411710
+    new (out) std::string(message->m_text.c_str());
     return out;
 }
 
@@ -148,10 +148,10 @@ void BroadcastSlotTable() {
 
 MessageBase* ReceiveLobbyMessage() { return TakeLobbyMessage(kLobbyMessageCategory); }
 
-int ParseLobbyText(const String* text, String* out, int stringGroup) {
+int ParseLobbyText(const std::string* text, std::string* out, int stringGroup) {
     int result = 1;
-    const char* source = text->m_text;
-    out->Clear();
+    const char* source = text->c_str();
+    out->clear();
     if (*source != '\x17') return result;
     char versionText[5];
     strncpy(versionText, source + 1, 4);
@@ -163,7 +163,7 @@ int ParseLobbyText(const String* text, String* out, int stringGroup) {
     for (char c = source[5]; c != 0; c = source[index & 0xffff]) {
         const char* position = source + (index & 0xffff);
         if (*position == '\x17') {
-            String piece;
+            std::string piece;
             uint32_t next = index + 1;
             ResourceStringId id = {0, static_cast<int16_t>(stringGroup)};
             switch (source[next & 0xffff]) {
@@ -198,11 +198,11 @@ int ParseLobbyText(const String* text, String* out, int stringGroup) {
                 result = 3;
                 break;
             }
-            if (id.m_id != 0) piece.SetFromResource(&id);
+            if (id.m_id != 0) (piece = LoadStringResource(&id));
             *out += piece;
             index = next;
         } else {
-            out->AppendChar(*position);
+            (out += *position);
         }
         ++index;
     }
@@ -226,7 +226,7 @@ void MultiPlayerWindow::SendSettings(int startGame) {
 }
 
 void MultiPlayerWindow::AnnounceSettings() {
-    String text;
+    std::string text;
     if (m_side == 1) {
         AppendMarker(&text, kSideA);
     } else if (m_side == 2) {
@@ -247,21 +247,21 @@ void MultiPlayerWindow::AnnounceSettings() {
     PrintChatLine(&text);
 }
 
-void MultiPlayerWindow::PrintChatLine(const String* text) {
-    String marker(kMarkerWithVersion);
-    String line;
+void MultiPlayerWindow::PrintChatLine(const std::string* text) {
+    std::string marker(kMarkerWithVersion);
+    std::string line;
     line = kLineEnd;
     if (!text) {
-        const String* typed = m_chatInput ? &m_chatInput->m_text : nullptr;
-        line.Insert(*typed, 0);
+        const std::string* typed = m_chatInput ? &m_chatInput->m_text : nullptr;
+        InsertString(line, *typed, 0);
         if (m_chatInput) m_chatInput->Clear();
     } else {
-        line.Insert(*text, 0);
+        InsertString(line, *text, 0);
     }
     ResourceStringId separatorId = {0x1157, static_cast<int16_t>(m_stringSlot)};
-    String separator(&separatorId);
-    line.Insert(separator, 0);
-    const String* playerName = nullptr;
+    std::string separator = LoadStringResource(&separatorId);
+    InsertString(line, separator, 0);
+    const std::string* playerName = nullptr;
     switch (m_isHost == 0) {
     case false:
         playerName = m_hostNameField ? &m_hostNameField->m_text : nullptr;
@@ -269,22 +269,22 @@ void MultiPlayerWindow::PrintChatLine(const String* text) {
     case true:
         playerName = m_joinNameField ? &m_joinNameField->m_text : nullptr;
     }
-    line.Insert(playerName ? *playerName : *text, 0);
+    InsertString(line, playerName ? *playerName : *text, 0);
     auto* message = NewOrNull<MpChatMsg>();
     if (!m_chatLog) return;
-    String parsed;
-    line.Insert(marker, 0);
+    std::string parsed;
+    InsertString(line, marker, 0);
     ParseLobbyText(&line, &parsed, static_cast<int>(m_stringSlot));
     m_chatLog->InsertText(parsed, 0);
-    message->m_text.Assign(line);
+    (message->m_text = line);
     if (message) SendToPeer(message);
 }
 
 void MultiPlayerWindow::HandleChat(TextMessage* message) {
     if (!message) return;
-    String text;
+    std::string text;
     GetMessageText(message, &text);
-    String parsed;
+    std::string parsed;
     const int result = ParseLobbyText(&text, &parsed, static_cast<int>(m_stringSlot));
     bool skipInsert = false;
     if (result != 0) {
@@ -319,7 +319,7 @@ void MultiPlayerWindow::HandleChat(TextMessage* message) {
 }
 
 void MultiPlayerWindow::PrintStatusMarker() {
-    String marker(kStatusMarker);
+    std::string marker(kStatusMarker);
     PrintChatLine(&marker);
 }
 

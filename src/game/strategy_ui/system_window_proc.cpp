@@ -1,3 +1,4 @@
+#include <string>
 #include <cstdint>
 #include <new>
 
@@ -303,7 +304,7 @@ void SystemWindow::DrawContents(RECT paintRect, HDC dc) {
         }
         DeleteDC(memoryDc);
         m_countsCanvas->DrawToDc(dc, 0x40, SRCCOPY, 6, 0x47, 0, 0, 0, 0);
-        String text;
+        std::string text;
         struct CountRow {
             int (*m_count)(GameObj*, uint32_t, uint32_t);
             int m_y;
@@ -313,15 +314,15 @@ void SystemWindow::DrawContents(RECT paintRect, HDC dc) {
                                  {CountManufacturingFacility2AChildren, 0x118}};
         for (size_t i = 0; i < 3; ++i) {
             const int available = rows[i].m_count(static_cast<GameObj*>(system), m_controlSide, 1);
-            text.AppendSigned(available);
-            String separator(g_statusSeparator);
+            text.append(std::to_string(static_cast<long>(available)));
+            std::string separator = StringFromText(g_statusSeparator);
             text += separator;
             const int total = rows[i].m_count(static_cast<GameObj*>(system), m_controlSide, 3);
-            text.AppendSigned(total);
+            text.append(std::to_string(static_cast<long>(total)));
             m_countsLabel->MoveTo(6, rows[i].m_y);
-            m_countsLabel->SetText(text.m_text);
+            m_countsLabel->SetText(text.c_str());
             m_countsLabel->Draw(dc);
-            if (i < 2) text.RemoveRange(0, text.Length());
+            if (i < 2) RemoveStringRange(text, 0, text.size());
         }
         return;
     }
@@ -400,7 +401,7 @@ void SystemWindow::LoadTabArt() {
 void SystemWindow::OnCreate1() {
     GameObjNotifier* system = reinterpret_cast<SystemMissionsWindow*>(this)->SystemMissionsWindow::GetSystem();
     m_controlSide = (ControlBits(system) >> 6) & 3;
-    String unusedText;
+    std::string unusedText;
     ObjectKey unusedKeyA;
     ObjectKey unusedKeyB;
     HMODULE art = CoolAppGetResourceModule(kArtSlot);
@@ -420,9 +421,9 @@ void SystemWindow::OnCreate1() {
         DeleteBitmap(sectorImage);
     }
     {
-        String name;
+        std::string name;
         static_cast<GameObj*>(system)->GetNameCopy(&name);
-        m_titleLabel->SetText(name.m_text);
+        m_titleLabel->SetText(name.c_str());
     }
     m_titleLabel->SetFont(5);
     m_titleLabel->m_height = 0x10;
@@ -591,7 +592,7 @@ int SystemWindow::SelectPage(int page) {
         ShowProgressBars(0);
         m_list->Hide();
     } else {
-        String unusedText;
+        std::string unusedText;
         ShowProgressBars(1);
         for (CoolListItem* item = m_items->First(); item; item = item->Next()) {
             ObjectKey key;

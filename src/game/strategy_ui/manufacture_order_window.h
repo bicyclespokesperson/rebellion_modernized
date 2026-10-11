@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "gameobj/object_key.h"
@@ -11,7 +12,7 @@ class CoolSelectionBox;
 class CoolStringField;
 class ManufactureOrderBase;
 class ObjectNameNode;
-class String;
+
 
 // The dialog (child 0x62 of the strategic window, gokres.dll pictures) the human player fills in to manufacture
 // units: a selection box of the unit types the team can build, the quantity, and the totals of the order (what it

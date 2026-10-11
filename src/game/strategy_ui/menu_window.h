@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "core/containers.h"
@@ -56,7 +57,7 @@ public:
 
     // Lays the item out: `text` (deleted here) and the pictures start at (x, y).
     void Initialize(uint32_t commandId, int x, int y, int width, int height, DibBitmap* normal, DibBitmap* hot,
-                    DibBitmap* disabled, DibBitmap* check, String* text);  // 0x4ab840
+                    DibBitmap* disabled, DibBitmap* check, std::string* text);  // 0x4ab840
     void AttachSubMenu(MenuWindowBase* subMenu);                           // 0x4aba40
     void Draw(HDC dc, int highlighted);                                    // 0x4aba60
     int GetWidth();                                                        // 0x4abb80

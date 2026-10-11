@@ -16,7 +16,7 @@ constexpr float kPi = 3.1415927f;
 
 }  // namespace
 
-TacticalFighter::TacticalFighter(uint32_t family, uint32_t id, int notAlliance, uint32_t typeIndex, String name,
+TacticalFighter::TacticalFighter(uint32_t family, uint32_t id, int notAlliance, uint32_t typeIndex, std::string name,
                                  int carrierHandle, float field64, float field68, float field60, int squadSize,
                                  int currentSize, int zero, float hyperdriveCount, int grid02, int grid12,
                                  int grid22, int grid32, int grid01, int grid11, int grid21, int grid31, int grid00,
@@ -27,7 +27,7 @@ TacticalFighter::TacticalFighter(uint32_t family, uint32_t id, int notAlliance, 
     m_side = notAlliance;
     m_unitKind = 1;
     m_typeIndex = typeIndex;
-    m_name.Assign(name);
+    (m_name = name);
     m_carrierHandle = carrierHandle;
     m_speed = static_cast<float>(static_cast<double>(field64) * 0.4f);
     m_commanderBonus = field68;

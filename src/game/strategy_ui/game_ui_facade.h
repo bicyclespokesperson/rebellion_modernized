@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "app/player_controller_decl.h"
@@ -13,7 +14,7 @@ class ObjectKeyValueSet;
 class EventKindSet;
 class GameObjNotifier;
 class TextMessage;
-class String;
+
 class ManufactureOrderBase;
 struct ResourceStringId;
 class NullableKey;
@@ -100,7 +101,7 @@ void UnloadBriefingDll();                                    // 0x42d760
 
 // ---- Galaxy view (GetGalaxyWindow, null outside the strategic game) ---------------------------------------------
 void UiOnManagerCharacterChanged(const ObjectKey* manager, const ObjectKey* character);  // 0x41d430
-void UiOnManagerStatusTextChanged(const ObjectKey* manager, String* text);              // 0x41d450
+void UiOnManagerStatusTextChanged(const ObjectKey* manager, std::string* text);              // 0x41d450
 void UiOnManagerProductionChanged(const ObjectKey* manager, int unused);                // 0x41d470
 void UiOnManagerProgressChanged(const ObjectKey* manager, int position);                // 0x41d490
 void UiBroadcastObjectChanged(const ObjectKey* key, GameObjNotifier* object);           // 0x41d4b0

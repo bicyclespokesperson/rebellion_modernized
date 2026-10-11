@@ -6,7 +6,7 @@
 #include "ai/ai_planner.h"
 #include "ai/ai_records.h"
 #include "ai/ai_selector.h"
-#include "ai/ai_session_random.h"
+#include "data/random.h"
 #include "ai/ai_side_controller.h"
 #include "core/checked_new.h"
 #include "gameobj/object_lookup.h"

@@ -1,3 +1,4 @@
+#include <string>
 #include <cstdint>
 #include <new>
 
@@ -364,16 +365,16 @@ void SectorWindow::UpdateEnergyBar(const ObjectKey* system, int range, int posit
     }
     if (changed) {
         const ResourceStringId titleId = StringId(0x1822);
-        String tip(&titleId);
+        std::string tip = LoadStringResource(&titleId);
         const ResourceStringId separatorId = StringId(0x1824);
-        String separator(&separatorId);
+        std::string separator = LoadStringResource(&separatorId);
         const ResourceStringId endId = StringId(0x1825);
-        String end(&endId);
+        std::string end = LoadStringResource(&endId);
         tip += separator;
-        tip.AppendSigned(shownPosition);
+        tip.append(std::to_string(static_cast<long>(shownPosition)));
         tip += end;
-        tip.AppendSigned(shownRange);
-        UpdateToolText(bar, tip.m_text);
+        tip.append(std::to_string(static_cast<long>(shownRange)));
+        UpdateToolText(bar, tip.c_str());
     }
 }
 
@@ -408,16 +409,16 @@ void SectorWindow::UpdateRawMaterialBar(const ObjectKey* system, int range, int 
     }
     if (changed) {
         const ResourceStringId titleId = StringId(0x1823);
-        String tip(&titleId);
+        std::string tip = LoadStringResource(&titleId);
         const ResourceStringId separatorId = StringId(0x1824);
-        String separator(&separatorId);
+        std::string separator = LoadStringResource(&separatorId);
         const ResourceStringId endId = StringId(0x1825);
-        String end(&endId);
+        std::string end = LoadStringResource(&endId);
         tip += separator;
-        tip.AppendSigned(shownPosition);
+        tip.append(std::to_string(static_cast<long>(shownPosition)));
         tip += end;
-        tip.AppendSigned(shownRange);
-        UpdateToolText(bar, tip.m_text);
+        tip.append(std::to_string(static_cast<long>(shownRange)));
+        UpdateToolText(bar, tip.c_str());
     }
 }
 

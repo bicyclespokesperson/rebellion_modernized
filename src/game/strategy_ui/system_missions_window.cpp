@@ -1,3 +1,4 @@
+#include <string>
 #include "strategy_ui/system_missions_window.h"
 
 #include <new>
@@ -420,7 +421,7 @@ void SystemMissionsWindow::OnObjectUpdated(const ObjectKey* key, GameObjNotifier
     CoolListItem* row = m_characters->FindById(role->m_id);
     if (!row) return;
     row->SetImages(CreateObjectPicture(m_gokres, key, object, 0, 1), nullptr);
-    row->m_text = static_cast<GameObj*>(object)->GetName()->m_text;
+    row->m_text = static_cast<GameObj*>(object)->GetName()->c_str();
     m_characterList->Refresh();
     UpdateTabs();
 }
@@ -480,7 +481,7 @@ int SystemMissionsWindow::Virtual29() {
 // ---- Drawing --------------------------------------------------------------------------------------------------
 
 void SystemMissionsWindow::DrawOverlay(HDC dc) {
-    String title;
+    std::string title;
     GameObjNotifier* system = GetSystem();
     if (!system) return;
     if (m_objectivePicture) {
@@ -493,15 +494,15 @@ void SystemMissionsWindow::DrawOverlay(HDC dc) {
     DibBitmap* header = m_galaxy->m_activeChild == m_hwnd ? m_headerActive : m_headerInactive;
     header->DrawToDc(dc, 0x40, 0xcc0020, m_titleRect.left, m_titleRect.top, 0, 0, 0, 0);
     const ResourceStringId prefix = StringId(0x8525);
-    title.SetFromResource(&prefix);
+    title = LoadStringResource(&prefix);
     {
-        String name(static_cast<GameObj*>(system)->GetName()->m_text);
+        std::string name(static_cast<GameObj*>(system)->GetName()->c_str());
         title += name;
     }
     m_titleLabel.m_height = 0x10;
     m_titleLabel.m_width = m_titleLeft * -3 + 0xeb;
     m_titleLabel.MoveTo(m_titleLeft + m_titleRect.left, m_titleRect.top);
-    m_titleLabel.SetText(title.m_text);
+    m_titleLabel.SetText(title.c_str());
     m_titleLabel.m_drawFlags = 0x24;
     m_titleLabel.m_layoutFlags = kLabelFixedWidth | kLabelFixedHeight;
     m_titleLabel.SetFont(5);
@@ -628,12 +629,12 @@ void SystemMissionsWindow::UpdateTabs() {
     UpdateObjective();
 }
 
-void SystemMissionsWindow::AddCharacterRow(GameObjNotifier* object, int normal, String* heading) {
+void SystemMissionsWindow::AddCharacterRow(GameObjNotifier* object, int normal, const std::string* heading) {
     if (!object) {
         ObjectKey blank;
         ObjectListItem* item = NewOrNull<ObjectListItem>(&blank);
         if (heading != nullptr) {
-            item->m_text = heading->m_text;
+            item->m_text = heading->c_str();
             item->m_textFormat = 0x25;
             item->m_fontSlot = 10;
             item->m_textOffsetY = 10;
@@ -657,7 +658,7 @@ void SystemMissionsWindow::AddCharacterRow(GameObjNotifier* object, int normal, 
     item->SetImages(image, nullptr);
     item->m_textOffsetY = picture->Height() + spare / 2;
     item->m_state.m_value |= kListItemDisabled;
-    item->m_text = static_cast<GameObj*>(object)->GetName()->m_text;
+    item->m_text = static_cast<GameObj*>(object)->GetName()->c_str();
     item->m_fontSlot = 10;
     item->m_textFormat = 0x21;
     m_characterList->m_fillColor = picture->m_colorKey;
@@ -730,7 +731,7 @@ void SystemMissionsWindow::UpdateObjective() {
             const ResourceStringId unknown = StringId(0x8527);
             m_objectiveLabel->SetTextFromResource(&unknown);
         } else {
-            m_objectiveLabel->SetText(static_cast<GameObj*>(objective)->GetName()->m_text);
+            m_objectiveLabel->SetText(static_cast<GameObj*>(objective)->GetName()->c_str());
         }
         const ResourceStringId caption = StringId(0x8521);
         m_captionLabel->SetTextFromResource(&caption);
@@ -805,7 +806,7 @@ int SystemMissionsWindow::FillMissionList() {
             picture->Blit(selected, 0, 0, 0, 0, 0, 0);
             sideMark.DrawKeyed(selected, 0, 0);
             colorKey = picture->m_colorKey;
-            item->m_text = record->m_name.m_text;
+            item->m_text = record->m_name.c_str();
             item->SetImages(normal, selected);
             m_missions->Insert(item);
             DeleteBitmap(picture);

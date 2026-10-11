@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "core/containers.h"
@@ -85,7 +86,7 @@ public:
     void ClearSelection();                                              // 0x6094b0
     void SelectById(uint32_t id, int notify);                           // 0x609500
     void SelectRect(POINTS from, POINTS to);                            // 0x609590
-    uint32_t SelectByPrefix(const String* prefix, int notify, int caseSensitive);  // 0x609650
+    uint32_t SelectByPrefix(const std::string* prefix, int notify, int caseSensitive);  // 0x609650
     CoolListItem* AddItem(uint32_t id, uint16_t imageId, uint16_t selectedImageId, const char* text, int redraw,
                           uintptr_t userData);  // 0x609790
     CoolListItem* AddItemWithImages(uint32_t id, DibBitmap* image, DibBitmap* selectedImage, const char* text,

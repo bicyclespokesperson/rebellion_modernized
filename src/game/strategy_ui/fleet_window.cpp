@@ -111,7 +111,7 @@ int ViewSideOf(int side) { return side == 1 ? 1 : (side == 2 ? 2 : 0); }
 
 uint32_t StateFlags(GameObjNotifier* object) { return static_cast<GameObj*>(object)->m_stateFlags; }
 
-const char* NameOf(GameObjNotifier* object) { return static_cast<GameObj*>(object)->GetName()->m_text; }
+const char* NameOf(GameObjNotifier* object) { return static_cast<GameObj*>(object)->GetName()->c_str(); }
 
 // The skin of the pictures of the side: the Alliance's, or the Empire's 0x32 further.
 int SkinOffset(int side) { return side != 1 ? kSkinStep : 0; }
@@ -1129,7 +1129,7 @@ void FleetWindow::UpdateShipList() {
             } else if ((m_uiFlags.m_value & kFleetShipSelected) != 0) {
                 m_uiFlags.m_value &= ~kFleetShipSelected;
             }
-            m_selectionLabel->SetText(last->m_text.m_text);
+            m_selectionLabel->SetText(last->m_text.c_str());
         }
         m_selectionLabel->Invalidate(m_hwnd, 0);
     } else {

@@ -8,8 +8,8 @@ namespace {
 
 bool IsSeparator(char character) { return character == ' ' || character == '-'; }
 
-std::string_view TextOf(const String* text) {
-    return text && text->m_text ? std::string_view(text->m_text) : std::string_view{};
+std::string_view TextOf(const std::string* text) {
+    return text ? std::string_view(text->c_str()) : std::string_view{};
 }
 
 std::string_view NextWord(std::string_view text, size_t* position) {
@@ -35,12 +35,12 @@ bool ReadNumber(std::string_view text, size_t* position, int* value) {
 
 }  // namespace
 
-int StringMap::Add(const String* key, int value) {
+int StringMap::Add(const std::string* key, int value) {
     entries_.insert(entries_.begin(), {std::string(TextOf(key)), value});
     return 1;
 }
 
-int StringMap::Set(const String* key, int value) {
+int StringMap::Set(const std::string* key, int value) {
     const std::string_view name = TextOf(key);
     for (Entry& entry : entries_) {
         if (entry.key == name) {
@@ -51,7 +51,7 @@ int StringMap::Set(const String* key, int value) {
     return Add(key, value);
 }
 
-int StringMap::Find(const String* key, int* value) const {
+int StringMap::Find(const std::string* key, int* value) const {
     if (!value) return 0;
     const std::string_view name = TextOf(key);
     for (const Entry& entry : entries_) {
@@ -63,7 +63,7 @@ int StringMap::Find(const String* key, int* value) const {
     return 0;
 }
 
-int StringMap::FindFloat(const String* key, float* value) const {
+int StringMap::FindFloat(const std::string* key, float* value) const {
     if (!value) return 0;
     int found = 0;
     if (!FindInText(key, &found)) return 0;
@@ -71,7 +71,7 @@ int StringMap::FindFloat(const String* key, float* value) const {
     return 1;
 }
 
-int StringMap::FindInText(const String* text, int* value) const {
+int StringMap::FindInText(const std::string* text, int* value) const {
     if (!value) return 0;
     const std::string_view input = TextOf(text);
     size_t position = 0;
@@ -88,7 +88,7 @@ int StringMap::FindInText(const String* text, int* value) const {
     return Find(text, value);
 }
 
-void StringMap::LoadValues(const String* text) {
+void StringMap::LoadValues(const std::string* text) {
     const std::string_view input = TextOf(text);
     size_t position = 0;
     while (position < input.size()) {

@@ -1,6 +1,6 @@
 #include "ai/ai_ranked_list.h"
 
-#include "ai/ai_session_random.h"
+#include "data/random.h"
 #include "core/checked_new.h"
 
 namespace {
@@ -63,7 +63,7 @@ int AiRankedList::IsLess(LinkNode* a, LinkNode* b) {
     const AiRankedItem* right = static_cast<AiRankedItem*>(b);
     if (left->m_score < right->m_score) return m_descending == 1;
     if (right->m_score < left->m_score) return m_descending != 1;
-    return SessionRandomNext(kTieBreakRange) < kTieBreakThreshold;
+    return GameplayRandomNext(kTieBreakRange) < kTieBreakThreshold;
 }
 
 void AiRankedList::Read(istream* in) {

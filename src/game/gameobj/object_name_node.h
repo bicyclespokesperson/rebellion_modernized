@@ -16,9 +16,9 @@ public:
     // Returns whether the name could be allocated.
     int Load(DatRecord* record);  // 0x58ae90
     // Constructs a copy of the name in *out (0x439290).
-    String* GetName(String* out);  // 0x439290
+    std::string* GetName(std::string* out);  // 0x439290
 
     int m_nameValid;     // +0x1c, m_name.m_valid at construction time
     NullableKey m_key;   // +0x20
-    String m_name;       // +0x24
+    std::string m_name;       // +0x24
 };

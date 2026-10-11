@@ -161,7 +161,7 @@ int MpPlayerInfoMsg::GetKind() { return 0x12; }
 int MpPlayerInfoMsg::Apply() {
     if (m_action == kActionSetLocalPlayer) {
         AppSetAutosaveTick(m_extra);
-        AppRequestSave(m_playerId, String(m_playerName));
+        AppRequestSave(m_playerId, std::string(m_playerName));
         return 1;
     }
     if (m_action == kActionSetPeerId) {

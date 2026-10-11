@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "platform/win32.h"
@@ -15,11 +16,11 @@ int CheckDisplayRequirements(HINSTANCE previousInstance, int minWidth, int minHe
 // MessageBeep(MB_ICONHAND) and a modal error box without an owner.
 void ShowErrorMessage(const char* text, const char* caption);  // 0x60a9e0
 
-// Installs LoadGameString as the String class's resource loader (once).
+// Installs LoadGameString as the std::string class's resource loader (once).
 void InitStringLoader();     // 0x60aa00
 void InstallStringLoader();  // 0x60aa20
 
-// The String resource loader: LoadStringA of `id->m_id` from the resource DLL in slot `id->m_group`.
+// The std::string resource loader: LoadStringA of `id->m_id` from the resource DLL in slot `id->m_group`.
 // Returns non-zero when a string was loaded.
 int LoadGameString(const ResourceStringId* id, int size, LPSTR buffer);  // 0x60aa30
 

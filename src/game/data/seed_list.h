@@ -71,7 +71,7 @@ public:
 
     int m_ready;      // +0x1c, the validity of m_name after construction
     uint32_t m_key;   // +0x20
-    String m_name;    // +0x24
+    std::string m_name;    // +0x24
 };
 
 // A seed key with a quantity, saved with the seed key's five values followed by the count.

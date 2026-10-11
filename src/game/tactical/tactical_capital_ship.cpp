@@ -15,7 +15,7 @@ constexpr float kPi = 3.1415927f;
 
 }  // namespace
 
-TacticalCapitalShip::TacticalCapitalShip(uint32_t family, uint32_t id, int notAlliance, uint32_t typeIndex, String name,
+TacticalCapitalShip::TacticalCapitalShip(uint32_t family, uint32_t id, int notAlliance, uint32_t typeIndex, std::string name,
                                          float hull, float currentHull, float damageControl, int freeHangar,
                                          float tractorPower, float tractorRange, int gravityWell, float interdiction,
                                          float field64, float field68, float field60, float hyperdriveCount,
@@ -29,7 +29,7 @@ TacticalCapitalShip::TacticalCapitalShip(uint32_t family, uint32_t id, int notAl
     m_side = notAlliance;
     m_unitKind = 0;
     m_typeIndex = typeIndex;
-    m_name.Assign(name);
+    (m_name = name);
     m_hullMax = hull;
     m_hull = currentHull;
     m_capacity = freeHangar;

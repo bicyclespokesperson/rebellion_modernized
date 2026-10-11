@@ -1,3 +1,4 @@
+#include <string>
 #include "ui/message_template.h"
 
 #include <cstring>
@@ -36,7 +37,7 @@ MessageTemplate::MessageTemplate(UINT endMarkerId, UINT fieldMarkerId, HMODULE m
 
 MessageTemplate::~MessageTemplate() = default;
 
-void MessageTemplate::Expand(String* out, UINT templateId, ObjectBase* field1, ObjectBase* field2,
+void MessageTemplate::Expand(std::string* out, UINT templateId, ObjectBase* field1, ObjectBase* field2,
                              ObjectBase* field3, ObjectBase* field4) {
     const char* text = nullptr;
     HGLOBAL resource = LoadResource(m_module, FindResourceA(m_module, MAKEINTRESOURCEA(templateId & 0xffff), RT_RCDATA));
@@ -75,7 +76,7 @@ void MessageTemplate::Expand(String* out, UINT templateId, ObjectBase* field1, O
                 if (field) field->WriteName(out, ReadFieldArgument(text + 2));
                 text += kFieldBytes;
             } else {
-                out->AppendChar(*text);
+                out->push_back(*text);
                 ++text;
             }
         } while (!done);
@@ -91,7 +92,7 @@ void SetMessageTemplateSource(UINT endMarkerId, UINT fieldMarkerId, HMODULE modu
     if (module) g_messageTemplate = NewOrNull<MessageTemplate>(endMarkerId, fieldMarkerId, module);
 }
 
-void ExpandMessageTemplate(String* out, UINT templateId, ObjectBase* field1, ObjectBase* field2, ObjectBase* field3,
+void ExpandMessageTemplate(std::string* out, UINT templateId, ObjectBase* field1, ObjectBase* field2, ObjectBase* field3,
                            ObjectBase* field4) {
     if (g_messageTemplate) g_messageTemplate->Expand(out, templateId, field1, field2, field3, field4);
 }

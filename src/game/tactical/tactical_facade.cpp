@@ -30,7 +30,7 @@ TacticalUnit* asUnit(void* memory) { return static_cast<TacticalUnit*>(memory); 
 
 // ---- start of a battle ------------------------------------------------------------------------------------------
 
-void TacticalBeginBattle(int humanIsNotAlliance, int opponentIsAi, uint32_t systemField44, String systemName,
+void TacticalBeginBattle(int humanIsNotAlliance, int opponentIsAi, uint32_t systemField44, std::string systemName,
                                  float sideAValue, float sideBValue, int sideAC, int sideBC, GameTime timeA,
                                  GameTime timeB, int battleKindNotAlliance, int systemFlag8, int controlIsEmpire,
                                  int controlIsAlliance, int abstractFlag) {
@@ -52,7 +52,7 @@ void TacticalStart() { GetTacticalGame()->BeginBattle(10); }
 // ---- unit registration --------------------------------------------------------------------------------------------
 
 int TacticalRegisterCapitalShip(
-    uint32_t family, uint32_t id, int notAlliance, uint32_t typeBits, String name, float hull, float currentHull,
+    uint32_t family, uint32_t id, int notAlliance, uint32_t typeBits, std::string name, float hull, float currentHull,
     float damageControl, int freeHangar, float tractorPower, float tractorRange, int gravityWell, float interdiction,
     float field64, float field68, float field60, float hyperdriveCount, float gridTotal, float weaponRecharge,
     float shieldRecharge, int grid02, int grid12, int grid22, int grid32, int grid01, int grid11, int grid21,
@@ -92,7 +92,7 @@ int TacticalRegisterDeathStar(uint32_t family, uint32_t id, int notCompleted, in
 #endif
 }
 
-int TacticalRegisterSpecialForce(uint32_t family, uint32_t id, uint32_t typeBits, String name, int notAlliance,
+int TacticalRegisterSpecialForce(uint32_t family, uint32_t id, uint32_t typeBits, std::string name, int notAlliance,
                                          int shipHandle) {
     const uint16_t spriteId = GetTacticalGame()->LookupTypeSprite(static_cast<int16_t>(typeBits));
     void* memory = ::operator new(sizeof(TacticalSpecialForceUnit));
@@ -109,7 +109,7 @@ int TacticalRegisterSpecialForce(uint32_t family, uint32_t id, uint32_t typeBits
     return GetHeadlessSimulator()->AddSpecialForce(base);
 }
 
-int TacticalRegisterCharacter(uint32_t family, uint32_t id, String name, int notAlliance, int isMajor,
+int TacticalRegisterCharacter(uint32_t family, uint32_t id, std::string name, int notAlliance, int isMajor,
                                       int isFirstCommander, int isSecondCommander, float scaleA,
                                       float scaleB, int shipHandle, int injured, uint32_t typeBits) {
     const uint16_t spriteId = GetTacticalGame()->LookupTypeSprite(static_cast<int16_t>(typeBits));
@@ -131,7 +131,7 @@ int TacticalRegisterCharacter(uint32_t family, uint32_t id, String name, int not
 }
 
 int TacticalRegisterFightSquad(
-    uint32_t family, uint32_t id, int notAlliance, uint32_t typeBits, String name, int carrierHandle,
+    uint32_t family, uint32_t id, int notAlliance, uint32_t typeBits, std::string name, int carrierHandle,
     int carrierIsCapitalShip, float field64, float field68, float field60, int squadSize, int currentSize, int zero,
     float hyperdriveCount, int grid02, int grid12, int grid22, int grid32, int grid01, int grid11, int grid21,
     int grid31, int grid00, int grid10, int grid20, int grid30, float a42, float a41, float a40, int totalTorpedoes,

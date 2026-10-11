@@ -1,3 +1,4 @@
+#include <string>
 #include "economy/manu_mgr.h"
 #include "strategy_ui/encyclopedia_window.h"
 
@@ -176,7 +177,7 @@ EncyclopediaWindow::EncyclopediaWindow(HINSTANCE instance, int x, int y, int wid
     }
     if (!m_selected) m_mode = kEncyclopediaList;
 
-    m_text = NewOrNull<String>();
+    m_text = NewOrNull<std::string>();
     char* dllLocation = GetDllLocation();
     CoolAppRegisterResourceDll(dllLocation, g_encyTextDllName, kEncyTextSlot);
     CoolAppRegisterResourceDll(dllLocation, g_encyBitmapDllName, kEncyBitmapSlot);
@@ -480,7 +481,7 @@ void EncyclopediaWindow::OnCommand(int, int command, int) {
                 if (static_cast<uint16_t>(code) == kDragListActivated)
                     m_pageTabs->SelectTab(kArticleTabId, 1);
                 else if (static_cast<uint16_t>(code) == kDragListSelectionChanged)
-                    m_searchField->SetText(m_selected->m_text.m_text);
+                    m_searchField->SetText(m_selected->m_text.c_str());
             }
         }
         return;
@@ -513,7 +514,7 @@ void EncyclopediaWindow::OnCommand(int, int command, int) {
         if (item) {
             SetRect(&area, 0xc, 0x1f, 0x19c, 0xe7);
             m_list->SelectById(item->m_id, 0);
-            m_searchField->SetText(item->m_text.m_text);
+            m_searchField->SetText(item->m_text.c_str());
             m_selected = item;
             LoadArticle();
             InvalidateRect(m_hwnd, &area, FALSE);
@@ -615,7 +616,7 @@ void EncyclopediaWindow::SetFilter(int tabId, uint32_t reload) {
                 ObjectKey itemKey;
                 ObjectListItem* copy = NewOrNull<ObjectListItem>(item->m_id, static_cast<ObjectListItem*>(item)->GetKey(&itemKey));
                 // BUG(original): no null check after a failed allocation.
-                copy->m_text = item->m_text.m_text;
+                copy->m_text = item->m_text.c_str();
                 m_filteredItems->Insert(copy);
             }
         }
@@ -645,7 +646,7 @@ void EncyclopediaWindow::SetMode(int mode) {
             m_list->SelectById(m_selected->m_id, 0);
             m_list->ScrollIntoView(m_selected->m_id);
             m_searchField->Clear();
-            m_searchField->SetText(m_selected->m_text.m_text);
+            m_searchField->SetText(m_selected->m_text.c_str());
             m_searchField->SetSelection(0, 0);
         }
         const ResourceStringId title = StringId(0x1842);
@@ -705,10 +706,10 @@ void EncyclopediaWindow::LoadArticle() {
             HGLOBAL handle = LoadResource(m_textModule, resource);
             const char* text = static_cast<const char*>(LockResource(handle));
             if (m_text) delete m_text;
-            m_text = NewOrNull<String>(text);
+            m_text = NewOrNull<std::string>(StringFromText(text));
             FreeResource(handle);
             TextScrollField* field = m_articleText;
-            field->m_text.Assign(*m_text);
+            field->m_text = *m_text;
             field->m_caret.m_index = 0;
             field->Reset();
             m_articleText->Show(SW_SHOW);
@@ -717,7 +718,7 @@ void EncyclopediaWindow::LoadArticle() {
         }
     }
     UpdateNavigationButtons(m_selected);
-    m_titleLabel->SetText(m_selected->m_text.m_text);
+    m_titleLabel->SetText(m_selected->m_text.c_str());
 }
 
 void EncyclopediaWindow::UpdateNavigationButtons(CoolListItem* item) {
@@ -738,44 +739,33 @@ void EncyclopediaWindow::UpdateNavigationButtons(CoolListItem* item) {
 
 // ---- EData files -----------------------------------------------------------------------------------------------
 
-char* GetEncyclopediaDataPath() {
-    String key;
-    String* path = nullptr;
+std::string GetEncyclopediaDataPath() {
+    std::string key;
+    std::string path;
     {
-        String product("Star Wars Rebellion");
-        String separator("\\");
-        String company("SOFTWARE\\LucasArts Entertainment Company LLC");
+        std::string product("Star Wars Rebellion");
+        std::string separator("\\");
+        std::string company("SOFTWARE\\LucasArts Entertainment Company LLC");
         key += company;
         key += separator;
         key += product;
     }
-    uint8_t* location = ReadRegistryValue(key.m_text, g_encyLocationValueName);
+    uint8_t* location = ReadRegistryValue(key.c_str(), g_encyLocationValueName);
     if (location) {
-        path = NewOrNull<String>(reinterpret_cast<const char*>(location));
+        path = StringFromText(reinterpret_cast<const char*>(location));
         operator delete(location);
     }
-    if (!path) path = NewOrNull<String>(g_encyDefaultDataDirectory);
-    if (path) {
-        const char* text = path->m_text;
-        if (text[strlen(text) - 1] != '\\') {
-            String separator("\\");
-            *path += separator;
-        }
-    }
-    // BUG(original): on a failed allocation CopyText runs on a null String.
-    char* result = path->CopyText();
-    if (path) delete path;
-    return result;
+    if (path.empty()) path = StringFromText(g_encyDefaultDataDirectory);
+    if (!path.empty() && path.back() != '\\') path.push_back('\\');
+    return path;
 }
 
 DibBitmap* LoadEncyclopediaPicture(uint32_t pictureId, HMODULE module) {
     const ResourceStringId fileNameId = {static_cast<int16_t>(pictureId), kEncyBitmapStringGroup};
-    String fileName(&fileNameId);
-    char* dataPath = GetEncyclopediaDataPath();
-    String directory(dataPath);
-    operator delete(dataPath);
-    String path = directory + fileName;
-    return NewOrNull<DibBitmap>(module, static_cast<const char*>(path.m_text), kDataFileBitmapKind);
+    std::string fileName = LoadStringResource(&fileNameId);
+    std::string directory = GetEncyclopediaDataPath();
+    std::string path = directory + fileName;
+    return NewOrNull<DibBitmap>(module, static_cast<const char*>(path.c_str()), kDataFileBitmapKind);
 }
 
 const char *g_encyBitmapDllName = nullptr;

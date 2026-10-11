@@ -1,3 +1,5 @@
+#include <string>
+#include "core/game_string.h"
 #include "strategy_ui/report_window.h"
 
 #include <cstdint>
@@ -194,14 +196,14 @@ void ReportWindow::OnCreate1() {
     title.m_drawFlags = 1;
     title.m_width = 400;
     title.m_layoutFlags = 1;
-    title.SetText(m_report->m_title.m_text);
+    title.SetText(m_report->m_title.c_str());
     title.Measure(dc);
     title.Draw(dc);
     text.SetFont(6);
     text.m_width = 0x15e;
     text.m_layoutFlags = 1;
     text.m_drawFlags = 0x110;
-    text.SetText(m_report->m_caption.m_text);
+    text.SetText(m_report->m_caption.c_str());
     text.SetColor(0, nullptr);
     text.MoveTo(0x1a, 0xe2);
     text.Measure(dc);
@@ -216,10 +218,10 @@ void ReportWindow::OnCreate1() {
     surface = composePage(cornerC);
     previous = SelectObject(dc, surface->DibSectionHandle());
     title.Draw(dc);
-    String expanded;
+    std::string expanded;
     ExpandMessageTemplate(&expanded, 0x7013, nullptr, nullptr, nullptr, nullptr);
     text.SetColor(color, nullptr);
-    text.SetText(expanded.m_text);
+    text.SetText(expanded.c_str());
     text.MoveTo(0x19, 0xe1);
     text.Measure(dc);
     text.MoveTo(0x1d, (text.m_rect.top - text.m_rect.bottom) + 0xb1);
@@ -426,7 +428,7 @@ void ReportWindow::OnCreate1() {
             const ResourceStringId nextLabel = StringId(0x1945);
             m_nextButton->SetLabelFromResource(&nextLabel);
         } else {
-            m_nextButton->SetLabel(static_cast<GameObj*>(reported)->GetName()->m_text);
+            m_nextButton->SetLabel(static_cast<GameObj*>(reported)->GetName()->c_str());
         }
         m_nextButton->SetStateColor(0, 0xffffff);
         m_nextButton->MoveLabel(0, m_nextButton->m_height / 2 - 0xc);
@@ -595,17 +597,17 @@ void ReportWindow::FillList(int subTabId, int force) {
     ObjectKeyNode* first = firstSet.First();
     ObjectKeyNode* second = secondSet.First();
     ObjectKeyNode* third = threeColumns ? thirdSet.First() : nullptr;
-    String heading;
+    std::string heading;
     int firstDone = 0;
     int secondDone = 0;
     int thirdDone = threeColumns == 0;
     auto addColumnItem = [&](ObjectKeyNode*& node, int& done, uint16_t emptyId) {
         if (!node) {
-            String* emptyHeading = nullptr;
+            std::string* emptyHeading = nullptr;
             if (!done) {
                 done = 1;
                 const ResourceStringId id = StringId(emptyId);
-                heading.SetFromResource(&id);
+                heading = LoadStringResource(&id);
                 emptyHeading = &heading;
             }
             AddListItem(nullptr, 0, emptyHeading);
@@ -629,14 +631,14 @@ void ReportWindow::FillList(int subTabId, int force) {
     m_listKind = subTabId;
 }
 
-void ReportWindow::AddListItem(GameObjNotifier* object, int flag, String* heading) {
+void ReportWindow::AddListItem(GameObjNotifier* object, int flag, const std::string* heading) {
     const int height = m_list->m_itemHeight;
     const int width = m_list->m_itemWidth;
     if (!object) {
         ObjectKey unset;
         ObjectListItem* item = NewOrNull<ObjectListItem>(static_cast<uint32_t>(m_nextItemId++), &unset);
         if (heading) {
-            item->m_text = heading->m_text;
+            item->m_text = heading->c_str();
             item->m_fontSlot = 6;
             item->m_textOffsetY = 10;
             item->m_textFormat = 5;
@@ -663,7 +665,7 @@ void ReportWindow::AddListItem(GameObjNotifier* object, int flag, String* headin
     }
     item->SetImages(surface, nullptr);
     item->m_state.m_value |= kListItemDisabled;
-    item->m_text = static_cast<GameObj*>(object)->GetName()->m_text;
+    item->m_text = static_cast<GameObj*>(object)->GetName()->c_str();
     item->m_fontSlot = 10;
     item->m_textOffsetY = picture->Height() + top;
     item->m_textFormat = 1;

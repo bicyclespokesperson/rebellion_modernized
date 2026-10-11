@@ -86,7 +86,7 @@ public:
     int NotifyOwnerUsable(intptr_t a, int b, intptr_t c) override;                                    // 53, 0x508da0
     int ApplyAllToViewOf(int view, int unused, NotifyContext* ctx) override;        // 54, 0x508f90
     GameObjData* CreateData() override;                                             // 58, 0x512c90
-    int OnNameChanged(String* oldName, String* newName, NotifyContext* ctx) override;  // 59, 0x510800
+    int OnNameChanged(std::string* oldName, std::string* newName, NotifyContext* ctx) override;  // 59, 0x510800
     int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;  // 60, 0x510820
     int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;              // 71, 0x510950
     int OnExistingChanged(int newValue, NotifyContext* ctx) override;               // 74, 0x5109a0

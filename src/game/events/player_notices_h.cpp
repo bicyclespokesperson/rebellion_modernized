@@ -47,14 +47,14 @@ void Notice8::AppendName(GameObjNotifier* object) {
 
 void Notice8::Read(istream* in) {
     UiNotice::Read(in);
-    m_text0.Read(in);
-    m_text1.Read(in);
+    ReadLegacyString(in, m_text0);
+    ReadLegacyString(in, m_text1);
 }
 
 void Notice8::Write(ostream* out) {
     UiNotice::Write(out);
-    m_text0.Write(out);
-    m_text1.Write(out);
+    WriteLegacyString(out, m_text0);
+    WriteLegacyString(out, m_text1);
 }
 
 // ---- Notice1 (kind 1) ----
@@ -126,11 +126,11 @@ void Notice1::Read(istream* in) {
     m_set68.Read(in);
     m_set78.Read(in);
     m_set80.Read(in);
-    m_text88.Read(in);
-    m_text94.Read(in);
-    m_texta0.Read(in);
-    m_textac.Read(in);
-    m_textb8.Read(in);
+    ReadLegacyString(in, m_text88);
+    ReadLegacyString(in, m_text94);
+    ReadLegacyString(in, m_texta0);
+    ReadLegacyString(in, m_textac);
+    ReadLegacyString(in, m_textb8);
 }
 
 void Notice1::Write(ostream* out) {
@@ -144,11 +144,11 @@ void Notice1::Write(ostream* out) {
     m_set68.Write(out);
     m_set78.Write(out);
     m_set80.Write(out);
-    m_text88.Write(out);
-    m_text94.Write(out);
-    m_texta0.Write(out);
-    m_textac.Write(out);
-    m_textb8.Write(out);
+    WriteLegacyString(out, m_text88);
+    WriteLegacyString(out, m_text94);
+    WriteLegacyString(out, m_texta0);
+    WriteLegacyString(out, m_textac);
+    WriteLegacyString(out, m_textb8);
 }
 
 // ---- Notice2 (kind 2) ----
@@ -184,8 +184,8 @@ void Notice2::Read(istream* in) {
     ReadValue32(in, &m_f4c);
     m_set6c.Read(in);
     m_set74.Read(in);
-    m_text54.Read(in);
-    m_text60.Read(in);
+    ReadLegacyString(in, m_text54);
+    ReadLegacyString(in, m_text60);
 }
 
 void Notice2::Write(ostream* out) {
@@ -196,8 +196,8 @@ void Notice2::Write(ostream* out) {
     WriteValue32(out, &m_f4c);
     m_set6c.Write(out);
     m_set74.Write(out);
-    m_text54.Write(out);
-    m_text60.Write(out);
+    WriteLegacyString(out, m_text54);
+    WriteLegacyString(out, m_text60);
 }
 
 // ---- Notice15 (kind 15) ----

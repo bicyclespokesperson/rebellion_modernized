@@ -39,7 +39,7 @@ int CommHostNewSession(const char* sessionName);  // 0x5971e0 (0x11 without a Co
 SessionList* CommGetSessionList(uint32_t timeoutMs, int* status);  // 0x597210 (null without a CommMgr)
 int CommJoinSession(SessionInfo* session);      // 0x597240 (0x11 without a CommMgr)
 int CommOpenProvider(ServiceProviderInfo* provider);  // 0x597270 (0x11 without a CommMgr)
-void CommSetPlayerName(String name);            // 0x5972a0
+void CommSetPlayerName(std::string name);            // 0x5972a0
 void CommSyncState();                                   // 0x597310
 void CommTrace(const char* text);               // 0x597340
 void CommSendPlayerQuit();                              // 0x597360

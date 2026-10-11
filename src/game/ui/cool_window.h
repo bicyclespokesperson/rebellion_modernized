@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "core/containers.h"
@@ -12,7 +13,7 @@
 class CoolWindow;
 class DibBitmap;
 class FontTable;
-class String;
+
 struct ResourceStringId;
 
 // ---- Small helper containers used by the window base -----------------------------------------------------

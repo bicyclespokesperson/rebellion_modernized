@@ -1,5 +1,7 @@
+#include <string>
 #include <cstdint>
 
+#include "core/game_string.h"
 #include "economy/manu_mgr.h"
 #include "economy/manufacturing_facility.h"
 #include "gameobj/game_hooks.h"
@@ -33,8 +35,8 @@ constexpr ManufacturingKind kKinds[] = {
 }  // namespace
 
 void ObjectStatusWindow::FillManufacturingPage(CoolListItemList* labels, CoolListItemList* values) {
-    String text;
-    String unusedText;
+    std::string text;
+    std::string unusedText;
     ManuMgr* manager = static_cast<ManuMgr*>(m_object);
     GameObj* parent = static_cast<GameObj*>(static_cast<GameObjRoot*>(m_object)->m_parent);
     int facilityCount = 0;
@@ -43,7 +45,7 @@ void ObjectStatusWindow::FillManufacturingPage(CoolListItemList* labels, CoolLis
         const uint32_t family = m_key.Family();
         if (family < kind.m_firstFamily || family >= kind.m_endFamily) continue;
         const ResourceStringId titleId = ResourceStringId{static_cast<int16_t>(kind.m_titleId), 2};
-        text.SetFromResource(&titleId);
+        text = LoadStringResource(&titleId);
         facilityCount = kind.m_countFacilities(parent, (static_cast<GameObjRoot*>(parent)->m_flags >> 6) & 3, 3);
         isTroopTraining = kind.m_isTroopTraining;
         break;
@@ -52,16 +54,16 @@ void ObjectStatusWindow::FillManufacturingPage(CoolListItemList* labels, CoolLis
     m_titleLabel.m_drawFlags = kTitleDrawFlags;
     m_titleLabel.m_height = kTitleHeight;
     m_titleLabel.MoveTo(0xf, 0x12);
-    m_titleLabel.SetText(text.m_text);
+    m_titleLabel.SetText(text.c_str());
 
     AddNameRow(1, labels, values);
     AddLabelRow(&text, 0x8664, 2, labels);
-    Append(&text, static_cast<GameObj*>(static_cast<GameObjRoot*>(m_object)->m_parent)->GetName()->m_text);
+    Append(&text, static_cast<GameObj*>(static_cast<GameObjRoot*>(m_object)->m_parent)->GetName()->c_str());
     AddStatusRow(2, &text, values);
-    text.Clear();
+    text.clear();
     SetText(&text, 0x8666);
     AddStatusRow(3, &text, labels);
-    text.Clear();
+    text.clear();
 
     int lastRow = 3;
     if (facilityCount == 0) {
@@ -72,24 +74,24 @@ void ObjectStatusWindow::FillManufacturingPage(CoolListItemList* labels, CoolLis
     } else {
         SetText(&text, isTroopTraining == 0 ? 0x8770 : 0x8771);
         AddStatusRow(3, &text, values);
-        text.Clear();
+        text.clear();
         SetText(&text, 0x8768);
         lastRow = 4;
         AddStatusRow(4, &text, labels);
-        text.Clear();
-        text.AppendSigned(manager->m_remainingGameObjCount);
+        text.clear();
+        text.append(std::to_string(static_cast<long>(manager->m_remainingGameObjCount)));
         AddStatusRow(4, &text, values);
         const bool sameSide = ((static_cast<GameObjRoot*>(parent)->m_flags ^ manager->m_flags) & 0xc0) == 0;
         if (manager->m_remainingGameObjCount != 0 && sameSide) {
-            text.Clear();
+            text.clear();
             SetText(&text, 0x8765);
             lastRow = 5;
             AddStatusRow(5, &text, labels);
             StatusCode status(1, static_cast<uint32_t>(-1));
             int ruleValue = 0;
             QueryRuleValueA(m_object, &status, &ruleValue);
-            text.Clear();
-            text.AppendSigned(ruleValue);
+            text.clear();
+            text.append(std::to_string(static_cast<long>(ruleValue)));
             AddStatusRow(5, &text, values);
         }
     }

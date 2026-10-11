@@ -271,7 +271,7 @@ int PostPayloadKeysB(uint32_t kind, GameObjNotifier* object, const ObjectKey* ke
     return result;
 }
 
-int PostPayloadStrings(uint32_t kind, GameObjNotifier* object, const String* textA, const String* textB,
+int PostPayloadStrings(uint32_t kind, GameObjNotifier* object, const std::string* textA, const std::string* textB,
                        NotifyContext* ctx) {
     int result = 0;
     if (inBand(kind, 0x500u, 0x541u)) {
@@ -279,8 +279,8 @@ int PostPayloadStrings(uint32_t kind, GameObjNotifier* object, const String* tex
         result = CreatePayload(kind, object, ctx, &payload);
         if (result != 0 && payload != nullptr) {
             auto* strings = static_cast<StringPairPayload*>(payload);
-            strings->m_textA.Assign(*textA);
-            strings->m_textB.Assign(*textB);
+            (strings->m_textA = *textA);
+            (strings->m_textB = *textB);
             CallGameHook2AD4(reinterpret_cast<HookArg>(payload));
         }
     }

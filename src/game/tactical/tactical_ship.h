@@ -230,7 +230,7 @@ public:
     float DistanceTo(TacticalShipBase* other);
     void RepairOneHit();                       // 0x5b1490
     int HubQuery();                            // 0x5b1480
-    String* GetName(String* out);              // 0x5b1610
+    std::string* GetName(std::string* out);              // 0x5b1610
     void BuildStatusRecord(TacticalShipStatusRecord* out);   // 0x5b1c00
     void GetGroupPosition(TacticalVector* out);              // 0x5b5ad0
     double ScaleByHull(float value);            // 0x5b1770: value * hull / hullMax
@@ -270,7 +270,7 @@ public:
     float m_torpedoRange;            // +0x138
     uint32_t m_typeIndex;            // +0x13c
     int m_unitKind;                  // +0x140 0 capital ship, 1 fighter
-    String m_name;                   // +0x144
+    std::string m_name;                   // +0x144
     int m_hasGravityWell;            // +0x150
     int m_unk154;                    // +0x154
     uint32_t m_hitCount;             // +0x158 critical hit slots taken
@@ -330,7 +330,7 @@ public:
 
 class TacticalCapitalShip : public TacticalShipBase, public TacticalHangar {
 public:
-    TacticalCapitalShip(uint32_t family, uint32_t id, int notAlliance, uint32_t typeIndex, String name, float hull,
+    TacticalCapitalShip(uint32_t family, uint32_t id, int notAlliance, uint32_t typeIndex, std::string name, float hull,
                         float currentHull, float damageControl, int freeHangar, float tractorPower, float tractorRange,
                         int gravityWell, float interdiction, float field64, float field68, float field60,
                         float hyperdriveCount, float weaponRecharge, float shieldRecharge, int grid02, int grid12,
@@ -374,7 +374,7 @@ void TacticalCapitalShipLaunchPoint(TacticalHangar* hangar, TacticalVector* out)
 
 class TacticalFighter : public TacticalShipBase {
 public:
-    TacticalFighter(uint32_t family, uint32_t id, int notAlliance, uint32_t typeIndex, String name, int carrierHandle,
+    TacticalFighter(uint32_t family, uint32_t id, int notAlliance, uint32_t typeIndex, std::string name, int carrierHandle,
                     float field64, float field68, float field60, int squadSize, int currentSize, int zero,
                     float hyperdriveCount, int grid02, int grid12, int grid22, int grid32, int grid01, int grid11,
                     int grid21, int grid31, int grid00, int grid10, int grid20, int grid30, float a42, float a41,

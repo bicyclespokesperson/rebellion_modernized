@@ -1,3 +1,5 @@
+#include <string>
+#include "core/game_string.h"
 #include "ui/text_scroll_field.h"
 
 #include "core/checked_new.h"
@@ -136,7 +138,7 @@ void TextScrollField::Reset() {
 void TextScrollField::UpdateScrollBar() {
     GetTextMetricsA(m_dc, &m_textMetrics);
     SetRect(&m_textBounds, 0, 0, m_clientWidth, m_clientHeight);
-    DrawTextA(m_dc, m_text.m_text, -1, &m_textBounds, kMeasureFormat);
+    DrawTextA(m_dc, m_text.c_str(), -1, &m_textBounds, kMeasureFormat);
     m_lineWidth = m_clientWidth;
     if (m_textBounds.bottom <= m_clientHeight) {
         HideVerticalScrollBar();
@@ -147,11 +149,11 @@ void TextScrollField::UpdateScrollBar() {
         ShowVerticalScrollBar();
     }
     m_lineWidth = m_textBounds.right = m_clientWidth - m_verticalBar->m_width;
-    DrawTextA(m_dc, m_text.m_text, -1, &m_textBounds, kMeasureFormat);
+    DrawTextA(m_dc, m_text.c_str(), -1, &m_textBounds, kMeasureFormat);
     SetVerticalRange(m_textBounds.bottom - m_textBounds.top);
     RECT scrolledPast = m_textBounds;
     if (m_topIndex) {
-        DrawTextA(m_dc, m_text.m_text, m_topIndex, &scrolledPast, kMeasureFormat);
+        DrawTextA(m_dc, m_text.c_str(), m_topIndex, &scrolledPast, kMeasureFormat);
         SetVerticalVisibleRange(scrolledPast.bottom, scrolledPast.bottom + m_clientHeight);
         return;
     }
@@ -406,19 +408,19 @@ void TextScrollField::LocatePosition(TextPosition* position) {
         more = m_scanCursor.HasMore();
     }
     if (!m_scanCursor.HasMore() && !found) {
-        position->m_index = m_text.Length();
+        position->m_index = static_cast<int>(m_text.size() & 0xffff);
         position->m_y = lineTop;
         position->m_x = m_leftMargin;
     }
 }
 
-void TextScrollField::InsertText(const String& text, int position) {
-    m_text.Insert(text, position);
+void TextScrollField::InsertText(const std::string& text, int position) {
+    InsertString(m_text, text, position);
     Reset();
 }
 
 void TextScrollField::ClearText() {
-    m_text.Clear();
+    m_text.clear();
     Reset();
 }
 
@@ -492,7 +494,7 @@ void TextScrollField::OnKeyDown(HWND hwnd, WPARAM key, LPARAM lParam) {
             extent.cx = 0;
             extent.cy = 0;
             GetTextExtentPoint32A(m_dc, cursor.m_current, 1, &extent);
-            m_text.RemoveRange(m_caret.m_index - 1, m_caret.m_index);
+            RemoveStringRange(m_text, m_caret.m_index - 1, m_caret.m_index);
             --m_caret.m_index;
             m_caret.m_x -= extent.cx;
             if (m_caret.m_x < m_leftMargin) m_caret.m_x = m_leftMargin;
@@ -502,12 +504,12 @@ void TextScrollField::OnKeyDown(HWND hwnd, WPARAM key, LPARAM lParam) {
         return;
     case VK_DELETE:
         if (!(m_state & kTextEditable)) break;
-        m_text.RemoveRange(m_caret.m_index, m_caret.m_index + 1);
+        RemoveStringRange(m_text, m_caret.m_index, m_caret.m_index + 1);
         InvalidateFromCaretLine(hwnd);
         return;
     case VK_RETURN:
         if (!(m_state & kTextEditable)) break;
-        m_text.InsertChar(*g_newlineString, m_caret.m_index);
+        InsertCharacter(m_text, *g_newlineString, m_caret.m_index);
         if (m_clientHeight < m_caret.m_y + m_textMetrics.tmHeight * 2) {
             if (!IsWindowVisible(m_verticalBar->m_hwnd)) UpdateScrollBar();
             ScrollDown(1);
@@ -608,8 +610,8 @@ void TextScrollField::MoveCaretVertically() {
 
 void TextScrollField::OnChar(HWND hwnd, WPARAM wParam) {
     const char typed = static_cast<char>(wParam);
-    if (!(m_state & kTextInsertMode)) m_text.RemoveRange(m_caret.m_index - 1, m_caret.m_index);
-    m_text.InsertChar(typed, m_caret.m_index);
+    if (!(m_state & kTextInsertMode)) RemoveStringRange(m_text, m_caret.m_index - 1, m_caret.m_index);
+    InsertCharacter(m_text, typed, m_caret.m_index);
     SIZE extent;
     GetTextExtentPoint32A(m_dc, &typed, 1, &extent);
     m_caret.m_x += extent.cx;

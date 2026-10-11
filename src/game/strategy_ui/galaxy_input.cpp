@@ -7,6 +7,7 @@
 #include "audio/sound_manager.h"
 #include "core/checked_new.h"
 #include "events/game_clock_hooks.h"
+#include "events/player_notices.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_key.h"
 #include "gameobj/object_lookup.h"
@@ -57,8 +58,6 @@ constexpr uint32_t kOrderConfirmWindowType = 0x10;
 constexpr uint32_t kObjectStatusWindowType = 0x1a;
 constexpr uint32_t kReportWindowType = 0x1c;
 constexpr uint32_t kWindowVisibleStyle = 0x10000000;
-constexpr uint32_t kMovieRecordIdOffset = 0x5c;
-constexpr uint32_t kMovieRecordNameOffset = 0x50;
 constexpr uint32_t kOpenIdMask = 0x3f;
 
 int LowWord(LPARAM value) { return static_cast<int>(static_cast<uint32_t>(value) & 0xffff); }
@@ -637,9 +636,8 @@ LRESULT GalaxyWindow::OnModalRequest(UINT message, WPARAM wParam, LPARAM lParam)
             AppSetState(static_cast<int>(lParam));
         } else if (wParam == 1) {
             SoundManager::Shutdown(0);
-            const uint8_t* record = reinterpret_cast<const uint8_t*>(lParam);
-            AppPlayMovie(*reinterpret_cast<const int*>(record + kMovieRecordIdOffset),
-                         reinterpret_cast<const String*>(record + kMovieRecordNameOffset), nullptr);
+            const auto* record = reinterpret_cast<const UiKeyNotice*>(lParam);
+            AppPlayMovie(record->m_value, &record->m_text1, nullptr);
         }
         return 0;
     }

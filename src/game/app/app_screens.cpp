@@ -233,7 +233,7 @@ void RebellionApplication::SetState(int state) {
     }
 }
 
-void RebellionApplication::PlayMovie(int movieId, const String* caption, void(* callback)(uint32_t, uint32_t, int)) {
+void RebellionApplication::PlayMovie(int movieId, const std::string* caption, void(* callback)(uint32_t, uint32_t, int)) {
     if (m_activeWindow) m_activeWindow->Hide();
     ReleaseOverlayWindow();
     FillWindowBlack();

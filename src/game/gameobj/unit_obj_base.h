@@ -32,7 +32,7 @@ public:
     int Virtual48(intptr_t a) override;                                                        // 48, 0x4f29a0
     int Virtual55(intptr_t a) override;                                                        // 55, 0x4f29b0
     GameObjData* CreateData() override;                                                   // 58, 0x4f2bf0
-    int OnNameChanged(String* oldName, String* newName, NotifyContext* ctx) override;     // 59, 0x4f2a70
+    int OnNameChanged(std::string* oldName, std::string* newName, NotifyContext* ctx) override;     // 59, 0x4f2a70
     int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;  // 60, 0x4f2a90
     int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x4f2ab0
     int OnDestroyedReasonChanged(uint32_t oldValue, uint32_t newValue, NotifyContext* ctx) override;  // 64, 0x4f2ad0

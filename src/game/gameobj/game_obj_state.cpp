@@ -287,13 +287,13 @@ int GameObj::DestroyIfAllowed(const ActivityRequest* request, NotifyContext* ctx
 int GameObj::TryRename(const ActivityRequest* request, intptr_t name, NotifyContext* ctx) {
     StatusCode status(1, -1);
     int result = CheckRename(request, name, &status);
-    if (result && status.m_second == static_cast<uint32_t>(-1)) result = Rename(reinterpret_cast<String*>(name), ctx);
+    if (result && status.m_second == static_cast<uint32_t>(-1)) result = Rename(reinterpret_cast<std::string*>(name), ctx);
     return result;
 }
 
 int GameObj::Destroy(NotifyContext* ctx) { return ChangeDestroyedReason(kReasonDestroyed, ctx); }
 
-int GameObj::Rename(String* name, NotifyContext* ctx) { return SetName(name, ctx); }
+int GameObj::Rename(std::string* name, NotifyContext* ctx) { return SetName(name, ctx); }
 
 int GameObj::Reparent(ObjectKey* key, NotifyContext* ctx) {
     GameObjNotifier* parent = GetMasterObject(key);

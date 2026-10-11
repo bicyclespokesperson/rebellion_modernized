@@ -40,7 +40,7 @@ public:
 
     SoundRequest musicRequest{1, 0, 0, 0, 0, 0};
     PersistentInt musicFlags{0};
-    String musicDirectory;
+    std::string musicDirectory;
     int musicSwitchOn = 1;
     int musicVolume = 0;
 };

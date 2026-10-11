@@ -178,8 +178,8 @@ int ManuMgr::ApplyTargetKey(NotifyContext* ctx) {
     return result;
 }
 
-String* ManuMgr::GetProductNameCopy(String* out) {
-    new (out) String(m_productName);
+std::string* ManuMgr::GetProductNameCopy(std::string* out) {
+    new (out) std::string(m_productName);
     return out;
 }
 
@@ -188,10 +188,10 @@ int ManuMgr::ApplyProductName(NotifyContext* ctx) {
     if (result) {
         ManuMgr* master = masterOf(this);
         if (MatchesSideMask(ctx->m_flag08)) {
-            String masterName(master->m_productName);
-            if (m_productName.Compare(masterName) != 0) {
-                String oldName(m_productName);
-                m_productName.Assign(master->m_productName);
+            std::string masterName(master->m_productName);
+            if (CompareStrings(m_productName, masterName) != 0) {
+                std::string oldName(m_productName);
+                (m_productName = master->m_productName);
                 if (wantsNotification(this, ctx)) result = OnProductNameNotified(&oldName, &m_productName, ctx);
             }
         }

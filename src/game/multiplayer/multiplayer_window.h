@@ -99,7 +99,7 @@ public:
     // Writes the host's choices into the chat window as a status line.
     void AnnounceSettings();                       // 0x40fe10
     // Prints `text` (or the name of the player) in the chat window, preceded by the player's name.
-    void PrintChatLine(const String* text);        // 0x410240
+    void PrintChatLine(const std::string* text);        // 0x410240
     // Prints the "player joined" marker line (the "\x17" "4" code) in the chat window.
     void PrintStatusMarker();                      // 0x4101e0
     // One round of network handling for the setup page.
@@ -114,8 +114,8 @@ public:
     void ShowHostPage();                           // 0x410dd0
     void ShowSetupPage();                          // 0x410e90
     // Default names: the account name and the computer name, preceded by the string resource of the page.
-    String* GetDefaultPlayerName(String* out);     // 0x411270
-    String* GetDefaultGameName(String* out);       // 0x411340
+    std::string* GetDefaultPlayerName(std::string* out);     // 0x411270
+    std::string* GetDefaultGameName(std::string* out);       // 0x411340
     // Broadcasts the settings now and then so a late joiner picks them up.
     void PollSlotTable();                          // 0x4115c0
     // Sends a message to the other player on category 1 and deletes it.
@@ -164,9 +164,9 @@ extern uint32_t g_lobbyFlags;         // 0x6b123c bit 0: version message shown, 
 extern uint32_t g_lobbySlotPollTime;  // 0x6b1248 timeGetTime() of the last slot table broadcast (-1: send now)
 
 // Free helpers of the lobby, in this module's address range.
-int ParseLobbyText(const String* text, String* out, int stringGroup);  // 0x40ffd0: expands the \x17 escape codes
+int ParseLobbyText(const std::string* text, std::string* out, int stringGroup);  // 0x40ffd0: expands the \x17 escape codes
 MessageBase* ReceiveLobbyMessage();                                    // 0x410790
-String* GetMessageText(TextMessage* message, String* out);  // 0x411710: a copy of the text of a chat message
+std::string* GetMessageText(TextMessage* message, std::string* out);  // 0x411710: a copy of the text of a chat message
 int IsSlotAssigned(int slot);                                          // 0x411410
 uint32_t GetSlotSaveId(int slot);                                      // 0x411450
 void SetLobbyFlags(uint32_t flags);                                    // 0x411490

@@ -1,7 +1,10 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
+#include <list>
+#include <memory>
 
+#include "core/game_string.h"
 #include "core/stream_io.h"
 
 // The game's own intrusive containers (no STL). Nodes carry their links and are owned by the container that
@@ -13,8 +16,6 @@
 //   OrderedTree              unbalanced threaded tree that caches its first node
 //   LinkNode / SortedLinkList  doubly linked list (IdLinkNode / IdSortedLinkList: ids assigned by the list)
 //   NodeQueue, NodeStack     FIFO / LIFO of LinkNodes
-
-class String;
 
 class AvlNode {
 public:
@@ -181,12 +182,22 @@ public:
 class LinkNode {
 public:
     LinkNode();
+    LinkNode(const LinkNode&);
+    LinkNode& operator=(const LinkNode&) = delete;
+    LinkNode(LinkNode&&) = delete;
+    LinkNode& operator=(LinkNode&&) = delete;
     virtual ~LinkNode();
     virtual void Read(istream* in);
     virtual void Write(ostream* out);
 
     LinkNode* m_prev;  // +0x04
     LinkNode* m_next;  // +0x08
+
+private:
+    friend class NodeQueue;
+    friend class NodeStack;
+    friend class SortedLinkList;
+    const void* m_owner = nullptr;
 };
 
 class IdLinkNode : public LinkNode {
@@ -234,27 +245,49 @@ class NodeQueue {
 public:
     NodeQueue();
     virtual ~NodeQueue();
+    NodeQueue(const NodeQueue&) = delete;
+    NodeQueue& operator=(const NodeQueue&) = delete;
+    NodeQueue(NodeQueue&&) = delete;
+    NodeQueue& operator=(NodeQueue&&) = delete;
 
+    // Takes ownership of an unlinked node; returns 0 if it is null or owned/linked elsewhere.
     int Enqueue(LinkNode* node);
+    // Transfers ownership of the head node to the caller.
     LinkNode* Dequeue();
     void Clear();
 
+    // Temporary borrowed legacy views; delete after queue traversal callers migrate.
     LinkNode* m_head;  // +0x04
     LinkNode* m_tail;  // +0x08
     int m_count;       // +0x0c
+
+private:
+    std::list<std::unique_ptr<LinkNode>> m_nodes;
+    bool m_clearing = false;
 };
 
 class NodeStack {
 public:
     NodeStack();
     virtual ~NodeStack();
+    NodeStack(const NodeStack&) = delete;
+    NodeStack& operator=(const NodeStack&) = delete;
+    NodeStack(NodeStack&&) = delete;
+    NodeStack& operator=(NodeStack&&) = delete;
     virtual void Clear();
     virtual int Virtual02();
 
+    // Takes ownership of an unlinked node; returns 0 if it is null or owned/linked elsewhere.
     int Push(LinkNode* node);
+    // Transfers ownership of the top node to the caller.
     LinkNode* Pop();
     // Deletes `node` if it is on the stack, keeping the order of the others. Returns 1 if it was found.
     int RemoveAndDelete(LinkNode* node);
 
+    // Temporary borrowed legacy view; delete after stack traversal callers migrate.
     LinkNode* m_top;  // +0x04
+
+private:
+    std::list<std::unique_ptr<LinkNode>> m_nodes;
+    bool m_clearing = false;
 };

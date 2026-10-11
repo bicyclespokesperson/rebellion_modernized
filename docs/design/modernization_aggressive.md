@@ -224,10 +224,50 @@ and malloc pre-scribble/scribble two-process save/reload smoke pass. Boundary te
 `INT_MIN`/`INT_MAX`, `UINT64_MAX` square root, wide products with representable results and rejected invalid arithmetic.
 Selected LLVM 22.1.4 tidy checks report no findings in the changed implementations. Formatting remains deferred.
 
+String values and legacy codec: remove the custom `String` class wholesale. Gameplay, notices and UI now use
+`std::string` directly; localized resources and the legacy uint16-length save representation have explicit free functions.
+Read failures preserve the destination, oversized writes fail before emitting bytes, and ordinary allocation failures
+throw. Nullable C-string boundaries coalesce to empty values. Remove the raw label copy and movie-notice byte offsets.
+Embedded NUL bytes imported from a save remain in the value rather than being truncated during the next write.
+
+- [x] Read responsibility, clients, text borrows and save dependencies; choose plain standard values.
+- [x] Remove the wrapper and migrate all maintained clients, resource loads and legacy codecs.
+- [x] Run selected tidy checks, host builds, string boundary/value tests and save/reload smoke.
+- [x] Complete independent review of ownership, cursors, nullable inputs and codec failures.
+- [x] Fix findings and commit the coherent change.
+
+Queues and stacks: own stable nodes directly with `std::list<std::unique_ptr<LinkNode>>`. Pop/dequeue explicitly transfer
+ownership; reject null, duplicate or foreign insertions. Detach all views before node destruction and reject insertion
+from destructor callbacks while clearing. Copies of nodes start detached; owners cannot be copied or moved. Public link
+views remain temporary clients of owned storage; migrate them with the remaining container families.
+
+- [x] Read responsibility, clients, mutation and destruction rules.
+- [x] Replace queue/stack ownership and add shared link membership checks for sorted-list interoperability.
+- [x] Run host builds, transfer/copy/reentrant-clear tests and save/reload smoke.
+- [x] Complete independent review of ownership, links and callbacks.
+- [x] Fix reentrant insertion and commit the coherent change.
+
+Gameplay and presentation RNG: AI draws use the GameRoot generator, whose state already saves/loads. Advisors retain a
+separate presentation stream; restore its session field rather than discarding it. Use standard bounded distributions,
+retain seed warm-up state, define wide modular steps and reject invalid saved generator states. This deliberately changes
+AI random sequences and fixes out-of-range draws; save representation remains the existing int32 generator state.
+
+- [x] Read all random clients, ownership, seed and persistence dependencies.
+- [x] Split gameplay/presentation draws and replace overflow-prone range calculations.
+- [x] Run host builds, range/state/independence tests and save/reload smoke.
+- [x] Complete independent review of bounds, restored state and missing-generator behavior.
+- [x] Preserve the absent-generator lower-bound fallback and commit the coherent change.
+
+Validation for these three units: macOS arm64, Apple Clang 17 release and halt-on-error UBSan builds; all six CTests and
+malloc pre-scribble/scribble two-process simulation/save/reload pass (150336 → 150346 → 150356). Independent reviews
+covered string clients/codecs, reentrant container teardown and both RNG streams. LLVM 22.1.4 selected tidy checks run
+on the core implementations. Formatting remains deferred.
+
 Next units:
 
-- [ ] String ownership and editing: standard string storage, bounded legacy-save boundary, and migration of borrowed text clients.
-- [ ] Container families and identity/save boundary: inventory mutation/lifetime rules before replacing intrusive structures.
+- [ ] Ordered trees, sets and ID allocation: standard stable ownership, logarithmic lookup and safe mutation.
+- [ ] Save transaction boundary: replace destination only after successful serialization and close.
+- [ ] Rules/AI/events and UI bug responsibilities: resolve live original bug sites and record concrete deferrals.
 
 ### Per-responsibility workflow
 

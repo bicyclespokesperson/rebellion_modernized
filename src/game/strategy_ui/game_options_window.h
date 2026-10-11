@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "platform/win32.h"
@@ -30,7 +31,7 @@ public:
     // Saves into the selected slot under the name typed into its field.
     void SaveSelectedSlot();  // 0x408000
     // Reports a save or load request of `kind` (1 save, 2 load) of `slot` to the other side of a network game.
-    void SendSaveCommand(int kind, int slot, String name);  // 0x4080c0
+    void SendSaveCommand(int kind, int slot, std::string name);  // 0x4080c0
     // Shows the dialog of one of the 0x474-0x478 messages.
     void ShowResultDialog(uint32_t message);  // 0x408170
     // Result of a save: tells the player and enables the slot's load button.

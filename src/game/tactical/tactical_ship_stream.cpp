@@ -177,7 +177,7 @@ void TacticalShipBase::WriteState(ostream* out) {
     int id = static_cast<int>(m_id);
     WriteValue32(out, &id);
     visitLeadingFields(*this, writer);
-    m_name.Write(out);
+    WriteLegacyString(out, m_name);
     visitMiddleFields(*this, writer);
     visitTrailingFields(*this, writer);
 }
@@ -189,7 +189,7 @@ void TacticalShipBase::ReadState(istream* in) {
     ReadValue32(in, &id);
     TacticalUnit::SetId(id);
     visitLeadingFields(*this, reader);
-    m_name.Read(in);
+    ReadLegacyString(in, m_name);
     visitMiddleFields(*this, reader);
     visitTrailingFields(*this, reader);
 }

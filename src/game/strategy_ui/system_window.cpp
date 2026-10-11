@@ -1,3 +1,5 @@
+#include <string>
+#include "core/game_string.h"
 #include "strategy_ui/system_window.h"
 
 #include <cstdint>
@@ -205,23 +207,23 @@ void SystemWindow::SetSlotCharacter(int slot, GameObjNotifier* manager, const Ob
     SystemSlot& panel = Slot(slot);
     if (panel.m_characterKey.m_value == character->m_value) return;
     const ResourceStringId prefix = StringId(0x1839);
-    String text(&prefix);
+    std::string text = LoadStringResource(&prefix);
     if (GameObjNotifier* object = GetObjectInFamilies_01_ff(m_galaxy->m_side, character)) {
-        String name;
+        std::string name;
         static_cast<GameObj*>(object)->GetNameCopy(&name);
         text += name;
     }
     CoolLabel* label = panel.m_characterLabel;
     panel.m_characterKey = *character;
-    label->SetText(text.m_text);
+    label->SetText(text.c_str());
     InvalidateRect(m_hwnd, &panel.m_rect, FALSE);
 }
 
-void SystemWindow::SetSlotStatusText(int slot, GameObjNotifier* manager, String* text) {
+void SystemWindow::SetSlotStatusText(int slot, GameObjNotifier* manager, std::string* text) {
     SystemSlot& panel = Slot(slot);
     CoolLabel* label = panel.m_statusLabel;
-    if (text && text->Length() != 0) {
-        label->SetText(text->m_text);
+    if (text && text->size() != 0) {
+        label->SetText(text->c_str());
     } else if ((panel.m_productKey.m_value & 0xff000000) == 0) {
         uint16_t id = 0;
         if (slot == 1) {
@@ -236,9 +238,9 @@ void SystemWindow::SetSlotStatusText(int slot, GameObjNotifier* manager, String*
             label->SetTextFromResource(&resource);
         }
     } else if (GameObjNotifier* product = GetObjectInFamilies_01_ff(m_galaxy->m_side, &panel.m_productKey)) {
-        String name;
+        std::string name;
         static_cast<GameObj*>(product)->GetNameCopy(&name);
-        label->SetText(name.m_text);
+        label->SetText(name.c_str());
     }
     InvalidateRect(m_hwnd, &panel.m_rect, FALSE);
 }
@@ -265,13 +267,13 @@ void SystemWindow::SetSlotProduction(int slot, GameObjNotifier* manager) {
         } else if (slot == 2) {
             textId = 0x1840;
         }
-        String* countText = nullptr;
+        std::string* countText = nullptr;
         if (textId != 0) {
             const ResourceStringId id = StringId(textId);
-            countText = NewOrNull<String>(&id);
+            countText = NewOrNull<std::string>(LoadStringResource(&id));
         }
-        countText->AppendSigned(count);
-        countLabel->SetText(countText->m_text);
+        countText->append(std::to_string(static_cast<long>(count)));
+        countLabel->SetText(countText->c_str());
         delete countText;
         panel.m_productKey = productKey;
     }
@@ -362,19 +364,19 @@ void SystemWindow::BeginSlotRename(SystemSlot* slot) {
 void SystemWindow::EndSlotRename(SystemSlot* slot) {
     SetFocus(m_hwnd);
     if (!m_renameField) return;
-    String current(slot->m_statusLabel->GetText());
-    String typed(m_renameField->m_text.m_text);
-    if (current.Compare(typed) != 0 && typed.Length() != 0) {
+    std::string current = StringFromText(slot->m_statusLabel->GetText());
+    std::string typed(m_renameField->m_text.c_str());
+    if (CompareStrings(current, typed) != 0 && typed.size() != 0) {
         if (m_pendingRename == nullptr) {
             ObjectKey unset;
-            String name(typed.m_text);
+            std::string name(typed.c_str());
             ObjectKeyValueSet keys;
             ObjectKeyValueNode* node = NewOrNull<ObjectKeyValueNode>();
             node->m_key = slot->m_managerKey;
             keys.Add(node);
             UiHumanCommand(0x215, &keys, &unset, &name);
         } else {
-            m_pendingRename->m_text.Assign(typed);
+            m_pendingRename->m_text = typed;
             UiHumanReceiveMessage(reinterpret_cast<PlayerMessage*>(m_pendingRename), 0);
             m_pendingRename = nullptr;
         }

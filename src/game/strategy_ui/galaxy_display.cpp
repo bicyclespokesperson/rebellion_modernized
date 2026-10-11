@@ -1,3 +1,4 @@
+#include <string>
 #include <cstdint>
 #include <new>
 
@@ -122,9 +123,9 @@ uint16_t TitleStringId(int mode, int side) {
     }
 }
 
-String* NewTitle(const ResourceStringId* id) {
-    void* memory = ::operator new(sizeof(String));
-    return memory ? new (memory) String(id) : nullptr;
+std::string* NewTitle(const ResourceStringId* id) {
+    void* memory = ::operator new(sizeof(std::string));
+    return memory ? new (memory) std::string(LoadStringResource(id)) : nullptr;
 }
 
 void DeleteBitmap(DibBitmap* bitmap) {
@@ -223,7 +224,7 @@ void GalaxyWindow::SetDisplayMode(int mode, IdAvlTree* selection) {
         RedrawSectorMarkers(sector);
     }
 
-    String* title = nullptr;
+    const std::string* title = nullptr;
     if (overrideTitle.m_id != 0) {
         title = NewTitle(&overrideTitle);
     } else if (const uint16_t titleId = TitleStringId(mode, m_side)) {
@@ -236,7 +237,7 @@ void GalaxyWindow::SetDisplayMode(int mode, IdAvlTree* selection) {
         const int right = m_panelArea.right;
         label.MoveTo(left, m_panelArea.top);
         label.m_width = right - left;
-        label.SetText(title->m_text);
+        label.SetText(title->c_str());
         label.m_drawFlags = 1;
         label.m_layoutFlags = kLabelFixedWidth;
         label.SetColor(m_side != 1 ? kEmpireTitleColor : kAllianceTitleColor, nullptr);

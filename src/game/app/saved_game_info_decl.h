@@ -17,10 +17,10 @@ public:
     SavedGameInfo& operator=(const SavedGameInfo&);  // 0x411860
     void Read(istream* in);                // 0x411900
     void Write(ostream* out);              // 0x411970
-    void SetName(String name);             // 0x415890 (this module; the argument is passed by value)
-    String GetName() const;                // 0x408d90
+    void SetName(std::string name);             // 0x415890 (this module; the argument is passed by value)
+    std::string GetName() const;                // 0x408d90
 
-    String m_name;           // +0x04
+    std::string m_name;           // +0x04
     int m_unknown10;         // +0x10 stored by the application as m_unknown130 (1 in a freshly written header)
     int m_unknown14;         // +0x14
     int m_gameType;          // +0x18 RebellionApplication::m_gameType

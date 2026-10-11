@@ -31,14 +31,14 @@ constexpr uint32_t kReasonAutoscrap = 0x15;
 
 // ---- property setters: master view only -----------------------------------------------------------------------
 
-int GameObj::SetName(String* value, NotifyContext* ctx) {
+int GameObj::SetName(std::string* value, NotifyContext* ctx) {
     int result = IsMasterView();
     if (result) {
-        if (GetName()->Compare(*value) != 0) {
-            String oldName(*GetName());
+        if (CompareStrings(*GetName(), *value) != 0) {
+            std::string oldName(*GetName());
             result = InstallName();
             if (result) {
-                m_name->Assign(*value);
+                *m_name = *value;
                 ViewAs(kAllianceView)->ApplyName(ctx);
                 ViewAs(kEmpireView)->ApplyName(ctx);
                 OnNameChanged(&oldName, m_name, ctx);

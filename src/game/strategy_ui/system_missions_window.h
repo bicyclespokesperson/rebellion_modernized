@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "gameobj/object_key.h"
@@ -52,7 +53,7 @@ public:
     // Loads the tab pictures for the side of the selected mission and shows or hides the character list.
     void UpdateTabs();  // 0x4a0ca0
     // Adds one row to the character list: the picture and name of `object`, or a heading / blank row without one.
-    void AddCharacterRow(GameObjNotifier* object, int normal, String* heading);  // 0x4a0e10
+    void AddCharacterRow(GameObjNotifier* object, int normal, const std::string* heading);  // 0x4a0e10
     // Picture and name of the objective of the selected mission, drawn above the character list.
     void UpdateObjective();  // 0x4a10a0
     // Rebuilds the mission rows from the characters at the system; returns 0 when there is no system.

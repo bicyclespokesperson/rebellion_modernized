@@ -30,7 +30,7 @@ public:
     int Write(ostream* out);                   // 0x558990
     int Checksum(Crc32* crc);                  // 0x5589b0
     // Appends "Neutral  (L=Alliance,G=Empire  )"-style text (side names are padded to 8 characters). Returns 1.
-    int AppendDescription(String* out);        // 0x5589f0
+    int AppendDescription(std::string* out);        // 0x5589f0
 
     uint32_t Controller() const { return m_value & 3; }
     uint32_t Loyalty() const { return (m_value >> 2) & 3; }

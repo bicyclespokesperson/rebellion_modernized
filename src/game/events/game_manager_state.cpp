@@ -75,22 +75,22 @@ int WriteLegacyBlocks(ostream* out) {
 void ResetLegacyTexts() {
     g_legacyTextCount = 0;
     g_legacyTextExtra = 0;
-    for (String& text : g_legacyTexts) text.Clear();
+    for (std::string& text : g_legacyTexts) text.clear();
 }
 
 void ReadLegacyTexts(istream* in) {
     ReadValue32(in, &g_legacyTextCount);
     ReadValue32(in, &g_legacyTextExtra);
     // BUG(original): the saved count is not checked against the ten slots.
-    String* text = g_legacyTexts;
-    for (int i = 0; i < g_legacyTextCount; ++i, ++text) text->Read(in);
+    std::string* text = g_legacyTexts;
+    for (int i = 0; i < g_legacyTextCount; ++i, ++text) ReadLegacyString(in, *text);
 }
 
 void WriteLegacyTexts(ostream* out) {
     WriteValue32(out, &g_legacyTextCount);
     WriteValue32(out, &g_legacyTextExtra);
-    String* text = g_legacyTexts;
-    for (int i = 0; i < g_legacyTextCount; ++i, ++text) text->Write(out);
+    std::string* text = g_legacyTexts;
+    for (int i = 0; i < g_legacyTextCount; ++i, ++text) WriteLegacyString(out, *text);
 }
 
 

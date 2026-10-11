@@ -147,7 +147,7 @@ void Notice32::Virtual08(int kind, intptr_t a, intptr_t b) {
         if (text != 0 && m_unk40 != 0) {
             ExpandMessageTemplate(&m_text1, text, notice::nameOf(system), nullptr, nullptr, nullptr);
             if ((m_state.m_value & 0x10) != 0) {
-                String suffix(m_name.m_text);
+                std::string suffix(m_name.c_str());
                 m_text1 += suffix;
             }
         }

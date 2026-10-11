@@ -1,3 +1,4 @@
+#include <string>
 #include <cstdint>
 #include <new>
 
@@ -57,9 +58,9 @@ void DeleteBitmap(DibBitmap* bitmap) {
 }
 
 void InsertPictureItem(CoolListItemList* items, CoolListItem* item, const SideItem& entry, uint32_t victoryFlags,
-                       String* text) {
+                       std::string* text) {
     SetText(text, (victoryFlags & entry.m_victoryMask) == 0 ? entry.m_offStringId : entry.m_onStringId);
-    item->m_text = text->m_text;
+    item->m_text = text->c_str();
     items->Insert(item);
 }
 
@@ -77,7 +78,7 @@ DibBitmap* CenteredPicture(HMODULE module, uint32_t bitmapId, uint32_t bitmapKin
 }
 
 void AddCenteredItem(CoolListItemList* items, HMODULE module, const SideItem& entry, uint32_t bitmapKind, int width,
-                     int height, const uint8_t* fixedFillColor, uint32_t victoryFlags, String* text) {
+                     int height, const uint8_t* fixedFillColor, uint32_t victoryFlags, std::string* text) {
     DibBitmap* picture = CenteredPicture(module, entry.m_bitmapId, bitmapKind, width, height, fixedFillColor);
     CoolListItem* item = NewPictureItem(entry.m_itemId, picture);
     InsertPictureItem(items, item, entry, victoryFlags, text);
@@ -86,7 +87,7 @@ void AddCenteredItem(CoolListItemList* items, HMODULE module, const SideItem& en
 void FillSidePage(CoolListItemList* items, int side, const SideItem& first, const SideItem (&gated1)[2],
                   const SideItem& tail, uint32_t tailBitmapKind, const SideItem (&gated2)[2]) {
     GameObjNotifier* sideObject = GetSideObject(side, side);
-    String text;
+    std::string text;
     GameSettings settings;
     GetGameSettings(&settings);
     HMODULE module = CoolAppGetResourceModule(kSideIconsSlot);

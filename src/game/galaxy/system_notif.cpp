@@ -11,11 +11,11 @@ constexpr uint32_t kEmpireSide = 2;
 int System::OnLoyaltyNotified(int oldValue, int newValue, NotifyContext* ctx) {
     int result = IsSideView();
     if (result) {
-        String text;
-        const String delta("Delta=");
+        std::string text;
+        const std::string delta("Delta=");
         text += delta;
-        text.AppendSigned(newValue - oldValue);
-        LogInt("SystemLoyaltyNotif", "Loyalty", newValue, oldValue, reinterpret_cast<intptr_t>(text.m_text), ctx);
+        text.append(std::to_string(newValue - oldValue));
+        LogInt("SystemLoyaltyNotif", "Loyalty", newValue, oldValue, reinterpret_cast<intptr_t>(text.c_str()), ctx);
         int shownOld = oldValue;
         int shownNew = newValue;
         if (ViewSide() == kEmpireSide) {
@@ -138,11 +138,11 @@ int System::OnControlKindBattleReadyNotified(int oldValue, int newValue, NotifyC
 int System::OnControlDataNotified(const SideBits* oldValue, const SideBits* newValue, NotifyContext* ctx) {
     const int result = IsSideView();
     if (result) {
-        String newText;
-        String oldText;
+        std::string newText;
+        std::string oldText;
         const_cast<SideBits*>(newValue)->AppendDescription(&newText);
         const_cast<SideBits*>(oldValue)->AppendDescription(&oldText);
-        LogChange("(SystemControlDataNotif)", "ControlData", newText.m_text, oldText.m_text, nullptr, ctx);
+            LogChange("(SystemControlDataNotif)", "ControlData", newText.c_str(), oldText.c_str(), nullptr, ctx);
     }
     return result;
 }

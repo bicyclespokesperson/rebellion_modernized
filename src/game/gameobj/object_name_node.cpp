@@ -11,14 +11,14 @@ uint32_t RecordKeyValue(const DatRecord* record) {
 
 }  // namespace
 
-ObjectNameNode::ObjectNameNode() : IdNode(), m_key(), m_name() { m_nameValid = m_name.m_valid; }
+ObjectNameNode::ObjectNameNode() : IdNode(), m_key(), m_name() { m_nameValid = 1; }
 
 ObjectNameNode::~ObjectNameNode() = default;
 
 int ObjectNameNode::Load(DatRecord* record) {
     m_key.m_value = RecordKeyValue(record);
     const ResourceStringId nameId = {static_cast<int16_t>(record->m_small), static_cast<int16_t>(record->m_small2)};
-    const String name(&nameId);
-    m_name.Assign(name);
-    return m_name.m_valid;
+    const std::string name = LoadStringResource(&nameId);
+    (m_name = name);
+    return 1;
 }

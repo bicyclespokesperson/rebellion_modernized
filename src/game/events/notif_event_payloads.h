@@ -58,8 +58,8 @@ public:
     int ReadPayload(istream* in);    // 0x539630
     int WritePayload(ostream* out);  // 0x539660
 
-    String m_textA;  // +0x24
-    String m_textB;  // +0x30
+    std::string m_textA;  // +0x24
+    std::string m_textB;  // +0x30
 };
 
 // VT 0x661380: two 4-byte keys that start out as 0 and are saved the way an ObjectKey is.

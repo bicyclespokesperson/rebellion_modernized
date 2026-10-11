@@ -13,12 +13,12 @@ public:
     StringMap(const StringMap& other) = default;
     StringMap& operator=(const StringMap& other) = default;
 
-    int Add(const String* key, int value);
-    int Set(const String* key, int value);
-    int Find(const String* key, int* value) const;
-    int FindFloat(const String* key, float* value) const;
-    int FindInText(const String* text, int* value) const;
-    void LoadValues(const String* text);
+    int Add(const std::string* key, int value);
+    int Set(const std::string* key, int value);
+    int Find(const std::string* key, int* value) const;
+    int FindFloat(const std::string* key, float* value) const;
+    int FindInText(const std::string* text, int* value) const;
+    void LoadValues(const std::string* text);
     void Clear();
 
 private:

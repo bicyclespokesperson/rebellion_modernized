@@ -4,7 +4,7 @@
 
 MessageListItem::MessageListItem(MessageRecord* record) : CoolListItem(record->m_id) {
     m_record = record;
-    m_text = record->m_text0.m_text;
+    m_text = record->m_text0.c_str();
     m_visible = 1;
 }
 

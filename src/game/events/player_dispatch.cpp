@@ -162,7 +162,7 @@ void PlayerDispatch::AddNotice(UiNotice* notice) {
     case 5:
     case 8: {
         UiTextNotice* text = static_cast<UiTextNotice*>(notice);
-        if (!text->m_text0.m_text) {
+        if (!text->m_text0.c_str()[0]) {
             delete notice;
         } else {
             unsigned previous = GetStateValue(static_cast<int>(notice->m_categories));
@@ -248,16 +248,16 @@ void PlayerDispatch::OnChatMessage(MessageBase* message) {
     TextMessage* chat = nullptr;
     if (message && message->GetKind() == 0x11) chat = static_cast<TextMessage*>(message);
     if (chat->m_side == m_side) return;
-    Notice10* notice = NewOrNull<Notice10>(chat->m_text.m_text, m_side, 1);
+    Notice10* notice = NewOrNull<Notice10>(chat->m_text.c_str(), m_side, 1);
     if (notice->m_unk40 != 0) {
         notice->SetId(UiNextId());
         AddNotice(notice);
     }
 }
 
-void PlayerDispatch::QueueChat(String* text, int) {
+void PlayerDispatch::QueueChat(std::string* text, int) {
     MpChatMsg* message = NewOrNull<MpChatMsg>();
-    message->m_text.Assign(*text);
+    (message->m_text = *text);
     message->m_side = m_side;
     UiHumanReceiveMessage(reinterpret_cast<PlayerMessage*>(message), 0);
 }

@@ -12,7 +12,7 @@
 #include "ai/ai_system_record.h"
 #include "core/checked_new.h"
 #include "data/dat_record.h"
-#include "ai/ai_session_random.h"
+#include "data/random.h"
 #include "economy/side.h"
 #include "galaxy/sector.h"
 #include "galaxy/system.h"
@@ -206,7 +206,7 @@ int AiClassTable::ChooseFromSide(ObjectKey* out, GameObjNotifier* side, int reco
 
     if (mode == 0) {
         const int count = static_cast<int>(CountOf(list));
-        const int choice = SessionRandomNext(count);
+        const int choice = GameplayRandomNext(count);
         int index = 0;
         AvlNode* node = list.First();
         if (node) {

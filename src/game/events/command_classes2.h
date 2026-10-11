@@ -40,7 +40,7 @@ public:
     int CheckValid(StatusCode* status) override;  // 7: 0x5793c0
     int Execute() override;  // 8: 0x579490
     int GetKind() override { return 0x202; }  // 9: 0x53d000
-    String m_name;  // +0x50
+    std::string m_name;  // +0x50
 };
 
 // kind 0x200: scraps (destroys) the object its key names if the request allows it
@@ -145,7 +145,7 @@ public:
     int CheckValid(StatusCode* status) override;  // 7: 0x57e7a0
     int Execute() override;  // 8: 0x57e870
     int GetKind() override { return 0x215; }  // 9: 0x537c60
-    String m_name;  // +0x50
+    std::string m_name;  // +0x50
 };
 
 // kind 0x213: a command on a manufacturing manager (virtual slots 115/116/126)

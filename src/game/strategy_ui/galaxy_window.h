@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "core/containers.h"
@@ -212,7 +213,7 @@ public:
     void ForwardToType6Window(int a, int b);            // 0x42a700
     // The next four update the panel of the manufacturing manager's slot in the system window of its system.
     void OnManagerCharacterChanged(const ObjectKey* manager, const ObjectKey* character);  // 0x42a730
-    void OnManagerStatusTextChanged(const ObjectKey* manager, String* text);              // 0x42a7a0
+    void OnManagerStatusTextChanged(const ObjectKey* manager, std::string* text);              // 0x42a7a0
     void OnManagerProductionChanged(const ObjectKey* manager, int unused);                // 0x42a810
     void OnManagerProgressChanged(const ObjectKey* manager, int position);                // 0x42a890
     // Tell every open window that shows the parent of `object` (key `key`) about a change.

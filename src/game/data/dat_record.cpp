@@ -16,11 +16,11 @@ constexpr int16_t kIndefiniteArticleA = 0x4da1;
 constexpr int16_t kIndefiniteArticleAn = 0x4da2;
 constexpr int16_t kArticleGroup = 2;
 
-void appendWithArticle(String* out, const String& name) {
-    const ResourceStringId article = {name.StartsWithNonVowel() == 0 ? kIndefiniteArticleAn : kIndefiniteArticleA,
+void appendWithArticle(std::string* out, const std::string& name) {
+    const ResourceStringId article = {StartsWithNonVowel(name) == 0 ? kIndefiniteArticleAn : kIndefiniteArticleA,
                                       kArticleGroup};
     {
-        String articleText(&article);
+        std::string articleText = LoadStringResource(&article);
         *out += articleText;
     }
     *out += name;
@@ -34,7 +34,7 @@ DatRecord::DatRecord() : m_hasData(0), m_first(0), m_second(0), m_third(0), m_sm
 
 DatRecord::~DatRecord() = default;
 
-void DatRecord::WriteName(String* out, int kind) {
+void DatRecord::WriteName(std::string* out, int kind) {
     switch (kind) {
         case 1:
         case 2:
@@ -43,7 +43,7 @@ void DatRecord::WriteName(String* out, int kind) {
             break;
         case 0x20:
         case 0x21: {
-            const String name(m_name);
+            const std::string name(m_name);
             appendWithArticle(out, name);
             break;
         }
@@ -53,12 +53,12 @@ void DatRecord::WriteName(String* out, int kind) {
 }
 
 // The vtable slot at +0x1c is entered with `this` pointing at the ObjectBase subobject.
-void AppendRecordName(ObjectBase* source, String* out, int kind) {
+void AppendRecordName(ObjectBase* source, std::string* out, int kind) {
     static_cast<DatRecord*>(source)->DatRecord::WriteName(out, kind);
 }
 
-String* DatRecord::GetNameCopy(String* out) {
-    new (out) String(m_name);
+std::string* DatRecord::GetNameCopy(std::string* out) {
+    new (out) std::string(m_name);
     return out;
 }
 

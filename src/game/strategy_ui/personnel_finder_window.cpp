@@ -1,3 +1,4 @@
+#include <string>
 #include "strategy_ui/personnel_finder_window.h"
 
 #include <new>
@@ -76,14 +77,14 @@ bool FamilyIn(const ObjectKey& key, uint32_t first, uint32_t last) {
     return key.Family() >= first && key.Family() < last;
 }
 
-void AppendParenthesized(String* text, const String* inner) {
+void AppendParenthesized(std::string* text, const std::string* inner) {
     {
-        String open(g_detailOpenText);
+        std::string open = StringFromText(g_detailOpenText);
         *text += open;
     }
     *text += *inner;
     {
-        String close(g_detailCloseText);
+        std::string close = StringFromText(g_detailCloseText);
         *text += close;
     }
 }
@@ -347,7 +348,7 @@ void PersonnelFinderWindow::OnCreate1() {
             ObjectKey key;
             ObjectListItem* row = NewOrNull<ObjectListItem>(character->GetKey(&key));
             row->m_visible = 0;
-            row->m_text = character->m_record->m_name.m_text;
+            row->m_text = character->m_record->m_name.c_str();
             row->m_userData = static_cast<Character*>(character)->GetRecordSide();
             m_characterRows->Insert(row);
         }
@@ -411,8 +412,8 @@ void PersonnelFinderWindow::OnCommand(int, int command, int) {
             row->GetKey(&rowKey);
             GameObj* object = static_cast<GameObj*>(GetObjectInFamilies_01_ff(m_galaxy->m_side, &rowKey));
             if (object && (object->m_stateFlags & 0x40)) {
-                const String* name = FamilyIn(m_selected, 0x30, 0x3c) ? &object->m_record->m_name : object->GetName();
-                m_nameField->SetText(name->m_text);
+                const std::string* name = FamilyIn(m_selected, 0x30, 0x3c) ? &object->m_record->m_name : object->GetName();
+                m_nameField->SetText(name->c_str());
             }
         }
         break;
@@ -442,9 +443,9 @@ LRESULT PersonnelFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lP
     } else if (message == kFieldChangedMessage) {
         if (static_cast<int16_t>(wParam) != kNameFieldId) return 0;
         ObjectListItem* row = nullptr;
-        const String* typed = &m_nameField->m_text;
+        const std::string* typed = &m_nameField->m_text;
         CoolListItemList* rows = m_list->m_items;
-        if (typed->GetBufferSize() != 0) {
+        if (!typed->empty()) {
             const uint32_t id = m_list->SelectByPrefix(typed, 0, 0);
             row = static_cast<ObjectListItem*>(rows->FindById(id));
         }
@@ -481,7 +482,7 @@ void PersonnelFinderWindow::BuildList(CoolListItemList* rows, int) {
         auto addRow = [&](GameObj* object, const ObjectKey& key) {
             ObjectListItem* row = NewOrNull<ObjectListItem>(static_cast<uint32_t>(++rowCount), &key);
             row->m_state.m_value = kListItemDisabled;
-            row->m_text = object->GetName()->m_text;
+            row->m_text = object->GetName()->c_str();
             DibBitmap* picture = NewOrNull<DibBitmap>(static_cast<LONG>(0x15e), static_cast<LONG>(0x14),
                                                       GetPaintBackgroundIfOwned(), dc);
             picture->FillRect(0, 0, picture->Width(), picture->Height(), 0);
@@ -548,7 +549,7 @@ int PersonnelFinderWindow::DrawForceCounts(GameObj* object, int side, HDC dc) {
         cell.m_flags = 0;
     }
     CoolLabel label(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
-    String text;
+    std::string text;
     const uint32_t forceFamily = 0x3c000000;
     if (side == kAlliance) {
         cells[0].m_key.m_value = forceFamily | 4;
@@ -580,73 +581,73 @@ int PersonnelFinderWindow::DrawForceCounts(GameObj* object, int side, HDC dc) {
 }
 
 void PersonnelFinderWindow::DescribeCharacter(Character* character, ObjectListItem* row) {
-    String status;
+    std::string status;
     ObjectKey ownerKey;
-    String detail;
+    std::string detail;
     if (character->GetOwnerKey(&ownerKey)) {
         const ResourceStringId unknownLocation = StringId(0x1895);
-        status.SetFromResource(&unknownLocation);
+        status = LoadStringResource(&unknownLocation);
         row->m_visible = 1;
         if (character->m_stateFlags & kGameObjDestroyed) {
-            status.Clear();
+            status.clear();
             const uint32_t reason = character->m_packed & 0xff;
             const ResourceStringId text = StringId(reason >= 0x14 && reason <= 0x16 ? 0x8799 : 0x8798);
-            status.SetFromResource(&text);
+            status = LoadStringResource(&text);
         } else if (ownerKey.IsSet()) {
             const bool atSystemOrShip = FamilyIn(ownerKey, 0x90, 0x98) || FamilyIn(ownerKey, 0x14, 0x1c);
             if (atSystemOrShip) {
                 const ObjectKey location = character->m_missionKey;
-                status.Clear();
+                status.clear();
                 {
-                    String placeName(static_cast<GameObj*>(character->m_parent)->GetName()->m_text);
+                    std::string placeName(static_cast<GameObj*>(character->m_parent)->GetName()->c_str());
                     status += placeName;
                 }
                 bool nothingToSay = true;
                 if (character->m_flagsAc & kCharacterCaptured) {
                     const ResourceStringId text = StringId(0x8746);
-                    detail.SetFromResource(&text);
+                    detail = LoadStringResource(&text);
                     nothingToSay = false;
                 } else if (location.IsSet() && FamilyIn(location, 0x50, 0x80)) {
                     const ResourceStringId text = StringId(0x8745);
-                    detail.SetFromResource(&text);
+                    detail = LoadStringResource(&text);
                     nothingToSay = false;
                 }
                 if (character->m_injury != 0 && nothingToSay) {
                     const ResourceStringId text = StringId(0x8747);
-                    detail.SetFromResource(&text);
+                    detail = LoadStringResource(&text);
                     nothingToSay = false;
                 }
                 if ((character->m_stateFlags & kGameObjEnroute) && nothingToSay) {
                     const ResourceStringId text = StringId(0x8744);
-                    detail.SetFromResource(&text);
+                    detail = LoadStringResource(&text);
                 }
-                if (detail.Length() != 0) AppendParenthesized(&status, &detail);
+                if (detail.size() != 0) AppendParenthesized(&status, &detail);
                 if (character->m_commandKind != 0) {
-                    detail.Clear();
+                    detail.clear();
                     switch (character->m_commandKind) {
                     case 1: {
                         const ResourceStringId text = StringId(0x8802);
-                        detail.SetFromResource(&text);
+                        detail = LoadStringResource(&text);
                         break;
                     }
                     case 2: {
                         const ResourceStringId text = StringId(0x8801);
-                        detail.SetFromResource(&text);
+                        detail = LoadStringResource(&text);
                         break;
                     }
                     case 3: {
                         const ResourceStringId text = StringId(0x8800);
-                        detail.SetFromResource(&text);
+                        detail = LoadStringResource(&text);
                         break;
                     }
                     }
-                    if (detail.Length() != 0) AppendParenthesized(&status, &detail);
+                    if (detail.size() != 0) AppendParenthesized(&status, &detail);
                 }
                 row->m_visible = 1;
             } else if (FamilyIn(ownerKey, 0x98, 0xa0)) {
-                status.Clear();
+                status.clear();
                 {
-                    String placeName(static_cast<GameObj*>(character->m_parent)->GetName()->m_text);
+                    std::string placeName(static_cast<GameObj*>(character->m_parent)->GetName()->c_str());
                     status += placeName;
                 }
                 row->m_visible = 1;
@@ -654,14 +655,14 @@ void PersonnelFinderWindow::DescribeCharacter(Character* character, ObjectListIt
         }
     }
     if (row->m_visible != 0) {
-        String line;
-        String prefix;
-        line = character->m_record->m_name.m_text;
+        std::string line;
+        std::string prefix;
+        line = character->m_record->m_name.c_str();
         const ResourceStringId separator = StringId(0x1897);
-        prefix.SetFromResource(&separator);
+        prefix = LoadStringResource(&separator);
         line += prefix;
         line += status;
-        row->m_text = line.m_text;
+        row->m_text = line.c_str();
     }
 }
 

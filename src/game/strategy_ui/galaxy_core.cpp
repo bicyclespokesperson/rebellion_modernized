@@ -1,3 +1,4 @@
+#include <string>
 #include "data/sd_records.h"
 #include <cstdint>
 #include <new>
@@ -89,18 +90,18 @@ bool IsListedRecord(const ObjectKey* key) {
     return listed;
 }
 
-ObjectListItem* NewEncyclopediaItem(uint32_t id, const ObjectKey* key, const String& title) {
+ObjectListItem* NewEncyclopediaItem(uint32_t id, const ObjectKey* key, const std::string& title) {
     void* memory = ::operator new(sizeof(ObjectListItem));
     ObjectListItem* item = memory ? new (memory) ObjectListItem(id, key) : nullptr;
-    item->m_text = title.m_text;
+    item->m_text = title.c_str();
     return item;
 }
 
-void LoadEncyclopediaTitle(String* title, uint32_t recordBits) {
-    title->Clear();
+void LoadEncyclopediaTitle(std::string* title, uint32_t recordBits) {
+    title->clear();
     const ResourceStringId resource{static_cast<int16_t>(static_cast<int16_t>(recordBits) - kEncyclopediaTitleBias),
                                     static_cast<int16_t>(recordBits >> 16)};
-    title->SetFromResource(&resource);
+    *(title) = LoadStringResource(&resource);
 }
 
 }  // namespace
@@ -274,8 +275,8 @@ int GalaxyWindow::FindMinimizedSlot(uint32_t childId) {
 void GalaxyWindow::SetResourceCounter(int counter, int value, int unused) {
     (void)unused;
     CoolLabel* label = nullptr;
-    String text;
-    text.AppendSigned(value);
+    std::string text;
+    text.append(std::to_string(static_cast<long>(value)));
     if (counter == kGalaxyRawMaterials) {
         label = &m_resourceLabels[0];
     } else if (counter == kGalaxyRefinedMaterials) {
@@ -284,12 +285,12 @@ void GalaxyWindow::SetResourceCounter(int counter, int value, int unused) {
         label = &m_resourceLabels[2];
         if (value > 99999) {
             const ResourceStringId overflow{0x1302, 2};
-            text.SetFromResource(&overflow);
+            text = LoadStringResource(&overflow);
         }
     }
     if (label) {
         HDC dc = GetDC(m_hwnd);
-        label->ReplaceText(m_hwnd, dc, text.m_text);
+        label->ReplaceText(m_hwnd, dc, text.c_str());
         ReleaseDC(m_hwnd, dc);
     }
 }
@@ -323,9 +324,9 @@ void GalaxyWindow::InitializeGameDisplay() {
             const uint32_t recordBits = RecordNameBits(record);
             const uint32_t itemId = (recordBits & kEncyclopediaIdMask) + kEncyclopediaIdBase;
             if (m_encyclopediaItems->FindById(itemId)) continue;
-            String title;
+            std::string title;
             LoadEncyclopediaTitle(&title, recordBits);
-            if (title.Length() == 0) title.Assign(record->m_name);
+            if (title.size() == 0) title = record->m_name;
             ObjectKey itemKey;
             itemKey.m_value = (recordKey->Family() << 24) | (itemKey.m_value & 0xffffff);
             m_encyclopediaItems->Insert(NewEncyclopediaItem(itemId, &itemKey, title));
@@ -336,9 +337,9 @@ void GalaxyWindow::InitializeGameDisplay() {
             const uint32_t recordBits = RecordNameBits(system->m_record);
             const uint32_t itemId = (recordBits & kEncyclopediaIdMask) + kEncyclopediaIdBase;
             if (m_encyclopediaItems->FindById(itemId)) continue;
-            String title;
+            std::string title;
             LoadEncyclopediaTitle(&title, recordBits);
-            if (title.Length() == 0) title.Assign(*static_cast<GameObj*>(system)->GetName());
+            if (title.size() == 0) title = *static_cast<GameObj*>(system)->GetName();
             ObjectKey itemKey;
             GetObjectKey(system, &itemKey);
             m_encyclopediaItems->Insert(NewEncyclopediaItem(itemId, &itemKey, title));

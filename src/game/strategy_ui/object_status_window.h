@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "core/containers.h"
@@ -48,7 +49,7 @@ public:
     void AddAttachedRows(int row, CoolListItemList* labels, CoolListItemList* values);        // 0x44a2e0
     // "Status:" and the object's state (strings 0x28744 busy, 0x28763, 0x28757).
     void AddStatusRows(int row, CoolListItemList* labels, CoolListItemList* values);          // 0x44a470
-    // String 0x28651 and the record's field 0x4c (fighters/troops/capital ships) or 0.
+    // std::string 0x28651 and the record's field 0x4c (fighters/troops/capital ships) or 0.
     void AddCombatValueRow(int row, CoolListItemList* labels, CoolListItemList* values);      // 0x44a620
     // Counts the units of the window's side that start at `first` and follow it in key order within `range` into
     // `tally` (cleared first; one StatusTallyNode per record id, only units whose control side is the side of the
@@ -86,7 +87,7 @@ public:
 };
 
 // A row of the status table: item `id` with `text`, inserted in `list`. Callee pops its arguments.
-void AddStatusRow(uint32_t id, String* text, CoolListItemList* list);  // 0x44b1d0
+void AddStatusRow(uint32_t id, const std::string* text, CoolListItemList* list);  // 0x44b1d0
 
 // Places the label items of `labels` (left column) and `values` (right column at x = 0x67) one row per pair,
 // each row as high as the taller of the two (measured in `dc`); returns the total height.

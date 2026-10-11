@@ -37,11 +37,11 @@ int GameObj::ApplyName(NotifyContext* ctx) {
     if (result) {
         GameObj* master = ViewAs(kMasterView);
         if (MatchesSideMask(ctx->m_flag08)) {
-            if (GetName()->Compare(*master->GetName()) != 0) {
-                String oldName(*GetName());
+            if (CompareStrings(*GetName(), *master->GetName()) != 0) {
+                std::string oldName(*GetName());
                 result = InstallName();
                 if (result) {
-                    m_name->Assign(*master->GetName());
+                    *m_name = *master->GetName();
                     if (wantsNotification(this, ctx)) result = OnNameNotified(&oldName, GetName(), ctx);
                 }
             }
@@ -382,10 +382,10 @@ int GameObj::AdoptChild(GameObjNotifier* child, NotifyContext* ctx) {
 int GameObj::InstallName() {
     int result = 1;
     if (!m_name) {
-        m_name = new String();
+        m_name = new std::string();
         result = 0;
         if (m_name) {
-            result = m_name->m_valid;
+            result = 1;
             if (result == 0) {
                 delete m_name;
                 m_name = nullptr;

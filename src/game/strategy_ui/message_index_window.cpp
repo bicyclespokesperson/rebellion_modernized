@@ -1,3 +1,4 @@
+#include <string>
 #include "strategy_ui/message_index_window.h"
 
 #include <new>
@@ -425,7 +426,7 @@ void MessageIndexWindow::DrawOverlay(HDC dc) {
         m_title.m_drawFlags = 0;
         m_title.MoveTo(0x28, 0xd);
         m_title.SetFont(4);
-        m_title.SetText(m_current->m_text.m_text);
+        m_title.SetText(m_current->m_text.c_str());
         m_title.Draw(dc);
         return;
     } else if (m_mode == kIndexModeCompose) {
@@ -750,11 +751,11 @@ int MessageIndexWindow::SetMode(int request) {
         SetButtonPictures(decline, 0x2aba, 0x2abb);
         decline->Show(kShow);
         children->FindById(kSendButtonId)->Hide();
-        String empty;
+        std::string empty;
         if ((m_text->m_state & kTextEditable) == 0) m_text->SetEditable(1);
         m_text->m_lineWidth = 0x140;
         m_text->m_leftMargin = 0;
-        m_text->m_text.Assign(empty);
+        m_text->m_text = empty;
         m_text->m_caret.m_index = 0;
         m_text->Reset();
         m_text->Show(kShow);
@@ -914,8 +915,8 @@ void MessageIndexWindow::ShowMessage(MessageListItem* item) {
         PostCloseRequest();
         return;
     }
-    String text(record->m_text1);
-    m_text->m_text.Assign(text);
+    std::string text(record->m_text1);
+    m_text->m_text = text;
     m_text->m_caret.m_index = 0;
     m_text->Reset();
     m_text->Show(kShow);
@@ -1163,8 +1164,8 @@ void MessageIndexWindow::OnCommand(int a, int b, int c) {
     case 0x98:
         if (m_mode != kIndexModeMessage) {
             if (m_mode != kIndexModeCompose) return;
-            if (m_text->m_text.GetBufferSize() == 0) return;
-            String message(m_text->m_text);
+            if (m_text->m_text.empty()) return;
+            std::string message(m_text->m_text);
             UiQueueHumanPopup(reinterpret_cast<intptr_t>(&message), 1);
             OnCommand(kBackButtonId, 0, 0);
             SetFocus(m_text->m_hwnd);

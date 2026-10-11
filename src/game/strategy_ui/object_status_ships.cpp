@@ -1,3 +1,4 @@
+#include <string>
 #include <cstdint>
 
 #include "character/character.h"
@@ -19,20 +20,20 @@ uint32_t LeftOfGrid(CapShip* ship, uint32_t a, uint32_t b) {
     return total - lost;
 }
 
-void AddGridRow(String* text, uint16_t labelId, int row, CapShip* ship, uint32_t a, uint32_t b, CoolListItemList* labels,
+void AddGridRow(std::string* text, uint16_t labelId, int row, CapShip* ship, uint32_t a, uint32_t b, CoolListItemList* labels,
                 CoolListItemList* values) {
     AddLabelRow(text, labelId, row, labels);
-    text->AppendUnsigned(LeftOfGrid(ship, a, b));
+    text->append(std::to_string(static_cast<unsigned long>(LeftOfGrid(ship, a, b))));
     AddStatusRow(row, text, values);
 }
 
-void AddEmptyRow(String* text, uint16_t labelId, int row, CoolListItemList* labels, CoolListItemList* values) {
+void AddEmptyRow(std::string* text, uint16_t labelId, int row, CoolListItemList* labels, CoolListItemList* values) {
     AddLabelRow(text, labelId, row, labels);
     Append(text, g_emptyText);
     AddStatusRow(row, text, values);
 }
 
-void AddGridGroup(String* text, int firstRow, CapShip* ship, uint32_t a, CoolListItemList* labels,
+void AddGridGroup(std::string* text, int firstRow, CapShip* ship, uint32_t a, CoolListItemList* labels,
                   CoolListItemList* values) {
     AddGridRow(text, 0x8718, firstRow, ship, a, 0, labels, values);
     AddGridRow(text, 0x8661, firstRow + 1, ship, a, 1, labels, values);
@@ -42,61 +43,61 @@ void AddGridGroup(String* text, int firstRow, CapShip* ship, uint32_t a, CoolLis
 }  // namespace
 
 void ObjectStatusWindow::FillCapitalShipPage(CoolListItemList* labels, CoolListItemList* values) {
-    String text;
+    std::string text;
     SetText(&text, 0x8702);
-    m_titleLabel.SetText(text.m_text);
-    String unusedText;
+    m_titleLabel.SetText(text.c_str());
+    std::string unusedText;
     CapShip* ship = static_cast<CapShip*>(m_object);
     AddNameRow(1, labels, values);
 
-    text.Clear();
+    text.clear();
     SetText(&text, 0x8803);
     AddStatusRow(2, &text, labels);
-    text.Clear();
+    text.clear();
     {
-        String recordName;
+        std::string recordName;
         ship->m_record->GetNameCopy(&recordName);
-        Append(&text, recordName.m_text);
+        Append(&text, recordName.c_str());
     }
     AddStatusRow(2, &text, values);
-    text.Clear();
+    text.clear();
     SetText(&text, 0x8703);
     AddStatusRow(3, &text, labels);
-    text.Clear();
-    Append(&text, static_cast<GameObj*>(static_cast<GameObjRoot*>(m_object)->m_parent)->GetName()->m_text);
+    text.clear();
+    Append(&text, static_cast<GameObj*>(static_cast<GameObjRoot*>(m_object)->m_parent)->GetName()->c_str());
     AddStatusRow(3, &text, values);
 
     SetText(&text, 0x8666);
     AddStatusRow(4, &text, labels);
-    text.Clear();
+    text.clear();
     const uint32_t state = ship->m_stateFlags;
     SetText(&text, (state & 0x10) != 0 ? 0x8744 : ((state & 4) != 0 ? 0x8748 : 0x8757));
     AddStatusRow(4, &text, values);
     const int row = AddRuleValueRows(&text, m_object, 5, labels, values);
 
     AddLabelRow(&text, 0x8651, row + 1, labels);
-    text.AppendUnsigned(ship->GetRecordField4c());
+    text.append(std::to_string(static_cast<unsigned long>(ship->GetRecordField4c())));
     AddStatusRow(row + 1, &text, values);
     AddEmptyRow(&text, 0x8704, row + 2, labels, values);
 
     AddLabelRow(&text, 0x8699, row + 3, labels);
-    text.AppendUnsigned(ship->GetFighterCapacity());
+    text.append(std::to_string(static_cast<unsigned long>(ship->GetFighterCapacity())));
     AddStatusRow(row + 3, &text, values);
     AddLabelRow(&text, 0x8705, row + 4, labels);
-    text.AppendUnsigned(ship->GetTroopCapacity());
+    text.append(std::to_string(static_cast<unsigned long>(ship->GetTroopCapacity())));
     AddStatusRow(row + 4, &text, values);
     AddEmptyRow(&text, 0x8706, row + 5, labels, values);
     AddLabelRow(&text, 0x8699, row + 6, labels);
-    text.AppendUnsigned(ship->CountFighterSquadrons());
+    text.append(std::to_string(static_cast<unsigned long>(ship->CountFighterSquadrons())));
     AddStatusRow(row + 6, &text, values);
     AddLabelRow(&text, 0x8705, row + 7, labels);
-    text.AppendUnsigned(ship->CountTroopRegiments());
+    text.append(std::to_string(static_cast<unsigned long>(ship->CountTroopRegiments())));
     AddStatusRow(row + 7, &text, values);
 
     AddLabelRow(&text, 0x8707, row + 8, labels);
     {
         CharacterIterator characters(ship, 3);
-        text.AppendSigned(characters.Count());
+        text.append(std::to_string(static_cast<long>(characters.Count())));
         AddStatusRow(row + 8, &text, values);
     }
     AddLabelRow(&text, 0x8708, row + 9, labels);
@@ -113,9 +114,9 @@ void ObjectStatusWindow::FillCapitalShipPage(CoolListItemList* labels, CoolListI
             const int total70 = ship->GetField70();
             left = total70 - lost70;
         }
-        text.AppendUnsigned(left);
+        text.append(std::to_string(static_cast<unsigned long>(left)));
         Append(&text, g_statusSeparator);
-        text.AppendSigned(ship->GetField6c());
+        text.append(std::to_string(static_cast<long>(ship->GetField6c())));
     }
     AddStatusRow(row + 10, &text, values);
 
@@ -131,7 +132,7 @@ void ObjectStatusWindow::FillCapitalShipPage(CoolListItemList* labels, CoolListI
     {
         const uint32_t lost = ship->GetDamageControlLoss();
         const uint32_t control = ship->GetDamageControl();
-        text.AppendUnsigned(control - lost);
+        text.append(std::to_string(static_cast<unsigned long>(control - lost)));
     }
     AddStatusRow(row + 12, &text, values);
 
@@ -144,7 +145,7 @@ void ObjectStatusWindow::FillCapitalShipPage(CoolListItemList* labels, CoolListI
     AddStatusRow(row + 13, &text, values);
 
     AddLabelRow(&text, 0x8654, row + 14, labels);
-    text.AppendUnsigned(ship->GetField60());
+    text.append(std::to_string(static_cast<unsigned long>(ship->GetField60())));
     AddStatusRow(row + 14, &text, values);
 
     AddLabelRow(&text, 0x8713, row + 15, labels);
@@ -167,7 +168,7 @@ void ObjectStatusWindow::FillCapitalShipPage(CoolListItemList* labels, CoolListI
     {
         const uint32_t lost = ship->GetDamageField68();
         const uint32_t total = ship->GetField68();
-        text.AppendUnsigned(total - lost);
+        text.append(std::to_string(static_cast<unsigned long>(total - lost)));
     }
     AddStatusRow(row + 17, &text, values);
 
@@ -175,7 +176,7 @@ void ObjectStatusWindow::FillCapitalShipPage(CoolListItemList* labels, CoolListI
     {
         const uint32_t first = ship->GetRecordField5c();
         const uint32_t second = ship->Virtual115();
-        text.AppendUnsigned(first - second);
+        text.append(std::to_string(static_cast<unsigned long>(first - second)));
     }
     AddStatusRow(row + 18, &text, values);
 
@@ -191,7 +192,7 @@ void ObjectStatusWindow::FillCapitalShipPage(CoolListItemList* labels, CoolListI
     {
         const uint32_t lost = ship->GetBombardmentModifierLoss();
         const uint32_t modifier = ship->GetBombardmentModifier();
-        text.AppendUnsigned(modifier - lost);
+        text.append(std::to_string(static_cast<unsigned long>(modifier - lost)));
     }
     AddStatusRow(row + 20, &text, values);
 

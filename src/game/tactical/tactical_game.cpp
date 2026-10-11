@@ -106,11 +106,11 @@ TacticalGame::TacticalGame() {
     m_firstFrame = 1;
     m_outcome = BattleOutcome();
     m_abstract = 0;
-    for (int i = 0; i < 38; ++i) m_shipTypeNames[i].Assign(String(kShipTypeNames[i]));
-    for (int i = 0; i < 12; ++i) m_stateNames[i].Assign(String(kStateNames[i]));
+    for (int i = 0; i < 38; ++i) (m_shipTypeNames[i] = std::string(kShipTypeNames[i]));
+    for (int i = 0; i < 12; ++i) (m_stateNames[i] = std::string(kStateNames[i]));
     for (const TypeMapEntry& entry : kTypeMapEntries) insertTypeMapEntry(&m_typeMap, entry);
-    String unusedLongList[0x80];
-    String unusedShortList[0x26];
+    std::string unusedLongList[0x80];
+    std::string unusedShortList[0x26];
     for (const SpriteIdEntry& entry : kSpriteIds) m_spriteIds[entry.m_index] = entry.m_value;
 }
 
@@ -191,7 +191,7 @@ void TacticalGame::CallClientSlot1() {
 #endif
 }
 
-int TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name, float sideAValue,
+int TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAlliance, int systemField44, std::string name, float sideAValue,
                               float sideBValue, int sideAC, int sideBC, GameTime timeA, GameTime timeB,
                               int battleKindNotAlliance, int systemFlag8, int controlIsEmpire, int controlIsAlliance,
                               int abstractFlag) {
@@ -232,7 +232,7 @@ int TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAlliance, int syst
     return 1;
 }
 
-int TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name, float sideAValue,
+int TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAlliance, int systemField44, std::string name, float sideAValue,
                                    float sideBValue, int sideAC, int sideBC, int battleKindNotAlliance,
                                    int systemFlag8, int controlIsEmpire, int controlIsAlliance, int abstractFlag) {
     self->DestroySimulator();

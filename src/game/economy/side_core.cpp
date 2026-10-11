@@ -414,7 +414,7 @@ int SideNumberFromKey(const ObjectKey* key) {
     return 2;
 }
 
-int FormatVictoryConditions(uint32_t conditions, String* out) {
+int FormatVictoryConditions(uint32_t conditions, std::string* out) {
     struct Entry {
         uint32_t bit;
         const char* name;
@@ -422,9 +422,9 @@ int FormatVictoryConditions(uint32_t conditions, String* out) {
     static const Entry entries[] = {{0x1, "AD "},      {0x10, "LC "},     {0x20, "MC "},      {0x100, "CA "},
                                     {0x200, "CD "},    {0x1000, "DC "},   {0x2000, "EC "},    {0x100000, "EW "},
                                     {0x1000000, "AW "}, {0x10000000, "GO "}};
-    out->Assign(String(""));
+    out->clear();
     for (const Entry& entry : entries) {
-        const String text((conditions & entry.bit) ? entry.name : "   ");
+        const std::string text((conditions & entry.bit) ? entry.name : "   ");
         *out += text;
     }
     return 1;
@@ -478,23 +478,23 @@ constexpr int kArticleAResource = 0x4da2;
 }  // namespace
 
 // The standalone's own vtables reach the free function through the override; the hybrid's original vtables point at it directly.
-void Side::WriteName(String* out, int kind) { AppendSideName(this, out, kind); }
+void Side::WriteName(std::string* out, int kind) { AppendSideName(this, out, kind); }
 
-void AppendSideName(ObjectBase* base, String* out, int kind) {
+void AppendSideName(ObjectBase* base, std::string* out, int kind) {
     const int baseResource = nameResourceFor(kind);
     if (baseResource == 0) return;
     const uint32_t flags = static_cast<GameObj*>(base)->m_flags;
     const int resource = baseResource + ((flags & kControlSideMask) == kAllianceControl ? 0 : 1);
-    String name;
+    std::string name;
     if (kind != 0x20 && kind != 0x21) {
         ResourceStringId id{static_cast<int16_t>(resource), 2};
-        *out += String(&id);
+        *out += LoadStringResource(&id);
         return;
     }
     ResourceStringId nameId{static_cast<int16_t>(resource), 2};
-    name.Assign(String(&nameId));
-    const int article = name.StartsWithNonVowel() == 0 ? kArticleAResource : kArticleAnResource;
+    (name = LoadStringResource(&nameId));
+    const int article = StartsWithNonVowel(name) == 0 ? kArticleAResource : kArticleAnResource;
     ResourceStringId articleId{static_cast<int16_t>(article), 2};
-    *out += String(&articleId);
+    *out += LoadStringResource(&articleId);
     *out += name;
 }

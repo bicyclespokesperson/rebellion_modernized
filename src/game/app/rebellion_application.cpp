@@ -115,11 +115,11 @@ void RestoreCursorVisibility() {
     }
 }
 
-String BuildGameRegistryKey() {
-    String key;
-    String game(kGameName);
-    String separator(kBackslash);
-    String company(kCompanyKey);
+std::string BuildGameRegistryKey() {
+    std::string key;
+    std::string game(kGameName);
+    std::string separator(kBackslash);
+    std::string company(kCompanyKey);
     key += company;
     key += separator;
     key += game;
@@ -132,7 +132,7 @@ HACCEL AcceleratorTableOf(RebellionApplication* app) {
 
 }  // namespace
 
-RebellionApplication::RebellionApplication(HINSTANCE instance, uint32_t commandLineFlags, const String* commandLine,
+RebellionApplication::RebellionApplication(HINSTANCE instance, uint32_t commandLineFlags, const std::string* commandLine,
                                            DirectDrawHost& display, reb::native::GameContext& context, UiResources& resources)
     : CoolApp(instance, g_appClassName, WindowStyle(commandLineFlags), 0, 0, WindowWidth(commandLineFlags),
               WindowHeight(commandLineFlags), nullptr, static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)),
@@ -148,7 +148,7 @@ RebellionApplication::RebellionApplication(HINSTANCE instance, uint32_t commandL
         "DupeReceivePercent",    "DupeSendPercent",       "UseWaitForSingleObject",
     };
     for (const char* name : kNetworkSettingNames) {
-        const String key(name);
+        const std::string key(name);
         m_networkSettings.Add(&key, 0);
     }
     m_networkSettings.LoadValues(commandLine);
@@ -309,8 +309,8 @@ LRESULT RebellionApplication::OnCreate() {
     m_display.Initialize(m_hwnd, 1);
     if (m_commandLineFlags & kAppWindowed) m_display.SetNormalMode(0);
     const ResourceStringId titleId = {0x1000, g_resourceStringGroup};
-    const String title(&titleId);
-    SetWindowTitle(title.m_text);
+    const std::string title = LoadStringResource(&titleId);
+    SetWindowTitle(title.c_str());
     void* memory = operator new(sizeof(VideoManager));
     VideoManager* videoManager = memory ? new (memory) VideoManager(this) : nullptr;
     if (!videoManager) ShowErrorMessage(g_introMusicFailedText, g_soundManagerCaption);
@@ -593,7 +593,7 @@ int RunApplication(reb::native::GameContext& context, HINSTANCE instance, HINSTA
         CommCleanUp();
         return 0;
     }
-    const String line(commandLine);
+    const std::string line = StringFromText(commandLine);
     RebellionApplication* app = &context.CreateApplication(instance, flags, line);
     app->SetScreenSize(kScreenWidth, kScreenHeight);
 #ifdef REB_STANDALONE
@@ -610,8 +610,8 @@ int RunApplication(reb::native::GameContext& context, HINSTANCE instance, HINSTA
 }
 
 void ChangeToInstalledLocation() {
-    const String key = BuildGameRegistryKey();
-    char* installed = reinterpret_cast<char*>(ReadRegistryValue(key.m_text, g_installedLocationName));
+    const std::string key = BuildGameRegistryKey();
+    char* installed = reinterpret_cast<char*>(ReadRegistryValue(key.c_str(), g_installedLocationName));
     if (!installed) return;
     const int drive = toupper(static_cast<unsigned char>(*installed));
     if (static_cast<unsigned>(drive - 0x40) > 1) _chdrive(drive - 0x40);
@@ -621,21 +621,21 @@ void ChangeToInstalledLocation() {
 
 int InstalledLocationHasBigData() {
     int found = 0;
-    const String key = BuildGameRegistryKey();
-    char* tooBig = reinterpret_cast<char*>(ReadRegistryValue(key.m_text, g_tooBigLocationName));
+    const std::string key = BuildGameRegistryKey();
+    char* tooBig = reinterpret_cast<char*>(ReadRegistryValue(key.c_str(), g_tooBigLocationName));
     if (!tooBig) return found;
     char drive[0x104] = {};
     strncpy(drive, tooBig, 3);
     if (GetDriveTypeA(drive) == DRIVE_FIXED) {
-        String path;
-        const String dataFile("MDATA\\MDATA.000");
-        const String separator(kBackslash);
-        const String base(tooBig);
+        std::string path;
+        const std::string dataFile("MDATA\\MDATA.000");
+        const std::string separator(kBackslash);
+        const std::string base = StringFromText(tooBig);
         path += base;
         path += separator;
         path += dataFile;
         WIN32_FIND_DATAA findData;
-        HANDLE handle = FindFirstFileA(path.m_text, &findData);
+        HANDLE handle = FindFirstFileA(path.c_str(), &findData);
         found = handle != INVALID_HANDLE_VALUE;
         if (found) FindClose(handle);
     }

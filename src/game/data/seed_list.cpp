@@ -150,16 +150,16 @@ SeedListFile* SeedListFileTree::FindByFamily(uint32_t family) {
 
 // ---- RecordNameNode ----------------------------------------------------------------------------------------
 
-RecordNameNode::RecordNameNode() : m_key(0) { m_ready = m_name.m_valid; }
+RecordNameNode::RecordNameNode() : m_key(0) { m_ready = 1; }
 
 RecordNameNode::~RecordNameNode() = default;
 
 int RecordNameNode::SetFromRecord(DatRecord* record) {
     m_key = (record->m_third << 24) | (record->m_id & 0xffffff);
     const ResourceStringId nameId = {static_cast<int16_t>(record->m_small), static_cast<int16_t>(record->m_small2)};
-    const String name(&nameId);
-    m_name.Assign(name);
-    return m_name.m_valid;
+    const std::string name = LoadStringResource(&nameId);
+    (m_name = name);
+    return 1;
 }
 
 // ---- SeedKeyCountNode --------------------------------------------------------------------------------------

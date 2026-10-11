@@ -101,7 +101,7 @@ public:
     int CheckCommand(StatusCode* status) override;      // 0x520550
     int CheckDestination(StatusCode* status) override;  // 0x520560
 
-    String m_text;  // +0x44
+    std::string m_text;  // +0x44
 };
 
 // Table of the order factories, filled by RegisterOrderFactories (0x51f4b0).

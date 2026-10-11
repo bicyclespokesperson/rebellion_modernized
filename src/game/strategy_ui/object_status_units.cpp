@@ -1,3 +1,4 @@
+#include <string>
 #include <cstdint>
 
 #include "ai/ai_common.h"
@@ -23,9 +24,9 @@ using namespace status_page;
 
 
 void ObjectStatusWindow::FillFighterSquadronPage(CoolListItemList* labels, CoolListItemList* values) {
-    String text;
+    std::string text;
     SetText(&text, 0x8650);
-    m_titleLabel.SetText(text.m_text);
+    m_titleLabel.SetText(text.c_str());
     AddNameRow(1, labels, values);
     int row = 2;
     AddAttachedRows(2, labels, values);
@@ -34,7 +35,7 @@ void ObjectStatusWindow::FillFighterSquadronPage(CoolListItemList* labels, CoolL
 
     FightSquad* squad = static_cast<FightSquad*>(m_object);
     AddLabelRow(&text, 0x8651, row + 1, labels);
-    text.AppendUnsigned(squad->GetRecordField4c());
+    text.append(std::to_string(static_cast<unsigned long>(squad->GetRecordField4c())));
     AddStatusRow(row + 1, &text, values);
 
     AddLabelRow(&text, 0x8652, row + 2, labels);
@@ -49,7 +50,7 @@ void ObjectStatusWindow::FillFighterSquadronPage(CoolListItemList* labels, CoolL
     {
         const uint32_t lost = squad->GetDamageField6c();
         const uint32_t total = squad->GetField6c();
-        text.AppendSigned(total - lost);
+        text.append(std::to_string(static_cast<long>(total - lost)));
     }
     AddStatusRow(row + 3, &text, values);
 
@@ -65,7 +66,7 @@ void ObjectStatusWindow::FillFighterSquadronPage(CoolListItemList* labels, CoolL
     {
         const uint32_t lost = squad->GetDamageField64();
         const uint32_t total = squad->GetField64();
-        text.AppendUnsigned(total - lost);
+        text.append(std::to_string(static_cast<unsigned long>(total - lost)));
     }
     AddStatusRow(row + 5, &text, values);
 
@@ -73,7 +74,7 @@ void ObjectStatusWindow::FillFighterSquadronPage(CoolListItemList* labels, CoolL
     {
         const uint32_t lost = squad->GetDamageField68();
         const uint32_t total = squad->GetField68();
-        text.AppendSigned(total - lost);
+        text.append(std::to_string(static_cast<long>(total - lost)));
     }
     AddStatusRow(row + 6, &text, values);
 
@@ -81,7 +82,7 @@ void ObjectStatusWindow::FillFighterSquadronPage(CoolListItemList* labels, CoolL
     {
         const uint32_t first = squad->GetRecordField5c();
         const uint32_t second = squad->Virtual115();
-        text.AppendUnsigned(first - second);
+        text.append(std::to_string(static_cast<unsigned long>(first - second)));
     }
     AddStatusRow(row + 7, &text, values);
 
@@ -123,15 +124,15 @@ void ObjectStatusWindow::FillFighterSquadronPage(CoolListItemList* labels, CoolL
 }
 
 void ObjectStatusWindow::FillFacilityPage(CoolListItemList* labels, CoolListItemList* values) {
-    String text;
+    std::string text;
     SetText(&text, 0x8663);
-    m_titleLabel.SetText(text.m_text);
+    m_titleLabel.SetText(text.c_str());
     int row = 1;
     AddNameRow(1, labels, values);
     row = AddRuleValueRows(&text, m_object, row + 1, labels, values);
 
     AddLabelRow(&text, 0x8664, row + 1, labels);
-    Append(&text, static_cast<GameObj*>(static_cast<GameObjRoot*>(m_object)->m_parent)->GetName()->m_text);
+    Append(&text, static_cast<GameObj*>(static_cast<GameObjRoot*>(m_object)->m_parent)->GetName()->c_str());
     AddStatusRow(row + 1, &text, values);
     AddStatusRows(row + 2, labels, values);
     int last = row + 3;
@@ -144,7 +145,7 @@ void ObjectStatusWindow::FillFacilityPage(CoolListItemList* labels, CoolListItem
         {
             const uint32_t subtrahend = facility->Virtual117();
             const uint32_t attack = facility->GetAttackStrength();
-            text.AppendUnsigned(attack - subtrahend);
+            text.append(std::to_string(static_cast<unsigned long>(attack - subtrahend)));
         }
         AddStatusRow(row + 4, &text, values);
         last = row + 5;
@@ -152,7 +153,7 @@ void ObjectStatusWindow::FillFacilityPage(CoolListItemList* labels, CoolListItem
         {
             const uint32_t shield = facility->GetShieldStrength();
             const uint32_t subtrahend = facility->Virtual118();
-            text.AppendUnsigned(shield - subtrahend);
+            text.append(std::to_string(static_cast<unsigned long>(shield - subtrahend)));
         }
         AddStatusRow(last, &text, values);
     }
@@ -160,15 +161,15 @@ void ObjectStatusWindow::FillFacilityPage(CoolListItemList* labels, CoolListItem
     {
         const uint32_t subtrahend = facility->Virtual113();
         const uint32_t field58 = facility->GetRecordField58();
-        text.AppendUnsigned(field58 - subtrahend);
+        text.append(std::to_string(static_cast<unsigned long>(field58 - subtrahend)));
     }
     AddStatusRow(last + 1, &text, values);
 }
 
 void ObjectStatusWindow::FillTroopPage(CoolListItemList* labels, CoolListItemList* values) {
-    String text;
+    std::string text;
     SetText(&text, 0x8665);
-    m_titleLabel.SetText(text.m_text);
+    m_titleLabel.SetText(text.c_str());
     AddNameRow(1, labels, values);
     AddAttachedRows(2, labels, values);
     AddLabelRow(&text, 0x8666, 3, labels);
@@ -187,14 +188,14 @@ void ObjectStatusWindow::FillTroopPage(CoolListItemList* labels, CoolListItemLis
 
     TroopReg* troop = static_cast<TroopReg*>(m_object);
     AddLabelRow(&text, 0x8651, row + 1, labels);
-    text.AppendUnsigned(troop->GetRecordField4c());
+    text.append(std::to_string(static_cast<unsigned long>(troop->GetRecordField4c())));
     AddStatusRow(row + 1, &text, values);
 
     AddLabelRow(&text, 0x8667, row + 2, labels);
     {
         const uint32_t subtrahend = troop->Virtual122();
         const uint32_t attack = troop->GetAttackStrength();
-        text.AppendUnsigned(attack - subtrahend);
+        text.append(std::to_string(static_cast<unsigned long>(attack - subtrahend)));
     }
     AddStatusRow(row + 2, &text, values);
 
@@ -202,7 +203,7 @@ void ObjectStatusWindow::FillTroopPage(CoolListItemList* labels, CoolListItemLis
     {
         const uint32_t defense = troop->GetDefenseStrength();
         const uint32_t subtrahend = troop->Virtual123();
-        text.AppendUnsigned(defense - subtrahend);
+        text.append(std::to_string(static_cast<unsigned long>(defense - subtrahend)));
     }
     AddStatusRow(row + 3, &text, values);
 
@@ -210,7 +211,7 @@ void ObjectStatusWindow::FillTroopPage(CoolListItemList* labels, CoolListItemLis
     {
         const uint32_t subtrahend = troop->Virtual121();
         const uint32_t bombardment = troop->GetBombardmentDefense();
-        text.AppendUnsigned(bombardment - subtrahend);
+        text.append(std::to_string(static_cast<unsigned long>(bombardment - subtrahend)));
     }
     AddStatusRow(row + 4, &text, values);
 
@@ -218,15 +219,15 @@ void ObjectStatusWindow::FillTroopPage(CoolListItemList* labels, CoolListItemLis
     {
         const uint32_t field5c = troop->GetRecordField5c();
         const uint32_t subtrahend = troop->Virtual115();
-        text.AppendUnsigned(field5c - subtrahend);
+        text.append(std::to_string(static_cast<unsigned long>(field5c - subtrahend)));
     }
     AddStatusRow(row + 5, &text, values);
 }
 
 void ObjectStatusWindow::FillSpecialForcesPage(CoolListItemList* labels, CoolListItemList* values) {
-    String text;
+    std::string text;
     SetText(&text, 0x8670);
-    m_titleLabel.SetText(text.m_text);
+    m_titleLabel.SetText(text.c_str());
     SpecialForces* forces = static_cast<SpecialForces*>(m_object);
     AddNameRow(1, labels, values);
     AddAttachedRows(2, labels, values);
@@ -247,31 +248,31 @@ void ObjectStatusWindow::FillSpecialForcesPage(CoolListItemList* labels, CoolLis
     const int row = AddRuleValueRows(&text, m_object, 4, labels, values);
 
     AddLabelRow(&text, 0x8651, row + 1, labels);
-    text.AppendUnsigned(forces->GetRecordField4c());
+    text.append(std::to_string(static_cast<unsigned long>(forces->GetRecordField4c())));
     AddStatusRow(row + 1, &text, values);
 
     AddLabelRow(&text, 0x8672, row + 2, labels);
-    text.AppendUnsigned(forces->GetDiplomacy());
+    text.append(std::to_string(static_cast<unsigned long>(forces->GetDiplomacy())));
     AddStatusRow(row + 2, &text, values);
 
     AddLabelRow(&text, 0x8673, row + 3, labels);
-    text.AppendUnsigned(forces->GetEspionage());
+    text.append(std::to_string(static_cast<unsigned long>(forces->GetEspionage())));
     AddStatusRow(row + 3, &text, values);
 
     AddLabelRow(&text, 0x8674, row + 4, labels);
-    text.AppendUnsigned(forces->GetCombat());
+    text.append(std::to_string(static_cast<unsigned long>(forces->GetCombat())));
     AddStatusRow(row + 4, &text, values);
 
     AddLabelRow(&text, 0x8675, row + 5, labels);
-    text.AppendUnsigned(forces->GetLeadership());
+    text.append(std::to_string(static_cast<unsigned long>(forces->GetLeadership())));
     AddStatusRow(row + 5, &text, values);
 }
 
 void ObjectStatusWindow::FillMissionPage(CoolListItemList* labels, CoolListItemList* values) {
-    String text;
+    std::string text;
     SetText(&text, 0x8676);
-    m_titleLabel.SetText(text.m_text);
-    String unusedText;
+    m_titleLabel.SetText(text.c_str());
+    std::string unusedText;
     AddNameRow(1, labels, values);
 
     int memberCount = 0;
@@ -309,27 +310,27 @@ void ObjectStatusWindow::FillMissionPage(CoolListItemList* labels, CoolListItemL
         }
     }
     GameObjNotifier* location = target.IsSet() ? GetObjectInFamilies_01_ff(m_galaxy->m_side, &target) : nullptr;
-    text.Clear();
+    text.clear();
     if (!location) {
         SetText(&text, 0x8527);
     } else {
-        Append(&text, static_cast<GameObj*>(location)->GetName()->m_text);
+        Append(&text, static_cast<GameObj*>(location)->GetName()->c_str());
     }
     AddStatusRow(2, &text, values);
 
     const int row = firstMember ? AddRuleValueRows(&text, firstMember, 3, labels, values) : 2;
     GetObjectInFamilies_90_98(m_galaxy->m_side, &static_cast<Mission*>(m_object)->m_targetLocationKey);
     AddLabelRow(&text, 0x8678, row + 1, labels);
-    text.AppendUnsigned(memberCount);
+    text.append(std::to_string(static_cast<unsigned long>(memberCount)));
     AddStatusRow(row + 1, &text, values);
     AddLabelRow(&text, 0x8679, row + 2, labels);
-    text.AppendUnsigned(flaggedCount);
+    text.append(std::to_string(static_cast<unsigned long>(flaggedCount)));
     AddStatusRow(row + 2, &text, values);
 }
 
 namespace {
 
-void AddCharacterNameRow(String* text, uint16_t labelId, int row, System* system, int commandKind,
+void AddCharacterNameRow(std::string* text, uint16_t labelId, int row, System* system, int commandKind,
                          CoolListItemList* labels, CoolListItemList* values) {
     AddLabelRow(text, labelId, row, labels);
     GameObjNotifier* character = nullptr;
@@ -337,7 +338,7 @@ void AddCharacterNameRow(String* text, uint16_t labelId, int row, System* system
     if (!character) {
         SetText(text, 0x8762);
     } else {
-        Append(text, static_cast<GameObj*>(character)->GetName()->m_text);
+        Append(text, static_cast<GameObj*>(character)->GetName()->c_str());
     }
     AddStatusRow(row, text, values);
 }
@@ -352,10 +353,10 @@ struct CountRow {
 }  // namespace
 
 void ObjectStatusWindow::FillSystemPage(CoolListItemList* labels, CoolListItemList* values) {
-    String text;
+    std::string text;
     SetText(&text, 0x8680);
-    m_titleLabel.SetText(text.m_text);
-    String unusedText;
+    m_titleLabel.SetText(text.c_str());
+    std::string unusedText;
     System* system = static_cast<System*>(m_object);
     AddNameRow(1, labels, values);
     AddLabelRow(&text, 0x8666, 2, labels);
@@ -366,18 +367,18 @@ void ObjectStatusWindow::FillSystemPage(CoolListItemList* labels, CoolListItemLi
     AddCharacterNameRow(&text, 0x8682, 4, system, 1, labels, values);
 
     AddLabelRow(&text, 0x8684, 5, labels);
-    text.AppendUnsigned(system->GetLoyaltyFor(1));
+    text.append(std::to_string(static_cast<unsigned long>(system->GetLoyaltyFor(1))));
     AddStatusRow(5, &text, values);
     AddLabelRow(&text, 0x8685, 6, labels);
-    text.AppendUnsigned(system->GetLoyaltyFor(2));
+    text.append(std::to_string(static_cast<unsigned long>(system->GetLoyaltyFor(2))));
     AddStatusRow(6, &text, values);
 
     for (int row = 7; row <= 8; ++row) {
         AddLabelRow(&text, row == 7 ? 0x8686 : 0x8687, row, labels);
-        text.AppendSigned(system->m_energy);
+        text.append(std::to_string(static_cast<long>(system->m_energy)));
         const int allocated = system->m_energyAllocated;
         Append(&text, g_statusSeparator);
-        text.AppendSigned(allocated);
+        text.append(std::to_string(static_cast<long>(allocated)));
         AddStatusRow(row, &text, values);
     }
     AddLabelRow(&text, 0x8688, 9, labels);
@@ -393,7 +394,7 @@ void ObjectStatusWindow::FillSystemPage(CoolListItemList* labels, CoolListItemLi
     int row = 10;
     for (const CountRow& entry : kBuildingRows) {
         AddLabelRow(&text, entry.m_labelId, row, labels);
-        text.AppendUnsigned(entry.m_count(system, side, 3));
+        text.append(std::to_string(static_cast<unsigned long>(entry.m_count(system, side, 3))));
         AddStatusRow(row, &text, values);
         ++row;
     }
@@ -401,34 +402,34 @@ void ObjectStatusWindow::FillSystemPage(CoolListItemList* labels, CoolListItemLi
     Append(&text, g_emptyText);
     AddStatusRow(18, &text, values);
     AddLabelRow(&text, 0x8698, 19, labels);
-    text.AppendUnsigned(CountTroopRegs(system, side, 3));
+    text.append(std::to_string(static_cast<unsigned long>(CountTroopRegs(system, side, 3))));
     AddStatusRow(19, &text, values);
     AddLabelRow(&text, 0x8699, 20, labels);
     // BUG(original): the squadron count goes into row 21, one below its label.
-    text.AppendUnsigned(CountFightSquads(system, side, 3));
+    text.append(std::to_string(static_cast<unsigned long>(CountFightSquads(system, side, 3))));
     AddStatusRow(21, &text, values);
 }
 
 void ObjectStatusWindow::FillProductionFacilityPage(CoolListItemList* labels, CoolListItemList* values) {
-    String text;
+    std::string text;
     SetText(&text, 0x8700);
-    m_titleLabel.SetText(text.m_text);
+    m_titleLabel.SetText(text.c_str());
     AddNameRow(1, labels, values);
     AddLabelRow(&text, 0x8664, 2, labels);
-    Append(&text, static_cast<GameObj*>(static_cast<GameObjRoot*>(m_object)->m_parent)->GetName()->m_text);
+    Append(&text, static_cast<GameObj*>(static_cast<GameObjRoot*>(m_object)->m_parent)->GetName()->c_str());
     AddStatusRow(2, &text, values);
     const int row = AddRuleValueRows(&text, m_object, 3, labels, values);
     AddStatusRows(row + 1, labels, values);
     AddCombatValueRow(row + 2, labels, values);
     AddLabelRow(&text, 0x8701, row + 3, labels);
-    text.AppendUnsigned(static_cast<Mission*>(m_object)->GetRecordHidden());
+    text.append(std::to_string(static_cast<unsigned long>(static_cast<Mission*>(m_object)->GetRecordHidden())));
     AddStatusRow(row + 3, &text, values);
     AddLabelRow(&text, 0x8658, row + 4, labels);
     {
         Facility* facility = static_cast<Facility*>(m_object);
         const int subtrahend = facility->Virtual113();
         const int field58 = facility->GetRecordField58();
-        text.AppendSigned(field58 - subtrahend);
+        text.append(std::to_string(static_cast<long>(field58 - subtrahend)));
     }
     AddStatusRow(row + 4, &text, values);
 }

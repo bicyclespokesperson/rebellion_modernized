@@ -55,7 +55,7 @@ int maybeDestroyChildren(const FamilyRange* range, System* system, NotifyContext
 
 }  // namespace
 
-int System::OnNameChanged(String* oldName, String* newName, NotifyContext* ctx) {
+int System::OnNameChanged(std::string* oldName, std::string* newName, NotifyContext* ctx) {
     return GameObj::OnNameChanged(oldName, newName, ctx);
 }
 

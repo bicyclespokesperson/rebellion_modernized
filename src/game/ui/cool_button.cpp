@@ -1,3 +1,4 @@
+#include <string>
 #include "ui/cool_button.h"
 
 #include "core/checked_new.h"
@@ -45,10 +46,10 @@ void RestorePreviousCapture() {
 }
 
 void DrawLabel(CoolStrobeButton* button, HDC dc) {
-    if (button->m_label && button->m_label->m_text && (button->m_state & kButtonShowLabel)) {
+    if (button->m_label && !button->m_label->empty() && (button->m_state & kButtonShowLabel)) {
         button->SelectCurrentFont(dc);
         SetBkMode(dc, TRANSPARENT);
-        DrawTextA(dc, button->m_label->m_text, -1, &button->m_labelRect, DT_CENTER);
+        DrawTextA(dc, button->m_label->c_str(), -1, &button->m_labelRect, DT_CENTER);
         button->RestoreFont(dc);
     }
 }
@@ -143,22 +144,22 @@ uint32_t CoolStrobeButton::GetChildId() { return m_childId; }
 
 void CoolStrobeButton::SetLabelFromResource(const ResourceStringId* id) {
     if (m_label) delete m_label;
-    m_label = NewOrNull<String>(id);
+    m_label = NewOrNull<std::string>(LoadStringResource(id));
     CenterLabel();
 }
 
 void CoolStrobeButton::SetLabelFromStringId(uint16_t id) {
-    char text[0x100];
+    char text[0x100] = {};
     LoadResourceString(id, text, sizeof(text));
     if (m_label) delete m_label;
-    m_label = NewOrNull<String>(static_cast<const char*>(text));
+    m_label = NewOrNull<std::string>(StringFromText(static_cast<const char*>(text)));
     CenterLabel();
 }
 
 void CoolStrobeButton::SetLabel(const char* text) {
     if (m_label) delete m_label;
     if (text)
-        m_label = NewOrNull<String>(text);
+        m_label = NewOrNull<std::string>(StringFromText(text));
     else
         m_label = nullptr;
     CenterLabel();
@@ -168,7 +169,7 @@ void CoolStrobeButton::CenterLabel() {
     HWND hwnd = m_hwnd;
     const int width = m_clientWidth;
     const int height = m_clientHeight;
-    if (!m_label || !m_label->m_text) return;
+    if (!m_label || m_label->empty()) return;
     HDC dc = GetDC(hwnd);
     SelectCurrentFont(dc);
     SetBkMode(dc, TRANSPARENT);
@@ -177,7 +178,7 @@ void CoolStrobeButton::CenterLabel() {
     m_labelRect.right = width;
     m_labelRect.top = 0;
     m_labelRect.bottom = 0;
-    m_labelRect.bottom = DrawTextA(dc, m_label->m_text, -1, &m_labelRect, DT_CENTER | DT_CALCRECT);
+    m_labelRect.bottom = DrawTextA(dc, m_label->c_str(), -1, &m_labelRect, DT_CENTER | DT_CALCRECT);
     RestoreFont(dc);
     const int textWidth = m_labelRect.right;
     const int textHeight = m_labelRect.bottom;

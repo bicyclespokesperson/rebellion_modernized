@@ -36,7 +36,7 @@ ServiceProviderInfo::ServiceProviderInfo(const GUID* guid, const char* name, DWO
 
 ServiceProviderInfo::ServiceProviderInfo(const ServiceProviderInfo& other) : IdNode(), m_name() {
     m_guid = other.m_guid;
-    m_name = other.m_name.m_text;
+    m_name = other.m_name.c_str();
     m_majorVersion = other.m_majorVersion;
     m_minorVersion = other.m_minorVersion;
     m_context = other.m_context;
@@ -53,7 +53,7 @@ SessionInfo::SessionInfo(const DPSESSIONDESC2* description) : IdNode(), m_name()
 
 SessionInfo::SessionInfo(const SessionInfo& other) : IdNode(), m_name() {
     m_instance = other.m_instance;
-    m_name.Assign(other.m_name);
+    (m_name = other.m_name);
 }
 
 SessionInfo::~SessionInfo() = default;

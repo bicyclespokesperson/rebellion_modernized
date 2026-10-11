@@ -201,30 +201,30 @@ void MultiPlayerWindow::OnCreate3() {
         FinishList(this, m_sessionList);
         m_sessionList->RemoveAll();
     }
-    String name;
+    std::string name;
     m_hostNameField = CreateField(this, kLobbyPageHost, 0x7c, 0x91, 0x86, 0x11, 200);
     if (m_hostNameField) {
         m_hostNameField->SetMaxLength(kNameMaxLength);
-        String defaultName;
+        std::string defaultName;
         GetDefaultPlayerName(&defaultName);
-        name.Assign(defaultName);
-        m_hostNameField->SetText(name.m_text);
+        (name = defaultName);
+        m_hostNameField->SetText(name.c_str());
     }
     m_gameNameField = CreateField(this, kLobbyPageHost, 0x7c, 0x12e, 0x86, 0x11, 0xca);
     if (m_gameNameField) {
         m_gameNameField->SetMaxLength(kNameMaxLength);
-        String defaultName;
+        std::string defaultName;
         GetDefaultGameName(&defaultName);
-        name.Assign(defaultName);
-        m_gameNameField->SetText(name.m_text);
+        (name = defaultName);
+        m_gameNameField->SetText(name.c_str());
     }
     m_joinNameField = CreateField(this, kLobbyPageJoin, 0x7c, 0x91, 0x86, 0x11, 0xc9);
     if (m_joinNameField) {
         m_joinNameField->SetMaxLength(kNameMaxLength);
-        String defaultName;
+        std::string defaultName;
         GetDefaultPlayerName(&defaultName);
-        name.Assign(defaultName);
-        m_joinNameField->SetText(name.m_text);
+        (name = defaultName);
+        m_joinNameField->SetText(name.c_str());
     }
     m_chatInput = CreateField(this, kLobbyPageSetup, 0xd9, 0x107, 0x142, 0x15, 0xcb);
     if (m_chatInput) {
@@ -275,7 +275,7 @@ void MultiPlayerWindow::FillProviderList() {
     for (auto* node = static_cast<ServiceProviderInfo*>(providers->First()); node;
          node = static_cast<ServiceProviderInfo*>(node->m_successor)) {
         auto* copy = NewOrNull<ServiceProviderInfo>(*node);
-        m_providerList->AddItem(0, 0, 0, node->m_name.m_text, 1, reinterpret_cast<uintptr_t>(copy));
+        m_providerList->AddItem(0, 0, 0, node->m_name.c_str(), 1, reinterpret_cast<uintptr_t>(copy));
     }
     if (CoolListItem* first = m_providerList->FirstItem()) m_providerList->SelectById(first->m_id, 1);
 }
@@ -294,7 +294,7 @@ int MultiPlayerWindow::RefreshSessionList() {
     for (auto* node = static_cast<SessionInfo*>(sessions->First()); node;
          node = static_cast<SessionInfo*>(node->m_successor)) {
         auto* copy = NewOrNull<SessionInfo>(*node);
-        m_sessionList->AddItem(0, 0, 0, node->m_name.m_text, 1, reinterpret_cast<uintptr_t>(copy));
+        m_sessionList->AddItem(0, 0, 0, node->m_name.c_str(), 1, reinterpret_cast<uintptr_t>(copy));
     }
     if (CoolListItem* first = m_sessionList->FirstItem()) m_sessionList->SelectById(first->m_id, 1);
     if (m_nextButton) {
@@ -567,15 +567,11 @@ void MultiPlayerWindow::ShowSetupPage() {
     KillTimer(m_hwnd, kLobbyTimerSessions);
     if (CommLaunchedFromLobby() == 0) {
         // BUG(original): with a missing name field the original reads an uninitialised local instead.
-        String* nameSource = nullptr;
+        std::string* nameSource = nullptr;
         if (m_isHost != 0) {
-            String* gameName = m_gameNameField ? &m_gameNameField->m_text : nullptr;
-            if (gameName->Length() == 0) {
-                String defaultName;
-                GetDefaultGameName(&defaultName);
-                gameName->Assign(defaultName);
-            }
-            result = CommHostNewSession(gameName->m_text);
+            std::string gameName = m_gameNameField ? m_gameNameField->m_text : std::string();
+            if (gameName.empty()) GetDefaultGameName(&gameName);
+            result = CommHostNewSession(gameName.c_str());
             nameSource = m_hostNameField ? &m_hostNameField->m_text : nullptr;
         } else {
             RememberSelectedSession();
@@ -598,7 +594,7 @@ void MultiPlayerWindow::ShowSetupPage() {
     } else {
         ShowSetupButtons(0);
         {
-            String marker(kStatusMarker);
+            std::string marker(kStatusMarker);
             PrintChatLine(&marker);
         }
         MpSlotTableMsg* slots = NewOrNull<MpSlotTableMsg>();
@@ -646,24 +642,24 @@ void MultiPlayerWindow::ShowSetupPage() {
 
 // ---- default names ----------------------------------------------------------------------------------------------
 
-String* MultiPlayerWindow::GetDefaultPlayerName(String* out) {
+std::string* MultiPlayerWindow::GetDefaultPlayerName(std::string* out) {
     ResourceStringId prefix = {0x110c, static_cast<int16_t>(m_stringSlot)};
-    String name;
-    name.SetFromResource(&prefix);
+    std::string name;
+    (name = LoadStringResource(&prefix));
     char buffer[256];
     DWORD size = 0xff;
     if (GetUserNameA(buffer, &size)) name = buffer;
-    new (out) String(name);
+    new (out) std::string(name);
     return out;
 }
 
-String* MultiPlayerWindow::GetDefaultGameName(String* out) {
+std::string* MultiPlayerWindow::GetDefaultGameName(std::string* out) {
     ResourceStringId prefix = {0x1110, static_cast<int16_t>(m_stringSlot)};
-    String name;
-    name.SetFromResource(&prefix);
+    std::string name;
+    (name = LoadStringResource(&prefix));
     char buffer[256];
     DWORD size = 0xff;
     if (GetComputerNameA(buffer, &size)) name = buffer;
-    new (out) String(name);
+    new (out) std::string(name);
     return out;
 }

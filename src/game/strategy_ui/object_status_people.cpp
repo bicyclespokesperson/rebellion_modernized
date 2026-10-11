@@ -1,3 +1,4 @@
+#include <string>
 #include <cstdint>
 
 #include "character/character.h"
@@ -27,15 +28,15 @@ uint16_t ForceRankId(uint16_t force) {
 }  // namespace
 
 void ObjectStatusWindow::FillCharacterPage(CoolListItemList* labels, CoolListItemList* values) {
-    String text;
+    std::string text;
     SetText(&text, 0x8723);
-    m_titleLabel.SetText(text.m_text);
-    String unusedText;
+    m_titleLabel.SetText(text.c_str());
+    std::string unusedText;
     Character* character = static_cast<Character*>(m_object);
     AddNameRow(1, labels, values);
     AddLabelRow(&text, 0x8724, 2, labels);
     if (GameObjNotifier* commanded = GetObjectInFamilies_01_ff(m_galaxy->m_side, &character->m_commandingKey)) {
-        Append(&text, static_cast<GameObj*>(commanded)->GetName()->m_text);
+        Append(&text, static_cast<GameObj*>(commanded)->GetName()->c_str());
     } else {
         SetText(&text, 0x8754);
     }
@@ -65,16 +66,16 @@ void ObjectStatusWindow::FillCharacterPage(CoolListItemList* labels, CoolListIte
     AddStatusRow(row + 1, &text, values);
 
     AddLabelRow(&text, 0x8726, row + 2, labels);
-    text.AppendUnsigned(character->GetDiplomacy());
+    text.append(std::to_string(static_cast<unsigned long>(character->GetDiplomacy())));
     AddStatusRow(row + 2, &text, values);
     AddLabelRow(&text, 0x8727, row + 3, labels);
-    text.AppendUnsigned(character->GetEspionage());
+    text.append(std::to_string(static_cast<unsigned long>(character->GetEspionage())));
     AddStatusRow(row + 3, &text, values);
     AddLabelRow(&text, 0x8728, row + 4, labels);
-    text.AppendUnsigned(character->GetCombat());
+    text.append(std::to_string(static_cast<unsigned long>(character->GetCombat())));
     AddStatusRow(row + 4, &text, values);
     AddLabelRow(&text, 0x8729, row + 5, labels);
-    text.AppendUnsigned(character->GetLeadership());
+    text.append(std::to_string(static_cast<unsigned long>(character->GetLeadership())));
     AddStatusRow(row + 5, &text, values);
 
     AddLabelRow(&text, 0x8730, row + 6, labels);
@@ -82,7 +83,7 @@ void ObjectStatusWindow::FillCharacterPage(CoolListItemList* labels, CoolListIte
     AddStatusRow(row + 6, &text, values);
 
     AddLabelRowKeepText(&text, 0x8731, row + 7, labels);
-    text.Clear();
+    text.clear();
     SetText(&text, YesNoId(character->GetShipyardRD()));
     AddStatusRow(row + 7, &text, values);
     AddLabelRowKeepText(&text, 0x8732, row + 8, labels);
@@ -93,7 +94,7 @@ void ObjectStatusWindow::FillCharacterPage(CoolListItemList* labels, CoolListIte
     AddStatusRow(row + 9, &text, values);
 
     AddLabelRowKeepText(&text, 0x8737, row + 10, labels);
-    text.Clear();
+    text.clear();
     Append(&text, g_spaceString);
     AddStatusRow(row + 10, &text, values);
 

@@ -18,7 +18,7 @@ struct HeadlessSimulator;
 
 // Begins a battle: sets up TacticalGame (tactical_game.h). `battleKindNotAlliance`.. are the system's control details; the
 // two floats are scaled by 0.4 before use.
-void TacticalBeginBattle(int humanIsNotAlliance, int opponentIsAi, uint32_t systemField44, String systemName,
+void TacticalBeginBattle(int humanIsNotAlliance, int opponentIsAi, uint32_t systemField44, std::string systemName,
                                  float sideAValue, float sideBValue, int sideAC, int sideBC, GameTime timeA,
                                  GameTime timeB, int battleKindNotAlliance, int systemFlag8, int controlIsEmpire,
                                  int controlIsAlliance, int abstractFlag);  // 0x595d60
@@ -26,7 +26,7 @@ void TacticalBeginBattle(int humanIsNotAlliance, int opponentIsAi, uint32_t syst
 // Registers a capital ship; the 42 words after the name are the ship's figures as read from the strategic object (hull,
 // weapons, damage grid, critical hits ...).
 int TacticalRegisterCapitalShip(
-    uint32_t family, uint32_t id, int notAlliance, uint32_t typeBits, String name, float hull, float currentHull,
+    uint32_t family, uint32_t id, int notAlliance, uint32_t typeBits, std::string name, float hull, float currentHull,
     float damageControl, int freeHangar, float tractorPower, float tractorRange, int gravityWell, float interdiction,
     float field64, float field68, float field60, float hyperdriveCount, float gridTotal, float weaponRecharge,
     float shieldRecharge, int grid02, int grid12, int grid22, int grid32, int grid01, int grid11, int grid21,
@@ -37,19 +37,19 @@ int TacticalRegisterDeathStar(uint32_t family, uint32_t id, int notCompleted, in
                                       float currentHull, int hangarFree);  // 0x595ef0
 
 int TacticalRegisterFightSquad(
-    uint32_t family, uint32_t id, int notAlliance, uint32_t typeBits, String name, int carrierHandle,
+    uint32_t family, uint32_t id, int notAlliance, uint32_t typeBits, std::string name, int carrierHandle,
     int carrierIsCapitalShip, float field64, float field68, float field60, int squadSize, int currentSize, int zero,
     float hyperdriveCount, int grid02, int grid12, int grid22, int grid32, int grid01, int grid11, int grid21,
     int grid31, int grid00, int grid10, int grid20, int grid30, float a42, float a41, float a40, int totalTorpedoes,
     float torpedoRange);  // 0x5964c0
 
-int TacticalRegisterCharacter(uint32_t family, uint32_t id, String name, int notAlliance, int isMajor,
+int TacticalRegisterCharacter(uint32_t family, uint32_t id, std::string name, int notAlliance, int isMajor,
                                       int isFirstCommander, int isSecondCommander, float scaleA,
                                       float scaleB, int shipHandle, int injured,
                                       uint32_t typeBits);  // 0x596340
 
 // Special forces and troop regiments.
-int TacticalRegisterSpecialForce(uint32_t family, uint32_t id, uint32_t typeBits, String name, int notAlliance,
+int TacticalRegisterSpecialForce(uint32_t family, uint32_t id, uint32_t typeBits, std::string name, int notAlliance,
                                          int shipHandle);  // 0x5961e0
 
 // Starts the registered battle (switches the application into the tactical states).

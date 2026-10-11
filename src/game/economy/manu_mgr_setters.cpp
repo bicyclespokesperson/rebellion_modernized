@@ -144,11 +144,11 @@ int ManuMgr::SetTargetKey(ObjectKey* value, NotifyContext* ctx) {
     return result;
 }
 
-int ManuMgr::SetProductName(String* value, NotifyContext* ctx) {
+int ManuMgr::SetProductName(std::string* value, NotifyContext* ctx) {
     const int result = IsMasterView();
-    if (result && m_productName.Compare(*value) != 0) {
-        String oldName(m_productName);
-        m_productName.Assign(*value);
+    if (result && CompareStrings(m_productName, *value) != 0) {
+        std::string oldName(m_productName);
+        (m_productName = *value);
         viewOf(this, kAllianceView)->ApplyProductName(ctx);
         viewOf(this, kEmpireView)->ApplyProductName(ctx);
         OnProductNameChanged(&oldName, &m_productName, ctx);

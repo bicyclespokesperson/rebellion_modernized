@@ -2,7 +2,7 @@
 
 #include "ai/ai_common.h"
 #include "ai/ai_members.h"
-#include "ai/ai_session_random.h"
+#include "data/random.h"
 #include "ai/ai_side_controller.h"
 #include "core/checked_new.h"
 #include "galaxy/sector.h"
@@ -232,7 +232,7 @@ AiRankedList* AiSectorEval::RankSystemsRandomly(uint32_t requireA, uint32_t requ
         if (!masks.Matches(system)) continue;
         ObjectKey key;
         system->GetKey(&key);
-        AiRankedItem* item = NewOrNull<AiRankedItem>(key, SessionRandomNext(10));
+        AiRankedItem* item = NewOrNull<AiRankedItem>(key, GameplayRandomNext(10));
         list->AddItem(item);
     }
     list->Number();

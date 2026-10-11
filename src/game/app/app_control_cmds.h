@@ -71,7 +71,7 @@ public:
 
     int m_action;         // +0x20
     int m_playerId;       // +0x24
-    String m_playerName;  // +0x28
+    std::string m_playerName;  // +0x28
     int m_extra;          // +0x34
 };
 

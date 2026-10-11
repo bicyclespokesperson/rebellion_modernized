@@ -229,7 +229,7 @@ int Notice20::Virtual16(const LinkNode* payloads) {
             GameObjNotifier* unit = GetObjectInFamilies_01_ff(m_owner, &m_unitKey);
             if (unit) m_picture[1] = AdvisorRecordTypeResource(static_cast<GameObj*>(unit));
         }
-        String suffix(m_name.m_text);
+        std::string suffix(m_name.c_str());
         m_text1 += suffix;
     }
     return result;

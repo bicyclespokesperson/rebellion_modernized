@@ -1,3 +1,4 @@
+#include <string>
 #include "strategy_ui/troop_finder_window.h"
 
 #include <new>
@@ -318,7 +319,7 @@ void TroopFinderWindow::OnCommand(int, int command, int) {
             m_galaxy->OpenWindowForObject(&m_selected);
             PostCloseRequest();
         } else if (static_cast<uint16_t>(code) == kDragListSelectionChanged) {
-            m_nameField->SetText(first->m_text.m_text);
+            m_nameField->SetText(first->m_text.c_str());
         }
         break;
     }
@@ -359,7 +360,7 @@ LRESULT TroopFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam
         if (static_cast<int16_t>(wParam) != kNameFieldId) return 0;
         CoolStringField* field = m_nameField;
         ObjectListItem* item = nullptr;
-        if (field->m_text.GetBufferSize() != 0) {
+        if (!field->m_text.empty()) {
             const uint32_t id = m_list->SelectByPrefix(&field->m_text, 0, 0);
             item = static_cast<ObjectListItem*>(m_items->FindById(id));
         }
@@ -394,7 +395,7 @@ void TroopFinderWindow::SetFilter(int filter, int) {
         ObjectKey key;
         ObjectListItem* row = NewOrNull<ObjectListItem>(static_cast<uint32_t>(++rowCount), object->GetKey(&key));
         row->m_state.m_value = kListItemDisabled;
-        row->m_text = object->GetName()->m_text;
+        row->m_text = object->GetName()->c_str();
         DibBitmap* picture =
             NewOrNull<DibBitmap>(static_cast<LONG>(0x14a), static_cast<LONG>(0x19), GetPaintBackgroundIfOwned(), dc);
         picture->FillRect(0, 0, picture->Width(), picture->Height(), 0);
@@ -437,7 +438,7 @@ int TroopFinderWindow::DrawTroopCounts(GameObj* object, int side, HDC dc) {
         cell.m_flags = 0;
     }
     CoolLabel label(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
-    String text;
+    std::string text;
     const uint32_t troopFamily = 0x10000000;
     const uint32_t allianceKinds[kCellCount] = {2, 1, 5, 3, 4};
     const uint32_t empireKinds[kCellCount] = {8, 0xa, 7, 6, 9};

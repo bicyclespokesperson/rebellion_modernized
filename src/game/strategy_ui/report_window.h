@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "app/player_controller_decl.h"
@@ -21,8 +22,8 @@ public:
     uint8_t m_unk24[0x0a];   // +0x24
     uint16_t m_bitmapId;     // +0x2e picture (GOKRES) of the report
     uint8_t m_unk30[0x14];   // +0x30
-    String m_title;          // +0x44
-    String m_caption;        // +0x50
+    std::string m_title;          // +0x44
+    std::string m_caption;        // +0x50
     ObjectKey m_objectKey;   // +0x5c the object the report is about (its sector can be opened)
     int m_unk60;             // +0x60
     int m_showsSecondList;   // +0x64 non-zero: the fighter / troop kind tabs are the default
@@ -46,7 +47,7 @@ public:
 
     void SelectPage(int tabId);                                              // 0x44e3d0
     void FillList(int subTabId, int force);                                  // 0x44e500
-    void AddListItem(GameObjNotifier* object, int flag, String* heading);    // 0x44edb0
+    void AddListItem(GameObjNotifier* object, int flag, const std::string* heading);    // 0x44edb0
 
     uint8_t m_unk114[4];            // +0x114
     GalaxyWindow* m_galaxy;         // +0x118

@@ -117,16 +117,16 @@ namespace {
 
 // Appends "(first/second)" to *text. The pieces are built in the original's order (their heap blocks end up in the
 // same places).
-void appendPairText(String* text, const IntPair* pair) {
-    const String close(")");
-    const String slash("/");
-    const String open("(");
+void appendPairText(std::string* text, const IntPair* pair) {
+    const std::string close(")");
+    const std::string slash("/");
+    const std::string open("(");
     const uint32_t second = pair->m_second;
     const uint32_t first = pair->m_first;
     *text += open;
-    text->AppendSigned(static_cast<long>(first));
+    text->append(std::to_string(static_cast<long>(first)));
     *text += slash;
-    text->AppendSigned(static_cast<long>(second));
+    text->append(std::to_string(static_cast<long>(second)));
     *text += close;
 }
 
@@ -135,11 +135,11 @@ void appendPairText(String* text, const IntPair* pair) {
 int Side::OnMaintStateNotified(const IntPair* oldValue, const IntPair* newValue, NotifyContext* ctx) {
     const int sideView = IsSideView();
     if (!sideView) return 0;
-    String newText;
-    String oldText;
+    std::string newText;
+    std::string oldText;
     appendPairText(&newText, newValue);
     appendPairText(&oldText, oldValue);
-    LogChange("SideMaintStateNotif", "MaintState (Capacity/Allocated)", newText.m_text, oldText.m_text, nullptr, ctx);
+    LogChange("SideMaintStateNotif", "MaintState (Capacity/Allocated)", newText.c_str(), oldText.c_str(), nullptr, ctx);
     return PostPayloadFourInts(side_event::kMaintState, this, oldValue->m_first, oldValue->m_second, newValue->m_first,
                         newValue->m_second, ctx);
 }
@@ -210,8 +210,8 @@ int Side::OnRecruitmentDoneNotified(int oldValue, int newValue, NotifyContext* c
 
 int Side::OnVictoryConditionsNotified(int oldValue, int newValue, NotifyContext* ctx) {
     if (!IsSideView()) return 0;
-    String newText;
-    String oldText;
+    std::string newText;
+    std::string oldText;
     int formatted = FormatVictoryConditions(static_cast<uint32_t>(oldValue), &oldText);
     if (formatted) formatted = FormatVictoryConditions(static_cast<uint32_t>(newValue), &newText);
     if (formatted) LogString("SideVictoryConditionsNotif", "VictoryConditions", &newText, &oldText, 0, ctx);

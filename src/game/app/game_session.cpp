@@ -4,6 +4,7 @@
 
 #include "ai/ai_player.h"
 #include "core/checked_new.h"
+#include "core/iostream_lib.h"
 #include "events/game_step_driver.h"
 #include "gameobj/notif_payload.h"
 #include "multiplayer/remote_player.h"
@@ -103,8 +104,8 @@ int GameSession::Read(istream* in) {
         result = CreateController(kind, 1);
         if (result) m_controllers[1]->Read(in);
     }
-    RandomGenerator unusedRandom;
-    unusedRandom.Read(in);
+    g_sessionRandom.Read(in);
+    if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0) result = 0;
     return result;
 }
 
@@ -366,7 +367,7 @@ int GameSession::IsOpponentAI() {
 // ---- forwarders to the human controller ---------------------------------------------------------------------
 
 void GameSession::HumanCommand(int command, void* a, void* b, const void* c) {
-    if (m_human) m_human->ExecuteCommand(command, static_cast<ObjectKeyValueSet*>(a), static_cast<ObjectKey*>(b), static_cast<String*>(const_cast<void*>(c)));
+    if (m_human) m_human->ExecuteCommand(command, static_cast<ObjectKeyValueSet*>(a), static_cast<ObjectKey*>(b), static_cast<std::string*>(const_cast<void*>(c)));
 }
 
 void GameSession::HumanReceiveMessage(PlayerMessage* message, int flag) {
@@ -444,7 +445,7 @@ void GameSession::SetHumanDefaultState(int state) {
 }
 
 void GameSession::QueueHumanPopup(intptr_t a, int b) {
-    if (m_human) m_human->Dispatch()->QueueChat(reinterpret_cast<String*>(a), b);
+    if (m_human) m_human->Dispatch()->QueueChat(reinterpret_cast<std::string*>(a), b);
 }
 
 int GameSession::HumanDispatchIdle() { return m_human ? m_human->Dispatch()->IsIdle() : 1; }

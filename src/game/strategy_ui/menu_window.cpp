@@ -1,3 +1,4 @@
+#include <string>
 #include "strategy_ui/menu_window.h"
 
 #include <cstddef>
@@ -82,7 +83,7 @@ MenuItemBase::MenuItemBase(HMODULE module, const ResourceStringId* text, int x, 
         }
     }
     if (Narrow(checkPictureId) != 0) check = NewOrNull<DibBitmap>(module, checkPictureId, kResourceBitmapKind);
-    String* label = NewOrNull<String>(text);
+    std::string* label = NewOrNull<std::string>(LoadStringResource(text));
     Initialize(commandId, x, y, width, height, normal, hot, disabled, check, label);
 }
 
@@ -101,7 +102,7 @@ int MenuItemBase::Virtual03() { return 0; }
 int MenuItemBase::Virtual04() { return 0; }
 
 void MenuItemBase::Initialize(uint32_t commandId, int x, int y, int width, int height, DibBitmap* normal,
-                              DibBitmap* hot, DibBitmap* disabled, DibBitmap* check, String* text) {
+                              DibBitmap* hot, DibBitmap* disabled, DibBitmap* check, std::string* text) {
     m_id = commandId;
     m_hotPicture = nullptr;
     m_normalPicture = nullptr;
@@ -131,7 +132,7 @@ void MenuItemBase::Initialize(uint32_t commandId, int x, int y, int width, int h
             labelX = labelX + 1 + m_checkPicture->Width();
         }
         m_label = NewOrNull<CoolLabel>(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
-        m_label->SetText(text->m_text);
+        m_label->SetText(text->c_str());
         m_label->MoveTo(labelX, y);
         delete text;
     }

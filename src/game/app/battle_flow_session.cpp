@@ -37,8 +37,8 @@ constexpr int kRangeSlack = 5;
 
 HCURSOR showWaitCursor() { return SetCursor(LoadCursorA(nullptr, MAKEINTRESOURCEA(kWaitCursorId))); }
 
-void appendResource(String* path, int resourceId) {
-    String part(LoadRcdataString(resourceId));
+void appendResource(std::string* path, int resourceId) {
+    std::string part = StringFromText(LoadRcdataString(resourceId));
     *path += part;
 }
 
@@ -233,13 +233,13 @@ int BattleFlow::SaveStrategic(ostream* out) {
 // ---- the pre-battle autosave ------------------------------------------------------------------------------------
 
 int BattleFlow::LoadPreBattleSave() {
-    String path;
+    std::string path;
     BuildInstalledPrefix(&path);
     appendResource(&path, kResourceSaveDirectory);
     appendResource(&path, kResourcePreBattleSaveName);
     int loaded = 0;
     ScopedIfstream file;
-    OpenInputFile(file.get(), path.m_text);
+    OpenInputFile(file.get(), path.c_str());
     if (GetFileError() == 0) {
         HCURSOR previousCursor = showWaitCursor();
         istream* in = file.get()->In();
@@ -256,13 +256,13 @@ int BattleFlow::LoadPreBattleSave() {
 }
 
 int BattleFlow::AppendPreBattleSave(ostream* out) {
-    String path;
+    std::string path;
     BuildInstalledPrefix(&path);
     appendResource(&path, kResourceSaveDirectory);
     appendResource(&path, kResourcePreBattleSaveName);
     int appended = 0;
     ScopedIfstream file;
-    OpenInputFile(file.get(), path.m_text);
+    OpenInputFile(file.get(), path.c_str());
     if (GetFileError() == 0) {
         HCURSOR previousCursor = showWaitCursor();
         ostream_operator_ls_streambuf(out, iostream_access::IosOf(file.get())->m_bp);
@@ -274,13 +274,13 @@ int BattleFlow::AppendPreBattleSave(ostream* out) {
 }
 
 int BattleFlow::ExtractPreBattleSave(istream* in) {
-    String path;
+    std::string path;
     BuildInstalledPrefix(&path);
     appendResource(&path, kResourceSaveDirectory);
     appendResource(&path, kResourcePreBattleSaveName);
     int extracted = 0;
     ScopedOfstream file;
-    OpenOutputFile(file.get(), path.m_text);
+    OpenOutputFile(file.get(), path.c_str());
     if (GetFileError() == 0) {
         HCURSOR previousCursor = showWaitCursor();
         istream_operator_rs_streambuf(in, iostream_access::IosOf(file.get())->m_bp);
@@ -292,41 +292,41 @@ int BattleFlow::ExtractPreBattleSave(istream* in) {
 }
 
 void BattleFlow::DeletePreBattleSave() {
-    String path;
-    path.Clear();
+    std::string path;
+    path.clear();
     char* installed = GetInstalledLocation();
     if (installed) {
-        String separator(kBackslash);
-        String installedText(installed);
+        std::string separator(kBackslash);
+        std::string installedText = StringFromText(installed);
         path += installedText;
         path += separator;
         operator delete(installed);
     }
     appendResource(&path, kResourceSaveDirectory);
     appendResource(&path, kResourcePreBattleSaveName);
-    DeleteGameFile(path.m_text);
+    DeleteGameFile(path.c_str());
 }
 
 // ---- file names -------------------------------------------------------------------------------------------------
 
-void BattleFlow::BuildInstalledPrefix(String* out) {
-    out->Clear();
+void BattleFlow::BuildInstalledPrefix(std::string* out) {
+    out->clear();
     char* installed = GetInstalledLocation();
     if (installed) {
-        String separator(kBackslash);
-        String installedText(installed);
+        std::string separator(kBackslash);
+        std::string installedText = StringFromText(installed);
         *out += installedText;
         *out += separator;
         operator delete(installed);
     }
 }
 
-void BattleFlow::BuildSaveDirectory(String* out) {
+void BattleFlow::BuildSaveDirectory(std::string* out) {
     BuildInstalledPrefix(out);
     appendResource(out, kResourceSaveDirectory);
 }
 
-void BattleFlow::BuildPreBattleSavePath(String* out) {
+void BattleFlow::BuildPreBattleSavePath(std::string* out) {
     BuildInstalledPrefix(out);
     appendResource(out, kResourceSaveDirectory);
     appendResource(out, kResourcePreBattleSaveName);

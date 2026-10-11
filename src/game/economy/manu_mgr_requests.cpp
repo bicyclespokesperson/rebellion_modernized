@@ -155,7 +155,7 @@ int ManuMgr::ReplaceQueue(const ActivityRequest* request, ObjectKeySet* products
     return created && destroyed;
 }
 
-int ManuMgr::RenameProduct(const ActivityRequest* request, String* name, NotifyContext* ctx) {
+int ManuMgr::RenameProduct(const ActivityRequest* request, std::string* name, NotifyContext* ctx) {
     StatusCode status(kStatusCategory, kStatusOk);
     int result = CheckProductAction(request, reinterpret_cast<intptr_t>(name), &status);
     if (result && isOk(&status)) result = RenameProductIfAny(name, ctx);

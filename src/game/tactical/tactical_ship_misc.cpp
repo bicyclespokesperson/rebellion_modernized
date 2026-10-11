@@ -26,8 +26,8 @@ double TacticalShipBase::GetRadius() {
 
 int TacticalShipBase::HubQuery() { return FUN_0059f640(FUN_0059ed70(), this); }
 
-String* TacticalShipBase::GetName(String* out) {
-    new (out) String(m_name);
+std::string* TacticalShipBase::GetName(std::string* out) {
+    new (out) std::string(m_name);
     return out;
 }
 

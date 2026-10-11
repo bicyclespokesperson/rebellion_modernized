@@ -78,7 +78,7 @@ void OrderConfirmWindow::OnCreate1() {
     m_textField = NewOrNull<TextScrollField>(m_instance, 0x18, 0xf2, 0x142, 0x46, this, GetPaintBackgroundIfOwned(), 0);
     m_textField->Create(0);
     m_textField->SetTextFont(kFontSlot);
-    m_textField->m_text.Assign(m_request->m_text1);
+    m_textField->m_text = m_request->m_text1;
     m_textField->m_caret.m_index = 0;
     m_textField->Reset();
 
@@ -87,7 +87,7 @@ void OrderConfirmWindow::OnCreate1() {
     m_titleLabel->MoveTo(0x15, 0xe);
     m_titleLabel->SetFont(kFontSlot);
     m_titleLabel->m_drawFlags = 1;
-    m_titleLabel->SetText(m_request->m_text0.m_text);
+    m_titleLabel->SetText(m_request->m_text0.c_str());
     HGDIOBJ previous = SelectObject(dc, surface->DibSectionHandle());
     m_titleLabel->Draw(dc);
     SelectObject(dc, previous);

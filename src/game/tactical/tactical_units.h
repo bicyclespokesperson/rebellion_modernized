@@ -42,7 +42,7 @@ public:
 // A character aboard a ship (VT 0x66bac0, 0x64 bytes).
 class TacticalCharacterUnit : public TacticalUnit {
 public:
-    TacticalCharacterUnit(uint32_t family, uint32_t id, uint16_t spriteId, String name, int notAlliance, int isMajor,
+    TacticalCharacterUnit(uint32_t family, uint32_t id, uint16_t spriteId, std::string name, int notAlliance, int isMajor,
                           int isFirstCommander, int isSecondCommander, float scaleA, float scaleB,
                           int shipHandle, int injured);  // 0x596c40
     TacticalCharacterUnit() {  // built by TacticalCharacterTree::Read before it reads the fields
@@ -61,7 +61,7 @@ public:
     uint32_t m_objectFamily;        // +0x2c
     uint32_t m_objectId;            // +0x30 (the strategic object)
     uint16_t m_spriteId;          // +0x34
-    String m_name;                // +0x38
+    std::string m_name;                // +0x38
     int m_notAlliance;            // +0x44
     int m_isMajor;                // +0x48
     float m_scaleA;               // +0x4c leadership / 10
@@ -75,7 +75,7 @@ public:
 // A special-force unit or troop regiment aboard a ship (VT 0x66bad0, 0x4c bytes).
 class TacticalSpecialForceUnit : public TacticalUnit {
 public:
-    TacticalSpecialForceUnit(uint32_t family, uint32_t id, uint16_t spriteId, String name, int notAlliance,
+    TacticalSpecialForceUnit(uint32_t family, uint32_t id, uint16_t spriteId, std::string name, int notAlliance,
                              int shipHandle);  // 0x596df0
     TacticalSpecialForceUnit() {  // built by TacticalSpecialForceTree::Read before it reads the fields
         m_channelA.m_data = nullptr;
@@ -93,7 +93,7 @@ public:
     uint32_t m_objectFamily;        // +0x2c
     uint32_t m_objectId;            // +0x30
     uint16_t m_spriteId;          // +0x34
-    String m_name;                // +0x38
+    std::string m_name;                // +0x38
     int m_notAlliance;            // +0x44
     int m_shipHandle;             // +0x48
 };

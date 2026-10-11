@@ -62,7 +62,7 @@ int GameObj::CreateViews(int controlKind, NotifyContext* ctx) {
         std::memcpy(&packed, &m_record->m_small, sizeof(packed));
         ResourceStringId nameId;
         std::memcpy(&nameId, &packed, sizeof(nameId));
-        String name(&nameId);
+        std::string name = LoadStringResource(&nameId);
         SetName(&name, ctx);
     }
     return result;
@@ -81,7 +81,8 @@ int GameObj::Read(istream* in) {
         } else {
             ok = InstallName();
             if (!ok) return 0;
-            m_name->Read(in);
+            ok = ReadLegacyString(in, *m_name);
+            if (!ok) return 0;
         }
         if (ok) {
             ReadValue32(in, &m_stateFlags);
@@ -113,7 +114,7 @@ int GameObj::Write(ostream* out) {
     if (ok) {
         int hasName = m_name != nullptr;
         WriteValue32(out, &hasName);
-        if (hasName) m_name->Write(out);
+        if (hasName) ok = WriteLegacyString(out, *m_name);
         WriteValue32(out, &m_stateFlags);
         m_builderKey.Write(out);
         m_departureKey.Write(out);

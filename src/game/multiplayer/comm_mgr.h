@@ -85,7 +85,7 @@ public:
     void PingOpponents();          // 0x5fa400
 
     // The name the other players see.
-    void SetPlayerName(String name);          // 0x5974e0 (tactical/comm2.cpp)
+    void SetPlayerName(std::string name);          // 0x5974e0 (tactical/comm2.cpp)
 
     // ---- players ---------------------------------------------------------------------------------------------
     int GetLastLatency() const;               // 0x5f8400
@@ -135,7 +135,7 @@ public:
     IdAvlTree m_outgoing;     // +0x84 CommOutgoings of the reliable messages by id of their first packet
     uint32_t m_enumeratedCount;  // +0x90 players DirectPlay listed
     uint32_t m_playerCount;   // +0x94 players in the session
-    String m_playerName;      // +0x98
+    std::string m_playerName;      // +0x98
     uint32_t m_unknownA4;     // +0xa4
     uint32_t m_unknownA8;     // +0xa8 0x3000
     uint32_t m_unknownAC;     // +0xac GetTickCount() + m_unknownA8 at Init

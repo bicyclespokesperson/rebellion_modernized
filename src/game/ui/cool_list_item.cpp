@@ -61,7 +61,7 @@ CoolListItem::CoolListItem(const CoolListItem& other) : LinkNode(), m_text(), m_
     m_image = nullptr;
     m_selectedImage = nullptr;
     CopyRect(&m_rect, &other.m_rect);
-    m_text.Assign(other.m_text);
+    m_text = other.m_text;
     if (other.m_image) m_image = DuplicateBitmap(other.m_image);
     if (other.m_selectedImage) m_selectedImage = DuplicateBitmap(other.m_selectedImage);
 }

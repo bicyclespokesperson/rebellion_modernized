@@ -2,7 +2,7 @@
 
 #include "ai/ai_agent_bases.h"
 #include "ai/ai_order_util.h"
-#include "ai/ai_session_random.h"
+#include "data/random.h"
 #include "ai/ai_side_controller.h"
 #include "ai/ai_system_record.h"
 #include "character/role.h"
@@ -51,7 +51,7 @@ void CollectKeys(ObjectKeySet* set, Iterator* iterator) {
 void PickRandomKey(ObjectKeySet* set, ObjectKey* out) {
     const uint16_t count = static_cast<uint16_t>(set->Count());
     if (count == 0) return;
-    int steps = SessionRandomNext(count);
+    int steps = GameplayRandomNext(count);
     ObjectKeyNode* node = set->First();
     if (!node) return;
     while (steps > 0) {

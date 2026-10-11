@@ -2,12 +2,12 @@
 
 #include <memory>
 #include <cstdint>
+#include "core/game_string.h"
 #include "platform/win32.h"
 
 class DirectDrawHost;
 class BattleFlow;
 class RebellionApplication;
-class String;
 struct UiResources;
 
 namespace reb::native {
@@ -25,7 +25,7 @@ public:
 
     void Start();
     void Shutdown() noexcept;
-    RebellionApplication& CreateApplication(HINSTANCE instance, uint32_t flags, const String& commandLine);
+    RebellionApplication& CreateApplication(HINSTANCE instance, uint32_t flags, const std::string& commandLine);
     void ReleaseApplication() noexcept;
     AudioContext& GetAudioContext() noexcept;
     BattleFlow* GetBattleFlow() const noexcept;

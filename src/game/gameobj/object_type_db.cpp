@@ -89,7 +89,7 @@ int ObjectTypeDb::AddFamily(int a, int b) {
     if (entry) {
         for (AvlNode* record = RecordsOf(entry)->First(); record && ok; record = NextNode(record)) {
             DatRecord* datRecord = AsRecord(record);
-            datRecord->m_name.Assign(String(NameResource(datRecord)));
+            datRecord->m_name = LoadStringResource(NameResource(datRecord));
         }
     }
     if (ok) ok = static_cast<int>(m_families->AddWithId(static_cast<IdNode*>(entry)));
@@ -232,26 +232,26 @@ int ObjectTypeDb::AreLevelsUnique(int view, uint32_t kind, int* unique) {
     return ok;
 }
 
-void ObjectTypeDb::DescribeKey(const SeedKey* key, String* out) {
-    out->Assign(String(""));
+void ObjectTypeDb::DescribeKey(const SeedKey* key, std::string* out) {
+    out->clear();
     if (key->m_key == 0) {
-        out->Assign(String("<empty SeedKey>"));
+        *out = "<empty SeedKey>";
         return;
     }
     const uint32_t id = key->m_key & 0xffffff;
     if (DatRecord* record = FindRecord(key)) {
-        *out += String(NameResource(record));
-        *out += String(" (ID=");
-        out->AppendUnsigned(id);
-        *out += String(")");
+        *out += LoadStringResource(NameResource(record));
+        *out += std::string(" (ID=");
+        out->append(std::to_string(id));
+        *out += std::string(")");
         return;
     }
-    *out += String("<can't find name, type = ");
-    out->AppendUnsigned(key->m_key >> 24);
-    *out += String("> ");
-    *out += String(" (ID=");
-    out->AppendUnsigned(id);
-    *out += String(")");
+    *out += std::string("<can't find name, type = ");
+    out->append(std::to_string(key->m_key >> 24));
+    *out += std::string("> ");
+    *out += std::string(" (ID=");
+    out->append(std::to_string(id));
+    *out += std::string(")");
 }
 
 // ---- singleton ---------------------------------------------------------------------------------------------
@@ -329,7 +329,7 @@ int FindNextTier2a(int view, int level, int* found, int* foundLevel, int* extraV
     return FindNextDataLevel(view, 0x2a, level, found, foundLevel, extraValue);
 }
 
-void DescribeDataKey(const SeedKey* key, String* out) {
+void DescribeDataKey(const SeedKey* key, std::string* out) {
     ObjectTypeDb* db = GetObjectTypeDb();
     if (db) db->DescribeKey(key, out);
 }

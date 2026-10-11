@@ -74,9 +74,9 @@ public:
     void DeletePreBattleSave();             // 0x409bd0
 
     // *out = the installed location + "\" ; + the saved-games directory ; + the pre-battle save's file name.
-    void BuildInstalledPrefix(String* out);    // 0x409d20
-    void BuildSaveDirectory(String* out);      // 0x409dd0
-    void BuildPreBattleSavePath(String* out);  // 0x409ec0
+    void BuildInstalledPrefix(std::string* out);    // 0x409d20
+    void BuildSaveDirectory(std::string* out);      // 0x409dd0
+    void BuildPreBattleSavePath(std::string* out);  // 0x409ec0
 
     // The step driver's +0x1c flag while the strategic game runs (state 2); 0 / ignored otherwise.
     int GetAutosaveFlag();               // 0x409390
@@ -113,7 +113,7 @@ void InitFlowRange2Span();  // 0x409230
 void InitFlowScaleC();      // 0x409250
 
 // Writes the name of battle-flow state `state` into *out ("STRAT_INIT"...); returns 0 ("Invalid ") for an unknown state.
-int GetBattleStateName(int state, String* out);  // 0x40a700
+int GetBattleStateName(int state, std::string* out);  // 0x40a700
 
 // ---- Game step driver lifetime ---------------------------------------------------------------------------------
 int CreateGameStepDriver();                                                     // 0x40ac40: m_ok, or 0

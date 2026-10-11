@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "app/player_controller_decl.h"
@@ -10,7 +11,7 @@ class ObjectKeyValueSet;
 class OrderBase;
 class EventKindSet;
 class GameObjNotifier;
-class String;
+
 
 // The local (human) controller of a side (0xc4 bytes, VT 0x65ad70, ctors 0x486120 / 0x4861b0): it turns the player's UI
 // commands into orders, sends them (directly, or through the dispatch queue when a blockade is involved) and forwards
@@ -79,7 +80,7 @@ public:
     void Virtual51(const ObjectKey* manager, int unused) override;        // 0x486ab0
     void Virtual52(const ObjectKey* manager, int position) override;      // 0x486ae0
     void Virtual53(const ObjectKey* manager, const ObjectKey* character) override;  // 0x486b00
-    void Virtual54(const ObjectKey* manager, String* text) override;       // 0x486b20
+    void Virtual54(const ObjectKey* manager, std::string* text) override;       // 0x486b20
     void Virtual62(const ObjectKey* key, int redraw) override;             // 0x486b40 (shared by slots 62, 63, 65)
     void Virtual63(const ObjectKey* key, int redraw) override { HumanPlayer::Virtual62(key, redraw); }  // slot 63, shared 0x486b40
     void Virtual65(const ObjectKey* key, int redraw) override { HumanPlayer::Virtual62(key, redraw); }  // slot 65, shared 0x486b40
@@ -96,7 +97,7 @@ public:
 
     // Executes the UI command `command` for the objects of `selection` (and `key`, the object a target was picked
     // on; `name`, the new name of a rename).
-    void ExecuteCommand(int command, ObjectKeyValueSet* selection, ObjectKey* key, String* name);  // 0x486fb0
+    void ExecuteCommand(int command, ObjectKeyValueSet* selection, ObjectKey* key, std::string* name);  // 0x486fb0
     // Checks `order` and sends it (to the other side and the game) or gives the advisor the reason it is refused.
     void SubmitOrder(PlayerMessage* order, int flag);                                              // 0x487740
     void NotifyAdvisor(const ObjectKey* key);                                                                // 0x487810

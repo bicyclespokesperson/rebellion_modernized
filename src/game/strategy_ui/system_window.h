@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "gameobj/object_key.h"
@@ -18,7 +19,7 @@ class GalaxyWindow;
 class GameObjNotifier;
 class ObjectListItem;
 class TextMessage;
-class String;
+
 
 // One of the three manufacturing manager panels (slot 1 shipyard, 2 training facility, 3 construction yard) of the
 // first page of a system window: what the manager builds, how much of it, who commands it and the progress.
@@ -65,7 +66,7 @@ public:
     // Shows the name of the character `character` on the slot's heading (unless it already does).
     void SetSlotCharacter(int slot, GameObjNotifier* manager, const ObjectKey* character);  // 0x457f30
     // Sets the slot's status text to `text`, or to the default text of the slot / the manager's object.
-    void SetSlotStatusText(int slot, GameObjNotifier* manager, String* text);  // 0x457b40
+    void SetSlotStatusText(int slot, GameObjNotifier* manager, std::string* text);  // 0x457b40
     // Redraws the picture and count of what the slot's manager produces.
     void SetSlotProduction(int slot, GameObjNotifier* manager);  // 0x457c90
     // Sets the slot's progress bar to `position` of `range`.

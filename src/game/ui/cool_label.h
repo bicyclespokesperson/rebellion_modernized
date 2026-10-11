@@ -1,11 +1,12 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "core/containers.h"
 #include "core/strstream_io.h"
 #include "platform/win32.h"
 
-class String;
+
 struct ResourceStringId;
 
 // Bits of CoolLabel::m_layoutFlags.
@@ -22,7 +23,7 @@ public:
     // Text from a string resource of the string DLL (g_stringModule); 0 means no text.
     CoolLabel(uint16_t stringId, int left, int top, int width, int height, COLORREF color, int fontSlot, UINT drawFlags,
               UINT layoutFlags);  // 0x601620
-    // Text from the game's String resource loader.
+    // Text from the game's std::string resource loader.
     CoolLabel(const ResourceStringId* stringId, int left, int top, int width, int height, UINT drawFlags, UINT layoutFlags);  // 0x601700
     CoolLabel(uint16_t stringId, int left, int top, int width, int height, UINT drawFlags,
               UINT layoutFlags);  // 0x6017a0: LoadStringA
@@ -30,7 +31,7 @@ public:
               UINT layoutFlags);  // 0x601880
     ~CoolLabel();                 // 0x601990
 
-    void SetTextFromResource(const ResourceStringId* stringId);        // 0x6019a0 (String resource loader)
+    void SetTextFromResource(const ResourceStringId* stringId);        // 0x6019a0 (std::string resource loader)
     void SetTextFromStream(StrStream* stream);     // 0x601a20: takes the text a strstream collected
     void SetText(const char* text);                // 0x601aa0
     const char* GetText() const;                   // 0x601b20: null without text
@@ -48,7 +49,7 @@ public:
 
     int m_width;           // +0x00 requested size (used for fixed sides)
     int m_height;          // +0x04
-    String* m_text;        // +0x08 owned, may be null
+    std::string* m_text;        // +0x08 owned, may be null
     COLORREF m_color;      // +0x0c starts as PALETTERGB(0,0,0)
     UINT m_drawFlags;      // +0x10 DrawText format
     RECT m_rect;           // +0x14

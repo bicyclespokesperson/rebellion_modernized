@@ -21,7 +21,7 @@ uint32_t stateFlags(GameObjNotifier* object) { return static_cast<GameObj*>(obje
 bool isCaptured(GameObjNotifier* character) { return (static_cast<Character*>(character)->m_flagsAc & kCapturedFlag) != 0; }
 uint16_t sideVariant(int owner, uint16_t base) { return static_cast<uint16_t>((owner != 1) + base); }
 
-void say(String* text, uint32_t id, GameObjNotifier* a = nullptr, GameObjNotifier* b = nullptr, GameObjNotifier* c = nullptr) {
+void say(std::string* text, uint32_t id, GameObjNotifier* a = nullptr, GameObjNotifier* b = nullptr, GameObjNotifier* c = nullptr) {
     ExpandMessageTemplate(text, id, notice::nameOf(a), notice::nameOf(b), notice::nameOf(c), nullptr);
 }
 

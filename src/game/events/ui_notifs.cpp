@@ -629,9 +629,9 @@ void UiNotif520::Write(ostream* out) { WritePayload(out); }
 int UiNotif520::GetKind() { return 0x520; }
 
 void UiNotif520::Dispatch(PlayerController* controller) {
-    String* text = NewOrNull<String>();
+    std::string* text = NewOrNull<std::string>();
     if (text) {
-        text->Assign(m_textB);
+        *text = m_textB;
         controller->Virtual54(&m_key, text);
         delete text;
     }

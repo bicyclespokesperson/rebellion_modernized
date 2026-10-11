@@ -103,7 +103,7 @@ int ManuMgr::OnTargetKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyCon
     return result;
 }
 
-int ManuMgr::OnProductNameNotified(String* oldName, String* newName, NotifyContext* ctx) {
+int ManuMgr::OnProductNameNotified(std::string* oldName, std::string* newName, NotifyContext* ctx) {
     int result = IsSideView();
     if (result) {
         LogString("ManuMgrProductNameNotif", "ProductName", newName, oldName, 0, ctx);

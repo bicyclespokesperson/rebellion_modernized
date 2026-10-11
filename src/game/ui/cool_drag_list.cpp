@@ -1,3 +1,5 @@
+#include <string>
+#include "core/game_string.h"
 #include "ui/cool_drag_list.h"
 
 #include <cstring>
@@ -41,7 +43,7 @@ int CoolListItemList::IsLess(LinkNode* a, LinkNode* b) {
     CoolListItem* first = static_cast<CoolListItem*>(a);
     CoolListItem* second = static_cast<CoolListItem*>(b);
     if (mode & kSortById) return first->m_id < second->m_id;
-    if (mode & kSortByLabel) return _stricmp(first->m_text.m_text, second->m_text.m_text) < 0;
+    if (mode & kSortByLabel) return _stricmp(first->m_text.c_str(), second->m_text.c_str()) < 0;
     if (mode & kSortByUserData) return static_cast<int>(first->m_userData) < static_cast<int>(second->m_userData);
     return 0;
 }
@@ -225,19 +227,19 @@ void CoolDragList::SelectRect(POINTS from, POINTS to) {
 
 // Selects the item whose text shares the longest prefix with `prefix` (the first such item; the scan stops at
 // the first item that matches less). BUG(original): when no text starts with the prefix, the first item wins.
-uint32_t CoolDragList::SelectByPrefix(const String* prefix, int notify, int caseSensitive) {
+uint32_t CoolDragList::SelectByPrefix(const std::string* prefix, int notify, int caseSensitive) {
     int bestLength = 0;
     CoolListItem* item = m_items->First();
     CoolListItem* best = item;
-    if (prefix->GetBufferSize() == 0) return 0;
+    if (prefix->empty()) return 0;
     for (; item; item = item->Next()) {
-        String& text = item->m_text;
-        if (text.CompareN(*prefix, 1, caseSensitive) != 0) continue;
-        const int prefixSize = static_cast<uint16_t>(prefix->GetBufferSize());
-        const int textSize = static_cast<uint16_t>(text.GetBufferSize());
+        std::string& text = item->m_text;
+        if (CompareStringsN(text, *prefix, 1, caseSensitive != 0) != 0) continue;
+        const int prefixSize = static_cast<uint16_t>((prefix->empty() ? 0 : prefix->size() + 1));
+        const int textSize = static_cast<uint16_t>(text.empty() ? 0 : text.size() + 1);
         int length = 1;
         while (length < (prefixSize < textSize ? prefixSize : textSize) &&
-               text.CompareN(*prefix, length + 1, caseSensitive) == 0)
+               CompareStringsN(text, *prefix, length + 1, caseSensitive != 0) == 0)
             ++length;
         if (length > bestLength) {
             bestLength = length;
@@ -494,8 +496,8 @@ RECT CoolDragList::GetItemTextRect(CoolListItem* item) {
     HWND hwnd = m_hwnd;
     HDC dc = GetDC(hwnd);
     SelectCurrentFont(dc);
-    if (item->m_text.m_text) {
-        DrawTextA(dc, item->m_text.m_text, -1, &area, (m_textFormat & ~(DT_CENTER | DT_RIGHT | DT_BOTTOM)) | DT_CALCRECT);
+    if (!item->m_text.empty()) {
+        DrawTextA(dc, item->m_text.c_str(), -1, &area, (m_textFormat & ~(DT_CENTER | DT_RIGHT | DT_BOTTOM)) | DT_CALCRECT);
         const UINT format = m_textFormat;
         if (format & DT_BOTTOM) {
             const int measuredBottom = area.bottom;
@@ -665,7 +667,7 @@ void DrawItemText(CoolDragList* list, HDC dc, CoolListItem* item) {
             area.right -= 3;
             break;
     }
-    DrawTextA(dc, item->m_text.m_text, -1, &area, format);
+    if (!item->m_text.empty()) DrawTextA(dc, item->m_text.c_str(), -1, &area, format);
     list->RestoreFont(dc);
 }
 
@@ -701,7 +703,7 @@ LRESULT Paint(CoolDragList* list, HWND hwnd) {
         CoolListItem* item = list->HitTest(origin);
         SetBkMode(dc, TRANSPARENT);
         for (; item && item->m_x <= right && item->m_y <= bottom; item = item->Next()) {
-            if (item->m_text.m_text) DrawItemText(list, dc, item);
+            if (!item->m_text.empty()) DrawItemText(list, dc, item);
         }
     }
     SelectPalette(dc, previousPalette, FALSE);

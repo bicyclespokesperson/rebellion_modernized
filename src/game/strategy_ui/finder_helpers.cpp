@@ -1,3 +1,4 @@
+#include <string>
 #include "strategy_ui/finder_helpers.h"
 
 #include "ai/ai_common.h"
@@ -79,16 +80,16 @@ namespace {
 constexpr int kNoBrush = 5;
 constexpr int kEmpire = 2;
 
-void ShowCount(CoolLabel* label, String* text, uint16_t count, int x) {
-    text->Clear();
-    text->AppendUnsigned(static_cast<int16_t>(count));
+void ShowCount(CoolLabel* label, std::string* text, uint16_t count, int x) {
+    text->clear();
+    text->append(std::to_string(static_cast<unsigned long>(static_cast<int16_t>(count))));
     label->MoveTo(x, 2);
-    label->SetText(text->m_text);
+    label->SetText(text->c_str());
 }
 
 }  // namespace
 
-void DrawForceCells(const ForceCell* cells, int cellCount, CoolLabel* label, String* text, int firstX, int side,
+void DrawForceCells(const ForceCell* cells, int cellCount, CoolLabel* label, std::string* text, int firstX, int side,
                     const HBRUSH* brushes, HDC dc) {
     label->SetFont(10);
     label->m_drawFlags = 1;

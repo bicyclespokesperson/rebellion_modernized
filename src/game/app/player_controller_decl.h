@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "core/containers.h"
+#include "core/game_string.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "gameobj/object_key.h"
@@ -25,7 +26,6 @@ class PlayerController;
 class HumanPlayer;
 using PlayerMessage = IdNode;
 
-class String;
 class NotifPayload;
 class MessageBase;
 
@@ -69,7 +69,7 @@ public:
     void RefreshRecords();                         // 0x48a2a0: drops stale notices, updates the highlights
     void QueueConfirmation(MessageBase* message);  // 0x48a340
     void OnChatMessage(MessageBase* message);      // 0x48a3b0
-    void QueueChat(String* text, int unused);      // 0x48a470
+    void QueueChat(std::string* text, int unused);      // 0x48a470
     int IsIdle();                                  // 0x48a500
     void ClearAlerts(unsigned mask);               // 0x48a530
     void AddCharacterNotice(const IdNode* record);  // 0x48a590
@@ -174,7 +174,7 @@ public:
     virtual void Virtual51(const ObjectKey* manager, int unused) {}
     virtual void Virtual52(const ObjectKey* manager, int position) {}
     virtual void Virtual53(const ObjectKey* manager, const ObjectKey* character) {}
-    virtual void Virtual54(const ObjectKey* manager, String* text) {}
+    virtual void Virtual54(const ObjectKey* manager, std::string* text) {}
     virtual void Virtual55(const ObjectKey* key, const ObjectKey* first, const ObjectKey* second) {}
     virtual void Virtual56(const ObjectKey* key, int arg) {}
     virtual void Virtual57(const ObjectKey* key, const ObjectKey* other) {}

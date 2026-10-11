@@ -3,7 +3,7 @@
 #include "ai/ai_agent_bases.h"
 #include "ai/ai_common.h"
 #include "ai/ai_planner.h"
-#include "ai/ai_session_random.h"
+#include "data/random.h"
 #include "ai/ai_side_controller.h"
 #include "core/checked_new.h"
 #include "economy/side.h"
@@ -145,7 +145,7 @@ AiRankedList* AiSideController::RankSectorsRandomly(uint32_t requireA, uint32_t 
     for (AiSectorEval* sector = static_cast<AiSectorEval*>(m_sectors.First()); sector; sector = Next(sector)) {
         if (!masks.Matches(sector)) continue;
         ObjectKey key = KeyOf(sector);
-        AddItem(list, key, SessionRandomNext(0x14));
+        AddItem(list, key, GameplayRandomNext(0x14));
     }
     list->Number();
     return list;

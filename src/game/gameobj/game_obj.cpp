@@ -33,10 +33,10 @@ void setStatus(StatusCode* out, int code) { *out = StatusCode(kStatusCategory, c
 
 bool isSideRootFamily(uint32_t value) { return value >= family::kSideRoot && value < family::kSide; }
 
-void appendArticle(String* out, const String& name) {
-    const ResourceStringId article = {name.StartsWithNonVowel() == 0 ? kIndefiniteArticleAn : kIndefiniteArticleA,
+void appendArticle(std::string* out, const std::string& name) {
+    const ResourceStringId article = {StartsWithNonVowel(name) == 0 ? kIndefiniteArticleAn : kIndefiniteArticleA,
                                       kArticleGroup};
-    const String articleText(&article);
+    const std::string articleText = LoadStringResource(&article);
     *out += articleText;
 }
 
@@ -80,8 +80,8 @@ GameObjNotifier* GameObj::FindNextSibling(const FamilyRange* range, int resolve)
     return FindNextObjectInRange(this, range, resolve);
 }
 
-void GameObj::WriteName(String* out, int kind) {
-    const String name(*GetName());
+void GameObj::WriteName(std::string* out, int kind) {
+    const std::string name(*GetName());
     switch (kind) {
         case 1:
         case 2:
@@ -98,7 +98,7 @@ void GameObj::WriteName(String* out, int kind) {
             break;
         case 0x22:
             if (m_record) {
-                const String recordName(static_cast<DatRecord*>(m_record)->m_name);
+                const std::string recordName(static_cast<DatRecord*>(m_record)->m_name);
                 appendArticle(out, recordName);
                 *out += recordName;
             }
@@ -109,25 +109,25 @@ void GameObj::WriteName(String* out, int kind) {
 }
 
 // The secondary vtable slot is entered with `this` pointing at the ObjectBase subobject.
-void AppendGameObjName(ObjectBase* base, String* out, int kind) {
+void AppendGameObjName(ObjectBase* base, std::string* out, int kind) {
     static_cast<GameObj*>(base)->GameObj::WriteName(out, kind);
 }
 
-String* GameObj::GetNameCopy(String* out) {
+std::string* GameObj::GetNameCopy(std::string* out) {
     if (m_name) {
-        new (out) String(*m_name);
+        new (out) std::string(*m_name);
         return out;
     }
     if (m_record) {
-        new (out) String(static_cast<DatRecord*>(m_record)->m_name);
+        new (out) std::string(static_cast<DatRecord*>(m_record)->m_name);
         return out;
     }
-    new (out) String(g_emptyText);
+    new (out) std::string(g_emptyText);
     return out;
 }
 
-String* GameObj::GetName() {
-    static String emptyName;
+std::string* GameObj::GetName() {
+    static std::string emptyName;
     if (m_name) return m_name;
     if (m_record) return &static_cast<DatRecord*>(m_record)->m_name;
     return &emptyName;

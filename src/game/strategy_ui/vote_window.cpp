@@ -1,3 +1,4 @@
+#include <string>
 #include "strategy_ui/vote_window.h"
 
 #include <new>
@@ -209,7 +210,7 @@ void VoteWindow::OnCreate1() {
 
     CoolLabel headline(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
     CoolLabel details(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
-    headline.SetText(m_notice->m_text54.m_text);
+    headline.SetText(m_notice->m_text54.c_str());
     headline.SetFont(kHeaderFont);
     headline.m_drawFlags = kCentered;
     headline.MoveTo(0, 0x10);
@@ -223,7 +224,7 @@ void VoteWindow::OnCreate1() {
     frame->DrawKeyed(textBackground, 0, 0);
     HGDIOBJ previous = SelectObject(dc, textBackground->DibSectionHandle());
     headline.Draw(dc);
-    details.SetText(m_notice->m_text60.m_text);
+    details.SetText(m_notice->m_text60.c_str());
     details.m_layoutFlags = kLabelFixedWidth;
     details.SetFont(6);
     details.m_drawFlags = 0x110;
@@ -341,10 +342,10 @@ void VoteWindow::FillList(int page) {
     ObjectKey systemKey(m_notice->m_systemKey);
     GameObjNotifier* system = GetObjectInFamilies_90_98(m_galaxy->m_side, &systemKey);
 
-    String title;
+    std::string title;
     const ResourceStringId headerId = StringId(page == 0 ? kFacilitiesHeader : page == 1 ? kAllianceHeader : kEmpireHeader);
-    title.SetFromResource(&headerId);
-    SetHeaderLook(header, kHeaderFont, title.m_text);
+    title = LoadStringResource(&headerId);
+    SetHeaderLook(header, kHeaderFont, title.c_str());
     m_items->Insert(header);
 
     if (page == 0) {
@@ -377,7 +378,7 @@ void VoteWindow::FillList(int page) {
     if (defenders.Count() != 0) {
         ObjectKey key;
         ObjectListItem* item = NewOrNull<ObjectListItem>(GetObjectKey(system, &key));
-        item->m_text = static_cast<GameObj*>(system)->GetName()->m_text;
+        item->m_text = static_cast<GameObj*>(system)->GetName()->c_str();
         item->m_fontSlot = kFleetFont;
         item->m_state.m_value |= kListItemDisabled;
         item->m_textFormat = kCentered;
@@ -424,7 +425,7 @@ void VoteWindow::AddItem(GameObjNotifier* object, int fontSlot, int widePicture,
     }
     item->m_fontSlot = fontSlot;
     item->SetImages(image, nullptr);
-    item->m_text = static_cast<GameObj*>(object)->GetName()->m_text;
+    item->m_text = static_cast<GameObj*>(object)->GetName()->c_str();
     item->m_state.m_value |= kListItemDisabled;
     m_items->Insert(item);
 }

@@ -347,24 +347,24 @@ GameObjNotifier* CreateObjectForKey(const ObjectKey* key) {
     return object;
 }
 
-int DescribeKeyValueSet(ObjectKeyValueSet* keys, String* out) {
-    out->Assign(String());
-    *out += String("(IDs=");
-    if (!keys->First()) *out += String("<none>");
+int DescribeKeyValueSet(ObjectKeyValueSet* keys, std::string* out) {
+    out->clear();
+    *out += std::string("(IDs=");
+    if (!keys->First()) *out += std::string("<none>");
     bool first = true;
     for (ObjectKeyNode* node = keys->First(); node; node = NextKeyNode(node)) {
         if (first)
             first = false;
         else
-            *out += String(";");
-        String separator(",");
+            *out += std::string(";");
+        std::string separator(",");
         const int value = static_cast<ObjectKeyValueNode*>(node)->m_value;
         ObjectKey key;
         node->GetKey(&key);
-        out->AppendUnsigned(key.Id()) += separator;
-        out->AppendSigned(value);
+        out->append(std::to_string(key.Id())) += separator;
+        out->append(std::to_string(value));
     }
-    *out += String(")");
+    *out += std::string(")");
     return 1;
 }
 

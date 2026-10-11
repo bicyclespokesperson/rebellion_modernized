@@ -51,7 +51,7 @@ public:
 
     int GetEventKinds(int unused, EventKindSet* out) override;  // 15, 0x527c20
     int Virtual16() override { return 1; }                      // 16, 0x40f340
-    void WriteName(String* out, int kind) override;             // ObjectBase slot 0, 0x527b40 (AppendManuMgrName)
+    void WriteName(std::string* out, int kind) override;             // ObjectBase slot 0, 0x527b40 (AppendManuMgrName)
     int IsObservable() override { return 0; }                   // 19, 0x6158b0
     int CheckOrder(int a, int orderKind, StatusCode* out) override;  // 22, 0x527c40
     GameObjData* CreateData() override;                          // 58, 0x52c010
@@ -90,7 +90,7 @@ public:
     // Destroys the current queue, then creates the products listed in `products` (location key -> record key).
     virtual int ReplaceQueue(const ActivityRequest* request, ObjectKeySet* products, NotifyContext* ctx);  // 124, 0x529ab0
     // Rename check (slot 114), then renames the current product (if any) to `name`.
-    virtual int RenameProduct(const ActivityRequest* request, String* name, NotifyContext* ctx);  // 125, 0x529b00
+    virtual int RenameProduct(const ActivityRequest* request, std::string* name, NotifyContext* ctx);  // 125, 0x529b00
     virtual int CancelProducts(const ActivityRequest* request, NotifyContext* ctx);              // 126, 0x529ba0
     virtual int ReserveChecked(const ActivityRequest* request, int value, NotifyContext* ctx);   // 127, 0x529c30
     // Sets the target key to the request's key and moves every product of `products` below its listed parent.
@@ -107,7 +107,7 @@ public:
     virtual int OnProductKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx);        // 136, 0x52b9c0
     virtual int OnDeploymentKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) { return 1; }  // 137
     virtual int OnTargetKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx);         // 138, 0x52b9f0
-    virtual int OnProductNameChanged(String* oldName, String* newName, NotifyContext* ctx);           // 139, 0x52ba00
+    virtual int OnProductNameChanged(std::string* oldName, std::string* newName, NotifyContext* ctx);           // 139, 0x52ba00
 
     // ---- slots 140-150: OnXNotified ----
     virtual int OnRemainingGameObjCountNotified(int oldValue, int newValue, NotifyContext* ctx);       // 140, 0x52baa0
@@ -120,7 +120,7 @@ public:
     virtual int OnProductKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx);        // 147, 0x52bcb0
     virtual int OnDeploymentKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx);     // 148, 0x52bd00
     virtual int OnTargetKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx);         // 149, 0x52bd50
-    virtual int OnProductNameNotified(String* oldName, String* newName, NotifyContext* ctx);           // 150, 0x52bd90
+    virtual int OnProductNameNotified(std::string* oldName, std::string* newName, NotifyContext* ctx);           // 150, 0x52bd90
 
     // ==== SECTION core (manu_mgr_core.cpp) ====
     // Builds a request {side, 0, no key, 0x215} and runs CheckProductActionImpl on it.
@@ -154,7 +154,7 @@ public:
     int SetProductKey(ObjectKey* value, NotifyContext* ctx);      // 0x529770
     int SetDeploymentKey(ObjectKey* value, NotifyContext* ctx);   // 0x529820
     int SetTargetKey(ObjectKey* value, NotifyContext* ctx);       // 0x5298d0
-    int SetProductName(String* value, NotifyContext* ctx);        // 0x529980
+    int SetProductName(std::string* value, NotifyContext* ctx);        // 0x529980
 
     // ==== SECTION apply (manu_mgr_apply.cpp) ====
     int ApplyRemainingGameObjCount(NotifyContext* ctx);  // 0x52aed0
@@ -168,7 +168,7 @@ public:
     int ApplyDeploymentKey(NotifyContext* ctx);          // 0x52b410
     int ApplyTargetKey(NotifyContext* ctx);              // 0x52b530
     int ApplyProductName(NotifyContext* ctx);            // 0x52b650
-    String* GetProductNameCopy(String* out);             // 0x52b760
+    std::string* GetProductNameCopy(std::string* out);             // 0x52b760
 
     // ==== SECTION production (manu_mgr_production.cpp) ====
     int GetProductionRate(StatusCode* status, int* rate);  // 0x528960
@@ -184,7 +184,7 @@ public:
     int RebalanceFacilities(NotifyContext* ctx);  // 0x529dd0
     int DestroyProducts(NotifyContext* ctx);     // 0x52a2c0
     int CreateProducts(ObjectKeySet* products, int unused, NotifyContext* ctx);  // 0x52a140
-    int RenameProductIfAny(String* name, NotifyContext* ctx);  // 0x52a240
+    int RenameProductIfAny(std::string* name, NotifyContext* ctx);  // 0x52a240
     int ClearReserved(int value, NotifyContext* ctx);          // 0x52a360
     int ReparentQueue(ObjectKeySet* products, const ObjectKey* target, NotifyContext* ctx);  // 0x52a380
     int AdvanceProgress(NotifyContext* ctx);                   // 0x52a430
@@ -209,14 +209,14 @@ public:
     ObjectKey m_productKey;           // +0x74
     ObjectKey m_deploymentKey;        // +0x78
     ObjectKey m_targetKey;            // +0x7c
-    String m_productName;             // +0x80
+    std::string m_productName;             // +0x80
 };
 
 // Runs UpdateChildren over the manufacturing manager families (0xa0-0xb0) of `parent` (0x529a40, cdecl).
 int UpdateManuMgrChildren(GameObj* parent, NotifyContext* ctx);
 
 // Secondary-vtable WriteName (ObjectBase slot 0, 0x527b40): kind 5 appends the seed record's name, 6 the queue length.
-void AppendManuMgrName(ObjectBase* base, String* out, int kind);
+void AppendManuMgrName(ObjectBase* base, std::string* out, int kind);
 
 // Iterator over the manufacturing managers (families 0xa0-0xaf) below an object; VT 0x65fe54 (destructor only).
 class ManuMgrIterator : public ChildIterator {

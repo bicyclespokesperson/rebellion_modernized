@@ -122,7 +122,7 @@ void AddCharacterRow(MissionSelectionWindow* window, CoolListItemList* items, co
     picture->DrawKeyed(normal, left, top);
     picture->DrawKeyed(highlighted, left, top);
     item->SetImages(normal, highlighted);
-    item->m_text = static_cast<GameObj*>(object)->GetName()->m_text;
+    item->m_text = static_cast<GameObj*>(object)->GetName()->c_str();
     item->m_textOffsetY = picture->Height() + top;
     items->Insert(item);
     DeleteBitmap(picture);
@@ -346,7 +346,7 @@ void MissionSelectionWindow::OnCreate1() {
             item = new (memory) CoolListItem(MissionKindItemId(record));
         }
         item->SetImages(normal, highlighted);
-        item->m_text = nameNode->m_name.m_text;
+        item->m_text = nameNode->m_name.c_str();
         item->m_ownColors = 1;
         item->m_color = 0x808080;
         item->m_userPointer = reinterpret_cast<uintptr_t>(NewOrNull<ObjectKey>(candidateKey));
@@ -410,7 +410,7 @@ void MissionSelectionWindow::OnCreate1() {
         text.SetColor(0xffffff, nullptr);
         text.MoveTo(0x25, 0x126);
         text.SetFont(5);
-        text.SetText(static_cast<GameObj*>(target)->GetName()->m_text);
+        text.SetText(static_cast<GameObj*>(target)->GetName()->c_str());
         text.m_drawFlags = 1;
         text.m_layoutFlags = 1;
         text.Measure(dc);

@@ -69,13 +69,13 @@ int SideBits::Checksum(Crc32* crc) {
     return 1;
 }
 
-int SideBits::AppendDescription(String* out) {
-    String suffix(")");
-    String garrison(sideName(Garrison()));
-    String garrisonLabel(",G=");
-    String loyalty(sideName(Loyalty()));
-    String loyaltyLabel(" (L=");
-    String controller(sideName(Controller()));
+int SideBits::AppendDescription(std::string* out) {
+    std::string suffix(")");
+    std::string garrison(sideName(Garrison()));
+    std::string garrisonLabel(",G=");
+    std::string loyalty(sideName(Loyalty()));
+    std::string loyaltyLabel(" (L=");
+    std::string controller(sideName(Controller()));
     *out += controller;
     *out += loyaltyLabel;
     *out += loyalty;

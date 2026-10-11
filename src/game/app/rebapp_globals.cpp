@@ -153,10 +153,10 @@ int AppIsSaveLoadPending() {
     return pending;
 }
 
-void AppRequestSave(int slot, String name) {
+void AppRequestSave(int slot, std::string name) {
     if (g_app) {
         App()->m_pendingSaveSlot = slot;
-        App()->m_pendingSaveName.Assign(name);
+        App()->m_pendingSaveName = std::move(name);
     }
 }
 
@@ -164,7 +164,7 @@ void AppRequestLoad(int slot) {
     if (g_app) App()->m_pendingLoadSlot = slot;
 }
 
-void AppSendSaveCommand(int a, int b, String name, int d) {
+void AppSendSaveCommand(int a, int b, std::string name, int d) {
     if (g_app) App()->SendSaveCommand(a, b, name, d);
 }
 
@@ -207,7 +207,7 @@ void AppSetUnknown138(int value) {
     if (g_app) App()->m_unknown138 = value;
 }
 
-void AppPlayMovie(int movieId, const String* caption, void(* callback)(uint32_t, uint32_t, int)) {
+void AppPlayMovie(int movieId, const std::string* caption, void(* callback)(uint32_t, uint32_t, int)) {
     if (g_app) App()->PlayMovie(movieId, caption, callback);
 }
 

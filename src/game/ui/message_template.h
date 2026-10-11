@@ -1,10 +1,11 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "platform/win32.h"
 
 class ObjectBase;
-class String;
+
 
 // Expands the RT_RCDATA text templates of a string DLL (TEXTSTRA's player messages). A template is plain text in
 // which a field marker byte introduces a 6-byte field: marker, field code, int32 argument. Field code n (1..4)
@@ -16,7 +17,7 @@ public:
     ~MessageTemplate();  // 0x619730 (does nothing)
 
     // Appends template `templateId`, with its fields filled in, to `out`.
-    void Expand(String* out, UINT templateId, ObjectBase* field1, ObjectBase* field2, ObjectBase* field3,
+    void Expand(std::string* out, UINT templateId, ObjectBase* field1, ObjectBase* field2, ObjectBase* field3,
                 ObjectBase* field4);  // 0x60b840
 
     ObjectBase* m_noField;  // +0x00 always null (see Expand)
@@ -30,7 +31,7 @@ public:
 // with TEXTSTRA.DLL.
 void SetMessageTemplateSource(UINT endMarkerId, UINT fieldMarkerId, HMODULE module);  // 0x60b940
 // g_messageTemplate->Expand, if there is one.
-void ExpandMessageTemplate(String* out, UINT templateId, ObjectBase* field1, ObjectBase* field2, ObjectBase* field3,
+void ExpandMessageTemplate(std::string* out, UINT templateId, ObjectBase* field1, ObjectBase* field2, ObjectBase* field3,
                            ObjectBase* field4);  // 0x60b9d0
 
 extern MessageTemplate* g_messageTemplate;  // 0x6be5c4

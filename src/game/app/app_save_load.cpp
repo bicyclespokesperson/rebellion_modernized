@@ -126,10 +126,10 @@ int RebellionApplication::LoadTacticalState(void* stream) {
 
 // ---- Save file names and headers --------------------------------------------------------------------------------
 
-void SavedGameInfo::SetName(String name) { m_name.Assign(name); }
+void SavedGameInfo::SetName(std::string name) { (m_name = name); }
 
-String RebellionApplication::MakeSaveFileName(int slot, int isNetworkGame) {
-    String name;
+std::string RebellionApplication::MakeSaveFileName(int slot, int isNetworkGame) {
+    std::string name;
     ScopedIfstream unusedFile;
     ScopedStrstream text;
     if (slot != 0) {
@@ -148,24 +148,24 @@ String RebellionApplication::MakeSaveFileName(int slot, int isNetworkGame) {
         strstreambuf_freeze(iostream_access::BufferOf(text.get()), 0);
         ClearStreamState(text.get());
     }
-    return String(name);
+    return std::string(name);
 }
 
 SavedGameInfo RebellionApplication::ReadSaveHeader(int slot, int isNetworkGame) {
     SavedGameInfo info;
-    String fileName = MakeSaveFileName(slot, isNetworkGame);
+    std::string fileName = MakeSaveFileName(slot, isNetworkGame);
     ScopedIfstream file;
-    OpenInputFile(file.get(), fileName.m_text);
+    OpenInputFile(file.get(), fileName.c_str());
     if (GetFileError() == 0) info.Read(file.get()->In());
     CloseFileStream(file.get());
     return SavedGameInfo(info);
 }
 
-String RebellionApplication::GetSaveName(int slot, int isNetworkGame) {
-    String name;
+std::string RebellionApplication::GetSaveName(int slot, int isNetworkGame) {
+    std::string name;
     SavedGameInfo info = ReadSaveHeader(slot, isNetworkGame);
-    name.Assign(info.GetName());
-    return String(name);
+    (name = info.GetName());
+    return std::string(name);
 }
 
 int RebellionApplication::GetSavedGameType(int slot, int isNetworkGame) {
@@ -179,10 +179,10 @@ int RebellionApplication::LoadPendingGame() {
     int loaded = 0;
     UiSetPausePending(0);
     int isNetworkGame = m_networkMode == 7 && m_gameType == 2;
-    String fileName = MakeSaveFileName(m_pendingLoadSlot, isNetworkGame);
+    std::string fileName = MakeSaveFileName(m_pendingLoadSlot, isNetworkGame);
     m_pendingLoadSlot = 0;
     ScopedIfstream file;
-    OpenInputFile(file.get(), fileName.m_text);
+    OpenInputFile(file.get(), fileName.c_str());
     if (GetFileError() == 0) {
         HCURSOR previousCursor = ShowWaitCursor();
         SavedGameInfo info;
@@ -210,17 +210,17 @@ int RebellionApplication::SavePendingGame() {
     int saved = 0;
     int slot = m_pendingSaveSlot;
     int isNetworkGame = m_networkMode == 7 && m_gameType == 2;
-    String fileName = MakeSaveFileName(slot, isNetworkGame);
-    String name(m_pendingSaveName);
-    m_pendingSaveName.Assign(String());
-    if (!name.m_text) {
+    std::string fileName = MakeSaveFileName(slot, isNetworkGame);
+    std::string name = m_pendingSaveName;
+    m_pendingSaveName.clear();
+    if (name.empty()) {
         isNetworkGame = m_networkMode == 7 && m_gameType == 2;
-        name.Assign(GetSaveName(slot, isNetworkGame));
-        if (!name.m_text) name.AppendSpaces(1);
+        (name = GetSaveName(slot, isNetworkGame));
+        if (name.empty()) AppendSpaces(name, 1);
     }
     m_pendingSaveSlot = 0;
     ScopedOfstream file;
-    OpenOutputFile(file.get(), fileName.m_text);
+    OpenOutputFile(file.get(), fileName.c_str());
     if (GetFileError() == 0) {
         HCURSOR previousCursor = ShowWaitCursor();
         SavedGameInfo info;
@@ -245,9 +245,9 @@ int RebellionApplication::SavePendingGame() {
 void RebellionApplication::ProcessPendingSaveLoad() {
     if (!(m_commandLineFlags & kAppNoAutosave) && m_pendingSaveSlot == 0 && AppIsGameRunning()) {
         AppSetAutosaveFlag(0);
-        String autosaveName(g_autosaveName);
+        std::string autosaveName(g_autosaveName);
         m_pendingSaveSlot = kAutosaveSlot;
-        m_pendingSaveName.Assign(autosaveName);
+        (m_pendingSaveName = autosaveName);
         m_autosaveTick = GameHookTickCount();
     }
     if (m_pendingLoadSlot != 0) LoadPendingGame();
@@ -260,13 +260,13 @@ int RebellionApplication::IsSessionActive() {
     return active;
 }
 
-void RebellionApplication::SendSaveCommand(int a, int b, String name, int d) {
+void RebellionApplication::SendSaveCommand(int a, int b, std::string name, int d) {
     void* commandMemory = operator new(sizeof(MpPlayerInfoMsg));
     MpPlayerInfoMsg* command = commandMemory ? new (commandMemory) MpPlayerInfoMsg() : nullptr;
     if (!command) return;
     command->m_playerId = b;
     command->m_action = a;
-    command->m_playerName.Assign(name);
+    (command->m_playerName = name);
     command->m_extra = d;
     void* executorMemory = operator new(sizeof(MessageCodec));
     CommandExecutor* executor = executorMemory ? static_cast<CommandExecutor*>(new (executorMemory) MessageCodec()) : nullptr;

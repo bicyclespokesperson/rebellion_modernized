@@ -3,6 +3,7 @@
 #include <cstdint>
 
 #include "core/containers.h"
+#include "core/game_string.h"
 #include "core/stream_io.h"
 #include "gameobj/game_obj_root.h"
 #include "gameobj/object_key.h"
@@ -15,7 +16,6 @@
 // `view` argument selects which copy of the object to return; with `resolve` set, an object that is hidden
 // (IsUnderSideRoot) is skipped in favour of the next one in the range.
 
-class String;
 class ObjectDatabase;
 
 // One database entry; the IdNode id is the key's id, m_family its family.
@@ -99,7 +99,7 @@ GameObjNotifier* FindNextObjectInRange(GameObjNotifier* object, const FamilyRang
 GameObjNotifier* CreateObjectForKey(const ObjectKey* key);
 
 // Formats "(IDs=id,value;id,value...)" ("<none>" when empty) into *out. Returns 1.
-int DescribeKeyValueSet(ObjectKeyValueSet* keys, String* out);
+int DescribeKeyValueSet(ObjectKeyValueSet* keys, std::string* out);
 // For every key in `keys` asks its master object for the keys it depends on, collecting them in `collected`.
 // *status becomes {1,-1} on success, {1,0x12} for an unknown key, {1,1} if an object refused.
 int CollectKeyDependencies(void* context, ObjectKeyValueSet* keys, ObjectKeyValueSet* collected, StatusCode* status);

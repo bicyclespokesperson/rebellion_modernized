@@ -69,7 +69,7 @@ int UnitObjBase::Virtual55(intptr_t a) { return GameObj::Virtual55(a) != 0; }
 
 GameObjData* UnitObjBase::CreateData() { return new UnitObjData(); }
 
-int UnitObjBase::OnNameChanged(String* oldName, String* newName, NotifyContext* ctx) {
+int UnitObjBase::OnNameChanged(std::string* oldName, std::string* newName, NotifyContext* ctx) {
     return GameObj::OnNameChanged(oldName, newName, ctx);
 }
 

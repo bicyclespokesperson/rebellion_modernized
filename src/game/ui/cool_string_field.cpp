@@ -1,3 +1,4 @@
+#include "core/game_string.h"
 #include "ui/cool_string_field.h"
 
 #include <cstring>
@@ -82,7 +83,7 @@ void CoolStringField::SetText(const char* text) {
     }
     m_text = text;
     m_caret = -1;
-    m_length = m_text.Length() & 0xffff;
+    m_length = m_text.size() & 0xffff;
     if (m_hwnd) {
         MeasureText();
         UpdateCaret();
@@ -91,7 +92,7 @@ void CoolStringField::SetText(const char* text) {
 }
 
 void CoolStringField::Clear() {
-    m_text.Clear();
+    m_text.clear();
     m_caret = -1;
     m_length = 0;
     m_scroll = 0;
@@ -104,7 +105,7 @@ void CoolStringField::SetMaxLength(uint16_t maxLength) {
         m_maxLength = maxLength;
     else
         m_maxLength = kMaxFieldLength;
-    if (m_maxLength < m_length) SetText(m_text.m_text);
+    if (m_maxLength < m_length) SetText(m_text.c_str());
 }
 
 void CoolStringField::SetSelection(int start, int end) {
@@ -123,28 +124,28 @@ void CoolStringField::DeleteSelection() {
         start = m_length;
     } else {
         if (end == -1 && start > -1) {
-            m_text.RemoveRange(start, m_length);
+            RemoveStringRange(m_text, start, m_length);
             m_caret = m_selEnd;
             m_selEnd = -1;
             m_selStart = -1;
             return;
         }
         if (start <= end) {
-            m_text.RemoveRange(start, end);
+            RemoveStringRange(m_text, start, end);
             m_caret = m_selStart;
             m_selEnd = -1;
             m_selStart = -1;
             return;
         }
     }
-    m_text.RemoveRange(end, start);
+    RemoveStringRange(m_text, end, start);
     m_caret = m_selEnd;
     m_selEnd = -1;
     m_selStart = -1;
 }
 
 void CoolStringField::MeasureText() {
-    const char* text = m_text.m_text;
+    const char* text = m_text.c_str();
     HDC dc = GetDC(m_hwnd);
     RECT bounds = {0, 0, 0, 0};
     if (text) {
@@ -158,19 +159,20 @@ void CoolStringField::MeasureText() {
                                             static_cast<LONG>((m_clientHeight + m_shadowOffset) * 2), m_backdrop, dc);
         }
         RestoreFont(dc);
-        m_length = m_text.Length() & 0xffff;
+        m_length = m_text.size() & 0xffff;
     }
     ReleaseDC(m_hwnd, dc);
 }
 
 void CoolStringField::UpdateCaret() {
     HDC dc = GetDC(m_hwnd);
-    const char* text = m_text.m_text;
+    const char* text = m_text.c_str();
     int scroll = m_scroll;
     RECT bounds = {0, 0, 0, 0};
     if (text) {
         SelectCurrentFont(dc);
-        if ((m_text.GetBufferSize() & 0xffff) < m_caret) m_caret = m_text.GetBufferSize() & 0xffff;
+        const int bufferSize = m_text.empty() ? 0 : static_cast<int>((m_text.size() + 1) & 0xffff);
+        if (bufferSize < m_caret) m_caret = bufferSize;
         DrawTextA(dc, text, m_caret, &bounds, kMeasureFormat);
         const LONG caretRight = bounds.right;
         const int selEnd = m_selEnd;
@@ -219,7 +221,7 @@ void CoolStringField::UpdateCaret() {
 
 int CoolStringField::CharIndexFromX(int x, int) {
     int target = m_scroll + x;
-    const char* text = m_text.m_text;
+    const char* text = m_text.c_str();
     int count = 0;
     HDC dc = GetDC(m_hwnd);
     RECT bounds = {0, 0, 0, 0};
@@ -253,7 +255,7 @@ void ClearSelection(CoolStringField* field) {
 
 void PaintField(CoolStringField* field) {
     HWND hwnd = field->m_hwnd;
-    const int length = field->m_text.Length() & 0xffff;
+    const int length = field->m_text.size() & 0xffff;
     int low = field->m_selStart < 0 ? 0 : field->m_selStart;
     int high = length;
     if (field->m_selEnd >= 0) high = field->m_selEnd;
@@ -293,7 +295,7 @@ void PaintField(CoolStringField* field) {
     if (setTransparent) SetBkMode(memory, TRANSPARENT);
 
     if (!(field->m_flags & kFieldFocused) || field->m_selStart == field->m_selEnd) {
-        DrawShadowedText(memory, field->m_text.m_text, &area, field->m_textColor, field->m_shadowColor,
+        DrawShadowedText(memory, field->m_text.c_str(), &area, field->m_textColor, field->m_shadowColor,
                          kShadowedTextFormat, margin, -1);
     } else {
         StringCursor cursor(field->m_text);
@@ -301,7 +303,7 @@ void PaintField(CoolStringField* field) {
         if (low != high && low > 0) {
             area.right = field->m_selLeftPixel;
             area.left = 0;
-            DrawShadowedText(memory, field->m_text.m_text, &area, field->m_textColor, field->m_shadowColor,
+            DrawShadowedText(memory, field->m_text.c_str(), &area, field->m_textColor, field->m_shadowColor,
                              kShadowedTextFormat, margin, low);
         }
         area.right = field->m_selRightPixel;
@@ -332,18 +334,18 @@ void PaintField(CoolStringField* field) {
 
 LRESULT HandleKeyDown(CoolStringField* field, WPARAM key, LPARAM lParam) {
     HWND hwnd = field->m_hwnd;
-    if (field->m_selStart >= 0 && field->m_selEnd == -1) field->m_selEnd = field->m_text.Length() & 0xffff;
+    if (field->m_selStart >= 0 && field->m_selEnd == -1) field->m_selEnd = field->m_text.size() & 0xffff;
     switch (key) {
     case VK_BACK:
         if (field->m_selStart == field->m_selEnd) {
             const int caret = field->m_caret;
             if (caret > 0) {
-                field->m_text.RemoveRange(caret - 1, caret);
+                RemoveStringRange(field->m_text, caret - 1, caret);
                 field->m_caret = field->m_caret - 1;
                 NotifyChanged(field);
             } else if (caret == -1) {
-                const int length = field->m_text.Length() & 0xffff;
-                field->m_text.RemoveRange(length - 1, length);
+                const int length = field->m_text.size() & 0xffff;
+                RemoveStringRange(field->m_text, length - 1, length);
                 NotifyChanged(field);
             }
         } else {
@@ -387,7 +389,7 @@ LRESULT HandleKeyDown(CoolStringField* field, WPARAM key, LPARAM lParam) {
     case VK_LEFT: {
         int caret = field->m_caret;
         if (caret < 1) {
-            if (caret == -1) field->m_caret = (field->m_text.Length() & 0xffff) - 1;
+            if (caret == -1) field->m_caret = (field->m_text.size() & 0xffff) - 1;
         } else {
             field->m_caret = caret - 1;
         }
@@ -414,7 +416,7 @@ LRESULT HandleKeyDown(CoolStringField* field, WPARAM key, LPARAM lParam) {
     }
     case VK_RIGHT: {
         int caret = field->m_caret;
-        if (caret > -1 && caret < static_cast<int>(field->m_text.Length() & 0xffff)) field->m_caret = caret + 1;
+        if (caret > -1 && caret < static_cast<int>(field->m_text.size() & 0xffff)) field->m_caret = caret + 1;
         if (IsShiftHeld()) {
             const int end = field->m_selEnd;
             caret = field->m_caret;
@@ -443,7 +445,7 @@ LRESULT HandleKeyDown(CoolStringField* field, WPARAM key, LPARAM lParam) {
         if (field->m_selStart == field->m_selEnd) {
             const int caret = field->m_caret;
             if (caret > -1) {
-                field->m_text.RemoveRange(caret, caret + 1);
+                RemoveStringRange(field->m_text, caret, caret + 1);
                 NotifyChanged(field);
             }
         } else {
@@ -459,20 +461,20 @@ LRESULT HandleKeyDown(CoolStringField* field, WPARAM key, LPARAM lParam) {
 }
 
 LRESULT HandleChar(CoolStringField* field, WPARAM key) {
-    if (field->m_selStart >= 0 && field->m_selEnd == -1) field->m_selEnd = field->m_text.Length() & 0xffff;
+    if (field->m_selStart >= 0 && field->m_selEnd == -1) field->m_selEnd = field->m_text.size() & 0xffff;
     if (!_isprint(static_cast<int>(key))) return 0;
     if (field->m_flags & kFieldFocused) {
         if (field->m_selStart == field->m_selEnd) {
             const int caret = field->m_caret;
-            if ((field->m_flags & kFieldOverwrite) && caret > 0 && caret < static_cast<int>(field->m_text.Length() & 0xffff))
-                field->m_text.RemoveRange(caret, caret + 1);
+            if ((field->m_flags & kFieldOverwrite) && caret > 0 && caret < static_cast<int>(field->m_text.size() & 0xffff))
+                RemoveStringRange(field->m_text, caret, caret + 1);
         } else {
             field->DeleteSelection();
         }
-        if (field->m_caret == -1) field->m_caret = field->m_text.Length() & 0xffff;
+        if (field->m_caret == -1) field->m_caret = field->m_text.size() & 0xffff;
         if (field->m_maxLength == 0 || field->m_caret < field->m_maxLength) {
             const char character = static_cast<char>(key);
-            field->m_text.InsertChar(character, field->m_caret);
+            InsertCharacter(field->m_text, character, field->m_caret);
             field->m_caret = field->m_caret + 1;
         }
         field->MeasureText();

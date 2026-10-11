@@ -271,13 +271,13 @@ TextMessage::~TextMessage() = default;
 
 int TextMessage::Read(istream* in) {
     int result = OrderBase::Read(in);
-    if (result != 0) m_text.ReadFrom(in);
+    if (result != 0) result = ReadLegacyString(in, m_text);
     return result;
 }
 
 int TextMessage::Write(ostream* out) {
     int result = OrderBase::Write(out);
-    if (result != 0) m_text.WriteTo(out);
+    if (result != 0) result = WriteLegacyString(out, m_text);
     return result;
 }
 

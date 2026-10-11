@@ -65,7 +65,7 @@ public:
     DirectDrawHost& m_display;
     reb::native::GameContext& m_context;
 
-    RebellionApplication(HINSTANCE instance, uint32_t commandLineFlags, const String* commandLine, DirectDrawHost& display,
+    RebellionApplication(HINSTANCE instance, uint32_t commandLineFlags, const std::string* commandLine, DirectDrawHost& display,
                          reb::native::GameContext& context, UiResources& resources);  // 0x413000
     ~RebellionApplication() override;  // 0x413440 (scalar deleting destructor 0x413420)
 
@@ -81,7 +81,7 @@ public:
     // Leaves the current state and enters `state` (an AppState).
     void SetState(int state);  // 0x414330
     // Plays the movie `movieId` (0x65..0x6d) in the movie window; `a`/`b` go to the movie window.
-    void PlayMovie(int movieId, const String* caption, void(* callback)(uint32_t, uint32_t, int));  // 0x4146e0
+    void PlayMovie(int movieId, const std::string* caption, void(* callback)(uint32_t, uint32_t, int));  // 0x4146e0
     void BeginMovieState();   // 0x414830
     void DoMainChildWindow(int previousState);  // 0x414a80: front-end, lobby or options window for the current state
     void ShowStrategicWindow(int unused);       // 0x414eb0
@@ -93,11 +93,11 @@ public:
     int LoadPendingGame();                      // 0x415440
     int SavePendingGame();                      // 0x415600
     SavedGameInfo ReadSaveHeader(int slot, int isNetworkGame);   // 0x415cd0
-    String GetSaveName(int slot, int isNetworkGame);             // 0x415a00
-    String MakeSaveFileName(int slot, int isNetworkGame);        // 0x415ad0
+    std::string GetSaveName(int slot, int isNetworkGame);             // 0x415a00
+    std::string MakeSaveFileName(int slot, int isNetworkGame);        // 0x415ad0
     int GetSavedGameType(int slot, int isNetworkGame);                               // 0x415df0
     // Sends a save request to the other players (the args are those of the command at 0x4210c0).
-    void SendSaveCommand(int a, int b, String name, int d);  // 0x4158e0
+    void SendSaveCommand(int a, int b, std::string name, int d);  // 0x4158e0
     int HasWaitedLongEnough();                  // 0x415e20: true once 0.25 s passed since ResetWaitTimer
     void PromptForPause();                      // 0x415e60
     void OnDialogEndedEnableSpeed();            // 0x415ec0
@@ -142,7 +142,7 @@ public:
     CoolWindow* m_overlayWindow;      // +0xc4 movie window or confirmation dialog
     int m_pendingLoadSlot;            // +0xc8 save slot to load at the next opportunity, 0: none
     int m_pendingSaveSlot;            // +0xcc save slot to write, 0: none
-    String m_pendingSaveName;         // +0xd0 name for the pending save
+    std::string m_pendingSaveName;         // +0xd0 name for the pending save
     int m_state;                      // +0xdc AppState
     int m_previousState;              // +0xe0
     int m_gameType;                   // +0xe4 1: single player, 2: network game

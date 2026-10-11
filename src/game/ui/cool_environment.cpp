@@ -3,7 +3,6 @@
 #include "core/game_string.h"
 #include "ui/cool_window.h"
 
-extern void* g_loadStringCallback;
 
 namespace {
 
@@ -51,7 +50,7 @@ void InitStringLoader() {
     }
 }
 
-void InstallStringLoader() { g_loadStringCallback = reinterpret_cast<void*>(&LoadGameString); }
+void InstallStringLoader() { SetStringLoader(&LoadGameString); }
 
 int LoadGameString(const ResourceStringId* id, int size, LPSTR buffer) {
     HINSTANCE module = FindResourceModule(static_cast<uint16_t>(id->m_group));

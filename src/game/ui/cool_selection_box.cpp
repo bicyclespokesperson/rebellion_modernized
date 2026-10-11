@@ -24,7 +24,7 @@ constexpr int kDropDownFrame = 4;
 constexpr int kListInset = 2;
 constexpr int kDropDownListOptions = kDragListSingleSelect | kDragListNoDrag | kDragListHoverTracking;
 
-const char* ItemText(CoolListItem* item) { return item->m_text.m_text; }
+const char* ItemText(const CoolListItem* item) { return item->m_text.c_str(); }
 
 void CopyItems(CoolListItemList* target, CoolListItemList* source) {
     for (CoolListItem* item = source->First(); item; item = item->Next()) target->Insert(NewOrNull<CoolListItem>(*item));

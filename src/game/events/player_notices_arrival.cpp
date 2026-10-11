@@ -21,7 +21,7 @@ int otherSide(int owner) { return 2 - (owner != 1); }
 
 uint32_t stateFlags(GameObjNotifier* object) { return static_cast<GameObj*>(object)->m_stateFlags; }
 
-void say(String* text, uint32_t id, GameObjNotifier* a = nullptr, GameObjNotifier* b = nullptr, GameObjNotifier* c = nullptr) {
+void say(std::string* text, uint32_t id, GameObjNotifier* a = nullptr, GameObjNotifier* b = nullptr, GameObjNotifier* c = nullptr) {
     ExpandMessageTemplate(text, id, notice::nameOf(a), notice::nameOf(b), notice::nameOf(c), nullptr);
 }
 

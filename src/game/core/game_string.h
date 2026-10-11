@@ -1,107 +1,47 @@
 #pragma once
 #include <cstddef>
 #include <cstdint>
-
+#include <string>
 
 class istream;
 class ostream;
-class StringCursor;
 
-// Heap-allocated, NUL-terminated string. Used throughout the game (~1500 destructor call sites).
-// Most operations free the old buffer and replace it, recording in m_valid whether the new allocation
-// succeeded (operator new returns NULL on failure). Lengths are truncated to 16 bits everywhere.
-// Localized string resource id. The string loader receives the *address* of one of these (callers pass
-// pointers to static ids), and hands it on to the loader callback.
 struct ResourceStringId {
     int16_t m_id;
     int16_t m_group;
 };
 
-class String {
-public:
-    String();
-    String(const char* text);
-    String(const String& other);
-    explicit String(const ResourceStringId* resource);
-    virtual ~String();
+using StringLoader = int (*)(const ResourceStringId*, int, char*);
+void SetStringLoader(StringLoader loader);
 
-    String& operator=(const String&) = delete;
-    int Assign(const String& other);
-    void operator=(const char* text);
-    void SetFromResource(const ResourceStringId* resource);
-    void Clear();
+std::string LoadStringResource(const ResourceStringId* resource);
+std::string StringFromText(const char* text);
+int CompareStrings(const std::string& first, const std::string& second);
+int CompareStringsN(const std::string& first, const std::string& second, size_t count, bool caseSensitive);
+bool StartsWithNonVowel(const std::string& text);
+void InsertString(std::string& text, const std::string& other, int position);
+void InsertCharacter(std::string& text, char character, int position);
+void RemoveStringRange(std::string& text, int start, int end);
+int AppendSpaces(std::string& text, int count);
+bool ReadLegacyString(istream* in, std::string& text);
+bool WriteLegacyString(ostream* out, const std::string& text);
 
-    unsigned short Length() const;
-    short GetBufferSize() const;  // Length() + terminator, 0 for an empty (null) string
-    char* CopyText() const;       // new heap copy of the text, caller owns it
-
-    String& operator+=(const String& other);
-    String operator+(const String& other) const;
-    String& AppendSigned(long value);
-    String& AppendUnsigned(unsigned long value);
-    String& AppendChar(const char& c);
-    int AppendSpaces(int count);
-
-    // Insert `other` / the character `c` before character `position` (clamped to the length).
-    void Insert(const String& other, int position);
-    void InsertChar(const char& c, int position);
-    // Remove characters [start, end); does nothing unless 0 <= start < end <= Length().
-    void RemoveRange(int start, int end);
-
-    // Byte-wise comparison (null counts as ""): -1, 0 or 1.
-    int Compare(const String& other) const;
-    int operator==(const String& other) const;
-    int operator<(const String& other) const;
-    int CompareN(const String& other, size_t count, int caseSensitive) const;
-    int StartsWithNonVowel() const;
-    int CompareToZeroString() const;
-
-    void ReadFrom(istream* in);
-    void WriteTo(ostream* out);
-    void Read(istream* in);
-    void Write(ostream* out);
-
-    char* m_text;  // +0x04, owned; null for an empty string
-    int m_valid;   // +0x08, 0 if allocating m_text failed
-};
-
-// Read position inside a String's text (a char* plus the start, to allow rewinding). Does not own the text.
+// Bounded borrow of a String's text; mutation of the owner invalidates attached cursors.
 class StringCursor {
 public:
-    StringCursor();
-    StringCursor(const StringCursor& other);
-    explicit StringCursor(const String& text);
-    virtual ~StringCursor();
-
-    StringCursor& operator=(const StringCursor& other);
-    StringCursor& Attach(const String& text);
-    StringCursor& operator++();                // advance, stopping at the terminator
-    StringCursor operator++(int);              // returns the position before advancing
-    StringCursor operator--(int);              // returns the position before moving back; see BUG note in .cpp
-    int Current() const;                       // character at the position, 0 if no text
+    StringCursor() = default;
+    explicit StringCursor(const std::string& text);
+    StringCursor& Attach(const std::string& text);
+    StringCursor& operator++();
+    StringCursor operator++(int);
+    StringCursor operator--(int);
+    int Current() const;
     void Rewind();
-    int HasMore() const;                       // 1 if positioned on a non-terminator character
+    int HasMore() const;
 
-    const char* m_current;  // +0x04
-    const char* m_begin;    // +0x08
+    const char* m_current = nullptr;
+    const char* m_begin = nullptr;
 };
 
-// Length of `text`, or 0 for null.
 int SafeStrlen(const char* text);
-
-// *out = heap copy of `text` (null if `text` is null). Returns 0 only if the allocation failed.
-int DuplicateString(const char* text, char** out);
-
-// *out = heap concatenation of `first` and `second` (either may be null; null if both are). Returns 0 only
-// if the allocation failed.
-int ConcatenateStrings(const char* first, const char* second, char** out);
-
-// *out = heap copy of string resource `resource` (via the registered loader callback; "" if there is none).
-int LoadStringResource(const ResourceStringId* resource, char** out);
-
-// Binary stream format: uint16 length followed by that many bytes (no terminator).
-int ReadLengthPrefixedString(istream* in, char** out);
-int WriteLengthPrefixedString(ostream* out, const char* text);
-
-// setlocale(LC_ALL, "")
 void SetLocaleFromEnvironment();

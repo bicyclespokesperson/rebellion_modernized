@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "gameobj/object_key.h"
@@ -10,7 +11,7 @@ class CoolStringField;
 class CoolTabControl;
 class CustomDialogBox;
 class GameObj;
-class String;
+
 
 // The key handling shared by the finder windows (system, fleet, troop and personnel finders): Tab is ignored, Escape
 // closes the window, Left/Right step through the visible filter tabs, Up moves to the name field, Down to the list
@@ -33,5 +34,5 @@ void CountIntoCell(ForceCell* cells, int cellCount, GameObj* force);
 
 // Draws the counts of `cells` side by side from `firstX`, each over a PatBlt of the brush (of `brushes`) for its
 // state; an empty cell shows "-".
-void DrawForceCells(const ForceCell* cells, int cellCount, CoolLabel* label, String* text, int firstX, int side,
+void DrawForceCells(const ForceCell* cells, int cellCount, CoolLabel* label, std::string* text, int firstX, int side,
                     const HBRUSH* brushes, HDC dc);

@@ -133,12 +133,12 @@ int CommOpenProvider(ServiceProviderInfo* provider) {
     return result;
 }
 
-void CommSetPlayerName(String name) {
+void CommSetPlayerName(std::string name) {
     CommMgr* comm = GetCommMgr();
     if (comm) comm->SetPlayerName(name);
 }
 
-void CommMgr::SetPlayerName(String name) { m_playerName.Assign(name); }
+void CommMgr::SetPlayerName(std::string name) { (m_playerName = name); }
 
 void CommSyncState() {
     CommMgr* comm = GetCommMgr();

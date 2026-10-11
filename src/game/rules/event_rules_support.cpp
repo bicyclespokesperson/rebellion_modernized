@@ -100,8 +100,8 @@ int NumberUnitName(GameObj* object, NotifyContext* ctx) {
         DatRecord* record = static_cast<DatRecord*>(object->m_record);
         result = record != nullptr;
         if (record != nullptr) {
-            String* unitName = object->GetName();
-            if (record->m_name.Compare(*unitName) == 0) {
+            std::string* unitName = object->GetName();
+            if (CompareStrings(record->m_name, *unitName) == 0) {
                 GameObjNotifier* sideObject = nullptr;
                 GetControlSideObject(object, &sideObject);
                 // BUG(original): without a side object the number is read uninitialised.
@@ -111,12 +111,12 @@ int NumberUnitName(GameObj* object, NotifyContext* ctx) {
                     GetObjectRecordKey(object, &recordKey);
                     static_cast<Side*>(sideObject)->AddObjectRef(&recordKey, &number, ctx);
                 }
-                String text;
+                std::string text;
                 {
-                    String separator(" ");
+                    std::string separator(" ");
                     text += record->m_name;
                     text += separator;
-                    text.AppendSigned(number);
+                    text.append(std::to_string(number));
                 }
                 result = object->SetName(&text, ctx);
             }

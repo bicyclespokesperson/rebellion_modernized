@@ -32,4 +32,4 @@ int CheckControlAndState(GameObj* object, uint32_t side, uint32_t otherSide, int
 int AddChildKeys(ChildIterator* children, ObjectKeyValueSet* out, int onlySide, uint32_t side);  // 0x553350
 GameObjNotifier* GetMasterObjectForKey(const ObjectKey* key);                                    // 0x553400
 // "<name> (ID=n)", or a description of what is missing, replacing the contents of *out.
-void AppendObjectDescription(ObjectKey* key, String* out);  // 0x553c80
+void AppendObjectDescription(ObjectKey* key, std::string* out);  // 0x553c80

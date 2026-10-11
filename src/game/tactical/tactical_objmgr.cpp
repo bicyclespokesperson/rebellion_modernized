@@ -104,9 +104,9 @@ void TacticalObjectManager::SetControlFlags(int sideA, int sideB) {
     m_sides[1]->m_controlFlag = sideB;
 }
 
-void TacticalObjectManager::SetSystemInfo(int field44, String name) {
+void TacticalObjectManager::SetSystemInfo(int field44, std::string name) {
     m_systemField44 = field44;
-    m_systemName.Assign(name);
+    (m_systemName = name);
 }
 #endif
 

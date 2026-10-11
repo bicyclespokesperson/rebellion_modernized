@@ -36,9 +36,9 @@ struct SideTexts {
 constexpr SideTexts kAllianceTexts = {{0x5200, 0x14}, {0x5260, 0x23}, {0x52c0, 0x10}};
 constexpr SideTexts kEmpireTexts = {{0x5100, 0x27}, {0x5160, 0x22}, {0x51c0, 0x20}};
 
-void UseText(String* text, const TextTable& table, int16_t* next) {
+void UseText(std::string* text, const TextTable& table, int16_t* next) {
     const ResourceStringId id{static_cast<int16_t>(*next + table.firstId), kStringGroup};
-    text->SetFromResource(&id);
+    *text = LoadStringResource(&id);
     ++*next;
 }
 
@@ -124,7 +124,7 @@ void AiTask14::Refused(int*, OrderBase* order) {
 }
 
 OrderBase* AiTask14::BuildMessage(AiShipRecord* record) {
-    String text;
+    std::string text;
     ObjectKeyValueSet team;
     const SideTexts& table = m_view == 1 ? kAllianceTexts : kEmpireTexts;
     const uint32_t flags = record->m_flags.m_value;
@@ -151,9 +151,9 @@ OrderBase* AiTask14::BuildMessage(AiShipRecord* record) {
         record->GetKey(&key);
         GameObj* ship = static_cast<GameObj*>(GetObjectInFamilies_14_1c(m_view, &key));
         if (ship) {
-            String name;
+            std::string name;
             ship->GetNameCopy(&name);
-            text.Assign(name);
+            (text = name);
         }
     }
     TextMessage* order = static_cast<TextMessage*>(CreateMessageByKind(kAdvisorOrderKind));
@@ -165,7 +165,7 @@ OrderBase* AiTask14::BuildMessage(AiShipRecord* record) {
             team.Add(node);
             order->m_side = m_view;
             order->SetTeam(&team);
-            order->m_text.Assign(text);
+            (order->m_text = text);
         }
     }
     return order;

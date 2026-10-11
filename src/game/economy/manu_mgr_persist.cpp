@@ -23,7 +23,7 @@ int ManuMgr::Read(istream* in) {
         m_productKey.Read(in);
         m_deploymentKey.Read(in);
         m_targetKey.Read(in);
-        m_productName.Read(in);
+        ReadLegacyString(in, m_productName);
     }
     return result;
 }
@@ -41,7 +41,7 @@ int ManuMgr::Write(ostream* out) {
         m_productKey.Write(out);
         m_deploymentKey.Write(out);
         m_targetKey.Write(out);
-        m_productName.Write(out);
+        WriteLegacyString(out, m_productName);
     }
     return result;
 }

@@ -421,16 +421,16 @@ int ManuMgr::UpdateDeploymentKey(NotifyContext* ctx) {
 
 int ManuMgr::UpdateProductName(NotifyContext* ctx) {
     int result = 1;
-    String name;
+    std::string name;
     ObjectKey productCopy(m_productKey);
     if (productCopy.OrNull() == nullptr) {
-        String empty("");
-        name.Assign(empty);
+        std::string empty("");
+        (name = empty);
     } else {
         GameObjNotifier* product = GetProduct();
         result = product != nullptr;
         if (!result) return 0;
-        name.Assign(*static_cast<GameObj*>(product)->GetName());
+        (name = *static_cast<GameObj*>(product)->GetName());
     }
     if (result) result = SetProductName(&name, ctx);
     return result;
@@ -489,7 +489,7 @@ int ManuMgr::CreateProducts(ObjectKeySet* products, int unused, NotifyContext* c
     return result;
 }
 
-int ManuMgr::RenameProductIfAny(String* name, NotifyContext* ctx) {
+int ManuMgr::RenameProductIfAny(std::string* name, NotifyContext* ctx) {
     int result = 1;
     ObjectKey productCopy(m_productKey);
     if (productCopy.IsSet()) result = SetProductName(name, ctx);

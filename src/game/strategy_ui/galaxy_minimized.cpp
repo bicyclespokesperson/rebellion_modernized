@@ -119,7 +119,7 @@ void GalaxyWindow::UpdateMinimizedIcon(CoolWindow* window) {
     background->Blit(slot.m_icon, 0, 0, area.left, area.top, area.right - area.left, area.bottom - area.top);
     picture.DrawKeyed(slot.m_icon, 0, 0);
     HGDIOBJ previousBitmap = SelectObject(memoryDc, slot.m_icon->DibSectionHandle());
-    label.SetText(static_cast<GameObj*>(object)->GetName()->m_text);
+    label.SetText(static_cast<GameObj*>(object)->GetName()->c_str());
     label.SetFont(kIconFontSlot);
     label.MoveTo(picture.Width(), 0);
     label.SetColor(kIconLabelColor, nullptr);

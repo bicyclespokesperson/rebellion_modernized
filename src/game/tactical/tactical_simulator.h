@@ -71,7 +71,7 @@ struct HeadlessSimulator {
     UnitRefTree m_launched;     // +0x58 units whose carrier was found (launched fighters)
     UnitRefTree m_active;       // +0x64 units in state 2
     UnitRefTree m_retired;      // +0x70 units that left the battle (state 0xb)
-    String m_strings[0x26];     // +0x7c
+    std::string m_strings[0x26];     // +0x7c
     uint8_t m_pad244[8];
     TacticalAiSide* m_sides[2];  // +0x24c
     int m_secondCommander[2];   // +0x254 handle of each side's second-best commander

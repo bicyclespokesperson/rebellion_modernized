@@ -1,3 +1,5 @@
+#include <string>
+#include "core/game_string.h"
 #include "strategy_ui/object_status_window.h"
 
 #include <cstdint>
@@ -80,8 +82,8 @@ CoolListItem* NewRowItem(uint32_t id) {
     return memory ? new (memory) CoolListItem(id) : nullptr;
 }
 
-void AddRowText(CoolListItem* item, const String& text, CoolListItemList* list) {
-    item->m_text = text.m_text;
+void AddRowText(CoolListItem* item, const std::string& text, CoolListItemList* list) {
+    item->m_text = text.c_str();
     list->Insert(item);
 }
 
@@ -388,9 +390,9 @@ void ObjectStatusWindow::ShowSidePage(HMODULE module, DibBitmap** picture) {
 
 // ---- Rows --------------------------------------------------------------------------------------------------
 
-void AddStatusRow(uint32_t id, String* text, CoolListItemList* list) {
+void AddStatusRow(uint32_t id, const std::string* text, CoolListItemList* list) {
     CoolListItem* item = NewRowItem(id);
-    item->m_text = text->m_text;
+    item->m_text = text->c_str();
     list->Insert(item);
 }
 
@@ -405,38 +407,38 @@ void ObjectStatusWindow::AddNameRow(int unusedRow, CoolListItemList* labels, Coo
         m_nameLabel.SetTextFromResource(&text);
         return;
     }
-    m_nameLabel.SetText(static_cast<GameObj*>(m_object)->GetName()->m_text);
+    m_nameLabel.SetText(static_cast<GameObj*>(m_object)->GetName()->c_str());
 }
 
 void ObjectStatusWindow::AddAttachedRows(int row, CoolListItemList* labels, CoolListItemList* values) {
-    String text;
-    text.Clear();
+    std::string text;
+    text.clear();
     if (GetVersionCheckResult() == 0) {
         const ResourceStringId id = {static_cast<int16_t>(0x87b0), 2};
-        text.SetFromResource(&id);
+        text = LoadStringResource(&id);
     } else {
-        String attached(g_attachedText);
+        std::string attached = StringFromText(g_attachedText);
         text += attached;
     }
     AddRowText(NewRowItem(row), text, labels);
-    text.Clear();
-    String parentName(static_cast<GameObj*>(m_object->m_parent)->GetName()->m_text);
+    text.clear();
+    std::string parentName(static_cast<GameObj*>(m_object->m_parent)->GetName()->c_str());
     text += parentName;
     AddRowText(NewRowItem(row), text, values);
 }
 
 void ObjectStatusWindow::AddStatusRows(int row, CoolListItemList* labels, CoolListItemList* values) {
-    String text;
-    text.Clear();
+    std::string text;
+    text.clear();
     if (GetVersionCheckResult() == 0) {
         const ResourceStringId id = {static_cast<int16_t>(0x8666), 2};
-        text.SetFromResource(&id);
+        text = LoadStringResource(&id);
     } else {
-        String status(g_statusText);
+        std::string status = StringFromText(g_statusText);
         text += status;
     }
     AddRowText(NewRowItem(row), text, labels);
-    text.Clear();
+    text.clear();
     CoolListItem* item = NewRowItem(row);
     const uint32_t state = static_cast<GameObj*>(m_object)->m_stateFlags;
     int16_t stringId;
@@ -446,16 +448,16 @@ void ObjectStatusWindow::AddStatusRows(int row, CoolListItemList* labels, CoolLi
         stringId = 0x8744;
     }
     const ResourceStringId id = {stringId, 2};
-    text.SetFromResource(&id);
+    text = LoadStringResource(&id);
     AddRowText(item, text, values);
 }
 
 void ObjectStatusWindow::AddCombatValueRow(int row, CoolListItemList* labels, CoolListItemList* values) {
-    String text;
+    std::string text;
     const ResourceStringId id = {static_cast<int16_t>(0x8651), 2};
-    text.SetFromResource(&id);
+    text = LoadStringResource(&id);
     AddRowText(NewRowItem(row), text, labels);
-    text.Clear();
+    text.clear();
     ObjectKey key;
     GetObjectKey(m_object, &key);
     const FamilyRange units(0x10, 0x40);
@@ -463,7 +465,7 @@ void ObjectStatusWindow::AddCombatValueRow(int row, CoolListItemList* labels, Co
     if (key.Family() >= units.m_first && key.Family() < units.m_second) {
         value = static_cast<UnitObjBase*>(m_object)->GetRecordField4c();
     }
-    text.AppendUnsigned(value);
+    text.append(std::to_string(static_cast<unsigned long>(value)));
     AddRowText(NewRowItem(row), text, values);
 }
 
@@ -480,12 +482,12 @@ int LayoutStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* value
     CoolListItem* label = labels->First();
     for (CoolListItem* value = values->First(); label && value; value = value->Next()) {
         left.MoveTo(kLabelX, leftY);
-        left.SetText(label->m_text.m_text);
+        left.SetText(label->m_text.c_str());
         left.Measure(dc);
         const int leftBottom = left.m_rect.bottom;
         const int leftTop = left.m_rect.top;
         right.MoveTo(kValueX, rightY);
-        right.SetText(value->m_text.m_text);
+        right.SetText(value->m_text.c_str());
         right.Measure(dc);
         label->m_x = kLabelX;
         label->m_y = leftY;
@@ -513,11 +515,11 @@ void DrawStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values
     CoolListItem* label = labels->First();
     for (CoolListItem* value = values->First(); label && value; value = value->Next()) {
         left.MoveTo(label->m_x, label->m_y);
-        left.SetText(label->m_text.m_text);
+        left.SetText(label->m_text.c_str());
         left.Measure(dc);
         left.Draw(dc);
         right.MoveTo(value->m_x, value->m_y);
-        right.SetText(value->m_text.m_text);
+        right.SetText(value->m_text.c_str());
         right.Measure(dc);
         right.Draw(dc);
         label = label->Next();
@@ -573,7 +575,7 @@ void ObjectStatusWindow::AddTallyItems(AvlTree* tally) {
         CoolListItem* item = NewRowItem(key.Family());
         item->m_state.m_value = 4;
         item->SetImages(image, nullptr);
-        String text;
+        std::string text;
         StrStream stream;
         strstream_ctor(&stream, 1);
         ostream_seekp_pos(stream.Out(), 0);
@@ -588,7 +590,7 @@ void ObjectStatusWindow::AddTallyItems(AvlTree* tally) {
         ostream_operator_ls_char(stream.Out(), 0);
         text = strstreambuf_str(StreambufOf(&stream));
         strstreambuf_freeze(StreambufOf(&stream), 0);
-        item->m_text = text.m_text;
+        item->m_text = text.c_str();
         m_items->Insert(item);
         strstream_dtor(stream.Ios());
         ios_dtor(stream.Ios());

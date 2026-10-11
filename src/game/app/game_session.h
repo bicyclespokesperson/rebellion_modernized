@@ -107,7 +107,7 @@ public:
 };
 
 
-extern RandomGenerator g_sessionRandom;   // 0x6b14d8, saved with the session (its state is ignored when loading)
+extern RandomGenerator g_sessionRandom;   // 0x6b14d8, session presentation randomness, saved and restored
 
 GameSession* GetGameSession();
 // Replaces the current driver's session; destroys it again if construction left it invalid.

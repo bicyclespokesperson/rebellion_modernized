@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "core/containers.h"
@@ -65,8 +66,8 @@ public:
     virtual void Virtual15();     // 0x4c4cd0: Virtual13 through the vtable
     virtual int Virtual16(const LinkNode* payloads);  // 0x4974f0: hands every payload of the list to Virtual0x via DispatchToSink
 
-    String m_text0;       // +0x44
-    String m_text1;       // +0x50
+    std::string m_text0;       // +0x44
+    std::string m_text1;       // +0x50
     ObjectKey m_key;      // +0x5c
     ObjectKey m_target;   // +0x60 a key that is 0 when empty
 };
@@ -82,8 +83,8 @@ public:
     void Virtual13() override {}  // 0x619730 (shared no-op)
     virtual int Virtual14(const LinkNode* payloads);  // 0x4974f0 (shared)
 
-    String m_text0;       // +0x44
-    String m_text1;       // +0x50
+    std::string m_text0;       // +0x44
+    std::string m_text1;       // +0x50
     int m_value;          // +0x5c
     ObjectKey m_key;      // +0x60
 };

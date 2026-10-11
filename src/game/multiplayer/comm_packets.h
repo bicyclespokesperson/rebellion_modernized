@@ -42,7 +42,7 @@ public:
     DWORD m_majorVersion;  // +0x20
     DWORD m_minorVersion;  // +0x24
     DWORD_PTR m_context;   // +0x28
-    String m_name;         // +0x2c
+    std::string m_name;         // +0x2c
 };
 
 // A game session as IDirectPlay2::EnumSessions reports it (0x38 bytes, VT 0x66de20): the instance GUID and the name.
@@ -53,7 +53,7 @@ public:
     ~SessionInfo() override;                                   // 0x5f7c70 (deleting 0x5f7bc0)
 
     GUID m_instance;  // +0x1c guidInstance of the session
-    String m_name;    // +0x2c
+    std::string m_name;    // +0x2c
 };
 
 // The two lists of the lobby (globals 0x6be340 and 0x6be330): IdAvlTrees that own their nodes.

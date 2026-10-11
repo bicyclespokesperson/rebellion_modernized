@@ -1,3 +1,4 @@
+#include "core/game_string.h"
 #include "strategy_ui/advisor_notices.h"
 
 #include <new>
@@ -102,16 +103,16 @@ UiTextNotice::~UiTextNotice() = default;
 
 void UiTextNotice::Read(istream* in) {
     UiNotice::Read(in);
-    m_text0.Read(in);
-    m_text1.Read(in);
+    ReadLegacyString(in, m_text0);
+    ReadLegacyString(in, m_text1);
     m_key.Read(in);
     m_target.Read(in);
 }
 
 void UiTextNotice::Write(ostream* out) {
     UiNotice::Write(out);
-    m_text0.Write(out);
-    m_text1.Write(out);
+    WriteLegacyString(out, m_text0);
+    WriteLegacyString(out, m_text1);
     m_key.Write(out);
     m_target.Write(out);
 }
@@ -137,16 +138,16 @@ UiKeyNotice::~UiKeyNotice() = default;
 
 void UiKeyNotice::Read(istream* in) {
     UiNotice::Read(in);
-    m_text0.Read(in);
-    m_text1.Read(in);
+    ReadLegacyString(in, m_text0);
+    ReadLegacyString(in, m_text1);
     ReadValue32(in, &m_value);
     m_key.Read(in);
 }
 
 void UiKeyNotice::Write(ostream* out) {
     UiNotice::Write(out);
-    m_text0.Write(out);
-    m_text1.Write(out);
+    WriteLegacyString(out, m_text0);
+    WriteLegacyString(out, m_text1);
     WriteValue32(out, &m_value);
     m_key.Write(out);
 }

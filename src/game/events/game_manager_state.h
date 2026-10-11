@@ -42,7 +42,7 @@ int WriteLegacyBlocks(ostream* out);  // 0x5685a0
 // ---- legacy text slots --------------------------------------------------------------------------------------
 // Ten strings with a count and one more int; saved as count, int, then the first `count` strings.
 
-extern String g_legacyTexts[10];   // 0x6bb880
+extern std::string g_legacyTexts[10];   // 0x6bb880
 extern int g_legacyTextCount;      // 0x6bb8f8
 extern int g_legacyTextExtra;      // 0x6bb8fc
 

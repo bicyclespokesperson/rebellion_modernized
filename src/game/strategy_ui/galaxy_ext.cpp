@@ -1,3 +1,4 @@
+#include <string>
 #include "core/reb_x87.h"
 #include <cstdint>
 
@@ -208,9 +209,9 @@ void GalaxyWindow::Virtual08(int command, int unused1, int unused2) {
 }
 
 void GalaxyWindow::BuildSectorItems(HMODULE module) {
-    String text;
+    std::string text;
     const ResourceStringId suffixId = {0x173b, 2};
-    String suffix(&suffixId);
+    std::string suffix = LoadStringResource(&suffixId);
     m_sectorLabel.SetFont(5);
     m_sectorLabel.m_drawFlags = 0;
     m_sectorLabel.SetColor(0x200f0f0, nullptr);
@@ -220,26 +221,26 @@ void GalaxyWindow::BuildSectorItems(HMODULE module) {
         sectorObject->GetPosition(&position);
         if (GetVersionCheckResult() == 0) {
             const ResourceStringId groupId = {0x4da0, g_stringGroup65d424};
-            String check(&groupId);
-            if (check.CompareToZeroString() == 0) {
-                String name;
+            std::string check = LoadStringResource(&groupId);
+            if (check.empty()) {
+                std::string name;
                 static_cast<GameObj*>(sector)->GetNameCopy(&name);
-                text.Assign(name);
-                String newline(g_newlineString);
+                text = name;
+                std::string newline = StringFromText(g_newlineString);
                 text += newline;
                 text += suffix;
             } else {
-                text.Assign(suffix);
-                String newline(g_newlineString);
+                text = suffix;
+                std::string newline = StringFromText(g_newlineString);
                 text += newline;
-                String name;
+                std::string name;
                 static_cast<GameObj*>(sector)->GetNameCopy(&name);
                 text += name;
             }
         } else {
-            String name;
+            std::string name;
             static_cast<GameObj*>(sector)->GetNameCopy(&name);
-            text.Assign(name);
+            text = name;
             text += suffix;
         }
         int x = GridScaled(static_cast<int16_t>(position), g_mapGridWidth, 607.0);
@@ -251,7 +252,7 @@ void GalaxyWindow::BuildSectorItems(HMODULE module) {
         ObjectListItem* item = NewOrNull<ObjectListItem>(&key);
         item->m_x = x;
         item->m_y = y;
-        item->m_text = text.m_text;
+        item->m_text = text.c_str();
         int maxX = x;
         int maxY = y;
         {

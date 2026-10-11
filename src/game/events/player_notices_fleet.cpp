@@ -30,7 +30,7 @@ bool isCharacter(GameObjNotifier* object) {
 
 bool isCaptured(GameObjNotifier* character) { return (static_cast<Character*>(character)->m_flagsAc & 1) != 0; }
 
-void say(String* text, uint32_t id, GameObjNotifier* a = nullptr, GameObjNotifier* b = nullptr, GameObjNotifier* c = nullptr) {
+void say(std::string* text, uint32_t id, GameObjNotifier* a = nullptr, GameObjNotifier* b = nullptr, GameObjNotifier* c = nullptr) {
     ExpandMessageTemplate(text, id, notice::nameOf(a), notice::nameOf(b), notice::nameOf(c), nullptr);
 }
 

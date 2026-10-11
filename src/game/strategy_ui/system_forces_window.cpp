@@ -1,3 +1,4 @@
+#include <string>
 #include "strategy_ui/system_forces_window.h"
 
 #include <new>
@@ -78,7 +79,7 @@ bool FamilyIn(const ObjectKey& key, uint32_t first, uint32_t end) { return key.F
 
 GameObjNotifier* ParentOf(GameObjNotifier* object) { return object->m_parent; }
 
-const char* NameOf(GameObjNotifier* object) { return static_cast<GameObj*>(object)->GetName()->m_text; }
+const char* NameOf(GameObjNotifier* object) { return static_cast<GameObj*>(object)->GetName()->c_str(); }
 
 // A picture of the set that has a greyed variant two ids lower.
 uint32_t PictureIfAny(int count, uint32_t base) { return base - (count != 0 ? 2 : 0); }
@@ -556,9 +557,9 @@ void SystemForcesWindow::OnObjectUpdated(const ObjectKey* key, GameObjNotifier* 
     }
     if (m_tab == kTabTroops && static_cast<uint32_t>(UiGetHumanSide()) == system->ControlSide()) {
         const ResourceStringId required = StringId(0x1947);
-        String text(&required);
-        text.AppendSigned(static_cast<System*>(system)->m_troopRegRequired);
-        m_infoLabel->SetText(text.m_text);
+        std::string text = LoadStringResource(&required);
+        text.append(std::to_string(static_cast<long>(static_cast<System*>(system)->m_troopRegRequired)));
+        m_infoLabel->SetText(text.c_str());
         const RECT area = m_infoLabel->m_rect;
         InvalidateRect(m_hwnd, &area, 0);
     }
@@ -646,9 +647,9 @@ int SystemForcesWindow::ShowTab(int tab) {
     m_list->Refresh();
     if (tab == kTabTroops && static_cast<uint32_t>(UiGetHumanSide()) == system->ControlSide()) {
         const ResourceStringId required = StringId(0x1947);
-        String text(&required);
-        text.AppendSigned(static_cast<System*>(system)->m_troopRegRequired);
-        m_infoLabel->SetText(text.m_text);
+        std::string text = LoadStringResource(&required);
+        text.append(std::to_string(static_cast<long>(static_cast<System*>(system)->m_troopRegRequired)));
+        m_infoLabel->SetText(text.c_str());
         const RECT area = m_infoLabel->m_rect;
         InvalidateRect(m_hwnd, &area, 0);
     } else {

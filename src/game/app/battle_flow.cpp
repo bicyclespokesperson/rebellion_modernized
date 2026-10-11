@@ -31,17 +31,17 @@ HCURSOR showWaitCursor() { return SetCursor(LoadCursorA(nullptr, MAKEINTRESOURCE
 
 // Builds a path from the installed location and a resource string; the result is not used (see CreateGameStepDriver).
 void buildInstalledPath() {
-    String path;
-    path.Clear();
+    std::string path;
+    path.clear();
     char* installed = GetInstalledLocation();
     if (installed) {
-        String separator(kBackslash);
-        String installedText(installed);
+        std::string separator(kBackslash);
+        std::string installedText = StringFromText(installed);
         path += installedText;
         path += separator;
         operator delete(installed);
     }
-    String resource(LoadRcdataString(kLogicalResourceSaveDirectory));
+    std::string resource = StringFromText(LoadRcdataString(kLogicalResourceSaveDirectory));
     path += resource;
 }
 
@@ -49,7 +49,7 @@ void buildInstalledPath() {
 
 // ---- state names ----------------------------------------------------------------------------------------------------
 
-int GetBattleStateName(int state, String* out) {
+int GetBattleStateName(int state, std::string* out) {
     const char* name = nullptr;
     switch (state) {
         case 0: name = "NONE"; break;
@@ -72,10 +72,10 @@ int GetBattleStateName(int state, String* out) {
         default: break;
     }
     if (!name) {
-        out->Assign(String("Invalid!"));
+        *out = "Invalid!";
         return 0;
     }
-    out->Assign(String(name));
+        *out = StringFromText(name);
     return 1;
 }
 
@@ -208,10 +208,10 @@ void BattleFlow::Step(int* stepped) {
                 setup.Convert();
             }
             {
-                String saveName;
+                std::string saveName;
                 BuildPreBattleSavePath(&saveName);
                 ScopedOfstream file;
-                OpenOutputFile(file.get(), saveName.m_text);
+                OpenOutputFile(file.get(), saveName.c_str());
                 if (GetFileError() == 0) {
                     HCURSOR previousCursor = showWaitCursor();
                     SaveStrategic(file.get()->Out());
@@ -266,14 +266,14 @@ void BattleFlow::Step(int* stepped) {
             DestroyStepDriver();
             m_stepDriver.reset(NewOrNull<GameStepDriver>());
             if (m_stepDriver && m_stepDriver->m_ok != 0) {
-                String path;
+                std::string path;
                 BuildSaveDirectory(&path);
             }
             LoadPreBattleSave();
             {
-                String saveName;
+                std::string saveName;
                 BuildPreBattleSavePath(&saveName);
-                DeleteGameFile(saveName.m_text);
+                DeleteGameFile(saveName.c_str());
             }
             if (m_stepDriver.get()) {
                 BattleResults results;
@@ -301,7 +301,7 @@ void BattleFlow::Step(int* stepped) {
         }
     }
     if (m_state != previousState) {
-        String stateName;
+        std::string stateName;
         GetBattleStateName(m_state, &stateName);
     }
 }

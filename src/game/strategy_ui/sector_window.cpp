@@ -1,3 +1,4 @@
+#include <string>
 #include "core/reb_x87.h"
 #include "strategy_ui/sector_window.h"
 
@@ -95,8 +96,8 @@ SectorWindow::~SectorWindow() {
 }
 
 void SectorWindow::OnCreate1() {
-    String unusedText;
-    String emptyText;
+    std::string unusedText;
+    std::string emptyText;
     HMODULE art = CoolAppGetResourceModule(kArtSlot);
     HMODULE strings = CoolAppGetResourceModule(kStringSlot);
     HDC window = GetDC(m_hwnd);
@@ -116,7 +117,7 @@ void SectorWindow::OnCreate1() {
     m_titleLabel->m_height = 0x14;
     m_titleLabel->MoveTo(2, 2);
     m_titleLabel->m_drawFlags = 0x25;
-    m_titleLabel->SetText(static_cast<GameObj*>(m_sector)->GetName()->m_text);
+    m_titleLabel->SetText(static_cast<GameObj*>(m_sector)->GetName()->c_str());
     m_titleLabel->SetFont(4);
     m_titleLabel->SetColor(0x200f0f0, nullptr);
 
@@ -179,7 +180,7 @@ void SectorWindow::OnCreate1() {
             icon->m_x = x;
             icon->m_y = y;
             icon->m_rect = area;
-            icon->m_text = static_cast<GameObj*>(system)->GetName()->m_text;
+            icon->m_text = static_cast<GameObj*>(system)->GetName()->c_str();
             icon->m_textOffsetY = iconHeight + 0xb;
             m_systems.Insert(icon);
 
@@ -240,7 +241,7 @@ void SectorWindow::OnCreate1() {
                 marker->m_rect.right = slot.m_left + markerWidth;
                 marker->m_rect.bottom = slot.m_top + markerHeight;
                 marker->m_state.m_value = marker->m_state.m_value & ~static_cast<uint32_t>(kMarkerVisible);
-                marker->m_text = emptyText.m_text;
+                marker->m_text = emptyText.c_str();
                 m_markers.Insert(marker);
             }
             ObjectKey updatedKey;
@@ -283,7 +284,7 @@ LRESULT SectorWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
                 int x = item->m_x;
                 int y = item->m_y;
                 image->DrawKeyed(m_paintBackground, x, y);
-                label.SetText(item->m_text.m_text);
+                label.SetText(item->m_text.c_str());
                 label.SetColor(item->m_color, nullptr);
                 x = (x + image->Width() / 2) - 0x32;
                 y = y + item->m_textOffsetY;

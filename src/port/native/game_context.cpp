@@ -82,7 +82,7 @@ void GameContext::Shutdown() noexcept {
     started_ = false;
 }
 
-RebellionApplication& GameContext::CreateApplication(HINSTANCE instance, uint32_t flags, const String& commandLine) {
+RebellionApplication& GameContext::CreateApplication(HINSTANCE instance, uint32_t flags, const std::string& commandLine) {
     application_ = std::make_unique<RebellionApplication>(instance, flags, &commandLine, *directDrawHost_, *this, *uiResources_);
     return *application_;
 }

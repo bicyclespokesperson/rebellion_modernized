@@ -1,3 +1,4 @@
+#include <string>
 #include "strategy_ui/game_options_window.h"
 
 #include <cmath>
@@ -174,13 +175,13 @@ void DrawSaveIcon(GameOptionsWindow* window, const SavedGameInfo& info, int slot
 }
 
 void ShowSavedName(GameOptionsWindow* window, CoolStringField* field, const SavedGameInfo& info, int slotIndex) {
-    String name;
-    name.Assign(info.GetName());
-    if (name.Length() == 0) {
+    std::string name;
+    name = info.GetName();
+    if (name.size() == 0) {
         field->SetText(g_emptyText);
         return;
     }
-    field->SetText(name.m_text);
+    field->SetText(name.c_str());
     DrawSaveIcon(window, info, slotIndex);
 }
 
@@ -386,7 +387,7 @@ void GameOptionsWindow::CreateControls() {
     HINSTANCE instance = m_instance;
     HMODULE module = CoolAppGetResourceModule(kCommonSlot);
     DibBitmap* backdrop = GetBackground();
-    String name;
+    std::string name;
     const bool inBattle = IsBattleState(m_battleFlowState);
     const bool lobby = IsLobbyState(m_state);
 
@@ -408,11 +409,11 @@ void GameOptionsWindow::CreateControls() {
             field->m_childId = slot + 0x82;
             field->Create(0);
             SavedGameInfo info = AppReadSaveHeader(slot, lobby ? 1 : 0);
-            name.Assign(info.GetName());
-            if (name.Length() == 0) {
+            name = info.GetName();
+            if (name.size() == 0) {
                 field->SetText(g_emptyText);
             } else {
-                field->SetText(name.m_text);
+                field->SetText(name.c_str());
                 DrawSaveIcon(this, info, i);
             }
             if (m_battleFlowState == 0 || inBattle || (g_isNetworkGame != 0 && AppGetUnknown138() == 0)) field->Disable();
@@ -526,7 +527,7 @@ void GameOptionsWindow::CreateControls() {
 }
 
 void GameOptionsWindow::LoadSelectedSlot() {
-    String name;
+    std::string name;
     if (m_state != 4 && m_state != 5) {
         CommTrace(g_gameOptionsRequestLoadText);
         CommSendPlayerQuit();
@@ -536,13 +537,13 @@ void GameOptionsWindow::LoadSelectedSlot() {
 }
 
 void GameOptionsWindow::SaveSelectedSlot() {
-    String name;
-    name = m_nameFields[m_selectedSlot - 1]->m_text.m_text;
+    std::string name;
+    name = m_nameFields[m_selectedSlot - 1]->m_text.c_str();
     AppRequestSave(m_selectedSlot, name);
     SendSaveCommand(1, m_selectedSlot, name);
 }
 
-void GameOptionsWindow::SendSaveCommand(int kind, int slot, String name) {
+void GameOptionsWindow::SendSaveCommand(int kind, int slot, std::string name) {
     bool send = false;
     if (kind == 1) {
         send = AppGetGameType() == 2;
@@ -654,12 +655,12 @@ void GameOptionsWindow::CreateLabels() {
     m_versionLabel = NewOrNull<CoolLabel>(static_cast<uint16_t>(0), 0x19, 0x1b5, 0x136, 0x12, 0x2000000u, 10, 0x25u, 3u);
     if (m_versionLabel) {
         const ResourceStringId title = {0x100c, kStringGroup};
-        String text(&title);
-        text += String(g_versionText);
-        String language(GetLanguageName());
-        text += String(g_spaceString);
+        std::string text = LoadStringResource(&title);
+        text += StringFromText(g_versionText);
+        std::string language = StringFromText(GetLanguageName());
+        text += StringFromText(g_spaceString);
         text += language;
-        m_versionLabel->SetText(text.m_text);
+        m_versionLabel->SetText(text.c_str());
     }
 }
 
@@ -707,7 +708,7 @@ void GameOptionsWindow::UpdateSlotButtons() {
     }
 }
 
-String SavedGameInfo::GetName() const { return m_name; }
+std::string SavedGameInfo::GetName() const { return m_name; }
 
 const char *g_gameOptionsRequestLoadText = nullptr;
 const char *g_versionText = nullptr;

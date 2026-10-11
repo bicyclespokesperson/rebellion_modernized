@@ -98,7 +98,7 @@ char* BuildMoviePath(MovieWindow* window) {
 }  // namespace
 
 MovieWindow::MovieWindow(int movieId, void (* callback)(uint32_t, uint32_t, int), HINSTANCE instance, int x, int y,
-                         int width, int height, CoolWindow* parent, const String* caption)
+                         int width, int height, CoolWindow* parent, const std::string* caption)
     : CoolWindow(instance, "MOVIE_WINDOW", WS_CHILD, x, y, width, height, parent, nullptr,
                  static_cast<HBRUSH>(GetStockObject(kBlackBrush)), nullptr, nullptr, nullptr, 0, 0) {
     m_movieId = movieId;
@@ -107,7 +107,7 @@ MovieWindow::MovieWindow(int movieId, void (* callback)(uint32_t, uint32_t, int)
     m_captionBackdrop = nullptr;
     m_path = nullptr;
     m_fallbackPath = nullptr;
-    if (caption) m_caption.Assign(*caption);
+    if (caption) (m_caption = *caption);
     BuildMoviePath(this);
 }
 
@@ -168,7 +168,7 @@ void MovieWindow::EndMovie(UINT notifyMessage) {
 
 void MovieWindow::OnCreate() {
     m_childId = m_notifyWParam;
-    if (m_caption.m_text != nullptr) {
+    if (!m_caption.empty()) {
         HMODULE art = CoolAppGetResourceModule(kResourceSlotArt);
         DibBitmap* picture = NewOrNull<DibBitmap>(art, kCaptionArtId, 2u);
         const int width = m_width;
@@ -186,7 +186,7 @@ void MovieWindow::OnCreate() {
             field->m_textColor = kCaptionTextColor;
             InvalidateRect(field->m_hwnd, nullptr, FALSE);
             field->SetTextFont(kCaptionFont);
-            field->m_text.Assign(m_caption);
+            (field->m_text = m_caption);
             field->m_caret.m_index = 0;
             field->Reset();
             field->Create(0);

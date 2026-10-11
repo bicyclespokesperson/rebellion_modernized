@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include <cstdint>
 
 #include "audio/sound_manager.h"
@@ -9,7 +10,7 @@
 #include "ui/cool_window.h"
 
 class DibBitmap;
-class String;
+
 struct ResourceStringId;
 
 // Bits of CoolStrobeButton::m_state. The single-bit values 0, 1, 2, 4 and 0x40 double as the "state" argument of Draw,
@@ -90,7 +91,7 @@ public:
     COLORREF m_checkedColor;      // +0xbc
     COLORREF m_disabledColor;     // +0xc0
     uint32_t m_state;             // +0xc4 CoolButtonState
-    String* m_label;              // +0xc8 owned
+    std::string* m_label;              // +0xc8 owned
     RECT m_labelRect;             // +0xcc
     uint16_t m_clickSoundId;      // +0xdc
     uint8_t m_pad_de[2];          // +0xde

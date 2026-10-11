@@ -133,12 +133,12 @@ RenameCommand* RenameCommand::Clone() { return NewOrNull<RenameCommand>(*this); 
 
 void RenameCommand::Read(istream* in) {
     ReadCommand(in);
-    m_name.Read(in);
+    ReadLegacyString(in, m_name);
 }
 
 void RenameCommand::Write(ostream* out) {
     WriteCommand(out);
-    m_name.Write(out);
+    WriteLegacyString(out, m_name);
 }
 
 int RenameCommand::CheckEnabled(StatusCode* status) {
@@ -387,12 +387,12 @@ ManagerRenameCommand* ManagerRenameCommand::Clone() { return NewOrNull<ManagerRe
 
 void ManagerRenameCommand::Read(istream* in) {
     ReadCommand(in);
-    m_name.Read(in);
+    ReadLegacyString(in, m_name);
 }
 
 void ManagerRenameCommand::Write(ostream* out) {
     WriteCommand(out);
-    m_name.Write(out);
+    WriteLegacyString(out, m_name);
 }
 
 int ManagerRenameCommand::CheckEnabled(StatusCode* status) {

@@ -1,5 +1,5 @@
 #include "ai/ai_records.h"
-#include "ai/ai_session_random.h"
+#include "data/random.h"
 #include "ai/ai_side_controller.h"
 #include "ai/ai_system_record.h"
 #include "ai/ai_task_family.h"
@@ -310,7 +310,7 @@ int AiTask10::ComputeSquadronCount() {
         if (need < 0) result = 5;
         return result;
     }
-    const int roll = SessionRandomNext(10);
+    const int roll = GameplayRandomNext(10);
     const int classes = m_owner->ChooseClass(&m_classKey, 0x28, 0x200000, roll > 5 ? 0x8000 : 0x400, 1);
     if ((m_classKey.m_value & 0xff000000) != 0 && classes != 0) {
         const int total = classes * m_count;

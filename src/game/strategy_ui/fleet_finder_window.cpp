@@ -1,3 +1,4 @@
+#include <string>
 #include "strategy_ui/fleet_finder_window.h"
 
 #include <new>
@@ -333,7 +334,7 @@ void FleetFinderWindow::OnCommand(int, int command, int) {
             OpenObjectWindow(m_galaxy, &m_selected);
             PostCloseRequest();
         } else if (static_cast<uint16_t>(code) == kDragListSelectionChanged) {
-            m_nameField->SetText(first->m_text.m_text);
+            m_nameField->SetText(first->m_text.c_str());
         }
         break;
     }
@@ -356,8 +357,8 @@ LRESULT FleetFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam
     } else if (message == kFieldChangedMessage) {
         if (static_cast<int16_t>(wParam) == kNameFieldId) {
             ObjectListItem* item = nullptr;
-            const String* typed = &m_nameField->m_text;
-            if (typed->GetBufferSize() != 0) {
+            const std::string* typed = &m_nameField->m_text;
+            if (!typed->empty()) {
                 const uint32_t id = m_list->SelectByPrefix(typed, 0, 0);
                 item = static_cast<ObjectListItem*>(m_items->FindById(id));
             }
@@ -392,9 +393,9 @@ void FleetFinderWindow::SetFilter(int filter, int) {
         ObjectListItem* item = NewOrNull<ObjectListItem>(ship->GetKey(&key));
         if (!item) continue;
         {
-            String name;
+            std::string name;
             ship->GetNameCopy(&name);
-            item->m_text = name.m_text;
+            item->m_text = name.c_str();
         }
         m_items->Insert(item);
     }

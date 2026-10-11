@@ -84,8 +84,8 @@ public:
     int m_unk04;                    // +0x04
     OwnedObject* m_unk08;           // +0x08 deleted by the destructor (always null in practice)
     int m_unk0c;                    // +0x0c
-    String m_stateNames[12];        // +0x10 "ssNONE" ... "ssDEAD": the sprite-state names
-    String m_shipTypeNames[38];     // +0xa0 "CALAMARI" ... "DEATH_STAR "
+    std::string m_stateNames[12];        // +0x10 "ssNONE" ... "ssDEAD": the sprite-state names
+    std::string m_shipTypeNames[38];     // +0xa0 "CALAMARI" ... "DEATH_STAR "
     int m_spriteIds[256];           // +0x268 (only the first 38 are set; FindShipTypeIndex scans all 256)
     int m_abstract;                 // +0x668
     BattleOutcome m_outcome;        // +0x66c
@@ -110,11 +110,11 @@ private:
 // Sets up the battle (a human-vs-AI game; the variant without vote times is for human-vs-human): both sides' fleet figures
 // and the mode, either in the simulator (abstract) or in the object manager (3D). Free functions so that the facade's
 // by-value copy of the name is made before the singleton is fetched, as in the original.
-int TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name,
+int TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAlliance, int systemField44, std::string name,
                                        float sideAValue, float sideBValue, int sideAC, int sideBC, GameTime timeA,
                                        GameTime timeB, int battleKindNotAlliance, int systemFlag8, int controlIsEmpire,
                                        int controlIsAlliance, int abstractFlag);  // 0x599c90
-int TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name,
+int TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAlliance, int systemField44, std::string name,
                                             float sideAValue, float sideBValue, int sideAC, int sideBC,
                                             int battleKindNotAlliance, int systemFlag8, int controlIsEmpire,
                                             int controlIsAlliance, int abstractFlag);  // 0x59a0b0

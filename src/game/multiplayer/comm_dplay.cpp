@@ -73,39 +73,39 @@ class FlushReport {
 public:
     FlushReport(CommMgr* comm, HRESULT error, int player, const SendBuffer& buffer) {
         {
-            const String newline(kNewline);
-            const String label(kTextFlushing);
-            m_text.AppendUnsigned(timeGetTime());
+            const std::string newline(kNewline);
+            const std::string label(kTextFlushing);
+            m_text.append(std::to_string(timeGetTime()));
             m_text += label;
             m_text += newline;
         }
-        append(String(kNewline), String(kTextDPlayError), error);
-        append(String(kNewline), String(kTextFrom), comm->GetPlayerId(comm->GetLocalIndex()));
-        append(String(kNewline), String(kTextTo), comm->GetPlayerId(player));
-        append(String(kNewline), String(kTextSize), buffer.m_used);
-        const String newline(kNewline);
-        const String text(reinterpret_cast<const char*>(&buffer.m_count));
-        const String label(kTextMessage);
+        append(std::string(kNewline), std::string(kTextDPlayError), error);
+        append(std::string(kNewline), std::string(kTextFrom), comm->GetPlayerId(comm->GetLocalIndex()));
+        append(std::string(kNewline), std::string(kTextTo), comm->GetPlayerId(player));
+        append(std::string(kNewline), std::string(kTextSize), buffer.m_used);
+        const std::string newline(kNewline);
+        const std::string text(reinterpret_cast<const char*>(&buffer.m_count));
+        const std::string label(kTextMessage);
         m_text += label;
         m_text += text;
         m_text += newline;
-        const String addressNewline(kNewline);
-        const String addressLabel(kTextAddress);
+        const std::string addressNewline(kNewline);
+        const std::string addressLabel(kTextAddress);
         m_text += addressLabel;
-        m_text.AppendUnsigned(static_cast<uint32_t>(reinterpret_cast<uintptr_t>(&buffer.m_count)));
+        m_text.append(std::to_string(static_cast<uint32_t>(reinterpret_cast<uintptr_t>(&buffer.m_count))));
         m_text += addressNewline;
     }
 
-    const char* text() const { return m_text.m_text; }
+    const char* text() const { return m_text.c_str(); }
 
 private:
-    void append(const String& newline, const String& label, uint32_t value) {
+    void append(const std::string& newline, const std::string& label, uint32_t value) {
         m_text += label;
-        m_text.AppendUnsigned(value);
+        m_text.append(std::to_string(value));
         m_text += newline;
     }
 
-    String m_text;
+    std::string m_text;
 };
 
 }  // namespace
@@ -150,35 +150,35 @@ int CommMgr::Init(HWND window, GUID application, uint32_t maxPlayers) {
     m_unknownF8[2] = 0;
     m_unknownF8[3] = 0;
     {
-        const String key(kMinimumSendLatency);
+        const std::string key(kMinimumSendLatency);
         g_commSettings.FindInText(&key, &m_minSendLatency);
     }
     {
-        const String key(kMaximumSendLatency);
+        const std::string key(kMaximumSendLatency);
         g_commSettings.FindInText(&key, &m_maxSendLatency);
     }
     {
-        const String key(kMinimumReceiveLatency);
+        const std::string key(kMinimumReceiveLatency);
         g_commSettings.FindInText(&key, &m_minReceiveLatency);
     }
     {
-        const String key(kMaximumReceiveLatency);
+        const std::string key(kMaximumReceiveLatency);
         g_commSettings.FindInText(&key, &m_maxReceiveLatency);
     }
     {
-        const String key(kDropSendPercent);
+        const std::string key(kDropSendPercent);
         g_commSettings.FindFloat(&key, &m_dropSendPercent);
     }
     {
-        const String key(kDropReceivePercent);
+        const std::string key(kDropReceivePercent);
         g_commSettings.FindFloat(&key, &m_dropReceivePercent);
     }
     {
-        const String key(kDupeSendPercent);
+        const std::string key(kDupeSendPercent);
         g_commSettings.FindFloat(&key, &m_dupeSendPercent);
     }
     {
-        const String key(kDupeReceivePercent);
+        const std::string key(kDupeReceivePercent);
         g_commSettings.FindFloat(&key, &m_dupeReceivePercent);
     }
     m_notifyWindow = window;
@@ -404,7 +404,7 @@ SessionList* CommMgr::GetSessionList(uint32_t timeoutMs, int* status) {
 int CommMgr::JoinSession(SessionInfo* session) {
     if (!m_dplay || !session) return kCommBadParameter;
     DPSESSIONDESC2 description;
-    FillSessionDesc(&description, session->m_instance, g_commSessionFlags, session->m_name.m_text);
+    FillSessionDesc(&description, session->m_instance, g_commSessionFlags, session->m_name.c_str());
     const HRESULT opened = m_dplay->Open(&description, DPOPEN_JOIN);
     if (opened != 0) {
         CleanUp();
@@ -549,30 +549,30 @@ ReceivedPacket* CommMgr::ReceiveIncoming() {
         const HRESULT received = m_dplay->Receive(&from, &to, kReceiveFlags, writePointer, &size);
         if (received != 0) {
             if (received != DPERR_NOMESSAGES) {
-                String report;
+                std::string report;
                 {
-                    const String newline1(kNewline);
-                    const String bufferLabel(kTextReceiveBuffer);
-                    const String newline2(kNewline);
-                    const String toLabel(kTextReceiveTo);
-                    const String newline3(kNewline);
-                    const String fromLabel(kTextReceiveFrom);
-                    const String newline4(kNewline);
-                    const String errorLabel(kTextReceiveError);
+                    const std::string newline1(kNewline);
+                    const std::string bufferLabel(kTextReceiveBuffer);
+                    const std::string newline2(kNewline);
+                    const std::string toLabel(kTextReceiveTo);
+                    const std::string newline3(kNewline);
+                    const std::string fromLabel(kTextReceiveFrom);
+                    const std::string newline4(kNewline);
+                    const std::string errorLabel(kTextReceiveError);
                     report += errorLabel;
-                    report.AppendUnsigned(received);
+                    report.append(std::to_string(received));
                     report += newline4;
                     report += fromLabel;
-                    report.AppendUnsigned(from);
+                    report.append(std::to_string(from));
                     report += newline3;
                     report += toLabel;
-                    report.AppendUnsigned(to);
+                    report.append(std::to_string(to));
                     report += newline2;
                     report += bufferLabel;
-                    report.AppendUnsigned(size);
+                    report.append(std::to_string(size));
                     report += newline1;
                 }
-                Trace(this, report.m_text);
+                Trace(this, report.c_str());
                 return nullptr;
             }
             GetTickCount();
