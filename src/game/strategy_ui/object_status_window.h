@@ -26,14 +26,14 @@ class GameObjNotifier;
 class ObjectStatusWindow : public CoolGameWindow {
 public:
     ObjectStatusWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childId, const ObjectKey* key);  // 0x442d70
-    virtual ~ObjectStatusWindow();  // 0x442f40 (scalar deleting destructor 0x442f20)
+    ~ObjectStatusWindow() override;  // 0x442f40 (scalar deleting destructor 0x442f20)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x44b250
-    virtual void OnCreate1() override;                      // slot 14, 0x443130: backdrop, list, labels and the page
-    virtual void OnCreate3() override;                      // slot 16, 0x443020: encyclopedia and close buttons
-    virtual void DrawOverlay(HDC dc) override;              // slot 17, 0x444370: the title and the name
-    virtual void OnCommand(int a, int b, int c) override;   // slot 18, 0x4443a0
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, shared 0x4a7390 (FleetWindow::OnKeyDown)
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x44b250
+    void OnCreate1() override;                      // slot 14, 0x443130: backdrop, list, labels and the page
+    void OnCreate3() override;                      // slot 16, 0x443020: encyclopedia and close buttons
+    void DrawOverlay(HDC dc) override;              // slot 17, 0x444370: the title and the name
+    void OnCommand(int a, int b, int c) override;   // slot 18, 0x4443a0
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, shared 0x4a7390 (FleetWindow::OnKeyDown)
 
     // Replaces m_items by a new, empty list sorted by id and gives it to m_list.
     void ReplaceItemList();                                                                  // part of 0x443130
@@ -99,7 +99,7 @@ void DrawStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values
 class StatusTallyNode : public IdNode {
 public:
     StatusTallyNode();                  // inlined at 0x44a7a0
-    virtual ~StatusTallyNode();         // 0x44a9d0 (scalar deleting destructor 0x44a9b0)
+    ~StatusTallyNode() override;         // 0x44a9d0 (scalar deleting destructor 0x44a9b0)
 
     int m_total;       // +0x1c
     int m_count;       // +0x20

@@ -16,11 +16,11 @@
 class ManufacturingFacility : public ProcFacil {
 public:
     ManufacturingFacility();           // 0x52cbc0
-    virtual ~ManufacturingFacility();  // 0x52cc00 (scalar deleting destructor 0x52cbe0)
+    ~ManufacturingFacility() override;  // 0x52cc00 (scalar deleting destructor 0x52cbe0)
 
-    virtual int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;  // 60, 0x52cd40
-    virtual int OnUsableChanged(int newValue, NotifyContext* ctx) override;                             // 68, 0x52cd60
-    virtual int OnSuspendedChanged(int value, NotifyContext* ctx) override;                             // 117, 0x52cd80
+    int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;  // 60, 0x52cd40
+    int OnUsableChanged(int newValue, NotifyContext* ctx) override;                             // 68, 0x52cd60
+    int OnSuspendedChanged(int value, NotifyContext* ctx) override;                             // 117, 0x52cd80
 
     virtual int GetManufacturingKind() = 0;  // 129
 
@@ -43,51 +43,51 @@ public:
 class ManufacturingFacility2A : public ManufacturingFacility {
 public:
     ManufacturingFacility2A();           // 0x52c200
-    virtual ~ManufacturingFacility2A();  // 0x52c240 (scalar deleting destructor 0x52c220)
+    ~ManufacturingFacility2A() override;  // 0x52c240 (scalar deleting destructor 0x52c220)
 
-    virtual uint32_t GetFamily() override { return 0x2a; }                  // 1, 0x52c260
-    virtual int Read(istream* in) override;                                 // 5, 0x52c9a0
-    virtual int Write(ostream* out) override;                               // 6, 0x52c9b0
-    virtual int Checksum(Crc32* crc) override;                              // 7, 0x52c9c0
-    virtual int Validate() override { return ProcFacil::ValidateImpl(); }   // 8, 0x52c9d0 (a jump chain to ProcFacil::ValidateImpl)
-    virtual int ApplyAll(NotifyContext* ctx) override;                      // 9, 0x52c350
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, 0x52c680
-    virtual GameObj* CreateViewObject() override;                           // 57, 0x52c390
-    virtual int GetManufacturingKind() override { return 1; }               // 129, 0x40f340
+    uint32_t GetFamily() override { return 0x2a; }                  // 1, 0x52c260
+    int Read(istream* in) override;                                 // 5, 0x52c9a0
+    int Write(ostream* out) override;                               // 6, 0x52c9b0
+    int Checksum(Crc32* crc) override;                              // 7, 0x52c9c0
+    int Validate() override { return ProcFacil::ValidateImpl(); }   // 8, 0x52c9d0 (a jump chain to ProcFacil::ValidateImpl)
+    int ApplyAll(NotifyContext* ctx) override;                      // 9, 0x52c350
+    int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, 0x52c680
+    GameObj* CreateViewObject() override;                           // 57, 0x52c390
+    int GetManufacturingKind() override { return 1; }               // 129, 0x40f340
 };
 
 // Family 0x29 (VT 0x660070, secondary VT 0x66006c).
 class ManufacturingFacility29 : public ManufacturingFacility {
 public:
     ManufacturingFacility29();           // 0x52c530
-    virtual ~ManufacturingFacility29();  // 0x52c570 (scalar deleting destructor 0x52c550)
+    ~ManufacturingFacility29() override;  // 0x52c570 (scalar deleting destructor 0x52c550)
 
-    virtual uint32_t GetFamily() override { return 0x29; }                  // 1, 0x52c590
-    virtual int Read(istream* in) override;                                 // 5, shared 0x52c9a0
-    virtual int Write(ostream* out) override;                               // 6, shared 0x52c9b0
-    virtual int Checksum(Crc32* crc) override;                              // 7, shared 0x52c9c0
-    virtual int Validate() override { return ProcFacil::ValidateImpl(); }   // 8, shared 0x52c9d0
-    virtual int ApplyAll(NotifyContext* ctx) override;                      // 9, shared 0x52c350
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, shared 0x52c680
-    virtual GameObj* CreateViewObject() override;                           // 57, 0x52c6b0
-    virtual int GetManufacturingKind() override { return 2; }               // 129, 0x43c1f0
+    uint32_t GetFamily() override { return 0x29; }                  // 1, 0x52c590
+    int Read(istream* in) override;                                 // 5, shared 0x52c9a0
+    int Write(ostream* out) override;                               // 6, shared 0x52c9b0
+    int Checksum(Crc32* crc) override;                              // 7, shared 0x52c9c0
+    int Validate() override { return ProcFacil::ValidateImpl(); }   // 8, shared 0x52c9d0
+    int ApplyAll(NotifyContext* ctx) override;                      // 9, shared 0x52c350
+    int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, shared 0x52c680
+    GameObj* CreateViewObject() override;                           // 57, 0x52c6b0
+    int GetManufacturingKind() override { return 2; }               // 129, 0x43c1f0
 };
 
 // Family 0x28 (VT 0x660280, secondary VT 0x66027c).
 class ManufacturingFacility28 : public ManufacturingFacility {
 public:
     ManufacturingFacility28();           // 0x52c850
-    virtual ~ManufacturingFacility28();  // 0x52c890 (scalar deleting destructor 0x52c870)
+    ~ManufacturingFacility28() override;  // 0x52c890 (scalar deleting destructor 0x52c870)
 
-    virtual uint32_t GetFamily() override { return 0x28; }                  // 1, 0x52c8b0
-    virtual int Read(istream* in) override;                                 // 5, shared 0x52c9a0
-    virtual int Write(ostream* out) override;                               // 6, shared 0x52c9b0
-    virtual int Checksum(Crc32* crc) override;                              // 7, shared 0x52c9c0
-    virtual int Validate() override { return ProcFacil::ValidateImpl(); }   // 8, shared 0x52c9d0
-    virtual int ApplyAll(NotifyContext* ctx) override;                      // 9, shared 0x52c350
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, shared 0x52c680
-    virtual GameObj* CreateViewObject() override;                           // 57, 0x52ca20
-    virtual int GetManufacturingKind() override { return 0; }               // 129, shared "return 0" 0x6158b0
+    uint32_t GetFamily() override { return 0x28; }                  // 1, 0x52c8b0
+    int Read(istream* in) override;                                 // 5, shared 0x52c9a0
+    int Write(ostream* out) override;                               // 6, shared 0x52c9b0
+    int Checksum(Crc32* crc) override;                              // 7, shared 0x52c9c0
+    int Validate() override { return ProcFacil::ValidateImpl(); }   // 8, shared 0x52c9d0
+    int ApplyAll(NotifyContext* ctx) override;                      // 9, shared 0x52c350
+    int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, shared 0x52c680
+    GameObj* CreateViewObject() override;                           // 57, 0x52ca20
+    int GetManufacturingKind() override { return 0; }               // 129, shared "return 0" 0x6158b0
 };
 
 // Registry factories: a new empty object, or null if allocation fails. 0x52c2e0 and 0x52c390 (the slot-57 method) are
@@ -110,7 +110,7 @@ class ManufacturingFacilityIterator : public ChildIterator {
 public:
     explicit ManufacturingFacilityIterator(GameObjNotifier* parent);               // 0x52cda0
     ManufacturingFacilityIterator(GameObjNotifier* parent, uint32_t stateFilter);  // 0x52ce40
-    virtual ~ManufacturingFacilityIterator();                                      // 0x52cec0 (scalar deleting destructor 0x52ce20)
+    ~ManufacturingFacilityIterator() override;                                      // 0x52cec0 (scalar deleting destructor 0x52ce20)
 };
 
 // Iterator over family [0x2a,0x2b) (VT 0x660068, destructor only).
@@ -118,7 +118,7 @@ class ManufacturingFacility2AIterator : public ChildIterator {
 public:
     ManufacturingFacility2AIterator(GameObjNotifier* parent, uint32_t stateFilter);                 // 0x52c420
     ManufacturingFacility2AIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x52c4a0
-    virtual ~ManufacturingFacility2AIterator();                                                     // 0x52c520 (scalar deleting destructor 0x52c400)
+    ~ManufacturingFacility2AIterator() override;                                                     // 0x52c520 (scalar deleting destructor 0x52c400)
 };
 
 // Iterator over family [0x29,0x2a) (VT 0x660278, destructor only).
@@ -126,7 +126,7 @@ class ManufacturingFacility29Iterator : public ChildIterator {
 public:
     ManufacturingFacility29Iterator(GameObjNotifier* parent, uint32_t stateFilter);                 // 0x52c740
     ManufacturingFacility29Iterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x52c7c0
-    virtual ~ManufacturingFacility29Iterator();                                                     // 0x52c840 (scalar deleting destructor 0x52c720)
+    ~ManufacturingFacility29Iterator() override;                                                     // 0x52c840 (scalar deleting destructor 0x52c720)
 };
 
 // Iterator over family [0x28,0x29) (VT 0x660488, destructor only).
@@ -134,5 +134,5 @@ class ManufacturingFacility28Iterator : public ChildIterator {
 public:
     ManufacturingFacility28Iterator(GameObjNotifier* parent, uint32_t stateFilter);                 // 0x52cab0
     ManufacturingFacility28Iterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x52cb30
-    virtual ~ManufacturingFacility28Iterator();                                                     // 0x52cbb0 (scalar deleting destructor 0x52ca90)
+    ~ManufacturingFacility28Iterator() override;                                                     // 0x52cbb0 (scalar deleting destructor 0x52ca90)
 };

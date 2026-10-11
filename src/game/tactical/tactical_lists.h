@@ -19,7 +19,7 @@ class TacticalShipBase;
 class UnitRefNode : public IdNode {
 public:
     explicit UnitRefNode(TacticalShipBase* unit);  // 0x5e9cc0
-    virtual ~UnitRefNode();               // 0x5e9d40 (scalar deleting destructor 0x5e9d80)
+    ~UnitRefNode() override;               // 0x5e9d40 (scalar deleting destructor 0x5e9d80)
     virtual int Key();                    // 0x5e9d20 slot 1
     virtual UnitRefNode* Next();          // 0x5c7530 slot 2
     virtual UnitRefNode* Previous();      // 0x5e9d30 slot 3
@@ -32,7 +32,7 @@ public:
 class UnitRefTree : public IdAvlTree {
 public:
     UnitRefTree() {}
-    virtual ~UnitRefTree();                         // 0x5c5ff0 (scalar deleting destructor 0x5a0bd0)
+    ~UnitRefTree() override;                         // 0x5c5ff0 (scalar deleting destructor 0x5a0bd0)
     virtual uint32_t AddUnique(UnitRefNode* node);  // 0x5c6000 slot 3
     virtual UnitRefNode* FirstNode();               // slot 4 (0x5f6590 is AvlTree::First)
     virtual UnitRefNode* LastNode();                // slot 5 (0x5c6030)
@@ -53,8 +53,8 @@ public:
 class InsertionOrderTree : public IdAvlTree {
 public:
     InsertionOrderTree();                 // 0x5c6150
-    virtual ~InsertionOrderTree();        // 0x5c6190 (scalar deleting destructor 0x5c6170)
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;  // 0x5c61f0 always 0
+    ~InsertionOrderTree() override;        // 0x5c6190 (scalar deleting destructor 0x5c6170)
+    int IsLess(AvlNode* a, AvlNode* b) override;  // 0x5c61f0 always 0
 
     uint32_t AddUniqueLinear(IdNode* node);  // 0x5c61a0 adds unless a node with that id is there
     uint32_t AddUnitLinear(TacticalShipBase* unit);   // 0x5d1ff0 adds a node for the unit unless its handle is there
@@ -66,7 +66,7 @@ public:
 class TargetOrderTree : public InsertionOrderTree {
 public:
     TargetOrderTree();                    // 0x5a1750
-    virtual ~TargetOrderTree();           // 0x5c5b60 (scalar deleting destructor 0x5a17c0)
+    ~TargetOrderTree() override;           // 0x5c5b60 (scalar deleting destructor 0x5a17c0)
     virtual AvlNode* FirstNode();         // slot 3
     virtual uint32_t AddUniqueChecked(IdNode* node);  // 0x5c5d80 slot 4
 };
@@ -74,7 +74,7 @@ public:
 class FormationOrderTree : public InsertionOrderTree {
 public:
     FormationOrderTree() {}
-    virtual ~FormationOrderTree();        // 0x5d2180 (scalar deleting destructor 0x5cbcb0)
+    ~FormationOrderTree() override;        // 0x5d2180 (scalar deleting destructor 0x5cbcb0)
     virtual uint32_t AddUniqueLinearSlot(IdNode* node);  // 0x5cbc90 slot 3
     virtual AvlNode* FirstNode();         // 0x5cbca0 slot 4
 
@@ -87,7 +87,7 @@ public:
 class GroupRefNode : public IdNode {
 public:
     explicit GroupRefNode(ShipGroup* group);  // 0x5ca350
-    virtual ~GroupRefNode();                  // 0x5ca3d0 (scalar deleting destructor 0x5ca3b0)
+    ~GroupRefNode() override;                  // 0x5ca3d0 (scalar deleting destructor 0x5ca3b0)
     virtual AvlNode* Next();                  // slot 1 (0x5c7530)
     virtual AvlNode* Previous();              // slot 2 (0x5e9d30)
     virtual ShipGroup* Value();               // slot 3 (0x52bed0)
@@ -100,7 +100,7 @@ class GroupRefTree : public IdAvlTree {
 public:
     GroupRefTree() {}
     GroupRefTree(const GroupRefTree& other);  // 0x5ca440
-    virtual ~GroupRefTree();                  // 0x5ca3e0 (scalar deleting destructor 0x5ac6a0)
+    ~GroupRefTree() override;                  // 0x5ca3e0 (scalar deleting destructor 0x5ac6a0)
     virtual AvlNode* FirstNode();             // slot 3
     virtual ShipGroup* FirstGroup();          // 0x5ca490 slot 4
     virtual IdNode* Find(int id);             // 0x5ca4b0 slot 5
@@ -122,7 +122,7 @@ struct UnitRefSlot {
 class TargetPriorityNode : public AvlNode {
 public:
     TargetPriorityNode(float priority, TacticalShipBase* unit);
-    virtual ~TargetPriorityNode();  // 0x5c96f0 (scalar deleting destructor 0x5c96d0)
+    ~TargetPriorityNode() override;  // 0x5c96f0 (scalar deleting destructor 0x5c96d0)
 
     float m_priority;  // +0x18
     UnitRefSlot m_unit;  // +0x1c
@@ -132,6 +132,6 @@ public:
 class TargetPriorityTree : public AvlTree {
 public:
     TargetPriorityTree() {}
-    virtual ~TargetPriorityTree();                         // 0x5c9600 (scalar deleting destructor 0x5c9670)
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;   // 0x5c9610
+    ~TargetPriorityTree() override;                         // 0x5c9600 (scalar deleting destructor 0x5c9670)
+    int IsLess(AvlNode* a, AvlNode* b) override;   // 0x5c9610
 };

@@ -35,10 +35,10 @@ public:
     CoolGameWindow(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t stringSlot,
                    uint32_t bitmapSlot, uint32_t backgroundId, uint32_t childId, uint32_t style, uint32_t flags,
                    uint32_t unknownB0, uint32_t unknownB4);  // 0x606380
-    virtual ~CoolGameWindow();  // 0x606580 (scalar deleting destructor 0x606560)
+    ~CoolGameWindow() override;  // 0x606580 (scalar deleting destructor 0x606560)
 
-    virtual void Hide() override;                                                       // slot 2, 0x607d30
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x606650
+    void Hide() override;                                                       // slot 2, 0x607d30
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x606650
     virtual void SaveState(ostream* out);              // slot 9, 0x5ae1e0 (shared): does nothing; the strategy windows write their state
     virtual void LoadState(istream* in);               // slot 10, 0x5ae1e0
     virtual void ShowAndTrack(int command);            // slot 11, 0x607d00: Show that keeps m_shown

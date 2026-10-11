@@ -16,7 +16,7 @@ public:
     SoundSource(const void* waveImage, int mode, SoundRequest* request);
     // From a file, `seekPosition` bytes in (0 = start), streamed when long enough.
     SoundSource(const char* fileName, long seekPosition, int mode, SoundRequest* request);
-    virtual ~SoundSource();
+    ~SoundSource() override;
     virtual void Reset();
 
     void LoadFromFile(const char* fileName, long seekPosition, int mode, SoundRequest* request);
@@ -48,7 +48,7 @@ public:
 class SoundSourceList : public SoundIdTree {
 public:
     SoundSourceList();
-    virtual ~SoundSourceList();
+    ~SoundSourceList() override;
 
     void DeleteByKey(uint32_t key);  // 0x6120d0
 };
@@ -57,16 +57,16 @@ public:
 class SoundCatalogList : public SoundIdTree {
 public:
     SoundCatalogList();
-    virtual ~SoundCatalogList();
+    ~SoundCatalogList() override;
 };
 
 // A queued notification for the sound-event thread (see SoundManager::QueueEvent).
 class SoundEvent : public LinkNode {
 public:
     SoundEvent(uint32_t message, uint32_t first, uint32_t second);
-    virtual ~SoundEvent();
-    virtual void Read(istream* in) override;
-    virtual void Write(ostream* out) override;
+    ~SoundEvent() override;
+    void Read(istream* in) override;
+    void Write(ostream* out) override;
 
     void Set(uint32_t message, uint32_t first, uint32_t second);
     void Get(uint32_t* message, uint32_t* first, uint32_t* second);

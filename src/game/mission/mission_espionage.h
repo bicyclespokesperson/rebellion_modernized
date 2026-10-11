@@ -9,20 +9,20 @@
 class MissionEspionage : public MissionExtraKeyBase {
 public:
     MissionEspionage();           // 0x572c50
-    virtual ~MissionEspionage();  // 0x572cb0 (deleting), 0x572cd0
+    ~MissionEspionage() override;  // 0x572cb0 (deleting), 0x572cd0
 
-    virtual uint32_t GetFamily() override;                                      // 1, 0x572f90: 0x52
-    virtual int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x572f60
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x572d30
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x572d50
-    virtual int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x572e10
-    virtual GameObj* CreateViewObject() override;                               // 57, 0x572ef0
-    virtual int Virtual157(GameObj* person, int* out) override;                 // 157, 0x573090
-    virtual int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
-    virtual int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x573540
-    virtual int Virtual160(NotifyContext* ctx) override;                        // 160, 0x573610
-    virtual int OnExtraKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) override;   // 162, 0x573890
-    virtual int OnExtraKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) override;  // 163, 0x5738f0
+    uint32_t GetFamily() override;                                      // 1, 0x572f90: 0x52
+    int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x572f60
+    int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x572d30
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x572d50
+    int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x572e10
+    GameObj* CreateViewObject() override;                               // 57, 0x572ef0
+    int Virtual157(GameObj* person, int* out) override;                 // 157, 0x573090
+    int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
+    int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x573540
+    int Virtual160(NotifyContext* ctx) override;                        // 160, 0x573610
+    int OnExtraKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) override;   // 162, 0x573890
+    int OnExtraKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) override;  // 163, 0x5738f0
 
     int SetExtraSystemKey(ObjectKey* value, NotifyContext* ctx);  // 0x572e30
     int ApplyExtraKey(NotifyContext* ctx);                        // 0x573460 (ApplyExtraSystemKey)

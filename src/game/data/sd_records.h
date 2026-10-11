@@ -15,11 +15,11 @@
 class BasicSD : public DatRecord {
 public:
     BasicSD();
-    virtual ~BasicSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+    ~BasicSD() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int Checksum(Crc32* crc) override;
+    int ParseFields(istream* in, int* endOfLine) override;
 };
 
 // TROOPSD.DAT (families 0x10-0x13). SdRecordExt2's fields are the uprising defense (+0x58) and the detection
@@ -27,11 +27,11 @@ public:
 class TroopSD : public SdRecordExt2 {
 public:
     TroopSD();
-    virtual ~TroopSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+    ~TroopSD() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int Checksum(Crc32* crc) override;
+    int ParseFields(istream* in, int* endOfLine) override;
 
     int32_t m_bombardmentDefense;  // +0x60
     int32_t m_attackStrength;  // +0x64
@@ -42,11 +42,11 @@ public:
 class SystemSD : public DatRecord {
 public:
     SystemSD();
-    virtual ~SystemSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+    ~SystemSD() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int Checksum(Crc32* crc) override;
+    int ParseFields(istream* in, int* endOfLine) override;
 
     uint32_t m_sectorId;  // +0x40
     int32_t m_pictureId;  // +0x44
@@ -61,11 +61,11 @@ public:
 class SpecialForceSD : public SdRecordExt16 {
 public:
     SpecialForceSD();
-    virtual ~SpecialForceSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+    ~SpecialForceSD() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int Checksum(Crc32* crc) override;
+    int ParseFields(istream* in, int* endOfLine) override;
 
     uint32_t m_missionId;  // +0x98  // bitmask of the missions the force can perform
 };
@@ -74,11 +74,11 @@ public:
 class SectorSD : public DatRecord {
 public:
     SectorSD();
-    virtual ~SectorSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+    ~SectorSD() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int Checksum(Crc32* crc) override;
+    int ParseFields(istream* in, int* endOfLine) override;
 
     int32_t m_group;  // +0x40
     int32_t m_galaxySize;  // +0x44
@@ -91,11 +91,11 @@ public:
 class ProductionFacilitySD : public SdRecordExt1 {
 public:
     ProductionFacilitySD();
-    virtual ~ProductionFacilitySD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+    ~ProductionFacilitySD() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int Checksum(Crc32* crc) override;
+    int ParseFields(istream* in, int* endOfLine) override;
 
     int32_t m_processingRate;  // +0x5c
 };
@@ -105,11 +105,11 @@ public:
 class MissionSD : public DatRecord {
 public:
     MissionSD();
-    virtual ~MissionSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+    ~MissionSD() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int Checksum(Crc32* crc) override;
+    int ParseFields(istream* in, int* endOfLine) override;
 
     int32_t m_isAlliance;  // +0x40
     int32_t m_isEmpire;  // +0x44
@@ -140,22 +140,22 @@ public:
 class MinorCharacterSD : public SdRecordExt25 {
 public:
     MinorCharacterSD();
-    virtual ~MinorCharacterSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+    ~MinorCharacterSD() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int Checksum(Crc32* crc) override;
+    int ParseFields(istream* in, int* endOfLine) override;
 };
 
 // MANFACSD.DAT (families 0x28-0x2b). SdRecordExt1's field is the bombardment defense (+0x58).
 class ManufacturingFacilitySD : public SdRecordExt1 {
 public:
     ManufacturingFacilitySD();
-    virtual ~ManufacturingFacilitySD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+    ~ManufacturingFacilitySD() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int Checksum(Crc32* crc) override;
+    int ParseFields(istream* in, int* endOfLine) override;
 
     int32_t m_processingRate;  // +0x5c
 };
@@ -164,22 +164,22 @@ public:
 class MajorCharacterSD : public SdRecordExt25 {
 public:
     MajorCharacterSD();
-    virtual ~MajorCharacterSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+    ~MajorCharacterSD() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int Checksum(Crc32* crc) override;
+    int ParseFields(istream* in, int* endOfLine) override;
 };
 
 // FIGHTSD.DAT (families 0x1c-0x1f).
 class FighterSD : public SdRecordGrid {
 public:
     FighterSD();
-    virtual ~FighterSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+    ~FighterSD() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int Checksum(Crc32* crc) override;
+    int ParseFields(istream* in, int* endOfLine) override;
 
     int32_t m_torpedoes;  // +0xc0
     int32_t m_torpedoRange;  // +0xc4
@@ -191,11 +191,11 @@ public:
 class DefenseFacilitySD : public SdRecordExt1 {
 public:
     DefenseFacilitySD();
-    virtual ~DefenseFacilitySD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+    ~DefenseFacilitySD() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int Checksum(Crc32* crc) override;
+    int ParseFields(istream* in, int* endOfLine) override;
 
     int32_t m_attackStrength;  // +0x5c
     int32_t m_shieldStrength;  // +0x60
@@ -205,11 +205,11 @@ public:
 class CapitalShipSD : public SdRecordGrid {
 public:
     CapitalShipSD();
-    virtual ~CapitalShipSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+    ~CapitalShipSD() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int Checksum(Crc32* crc) override;
+    int ParseFields(istream* in, int* endOfLine) override;
 
     int32_t m_hull;  // +0xc0
     int32_t m_tractorBeamPower;  // +0xc4
@@ -229,11 +229,11 @@ public:
 class AllFacilitySD : public SdRecordExt1 {
 public:
     AllFacilitySD();
-    virtual ~AllFacilitySD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+    ~AllFacilitySD() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int Checksum(Crc32* crc) override;
+    int ParseFields(istream* in, int* endOfLine) override;
 };
 
 // Factories of the record factory registry.

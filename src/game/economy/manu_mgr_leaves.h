@@ -35,20 +35,20 @@ int CreateViewsStubDefense(GameObj* self, int controlKind, NotifyContext* ctx); 
 class TrainingFacilManuMgr : public ManuMgr {
 public:
     TrainingFacilManuMgr();           // 0x55b2f0
-    virtual ~TrainingFacilManuMgr();  // 0x55b370 (scalar deleting destructor 0x55b350)
+    ~TrainingFacilManuMgr() override;  // 0x55b370 (scalar deleting destructor 0x55b350)
 
-    virtual uint32_t GetFamily() override { return 0xa4; }                           // 1, 0x55b390
-    virtual int Read(istream* in) override;                                          // 5, 0x55bc80
-    virtual int Write(ostream* out) override;                                        // 6, 0x55bc90
-    virtual int Checksum(Crc32* crc) override;                                       // 7, 0x55bcc0
-    virtual int Validate() override { return ManuMgr::Validate(); }                  // 8, 0x55bcd0 (a jump chain to ManuMgr::Validate)
-    virtual int ApplyAll(NotifyContext* ctx) override;                               // 9, 0x55bca0
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;               // 15, 0x55b3a0
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;          // 22, 0x55b3c0
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;           // 37, 0x55b560
-    virtual GameObj* CreateViewObject() override;                                    // 57, 0x55b5d0
-    virtual int Virtual122() override { return 0x212; }                              // 122, 0x538ed0
-    virtual int GetFacilityKind() override { return 2; }                             // 123, 0x43c1f0
+    uint32_t GetFamily() override { return 0xa4; }                           // 1, 0x55b390
+    int Read(istream* in) override;                                          // 5, 0x55bc80
+    int Write(ostream* out) override;                                        // 6, 0x55bc90
+    int Checksum(Crc32* crc) override;                                       // 7, 0x55bcc0
+    int Validate() override { return ManuMgr::Validate(); }                  // 8, 0x55bcd0 (a jump chain to ManuMgr::Validate)
+    int ApplyAll(NotifyContext* ctx) override;                               // 9, 0x55bca0
+    int GetEventKinds(int unused, EventKindSet* out) override;               // 15, 0x55b3a0
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;          // 22, 0x55b3c0
+    int CreateViews(int controlKind, NotifyContext* ctx) override;           // 37, 0x55b560
+    GameObj* CreateViewObject() override;                                    // 57, 0x55b5d0
+    int Virtual122() override { return 0x212; }                              // 122, 0x538ed0
+    int GetFacilityKind() override { return 2; }                             // 123, 0x43c1f0
 
     // Fills the class's static event kind set once (ManuMgr's set plus 0x212); false if it failed.
     static int BuildEventKinds();            // 0x55b580
@@ -58,20 +58,20 @@ public:
 class ConstructionYardManuMgr : public ManuMgr {
 public:
     ConstructionYardManuMgr();           // 0x55b690
-    virtual ~ConstructionYardManuMgr();  // 0x55b710 (scalar deleting destructor 0x55b6f0)
+    ~ConstructionYardManuMgr() override;  // 0x55b710 (scalar deleting destructor 0x55b6f0)
 
-    virtual uint32_t GetFamily() override { return 0xa0; }                           // 1, 0x55b730
-    virtual int Read(istream* in) override;                                          // 5, shared 0x55bc80
-    virtual int Write(ostream* out) override;                                        // 6, shared 0x55bc90
-    virtual int Checksum(Crc32* crc) override;                                       // 7, shared 0x55bcc0
-    virtual int Validate() override { return ManuMgr::Validate(); }                  // 8, shared 0x55bcd0
-    virtual int ApplyAll(NotifyContext* ctx) override;                               // 9, shared 0x55bca0
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;               // 15, 0x55b740
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;          // 22, 0x55b760
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;           // 37, shared 0x55b560
-    virtual GameObj* CreateViewObject() override;                                    // 57, 0x55b950
-    virtual int Virtual122() override { return 0x210; }                              // 122, 0x538d30
-    virtual int GetFacilityKind() override { return 1; }                             // 123, 0x40f340
+    uint32_t GetFamily() override { return 0xa0; }                           // 1, 0x55b730
+    int Read(istream* in) override;                                          // 5, shared 0x55bc80
+    int Write(ostream* out) override;                                        // 6, shared 0x55bc90
+    int Checksum(Crc32* crc) override;                                       // 7, shared 0x55bcc0
+    int Validate() override { return ManuMgr::Validate(); }                  // 8, shared 0x55bcd0
+    int ApplyAll(NotifyContext* ctx) override;                               // 9, shared 0x55bca0
+    int GetEventKinds(int unused, EventKindSet* out) override;               // 15, 0x55b740
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;          // 22, 0x55b760
+    int CreateViews(int controlKind, NotifyContext* ctx) override;           // 37, shared 0x55b560
+    GameObj* CreateViewObject() override;                                    // 57, 0x55b950
+    int Virtual122() override { return 0x210; }                              // 122, 0x538d30
+    int GetFacilityKind() override { return 1; }                             // 123, 0x40f340
 
     // Fills the class's static event kind set once (ManuMgr's set plus 0x210); false if it failed.
     static int BuildEventKinds();            // 0x55b900
@@ -81,22 +81,22 @@ public:
 class ShipyardManuMgr : public ManuMgr {
 public:
     ShipyardManuMgr();           // 0x55ba10
-    virtual ~ShipyardManuMgr();  // 0x55ba90 (scalar deleting destructor 0x55ba70)
+    ~ShipyardManuMgr() override;  // 0x55ba90 (scalar deleting destructor 0x55ba70)
 
-    virtual uint32_t GetFamily() override { return 0xa2; }                           // 1, 0x55bab0
-    virtual int Read(istream* in) override;                                          // 5, shared 0x55bc80
-    virtual int Write(ostream* out) override;                                        // 6, shared 0x55bc90
-    virtual int Checksum(Crc32* crc) override;                                       // 7, shared 0x55bcc0
-    virtual int Validate() override { return ManuMgr::Validate(); }                  // 8, shared 0x55bcd0
-    virtual int ApplyAll(NotifyContext* ctx) override;                               // 9, shared 0x55bca0
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;               // 15, 0x55bac0
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;          // 22, 0x55bae0
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;           // 37, shared 0x55b560
-    virtual GameObj* CreateViewObject() override;                                    // 57, 0x55bda0
-    virtual int Virtual122() override { return 0x211; }                              // 122, 0x538e00
-    virtual int GetFacilityKind() override { return 0; }                             // 123, shared "return 0" 0x6158b0
-    virtual int OnRemainingGameObjCountChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 129, 0x55be10
-    virtual int OnSeedKeyChanged(NullableKey* oldKey, NullableKey* newKey, NotifyContext* ctx) override;  // 132, 0x55be30
+    uint32_t GetFamily() override { return 0xa2; }                           // 1, 0x55bab0
+    int Read(istream* in) override;                                          // 5, shared 0x55bc80
+    int Write(ostream* out) override;                                        // 6, shared 0x55bc90
+    int Checksum(Crc32* crc) override;                                       // 7, shared 0x55bcc0
+    int Validate() override { return ManuMgr::Validate(); }                  // 8, shared 0x55bcd0
+    int ApplyAll(NotifyContext* ctx) override;                               // 9, shared 0x55bca0
+    int GetEventKinds(int unused, EventKindSet* out) override;               // 15, 0x55bac0
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;          // 22, 0x55bae0
+    int CreateViews(int controlKind, NotifyContext* ctx) override;           // 37, shared 0x55b560
+    GameObj* CreateViewObject() override;                                    // 57, 0x55bda0
+    int Virtual122() override { return 0x211; }                              // 122, 0x538e00
+    int GetFacilityKind() override { return 0; }                             // 123, shared "return 0" 0x6158b0
+    int OnRemainingGameObjCountChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 129, 0x55be10
+    int OnSeedKeyChanged(NullableKey* oldKey, NullableKey* newKey, NotifyContext* ctx) override;  // 132, 0x55be30
 
     // Fills the class's static event kind set once (ManuMgr's set plus 0x215 and 0x211); false if it failed.
     static int BuildEventKinds();            // 0x55bd30

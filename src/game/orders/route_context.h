@@ -14,7 +14,7 @@
 class RouteContext : public ObjectKeySet {
 public:
     RouteContext();           // 0x551060
-    virtual ~RouteContext();  // 0x5510b0
+    ~RouteContext() override;  // 0x5510b0
 
     // Sets side, argument, kind and the state filter the legs are built with; the status becomes {1, -1}. Returns 1.
     int Init(int side, int arg, int kind, const int* filter);  // 0x551100

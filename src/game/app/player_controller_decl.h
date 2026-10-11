@@ -128,18 +128,18 @@ class PlayerController : public PlayerQueue {
 public:
     PlayerController();                   // 0x488460
     explicit PlayerController(int side);  // 0x4884f0
-    virtual ~PlayerController();          // 0x488580
-    virtual void Read(istream* in) override;    // 1: 0x488650
-    virtual void Write(ostream* out) override;  // 2: 0x4886d0
-    virtual int GetKind() override { return 0; }  // PlayerKind: 1 human, 2 remote, 3 AI (the original's slots 3, 4, 9, 10, 14 and 17-94 are pure)
-    virtual int Virtual04() override { return 0; }
-    virtual void Virtual05(int firstVoteId) override;  // 5: 0x4885e0
-    virtual int Virtual06() override;                  // 6: 0x4885f0 the next vote id
-    virtual int Virtual08(PlayerMessage*) override { return 0; }  // 8, shared 0x48b440
-    virtual int Virtual09() override { return 0; }
-    virtual void Virtual10() override {}
-    virtual int Virtual12(unsigned syncId) override;  // 12: 0x488750
-    virtual void Virtual14() override {}
+    ~PlayerController() override;          // 0x488580
+    void Read(istream* in) override;    // 1: 0x488650
+    void Write(ostream* out) override;  // 2: 0x4886d0
+    int GetKind() override { return 0; }  // PlayerKind: 1 human, 2 remote, 3 AI (the original's slots 3, 4, 9, 10, 14 and 17-94 are pure)
+    int Virtual04() override { return 0; }
+    void Virtual05(int firstVoteId) override;  // 5: 0x4885e0
+    int Virtual06() override;                  // 6: 0x4885f0 the next vote id
+    int Virtual08(PlayerMessage*) override { return 0; }  // 8, shared 0x48b440
+    int Virtual09() override { return 0; }
+    void Virtual10() override {}
+    int Virtual12(unsigned syncId) override;  // 12: 0x488750
+    void Virtual14() override {}
     virtual int Virtual15(int* outId, ObjectKey* outKey, GameTime* outTime);  // returns the vote state
     virtual int Virtual16(int* outId, ObjectKey* outKey);  // returns the vote state
     virtual void Virtual17(int id, ObjectKey* key) {}

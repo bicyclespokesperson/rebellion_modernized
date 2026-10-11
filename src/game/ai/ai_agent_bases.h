@@ -24,7 +24,7 @@ class OrderBase;
 class AiAgentBase : public IdNode {
 public:
     AiAgentBase(int view, AiSideController* owner, AiCharacterRecordSet* characters);  // 0x4bbd60
-    virtual ~AiAgentBase();                       // 0: 0x4bbd40 (deleting), 0x4bbe00
+    ~AiAgentBase() override;                       // 0: 0x4bbd40 (deleting), 0x4bbe00
     virtual void Read(istream* in);               // 1: 0x4bbe90
     virtual void Write(ostream* out);             // 2: 0x4bbef0
     virtual int GetAgentClass() = 0;              // 3: 1 for the targeted agents, 2 for the simple ones
@@ -54,14 +54,14 @@ public:
 class AiAgentSimple : public AiAgentBase {
 public:
     AiAgentSimple(int view, AiSideController* owner, AiCharacterRecordSet* characters);  // 0x4bba10
-    virtual ~AiAgentSimple();                     // 0: 0x4bb9f0 (deleting), 0x4bba40
-    virtual void Read(istream* in) override;      // 1: 0x4bba50
-    virtual void Write(ostream* out) override;    // 2: 0x4bba70
-    virtual int GetAgentClass() override;         // 3: 0x43c1f0 returns 2
-    virtual int IsAvailable() override;           // 4: 0x4bba90
-    virtual OrderBase* Step(int* done) override;  // 5: 0x4bbb00
-    virtual void SetTier(int tier) override;      // 8: 0x5ae1e0 (empty)
-    virtual int GetTier() override;               // 9: 0x6158b0 returns 0
+    ~AiAgentSimple() override;                     // 0: 0x4bb9f0 (deleting), 0x4bba40
+    void Read(istream* in) override;      // 1: 0x4bba50
+    void Write(ostream* out) override;    // 2: 0x4bba70
+    int GetAgentClass() override;         // 3: 0x43c1f0 returns 2
+    int IsAvailable() override;           // 4: 0x4bba90
+    OrderBase* Step(int* done) override;  // 5: 0x4bbb00
+    void SetTier(int tier) override;      // 8: 0x5ae1e0 (empty)
+    int GetTier() override;               // 9: 0x6158b0 returns 0
     virtual int GetCountSlot() = 0;               // 10: 0 or 1, the index AiSideController::CountAgent counts the agent under
     virtual void ReleaseHook() = 0;               // 11: called when the agent releases its character
     virtual ObjectKey* ChooseTarget(ObjectKey* out) = 0;  // 12: the system the agent should work at, into *out
@@ -77,16 +77,16 @@ public:
 class AiAgentTargeted : public AiAgentBase {
 public:
     AiAgentTargeted(int view, AiSideController* owner, AiCharacterRecordSet* characters);  // 0x4bc290
-    virtual ~AiAgentTargeted();                   // 0: 0x4bc270 (deleting), 0x4bc310
-    virtual void Read(istream* in) override;      // 1: 0x4bc370
-    virtual void Write(ostream* out) override;    // 2: 0x4bc3c0
-    virtual int GetAgentClass() override;         // 3: 0x40f340 returns 1
-    virtual int IsAvailable() override;           // 4: 0x4bba90
-    virtual OrderBase* Step(int* done) override;  // 5: 0x4bc480
-    virtual int GetKind() override = 0;           // 6
-    virtual int GetOrderKind() override = 0;      // 7
-    virtual void SetTier(int tier) override;      // 8: 0x4bc410 (m_assignment = tier)
-    virtual int GetTier() override;               // 9: 0x53b870 (returns m_assignment)
+    ~AiAgentTargeted() override;                   // 0: 0x4bc270 (deleting), 0x4bc310
+    void Read(istream* in) override;      // 1: 0x4bc370
+    void Write(ostream* out) override;    // 2: 0x4bc3c0
+    int GetAgentClass() override;         // 3: 0x40f340 returns 1
+    int IsAvailable() override;           // 4: 0x4bba90
+    OrderBase* Step(int* done) override;  // 5: 0x4bc480
+    int GetKind() override = 0;           // 6
+    int GetOrderKind() override = 0;      // 7
+    void SetTier(int tier) override;      // 8: 0x4bc410 (m_assignment = tier)
+    int GetTier() override;               // 9: 0x53b870 (returns m_assignment)
     virtual int Evaluate();                       // 10: 0x4bc6d0: 1 when the agent has its character
 
     OrderBase* ReleaseCharacter();    // 0x4bc520

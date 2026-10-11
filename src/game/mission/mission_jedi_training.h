@@ -7,23 +7,23 @@
 class MissionJediTraining : public MissionExtraKeyBase {
 public:
     MissionJediTraining();           // 0x5701d0
-    virtual ~MissionJediTraining();  // 0x570230 (deleting), 0x570250
+    ~MissionJediTraining() override;  // 0x570230 (deleting), 0x570250
 
-    virtual uint32_t GetFamily() override;                                      // 1, 0x5705a0: 0x58
-    virtual int Checksum(Crc32* crc) override;                                  // 7, 0x56dee0: the rule-base sum only
-    virtual int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x570580
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x5702b0
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x5702d0
-    virtual int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x570390
-    virtual GameObj* CreateViewObject() override;                               // 57, 0x5704f0
-    virtual int RemoveMember(ObjectKey* member, int decoy, NotifyContext* ctx) override;  // 116, 0x5705b0
-    virtual int OnPhaseChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 125, 0x571410
-    virtual int Virtual157(GameObj* person, int* out) override;                 // 157, 0x5710b0
-    virtual int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
-    virtual int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x5712b0
-    virtual int Virtual160(NotifyContext* ctx) override;                        // 160, shared 0x576700
-    virtual int OnExtraKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) override { return 1; }  // 162, shared stub 0x524b10
-    virtual int OnExtraKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) override;  // 163, 0x571590
+    uint32_t GetFamily() override;                                      // 1, 0x5705a0: 0x58
+    int Checksum(Crc32* crc) override;                                  // 7, 0x56dee0: the rule-base sum only
+    int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x570580
+    int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x5702b0
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x5702d0
+    int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x570390
+    GameObj* CreateViewObject() override;                               // 57, 0x5704f0
+    int RemoveMember(ObjectKey* member, int decoy, NotifyContext* ctx) override;  // 116, 0x5705b0
+    int OnPhaseChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 125, 0x571410
+    int Virtual157(GameObj* person, int* out) override;                 // 157, 0x5710b0
+    int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
+    int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x5712b0
+    int Virtual160(NotifyContext* ctx) override;                        // 160, shared 0x576700
+    int OnExtraKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) override { return 1; }  // 162, shared stub 0x524b10
+    int OnExtraKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) override;  // 163, 0x571590
 
     int SetTeacherKey(ObjectKey* value, NotifyContext* ctx);  // 0x5703b0
     int ApplyExtraKey(NotifyContext* ctx);                    // 0x5711d0 (ApplyTeacherKey)
@@ -41,5 +41,5 @@ public:
 class MissionJediTrainingIterator : public ChildIterator {
 public:
     explicit MissionJediTrainingIterator(GameObjNotifier* parent);  // 0x571650 (state filter 1)
-    virtual ~MissionJediTrainingIterator();                         // 0x5716d0 (deleting), 0x5716f0
+    ~MissionJediTrainingIterator() override;                         // 0x5716d0 (deleting), 0x5716f0
 };

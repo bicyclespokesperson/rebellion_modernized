@@ -25,17 +25,17 @@ public:
 class WeaponProfileA : public WeaponProfile {  // VT 0x66d140
 public:
     WeaponProfileA();           // 0x5d2530
-    virtual ~WeaponProfileA();  // 0x5d2570 (scalar deleting destructor 0x5d2550)
+    ~WeaponProfileA() override;  // 0x5d2570 (scalar deleting destructor 0x5d2550)
 };
 
 class WeaponProfileB : public WeaponProfile {  // VT 0x66d13c
 public:
     WeaponProfileB();           // 0x5d24e0
-    virtual ~WeaponProfileB();  // 0x5d2520 (scalar deleting destructor 0x5d2500)
+    ~WeaponProfileB() override;  // 0x5d2520 (scalar deleting destructor 0x5d2500)
 };
 
 class WeaponProfileC : public WeaponProfile {  // VT 0x66d138
 public:
     WeaponProfileC();           // 0x5d2490
-    virtual ~WeaponProfileC();  // 0x5d24d0 (scalar deleting destructor 0x5d24b0)
+    ~WeaponProfileC() override;  // 0x5d24d0 (scalar deleting destructor 0x5d24b0)
 };

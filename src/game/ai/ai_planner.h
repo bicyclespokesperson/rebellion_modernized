@@ -27,7 +27,7 @@ class OrderBase;
 class AiMissionPlanner : public IdNode {
 public:
     AiMissionPlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters);  // 0x47aae0
-    virtual ~AiMissionPlanner();                     // 0: 0x47aac0 (deleting), 0x47abd0
+    ~AiMissionPlanner() override;                     // 0: 0x47aac0 (deleting), 0x47abd0
     virtual void Read(istream* in);                  // 1: 0x47acb0
     virtual void Write(ostream* out);                // 2: 0x47ad50
     virtual void Virtual03(int event);               // 3: 0x47b0d0: events 3-10 reset the mission mark
@@ -92,14 +92,14 @@ public:
 class AiFreePlanner : public AiMissionPlanner {
 public:
     AiFreePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters);  // 0x4bce70
-    virtual ~AiFreePlanner();                        // 0: 0x4bce50 (deleting), 0x4bcea0
-    virtual void Read(istream* in) override;         // 1: 0x4bceb0 (forwarder)
-    virtual void Write(ostream* out) override;       // 2: 0x4bcec0 (forwarder)
-    virtual int Virtual04() override { return 2; }   // 4: 0x4e8740
-    virtual void SetTier(int) override {}            // 7: 0x45d3f0
-    virtual int GetTier() override { return 0; }     // 8: 0x5a5b60
-    virtual int IsActive() override;                 // 10: 0x4bda40
-    virtual OrderBase* Step(int* done) override;     // 11: 0x4bced0
+    ~AiFreePlanner() override;                        // 0: 0x4bce50 (deleting), 0x4bcea0
+    void Read(istream* in) override;         // 1: 0x4bceb0 (forwarder)
+    void Write(ostream* out) override;       // 2: 0x4bcec0 (forwarder)
+    int Virtual04() override { return 2; }   // 4: 0x4e8740
+    void SetTier(int) override {}            // 7: 0x45d3f0
+    int GetTier() override { return 0; }     // 8: 0x5a5b60
+    int IsActive() override;                 // 10: 0x4bda40
+    OrderBase* Step(int* done) override;     // 11: 0x4bced0
     virtual void Prepare() = 0;                      // 18: chooses the leaders
     virtual void Virtual19() = 0;                    // 19: usually MarkMembersAssigned
     virtual int ChooseTarget() = 0;                  // 20: chooses the target of the mission
@@ -112,14 +112,14 @@ public:
 class AiSystemPlanner : public AiMissionPlanner {
 public:
     AiSystemPlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters);  // 0x4bd810
-    virtual ~AiSystemPlanner();                      // 0: 0x4bd7f0 (deleting), 0x4bd870
-    virtual void Read(istream* in) override;        // 1: 0x4bd8c0
-    virtual void Write(ostream* out) override;      // 2: 0x4bd900
-    virtual int Virtual04() override { return 1; }   // 4: 0x5a66f0
-    virtual void SetTier(int tier) override;         // 7: 0x4bd940
-    virtual int GetTier() override { return m_tier; }  // 8: 0x47d970
-    virtual int IsActive() override;                 // 10: 0x4bda40
-    virtual OrderBase* Step(int* done) override;     // 11: 0x4bda60
+    ~AiSystemPlanner() override;                      // 0: 0x4bd7f0 (deleting), 0x4bd870
+    void Read(istream* in) override;        // 1: 0x4bd8c0
+    void Write(ostream* out) override;      // 2: 0x4bd900
+    int Virtual04() override { return 1; }   // 4: 0x5a66f0
+    void SetTier(int tier) override;         // 7: 0x4bd940
+    int GetTier() override { return m_tier; }  // 8: 0x47d970
+    int IsActive() override;                 // 10: 0x4bda40
+    OrderBase* Step(int* done) override;     // 11: 0x4bda60
 
     int FetchOrderTargets();                         // 0x4bdbc0
     int ChooseSystem();                              // 0x4bdcd0

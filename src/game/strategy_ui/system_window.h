@@ -43,22 +43,22 @@ class SystemWindow : public CustomDialogBox {
 public:
     SystemWindow(HINSTANCE instance, int x, int y, int width, int height, GalaxyWindow* parent, uint32_t childId,
                  GameObjNotifier* system);  // 0x452fc0
-    virtual ~SystemWindow();  // 0x4532c0 (scalar deleting destructor 0x4531e0)
+    ~SystemWindow() override;  // 0x4532c0 (scalar deleting destructor 0x4531e0)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4534f0
-    virtual void SaveState(ostream* out) override;                  // slot 9, 0x458ea0
-    virtual void LoadState(istream* in) override;                   // slot 10, 0x458f50
-    virtual void OnCreate1() override;                              // slot 14, 0x455060
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;     // slot 19, 0x458980
-    virtual void GetSelection(ObjectKeyValueSet* out, CoolWindow* source) override;  // slot 22, 0x453ee0
-    virtual void OnChildAdded(const ObjectKey* key, GameObjNotifier* object) override;  // slot 23, 0x454160
-    virtual void OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4534f0
+    void SaveState(ostream* out) override;                  // slot 9, 0x458ea0
+    void LoadState(istream* in) override;                   // slot 10, 0x458f50
+    void OnCreate1() override;                              // slot 14, 0x455060
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;     // slot 19, 0x458980
+    void GetSelection(ObjectKeyValueSet* out, CoolWindow* source) override;  // slot 22, 0x453ee0
+    void OnChildAdded(const ObjectKey* key, GameObjNotifier* object) override;  // slot 23, 0x454160
+    void OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
                               GameObjNotifier* otherObject) override;                    // slot 24, 0x454b30
-    virtual void OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object) override;  // slot 25, 0x4540b0
-    virtual ObjectKey GetKeyAt(int x, int y) override;              // slot 26, 0x458b80
-    virtual void ShowObjectPage(const ObjectKey* key) override;     // slot 27, 0x458d20
-    virtual ObjectKey GetDropKeyAt(int x, int y) override;          // slot 28, 0x4aa470 (shared with other windows)
-    virtual int Virtual29() override;                               // slot 29, 0x458cf0: the bitmap of the system's side
+    void OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object) override;  // slot 25, 0x4540b0
+    ObjectKey GetKeyAt(int x, int y) override;              // slot 26, 0x458b80
+    void ShowObjectPage(const ObjectKey* key) override;     // slot 27, 0x458d20
+    ObjectKey GetDropKeyAt(int x, int y) override;          // slot 28, 0x4aa470 (shared with other windows)
+    int Virtual29() override;                               // slot 29, 0x458cf0: the bitmap of the system's side
 
     // The slot (1-3) whose panel belongs to the manufacturing manager `manager`; 0 if none does.
     int SlotOfManager(const ObjectKey* manager);  // 0x4583e0

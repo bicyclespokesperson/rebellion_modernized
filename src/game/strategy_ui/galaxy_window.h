@@ -103,13 +103,13 @@ public:
     // `restoring` is set when the view is built for a loaded game.
     GalaxyWindow(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, int side,
                  int restoring);  // 0x421c70
-    virtual ~GalaxyWindow();      // 0x422270 (scalar deleting destructor 0x422250)
+    ~GalaxyWindow() override;      // 0x422270 (scalar deleting destructor 0x422250)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x422ce0
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x422ce0
     // Issues command `a` with no selection (game_ui_facade 0x41cdf0).
-    virtual void Virtual08(int a, int b, int c) override;  // slot 8, 0x4414a0
+    void Virtual08(int a, int b, int c) override;  // slot 8, 0x4414a0
     // Advances the droid animations (the idle slot).
-    virtual void Virtual0B() override;                     // slot 11, 0x42d020
+    void Virtual0B() override;                     // slot 11, 0x42d020
     // Saves the display modes and the state of every child window.
     virtual void SaveState(ostream* out);                  // slot 15, 0x440ea0
     // Restores what SaveState wrote and re-opens the child windows.

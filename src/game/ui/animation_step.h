@@ -22,7 +22,7 @@ class SpriteStage;
 class AnimationStep : public LinkNode {
 public:
     AnimationStep();           // 0x403dd0
-    virtual ~AnimationStep();  // 0x403e50 (scalar deleting destructor), 0x403e70
+    ~AnimationStep() override;  // 0x403e50 (scalar deleting destructor), 0x403e70
 
     virtual void Attach(SpriteAnimator* animator);            // slot 3, 0x403e90
     virtual void SetScript(const uint32_t* sequence);         // slot 4, 0x403ea0
@@ -62,13 +62,13 @@ AnimationStep* CreateAnimationStep(int kind);           // 0x403ed0, null for an
 // All the concrete steps restart from their script by overriding SetScript.
 class ScriptStep : public AnimationStep {
 public:
-    virtual void SetScript(const uint32_t* sequence) override;  // 0x411b50
+    void SetScript(const uint32_t* sequence) override;  // 0x411b50
 };
 
 // Steps that keep one bitmap per sprite of the animator (+0x48 count, +0x4c the bitmaps).
 class BitmapListStep : public ScriptStep {
 public:
-    virtual void Attach(SpriteAnimator* animator) override;  // 0x412610
+    void Attach(SpriteAnimator* animator) override;  // 0x412610
     // Hands bitmap `index` to the animator's sprite (creating the sprite when the animator has none yet).
     void ShowBitmap(int index, DibBitmap* bitmap);
 
@@ -79,8 +79,8 @@ public:
 // Waits `m_delay` frames, then ends.
 class TimedStep : public BitmapListStep {
 public:
-    virtual void SetStart(int x, intptr_t y) override;             // 0x412900 (x: the delay, y: the callback)
-    virtual void Abort() override;                            // 0x404b90
+    void SetStart(int x, intptr_t y) override;             // 0x412900 (x: the delay, y: the callback)
+    void Abort() override;                            // 0x404b90
 
     void (*m_callback)(int);  // +0x50 called with the animator's id when the step finishes
     uint32_t m_delay;         // +0x54
@@ -89,9 +89,9 @@ public:
 // Steps that wait a number of frames and remember a position.
 class PositionedStep : public BitmapListStep {
 public:
-    virtual void SetStart(int x, intptr_t y) override;                  // 0x4124b0
-    virtual int Advance(RECT* area, int* changed) override;        // 0x412260
-    virtual void Abort() override;                                 // 0x412090
+    void SetStart(int x, intptr_t y) override;                  // 0x4124b0
+    int Advance(RECT* area, int* changed) override;        // 0x412260
+    void Abort() override;                                 // 0x412090
 
     int m_wait;  // +0x50
     int m_x;     // +0x54
@@ -102,12 +102,12 @@ public:
 class AnimationStep05 : public TimedStep {
 public:
     AnimationStep05();           // 0x404830
-    virtual ~AnimationStep05();  // 0x404860 (deleting), 0x404880
-    virtual int Advance(RECT* area, int* changed) override;  // 0x404910
-    virtual void Begin() override;                           // 0x4049a0
-    virtual void Finish() override;                          // 0x404b40
-    virtual AnimationStep* Create() override;                // 0x404ba0
-    virtual int GetKind() override;                          // 0x404c20
+    ~AnimationStep05() override;  // 0x404860 (deleting), 0x404880
+    int Advance(RECT* area, int* changed) override;  // 0x404910
+    void Begin() override;                           // 0x4049a0
+    void Finish() override;                          // 0x404b40
+    AnimationStep* Create() override;                // 0x404ba0
+    int GetKind() override;                          // 0x404c20
 
     int m_hold;  // +0x58
 };
@@ -116,12 +116,12 @@ public:
 class AnimationStep12 : public TimedStep {
 public:
     AnimationStep12();           // 0x412520
-    virtual ~AnimationStep12();  // 0x412550 (deleting), 0x412570
-    virtual int Advance(RECT* area, int* changed) override;  // 0x412660
-    virtual void Begin() override;                           // 0x412680
-    virtual void Finish() override;                          // 0x412830
-    virtual AnimationStep* Create() override;                // 0x412870
-    virtual int GetKind() override;                          // 0x4128f0
+    ~AnimationStep12() override;  // 0x412550 (deleting), 0x412570
+    int Advance(RECT* area, int* changed) override;  // 0x412660
+    void Begin() override;                           // 0x412680
+    void Finish() override;                          // 0x412830
+    AnimationStep* Create() override;                // 0x412870
+    int GetKind() override;                          // 0x4128f0
 };
 
 // Kind 0x15 and kind 0x11: show their bitmaps for a number of frames; 0x15 ends by setting g_stepSignal, 0x11 by pointing the
@@ -129,35 +129,35 @@ public:
 class AnimationStep15 : public PositionedStep {
 public:
     AnimationStep15();           // 0x411e20
-    virtual ~AnimationStep15();  // 0x411e50 (deleting), 0x411e70
-    virtual void Begin() override;                           // 0x411f00
-    virtual void Finish() override;                          // 0x412080
-    virtual AnimationStep* Create() override;                // 0x4120a0
-    virtual int GetKind() override;                          // 0x412120
+    ~AnimationStep15() override;  // 0x411e50 (deleting), 0x411e70
+    void Begin() override;                           // 0x411f00
+    void Finish() override;                          // 0x412080
+    AnimationStep* Create() override;                // 0x4120a0
+    int GetKind() override;                          // 0x412120
 };
 
 class AnimationStep11 : public PositionedStep {
 public:
     AnimationStep11();           // 0x412180
-    virtual ~AnimationStep11();  // 0x4121b0 (deleting), 0x4121d0
-    virtual void Begin() override;                           // 0x412280
-    virtual void Finish() override;                          // 0x412400
-    virtual AnimationStep* Create() override;                // 0x412420
-    virtual int GetKind() override;                          // 0x4124a0
+    ~AnimationStep11() override;  // 0x4121b0 (deleting), 0x4121d0
+    void Begin() override;                           // 0x412280
+    void Finish() override;                          // 0x412400
+    AnimationStep* Create() override;                // 0x412420
+    int GetKind() override;                          // 0x4124a0
 };
 
 // Kind 0x14: a droid script step; its Advance reports g_stepSignal.
 class AnimationStep14 : public ScriptStep {
 public:
     AnimationStep14();           // 0x411a30
-    virtual ~AnimationStep14();  // 0x411a50 (deleting), 0x411a70
-    virtual void Attach(SpriteAnimator* animator) override;  // 0x411b00
-    virtual int Advance(RECT* area, int* changed) override;  // 0x411b60
-    virtual void Begin() override;                           // 0x411b80
-    virtual void Finish() override;                          // 0x619730 (shared empty function)
-    virtual void Abort() override;                           // 0x411d30
-    virtual AnimationStep* Create() override;                // 0x411d40
-    virtual int GetKind() override;                          // 0x411dc0
+    ~AnimationStep14() override;  // 0x411a50 (deleting), 0x411a70
+    void Attach(SpriteAnimator* animator) override;  // 0x411b00
+    int Advance(RECT* area, int* changed) override;  // 0x411b60
+    void Begin() override;                           // 0x411b80
+    void Finish() override;                          // 0x619730 (shared empty function)
+    void Abort() override;                           // 0x411d30
+    AnimationStep* Create() override;                // 0x411d40
+    int GetKind() override;                          // 0x411dc0
 
     int m_firstWord;         // +0x48 the first word of the script resource
     int m_spriteCount;       // +0x4c
@@ -168,8 +168,8 @@ public:
 // Kinds 4 and 0x13: play a script of delta frames over the bitmaps (one frame list per sprite); 4 can be aborted.
 class DeltaFrameStep : public ScriptStep {
 public:
-    virtual void Finish() override;                          // 0x404730
-    virtual void Abort() override;                           // 0x404740
+    void Finish() override;                          // 0x404730
+    void Abort() override;                           // 0x404740
 
     // The bodies shared by the two kinds.
     void AttachImpl(SpriteAnimator* animator);
@@ -188,23 +188,23 @@ public:
 class AnimationStep04 : public DeltaFrameStep {
 public:
     AnimationStep04();           // 0x4040f0
-    virtual ~AnimationStep04();  // 0x404120 (deleting), 0x404140
-    virtual void Attach(SpriteAnimator* animator) override;  // 0x404220
-    virtual int Advance(RECT* area, int* changed) override;  // 0x404360
-    virtual void Begin() override;                           // 0x404440
-    virtual AnimationStep* Create() override;                // 0x404750
-    virtual int GetKind() override;                          // 0x4047d0
+    ~AnimationStep04() override;  // 0x404120 (deleting), 0x404140
+    void Attach(SpriteAnimator* animator) override;  // 0x404220
+    int Advance(RECT* area, int* changed) override;  // 0x404360
+    void Begin() override;                           // 0x404440
+    AnimationStep* Create() override;                // 0x404750
+    int GetKind() override;                          // 0x4047d0
 };
 
 class AnimationStep13 : public DeltaFrameStep {
 public:
     AnimationStep13();           // 0x412970
-    virtual ~AnimationStep13();  // 0x4129a0 (deleting), 0x4129c0
-    virtual void Attach(SpriteAnimator* animator) override;  // 0x412a90
-    virtual int Advance(RECT* area, int* changed) override;  // 0x412b80
-    virtual void Begin() override;                           // 0x412c40
-    virtual AnimationStep* Create() override;                // 0x412f30
-    virtual int GetKind() override;                          // 0x412fb0
+    ~AnimationStep13() override;  // 0x4129a0 (deleting), 0x4129c0
+    void Attach(SpriteAnimator* animator) override;  // 0x412a90
+    int Advance(RECT* area, int* changed) override;  // 0x412b80
+    void Begin() override;                           // 0x412c40
+    AnimationStep* Create() override;                // 0x412f30
+    int GetKind() override;                          // 0x412fb0
 };
 
 

@@ -17,11 +17,11 @@ class BitmapStatusBar : public CoolwinStatusBar {
 public:
     BitmapStatusBar(int x, int y, int width, int height, CoolWindow* parent, COLORREF barColor,
                     COLORREF backgroundColor, DibBitmap* picture, int orientation, int direction);  // 0x4acec0
-    virtual ~BitmapStatusBar();  // 0x4acfc0 (scalar deleting destructor 0x4acfa0)
+    ~BitmapStatusBar() override;  // 0x4acfc0 (scalar deleting destructor 0x4acfa0)
 
     // WM_PAINT draws background, bar, ticks and picture into a memory DC and blits it; the palette messages
     // realize g_palette; WM_ERASEBKGND is claimed; buttons get the null brush.
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x4ad210
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x4ad210
 
     // Takes ownership of `image` and copies it into the picture (sizing the window to it on first use); an image that
     // is not loaded removes the picture.

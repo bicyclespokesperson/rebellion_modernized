@@ -37,8 +37,8 @@ class System;
 class AiClassTable : public AvlTree {
 public:
     AiClassTable();                                                    // 0x42dc10
-    virtual ~AiClassTable();                                           // 0: 0x42dc50 (deleting), 0x42dc70
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;               // 2: 0x42ebc0
+    ~AiClassTable() override;                                           // 0: 0x42dc50 (deleting), 0x42dc70
+    int IsLess(AvlNode* a, AvlNode* b) override;               // 2: 0x42ebc0
 
     void LoadValues(istream* in);   // 0x42dc80: the three selected tiers
     void SaveValues(ostream* out);  // 0x42dcc0
@@ -82,7 +82,7 @@ public:
 class AiTaskRecordSet : public IdAvlTree {
 public:
     AiTaskRecordSet();                         // 0x42ec30
-    virtual ~AiTaskRecordSet();                // 0: 0x42ec50 (deleting), 0x42ec70
+    ~AiTaskRecordSet() override;                // 0: 0x42ec50 (deleting), 0x42ec70
     void Load(istream* in);                    // 0x42ec90
     void Save(ostream* out);                   // (shares the code of AiSystemRecordSet::Save, 0x42f2b0)
     uint32_t CreateRecord();                   // 0x42ed50: adds a new record, returns its id
@@ -97,7 +97,7 @@ public:
 class AiAgentSet : public IdAvlTree {
 public:
     AiAgentSet();                    // 0x42ee00
-    virtual ~AiAgentSet();           // 0: 0x42ee20 (deleting), 0x42ee40
+    ~AiAgentSet() override;           // 0: 0x42ee20 (deleting), 0x42ee40
     void Load(istream* in);          // 0x42ee50
     void Save(ostream* out);         // 0x42eee0
     uint32_t AddAgent(int kind);     // 0x42ef50: creates the agent, adds it, returns its id (or `kind` if it cannot be made)
@@ -116,7 +116,7 @@ class AiSystemRecord;
 class AiSystemRecordSet : public IdAvlTree {
 public:
     AiSystemRecordSet();                // 0x42f190
-    virtual ~AiSystemRecordSet();       // 0: 0x42f1b0 (deleting), 0x42f1d0
+    ~AiSystemRecordSet() override;       // 0: 0x42f1b0 (deleting), 0x42f1d0
     void Load(istream* in);             // 0x42f1f0
     void Save(ostream* out);            // 0x42f2b0
     AiSystemRecord* FindByTarget(const ObjectKey* key);  // 0x42f310 (the record whose system key is *key)
@@ -132,7 +132,7 @@ public:
 class AiPlannerSet : public IdAvlTree {
 public:
     AiPlannerSet();                     // 0x42f4c0
-    virtual ~AiPlannerSet();            // 0: 0x42f4e0 (deleting), 0x42f500
+    ~AiPlannerSet() override;            // 0: 0x42f4e0 (deleting), 0x42f500
     void Load(istream* in);             // 0x42f510
     void Save(ostream* out);            // 0x42f5b0
     uint32_t AddPlanner(int kind, int subtype);  // 0x42f640
@@ -155,9 +155,9 @@ public:
 class AiFleetEvalSet : public ObjectKeySet {
 public:
     AiFleetEvalSet();                      // 0x42fd50
-    virtual ~AiFleetEvalSet();             // 0: 0x42fd70 (deleting), 0x42fd90
-    virtual void Load(istream* in) override;   // 4: 0x42fdb0
-    virtual void Save(ostream* out) override;  // 6: 0x42fe90
+    ~AiFleetEvalSet() override;             // 0: 0x42fd70 (deleting), 0x42fd90
+    void Load(istream* in) override;   // 4: 0x42fdb0
+    void Save(ostream* out) override;  // 6: 0x42fe90
 
     void AddEval(AiFleetEval* eval);       // 0x42ff30
     void NoteFleet(const ObjectKey* key);        // 0x42ff70
@@ -177,9 +177,9 @@ public:
 class AiShipRecordSet : public ObjectKeySet {
 public:
     AiShipRecordSet();                     // 0x430240
-    virtual ~AiShipRecordSet();            // 0: 0x430270 (deleting), 0x430290
-    virtual void Load(istream* in) override;   // 4: 0x4302b0
-    virtual void Save(ostream* out) override;  // 6: 0x4303a0
+    ~AiShipRecordSet() override;            // 0: 0x430270 (deleting), 0x430290
+    void Load(istream* in) override;   // 4: 0x4302b0
+    void Save(ostream* out) override;  // 6: 0x4303a0
 
     int AddRecord(AiShipRecord* record);   // 0x430450
     int BuildStep();                       // 0x4304d0
@@ -203,8 +203,8 @@ class AiSystemEvalSet;
 class AiSectorEvalSet : public ObjectKeySet {
 public:
     AiSectorEvalSet();                     // 0x430890
-    virtual ~AiSectorEvalSet();            // 0: 0x4308b0 (deleting), 0x4308d0
-    virtual void Save(ostream* out) override;  // 6: 0x430a10
+    ~AiSectorEvalSet() override;            // 0: 0x4308b0 (deleting), 0x4308d0
+    void Save(ostream* out) override;  // 6: 0x430a10
 
     void LoadAll(istream* in, AiSystemEvalSet* systems, AiSideController* owner);  // 0x4308f0
     int BuildStep(AiSystemEvalSet* systems, AiSideController* owner);              // 0x430b80
@@ -222,9 +222,9 @@ public:
 class AiSystemEvalSet : public ObjectKeySet {
 public:
     AiSystemEvalSet();                     // 0x430d50
-    virtual ~AiSystemEvalSet();            // 0: 0x430d70 (deleting), 0x430d90
-    virtual void Load(istream* in) override;   // 4: 0x430db0
-    virtual void Save(ostream* out) override;  // 6: 0x430ed0
+    ~AiSystemEvalSet() override;            // 0: 0x430d70 (deleting), 0x430d90
+    void Load(istream* in) override;   // 4: 0x430db0
+    void Save(ostream* out) override;  // 6: 0x430ed0
 
     int BuildStep();                       // 0x431040
     void NoteSystem(const ObjectKey* key);        // 0x431170

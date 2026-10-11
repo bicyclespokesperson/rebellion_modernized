@@ -13,10 +13,10 @@ class GidMenuWindow : public MenuWindowBase {
 public:
     GidMenuWindow(HINSTANCE instance, int x, int y, int width, int height, int side, CoolWindow* parent,
                   uint32_t childId, DibBitmap* backdrop);  // 0x451130
-    virtual ~GidMenuWindow();  // 0x4511d0 (scalar deleting destructor 0x4511b0)
+    ~GidMenuWindow() override;  // 0x4511d0 (scalar deleting destructor 0x4511b0)
 
     // Builds the category entries and the six sub-menu windows.
-    virtual void OnCreate1() override;  // slot 14, 0x4511e0
+    void OnCreate1() override;  // slot 14, 0x4511e0
 
     DibBitmap* m_backdrop;      // +0x14c not owned
     CoolWindow* m_owner;        // +0x150 the galaxy view

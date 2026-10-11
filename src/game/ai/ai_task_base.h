@@ -23,7 +23,7 @@ class PlayerController;
 class AiTaskNode : public IdNode {
 public:
     explicit AiTaskNode(int id);              // 0x4ec940
-    virtual ~AiTaskNode();                    // 0: 0x4ec920 (deleting), 0x4ec9b0
+    ~AiTaskNode() override;                    // 0: 0x4ec920 (deleting), 0x4ec9b0
     virtual void Read(istream* in);           // 1: 0x4eca00
     virtual void Write(ostream* out);         // 2: 0x4eca20
 
@@ -36,9 +36,9 @@ public:
 class AiTaskBase : public AiTaskNode {
 public:
     AiTaskBase(int id, int view);             // 0x4e4fb0
-    virtual ~AiTaskBase();                    // 0: 0x4e4f90 (deleting), 0x4e5020
-    virtual void Read(istream* in) override;  // 1: 0x4e5070
-    virtual void Write(ostream* out) override;  // 2: 0x4e50c0
+    ~AiTaskBase() override;                    // 0: 0x4e4f90 (deleting), 0x4e5020
+    void Read(istream* in) override;  // 1: 0x4e5070
+    void Write(ostream* out) override;  // 2: 0x4e50c0
     virtual void SetOwner(AiSideController* owner) { m_owner = owner; }  // 3: 0x4c06e0 (shared)
     virtual void Evaluate() = 0;              // 4
     virtual OrderBase* Step() = 0;            // 5: the next order of the task, null if it has none
@@ -59,8 +59,8 @@ public:
 class AiNoticeGroup : public SortedLinkList, public IdNode {
 public:
     AiNoticeGroup();                          // 0x4e4d40
-    virtual ~AiNoticeGroup();                 // 0: 0x4e4da0 (deleting), 0x4e4dc0 (the IdNode part's slot is 0x4e4f70)
-    virtual int IsLess(LinkNode* a, LinkNode* b) override;  // 1: 0x4e4f80 (0: notes stay in arrival order)
+    ~AiNoticeGroup() override;                 // 0: 0x4e4da0 (deleting), 0x4e4dc0 (the IdNode part's slot is 0x4e4f70)
+    int IsLess(LinkNode* a, LinkNode* b) override;  // 1: 0x4e4f80 (0: notes stay in arrival order)
 
     void Load(istream* in);                   // 0x4e4e20
     void Save(ostream* out);                  // 0x4e4eb0
@@ -76,7 +76,7 @@ class AiTaskObject : public IdNode {
 public:
     AiTaskObject();                                                 // 0x4eca40
     AiTaskObject(const ObjectKey& key, int first, int second);      // 0x4ecac0
-    virtual ~AiTaskObject();                                        // 0: 0x4ecaa0 (deleting), 0x4ecb30
+    ~AiTaskObject() override;                                        // 0: 0x4ecaa0 (deleting), 0x4ecb30
     virtual void Read(istream* in);                                 // 1: 0x4ecb80
     virtual void Write(ostream* out);                               // 2: 0x4ecbc0
 
@@ -88,7 +88,7 @@ public:
 class AiTaskObjectSet : public IdAvlTree {
 public:
     AiTaskObjectSet();                        // 0x4e5110
-    virtual ~AiTaskObjectSet();               // 0: 0x4e5130 (deleting), 0x4e5150
+    ~AiTaskObjectSet() override;               // 0: 0x4e5130 (deleting), 0x4e5150
     void Load(istream* in);                   // 0x4e5160
     void Save(ostream* out);                  // 0x4e5210
     AiTaskObject* FindByKey(const ObjectKey* key);  // 0x4e5260

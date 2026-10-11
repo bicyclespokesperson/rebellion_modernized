@@ -15,7 +15,7 @@ class Crc32;
 class TableEntry : public IdNode {
 public:
     TableEntry();
-    virtual ~TableEntry();
+    ~TableEntry() override;
     virtual int Write(ostream* out) = 0;
     virtual int Read(istream* in) = 0;
     virtual int ParseText(istream* in) = 0;

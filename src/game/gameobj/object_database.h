@@ -22,7 +22,7 @@ class ObjectDatabase;
 class ObjectEntry : public IdNode {
 public:
     ObjectEntry();
-    virtual ~ObjectEntry();
+    ~ObjectEntry() override;
 
     ObjectKey* GetKey(ObjectKey* out) const;
     // Stores `object` in the slot of its view side if the family matches and the slot is free; 1 if it was stored.
@@ -45,8 +45,8 @@ public:
 class ChildList : public IdAvlTree {
 public:
     ChildList();
-    virtual ~ChildList();
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;
+    ~ChildList() override;
+    int IsLess(AvlNode* a, AvlNode* b) override;
 
     int Read(istream* in);
     int Write(ostream* out);
@@ -63,8 +63,8 @@ public:
 class ObjectDatabase : public IdAvlTree {
 public:
     ObjectDatabase();                                 // 0x585b20
-    virtual ~ObjectDatabase();                        // 0: 0x585b40 (deleting), 0x585b60
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;  // 2: 0x585f50
+    ~ObjectDatabase() override;                        // 0: 0x585b40 (deleting), 0x585b60
+    int IsLess(AvlNode* a, AvlNode* b) override;  // 2: 0x585f50
 
     // Puts the object in the entry of its key (creating the entry); 0 for a null object.
     int AddObject(GameObjNotifier* object);           // 0x585b70

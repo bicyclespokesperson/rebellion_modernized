@@ -13,10 +13,10 @@
 class MpSlotTableMsg : public MessageBase {
 public:
     MpSlotTableMsg();
-    virtual ~MpSlotTableMsg();
-    virtual int Read(istream* in) override;
-    virtual int Write(ostream* out) override;
-    virtual int GetKind() override;
+    ~MpSlotTableMsg() override;
+    int Read(istream* in) override;
+    int Write(ostream* out) override;
+    int GetKind() override;
 
     // Copies the values into the global slot table. Always returns 0.
     int Apply();
@@ -30,10 +30,10 @@ public:
 class MpLobbySettingsMsg : public MessageBase {
 public:
     MpLobbySettingsMsg(int setting130, int setting120, int setting124, int setting128, int startGame);
-    virtual ~MpLobbySettingsMsg();
-    virtual int Read(istream* in) override;
-    virtual int Write(ostream* out) override;
-    virtual int GetKind() override;
+    ~MpLobbySettingsMsg() override;
+    int Read(istream* in) override;
+    int Write(ostream* out) override;
+    int GetKind() override;
 
     int m_setting130;  // +0x20
     int m_setting120;  // +0x24
@@ -46,14 +46,14 @@ public:
 class MpChatMsg : public TextMessage {
 public:
     MpChatMsg();
-    virtual ~MpChatMsg();
-    virtual int Read(istream* in) override;
-    virtual int Write(ostream* out) override;
-    virtual int GetKind() override;
-    virtual int CheckEnabled(StatusCode* status) override { return 1; }  // shared 0x51ebb0
-    virtual int CheckValid(StatusCode* status) override { return 1; }    // shared 0x51ebb0
+    ~MpChatMsg() override;
+    int Read(istream* in) override;
+    int Write(ostream* out) override;
+    int GetKind() override;
+    int CheckEnabled(StatusCode* status) override { return 1; }  // shared 0x51ebb0
+    int CheckValid(StatusCode* status) override { return 1; }    // shared 0x51ebb0
     // Always reports success: {1, -1}.
-    virtual int Execute(StatusCode* status) override;
+    int Execute(StatusCode* status) override;
 };
 
 // Kind 0x12: a player's identity. m_action 1 sets the local player's id, name and a flag in the multiplayer
@@ -61,10 +61,10 @@ public:
 class MpPlayerInfoMsg : public MessageBase {
 public:
     MpPlayerInfoMsg();
-    virtual ~MpPlayerInfoMsg();
-    virtual int Read(istream* in) override;
-    virtual int Write(ostream* out) override;
-    virtual int GetKind() override;
+    ~MpPlayerInfoMsg() override;
+    int Read(istream* in) override;
+    int Write(ostream* out) override;
+    int GetKind() override;
 
     // Returns 1 if the action was recognised, else 0.
     int Apply();

@@ -21,10 +21,10 @@ public:
     // range 0..range.
     CoolSlider(HINSTANCE instance, int x, int y, CoolWindow* parent, uint32_t childId, int orientation,
                DibBitmap* backdrop, uint32_t trackBitmapId, uint32_t knobBitmapId, uint32_t value, uint32_t range);  // 0x604570
-    virtual ~CoolSlider();  // 0x604850 (scalar deleting destructor 0x604830)
+    ~CoolSlider() override;  // 0x604850 (scalar deleting destructor 0x604830)
 
     // BUG(original): WM_CREATE is answered without calling CoolWindow::WindowProc.
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x604b80
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x604b80
 
     int IsCursorOverTrack();  // 0x6048f0
     void TrackCursor();        // 0x604950: moves the knob to the cursor if the cursor is inside the track

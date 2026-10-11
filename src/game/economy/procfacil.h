@@ -8,10 +8,10 @@
 class ProcFacilData : public FacilityData {
 public:
     ProcFacilData();                              // 0x584590
-    virtual ~ProcFacilData();                     // 0x5845f0 (deleting), 0x584610
-    virtual int Read(istream* in) override;       // 0x584660
-    virtual int Write(ostream* out) override;     // 0x5846b0
-    virtual int Checksum(Crc32* crc) override;    // 0x584700
+    ~ProcFacilData() override;                     // 0x5845f0 (deleting), 0x584610
+    int Read(istream* in) override;       // 0x584660
+    int Write(ostream* out) override;     // 0x5846b0
+    int Checksum(Crc32* crc) override;    // 0x584700
 
     TrackedStat m_processingStat;  // +0x18, the counted value that the "processing" timer event 0x394 tracks
     int m_duration;                // +0x20, processing time in game time units
@@ -35,14 +35,14 @@ public:
 class ProcFacil : public Facility {
 public:
     ProcFacil();           // 0x53a670
-    virtual ~ProcFacil();  // 0x53a6c0 (scalar deleting destructor 0x53a6a0)
+    ~ProcFacil() override;  // 0x53a6c0 (scalar deleting destructor 0x53a6a0)
 
-    virtual int Virtual46(NotifyContext* ctx) override;                                                  // 46, 0x53ab30: ChangeDestroyedReason(4, ctx)
-    virtual GameObjData* CreateData() override;                                                          // 58, 0x53b650
-    virtual int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;   // 60, 0x53b0f0
-    virtual int OnUsableChanged(int newValue, NotifyContext* ctx) override;                              // 68, 0x53b160
-    virtual int OnCreatedChanged(int newValue, NotifyContext* ctx) override;                             // 69, 0x53b140
-    virtual int OnExistingChanged(int newValue, NotifyContext* ctx) override;                            // 74, 0x53b1b0
+    int Virtual46(NotifyContext* ctx) override;                                                  // 46, 0x53ab30: ChangeDestroyedReason(4, ctx)
+    GameObjData* CreateData() override;                                                          // 58, 0x53b650
+    int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;   // 60, 0x53b0f0
+    int OnUsableChanged(int newValue, NotifyContext* ctx) override;                              // 68, 0x53b160
+    int OnCreatedChanged(int newValue, NotifyContext* ctx) override;                             // 69, 0x53b140
+    int OnExistingChanged(int newValue, NotifyContext* ctx) override;                            // 74, 0x53b1b0
 
     // ---- slots 115-121: events on the master ----
     virtual int OnStateChanged(int oldState, int newState, NotifyContext* ctx);   // 115, 0x53b1d0
@@ -120,5 +120,5 @@ class ProcFacilIterator : public ChildIterator {
 public:
     ProcFacilIterator(GameObjNotifier* parent, uint32_t stateFilter);                 // 0x53b6e0
     ProcFacilIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x53b760
-    virtual ~ProcFacilIterator();                                                     // 0x53b7e0 (scalar deleting destructor 0x53b6c0)
+    ~ProcFacilIterator() override;                                                     // 0x53b7e0 (scalar deleting destructor 0x53b6c0)
 };

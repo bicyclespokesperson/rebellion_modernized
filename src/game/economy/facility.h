@@ -19,20 +19,20 @@
 class FacilityData : public UnitObjData {
 public:
     FacilityData();           // 0x584100
-    virtual ~FacilityData();  // 0x584120 (deleting), 0x584140
+    ~FacilityData() override;  // 0x584120 (deleting), 0x584140
 };
 
 class Facility : public UnitObjBase {
 public:
     Facility();           // 0x539980
-    virtual ~Facility();  // 0x5399c0 (scalar deleting destructor 0x5399a0)
+    ~Facility() override;  // 0x5399c0 (scalar deleting destructor 0x5399a0)
 
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;                                  // 15, 0x5399e0
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                             // 22, 0x539a00
-    virtual GameObjData* CreateData() override;                                                         // 58, 0x539c90
-    virtual int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;  // 60, 0x539c70
-    virtual int OnUsableChanged(int newValue, NotifyContext* ctx) override;                             // 68, 0x558290 (shared jump)
-    virtual int OnExistingChanged(int newValue, NotifyContext* ctx) override;                           // 74, 0x5582d0 (shared jump)
+    int GetEventKinds(int unused, EventKindSet* out) override;                                  // 15, 0x5399e0
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;                             // 22, 0x539a00
+    GameObjData* CreateData() override;                                                         // 58, 0x539c90
+    int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;  // 60, 0x539c70
+    int OnUsableChanged(int newValue, NotifyContext* ctx) override;                             // 68, 0x558290 (shared jump)
+    int OnExistingChanged(int newValue, NotifyContext* ctx) override;                           // 74, 0x5582d0 (shared jump)
 
     virtual uint32_t GetRecordField58();    // 112, 0x558050 (shared with Detector; a jump to 0x520b60): record +0x58, 0 without a record
     virtual int Virtual113() { return 0; }  // 113, shared "return 0" stub
@@ -60,5 +60,5 @@ class FacilityIterator : public ChildIterator {
 public:
     FacilityIterator(GameObjNotifier* parent, uint32_t stateFilter);                 // 0x539d70
     FacilityIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x539df0
-    virtual ~FacilityIterator();                                                     // 0x539e70 (scalar deleting destructor 0x539d50)
+    ~FacilityIterator() override;                                                     // 0x539e70 (scalar deleting destructor 0x539d50)
 };

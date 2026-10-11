@@ -31,40 +31,40 @@ class FleetIterator;
 class Fleet : public GameObj {
 public:
     Fleet();                                                         // 0x4fd650
-    virtual ~Fleet();                                                // 0x4fd670 (deleting), 0x4fd690
+    ~Fleet() override;                                                // 0x4fd670 (deleting), 0x4fd690
 
-    virtual uint32_t GetFamily() override { return family::kFleet; }  // 1, 0x48c2a0 (shared)
-    virtual int Read(istream* in) override;                          // 5, 0x4fe7b0
-    virtual int Write(ostream* out) override;                        // 6, 0x4fe7c0
-    virtual int Checksum(Crc32* crc) override;                       // 7, 0x4fe7f0
-    virtual int Validate() override;                                 // 8, 0x4fe800 (jump to 0x4ff040)
-    virtual int ApplyAll(NotifyContext* ctx) override;               // 9, 0x4fe7d0
-    virtual int CollectDependencies(void* context, int value, ObjectKeyValueSet* out) override;  // 11, 0x4ffc90
-    virtual int GetTransitSpeed(int arg) override;                   // 13, 0x4fd900: slowest ready ship's speed
-    virtual int IsConstructed() override;                            // 14, 0x4fda10: some ship is ready
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;  // 15, 0x4fdad0
-    virtual int Virtual18() override { return 1; }                   // 18, 0x40f340
-    virtual int CanBeControlledBy(int arg) override;                 // 20, 0x4fdaf0: true until the fleet is created
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;  // 22, 0x4fdb00
-    virtual int CheckRequestImpl(const ActivityRequest* request, StatusCode* out) override;  // 23, 0x4fdbc0
-    virtual int CheckRenameImpl(const ActivityRequest* request, StatusCode* out) override;   // 25, 0x4fdd20
-    virtual int CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) override;  // 27, 0x4fdc70
-    virtual int Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) override;  // 29, 0x4fe0d0
-    virtual int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 30, 0x4fe160
-    virtual int UpdateUsable(NotifyContext* ctx) override;           // 33, 0x4fe540
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, 0x4fe790
-    virtual int Reparent(ObjectKey* key, NotifyContext* ctx) override;      // 42, 0x4feca0
-    virtual int Virtual44(NotifyContext* ctx) override { return 1; }        // 44, 0x51ebb0 (shared)
-    virtual int Virtual45(int a, NotifyContext* ctx) override { return 1; } // 45, 0x524fb0 (shared)
-    virtual int Virtual48(intptr_t ctx) override;                         // 48, 0x4fe810 (ctx is a NotifyContext*)
-    virtual int NotifyUnitExisting(intptr_t other, int b, intptr_t ctx) override;       // 49, 0x4fe870 (other is a GameObj*)
-    virtual int NotifyUnitUsable(intptr_t other, int b, intptr_t ctx) override;       // 50, 0x4fe930
-    virtual int NotifyUnitDamaged(intptr_t other, int b, intptr_t ctx) override;       // 51, 0x4fe9f0
-    virtual GameObj* CreateViewObject() override;                    // 57, 0x4fe710
-    virtual int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x4ff570
-    virtual int OnUsableChanged(int newValue, NotifyContext* ctx) override;       // 68, 0x4ff5e0
-    virtual int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;    // 71, 0x4ff600
-    virtual int OnAutoroutingChanged(int newValue, NotifyContext* ctx) override;  // 79, 0x4ff690
+    uint32_t GetFamily() override { return family::kFleet; }  // 1, 0x48c2a0 (shared)
+    int Read(istream* in) override;                          // 5, 0x4fe7b0
+    int Write(ostream* out) override;                        // 6, 0x4fe7c0
+    int Checksum(Crc32* crc) override;                       // 7, 0x4fe7f0
+    int Validate() override;                                 // 8, 0x4fe800 (jump to 0x4ff040)
+    int ApplyAll(NotifyContext* ctx) override;               // 9, 0x4fe7d0
+    int CollectDependencies(void* context, int value, ObjectKeyValueSet* out) override;  // 11, 0x4ffc90
+    int GetTransitSpeed(int arg) override;                   // 13, 0x4fd900: slowest ready ship's speed
+    int IsConstructed() override;                            // 14, 0x4fda10: some ship is ready
+    int GetEventKinds(int unused, EventKindSet* out) override;  // 15, 0x4fdad0
+    int Virtual18() override { return 1; }                   // 18, 0x40f340
+    int CanBeControlledBy(int arg) override;                 // 20, 0x4fdaf0: true until the fleet is created
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;  // 22, 0x4fdb00
+    int CheckRequestImpl(const ActivityRequest* request, StatusCode* out) override;  // 23, 0x4fdbc0
+    int CheckRenameImpl(const ActivityRequest* request, StatusCode* out) override;   // 25, 0x4fdd20
+    int CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) override;  // 27, 0x4fdc70
+    int Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) override;  // 29, 0x4fe0d0
+    int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 30, 0x4fe160
+    int UpdateUsable(NotifyContext* ctx) override;           // 33, 0x4fe540
+    int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, 0x4fe790
+    int Reparent(ObjectKey* key, NotifyContext* ctx) override;      // 42, 0x4feca0
+    int Virtual44(NotifyContext* ctx) override { return 1; }        // 44, 0x51ebb0 (shared)
+    int Virtual45(int a, NotifyContext* ctx) override { return 1; } // 45, 0x524fb0 (shared)
+    int Virtual48(intptr_t ctx) override;                         // 48, 0x4fe810 (ctx is a NotifyContext*)
+    int NotifyUnitExisting(intptr_t other, int b, intptr_t ctx) override;       // 49, 0x4fe870 (other is a GameObj*)
+    int NotifyUnitUsable(intptr_t other, int b, intptr_t ctx) override;       // 50, 0x4fe930
+    int NotifyUnitDamaged(intptr_t other, int b, intptr_t ctx) override;       // 51, 0x4fe9f0
+    GameObj* CreateViewObject() override;                    // 57, 0x4fe710
+    int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x4ff570
+    int OnUsableChanged(int newValue, NotifyContext* ctx) override;       // 68, 0x4ff5e0
+    int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;    // 71, 0x4ff600
+    int OnAutoroutingChanged(int newValue, NotifyContext* ctx) override;  // 79, 0x4ff690
 
     // ---- slots 111-131 ----
     // Assault request check on top of CheckFleetRequest: not allowed unless the fleet blockades ({8,7}).

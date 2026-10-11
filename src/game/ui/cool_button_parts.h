@@ -12,8 +12,8 @@ class ButtonRepeatTimer : public CoolTimer {
 public:
     // A delay below 1 creates the timer paused.
     ButtonRepeatTimer(int delay, CoolStrobeButton* button);  // 0x60f1e0
-    virtual ~ButtonRepeatTimer();                            // 0x60f270 (scalar deleting destructor 0x60f250)
-    virtual void OnTick() override;                          // 0x60f2c0
+    ~ButtonRepeatTimer() override;                            // 0x60f270 (scalar deleting destructor 0x60f250)
+    void OnTick() override;                          // 0x60f2c0
 
     CoolStrobeButton* m_button;  // +0x38
 };

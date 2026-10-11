@@ -19,7 +19,7 @@ class ObjectKeyIdNode : public ObjectKeyNode {
 public:
     ObjectKeyIdNode();                                   // 0x4acd10
     ObjectKeyIdNode(const ObjectKey* key, uint32_t id);  // 0x4acd80: id 0 adds none
-    virtual ~ObjectKeyIdNode();                          // 0x4acdf0 (scalar deleting destructor 0x4acd60)
+    ~ObjectKeyIdNode() override;                          // 0x4acdf0 (scalar deleting destructor 0x4acd60)
 
     void AddId(uint32_t id);  // 0x4ace40: unless already present
 
@@ -30,7 +30,7 @@ public:
 class ObjectKeyIdSet : public ObjectKeySet {
 public:
     ObjectKeyIdSet();           // 0x4acb50
-    virtual ~ObjectKeyIdSet();  // 0x4acb90 (scalar deleting destructor 0x4acb70)
+    ~ObjectKeyIdSet() override;  // 0x4acb90 (scalar deleting destructor 0x4acb70)
 
     // Takes `node` (if its key is complete): a node for a key already present only adds `id` to that node and is
     // deleted. id 0 adds no id.
@@ -49,14 +49,14 @@ public:
     // `backgroundSource`, when given, is the picture the window's background is cut from at (x, y).
     CustomDialogBox(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t childId,
                     DibBitmap* backgroundSource);  // 0x4ac120
-    virtual ~CustomDialogBox();  // 0x4ac2f0 (scalar deleting destructor 0x4ac2d0)
+    ~CustomDialogBox() override;  // 0x4ac2f0 (scalar deleting destructor 0x4ac2d0)
 
     // Escape closes the window; a click ends a rename in progress.
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4ac3a0
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4ac3a0
     // Opens the object pop-up menu for the selection (or the clicked object).
-    virtual int OnRightButtonUp(int x, int y, CoolWindow* sender) override;  // slot 7, 0x4ac5c0
+    int OnRightButtonUp(int x, int y, CoolWindow* sender) override;  // slot 7, 0x4ac5c0
     // Hands the selection to the game (game_ui_facade 0x41cdf0) with `a` as the command.
-    virtual void Virtual08(int a, int b, int c) override;  // slot 8, 0x4ac730
+    void Virtual08(int a, int b, int c) override;  // slot 8, 0x4ac730
 
     virtual void GetSelection(ObjectKeyValueSet* out, CoolWindow* source);  // slot 22, 0x461740 (shared): nothing
     // `object` was added to a shown object (an object of the window's keys): slot 23, 0x461740 (shared): nothing.

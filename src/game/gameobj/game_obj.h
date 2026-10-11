@@ -58,19 +58,19 @@ struct ActivityRequest {
 class GameObj : public GameObjNotifier, public ObjectBase {
 public:
     GameObj();
-    virtual ~GameObj();
+    ~GameObj() override;
 
     // ---- inherited slots GameObj overrides (0-11) ----
-    virtual int IncludeInChecksum() override { return 1; }
-    virtual int GetOwnerKey(ObjectKey* out) override;
-    virtual int IsUnderSideRoot() override;
-    virtual int CollectDependencies(void* context, int value, ObjectKeyValueSet* out) override;
+    int IncludeInChecksum() override { return 1; }
+    int GetOwnerKey(ObjectKey* out) override;
+    int IsUnderSideRoot() override;
+    int CollectDependencies(void* context, int value, ObjectKeyValueSet* out) override;
     // Slots 5-9 stay pure (leaf classes implement them) but have bodies that those implementations call qualified.
-    virtual int Read(istream* in) override = 0;               // body 0x4f9340
-    virtual int Write(ostream* out) override = 0;             // body 0x4f9450
-    virtual int Checksum(Crc32* crc) override = 0;            // body 0x4f9650
-    virtual int Validate() override = 0;                      // body 0x4f9700
-    virtual int ApplyAll(NotifyContext* ctx) override = 0;    // body 0x4f9540
+    int Read(istream* in) override = 0;               // body 0x4f9340
+    int Write(ostream* out) override = 0;             // body 0x4f9450
+    int Checksum(Crc32* crc) override = 0;            // body 0x4f9650
+    int Validate() override = 0;                      // body 0x4f9700
+    int ApplyAll(NotifyContext* ctx) override = 0;    // body 0x4f9540
 
     // ---- slots 12-57: queries and status checks (names provisional unless noted) ----
     virtual uint32_t GetRecordTypeBits();                    // 12: record's +0x30 & 0xfff, 0 without a record
@@ -180,7 +180,7 @@ public:
     virtual int OnDeployedNotified(int value, NotifyContext* ctx);                                      // 110
 
     // ObjectBase slot 0 (secondary vtable): appends the object's name to *out; `kind` as in DatRecord::WriteName.
-    virtual void WriteName(String* out, int kind) override;
+    void WriteName(String* out, int kind) override;
 
     // ==== SECTION core (0x4f5ea0-0x4f6c00): see game_obj.cpp ====
     // The object's copy in `view` (0 master, 1 Alliance, 2 Empire); every view of a GameObj is a GameObj.

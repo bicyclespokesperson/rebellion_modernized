@@ -17,7 +17,7 @@ struct ResourceStringId;
 class OwningIdList : public IdSortedLinkList {
 public:
     OwningIdList();           // 0x4c7f50
-    virtual ~OwningIdList();  // 0x4c7f90 (scalar deleting destructor 0x4c7f70)
+    ~OwningIdList() override;  // 0x4c7f90 (scalar deleting destructor 0x4c7f70)
     // Slot 2, 0x4c7fe0: whether `a`'s id is below `b`'s (what IdSortedLinkList::IsLess does without the null checks).
     virtual int IsLessById(LinkNode* a, LinkNode* b);
 };
@@ -26,7 +26,7 @@ public:
 class MenuItemList : public OwningIdList {
 public:
     MenuItemList();           // 0x4aa910
-    virtual ~MenuItemList();  // 0x4aa950 (scalar deleting destructor 0x4aa930)
+    ~MenuItemList() override;  // 0x4aa950 (scalar deleting destructor 0x4aa930)
 };
 
 class MenuWindowBase;
@@ -50,7 +50,7 @@ public:
     MenuItemBase(HMODULE module, const ResourceStringId* text, int x, int y, int width, int height, uint32_t pictureId,
                  uint32_t hotPictureId, uint32_t disabledPictureId, uint32_t checkPictureId, uint32_t commandId,
                  CoolWindow* owner, int enabled, int checked);  // 0x4ab560
-    virtual ~MenuItemBase();  // 0x4ab760 (scalar deleting destructor 0x4ab740)
+    ~MenuItemBase() override;  // 0x4ab760 (scalar deleting destructor 0x4ab740)
     virtual int Virtual03();  // slot 3, 0x5a5b60 (shared): 0
     virtual int Virtual04();  // slot 4, 0x5a5b60 (shared): 0
 
@@ -102,9 +102,9 @@ public:
     MenuItem(uint32_t command, uint32_t flags, HMODULE module, const ResourceStringId* text, int x, int y, int width,
              int height, uint32_t pictureId, uint32_t hotPictureId, uint32_t disabledPictureId,
              uint32_t checkPictureId, uint32_t entryId, CoolWindow* owner, int enabled, int checked);  // 0x4abfb0
-    virtual ~MenuItem();       // 0x4ac090 (scalar deleting destructor 0x4ac070)
-    virtual int Virtual03() override;  // slot 3, 0x4ac100: flags & 8 (the entry opens a sub-menu)
-    virtual int Virtual04() override;  // slot 4, 0x4ac110: flags & 4 (a separator follows)
+    ~MenuItem() override;       // 0x4ac090 (scalar deleting destructor 0x4ac070)
+    int Virtual03() override;  // slot 3, 0x4ac100: flags & 8 (the entry opens a sub-menu)
+    int Virtual04() override;  // slot 4, 0x4ac110: flags & 4 (a separator follows)
 
     MenuCommand m_command;  // +0x78
     MenuItemList m_subItems;  // +0x80
@@ -116,9 +116,9 @@ class MenuWindowBase : public CoolGameWindow {
 public:
     MenuWindowBase(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t entryId,
                    DibBitmap* backdrop);  // 0x4aa960
-    virtual ~MenuWindowBase();            // 0x4aaa50 (scalar deleting destructor 0x4aaa30)
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4aab50
-    virtual void OnCreate1() override;  // slot 14, 0x4ab2b0
+    ~MenuWindowBase() override;            // 0x4aaa50 (scalar deleting destructor 0x4aaa30)
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4aab50
+    void OnCreate1() override;  // slot 14, 0x4ab2b0
     // A mouse message went to the menu item `item` (null: to the menu itself) at (x, y); nothing here.
     virtual int HandleMouse(MenuItem* item, LONG x, LONG y, int message);  // slot 22, 0x4ab540
 

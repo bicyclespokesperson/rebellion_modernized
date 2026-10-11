@@ -38,9 +38,9 @@ class EventKindNode;
 class EventKindSet : public IntKeyedSet {
 public:
     EventKindSet();
-    virtual ~EventKindSet();
-    virtual int Read(istream* in) override;
-    virtual int Write(ostream* out) override;
+    ~EventKindSet() override;
+    int Read(istream* in) override;
+    int Write(ostream* out) override;
 
     EventKindSet& operator=(const EventKindSet& other);
 
@@ -55,10 +55,10 @@ class EventKindNode : public IntKeyNode {
 public:
     EventKindNode();                                  // 0x582a00, value 1
     EventKindNode(const EventKindNode& other);        // 0x582a40
-    virtual ~EventKindNode();                         // 0x582a70 (scalar deleting destructor 0x582a20)
-    virtual CloneableNode* Clone() override;          // 0x582a80
-    virtual int Read(istream* in) override;           // 0x582ae0
-    virtual int Write(ostream* out) override;         // 0x582b20
+    ~EventKindNode() override;                         // 0x582a70 (scalar deleting destructor 0x582a20)
+    CloneableNode* Clone() override;          // 0x582a80
+    int Read(istream* in) override;           // 0x582ae0
+    int Write(ostream* out) override;         // 0x582b20
 
     int m_value;    // +0x1c
     int m_unknown;  // +0x20

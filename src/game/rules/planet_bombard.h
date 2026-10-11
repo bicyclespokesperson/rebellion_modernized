@@ -81,8 +81,8 @@ public:
 class ShipCounter : public ShipVisitor {
 public:
     ShipCounter(BombardWalker* walker);  // 0x58d150
-    virtual ~ShipCounter();              // 0x58d190 (scalar deleting destructor 0x58d170)
-    virtual int Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58d1a0
+    ~ShipCounter() override;              // 0x58d190 (scalar deleting destructor 0x58d170)
+    int Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58d1a0
 
     int m_count;  // +0x08
 };
@@ -90,9 +90,9 @@ public:
 class ShipPicker : public ShipVisitor {
 public:
     ShipPicker(BombardWalker* walker);  // 0x58d230
-    virtual ~ShipPicker();              // 0x58d280 (scalar deleting destructor 0x58d260)
+    ~ShipPicker() override;              // 0x58d280 (scalar deleting destructor 0x58d260)
     // Shared (ICF) with UnitPicker::Visit.
-    virtual int Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x587470
+    int Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x587470
 
     int m_index;          // +0x08
     int m_target;         // +0x0c
@@ -104,8 +104,8 @@ public:
 class DeathStarFinder : public ShipVisitor {
 public:
     DeathStarFinder(BombardWalker* walker);  // 0x58d3f0
-    virtual ~DeathStarFinder();              // 0x58d430 (scalar deleting destructor 0x58d410)
-    virtual int Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58d440
+    ~DeathStarFinder() override;              // 0x58d430 (scalar deleting destructor 0x58d410)
+    int Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58d440
 
     int m_found;  // +0x08
 };
@@ -114,23 +114,23 @@ public:
 class ShipDamager : public ShipVisitor {
 public:
     ShipDamager(BombardWalker* walker);  // 0x58d4f0
-    virtual ~ShipDamager();              // 0x58d530 (scalar deleting destructor 0x58d510)
-    virtual int Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58d540
+    ~ShipDamager() override;              // 0x58d530 (scalar deleting destructor 0x58d510)
+    int Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58d540
 };
 
 // Forgets the damage the defences have dealt.
 class ShipCleaner : public ShipVisitor {
 public:
     ShipCleaner(BombardWalker* walker);  // 0x58d680
-    virtual ~ShipCleaner();              // 0x58d6c0 (scalar deleting destructor 0x58d6a0)
-    virtual int Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58d6d0
+    ~ShipCleaner() override;              // 0x58d6c0 (scalar deleting destructor 0x58d6a0)
+    int Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58d6d0
 };
 
 class DefenderCounter : public DefenderVisitor {
 public:
     DefenderCounter(BombardWalker* walker);  // 0x58d1c0
-    virtual ~DefenderCounter();              // 0x58d200 (scalar deleting destructor 0x58d1e0)
-    virtual int Visit(GameObj* facility, GameObj* troop, int energy, int rawMaterial, uint32_t* stop,
+    ~DefenderCounter() override;              // 0x58d200 (scalar deleting destructor 0x58d1e0)
+    int Visit(GameObj* facility, GameObj* troop, int energy, int rawMaterial, uint32_t* stop,
                       NotifyContext* ctx) override;  // 1: 0x58d210
 
     int m_count;  // +0x08
@@ -139,8 +139,8 @@ public:
 class DefenderPicker : public DefenderVisitor {
 public:
     DefenderPicker(BombardWalker* walker);  // 0x58d290
-    virtual ~DefenderPicker();              // 0x58d2e0 (scalar deleting destructor 0x58d2c0)
-    virtual int Visit(GameObj* facility, GameObj* troop, int energy, int rawMaterial, uint32_t* stop,
+    ~DefenderPicker() override;              // 0x58d2e0 (scalar deleting destructor 0x58d2c0)
+    int Visit(GameObj* facility, GameObj* troop, int energy, int rawMaterial, uint32_t* stop,
                       NotifyContext* ctx) override;  // 1: 0x58d2f0
     // *found = whether anything was picked; *ref = what.
     void GetPicked(int* found, DefenderRef* ref);  // 0x58d370

@@ -19,14 +19,14 @@ class TroopFinderWindow : public CustomDialogBox {
 public:
     TroopFinderWindow(HINSTANCE instance, int x, int y, int width, int height, GalaxyWindow* parent,
                       uint32_t childId);  // 0x46cbc0
-    virtual ~TroopFinderWindow();  // 0x46cd20 (scalar deleting destructor 0x46cd00)
+    ~TroopFinderWindow() override;  // 0x46cd20 (scalar deleting destructor 0x46cd00)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x46e5f0
-    virtual void OnCreate1() override;                    // slot 14, 0x46ce40
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x46e5f0
+    void OnCreate1() override;                    // slot 14, 0x46ce40
     // Slot 17 is the original's 0x460fe0, shared with SystemFinderWindow (the label is at +0x154 in both).
-    virtual void DrawOverlay(HDC dc) override;
-    virtual void OnCommand(int a, int command, int c) override;  // slot 18, 0x46df90
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x46efc0
+    void DrawOverlay(HDC dc) override;
+    void OnCommand(int a, int command, int c) override;  // slot 18, 0x46df90
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x46efc0
 
     // Rebuilds the rows for the side tab `filter` (1 Alliance, 2 Empire) unless it is the current one.
     void SetFilter(int filter, int unused);  // 0x46ea10

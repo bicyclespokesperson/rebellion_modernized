@@ -26,8 +26,8 @@ enum CoolListSortMode : uint32_t {
 class CoolListItemList : public SortedLinkList {
 public:
     explicit CoolListItemList(int sortMode);  // 0x60a790
-    virtual ~CoolListItemList();              // 0x60a810 (scalar deleting destructor 0x60a7f0)
-    virtual int IsLess(LinkNode* a, LinkNode* b) override;  // 0x60a890
+    ~CoolListItemList() override;              // 0x60a810 (scalar deleting destructor 0x60a7f0)
+    int IsLess(LinkNode* a, LinkNode* b) override;  // 0x60a890
     virtual CoolListItem* First();            // slot 2, 0x60beb0 (linker-folded with CoolListItem::Next)
 
     CoolListItem* FindById(uint32_t id);      // 0x60a860
@@ -59,22 +59,22 @@ public:
     CoolDragList(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, DibBitmap* backdrop,
                  uint32_t childId, int itemWidth, int itemHeight, int unused2c, int unused30, int unused34,
                  int unused38, int lineStep, int vertical, HCURSOR dragCursor);  // 0x607ea0
-    virtual ~CoolDragList();  // 0x608160 (scalar deleting destructor 0x608140, thunk 0x60a410)
+    ~CoolDragList() override;  // 0x608160 (scalar deleting destructor 0x608140, thunk 0x60a410)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x6083c0
-    virtual int OnRightButtonUp(int x, int y, CoolWindow* sender) override;  // 0x609fc0: forwards to the parent
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x6083c0
+    int OnRightButtonUp(int x, int y, CoolWindow* sender) override;  // 0x609fc0: forwards to the parent
 
-    virtual int PageUp() override;                    // 0x60a010
-    virtual int PageDown() override;                  // 0x60a060
-    virtual int LineUp() override;                    // 0x60a0b0
-    virtual int LineDown() override;                  // 0x60a100
-    virtual int ScrollVertical(int delta) override;   // 0x60a150
-    virtual int PageLeft() override;                  // 0x60a1c0
-    virtual int PageRight() override;                 // 0x60a210
-    virtual int LineRight() override;                 // 0x60a270
-    virtual int LineLeft() override;                  // 0x60a260
-    virtual int ScrollHorizontal(int delta) override;  // 0x58f0d0 (linker-folded)
-    virtual void OnScrollEnd() override;              // 0x619730 (linker-folded): does nothing
+    int PageUp() override;                    // 0x60a010
+    int PageDown() override;                  // 0x60a060
+    int LineUp() override;                    // 0x60a0b0
+    int LineDown() override;                  // 0x60a100
+    int ScrollVertical(int delta) override;   // 0x60a150
+    int PageLeft() override;                  // 0x60a1c0
+    int PageRight() override;                 // 0x60a210
+    int LineRight() override;                 // 0x60a270
+    int LineLeft() override;                  // 0x60a260
+    int ScrollHorizontal(int delta) override;  // 0x58f0d0 (linker-folded)
+    void OnScrollEnd() override;              // 0x619730 (linker-folded): does nothing
 
     void SetItemList(CoolListItemList* items);                          // 0x608280
     void SetItemSize(int width, int height);                            // 0x6082c0

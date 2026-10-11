@@ -24,7 +24,7 @@ class AiSystemRecord : public IdNode {
 public:
     AiSystemRecord();                                       // 0x476140
     AiSystemRecord(int view, AiSideController* owner);      // 0x4762b0
-    virtual ~AiSystemRecord();                              // 0: 0x476290 (deleting), 0x476410
+    ~AiSystemRecord() override;                              // 0: 0x476290 (deleting), 0x476410
     virtual void Read(istream* in);                         // 1: 0x476520
     virtual void Write(ostream* out);                       // 2: 0x4766e0
 

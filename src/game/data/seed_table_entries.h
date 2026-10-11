@@ -8,11 +8,11 @@
 class SeedTableEntry : public TableEntry {
 public:
     SeedTableEntry();
-    virtual ~SeedTableEntry();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int ParseText(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
+    ~SeedTableEntry() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int ParseText(istream* in) override;
+    int Checksum(Crc32* crc) override;
 
     uint32_t m_key;  // +0x24
 };
@@ -22,11 +22,11 @@ public:
 class SeedFamilyTableEntry : public TableEntry {
 public:
     SeedFamilyTableEntry();
-    virtual ~SeedFamilyTableEntry();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int ParseText(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
+    ~SeedFamilyTableEntry() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int ParseText(istream* in) override;
+    int Checksum(Crc32* crc) override;
 
     int m_field24;       // +0x24
     ObjectRefList m_items;  // +0x28
@@ -37,11 +37,11 @@ public:
 class IntTableEntry : public TableEntry {
 public:
     IntTableEntry();
-    virtual ~IntTableEntry();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int ParseText(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
+    ~IntTableEntry() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int ParseText(istream* in) override;
+    int Checksum(Crc32* crc) override;
 
     int m_value;  // +0x24
 };

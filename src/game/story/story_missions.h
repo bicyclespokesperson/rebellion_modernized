@@ -18,23 +18,23 @@ class ObjectRefList;
 class MissionPickup : public MissionStoryBase {
 public:
     MissionPickup();           // 0x56d260
-    virtual ~MissionPickup();  // 0x56d280 (deleting), 0x56d2a0
+    ~MissionPickup() override;  // 0x56d280 (deleting), 0x56d2a0
 
-    virtual uint32_t GetFamily() override;                                      // 1, 0x56d470: 0x73
-    virtual int Read(istream* in) override;                                     // 5, 0x56d430
-    virtual int Write(ostream* out) override;                                   // 6, 0x56d440
-    virtual int Checksum(Crc32* crc) override;                                  // 7, 0x56d450
-    virtual int Validate() override;                                            // 8, shared 0x56d460
-    virtual int ApplyAll(NotifyContext* ctx) override;                          // 9, shared 0x576d30
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x576d10
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x56d2c0
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x56d2e0
-    virtual int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x56d3a0
-    virtual GameObj* CreateViewObject() override;                               // 57, 0x56d3c0
-    virtual int Virtual157(GameObj* person, int* out) override;                 // 157, shared 0x575060
-    virtual int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
-    virtual int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x56da80
-    virtual int Virtual160(NotifyContext* ctx) override;                        // 160, shared 0x576700
+    uint32_t GetFamily() override;                                      // 1, 0x56d470: 0x73
+    int Read(istream* in) override;                                     // 5, 0x56d430
+    int Write(ostream* out) override;                                   // 6, 0x56d440
+    int Checksum(Crc32* crc) override;                                  // 7, 0x56d450
+    int Validate() override;                                            // 8, shared 0x56d460
+    int ApplyAll(NotifyContext* ctx) override;                          // 9, shared 0x576d30
+    int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x576d10
+    int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x56d2c0
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x56d2e0
+    int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x56d3a0
+    GameObj* CreateViewObject() override;                               // 57, 0x56d3c0
+    int Virtual157(GameObj* person, int* out) override;                 // 157, shared 0x575060
+    int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
+    int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x56da80
+    int Virtual160(NotifyContext* ctx) override;                        // 160, shared 0x576700
 
     static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56d4f0
     static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56d6d0
@@ -48,23 +48,23 @@ public:
 class MissionPalace : public MissionCharacterTargetBase {
 public:
     MissionPalace();           // 0x56dcf0
-    virtual ~MissionPalace();  // 0x56dd10 (deleting), 0x56dd30
+    ~MissionPalace() override;  // 0x56dd10 (deleting), 0x56dd30
 
-    virtual uint32_t GetFamily() override;                                      // 1, 0x56def0: 0x64
-    virtual int Read(istream* in) override;                                     // 5, 0x56dec0
-    virtual int Write(ostream* out) override;                                   // 6, 0x56ded0
-    virtual int Checksum(Crc32* crc) override;                                  // 7, 0x56dee0
-    virtual int Validate() override;                                            // 8, shared 0x56ad20
-    virtual int ApplyAll(NotifyContext* ctx) override;                          // 9, shared 0x576d30
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x576d10
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x56dd50
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x56dd70
-    virtual int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x56de30
-    virtual GameObj* CreateViewObject() override;                               // 57, 0x56de50
-    virtual int Virtual157(GameObj* person, int* out) override;                 // 157, 0x56e620
-    virtual int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
-    virtual int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x56e650
-    virtual int Virtual160(NotifyContext* ctx) override;                        // 160, 0x56e870
+    uint32_t GetFamily() override;                                      // 1, 0x56def0: 0x64
+    int Read(istream* in) override;                                     // 5, 0x56dec0
+    int Write(ostream* out) override;                                   // 6, 0x56ded0
+    int Checksum(Crc32* crc) override;                                  // 7, 0x56dee0
+    int Validate() override;                                            // 8, shared 0x56ad20
+    int ApplyAll(NotifyContext* ctx) override;                          // 9, shared 0x576d30
+    int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x576d10
+    int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x56dd50
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x56dd70
+    int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x56de30
+    GameObj* CreateViewObject() override;                               // 57, 0x56de50
+    int Virtual157(GameObj* person, int* out) override;                 // 157, 0x56e620
+    int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
+    int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x56e650
+    int Virtual160(NotifyContext* ctx) override;                        // 160, 0x56e870
 
     static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56df70
     static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x56e1f0
@@ -78,23 +78,23 @@ public:
 class MissionVacation : public MissionStoryBase {
 public:
     MissionVacation();           // 0x571cd0
-    virtual ~MissionVacation();  // 0x571cf0 (deleting), 0x571d10
+    ~MissionVacation() override;  // 0x571cf0 (deleting), 0x571d10
 
-    virtual uint32_t GetFamily() override;                                      // 1, 0x571ea0: 0x72
-    virtual int Read(istream* in) override;                                     // 5, shared 0x56d430
-    virtual int Write(ostream* out) override;                                   // 6, shared 0x56d440
-    virtual int Checksum(Crc32* crc) override;                                  // 7, shared 0x56d450
-    virtual int Validate() override;                                            // 8, shared 0x56d460
-    virtual int ApplyAll(NotifyContext* ctx) override;                          // 9, shared 0x576d30
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x576d10
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x571d30
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x571d50
-    virtual int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x571e10
-    virtual GameObj* CreateViewObject() override;                               // 57, 0x571e30
-    virtual int Virtual157(GameObj* person, int* out) override;                 // 157, shared 0x575060
-    virtual int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
-    virtual int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x572470
-    virtual int Virtual160(NotifyContext* ctx) override;                        // 160, 0x572490
+    uint32_t GetFamily() override;                                      // 1, 0x571ea0: 0x72
+    int Read(istream* in) override;                                     // 5, shared 0x56d430
+    int Write(ostream* out) override;                                   // 6, shared 0x56d440
+    int Checksum(Crc32* crc) override;                                  // 7, shared 0x56d450
+    int Validate() override;                                            // 8, shared 0x56d460
+    int ApplyAll(NotifyContext* ctx) override;                          // 9, shared 0x576d30
+    int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x576d10
+    int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x571d30
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x571d50
+    int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x571e10
+    GameObj* CreateViewObject() override;                               // 57, 0x571e30
+    int Virtual157(GameObj* person, int* out) override;                 // 157, shared 0x575060
+    int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
+    int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x572470
+    int Virtual160(NotifyContext* ctx) override;                        // 160, 0x572490
 
     static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x571f20
     static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x572100
@@ -110,24 +110,24 @@ public:
 class DagobahMission : public MissionStoryBase {
 public:
     DagobahMission();           // 0x5747f0
-    virtual ~DagobahMission();  // 0x574820 (deleting), 0x574840
+    ~DagobahMission() override;  // 0x574820 (deleting), 0x574840
 
-    virtual uint32_t GetFamily() override;                                      // 1, 0x574a90: 0x71
-    virtual int Read(istream* in) override;                                     // 5, 0x574a40
-    virtual int Write(ostream* out) override;                                   // 6, 0x574a50
-    virtual int Checksum(Crc32* crc) override;                                  // 7, 0x574a80
-    virtual int Validate() override;                                            // 8, shared 0x56d460
-    virtual int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x574a60
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x576d10
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x574860
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x574880
-    virtual int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x574940
-    virtual GameObj* CreateViewObject() override;                               // 57, 0x5749d0
-    virtual int OnPhaseChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 125, 0x5751d0
-    virtual int Virtual157(GameObj* person, int* out) override;                 // 157, shared 0x575060
-    virtual int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
-    virtual int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, shared 0x572470
-    virtual int Virtual160(NotifyContext* ctx) override;                        // 160, shared 0x572490
+    uint32_t GetFamily() override;                                      // 1, 0x574a90: 0x71
+    int Read(istream* in) override;                                     // 5, 0x574a40
+    int Write(ostream* out) override;                                   // 6, 0x574a50
+    int Checksum(Crc32* crc) override;                                  // 7, 0x574a80
+    int Validate() override;                                            // 8, shared 0x56d460
+    int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x574a60
+    int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x576d10
+    int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x574860
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x574880
+    int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x574940
+    GameObj* CreateViewObject() override;                               // 57, 0x5749d0
+    int OnPhaseChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 125, 0x5751d0
+    int Virtual157(GameObj* person, int* out) override;                 // 157, shared 0x575060
+    int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
+    int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, shared 0x572470
+    int Virtual160(NotifyContext* ctx) override;                        // 160, shared 0x572490
     virtual int OnFirstTrainingDayChanged(int oldValue, int newValue, NotifyContext* ctx) { return 1; }  // 162, shared stub 0x524b10
     virtual int OnFirstTrainingDayNotified(int oldValue, int newValue, NotifyContext* ctx);  // 163, 0x575320
 
@@ -152,23 +152,23 @@ public:
 class MissionBounty : public MissionCharacterTargetBase {
 public:
     MissionBounty();           // 0x5756b0
-    virtual ~MissionBounty();  // 0x5756d0 (deleting), 0x5756f0
+    ~MissionBounty() override;  // 0x5756d0 (deleting), 0x5756f0
 
-    virtual uint32_t GetFamily() override;                                      // 1, 0x575880: 0x65
-    virtual int Read(istream* in) override;                                     // 5, shared 0x56dec0
-    virtual int Write(ostream* out) override;                                   // 6, shared 0x56ded0
-    virtual int Checksum(Crc32* crc) override;                                  // 7, shared 0x56dee0
-    virtual int Validate() override;                                            // 8, shared 0x56ad20
-    virtual int ApplyAll(NotifyContext* ctx) override;                          // 9, shared 0x576d30
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x576d10
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x575710
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x575730
-    virtual int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x5757f0
-    virtual GameObj* CreateViewObject() override;                               // 57, 0x575810
-    virtual int Virtual157(GameObj* person, int* out) override;                 // 157, shared 0x575060
-    virtual int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
-    virtual int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x575de0
-    virtual int Virtual160(NotifyContext* ctx) override;                        // 160, stub 0x51ebb0
+    uint32_t GetFamily() override;                                      // 1, 0x575880: 0x65
+    int Read(istream* in) override;                                     // 5, shared 0x56dec0
+    int Write(ostream* out) override;                                   // 6, shared 0x56ded0
+    int Checksum(Crc32* crc) override;                                  // 7, shared 0x56dee0
+    int Validate() override;                                            // 8, shared 0x56ad20
+    int ApplyAll(NotifyContext* ctx) override;                          // 9, shared 0x576d30
+    int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x576d10
+    int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x575710
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x575730
+    int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x5757f0
+    GameObj* CreateViewObject() override;                               // 57, 0x575810
+    int Virtual157(GameObj* person, int* out) override;                 // 157, shared 0x575060
+    int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
+    int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x575de0
+    int Virtual160(NotifyContext* ctx) override;                        // 160, stub 0x51ebb0
 
     static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x575900
     static int CheckCandidateKeys(ObjectKeySet* keys, MissionCheckArgs* check, StatusCode* status, int* out);  // 0x575ae0

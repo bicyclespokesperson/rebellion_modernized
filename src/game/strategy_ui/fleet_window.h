@@ -34,26 +34,26 @@ class FleetWindow : public CustomDialogBox {
 public:
     FleetWindow(HINSTANCE instance, int x, int y, CoolWindow* parent, uint32_t childId,
                 GameObjNotifier* system);  // 0x4a2630
-    virtual ~FleetWindow();  // 0x4a2820 (scalar deleting destructor 0x4a2800)
+    ~FleetWindow() override;  // 0x4a2820 (scalar deleting destructor 0x4a2800)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4a29c0
-    virtual int OnRightButtonUp(int x, int y, CoolWindow* sender) override;  // slot 7, 0x4a2c40
-    virtual void SaveState(ostream* out) override;                  // slot 9, 0x4a7300
-    virtual void LoadState(istream* in) override;                   // slot 10, 0x4a7290
-    virtual void OnCreate1() override;                              // slot 14, 0x4a4b10
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;     // slot 19, 0x4a7390
-    virtual void GetSelection(ObjectKeyValueSet* out, CoolWindow* source) override;  // slot 22, 0x4a2c80
-    virtual void OnChildAdded(const ObjectKey* key, GameObjNotifier* object) override;  // slot 23, 0x4a2e70
-    virtual void OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4a29c0
+    int OnRightButtonUp(int x, int y, CoolWindow* sender) override;  // slot 7, 0x4a2c40
+    void SaveState(ostream* out) override;                  // slot 9, 0x4a7300
+    void LoadState(istream* in) override;                   // slot 10, 0x4a7290
+    void OnCreate1() override;                              // slot 14, 0x4a4b10
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;     // slot 19, 0x4a7390
+    void GetSelection(ObjectKeyValueSet* out, CoolWindow* source) override;  // slot 22, 0x4a2c80
+    void OnChildAdded(const ObjectKey* key, GameObjNotifier* object) override;  // slot 23, 0x4a2e70
+    void OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
                               GameObjNotifier* otherObject) override;                    // slot 24, 0x4a2d60
-    virtual void OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object) override;  // slot 25, 0x4a2e70
-    virtual ObjectKey GetKeyAt(int x, int y) override;              // slot 26, 0x4a2f80
-    virtual void ShowObjectPage(const ObjectKey* key) override;     // slot 27, 0x4a73c0
-    virtual ObjectKey GetDropKeyAt(int x, int y) override;          // slot 28, 0x4a3130
-    virtual int Virtual29() override;                               // slot 29, 0x4a76e0: the bitmap of the side to show
-    virtual RECT* GetRenameRect(RECT* out) override;                // slot 34, 0x4a71d0: over the selected row's text
+    void OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object) override;  // slot 25, 0x4a2e70
+    ObjectKey GetKeyAt(int x, int y) override;              // slot 26, 0x4a2f80
+    void ShowObjectPage(const ObjectKey* key) override;     // slot 27, 0x4a73c0
+    ObjectKey GetDropKeyAt(int x, int y) override;          // slot 28, 0x4a3130
+    int Virtual29() override;                               // slot 29, 0x4a76e0: the bitmap of the side to show
+    RECT* GetRenameRect(RECT* out) override;                // slot 34, 0x4a71d0: over the selected row's text
     // Rebuilds the rows when something below the system changed (flag kFleetNeedsRefresh).
-    virtual void Virtual35() override;                              // slot 35, 0x4a7370
+    void Virtual35() override;                              // slot 35, 0x4a7370
 
     // The WM_COMMAND of the buttons, tabs and lists.
     LRESULT OnWmCommand(UINT message, WPARAM wParam, LPARAM lParam);  // 0x4a6390

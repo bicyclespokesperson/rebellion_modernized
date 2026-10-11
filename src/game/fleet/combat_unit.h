@@ -17,25 +17,25 @@ public:
     static constexpr uint32_t kFastRepairFlag = 0x2;
 
     CombatUnit();           // 0x557410
-    virtual ~CombatUnit();  // 0x557450 (scalar deleting destructor 0x557430)
+    ~CombatUnit() override;  // 0x557450 (scalar deleting destructor 0x557430)
 
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;                          // 15, 0x557510
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                     // 22, 0x557530
-    virtual int CheckRequestImpl(const ActivityRequest* request, StatusCode* out) override;     // 23, 0x5575f0
-    virtual int CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) override;     // 27, 0x5576a0
-    virtual GameObjData* CreateData() override;                                                 // 58, 0x557da0
-    virtual int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x557b40
-    virtual int OnUsableChanged(int newValue, NotifyContext* ctx) override;                     // 68, 0x557b60
-    virtual int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;                  // 71, 0x557b90
-    virtual int OnExistingChanged(int newValue, NotifyContext* ctx) override;                   // 74, 0x557bb0
-    virtual int OnDamagedChanged(int newValue, NotifyContext* ctx) override;                    // 77, 0x557bd0
+    int GetEventKinds(int unused, EventKindSet* out) override;                          // 15, 0x557510
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;                     // 22, 0x557530
+    int CheckRequestImpl(const ActivityRequest* request, StatusCode* out) override;     // 23, 0x5575f0
+    int CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) override;     // 27, 0x5576a0
+    GameObjData* CreateData() override;                                                 // 58, 0x557da0
+    int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x557b40
+    int OnUsableChanged(int newValue, NotifyContext* ctx) override;                     // 68, 0x557b60
+    int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;                  // 71, 0x557b90
+    int OnExistingChanged(int newValue, NotifyContext* ctx) override;                   // 74, 0x557bb0
+    int OnDamagedChanged(int newValue, NotifyContext* ctx) override;                    // 77, 0x557bd0
 
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override = 0;  // 37, body 0x557900
-    virtual int Read(istream* in) override = 0;               // body 0x557940
-    virtual int Write(ostream* out) override = 0;             // body 0x557970
-    virtual int Checksum(Crc32* crc) override = 0;            // body 0x5579e0
-    virtual int Validate() override = 0;                      // body 0x557a10
-    virtual int ApplyAll(NotifyContext* ctx) override = 0;    // body 0x5579a0
+    int CreateViews(int controlKind, NotifyContext* ctx) override = 0;  // 37, body 0x557900
+    int Read(istream* in) override = 0;               // body 0x557940
+    int Write(ostream* out) override = 0;             // body 0x557970
+    int Checksum(Crc32* crc) override = 0;            // body 0x5579e0
+    int Validate() override = 0;                      // body 0x557a10
+    int ApplyAll(NotifyContext* ctx) override = 0;    // body 0x5579a0
 
     // The value the repair level is set to (GNPRTB, depending on FastRepair).
     virtual int GetRepairLevel() = 0;                            // 118

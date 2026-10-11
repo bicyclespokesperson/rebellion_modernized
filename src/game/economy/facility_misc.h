@@ -6,7 +6,7 @@
 class OkIdAvlTree : public IdAvlTree {
 public:
     OkIdAvlTree();           // 0x526730
-    virtual ~OkIdAvlTree();  // 0x526770 (scalar deleting destructor 0x526750)
+    ~OkIdAvlTree() override;  // 0x526770 (scalar deleting destructor 0x526750)
 
     int m_ok;  // +0x0c
 };

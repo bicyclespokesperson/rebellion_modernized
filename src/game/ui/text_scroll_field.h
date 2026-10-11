@@ -13,7 +13,7 @@ class DibBitmap;
 class TextLineStart : public IdLinkNode {
 public:
     explicit TextLineStart(int charIndex);  // inlined in 0x420450
-    virtual ~TextLineStart();               // 0x4204f0 (scalar deleting destructor 0x4204d0)
+    ~TextLineStart() override;               // 0x4204f0 (scalar deleting destructor 0x4204d0)
 
     int m_charIndex;  // +0x10
 };
@@ -42,16 +42,16 @@ public:
     // `backdrop` (not owned) is the parent's background; the field is drawn over the part at (x, y) of it.
     TextScrollField(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                     DibBitmap* backdrop, int editable);  // 0x41ecf0
-    virtual ~TextScrollField();  // 0x41eed0 (scalar deleting destructor 0x41eeb0, thunk 0x420bc0)
+    ~TextScrollField() override;  // 0x41eed0 (scalar deleting destructor 0x41eeb0, thunk 0x420bc0)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x41efe0
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x41efe0
 
-    virtual int PageUp() override;                     // 0x420a10
-    virtual int PageDown() override;                   // 0x420a50
-    virtual int LineUp() override;                     // 0x420a90: returns -line height
-    virtual int LineDown() override;                   // 0x420ac0: returns the line height
-    virtual int ScrollVertical(int delta) override;    // 0x420af0
-    virtual int ScrollHorizontal(int delta) override;  // 0x48b440 (linker-folded): returns 0
+    int PageUp() override;                     // 0x420a10
+    int PageDown() override;                   // 0x420a50
+    int LineUp() override;                     // 0x420a90: returns -line height
+    int LineDown() override;                   // 0x420ac0: returns the line height
+    int ScrollVertical(int delta) override;    // 0x420af0
+    int ScrollHorizontal(int delta) override;  // 0x48b440 (linker-folded): returns 0
 
     // Grabs the caret (and the focus) or hides it.
     void SetEditable(int editable);  // 0x41fb50

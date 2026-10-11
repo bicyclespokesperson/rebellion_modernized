@@ -9,7 +9,7 @@
 class ResourceDll : public IdLinkNode {
 public:
     explicit ResourceDll(const char* libraryName);  // 0x60ed60: LoadLibraryA
-    virtual ~ResourceDll();                         // 0x60edc0 (scalar deleting destructor 0x60ed40): FreeLibrary
+    ~ResourceDll() override;                         // 0x60edc0 (scalar deleting destructor 0x60ed40): FreeLibrary
 
     HMODULE m_module;  // +0x10, null if the library could not be loaded
 };
@@ -18,7 +18,7 @@ public:
 class ResourceDllList : public IdSortedLinkList {
 public:
     ResourceDllList();           // 0x604410
-    virtual ~ResourceDllList();  // 0x604450 (scalar deleting destructor 0x604430)
+    ~ResourceDllList() override;  // 0x604450 (scalar deleting destructor 0x604430)
 
     // Unloads every DLL registered under `slot`.
     void UnloadSlot(uint32_t slot);  // 0x604460

@@ -22,13 +22,13 @@ class PersonnelFinderWindow : public CustomDialogBox {
 public:
     PersonnelFinderWindow(HINSTANCE instance, int x, int y, int width, int height, GalaxyWindow* parent,
                           uint32_t childId);  // 0x463500
-    virtual ~PersonnelFinderWindow();  // 0x463650 (scalar deleting destructor 0x463630)
+    ~PersonnelFinderWindow() override;  // 0x463650 (scalar deleting destructor 0x463630)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x464c20
-    virtual void OnCreate1() override;                    // slot 14, 0x4637a0
-    virtual void DrawOverlay(HDC dc) override;            // slot 17, 0x464c00
-    virtual void OnCommand(int a, int command, int c) override;  // slot 18, 0x464890
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x466160
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x464c20
+    void OnCreate1() override;                    // slot 14, 0x4637a0
+    void DrawOverlay(HDC dc) override;            // slot 17, 0x464c00
+    void OnCommand(int a, int command, int c) override;  // slot 18, 0x464890
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x466160
 
     // Rebuilds the rows of the page the page tabs show (2: the force rows in m_forceRows, 3: the character rows in
     // m_characterRows) for the side the filter tab selects, and shows `rows` in the list. `unused` is ignored.

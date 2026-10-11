@@ -12,7 +12,7 @@ class ostream;
 class BitmapOverlay : public IdNode {
 public:
     BitmapOverlay();            // 0x60f4f0
-    virtual ~BitmapOverlay();   // 0x60f530 (scalar deleting destructor 0x60f510): deletes the bitmap
+    ~BitmapOverlay() override;   // 0x60f530 (scalar deleting destructor 0x60f510): deletes the bitmap
 
     virtual DibBitmap* GetBitmap();             // slot 1, 0x60f630
     virtual void SetBitmap(DibBitmap* bitmap);  // slot 2, 0x60f5d0 (linker-folded with other +0x1c setters)
@@ -31,8 +31,8 @@ public:
 class BitmapOverlayTree : public IdAvlTree {
 public:
     BitmapOverlayTree();           // 0x60f420
-    virtual ~BitmapOverlayTree();  // 0x60f460 (scalar deleting destructor 0x60f440)
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;  // 0x60f490
+    ~BitmapOverlayTree() override;  // 0x60f460 (scalar deleting destructor 0x60f440)
+    int IsLess(AvlNode* a, AvlNode* b) override;  // 0x60f490
 
     // Linear search (the tree is not ordered by id).
     BitmapOverlay* FindOverlay(uint32_t id);  // 0x60f470

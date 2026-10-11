@@ -36,9 +36,9 @@ struct _DSBPOSITIONNOTIFY {
 typedef struct _DSBPOSITIONNOTIFY DSBPOSITIONNOTIFY;
 typedef const DSBPOSITIONNOTIFY *LPCDSBPOSITIONNOTIFY;
 struct IDirectSound : public IUnknown {
-    virtual HRESULT REB_STDCALL QueryInterface(const IID &, LPVOID *) = 0;
-    virtual ULONG REB_STDCALL AddRef() = 0;
-    virtual ULONG REB_STDCALL Release() = 0;
+    HRESULT REB_STDCALL QueryInterface(const IID &, LPVOID *) override = 0;
+    ULONG REB_STDCALL AddRef() override = 0;
+    ULONG REB_STDCALL Release() override = 0;
     virtual HRESULT REB_STDCALL CreateSoundBuffer(LPCDSBUFFERDESC pcDSBufferDesc, LPDIRECTSOUNDBUFFER *ppDSBuffer, LPUNKNOWN pUnkOuter) = 0;
     virtual HRESULT REB_STDCALL GetCaps(LPDSCAPS pDSCaps) = 0;
     virtual HRESULT REB_STDCALL DuplicateSoundBuffer(LPDIRECTSOUNDBUFFER pDSBufferOriginal, LPDIRECTSOUNDBUFFER *ppDSBufferDuplicate) = 0;
@@ -49,9 +49,9 @@ struct IDirectSound : public IUnknown {
     virtual HRESULT REB_STDCALL Initialize(LPCGUID pcGuidDevice) = 0;
 };
 struct IDirectSoundBuffer : public IUnknown {
-    virtual HRESULT REB_STDCALL QueryInterface(const IID &, LPVOID *) = 0;
-    virtual ULONG REB_STDCALL AddRef() = 0;
-    virtual ULONG REB_STDCALL Release() = 0;
+    HRESULT REB_STDCALL QueryInterface(const IID &, LPVOID *) override = 0;
+    ULONG REB_STDCALL AddRef() override = 0;
+    ULONG REB_STDCALL Release() override = 0;
     virtual HRESULT REB_STDCALL GetCaps(LPDSBCAPS pDSBufferCaps) = 0;
     virtual HRESULT REB_STDCALL GetCurrentPosition(LPDWORD pdwCurrentPlayCursor, LPDWORD pdwCurrentWriteCursor) = 0;
     virtual HRESULT REB_STDCALL GetFormat(LPWAVEFORMATEX pwfxFormat, DWORD dwSizeAllocated, LPDWORD pdwSizeWritten) = 0;
@@ -73,9 +73,9 @@ struct IDirectSoundBuffer : public IUnknown {
 };
 extern "C" const GUID IID_IDirectSound3DListener;
 struct IDirectSound3DListener : public IUnknown {
-    virtual HRESULT REB_STDCALL QueryInterface(const IID &, LPVOID *) = 0;
-    virtual ULONG REB_STDCALL AddRef() = 0;
-    virtual ULONG REB_STDCALL Release() = 0;
+    HRESULT REB_STDCALL QueryInterface(const IID &, LPVOID *) override = 0;
+    ULONG REB_STDCALL AddRef() override = 0;
+    ULONG REB_STDCALL Release() override = 0;
     virtual HRESULT REB_STDCALL GetAllParameters(LPDS3DLISTENER pListener) = 0;
     virtual HRESULT REB_STDCALL GetDistanceFactor(D3DVALUE *pflDistanceFactor) = 0;
     virtual HRESULT REB_STDCALL GetDopplerFactor(D3DVALUE *pflDopplerFactor) = 0;
@@ -94,9 +94,9 @@ struct IDirectSound3DListener : public IUnknown {
 };
 extern "C" const GUID IID_IDirectSoundNotify;
 struct IDirectSoundNotify : public IUnknown {
-    virtual HRESULT REB_STDCALL QueryInterface(const IID &, LPVOID *) = 0;
-    virtual ULONG REB_STDCALL AddRef() = 0;
-    virtual ULONG REB_STDCALL Release() = 0;
+    HRESULT REB_STDCALL QueryInterface(const IID &, LPVOID *) override = 0;
+    ULONG REB_STDCALL AddRef() override = 0;
+    ULONG REB_STDCALL Release() override = 0;
     virtual HRESULT REB_STDCALL SetNotificationPositions(DWORD dwPositionNotifies, LPCDSBPOSITIONNOTIFY pcPositionNotifies) = 0;
 };
 

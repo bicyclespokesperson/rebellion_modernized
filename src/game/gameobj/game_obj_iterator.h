@@ -6,5 +6,5 @@
 class GameObjIterator : public ChildIterator {
 public:
     GameObjIterator(GameObjNotifier* parent, uint32_t stateFilter);
-    virtual ~GameObjIterator();
+    ~GameObjIterator() override;
 };

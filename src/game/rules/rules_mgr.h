@@ -22,20 +22,20 @@ class SystemNeighbourTable;
 class RulesMgr : public GameObj {
 public:
     RulesMgr();           // 0x554020
-    virtual ~RulesMgr();  // 0x5540c0 (scalar deleting destructor 0x5540a0)
+    ~RulesMgr() override;  // 0x5540c0 (scalar deleting destructor 0x5540a0)
 
-    virtual uint32_t GetFamily() override;                          // 1: 0x556f00, 0xf9
-    virtual int Read(istream* in) override;                         // 5: 0x556eb0 -> ReadBody
-    virtual int Write(ostream* out) override;                       // 6: 0x556ec0 -> WriteBody
-    virtual int Checksum(Crc32* crc) override;                      // 7: 0x556ef0 -> ChecksumBody
-    virtual int ApplyAll(NotifyContext* ctx) override;              // 9: 0x556ed0 -> ApplyAllBody
-    virtual int Validate() override;                                // 8: shared stub 0x569870
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;  // 15: 0x556200
-    virtual int CheckOrder(int a, int b, StatusCode* out) override;     // 22: 0x556220
-    virtual int UpdateObservedByAlliance(NotifyContext* ctx) override;  // 35: 0x556f10
-    virtual int UpdateObservedByEmpire(NotifyContext* ctx) override;    // 36: 0x556f20
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37: 0x556e90 -> CreateViewsBody
-    virtual GameObj* CreateViewObject() override;                       // 57: 0x556e20
+    uint32_t GetFamily() override;                          // 1: 0x556f00, 0xf9
+    int Read(istream* in) override;                         // 5: 0x556eb0 -> ReadBody
+    int Write(ostream* out) override;                       // 6: 0x556ec0 -> WriteBody
+    int Checksum(Crc32* crc) override;                      // 7: 0x556ef0 -> ChecksumBody
+    int ApplyAll(NotifyContext* ctx) override;              // 9: 0x556ed0 -> ApplyAllBody
+    int Validate() override;                                // 8: shared stub 0x569870
+    int GetEventKinds(int unused, EventKindSet* out) override;  // 15: 0x556200
+    int CheckOrder(int a, int b, StatusCode* out) override;     // 22: 0x556220
+    int UpdateObservedByAlliance(NotifyContext* ctx) override;  // 35: 0x556f10
+    int UpdateObservedByEmpire(NotifyContext* ctx) override;    // 36: 0x556f20
+    int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37: 0x556e90 -> CreateViewsBody
+    GameObj* CreateViewObject() override;                       // 57: 0x556e20
 
     // ---- bodies behind the virtual thunks ----
     int ReadBody(istream* in);               // 0x5570c0

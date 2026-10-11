@@ -8,10 +8,10 @@
 class CapShipData : public CombatUnitData {
 public:
     CapShipData();           // 0x5586a0
-    virtual ~CapShipData();  // 0x5586c0 (scalar deleting destructor), 0x5586e0
-    virtual int Read(istream* in) override;      // 0x5586f0
-    virtual int Write(ostream* out) override;    // 0x558740
-    virtual int Checksum(Crc32* crc) override;   // 0x558790
+    ~CapShipData() override;  // 0x5586c0 (scalar deleting destructor), 0x5586e0
+    int Read(istream* in) override;      // 0x5586f0
+    int Write(ostream* out) override;    // 0x558740
+    int Checksum(Crc32* crc) override;   // 0x558790
     // Slot 4 (IsValid) is 0x5587d0, a jump to the shared "return 1" stub.
 
     // Written by the tactical battle simulation after a fight (CapShip::SetDataWord20/24/28, 0x58d540/0x58dc10); a nonzero
@@ -26,7 +26,7 @@ public:
 class CombatUnitIterator : public ChildIterator {
 public:
     CombatUnitIterator(GameObjNotifier* parent, uint32_t stateFilter);  // 0x558480
-    virtual ~CombatUnitIterator();                                      // 0x558500
+    ~CombatUnitIterator() override;                                      // 0x558500
 };
 
 // GNPRTB 0x800-0x805 (the "rules 8" block; 0x804/0x805 are the repair levels CapShip and FightSquad pick by FastRepair).

@@ -12,12 +12,12 @@ class GameWindowObject : public CoolWindow {
 public:
     GameWindowObject(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                      DibBitmap* background, uint32_t extraStyle);  // 0x5ff1c0
-    virtual ~GameWindowObject();  // 0x5ff250 (scalar deleting destructor 0x5ff230)
+    ~GameWindowObject() override;  // 0x5ff250 (scalar deleting destructor 0x5ff230)
 
     // Slot 5: WM_PAINT draws the background (slot 10) and then the overlay (slot 14); WM_DESTROY returns 0 without
     // reaching the base; WM_ERASEBKGND is claimed; WM_CTLCOLORBTN gives buttons the null brush; the palette
     // messages realize g_palette. Everything else goes to CoolWindow::WindowProc.
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x5ff530
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x5ff530
     virtual void DrawRect(HDC dc, const RECT* area);   // slot 9, 0x5ff4b0: background, clipped to `area`
     virtual void Draw(HDC dc);                         // slot 10, 0x5ff450: whole background
     virtual void Virtual0B();                          // slot 11, 0x619730: does nothing

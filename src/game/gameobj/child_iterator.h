@@ -41,5 +41,5 @@ public:
 class UnitIterator : public ChildIterator {
 public:
     UnitIterator(GameObjNotifier* parent, uint32_t stateFilter);
-    virtual ~UnitIterator();
+    ~UnitIterator() override;
 };

@@ -23,16 +23,16 @@ public:
                            uint32_t stringSlot, uint32_t bitmapSlot, uint32_t backgroundId, uint32_t childId,
                            uint32_t style, uint32_t flags, ManufactureOrderBase* order,
                            uint32_t unused);  // 0x437880
-    virtual ~ManufactureOrderWindow();  // 0x437cb0 (scalar deleting destructor 0x437c90)
+    ~ManufactureOrderWindow() override;  // 0x437cb0 (scalar deleting destructor 0x437c90)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x438780
-    virtual void OnCreate1() override;                        // slot 14, 0x437f80: selection box, labels, quantity field
-    virtual void OnCreate2() override;                        // slot 15, 0x438500: the static artwork and texts
-    virtual void OnCreate3() override;                        // slot 16, 0x438620: the buttons
-    virtual void DrawOverlay(HDC dc) override;                // slot 17, 0x438d80
-    virtual void OnCommand(int a, int b, int c) override;     // slot 18, 0x438800
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x438b60
-    virtual int Virtual14() override;                         // slot 20, 0x438b30: 1 when there is a choice and an order
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x438780
+    void OnCreate1() override;                        // slot 14, 0x437f80: selection box, labels, quantity field
+    void OnCreate2() override;                        // slot 15, 0x438500: the static artwork and texts
+    void OnCreate3() override;                        // slot 16, 0x438620: the buttons
+    void DrawOverlay(HDC dc) override;                // slot 17, 0x438d80
+    void OnCommand(int a, int b, int c) override;     // slot 18, 0x438800
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x438b60
+    int Virtual14() override;                         // slot 20, 0x438b30: 1 when there is a choice and an order
 
     // Opens the dialog for `order` over the strategic window; 1 if it was opened.
     static int Open(ManufactureOrderBase* order, uint32_t unused);  // 0x437df0

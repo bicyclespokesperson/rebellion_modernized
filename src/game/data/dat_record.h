@@ -17,7 +17,7 @@ class Crc32;
 class DatRecord : public IdNode, public ObjectBase {
 public:
     DatRecord();
-    virtual ~DatRecord();
+    ~DatRecord() override;
     virtual int Write(ostream* out) = 0;
     virtual int Read(istream* in) = 0;
     // Reads one text line: the first field through ParseFields(), then discards the rest of the line. Returns
@@ -25,7 +25,7 @@ public:
     virtual int Parse(istream* in);
     virtual int Checksum(Crc32* crc) = 0;
     virtual int ParseFields(istream* in, int* endOfLine) = 0;
-    virtual void WriteName(String* out, int kind) override;
+    void WriteName(String* out, int kind) override;
     String* GetNameCopy(String* out);  // 0x4486d0, constructs a copy of m_name into out
 
     int m_hasData;     // +0x20, set to 1 by ParseFields
@@ -41,11 +41,11 @@ public:
 class SdRecord : public DatRecord {
 public:
     SdRecord();
-    virtual ~SdRecord();
-    virtual int Write(ostream* out) override = 0;
-    virtual int Read(istream* in) override = 0;
-    virtual int Checksum(Crc32* crc) override = 0;
-    virtual int ParseFields(istream* in, int* endOfLine) override = 0;
+    ~SdRecord() override;
+    int Write(ostream* out) override = 0;
+    int Read(istream* in) override = 0;
+    int Checksum(Crc32* crc) override = 0;
+    int ParseFields(istream* in, int* endOfLine) override = 0;
 
     uint32_t GetField48() const;
     uint32_t GetField4c() const;

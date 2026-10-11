@@ -42,13 +42,13 @@ public:
     // off. With pixelHit == 0 the hit test is by pixel (kButtonPixelHit).
     CoolStrobeButton(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t childId,
                uint32_t normalBitmapId, uint32_t pressedBitmapId, DibBitmap* backdrop, int repeatRate, int pixelHit);  // 0x602150
-    virtual ~CoolStrobeButton();  // 0x602400 (scalar deleting destructor 0x6023e0)
+    ~CoolStrobeButton() override;  // 0x602400 (scalar deleting destructor 0x6023e0)
 
-    virtual void Show(int command) override;   // slot 1, 0x6037c0: a hidden button leaves its parent's linked windows
-    virtual void Enable() override;            // slot 3, 0x602880
-    virtual void Disable() override;           // slot 4, 0x6028a0
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x6028c0
-    virtual void SetFont(int fontSlot) override;  // slot 6, 0x602ff0: also re-centres the label
+    void Show(int command) override;   // slot 1, 0x6037c0: a hidden button leaves its parent's linked windows
+    void Enable() override;            // slot 3, 0x602880
+    void Disable() override;           // slot 4, 0x6028a0
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x6028c0
+    void SetFont(int fontSlot) override;  // slot 6, 0x602ff0: also re-centres the label
     virtual void Draw(HDC dc, char state);     // slot 9, 0x602d30
     virtual int IsHot();                       // slot 10, 0x452fb0 (shared): m_hot
     virtual void OnRepeatTimer();               // slot 11, 0x6036a0
@@ -112,9 +112,9 @@ public:
     CoolFrameButton(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t childId,
                      uint32_t firstFrameId, uint32_t pressedBitmapId, uint16_t frameCount, DibBitmap* backdrop,
                      int repeatRate, int pixelHit);  // 0x603870
-    virtual ~CoolFrameButton();  // 0x603940 (scalar deleting destructor 0x603920)
+    ~CoolFrameButton() override;  // 0x603940 (scalar deleting destructor 0x603920)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x6039a0
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x6039a0
 
     void StepFrame();                                  // 0x603a50: the timer callback shows the next frame
     void LoadFrames(uint32_t firstId, uint32_t count);  // 0x603aa0
@@ -129,10 +129,10 @@ public:
     CoolCycleButton(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t childId,
                     uint32_t id0, uint32_t id1, uint32_t id2, uint32_t id3, uint32_t id4, DibBitmap* backdrop,
                     int repeatRate);  // 0x603cd0
-    virtual ~CoolCycleButton();  // 0x603f10 (scalar deleting destructor 0x603ef0)
+    ~CoolCycleButton() override;  // 0x603f10 (scalar deleting destructor 0x603ef0)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x604000
-    virtual void Draw(HDC dc, char state) override;  // slot 9, 0x604170
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x604000
+    void Draw(HDC dc, char state) override;  // slot 9, 0x604170
 
     DibBitmap* m_image0;        // +0x114 owned images of the three positions (+0x11c middle)
     DibBitmap* m_image1;        // +0x118
@@ -157,8 +157,8 @@ public:
 class CoolStrobeTimer : public CoolTimer {
 public:
     explicit CoolStrobeTimer(void (*callback)());  // 0x603b90
-    virtual ~CoolStrobeTimer();                    // 0x603c10 (scalar deleting destructor 0x603bf0)
-    virtual void OnTick() override;                // slot 1, 0x603c60
+    ~CoolStrobeTimer() override;                    // 0x603c10 (scalar deleting destructor 0x603bf0)
+    void OnTick() override;                // slot 1, 0x603c60
 
     void (*m_callback)();  // +0x38
 };
@@ -167,7 +167,7 @@ public:
 class IndexedRectNode : public RectNode {
 public:
     IndexedRectNode();            // 0x603c70
-    virtual ~IndexedRectNode();   // 0x603cc0 (scalar deleting destructor 0x603ca0)
+    ~IndexedRectNode() override;   // 0x603cc0 (scalar deleting destructor 0x603ca0)
 
     int m_index;  // +0x28
 };

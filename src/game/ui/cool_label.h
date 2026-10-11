@@ -74,8 +74,8 @@ public:
 class RectTree : public AvlTree {
 public:
     RectTree();           // 0x601500
-    virtual ~RectTree();  // 0x601540 (scalar deleting destructor 0x601520)
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;  // 0x6015a0
+    ~RectTree() override;  // 0x601540 (scalar deleting destructor 0x601520)
+    int IsLess(AvlNode* a, AvlNode* b) override;  // 0x6015a0
 
     // First node, in tree order, whose rectangle contains the point.
     RectNode* FindContaining(int x, int y);  // 0x601550

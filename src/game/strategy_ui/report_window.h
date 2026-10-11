@@ -37,12 +37,12 @@ public:
 class ReportWindow : public CoolGameWindow {
 public:
     ReportWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childId, ReportMessage* report);  // 0x44c410
-    virtual ~ReportWindow();  // 0x44c550 (scalar deleting destructor 0x44c530)
+    ~ReportWindow() override;  // 0x44c550 (scalar deleting destructor 0x44c530)
 
-    virtual void OnCreate1() override;                           // slot 14, 0x44c630
-    virtual void DrawOverlay(HDC dc) override;                   // slot 17, 0x44e290
-    virtual void OnCommand(int a, int b, int c) override;        // slot 18, 0x44df90
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x44e180
+    void OnCreate1() override;                           // slot 14, 0x44c630
+    void DrawOverlay(HDC dc) override;                   // slot 17, 0x44e290
+    void OnCommand(int a, int b, int c) override;        // slot 18, 0x44df90
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x44e180
 
     void SelectPage(int tabId);                                              // 0x44e3d0
     void FillList(int subTabId, int force);                                  // 0x44e500

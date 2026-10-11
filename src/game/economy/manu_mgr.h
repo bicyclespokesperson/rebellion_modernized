@@ -36,10 +36,10 @@ class ManuMgr;
 class ManuMgrData : public GameObjData {
 public:
     ManuMgrData();                                // 0x583800
-    virtual ~ManuMgrData();                       // 0x583870 (scalar deleting destructor 0x583850)
-    virtual int Read(istream* in) override;       // 0x5838c0
-    virtual int Write(ostream* out) override;     // 0x5838f0
-    virtual int Checksum(Crc32* crc) override;    // 0x583920
+    ~ManuMgrData() override;                       // 0x583870 (scalar deleting destructor 0x583850)
+    int Read(istream* in) override;       // 0x5838c0
+    int Write(ostream* out) override;     // 0x5838f0
+    int Checksum(Crc32* crc) override;    // 0x583920
 
     ObjectKeyValueSet m_queue;  // +0x18
 };
@@ -47,24 +47,24 @@ public:
 class ManuMgr : public GameObj {
 public:
     ManuMgr();                // 0x5279d0
-    virtual ~ManuMgr();       // 0x527a90 (deleting), 0x527ab0
+    ~ManuMgr() override;       // 0x527a90 (deleting), 0x527ab0
 
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;  // 15, 0x527c20
-    virtual int Virtual16() override { return 1; }                      // 16, 0x40f340
-    virtual void WriteName(String* out, int kind) override;             // ObjectBase slot 0, 0x527b40 (AppendManuMgrName)
-    virtual int IsObservable() override { return 0; }                   // 19, 0x6158b0
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;  // 22, 0x527c40
-    virtual GameObjData* CreateData() override;                          // 58, 0x52c010
-    virtual int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;  // 60, 0x52b790
-    virtual int OnCreatedChanged(int newValue, NotifyContext* ctx) override;                               // 69, 0x52b820
-    virtual int OnExistingChanged(int newValue, NotifyContext* ctx) override;                              // 74, 0x52b7d0
+    int GetEventKinds(int unused, EventKindSet* out) override;  // 15, 0x527c20
+    int Virtual16() override { return 1; }                      // 16, 0x40f340
+    void WriteName(String* out, int kind) override;             // ObjectBase slot 0, 0x527b40 (AppendManuMgrName)
+    int IsObservable() override { return 0; }                   // 19, 0x6158b0
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;  // 22, 0x527c40
+    GameObjData* CreateData() override;                          // 58, 0x52c010
+    int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;  // 60, 0x52b790
+    int OnCreatedChanged(int newValue, NotifyContext* ctx) override;                               // 69, 0x52b820
+    int OnExistingChanged(int newValue, NotifyContext* ctx) override;                              // 74, 0x52b7d0
 
     // Persistence entry points: pure here (the bodies are called qualified by the leaf classes).
-    virtual int Read(istream* in) override = 0;             // 5, body 0x52a470
-    virtual int Write(ostream* out) override = 0;           // 6, body 0x52a510
-    virtual int Checksum(Crc32* crc) override = 0;          // 7, body 0x52a660
-    virtual int Validate() override = 0;                    // 8, body 0x52a6f0: base check and queue length
-    virtual int ApplyAll(NotifyContext* ctx) override = 0;  // 9, body 0x52a5b0: side views only
+    int Read(istream* in) override = 0;             // 5, body 0x52a470
+    int Write(ostream* out) override = 0;           // 6, body 0x52a510
+    int Checksum(Crc32* crc) override = 0;          // 7, body 0x52a660
+    int Validate() override = 0;                    // 8, body 0x52a6f0: base check and queue length
+    int ApplyAll(NotifyContext* ctx) override = 0;  // 9, body 0x52a5b0: side views only
 
     // ---- slots 111-128: request checks ("Impl" fills a status, the wrapper starts from {1,-1} and maps a refusal
     // to {1,1}); names are provisional ----
@@ -223,5 +223,5 @@ class ManuMgrIterator : public ChildIterator {
 public:
     ManuMgrIterator(GameObjNotifier* parent);                          // 0x52c0d0
     ManuMgrIterator(GameObjNotifier* parent, uint32_t stateFilter);    // 0x52c170
-    virtual ~ManuMgrIterator();                                        // 0x52c150 (deleting), 0x52c1f0
+    ~ManuMgrIterator() override;                                        // 0x52c150 (deleting), 0x52c1f0
 };

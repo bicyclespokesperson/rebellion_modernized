@@ -14,15 +14,15 @@
 class ProductionFacility : public ProcFacil {
 public:
     ProductionFacility();           // 0x55a600
-    virtual ~ProductionFacility();  // 0x55a680 (scalar deleting destructor 0x55a660)
+    ~ProductionFacility() override;  // 0x55a680 (scalar deleting destructor 0x55a660)
 
-    virtual int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;  // 60, 0x55b010
-    virtual int OnUsableChanged(int newValue, NotifyContext* ctx) override;                             // 68, 0x55b0e0
-    virtual int OnCreatedChanged(int newValue, NotifyContext* ctx) override;                            // 69, 0x55b0c0
-    virtual int OnExistingChanged(int newValue, NotifyContext* ctx) override;                           // 74, 0x55b140
-    virtual int OnStateChanged(int oldState, int newState, NotifyContext* ctx) override;                // 115, 0x55b160
-    virtual int OnSuspendedChanged(int value, NotifyContext* ctx) override;                             // 117, 0x55b110
-    virtual int OnStartupCycleChanged(int value, NotifyContext* ctx) override;                          // 121, 0x55b190
+    int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;  // 60, 0x55b010
+    int OnUsableChanged(int newValue, NotifyContext* ctx) override;                             // 68, 0x55b0e0
+    int OnCreatedChanged(int newValue, NotifyContext* ctx) override;                            // 69, 0x55b0c0
+    int OnExistingChanged(int newValue, NotifyContext* ctx) override;                           // 74, 0x55b140
+    int OnStateChanged(int oldState, int newState, NotifyContext* ctx) override;                // 115, 0x55b160
+    int OnSuspendedChanged(int value, NotifyContext* ctx) override;                             // 117, 0x55b110
+    int OnStartupCycleChanged(int value, NotifyContext* ctx) override;                          // 121, 0x55b190
 
     virtual int OnWorkChanged(const IntPair* oldWork, const IntPair* newWork, NotifyContext* ctx);                        // 129, 0x55b1c0
     virtual int OnProductionModifierChanged(int oldValue, int newValue, NotifyContext* ctx);                                // 130, 0x55b1e0
@@ -66,5 +66,5 @@ public:
 class ProductionFacilityIterator : public ChildIterator {
 public:
     ProductionFacilityIterator(GameObjNotifier* parent, uint32_t stateFilter);  // 0x55b260
-    virtual ~ProductionFacilityIterator();                                      // 0x55b2e0 (scalar deleting destructor 0x55b240)
+    ~ProductionFacilityIterator() override;                                      // 0x55b2e0 (scalar deleting destructor 0x55b240)
 };

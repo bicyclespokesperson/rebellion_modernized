@@ -7,13 +7,13 @@
 class AiPlanEvaluator : public AiTaskEvaluator {
 public:
     using AiTaskEvaluator::AiTaskEvaluator;
-    virtual void Read(istream* in) override;    // 1: 0x4e94d0
-    virtual void Write(ostream* out) override;  // 2: 0x4e94e0
-    virtual void GetPlannerRequest(int* missionKind, int* missionSubtype, int* plannerKind,
+    void Read(istream* in) override;    // 1: 0x4e94d0
+    void Write(ostream* out) override;  // 2: 0x4e94e0
+    void GetPlannerRequest(int* missionKind, int* missionSubtype, int* plannerKind,
                                    int* plannerSubtype) override;  // 6: 0x4e8290
-    virtual void GetAgentRequest(int* agentTarget, int* wantAgent) override;  // 7: 0x4eaaa0
+    void GetAgentRequest(int* agentTarget, int* wantAgent) override;  // 7: 0x4eaaa0
     // 8: keeps the number of task records at what the side's figures ask for
-    virtual void Finish() override;  // 0x4e69d0
+    void Finish() override;  // 0x4e69d0
 };
 
 #define REB_PLAN_EVALUATOR(Name)                                                \

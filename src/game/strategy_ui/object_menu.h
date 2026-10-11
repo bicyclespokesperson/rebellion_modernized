@@ -17,13 +17,13 @@ class PopupMenuWindow : public MenuWindowBase {
 public:
     PopupMenuWindow(HINSTANCE resources, int x, int y, int width, int height, PopupMenuWindow* parentMenu,
                     CoolWindow* window, CoolWindow* owner, uint32_t entryId, DibBitmap* backdrop);  // 0x4422f0
-    virtual ~PopupMenuWindow();  // 0x442370 (scalar deleting destructor 0x442350)
+    ~PopupMenuWindow() override;  // 0x442370 (scalar deleting destructor 0x442350)
 
-    virtual void Hide() override;                           // slot 2, 0x442b80: Show(0)
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x442d10
-    virtual void ShowAndTrack(int command) override;        // slot 11, 0x442b70: CoolWindow::Show
-    virtual void PostCloseRequest() override;               // slot 12, 0x442cf0
-    virtual int HandleMouse(MenuItem* item, LONG x, LONG y, int message) override;  // slot 22, 0x4424c0
+    void Hide() override;                           // slot 2, 0x442b80: Show(0)
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x442d10
+    void ShowAndTrack(int command) override;        // slot 11, 0x442b70: CoolWindow::Show
+    void PostCloseRequest() override;               // slot 12, 0x442cf0
+    int HandleMouse(MenuItem* item, LONG x, LONG y, int message) override;  // slot 22, 0x4424c0
 
     // Installs the mouse hook (0x442b90) that closes the menu on a click outside it; true if it is installed.
     bool InstallMouseHook();  // 0x442c20

@@ -14,13 +14,13 @@
 class MissionExtraKeyBase : public MissionSystemTargetBase {
 public:
     MissionExtraKeyBase();
-    virtual ~MissionExtraKeyBase();
+    ~MissionExtraKeyBase() override;
 
-    virtual int Read(istream* in) override;                   // 5, 0x5730b0 (forwarder 0x570560)
-    virtual int Write(ostream* out) override;                 // 6, 0x5730e0 (forwarder 0x570570)
-    virtual int Checksum(Crc32* crc) override;                // 7, 0x573140 (forwarders 0x572f80, 0x56dee0)
-    virtual int Validate() override;                          // 8, shared forwarder 0x56d460
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, shared forwarder 0x576d10
+    int Read(istream* in) override;                   // 5, 0x5730b0 (forwarder 0x570560)
+    int Write(ostream* out) override;                 // 6, 0x5730e0 (forwarder 0x570570)
+    int Checksum(Crc32* crc) override;                // 7, 0x573140 (forwarders 0x572f80, 0x56dee0)
+    int Validate() override;                          // 8, shared forwarder 0x56d460
+    int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, shared forwarder 0x576d10
     virtual int OnExtraKeyChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) = 0;   // 162
     virtual int OnExtraKeyNotified(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) = 0;  // 163
 

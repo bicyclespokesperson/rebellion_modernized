@@ -25,8 +25,8 @@ class SmackerWindow : public CoolWindow {
 public:
     SmackerWindow(const char* path, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                   int autoStart, uint32_t smackFlags);
-    virtual ~SmackerWindow();
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
+    ~SmackerWindow() override;
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
 
     // Starts the playback thread (stopping a previous one); `loop` makes the movie restart after its last frame.
     int StartPlayback(int loop);
@@ -61,8 +61,8 @@ class VideoWindow : public CoolWindow {
 public:
     VideoWindow(const char* path, HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                 int autoStart);
-    virtual ~VideoWindow();
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
+    ~VideoWindow() override;
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;
 
     int OpenMovie(HWND window, const char* path, MCIDEVICEID* device);
     int Play(int fullScreen);

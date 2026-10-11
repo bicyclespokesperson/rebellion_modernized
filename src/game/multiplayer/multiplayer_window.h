@@ -68,15 +68,15 @@ public:
     MultiPlayerWindow(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t stringSlot,
                       uint32_t bitmapSlot, uint32_t backgroundId, uint32_t childId, uint32_t style, uint32_t flags,
                       int side, int galaxySize);  // 0x40d7a0
-    virtual ~MultiPlayerWindow();  // 0x40d980 (scalar deleting destructor 0x40d960)
+    ~MultiPlayerWindow() override;  // 0x40d980 (scalar deleting destructor 0x40d960)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x40ec60
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x40ec60
     // Starts the DirectPlay layer for this window and chooses the first page.
-    virtual void OnCreate1() override;                    // slot 14, 0x40db20
-    virtual void OnCreate2() override;                    // slot 15, 0x40dc30: the texts of the four pages
-    virtual void OnCreate3() override;                    // slot 16, 0x40dfd0: lists, fields, buttons
-    virtual void OnCommand(int a, int b, int c) override;  // slot 18, 0x40efb0 (a is the low word: the child id)
-    virtual int Virtual14() override { return 1; }        // slot 20, shared 0x40f340
+    void OnCreate1() override;                    // slot 14, 0x40db20
+    void OnCreate2() override;                    // slot 15, 0x40dc30: the texts of the four pages
+    void OnCreate3() override;                    // slot 16, 0x40dfd0: lists, fields, buttons
+    void OnCommand(int a, int b, int c) override;  // slot 18, 0x40efb0 (a is the low word: the child id)
+    int Virtual14() override { return 1; }        // slot 20, shared 0x40f340
 
     // Fills the provider list with what DirectPlay offers.
     void FillProviderList();                       // 0x40f350

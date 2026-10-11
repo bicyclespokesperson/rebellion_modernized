@@ -29,11 +29,11 @@ struct VoteFamilyRange {
 class VoteWindow : public CoolGameWindow {
 public:
     VoteWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childId, Notice2* notice);  // 0x44f670
-    virtual ~VoteWindow();  // 0x44f790 (scalar deleting destructor 0x44f770)
+    ~VoteWindow() override;  // 0x44f790 (scalar deleting destructor 0x44f770)
 
-    virtual void OnCreate1() override;                           // slot 14, 0x44f860
-    virtual void OnCommand(int a, int b, int c) override;        // slot 18, 0x450540
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x450640
+    void OnCreate1() override;                           // slot 14, 0x44f860
+    void OnCommand(int a, int b, int c) override;        // slot 18, 0x450540
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x450640
 
     void SetTab(int tab);                                                              // 0x450660
     void FillList(int page);                                                           // 0x450770

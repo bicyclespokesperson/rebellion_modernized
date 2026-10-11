@@ -34,59 +34,59 @@ class MajorCharacterSD;
 class Character : public Role {
 public:
     Character();                                                      // 0x4eceb0
-    virtual ~Character();                                             // 0x4ecfb0 (deleting), 0x4ecfd0
+    ~Character() override;                                             // 0x4ecfb0 (deleting), 0x4ecfd0
 
     // ---- overrides of GameObj / UnitObjBase / Role slots ----
-    virtual int SetRecord(DatRecord* record) override;                 // 10, 0x50e1c0
-    virtual void WriteName(String* out, int kind) override;            // ObjectBase slot 0, 0x4ed060 (AppendCharacterName)
-    virtual int GetTransitSpeed(int arg) override;                     // 13, 0x4ed370: the hyperdrive modifier while existing
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;  // 15, 0x4ed350
-    virtual int Virtual17() override { return 0; }                     // 17
-    virtual int CanBeControlledBy(int side) override;                  // 20, 0x4ed450
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;  // 22, 0x4ed390
-    virtual int Virtual44(NotifyContext* ctx) override;                // 44, 0x4ef260
-    virtual int Virtual45(int a, NotifyContext* ctx) override;         // 45, 0x4ef2e0
-    virtual int Virtual46(NotifyContext* ctx) override { return 1; }  // 46
-    virtual int Virtual47(intptr_t a) override;                             // 47, 0x4ef250
-    virtual int Virtual48(intptr_t a) override;                             // 48, 0x4ef250
-    virtual GameObjData* CreateData() override;                        // 58, 0x4f24e0
-    virtual int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x4f11c0
-    virtual int OnUsableChanged(int newValue, NotifyContext* ctx) override;       // 68, 0x4f1310
-    virtual int OnCreatedChanged(int newValue, NotifyContext* ctx) override;      // 69, 0x4f11f0
-    virtual int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;    // 71, 0x4f1340
-    virtual int OnEnrouteChanged(int newValue, NotifyContext* ctx) override;      // 72, 0x4f12e0
-    virtual int OnAutoroutingChanged(int newValue, NotifyContext* ctx) override;  // 79, 0x4f1420
-    virtual int CheckActivity(const ActivityRequest* request, StatusCode* out) override;   // 112, 0x4ed460
-    virtual int CheckActivity2(const ActivityRequest* request, StatusCode* out) override;  // 114, 0x4ed560
-    virtual int Virtual117() override;                                 // 117, 0x4edc70: the Captured flag
-    virtual int Virtual118() override { return 1; }                    // 118
-    virtual int GetDiplomacy() override;                               // 119, 0x4edbf0, the Enhanced values
-    virtual int GetEspionage() override;                               // 120, 0x4edc00
-    virtual int GetShipyardRD() override;                              // 121, 0x4edc10
-    virtual int GetTrainingFacilRD() override;                         // 122, 0x4edc20
-    virtual int GetConstructionYardRD() override;                      // 123, 0x4edc30
-    virtual int GetCombat() override;                                  // 124, 0x4edc40
-    virtual int GetLeadership() override;                              // 125, 0x4edc50
-    virtual int GetLoyalty() override;                                 // 126, 0x4edc60
-    virtual int Virtual130(NotifyContext* ctx) override;               // 130, 0x4ef450
-    virtual int Virtual131(const ObjectKey* opponent, NotifyContext* ctx) override;        // 131, 0x4ef480
-    virtual int Virtual132(const ObjectKey* holder, NotifyContext* ctx) override;        // 132, 0x4ef510
-    virtual int Virtual133(NotifyContext* ctx) override;                            // 133, 0x4ef570
-    virtual int Virtual134(NotifyContext* ctx) override;                            // 134, 0x4ef5b0
+    int SetRecord(DatRecord* record) override;                 // 10, 0x50e1c0
+    void WriteName(String* out, int kind) override;            // ObjectBase slot 0, 0x4ed060 (AppendCharacterName)
+    int GetTransitSpeed(int arg) override;                     // 13, 0x4ed370: the hyperdrive modifier while existing
+    int GetEventKinds(int unused, EventKindSet* out) override;  // 15, 0x4ed350
+    int Virtual17() override { return 0; }                     // 17
+    int CanBeControlledBy(int side) override;                  // 20, 0x4ed450
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;  // 22, 0x4ed390
+    int Virtual44(NotifyContext* ctx) override;                // 44, 0x4ef260
+    int Virtual45(int a, NotifyContext* ctx) override;         // 45, 0x4ef2e0
+    int Virtual46(NotifyContext* ctx) override { return 1; }  // 46
+    int Virtual47(intptr_t a) override;                             // 47, 0x4ef250
+    int Virtual48(intptr_t a) override;                             // 48, 0x4ef250
+    GameObjData* CreateData() override;                        // 58, 0x4f24e0
+    int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x4f11c0
+    int OnUsableChanged(int newValue, NotifyContext* ctx) override;       // 68, 0x4f1310
+    int OnCreatedChanged(int newValue, NotifyContext* ctx) override;      // 69, 0x4f11f0
+    int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;    // 71, 0x4f1340
+    int OnEnrouteChanged(int newValue, NotifyContext* ctx) override;      // 72, 0x4f12e0
+    int OnAutoroutingChanged(int newValue, NotifyContext* ctx) override;  // 79, 0x4f1420
+    int CheckActivity(const ActivityRequest* request, StatusCode* out) override;   // 112, 0x4ed460
+    int CheckActivity2(const ActivityRequest* request, StatusCode* out) override;  // 114, 0x4ed560
+    int Virtual117() override;                                 // 117, 0x4edc70: the Captured flag
+    int Virtual118() override { return 1; }                    // 118
+    int GetDiplomacy() override;                               // 119, 0x4edbf0, the Enhanced values
+    int GetEspionage() override;                               // 120, 0x4edc00
+    int GetShipyardRD() override;                              // 121, 0x4edc10
+    int GetTrainingFacilRD() override;                         // 122, 0x4edc20
+    int GetConstructionYardRD() override;                      // 123, 0x4edc30
+    int GetCombat() override;                                  // 124, 0x4edc40
+    int GetLeadership() override;                              // 125, 0x4edc50
+    int GetLoyalty() override;                                 // 126, 0x4edc60
+    int Virtual130(NotifyContext* ctx) override;               // 130, 0x4ef450
+    int Virtual131(const ObjectKey* opponent, NotifyContext* ctx) override;        // 131, 0x4ef480
+    int Virtual132(const ObjectKey* holder, NotifyContext* ctx) override;        // 132, 0x4ef510
+    int Virtual133(NotifyContext* ctx) override;                            // 133, 0x4ef570
+    int Virtual134(NotifyContext* ctx) override;                            // 134, 0x4ef5b0
 
     // ---- overrides of Role's OnXChanged events ----
-    virtual int OnBaseDiplomacyChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 135, 0x4f1520
-    virtual int OnBaseEspionageChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 136, 0x4f1550
-    virtual int OnBaseShipyardRDChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 137, 0x4f1580
-    virtual int OnBaseTrainingFacilRDChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 138, 0x4f15b0
-    virtual int OnBaseConstructionYardRDChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 139, 0x4f15e0
-    virtual int OnBaseCombatChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 140, 0x4f1610
-    virtual int OnBaseLeadershipChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 141, 0x4f1640
-    virtual int OnBaseLoyaltyChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 142, 0x4f1670
-    virtual int OnMissionChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) override;  // 143, 0x4f14d0
-    virtual int OnMovingBetweenMissionsChanged(int newValue, NotifyContext* ctx) override;  // 148, 0x4f1470
-    virtual int OnAdriftChanged(int newValue, NotifyContext* ctx) override;  // 153, 0x4f1440
-    virtual int OnOnMissionChanged(int newValue, NotifyContext* ctx) override;  // 154, 0x4f1490
+    int OnBaseDiplomacyChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 135, 0x4f1520
+    int OnBaseEspionageChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 136, 0x4f1550
+    int OnBaseShipyardRDChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 137, 0x4f1580
+    int OnBaseTrainingFacilRDChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 138, 0x4f15b0
+    int OnBaseConstructionYardRDChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 139, 0x4f15e0
+    int OnBaseCombatChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 140, 0x4f1610
+    int OnBaseLeadershipChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 141, 0x4f1640
+    int OnBaseLoyaltyChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 142, 0x4f1670
+    int OnMissionChanged(ObjectKey* oldKey, ObjectKey* newKey, NotifyContext* ctx) override;  // 143, 0x4f14d0
+    int OnMovingBetweenMissionsChanged(int newValue, NotifyContext* ctx) override;  // 148, 0x4f1470
+    int OnAdriftChanged(int newValue, NotifyContext* ctx) override;  // 153, 0x4f1440
+    int OnOnMissionChanged(int newValue, NotifyContext* ctx) override;  // 154, 0x4f1490
 
     // ---- new non-property virtuals (slots 179-190; names provisional) ----
     virtual int Virtual179(intptr_t a, int* out);                                              // 179, 0x4ed680
@@ -230,11 +230,11 @@ public:
     int ApplyEscapeAttempt(NotifyContext* ctx);  // 0x4f1120
 
     // ---- persistence/validation: bodies the leaf classes call qualified (the Role slots 5-9 stay pure) ----
-    virtual int Read(istream* in) override = 0;               // 5, body 0x4ef7e0
-    virtual int Write(ostream* out) override = 0;             // 6, body 0x4ef940
-    virtual int Checksum(Crc32* crc) override = 0;            // 7, body 0x4efbc0
-    virtual int Validate() override = 0;                      // 8, body 0x4efd30
-    virtual int ApplyAll(NotifyContext* ctx) override = 0;    // 9, body 0x4efaa0
+    int Read(istream* in) override = 0;               // 5, body 0x4ef7e0
+    int Write(ostream* out) override = 0;             // 6, body 0x4ef940
+    int Checksum(Crc32* crc) override = 0;            // 7, body 0x4efbc0
+    int Validate() override = 0;                      // 8, body 0x4efd30
+    int ApplyAll(NotifyContext* ctx) override = 0;    // 9, body 0x4efaa0
     // The body of slot 37 (CreateViews) that the leaf classes call: runs 0x5774f0 and then initializes the data block's
     // stats and the DiscoveringForceUser flag.
     int CreateViewsImpl(int controlKind, NotifyContext* ctx);  // 0x4ef750
@@ -329,5 +329,5 @@ class CharacterIterator : public ChildIterator {
 public:
     CharacterIterator(GameObjNotifier* parent, uint32_t stateFilter);                 // 0x4f25c0
     CharacterIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x4f2640
-    virtual ~CharacterIterator();                                                     // 0x4f25a0 (deleting), 0x4f26c0
+    ~CharacterIterator() override;                                                     // 0x4f25a0 (deleting), 0x4f26c0
 };

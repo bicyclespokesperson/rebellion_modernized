@@ -148,9 +148,9 @@ typedef DDBLTBATCH *LPDDBLTBATCH;
 typedef DDCOLORKEY *LPDDCOLORKEY;
 typedef DDPIXELFORMAT *LPDDPIXELFORMAT;
 struct IDirectDrawSurface : public IUnknown {
-    virtual HRESULT REB_STDCALL QueryInterface(const IID & riid, LPVOID *ppvObj) = 0;
-    virtual ULONG REB_STDCALL AddRef() = 0;
-    virtual ULONG REB_STDCALL Release() = 0;
+    HRESULT REB_STDCALL QueryInterface(const IID & riid, LPVOID *ppvObj) override = 0;
+    ULONG REB_STDCALL AddRef() override = 0;
+    ULONG REB_STDCALL Release() override = 0;
     virtual HRESULT REB_STDCALL AddAttachedSurface(LPDIRECTDRAWSURFACE) = 0;
     virtual HRESULT REB_STDCALL AddOverlayDirtyRect(LPRECT) = 0;
     virtual HRESULT REB_STDCALL Blt(LPRECT, LPDIRECTDRAWSURFACE, LPRECT, DWORD, LPDDBLTFX) = 0;
@@ -186,9 +186,9 @@ struct IDirectDrawSurface : public IUnknown {
     virtual HRESULT REB_STDCALL UpdateOverlayZOrder(DWORD, LPDIRECTDRAWSURFACE) = 0;
 };
 struct IDirectDraw : public IUnknown {
-    virtual HRESULT REB_STDCALL QueryInterface(const IID & riid, LPVOID *ppvObj) = 0;
-    virtual ULONG REB_STDCALL AddRef() = 0;
-    virtual ULONG REB_STDCALL Release() = 0;
+    HRESULT REB_STDCALL QueryInterface(const IID & riid, LPVOID *ppvObj) override = 0;
+    ULONG REB_STDCALL AddRef() override = 0;
+    ULONG REB_STDCALL Release() override = 0;
     virtual HRESULT REB_STDCALL Compact() = 0;
     virtual HRESULT REB_STDCALL CreateClipper(DWORD, LPDIRECTDRAWCLIPPER *, IUnknown *) = 0;
     virtual HRESULT REB_STDCALL CreatePalette(DWORD, LPPALETTEENTRY, LPDIRECTDRAWPALETTE *, IUnknown *) = 0;
@@ -211,9 +211,9 @@ struct IDirectDraw : public IUnknown {
     virtual HRESULT REB_STDCALL WaitForVerticalBlank(DWORD, HANDLE) = 0;
 };
 struct IDirectDraw2 : public IUnknown {
-    virtual HRESULT REB_STDCALL QueryInterface(const IID & riid, LPVOID *ppvObj) = 0;
-    virtual ULONG REB_STDCALL AddRef() = 0;
-    virtual ULONG REB_STDCALL Release() = 0;
+    HRESULT REB_STDCALL QueryInterface(const IID & riid, LPVOID *ppvObj) override = 0;
+    ULONG REB_STDCALL AddRef() override = 0;
+    ULONG REB_STDCALL Release() override = 0;
     virtual HRESULT REB_STDCALL Compact() = 0;
     virtual HRESULT REB_STDCALL CreateClipper(DWORD, LPDIRECTDRAWCLIPPER *, IUnknown *) = 0;
     virtual HRESULT REB_STDCALL CreatePalette(DWORD, LPPALETTEENTRY, LPDIRECTDRAWPALETTE *, IUnknown *) = 0;

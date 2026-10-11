@@ -13,15 +13,15 @@ class PlayerController;
 class UiNotif200 : public IntPairPayload {
 public:
     UiNotif200();           // 0x43c650
-    virtual ~UiNotif200();  // 0x43c6d0 (deleting 0x43c6b0)
+    ~UiNotif200() override;  // 0x43c6d0 (deleting 0x43c6b0)
 
-    virtual void Read(istream* in) override;                 // 0x43c790
-    virtual void Write(ostream* out) override;               // 0x43c7c0
-    virtual int GetKind() override { return 0x200; }         // shared 0x48b450
-    virtual int Virtual04() override { return 4; }           // shared 0x4047d0
-    virtual void Virtual05() override;                       // 0x43c7f0
-    virtual void Dispatch(PlayerController* controller) override;  // 0x43c890
-    virtual void DispatchToSink(UiNotice* sink) override { if (sink) sink->Virtual05(GetKind(), asArg(this)); }  // shared 0x43df10
+    void Read(istream* in) override;                 // 0x43c790
+    void Write(ostream* out) override;               // 0x43c7c0
+    int GetKind() override { return 0x200; }         // shared 0x48b450
+    int Virtual04() override { return 4; }           // shared 0x4047d0
+    void Virtual05() override;                       // 0x43c7f0
+    void Dispatch(PlayerController* controller) override;  // 0x43c890
+    void DispatchToSink(UiNotice* sink) override { if (sink) sink->Virtual05(GetKind(), asArg(this)); }  // shared 0x43df10
 
     ObjectKey m_missionKey;  // +0x2c the mission of the character named by m_key
     int m_leadsMission;      // +0x30 1 if the character is the mission's leader
@@ -32,15 +32,15 @@ public:
 class UiNotif1e0 : public IntPairPayload {
 public:
     UiNotif1e0();           // 0x43db10
-    virtual ~UiNotif1e0();  // 0x43dbb0 (deleting 0x43db90)
+    ~UiNotif1e0() override;  // 0x43dbb0 (deleting 0x43db90)
 
-    virtual void Read(istream* in) override;                 // 0x43dcb0
-    virtual void Write(ostream* out) override;               // 0x43dcf0
-    virtual int GetKind() override;                          // 0x43dca0
-    virtual int Virtual04() override { return 2; }           // shared 0x43c1f0
-    virtual void Virtual05() override;                       // 0x43dd30
-    virtual void Dispatch(PlayerController* controller) override;  // 0x43def0
-    virtual void DispatchToSink(UiNotice* sink) override { if (sink) sink->Virtual05(GetKind(), asArg(this)); }  // shared 0x43df10
+    void Read(istream* in) override;                 // 0x43dcb0
+    void Write(ostream* out) override;               // 0x43dcf0
+    int GetKind() override;                          // 0x43dca0
+    int Virtual04() override { return 2; }           // shared 0x43c1f0
+    void Virtual05() override;                       // 0x43dd30
+    void Dispatch(PlayerController* controller) override;  // 0x43def0
+    void DispatchToSink(UiNotice* sink) override { if (sink) sink->Virtual05(GetKind(), asArg(this)); }  // shared 0x43df10
 
     ObjectKey m_shipKey;         // +0x2c
     ObjectKey m_grandparentKey;  // +0x30

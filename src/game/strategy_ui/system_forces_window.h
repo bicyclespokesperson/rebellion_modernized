@@ -20,24 +20,24 @@ class SystemForcesWindow : public CustomDialogBox {
 public:
     SystemForcesWindow(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t childId,
                        GameObjNotifier* system);  // 0x4a7790
-    virtual ~SystemForcesWindow();  // 0x4a78f0 (scalar deleting destructor 0x4a78d0)
+    ~SystemForcesWindow() override;  // 0x4a78f0 (scalar deleting destructor 0x4a78d0)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4a86d0
-    virtual void SaveState(ostream* out) override;                  // slot 9, 0x4aa6d0
-    virtual void LoadState(istream* in) override;                   // slot 10, 0x4aa760
-    virtual void OnCreate1() override;                              // slot 14, 0x4a8790
-    virtual void DrawOverlay(HDC dc) override;                      // slot 17, 0x4a9800
-    virtual void OnCommand(int a, int command, int c) override;     // slot 18, 0x4a9890
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;     // slot 19, 0x4aa2b0: Escape closes, left and right change tab
-    virtual void GetSelection(ObjectKeyValueSet* out, CoolWindow* source) override;  // slot 22, 0x4a7a20
-    virtual void OnChildAdded(const ObjectKey* key, GameObjNotifier* object) override;  // slot 23, 0x4a7b40
-    virtual void OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4a86d0
+    void SaveState(ostream* out) override;                  // slot 9, 0x4aa6d0
+    void LoadState(istream* in) override;                   // slot 10, 0x4aa760
+    void OnCreate1() override;                              // slot 14, 0x4a8790
+    void DrawOverlay(HDC dc) override;                      // slot 17, 0x4a9800
+    void OnCommand(int a, int command, int c) override;     // slot 18, 0x4a9890
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;     // slot 19, 0x4aa2b0: Escape closes, left and right change tab
+    void GetSelection(ObjectKeyValueSet* out, CoolWindow* source) override;  // slot 22, 0x4a7a20
+    void OnChildAdded(const ObjectKey* key, GameObjNotifier* object) override;  // slot 23, 0x4a7b40
+    void OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
                               GameObjNotifier* otherObject) override;                    // slot 24, 0x4a7f10
-    virtual void OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object) override;  // slot 25, 0x4a7f50
-    virtual ObjectKey GetKeyAt(int x, int y) override;              // slot 26, 0x4aa380
-    virtual void ShowObjectPage(const ObjectKey* key) override;     // slot 27, 0x4aa4d0
-    virtual ObjectKey GetDropKeyAt(int x, int y) override;          // slot 28, 0x4aa470 (shared with the other system windows)
-    virtual int Virtual29() override;                               // slot 29, 0x4aa4a0: the bitmap of the controlling side
+    void OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object) override;  // slot 25, 0x4a7f50
+    ObjectKey GetKeyAt(int x, int y) override;              // slot 26, 0x4aa380
+    void ShowObjectPage(const ObjectKey* key) override;     // slot 27, 0x4aa4d0
+    ObjectKey GetDropKeyAt(int x, int y) override;          // slot 28, 0x4aa470 (shared with the other system windows)
+    int Virtual29() override;                               // slot 29, 0x4aa4a0: the bitmap of the controlling side
 
     // Shows the tab `tab` (1-5) unless it is the shown one; returns whether it changed.
     int ShowTab(int tab);  // 0x4a90d0

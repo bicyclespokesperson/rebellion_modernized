@@ -11,11 +11,11 @@
 class SdRecordExt2 : public SdRecord {
 public:
     SdRecordExt2();
-    virtual ~SdRecordExt2();
-    virtual int Write(ostream* out) override = 0;
-    virtual int Read(istream* in) override = 0;
-    virtual int Checksum(Crc32* crc) override = 0;
-    virtual int ParseFields(istream* in, int* endOfLine) override = 0;
+    ~SdRecordExt2() override;
+    int Write(ostream* out) override = 0;
+    int Read(istream* in) override = 0;
+    int Checksum(Crc32* crc) override = 0;
+    int ParseFields(istream* in, int* endOfLine) override = 0;
 
     uint32_t m_field58;  // +0x58
     uint32_t m_field5c;  // +0x5c
@@ -29,11 +29,11 @@ public:
     static constexpr int kGridColumns = 3;
 
     SdRecordGrid();
-    virtual ~SdRecordGrid();
-    virtual int Write(ostream* out) override = 0;
-    virtual int Read(istream* in) override = 0;
-    virtual int Checksum(Crc32* crc) override = 0;
-    virtual int ParseFields(istream* in, int* endOfLine) override = 0;
+    ~SdRecordGrid() override;
+    int Write(ostream* out) override = 0;
+    int Read(istream* in) override = 0;
+    int Checksum(Crc32* crc) override = 0;
+    int ParseFields(istream* in, int* endOfLine) override = 0;
 
     // 0 for an out-of-range index.
     uint32_t GetGridValue(int row, int column) const;
@@ -55,11 +55,11 @@ public:
 class SdRecordExt16 : public SdRecord {
 public:
     SdRecordExt16();
-    virtual ~SdRecordExt16();
-    virtual int Write(ostream* out) override = 0;
-    virtual int Read(istream* in) override = 0;
-    virtual int Checksum(Crc32* crc) override = 0;
-    virtual int ParseFields(istream* in, int* endOfLine) override = 0;
+    ~SdRecordExt16() override;
+    int Write(ostream* out) override = 0;
+    int Read(istream* in) override = 0;
+    int Checksum(Crc32* crc) override = 0;
+    int ParseFields(istream* in, int* endOfLine) override = 0;
 
     // Fetch the first/second member of pair `index` (0, 1 or 2 map to +0x68/+0x78/+0x70 and +0x6c/+0x7c/+0x74);
     // for any other index *value is set to 0 and 0 is returned.
@@ -73,11 +73,11 @@ public:
 class SdRecordExt25 : public SdRecordExt16 {
 public:
     SdRecordExt25();
-    virtual ~SdRecordExt25();
-    virtual int Write(ostream* out) override = 0;
-    virtual int Read(istream* in) override = 0;
-    virtual int Checksum(Crc32* crc) override = 0;
-    virtual int ParseFields(istream* in, int* endOfLine) override = 0;
+    ~SdRecordExt25() override;
+    int Write(ostream* out) override = 0;
+    int Read(istream* in) override = 0;
+    int Checksum(Crc32* crc) override = 0;
+    int ParseFields(istream* in, int* endOfLine) override = 0;
 
     uint32_t m_moreFields[9];  // +0x98
 };
@@ -86,11 +86,11 @@ public:
 class SdRecordExt1 : public SdRecord {
 public:
     SdRecordExt1();
-    virtual ~SdRecordExt1();
-    virtual int Write(ostream* out) override = 0;
-    virtual int Read(istream* in) override = 0;
-    virtual int Checksum(Crc32* crc) override = 0;
-    virtual int ParseFields(istream* in, int* endOfLine) override = 0;
+    ~SdRecordExt1() override;
+    int Write(ostream* out) override = 0;
+    int Read(istream* in) override = 0;
+    int Checksum(Crc32* crc) override = 0;
+    int ParseFields(istream* in, int* endOfLine) override = 0;
 
     uint32_t m_field58;  // +0x58
 };

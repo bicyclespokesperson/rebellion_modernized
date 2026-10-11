@@ -28,10 +28,10 @@ public:
 
     AiSystemScan();                             // 0x4ebae0
     explicit AiSystemScan(System* system);      // 0x4ebb90
-    virtual ~AiSystemScan();                    // 0: 0x4ebb70 (deleting), 0x4ebc50
+    ~AiSystemScan() override;                    // 0: 0x4ebb70 (deleting), 0x4ebc50
     // slot 1 Clone is ObjectKeyNode::Clone (0x4ecda0)
-    virtual void Load(istream* in) override;    // 2: 0x4ebcc0
-    virtual void Save(ostream* out) override;   // 4: 0x4ebd80
+    void Load(istream* in) override;    // 2: 0x4ebcc0
+    void Save(ostream* out) override;   // 4: 0x4ebd80
 
     void MarkDirty();                           // 0x4ebe30: dirty, and so is the sector's record
     void Scan(int view);                        // 0x4ebe40: re-reads the system if it is dirty
@@ -62,9 +62,9 @@ public:
 
     AiSectorScan();                             // 0x4c5e20
     explicit AiSectorScan(int view);            // 0x4c5ec0
-    virtual ~AiSectorScan();                    // 0: 0x4c5ea0 (deleting), 0x4c5f40
+    ~AiSectorScan() override;                    // 0: 0x4c5ea0 (deleting), 0x4c5f40
     // slot 2 Load is ObjectKeyNode::Load (0x58f0c0); the record is read by ReadRecord
-    virtual void Save(ostream* out) override;   // 4: 0x4c61d0
+    void Save(ostream* out) override;   // 4: 0x4c61d0
 
     void Attach(Sector* sector, AiSystemScanSet* systems);   // 0x4c5fc0
     void ReadRecord(istream* in, AiSystemScanSet* systems);  // 0x4c60d0
@@ -100,8 +100,8 @@ public:
 class AiSectorScanSet : public ObjectKeySet {
 public:
     AiSectorScanSet();                      // 0x4c5450
-    virtual ~AiSectorScanSet();             // 0: 0x4c5470 (deleting), 0x4c5490
-    virtual void Save(ostream* out) override;  // 6: 0x4c55d0
+    ~AiSectorScanSet() override;             // 0: 0x4c5470 (deleting), 0x4c5490
+    void Save(ostream* out) override;  // 6: 0x4c55d0
 
     void LoadAll(istream* in, AiSystemScanSet* systems, AiGalaxyAnalysis* analysis);  // 0x4c54b0
     int BuildStep(AiSystemScanSet* systems, AiGalaxyAnalysis* analysis);              // 0x4c5740
@@ -118,9 +118,9 @@ public:
 class AiSystemScanSet : public ObjectKeySet {
 public:
     AiSystemScanSet();                      // 0x4c5910
-    virtual ~AiSystemScanSet();             // 0: 0x4c5930 (deleting), 0x4c5950
-    virtual void Load(istream* in) override;   // 4: 0x4c5970
-    virtual void Save(ostream* out) override;  // 6: 0x4c5a90
+    ~AiSystemScanSet() override;             // 0: 0x4c5930 (deleting), 0x4c5950
+    void Load(istream* in) override;   // 4: 0x4c5970
+    void Save(ostream* out) override;  // 6: 0x4c5a90
 
     int BuildStep();                        // 0x4c5c00
     void NoteSystem(const ObjectKey* key);         // 0x4c5d20

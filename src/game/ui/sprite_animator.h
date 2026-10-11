@@ -9,7 +9,7 @@
 class AnimationStepQueue : public NodeQueue {
 public:
     AnimationStepQueue();           // 0x4ad770
-    virtual ~AnimationStepQueue();  // 0x4ad790 (deleting), 0x4ad7b0
+    ~AnimationStepQueue() override;  // 0x4ad790 (deleting), 0x4ad7b0
 };
 
 class Sprite;
@@ -22,7 +22,7 @@ class SpriteStage;
 class SpriteAnimator : public IdNode {
 public:
     explicit SpriteAnimator(int spriteCount);  // 0x4727e0
-    virtual ~SpriteAnimator();                 // 0x4728a0 (scalar deleting destructor 0x472880)
+    ~SpriteAnimator() override;                 // 0x4728a0 (scalar deleting destructor 0x472880)
 
     // Sets the origin the scripts' positions are relative to.
     virtual void SetOrigin(int x, int y);  // slot 1, 0x472ae0

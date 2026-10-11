@@ -13,10 +13,10 @@ class Crc32;
 class RoleData : public UnitObjData {
 public:
     RoleData();                                   // 0x583df0
-    virtual ~RoleData();                          // 0x583e10 (deleting), 0x583e30
-    virtual int Read(istream* in) override;       // 0x583e40
-    virtual int Write(ostream* out) override;     // 0x583e50
-    virtual int Checksum(Crc32* crc) override;    // 0x583e60
+    ~RoleData() override;                          // 0x583e10 (deleting), 0x583e30
+    int Read(istream* in) override;       // 0x583e40
+    int Write(ostream* out) override;     // 0x583e50
+    int Checksum(Crc32* crc) override;    // 0x583e60
     // Slot 4 (IsValid) is a jump to the shared "return 1" stub 0x40f340.
 };
 
@@ -25,10 +25,10 @@ public:
 class CharacterData : public RoleData {
 public:
     CharacterData();                              // 0x540750
-    virtual ~CharacterData();                     // 0x5407d0 (deleting), 0x5407f0
-    virtual int Read(istream* in) override;       // 0x540870
-    virtual int Write(ostream* out) override;     // 0x5408e0
-    virtual int Checksum(Crc32* crc) override;    // 0x540950
+    ~CharacterData() override;                     // 0x5407d0 (deleting), 0x5407f0
+    int Read(istream* in) override;       // 0x540870
+    int Write(ostream* out) override;     // 0x5408e0
+    int Checksum(Crc32* crc) override;    // 0x540950
 
     TrackedStat m_healingStat;         // +0x18, event 0x388
     TrackedStat m_forceDiscoveryStat;  // +0x20, event 0x389

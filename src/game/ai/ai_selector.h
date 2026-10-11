@@ -12,7 +12,7 @@
 class AiRankedSelector : public IdSortedLinkList {
 public:
     AiRankedSelector();                                    // 0x4355d0
-    virtual ~AiRankedSelector();                           // 0: 0x4355f0 (deleting), 0x435610
+    ~AiRankedSelector() override;                           // 0: 0x4355f0 (deleting), 0x435610
     virtual void Read(istream* in);                        // 2: 0x435660
     virtual void Write(ostream* out);                      // 3: 0x435720
 

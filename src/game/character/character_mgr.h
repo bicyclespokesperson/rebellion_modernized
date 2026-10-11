@@ -31,22 +31,22 @@ constexpr uint32_t kPickupInProgress = 0x2;
 class CharacterMgr : public GameObj {
 public:
     CharacterMgr();           // 0x55ec90
-    virtual ~CharacterMgr();  // 0x55ecf0 (deleting), 0x55ed10
+    ~CharacterMgr() override;  // 0x55ecf0 (deleting), 0x55ed10
 
     // ---- overrides of GameObj slots ----
-    virtual uint32_t GetFamily() override;                                       // 1, 0x562090: 0xfa
-    virtual int Read(istream* in) override;                                      // 5, 0x562040
-    virtual int Write(ostream* out) override;                                    // 6, 0x562050
-    virtual int Checksum(Crc32* crc) override;                                   // 7, 0x562080
-    virtual int Validate() override;                                             // 8, shared jump stub 0x569870
-    virtual int ApplyAll(NotifyContext* ctx) override;                           // 9, 0x562060
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;           // 15, 0x55efd0
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;      // 22, 0x55eff0
-    virtual int UpdateObservedByAlliance(NotifyContext* ctx) override;           // 35, 0x5620a0
-    virtual int UpdateObservedByEmpire(NotifyContext* ctx) override;             // 36, 0x5620c0
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;       // 37, shared stub 0x5774f0 (own copy 0x562190)
-    virtual int Virtual48(intptr_t ctxArg) override;                                  // 48, 0x5620e0: the NotifyContext* of the setup
-    virtual GameObj* CreateViewObject() override;                                // 57, 0x561fd0
+    uint32_t GetFamily() override;                                       // 1, 0x562090: 0xfa
+    int Read(istream* in) override;                                      // 5, 0x562040
+    int Write(ostream* out) override;                                    // 6, 0x562050
+    int Checksum(Crc32* crc) override;                                   // 7, 0x562080
+    int Validate() override;                                             // 8, shared jump stub 0x569870
+    int ApplyAll(NotifyContext* ctx) override;                           // 9, 0x562060
+    int GetEventKinds(int unused, EventKindSet* out) override;           // 15, 0x55efd0
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;      // 22, 0x55eff0
+    int UpdateObservedByAlliance(NotifyContext* ctx) override;           // 35, 0x5620a0
+    int UpdateObservedByEmpire(NotifyContext* ctx) override;             // 36, 0x5620c0
+    int CreateViews(int controlKind, NotifyContext* ctx) override;       // 37, shared stub 0x5774f0 (own copy 0x562190)
+    int Virtual48(intptr_t ctxArg) override;                                  // 48, 0x5620e0: the NotifyContext* of the setup
+    GameObj* CreateViewObject() override;                                // 57, 0x561fd0
 
     // ---- new virtuals ----
     // Forwarders to the person named by `key` (null or non-person keys fail): slot 179 of Character.

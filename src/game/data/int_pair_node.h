@@ -13,11 +13,11 @@ public:
     IntPairNode();
     IntPairNode(const ObjectKey& key, const int& value);
     IntPairNode(const IntPairNode& other);
-    virtual ~IntPairNode();
-    virtual ObjectKeyNode* Clone() override;
-    virtual void Read(istream* in) override;
-    virtual void Write(ostream* out) override;
-    virtual int Checksum(Crc32* crc) override;
+    ~IntPairNode() override;
+    ObjectKeyNode* Clone() override;
+    void Read(istream* in) override;
+    void Write(ostream* out) override;
+    int Checksum(Crc32* crc) override;
 
     int m_value;  // +0x1c
 };

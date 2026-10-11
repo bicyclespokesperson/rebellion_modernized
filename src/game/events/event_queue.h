@@ -15,7 +15,7 @@ class Crc32;
 class EventQueue : public OrderedTree {
 public:
     EventQueue();           // 0x54ea70
-    virtual ~EventQueue();  // 0x54eab0
+    ~EventQueue() override;  // 0x54eab0
 
     virtual int Read(istream* in);                  // 3: 0x54eb00 clears, then reads count + (kind, event) pairs
     virtual int Write(ostream* out);                // 4: 0x54eb80
@@ -39,18 +39,18 @@ public:
 class TimerQueue : public EventQueue {
 public:
     TimerQueue();           // 0x54ed40
-    virtual ~TimerQueue();  // 0x54ed80
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;  // 0x54ed90, true if either is null
-    virtual EventBase* GetNext() override;                // 0x54edc0
+    ~TimerQueue() override;  // 0x54ed80
+    int IsLess(AvlNode* a, AvlNode* b) override;  // 0x54ed90, true if either is null
+    EventBase* GetNext() override;                // 0x54edc0
 };
 
 // An order's commands: first in, first out (IsLess is always false); GetNext is the first one.
 class CommandQueue : public EventQueue {
 public:
     CommandQueue();           // 0x54ede0
-    virtual ~CommandQueue();  // 0x54ee20
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;  // 0x5c61f0
-    virtual EventBase* GetNext() override;                // 0x54eed0
+    ~CommandQueue() override;  // 0x54ee20
+    int IsLess(AvlNode* a, AvlNode* b) override;  // 0x5c61f0
+    EventBase* GetNext() override;                // 0x54eed0
 
     // Forwards to Add (0x54ee30).
     void AddCommand(EventBase* event);
@@ -62,7 +62,7 @@ public:
 class TypeQueue : public EventQueue {
 public:
     TypeQueue();           // 0x54ee40
-    virtual ~TypeQueue();  // 0x54ee80
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;  // 0x54ee90, true if either is null
-    virtual EventBase* GetNext() override;                // 0x54eed0
+    ~TypeQueue() override;  // 0x54ee80
+    int IsLess(AvlNode* a, AvlNode* b) override;  // 0x54ee90, true if either is null
+    EventBase* GetNext() override;                // 0x54eed0
 };

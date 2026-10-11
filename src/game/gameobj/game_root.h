@@ -21,18 +21,18 @@ class RandomGenerator;
 class GameRoot : public GameObj {
 public:
     GameRoot();
-    virtual ~GameRoot();
+    ~GameRoot() override;
 
-    virtual uint32_t GetFamily() override;
-    virtual int Read(istream* in) override;
-    virtual int Write(ostream* out) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int Validate() override;
+    uint32_t GetFamily() override;
+    int Read(istream* in) override;
+    int Write(ostream* out) override;
+    int Checksum(Crc32* crc) override;
+    int Validate() override;
     // Only side views take part in ApplyAll; the master answers 0.
-    virtual int ApplyAll(NotifyContext* ctx) override;
-    virtual int Virtual16() override { return 1; }
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;
-    virtual GameObj* CreateViewObject() override;
+    int ApplyAll(NotifyContext* ctx) override;
+    int Virtual16() override { return 1; }
+    int CreateViews(int controlKind, NotifyContext* ctx) override;
+    GameObj* CreateViewObject() override;
 
     // Copies the settings in; returns the stored copy.
     GameSettings& SetSettings(const GameSettings& settings);  // 0x513640

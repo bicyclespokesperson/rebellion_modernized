@@ -50,13 +50,13 @@ public:
 class BattleWindow : public CoolGameWindow {
 public:
     BattleWindow(HINSTANCE instance, CoolWindow* parent, uint32_t childId, BattleMessage* battle);  // 0x46f140
-    virtual ~BattleWindow();  // 0x46f280 (scalar deleting destructor 0x46f260)
+    ~BattleWindow() override;  // 0x46f280 (scalar deleting destructor 0x46f260)
 
-    virtual void PostCloseRequest() override;                    // slot 12, 0x4727a0
-    virtual void OnCreate1() override;                           // slot 14, 0x46f360
-    virtual void DrawOverlay(HDC dc) override;                   // slot 17, 0x471200
-    virtual void OnCommand(int a, int b, int c) override;        // slot 18, 0x470ea0
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x4710f0
+    void PostCloseRequest() override;                    // slot 12, 0x4727a0
+    void OnCreate1() override;                           // slot 14, 0x46f360
+    void DrawOverlay(HDC dc) override;                   // slot 17, 0x471200
+    void OnCommand(int a, int b, int c) override;        // slot 18, 0x470ea0
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x4710f0
 
     // Stops the advice sound the window started (0x417610 plays it, 0x470e70 stops it).
     void StopAdvice();                          // 0x470e70

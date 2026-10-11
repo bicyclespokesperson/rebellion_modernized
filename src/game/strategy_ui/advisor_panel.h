@@ -15,12 +15,12 @@ class AdvisorPanel : public CoolGameWindow {
 public:
     AdvisorPanel(HINSTANCE instance, int x, int y, int width, int height, GalaxyWindow* parent, uint32_t childId,
                  uint32_t kind);  // 0x452090
-    virtual ~AdvisorPanel();  // 0x452190 (scalar deleting destructor 0x452170)
+    ~AdvisorPanel() override;  // 0x452190 (scalar deleting destructor 0x452170)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x452a70
-    virtual void OnCreate1() override;               // slot 14, 0x4522f0
-    virtual void DrawOverlay(HDC dc) override;       // slot 17, 0x452240
-    virtual void OnCommand(int a, int b, int c) override;  // slot 18, 0x452a50
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x452a70
+    void OnCreate1() override;               // slot 14, 0x4522f0
+    void DrawOverlay(HDC dc) override;       // slot 17, 0x452240
+    void OnCommand(int a, int b, int c) override;  // slot 18, 0x452a50
 
     // Lays out the artwork and captions of the resource `resourceId` of `module` over the panel, growing the panel to the
     // size the resource asks for (0x452630).

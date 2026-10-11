@@ -15,23 +15,23 @@
 class RoleContainer : public GameObj {
 public:
     RoleContainer();            // 0x577050
-    virtual ~RoleContainer();   // 0x577070 (scalar deleting), 0x577090
+    ~RoleContainer() override;   // 0x577070 (scalar deleting), 0x577090
 
-    virtual uint32_t GetFamily() override;                                  // 1, 0x577520: 0x98
-    virtual int GetOwnerKey(ObjectKey* out) override;                       // 3, 0x577130: its own key
-    virtual int Read(istream* in) override;                                 // 5, shared stub 0x569840
-    virtual int Write(ostream* out) override;                               // 6, shared stub 0x569850
-    virtual int Checksum(Crc32* crc) override;                              // 7, shared stub 0x569860
-    virtual int Validate() override;                                        // 8, 0x577510 (jump stub to ValidateImpl)
-    virtual int ApplyAll(NotifyContext* ctx) override;                      // 9, shared with GameRoot (0x513f20)
-    virtual int SetRecord(DatRecord* record) override;                      // 10, 0x50e1c0 (shared with Character)
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;      // 15, 0x577190
-    virtual int Virtual16() override { return 1; }                          // 16, shared 0x40f340
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;  // 22, 0x5771b0
-    virtual int Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) override;  // 29, 0x577270
-    virtual int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 30, 0x5773b0
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, 0x5774f0
-    virtual GameObj* CreateViewObject() override;                           // 57, 0x577480
+    uint32_t GetFamily() override;                                  // 1, 0x577520: 0x98
+    int GetOwnerKey(ObjectKey* out) override;                       // 3, 0x577130: its own key
+    int Read(istream* in) override;                                 // 5, shared stub 0x569840
+    int Write(ostream* out) override;                               // 6, shared stub 0x569850
+    int Checksum(Crc32* crc) override;                              // 7, shared stub 0x569860
+    int Validate() override;                                        // 8, 0x577510 (jump stub to ValidateImpl)
+    int ApplyAll(NotifyContext* ctx) override;                      // 9, shared with GameRoot (0x513f20)
+    int SetRecord(DatRecord* record) override;                      // 10, 0x50e1c0 (shared with Character)
+    int GetEventKinds(int unused, EventKindSet* out) override;      // 15, 0x577190
+    int Virtual16() override { return 1; }                          // 16, shared 0x40f340
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;  // 22, 0x5771b0
+    int Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) override;  // 29, 0x577270
+    int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 30, 0x5773b0
+    int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, 0x5774f0
+    GameObj* CreateViewObject() override;                           // 57, 0x577480
 
     int ValidateImpl();  // 0x5775a0
     // Walks the container's characters (usable or en route) and reports 0 of them in *out; always 1. The two

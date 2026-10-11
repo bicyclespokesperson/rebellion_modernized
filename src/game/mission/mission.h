@@ -69,10 +69,10 @@ public:
 class MissionData : public GameObjData {
 public:
     MissionData();                                    // 0x5835b0
-    virtual ~MissionData();                           // 0x583620 (deleting), 0x583640
-    virtual int Read(istream* in) override;           // 0x5836b0
-    virtual int Write(ostream* out) override;         // 0x583720
-    virtual int Checksum(Crc32* crc) override;        // 0x583790
+    ~MissionData() override;                           // 0x583620 (deleting), 0x583640
+    int Read(istream* in) override;           // 0x5836b0
+    int Write(ostream* out) override;         // 0x583720
+    int Checksum(Crc32* crc) override;        // 0x583790
 
     int m_unk18;                    // +0x18, starts at 1; Mission::UpdateTeamCapability stores "all team members can act" here
     int m_unk1c;                    // +0x1c, 0; a small level (>4 / >6 are tested by Mission::IsAdvancedPhaseLevel*)
@@ -90,23 +90,23 @@ struct MissionCheckFunctions {
 class Mission : public GameObj {
 public:
     Mission();            // 0x5208b0
-    virtual ~Mission();   // 0x5209c0 (scalar deleting destructor 0x5209a0)
+    ~Mission() override;   // 0x5209c0 (scalar deleting destructor 0x5209a0)
 
     // ---- overrides of GameObj slots ----
-    virtual int GetOwnerKey(ObjectKey* out) override;                                 // 3, 0x5214e0: clears *out, returns 1
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;                // 15, 0x521500
-    virtual int IsObservable() override { return 0; }                                 // 19
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;           // 22, 0x521520
-    virtual GameObjData* CreateData() override;                                       // 58, 0x525690
-    virtual int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x524a60
-    virtual int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;        // 71, 0x524a80
+    int GetOwnerKey(ObjectKey* out) override;                                 // 3, 0x5214e0: clears *out, returns 1
+    int GetEventKinds(int unused, EventKindSet* out) override;                // 15, 0x521500
+    int IsObservable() override { return 0; }                                 // 19
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;           // 22, 0x521520
+    GameObjData* CreateData() override;                                       // 58, 0x525690
+    int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x524a60
+    int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;        // 71, 0x524a80
 
     // ---- persistence/validation: pure here with bodies the leaf classes call qualified ----
-    virtual int Read(istream* in) override = 0;               // 5, body 0x5237c0
-    virtual int Write(ostream* out) override = 0;             // 6, body 0x523910
-    virtual int Checksum(Crc32* crc) override = 0;            // 7, body 0x523b20
-    virtual int Validate() override = 0;                      // 8, body 0x523c60
-    virtual int ApplyAll(NotifyContext* ctx) override = 0;    // 9, body 0x523a60
+    int Read(istream* in) override = 0;               // 5, body 0x5237c0
+    int Write(ostream* out) override = 0;             // 6, body 0x523910
+    int Checksum(Crc32* crc) override = 0;            // 7, body 0x523b20
+    int Validate() override = 0;                      // 8, body 0x523c60
+    int ApplyAll(NotifyContext* ctx) override = 0;    // 9, body 0x523a60
 
     // ---- new virtuals (slots 111-120); names provisional ----
     virtual int GetCheckFunctions(MissionCheckFunctions* out);                       // 111, 0x5215e0
@@ -291,7 +291,7 @@ public:
 class MissionIterator : public ChildIterator {
 public:
     explicit MissionIterator(GameObjNotifier* parent);  // 0x525750 (state filter 1)
-    virtual ~MissionIterator();                                      // 0x5257f0 (deleting 0x5257d0)
+    ~MissionIterator() override;                                      // 0x5257f0 (deleting 0x5257d0)
 };
 
 // Walks the persons (team, decoys, captured: see the three selector flags) of a mission whose family is in a range

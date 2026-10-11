@@ -22,12 +22,12 @@ class ObjectKeyValueSet;
 class MissionSelectionWindow : public CoolGameWindow {
 public:
     MissionSelectionWindow(HINSTANCE instance, CoolWindow* parent, uint32_t childId, MissionOrder240* order);  // 0x46a750
-    virtual ~MissionSelectionWindow();  // 0x46a880 (scalar deleting destructor 0x46a860)
+    ~MissionSelectionWindow() override;  // 0x46a880 (scalar deleting destructor 0x46a860)
 
-    virtual void OnCreate1() override;                         // slot 14, 0x46a9c0
-    virtual void Virtual15() override;                         // slot 21, 0x46c9e0: focuses the current page's control
-    virtual void OnCommand(int a, int b, int c) override;      // slot 18, 0x46c3c0
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x46ca10
+    void OnCreate1() override;                         // slot 14, 0x46a9c0
+    void Virtual15() override;                         // slot 21, 0x46c9e0: focuses the current page's control
+    void OnCommand(int a, int b, int c) override;      // slot 18, 0x46c3c0
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x46ca10
 
     // Shows page `page` (0x97: the mission combo box, 0x98: the team lists) unless it is the current one.
     void SelectPage(int page);  // 0x46c8a0

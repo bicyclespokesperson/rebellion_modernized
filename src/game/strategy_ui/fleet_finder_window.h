@@ -29,13 +29,13 @@ enum FleetFinderFilter : int {
 class FleetFinderWindow : public CustomDialogBox {
 public:
     FleetFinderWindow(HINSTANCE instance, int x, int y, int width, int height, GalaxyWindow* parent, uint32_t childId);  // 0x461750
-    virtual ~FleetFinderWindow();  // 0x461880 (scalar deleting destructor 0x461860)
+    ~FleetFinderWindow() override;  // 0x461880 (scalar deleting destructor 0x461860)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x462a50
-    virtual void OnCreate1() override;                    // slot 14, 0x461960
-    virtual void DrawOverlay(HDC dc) override;            // slot 17, 0x462a30
-    virtual void OnCommand(int a, int command, int c) override;  // slot 18, 0x462770
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x463360
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x462a50
+    void OnCreate1() override;                    // slot 14, 0x461960
+    void DrawOverlay(HDC dc) override;            // slot 17, 0x462a30
+    void OnCommand(int a, int command, int c) override;  // slot 18, 0x462770
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x463360
 
     // Fills the list of the current page for the filter tab `filter` unless it is the current one.
     void SetFilter(int filter, int unused);  // 0x462be0

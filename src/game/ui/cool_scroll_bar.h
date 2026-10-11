@@ -31,12 +31,12 @@ public:
     CoolScrollBar(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, CoolScrollable* owner,
                   uint16_t artSlot, uint16_t artId, int total, int first, int last,
                   uint32_t buttonFlags);  // 0x60aa70
-    virtual ~CoolScrollBar();             // 0x60ab80 (scalar deleting destructor 0x60ab60)
+    ~CoolScrollBar() override;             // 0x60ab80 (scalar deleting destructor 0x60ab60)
 
     // Slot 5: WM_CREATE loads the artwork (LoadArt) and lays the bar out; WM_PAINT draws m_surface; WM_COMMAND
     // goes to OnCommand, WM_TIMER to OnTimer; a left click is posted to the parent as message 0x40e
     // (wParam = message << 16 | child id) before OnLButtonDown; WM_LBUTTONUP ends the drag.
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60aca0
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60aca0
 
     virtual void OnCommand(WPARAM id);             // slot 9, 0x5ae1e0: does nothing (arrow buttons)
     virtual int Layout();                          // slot 10, 0x6158b0: returns 0; sizes the bar, moves the buttons

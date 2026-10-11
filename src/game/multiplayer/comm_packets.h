@@ -36,7 +36,7 @@ public:
     ServiceProviderInfo(const GUID* guid, const char* name, DWORD majorVersion, DWORD minorVersion,
                         DWORD_PTR context);                       // 0x5f79b0
     explicit ServiceProviderInfo(const ServiceProviderInfo& other);  // 0x5f7a50
-    virtual ~ServiceProviderInfo();                           // 0x5f7ae0 (deleting 0x5f7a30)
+    ~ServiceProviderInfo() override;                           // 0x5f7ae0 (deleting 0x5f7a30)
 
     const GUID* m_guid;    // +0x1c
     DWORD m_majorVersion;  // +0x20
@@ -50,7 +50,7 @@ class SessionInfo : public IdNode {
 public:
     explicit SessionInfo(const DPSESSIONDESC2* description);  // 0x5f7b30
     explicit SessionInfo(const SessionInfo& other);           // 0x5f7be0
-    virtual ~SessionInfo();                                   // 0x5f7c70 (deleting 0x5f7bc0)
+    ~SessionInfo() override;                                   // 0x5f7c70 (deleting 0x5f7bc0)
 
     GUID m_instance;  // +0x1c guidInstance of the session
     String m_name;    // +0x2c
@@ -60,13 +60,13 @@ public:
 class ServiceProviderList : public IdAvlTree {
 public:
     ServiceProviderList();           // 0x5fb670
-    virtual ~ServiceProviderList();  // 0x5fb6b0 (deleting 0x5fb690)
+    ~ServiceProviderList() override;  // 0x5fb6b0 (deleting 0x5fb690)
 };
 
 class SessionList : public IdAvlTree {
 public:
     SessionList();           // 0x5fb6c0
-    virtual ~SessionList();  // 0x5fb700 (deleting 0x5fb6e0)
+    ~SessionList() override;  // 0x5fb700 (deleting 0x5fb6e0)
 };
 
 // What the lobby launcher left for the game (global 0x6be350, VT 0x66de6c, 0x10 bytes). `m_launched` is set by
@@ -143,7 +143,7 @@ public:
     CommPacket(const void* data, uint32_t size, uint8_t category, char part, char partCount, int reliable);  // 0x5faba0
     // Explicit id variant.
     CommPacket(const void* data, uint32_t size, uint32_t id, char part, char partCount, int reliable);       // 0x5fadf0
-    virtual ~CommPacket();  // 0x5facc0 (deleting 0x5faca0)
+    ~CommPacket() override;  // 0x5facc0 (deleting 0x5faca0)
 
     // Id of the first packet of the message this one belongs to.
     int FirstFragmentId();  // 0x5fad20
@@ -158,7 +158,7 @@ public:
 class ReceivedPacket : public IdNode {
 public:
     ReceivedPacket(const void* wire, uint32_t size);  // 0x5fb760
-    virtual ~ReceivedPacket();                        // 0x5fb800 (deleting 0x5fb7e0)
+    ~ReceivedPacket() override;                        // 0x5fb800 (deleting 0x5fb7e0)
 
     // Copies the payload to `out` if it fits into `capacity`; returns its length, 0 if it does not fit.
     uint16_t CopyPayload(void* out, uint16_t capacity) const;  // 0x5fb810
@@ -172,7 +172,7 @@ public:
 class CommOutgoing : public IdNode {
 public:
     CommOutgoing(const void* data, uint32_t size, uint32_t category, int reliable);  // 0x5faed0
-    virtual ~CommOutgoing();                                                        // 0x5fb080 (deleting 0x5fb060)
+    ~CommOutgoing() override;                                                        // 0x5fb080 (deleting 0x5fb060)
 
     int8_t m_partCount;        // +0x1c
     int8_t m_unused1d;         // +0x1d
@@ -190,7 +190,7 @@ struct CommBuffer {
 class PartialMessage : public IdNode {
 public:
     explicit PartialMessage(uint32_t firstPacketId);  // 0x5fb410
-    virtual ~PartialMessage();                        // 0x5fb3e0 (deleting 0x5fb3f0)
+    ~PartialMessage() override;                        // 0x5fb3e0 (deleting 0x5fb3f0)
 
     int IsComplete() const;                // 0x5fb470
     uint32_t GetCategory() const;          // 0x5fb490
@@ -236,7 +236,7 @@ protected:
 class SendBuffer : public PacketBuffer {
 public:
     SendBuffer();   // 0x5f85c0
-    virtual void Reset() override;  // 0: 0x5fb240
+    void Reset() override;  // 0: 0x5fb240
     virtual ~SendBuffer();          // 1: 0x5fb270 (deleting 0x5f85e0)
 };
 
@@ -244,7 +244,7 @@ public:
 class ReceiveBuffer : public PacketBuffer {
 public:
     ReceiveBuffer();  // 0x5fb0d0
-    virtual void Reset() override;  // 0: 0x5fb140
+    void Reset() override;  // 0: 0x5fb140
     virtual ~ReceiveBuffer();       // 1: 0x5fb130 (deleting 0x5fb110)
 
     int m_fromPlayer;  // +0x20c index of the player the last message came from

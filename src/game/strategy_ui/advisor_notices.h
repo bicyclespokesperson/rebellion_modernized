@@ -17,7 +17,7 @@ class UiNotice : public IdNode {
 public:
     UiNotice();                // 0x4c4ce0
     explicit UiNotice(int owner);  // 0x4c4d90
-    virtual ~UiNotice();       // 0x4c4e30 (scalar deleting destructor 0x4c4d70)
+    ~UiNotice() override;       // 0x4c4e30 (scalar deleting destructor 0x4c4d70)
     virtual void Read(istream* in);    // slot 1, 0x4c4e80
     virtual void Write(ostream* out);  // slot 2, 0x4c4f30
     virtual int GetKind() = 0;   // slot 3: the index of the notice's handler in g_uiHandlers (events/player_notices.h)
@@ -57,9 +57,9 @@ class UiTextNotice : public UiNotice {
 public:
     UiTextNotice();                 // 0x4c4ab0
     explicit UiTextNotice(int owner);  // 0x4c4b50
-    virtual ~UiTextNotice();        // 0x4c4bd0 (scalar deleting destructor 0x4c4b30)
-    virtual void Read(istream* in) override;    // 0x4c4c50
-    virtual void Write(ostream* out) override;  // 0x4c4c90
+    ~UiTextNotice() override;        // 0x4c4bd0 (scalar deleting destructor 0x4c4b30)
+    void Read(istream* in) override;    // 0x4c4c50
+    void Write(ostream* out) override;  // 0x4c4c90
     void Virtual13() override {}  // 0x619730 (shared no-op)
     virtual void Virtual14() {}   // 0x619730
     virtual void Virtual15();     // 0x4c4cd0: Virtual13 through the vtable
@@ -76,9 +76,9 @@ class UiKeyNotice : public UiNotice {
 public:
     UiKeyNotice();                 // 0x4c5040
     explicit UiKeyNotice(int owner);  // 0x4c50d0
-    virtual ~UiKeyNotice();        // 0x4c5140 (scalar deleting destructor 0x4c50b0)
-    virtual void Read(istream* in) override;    // 0x4c51b0
-    virtual void Write(ostream* out) override;  // 0x4c51f0
+    ~UiKeyNotice() override;        // 0x4c5140 (scalar deleting destructor 0x4c50b0)
+    void Read(istream* in) override;    // 0x4c51b0
+    void Write(ostream* out) override;  // 0x4c51f0
     void Virtual13() override {}  // 0x619730 (shared no-op)
     virtual int Virtual14(const LinkNode* payloads);  // 0x4974f0 (shared)
 
@@ -101,7 +101,7 @@ struct DroidScriptEntry {
 class DroidScript : public IdNode {
 public:
     DroidScript();                      // 0x4c5230
-    virtual ~DroidScript();             // 0x4c5270 (scalar deleting destructor 0x4c5250)
+    ~DroidScript() override;             // 0x4c5270 (scalar deleting destructor 0x4c5250)
     virtual void Read(istream* in);     // slot 1, 0x4c52d0
     virtual void Write(ostream* out);   // slot 2, 0x4c5380
     // The next entry, or null (and the cursor is reset) at the end.

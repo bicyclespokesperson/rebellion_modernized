@@ -10,8 +10,8 @@
 class SoundCallbackTimer : public CoolTimer {
 public:
     SoundCallbackTimer(void (*callback)(void*), void* parameter);
-    virtual ~SoundCallbackTimer();
-    virtual void OnTick() override;
+    ~SoundCallbackTimer() override;
+    void OnTick() override;
 
     void (*m_callback)(void*);  // +0x38
     void* m_parameter;          // +0x3c
@@ -30,9 +30,9 @@ public:
 class SoundIdTree : public AvlTree {
 public:
     SoundIdTree() : m_nextKey(1) {}
-    virtual ~SoundIdTree() {}
-    virtual void Clear() override;
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;
+    ~SoundIdTree() override {}
+    void Clear() override;
+    int IsLess(AvlNode* a, AvlNode* b) override;
 
     KeyedSoundNode* Find(uint32_t key);         // 0x612bd0
     uint32_t Add(KeyedSoundNode* node);         // 0x612b30
@@ -55,7 +55,7 @@ public:
     SoundBuffer(uint32_t sourceKey, WAVEFORMATEX* format, uint32_t bufferBytes, int mode, uint32_t dataLength);
     // A DuplicateSoundBuffer copy that shares the original's sound data.
     SoundBuffer(const SoundBuffer& original);
-    virtual ~SoundBuffer();
+    ~SoundBuffer() override;
 
     uint32_t BytesToFill();                       // free bytes between the write position and the play cursor
     void SetStream(istream* stream, long loopStart);
@@ -99,8 +99,8 @@ public:
 class SoundBufferList : public SoundIdTree {
 public:
     SoundBufferList();
-    virtual ~SoundBufferList();
-    virtual void Clear() override;
+    ~SoundBufferList() override;
+    void Clear() override;
 
     int RemoveNode(KeyedSoundNode* node);  // 0x612b80: same as DeleteNode
 };

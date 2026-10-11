@@ -37,9 +37,9 @@ public:
 
     Table();
     ~Table();
-    virtual int Read(istream* in) override;
-    virtual int Write(ostream* out) override;
-    virtual int ParseText(istream* in) override;
+    int Read(istream* in) override;
+    int Write(ostream* out) override;
+    int ParseText(istream* in) override;
     virtual int Checksum(Crc32* crc);
 
     void Add(TableEntry* entry);
@@ -55,7 +55,7 @@ public:
 class TableFile : public IdNode {
 public:
     TableFile();
-    virtual ~TableFile();
+    ~TableFile() override;
 
     int Load(uint16_t firstId, uint16_t secondId, const char* directory);
 
@@ -67,7 +67,7 @@ public:
 class TableFileList : public IdAvlTree {
 public:
     TableFileList();
-    virtual ~TableFileList();
+    ~TableFileList() override;
 
     int m_ready;  // +0x0c, 1
 };

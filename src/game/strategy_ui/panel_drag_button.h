@@ -21,9 +21,9 @@ public:
     PanelDragButton(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t childId,
                     uint32_t normalBitmapId, uint32_t pressedBitmapId, DibBitmap* backdrop, int limitLeft,
                     int limitTop, int limitRight, int limitBottom, uint32_t flags);  // 0x452ab0
-    virtual ~PanelDragButton();  // 0x452b60 (scalar deleting destructor 0x452b40)
+    ~PanelDragButton() override;  // 0x452b60 (scalar deleting destructor 0x452b40)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x452b70
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x452b70
 
     uint32_t m_flags;          // +0x114 PanelDragButtonFlags
     int m_dragging;            // +0x118 the outline is being dragged (the mouse is captured)

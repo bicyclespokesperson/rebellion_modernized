@@ -18,7 +18,7 @@
 class StoryCharacter : public MajorCharacter {
 public:
     StoryCharacter();
-    virtual ~StoryCharacter();
+    ~StoryCharacter() override;
 
     int ReadBody(istream* in);       // 0x572880
     int WriteBody(ostream* out);     // 0x5728b0
@@ -34,21 +34,21 @@ public:
     static constexpr uint32_t kDagobahCompleted = 0x8;
 
     Luke();           // 0x56f4e0
-    virtual ~Luke();  // 0x56f510 (deleting), 0x56f530
+    ~Luke() override;  // 0x56f510 (deleting), 0x56f530
 
-    virtual uint32_t GetFamily() override;                                      // 1, 0x56f8a0: 0x32
-    virtual int Read(istream* in) override;                                     // 5, 0x56f840
-    virtual int Write(ostream* out) override;                                   // 6, 0x56f850
-    virtual int Checksum(Crc32* crc) override;                                  // 7, 0x56f880
-    virtual int Validate() override;                                            // 8, 0x56f890 (jump thunk to 0x56f9b0)
-    virtual int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x56f860
-    virtual uint32_t GetRecordTypeBits() override;                              // 12, 0x56f550
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x56f570
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x56f590
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x573b70
-    virtual GameObj* CreateViewObject() override;                               // 57, 0x56f7d0
-    virtual int Virtual130(NotifyContext* ctx) override;                        // 130, 0x56f8b0
-    virtual int OnForceChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 199, 0x56fb80
+    uint32_t GetFamily() override;                                      // 1, 0x56f8a0: 0x32
+    int Read(istream* in) override;                                     // 5, 0x56f840
+    int Write(ostream* out) override;                                   // 6, 0x56f850
+    int Checksum(Crc32* crc) override;                                  // 7, 0x56f880
+    int Validate() override;                                            // 8, 0x56f890 (jump thunk to 0x56f9b0)
+    int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x56f860
+    uint32_t GetRecordTypeBits() override;                              // 12, 0x56f550
+    int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x56f570
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x56f590
+    int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x573b70
+    GameObj* CreateViewObject() override;                               // 57, 0x56f7d0
+    int Virtual130(NotifyContext* ctx) override;                        // 130, 0x56f8b0
+    int OnForceChanged(int oldValue, int newValue, NotifyContext* ctx) override;  // 199, 0x56fb80
     virtual int OnKnowsHeritageChanged(int on, NotifyContext* ctx);             // 251, 0x56fbb0
     virtual int OnFinalBattleReadyChanged(int on, NotifyContext* ctx);          // 252, 0x56fbc0
     virtual int OnDagobahCompletedChanged(int on, NotifyContext* ctx) { return 1; }  // 253, shared stub 0x524fb0
@@ -77,19 +77,19 @@ public:
     static constexpr uint32_t kKnowsHeritage = 0x1;
 
     Leia();           // 0x56fd40
-    virtual ~Leia();  // 0x56fd70 (deleting), 0x56fd90
+    ~Leia() override;  // 0x56fd70 (deleting), 0x56fd90
 
-    virtual uint32_t GetFamily() override;                                      // 1, 0x56ff90: 0x31
-    virtual int Read(istream* in) override;                                     // 5, shared 0x56f840
-    virtual int Write(ostream* out) override;                                   // 6, shared 0x56f850
-    virtual int Checksum(Crc32* crc) override;                                  // 7, shared 0x56f880
-    virtual int Validate() override;                                            // 8, shared 0x56eec0
-    virtual int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x56ff70
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x56fdb0
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x56fdd0
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x573b70
-    virtual GameObj* CreateViewObject() override;                               // 57, 0x56ff00
-    virtual int Virtual130(NotifyContext* ctx) override;                        // 130, 0x56ffa0
+    uint32_t GetFamily() override;                                      // 1, 0x56ff90: 0x31
+    int Read(istream* in) override;                                     // 5, shared 0x56f840
+    int Write(ostream* out) override;                                   // 6, shared 0x56f850
+    int Checksum(Crc32* crc) override;                                  // 7, shared 0x56f880
+    int Validate() override;                                            // 8, shared 0x56eec0
+    int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x56ff70
+    int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x56fdb0
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x56fdd0
+    int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x573b70
+    GameObj* CreateViewObject() override;                               // 57, 0x56ff00
+    int Virtual130(NotifyContext* ctx) override;                        // 130, 0x56ffa0
     virtual int OnKnowsHeritageChanged(int on, NotifyContext* ctx) { return 1; }  // 251, shared stub 0x524fb0
     virtual int OnKnowsHeritageNotified(int on, NotifyContext* ctx);            // 252, 0x570110
 
@@ -107,19 +107,19 @@ public:
     static constexpr uint32_t kCapturedByBountyHunters = 0x2;
 
     Han();           // 0x572530
-    virtual ~Han();  // 0x572560 (deleting), 0x572580
+    ~Han() override;  // 0x572560 (deleting), 0x572580
 
-    virtual uint32_t GetFamily() override;                                      // 1, 0x572800: 0x33
-    virtual int Read(istream* in) override;                                     // 5, shared 0x56f840
-    virtual int Write(ostream* out) override;                                   // 6, shared 0x56f850
-    virtual int Checksum(Crc32* crc) override;                                  // 7, shared 0x56f880
-    virtual int Validate() override;                                            // 8, shared 0x56eec0
-    virtual int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x5727e0
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x5725b0
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x5725d0
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x573b70
-    virtual GameObj* CreateViewObject() override;                               // 57, 0x572770
-    virtual int OnCapturedChanged(int on, NotifyContext* ctx) override;         // 211, 0x572a70
+    uint32_t GetFamily() override;                                      // 1, 0x572800: 0x33
+    int Read(istream* in) override;                                     // 5, shared 0x56f840
+    int Write(ostream* out) override;                                   // 6, shared 0x56f850
+    int Checksum(Crc32* crc) override;                                  // 7, shared 0x56f880
+    int Validate() override;                                            // 8, shared 0x56eec0
+    int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x5727e0
+    int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x5725b0
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x5725d0
+    int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x573b70
+    GameObj* CreateViewObject() override;                               // 57, 0x572770
+    int OnCapturedChanged(int on, NotifyContext* ctx) override;         // 211, 0x572a70
     virtual int OnBountyAttackChanged(int on, NotifyContext* ctx);              // 251, 0x572aa0
     virtual int OnCapturedByBountyHuntersChanged(int on, NotifyContext* ctx) { return 1; }  // 252, shared stub 0x524fb0
     virtual int OnBountyAttackNotified(int on, NotifyContext* ctx);             // 253, 0x572b40
@@ -146,5 +146,5 @@ class MinorCharacterIterator : public ChildIterator {
 public:
     MinorCharacterIterator(GameObjNotifier* parent, uint32_t stateFilter);                 // 0x56f3d0
     MinorCharacterIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x56f450
-    virtual ~MinorCharacterIterator();                                                     // 0x56f3b0 (deleting), 0x56f4d0
+    ~MinorCharacterIterator() override;                                                     // 0x56f3b0 (deleting), 0x56f4d0
 };

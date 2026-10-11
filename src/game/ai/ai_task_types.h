@@ -23,8 +23,8 @@ class OrderBase;
 class AiStagedTask : public AiTaskBase {
 public:
     AiStagedTask(int id, int view) : AiTaskBase(id, view), m_stage(0), m_step(0) {}
-    virtual void Evaluate() override;                                 // 4: 0x4cc990 (shared by 13 task types)
-    virtual void Refused(int* result, OrderBase* order) override;     // 6: 0x4dd810 (shared by 13 task types)
+    void Evaluate() override;                                 // 4: 0x4cc990 (shared by 13 task types)
+    void Refused(int* result, OrderBase* order) override;     // 6: 0x4dd810 (shared by 13 task types)
 
     int m_stage;  // +0x38
     int m_step;   // +0x3c
@@ -39,10 +39,10 @@ public:
 class AiTask5 : public AiStagedTask {
 public:
     explicit AiTask5(int view);                     // 0x4cfb20
-    virtual ~AiTask5();                             // 0: 0x4cfb00 (deleting), 0x4cfc00
-    virtual void Read(istream* in) override;        // 1: 0x4cfcb0
-    virtual void Write(ostream* out) override;      // 2: 0x4cfdc0
-    virtual OrderBase* Step() override;             // 5: 0x4cfed0
+    ~AiTask5() override;                             // 0: 0x4cfb00 (deleting), 0x4cfc00
+    void Read(istream* in) override;        // 1: 0x4cfcb0
+    void Write(ostream* out) override;      // 2: 0x4cfdc0
+    OrderBase* Step() override;             // 5: 0x4cfed0
 
     OrderBase* StepProduce();                       // 0x4cff20 (stage 0x3f4)
     OrderBase* StepTargets();                       // 0x4d0010 (stage 0x3ec)
@@ -89,10 +89,10 @@ public:
 class AiTask10 : public AiStagedTask {
 public:
     explicit AiTask10(int view);                    // 0x4cc6b0
-    virtual ~AiTask10();                            // 0: 0x4cc690 (deleting), 0x4cc790
-    virtual void Read(istream* in) override;        // 1: 0x4cc830
-    virtual void Write(ostream* out) override;      // 2: 0x4cc8e0
-    virtual OrderBase* Step() override;             // 5: 0x4cc9c0
+    ~AiTask10() override;                            // 0: 0x4cc690 (deleting), 0x4cc790
+    void Read(istream* in) override;        // 1: 0x4cc830
+    void Write(ostream* out) override;      // 2: 0x4cc8e0
+    OrderBase* Step() override;             // 5: 0x4cc9c0
 
     OrderBase* StepFleets();                        // 0x4cca20
     OrderBase* StepTargets();                       // 0x4ccb50
@@ -136,8 +136,8 @@ public:
 class AiFacilityTaskBase : public AiStagedTask {
 public:
     AiFacilityTaskBase(int id, int view);
-    virtual void Read(istream* in) override;        // 1: 0x4d3070
-    virtual void Write(ostream* out) override;      // 2: 0x4d6ca0
+    void Read(istream* in) override;        // 1: 0x4d3070
+    void Write(ostream* out) override;      // 2: 0x4d6ca0
     aitask::FamilyFields Fields();
 
     AiRankedSelector m_selector;  // +0x40
@@ -157,8 +157,8 @@ public:
 class AiTask3 : public AiFacilityTaskBase {
 public:
     explicit AiTask3(int view);                     // 0x4d6b20
-    virtual ~AiTask3();                             // 0: 0x4d6b00 (deleting), 0x4d6c00
-    virtual OrderBase* Step() override;             // 5: 0x4d6d30
+    ~AiTask3() override;                             // 0: 0x4d6b00 (deleting), 0x4d6c00
+    OrderBase* Step() override;             // 5: 0x4d6d30
 
     OrderBase* StepA();                             // 0x4d6da0 (stage 0x3ed)
     OrderBase* StepB();                             // 0x4d6e70 (stage 0x3ee)
@@ -192,8 +192,8 @@ public:
 class AiTask7 : public AiFacilityTaskBase {
 public:
     explicit AiTask7(int view);                     // 0x4d2ef0
-    virtual ~AiTask7();                             // 0: 0x4d2ed0 (deleting), 0x4d2fd0
-    virtual OrderBase* Step() override;             // 5: 0x4d3100
+    ~AiTask7() override;                             // 0: 0x4d2ed0 (deleting), 0x4d2fd0
+    OrderBase* Step() override;             // 5: 0x4d3100
 
     OrderBase* StepSquadrons();                     // 0x4d3170 (stage 0x3f1)
     OrderBase* StepShips();                         // 0x4d3220 (stage 0x3f2)
@@ -230,10 +230,10 @@ public:
 class AiTask11 : public AiStagedTask {
 public:
     explicit AiTask11(int view);                    // 0x4c8820
-    virtual ~AiTask11();                            // 0: 0x4c8800 (deleting), 0x4c8900
-    virtual void Read(istream* in) override;        // 1: 0x4c89b0
-    virtual void Write(ostream* out) override;      // 2: 0x4c8a70
-    virtual OrderBase* Step() override;             // 5: 0x4c8b30
+    ~AiTask11() override;                            // 0: 0x4c8800 (deleting), 0x4c8900
+    void Read(istream* in) override;        // 1: 0x4c89b0
+    void Write(ostream* out) override;      // 2: 0x4c8a70
+    OrderBase* Step() override;             // 5: 0x4c8b30
 
     OrderBase* StepFleets();                        // 0x4c8ba0 (stage 0x3f8)
     OrderBase* StepClasses();                       // 0x4c8c20 (stage 0x3f9)
@@ -283,10 +283,10 @@ public:
 class AiTask6 : public AiStagedTask {
 public:
     explicit AiTask6(int view);                     // 0x4dd460
-    virtual ~AiTask6();                             // 0: 0x4dd440 (deleting), 0x4dd550
-    virtual void Read(istream* in) override;        // 1: 0x4dd600
-    virtual void Write(ostream* out) override;      // 2: 0x4dd6d0
-    virtual OrderBase* Step() override;             // 5: 0x4dd7a0
+    ~AiTask6() override;                             // 0: 0x4dd440 (deleting), 0x4dd550
+    void Read(istream* in) override;        // 1: 0x4dd600
+    void Write(ostream* out) override;      // 2: 0x4dd6d0
+    OrderBase* Step() override;             // 5: 0x4dd7a0
 
     OrderBase* StepMoves();                         // 0x4dd840 (stage 0x3ef)
     OrderBase* StepClasses();                       // 0x4dd8d0 (stage 0x3f0)
@@ -343,10 +343,10 @@ public:
 class AiTask1 : public AiStagedTask {
 public:
     explicit AiTask1(int view);                     // 0x4da950
-    virtual ~AiTask1();                             // 0: 0x4da930 (deleting), 0x4daa20
-    virtual void Read(istream* in) override;        // 1: 0x4daac0
-    virtual void Write(ostream* out) override;      // 2: 0x4dab50
-    virtual OrderBase* Step() override;             // 5: 0x4dabe0
+    ~AiTask1() override;                             // 0: 0x4da930 (deleting), 0x4daa20
+    void Read(istream* in) override;        // 1: 0x4daac0
+    void Write(ostream* out) override;      // 2: 0x4dab50
+    OrderBase* Step() override;             // 5: 0x4dabe0
 
     int ChooseTarget();                             // 0x4daca0
     int PickSystem();                               // 0x4daf10
@@ -383,10 +383,10 @@ public:
 class AiTask2 : public AiStagedTask {
 public:
     explicit AiTask2(int view);                     // 0x4e1e50
-    virtual ~AiTask2();                             // 0: 0x4e1e30 (deleting), 0x4e1f30
-    virtual void Read(istream* in) override;        // 1: 0x4e1fe0
-    virtual void Write(ostream* out) override;      // 2: 0x4e2080
-    virtual OrderBase* Step() override;             // 5: 0x4e2120
+    ~AiTask2() override;                             // 0: 0x4e1e30 (deleting), 0x4e1f30
+    void Read(istream* in) override;        // 1: 0x4e1fe0
+    void Write(ostream* out) override;      // 2: 0x4e2080
+    OrderBase* Step() override;             // 5: 0x4e2120
 
     int ChooseManager();                            // 0x4e21d0
     OrderBase* StepFacilities();                    // 0x4e2400 (stage 0x3ec)
@@ -428,10 +428,10 @@ public:
 class AiTask8 : public AiStagedTask {
 public:
     explicit AiTask8(int view);                     // 0x4cf410
-    virtual ~AiTask8();                             // 0: 0x4cf3f0 (deleting), 0x4cf470
-    virtual void Read(istream* in) override;        // 1: 0x4cf4c0
-    virtual void Write(ostream* out) override;      // 2: 0x4cf560
-    virtual OrderBase* Step() override;             // 5: 0x4cf600
+    ~AiTask8() override;                             // 0: 0x4cf3f0 (deleting), 0x4cf470
+    void Read(istream* in) override;        // 1: 0x4cf4c0
+    void Write(ostream* out) override;      // 2: 0x4cf560
+    OrderBase* Step() override;             // 5: 0x4cf600
 
     OrderBase* StepRun();                           // 0x4cf630
     void PrepareRecords();                          // 0x4cf700: adds or removes a record when the side's demand changed
@@ -450,10 +450,10 @@ public:
 class AiTask9 : public AiStagedTask {
 public:
     explicit AiTask9(int view);                     // 0x4cf0a0
-    virtual ~AiTask9();                             // 0: 0x4cf080 (deleting), 0x4cf100
-    virtual void Read(istream* in) override;        // 1: 0x4cf150
-    virtual void Write(ostream* out) override;      // 2: 0x4cf1f0
-    virtual OrderBase* Step() override;             // 5: 0x4cf290
+    ~AiTask9() override;                             // 0: 0x4cf080 (deleting), 0x4cf100
+    void Read(istream* in) override;        // 1: 0x4cf150
+    void Write(ostream* out) override;      // 2: 0x4cf1f0
+    OrderBase* Step() override;             // 5: 0x4cf290
 
     OrderBase* StepRun();                           // 0x4cf2c0
     int NextRecord();                               // 0x4cf350: 1 if there is a record to handle
@@ -472,10 +472,10 @@ public:
 class AiTask4 : public AiStagedTask {
 public:
     explicit AiTask4(int view);                     // 0x4d2220
-    virtual ~AiTask4();                             // 0: 0x4d2200 (deleting), 0x4d2290
-    virtual void Read(istream* in) override;        // 1: 0x4d22e0
-    virtual void Write(ostream* out) override;      // 2: 0x4d23a0
-    virtual OrderBase* Step() override;             // 5: 0x4d2460
+    ~AiTask4() override;                             // 0: 0x4d2200 (deleting), 0x4d2290
+    void Read(istream* in) override;        // 1: 0x4d22e0
+    void Write(ostream* out) override;      // 2: 0x4d23a0
+    OrderBase* Step() override;             // 5: 0x4d2460
 
     OrderBase* StepRun();                           // 0x4d2490
     int PrepareSidePlanner();                       // 0x4d2580: 1 if a planner of the side was created
@@ -498,10 +498,10 @@ public:
 class AiTask12 : public AiStagedTask {
 public:
     explicit AiTask12(int view);                    // 0x4c8260
-    virtual ~AiTask12();                            // 0: 0x4c8240 (deleting), 0x4c82d0
-    virtual void Read(istream* in) override;        // 1: 0x4c8320
-    virtual void Write(ostream* out) override;      // 2: 0x4c83e0
-    virtual OrderBase* Step() override;             // 5: 0x4c84a0
+    ~AiTask12() override;                            // 0: 0x4c8240 (deleting), 0x4c82d0
+    void Read(istream* in) override;        // 1: 0x4c8320
+    void Write(ostream* out) override;      // 2: 0x4c83e0
+    OrderBase* Step() override;             // 5: 0x4c84a0
 
     OrderBase* StepRun();                           // 0x4c84d0
     int PrepareSideAgent();                         // 0x4c85b0: 1 if an agent of the side was created
@@ -524,10 +524,10 @@ public:
 class AiTask13 : public AiStagedTask {
 public:
     explicit AiTask13(int view);                    // 0x4bf0d0
-    virtual ~AiTask13();                            // 0: 0x4bf0b0 (deleting), 0x4bf160
-    virtual void Read(istream* in) override;        // 1: 0x4bf1f0
-    virtual void Write(ostream* out) override;      // 2: 0x4bf280
-    virtual OrderBase* Step() override;             // 5: 0x4bf320
+    ~AiTask13() override;                            // 0: 0x4bf0b0 (deleting), 0x4bf160
+    void Read(istream* in) override;        // 1: 0x4bf1f0
+    void Write(ostream* out) override;      // 2: 0x4bf280
+    OrderBase* Step() override;             // 5: 0x4bf320
 
     // Passes the other side's vote to the plan's evaluator, which puts the chance of accepting it into *chance.
     void ForwardVote(const ObjectKey* key, GameTime* chance);  // 0x4bf300
@@ -557,12 +557,12 @@ public:
 class AiTask14 : public AiTaskBase {
 public:
     explicit AiTask14(int view);                    // 0x4d2810
-    virtual ~AiTask14();                            // 0: 0x4d27f0 (deleting), 0x4d2880
-    virtual void Read(istream* in) override;        // 1: 0x4d28d0
-    virtual void Write(ostream* out) override;      // 2: 0x4d2920
-    virtual void Evaluate() override;               // 4: 0x4d2970
-    virtual OrderBase* Step() override;             // 5: 0x4d29b0
-    virtual void Refused(int* result, OrderBase* order) override;  // 6: 0x4d2b10
+    ~AiTask14() override;                            // 0: 0x4d27f0 (deleting), 0x4d2880
+    void Read(istream* in) override;        // 1: 0x4d28d0
+    void Write(ostream* out) override;      // 2: 0x4d2920
+    void Evaluate() override;               // 4: 0x4d2970
+    OrderBase* Step() override;             // 5: 0x4d29b0
+    void Refused(int* result, OrderBase* order) override;  // 6: 0x4d2b10
 
     // The message about one ship: the next unused text of the kind that matches the ship's flags (or the ship's name).
     OrderBase* BuildMessage(AiShipRecord* record);  // 0x4d2b30

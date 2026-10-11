@@ -9,18 +9,18 @@
 class Mission42 : public MissionTypeBase {
 public:
     Mission42();           // 0x56a870
-    virtual ~Mission42();  // 0x56a890 (deleting), 0x56a8b0
+    ~Mission42() override;  // 0x56a890 (deleting), 0x56a8b0
 
-    virtual uint32_t GetFamily() override;                                      // 1, 0x56aa20: 0x42
-    virtual int Read(istream* in) override;                                     // 5, shared 0x56da40
-    virtual int Write(ostream* out) override;                                   // 6, shared 0x56ebb0
-    virtual int Checksum(Crc32* crc) override;                                  // 7, shared 0x56da70
-    virtual int Validate() override;                                            // 8, shared 0x56cc40
-    virtual int ApplyAll(NotifyContext* ctx) override;                          // 9, shared 0x576980
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x56a8d0
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x56a8f0
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x5761b0
-    virtual GameObj* CreateViewObject() override;                               // 57, 0x56a9b0
+    uint32_t GetFamily() override;                                      // 1, 0x56aa20: 0x42
+    int Read(istream* in) override;                                     // 5, shared 0x56da40
+    int Write(ostream* out) override;                                   // 6, shared 0x56ebb0
+    int Checksum(Crc32* crc) override;                                  // 7, shared 0x56da70
+    int Validate() override;                                            // 8, shared 0x56cc40
+    int ApplyAll(NotifyContext* ctx) override;                          // 9, shared 0x576980
+    int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x56a8d0
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x56a8f0
+    int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x5761b0
+    GameObj* CreateViewObject() override;                               // 57, 0x56a9b0
 
     int ReadImpl(istream* in);     // 0x56aaa0
     int ChecksumImpl(Crc32* crc);  // 0x56aab0

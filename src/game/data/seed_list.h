@@ -23,9 +23,9 @@ class SeedList : public TableBase {
 public:
     SeedList();
     virtual ~SeedList();
-    virtual int Read(istream* in) override;
-    virtual int Write(ostream* out) override;
-    virtual int ParseText(istream* in) override;
+    int Read(istream* in) override;
+    int Write(ostream* out) override;
+    int ParseText(istream* in) override;
     virtual int Checksum(Crc32* crc);
 
     // Adds a record to the list (nothing for null).
@@ -39,7 +39,7 @@ public:
 class SeedListFile : public IdNode {
 public:
     SeedListFile();
-    virtual ~SeedListFile();
+    ~SeedListFile() override;
 
     // Reads the list from the file `<resource string firstId><resource string secondId>`; see TableBase::Open.
     int Load(uint16_t firstId, uint16_t secondId);
@@ -52,7 +52,7 @@ public:
 class SeedListFileTree : public IdAvlTree {
 public:
     SeedListFileTree();
-    virtual ~SeedListFileTree();
+    ~SeedListFileTree() override;
 
     // The file whose family range contains `family` (the top byte of a record key), or null.
     SeedListFile* FindByFamily(uint32_t family);
@@ -64,7 +64,7 @@ public:
 class RecordNameNode : public IdNode {
 public:
     RecordNameNode();
-    virtual ~RecordNameNode();
+    ~RecordNameNode() override;
 
     // Takes the key and the name (resource string id at +0x30) of `record`. Returns whether the name is valid.
     int SetFromRecord(DatRecord* record);
@@ -80,7 +80,7 @@ public:
     SeedKeyCountNode();
     explicit SeedKeyCountNode(const SeedKey& key);
     SeedKeyCountNode(const SeedKeyCountNode& other);
-    virtual ~SeedKeyCountNode();
+    ~SeedKeyCountNode() override;
     virtual SeedKeyCountNode* Clone();
     virtual void Load(istream* in);
     virtual void Read(istream* in);

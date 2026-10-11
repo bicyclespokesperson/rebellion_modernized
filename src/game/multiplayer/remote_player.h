@@ -17,31 +17,31 @@ class RemotePlayer : public PlayerController {
 public:
     RemotePlayer();                   // 0x484df0
     explicit RemotePlayer(int side);  // 0x484e70
-    virtual ~RemotePlayer();          // 0x484ed0 (scalar deleting destructor 0x484e50)
+    ~RemotePlayer() override;          // 0x484ed0 (scalar deleting destructor 0x484e50)
 
-    virtual void Read(istream* in) override;    // 1: 0x484f20
-    virtual void Write(ostream* out) override;  // 2: 0x484f60
-    virtual int GetKind() override { return kPlayerRemote; }  // 3, shared 0x4e8740
+    void Read(istream* in) override;    // 1: 0x484f20
+    void Write(ostream* out) override;  // 2: 0x484f60
+    int GetKind() override { return kPlayerRemote; }  // 3, shared 0x4e8740
     // Forgets the announced votes.
-    virtual int Virtual04() override;                          // 4: 0x484fa0
+    int Virtual04() override;                          // 4: 0x484fa0
     // The other player sent `message`: remember its sync point, then queue it and acknowledge it.
-    virtual void Virtual07(PlayerMessage* message) override;   // 7: 0x484fb0
+    void Virtual07(PlayerMessage* message) override;   // 7: 0x484fb0
     // Sends one of our messages to the other player; 0 for the messages that went out.
-    virtual int Virtual08(PlayerMessage* message) override;    // 8: 0x485000
-    virtual int Virtual09() override { return 1; }             // 9, shared 0x40f340
+    int Virtual08(PlayerMessage* message) override;    // 8: 0x485000
+    int Virtual09() override { return 1; }             // 9, shared 0x40f340
     // Takes one message from the network and acts on it.
-    virtual void Virtual10() override;                         // 10: 0x485030
-    virtual int Virtual12(unsigned syncId) override;           // 12: 0x485370
-    virtual int Virtual15(int* outId, ObjectKey* outKey, GameTime* outTime) override;  // 15: 0x485180
-    virtual int Virtual16(int* outId, ObjectKey* outKey) override;                     // 16: 0x485250
-    virtual void Virtual17(int id, ObjectKey* key) override;                           // 17: 0x485120
-    virtual void Virtual18(int id, ObjectKey* key, int state, GameTime* time) override;  // 18: 0x485150
-    virtual void Virtual19(int id, ObjectKey* key) override;                           // 19: 0x485300
-    virtual void Virtual20(NotifPayload* notice) override;                             // 20: 0x485340
-    virtual void Virtual87(const ObjectKey* key, StringWords name) override;  // 87: 0x485360
-    virtual void Virtual93(unsigned target) override;                                  // 93: 0x4853a0
-    virtual void Virtual94(int side) override;                                         // 94: 0x4853f0
-    virtual void Virtual95() override {}                                               // 95, shared 0x619730 (no vote counting)
+    void Virtual10() override;                         // 10: 0x485030
+    int Virtual12(unsigned syncId) override;           // 12: 0x485370
+    int Virtual15(int* outId, ObjectKey* outKey, GameTime* outTime) override;  // 15: 0x485180
+    int Virtual16(int* outId, ObjectKey* outKey) override;                     // 16: 0x485250
+    void Virtual17(int id, ObjectKey* key) override;                           // 17: 0x485120
+    void Virtual18(int id, ObjectKey* key, int state, GameTime* time) override;  // 18: 0x485150
+    void Virtual19(int id, ObjectKey* key) override;                           // 19: 0x485300
+    void Virtual20(NotifPayload* notice) override;                             // 20: 0x485340
+    void Virtual87(const ObjectKey* key, StringWords name) override;  // 87: 0x485360
+    void Virtual93(unsigned target) override;                                  // 93: 0x4853a0
+    void Virtual94(int side) override;                                         // 94: 0x4853f0
+    void Virtual95() override {}                                               // 95, shared 0x619730 (no vote counting)
 
     // Hands a message that is not a vote or sync message to the UI.
     void RouteMessage(MessageBase* message);  // 0x485440

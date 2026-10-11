@@ -14,8 +14,8 @@ class Crc32;
 class KeyQueueNode : public LinkNode {
 public:
     KeyQueueNode();
-    virtual ~KeyQueueNode();
-    virtual void Read(istream* in) override;
+    ~KeyQueueNode() override;
+    void Read(istream* in) override;
 
     // Calls the virtual Write (a no-op in LinkNode), then writes flag, key and value.
     void WriteFields(ostream* out);
@@ -31,7 +31,7 @@ public:
 class KeyQueue : public NodeQueue {
 public:
     KeyQueue();
-    virtual ~KeyQueue();
+    ~KeyQueue() override;
 
     // Number of queued entries with the same key and value as `probe`.
     int CountMatching(KeyQueueNode* probe);
@@ -49,11 +49,11 @@ class ObjectKeyPairSet : public ObjectKeySet {
 public:
     ObjectKeyPairSet();
     explicit ObjectKeyPairSet(const ObjectKeyPairSet& other);
-    virtual ~ObjectKeyPairSet();
-    virtual ObjectKeyNode* NewNode() override;
-    virtual void Read(istream* in) override;
-    virtual void Write(ostream* out) override;
-    virtual int Checksum(Crc32* crc) override;
+    ~ObjectKeyPairSet() override;
+    ObjectKeyNode* NewNode() override;
+    void Read(istream* in) override;
+    void Write(ostream* out) override;
+    int Checksum(Crc32* crc) override;
 
     int AddPair(const ObjectKey* key, const ObjectKey* second);
 };

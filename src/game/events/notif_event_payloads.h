@@ -15,7 +15,7 @@
 class KeyPairPayload : public KeyedNotifPayload {
 public:
     KeyPairPayload();           // 0x539290
-    virtual ~KeyPairPayload();  // 0x5392f0 (deleting), 0x539310
+    ~KeyPairPayload() override;  // 0x5392f0 (deleting), 0x539310
 
     ObjectKey m_keyA;  // +0x24
     ObjectKey m_keyB;  // +0x28
@@ -25,7 +25,7 @@ public:
 class IntPairPayload : public KeyedNotifPayload {
 public:
     IntPairPayload();           // 0x539370
-    virtual ~IntPairPayload();  // 0x539390 (deleting), 0x5393b0
+    ~IntPairPayload() override;  // 0x539390 (deleting), 0x5393b0
 
     int ReadPayload(istream* in);    // 0x5393c0
     int WritePayload(ostream* out);  // 0x539400
@@ -38,7 +38,7 @@ public:
 class IntQuadPayload : public KeyedNotifPayload {
 public:
     IntQuadPayload();           // 0x539440
-    virtual ~IntQuadPayload();  // 0x539460 (deleting), 0x539480
+    ~IntQuadPayload() override;  // 0x539460 (deleting), 0x539480
 
     int ReadPayload(istream* in);    // 0x539490
     int WritePayload(ostream* out);  // 0x5394f0
@@ -53,7 +53,7 @@ public:
 class StringPairPayload : public KeyedNotifPayload {
 public:
     StringPairPayload();           // 0x539550
-    virtual ~StringPairPayload();  // 0x5395b0 (deleting), 0x5395d0
+    ~StringPairPayload() override;  // 0x5395b0 (deleting), 0x5395d0
 
     int ReadPayload(istream* in);    // 0x539630
     int WritePayload(ostream* out);  // 0x539660
@@ -66,7 +66,7 @@ public:
 class NullableKeyPairPayload : public KeyedNotifPayload {
 public:
     NullableKeyPairPayload();           // 0x539690
-    virtual ~NullableKeyPairPayload();  // 0x5396f0 (deleting), 0x539710
+    ~NullableKeyPairPayload() override;  // 0x5396f0 (deleting), 0x539710
 
     int ReadPayload(istream* in);    // 0x539770
     int WritePayload(ostream* out);  // 0x5397a0

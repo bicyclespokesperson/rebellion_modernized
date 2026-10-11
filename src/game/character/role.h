@@ -58,36 +58,36 @@ public:
 class Role : public UnitObjBase {
 public:
     Role();                                                           // 0x5336b0
-    virtual ~Role();                                                  // 0x533750 (deleting), 0x533770
+    ~Role() override;                                                  // 0x533750 (deleting), 0x533770
 
     // ---- overrides of GameObj / UnitObjBase slots ----
-    virtual int GetTransitSpeed(int arg) override;                                                 // 13, 0x5338a0
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;                             // 15, 0x5338b0
-    virtual int IsObservable() override { return 0; }                                              // 19
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                        // 22, 0x5338d0
-    virtual int CheckRequestImpl(const ActivityRequest* request, StatusCode* out) override;        // 23, 0x533990
-    virtual int CheckRenameImpl(const ActivityRequest* request, StatusCode* out) override;                                  // 25, 0x533a00
-    virtual int CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) override;                                 // 27, 0x533a70
-    virtual int CheckUnknown(const ActivityRequest* request, StatusCode* out) override;                                     // 28, 0x533ae0
-    virtual int Virtual47(intptr_t a) override;                                                         // 47, 0x534a50
-    virtual int Virtual48(intptr_t a) override;                                                         // 48, 0x534a50
+    int GetTransitSpeed(int arg) override;                                                 // 13, 0x5338a0
+    int GetEventKinds(int unused, EventKindSet* out) override;                             // 15, 0x5338b0
+    int IsObservable() override { return 0; }                                              // 19
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;                        // 22, 0x5338d0
+    int CheckRequestImpl(const ActivityRequest* request, StatusCode* out) override;        // 23, 0x533990
+    int CheckRenameImpl(const ActivityRequest* request, StatusCode* out) override;                                  // 25, 0x533a00
+    int CheckUnknownImpl(const ActivityRequest* request, StatusCode* out) override;                                 // 27, 0x533a70
+    int CheckUnknown(const ActivityRequest* request, StatusCode* out) override;                                     // 28, 0x533ae0
+    int Virtual47(intptr_t a) override;                                                         // 47, 0x534a50
+    int Virtual48(intptr_t a) override;                                                         // 48, 0x534a50
     // `a` is really the NotifyContext*: clears the master's MissionKey, then re-applies it to both side views.
-    virtual int Virtual55(intptr_t a) override;                                                         // 55, 0x534a60
-    virtual GameObjData* CreateData() override;                                                    // 58, 0x536cc0
-    virtual int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x536070
-    virtual int OnUsableChanged(int newValue, NotifyContext* ctx) override;                        // 68, 0x536050
-    virtual int OnCreatedChanged(int newValue, NotifyContext* ctx) override;                       // 69, 0x535e40
-    virtual int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;                     // 71, 0x536110
-    virtual int OnEnrouteChanged(int newValue, NotifyContext* ctx) override;                       // 72, 0x5361e0
-    virtual int OnAutoroutingChanged(int newValue, NotifyContext* ctx) override;                   // 79, 0x536200
-    virtual int OnEnrouteActiveNotified(int value, NotifyContext* ctx) override;                   // 99, 0x5365b0
+    int Virtual55(intptr_t a) override;                                                         // 55, 0x534a60
+    GameObjData* CreateData() override;                                                    // 58, 0x536cc0
+    int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x536070
+    int OnUsableChanged(int newValue, NotifyContext* ctx) override;                        // 68, 0x536050
+    int OnCreatedChanged(int newValue, NotifyContext* ctx) override;                       // 69, 0x535e40
+    int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;                     // 71, 0x536110
+    int OnEnrouteChanged(int newValue, NotifyContext* ctx) override;                       // 72, 0x5361e0
+    int OnAutoroutingChanged(int newValue, NotifyContext* ctx) override;                   // 79, 0x536200
+    int OnEnrouteActiveNotified(int value, NotifyContext* ctx) override;                   // 99, 0x5365b0
 
     // ---- the persistence/validation entry points: pure here, with bodies the leaf classes call qualified ----
-    virtual int Read(istream* in) override = 0;                   // 5, body 0x534c60
-    virtual int Write(ostream* out) override = 0;                 // 6, body 0x534d20
-    virtual int Checksum(Crc32* crc) override = 0;                // 7, body 0x534ed0
-    virtual int Validate() override = 0;                          // 8, body 0x534fa0
-    virtual int ApplyAll(NotifyContext* ctx) override = 0;        // 9, body 0x534de0
+    int Read(istream* in) override = 0;                   // 5, body 0x534c60
+    int Write(ostream* out) override = 0;                 // 6, body 0x534d20
+    int Checksum(Crc32* crc) override = 0;                // 7, body 0x534ed0
+    int Validate() override = 0;                          // 8, body 0x534fa0
+    int ApplyAll(NotifyContext* ctx) override = 0;        // 9, body 0x534de0
 
 
     // ---- new non-property virtuals (slots 112-134) ----
@@ -271,5 +271,5 @@ class RoleIterator : public ChildIterator {
 public:
     RoleIterator(GameObjNotifier* parent, uint32_t stateFilter);                 // 0x536da0
     RoleIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x536e20
-    virtual ~RoleIterator();                                                     // 0x536d80 (deleting), 0x536ea0
+    ~RoleIterator() override;                                                     // 0x536d80 (deleting), 0x536ea0
 };

@@ -6,8 +6,8 @@
 class VisibleItemList : public CoolListItemList {
 public:
     explicit VisibleItemList(int sortMode) : CoolListItemList(sortMode) {}
-    virtual ~VisibleItemList();                  // 0x466320 (scalar deleting destructor 0x466300)
-    virtual CoolListItem* First() override;      // slot 2, 0x466330
+    ~VisibleItemList() override;                  // 0x466320 (scalar deleting destructor 0x466300)
+    CoolListItem* First() override;      // slot 2, 0x466330
 };
 
 // Makes every row visible again (the rows' Next/Previous skip invisible ones) and removes them all.

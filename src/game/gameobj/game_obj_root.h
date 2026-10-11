@@ -28,7 +28,7 @@ class Crc32;
 class GameObjRoot : public IdNode {
 public:
     GameObjRoot();
-    virtual ~GameObjRoot();
+    ~GameObjRoot() override;
     // Family: top byte of the object's key (object_family.h).
     virtual uint32_t GetFamily() = 0;
     virtual int IncludeInChecksum() = 0;
@@ -83,7 +83,7 @@ public:
 class GameObjNotifier : public GameObjRoot {
 public:
     GameObjNotifier();
-    virtual ~GameObjNotifier();
+    ~GameObjNotifier() override;
     // Applies every property of the master to this side view (GameObj 0x4f9540).
     virtual int ApplyAll(NotifyContext* ctx) = 0;
     // 1 if the record was stored (a null record or one of this object's family), as AssignRecord says.

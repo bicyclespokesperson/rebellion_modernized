@@ -22,7 +22,7 @@ class CoolListItem : public LinkNode {
 public:
     explicit CoolListItem(uint32_t id);            // 0x60ba00
     CoolListItem(const CoolListItem& other);       // 0x60bac0: deep copy (images are duplicated)
-    virtual ~CoolListItem();                       // 0x60bc60 (scalar deleting destructor 0x60baa0)
+    ~CoolListItem() override;                       // 0x60bc60 (scalar deleting destructor 0x60baa0)
     virtual CoolListItem* Next();                  // slot 3, 0x60beb0: m_next (linker-folded getter)
     virtual CoolListItem* Previous();              // slot 4, 0x60bec0: m_prev (linker-folded getter)
 

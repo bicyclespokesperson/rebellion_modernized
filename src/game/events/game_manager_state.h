@@ -76,7 +76,7 @@ public:
 class PostedEventQueue : public NodeQueue {
 public:
     PostedEventQueue();           // 0x568840
-    virtual ~PostedEventQueue();  // 0x568880 (scalar deleting destructor 0x568860)
+    ~PostedEventQueue() override;  // 0x568880 (scalar deleting destructor 0x568860)
 
     int Read(istream* in);    // 0x5688d0
     int Write(ostream* out);  // 0x568980
@@ -90,9 +90,9 @@ public:
 class TickTable : public AvlTree {
 public:
     TickTable();           // 0x568b40
-    virtual ~TickTable();  // 0x568b80 (scalar deleting destructor 0x568b60)
+    ~TickTable() override;  // 0x568b80 (scalar deleting destructor 0x568b60)
 
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;  // 2: 0x568f00, false if either is null
+    int IsLess(AvlNode* a, AvlNode* b) override;  // 2: 0x568f00, false if either is null
     virtual int Read(istream* in);        // 3: 0x568d40, forwards to ReadNodes
     virtual int ReadNodes(istream* in);   // 4: 0x568bd0, clears the table first
     virtual int Write(ostream* out);      // 5: 0x586290 (shared with TimerEvent::CheckValid), forwards to WriteNodes

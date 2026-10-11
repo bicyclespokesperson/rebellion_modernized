@@ -23,12 +23,12 @@ public:
     CoolSelectionBox(HINSTANCE instance, CoolWindow* parent, int x, int y, int width, int height, int visibleRows,
                      CoolListItemList* items, DibBitmap* backdrop, uint16_t buttonBitmapId, uint16_t buttonPressedBitmapId,
                      uint16_t scrollResourceSlot, uint16_t scrollResourceId, int sortMode);  // 0x60bed0
-    virtual ~CoolSelectionBox();  // 0x60c120 (scalar deleting destructor 0x60c100)
+    ~CoolSelectionBox() override;  // 0x60c120 (scalar deleting destructor 0x60c100)
 
     // Slot 5. WM_CREATE adds the button (child 1000); WM_PAINT draws the current item; key presses go to the
     // parent except key releases the box uses (HandleKeyUp); WM_COMMAND 1000/0x3ea opens and 0x3e9 closes the
     // drop-down; 0x405 from the drop-down closes it unless the window that took the capture is one of ours.
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60c210
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60c210
 
     void PressButton();                    // 0x60c1f0: posts the button's WM_COMMAND (opens the drop-down)
     // Return/Escape close an open drop-down, Up/Down open it or move the selection. 1 if the key was used.
@@ -75,9 +75,9 @@ class CoolSelectionDropDown : public GameWindowObject {
 public:
     CoolSelectionDropDown(HINSTANCE instance, CoolSelectionBox* owner, int x, int y, int width, int height,
                           HPEN borderPen);  // 0x60cc50
-    virtual ~CoolSelectionDropDown();       // 0x60ccf0 (scalar deleting destructor 0x60ccd0)
+    ~CoolSelectionDropDown() override;       // 0x60ccf0 (scalar deleting destructor 0x60ccd0)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60d020
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60d020
 
     void SyncSelection();    // 0x60cd50: selects and shows the owner's current item in the list
     // Makes the background: the screen under the window, shaded or tiled, with a frame.

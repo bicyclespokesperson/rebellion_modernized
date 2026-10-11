@@ -94,22 +94,22 @@ struct MissionTypeCheckEntry {
 class MissionMgr : public GameObj {
 public:
     MissionMgr();           // 0x541fc0
-    virtual ~MissionMgr();  // 0x542040 (deleting), 0x542060
+    ~MissionMgr() override;  // 0x542040 (deleting), 0x542060
 
     // ---- overrides of GameObj slots ----
-    virtual uint32_t GetFamily() override;                                       // 1, 0x549be0: 0xf8
-    virtual int GetOwnerKey(ObjectKey* out) override;                            // 3, shared 0x5214e0: clears *out
-    virtual int Read(istream* in) override;                                      // 5, 0x549b80
-    virtual int Write(ostream* out) override;                                    // 6, 0x549b90
-    virtual int Checksum(Crc32* crc) override;                                   // 7, 0x549bc0
-    virtual int Validate() override;                                             // 8, 0x549bd0 (jump thunk to 0x54a030)
-    virtual int ApplyAll(NotifyContext* ctx) override;                           // 9, 0x549ba0
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;           // 15, 0x543a10
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;      // 22, 0x543a30
-    virtual int UpdateObservedByAlliance(NotifyContext* ctx) override;           // 35, shared 0x5620a0
-    virtual int UpdateObservedByEmpire(NotifyContext* ctx) override;             // 36, shared 0x5620c0
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;       // 37, 0x549b60
-    virtual GameObj* CreateViewObject() override;                                // 57, 0x549af0
+    uint32_t GetFamily() override;                                       // 1, 0x549be0: 0xf8
+    int GetOwnerKey(ObjectKey* out) override;                            // 3, shared 0x5214e0: clears *out
+    int Read(istream* in) override;                                      // 5, 0x549b80
+    int Write(ostream* out) override;                                    // 6, 0x549b90
+    int Checksum(Crc32* crc) override;                                   // 7, 0x549bc0
+    int Validate() override;                                             // 8, 0x549bd0 (jump thunk to 0x54a030)
+    int ApplyAll(NotifyContext* ctx) override;                           // 9, 0x549ba0
+    int GetEventKinds(int unused, EventKindSet* out) override;           // 15, 0x543a10
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;      // 22, 0x543a30
+    int UpdateObservedByAlliance(NotifyContext* ctx) override;           // 35, shared 0x5620a0
+    int UpdateObservedByEmpire(NotifyContext* ctx) override;             // 36, shared 0x5620c0
+    int CreateViews(int controlKind, NotifyContext* ctx) override;       // 37, 0x549b60
+    GameObj* CreateViewObject() override;                                // 57, 0x549af0
 
     // ---- new virtuals ----
     // Creates the mission of `typeKey` for the order `request` (the request's target is the objective): the origin is the

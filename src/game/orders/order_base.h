@@ -21,7 +21,7 @@
 class MessageBase : public IdNode {
 public:
     MessageBase();
-    virtual ~MessageBase();
+    ~MessageBase() override;
     virtual int Read(istream* in) = 0;
     virtual int Write(ostream* out) = 0;
     virtual int GetKind() = 0;
@@ -34,9 +34,9 @@ public:
 class SidedMessage : public MessageBase {
 public:
     SidedMessage();  // 0x4f5c70
-    virtual ~SidedMessage();
-    virtual int Read(istream* in) override = 0;
-    virtual int Write(ostream* out) override = 0;
+    ~SidedMessage() override;
+    int Read(istream* in) override = 0;
+    int Write(ostream* out) override = 0;
 
     virtual int IsListed() { return 1; }               // 4: 0x40f340
     virtual int IsChecked() { return 0; }              // 5: 0x6158b0
@@ -53,14 +53,14 @@ public:
 class OrderBase : public SidedMessage {
 public:
     OrderBase();  // 0x51fa20
-    virtual ~OrderBase();
-    virtual int Read(istream* in) override = 0;    // body 0x520120
-    virtual int Write(ostream* out) override = 0;  // body 0x520170
+    ~OrderBase() override;
+    int Read(istream* in) override = 0;    // body 0x520120
+    int Write(ostream* out) override = 0;  // body 0x520170
 
-    virtual int IsChecked() override;                       // 5: 0x51fd30
-    virtual int CheckEnabled(StatusCode* status) override;  // 6: 0x51fe20
-    virtual int CheckValid(StatusCode* status) override;    // 7: 0x51ff30
-    virtual int Execute(StatusCode* status) override;       // 8: 0x520040
+    int IsChecked() override;                       // 5: 0x51fd30
+    int CheckEnabled(StatusCode* status) override;  // 6: 0x51fe20
+    int CheckValid(StatusCode* status) override;    // 7: 0x51ff30
+    int Execute(StatusCode* status) override;       // 8: 0x520040
 
     virtual void SetTeam(const ObjectKeyValueSet* team);          // 9: 0x51fb70
     virtual ObjectKeyValueSet* GetTeam();                         // 10: 0x51fb80
@@ -90,16 +90,16 @@ public:
 class TextMessage : public OrderBase {
 public:
     TextMessage();  // 0x5203a0
-    virtual ~TextMessage();
-    virtual int Read(istream* in) override = 0;    // body 0x5204f0
-    virtual int Write(ostream* out) override = 0;  // body 0x520520
+    ~TextMessage() override;
+    int Read(istream* in) override = 0;    // body 0x5204f0
+    int Write(ostream* out) override = 0;  // body 0x520520
 
-    virtual int CheckEnabled(StatusCode* status) override;      // 0x520460
-    virtual int CheckValid(StatusCode* status) override;        // 0x520470
-    virtual int Execute(StatusCode* status) override;           // 0x520480
-    virtual Command* CreateCommand() override { return nullptr; }
-    virtual int CheckCommand(StatusCode* status) override;      // 0x520550
-    virtual int CheckDestination(StatusCode* status) override;  // 0x520560
+    int CheckEnabled(StatusCode* status) override;      // 0x520460
+    int CheckValid(StatusCode* status) override;        // 0x520470
+    int Execute(StatusCode* status) override;           // 0x520480
+    Command* CreateCommand() override { return nullptr; }
+    int CheckCommand(StatusCode* status) override;      // 0x520550
+    int CheckDestination(StatusCode* status) override;  // 0x520560
 
     String m_text;  // +0x44
 };

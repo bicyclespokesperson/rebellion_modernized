@@ -21,7 +21,7 @@ struct ResourceStringId;
 class HwndNode : public AvlNode {
 public:
     explicit HwndNode(HWND hwnd);  // 0x60f180
-    virtual ~HwndNode();           // 0x60f1d0
+    ~HwndNode() override;           // 0x60f1d0
 
     HWND m_hwnd;           // +0x18
     CoolWindow* m_window;  // +0x1c
@@ -31,8 +31,8 @@ public:
 class HwndTree : public AvlTree {
 public:
     HwndTree();           // 0x60f020
-    virtual ~HwndTree();  // 0x60f060
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;
+    ~HwndTree() override;  // 0x60f060
+    int IsLess(AvlNode* a, AvlNode* b) override;
 
     HwndNode* FindByHwnd(HWND hwnd);    // 0x60f070
     void RemoveAndDelete(HWND hwnd);    // 0x60f0b0
@@ -42,7 +42,7 @@ public:
 class PopupEntry : public LinkNode {
 public:
     explicit PopupEntry(HwndNode* node);  // 0x60f100
-    virtual ~PopupEntry();                // 0x60f120
+    ~PopupEntry() override;                // 0x60f120
 
     HwndNode* m_node;  // +0x0c
 };
@@ -51,8 +51,8 @@ public:
 class ChildWindowTree : public AvlTree {
 public:
     ChildWindowTree();           // 0x604490
-    virtual ~ChildWindowTree();  // 0x6044d0
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;  // 0x6044e0
+    ~ChildWindowTree() override;  // 0x6044d0
+    int IsLess(AvlNode* a, AvlNode* b) override;  // 0x6044e0
 
     CoolWindow* FindById(uint32_t id);   // 0x604500
     CoolWindow* FindByHwnd(HWND hwnd);   // 0x604540
@@ -62,7 +62,7 @@ public:
 class IdAvlTreeElement : public IdAvlTree {
 public:
     IdAvlTreeElement();           // 0x5fef50
-    virtual ~IdAvlTreeElement();  // 0x5fef70
+    ~IdAvlTreeElement() override;  // 0x5fef70
 };
 
 // ---- CoolWindow -------------------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ public:
     CoolWindow(HINSTANCE instance, const char* className, uint32_t style, int x, int y, int width, int height,
                CoolWindow* parent, const char* windowName, HBRUSH background, HICON icon, HCURSOR cursor,
                HMENU menu, uint32_t unknown58, uint32_t flags);  // 0x5ff910
-    virtual ~CoolWindow();  // 0x5ffb60 (scalar deleting destructor 0x5ffb40)
+    ~CoolWindow() override;  // 0x5ffb60 (scalar deleting destructor 0x5ffb40)
 
     virtual void Show(int command);                                          // slot 1, 0x5ffe40: ShowWindow
     virtual void Hide();                                                     // slot 2, 0x405490: Show(0)

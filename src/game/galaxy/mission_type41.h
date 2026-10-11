@@ -9,18 +9,18 @@
 class Mission41 : public MissionTypeBase {
 public:
     Mission41();           // 0x56ea00
-    virtual ~Mission41();  // 0x56ea20 (deleting), 0x56ea40
+    ~Mission41() override;  // 0x56ea20 (deleting), 0x56ea40
 
-    virtual uint32_t GetFamily() override;                                      // 1, 0x56ebc0: 0x41
-    virtual int Read(istream* in) override;                                     // 5, shared 0x56da40
-    virtual int Write(ostream* out) override;                                   // 6, shared 0x56ebb0
-    virtual int Checksum(Crc32* crc) override;                                  // 7, shared 0x56da70
-    virtual int Validate() override;                                            // 8, shared 0x56cc40
-    virtual int ApplyAll(NotifyContext* ctx) override;                          // 9, shared 0x576980
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x56ea60
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x56ea80
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x5761b0
-    virtual GameObj* CreateViewObject() override;                               // 57, 0x56eb40
+    uint32_t GetFamily() override;                                      // 1, 0x56ebc0: 0x41
+    int Read(istream* in) override;                                     // 5, shared 0x56da40
+    int Write(ostream* out) override;                                   // 6, shared 0x56ebb0
+    int Checksum(Crc32* crc) override;                                  // 7, shared 0x56da70
+    int Validate() override;                                            // 8, shared 0x56cc40
+    int ApplyAll(NotifyContext* ctx) override;                          // 9, shared 0x576980
+    int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x56ea60
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x56ea80
+    int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x5761b0
+    GameObj* CreateViewObject() override;                               // 57, 0x56eb40
 
     static int BuildEventKinds();      // 0x56ec60, g_mission41EventKinds at 0x6bb9b8
     static GameObjNotifier* Create();  // 0x56ebd0, the object factory of family 0x41

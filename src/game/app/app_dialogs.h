@@ -13,14 +13,14 @@ public:
     AppDialog(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t stringSlot,
               uint32_t bitmapSlot, uint32_t backgroundId, uint32_t childId, uint32_t style, uint32_t flags,
               uint32_t message, uint32_t headlineId, uint32_t detailId);  // 0x416b90
-    virtual ~AppDialog();  // 0x416c30 (scalar deleting destructor 0x416c10): clears g_appDialogMessage
+    ~AppDialog() override;  // 0x416c30 (scalar deleting destructor 0x416c10): clears g_appDialogMessage
 
-    virtual void OnCreate1() override;                           // slot 14, 0x416dd0: FocusAndRemember
-    virtual void OnCreate2() override;                           // slot 15, 0x416de0: draws the texts
-    virtual void OnCreate3() override;                           // slot 16, 0x416e90: the Yes and No buttons
-    virtual void OnCommand(int a, int b, int c) override;        // slot 18, 0x416ef0: Yes 0x65 / No 0x66
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x416f30: Return accepts, Escape rejects
-    virtual int Virtual14() override;                            // slot 20, 0x416f60: m_enabled
+    void OnCreate1() override;                           // slot 14, 0x416dd0: FocusAndRemember
+    void OnCreate2() override;                           // slot 15, 0x416de0: draws the texts
+    void OnCreate3() override;                           // slot 16, 0x416e90: the Yes and No buttons
+    void OnCommand(int a, int b, int c) override;        // slot 18, 0x416ef0: Yes 0x65 / No 0x66
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x416f30: Return accepts, Escape rejects
+    int Virtual14() override;                            // slot 20, 0x416f60: m_enabled
 
     int m_enabled;       // +0x114 1; the factories delete the dialog if the virtual returns 0
     uint32_t m_headlineId;  // +0x118 string id of the upper text, 0: none
@@ -34,11 +34,11 @@ public:
     AppNoticeDialog(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t stringSlot,
                     uint32_t bitmapSlot, uint32_t backgroundId, uint32_t childId, uint32_t style, uint32_t flags,
                     uint32_t message, uint32_t headlineId, uint32_t detailId, uint32_t buttonTooltipId);  // 0x416f80
-    virtual ~AppNoticeDialog();  // 0x417010 (scalar deleting destructor 0x416ff0)
+    ~AppNoticeDialog() override;  // 0x417010 (scalar deleting destructor 0x416ff0)
 
-    virtual void OnCreate3() override;                           // slot 16, 0x417150: the OK button
-    virtual void OnCommand(int a, int b, int c) override;        // slot 18, 0x417180: 0x65 accepts
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x4171a0: Return accepts
+    void OnCreate3() override;                           // slot 16, 0x417150: the OK button
+    void OnCommand(int a, int b, int c) override;        // slot 18, 0x417180: 0x65 accepts
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x4171a0: Return accepts
 
     uint32_t m_buttonTooltipId;  // +0x120
 };
@@ -50,11 +50,11 @@ public:
     AppWaitDialog(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t stringSlot,
                   uint32_t bitmapSlot, uint32_t backgroundId, uint32_t childId, uint32_t style, uint32_t flags,
                   uint32_t message, uint32_t headlineId, uint32_t detailId);  // 0x4171c0
-    virtual ~AppWaitDialog();  // 0x417250 (scalar deleting destructor 0x417230)
+    ~AppWaitDialog() override;  // 0x417250 (scalar deleting destructor 0x417230)
 
-    virtual void OnCreate3() override;                           // slot 16, 0x619730 (shared): does nothing
-    virtual void OnCommand(int a, int b, int c) override;        // slot 18, 0x417380: 0x65 rejects
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x403ef0 (shared): does nothing
+    void OnCreate3() override;                           // slot 16, 0x619730 (shared): does nothing
+    void OnCommand(int a, int b, int c) override;        // slot 18, 0x417380: 0x65 rejects
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x403ef0 (shared): does nothing
 };
 
 // Factories. The trailing two arguments of every one are pushed by all callers (500, 80 or 600, 120) and never

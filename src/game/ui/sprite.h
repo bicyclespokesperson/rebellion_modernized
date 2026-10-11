@@ -16,7 +16,7 @@ class DibBitmap;
 class DeltaFrame : public IdNode {
 public:
     DeltaFrame(HMODULE module, uint32_t resourceId);  // 0x41c590
-    virtual ~DeltaFrame();  // 0x41c610 (scalar deleting destructor 0x41c570)
+    ~DeltaFrame() override;  // 0x41c610 (scalar deleting destructor 0x41c570)
 
     // Forgets the current frame, then loads resource `resourceId` (low 16 bits) of type 302 from `module`.
     void Load(HMODULE module, uint32_t resourceId);  // 0x41c680
@@ -58,7 +58,7 @@ enum SpriteDrawMode : uint16_t {
 class Sprite : public AvlNode {
 public:
     explicit Sprite(DibBitmap* bitmap);  // 0x41ca70
-    virtual ~Sprite();                   // 0x41cad0 (scalar deleting destructor 0x41cab0)
+    ~Sprite() override;                   // 0x41cad0 (scalar deleting destructor 0x41cab0)
     virtual DibBitmap* GetBitmap();             // slot 1, 0x525f20 (linker-folded +0x2c getter)
     virtual void SetBitmap(DibBitmap* bitmap);  // slot 2, 0x41cae0 (linker-folded +0x2c setter)
 

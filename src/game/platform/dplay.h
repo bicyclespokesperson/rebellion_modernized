@@ -84,9 +84,9 @@ typedef BOOL(FAR PASCAL* LPDPENUMPLAYERSCALLBACK2)(DPID dpId, DWORD dwPlayerType
                                                    DWORD dwFlags, LPVOID lpContext);
 
 struct IDirectPlay2A : public IUnknown {
-    virtual HRESULT REB_STDCALL QueryInterface(REFIID riid, LPVOID * ppvObj) = 0;
-    virtual ULONG REB_STDCALL AddRef() = 0;
-    virtual ULONG REB_STDCALL Release() = 0;
+    HRESULT REB_STDCALL QueryInterface(REFIID riid, LPVOID * ppvObj) override = 0;
+    ULONG REB_STDCALL AddRef() override = 0;
+    ULONG REB_STDCALL Release() override = 0;
     virtual HRESULT REB_STDCALL AddPlayerToGroup(DPID idGroup, DPID idPlayer) = 0;
     virtual HRESULT REB_STDCALL Close() = 0;
     virtual HRESULT REB_STDCALL CreateGroup(LPDPID lpidGroup, DPNAME * lpGroupName, LPVOID lpData, DWORD dwDataSize,
@@ -125,9 +125,9 @@ struct IDirectPlay2A : public IUnknown {
 };
 
 struct IDirectPlayLobbyA : public IUnknown {
-    virtual HRESULT REB_STDCALL QueryInterface(REFIID riid, LPVOID * ppvObj) = 0;
-    virtual ULONG REB_STDCALL AddRef() = 0;
-    virtual ULONG REB_STDCALL Release() = 0;
+    HRESULT REB_STDCALL QueryInterface(REFIID riid, LPVOID * ppvObj) override = 0;
+    ULONG REB_STDCALL AddRef() override = 0;
+    ULONG REB_STDCALL Release() override = 0;
     virtual HRESULT REB_STDCALL Connect(DWORD dwFlags, IUnknown * *lplpDP, IUnknown * pUnk) = 0;
     virtual HRESULT REB_STDCALL CreateAddress(REFGUID guidSP, REFGUID guidDataType, LPCVOID lpData, DWORD dwDataSize,
                              LPVOID lpAddress, LPDWORD lpdwAddressSize) = 0;

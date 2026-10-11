@@ -10,7 +10,7 @@ class StringCursor;
 class StringMapNode : public LinkNode {
 public:
     StringMapNode(const String& key, int value);
-    virtual ~StringMapNode();
+    ~StringMapNode() override;
 
     String m_key;  // +0x0c
     int m_value;   // +0x18
@@ -22,8 +22,8 @@ class StringMap : public SortedLinkList {
 public:
     StringMap();
     StringMap(const StringMap& other);
-    virtual ~StringMap();
-    virtual int IsLess(LinkNode* a, LinkNode* b) override;
+    ~StringMap() override;
+    int IsLess(LinkNode* a, LinkNode* b) override;
 
     StringMap& operator=(const StringMap& other);
 

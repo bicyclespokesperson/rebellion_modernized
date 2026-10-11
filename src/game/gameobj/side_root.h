@@ -11,18 +11,18 @@
 class SideRoot : public GameObj {
 public:
     SideRoot();           // 0x5696b0
-    virtual ~SideRoot();  // 0x569740 (scalar deleting 0x569720)
+    ~SideRoot() override;  // 0x569740 (scalar deleting 0x569720)
 
-    virtual uint32_t GetFamily() override;  // 0x569880
-    virtual int Read(istream* in) override;
-    virtual int Write(ostream* out) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int Validate() override;
+    uint32_t GetFamily() override;  // 0x569880
+    int Read(istream* in) override;
+    int Write(ostream* out) override;
+    int Checksum(Crc32* crc) override;
+    int Validate() override;
     // Side views only (shared with the game root class, 0x513f20): the master has nothing to apply.
-    virtual int ApplyAll(NotifyContext* ctx) override;
-    virtual int Virtual16() override { return 1; }
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;
-    virtual GameObj* CreateViewObject() override;  // 0x5697d0
+    int ApplyAll(NotifyContext* ctx) override;
+    int Virtual16() override { return 1; }
+    int CreateViews(int controlKind, NotifyContext* ctx) override;
+    GameObj* CreateViewObject() override;  // 0x5697d0
 };
 
 // The factory the object family registry holds for family 0xf2 (0x569760).

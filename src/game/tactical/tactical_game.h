@@ -30,7 +30,7 @@ public:
 class TypeMapNode : public AvlNode {
 public:
     TypeMapNode();            // 0x5f5c10 base, then key/value stored by the TacticalGame constructor
-    virtual ~TypeMapNode();   // 0x59a840 (scalar deleting destructor 0x59a820)
+    ~TypeMapNode() override;   // 0x59a840 (scalar deleting destructor 0x59a820)
 
     uint16_t m_key;    // +0x18
     uint16_t m_value;  // +0x1a
@@ -39,8 +39,8 @@ public:
 class TypeMapTree : public AvlTree {
 public:
     TypeMapTree();            // 0x5f4ed0 base
-    virtual ~TypeMapTree();   // 0x59a7c0 (scalar deleting destructor 0x59a800)
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;         // 0x59a7d0
+    ~TypeMapTree() override;   // 0x59a7c0 (scalar deleting destructor 0x59a800)
+    int IsLess(AvlNode* a, AvlNode* b) override;         // 0x59a7d0
 };
 
 class TacticalGame {

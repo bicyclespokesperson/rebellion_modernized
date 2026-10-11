@@ -29,14 +29,14 @@ enum MessageIndexMode : int {
 class MessageIndexWindow : public CoolGameWindow {
 public:
     MessageIndexWindow(HINSTANCE instance, CoolWindow* parent, uint32_t childId, int mode, int tab);  // 0x466350
-    virtual ~MessageIndexWindow();  // 0x4664d0 (scalar deleting destructor 0x4664b0)
+    ~MessageIndexWindow() override;  // 0x4664d0 (scalar deleting destructor 0x4664b0)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x467e80
-    virtual void PostCloseRequest() override;                  // slot 12, 0x46a6a0
-    virtual void OnCreate1() override;                         // slot 14, 0x4665f0
-    virtual void DrawOverlay(HDC dc) override;                 // slot 17, 0x468970
-    virtual void OnCommand(int a, int b, int c) override;      // slot 18, 0x467f10
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x46a4d0
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x467e80
+    void PostCloseRequest() override;                  // slot 12, 0x46a6a0
+    void OnCreate1() override;                         // slot 14, 0x4665f0
+    void DrawOverlay(HDC dc) override;                 // slot 17, 0x468970
+    void OnCommand(int a, int b, int c) override;      // slot 18, 0x467f10
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x46a4d0
 
     // Rebuilds the rows from the human player's notices; `keepAllSelected` keeps every selected row selected,
     // otherwise only the current message.

@@ -19,7 +19,7 @@ class AiSideController;
 class AiMissionHistoryEntry : public AvlNode {
 public:
     AiMissionHistoryEntry();                    // 0x4c8000
-    virtual ~AiMissionHistoryEntry();           // 0: 0x4c8060 (deleting), 0x4c8080
+    ~AiMissionHistoryEntry() override;           // 0: 0x4c8060 (deleting), 0x4c8080
     void Read(istream* in);                     // 0x4c80e0
     void Write(ostream* out);                   // 0x4c8130
     // Fills the entry from a finished mission (an object of the mission module: id +0x20, kind +0x24, time +0x28, key +0x2c);
@@ -37,8 +37,8 @@ public:
 class AiMissionHistory : public AvlTree {
 public:
     AiMissionHistory();                         // 0x4be580
-    virtual ~AiMissionHistory();                // 0: 0x4be5a0 (deleting), 0x4be5c0
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;  // 2: 0x5f5560 (shared with IdAvlTree)
+    ~AiMissionHistory() override;                // 0: 0x4be5a0 (deleting), 0x4be5c0
+    int IsLess(AvlNode* a, AvlNode* b) override;  // 2: 0x5f5560 (shared with IdAvlTree)
     void Load(istream* in);                     // 0x4be610
     void Save(ostream* out);                    // 0x4be6b0
     int Add(const void* mission);               // 0x4be700: remembers a mission; 1 if it was added
@@ -53,7 +53,7 @@ public:
     static constexpr int kTaskTypes = 14;
 
     AiTaskManager();                            // 0x4be7e0
-    virtual ~AiTaskManager();                   // 0: 0x4be800 (deleting), 0x4be820
+    ~AiTaskManager() override;                   // 0: 0x4be800 (deleting), 0x4be820
     void Load(istream* in, AiSideController* owner);  // 0x4be840
     void Save(ostream* out);                    // 0x49de40
     uint32_t CreateTask(int type, AiSideController* owner);  // 0x4be930: adds the task of that type unless there is one; returns its id

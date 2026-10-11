@@ -14,7 +14,7 @@ class UiNotice;
 class NotifPayload : public LinkNode {
 public:
     NotifPayload();
-    virtual ~NotifPayload();
+    ~NotifPayload() override;
     virtual int GetKind() = 0;
     virtual int Virtual04() { return 1; }  // the delivery mode of the notification (1 unless a handler overrides it)
     virtual void Virtual05() {}
@@ -37,7 +37,7 @@ public:
 class KeyedNotifPayload : public NotifPayload {
 public:
     KeyedNotifPayload();                 // 0x583fe0
-    virtual ~KeyedNotifPayload();        // 0x584030 (deleting), 0x584050
+    ~KeyedNotifPayload() override;        // 0x584030 (deleting), 0x584050
 
     int ReadKeyed(istream* in);          // 0x5840a0
     int WriteKeyed(ostream* out);        // 0x5840d0

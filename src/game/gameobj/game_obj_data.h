@@ -31,10 +31,10 @@ public:
 class SystemData : public GameObjData {
 public:
     SystemData();                           // 0x55a100
-    virtual ~SystemData();                  // 0x55a1c0 (deleting), 0x55a1e0
-    virtual int Read(istream* in) override;       // 0x55a280
-    virtual int Write(ostream* out) override;     // 0x55a3b0
-    virtual int Checksum(Crc32* crc) override;    // 0x55a4e0
+    ~SystemData() override;                  // 0x55a1c0 (deleting), 0x55a1e0
+    int Read(istream* in) override;       // 0x55a280
+    int Write(ostream* out) override;     // 0x55a3b0
+    int Checksum(Crc32* crc) override;    // 0x55a4e0
     // Slot 4 is 0x55a5f0, a jump to the shared "return 1" stub.
 
     TrackedStat m_stats[6];  // +0x18

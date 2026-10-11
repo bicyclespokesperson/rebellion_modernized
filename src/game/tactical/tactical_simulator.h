@@ -29,7 +29,7 @@ enum SimUnitState {
 // `return 0` / `return 1`, 0x5a5b60 / 0x5a66f0).
 class SimulatorSideA : public TacticalAiSide {
 public:
-    virtual ~SimulatorSideA();  // 0x5d14a0 (scalar deleting destructor 0x5affd0)
+    ~SimulatorSideA() override;  // 0x5d14a0 (scalar deleting destructor 0x5affd0)
     SimulatorSideA() {
         m_unkb0 = 0;
         m_unk48 = 0;
@@ -37,12 +37,12 @@ public:
         m_unk50 = 1.0f;
         m_unk54 = -1.0f;
     }
-    virtual int SideIndex() override { return 0; }
+    int SideIndex() override { return 0; }
 };
 
 class SimulatorSideB : public TacticalAiSide {
 public:
-    virtual ~SimulatorSideB();  // 0x5d14b0 (scalar deleting destructor 0x5afff0)
+    ~SimulatorSideB() override;  // 0x5d14b0 (scalar deleting destructor 0x5afff0)
     SimulatorSideB() {
         m_unkb0 = 0;
         m_unk48 = 0;
@@ -50,7 +50,7 @@ public:
         m_unk50 = -1.0f;
         m_unk54 = -1.0f;
     }
-    virtual int SideIndex() override { return 1; }
+    int SideIndex() override { return 1; }
 };
 
 class CapitalShipGroup;

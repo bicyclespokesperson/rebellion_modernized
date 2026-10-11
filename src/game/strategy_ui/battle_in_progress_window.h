@@ -13,11 +13,11 @@ class ostream;
 class BattleInProgressWindow : public CoolGameWindow {
 public:
     BattleInProgressWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childId);  // 0x49ee20
-    virtual ~BattleInProgressWindow();  // 0x49ee90 (scalar deleting destructor 0x49ee70)
+    ~BattleInProgressWindow() override;  // 0x49ee90 (scalar deleting destructor 0x49ee70)
 
-    virtual void SaveState(ostream* out) override;  // slot 9, 0x49f0f0: the child id
-    virtual void LoadState(istream* in) override;   // slot 10, 0x49f110
-    virtual void OnCreate1() override;              // slot 14, 0x49eea0
+    void SaveState(ostream* out) override;  // slot 9, 0x49f0f0: the child id
+    void LoadState(istream* in) override;   // slot 10, 0x49f110
+    void OnCreate1() override;              // slot 14, 0x49eea0
 
     GalaxyWindow* m_galaxy;  // +0x114
 };

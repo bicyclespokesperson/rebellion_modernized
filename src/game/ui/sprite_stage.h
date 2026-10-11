@@ -13,8 +13,8 @@ class SpriteAnimator;
 class SpriteTree : public AvlTree {
 public:
     SpriteTree();           // 0x4aa7f0
-    virtual ~SpriteTree();  // 0x4aa830 (scalar deleting destructor 0x4aa810)
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;  // 0x4aa890
+    ~SpriteTree() override;  // 0x4aa830 (scalar deleting destructor 0x4aa810)
+    int IsLess(AvlNode* a, AvlNode* b) override;  // 0x4aa890
 
     // Gives the sprite the next id unless it has one, then inserts it.
     void Add(Sprite* sprite);         // 0x4aa840
@@ -27,7 +27,7 @@ public:
 class AnimatorTree : public IdAvlTree {
 public:
     AnimatorTree();           // 0x4aa8c0
-    virtual ~AnimatorTree();  // 0x4aa900 (scalar deleting destructor 0x4aa8e0)
+    ~AnimatorTree() override;  // 0x4aa900 (scalar deleting destructor 0x4aa8e0)
 };
 
 // A double-buffered animation area inside a window (the galaxy view's advisor/droid animations, 0x42adb0): each

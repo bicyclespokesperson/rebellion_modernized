@@ -8,7 +8,7 @@
 class AiNoticeQueue : public IdAvlTree {
 public:
     AiNoticeQueue();
-    virtual ~AiNoticeQueue();
+    ~AiNoticeQueue() override;
     void Load(istream* in);
     void Save(ostream* out);
     void Add(NotifPayload* notice);

@@ -35,19 +35,19 @@ class SectorWindow : public CustomDialogBox {
 public:
     SectorWindow(HINSTANCE instance, int x, int y, int width, int height, GalaxyWindow* parent, DibBitmap* background,
                  uint32_t childId, GameObjNotifier* sector);  // 0x4591d0
-    virtual ~SectorWindow();  // 0x4592e0 (scalar deleting destructor 0x4592c0)
+    ~SectorWindow() override;  // 0x4592e0 (scalar deleting destructor 0x4592c0)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4593e0
-    virtual void SaveState(ostream* out) override;   // slot 9, 0x45d2b0
-    virtual void LoadState(istream* in) override;    // slot 10, 0x45d360
-    virtual void OnCreate1() override;               // slot 14, 0x459e30
-    virtual void GetSelection(ObjectKeyValueSet* out, CoolWindow* source) override;  // slot 22, 0x45b3b0
-    virtual void OnChildAdded(const ObjectKey* key, GameObjNotifier* object) override;  // slot 23, 0x45b3e0
-    virtual void OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4593e0
+    void SaveState(ostream* out) override;   // slot 9, 0x45d2b0
+    void LoadState(istream* in) override;    // slot 10, 0x45d360
+    void OnCreate1() override;               // slot 14, 0x459e30
+    void GetSelection(ObjectKeyValueSet* out, CoolWindow* source) override;  // slot 22, 0x45b3b0
+    void OnChildAdded(const ObjectKey* key, GameObjNotifier* object) override;  // slot 23, 0x45b3e0
+    void OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
                               GameObjNotifier* otherObject) override;                    // slot 24, 0x45b690
-    virtual void OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object) override;  // slot 25, 0x45b770
-    virtual ObjectKey GetKeyAt(int x, int y) override;      // slot 26, 0x45c6b0
-    virtual ObjectKey GetDropKeyAt(int x, int y) override;  // slot 28, 0x45c830
+    void OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object) override;  // slot 25, 0x45b770
+    ObjectKey GetKeyAt(int x, int y) override;      // slot 26, 0x45c6b0
+    ObjectKey GetDropKeyAt(int x, int y) override;  // slot 28, 0x45c830
 
     // Opens (or raises) the window the marker row `item` stands for, at the given position; null if the window of that
     // kind cannot be made.

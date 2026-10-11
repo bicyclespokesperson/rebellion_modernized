@@ -23,38 +23,38 @@ public:
     static constexpr int kBackupHyperdriveShift = 20;
 
     CapShip();           // 0x5004e0
-    virtual ~CapShip();  // 0x500530 (scalar deleting destructor 0x500510)
+    ~CapShip() override;  // 0x500530 (scalar deleting destructor 0x500510)
 
-    virtual int GetTransitSpeed(int arg) override;                                              // 13, 0x500820
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;                          // 15, 0x500880
-    virtual int Virtual18() override { return 1; }                                              // 18, shared "return 1" stub
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                     // 22, 0x5008a0
-    virtual int CheckRenameImpl(const ActivityRequest* request, StatusCode* out) override;                              // 25, 0x500960
-    virtual int Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) override;                // 29, 0x500ac0
-    virtual int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 30, 0x500b40
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override = 0;                  // 37, body 0x500140
-    virtual GameObjData* CreateData() override;                                                 // 58, 0x502c50
-    virtual int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x502800
-    virtual int OnUsableChanged(int newValue, NotifyContext* ctx) override;                     // 68, 0x502820
-    virtual int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;                  // 71, 0x502840
-    virtual int Virtual111() override { return 2; }                                             // 111, shared "return 2" stub
+    int GetTransitSpeed(int arg) override;                                              // 13, 0x500820
+    int GetEventKinds(int unused, EventKindSet* out) override;                          // 15, 0x500880
+    int Virtual18() override { return 1; }                                              // 18, shared "return 1" stub
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;                     // 22, 0x5008a0
+    int CheckRenameImpl(const ActivityRequest* request, StatusCode* out) override;                              // 25, 0x500960
+    int Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) override;                // 29, 0x500ac0
+    int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 30, 0x500b40
+    int CreateViews(int controlKind, NotifyContext* ctx) override = 0;                  // 37, body 0x500140
+    GameObjData* CreateData() override;                                                 // 58, 0x502c50
+    int OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newParent, NotifyContext* ctx) override;  // 61, 0x502800
+    int OnUsableChanged(int newValue, NotifyContext* ctx) override;                     // 68, 0x502820
+    int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;                  // 71, 0x502840
+    int Virtual111() override { return 2; }                                             // 111, shared "return 2" stub
 
-    virtual int Read(istream* in) override = 0;               // body 0x500160
-    virtual int Write(ostream* out) override = 0;             // body 0x500390
-    virtual int Checksum(Crc32* crc) override = 0;            // body 0x500170
-    virtual int Validate() override = 0;                      // body 0x500180 (a jump to ValidateState)
-    virtual int ApplyAll(NotifyContext* ctx) override = 0;    // body 0x5003a0
+    int Read(istream* in) override = 0;               // body 0x500160
+    int Write(ostream* out) override = 0;             // body 0x500390
+    int Checksum(Crc32* crc) override = 0;            // body 0x500170
+    int Validate() override = 0;                      // body 0x500180 (a jump to ValidateState)
+    int ApplyAll(NotifyContext* ctx) override = 0;    // body 0x5003a0
 
-    virtual int GetRepairLevel() override;                                         // 118, 0x5010a0: GNPRTB 0x804 / 0x805
-    virtual int GetDefenseLeft() override;                                         // 119, 0x501470: bombardment modifier minus its lost part
-    virtual uint32_t GetDamageField60() override;                                       // 129, 0x501160 (shield recharge CH)
-    virtual uint32_t GetDamageField64() override;                                       // 130, 0x5010c0 (speed CH)
-    virtual uint32_t GetDamageField6c() override;                                       // 132, 0x5011f0 (primary hyperdrive CH)
-    virtual uint32_t GetDamageField70() override;                                       // 133, 0x501230 (backup hyperdrive CH)
-    virtual uint32_t GetDamageTotal() override;                                         // 134, 0x5013d0 (weapon recharge CH)
-    virtual uint32_t GetDamageColumnTotal(int column) override;                         // 135, 0x501320 (weapon recharge CH)
-    virtual uint32_t GetDamageGridValue(int row, int column) override;                  // 136, 0x501270 (weapon recharge CH)
-    virtual int RepairStep(NotifyContext* ctx) override;                           // 138, 0x501c50
+    int GetRepairLevel() override;                                         // 118, 0x5010a0: GNPRTB 0x804 / 0x805
+    int GetDefenseLeft() override;                                         // 119, 0x501470: bombardment modifier minus its lost part
+    uint32_t GetDamageField60() override;                                       // 129, 0x501160 (shield recharge CH)
+    uint32_t GetDamageField64() override;                                       // 130, 0x5010c0 (speed CH)
+    uint32_t GetDamageField6c() override;                                       // 132, 0x5011f0 (primary hyperdrive CH)
+    uint32_t GetDamageField70() override;                                       // 133, 0x501230 (backup hyperdrive CH)
+    uint32_t GetDamageTotal() override;                                         // 134, 0x5013d0 (weapon recharge CH)
+    uint32_t GetDamageColumnTotal(int column) override;                         // 135, 0x501320 (weapon recharge CH)
+    uint32_t GetDamageGridValue(int row, int column) override;                  // 136, 0x501270 (weapon recharge CH)
+    int RepairStep(NotifyContext* ctx) override;                           // 138, 0x501c50
 
     virtual int CountFighterSquadrons();                                           // 143, 0x500fe0
     virtual int CountTroopRegiments();                                             // 144, 0x501040
@@ -166,7 +166,7 @@ public:
     CapShipIterator(GameObjNotifier* parent);                                  // 0x502d10 (state filter 1)
     CapShipIterator(GameObjNotifier* parent, uint32_t stateFilter);            // 0x502db0
     CapShipIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x502e30
-    virtual ~CapShipIterator();                                                // 0x502eb0 (scalar deleting destructor 0x502d90)
+    ~CapShipIterator() override;                                                // 0x502eb0 (scalar deleting destructor 0x502d90)
 };
 
 // Rolls what a hit of `damage` against a ship with `hullLeft` hull points left does (GNPRTB 0x801-0x803): *hitType is 1

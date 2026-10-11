@@ -25,9 +25,9 @@ class System;
 class AdvisorTaskBase : public AiTaskNode {
 public:
     AdvisorTaskBase(int id, int view);                // 0x4c7d20
-    virtual ~AdvisorTaskBase();                       // 0: 0x4c7d00 (deleting), 0x4c7d50
-    virtual void Read(istream* in) override;          // 1: 0x4c7d70
-    virtual void Write(ostream* out) override;        // 2: 0x4c7dc0
+    ~AdvisorTaskBase() override;                       // 0: 0x4c7d00 (deleting), 0x4c7d50
+    void Read(istream* in) override;          // 1: 0x4c7d70
+    void Write(ostream* out) override;        // 2: 0x4c7dc0
     virtual void SetAnalysis(AiGalaxyAnalysis* analysis) { m_analysis = analysis; }  // 3: 0x49eca0
     virtual void Evaluate();                          // 4: 0x4cc990 (shared with AiStagedTask)
     virtual OrderBase* Step() = 0;                    // 5
@@ -47,11 +47,11 @@ public:
 class AdvisorTask20 : public AdvisorTaskBase {
 public:
     explicit AdvisorTask20(int view);                 // 0x4c6ad0
-    virtual ~AdvisorTask20();                         // 0: 0x4c6ab0 (deleting), 0x4c6b60
-    virtual void Read(istream* in) override;          // 1: 0x4c6be0
-    virtual void Write(ostream* out) override;        // 2: 0x4c6c40
-    virtual OrderBase* Step() override;               // 5: 0x4c6ca0
-    virtual void Refused(int* status, OrderBase* order) override;  // 6: 0x4c7550 (shared with AdvisorTask21)
+    ~AdvisorTask20() override;                         // 0: 0x4c6ab0 (deleting), 0x4c6b60
+    void Read(istream* in) override;          // 1: 0x4c6be0
+    void Write(ostream* out) override;        // 2: 0x4c6c40
+    OrderBase* Step() override;               // 5: 0x4c6ca0
+    void Refused(int* status, OrderBase* order) override;  // 6: 0x4c7550 (shared with AdvisorTask21)
 
     OrderBase* Advance();                             // 0x4c6ce0
     int PickManager();                                // 0x4c6d90
@@ -71,11 +71,11 @@ public:
 class AdvisorTask21 : public AdvisorTaskBase {
 public:
     explicit AdvisorTask21(int view);                 // 0x4c7340
-    virtual ~AdvisorTask21();                         // 0: 0x4c7320 (deleting), 0x4c73d0
-    virtual void Read(istream* in) override;          // 1: 0x4c7450
-    virtual void Write(ostream* out) override;        // 2: 0x4c74b0
-    virtual OrderBase* Step() override;               // 5: 0x4c7510
-    virtual void Refused(int* status, OrderBase* order) override;  // 6: 0x4c7550 (shared with AdvisorTask20)
+    ~AdvisorTask21() override;                         // 0: 0x4c7320 (deleting), 0x4c73d0
+    void Read(istream* in) override;          // 1: 0x4c7450
+    void Write(ostream* out) override;        // 2: 0x4c74b0
+    OrderBase* Step() override;               // 5: 0x4c7510
+    void Refused(int* status, OrderBase* order) override;  // 6: 0x4c7550 (shared with AdvisorTask20)
 
     OrderBase* Advance();                             // 0x4c7580
     int ChooseTarget();                               // 0x4c7650
@@ -98,11 +98,11 @@ public:
 class AdvisorTask23 : public AdvisorTaskBase {
 public:
     explicit AdvisorTask23(int view);                 // 0x49e1c0
-    virtual ~AdvisorTask23();                         // 0: 0x49e1a0 (deleting), 0x49e240
-    virtual void Read(istream* in) override;          // 1: 0x49e2c0
-    virtual void Write(ostream* out) override;        // 2: 0x49e310
-    virtual OrderBase* Step() override;               // 5: 0x49e600
-    virtual void Refused(int* status, OrderBase* order) override;  // 6: 0x49e660
+    ~AdvisorTask23() override;                         // 0: 0x49e1a0 (deleting), 0x49e240
+    void Read(istream* in) override;          // 1: 0x49e2c0
+    void Write(ostream* out) override;        // 2: 0x49e310
+    OrderBase* Step() override;               // 5: 0x49e600
+    void Refused(int* status, OrderBase* order) override;  // 6: 0x49e660
 
     void Start(int kind);                             // 0x49e360
     void SetTarget(const ObjectKey* target);          // 0x49e380: the object the player clicked
@@ -130,7 +130,7 @@ public:
 class AdvisorTaskManager : public IdAvlTree {
 public:
     AdvisorTaskManager();                         // 0x49dcf0
-    virtual ~AdvisorTaskManager();                // 0: 0x49dd10 (deleting), 0x49dd30
+    ~AdvisorTaskManager() override;                // 0: 0x49dd10 (deleting), 0x49dd30
     void Load(istream* in, AiGalaxyAnalysis* analysis);  // 0x49dd50
     void Save(ostream* out);                      // 0x49de40 (the code AiTaskManager::Save shares)
     uint32_t CreateTask(int type, AiGalaxyAnalysis* analysis);  // 0x49df20
@@ -148,7 +148,7 @@ public:
 class AdvisorEntryTree : public IdAvlTree {
 public:
     AdvisorEntryTree();                           // 0x49c6a0
-    virtual ~AdvisorEntryTree();                  // 0: 0x49c6c0 (deleting), 0x49c6e0
+    ~AdvisorEntryTree() override;                  // 0: 0x49c6c0 (deleting), 0x49c6e0
     void Load(istream* in);                       // 0x49c6f0
     void Save(ostream* out);                      // 0x4e5210 (the code AiTaskObjectSet::Save shares)
 };

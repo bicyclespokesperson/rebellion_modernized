@@ -12,23 +12,23 @@ class ObjectRefList;
 class MissionResearch : public MissionSystemTargetBase {
 public:
     MissionResearch();           // 0x56c070
-    virtual ~MissionResearch();  // 0x56c0a0 (deleting), 0x56c0c0
+    ~MissionResearch() override;  // 0x56c0a0 (deleting), 0x56c0c0
 
-    virtual uint32_t GetFamily() override;                                      // 1, 0x56c3e0: 0x53
-    virtual int Read(istream* in) override;                                     // 5, 0x56c390 -> 0x56cb40
-    virtual int Write(ostream* out) override;                                   // 6, 0x56c3a0 -> 0x56cb80
-    virtual int Checksum(Crc32* crc) override;                                  // 7, 0x56c3d0 -> 0x56cc00
-    virtual int Validate() override;                                            // 8, shared 0x56d460
-    virtual int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x56c3b0
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x576d10
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x56c140
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x56c160
-    virtual int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x56c220
-    virtual GameObj* CreateViewObject() override;                               // 57, 0x56c320
-    virtual int Virtual157(GameObj* person, int* out) override;                 // 157, 0x56cb20
-    virtual int Virtual158(NotifyContext* ctx) override;                        // 158, 0x56cd70
-    virtual int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x56cdb0
-    virtual int Virtual160(NotifyContext* ctx) override;                        // 160, 0x56cf30
+    uint32_t GetFamily() override;                                      // 1, 0x56c3e0: 0x53
+    int Read(istream* in) override;                                     // 5, 0x56c390 -> 0x56cb40
+    int Write(ostream* out) override;                                   // 6, 0x56c3a0 -> 0x56cb80
+    int Checksum(Crc32* crc) override;                                  // 7, 0x56c3d0 -> 0x56cc00
+    int Validate() override;                                            // 8, shared 0x56d460
+    int ApplyAll(NotifyContext* ctx) override;                          // 9, 0x56c3b0
+    int CreateViews(int controlKind, NotifyContext* ctx) override;      // 37, shared 0x576d10
+    int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x56c140
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x56c160
+    int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x56c220
+    GameObj* CreateViewObject() override;                               // 57, 0x56c320
+    int Virtual157(GameObj* person, int* out) override;                 // 157, 0x56cb20
+    int Virtual158(NotifyContext* ctx) override;                        // 158, 0x56cd70
+    int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x56cdb0
+    int Virtual160(NotifyContext* ctx) override;                        // 160, 0x56cf30
     virtual int OnRdPointsChanged(int oldValue, int newValue, NotifyContext* ctx) { return 1; }   // 162, 0x524b10
     virtual int OnRdOrdersChanged(int oldValue, int newValue, NotifyContext* ctx) { return 1; }   // 163, 0x524b10
     virtual int OnRdPointsNotified(int oldValue, int newValue, NotifyContext* ctx);               // 164, 0x56d0b0

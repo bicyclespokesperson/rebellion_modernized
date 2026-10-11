@@ -10,10 +10,10 @@ class CoolwinStatusBar : public CoolWindow {
 public:
     CoolwinStatusBar(int x, int y, int width, int height, CoolWindow* parent, COLORREF barColor,
                      COLORREF backgroundColor, uint32_t style);  // 0x60e150
-    virtual ~CoolwinStatusBar();  // 0x60e250 (scalar deleting destructor 0x60e230)
+    ~CoolwinStatusBar() override;  // 0x60e250 (scalar deleting destructor 0x60e230)
 
     // Paints on WM_PAINT; everything else goes to DefWindowProcA (not to CoolWindow::WindowProc).
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60e460
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60e460
 
     void SetBarColor(COLORREF color);         // 0x60e2d0
     void SetBackgroundColor(COLORREF color);  // 0x60e340

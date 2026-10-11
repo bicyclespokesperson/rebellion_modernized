@@ -62,7 +62,7 @@ public:
     ObjectKeyNode();
     explicit ObjectKeyNode(const ObjectKey& key);
     ObjectKeyNode(const ObjectKeyNode& other);
-    virtual ~ObjectKeyNode();
+    ~ObjectKeyNode() override;
     virtual ObjectKeyNode* Clone();
     // Load/Save are the virtual entry points the containers call; they forward to Read/Write.
     virtual void Load(istream* in);
@@ -85,11 +85,11 @@ public:
     ObjectKeyValueNode();
     ObjectKeyValueNode(const ObjectKey& key, int value);
     ObjectKeyValueNode(const ObjectKeyValueNode& other);
-    virtual ~ObjectKeyValueNode();
-    virtual ObjectKeyNode* Clone() override;
-    virtual void Read(istream* in) override;
-    virtual void Write(ostream* out) override;
-    virtual int Checksum(Crc32* crc) override;
+    ~ObjectKeyValueNode() override;
+    ObjectKeyNode* Clone() override;
+    void Read(istream* in) override;
+    void Write(ostream* out) override;
+    int Checksum(Crc32* crc) override;
 
     int HasSameKeyAndValue(const ObjectKeyValueNode& other) const;
 
@@ -101,8 +101,8 @@ public:
     ObjectKeySet();
     // Copies the other set's nodes (through Clone).
     explicit ObjectKeySet(const ObjectKeySet& other);
-    virtual ~ObjectKeySet();
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;
+    ~ObjectKeySet() override;
+    int IsLess(AvlNode* a, AvlNode* b) override;
     virtual ObjectKeyNode* NewNode();
     virtual void Load(istream* in);
     virtual void Read(istream* in);
@@ -127,11 +127,11 @@ class ObjectKeyValueSet : public ObjectKeySet {
 public:
     ObjectKeyValueSet();
     explicit ObjectKeyValueSet(const ObjectKeyValueSet& other);
-    virtual ~ObjectKeyValueSet();
-    virtual ObjectKeyNode* NewNode() override;
-    virtual void Read(istream* in) override;
-    virtual void Write(ostream* out) override;
-    virtual int Checksum(Crc32* crc) override;
+    ~ObjectKeyValueSet() override;
+    ObjectKeyNode* NewNode() override;
+    void Read(istream* in) override;
+    void Write(ostream* out) override;
+    int Checksum(Crc32* crc) override;
 
     ObjectKeyValueSet& operator=(const ObjectKeyValueSet& other);
     int operator==(const ObjectKeyValueSet& other) const;
@@ -146,7 +146,7 @@ class ObjectRefNode : public IdNode {
 public:
     ObjectRefNode();
     ObjectRefNode(const ObjectRefNode& other);
-    virtual ~ObjectRefNode();
+    ~ObjectRefNode() override;
     int Read(istream* in);
     int Write(ostream* out);
     int Checksum(Crc32* crc);
@@ -163,7 +163,7 @@ public:
 class ObjectRefList : public IdAvlTree {
 public:
     ObjectRefList();
-    virtual ~ObjectRefList();
+    ~ObjectRefList() override;
 
     ObjectRefList& operator=(const ObjectRefList& other);
     int Read(istream* in);

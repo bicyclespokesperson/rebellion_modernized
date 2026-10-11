@@ -9,11 +9,11 @@ public:
     static constexpr int kValueCount = 8;
 
     GeneralParamTableEntry();
-    virtual ~GeneralParamTableEntry();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int ParseText(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
+    ~GeneralParamTableEntry() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int ParseText(istream* in) override;
+    int Checksum(Crc32* crc) override;
 
     // 0 for an index outside 0..7.
     int GetValue(int index) const;
@@ -28,11 +28,11 @@ public:
     static constexpr int kValueCount = kPairCount * 2;
 
     SideParamTableEntry();
-    virtual ~SideParamTableEntry();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int ParseText(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
+    ~SideParamTableEntry() override;
+    int Write(ostream* out) override;
+    int Read(istream* in) override;
+    int ParseText(istream* in) override;
+    int Checksum(Crc32* crc) override;
 
     // `member` is 1 (first) or 2 (second); 0 for any other member or an index outside 0..7.
     int GetValue(int pair, int member) const;

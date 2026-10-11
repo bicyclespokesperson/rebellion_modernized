@@ -17,10 +17,10 @@ class GameOptionsWindow : public GameWindowObject {
 public:
     GameOptionsWindow(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                       int state);  // 0x406950
-    virtual ~GameOptionsWindow();  // 0x406ac0 (scalar deleting destructor 0x406aa0)
+    ~GameOptionsWindow() override;  // 0x406ac0 (scalar deleting destructor 0x406aa0)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x406b80
-    virtual void DrawOverlay(HDC dc) override;                                                   // slot 14, 0x408bc0
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x406b80
+    void DrawOverlay(HDC dc) override;                                                   // slot 14, 0x408bc0
 
     // Sets up the background picture and its palette.
     void CreateBackdrop();  // 0x4070e0

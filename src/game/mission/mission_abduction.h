@@ -6,18 +6,18 @@
 class MissionAbduction : public MissionCharacterTargetBase {
 public:
     MissionAbduction();           // 0x576b40
-    virtual ~MissionAbduction();  // 0x576b60 (deleting), 0x576b80
+    ~MissionAbduction() override;  // 0x576b60 (deleting), 0x576b80
 
-    virtual uint32_t GetFamily() override;                                      // 1, 0x576d50: 0x62
+    uint32_t GetFamily() override;                                      // 1, 0x576d50: 0x62
     REB_MISSION_SHARED_PERSISTENCE_DECLS                                        // 5-9, 37
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x576ba0
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x576bc0
-    virtual int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x576c80
-    virtual GameObj* CreateViewObject() override;                               // 57, 0x576ca0
-    virtual int Virtual157(GameObj* person, int* out) override;                 // 157, 0x576e50
-    virtual int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
-    virtual int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x576eb0
-    virtual int Virtual160(NotifyContext* ctx) override;                        // 160, shared 0x576700
+    int GetEventKinds(int unused, EventKindSet* out) override;          // 15, 0x576ba0
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;     // 22, 0x576bc0
+    int GetCheckFunctions(MissionCheckFunctions* out) override;         // 111, 0x576c80
+    GameObj* CreateViewObject() override;                               // 57, 0x576ca0
+    int Virtual157(GameObj* person, int* out) override;                 // 157, 0x576e50
+    int Virtual158(NotifyContext* ctx) override;                        // 158, stub 0x51ebb0
+    int Virtual159(GameObj* person, int roll, int* out, NotifyContext* ctx) override;  // 159, 0x576eb0
+    int Virtual160(NotifyContext* ctx) override;                        // 160, shared 0x576700
 
     static int CheckTarget(MissionCheckArgs* check, StatusCode* status, int* out);  // 0x576dd0
     static int BuildEventKinds();      // 0x576fd0

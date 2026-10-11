@@ -158,14 +158,14 @@ class TacticalShipBase : public MovingObject,
                          public TacticalShipFacetD {
 public:
     TacticalShipBase();                       // 0x5b0f70
-    virtual ~TacticalShipBase();              // 0x5b12d0 (scalar deleting destructor 0x5b12b0)
+    ~TacticalShipBase() override;              // 0x5b12d0 (scalar deleting destructor 0x5b12b0)
 
     // ---- MovingObject slots (1-2) -----------------------------------------------------------------------
-    virtual double Turn(float step, float rate) override;   // 0x5b1410
-    virtual void Advance(float milliseconds) override;     // 0x5b2f30 (3D battle: the per-frame update)
+    double Turn(float step, float rate) override;   // 0x5b1410
+    void Advance(float milliseconds) override;     // 0x5b2f30 (3D battle: the per-frame update)
 
     // ---- TacticalUnit slot 1 ----------------------------------------------------------------------------------
-    virtual int Virtual01() override;                      // 0x5a66f0: 1
+    int Virtual01() override;                      // 0x5a66f0: 1
 
     virtual int Destroy();                                 // 7: 0x5b2d20
     virtual int GetUnitClass() = 0;                    // 8: 0 for a capital ship, 1 for a fighter squadron
@@ -337,33 +337,33 @@ public:
                         int grid22, int grid32, int grid01, int grid11, int grid21, int grid31, int grid00,
                         int grid10, int grid20, int grid30, int speedCH, int shieldCH, int weaponCH, int hyperdriveCH,
                         int tractorCH, float a42, float a41, float a40, int hundred);  // 0x5b05c0
-    virtual ~TacticalCapitalShip();   // 0x5b0520 (scalar deleting destructor 0x5a6770)
+    ~TacticalCapitalShip() override;   // 0x5b0520 (scalar deleting destructor 0x5a6770)
 
-    virtual int GetUnitClass() override { return 0; }              // 0x6158b0 (shared stub)
-    virtual uint32_t GetTypeIndex() override;          // 0x5a6760 (shared stub; the fighter has an inline copy)
-    virtual int Virtual44() override { return 1; }     // 0x40f340 (shared stub)
-    virtual int Virtual45() override { return 0; }     // 0x6158b0 (shared stub)
-    virtual int Virtual46() override { return 2; }     // 0x43c1f0 (shared stub)
-    virtual void Virtual49() override;                 // 0x5b00a0 (sound)
-    virtual void Virtual50() override;                 // 0x5b00c0 (sound)
-    virtual void Virtual51() override;                 // 0x5b00e0 (sound)
-    virtual void Virtual52() override;                 // 0x5b0170 (sound)
-    virtual void Virtual26() override;                 // 0x5b0ad0
-    virtual int Virtual28() override;                  // 0x5b04c0
-    virtual int Virtual29() override;                  // 0x5b04e0
-    virtual int Virtual30() override;                  // 0x5b0500
-    virtual void Virtual39(float step) override;       // 0x5b0330
-    virtual double Virtual43() override;               // 0x5b05b0
-    virtual void ReadState(istream* in) override;      // 0x5b0040
-    virtual void ReadExtra(istream* in) override;      // 0x5b0050
-    virtual void WriteState(ostream* out) override;    // 0x5b0010
-    virtual void WriteExtra(ostream* out) override;    // 0x5b0020
-    virtual void ChecksumState(Crc32* crc) override;   // 0x5b0070
-    virtual void ChecksumExtra(Crc32* crc) override;   // 0x5b0080
-    virtual double GetWeaponRecharge() override;        // 0x5b0400
-    virtual double GetShieldRecharge() override;        // 0x5b0460
-    virtual void GetLaunchPoint(TacticalVector* out) override;  // 0x5b0b80 (see TacticalCapitalShipLaunchPoint)
-    virtual int GetSoundId() override;                 // 0x5b0100
+    int GetUnitClass() override { return 0; }              // 0x6158b0 (shared stub)
+    uint32_t GetTypeIndex() override;          // 0x5a6760 (shared stub; the fighter has an inline copy)
+    int Virtual44() override { return 1; }     // 0x40f340 (shared stub)
+    int Virtual45() override { return 0; }     // 0x6158b0 (shared stub)
+    int Virtual46() override { return 2; }     // 0x43c1f0 (shared stub)
+    void Virtual49() override;                 // 0x5b00a0 (sound)
+    void Virtual50() override;                 // 0x5b00c0 (sound)
+    void Virtual51() override;                 // 0x5b00e0 (sound)
+    void Virtual52() override;                 // 0x5b0170 (sound)
+    void Virtual26() override;                 // 0x5b0ad0
+    int Virtual28() override;                  // 0x5b04c0
+    int Virtual29() override;                  // 0x5b04e0
+    int Virtual30() override;                  // 0x5b0500
+    void Virtual39(float step) override;       // 0x5b0330
+    double Virtual43() override;               // 0x5b05b0
+    void ReadState(istream* in) override;      // 0x5b0040
+    void ReadExtra(istream* in) override;      // 0x5b0050
+    void WriteState(ostream* out) override;    // 0x5b0010
+    void WriteExtra(ostream* out) override;    // 0x5b0020
+    void ChecksumState(Crc32* crc) override;   // 0x5b0070
+    void ChecksumExtra(Crc32* crc) override;   // 0x5b0080
+    double GetWeaponRecharge() override;        // 0x5b0400
+    double GetShieldRecharge() override;        // 0x5b0460
+    void GetLaunchPoint(TacticalVector* out) override;  // 0x5b0b80 (see TacticalCapitalShipLaunchPoint)
+    int GetSoundId() override;                 // 0x5b0100
 
     CapitalShipResult* BuildResult(CapitalShipResult* out);   // 0x5b0280
     void ApplyStatus(const void* record);              // 0x5b0230
@@ -379,30 +379,30 @@ public:
                     float hyperdriveCount, int grid02, int grid12, int grid22, int grid32, int grid01, int grid11,
                     int grid21, int grid31, int grid00, int grid10, int grid20, int grid30, float a42, float a41,
                     float a40, int totalTorpedoes, float torpedoRange);  // 0x5b9c60
-    virtual ~TacticalFighter();   // 0x5b8ec0 (scalar deleting destructor 0x5a6790)
+    ~TacticalFighter() override;   // 0x5b8ec0 (scalar deleting destructor 0x5a6790)
 
-    virtual double Turn(float step, float rate) override;         // 0x5b97a0 (3D battle)
-    virtual void Advance(float milliseconds) override;            // 0x5b8f70 (3D battle: the per-frame update)
-    virtual int GetUnitClass() override { return 1; }             // 0x40f340 (shared stub)
-    virtual uint32_t GetTypeIndex() override { return m_typeIndex; }  // 0x5a6760 (shared stub)
-    virtual int Virtual32(float a) override;           // 0x5b9a20 (3D battle)
-    virtual void Virtual39(float step) override {}     // 0x5ae1e0 (shared stub)
-    virtual int Virtual44() override { return 3; }     // 0x526f00 (shared stub)
-    virtual int Virtual45() override { return 3; }     // 0x526f00 (shared stub)
-    virtual int Virtual46() override { return 3; }     // 0x526f00 (shared stub)
-    virtual void Virtual49() override;                 // 0x5ba0f0 (sound)
-    virtual void Virtual50() override;                 // 0x5b00c0 (sound, the capital ship's body)
-    virtual void Virtual51() override;                 // 0x5ba0b0 (sound)
-    virtual void Virtual52() override;                 // 0x5ba0d0 (sound)
-    virtual void Virtual26() override;                 // 0x5ba2f0
-    virtual int Virtual28() override;                  // 0x5b8f00
-    virtual int Virtual29() override;                  // 0x5b8f20
-    virtual int Virtual30() override;                  // 0x5b8f50
-    virtual double GetWeaponRecharge() override;        // 0x5b9c00
-    virtual double GetShieldRecharge() override;        // 0x5b9c30
-    virtual double GetSpeed() override;                 // 0x5ba190
-    virtual double GetTurnRate() override;              // 0x5ba270
-    virtual int GetSoundId() override;                  // 0x5b8df0
+    double Turn(float step, float rate) override;         // 0x5b97a0 (3D battle)
+    void Advance(float milliseconds) override;            // 0x5b8f70 (3D battle: the per-frame update)
+    int GetUnitClass() override { return 1; }             // 0x40f340 (shared stub)
+    uint32_t GetTypeIndex() override { return m_typeIndex; }  // 0x5a6760 (shared stub)
+    int Virtual32(float a) override;           // 0x5b9a20 (3D battle)
+    void Virtual39(float step) override {}     // 0x5ae1e0 (shared stub)
+    int Virtual44() override { return 3; }     // 0x526f00 (shared stub)
+    int Virtual45() override { return 3; }     // 0x526f00 (shared stub)
+    int Virtual46() override { return 3; }     // 0x526f00 (shared stub)
+    void Virtual49() override;                 // 0x5ba0f0 (sound)
+    void Virtual50() override;                 // 0x5b00c0 (sound, the capital ship's body)
+    void Virtual51() override;                 // 0x5ba0b0 (sound)
+    void Virtual52() override;                 // 0x5ba0d0 (sound)
+    void Virtual26() override;                 // 0x5ba2f0
+    int Virtual28() override;                  // 0x5b8f00
+    int Virtual29() override;                  // 0x5b8f20
+    int Virtual30() override;                  // 0x5b8f50
+    double GetWeaponRecharge() override;        // 0x5b9c00
+    double GetShieldRecharge() override;        // 0x5b9c30
+    double GetSpeed() override;                 // 0x5ba190
+    double GetTurnRate() override;              // 0x5ba270
+    int GetSoundId() override;                  // 0x5b8df0
 
     FightSquadResult* BuildResult(FightSquadResult* out);     // 0x5b8e00
     void ApplyStatus(const FightSquadResult* record);         // 0x5ba150
@@ -457,9 +457,9 @@ class TacticalDeathStar : public TacticalUnit, public TacticalHangar {
 public:
     TacticalDeathStar(uint32_t family, uint32_t id, int notCompleted, int hasFacility, float hull, float hullNow,
                       int hangarFree);       // inlined into 0x5af4e0 / 0x5a9220
-    virtual ~TacticalDeathStar();            // 0x5ba3a0 (scalar deleting destructor 0x5add90)
-    virtual int Virtual01() override { return 5; }  // 0x404c20
-    virtual void GetLaunchPoint(TacticalVector* out) override;  // 0x5ba480 (3D battle; see TacticalDeathStarLaunchPoint)
+    ~TacticalDeathStar() override;            // 0x5ba3a0 (scalar deleting destructor 0x5add90)
+    int Virtual01() override { return 5; }  // 0x404c20
+    void GetLaunchPoint(TacticalVector* out) override;  // 0x5ba480 (3D battle; see TacticalDeathStarLaunchPoint)
 
     int IsOperational();                     // 0x5ba420: has hull left, is not under repair and has not fired
     int IsReady();                           // 0x5ba450: IsOperational and completed

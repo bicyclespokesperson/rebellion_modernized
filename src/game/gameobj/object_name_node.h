@@ -10,7 +10,7 @@ class DatRecord;
 class ObjectNameNode : public IdNode {
 public:
     ObjectNameNode();           // 0x58adb0
-    virtual ~ObjectNameNode();  // 0x58ae30 (scalar deleting 0x58ae10)
+    ~ObjectNameNode() override;  // 0x58ae30 (scalar deleting 0x58ae10)
 
     // Takes the key (record type byte + record id) and the name (the record's resource string id) from `record`.
     // Returns whether the name could be allocated.

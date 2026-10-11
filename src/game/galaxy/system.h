@@ -64,32 +64,32 @@ inline uint32_t WithControlBitsField(uint32_t bits, int shift, uint32_t value) {
 class System : public GameObj {
 public:
     System();                    // 0x507130
-    virtual ~System();           // 0x5071f0 (scalar deleting), 0x507210
+    ~System() override;           // 0x5071f0 (scalar deleting), 0x507210
 
     // ---- overrides of GameObj slots ----
-    virtual int GetOwnerKey(ObjectKey* out) override;                                       // 3, 0x508070
-    virtual int SetRecord(DatRecord* record) override;                                      // 10, 0x50e1c0 (shared with Character)
-    virtual int CollectDependencies(void* context, int value, ObjectKeyValueSet* out) override;  // 11, 0x512700
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;                      // 15, 0x507290
-    virtual int Virtual16() override { return 1; }                                          // 16
-    virtual int CheckSameControl(GameObj* other, StatusCode* out) override;                 // 21, 0x5072d0
-    virtual int CheckOrder(int a, int b, StatusCode* out) override;                         // 22, 0x507c30
-    virtual int Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) override;            // 29, 0x5073d0
-    virtual int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 30, 0x507750
-    virtual int Virtual32(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 32, 0x507ab0
-    virtual int ChangeDestroyedReason(int reason, NotifyContext* ctx) override;             // 43, 0x5080d0
-    virtual int Virtual47(intptr_t a) override;                                                  // 47, 0x5081f0
-    virtual int Virtual48(intptr_t a) override;                                                  // 48, 0x508250
-    virtual int NotifyUnitExisting(intptr_t a, int b, intptr_t c) override;                                    // 49, 0x508440
-    virtual int NotifyUnitUsable(intptr_t a, int b, intptr_t c) override;                                    // 50, 0x508660
-    virtual int NotifyOwnerExisting(intptr_t a, int b, intptr_t c) override;                                    // 52, 0x508c60
-    virtual int NotifyOwnerUsable(intptr_t a, int b, intptr_t c) override;                                    // 53, 0x508da0
-    virtual int ApplyAllToViewOf(int view, int unused, NotifyContext* ctx) override;        // 54, 0x508f90
-    virtual GameObjData* CreateData() override;                                             // 58, 0x512c90
-    virtual int OnNameChanged(String* oldName, String* newName, NotifyContext* ctx) override;  // 59, 0x510800
-    virtual int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;  // 60, 0x510820
-    virtual int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;              // 71, 0x510950
-    virtual int OnExistingChanged(int newValue, NotifyContext* ctx) override;               // 74, 0x5109a0
+    int GetOwnerKey(ObjectKey* out) override;                                       // 3, 0x508070
+    int SetRecord(DatRecord* record) override;                                      // 10, 0x50e1c0 (shared with Character)
+    int CollectDependencies(void* context, int value, ObjectKeyValueSet* out) override;  // 11, 0x512700
+    int GetEventKinds(int unused, EventKindSet* out) override;                      // 15, 0x507290
+    int Virtual16() override { return 1; }                                          // 16
+    int CheckSameControl(GameObj* other, StatusCode* out) override;                 // 21, 0x5072d0
+    int CheckOrder(int a, int b, StatusCode* out) override;                         // 22, 0x507c30
+    int Virtual29(int a, int b, int c, intptr_t d, StatusCode* out) override;            // 29, 0x5073d0
+    int Virtual30(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 30, 0x507750
+    int Virtual32(const FamilyRange* range, int b, int* o1, int* o2, int* o3, StatusCode* out) override;  // 32, 0x507ab0
+    int ChangeDestroyedReason(int reason, NotifyContext* ctx) override;             // 43, 0x5080d0
+    int Virtual47(intptr_t a) override;                                                  // 47, 0x5081f0
+    int Virtual48(intptr_t a) override;                                                  // 48, 0x508250
+    int NotifyUnitExisting(intptr_t a, int b, intptr_t c) override;                                    // 49, 0x508440
+    int NotifyUnitUsable(intptr_t a, int b, intptr_t c) override;                                    // 50, 0x508660
+    int NotifyOwnerExisting(intptr_t a, int b, intptr_t c) override;                                    // 52, 0x508c60
+    int NotifyOwnerUsable(intptr_t a, int b, intptr_t c) override;                                    // 53, 0x508da0
+    int ApplyAllToViewOf(int view, int unused, NotifyContext* ctx) override;        // 54, 0x508f90
+    GameObjData* CreateData() override;                                             // 58, 0x512c90
+    int OnNameChanged(String* oldName, String* newName, NotifyContext* ctx) override;  // 59, 0x510800
+    int OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) override;  // 60, 0x510820
+    int OnDestroyedChanged(int newValue, NotifyContext* ctx) override;              // 71, 0x510950
+    int OnExistingChanged(int newValue, NotifyContext* ctx) override;               // 74, 0x5109a0
 
     // ---- new non-property virtuals (slots 111-115; names provisional) ----
     virtual int Virtual111(const ActivityRequest* request, StatusCode* out);                                                               // 111, 0x507d00
@@ -245,11 +245,11 @@ public:
     int ApplyBlockadeAndBattlePendingManagementRequired(NotifyContext* ctx);  // 0x510760
 
     // ---- persistence/validation: bodies the leaf classes may call qualified (slots 5-9 stay pure) ----
-    virtual int Read(istream* in) override = 0;               // 5, body 0x50e410
-    virtual int Write(ostream* out) override = 0;             // 6, body 0x50e4e0
-    virtual int Checksum(Crc32* crc) override = 0;            // 7, body 0x50e730
-    virtual int Validate() override = 0;                      // 8
-    virtual int ApplyAll(NotifyContext* ctx) override = 0;    // 9, body 0x50e5b0
+    int Read(istream* in) override = 0;               // 5, body 0x50e410
+    int Write(ostream* out) override = 0;             // 6, body 0x50e4e0
+    int Checksum(Crc32* crc) override = 0;            // 7, body 0x50e730
+    int Validate() override = 0;                      // 8
+    int ApplyAll(NotifyContext* ctx) override = 0;    // 9, body 0x50e5b0
 
     System* ViewAsSystem(int view) { return static_cast<System*>(ViewAs(view)); }
 
@@ -364,7 +364,7 @@ public:
     int RollAndSyncEvent(NotifyContext* ctx);                    // 0x50d510
     int SyncViewForEvent(int mode, int view, NotifyContext* ctx);  // 0x50d5a0
     // The bodies of the persistence and view-creation slots (the leaf classes' slot functions call them qualified).
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override = 0;  // 37, body 0x50e200
+    int CreateViews(int controlKind, NotifyContext* ctx) override = 0;  // 37, body 0x50e200
 
     // ==== SECTION keysetters (0x50e820-0x510800): see system_keysetters.cpp ====
     // The four static event-kind sets (by the type bits the callers pass: 4/5, 8/9, 0x10/0x11, 0x40/0x41) are built on
@@ -400,5 +400,5 @@ class SystemIterator : public ChildIterator {
 public:
     SystemIterator(GameObjNotifier* parent);                         // 0x512ef0, state filter 1
     SystemIterator(GameObjNotifier* parent, uint32_t stateFilter);   // 0x512f90
-    virtual ~SystemIterator();                                       // 0x512f70 (deleting), 0x513010
+    ~SystemIterator() override;                                       // 0x512f70 (deleting), 0x513010
 };

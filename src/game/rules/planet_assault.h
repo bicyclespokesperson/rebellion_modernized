@@ -52,8 +52,8 @@ public:
 class TroopCounter : public TroopVisitor {
 public:
     TroopCounter(AssaultWalker* walker);  // 0x58bc90
-    virtual ~TroopCounter();              // 0x58bcd0 (scalar deleting destructor 0x58bcb0)
-    virtual int Visit(GameObj* troop, GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58bce0
+    ~TroopCounter() override;              // 0x58bcd0 (scalar deleting destructor 0x58bcb0)
+    int Visit(GameObj* troop, GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58bce0
 
     int m_count;  // +0x08
 };
@@ -62,8 +62,8 @@ public:
 class TroopPicker : public TroopVisitor {
 public:
     TroopPicker(AssaultWalker* walker);  // 0x58bd00
-    virtual ~TroopPicker();              // 0x58bd50 (scalar deleting destructor 0x58bd30)
-    virtual int Visit(GameObj* troop, GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58bd60
+    ~TroopPicker() override;              // 0x58bd50 (scalar deleting destructor 0x58bd30)
+    int Visit(GameObj* troop, GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58bd60
 
     int m_index;         // +0x08
     int m_target;        // +0x0c
@@ -74,8 +74,8 @@ public:
 class TroopReparenter : public TroopVisitor {
 public:
     TroopReparenter(AssaultWalker* walker);  // 0x58bdb0
-    virtual ~TroopReparenter();              // 0x58be00 (scalar deleting destructor 0x58bde0)
-    virtual int Visit(GameObj* troop, GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58be10
+    ~TroopReparenter() override;              // 0x58be00 (scalar deleting destructor 0x58bde0)
+    int Visit(GameObj* troop, GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58be10
 
     int m_index;   // +0x08
     int m_target;  // +0x0c
@@ -85,8 +85,8 @@ public:
 class AssaultCombat : public TroopVisitor {
 public:
     AssaultCombat(AssaultWalker* walker);  // 0x58be70
-    virtual ~AssaultCombat();              // 0x58beb0 (scalar deleting destructor 0x58be90)
-    virtual int Visit(GameObj* troop, GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58bec0
+    ~AssaultCombat() override;              // 0x58beb0 (scalar deleting destructor 0x58be90)
+    int Visit(GameObj* troop, GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) override;  // 1: 0x58bec0
 };
 
 class AssaultResolver {

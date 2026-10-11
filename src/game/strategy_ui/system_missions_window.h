@@ -23,24 +23,24 @@ class SystemMissionsWindow : public CustomDialogBox {
 public:
     SystemMissionsWindow(HINSTANCE instance, int x, int y, CoolWindow* parent, uint32_t childId,
                          GameObjNotifier* system);  // 0x49f130
-    virtual ~SystemMissionsWindow();  // 0x49f340 (scalar deleting destructor 0x49f320)
+    ~SystemMissionsWindow() override;  // 0x49f340 (scalar deleting destructor 0x49f320)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x49f4b0
-    virtual void SaveState(ostream* out) override;                  // slot 9, 0x4a0b00
-    virtual void LoadState(istream* in) override;                   // slot 10, 0x4a0b90
-    virtual void OnCreate1() override;                              // slot 14, 0x49f540
-    virtual void DrawOverlay(HDC dc) override;                      // slot 17, 0x49fef0
-    virtual void OnCommand(int a, int command, int c) override;     // slot 18, 0x4a0120
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;     // slot 19, 0x4a0e00: Escape closes
-    virtual void GetSelection(ObjectKeyValueSet* out, CoolWindow* source) override;  // slot 22, 0x4a0400
-    virtual void OnChildAdded(const ObjectKey* key, GameObjNotifier* object) override;  // slot 23, 0x4a0560
-    virtual void OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x49f4b0
+    void SaveState(ostream* out) override;                  // slot 9, 0x4a0b00
+    void LoadState(istream* in) override;                   // slot 10, 0x4a0b90
+    void OnCreate1() override;                              // slot 14, 0x49f540
+    void DrawOverlay(HDC dc) override;                      // slot 17, 0x49fef0
+    void OnCommand(int a, int command, int c) override;     // slot 18, 0x4a0120
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;     // slot 19, 0x4a0e00: Escape closes
+    void GetSelection(ObjectKeyValueSet* out, CoolWindow* source) override;  // slot 22, 0x4a0400
+    void OnChildAdded(const ObjectKey* key, GameObjNotifier* object) override;  // slot 23, 0x4a0560
+    void OnChildMoved(const ObjectKey* key, GameObjNotifier* object, const ObjectKey* otherKey,
                               GameObjNotifier* otherObject) override;                    // slot 24, 0x4a06d0
-    virtual void OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object) override;  // slot 25, 0x4a0870
-    virtual ObjectKey GetKeyAt(int x, int y) override;              // slot 26, 0x4a09a0
-    virtual void ShowObjectPage(const ObjectKey* key) override;     // slot 27, 0x4a1e10
-    virtual ObjectKey GetDropKeyAt(int x, int y) override;          // slot 28, 0x4aa470 (shared with other windows)
-    virtual int Virtual29() override;                               // slot 29, 0x4a21c0: the bitmap of the dominant side
+    void OnObjectUpdated(const ObjectKey* key, GameObjNotifier* object) override;  // slot 25, 0x4a0870
+    ObjectKey GetKeyAt(int x, int y) override;              // slot 26, 0x4a09a0
+    void ShowObjectPage(const ObjectKey* key) override;     // slot 27, 0x4a1e10
+    ObjectKey GetDropKeyAt(int x, int y) override;          // slot 28, 0x4aa470 (shared with other windows)
+    int Virtual29() override;                               // slot 29, 0x4a21c0: the bitmap of the dominant side
 
     // The system the window is about (null, and the window closes itself, when it is gone). Linker-folded with the
     // same getter of SystemWindow (0x4a25c0).

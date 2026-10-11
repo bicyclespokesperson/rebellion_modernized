@@ -32,14 +32,14 @@ public:
     // on the list page if neither names a known entry.
     EncyclopediaWindow(HINSTANCE instance, int x, int y, int width, int height, GalaxyWindow* parent,
                        uint32_t childId, const ObjectKey& objectKey, const NullableKey& typeKey);  // 0x45d400
-    virtual ~EncyclopediaWindow();  // 0x45d7a0 (scalar deleting destructor 0x45d780)
+    ~EncyclopediaWindow() override;  // 0x45d7a0 (scalar deleting destructor 0x45d780)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x45d8f0
-    virtual void PostCloseRequest() override;            // slot 12, 0x460070: resumes the game first
-    virtual void OnCreate1() override;                   // slot 14, 0x45ddc0: builds the backgrounds and children
-    virtual void DrawOverlay(HDC dc) override;           // slot 17, 0x45f090
-    virtual void OnCommand(int a, int b, int c) override;  // slot 18, 0x45da70
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x45fe60
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x45d8f0
+    void PostCloseRequest() override;            // slot 12, 0x460070: resumes the game first
+    void OnCreate1() override;                   // slot 14, 0x45ddc0: builds the backgrounds and children
+    void DrawOverlay(HDC dc) override;           // slot 17, 0x45f090
+    void OnCommand(int a, int b, int c) override;  // slot 18, 0x45da70
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x45fe60
 
     // Shows the entries of category tab `tabId` (0x6f: all). With `reload` the full list is set again even on the
     // article page (and, on the list page, the selection is dropped).

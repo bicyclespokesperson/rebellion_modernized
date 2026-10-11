@@ -17,11 +17,11 @@ class TextScrollField;
 class OrderConfirmWindow : public CoolGameWindow {
 public:
     OrderConfirmWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childId, Notice8* request);  // 0x44f060
-    virtual ~OrderConfirmWindow();  // 0x44f0f0 (scalar deleting destructor 0x44f0d0)
+    ~OrderConfirmWindow() override;  // 0x44f0f0 (scalar deleting destructor 0x44f0d0)
 
-    virtual void OnCreate1() override;                           // slot 14, 0x44f180
-    virtual void OnCommand(int a, int b, int c) override;        // slot 18, 0x44f5e0
-    virtual void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x44f640
+    void OnCreate1() override;                           // slot 14, 0x44f180
+    void OnCommand(int a, int b, int c) override;        // slot 18, 0x44f5e0
+    void OnKeyDown(WPARAM key, LPARAM lParam) override;  // slot 19, 0x44f640
 
     GalaxyWindow* m_galaxy;         // +0x114
     Notice8* m_request;           // +0x118 owned

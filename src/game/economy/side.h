@@ -15,7 +15,7 @@
 class ObjectNameList : public IdAvlTree {
 public:
     ObjectNameList();           // 0x52d720
-    virtual ~ObjectNameList();  // 0x52d760 (scalar deleting destructor 0x52d740)
+    ~ObjectNameList() override;  // 0x52d760 (scalar deleting destructor 0x52d740)
 
     int m_ok;  // +0x0c
 };
@@ -85,20 +85,20 @@ constexpr int kTrainingFacil = 2;
 class Side : public GameObj {
 public:
     Side();           // 0x52d7b0
-    virtual ~Side();  // 0x52d880 (scalar deleting destructor 0x52d860)
+    ~Side() override;  // 0x52d880 (scalar deleting destructor 0x52d860)
 
     // ---- overrides of GameObj / GameObjRoot slots ----
-    virtual uint32_t GetFamily() override;                         // 1, 0x52e4e0 (0xf3)
-    virtual void WriteName(String* out, int kind) override;       // ObjectBase slot 0, 0x52d920 (AppendSideName)
-    virtual int Read(istream* in) override;                        // 5, 0x530d10
-    virtual int Write(ostream* out) override;                      // 6, 0x530d20
-    virtual int Checksum(Crc32* crc) override;                     // 7, 0x530d50
-    virtual int Validate() override;                               // 8, 0x530d60 (jump to 0x531520)
-    virtual int ApplyAll(NotifyContext* ctx) override;             // 9, 0x530d30
-    virtual int Virtual16() override { return 1; }                 // 16, 0x40f340 (shared)
-    virtual int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, 0x530cf0
-    virtual GameObj* CreateViewObject() override;                  // 57, 0x531570
-    virtual int OnExistingChanged(int newValue, NotifyContext* ctx) override;  // 74, 0x532350
+    uint32_t GetFamily() override;                         // 1, 0x52e4e0 (0xf3)
+    void WriteName(String* out, int kind) override;       // ObjectBase slot 0, 0x52d920 (AppendSideName)
+    int Read(istream* in) override;                        // 5, 0x530d10
+    int Write(ostream* out) override;                      // 6, 0x530d20
+    int Checksum(Crc32* crc) override;                     // 7, 0x530d50
+    int Validate() override;                               // 8, 0x530d60 (jump to 0x531520)
+    int ApplyAll(NotifyContext* ctx) override;             // 9, 0x530d30
+    int Virtual16() override { return 1; }                 // 16, 0x40f340 (shared)
+    int CreateViews(int controlKind, NotifyContext* ctx) override;  // 37, 0x530cf0
+    GameObj* CreateViewObject() override;                  // 57, 0x531570
+    int OnExistingChanged(int newValue, NotifyContext* ctx) override;  // 74, 0x532350
 
     // ---- slots 111-131: OnXChanged on the master (arguments: old, new, ctx) ----
     virtual int OnMaintStateChanged(const IntPair* oldValue, const IntPair* newValue, NotifyContext* ctx);  // 111, 0x532680

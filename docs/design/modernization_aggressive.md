@@ -145,7 +145,7 @@ stream clients and teardown. Linux/Windows checks remain future host work under 
   Bugprone/performance checks are surveyed separately before enabling any automatic fixes.
 - [x] Apply `modernize-use-nullptr` as a reviewed, buildable batch (nine sites; use value initialization for
   `pthread_t` because its host representation varies).
-- [ ] Apply `modernize-use-override` as a reviewed, buildable batch.
+- [x] Apply `modernize-use-override` as a reviewed, buildable batch (declaration-only changes).
 - [ ] Apply `modernize-use-equals-default` as a reviewed, buildable batch.
 - [ ] Apply `modernize-redundant-void-arg` as a reviewed, buildable batch.
 - [ ] Survey bugprone and performance checks; enable fixes only where their assumptions fit this code.

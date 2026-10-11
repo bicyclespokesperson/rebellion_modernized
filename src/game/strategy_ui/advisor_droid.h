@@ -99,14 +99,14 @@ public:
 class AllianceAdvisor : public AdvisorBase {
 public:
     AllianceAdvisor(int side, HumanPlayer* player);  // 0x4c27f0
-    virtual ~AllianceAdvisor();                      // 0x4c28d0 (scalar deleting destructor 0x4c27d0)
+    ~AllianceAdvisor() override;                      // 0x4c28d0 (scalar deleting destructor 0x4c27d0)
 
-    virtual void HandleRefusedOrder(OrderBase* order, IntPair* status) override;  // 0x4c2940
-    virtual void HandleUiFlags(unsigned flags) override;                          // 0x4c3010
-    virtual void ScheduleCue(int cue) override;                                   // 0x4c44b0
-    virtual int Update() override;                                                // 0x4c2b20
-    virtual int PickMoodCue() override;                                           // 0x4c48e0
-    virtual int LoadCueScripts() override;                                        // 0x4c2c70
+    void HandleRefusedOrder(OrderBase* order, IntPair* status) override;  // 0x4c2940
+    void HandleUiFlags(unsigned flags) override;                          // 0x4c3010
+    void ScheduleCue(int cue) override;                                   // 0x4c44b0
+    int Update() override;                                                // 0x4c2b20
+    int PickMoodCue() override;                                           // 0x4c48e0
+    int LoadCueScripts() override;                                        // 0x4c2c70
 
     void ProcessIdle();                                                // 0x4c2dd0
     void RunPendingCommand();                                          // 0x4c3060
@@ -126,16 +126,16 @@ public:
 class EmpireAdvisor : public AdvisorBase {
 public:
     EmpireAdvisor(int side, HumanPlayer* player);  // 0x4c0710
-    virtual ~EmpireAdvisor();                      // 0x4c07f0 (scalar deleting destructor 0x4c06f0)
+    ~EmpireAdvisor() override;                      // 0x4c07f0 (scalar deleting destructor 0x4c06f0)
 
-    virtual void Read(istream* in, HumanPlayer* player) override;  // 0x4c0850 (shared by both sides)
-    virtual void Write(ostream* out) override;                     // 0x4c2930 (shared by both sides)
-    virtual void HandleRefusedOrder(OrderBase* order, IntPair* status) override;  // 0x4c0870
-    virtual void HandleUiFlags(unsigned flags) override;                          // 0x4c0f10
-    virtual void ScheduleCue(int cue) override;                                   // 0x4c22f0
-    virtual int Update() override;                                                // 0x4c0a60
-    virtual int PickMoodCue() override;                                           // 0x4c2700
-    virtual int LoadCueScripts() override;                                        // 0x4c0ba0
+    void Read(istream* in, HumanPlayer* player) override;  // 0x4c0850 (shared by both sides)
+    void Write(ostream* out) override;                     // 0x4c2930 (shared by both sides)
+    void HandleRefusedOrder(OrderBase* order, IntPair* status) override;  // 0x4c0870
+    void HandleUiFlags(unsigned flags) override;                          // 0x4c0f10
+    void ScheduleCue(int cue) override;                                   // 0x4c22f0
+    int Update() override;                                                // 0x4c0a60
+    int PickMoodCue() override;                                           // 0x4c2700
+    int LoadCueScripts() override;                                        // 0x4c0ba0
 
     void ProcessIdle();                                                // 0x4c0d00
     void RunPendingCommand();                                          // 0x4c0f60

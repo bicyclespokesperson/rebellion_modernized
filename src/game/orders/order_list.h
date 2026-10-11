@@ -11,7 +11,7 @@
 class MessageTree : public IdAvlTree {
 public:
     MessageTree();  // 0x536eb0
-    virtual ~MessageTree();
+    ~MessageTree() override;
 
     // Appends the messages read from the stream (kinds the factory table does not know are skipped).
     void Read(istream* in);  // 0x536f00

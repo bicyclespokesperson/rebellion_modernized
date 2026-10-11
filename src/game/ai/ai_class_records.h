@@ -40,7 +40,7 @@ constexpr uint32_t kSpecialForceType4 = 0x8000000;
 class AiClassRecordBase : public AvlNode {
 public:
     explicit AiClassRecordBase(const ObjectKey& key);  // 0x4ad7e0
-    virtual ~AiClassRecordBase();                      // 0: 0x4ad7c0 (deleting), 0x4ad860
+    ~AiClassRecordBase() override;                      // 0: 0x4ad7c0 (deleting), 0x4ad860
     virtual int GetValue(const PersistentInt* mask) = 0;  // 1: the stat selected by the lowest matching mask bit
 
     PersistentInt m_flags;  // +0x18
@@ -54,8 +54,8 @@ public:
 class AiSpecialForceClass : public AiClassRecordBase {
 public:
     explicit AiSpecialForceClass(DatRecord* record);  // 0x472be0
-    virtual ~AiSpecialForceClass();                   // 0: 0x472bc0 (deleting), 0x472c50
-    virtual int GetValue(const PersistentInt* mask) override;  // 1: 0x472c60
+    ~AiSpecialForceClass() override;                   // 0: 0x472bc0 (deleting), 0x472c50
+    int GetValue(const PersistentInt* mask) override;  // 1: 0x472c60
     void Fill(SpecialForceSD* record);                // 0x472cc0
 
     int m_diplomacy;   // +0x30
@@ -67,8 +67,8 @@ public:
 class AiManufacturingClass : public AiClassRecordBase {
 public:
     explicit AiManufacturingClass(DatRecord* record);  // 0x472fd0
-    virtual ~AiManufacturingClass();                   // 0: 0x472fb0 (deleting), 0x473050
-    virtual int GetValue(const PersistentInt* mask) override;  // 1: 0x473060
+    ~AiManufacturingClass() override;                   // 0: 0x472fb0 (deleting), 0x473050
+    int GetValue(const PersistentInt* mask) override;  // 1: 0x473060
     void Fill(ManufacturingFacilitySD* record);        // 0x473090
 
     int m_processingRate;  // +0x30
@@ -77,8 +77,8 @@ public:
 class AiDefenseClass : public AiClassRecordBase {
 public:
     explicit AiDefenseClass(DatRecord* record);  // 0x4731c0
-    virtual ~AiDefenseClass();                   // 0: 0x4731a0 (deleting), 0x473240
-    virtual int GetValue(const PersistentInt* mask) override;  // 1: 0x473250
+    ~AiDefenseClass() override;                   // 0: 0x4731a0 (deleting), 0x473240
+    int GetValue(const PersistentInt* mask) override;  // 1: 0x473250
     void Fill(DefenseFacilitySD* record);        // 0x473290
 
     int m_attackStrength;  // +0x30
@@ -88,8 +88,8 @@ public:
 class AiTroopClass : public AiClassRecordBase {
 public:
     explicit AiTroopClass(DatRecord* record);  // 0x473400
-    virtual ~AiTroopClass();                   // 0: 0x4733e0 (deleting), 0x473480
-    virtual int GetValue(const PersistentInt* mask) override;  // 1: 0x473490
+    ~AiTroopClass() override;                   // 0: 0x4733e0 (deleting), 0x473480
+    int GetValue(const PersistentInt* mask) override;  // 1: 0x473490
     void Fill(TroopSD* record);                // 0x4734d0
 
     int m_attackStrength;       // +0x30
@@ -102,8 +102,8 @@ public:
 class AiFighterClass : public AiClassRecordBase {
 public:
     explicit AiFighterClass(DatRecord* record);  // 0x473570
-    virtual ~AiFighterClass();                   // 0: 0x473550 (deleting), 0x473600
-    virtual int GetValue(const PersistentInt* mask) override;  // 1: 0x473640
+    ~AiFighterClass() override;                   // 0: 0x473550 (deleting), 0x473600
+    int GetValue(const PersistentInt* mask) override;  // 1: 0x473640
     void Fill(SdRecordGrid* record);             // 0x4736c0
     // Per-squadron-size scalings of the stats (the amount is in the units of m_squadronSize).
     int ScaleX30(int amount);  // 0x473610: m_x30 * amount / m_squadronSize
@@ -123,8 +123,8 @@ public:
 class AiCapitalShipClass : public AiClassRecordBase {
 public:
     explicit AiCapitalShipClass(DatRecord* record);  // 0x473830
-    virtual ~AiCapitalShipClass();                   // 0: 0x473810 (deleting), 0x4738c0
-    virtual int GetValue(const PersistentInt* mask) override;  // 1: 0x473930
+    ~AiCapitalShipClass() override;                   // 0: 0x473810 (deleting), 0x4738c0
+    int GetValue(const PersistentInt* mask) override;  // 1: 0x473930
     void Fill(SdRecordGrid* record);                 // 0x4739b0
     int ScaleA(int amount);                          // 0x4738d0: m_x30 * amount / m_x50 (0 if m_x50 <= 0)
     int ScaleB(int amount);                          // 0x4738f0: m_x34 * amount / m_x50

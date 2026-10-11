@@ -63,7 +63,7 @@ class IdNode : public AvlNode {
 public:
     IdNode();
     explicit IdNode(uint32_t id);
-    virtual ~IdNode();
+    ~IdNode() override;
 
     void SetId(uint32_t id);
     void ReadId(istream* in);
@@ -75,7 +75,7 @@ public:
 class IdValueNode : public IdNode {
 public:
     explicit IdValueNode(int value);
-    virtual ~IdValueNode();
+    ~IdValueNode() override;
     virtual void Read(istream* in);
     virtual void Write(ostream* out);
 
@@ -86,9 +86,9 @@ public:
 class IdAvlTree : public AvlTree {
 public:
     IdAvlTree();
-    virtual ~IdAvlTree();
-    virtual void Clear() override;
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;
+    ~IdAvlTree() override;
+    void Clear() override;
+    int IsLess(AvlNode* a, AvlNode* b) override;
 
     // Saves/loads the ids only (32-bit count); Read creates plain IdNodes.
     void Read(istream* in);
@@ -105,7 +105,7 @@ public:
 class IdValueTree : public IdAvlTree {
 public:
     IdValueTree();
-    virtual ~IdValueTree();
+    ~IdValueTree() override;
 
     void Read(istream* in);
     void Write(ostream* out);
@@ -115,7 +115,7 @@ class CloneableNode : public AvlNode {
 public:
     CloneableNode();
     CloneableNode(const CloneableNode& other);
-    virtual ~CloneableNode();
+    ~CloneableNode() override;
     virtual CloneableNode* Clone() = 0;
 };
 
@@ -124,7 +124,7 @@ class IntKeyNode : public CloneableNode {
 public:
     IntKeyNode();
     IntKeyNode(const IntKeyNode& other);
-    virtual ~IntKeyNode();
+    ~IntKeyNode() override;
     virtual int Read(istream* in) = 0;
     virtual int Write(ostream* out) = 0;
 
@@ -135,8 +135,8 @@ public:
 class AvlSet : public AvlTree {
 public:
     AvlSet();
-    virtual ~AvlSet();
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;
+    ~AvlSet() override;
+    int IsLess(AvlNode* a, AvlNode* b) override;
     virtual int Precedes(AvlNode* probe, AvlNode* node) = 0;
     virtual int Matches(AvlNode* probe, AvlNode* node) = 0;
 
@@ -153,9 +153,9 @@ public:
 class IntKeyedSet : public AvlSet {
 public:
     IntKeyedSet();
-    virtual ~IntKeyedSet();
-    virtual int Precedes(AvlNode* probe, AvlNode* node) override;
-    virtual int Matches(AvlNode* probe, AvlNode* node) override;
+    ~IntKeyedSet() override;
+    int Precedes(AvlNode* probe, AvlNode* node) override;
+    int Matches(AvlNode* probe, AvlNode* node) override;
     virtual int Read(istream* in) = 0;
     virtual int Write(ostream* out) = 0;
 
@@ -192,9 +192,9 @@ public:
 class IdLinkNode : public LinkNode {
 public:
     IdLinkNode();
-    virtual ~IdLinkNode();
-    virtual void Read(istream* in) override;
-    virtual void Write(ostream* out) override;
+    ~IdLinkNode() override;
+    void Read(istream* in) override;
+    void Write(ostream* out) override;
 
     uint32_t m_id;  // +0x0c
 };
@@ -218,8 +218,8 @@ public:
 class IdSortedLinkList : public SortedLinkList {
 public:
     IdSortedLinkList();
-    virtual ~IdSortedLinkList();
-    virtual int IsLess(LinkNode* a, LinkNode* b) override;
+    ~IdSortedLinkList() override;
+    int IsLess(LinkNode* a, LinkNode* b) override;
 
     void Reset();
     uint32_t AddWithId(IdLinkNode* node);

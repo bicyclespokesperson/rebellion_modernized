@@ -20,9 +20,9 @@ class DibBitmap;
 class MainMenuWindow : public GameWindowObject {
 public:
     MainMenuWindow(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent);  // 0x404c30
-    virtual ~MainMenuWindow();  // 0x404d90 (scalar deleting destructor 0x404d70)
+    ~MainMenuWindow() override;  // 0x404d90 (scalar deleting destructor 0x404d70)
 
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x405050
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x405050
 
     void DestroyControls();  // 0x404ec0: deletes every control (some of the pointers stay dangling)
     void HideControls();     // 0x404fa0

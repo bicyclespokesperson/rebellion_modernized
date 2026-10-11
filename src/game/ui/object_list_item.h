@@ -10,12 +10,12 @@ class ObjectListItem : public CoolListItem {
 public:
     ObjectListItem(uint32_t id, const ObjectKey* key);  // 0x442130
     explicit ObjectListItem(const ObjectKey* key);      // 0x4421d0: id = the key's low 24 bits
-    virtual ~ObjectListItem();                          // 0x442250 (scalar deleting destructor 0x4421b0)
-    virtual void Read(istream* in) override;            // slot 1, 0x5ae1e0: does nothing
-    virtual void Write(ostream* out) override;          // slot 2, 0x5ae1e0: does nothing
+    ~ObjectListItem() override;                          // 0x442250 (scalar deleting destructor 0x4421b0)
+    void Read(istream* in) override;            // slot 1, 0x5ae1e0: does nothing
+    void Write(ostream* out) override;          // slot 2, 0x5ae1e0: does nothing
     // The next/previous row, skipping invisible ones (linker-folded with RecordListItem's, 0x4ad730/0x4ad750).
-    virtual CoolListItem* Next() override;              // slot 3
-    virtual CoolListItem* Previous() override;          // slot 4
+    CoolListItem* Next() override;              // slot 3
+    CoolListItem* Previous() override;          // slot 4
 
     // *out = m_key (0x42d170, shared with every class that keeps a key at +0x68).
     ObjectKey* GetKey(ObjectKey* out);  // 0x42d170

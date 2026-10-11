@@ -20,79 +20,79 @@ class HumanPlayer : public PlayerController {
 public:
     HumanPlayer();                  // 0x486120
     explicit HumanPlayer(int side);  // 0x4861b0
-    virtual ~HumanPlayer();         // 0x4862b0 (scalar deleting destructor 0x486190)
+    ~HumanPlayer() override;         // 0x4862b0 (scalar deleting destructor 0x486190)
 
-    virtual int GetKind() override { return kPlayerHuman; }  // slot 3, 0x5a66f0 (shared)
-    virtual void Read(istream* in) override;    // slot 1, 0x486330
-    virtual void Write(ostream* out) override;  // slot 2, 0x486440
-    virtual int Virtual04() override;           // slot 4, 0x486490
-    virtual void Virtual07(PlayerMessage* message) override;  // slot 7, 0x487f40
-    virtual int Virtual08(PlayerMessage* message) override;   // slot 8, 0x4864d0
-    virtual int Virtual09() override;                          // slot 9, 0x486500
-    virtual void Virtual10() override;                         // slot 10, 0x486520
-    virtual void Virtual14() override;                         // slot 14, 0x4866b0
-    virtual void Virtual17(int id, ObjectKey* key) override;   // slot 17, 0x4865b0
-    virtual void Virtual18(int id, ObjectKey* key, int state, GameTime* time) override;  // slot 18, 0x486650
-    virtual void Virtual19(int id, ObjectKey* key) override;   // slot 19, 0x486670
-    virtual void Virtual20(NotifPayload* notice) override;     // slot 20, 0x486580
-    virtual void Virtual21() override;                         // slot 21, 0x4866e0
-    virtual void Virtual22(int a, int b) override;             // 0x486710
-    virtual void Virtual23(int value) override;                // 0x486730: raw materials
-    virtual void Virtual24(int value) override;                // 0x486760: refined materials
-    virtual void Virtual25(intptr_t value) override;                // 0x486790: maintenance, advisor
-    virtual void Virtual26(int value) override;                // 0x486800
-    virtual void Virtual27(int value) override;                // 0x486870 (shared)
-    virtual void Virtual28(int value) override { HumanPlayer::Virtual27(value); }  // slot 28, shared 0x486870
-    virtual void Virtual29(unsigned flags) override;           // 0x486890
-    virtual void Virtual30(const ObjectKey* key, int arg) override;  // 0x4868b0
-    virtual void Virtual31(const ObjectKey* key, int arg) override;  // 0x4868f0
-    virtual void Virtual32(const ObjectKey* key, int arg) override;  // 0x486920
-    virtual void Virtual33(const ObjectKey* key, int arg) override;  // 0x486f00 (shared by slots 33, 34, 37-42, 50, 84, 86, 88, 89)
-    virtual void Virtual34(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 34, shared 0x486f00
-    virtual void Virtual37(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 37, shared 0x486f00
-    virtual void Virtual38(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 38, shared 0x486f00
-    virtual void Virtual39(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 39, shared 0x486f00
-    virtual void Virtual40(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 40, shared 0x486f00
-    virtual void Virtual41(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 41, shared 0x486f00
-    virtual void Virtual42(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 42, shared 0x486f00
-    virtual void Virtual50(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 50, shared 0x486f00
-    virtual void Virtual84(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 84, shared 0x486f00
-    virtual void Virtual86(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 86, shared 0x486f00
-    virtual void Virtual88(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 88, shared 0x486f00
-    virtual void Virtual89(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 89, shared 0x486f00
-    virtual void Virtual43(const ObjectKey* key, int sound) override;  // 0x486950: plays sound 0x26d
-    virtual void Virtual44(const ObjectKey* key, int sound) override;  // 0x4869f0: plays sound 0x26c
-    virtual void Virtual45(const ObjectKey* key, int arg) override;    // 0x486a90 (shared by slots 45-49, 58, 66-73)
-    virtual void Virtual46(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 46, shared 0x486a90
-    virtual void Virtual47(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 47, shared 0x486a90
-    virtual void Virtual48(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 48, shared 0x486a90
-    virtual void Virtual49(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 49, shared 0x486a90
-    virtual void Virtual58(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 58, shared 0x486a90
-    virtual void Virtual66(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 66, shared 0x486a90
-    virtual void Virtual67(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 67, shared 0x486a90
-    virtual void Virtual68(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 68, shared 0x486a90
-    virtual void Virtual69(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 69, shared 0x486a90
-    virtual void Virtual70(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 70, shared 0x486a90
-    virtual void Virtual71(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 71, shared 0x486a90
-    virtual void Virtual72(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 72, shared 0x486a90
-    virtual void Virtual73(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 73, shared 0x486a90
-    virtual void Virtual51(const ObjectKey* manager, int unused) override;        // 0x486ab0
-    virtual void Virtual52(const ObjectKey* manager, int position) override;      // 0x486ae0
-    virtual void Virtual53(const ObjectKey* manager, const ObjectKey* character) override;  // 0x486b00
-    virtual void Virtual54(const ObjectKey* manager, String* text) override;       // 0x486b20
-    virtual void Virtual62(const ObjectKey* key, int redraw) override;             // 0x486b40 (shared by slots 62, 63, 65)
-    virtual void Virtual63(const ObjectKey* key, int redraw) override { HumanPlayer::Virtual62(key, redraw); }  // slot 63, shared 0x486b40
-    virtual void Virtual65(const ObjectKey* key, int redraw) override { HumanPlayer::Virtual62(key, redraw); }  // slot 65, shared 0x486b40
-    virtual void Virtual80(const ObjectKey* key, int arg) override;                // 0x486d30
-    virtual void Virtual81(const ObjectKey* key, const ObjectKey* oldKey, const ObjectKey* newKey) override;  // 0x486b60
-    virtual void Virtual82(const ObjectKey* key) override;                          // 0x486d50
-    virtual void Virtual83(const ObjectKey* key, const ObjectKey* newParent, const ObjectKey* arg) override;  // 0x486d80
-    virtual void Virtual87(const ObjectKey* key, StringWords name) override;  // 0x486eb0
-    virtual void Virtual90(const ObjectKey* key) override;                          // 0x486f30
-    virtual void Virtual91(const ObjectKey* key, const ObjectKey* newParent) override;  // 0x486f60
-    virtual void Virtual93(unsigned target) override { SetSyncTarget(target); }  // slot 93, shared 0x4888d0
-    virtual void Virtual94(int side) override;                                      // 0x4866f0
-    virtual void Virtual95() override;                                              // 0x4883d0
+    int GetKind() override { return kPlayerHuman; }  // slot 3, 0x5a66f0 (shared)
+    void Read(istream* in) override;    // slot 1, 0x486330
+    void Write(ostream* out) override;  // slot 2, 0x486440
+    int Virtual04() override;           // slot 4, 0x486490
+    void Virtual07(PlayerMessage* message) override;  // slot 7, 0x487f40
+    int Virtual08(PlayerMessage* message) override;   // slot 8, 0x4864d0
+    int Virtual09() override;                          // slot 9, 0x486500
+    void Virtual10() override;                         // slot 10, 0x486520
+    void Virtual14() override;                         // slot 14, 0x4866b0
+    void Virtual17(int id, ObjectKey* key) override;   // slot 17, 0x4865b0
+    void Virtual18(int id, ObjectKey* key, int state, GameTime* time) override;  // slot 18, 0x486650
+    void Virtual19(int id, ObjectKey* key) override;   // slot 19, 0x486670
+    void Virtual20(NotifPayload* notice) override;     // slot 20, 0x486580
+    void Virtual21() override;                         // slot 21, 0x4866e0
+    void Virtual22(int a, int b) override;             // 0x486710
+    void Virtual23(int value) override;                // 0x486730: raw materials
+    void Virtual24(int value) override;                // 0x486760: refined materials
+    void Virtual25(intptr_t value) override;                // 0x486790: maintenance, advisor
+    void Virtual26(int value) override;                // 0x486800
+    void Virtual27(int value) override;                // 0x486870 (shared)
+    void Virtual28(int value) override { HumanPlayer::Virtual27(value); }  // slot 28, shared 0x486870
+    void Virtual29(unsigned flags) override;           // 0x486890
+    void Virtual30(const ObjectKey* key, int arg) override;  // 0x4868b0
+    void Virtual31(const ObjectKey* key, int arg) override;  // 0x4868f0
+    void Virtual32(const ObjectKey* key, int arg) override;  // 0x486920
+    void Virtual33(const ObjectKey* key, int arg) override;  // 0x486f00 (shared by slots 33, 34, 37-42, 50, 84, 86, 88, 89)
+    void Virtual34(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 34, shared 0x486f00
+    void Virtual37(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 37, shared 0x486f00
+    void Virtual38(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 38, shared 0x486f00
+    void Virtual39(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 39, shared 0x486f00
+    void Virtual40(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 40, shared 0x486f00
+    void Virtual41(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 41, shared 0x486f00
+    void Virtual42(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 42, shared 0x486f00
+    void Virtual50(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 50, shared 0x486f00
+    void Virtual84(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 84, shared 0x486f00
+    void Virtual86(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 86, shared 0x486f00
+    void Virtual88(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 88, shared 0x486f00
+    void Virtual89(const ObjectKey* key, int arg) override { HumanPlayer::Virtual33(key, arg); }  // slot 89, shared 0x486f00
+    void Virtual43(const ObjectKey* key, int sound) override;  // 0x486950: plays sound 0x26d
+    void Virtual44(const ObjectKey* key, int sound) override;  // 0x4869f0: plays sound 0x26c
+    void Virtual45(const ObjectKey* key, int arg) override;    // 0x486a90 (shared by slots 45-49, 58, 66-73)
+    void Virtual46(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 46, shared 0x486a90
+    void Virtual47(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 47, shared 0x486a90
+    void Virtual48(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 48, shared 0x486a90
+    void Virtual49(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 49, shared 0x486a90
+    void Virtual58(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 58, shared 0x486a90
+    void Virtual66(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 66, shared 0x486a90
+    void Virtual67(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 67, shared 0x486a90
+    void Virtual68(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 68, shared 0x486a90
+    void Virtual69(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 69, shared 0x486a90
+    void Virtual70(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 70, shared 0x486a90
+    void Virtual71(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 71, shared 0x486a90
+    void Virtual72(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 72, shared 0x486a90
+    void Virtual73(const ObjectKey* key, int arg) override { HumanPlayer::Virtual45(key, arg); }  // slot 73, shared 0x486a90
+    void Virtual51(const ObjectKey* manager, int unused) override;        // 0x486ab0
+    void Virtual52(const ObjectKey* manager, int position) override;      // 0x486ae0
+    void Virtual53(const ObjectKey* manager, const ObjectKey* character) override;  // 0x486b00
+    void Virtual54(const ObjectKey* manager, String* text) override;       // 0x486b20
+    void Virtual62(const ObjectKey* key, int redraw) override;             // 0x486b40 (shared by slots 62, 63, 65)
+    void Virtual63(const ObjectKey* key, int redraw) override { HumanPlayer::Virtual62(key, redraw); }  // slot 63, shared 0x486b40
+    void Virtual65(const ObjectKey* key, int redraw) override { HumanPlayer::Virtual62(key, redraw); }  // slot 65, shared 0x486b40
+    void Virtual80(const ObjectKey* key, int arg) override;                // 0x486d30
+    void Virtual81(const ObjectKey* key, const ObjectKey* oldKey, const ObjectKey* newKey) override;  // 0x486b60
+    void Virtual82(const ObjectKey* key) override;                          // 0x486d50
+    void Virtual83(const ObjectKey* key, const ObjectKey* newParent, const ObjectKey* arg) override;  // 0x486d80
+    void Virtual87(const ObjectKey* key, StringWords name) override;  // 0x486eb0
+    void Virtual90(const ObjectKey* key) override;                          // 0x486f30
+    void Virtual91(const ObjectKey* key, const ObjectKey* newParent) override;  // 0x486f60
+    void Virtual93(unsigned target) override { SetSyncTarget(target); }  // slot 93, shared 0x4888d0
+    void Virtual94(int side) override;                                      // 0x4866f0
+    void Virtual95() override;                                              // 0x4883d0
 
     // Executes the UI command `command` for the objects of `selection` (and `key`, the object a target was picked
     // on; `name`, the new name of a rename).

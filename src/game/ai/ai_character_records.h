@@ -51,8 +51,8 @@ public:
 
     AiCharacterRecord();                                                        // 0x401c70
     AiCharacterRecord(GameObjNotifier* character, int side, AiSideController* owner);  // 0x401d20
-    virtual ~AiCharacterRecord();                                               // 0: 0x401d00 (deleting), 0x401ff0
-    virtual void Save(ostream* out) override;                                   // 4: 0x402120
+    ~AiCharacterRecord() override;                                               // 0: 0x401d00 (deleting), 0x401ff0
+    void Save(ostream* out) override;                                   // 4: 0x402120
 
     void ReadRecord(istream* in, AiSideController* owner);  // 0x402070
     void MarkChanged();                                     // 0x4021b0: flags |= Dirty and tells the owner
@@ -80,9 +80,9 @@ public:
 class AiCharacterRecordSet : public ObjectKeySet {
 public:
     AiCharacterRecordSet();                    // 0x403060
-    virtual ~AiCharacterRecordSet();           // 0: 0x403090 (deleting), 0x4030b0
-    virtual void Load(istream* in) override;   // 4: 0x4030d0
-    virtual void Save(ostream* out) override;  // 6: 0x403200
+    ~AiCharacterRecordSet() override;           // 0: 0x403090 (deleting), 0x4030b0
+    void Load(istream* in) override;   // 4: 0x4030d0
+    void Save(ostream* out) override;  // 6: 0x403200
 
     // One step of the incremental build from the game objects of the side (called every tick until it returns 1).
     int BuildStep();  // 0x4032c0

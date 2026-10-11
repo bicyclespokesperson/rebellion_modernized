@@ -15,10 +15,10 @@ public:
     // The background is cut from `parentBackground` at (x, y).
     CoolTabControl(HINSTANCE instance, int x, int y, int width, int height, uint32_t childId, CoolWindow* parent,
                    DibBitmap* parentBackground);  // 0x60d590
-    virtual ~CoolTabControl();                    // 0x60d690 (scalar deleting destructor 0x60d670)
+    ~CoolTabControl() override;                    // 0x60d690 (scalar deleting destructor 0x60d670)
 
     // WM_PAINT draws the background, WM_ERASEBKGND is claimed, WM_COMMAND from a tab selects it.
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60d860
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60d860
 
     // Adopts `tab` as a child (re-parenting its window if needed). Null if it is already a tab of this control.
     // The first tab is always selected; later ones only when `select` is set.

@@ -22,12 +22,12 @@
 class DestinationOrder : public OrderBase {
 public:
     DestinationOrder();  // 0x537040
-    virtual ~DestinationOrder();  // 0x537080 (scalar deleting destructor 0x537060)
-    virtual int Read(istream* in) override { return OrderBase::Read(in); }    // 0x53d0f0 (shared)
-    virtual int Write(ostream* out) override { return OrderBase::Write(out); }  // 0x53dd90 (shared)
-    virtual int GetKind() override;                                           // 0x537100
-    virtual Command* CreateCommand() override;                                // 0x537110
-    virtual int CheckDestination(StatusCode* status) override;                // 0x537180
+    ~DestinationOrder() override;  // 0x537080 (scalar deleting destructor 0x537060)
+    int Read(istream* in) override { return OrderBase::Read(in); }    // 0x53d0f0 (shared)
+    int Write(ostream* out) override { return OrderBase::Write(out); }  // 0x53dd90 (shared)
+    int GetKind() override;                                           // 0x537100
+    Command* CreateCommand() override;                                // 0x537110
+    int CheckDestination(StatusCode* status) override;                // 0x537180
 };
 
 void* CreateDestinationOrder();  // 0x537090
@@ -36,15 +36,15 @@ void* CreateDestinationOrder();  // 0x537090
 class RenameOrder215 : public TextMessage {
 public:
     RenameOrder215();  // 0x537ba0
-    virtual ~RenameOrder215();  // 0x537be0 (scalar deleting destructor 0x537bc0)
-    virtual int Read(istream* in) override { return TextMessage::Read(in); }    // 0x53da80
-    virtual int Write(ostream* out) override { return TextMessage::Write(out); }  // 0x53da90
-    virtual int GetKind() override;                                             // 0x537c60
+    ~RenameOrder215() override;  // 0x537be0 (scalar deleting destructor 0x537bc0)
+    int Read(istream* in) override { return TextMessage::Read(in); }    // 0x53da80
+    int Write(ostream* out) override { return TextMessage::Write(out); }  // 0x53da90
+    int GetKind() override;                                             // 0x537c60
     // Refused (status {1,0x15}) when the order has more than one command.
-    virtual int CheckEnabled(StatusCode* status) override;  // 0x537c70
-    virtual Command* CreateCommand() override;              // 0x537d30
+    int CheckEnabled(StatusCode* status) override;  // 0x537c70
+    Command* CreateCommand() override;              // 0x537d30
     // Copies the text into every command.
-    virtual int CheckDestination(StatusCode* status) override;  // 0x537da0
+    int CheckDestination(StatusCode* status) override;  // 0x537da0
 };
 
 void* CreateRenameOrder215();  // 0x537bf0
@@ -53,11 +53,11 @@ void* CreateRenameOrder215();  // 0x537bf0
 class ManufactureOrderBase : public OrderBase {
 public:
     ManufactureOrderBase();  // 0x537ea0
-    virtual ~ManufactureOrderBase();  // 0x537f20 (scalar deleting destructor 0x537f00)
-    virtual int Read(istream* in) override = 0;    // body 0x537f70
-    virtual int Write(ostream* out) override = 0;  // body 0x537fb0
-    virtual Command* CreateCommand() override;  // 0x538580
-    virtual int CheckDestination(StatusCode* status) override;  // 0x5385f0
+    ~ManufactureOrderBase() override;  // 0x537f20 (scalar deleting destructor 0x537f00)
+    int Read(istream* in) override = 0;    // body 0x537f70
+    int Write(ostream* out) override = 0;  // body 0x537fb0
+    Command* CreateCommand() override;  // 0x538580
+    int CheckDestination(StatusCode* status) override;  // 0x5385f0
 
     // Called by the manufacture dialog (0x437880). Empties `choices`, then, when the team's managers all belong to one
     // side, fills it with what that side can offer for the first manager's item kind (side object's 0x52e580).
@@ -81,28 +81,28 @@ public:
 class ManufactureOrder210 : public ManufactureOrderBase {
 public:
     ManufactureOrder210();  // 0x538c70
-    virtual ~ManufactureOrder210();  // 0x538cb0 (scalar deleting destructor 0x538c90)
-    virtual int Read(istream* in) override { return ManufactureOrderBase::Read(in); }    // 0x538ee0
-    virtual int Write(ostream* out) override { return ManufactureOrderBase::Write(out); }  // 0x538ef0
-    virtual int GetKind() override;                                                      // 0x538d30
+    ~ManufactureOrder210() override;  // 0x538cb0 (scalar deleting destructor 0x538c90)
+    int Read(istream* in) override { return ManufactureOrderBase::Read(in); }    // 0x538ee0
+    int Write(ostream* out) override { return ManufactureOrderBase::Write(out); }  // 0x538ef0
+    int GetKind() override;                                                      // 0x538d30
 };
 
 class ManufactureOrder211 : public ManufactureOrderBase {
 public:
     ManufactureOrder211();  // 0x538d40
-    virtual ~ManufactureOrder211();  // 0x538d80 (scalar deleting destructor 0x538d60)
-    virtual int Read(istream* in) override { return ManufactureOrderBase::Read(in); }
-    virtual int Write(ostream* out) override { return ManufactureOrderBase::Write(out); }
-    virtual int GetKind() override;  // 0x538e00
+    ~ManufactureOrder211() override;  // 0x538d80 (scalar deleting destructor 0x538d60)
+    int Read(istream* in) override { return ManufactureOrderBase::Read(in); }
+    int Write(ostream* out) override { return ManufactureOrderBase::Write(out); }
+    int GetKind() override;  // 0x538e00
 };
 
 class ManufactureOrder212 : public ManufactureOrderBase {
 public:
     ManufactureOrder212();  // 0x538e10
-    virtual ~ManufactureOrder212();  // 0x538e50 (scalar deleting destructor 0x538e30)
-    virtual int Read(istream* in) override { return ManufactureOrderBase::Read(in); }
-    virtual int Write(ostream* out) override { return ManufactureOrderBase::Write(out); }
-    virtual int GetKind() override;  // 0x538ed0
+    ~ManufactureOrder212() override;  // 0x538e50 (scalar deleting destructor 0x538e30)
+    int Read(istream* in) override { return ManufactureOrderBase::Read(in); }
+    int Write(ostream* out) override { return ManufactureOrderBase::Write(out); }
+    int GetKind() override;  // 0x538ed0
 };
 
 void* CreateManufactureOrder210();  // 0x538cc0
@@ -113,11 +113,11 @@ void* CreateManufactureOrder212();  // 0x538e60
 class Order213 : public OrderBase {
 public:
     Order213();  // 0x538f00
-    virtual ~Order213();  // 0x538f40 (scalar deleting destructor 0x538f20)
-    virtual int Read(istream* in) override { return OrderBase::Read(in); }    // 0x53d0f0 (shared)
-    virtual int Write(ostream* out) override { return OrderBase::Write(out); }  // 0x53dd90 (shared)
-    virtual int GetKind() override;                                           // 0x538fc0
-    virtual Command* CreateCommand() override;                                // 0x538fd0
+    ~Order213() override;  // 0x538f40 (scalar deleting destructor 0x538f20)
+    int Read(istream* in) override { return OrderBase::Read(in); }    // 0x53d0f0 (shared)
+    int Write(ostream* out) override { return OrderBase::Write(out); }  // 0x53dd90 (shared)
+    int GetKind() override;                                           // 0x538fc0
+    Command* CreateCommand() override;                                // 0x538fd0
 };
 
 void* CreateOrder213();  // 0x538f50
@@ -126,13 +126,13 @@ void* CreateOrder213();  // 0x538f50
 class Order216 : public OrderBase {
 public:
     Order216();  // 0x539040
-    virtual ~Order216();  // 0x539080 (scalar deleting destructor 0x539060)
-    virtual int Read(istream* in) override { return OrderBase::Read(in); }    // 0x53d0f0 (shared)
-    virtual int Write(ostream* out) override { return OrderBase::Write(out); }  // 0x53dd90 (shared)
-    virtual int GetKind() override;                                           // 0x539100
-    virtual Command* CreateCommand() override;                                // 0x539110
-    virtual int CheckDestination(StatusCode* status) override;                // 0x539180
-    virtual int Virtual21() override { return 0; }                            // 0x6158b0 (shared)
+    ~Order216() override;  // 0x539080 (scalar deleting destructor 0x539060)
+    int Read(istream* in) override { return OrderBase::Read(in); }    // 0x53d0f0 (shared)
+    int Write(ostream* out) override { return OrderBase::Write(out); }  // 0x53dd90 (shared)
+    int GetKind() override;                                           // 0x539100
+    Command* CreateCommand() override;                                // 0x539110
+    int CheckDestination(StatusCode* status) override;                // 0x539180
+    int Virtual21() override { return 0; }                            // 0x6158b0 (shared)
 };
 
 void* CreateOrder216();  // 0x539090

@@ -53,7 +53,7 @@ public:
 class CapacityScratch : public CapacitySlot {
 public:
     CapacityScratch();  // 0x54fa40
-    virtual ~CapacityScratch();  // 0x54fa90
+    ~CapacityScratch() override;  // 0x54fa90
 };
 
 // How many units a move adds to a bucket. VT 0x6620e0.
@@ -127,7 +127,7 @@ public:
 class CapacityLeg : public ObjectKeyNode {
 public:
     CapacityLeg();           // 0x550620
-    virtual ~CapacityLeg();  // 0x5506a0
+    ~CapacityLeg() override;  // 0x5506a0
 
     // Fills the table from the unit's own answers (GameObj::Virtual29-32) for the move kind `kind` of side `side`.
     int Build(int side, int arg, int kind, const int* filter, GameObj* unit);  // 0x550700

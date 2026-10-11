@@ -67,10 +67,10 @@ public:
 
     RebellionApplication(HINSTANCE instance, uint32_t commandLineFlags, const String* commandLine, DirectDrawHost& display,
                          reb::native::GameContext& context, UiResources& resources);  // 0x413000
-    virtual ~RebellionApplication();  // 0x413440 (scalar deleting destructor 0x413420)
+    ~RebellionApplication() override;  // 0x413440 (scalar deleting destructor 0x413420)
 
     // Slot 5: the window procedure.
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x4138a0
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x4138a0
 
     // The main loop: creates and shows the window, then pumps messages and steps the game while the queue is empty.
     // Returns WM_QUIT's wParam. `unused` is always 1.

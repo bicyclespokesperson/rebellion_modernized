@@ -15,7 +15,7 @@ public:
     CoolApp(HINSTANCE instance, const char* className, uint32_t style, int x, int y, int width, int height,
             const char* windowName, HBRUSH background, HICON icon, HCURSOR cursor, HMENU menu, uint32_t unknown58,
             uint32_t flags, UiResources& resources);  // 0x5fb850: sets g_app, starts the 10 ms timer period
-    virtual ~CoolApp();       // 0x5fb980 (scalar deleting destructor 0x5fb960)
+    ~CoolApp() override;       // 0x5fb980 (scalar deleting destructor 0x5fb960)
 
     // Slot 9: called by the main loop before TranslateMessage. Turns Return in a standard "edit" control into a
     // 0x407 message for the control's parent (wParam = child id, lParam = child). Always returns 1.

@@ -23,14 +23,14 @@ class MissionCheckArgs;
 class MissionRuleBase : public Mission {
 public:
     MissionRuleBase();            // 0x5923a0
-    virtual ~MissionRuleBase();   // 0x5923e0 (scalar deleting destructor 0x5923c0)
+    ~MissionRuleBase() override;   // 0x5923e0 (scalar deleting destructor 0x5923c0)
 
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;                        // 15, 0x592400
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                   // 22, 0x592420
-    virtual int GetCheckFunctions(MissionCheckFunctions* out) override;                       // 111, 0x5924e0
-    virtual int IsFinalPhase() override;                                                      // 114, 0x592500
-    virtual int AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, NotifyContext* ctx) override;  // 120, 0x592510
-    virtual int OnPhaseChanged(int oldValue, int newValue, NotifyContext* ctx) override;      // 125, 0x592f50
+    int GetEventKinds(int unused, EventKindSet* out) override;                        // 15, 0x592400
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;                   // 22, 0x592420
+    int GetCheckFunctions(MissionCheckFunctions* out) override;                       // 111, 0x5924e0
+    int IsFinalPhase() override;                                                      // 114, 0x592500
+    int AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, NotifyContext* ctx) override;  // 120, 0x592510
+    int OnPhaseChanged(int oldValue, int newValue, NotifyContext* ctx) override;      // 125, 0x592f50
 
     // ---- slots 157-161: per-type callbacks (the rule-base branch has 162 slots; MissionTypeBase's branch differs) ----
     // Signatures provisional, taken from MissionSubdue (157 0x569b90, 158 stub 0x51ebb0, 159 0x569c20, 160 0x576700).
@@ -57,11 +57,11 @@ public:
 class MissionSystemTargetBase : public MissionRuleBase {
 public:
     MissionSystemTargetBase();           // 0x5866c0
-    virtual ~MissionSystemTargetBase();  // 0x586700 (scalar deleting destructor 0x5866e0)
+    ~MissionSystemTargetBase() override;  // 0x586700 (scalar deleting destructor 0x5866e0)
 
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;                        // 15, 0x5867c0
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                   // 22, 0x5867e0
-    virtual int GetCheckFunctions(MissionCheckFunctions* out) override;                       // 111, 0x5868a0
+    int GetEventKinds(int unused, EventKindSet* out) override;                        // 15, 0x5867c0
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;                   // 22, 0x5867e0
+    int GetCheckFunctions(MissionCheckFunctions* out) override;                       // 111, 0x5868a0
 
     static int BuildEventKinds();  // 0x586ad0
     static int InitEventKinds(int unused, EventKindSet* out);  // 0x586b00
@@ -72,11 +72,11 @@ public:
 class MissionCharacterTargetBase : public MissionRuleBase {
 public:
     MissionCharacterTargetBase();           // 0x586c20
-    virtual ~MissionCharacterTargetBase();  // 0x586c60 (scalar deleting destructor 0x586c40)
+    ~MissionCharacterTargetBase() override;  // 0x586c60 (scalar deleting destructor 0x586c40)
 
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;                        // 15, 0x586d20
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                   // 22, 0x586d40
-    virtual int GetCheckFunctions(MissionCheckFunctions* out) override;                       // 111, 0x586e00
+    int GetEventKinds(int unused, EventKindSet* out) override;                        // 15, 0x586d20
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;                   // 22, 0x586d40
+    int GetCheckFunctions(MissionCheckFunctions* out) override;                       // 111, 0x586e00
 
     static int BuildEventKinds();  // 0x587060
     static int InitEventKinds(int unused, EventKindSet* out);  // 0x587090
@@ -87,11 +87,11 @@ public:
 class MissionObjectTargetBase : public MissionRuleBase {
 public:
     MissionObjectTargetBase();           // 0x5933a0
-    virtual ~MissionObjectTargetBase();  // 0x5933e0 (scalar deleting destructor 0x5933c0)
+    ~MissionObjectTargetBase() override;  // 0x5933e0 (scalar deleting destructor 0x5933c0)
 
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;                        // 15, 0x593400
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                   // 22, 0x593420
-    virtual int GetCheckFunctions(MissionCheckFunctions* out) override;                       // 111, 0x5934e0
+    int GetEventKinds(int unused, EventKindSet* out) override;                        // 15, 0x593400
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;                   // 22, 0x593420
+    int GetCheckFunctions(MissionCheckFunctions* out) override;                       // 111, 0x5934e0
 
     static int BuildEventKinds();  // 0x593690
     static int InitEventKinds(int unused, EventKindSet* out);  // 0x5936c0
@@ -101,12 +101,12 @@ public:
 class MissionStoryBase : public MissionRuleBase {
 public:
     MissionStoryBase();           // 0x5941c0
-    virtual ~MissionStoryBase();  // 0x594200 (scalar deleting destructor 0x5941e0)
+    ~MissionStoryBase() override;  // 0x594200 (scalar deleting destructor 0x5941e0)
 
-    virtual int GetEventKinds(int unused, EventKindSet* out) override;                        // 15, 0x594220
-    virtual int CheckOrder(int a, int orderKind, StatusCode* out) override;                   // 22, 0x594240
-    virtual int GetCheckFunctions(MissionCheckFunctions* out) override;                       // 111, 0x594300
-    virtual int OnPhaseChanged(int oldValue, int newValue, NotifyContext* ctx) override;      // 125, 0x594460
+    int GetEventKinds(int unused, EventKindSet* out) override;                        // 15, 0x594220
+    int CheckOrder(int a, int orderKind, StatusCode* out) override;                   // 22, 0x594240
+    int GetCheckFunctions(MissionCheckFunctions* out) override;                       // 111, 0x594300
+    int OnPhaseChanged(int oldValue, int newValue, NotifyContext* ctx) override;      // 125, 0x594460
 
     static int BuildEventKinds();  // 0x594480
     static int InitEventKinds(int unused, EventKindSet* out);  // 0x5944b0
@@ -117,5 +117,5 @@ public:
 class MissionTargetKindIterator : public ChildIterator {
 public:
     explicit MissionTargetKindIterator(GameObjNotifier* parent);  // 0x586b70
-    virtual ~MissionTargetKindIterator();                          // 0x586c10
+    ~MissionTargetKindIterator() override;                          // 0x586c10
 };

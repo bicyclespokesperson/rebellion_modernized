@@ -15,22 +15,22 @@
 class FormationSlot : public UnitRefNode, public MovingObject {
 public:
     explicit FormationSlot(TacticalShipBase* unit);
-    virtual ~FormationSlot();  // 0x5f2a90 (scalar deleting destructor 0x5ec5f0)
+    ~FormationSlot() override;  // 0x5f2a90 (scalar deleting destructor 0x5ec5f0)
 };
 
 // Lists of slots keyed by the unit's handle; the formation keeps two of them (VT 0x66d938).
 class FormationSlotTree : public InsertionOrderTree {
 public:
     FormationSlotTree() {}
-    virtual ~FormationSlotTree();  // 0x5f2af0 (scalar deleting destructor 0x5ec610)
+    ~FormationSlotTree() override;  // 0x5f2af0 (scalar deleting destructor 0x5ec610)
 };
 
 // Slots sorted by (float, int) (VT 0x66d928).
 class FormationRankTree : public AvlTree {
 public:
     FormationRankTree() {}
-    virtual ~FormationRankTree();                         // 0x5ec5e0 (scalar deleting destructor 0x5ec5c0)
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;  // 0x5ec570
+    ~FormationRankTree() override;                         // 0x5ec5e0 (scalar deleting destructor 0x5ec5c0)
+    int IsLess(AvlNode* a, AvlNode* b) override;  // 0x5ec570
 };
 
 // The formation of a group (0x140 bytes; the class of a group's formation is the base of CapitalShipFormation and
@@ -38,7 +38,7 @@ public:
 class FormationBase : public UnitRefTree, public MovingObject {
 public:
     FormationBase(int groupHandle, TacticalVector position);  // 0x5ea030
-    virtual ~FormationBase();                               // 0x5ea590 (scalar deleting destructor 0x5ec630)
+    ~FormationBase() override;                               // 0x5ea590 (scalar deleting destructor 0x5ec630)
     virtual void Virtual06() = 0;
     virtual int AddMember(int handle);                      // 0x5ea250 slot 7
     virtual int RemoveMember(int handle);                   // 0x5ea630 slot 8
@@ -51,11 +51,11 @@ public:
     virtual void Virtual15();                               // 0x5c7350
     virtual void Virtual16();                               // 0x5ea740
     virtual void Virtual17(int a);                               // 0x5eb190
-    virtual double Turn(float step, float rate) override;   // 0x5eae40
-    virtual int Virtual03(int a, int b, int c) override;  // 0x5eb540
-    virtual void Read(istream* in) override;                  // 0x5e9e00
-    virtual void Write(ostream* out) override;                  // 0x5e9ec0
-    virtual void Checksum(Crc32* crc) override;                  // 0x5e9f80
+    double Turn(float step, float rate) override;   // 0x5eae40
+    int Virtual03(int a, int b, int c) override;  // 0x5eb540
+    void Read(istream* in) override;                  // 0x5e9e00
+    void Write(ostream* out) override;                  // 0x5e9ec0
+    void Checksum(Crc32* crc) override;                  // 0x5e9f80
 
     FormationSlotTree m_slotsByUnit;    // +0xe0
     FormationSlotTree m_slotsByUnit2;   // +0xec
@@ -75,15 +75,15 @@ public:
 class CapitalShipFormation : public FormationBase {  // VT 0x66cb50 / 0x66cb30, 0x144 bytes
 public:
     CapitalShipFormation(int groupHandle, TacticalVector position);  // 0x5c72b0
-    virtual ~CapitalShipFormation();                               // 0x5ebdd0 (scalar deleting destructor 0x5c7360)
-    virtual void Virtual06() override;                             // 0x526f00
-    virtual void Virtual09(int a, int b) override;                             // 0x5ebe30
-    virtual TacticalVector* SlotOffset(TacticalVector* out, TacticalShipBase* unit) override;  // 0x5ebee0
-    virtual float Virtual13() override;                            // 0x5ec0b0
-    virtual int Virtual03(int a, int b, int c) override;     // 0x5ec0d0
-    virtual void Read(istream* in) override;                         // 0x5ec510
-    virtual void Write(ostream* out) override;                         // 0x5ec4e0
-    virtual void Checksum(Crc32* crc) override;                         // 0x5ec540
+    ~CapitalShipFormation() override;                               // 0x5ebdd0 (scalar deleting destructor 0x5c7360)
+    void Virtual06() override;                             // 0x526f00
+    void Virtual09(int a, int b) override;                             // 0x5ebe30
+    TacticalVector* SlotOffset(TacticalVector* out, TacticalShipBase* unit) override;  // 0x5ebee0
+    float Virtual13() override;                            // 0x5ec0b0
+    int Virtual03(int a, int b, int c) override;     // 0x5ec0d0
+    void Read(istream* in) override;                         // 0x5ec510
+    void Write(ostream* out) override;                         // 0x5ec4e0
+    void Checksum(Crc32* crc) override;                         // 0x5ec540
 
     int m_unk140;  // +0x140
 };
@@ -91,11 +91,11 @@ public:
 class FighterFormation : public FormationBase {  // VT 0x66da08 / 0x66d9e8, 0x140 bytes
 public:
     FighterFormation(int groupHandle, TacticalVector position);  // 0x5ec310
-    virtual ~FighterFormation();                               // 0x5ec3e0 (scalar deleting destructor 0x5ec670)
-    virtual void Virtual06() override;                         // 0x43c1f0
-    virtual TacticalVector* SlotOffset(TacticalVector* out, TacticalShipBase* unit) override;  // 0x5ec400
-    virtual float Virtual13() override;                        // 0x5ec3c0
-    virtual int Virtual03(int a, int b, int c) override;     // 0x5eb1a0
+    ~FighterFormation() override;                               // 0x5ec3e0 (scalar deleting destructor 0x5ec670)
+    void Virtual06() override;                         // 0x43c1f0
+    TacticalVector* SlotOffset(TacticalVector* out, TacticalShipBase* unit) override;  // 0x5ec400
+    float Virtual13() override;                        // 0x5ec3c0
+    int Virtual03(int a, int b, int c) override;     // 0x5eb1a0
 };
 
 extern TacticalVector g_formationOrigin;  // 0x6bc940

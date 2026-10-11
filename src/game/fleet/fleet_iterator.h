@@ -8,5 +8,5 @@ public:
     FleetIterator(GameObjNotifier* parent);                                       // 0x4ffdd0
     FleetIterator(GameObjNotifier* parent, uint32_t stateFilter);                 // 0x4ffe70
     FleetIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side);  // 0x4ffef0
-    virtual ~FleetIterator();                                                     // 0x4ffe50 (deleting), 0x4fff70
+    ~FleetIterator() override;                                                     // 0x4ffe50 (deleting), 0x4fff70
 };

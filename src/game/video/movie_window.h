@@ -17,8 +17,8 @@ public:
     // `movieId` (0x65-0x74) selects the MDATA file; `callback` may be null; `caption` (copied) may be null.
     MovieWindow(int movieId, void (* callback)(uint32_t, uint32_t, int), HINSTANCE instance, int x, int y, int width,
                 int height, CoolWindow* parent, const String* caption);
-    virtual ~MovieWindow();  // 0x421700 (scalar deleting destructor 0x4216e0)
-    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x421790
+    ~MovieWindow() override;  // 0x421700 (scalar deleting destructor 0x4216e0)
+    LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x421790
 
     // The MDATA file of the movie id as "MDATA\MDATA.nnn", null for an unknown id.
     const char* GetMovieFile();  // 0x421ba0

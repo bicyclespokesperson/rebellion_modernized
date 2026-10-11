@@ -45,10 +45,10 @@ public:
 
     AiSystemEval();                                     // 0x433a60
     AiSystemEval(int view, System* system);             // 0x433b10
-    virtual ~AiSystemEval();                            // 0: 0x433af0 (deleting), 0x433be0
+    ~AiSystemEval() override;                            // 0: 0x433af0 (deleting), 0x433be0
     // slot 1 Clone is ObjectKeyNode::Clone (0x4ecda0)
-    virtual void Load(istream* in) override;            // 2: 0x433c60
-    virtual void Save(ostream* out) override;           // 4: 0x433d10
+    void Load(istream* in) override;            // 2: 0x433c60
+    void Save(ostream* out) override;           // 4: 0x433d10
 
     void MarkChanged();             // 0x433e30: m_dirty = 1 and the sector's eval is dirty too
     void MarkDirty();                    // 0x433e00: m_dirty = 1 only
@@ -83,9 +83,9 @@ public:
 
     AiSectorEval();                          // 0x431270
     explicit AiSectorEval(int view);         // 0x431330
-    virtual ~AiSectorEval();                 // 0: 0x431310 (deleting), 0x4313c0
+    ~AiSectorEval() override;                 // 0: 0x431310 (deleting), 0x4313c0
     // slot 1 Clone is ObjectKeyNode::Clone (0x4ecda0)
-    virtual void Save(ostream* out) override; // 4: 0x431680
+    void Save(ostream* out) override; // 4: 0x431680
 
     void Attach(Sector* sector, AiSystemEvalSet* systems);  // 0x431450: key, position and the system evals of the sector
     void ReadRecord(istream* in, AiSystemEvalSet* systems);        // 0x431550
@@ -136,9 +136,9 @@ public:
     AiShipRecord();                                             // 0x484180
     AiShipRecord(GameObjNotifier* ship, int view, AiFleetEvalSet* fleets, AiClassTable* classes,
                  AiSideController* owner);                      // 0x484230
-    virtual ~AiShipRecord();                                    // 0: 0x484210 (deleting), 0x484370
+    ~AiShipRecord() override;                                    // 0: 0x484210 (deleting), 0x484370
     // slot 1 Clone is ObjectKeyNode::Clone (0x4ecda0)
-    virtual void Save(ostream* out) override;                   // 4: 0x484490
+    void Save(ostream* out) override;                   // 4: 0x484490
 
     void ReadRecord(istream* in, AiFleetEvalSet* fleets, AiClassTable* classes, AiSideController* owner);  // 0x4843f0
     int IsUnusable();            // 0x484510: its fleet is busy or flagged
@@ -170,9 +170,9 @@ public:
 
     AiFleetEval();                                                       // 0x432d80
     AiFleetEval(const int* view, GameObjNotifier* fleet, AiShipRecordSet* ships, AiSideController* owner);  // 0x432e40
-    virtual ~AiFleetEval();                                              // 0: 0x432e20 (deleting), 0x432f40
+    ~AiFleetEval() override;                                              // 0: 0x432e20 (deleting), 0x432f40
     // slot 1 Clone is ObjectKeyNode::Clone (0x4ecda0)
-    virtual void Save(ostream* out) override;                            // 4: 0x433150
+    void Save(ostream* out) override;                            // 4: 0x433150
 
     void ReadRecord(istream* in, AiShipRecordSet* ships, AiSideController* owner);  // 0x432fd0
     void RemoveShip(ObjectKey* key);        // 0x4332b0
@@ -208,7 +208,7 @@ class AiTaskRecord : public IdNode {
 public:
     AiTaskRecord();                           // 0x473fd0
     AiTaskRecord(int view, AiSideController* owner);  // 0x474070
-    virtual ~AiTaskRecord();                  // 0: 0x474050 (deleting), 0x474100
+    ~AiTaskRecord() override;                  // 0: 0x474050 (deleting), 0x474100
     virtual void Read(istream* in);           // 1: 0x474180
     virtual void Write(ostream* out);         // 2: 0x4741f0
 

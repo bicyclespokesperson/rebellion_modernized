@@ -30,9 +30,9 @@ public:
 class AttackEvaluator : public AttackEvaluatorBase {  // VT 0x66d100
 public:
     AttackEvaluator() {}
-    virtual float Evaluate(int a, TacticalShipBase* unit) override;  // 0x5edc10
-    virtual int Virtual03(ShipGroup* group) override;       // 0x5eda50
-    virtual int Virtual04(TacticalShipBase* unit) override;          // 0x5eda20
+    float Evaluate(int a, TacticalShipBase* unit) override;  // 0x5edc10
+    int Virtual03(ShipGroup* group) override;       // 0x5eda50
+    int Virtual04(TacticalShipBase* unit) override;          // 0x5eda20
 };
 
 class TacticalSideBase;
@@ -48,7 +48,7 @@ public:
 class FormationEvaluator : public FormationEvaluatorBase {  // VT 0x66d118
 public:
     FormationEvaluator() {}
-    virtual int Assign(TacticalSideBase* side, GroupRefTree* groups, TargetPriorityTree* targets, float limit) override;  // 0x5ecb90
+    int Assign(TacticalSideBase* side, GroupRefTree* groups, TargetPriorityTree* targets, float limit) override;  // 0x5ecb90
 };
 
 // A pointer to a group compared by the group's id (0x5f2e40 / 0x5f2e70).
@@ -62,7 +62,7 @@ struct GroupRefSlot {
 class ScoredGroupNode : public AvlNode {
 public:
     ScoredGroupNode(float priority, ShipGroup* group);
-    virtual ~ScoredGroupNode();  // 0x5ed160 (scalar deleting destructor 0x5ed140)
+    ~ScoredGroupNode() override;  // 0x5ed160 (scalar deleting destructor 0x5ed140)
 
     float m_priority;     // +0x18
     GroupRefSlot m_group;  // +0x1c
@@ -72,8 +72,8 @@ public:
 class ScoredGroupTree : public AvlTree {
 public:
     ScoredGroupTree() {}
-    virtual ~ScoredGroupTree();                            // 0x5ed0d0 (scalar deleting destructor 0x5ed120)
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;   // 0x5ed0e0
+    ~ScoredGroupTree() override;                            // 0x5ed0d0 (scalar deleting destructor 0x5ed120)
+    int IsLess(AvlNode* a, AvlNode* b) override;   // 0x5ed0e0
 };
 
 // A node of the side's order tree (0x30 bytes): the keys the tree sorts by, and the weight the evaluator reads.
@@ -91,8 +91,8 @@ struct SideOrderNode {
 class SideOrderTree : public AvlTree {
 public:
     SideOrderTree() {}
-    virtual ~SideOrderTree();                              // 0x5c9560 (scalar deleting destructor 0x5c9650)
-    virtual int IsLess(AvlNode* a, AvlNode* b) override;   // 0x5c9570
+    ~SideOrderTree() override;                              // 0x5c9560 (scalar deleting destructor 0x5c9650)
+    int IsLess(AvlNode* a, AvlNode* b) override;   // 0x5c9570
 };
 
 // ---- the side ------------------------------------------------------------------------------------------------------
@@ -151,13 +151,13 @@ public:
 // The side of the headless simulator: slots 2-11 are the AI (the 3D sides keep the base implementations).
 class TacticalAiSide : public TacticalSideBase {
 public:
-    virtual TargetPriorityTree* BuildTargetList() override;   // 0x5d1a70
-    virtual int HasNoShipsAtAll() override;                   // 0x5d0f50
-    virtual int ResetEvaluators() override;                   // 0x5d1920
-    virtual int Refresh(int a) override;                      // 0x5d0ce0
-    virtual int Slot06() override;                            // 0x5d1410
-    virtual int SplitIntoGroups(TargetPriorityTree* targets, int least, int most) override;  // 0x5d1240
-    virtual int Slot08(int a, int b, int c) override;                            // 0x5d1080
+    TargetPriorityTree* BuildTargetList() override;   // 0x5d1a70
+    int HasNoShipsAtAll() override;                   // 0x5d0f50
+    int ResetEvaluators() override;                   // 0x5d1920
+    int Refresh(int a) override;                      // 0x5d0ce0
+    int Slot06() override;                            // 0x5d1410
+    int SplitIntoGroups(TargetPriorityTree* targets, int least, int most) override;  // 0x5d1240
+    int Slot08(int a, int b, int c) override;                            // 0x5d1080
     virtual int RecordFleet(UnitRefTree* unused);             // 0x5d14c0 slot 9
     virtual int StepSide(float step);                         // 0x5d14d0 slot 10
     virtual int Virtual11();                                  // 0x5d19a0
