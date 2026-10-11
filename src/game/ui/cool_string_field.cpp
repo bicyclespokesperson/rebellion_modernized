@@ -1,17 +1,15 @@
-#include "core/reb_abi.h"
 #include "ui/cool_string_field.h"
 
 #include <cstring>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/cool_app.h"
 #include "ui/resource_dll.h"
 
-extern "C" int REB_CDECL _isprint(int c);
-extern "C" int REB_CDECL _isspace(int c);
-extern "C" int REB_CDECL _ispunct(int c);
+extern "C" int _isprint(int c);
+extern "C" int _isspace(int c);
+extern "C" int _ispunct(int c);
 
 namespace {
 
@@ -59,7 +57,7 @@ CoolStringField::CoolStringField(HINSTANCE instance, int x, int y, int width, in
 CoolStringField::~CoolStringField() {
     if (m_buffer) delete m_buffer;
     if (m_fillBitmap) delete m_fillBitmap;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void CoolStringField::SetFont(int fontSlot) {
@@ -519,7 +517,7 @@ void SelectWordAtCaret(CoolStringField* field) {
 
 }  // namespace
 
-LRESULT REB_STDCALL CoolStringField::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CoolStringField::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     switch (message) {
     case WM_ACTIVATE: {

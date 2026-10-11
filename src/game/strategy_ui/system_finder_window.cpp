@@ -1,11 +1,9 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/system_finder_window.h"
 
 #include <new>
 
 #include "core/checked_new.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "galaxy/system.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
@@ -82,7 +80,7 @@ SystemFinderWindow::~SystemFinderWindow() {
         m_items->Clear();
         delete m_items;
     }
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void SystemFinderWindow::OnCreate1() {
@@ -279,7 +277,7 @@ void SystemFinderWindow::OnCommand(int, int command, int) {
     }
 }
 
-LRESULT REB_STDCALL SystemFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT SystemFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     LRESULT result = 0;
     if (message == WM_SETFOCUS) {
         SetFocus(m_nameField->m_hwnd);

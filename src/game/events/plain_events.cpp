@@ -17,7 +17,7 @@ RefineryQueueEvent::RefineryQueueEvent() : PlainEvent() {}
 
 RefineryQueueEvent::RefineryQueueEvent(const RefineryQueueEvent& other) : PlainEvent(other) {}
 
-RefineryQueueEvent::~RefineryQueueEvent() { REB_KEEP_VPTR_STORE(); }
+RefineryQueueEvent::~RefineryQueueEvent() {  }
 
 RefineryQueueEvent* RefineryQueueEvent::Clone() { return NewOrNull<RefineryQueueEvent>(*this); }
 
@@ -46,7 +46,7 @@ ManufacturerQueueEvent::ManufacturerQueueEvent() : PlainEvent() {}
 
 ManufacturerQueueEvent::ManufacturerQueueEvent(const ManufacturerQueueEvent& other) : PlainEvent(other) {}
 
-ManufacturerQueueEvent::~ManufacturerQueueEvent() { REB_KEEP_VPTR_STORE(); }
+ManufacturerQueueEvent::~ManufacturerQueueEvent() {  }
 
 ManufacturerQueueEvent* ManufacturerQueueEvent::Clone() { return NewOrNull<ManufacturerQueueEvent>(*this); }
 
@@ -75,7 +75,7 @@ ReparentToRootEvent::ReparentToRootEvent() : PlainEvent() {}
 
 ReparentToRootEvent::ReparentToRootEvent(const ReparentToRootEvent& other) : PlainEvent(other) {}
 
-ReparentToRootEvent::~ReparentToRootEvent() { REB_KEEP_VPTR_STORE(); }
+ReparentToRootEvent::~ReparentToRootEvent() {  }
 
 ReparentToRootEvent* ReparentToRootEvent::Clone() { return NewOrNull<ReparentToRootEvent>(*this); }
 

@@ -3,7 +3,6 @@
 #include <cstdint>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "events/event_base.h"
 #include "events/timer_event.h"
 #include "gameobj/game_obj.h"

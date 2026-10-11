@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "gameobj/game_obj.h"
@@ -30,5 +29,5 @@ public:
 
 
 // Bodies of the mission base's persistence slots, called by the leaf types' second-level forwarders.
-int REB_THISCALL MissionTypeWriteForward(MissionTypeBase* self, ostream* out);        // 0x56ec40: Write (shared by several mission types)
-int REB_THISCALL MissionTypeApplyAllForward(MissionTypeBase* self, NotifyContext* ctx);  // 0x56ec50: ApplyAll body (shared)
+int MissionTypeWriteForward(MissionTypeBase* self, ostream* out);        // 0x56ec40: Write (shared by several mission types)
+int MissionTypeApplyAllForward(MissionTypeBase* self, NotifyContext* ctx);  // 0x56ec50: ApplyAll body (shared)

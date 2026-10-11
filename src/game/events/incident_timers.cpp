@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "events/incident_timers.h"
 
 #include "events/event_helpers.h"
@@ -15,12 +14,12 @@ namespace {
 
 }  // namespace
 
-FamilyRange* REB_STDCALL GetSystemFamilyRange(FamilyRange* out) {
+FamilyRange* GetSystemFamilyRange(FamilyRange* out) {
     *out = FamilyRange(0x90, 0x98);
     return out;
 }
 
-FamilyRange* REB_STDCALL GetFamilyF9Range(FamilyRange* out) {
+FamilyRange* GetFamilyF9Range(FamilyRange* out) {
     *out = FamilyRange(0xf9, 0xfa);
     return out;
 }
@@ -30,7 +29,7 @@ UprisingEndTimer::UprisingEndTimer() : TimerEvent() {}
 
 UprisingEndTimer::UprisingEndTimer(const UprisingEndTimer& other) : TimerEvent(other) {}
 
-UprisingEndTimer::~UprisingEndTimer() { REB_KEEP_VPTR_STORE(); }
+UprisingEndTimer::~UprisingEndTimer() {  }
 
 UprisingEndTimer* UprisingEndTimer::Clone() { return NewOrNull<UprisingEndTimer>(*this); }
 
@@ -48,7 +47,7 @@ UprisingLoyaltyTimer::UprisingLoyaltyTimer() : TimerEvent() {}
 
 UprisingLoyaltyTimer::UprisingLoyaltyTimer(const UprisingLoyaltyTimer& other) : TimerEvent(other) {}
 
-UprisingLoyaltyTimer::~UprisingLoyaltyTimer() { REB_KEEP_VPTR_STORE(); }
+UprisingLoyaltyTimer::~UprisingLoyaltyTimer() {  }
 
 UprisingLoyaltyTimer* UprisingLoyaltyTimer::Clone() { return NewOrNull<UprisingLoyaltyTimer>(*this); }
 
@@ -66,7 +65,7 @@ AssaultLoyaltyTimer::AssaultLoyaltyTimer() : TimerEvent() {}
 
 AssaultLoyaltyTimer::AssaultLoyaltyTimer(const AssaultLoyaltyTimer& other) : TimerEvent(other) {}
 
-AssaultLoyaltyTimer::~AssaultLoyaltyTimer() { REB_KEEP_VPTR_STORE(); }
+AssaultLoyaltyTimer::~AssaultLoyaltyTimer() {  }
 
 AssaultLoyaltyTimer* AssaultLoyaltyTimer::Clone() { return NewOrNull<AssaultLoyaltyTimer>(*this); }
 
@@ -84,7 +83,7 @@ BlockadeLoyaltyTimer::BlockadeLoyaltyTimer() : TimerEvent() {}
 
 BlockadeLoyaltyTimer::BlockadeLoyaltyTimer(const BlockadeLoyaltyTimer& other) : TimerEvent(other) {}
 
-BlockadeLoyaltyTimer::~BlockadeLoyaltyTimer() { REB_KEEP_VPTR_STORE(); }
+BlockadeLoyaltyTimer::~BlockadeLoyaltyTimer() {  }
 
 BlockadeLoyaltyTimer* BlockadeLoyaltyTimer::Clone() { return NewOrNull<BlockadeLoyaltyTimer>(*this); }
 
@@ -102,7 +101,7 @@ UprisingPulseTimer::UprisingPulseTimer() : TimerEvent() {}
 
 UprisingPulseTimer::UprisingPulseTimer(const UprisingPulseTimer& other) : TimerEvent(other) {}
 
-UprisingPulseTimer::~UprisingPulseTimer() { REB_KEEP_VPTR_STORE(); }
+UprisingPulseTimer::~UprisingPulseTimer() {  }
 
 UprisingPulseTimer* UprisingPulseTimer::Clone() { return NewOrNull<UprisingPulseTimer>(*this); }
 
@@ -120,7 +119,7 @@ InformantIncidentTimer::InformantIncidentTimer() : TimerEvent() {}
 
 InformantIncidentTimer::InformantIncidentTimer(const InformantIncidentTimer& other) : TimerEvent(other) {}
 
-InformantIncidentTimer::~InformantIncidentTimer() { REB_KEEP_VPTR_STORE(); }
+InformantIncidentTimer::~InformantIncidentTimer() {  }
 
 InformantIncidentTimer* InformantIncidentTimer::Clone() { return NewOrNull<InformantIncidentTimer>(*this); }
 
@@ -138,7 +137,7 @@ SideStatATimer::SideStatATimer() : TimerEvent() {}
 
 SideStatATimer::SideStatATimer(const SideStatATimer& other) : TimerEvent(other) {}
 
-SideStatATimer::~SideStatATimer() { REB_KEEP_VPTR_STORE(); }
+SideStatATimer::~SideStatATimer() {  }
 
 SideStatATimer* SideStatATimer::Clone() { return NewOrNull<SideStatATimer>(*this); }
 
@@ -156,7 +155,7 @@ SideStatBTimer::SideStatBTimer() : TimerEvent() {}
 
 SideStatBTimer::SideStatBTimer(const SideStatBTimer& other) : TimerEvent(other) {}
 
-SideStatBTimer::~SideStatBTimer() { REB_KEEP_VPTR_STORE(); }
+SideStatBTimer::~SideStatBTimer() {  }
 
 SideStatBTimer* SideStatBTimer::Clone() { return NewOrNull<SideStatBTimer>(*this); }
 

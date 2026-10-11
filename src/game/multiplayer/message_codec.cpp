@@ -1,15 +1,13 @@
 #include "multiplayer/message_codec.h"
 
 #include <cstring>
+#include <new>
 
 #include "core/checked_new.h"
 #include "core/iostream_lib.h"
 #include "core/stream_io.h"
-#include "core/vptr_store.h"
 #include "orders/order_base.h"
 
-// The shared empty function the release build left where a debug assertion failed (0x619730).
-void FUN_00619730();
 
 namespace {
 
@@ -17,12 +15,6 @@ constexpr int kInitialCapacity = 10;
 constexpr int kOutputMode = 2;
 
 uint32_t BytesWritten(OStrStream* stream) { return iostream_access::WrittenBytes(StreambufOf(stream->Out())); }
-
-// delete through a stream pointer: the scalar deleting destructor sits in the virtual base's vftable.
-void DeleteStream(void* stream) {
-    ios* base = iostream_access::IosOf(stream);
-    base->m_vftable->m_scalarDeletingDtor(base, 1);
-}
 
 }  // namespace
 
@@ -32,7 +24,7 @@ MessageCodec::MessageCodec() : m_valid(1), m_input(nullptr), m_output(nullptr), 
 
 MessageCodec::~MessageCodec() {
     Release();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int MessageCodec::Deserialize(MessageBase** out) {
@@ -88,11 +80,11 @@ void MessageCodec::SetData(const void* data, uint32_t size) {
 
 int MessageCodec::Release() {
     if (m_input) {
-        DeleteStream(m_input);
+        delete m_input;
         m_input = nullptr;
     }
     if (m_output) {
-        DeleteStream(m_output);
+        delete m_output;
         m_output = nullptr;
     }
     if (m_buffer) {
@@ -122,21 +114,18 @@ int MessageCodec::Reserve(int capacity, int keepContents) {
         }
     }
     if (ok) {
-        void* memory = ::operator new(sizeof(IStrStream));
-        m_input = memory ? istrstream_ctor_str_len(static_cast<IStrStream*>(memory), m_buffer, m_capacity, 1) : nullptr;
+        m_input = new (std::nothrow) IStrStream();
+        if (m_input) istrstream_ctor_str_len(m_input, m_buffer, m_capacity, 1);
         failed = m_input == nullptr;
         ok = !failed;
         if (ok) {
-            void* outputMemory = ::operator new(sizeof(OStrStream));
-            m_output = outputMemory ? ostrstream_ctor_buf(static_cast<OStrStream*>(outputMemory), m_buffer, m_capacity,
-                                                          kOutputMode, 1)
-                                    : nullptr;
+            m_output = new (std::nothrow) OStrStream();
+            if (m_output) ostrstream_ctor_buf(m_output, m_buffer, m_capacity, kOutputMode, 1);
             failed = m_output == nullptr;
             ok = !failed;
         }
     }
     if (replacement) ::operator delete(replacement);
-    if (failed) FUN_00619730();
     m_valid = ok;
     return ok;
 }

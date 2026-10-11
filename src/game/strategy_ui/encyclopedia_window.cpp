@@ -1,5 +1,4 @@
 #include "economy/manu_mgr.h"
-#include "core/reb_abi.h"
 #include "strategy_ui/encyclopedia_window.h"
 
 #include <cstring>
@@ -11,7 +10,6 @@
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/registry.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "galaxy/system.h"
 #include "gameobj/game_obj_root.h"
@@ -205,7 +203,7 @@ EncyclopediaWindow::~EncyclopediaWindow() {
     }
     CoolAppUnloadResourceSlot(kEncyTextSlot);
     CoolAppUnloadResourceSlot(kEncyBitmapSlot);
-    REB_KEEP_VPTR_STORE();
+
 }
 
 ObjectKey* EncyclopediaWindow::ResolveEntryKey(ObjectKey* out, const ObjectKey* key) {
@@ -439,7 +437,7 @@ void EncyclopediaWindow::OnCreate1() {
 
 // ---- Messages --------------------------------------------------------------------------------------------------
 
-LRESULT REB_STDCALL EncyclopediaWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT EncyclopediaWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
     case kFieldReturnMessage:
         if (static_cast<int16_t>(wParam) == kSearchFieldId && m_selected) {

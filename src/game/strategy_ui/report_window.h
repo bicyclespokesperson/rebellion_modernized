@@ -56,7 +56,7 @@ public:
     CoolLabel m_label;              // +0x128 draws the tab captions (DrawOverlay)
     CoolTabControl* m_pageTabs;     // +0x15c child id 100
     CoolTabControl* m_unitTabs;     // +0x160 child id 0x96: the kinds of unit of the lists
-    CoolStrobeButton* m_closeButton;  // +0x164 child id 10; BUG(original): not initialised by the constructor
+    CoolStrobeButton* m_closeButton;  // +0x164 child id 10
     CoolStrobeButton* m_previousButton;  // +0x168 child id 12
     CoolStrobeButton* m_nextButton;      // +0x16c child id 11
     uint8_t m_unk170[4];            // +0x170

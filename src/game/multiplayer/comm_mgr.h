@@ -43,12 +43,6 @@ enum CommResult : int {
     kCommNameRequired = 0x12,
 };
 
-// An object CommMgr owns and only ever deletes through its virtual destructor (set up by the lobby code).
-class CommLobbyHandle {
-public:
-    virtual ~CommLobbyHandle();
-};
-
 class CommMgr {
 public:
     CommMgr();   // 0x5f8410
@@ -194,4 +188,3 @@ extern SessionList g_sessionList;                // 0x6be330
 extern LobbyConnection g_lobbyConnection;        // 0x6be350
 extern GUID g_lobbySessionGuid;                  // 0x6be360 instance GUID the lobby launched us into
 extern StringMap g_commSettings;                 // 0x6be370 network test settings ("MinimumSendLatency" ...)
-extern CommLobbyHandle* g_commLobbyHandle;       // 0x6be3b0 owned, deleted at shutdown

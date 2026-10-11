@@ -1,24 +1,15 @@
-#include "core/reb_abi.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 
-// The game CRT's 32-bit time() (0x61b120). Not <ctime>: UCRT's time() is an inline wrapper over _time64.
-extern "C" long REB_CDECL time(long* result);
+#include "core/runtime_environment.h"
 
 extern uint32_t g_crcTable[256];
 extern int g_crcTableReady;
-
-// The game's statically linked C runtime (the UCRT headers would declare these as DLL imports).
-extern "C" {
-int REB_CDECL rand(void);
-void REB_CDECL srand(unsigned int seed);
-}
 
 // ---- ObjectBase --------------------------------------------------------------------------------------------
 
 ObjectBase::ObjectBase() {}
 
-ObjectBase::~ObjectBase() { REB_KEEP_VPTR_STORE(); }
+ObjectBase::~ObjectBase() {  }
 
 // ---- PersistentInt -----------------------------------------------------------------------------------------
 
@@ -46,7 +37,7 @@ RandomGenerator::RandomGenerator() : m_seed(-1) {}
 
 RandomGenerator::RandomGenerator(int seed) { m_seed = Seed(seed); }
 
-RandomGenerator::~RandomGenerator() { REB_KEEP_VPTR_STORE(); }
+RandomGenerator::~RandomGenerator() {  }
 
 int RandomGenerator::Seed(int seed) {
     m_seed = -1;
@@ -65,13 +56,17 @@ int RandomGenerator::Next(int limit) {
 }
 
 int RandomGenerator::GenerateSeed() {
-    srand(static_cast<unsigned>(time(nullptr)));
+    uint32_t state = static_cast<uint32_t>(GameSeedSeconds());
+    const auto draw = [&state]() {
+        state = state * 214013u + 2531011u;
+        return static_cast<int>((state >> 16) & 0x7fff);
+    };
     int seed;
     do {
-        const int a = rand();
-        const int b = rand();
-        const int c = rand();
-        const int d = rand();
+        const int a = draw();
+        const int b = draw();
+        const int c = draw();
+        const int d = draw();
         seed = a * b + c * d;
     } while (seed > 0x7ffffffe);
     return seed;
@@ -97,7 +92,7 @@ Crc32::Crc32() { Reset(); }
 
 Crc32::Crc32(const Crc32& other) : m_state(other.m_state) {}
 
-Crc32::~Crc32() { REB_KEEP_VPTR_STORE(); }
+Crc32::~Crc32() {  }
 
 Crc32& Crc32::operator=(const Crc32& other) {
     m_state = other.m_state;

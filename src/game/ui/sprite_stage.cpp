@@ -1,7 +1,6 @@
 #include "ui/sprite_stage.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/cool_window.h"
 #include "ui/sprite.h"
@@ -9,7 +8,7 @@
 
 SpriteTree::SpriteTree() { m_nextId = 0; }
 
-SpriteTree::~SpriteTree() { REB_KEEP_VPTR_STORE(); }
+SpriteTree::~SpriteTree() {  }
 
 int SpriteTree::IsLess(AvlNode* a, AvlNode* b) {
     int less = 0;
@@ -31,7 +30,7 @@ Sprite* SpriteTree::FindById(uint32_t id) {
 
 AnimatorTree::AnimatorTree() {}
 
-AnimatorTree::~AnimatorTree() { REB_KEEP_VPTR_STORE(); }
+AnimatorTree::~AnimatorTree() {  }
 
 namespace {
 
@@ -69,7 +68,7 @@ SpriteStage::SpriteStage(CoolWindow* window, DibBitmap* format, int x, int y, in
 }
 
 SpriteStage::~SpriteStage() {
-    REB_KEEP_VPTR_STORE();
+
     m_alive = 0;
     if (DibBitmap* buffer = m_buffers[0]) {
         delete buffer;

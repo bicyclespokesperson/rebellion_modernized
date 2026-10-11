@@ -38,7 +38,6 @@ TacticalRegistry::TacticalRegistry() {
 TacticalRegistry::~TacticalRegistry() {
     delete m_deathStar;
     m_deathStar = nullptr;
-    g_tacticalRegistry = nullptr;
 }
 
 uint32_t TacticalRegistry::NextUnitHandle(unsigned side) {
@@ -59,10 +58,12 @@ TacticalShipBase* TacticalRegistry::FindShip(int handle) {
 TacticalHangar* TacticalRegistry::FindLaunchInterface(int handle) {
     TacticalShipBase* ship = FindShip(handle);
     if (!ship) {
+#ifndef REB_NO_TACTICAL_3D
         if (GetTacticalGame()->m_abstract == 0) {
             TacticalUnit* world = FUN_005a9330(GetObjectManager());
             return world ? hangarOfDeathStar(world) : nullptr;
         }
+#endif
         GetHeadlessSimulator();
         TacticalUnit* deathStar = GetTacticalRegistry()->GetDeathStar();
         return deathStar ? hangarOfDeathStar(deathStar) : nullptr;

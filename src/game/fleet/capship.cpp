@@ -1,11 +1,9 @@
-#include "core/reb_abi.h"
 #include "fleet/capship.h"
 
 #include <new>
 
 #include "character/character.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "data/game_math.h"
 #include "data/probability_table.h"
 #include "data/random.h"
@@ -137,7 +135,7 @@ CapShip::CapShip() {
     m_criticalHits = 0;
 }
 
-CapShip::~CapShip() { REB_KEEP_VPTR_STORE(); }
+CapShip::~CapShip() {  }
 
 int CapShip::GetTransitSpeed(int arg) {
     int speed = 0;
@@ -715,7 +713,7 @@ CapShipIterator::CapShipIterator(GameObjNotifier* parent, uint32_t stateFilter)
 CapShipIterator::CapShipIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &family::kCapitalShips, stateFilter) {}
 
-CapShipIterator::~CapShipIterator() { REB_KEEP_VPTR_STORE(); }
+CapShipIterator::~CapShipIterator() {  }
 
 int CapShip::CreateViews(int controlKind, NotifyContext* ctx) { return CreateViewsState(controlKind, ctx); }
 

@@ -1,7 +1,6 @@
 #include "fleet/capship_data.h"
 
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "data/gnprtb.h"
 #include "data/random.h"
 #include "gameobj/object_family.h"
@@ -12,7 +11,7 @@ constexpr FamilyRange kCombatUnitFamilies(0x10, 0x20);
 
 CapShipData::CapShipData() : m_word20(0), m_word24(0), m_word28(0) {}
 
-CapShipData::~CapShipData() { REB_KEEP_VPTR_STORE(); }
+CapShipData::~CapShipData() {  }
 
 int CapShipData::Read(istream* in) {
     const int result = CombatUnitData::Read(in);
@@ -47,7 +46,7 @@ int CapShipData::Checksum(Crc32* crc) {
 CombatUnitIterator::CombatUnitIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kCombatUnitFamilies, stateFilter) {}
 
-CombatUnitIterator::~CombatUnitIterator() { REB_KEEP_VPTR_STORE(); }
+CombatUnitIterator::~CombatUnitIterator() {  }
 
 int BindGnprtb08() {
     const int first = BindGnprtbParameter(0x800, &g_gnprtb0800);

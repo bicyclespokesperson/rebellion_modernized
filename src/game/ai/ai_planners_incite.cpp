@@ -1,6 +1,5 @@
 #include "ai/ai_planner_util.h"
 #include "ai/ai_planners.h"
-#include "core/vptr_store.h"
 
 using namespace ai_planner;
 using ai::IsSystemKey;
@@ -10,7 +9,7 @@ AiIncitePlanner::AiIncitePlanner(int view, AiSideController* owner, AiCharacterR
     m_missionKey = ObjectKey::Make(0x56, 0x40);
 }
 
-AiIncitePlanner::~AiIncitePlanner() { REB_KEEP_VPTR_STORE(); }
+AiIncitePlanner::~AiIncitePlanner() {  }
 
 int AiIncitePlanner::Virtual06() { return SumLeaderValue(this, 6); }
 

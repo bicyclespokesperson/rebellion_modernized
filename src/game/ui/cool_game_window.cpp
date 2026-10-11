@@ -1,9 +1,7 @@
-#include "core/reb_abi.h"
 #include "ui/cool_game_window.h"
 
 #include "core/checked_new.h"
 #include "core/containers.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/bitmap_overlay.h"
 #include "ui/cool_app.h"
@@ -93,7 +91,7 @@ CoolGameWindow::~CoolGameWindow() {
         m_frame = nullptr;
     }
     if (m_previousFocus) SetFocus(m_previousFocus);
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void CoolGameWindow::Hide() {
@@ -527,7 +525,7 @@ DibBitmap* CoolGameWindow::LoadBitmapCopy(uint32_t bitmapId) {
 
 CoolWindow* CoolGameWindow::FindChild(uint32_t childId) { return m_children.FindById(childId); }
 
-LRESULT REB_STDCALL CoolGameWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CoolGameWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     LRESULT result = 0;
     switch (message) {

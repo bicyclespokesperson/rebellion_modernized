@@ -1,11 +1,9 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/fleet_finder_window.h"
 
 #include <new>
 
 #include "core/checked_new.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
 #include "gfx/dib_bitmap.h"
@@ -97,7 +95,7 @@ FleetFinderWindow::~FleetFinderWindow() {
         m_items->Clear();
         delete m_items;
     }
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void FleetFinderWindow::OnCreate1() {
@@ -345,7 +343,7 @@ void FleetFinderWindow::OnCommand(int, int command, int) {
     }
 }
 
-LRESULT REB_STDCALL FleetFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT FleetFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     LRESULT result = 0;
     if (message == WM_SETFOCUS) {
         SetFocus(m_nameField->m_hwnd);

@@ -1,11 +1,9 @@
-#include "core/reb_abi.h"
 #include "mission/mission_bases.h"
 
 #include <new>
 
 #include "character/character.h"
 #include "character/role.h"
-#include "core/vptr_store.h"
 #include "galaxy/mission_decl.h"
 #include "galaxy/system.h"
 #include "gameobj/object_database.h"
@@ -75,7 +73,7 @@ int initFrom(int (*build)(), EventKindSet* kinds, EventKindSet* out) {
 
 MissionRuleBase::MissionRuleBase() {}
 
-MissionRuleBase::~MissionRuleBase() { REB_KEEP_VPTR_STORE(); }
+MissionRuleBase::~MissionRuleBase() {  }
 
 int MissionRuleBase::BuildEventKinds() {
     return buildFromParent(&g_ruleBaseEventKindsBuilt, &g_ruleBaseEventKinds, Mission::GetBaseEventKinds);
@@ -129,7 +127,7 @@ int MissionRuleBase::WriteBody(ostream* out) { return WriteImpl(out); }
 
 int MissionRuleBase::ApplyAllBody(NotifyContext* ctx) { return ApplyAllImpl(ctx); }
 
-int REB_CDECL MissionRuleBase::CheckMember(int side, GameObj* person, GameObj** out, StatusCode* status) {
+int MissionRuleBase::CheckMember(int side, GameObj* person, GameObj** out, StatusCode* status) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     *out = nullptr;
     int result = 0;
@@ -156,7 +154,7 @@ int REB_CDECL MissionRuleBase::CheckMember(int side, GameObj* person, GameObj** 
     return result;
 }
 
-int REB_CDECL MissionRuleBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
+int MissionRuleBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     *code = 0;
     int ok = Mission::CheckTargetDefault(args, status, code);
@@ -298,7 +296,7 @@ int MissionRuleBase::OnPhaseChanged(int oldValue, int newValue, NotifyContext* c
 
 MissionSystemTargetBase::MissionSystemTargetBase() {}
 
-MissionSystemTargetBase::~MissionSystemTargetBase() { REB_KEEP_VPTR_STORE(); }
+MissionSystemTargetBase::~MissionSystemTargetBase() {  }
 
 int MissionSystemTargetBase::BuildEventKinds() {
     return buildFromParent(&g_systemTargetBaseEventKindsBuilt, &g_systemTargetBaseEventKinds,
@@ -336,7 +334,7 @@ int MissionSystemTargetBase::GetObjectiveSystem(GameObj** out) {
     return found;
 }
 
-int REB_CDECL MissionSystemTargetBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
+int MissionSystemTargetBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     *code = 0;
     const int ok = MissionRuleBase::CheckTarget(args, status, code);
@@ -362,13 +360,13 @@ int REB_CDECL MissionSystemTargetBase::CheckTarget(MissionCheckArgs* args, Statu
 MissionTargetKindIterator::MissionTargetKindIterator(GameObjNotifier* parent)
     : ChildIterator(parent, &kTargetKindFamilies, 1) {}
 
-MissionTargetKindIterator::~MissionTargetKindIterator() { REB_KEEP_VPTR_STORE(); }
+MissionTargetKindIterator::~MissionTargetKindIterator() {  }
 
 // ==== MissionCharacterTargetBase =========================================================================
 
 MissionCharacterTargetBase::MissionCharacterTargetBase() {}
 
-MissionCharacterTargetBase::~MissionCharacterTargetBase() { REB_KEEP_VPTR_STORE(); }
+MissionCharacterTargetBase::~MissionCharacterTargetBase() {  }
 
 int MissionCharacterTargetBase::BuildEventKinds() {
     return buildFromParent(&g_characterTargetBaseEventKindsBuilt, &g_characterTargetBaseEventKinds,
@@ -406,7 +404,7 @@ int MissionCharacterTargetBase::GetObjectiveCharacter(GameObj** out) {
     return found;
 }
 
-int REB_CDECL MissionCharacterTargetBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
+int MissionCharacterTargetBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     *code = 0;
     const int ok = MissionRuleBase::CheckTarget(args, status, code);
@@ -435,7 +433,7 @@ int REB_CDECL MissionCharacterTargetBase::CheckTarget(MissionCheckArgs* args, St
 
 MissionObjectTargetBase::MissionObjectTargetBase() {}
 
-MissionObjectTargetBase::~MissionObjectTargetBase() { REB_KEEP_VPTR_STORE(); }
+MissionObjectTargetBase::~MissionObjectTargetBase() {  }
 
 int MissionObjectTargetBase::BuildEventKinds() {
     return buildFromParent(&g_objectTargetBaseEventKindsBuilt, &g_objectTargetBaseEventKinds,
@@ -462,7 +460,7 @@ int MissionObjectTargetBase::GetCheckFunctions(MissionCheckFunctions* out) {
     return 1;
 }
 
-int REB_CDECL MissionObjectTargetBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
+int MissionObjectTargetBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     *code = 0;
     const int ok = MissionRuleBase::CheckTarget(args, status, code);
@@ -484,7 +482,7 @@ int REB_CDECL MissionObjectTargetBase::CheckTarget(MissionCheckArgs* args, Statu
 
 MissionStoryBase::MissionStoryBase() {}
 
-MissionStoryBase::~MissionStoryBase() { REB_KEEP_VPTR_STORE(); }
+MissionStoryBase::~MissionStoryBase() {  }
 
 int MissionStoryBase::BuildEventKinds() {
     return buildFromParent(&g_storyBaseEventKindsBuilt, &g_storyBaseEventKinds, MissionRuleBase::InitEventKinds);
@@ -514,7 +512,7 @@ int MissionStoryBase::OnPhaseChanged(int oldValue, int newValue, NotifyContext* 
     return MissionRuleBase::OnPhaseChanged(oldValue, newValue, ctx);
 }
 
-int REB_CDECL MissionStoryBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
+int MissionStoryBase::CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code) {
     *status = StatusCode(kStatusCategory, kStatusOk);
     *code = 0;
     const int ok = MissionRuleBase::CheckTarget(args, status, code);
@@ -578,7 +576,7 @@ int MissionTypeBase::AddInitialMembers(ObjectKeyValueSet* team, ObjectKeyValueSe
 
 MissionTypeBase::MissionTypeBase() {}
 
-MissionTypeBase::~MissionTypeBase() { REB_KEEP_VPTR_STORE(); }
+MissionTypeBase::~MissionTypeBase() {  }
 
 int MissionTypeBase::CreateViewsBody(int controlKind, NotifyContext* ctx) { return CreateViewsImpl(controlKind, ctx); }
 

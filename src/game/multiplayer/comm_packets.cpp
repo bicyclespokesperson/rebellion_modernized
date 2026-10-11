@@ -8,7 +8,6 @@
 
 #include "core/checked_new.h"
 #include "core/stream_io.h"
-#include "core/vptr_store.h"
 #include "multiplayer/comm_mgr.h"
 
 
@@ -43,7 +42,7 @@ ServiceProviderInfo::ServiceProviderInfo(const ServiceProviderInfo& other) : IdN
     m_context = other.m_context;
 }
 
-ServiceProviderInfo::~ServiceProviderInfo() { REB_KEEP_VPTR_STORE(); }
+ServiceProviderInfo::~ServiceProviderInfo() {  }
 
 SessionInfo::SessionInfo(const DPSESSIONDESC2* description) : IdNode(), m_name() {
     if (description) {
@@ -57,19 +56,19 @@ SessionInfo::SessionInfo(const SessionInfo& other) : IdNode(), m_name() {
     m_name.Assign(other.m_name);
 }
 
-SessionInfo::~SessionInfo() { REB_KEEP_VPTR_STORE(); }
+SessionInfo::~SessionInfo() {  }
 
 ServiceProviderList::ServiceProviderList() : IdAvlTree() {}
 
-ServiceProviderList::~ServiceProviderList() { REB_KEEP_VPTR_STORE(); }
+ServiceProviderList::~ServiceProviderList() {  }
 
 SessionList::SessionList() : IdAvlTree() {}
 
-SessionList::~SessionList() { REB_KEEP_VPTR_STORE(); }
+SessionList::~SessionList() {  }
 
 LobbyConnection::LobbyConnection() : m_launched(0), m_host(0), m_dplay(nullptr) {}
 
-LobbyConnection::~LobbyConnection() { REB_KEEP_VPTR_STORE(); }
+LobbyConnection::~LobbyConnection() {  }
 
 // ---- CommMessage -----------------------------------------------------------------------------------------------
 
@@ -101,7 +100,7 @@ CommMessage::CommMessage(int kind, int arg, int a, int b, int c) {
 CommMessage::~CommMessage() {
     ostrstream_dtor(m_stream.Ios());
     ios_dtor(m_stream.Ios());
-    REB_KEEP_VPTR_STORE();
+
 }
 
 char* CommMessage::Serialize() {
@@ -197,7 +196,7 @@ CommPacket::CommPacket(const void* data, uint32_t size, uint32_t id, char part, 
 
 CommPacket::~CommPacket() {
     ::operator delete(m_ack);
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int CommPacket::FirstFragmentId() {
@@ -220,7 +219,7 @@ ReceivedPacket::ReceivedPacket(const void* wire, uint32_t size) : IdNode() {
     SetId(m_wire.m_id);
 }
 
-ReceivedPacket::~ReceivedPacket() { REB_KEEP_VPTR_STORE(); }
+ReceivedPacket::~ReceivedPacket() {  }
 
 uint16_t ReceivedPacket::CopyPayload(void* out, uint16_t capacity) const {
     if (m_wire.m_length > capacity) return 0;
@@ -255,7 +254,7 @@ CommOutgoing::CommOutgoing(const void* data, uint32_t size, uint32_t category, i
     SetId(m_firstPacketId);
 }
 
-CommOutgoing::~CommOutgoing() { REB_KEEP_VPTR_STORE(); }
+CommOutgoing::~CommOutgoing() {  }
 
 // ---- PartialMessage --------------------------------------------------------------------------------------------
 
@@ -267,7 +266,7 @@ PartialMessage::PartialMessage(uint32_t firstPacketId) : IdNode() {
     SetId(firstPacketId);
 }
 
-PartialMessage::~PartialMessage() { REB_KEEP_VPTR_STORE(); }
+PartialMessage::~PartialMessage() {  }
 
 int PartialMessage::IsComplete() const { return m_partsSeen == m_partCount; }
 
@@ -325,7 +324,7 @@ int PartialMessage::ReleaseFragments() {
 
 PacketBuffer::PacketBuffer() : m_count(0), m_used(1) { m_write = m_data; }
 
-PacketBuffer::~PacketBuffer() { REB_KEEP_VPTR_STORE(); }
+PacketBuffer::~PacketBuffer() {  }
 
 int8_t PacketBuffer::GetCount() const { return m_count; }
 
@@ -363,7 +362,7 @@ void SendBuffer::Reset() {
     m_used = 1;
 }
 
-SendBuffer::~SendBuffer() { REB_KEEP_VPTR_STORE(); }
+SendBuffer::~SendBuffer() {  }
 
 ReceiveBuffer::ReceiveBuffer() : PacketBuffer() {
     m_write = reinterpret_cast<uint8_t*>(&m_count);
@@ -379,4 +378,4 @@ void ReceiveBuffer::Reset() {
     m_used = 0;
 }
 
-ReceiveBuffer::~ReceiveBuffer() { REB_KEEP_VPTR_STORE(); }
+ReceiveBuffer::~ReceiveBuffer() {  }

@@ -27,7 +27,7 @@ int CheckedSideOf(int kind) { return kind == 1 ? 1 : (kind == 2 ? 2 : 0); }
 
 MissionDiplomacy::MissionDiplomacy() {}
 
-MissionDiplomacy::~MissionDiplomacy() { REB_KEEP_VPTR_STORE(); }
+MissionDiplomacy::~MissionDiplomacy() {  }
 
 REB_MISSION_SHARED_PERSISTENCE(MissionDiplomacy)
 

@@ -9,25 +9,36 @@ extern float g_tacticalGameScaleSquared;  // 0x6bc244
 
 namespace {
 
+#ifndef REB_NO_TACTICAL_3D
 constexpr float kMillisecondsPerSecond = 1000.0f;
 constexpr int kMinimumRunningMode = 2;
 constexpr int kHubRunning = 1;
 
 int hubState(TacticalHub* hub) { return *reinterpret_cast<int*>(hub); }
+#endif
 
 }  // namespace
 
-TacticalObjectManager* GetObjectManager() { return g_tacticalObjectManager; }
+TacticalObjectManager* GetObjectManager() {
+#ifdef REB_NO_TACTICAL_3D
+    return nullptr;
+#else
+    return g_tacticalObjectManager;
+#endif
+}
 
 void DestroyObjectManager() {
+#ifndef REB_NO_TACTICAL_3D
     if (g_tacticalObjectManager) g_tacticalObjectManager->ScalarDeletingDestructor(1);
     g_tacticalObjectManager = nullptr;
+#endif
 }
 
 void InitTacticalSideScale() { g_tacticalSideScaleSquared = g_tacticalSideScaleBase * g_tacticalSideScaleBase; }
 
 void InitTacticalGameScale() { g_tacticalGameScaleSquared = g_tacticalGameScaleBase * g_tacticalGameScaleBase; }
 
+#ifndef REB_NO_TACTICAL_3D
 void TacticalObjectManager::Virtual02() {
     if (static_cast<unsigned>(m_mode) > kMinimumRunningMode) Virtual01();
 }
@@ -97,6 +108,7 @@ void TacticalObjectManager::SetSystemInfo(int field44, String name) {
     m_systemField44 = field44;
     m_systemName.Assign(name);
 }
+#endif
 
 float g_tacticalGameScaleBase = 3.0f;
 float g_tacticalGameScaleSquared{};

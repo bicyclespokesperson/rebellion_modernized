@@ -3,7 +3,6 @@
 #include "ui/cool_scroll_bars.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 
 namespace {
 
@@ -16,7 +15,7 @@ CoolScrollable::CoolScrollable() : m_verticalBar(nullptr), m_horizontalBar(nullp
 CoolScrollable::~CoolScrollable() {
     if (m_verticalBar) delete m_verticalBar;
     if (m_horizontalBar) delete m_horizontalBar;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int CoolScrollable::PageUp() { return 0; }

@@ -4,7 +4,6 @@
 
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "multiplayer/multiplayer_window.h"
 
 extern const int g_rectA[4];  // 0x658b08 {left, top, right, bottom}
@@ -28,10 +27,11 @@ int rectWidth(const int (&rect)[4]) { return rect[kRectRight] - rect[kRectLeft] 
 // ---- MpSlotTableMsg (kind 0x14) ------------------------------------------------------------------------------
 
 MpSlotTableMsg::MpSlotTableMsg() {
+    m_unk20 = 0;
     for (int& value : m_values) value = 0;
 }
 
-MpSlotTableMsg::~MpSlotTableMsg() { REB_KEEP_VPTR_STORE(); }
+MpSlotTableMsg::~MpSlotTableMsg() {  }
 
 int MpSlotTableMsg::Read(istream* in) {
     int result = MessageBase::Read(in);
@@ -61,7 +61,6 @@ int MpSlotTableMsg::Apply() {
 MessageBase* CreateMpSlotTableMsg() { return NewOrNull<MpSlotTableMsg>(); }
 
 void ComputeRectAWidth() { g_rectAWidth = rectWidth(g_rectA); }
-void StaticInitRectAWidth() { ComputeRectAWidth(); }
 
 // ---- MpLobbySettingsMsg (kind 0x10) --------------------------------------------------------------------------
 
@@ -72,7 +71,7 @@ MpLobbySettingsMsg::MpLobbySettingsMsg(int setting130, int setting120, int setti
       m_setting128(setting128),
       m_startGame(startGame) {}
 
-MpLobbySettingsMsg::~MpLobbySettingsMsg() { REB_KEEP_VPTR_STORE(); }
+MpLobbySettingsMsg::~MpLobbySettingsMsg() {  }
 
 int MpLobbySettingsMsg::Read(istream* in) {
     MessageBase::Read(in);
@@ -102,7 +101,7 @@ MessageBase* CreateMpLobbySettingsMsg() { return NewOrNull<MpLobbySettingsMsg>(0
 
 MpChatMsg::MpChatMsg() {}
 
-MpChatMsg::~MpChatMsg() { REB_KEEP_VPTR_STORE(); }
+MpChatMsg::~MpChatMsg() {  }
 
 int MpChatMsg::Read(istream* in) {
     TextMessage::Read(in);
@@ -132,13 +131,12 @@ int MpFlagsMsg::Apply() {
 }
 
 void ComputeRectBWidth() { g_rectBWidth = rectWidth(g_rectB); }
-void StaticInitRectBWidth() { ComputeRectBWidth(); }
 
 // ---- MpPlayerInfoMsg (kind 0x12) -----------------------------------------------------------------------------
 
 MpPlayerInfoMsg::MpPlayerInfoMsg() : m_action(0), m_playerId(0), m_extra(0) {}
 
-MpPlayerInfoMsg::~MpPlayerInfoMsg() { REB_KEEP_VPTR_STORE(); }
+MpPlayerInfoMsg::~MpPlayerInfoMsg() {  }
 
 int MpPlayerInfoMsg::Read(istream* in) {
     int result = MessageBase::Read(in);
@@ -191,7 +189,6 @@ const char *g_tooltipClassName = nullptr;
 const int g_rectA[4] = {144, 125, 500, 222};
 const int g_rectB[4] = {144, 125, 500, 222};
 int g_isNetworkGame{};
-int g_musicVolume{};
 int g_rectAWidth{};
 int g_rectBWidth{};
 uint32_t g_appDialogMessage{};

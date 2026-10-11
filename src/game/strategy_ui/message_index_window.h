@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "audio/sound_manager.h"
@@ -32,7 +31,7 @@ public:
     MessageIndexWindow(HINSTANCE instance, CoolWindow* parent, uint32_t childId, int mode, int tab);  // 0x466350
     virtual ~MessageIndexWindow();  // 0x4664d0 (scalar deleting destructor 0x4664b0)
 
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x467e80
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x467e80
     virtual void PostCloseRequest() override;                  // slot 12, 0x46a6a0
     virtual void OnCreate1() override;                         // slot 14, 0x4665f0
     virtual void DrawOverlay(HDC dc) override;                 // slot 17, 0x468970

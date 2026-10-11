@@ -1,11 +1,9 @@
 #include "data/sd_record_bases.h"
-#include "core/reb_abi.h"
 #include "rules/rules_mgr.h"
 
 #include <new>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "data/game_math.h"
 #include "data/gnprtb.h"
 #include "data/random.h"
@@ -30,7 +28,7 @@
 extern int g_rulesMgrEventKindsBuilt;     // 0x6bb344
 extern EventKindSet g_rulesMgrEventKinds;  // 0x6bb348
 
-ObjectKey* REB_THISCALL GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
+ObjectKey* GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
 
 namespace {
 
@@ -92,7 +90,7 @@ RulesMgr::~RulesMgr() {
         delete m_neighbours;
         m_neighbours = nullptr;
     }
-    REB_KEEP_VPTR_STORE();
+
 }
 
 uint32_t RulesMgr::GetFamily() { return 0xf9; }

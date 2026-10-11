@@ -28,16 +28,16 @@ void LoadSideSpriteDlls(int side, int loadBriefing) {
     char* dllLocation = GetDllLocation();
     if (side != g_spriteDllSide) {
         g_spriteDllSide = side;
-        if (spriteModule) g_resourceDlls.UnloadSlot(kSpriteDllSlot);
+        if (spriteModule) CoolUnloadResourceSlot(kSpriteDllSlot);
         CoolAppRegisterResourceDll(dllLocation, side == kAllianceSide ? g_alspriteDllName : g_emspriteDllName,
                                    kSpriteDllSlot);
     }
     if (loadBriefing == 0) {
-        if (briefingModule) g_resourceDlls.UnloadSlot(kBriefingDllSlot);
+        if (briefingModule) CoolUnloadResourceSlot(kBriefingDllSlot);
         g_briefingDllSide = 0;
     } else if (g_briefingDllSide != side) {
         g_briefingDllSide = side;
-        if (briefingModule) g_resourceDlls.UnloadSlot(kBriefingDllSlot);
+        if (briefingModule) CoolUnloadResourceSlot(kBriefingDllSlot);
         CoolAppRegisterResourceDll(dllLocation, side == kAllianceSide ? g_albriefDllName : g_embriefDllName,
                                    kBriefingDllSlot);
     }
@@ -45,11 +45,11 @@ void LoadSideSpriteDlls(int side, int loadBriefing) {
 }
 
 void UnloadSpriteDll() {
-    g_resourceDlls.UnloadSlot(kSpriteDllSlot);
+    CoolUnloadResourceSlot(kSpriteDllSlot);
     g_spriteDllSide = 0;
 }
 
 void UnloadBriefingDll() {
-    g_resourceDlls.UnloadSlot(kBriefingDllSlot);
+    CoolUnloadResourceSlot(kBriefingDllSlot);
     g_briefingDllSide = 0;
 }

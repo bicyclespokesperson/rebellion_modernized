@@ -1,5 +1,4 @@
 #include "character/role.h"
-#include "core/vptr_store.h"
 #include "fleet/fleet.h"
 #include "galaxy/system.h"
 #include "gameobj/object_family.h"
@@ -132,4 +131,4 @@ SystemIterator::SystemIterator(GameObjNotifier* parent) : ChildIterator(parent, 
 SystemIterator::SystemIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &family::kSystems, stateFilter) {}
 
-SystemIterator::~SystemIterator() { REB_KEEP_VPTR_STORE(); }
+SystemIterator::~SystemIterator() {  }

@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "events/game_clock_hooks.h"
 
 namespace {
@@ -10,13 +9,13 @@ T* fromHookArgument(HookArg value) {
 
 }  // namespace
 
-void REB_THISCALL AssignGameTime(GameTime* self, const GameTime* other) {
+void AssignGameTime(GameTime* self, const GameTime* other) {
     if (self != other) self->m_value = other->m_value;
 }
 
-void REB_THISCALL ReadGameTime(GameTime* self, istream* in) { StreamRead32(in, self); }
+void ReadGameTime(GameTime* self, istream* in) { StreamRead32(in, self); }
 
-void REB_THISCALL ClearGameTime(GameTime* self) { self->m_value = 0; }
+void ClearGameTime(GameTime* self) { self->m_value = 0; }
 
 void InstallGameManagerHooks() {
     g_gameHook2AF4 = GameHookNextSerialA;
@@ -82,7 +81,7 @@ void GameHookScheduleEvent(HookArg event) {
 int GameHookDispatchPostedEvent(HookArg event) {
     int result = 1;
     if (GameManager* manager = GetGameManager())
-        result = manager->DispatchPostedEvent(fromHookArgument<PostedEvent>(event));
+        result = manager->DispatchPostedEvent(fromHookArgument<NotifPayload>(event));
     return result;
 }
 

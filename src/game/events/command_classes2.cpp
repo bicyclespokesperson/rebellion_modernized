@@ -47,7 +47,7 @@ MoveCommand::MoveCommand() : Command() {}
 
 MoveCommand::MoveCommand(const MoveCommand& other) : Command(other) {}
 
-MoveCommand::~MoveCommand() { REB_KEEP_VPTR_STORE(); }
+MoveCommand::~MoveCommand() {  }
 
 MoveCommand* MoveCommand::Clone() { return NewOrNull<MoveCommand>(*this); }
 
@@ -127,7 +127,7 @@ RenameCommand::RenameCommand() : Command(), m_name() {}
 
 RenameCommand::RenameCommand(const RenameCommand& other) : Command(other), m_name(other.m_name) {}
 
-RenameCommand::~RenameCommand() { REB_KEEP_VPTR_STORE(); }
+RenameCommand::~RenameCommand() {  }
 
 RenameCommand* RenameCommand::Clone() { return NewOrNull<RenameCommand>(*this); }
 
@@ -159,7 +159,7 @@ ScrapCommand::ScrapCommand() : Command() {}
 
 ScrapCommand::ScrapCommand(const ScrapCommand& other) : Command(other) {}
 
-ScrapCommand::~ScrapCommand() { REB_KEEP_VPTR_STORE(); }
+ScrapCommand::~ScrapCommand() {  }
 
 ScrapCommand* ScrapCommand::Clone() { return NewOrNull<ScrapCommand>(*this); }
 
@@ -181,7 +181,7 @@ ReadyForDeleteCommand::ReadyForDeleteCommand() : Command() {}
 
 ReadyForDeleteCommand::ReadyForDeleteCommand(const ReadyForDeleteCommand& other) : Command(other) {}
 
-ReadyForDeleteCommand::~ReadyForDeleteCommand() { REB_KEEP_VPTR_STORE(); }
+ReadyForDeleteCommand::~ReadyForDeleteCommand() {  }
 
 ReadyForDeleteCommand* ReadyForDeleteCommand::Clone() { return NewOrNull<ReadyForDeleteCommand>(*this); }
 
@@ -206,7 +206,7 @@ RootCommand240::RootCommand240() : Command() {}
 
 RootCommand240::RootCommand240(const RootCommand240& other) : Command(other) {}
 
-RootCommand240::~RootCommand240() { REB_KEEP_VPTR_STORE(); }
+RootCommand240::~RootCommand240() {  }
 
 RootCommand240* RootCommand240::Clone() { return NewOrNull<RootCommand240>(*this); }
 
@@ -258,7 +258,7 @@ RootCommand242::RootCommand242() : Command() {}
 
 RootCommand242::RootCommand242(const RootCommand242& other) : Command(other) {}
 
-RootCommand242::~RootCommand242() { REB_KEEP_VPTR_STORE(); }
+RootCommand242::~RootCommand242() {  }
 
 RootCommand242* RootCommand242::Clone() { return NewOrNull<RootCommand242>(*this); }
 
@@ -300,7 +300,7 @@ DestinationCommand::DestinationCommand() : Command(), m_pairs() {}
 
 DestinationCommand::DestinationCommand(const DestinationCommand& other) : Command(other), m_pairs(other.m_pairs) {}
 
-DestinationCommand::~DestinationCommand() { REB_KEEP_VPTR_STORE(); }
+DestinationCommand::~DestinationCommand() {  }
 
 DestinationCommand* DestinationCommand::Clone() { return NewOrNull<DestinationCommand>(*this); }
 
@@ -381,7 +381,7 @@ ManagerRenameCommand::ManagerRenameCommand() : Command(), m_name() {}
 
 ManagerRenameCommand::ManagerRenameCommand(const ManagerRenameCommand& other) : Command(other), m_name(other.m_name) {}
 
-ManagerRenameCommand::~ManagerRenameCommand() { REB_KEEP_VPTR_STORE(); }
+ManagerRenameCommand::~ManagerRenameCommand() {  }
 
 ManagerRenameCommand* ManagerRenameCommand::Clone() { return NewOrNull<ManagerRenameCommand>(*this); }
 
@@ -413,7 +413,7 @@ ManagerCommand213::ManagerCommand213() : Command() {}
 
 ManagerCommand213::ManagerCommand213(const ManagerCommand213& other) : Command(other) {}
 
-ManagerCommand213::~ManagerCommand213() { REB_KEEP_VPTR_STORE(); }
+ManagerCommand213::~ManagerCommand213() {  }
 
 ManagerCommand213* ManagerCommand213::Clone() { return NewOrNull<ManagerCommand213>(*this); }
 
@@ -435,7 +435,7 @@ ManagerCommand216::ManagerCommand216() : Command(), m_value(0) {}
 
 ManagerCommand216::ManagerCommand216(const ManagerCommand216& other) : Command(other), m_value(other.m_value) {}
 
-ManagerCommand216::~ManagerCommand216() { REB_KEEP_VPTR_STORE(); }
+ManagerCommand216::~ManagerCommand216() {  }
 
 ManagerCommand216* ManagerCommand216::Clone() { return NewOrNull<ManagerCommand216>(*this); }
 
@@ -482,7 +482,7 @@ ManufactureCommand::ManufactureCommand() : Command(), m_items() {}
 
 ManufactureCommand::ManufactureCommand(const ManufactureCommand& other) : Command(other), m_items(other.m_items) {}
 
-ManufactureCommand::~ManufactureCommand() { REB_KEEP_VPTR_STORE(); }
+ManufactureCommand::~ManufactureCommand() {  }
 
 ManufactureCommand* ManufactureCommand::Clone() { return NewOrNull<ManufactureCommand>(*this); }
 
@@ -575,7 +575,7 @@ FleetCommand221::FleetCommand221() : Command() {}
 
 FleetCommand221::FleetCommand221(const FleetCommand221& other) : Command(other) {}
 
-FleetCommand221::~FleetCommand221() { REB_KEEP_VPTR_STORE(); }
+FleetCommand221::~FleetCommand221() {  }
 
 FleetCommand221* FleetCommand221::Clone() { return NewOrNull<FleetCommand221>(*this); }
 
@@ -597,7 +597,7 @@ FleetCommand220::FleetCommand220() : Command() {}
 
 FleetCommand220::FleetCommand220(const FleetCommand220& other) : Command(other) {}
 
-FleetCommand220::~FleetCommand220() { REB_KEEP_VPTR_STORE(); }
+FleetCommand220::~FleetCommand220() {  }
 
 FleetCommand220* FleetCommand220::Clone() { return NewOrNull<FleetCommand220>(*this); }
 
@@ -619,7 +619,7 @@ PayloadEvent3f0::PayloadEvent3f0() : TimedEvent(), m_valueA(0), m_valueB(0), m_v
 
 PayloadEvent3f0::PayloadEvent3f0(const PayloadEvent3f0& other) : TimedEvent(other), m_valueA(other.m_valueA), m_valueB(other.m_valueB), m_valueC(other.m_valueC) {}
 
-PayloadEvent3f0::~PayloadEvent3f0() { REB_KEEP_VPTR_STORE(); }
+PayloadEvent3f0::~PayloadEvent3f0() {  }
 
 PayloadEvent3f0* PayloadEvent3f0::Clone() { return NewOrNull<PayloadEvent3f0>(*this); }
 

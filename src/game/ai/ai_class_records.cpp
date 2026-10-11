@@ -1,7 +1,6 @@
 #include "ai/ai_class_records.h"
 
 #include "ai/ai_common.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "data/sd_record_bases.h"
 #include "data/sd_records.h"
@@ -49,7 +48,7 @@ AiClassRecordBase::AiClassRecordBase(const ObjectKey& key)
     m_key = key;
 }
 
-AiClassRecordBase::~AiClassRecordBase() { REB_KEEP_VPTR_STORE(); }
+AiClassRecordBase::~AiClassRecordBase() {  }
 
 // ---- AiSpecialForceClass --------------------------------------------------------------------------------------------
 
@@ -57,7 +56,7 @@ AiSpecialForceClass::AiSpecialForceClass(DatRecord* record) : AiClassRecordBase(
     Fill(static_cast<SpecialForceSD*>(record));
 }
 
-AiSpecialForceClass::~AiSpecialForceClass() { REB_KEEP_VPTR_STORE(); }
+AiSpecialForceClass::~AiSpecialForceClass() {  }
 
 int AiSpecialForceClass::GetValue(const PersistentInt* mask) {
     const uint32_t bits = mask->m_value;
@@ -97,7 +96,7 @@ AiManufacturingClass::AiManufacturingClass(DatRecord* record) : AiClassRecordBas
     Fill(static_cast<ManufacturingFacilitySD*>(record));
 }
 
-AiManufacturingClass::~AiManufacturingClass() { REB_KEEP_VPTR_STORE(); }
+AiManufacturingClass::~AiManufacturingClass() {  }
 
 int AiManufacturingClass::GetValue(const PersistentInt* mask) {
     const uint32_t bits = mask->m_value;
@@ -130,7 +129,7 @@ AiDefenseClass::AiDefenseClass(DatRecord* record) : AiClassRecordBase(AiRecordKe
     Fill(static_cast<DefenseFacilitySD*>(record));
 }
 
-AiDefenseClass::~AiDefenseClass() { REB_KEEP_VPTR_STORE(); }
+AiDefenseClass::~AiDefenseClass() {  }
 
 int AiDefenseClass::GetValue(const PersistentInt* mask) {
     const uint32_t bits = mask->m_value;
@@ -167,7 +166,7 @@ AiTroopClass::AiTroopClass(DatRecord* record)
     Fill(static_cast<TroopSD*>(record));
 }
 
-AiTroopClass::~AiTroopClass() { REB_KEEP_VPTR_STORE(); }
+AiTroopClass::~AiTroopClass() {  }
 
 int AiTroopClass::GetValue(const PersistentInt* mask) {
     const uint32_t bits = mask->m_value;
@@ -199,7 +198,7 @@ AiFighterClass::AiFighterClass(DatRecord* record)
     Fill(static_cast<SdRecordGrid*>(static_cast<SdRecord*>(record)));
 }
 
-AiFighterClass::~AiFighterClass() { REB_KEEP_VPTR_STORE(); }
+AiFighterClass::~AiFighterClass() {  }
 
 int AiFighterClass::ScaleX30(int amount) { return (m_x30 * amount) / m_squadronSize; }
 int AiFighterClass::ScaleX34(int amount) { return (m_x34 * amount) / m_squadronSize; }
@@ -258,7 +257,7 @@ AiCapitalShipClass::AiCapitalShipClass(DatRecord* record)
     Fill(static_cast<SdRecordGrid*>(static_cast<SdRecord*>(record)));
 }
 
-AiCapitalShipClass::~AiCapitalShipClass() { REB_KEEP_VPTR_STORE(); }
+AiCapitalShipClass::~AiCapitalShipClass() {  }
 
 int AiCapitalShipClass::ScaleA(int amount) {
     int result = 0;

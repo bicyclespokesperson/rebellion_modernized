@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/main_menu_window.h"
 
 #include <cstdint>
@@ -9,7 +8,6 @@
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "ui/cool_app.h"
@@ -198,7 +196,7 @@ MainMenuWindow::MainMenuWindow(HINSTANCE instance, int x, int y, int width, int 
 }
 
 MainMenuWindow::~MainMenuWindow() {
-    REB_KEEP_VPTR_STORE();
+
     if (m_strobeTimer) {
         m_strobeTimer->Pause();
         delete m_strobeTimer;
@@ -307,7 +305,7 @@ void MainMenuWindow::CreateControls() {
     if (m_strobeTimer) m_strobeTimer->Restart(0, 0);
 }
 
-LRESULT REB_STDCALL MainMenuWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT MainMenuWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     switch (message) {
     case WM_COMMAND:
@@ -409,8 +407,8 @@ void MainMenuWindow::OnCommand(uint32_t commandId) {
         UiLoadSideSpriteDlls(side, 1);
         SoundManager::Shutdown(0);
         m_leaving = 1;
-        g_resourceDlls.UnloadSlot(kStringSlot);
-        g_resourceDlls.UnloadSlot(kCommonSlot);
+        CoolUnloadResourceSlot(kStringSlot);
+        CoolUnloadResourceSlot(kCommonSlot);
         AppSetState(kStateStartGame);
         return;
     }
@@ -455,7 +453,7 @@ void MainMenuWindow::OnCommand(uint32_t commandId) {
         m_leaving = 1;
         m_playingMovie = 1;
         Hide();
-        AppPlayMovie(kMovieQuit, nullptr, reinterpret_cast<void(REB_CDECL*)(uint32_t, uint32_t, int)>(&MainMenuMovieDone));
+        AppPlayMovie(kMovieQuit, nullptr, reinterpret_cast<void(*)(uint32_t, uint32_t, int)>(&MainMenuMovieDone));
         return;
     }
 }

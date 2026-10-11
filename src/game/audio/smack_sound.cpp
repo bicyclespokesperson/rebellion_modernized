@@ -1,10 +1,9 @@
-#include "core/reb_abi.h"
 #include "audio/smack_sound.h"
 
 extern "C" {
-__declspec(dllimport) void REB_STDCALL SmackSoundUseDirectSound(void* directSound);
-__declspec(dllimport) void REB_STDCALL SmackBufferClose(void* smackBuffer);
-__declspec(dllimport) void REB_STDCALL SmackClose(void* smack);
+__declspec(dllimport) void SmackSoundUseDirectSound(void* directSound);
+__declspec(dllimport) void SmackBufferClose(void* smackBuffer);
+__declspec(dllimport) void SmackClose(void* smack);
 }
 
 SmackSound::SmackSound()

@@ -1,8 +1,6 @@
-#include "core/reb_abi.h"
 #include "events/command_classes.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "galaxy/system.h"
 #include "gameobj/object_queries.h"
 #include "rules/planet_assault.h"
@@ -38,7 +36,7 @@ ObjectKey* ActivityRequest::GetTarget(ObjectKey* out) const {
     return out;
 }
 
-GameObjNotifier* REB_THISCALL NextCharacterSibling(GameObj* object) {
+GameObjNotifier* NextCharacterSibling(GameObj* object) {
     const FamilyRange characters(0x30, 0x3c);
     return object->FindNextSibling(&characters, 1);
 }
@@ -49,7 +47,7 @@ LoyaltyEvent373::LoyaltyEvent373() : PlainEvent(), m_delta(0) {}
 
 LoyaltyEvent373::LoyaltyEvent373(const LoyaltyEvent373& other) : PlainEvent(other), m_delta(other.m_delta) {}
 
-LoyaltyEvent373::~LoyaltyEvent373() { REB_KEEP_VPTR_STORE(); }
+LoyaltyEvent373::~LoyaltyEvent373() {  }
 
 LoyaltyEvent373* LoyaltyEvent373::Clone() { return NewOrNull<LoyaltyEvent373>(*this); }
 
@@ -97,7 +95,7 @@ SystemCommand225::SystemCommand225() : Command() {}
 
 SystemCommand225::SystemCommand225(const SystemCommand225& other) : Command(other) {}
 
-SystemCommand225::~SystemCommand225() { REB_KEEP_VPTR_STORE(); }
+SystemCommand225::~SystemCommand225() {  }
 
 SystemCommand225* SystemCommand225::Clone() { return NewOrNull<SystemCommand225>(*this); }
 
@@ -147,7 +145,7 @@ SystemCommand224::SystemCommand224() : Command() {}
 
 SystemCommand224::SystemCommand224(const SystemCommand224& other) : Command(other) {}
 
-SystemCommand224::~SystemCommand224() { REB_KEEP_VPTR_STORE(); }
+SystemCommand224::~SystemCommand224() {  }
 
 SystemCommand224* SystemCommand224::Clone() { return NewOrNull<SystemCommand224>(*this); }
 

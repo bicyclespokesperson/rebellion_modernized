@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "gameobj/object_key.h"
@@ -22,7 +21,7 @@ public:
                       uint32_t childId);  // 0x46cbc0
     virtual ~TroopFinderWindow();  // 0x46cd20 (scalar deleting destructor 0x46cd00)
 
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x46e5f0
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x46e5f0
     virtual void OnCreate1() override;                    // slot 14, 0x46ce40
     // Slot 17 is the original's 0x460fe0, shared with SystemFinderWindow (the label is at +0x154 in both).
     virtual void DrawOverlay(HDC dc) override;

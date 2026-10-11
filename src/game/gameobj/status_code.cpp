@@ -1,7 +1,6 @@
 #include "gameobj/status_code.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 
 namespace {
 
@@ -61,7 +60,7 @@ int IntPair::NotEquals(const IntPair& other) { return Equals(other) == 0; }
 
 EventKindSet::EventKindSet() : IntKeyedSet() {}
 
-EventKindSet::~EventKindSet() { REB_KEEP_VPTR_STORE(); }
+EventKindSet::~EventKindSet() {  }
 
 EventKindSet& EventKindSet::operator=(const EventKindSet& other) {
     if (this != &other) IntKeyedSet::operator=(other);

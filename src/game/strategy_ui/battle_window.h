@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "app/player_controller_decl.h"
@@ -94,4 +93,4 @@ public:
 
 // What the battle list collects for one fleet of the battle: the participants of `kind` of its capital ships, in `shown`
 // (and, for personnel that are not ready, in `held`) (0x472010).
-void REB_STDCALL CollectBattleParticipants(GameObjNotifier* fleet, ObjectKeySet* shown, ObjectKeySet* held, int kind);
+void CollectBattleParticipants(GameObjNotifier* fleet, ObjectKeySet* shown, ObjectKeySet* held, int kind);

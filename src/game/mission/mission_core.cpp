@@ -1,9 +1,7 @@
-#include "core/reb_abi.h"
 #include "mission/mission.h"
 
 #include <new>
 
-#include "core/vptr_store.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_queries.h"
 
@@ -30,7 +28,7 @@ Mission::Mission()
     m_leaderSeedKey.m_value = 0;
 }
 
-Mission::~Mission() { REB_KEEP_VPTR_STORE(); }
+Mission::~Mission() {  }
 
 // ---- overrides of GameObj slots ---------------------------------------------------------------------------
 
@@ -119,6 +117,6 @@ int Mission::HasCompletionStatus() { return m_completionStatus != 0; }
 MissionIterator::MissionIterator(GameObjNotifier* parent)
     : ChildIterator(parent, &family::kMissions, 1) {}
 
-MissionIterator::~MissionIterator() { REB_KEEP_VPTR_STORE(); }
+MissionIterator::~MissionIterator() {  }
 EventKindSet g_missionEventKinds{};
 int g_missionEventKindsBuilt{};

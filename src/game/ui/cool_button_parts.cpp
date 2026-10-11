@@ -1,6 +1,5 @@
 #include "ui/cool_button_parts.h"
 
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/cool_button.h"
 
@@ -24,13 +23,13 @@ BitmapFrame::BitmapFrame(DibBitmap* bitmap) : m_bitmap(bitmap), m_next(nullptr),
 
 BitmapFrame::~BitmapFrame() {
     if (m_bitmap) delete m_bitmap;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 BitmapFrameList::BitmapFrameList() : m_count(0), m_head(nullptr) {}
 
 BitmapFrameList::~BitmapFrameList() {
-    REB_KEEP_VPTR_STORE();
+
     Clear();
 }
 

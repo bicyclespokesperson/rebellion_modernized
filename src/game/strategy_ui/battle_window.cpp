@@ -1,5 +1,4 @@
 #include "character/character.h"
-#include "core/reb_abi.h"
 #include "strategy_ui/battle_window.h"
 
 #include <new>
@@ -9,7 +8,6 @@
 #include "character/role.h"
 #include "core/checked_new.h"
 #include "core/containers.h"
-#include "core/vptr_store.h"
 #include "fleet/capship.h"
 #include "fleet/fight_squad.h"
 #include "fleet/fleet_iterator.h"
@@ -172,7 +170,7 @@ BattleWindow::~BattleWindow() {
     if (m_fleetButton) delete m_fleetButton;
     if (m_systemButton) delete m_systemButton;
     if (m_closeButton) delete m_closeButton;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 // ---- OnCreate1 ------------------------------------------------------------------------------------------------
@@ -659,7 +657,7 @@ void BattleWindow::AddRow(GameObj* object, int normal, String* heading) {
     DeleteBitmap(picture);
 }
 
-void REB_STDCALL CollectBattleParticipants(GameObjNotifier* fleet, ObjectKeySet* shown, ObjectKeySet* held, int kind) {
+void CollectBattleParticipants(GameObjNotifier* fleet, ObjectKeySet* shown, ObjectKeySet* held, int kind) {
     CapShipIterator ships(fleet, 3);
     for (ships.Begin(); ships.Current(); ships.Advance()) {
         GameObjNotifier* ship = ships.Current();

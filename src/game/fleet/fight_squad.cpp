@@ -1,10 +1,8 @@
-#include "core/reb_abi.h"
 #include "fleet/fight_squad.h"
 
 #include <new>
 
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "data/game_math.h"
 #include "data/sd_records.h"
 #include "events/event_post.h"
@@ -34,7 +32,7 @@ FighterSD* fighterRecordOf(FightSquad* squad) { return static_cast<FighterSD*>(s
 
 FightSquad::FightSquad() { m_squadSizeDamage = 0; }
 
-FightSquad::~FightSquad() { REB_KEEP_VPTR_STORE(); }
+FightSquad::~FightSquad() {  }
 
 uint32_t FightSquad::GetFamily() { return family::kFighterSquadron; }
 
@@ -307,6 +305,6 @@ FightSquadIterator::FightSquadIterator(GameObjNotifier* parent, uint32_t stateFi
 FightSquadIterator::FightSquadIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kFighterFamilies, stateFilter) {}
 
-FightSquadIterator::~FightSquadIterator() { REB_KEEP_VPTR_STORE(); }
+FightSquadIterator::~FightSquadIterator() {  }
 EventKindSet g_fightSquadEventKinds{};
 int g_fightSquadEventKindsReady{};

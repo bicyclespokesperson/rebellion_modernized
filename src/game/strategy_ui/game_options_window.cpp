@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/game_options_window.h"
 
 #include <cmath>
@@ -11,7 +10,6 @@
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/reb_x87.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "multiplayer/multiplayer_window.h"
 #include "strategy_ui/game_ui_facade.h"
@@ -216,7 +214,7 @@ GameOptionsWindow::GameOptionsWindow(HINSTANCE instance, int x, int y, int width
 }
 
 GameOptionsWindow::~GameOptionsWindow() {
-    REB_KEEP_VPTR_STORE();
+
     for (CoolStringField* field : m_nameFields) DeleteIfPresent(field);
     DeleteIfPresent(m_musicSlider);
     DeleteIfPresent(m_volumeSlider);
@@ -228,7 +226,7 @@ GameOptionsWindow::~GameOptionsWindow() {
     }
 }
 
-LRESULT REB_STDCALL GameOptionsWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT GameOptionsWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     const bool inBattle = IsBattleState(m_battleFlowState);
     switch (message) {
@@ -306,7 +304,7 @@ LRESULT REB_STDCALL GameOptionsWindow::WindowProc(UINT message, WPARAM wParam, L
         case kDoneButton:
             AppSetDisplayOptions(m_options);
             AppSetDisplayOptions2(m_options);
-            g_resourceDlls.UnloadSlot(kCommonSlot);
+            CoolUnloadResourceSlot(kCommonSlot);
             if (IsLobbyState(m_state)) {
                 CommSendPlayerQuit();
                 m_state = kStateFrontEndOptions;

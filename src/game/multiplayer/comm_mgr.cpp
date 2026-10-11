@@ -6,7 +6,6 @@
 #include <new>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 
 // The shared empty function that stands where the debug build traced; every call keeps its argument.
 
@@ -95,8 +94,6 @@ void DestroyCommMgr() {
         ::operator delete(comm);
     }
     g_commMgr = nullptr;
-    if (g_commLobbyHandle) delete g_commLobbyHandle;
-    g_commLobbyHandle = nullptr;
     g_serviceProviderList.Clear();
     g_sessionList.Clear();
 }
@@ -141,10 +138,6 @@ CommMgr::CommMgr() {
 
 CommMgr::~CommMgr() {
     Trace(this, kTraceDestroying);
-    if (g_commLobbyHandle) {
-        delete g_commLobbyHandle;
-        g_commLobbyHandle = nullptr;
-    }
     g_commMgr = nullptr;
     g_commEnumerating = 0;
 }

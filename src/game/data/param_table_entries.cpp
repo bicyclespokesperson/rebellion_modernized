@@ -2,7 +2,6 @@
 
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 
 namespace {
@@ -39,7 +38,7 @@ int parseTextValues(TableEntry* entry, istream* in, int* values, size_t count) {
 
 GeneralParamTableEntry::GeneralParamTableEntry() : m_values{} {}
 
-GeneralParamTableEntry::~GeneralParamTableEntry() { REB_KEEP_VPTR_STORE(); }
+GeneralParamTableEntry::~GeneralParamTableEntry() {  }
 
 int GeneralParamTableEntry::Read(istream* in) {
     TableEntry::Read(in);
@@ -68,7 +67,7 @@ void* CreateGeneralParamTableEntry() { return NewOrNull<GeneralParamTableEntry>(
 
 SideParamTableEntry::SideParamTableEntry() : m_values{} {}
 
-SideParamTableEntry::~SideParamTableEntry() { REB_KEEP_VPTR_STORE(); }
+SideParamTableEntry::~SideParamTableEntry() {  }
 
 int SideParamTableEntry::Read(istream* in) {
     TableEntry::Read(in);

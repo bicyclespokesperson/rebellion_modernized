@@ -1,16 +1,19 @@
 #include <new>
+#include <utility>
 
 #include "app/battle_flow.h"
 #include "app/game_session.h"
 #include "app/rebapp_globals.h"
+#include "app/rebellion_application.h"
 #include "core/checked_new.h"
 #include "core/file_util.h"
 #include "core/iostream_lib.h"
-#include "core/vptr_store.h"
 #include "events/game_clock_hooks.h"
 #include "events/game_manager.h"
 #include "platform/win32.h"
+#include "port/native/game_context.h"
 #include "tactical/tactical_game.h"
+#include "ui/cool_app.h"
 
 // The battle-flow object's lifetime, its save and restore, and the pre-battle autosave. A 3D battle destroys the
 // strategic game while it runs, so the strategic game is written to a file when the battle starts (BattleFlow::Step
@@ -39,18 +42,9 @@ void appendResource(String* path, int resourceId) {
     *path += part;
 }
 
-void deleteStepDriver() {
-    if (g_gameStepDriver) {
-        delete g_gameStepDriver;
-        g_gameStepDriver = nullptr;
-    }
-}
-
-void deleteBattleFlow() {
-    if (g_battleFlow) {
-        delete g_battleFlow;
-        g_battleFlow = nullptr;
-    }
+reb::native::GameContext* currentGameContext() {
+    auto* application = static_cast<RebellionApplication*>(g_app);
+    return application ? &application->m_context : nullptr;
 }
 
 }  // namespace
@@ -65,10 +59,13 @@ void InitFlowScaleC() { g_flowScaleCSquared = g_flowScaleC * g_flowScaleC; }
 
 void RouteNoticeToSession(HookArg notice) {
     GameSession* session = GetGameSession();
-    if (session) session->RouteNotice(reinterpret_cast<PlayerNotice*>(notice));
+    if (session) session->RouteNotice(reinterpret_cast<NotifPayload*>(notice));
 }
 
-const char* GetStepDriverDataDirectory() { return g_gameStepDriver ? g_gameStepDriver->m_dataLocation : nullptr; }
+const char* GetStepDriverDataDirectory() {
+    GameStepDriver* driver = GetGameStepDriver();
+    return driver ? driver->m_dataLocation : nullptr;
+}
 
 // ---- lifetime ---------------------------------------------------------------------------------------------------
 
@@ -80,42 +77,56 @@ BattleFlow::BattleFlow() : m_ok(1), m_state(1) {
 BattleFlow::~BattleFlow() {
     m_state = 0;
     m_ok = 1;
-    deleteStepDriver();
-    DestroyTacticalGame();
-    REB_KEEP_VPTR_STORE();
+    DestroyStepDriver();
+    DestroyOwnedTacticalGame();
+
 }
 
-BattleFlow* GetBattleFlow() { return g_battleFlow; }
+BattleFlow* GetBattleFlow() {
+    reb::native::GameContext* context = currentGameContext();
+    return context ? context->GetBattleFlow() : nullptr;
+}
+
+GameStepDriver* GetGameStepDriver() {
+    BattleFlow* flow = GetBattleFlow();
+    return flow ? flow->StepDriver() : nullptr;
+}
 
 void CreateBattleFlow() {
     DestroyTacticalGame();
-    deleteBattleFlow();
-    BattleFlow* flow = NewOrNull<BattleFlow>();
+    reb::native::GameContext* context = currentGameContext();
+    if (!context) return;
+    context->SetBattleFlow(nullptr);
+    std::unique_ptr<BattleFlow> flow(NewOrNull<BattleFlow>());
     if (flow) {
         g_gameHook2AE0 = RouteNoticeToSession;
         g_gameHook2AE8 = GetStepDriverDataDirectory;
         InstallGameManagerHooks();
     }
-    g_battleFlow = flow;
     if (flow && flow->m_ok == 0) {
-        DestroyTacticalGame();
-        deleteBattleFlow();
+        flow->DestroyOwnedTacticalGame();
+        flow.reset();
     }
+    context->SetBattleFlow(std::move(flow));
 }
 
 void DestroyBattleFlow() {
-    DestroyTacticalGame();
-    deleteBattleFlow();
+    if (reb::native::GameContext* context = currentGameContext()) {
+        if (BattleFlow* flow = context->GetBattleFlow()) flow->DestroyOwnedTacticalGame();
+        context->SetBattleFlow(nullptr);
+    } else {
+        DestroyTacticalGame();
+    }
 }
 
 int BattleFlow::StartGame(GameSettings* settings, int a, int b) {
     m_ok = 1;
     m_state = 0;
-    deleteStepDriver();
-    DestroyTacticalGame();
+    DestroyStepDriver();
+    DestroyOwnedTacticalGame();
     int result = 0;
     if (settings->m_field04 >= kMinGalaxySize && settings->m_field04 <= kMaxGalaxySize) {
-        result = CreateGameStepDriverFor(settings, a, b);
+        result = CreateStepDriverFor(settings, a, b);
         if (result != 0) m_state = 1;
     }
     return result;
@@ -123,12 +134,12 @@ int BattleFlow::StartGame(GameSettings* settings, int a, int b) {
 
 int BattleFlow::GetAutosaveFlag() {
     int flag = 0;
-    if (m_state == 2 && g_gameStepDriver) flag = g_gameStepDriver->m_unk1c;
+    if (m_state == 2 && m_stepDriver) flag = m_stepDriver->m_unk1c;
     return flag;
 }
 
 void BattleFlow::SetAutosaveFlag(int value) {
-    if (m_state == 2 && g_gameStepDriver) g_gameStepDriver->m_unk1c = value;
+    if (m_state == 2 && m_stepDriver) m_stepDriver->m_unk1c = value;
 }
 
 // ---- save and restore -------------------------------------------------------------------------------------------
@@ -136,8 +147,8 @@ void BattleFlow::SetAutosaveFlag(int value) {
 void BattleFlow::Restore(istream* in) {
     m_ok = 1;
     m_state = 0;
-    deleteStepDriver();
-    DestroyTacticalGame();
+    DestroyStepDriver();
+    DestroyOwnedTacticalGame();
     CheckPositionMarker(in);
     ReadValue32(in, &m_ok);
     ReadValue32(in, &m_state);
@@ -146,11 +157,11 @@ void BattleFlow::Restore(istream* in) {
     int ok = m_ok;
     if (ok != 0) {
         if (m_state == 2) {
-            const int created = CreateGameStepDriver();
+            const int created = CreateStepDriver();
             ok = 0;
             if (created != 0) {
                 CheckPositionMarker(in);
-                if (g_gameStepDriver) g_gameStepDriver->Load(in);
+                if (m_stepDriver.get()) m_stepDriver.get()->Load(in);
                 CheckPositionMarker(in);
                 AppLoadStrategicState(in);
                 CheckPositionMarker(in);
@@ -158,13 +169,13 @@ void BattleFlow::Restore(istream* in) {
                 return;
             }
         } else if (m_state == 0x14) {
-            TacticalGame* game = GetTacticalGame();
+            TacticalGame* game = GetOrCreateTacticalGame();
             ok = 0;
             if (game->m_unk694 != 0) {
-                game = GetTacticalGame();
+                game = GetOrCreateTacticalGame();
                 ok = 0;
                 if (game->m_unk694 != 0) {
-                    ok = g_gameManager->NoteDispatch(in);
+                    ok = m_stepDriver && m_stepDriver->Manager() ? m_stepDriver->Manager()->NoteDispatch(in) : 0;
                     if (ok != 0) {
                         ok = AppLoadTacticalState(in);
                         if (ok != 0) {
@@ -188,7 +199,7 @@ int BattleFlow::Save(ostream* out) {
     StreamWrite32(out, &m_voteTimeB);
     if (m_state == 2) {
         WritePositionMarker(out);
-        if (g_gameStepDriver) g_gameStepDriver->Save(out);
+        if (m_stepDriver.get()) m_stepDriver.get()->Save(out);
         WritePositionMarker(out);
         AppSaveStrategicState(out);
         WritePositionMarker(out);
@@ -198,8 +209,8 @@ int BattleFlow::Save(ostream* out) {
     }
     if (m_state == 0x14) {
         ok = 0;
-        if (GetTacticalGame()->m_unk694 != 0) {
-            ok = g_gameManager->NoteDispatch(out);
+        if (GetOrCreateTacticalGame()->m_unk694 != 0) {
+            ok = m_stepDriver && m_stepDriver->Manager() ? m_stepDriver->Manager()->NoteDispatch(out) : 0;
             if (ok != 0) {
                 ok = AppSaveTacticalState(out);
                 if (ok != 0) ok = AppendPreBattleSave(out);
@@ -212,7 +223,7 @@ int BattleFlow::Save(ostream* out) {
 
 int BattleFlow::SaveStrategic(ostream* out) {
     WritePositionMarker(out);
-    if (g_gameStepDriver) g_gameStepDriver->Save(out);
+    if (m_stepDriver.get()) m_stepDriver.get()->Save(out);
     WritePositionMarker(out);
     AppSaveStrategicState(out);
     WritePositionMarker(out);
@@ -231,9 +242,9 @@ int BattleFlow::LoadPreBattleSave() {
     OpenInputFile(file.get(), path.m_text);
     if (GetFileError() == 0) {
         HCURSOR previousCursor = showWaitCursor();
-        istream* in = reinterpret_cast<istream*>(file.get());
+        istream* in = file.get()->In();
         CheckPositionMarker(in);
-        if (g_gameStepDriver) g_gameStepDriver->Load(in);
+        if (m_stepDriver.get()) m_stepDriver.get()->Load(in);
         CheckPositionMarker(in);
         AppLoadStrategicState(in);
         CheckPositionMarker(in);
@@ -321,7 +332,6 @@ void BattleFlow::BuildPreBattleSavePath(String* out) {
     appendResource(out, kResourcePreBattleSaveName);
 }
 
-GameSession * g_gameSession{};
 RandomGenerator g_sessionRandom{};
 float g_flowScaleC = 3.0f;
 float g_flowScaleCSquared{};

@@ -2,13 +2,12 @@
 
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 
 // ---- KeyQueueNode ------------------------------------------------------------------------------------------
 
 KeyQueueNode::KeyQueueNode() : LinkNode(), m_flag(1), m_value(0) {}
 
-KeyQueueNode::~KeyQueueNode() { REB_KEEP_VPTR_STORE(); }
+KeyQueueNode::~KeyQueueNode() {  }
 
 ObjectKey* KeyQueueNode::GetKey(ObjectKey* out) const {
     out->m_value = m_key.m_value;
@@ -41,7 +40,7 @@ KeyQueue::KeyQueue() : NodeQueue(), m_ok(1) {}
 
 KeyQueue::~KeyQueue() {
     Clear();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int KeyQueue::CountMatching(KeyQueueNode* probe) {
@@ -105,7 +104,7 @@ ObjectKeyPairSet::ObjectKeyPairSet() : ObjectKeySet() {}
 
 ObjectKeyPairSet::ObjectKeyPairSet(const ObjectKeyPairSet& other) : ObjectKeySet(other) {}
 
-ObjectKeyPairSet::~ObjectKeyPairSet() { REB_KEEP_VPTR_STORE(); }
+ObjectKeyPairSet::~ObjectKeyPairSet() {  }
 
 ObjectKeyNode* ObjectKeyPairSet::NewNode() { return NewOrNull<ObjectKeyPairNode>(); }
 

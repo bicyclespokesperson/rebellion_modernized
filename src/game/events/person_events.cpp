@@ -1,9 +1,7 @@
-#include "core/reb_abi.h"
 #include "events/person_events.h"
 
 #include "character/role.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gameobj/object_queries.h"
 #include "story/mission_mgr.h"
 #include "rules/event_rules.h"
@@ -33,7 +31,7 @@ RoleActivityCommand::RoleActivityCommand() : Command() {}
 
 RoleActivityCommand::RoleActivityCommand(const RoleActivityCommand& other) : Command(other) {}
 
-RoleActivityCommand::~RoleActivityCommand() { REB_KEEP_VPTR_STORE(); }
+RoleActivityCommand::~RoleActivityCommand() {  }
 
 Command* RoleActivityCommand::Clone() { return NewOrNull<RoleActivityCommand>(*this); }
 
@@ -81,7 +79,7 @@ RemoveRequestEvent::RemoveRequestEvent() : SourceEvent() {}
 
 RemoveRequestEvent::RemoveRequestEvent(const RemoveRequestEvent& other) : SourceEvent(other) {}
 
-RemoveRequestEvent::~RemoveRequestEvent() { REB_KEEP_VPTR_STORE(); }
+RemoveRequestEvent::~RemoveRequestEvent() {  }
 
 EventBase* RemoveRequestEvent::Clone() { return NewOrNull<RemoveRequestEvent>(*this); }
 
@@ -113,7 +111,7 @@ RoleStateEvent::RoleStateEvent() : SourceEvent() {}
 
 RoleStateEvent::RoleStateEvent(const RoleStateEvent& other) : SourceEvent(other) {}
 
-RoleStateEvent::~RoleStateEvent() { REB_KEEP_VPTR_STORE(); }
+RoleStateEvent::~RoleStateEvent() {  }
 
 EventBase* RoleStateEvent::Clone() { return NewOrNull<RoleStateEvent>(*this); }
 
@@ -145,7 +143,7 @@ PersonRemovedEvent::PersonRemovedEvent() : SourceEvent() {}
 
 PersonRemovedEvent::PersonRemovedEvent(const PersonRemovedEvent& other) : SourceEvent(other) {}
 
-PersonRemovedEvent::~PersonRemovedEvent() { REB_KEEP_VPTR_STORE(); }
+PersonRemovedEvent::~PersonRemovedEvent() {  }
 
 EventBase* PersonRemovedEvent::Clone() { return NewOrNull<PersonRemovedEvent>(*this); }
 
@@ -175,7 +173,7 @@ ResignRequestEvent::ResignRequestEvent() : SourceEvent() {}
 
 ResignRequestEvent::ResignRequestEvent(const ResignRequestEvent& other) : SourceEvent(other) {}
 
-ResignRequestEvent::~ResignRequestEvent() { REB_KEEP_VPTR_STORE(); }
+ResignRequestEvent::~ResignRequestEvent() {  }
 
 EventBase* ResignRequestEvent::Clone() { return NewOrNull<ResignRequestEvent>(*this); }
 
@@ -207,7 +205,7 @@ LockTransferEvent::LockTransferEvent() : TwoKeyEvent() {}
 
 LockTransferEvent::LockTransferEvent(const LockTransferEvent& other) : TwoKeyEvent(other) {}
 
-LockTransferEvent::~LockTransferEvent() { REB_KEEP_VPTR_STORE(); }
+LockTransferEvent::~LockTransferEvent() {  }
 
 EventBase* LockTransferEvent::Clone() { return NewOrNull<LockTransferEvent>(*this); }
 
@@ -238,6 +236,6 @@ int LockTransferEvent::Execute() {
 
 // ---- shared slot forwarders -------------------------------------------------------------------------------
 
-void REB_THISCALL SourceEventRead(SourceEvent* event, istream* in) { event->ReadSource(in); }
+void SourceEventRead(SourceEvent* event, istream* in) { event->ReadSource(in); }
 
-void REB_THISCALL SourceEventChecksum(SourceEvent* event, Crc32* crc) { event->ChecksumSource(crc); }
+void SourceEventChecksum(SourceEvent* event, Crc32* crc) { event->ChecksumSource(crc); }

@@ -3,7 +3,6 @@
 #include "ai/ai_planner.h"
 #include "ai/ai_system_record.h"
 #include "ai/ai_task_types.h"
-#include "core/vptr_store.h"
 #include "orders/order_base.h"
 
 namespace {
@@ -24,7 +23,7 @@ AiTask4::AiTask4(int view) : AiStagedTask(4, view), m_selector() {
     m_plannerCursor = 0;
 }
 
-AiTask4::~AiTask4() { REB_KEEP_VPTR_STORE(); }
+AiTask4::~AiTask4() {  }
 
 void AiTask4::Read(istream* in) {
     AiTaskBase::Read(in);
@@ -190,7 +189,7 @@ AiTask12::AiTask12(int view) : AiStagedTask(12, view), m_selector() {
     m_agentCursor = 0;
 }
 
-AiTask12::~AiTask12() { REB_KEEP_VPTR_STORE(); }
+AiTask12::~AiTask12() {  }
 
 void AiTask12::Read(istream* in) {
     AiTaskBase::Read(in);

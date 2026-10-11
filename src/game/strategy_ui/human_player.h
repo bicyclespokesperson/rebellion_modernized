@@ -34,7 +34,7 @@ public:
     virtual void Virtual17(int id, ObjectKey* key) override;   // slot 17, 0x4865b0
     virtual void Virtual18(int id, ObjectKey* key, int state, GameTime* time) override;  // slot 18, 0x486650
     virtual void Virtual19(int id, ObjectKey* key) override;   // slot 19, 0x486670
-    virtual void Virtual20(PlayerNotice* notice) override;     // slot 20, 0x486580
+    virtual void Virtual20(NotifPayload* notice) override;     // slot 20, 0x486580
     virtual void Virtual21() override;                         // slot 21, 0x4866e0
     virtual void Virtual22(int a, int b) override;             // 0x486710
     virtual void Virtual23(int value) override;                // 0x486730: raw materials

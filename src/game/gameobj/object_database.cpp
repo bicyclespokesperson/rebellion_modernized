@@ -2,7 +2,6 @@
 
 #include "core/checked_new.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_type_db.h"
 
@@ -30,7 +29,7 @@ ObjectEntry::ObjectEntry() : IdNode(), m_flag(1), m_family(0) {
     m_objects[2] = nullptr;
 }
 
-ObjectEntry::~ObjectEntry() { REB_KEEP_VPTR_STORE(); }
+ObjectEntry::~ObjectEntry() {  }
 
 ObjectKey* ObjectEntry::GetKey(ObjectKey* out) const {
     out->m_value = (m_family << 24) | (m_id & 0xffffff);
@@ -93,7 +92,7 @@ ObjectEntry* ObjectEntry::NextInRange(const FamilyRange* range) const {
 
 ObjectDatabase::ObjectDatabase() : IdAvlTree(), m_ok(1) {}
 
-ObjectDatabase::~ObjectDatabase() { REB_KEEP_VPTR_STORE(); }
+ObjectDatabase::~ObjectDatabase() {  }
 
 int ObjectDatabase::IsLess(AvlNode* a, AvlNode* b) {
     bool less = false;
@@ -202,7 +201,7 @@ ObjectEntry* ObjectDatabase::FindEntryInRange(const FamilyRange* range) {
 
 ChildList::ChildList() : IdAvlTree(), m_ok(1) {}
 
-ChildList::~ChildList() { REB_KEEP_VPTR_STORE(); }
+ChildList::~ChildList() {  }
 
 int ChildList::IsLess(AvlNode* a, AvlNode* b) {
     if (!a || !b) return 0;

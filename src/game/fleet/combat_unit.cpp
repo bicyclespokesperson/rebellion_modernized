@@ -1,10 +1,8 @@
-#include "core/reb_abi.h"
 #include "fleet/combat_unit.h"
 
 #include <new>
 
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "data/sd_record_bases.h"
 #include "events/event_post.h"
 #include "fleet/unit_data_decl.h"
@@ -34,7 +32,7 @@ SdRecordGrid* gridRecordOf(CombatUnit* unit) { return static_cast<SdRecordGrid*>
 
 CombatUnit::CombatUnit() { m_combatFlags = 0; }
 
-CombatUnit::~CombatUnit() { REB_KEEP_VPTR_STORE(); }
+CombatUnit::~CombatUnit() {  }
 
 int CombatUnit::GetEventKinds(int unused, EventKindSet* out) {
     const int ready = EnsureEventKinds();

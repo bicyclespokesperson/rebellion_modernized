@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "ai/ai_posture.h"
 
 #include "ai/ai_agent_bases.h"
@@ -7,7 +6,6 @@
 #include "ai/ai_side_controller.h"
 #include "ai/ai_system_record.h"
 #include "character/role.h"
-#include "core/vptr_store.h"
 #include "economy/defense_facility.h"
 #include "economy/manufacturing_facility.h"
 #include "economy/production_facility_types.h"
@@ -78,7 +76,7 @@ AiPosture::AiPosture(int view, AiSideController* owner, AiSystemRecord* record)
 AiPosture::~AiPosture() {
     m_owner = nullptr;
     m_record = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiPosture::Read(istream* in) {
@@ -215,7 +213,7 @@ int AiPosture::AgentIsNeeded(uint32_t agentId) {
     return needed;
 }
 
-int REB_STDCALL AiPosture::CanTakeSystem(AiFleetEval* fleet, AiSystemEval* system) {
+int AiPosture::CanTakeSystem(AiFleetEval* fleet, AiSystemEval* system) {
     int allowed = 0;
     int enemyStrength = 0;
     int enemyShips = 0;
@@ -300,7 +298,7 @@ int AiPosture::CanOrderFleet(AiFleetEval* fleet, AiSystemEval* system, int* orde
     return allowed;
 }
 
-int REB_STDCALL AiPosture::CanSupportSystem(AiFleetEval* fleet, AiSystemEval* system) {
+int AiPosture::CanSupportSystem(AiFleetEval* fleet, AiSystemEval* system) {
     int allowed = 0;
     if (system && fleet) {
         const uint32_t flags = system->m_flags30.m_value;

@@ -1,5 +1,4 @@
 #include "data/sd_records.h"
-#include "core/reb_abi.h"
 #include <cstdint>
 #include <new>
 
@@ -10,7 +9,6 @@
 #include "audio/sound_manager.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "economy/side.h"
 #include "gameobj/game_obj.h"
@@ -107,12 +105,12 @@ void LoadEncyclopediaTitle(String* title, uint32_t recordBits) {
 
 }  // namespace
 
-IntPair* REB_THISCALL Side::GetMineStateCopy(IntPair* out) {
+IntPair* Side::GetMineStateCopy(IntPair* out) {
     new (out) IntPair(m_mineState);
     return out;
 }
 
-IntPair* REB_THISCALL Side::GetRefineryStateCopy(IntPair* out) {
+IntPair* Side::GetRefineryStateCopy(IntPair* out) {
     new (out) IntPair(m_refineryState);
     return out;
 }
@@ -209,7 +207,7 @@ GalaxyWindow::GalaxyWindow(HINSTANCE instance, int x, int y, int width, int heig
 }
 
 GalaxyWindow::~GalaxyWindow() {
-    REB_KEEP_VPTR_STORE();
+
     UiSetSessionViewReady(0);
     for (int i = 0; i < 7; ++i) delete m_consoleButtons[i];
     delete m_gidMenu;
@@ -238,7 +236,7 @@ GalaxyWindow::~GalaxyWindow() {
     DeleteStage(m_droidStage);
     DeleteStage(m_droidStage2);
     UnloadSpriteDll();
-    g_resourceDlls.UnloadSlot(kArtSlot);
+    CoolUnloadResourceSlot(kArtSlot);
 }
 
 // ---- Small accessors ---------------------------------------------------------------------------------------

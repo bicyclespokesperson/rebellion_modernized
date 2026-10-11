@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include <new>
 
 #include "events/event_post.h"

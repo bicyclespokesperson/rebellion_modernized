@@ -4,7 +4,6 @@
 #include <new>
 
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
 #include "ui/cool_app.h"
@@ -114,7 +113,7 @@ GidMenuWindow::GidMenuWindow(HINSTANCE instance, int x, int y, int width, int he
     m_owner = parent;
 }
 
-GidMenuWindow::~GidMenuWindow() { REB_KEEP_VPTR_STORE(); }
+GidMenuWindow::~GidMenuWindow() {  }
 
 void GidMenuWindow::OnCreate1() {
     GalaxyWindow* galaxy = GetGalaxyWindow();

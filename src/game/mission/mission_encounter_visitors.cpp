@@ -2,7 +2,6 @@
 
 #include "character/character.h"
 #include "character/role.h"
-#include "core/vptr_store.h"
 #include "fleet/detector.h"
 #include "fleet/fleet.h"
 #include "gameobj/object_queries.h"
@@ -24,23 +23,23 @@ constexpr FamilyRange kCharacterTargetMissions(0x60, 0x68);
 CharacterTargetMissionIterator::CharacterTargetMissionIterator(GameObjNotifier* parent)
     : ChildIterator(parent, &kCharacterTargetMissions, kStateUsable) {}
 
-CharacterTargetMissionIterator::~CharacterTargetMissionIterator() { REB_KEEP_VPTR_STORE(); }
+CharacterTargetMissionIterator::~CharacterTargetMissionIterator() {  }
 
 // ---- bases ------------------------------------------------------------------------------------------------------------------
 
 MemberVisitorA::MemberVisitorA(EncounterContext* context) : m_context(context) {}
-MemberVisitorA::~MemberVisitorA() { REB_KEEP_VPTR_STORE(); }
+MemberVisitorA::~MemberVisitorA() {  }
 
 MemberVisitor::MemberVisitor(EncounterContext* context) : m_context(context) {}
-MemberVisitor::~MemberVisitor() { REB_KEEP_VPTR_STORE(); }
+MemberVisitor::~MemberVisitor() {  }
 
 UnitVisitor::UnitVisitor(EncounterContext* context) : m_context(context) {}
-UnitVisitor::~UnitVisitor() { REB_KEEP_VPTR_STORE(); }
+UnitVisitor::~UnitVisitor() {  }
 
 // ---- counters and pickers ---------------------------------------------------------------------------------------------------
 
 MemberCounter::MemberCounter(EncounterContext* context) : MemberVisitor(context), m_count(0) {}
-MemberCounter::~MemberCounter() { REB_KEEP_VPTR_STORE(); }
+MemberCounter::~MemberCounter() {  }
 
 int MemberCounter::Visit(Role* member, int* stop, NotifyContext* ctx) {
     ++m_count;
@@ -49,7 +48,7 @@ int MemberCounter::Visit(Role* member, int* stop, NotifyContext* ctx) {
 }
 
 UnitCounter::UnitCounter(EncounterContext* context) : UnitVisitor(context), m_count(0) {}
-UnitCounter::~UnitCounter() { REB_KEEP_VPTR_STORE(); }
+UnitCounter::~UnitCounter() {  }
 
 int UnitCounter::Visit(Detector* unit, Fleet* container, int* stop, NotifyContext* ctx) {
     ++m_count;
@@ -59,7 +58,7 @@ int UnitCounter::Visit(Detector* unit, Fleet* container, int* stop, NotifyContex
 
 MemberPicker::MemberPicker(EncounterContext* context)
     : MemberVisitor(context), m_index(0), m_target(0), m_result(nullptr) {}
-MemberPicker::~MemberPicker() { REB_KEEP_VPTR_STORE(); }
+MemberPicker::~MemberPicker() {  }
 
 int MemberPicker::Visit(Role* member, int* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -77,7 +76,7 @@ int MemberPicker::Visit(Role* member, int* stop, NotifyContext* ctx) {
 
 UnitPicker::UnitPicker(EncounterContext* context)
     : UnitVisitor(context), m_index(0), m_target(0), m_result(nullptr), m_resultFleet(nullptr) {}
-UnitPicker::~UnitPicker() { REB_KEEP_VPTR_STORE(); }
+UnitPicker::~UnitPicker() {  }
 
 int UnitPicker::Visit(Detector* unit, Fleet* container, int* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -95,7 +94,7 @@ int UnitPicker::Visit(Detector* unit, Fleet* container, int* stop, NotifyContext
 }
 
 MemberEspionageSum::MemberEspionageSum(EncounterContext* context) : MemberVisitor(context), m_sum(0) {}
-MemberEspionageSum::~MemberEspionageSum() { REB_KEEP_VPTR_STORE(); }
+MemberEspionageSum::~MemberEspionageSum() {  }
 
 int MemberEspionageSum::Visit(Role* member, int* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -107,7 +106,7 @@ int MemberEspionageSum::Visit(Role* member, int* stop, NotifyContext* ctx) {
 // ---- action visitors --------------------------------------------------------------------------------------------------------
 
 ClearDecoyingVisitor::ClearDecoyingVisitor(EncounterContext* context) : MemberVisitor(context) {}
-ClearDecoyingVisitor::~ClearDecoyingVisitor() { REB_KEEP_VPTR_STORE(); }
+ClearDecoyingVisitor::~ClearDecoyingVisitor() {  }
 
 int ClearDecoyingVisitor::Visit(Role* member, int* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -116,7 +115,7 @@ int ClearDecoyingVisitor::Visit(Role* member, int* stop, NotifyContext* ctx) {
 }
 
 BetrayalRollVisitor::BetrayalRollVisitor(EncounterContext* context) : MemberVisitor(context) {}
-BetrayalRollVisitor::~BetrayalRollVisitor() { REB_KEEP_VPTR_STORE(); }
+BetrayalRollVisitor::~BetrayalRollVisitor() {  }
 
 int BetrayalRollVisitor::Visit(Role* member, int* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -127,7 +126,7 @@ int BetrayalRollVisitor::Visit(Role* member, int* stop, NotifyContext* ctx) {
 }
 
 ClearDecoyedVisitor::ClearDecoyedVisitor(EncounterContext* context) : UnitVisitor(context) {}
-ClearDecoyedVisitor::~ClearDecoyedVisitor() { REB_KEEP_VPTR_STORE(); }
+ClearDecoyedVisitor::~ClearDecoyedVisitor() {  }
 
 int ClearDecoyedVisitor::Visit(Detector* unit, Fleet* container, int* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -136,7 +135,7 @@ int ClearDecoyedVisitor::Visit(Detector* unit, Fleet* container, int* stop, Noti
 }
 
 UnitAgainstMemberVisitor::UnitAgainstMemberVisitor(EncounterContext* context) : MemberVisitor(context) {}
-UnitAgainstMemberVisitor::~UnitAgainstMemberVisitor() { REB_KEEP_VPTR_STORE(); }
+UnitAgainstMemberVisitor::~UnitAgainstMemberVisitor() {  }
 
 int UnitAgainstMemberVisitor::Visit(Role* member, int* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -149,7 +148,7 @@ int UnitAgainstMemberVisitor::Visit(Role* member, int* stop, NotifyContext* ctx)
 }
 
 EncounterFightVisitor::EncounterFightVisitor(EncounterContext* context) : MemberVisitorA(context) {}
-EncounterFightVisitor::~EncounterFightVisitor() { REB_KEEP_VPTR_STORE(); }
+EncounterFightVisitor::~EncounterFightVisitor() {  }
 
 int EncounterFightVisitor::Visit(Role* member, int* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -164,7 +163,7 @@ int EncounterFightVisitor::Visit(Role* member, int* stop, NotifyContext* ctx) {
 }
 
 EncounterDispatchVisitor::EncounterDispatchVisitor(EncounterContext* context) : MemberVisitorA(context) {}
-EncounterDispatchVisitor::~EncounterDispatchVisitor() { REB_KEEP_VPTR_STORE(); }
+EncounterDispatchVisitor::~EncounterDispatchVisitor() {  }
 
 int EncounterDispatchVisitor::Visit(Role* member, int* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -182,7 +181,7 @@ int EncounterDispatchVisitor::Visit(Role* member, int* stop, NotifyContext* ctx)
 }
 
 IdentifyTraitorVisitor::IdentifyTraitorVisitor(EncounterContext* context) : MemberVisitorA(context) {}
-IdentifyTraitorVisitor::~IdentifyTraitorVisitor() { REB_KEEP_VPTR_STORE(); }
+IdentifyTraitorVisitor::~IdentifyTraitorVisitor() {  }
 
 int IdentifyTraitorVisitor::Visit(Role* member, int* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -194,7 +193,7 @@ int IdentifyTraitorVisitor::Visit(Role* member, int* stop, NotifyContext* ctx) {
 
 BetrayalCandidateCollector::BetrayalCandidateCollector(EncounterContext* context, ObjectKeyValueSet* keys)
     : MemberVisitorA(context), m_keys(keys) {}
-BetrayalCandidateCollector::~BetrayalCandidateCollector() { REB_KEEP_VPTR_STORE(); }
+BetrayalCandidateCollector::~BetrayalCandidateCollector() {  }
 
 int BetrayalCandidateCollector::Visit(Role* member, int* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -209,7 +208,7 @@ int BetrayalCandidateCollector::Visit(Role* member, int* stop, NotifyContext* ct
 }
 
 UnitAgainstDecoyVisitor::UnitAgainstDecoyVisitor(EncounterContext* context) : UnitVisitor(context) {}
-UnitAgainstDecoyVisitor::~UnitAgainstDecoyVisitor() { REB_KEEP_VPTR_STORE(); }
+UnitAgainstDecoyVisitor::~UnitAgainstDecoyVisitor() {  }
 
 int UnitAgainstDecoyVisitor::Visit(Detector* unit, Fleet* container, int* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -222,7 +221,7 @@ int UnitAgainstDecoyVisitor::Visit(Detector* unit, Fleet* container, int* stop, 
 
 UnitFoilVisitor::UnitFoilVisitor(EncounterContext* context)
     : UnitVisitor(context), m_foiled(0), m_prepared(0), m_averageSkill(0), m_teamCount(0) {}
-UnitFoilVisitor::~UnitFoilVisitor() { REB_KEEP_VPTR_STORE(); }
+UnitFoilVisitor::~UnitFoilVisitor() {  }
 
 int UnitFoilVisitor::Visit(Detector* unit, Fleet* container, int* stop, NotifyContext* ctx) {
     *stop = 0;

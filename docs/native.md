@@ -139,8 +139,8 @@ is macOS host-only.
 * **Float to int**: `cvttsd2si` gives `0x80000000` for overflow and NaN; arm64 saturates. `reb_ftol` (`core/reb_x87.h`) has the x86 result on every
   target. The native x86-64 build run with `-fsanitize=float-cast-overflow` (`REB_NATIVE_SANITIZE=address,undefined,float-cast-overflow`) shows the
   places that rely on it; results in the phase 3 plan.
-* No x86 intrinsics or inline assembly in the native build: the only `__asm__` left are empty compiler barriers (`vptr_store.h`,
-  `galaxy_display.cpp`); the x87 code in `reb_x87.h` and `crt/floor.cpp` is `#if` i386.
+* No x86 intrinsics or inline assembly in the native build: the remaining `__asm__` is limited to empty compiler barriers
+  (`game_string.cpp`, `galaxy_display.cpp`); the x87 code in `reb_x87.h` and `crt/floor.cpp` is `#if` i386.
 * `char` is signed (`-fsigned-char`), `-ffp-contract=off` so arm64 does not fuse multiply-adds, `-fwrapv`.
 * **Memory ordering**: arm64 is weakly ordered, x86 is not. The game's two helper threads (sound refill, movie) share a few plain flags with the
   main thread, written for x86. qemu-user runs them with the host's ordering, so only real arm64 hardware can show a race there.

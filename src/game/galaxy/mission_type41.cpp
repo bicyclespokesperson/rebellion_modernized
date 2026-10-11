@@ -1,8 +1,6 @@
-#include "core/reb_abi.h"
 #include "galaxy/mission_type41.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gameobj/game_hooks.h"
 #include "mission/mission_bases.h"
 #include "mission/mission_forwarders.h"
@@ -23,7 +21,7 @@ constexpr int kStatusNotSupported = 0x17;
 
 Mission41::Mission41() {}
 
-Mission41::~Mission41() { REB_KEEP_VPTR_STORE(); }
+Mission41::~Mission41() {  }
 
 uint32_t Mission41::GetFamily() { return kFamilyMission41; }
 

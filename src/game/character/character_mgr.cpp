@@ -1,9 +1,7 @@
-#include "core/reb_abi.h"
 #include "character/character_mgr.h"
 
 #include "character/role.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "data/random.h"
 #include "economy/side.h"
@@ -22,7 +20,7 @@ extern int g_characterMgrEventKindsReady;      // 0x6bb7a0
 extern EventKindSet g_characterMgrEventKinds;  // 0x6bb798
 
 DatRecord* GetFirstRecordOfType(int type);  // 0x51cad0
-ObjectKey* REB_THISCALL GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
+ObjectKey* GetAiRecordKey(DatRecord* record, ObjectKey* out);  // 0x402e40
 // The starting number of minor characters of `side` for a galaxy of `size` (1-3); kind 1 is the Alliance's, 2 the Empire's.
 
 namespace {
@@ -74,7 +72,7 @@ DatRecord* nextRecord(DatRecord* record) { return reinterpret_cast<DatRecord*>(s
 
 CharacterMgr::CharacterMgr() : m_flags58(0), m_galaxySize(0) { SetId(8); }
 
-CharacterMgr::~CharacterMgr() { REB_KEEP_VPTR_STORE(); }
+CharacterMgr::~CharacterMgr() {  }
 
 uint32_t CharacterMgr::GetFamily() { return family::kCharacterManager; }
 

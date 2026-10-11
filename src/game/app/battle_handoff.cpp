@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "gameobj/game_root.h"
 #include "app/battle_flow.h"
 #include "app/battle_handoff.h"
@@ -62,33 +61,33 @@ double ScaleCharacterValueA(int value) { return static_cast<double>(value) / sta
 
 double ScaleCharacterValueB(int value) { return static_cast<double>(value) / static_cast<double>(g_characterScaleDivisorB); }  // 0x40d680
 
-uint32_t REB_THISCALL KeyFamilyOf(const ObjectKey* key) { return key->m_value >> 24; }  // 0x40c490
+uint32_t KeyFamilyOf(const ObjectKey* key) { return key->m_value >> 24; }  // 0x40c490
 
-uint32_t REB_THISCALL KeyIdOf(const ObjectKey* key) { return key->m_value & 0xffffff; }  // 0x40c4a0
+uint32_t KeyIdOf(const ObjectKey* key) { return key->m_value & 0xffffff; }  // 0x40c4a0
 
-uint32_t REB_THISCALL ObjectControlSide(GameObjRoot* object) { return object->ControlSide(); }  // 0x40d690
+uint32_t ObjectControlSide(GameObjRoot* object) { return object->ControlSide(); }  // 0x40d690
 
-uint32_t REB_THISCALL ObjectDestroyedBit(GameObj* object) { return (object->m_stateFlags >> 3) & 1; }  // 0x40d6a0
+uint32_t ObjectDestroyedBit(GameObj* object) { return (object->m_stateFlags >> 3) & 1; }  // 0x40d6a0
 
-uint32_t REB_THISCALL CapShipShieldRechargeCH(CapShip* ship) { return ship->GetCriticalHit(CapShip::kShieldRechargeShift); }  // 0x40d6b0
+uint32_t CapShipShieldRechargeCH(CapShip* ship) { return ship->GetCriticalHit(CapShip::kShieldRechargeShift); }  // 0x40d6b0
 
-uint32_t REB_THISCALL CapShipWeaponRechargeCH(CapShip* ship) { return ship->GetCriticalHit(CapShip::kWeaponRechargeShift); }  // 0x40d6c0
+uint32_t CapShipWeaponRechargeCH(CapShip* ship) { return ship->GetCriticalHit(CapShip::kWeaponRechargeShift); }  // 0x40d6c0
 
-uint32_t REB_THISCALL CapShipTractorBeamCH(CapShip* ship) { return ship->GetCriticalHit(CapShip::kTractorBeamShift); }  // 0x40d6d0
+uint32_t CapShipTractorBeamCH(CapShip* ship) { return ship->GetCriticalHit(CapShip::kTractorBeamShift); }  // 0x40d6d0
 
-uint32_t REB_THISCALL CapShipSpeedCH(CapShip* ship) { return ship->GetCriticalHit(CapShip::kSpeedShift); }  // 0x40d6e0
+uint32_t CapShipSpeedCH(CapShip* ship) { return ship->GetCriticalHit(CapShip::kSpeedShift); }  // 0x40d6e0
 
-uint32_t REB_THISCALL CapShipPrimaryHyperdriveCH(CapShip* ship) { return ship->GetCriticalHit(CapShip::kPrimaryHyperdriveShift); }  // 0x40d6f0
+uint32_t CapShipPrimaryHyperdriveCH(CapShip* ship) { return ship->GetCriticalHit(CapShip::kPrimaryHyperdriveShift); }  // 0x40d6f0
 
-uint32_t REB_THISCALL CapShipBackupHyperdriveCH(CapShip* ship) { return ship->GetCriticalHit(CapShip::kBackupHyperdriveShift); }  // 0x40d700
+uint32_t CapShipBackupHyperdriveCH(CapShip* ship) { return ship->GetCriticalHit(CapShip::kBackupHyperdriveShift); }  // 0x40d700
 
-int REB_THISCALL CapShipCurrentHull(CapShip* ship) { return ship->GetHull() - ship->GetHullValueDamage(); }  // 0x40d710
+int CapShipCurrentHull(CapShip* ship) { return ship->GetHull() - ship->GetHullValueDamage(); }  // 0x40d710
 
-int REB_THISCALL FightSquadCurrentSize(FightSquad* squad) { return squad->GetSquadSize() - squad->GetSquadSizeDamage(); }  // 0x40d730
+int FightSquadCurrentSize(FightSquad* squad) { return squad->GetSquadSize() - squad->GetSquadSizeDamage(); }  // 0x40d730
 
-uint32_t REB_THISCALL SystemBattleControlKind(System* system) { return ControlBitsField(system->m_controlBits, 6); }  // 0x40d750
+uint32_t SystemBattleControlKind(System* system) { return ControlBitsField(system->m_controlBits, 6); }  // 0x40d750
 
-ObjectKey* REB_THISCALL ManufacturingManagerProductKey(ManuMgr* manager, ObjectKey* out) {  // 0x40d760
+ObjectKey* ManufacturingManagerProductKey(ManuMgr* manager, ObjectKey* out) {  // 0x40d760
     new (out) ObjectKey(manager->m_productKey);
     return out;
 }

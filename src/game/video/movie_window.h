@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/game_string.h"
@@ -16,10 +15,10 @@ class DibBitmap;
 class MovieWindow : public CoolWindow {
 public:
     // `movieId` (0x65-0x74) selects the MDATA file; `callback` may be null; `caption` (copied) may be null.
-    MovieWindow(int movieId, void (REB_CDECL* callback)(uint32_t, uint32_t, int), HINSTANCE instance, int x, int y, int width,
+    MovieWindow(int movieId, void (* callback)(uint32_t, uint32_t, int), HINSTANCE instance, int x, int y, int width,
                 int height, CoolWindow* parent, const String* caption);
     virtual ~MovieWindow();  // 0x421700 (scalar deleting destructor 0x4216e0)
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x421790
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x421790
 
     // The MDATA file of the movie id as "MDATA\MDATA.nnn", null for an unknown id.
     const char* GetMovieFile();  // 0x421ba0
@@ -33,7 +32,7 @@ public:
     const char* m_fallbackPath;                                   // +0xa0, never set (a path pointer used when m_path is null)
     String m_caption;                                     // +0xa4
     DibBitmap* m_captionBackdrop;                         // +0xb0 owned
-    void (REB_CDECL* m_callback)(uint32_t, uint32_t, int);  // +0xb4
+    void (* m_callback)(uint32_t, uint32_t, int);  // +0xb4
 };
 
 

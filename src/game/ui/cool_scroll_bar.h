@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "platform/win32.h"
@@ -37,7 +36,7 @@ public:
     // Slot 5: WM_CREATE loads the artwork (LoadArt) and lays the bar out; WM_PAINT draws m_surface; WM_COMMAND
     // goes to OnCommand, WM_TIMER to OnTimer; a left click is posted to the parent as message 0x40e
     // (wParam = message << 16 | child id) before OnLButtonDown; WM_LBUTTONUP ends the drag.
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60aca0
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60aca0
 
     virtual void OnCommand(WPARAM id);             // slot 9, 0x5ae1e0: does nothing (arrow buttons)
     virtual int Layout();                          // slot 10, 0x6158b0: returns 0; sizes the bar, moves the buttons

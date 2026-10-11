@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include <cstdint>
 #include <new>
 
@@ -60,7 +59,7 @@ uint32_t ControlBits(GameObjNotifier* object) { return static_cast<GameObjRoot*>
 
 // ---- Pictures --------------------------------------------------------------------------------------------
 
-DibBitmap* REB_STDCALL SystemObjectPicture(GameObjNotifier* object) {
+DibBitmap* SystemObjectPicture(GameObjNotifier* object) {
     uint16_t base = 0;
     uint16_t id = 0;
     DibBitmap* result = nullptr;

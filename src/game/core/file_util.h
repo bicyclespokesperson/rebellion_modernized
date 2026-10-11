@@ -23,7 +23,8 @@ char* LoadRcdataString(unsigned id);
 // if there is no name and kFileOpenFailed if the open failed.
 void OpenInputFile(ifstream* stream, const char* fileName);
 void OpenOutputFile(ofstream* stream, const char* fileName);
-void CloseFileStream(void* fstream);
+void CloseFileStream(ifstream* stream);
+void CloseFileStream(ofstream* stream);
 
 // DeleteFile on the name; 0 if there is no name.
 int DeleteGameFile(const char* fileName);

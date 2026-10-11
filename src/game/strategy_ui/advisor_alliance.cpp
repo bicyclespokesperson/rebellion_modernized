@@ -1,5 +1,4 @@
 #include "economy/side.h"
-#include "core/reb_abi.h"
 #include <new>
 
 #include "app/rebapp_globals.h"
@@ -7,7 +6,6 @@
 #include "core/file_util.h"
 #include "core/game_string.h"
 #include "core/iostream_lib.h"
-#include "core/vptr_store.h"
 #include "events/game_clock_hooks.h"
 #include "gameobj/object_lookup.h"
 #include "orders/order_base.h"
@@ -18,7 +16,6 @@
 
 
 extern IdAvlTree g_allianceChoices;      // 0x6b2928 the list the display-mode switches show
-extern uint32_t g_allianceChoicesGuard;  // 0x6b2934
 
 using namespace advisor_sides;
 
@@ -82,7 +79,7 @@ AllianceAdvisor::AllianceAdvisor(int side, HumanPlayer* player) : AdvisorBase(si
 
 AllianceAdvisor::~AllianceAdvisor() {
     ::operator delete(m_cueDue);
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AllianceAdvisor::HandleRefusedOrder(OrderBase* order, IntPair* status) {
@@ -191,7 +188,7 @@ int AllianceAdvisor::LoadCueScripts() {
     strstreambuf_freeze(iostream_access::BufferOf(name.get()), 0);
     const int error = GetFileError();
     if (error == 0) {
-        m_cueTree.Load(reinterpret_cast<istream*>(file.get()));
+        m_cueTree.Load(file.get()->In());
         CloseFileStream(file.get());
     }
     return error == 0;
@@ -590,4 +587,3 @@ int AllianceAdvisor::PickMoodCue() {
     }
 }
 IdAvlTree g_allianceChoices{};
-uint32_t g_allianceChoicesGuard{};

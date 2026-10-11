@@ -1,5 +1,5 @@
-#include "core/reb_abi.h"
 #include "app/app_cdcheck_version.h"
+#include "core/runtime_environment.h"
 #include "app/app_strings.h"
 
 #include <cstdint>
@@ -81,7 +81,7 @@ void DecodeTexts(char* text, int size, ErrorTexts* out) {
 }  // namespace
 
 void InitCdAndVersionCheck() {
-    FILE* file = fopen(g_textsFileName, "rb");
+    FILE* file = OpenGameFile(g_textsFileName, "rb");
     if (!file) {
         UseBuiltInTexts();
         g_versionCheckResult = 1;

@@ -7,7 +7,6 @@
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/stream_io.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
 #include "ui/cool_app.h"
@@ -33,7 +32,7 @@ BattleInProgressWindow::BattleInProgressWindow(HINSTANCE instance, GalaxyWindow*
     m_style = 0x46000000;
 }
 
-BattleInProgressWindow::~BattleInProgressWindow() { REB_KEEP_VPTR_STORE(); }
+BattleInProgressWindow::~BattleInProgressWindow() {  }
 
 void BattleInProgressWindow::SaveState(ostream* out) {
     uint32_t childId = m_childId;

@@ -1,8 +1,6 @@
-#include "core/reb_abi.h"
 #include "ui/cool_scroll_bar.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/cool_button.h"
 #include "ui/cool_scrollable.h"
@@ -74,10 +72,10 @@ CoolScrollBar::~CoolScrollBar() {
     DeleteBitmap(m_thumbBottom);
     DeleteBitmap(m_surface);
     DeleteBitmap(m_background);
-    REB_KEEP_VPTR_STORE();
+
 }
 
-LRESULT REB_STDCALL CoolScrollBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CoolScrollBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_PAINT: {
             HWND hwnd = m_hwnd;

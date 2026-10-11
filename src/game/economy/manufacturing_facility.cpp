@@ -1,6 +1,5 @@
 #include "economy/manufacturing_facility.h"
 
-#include "core/vptr_store.h"
 #include "economy/manu_mgr_leaves.h"
 
 namespace {
@@ -19,7 +18,7 @@ int applyAllOnSideView(ManufacturingFacility* facility, NotifyContext* ctx) {
 
 ManufacturingFacility::ManufacturingFacility() {}
 
-ManufacturingFacility::~ManufacturingFacility() { REB_KEEP_VPTR_STORE(); }
+ManufacturingFacility::~ManufacturingFacility() {  }
 
 int ManufacturingFacility::OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) {
     return ProcFacil::OnControlKindChanged(oldKind, newKind, ctx);
@@ -64,7 +63,7 @@ int ManufacturingFacility::CreateViewsImpl(int controlKind, NotifyContext* ctx) 
 
 ManufacturingFacility2A::ManufacturingFacility2A() {}
 
-ManufacturingFacility2A::~ManufacturingFacility2A() { REB_KEEP_VPTR_STORE(); }
+ManufacturingFacility2A::~ManufacturingFacility2A() {  }
 
 int ManufacturingFacility2A::Read(istream* in) { return ReadForward(in); }
 
@@ -84,7 +83,7 @@ GameObjNotifier* CreateManufacturingFacility2A() { return new ManufacturingFacil
 
 ManufacturingFacility29::ManufacturingFacility29() {}
 
-ManufacturingFacility29::~ManufacturingFacility29() { REB_KEEP_VPTR_STORE(); }
+ManufacturingFacility29::~ManufacturingFacility29() {  }
 
 int ManufacturingFacility29::Read(istream* in) { return ReadForward(in); }
 
@@ -104,7 +103,7 @@ GameObjNotifier* CreateManufacturingFacility29() { return new ManufacturingFacil
 
 ManufacturingFacility28::ManufacturingFacility28() {}
 
-ManufacturingFacility28::~ManufacturingFacility28() { REB_KEEP_VPTR_STORE(); }
+ManufacturingFacility28::~ManufacturingFacility28() {  }
 
 int ManufacturingFacility28::Read(istream* in) { return ReadForward(in); }
 
@@ -146,7 +145,7 @@ ManufacturingFacilityIterator::ManufacturingFacilityIterator(GameObjNotifier* pa
 ManufacturingFacilityIterator::ManufacturingFacilityIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kManufacturingFamilies, stateFilter) {}
 
-ManufacturingFacilityIterator::~ManufacturingFacilityIterator() { REB_KEEP_VPTR_STORE(); }
+ManufacturingFacilityIterator::~ManufacturingFacilityIterator() {  }
 
 ManufacturingFacility2AIterator::ManufacturingFacility2AIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kFamily2A, stateFilter) {}
@@ -154,7 +153,7 @@ ManufacturingFacility2AIterator::ManufacturingFacility2AIterator(GameObjNotifier
 ManufacturingFacility2AIterator::ManufacturingFacility2AIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kFamily2A, stateFilter) {}
 
-ManufacturingFacility2AIterator::~ManufacturingFacility2AIterator() { REB_KEEP_VPTR_STORE(); }
+ManufacturingFacility2AIterator::~ManufacturingFacility2AIterator() {  }
 
 ManufacturingFacility29Iterator::ManufacturingFacility29Iterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kFamily29, stateFilter) {}
@@ -162,7 +161,7 @@ ManufacturingFacility29Iterator::ManufacturingFacility29Iterator(GameObjNotifier
 ManufacturingFacility29Iterator::ManufacturingFacility29Iterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kFamily29, stateFilter) {}
 
-ManufacturingFacility29Iterator::~ManufacturingFacility29Iterator() { REB_KEEP_VPTR_STORE(); }
+ManufacturingFacility29Iterator::~ManufacturingFacility29Iterator() {  }
 
 ManufacturingFacility28Iterator::ManufacturingFacility28Iterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kFamily28, stateFilter) {}
@@ -170,4 +169,4 @@ ManufacturingFacility28Iterator::ManufacturingFacility28Iterator(GameObjNotifier
 ManufacturingFacility28Iterator::ManufacturingFacility28Iterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kFamily28, stateFilter) {}
 
-ManufacturingFacility28Iterator::~ManufacturingFacility28Iterator() { REB_KEEP_VPTR_STORE(); }
+ManufacturingFacility28Iterator::~ManufacturingFacility28Iterator() {  }

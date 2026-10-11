@@ -1,7 +1,5 @@
-#include "core/reb_abi.h"
 #include "core/checked_new.h"
 #include "ai/ai_common.h"
-#include "core/vptr_store.h"
 #include "events/event_post.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_family.h"
@@ -11,7 +9,7 @@
 #include "story/mission_mgr.h"
 #include "story/story_common.h"
 
-extern "C" void* REB_CDECL operator_new(size_t size);
+extern "C" void* operator_new(size_t size);
 
 extern int g_missionMgrEventKindsReady;      // 0x6b92e4
 extern EventKindSet g_missionMgrEventKinds;  // 0x6b92e8
@@ -42,7 +40,7 @@ MissionMgr::MissionMgr() : m_storyFlags(0) {
 
 MissionMgr::~MissionMgr() {
     FreeTypeTable();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 uint32_t MissionMgr::GetFamily() { return family::kMissionManager; }

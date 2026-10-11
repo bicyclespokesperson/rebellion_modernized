@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "events/key_property_helpers.h"
 
 #include <new>
@@ -12,7 +11,7 @@ extern uint8_t g_emptyKeyBuilt;               // 0x6b2950, bit 0
 ObjectKeyValueSet* GetEmptyKeyValueSet() { return &g_emptyKeyValueSet; }
 
 
-ObjectKey* REB_STDCALL ConstructUnsetKey(ObjectKey* key) {
+ObjectKey* ConstructUnsetKey(ObjectKey* key) {
     new (key) ObjectKey();
     return key;
 }
@@ -20,9 +19,9 @@ ObjectKey* REB_STDCALL ConstructUnsetKey(ObjectKey* key) {
 
 ObjectKey* GetEmptyKey() { return &g_emptyKey; }
 
-void REB_STDCALL ResetKey(ObjectKey* key) { key->Reset(); }
+void ResetKey(ObjectKey* key) { key->Reset(); }
 
-int REB_STDCALL CallSlot1(void* object) {
+int CallSlot1(void* object) {
     struct SlotOne {
         virtual void Virtual00() {}
         virtual void Virtual01() {}

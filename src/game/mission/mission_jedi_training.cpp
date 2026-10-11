@@ -182,7 +182,7 @@ int CheckStudentRefList(ObjectRefList* list, TrainingOrderCheck* check, StatusCo
 
 MissionJediTraining::MissionJediTraining() {}
 
-MissionJediTraining::~MissionJediTraining() { REB_KEEP_VPTR_STORE(); }
+MissionJediTraining::~MissionJediTraining() {  }
 
 uint32_t MissionJediTraining::GetFamily() { return kFamilyMissionJediTraining; }
 
@@ -358,6 +358,6 @@ int MissionJediTraining::BuildEventKinds() {
 MissionJediTrainingIterator::MissionJediTrainingIterator(GameObjNotifier* parent)
     : ChildIterator(parent, &kJediTrainingFamilies, 1) {}
 
-MissionJediTrainingIterator::~MissionJediTrainingIterator() { REB_KEEP_VPTR_STORE(); }
+MissionJediTrainingIterator::~MissionJediTrainingIterator() {  }
 EventKindSet g_missionJediTrainingEventKinds{};
 int g_missionJediTrainingEventKindsReady{};

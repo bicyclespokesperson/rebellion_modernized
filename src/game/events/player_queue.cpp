@@ -2,7 +2,6 @@
 
 #include "app/player_controller_decl.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "events/game_clock_hooks.h"
 #include "events/net_messages.h"
 #include "orders/order_base.h"
@@ -30,7 +29,7 @@ PlayerQueue::PlayerQueue(int side) : m_pending(), m_state(0) {
 
 PlayerQueue::~PlayerQueue() {
     delete m_sync;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void PlayerQueue::Read(istream* in) {
@@ -114,7 +113,7 @@ PlayerController::PlayerController(int side) : PlayerQueue(side), m_voteKey() {
     m_unk4c = 0;
 }
 
-PlayerController::~PlayerController() { REB_KEEP_VPTR_STORE(); }
+PlayerController::~PlayerController() {  }
 
 void PlayerController::Virtual05(int firstVoteId) {
     m_nextVoteId = firstVoteId;
@@ -209,7 +208,7 @@ void PlayerController::Virtual95() { ++m_unk4c; }
 void PlayerController::Send(MessageBase* message) {
     if (!message) return;
     if (message->m_id == 0) message->SetId(Virtual06());
-    UiRouteMessage(reinterpret_cast<PlayerMessage*>(message));
+    UiRouteMessage(message, m_side);
 }
 
 void PlayerController::SendKeyRequest(const ObjectKey* key) {

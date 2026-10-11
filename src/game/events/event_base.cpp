@@ -1,7 +1,6 @@
 #include "events/event_base.h"
 
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 
 struct EventFactoryEntry {
     int m_kind;
@@ -48,7 +47,7 @@ EventBase::EventBase() : AvlNode(), m_flag(1), m_unk1c(0), m_context(), m_key() 
 EventBase::EventBase(const EventBase& other)
     : AvlNode(), m_flag(other.m_flag), m_unk1c(other.m_unk1c), m_context(other.m_context), m_key(other.m_key) {}
 
-EventBase::~EventBase() { REB_KEEP_VPTR_STORE(); }
+EventBase::~EventBase() {  }
 
 void EventBase::ReadBase(istream* in) {
     ReadValue32(in, &m_flag);
@@ -77,7 +76,7 @@ TimedEvent::TimedEvent() : EventBase(), m_dueDay(0) {}
 
 TimedEvent::TimedEvent(const TimedEvent& other) : EventBase(other), m_dueDay(other.m_dueDay) {}
 
-TimedEvent::~TimedEvent() { REB_KEEP_VPTR_STORE(); }
+TimedEvent::~TimedEvent() {  }
 
 int TimedEvent::ReadTimed(istream* in) {
     ReadBase(in);
@@ -103,7 +102,7 @@ Command::Command() : EventBase(), m_request() {}
 
 Command::Command(const Command& other) : EventBase(other), m_request(other.m_request) {}
 
-Command::~Command() { REB_KEEP_VPTR_STORE(); }
+Command::~Command() {  }
 
 void Command::SetRequest(const ActivityRequest* request) { m_request = *request; }
 
@@ -137,7 +136,7 @@ PlainEvent::PlainEvent() : EventBase() {}
 
 PlainEvent::PlainEvent(const PlainEvent& other) : EventBase(other) {}
 
-PlainEvent::~PlainEvent() { REB_KEEP_VPTR_STORE(); }
+PlainEvent::~PlainEvent() {  }
 
 int PlainEvent::ReadPlain(istream* in) {
     ReadBase(in);
@@ -161,7 +160,7 @@ KeyedEvent::KeyedEvent() : PlainEvent(), m_keyA(), m_keyB(), m_value(0) {}
 KeyedEvent::KeyedEvent(const KeyedEvent& other)
     : PlainEvent(other), m_keyA(other.m_keyA), m_keyB(other.m_keyB), m_value(other.m_value) {}
 
-KeyedEvent::~KeyedEvent() { REB_KEEP_VPTR_STORE(); }
+KeyedEvent::~KeyedEvent() {  }
 
 int KeyedEvent::ReadKeyed(istream* in) {
     ReadPlain(in);
@@ -198,7 +197,7 @@ SourceEvent::SourceEvent() : KeyedEvent(), m_valueA(0), m_valueB(0) {}
 SourceEvent::SourceEvent(const SourceEvent& other)
     : KeyedEvent(other), m_valueA(other.m_valueA), m_valueB(other.m_valueB) {}
 
-SourceEvent::~SourceEvent() { REB_KEEP_VPTR_STORE(); }
+SourceEvent::~SourceEvent() {  }
 
 int SourceEvent::ReadSource(istream* in) {
     ReadKeyed(in);
@@ -227,7 +226,7 @@ TwoKeyEvent::TwoKeyEvent() : KeyedEvent(), m_keyC(), m_keyD() {}
 
 TwoKeyEvent::TwoKeyEvent(const TwoKeyEvent& other) : KeyedEvent(other), m_keyC(other.m_keyC), m_keyD(other.m_keyD) {}
 
-TwoKeyEvent::~TwoKeyEvent() { REB_KEEP_VPTR_STORE(); }
+TwoKeyEvent::~TwoKeyEvent() {  }
 
 void TwoKeyEvent::ReadTwoKey(istream* in) {
     ReadKeyed(in);

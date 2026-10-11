@@ -4,10 +4,10 @@
 #include "ai/ai_members.h"
 #include "ai/ai_side_controller.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "events/game_clock_hooks.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
+#include "strategy_ui/advisor_notices.h"
 
 using ai::InFamilies;
 
@@ -53,7 +53,7 @@ AiFleetEval::~AiFleetEval() {
     m_cursor = nullptr;
     m_ships = nullptr;
     m_owner = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiFleetEval::ReadRecord(istream* in, AiShipRecordSet* ships, AiSideController* owner) {
@@ -262,9 +262,7 @@ void AiFleetEval::AddShipStats(const int* stats, const int* flags) {
     }
 }
 
-GameManager * g_gameManager{};
-GameRoot * g_gameRoot{};
-UiHandler * g_uiHandlers[46]{};
+UiNotice* g_uiHandlers[46]{};
 int (*g_gameHook2ADC)(HookArg) = nullptr;
 int (*g_gameHook2AE4)(HookArg) = nullptr;
 int g_gnprtb1200{};

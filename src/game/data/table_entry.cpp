@@ -2,7 +2,6 @@
 
 #include "core/iostream_lib.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 
 struct TableEntryClassRegistration {
@@ -33,7 +32,7 @@ bool sameName(const char* a, const char* b) {
 
 TableEntry::TableEntry() : m_field1c(1), m_field20(0) {}
 
-TableEntry::~TableEntry() { REB_KEEP_VPTR_STORE(); }
+TableEntry::~TableEntry() {  }
 
 int TableEntry::Read(istream* in) {
     ReadId(in);

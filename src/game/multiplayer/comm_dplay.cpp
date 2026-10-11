@@ -1,6 +1,5 @@
 // The part of CommMgr that talks to DirectPlay: sessions, players, the datagram send and receive and the lobby
 // hand-over. The protocol on top of it is in comm_mgr.cpp.
-#include "core/reb_abi.h"
 #include <cstdio>
 #include <cstring>
 #include <new>
@@ -113,14 +112,14 @@ private:
 
 // ---- the DPLAYX callbacks --------------------------------------------------------------------------------------
 
-BOOL REB_STDCALL CommEnumServiceProviderCallback(GUID* guid, LPSTR name, DWORD majorVersion, DWORD minorVersion,
+BOOL CommEnumServiceProviderCallback(GUID* guid, LPSTR name, DWORD majorVersion, DWORD minorVersion,
                                                LPVOID context) {  // 0x5f88d0
     auto* info = NewOrNull<ServiceProviderInfo>(guid, name, majorVersion, minorVersion, reinterpret_cast<DWORD_PTR>(context));
     g_serviceProviderList.AddWithId(info);
     return TRUE;
 }
 
-BOOL REB_STDCALL CommEnumSessionsCallback(const DPSESSIONDESC2* description, LPDWORD timeout, DWORD flags,
+BOOL CommEnumSessionsCallback(const DPSESSIONDESC2* description, LPDWORD timeout, DWORD flags,
                                         LPVOID context) {  // 0x5f8950
     if (!description) return FALSE;
     auto* info = NewOrNull<SessionInfo>(description);
@@ -128,7 +127,7 @@ BOOL REB_STDCALL CommEnumSessionsCallback(const DPSESSIONDESC2* description, LPD
     return TRUE;
 }
 
-BOOL REB_STDCALL CommEnumPlayersCallback(DPID id, DWORD playerType, const DPNAME* name, DWORD flags,
+BOOL CommEnumPlayersCallback(DPID id, DWORD playerType, const DPNAME* name, DWORD flags,
                                        LPVOID context) {  // 0x5f89c0
     CommMgr* comm = GetCommMgr();
     if (comm->GetEnumeratedCount() >= g_commMaxPlayers) return FALSE;

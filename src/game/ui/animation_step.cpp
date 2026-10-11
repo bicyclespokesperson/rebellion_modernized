@@ -1,11 +1,9 @@
-#include "core/reb_abi.h"
 #include "ui/animation_step.h"
 
 #include <cstring>
 #include <new>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "ui/sprite.h"
@@ -111,7 +109,7 @@ DibBitmap* copyOf(DibBitmap* source) {
 
 AnimationStep::AnimationStep() : m_stage(nullptr), m_animator(nullptr), m_script(0), m_sound(0, 0, 0, 0, 0, 0), m_effectSound(0, 0, 0, 0, 0, 0) {}
 
-AnimationStep::~AnimationStep() { REB_KEEP_VPTR_STORE(); }
+AnimationStep::~AnimationStep() {  }
 
 void AnimationStep::Attach(SpriteAnimator* animator) { m_animator = animator; }
 
@@ -213,7 +211,7 @@ AnimationStep05::AnimationStep05() {
 }
 
 AnimationStep05::~AnimationStep05() {
-    REB_KEEP_VPTR_STORE();
+
     if (m_bitmaps != nullptr) {
         for (int i = 0; i < m_spriteCount; ++i) {
             DibBitmap* bitmap = m_bitmaps[i];
@@ -283,7 +281,7 @@ AnimationStep12::AnimationStep12() {
 }
 
 AnimationStep12::~AnimationStep12() {
-    REB_KEEP_VPTR_STORE();
+
     if (m_bitmaps != nullptr) {
         for (int i = 0; i < m_spriteCount; ++i) {
             DibBitmap* bitmap = m_bitmaps[i];
@@ -377,7 +375,7 @@ AnimationStep15::AnimationStep15() {
 }
 
 AnimationStep15::~AnimationStep15() {
-    REB_KEEP_VPTR_STORE();
+
     deleteBitmapList(this);
 }
 
@@ -398,7 +396,7 @@ AnimationStep11::AnimationStep11() {
 }
 
 AnimationStep11::~AnimationStep11() {
-    REB_KEEP_VPTR_STORE();
+
     deleteBitmapList(this);
 }
 
@@ -415,7 +413,7 @@ int AnimationStep11::GetKind() { return kKindPositioned11; }
 AnimationStep14::AnimationStep14() : m_firstWord(0), m_spriteCount(0), m_bitmaps(nullptr), m_aborted(0) {}
 
 AnimationStep14::~AnimationStep14() {
-    REB_KEEP_VPTR_STORE();
+
     if (m_bitmaps != nullptr) {
         for (int i = 0; i < m_spriteCount; ++i) {
             DibBitmap* bitmap = m_bitmaps[i];
@@ -570,7 +568,7 @@ AnimationStep04::AnimationStep04() {
 }
 
 AnimationStep04::~AnimationStep04() {
-    REB_KEEP_VPTR_STORE();
+
     destroyDeltaFrameStep(this, false);
 }
 
@@ -595,7 +593,7 @@ AnimationStep13::AnimationStep13() {
 }
 
 AnimationStep13::~AnimationStep13() {
-    REB_KEEP_VPTR_STORE();
+
     destroyDeltaFrameStep(this, true);
 }
 

@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "ai/ai_system_record.h"
 
 #include "ai/ai_agent_bases.h"
@@ -7,7 +6,6 @@
 #include "ai/ai_postures.h"
 #include "ai/ai_side_controller.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gameobj/game_obj.h"
 #include "orders/order_base.h"
 
@@ -110,7 +108,7 @@ AiSystemRecord::~AiSystemRecord() {
     m_posture = nullptr;
     m_flagsA.m_value = 0;
     m_flagsB.m_value = 0;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiSystemRecord::Read(istream* in) {
@@ -230,7 +228,7 @@ int AiSystemRecord::ForwardToPosture() { return m_posture->Virtual03(); }
 
 int AiSystemRecord::HasWarships() { return m_xbc != 0 || m_xc4 != 0; }
 
-int REB_STDCALL PlannerClassOf(AiMissionPlanner* planner) {
+int PlannerClassOf(AiMissionPlanner* planner) {
     if (!planner) return 0;
     switch (planner->m_missionKey.Family()) {
     case 0x52:
@@ -246,7 +244,7 @@ int REB_STDCALL PlannerClassOf(AiMissionPlanner* planner) {
     return 0;
 }
 
-int REB_STDCALL AgentClassOf(AiAgentTargeted* agent) {
+int AgentClassOf(AiAgentTargeted* agent) {
     if (agent) {
         const int kind = agent->GetKind();
         if (kind != 3) {

@@ -1,7 +1,6 @@
 #include "economy/production_facility.h"
 
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "events/event_post.h"
 #include "gameobj/game_hooks.h"
 
@@ -33,7 +32,7 @@ bool controlledByNeutral(const ProductionFacility* facility) {
 
 ProductionFacility::ProductionFacility() : m_work(), m_productionModifier(kDefaultProductionModifier) {}
 
-ProductionFacility::~ProductionFacility() { REB_KEEP_VPTR_STORE(); }
+ProductionFacility::~ProductionFacility() {  }
 
 IntPair* ProductionFacility::GetWork(IntPair* out) {
     *out = m_work;
@@ -313,4 +312,4 @@ int ProductionFacility::ValidateImpl() {
 ProductionFacilityIterator::ProductionFacilityIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kProductionFacilityFamilies, stateFilter) {}
 
-ProductionFacilityIterator::~ProductionFacilityIterator() { REB_KEEP_VPTR_STORE(); }
+ProductionFacilityIterator::~ProductionFacilityIterator() {  }

@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include <cstdio>
 #include <cstring>
 
@@ -20,7 +19,7 @@ int Sputc(streambuf* buffer, unsigned char c) {
         *buffer->m_pptr++ = static_cast<char>(c);
         return c;
     }
-    return buffer->m_vftable->m_overflow(buffer, c);
+    return buffer->Overflow(c);
 }
 
 void PutFill(ios* stream) {
@@ -33,7 +32,7 @@ void PutPadding(ios* stream, int count) {
 
 void PutText(ios* stream, const char* text, int length) {
     streambuf* buffer = stream->m_bp;
-    if (buffer->m_vftable->m_xsputn(buffer, text, length) != length) stream->m_state |= iostream_flags::kFail | iostream_flags::kBad;
+    if (buffer->Write(text, length) != length) stream->m_state |= iostream_flags::kFail | iostream_flags::kBad;
 }
 
 void UnlockBufferAndStream(ios* stream) {
@@ -97,7 +96,7 @@ ostream* PrintNumber(ostream* out, const char (&decimalSpec)[4], bool isSigned, 
 
 }  // namespace
 
-ostream* REB_THISCALL ostream_operator_ls_char(ostream* out, char value) {
+ostream* ostream_operator_ls_char(ostream* out, char value) {
     if (ostream_opfx(out) != 0) {
         ios* stream = IosOf(out);
         if (stream->m_width != 0) {
@@ -108,14 +107,14 @@ ostream* REB_THISCALL ostream_operator_ls_char(ostream* out, char value) {
         }
         const unsigned char c = static_cast<unsigned char>(value);
         if (static_cast<unsigned>(Sputc(stream->m_bp, c)) == 0xffffffffu) {
-            if (stream->m_bp->m_vftable->m_overflow(stream->m_bp, c) == -1) stream->m_state |= iostream_flags::kFail | iostream_flags::kBad;
+            if (stream->m_bp->Overflow(c) == -1) stream->m_state |= iostream_flags::kFail | iostream_flags::kBad;
         }
         ostream_osfx(out);
     }
     return out;
 }
 
-int REB_THISCALL ostream_opfx(ostream* out) {
+int ostream_opfx(ostream* out) {
     ios* stream = IosOf(out);
     iostream_access::Lock(stream);
     const int state = stream->m_state;
@@ -129,11 +128,11 @@ int REB_THISCALL ostream_opfx(ostream* out) {
     return 1;
 }
 
-void REB_THISCALL ostream_osfx(ostream* out) {
+void ostream_osfx(ostream* out) {
     ios* stream = IosOf(out);
     stream->m_width = 0;
     if ((stream->m_flags & iostream_flags::kUnitBuf) != 0) {
-        if (stream->m_bp->m_vftable->m_sync(stream->m_bp) == -1) stream->m_state = iostream_flags::kFail | iostream_flags::kBad;
+        if (stream->m_bp->Sync() == -1) stream->m_state = iostream_flags::kFail | iostream_flags::kBad;
     }
     if ((stream->m_flags & iostream_flags::kStdio) != 0) {
         if (fflush(reinterpret_cast<FILE*>(kStdoutFile)) == -1) stream->m_state |= iostream_flags::kFail;
@@ -142,7 +141,7 @@ void REB_THISCALL ostream_osfx(ostream* out) {
     UnlockBufferAndStream(stream);
 }
 
-ostream* REB_THISCALL ostream_operator_ls_cstr(ostream* out, const char* text) {
+ostream* ostream_operator_ls_cstr(ostream* out, const char* text) {
     if (ostream_opfx(out) != 0) {
         ostream_outstr(out, g_emptyText, text);
         ostream_osfx(out);
@@ -150,16 +149,16 @@ ostream* REB_THISCALL ostream_operator_ls_cstr(ostream* out, const char* text) {
     return out;
 }
 
-ostream* REB_THISCALL ostream_flush(ostream* out) {
+ostream* ostream_flush(ostream* out) {
     ios* stream = IosOf(out);
     iostream_access::Lock(stream);
     iostream_access::LockBuffer(stream->m_bp);
-    if (stream->m_bp->m_vftable->m_sync(stream->m_bp) == -1) stream->m_state |= iostream_flags::kFail;
+    if (stream->m_bp->Sync() == -1) stream->m_state |= iostream_flags::kFail;
     UnlockBufferAndStream(stream);
     return out;
 }
 
-void REB_THISCALL ostream_outstr(ostream* out, const char* prefix, const char* text) {
+void ostream_outstr(ostream* out, const char* prefix, const char* text) {
     ios* stream = IosOf(out);
     const int prefixLength = static_cast<int>(strlen(prefix));
     const int textLength = static_cast<int>(strlen(text));
@@ -184,26 +183,26 @@ void REB_THISCALL ostream_outstr(ostream* out, const char* prefix, const char* t
     if ((stream->m_flags & iostream_flags::kLeft) != 0 && 0 < padding) PutPadding(stream, padding);
 }
 
-ostream* REB_THISCALL ostream_seekp_pos(ostream* out, long position) {
+ostream* ostream_seekp_pos(ostream* out, long position) {
     ios* stream = IosOf(out);
-    SeekWithFailCheck(stream, [&](streambuf* buffer) { return static_cast<long>(buffer->m_vftable->m_seekpos(buffer, position, iostream_flags::kOut)); });
+    SeekWithFailCheck(stream, [&](streambuf* buffer) { return static_cast<long>(buffer->SeekPosition(position, iostream_flags::kOut)); });
     return out;
 }
 
-ostream* REB_THISCALL ostream_seekp_off(ostream* out, long offset, int dir) {
+ostream* ostream_seekp_off(ostream* out, long offset, int dir) {
     ios* stream = IosOf(out);
-    SeekWithFailCheck(stream, [&](streambuf* buffer) { return static_cast<long>(buffer->m_vftable->m_seekoff(buffer, offset, dir, iostream_flags::kOut)); });
+    SeekWithFailCheck(stream, [&](streambuf* buffer) { return static_cast<long>(buffer->SeekOffset(offset, dir, iostream_flags::kOut)); });
     return out;
 }
 
-long REB_THISCALL ostream_tellp(ostream* out) {
+long ostream_tellp(ostream* out) {
     ios* stream = IosOf(out);
     return SeekWithFailCheck(stream, [&](streambuf* buffer) {
-        return static_cast<long>(buffer->m_vftable->m_seekoff(buffer, 0, iostream_flags::kSeekCur, iostream_flags::kOut));
+        return static_cast<long>(buffer->SeekOffset(0, iostream_flags::kSeekCur, iostream_flags::kOut));
     });
 }
 
-ostream* REB_THISCALL ostream_operator_ls_streambuf(ostream* out, streambuf* source) {
+ostream* ostream_operator_ls_streambuf(ostream* out, streambuf* source) {
     if (ostream_opfx(out) != 0) {
         ios* stream = IosOf(out);
         unsigned c = static_cast<unsigned>(streambuf_sbumpc(source));
@@ -214,7 +213,7 @@ ostream* REB_THISCALL ostream_operator_ls_streambuf(ostream* out, streambuf* sou
                     *buffer->m_pptr++ = static_cast<char>(c);
                     c &= 0xff;
                 } else {
-                    c = static_cast<unsigned>(buffer->m_vftable->m_overflow(buffer, static_cast<int>(c)));
+                    c = static_cast<unsigned>(buffer->Overflow(static_cast<int>(c)));
                 }
                 if (c == 0xffffffffu) break;
                 c = static_cast<unsigned>(streambuf_sbumpc(source));
@@ -230,18 +229,18 @@ ostream* REB_THISCALL ostream_operator_ls_streambuf(ostream* out, streambuf* sou
     return out;
 }
 
-ostream* REB_THISCALL ostream_operator_ls_long(ostream* out, long value) { return PrintNumber(out, kLongSpec, true, value, 3); }
+ostream* ostream_operator_ls_long(ostream* out, long value) { return PrintNumber(out, kLongSpec, true, value, 3); }
 
-ostream* REB_THISCALL ostream_write(ostream* out, const void* buffer, int count) {
+ostream* ostream_write(ostream* out, const void* buffer, int count) {
     if (ostream_opfx(out) != 0) {
         ios* stream = IosOf(out);
         streambuf* target = stream->m_bp;
-        if (target->m_vftable->m_xsputn(target, static_cast<const char*>(buffer), count) != count) stream->m_state |= iostream_flags::kFail | iostream_flags::kBad;
+        if (target->Write(static_cast<const char*>(buffer), count) != count) stream->m_state |= iostream_flags::kFail | iostream_flags::kBad;
         ostream_osfx(out);
     }
     return out;
 }
 
-ostream* REB_THISCALL ostream_operator_ls_ulong(ostream* out, unsigned long value) { return PrintNumber(out, kUnsignedLongSpec, false, static_cast<int>(value), 3); }
+ostream* ostream_operator_ls_ulong(ostream* out, unsigned long value) { return PrintNumber(out, kUnsignedLongSpec, false, static_cast<int>(value), 3); }
 
-ostream* REB_THISCALL ostream_operator_ls_int(ostream* out, int value) { return PrintNumber(out, kIntSpec, true, value, 2); }
+ostream* ostream_operator_ls_int(ostream* out, int value) { return PrintNumber(out, kIntSpec, true, value, 2); }

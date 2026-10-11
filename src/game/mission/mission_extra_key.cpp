@@ -3,7 +3,7 @@
 
 MissionExtraKeyBase::MissionExtraKeyBase() {}
 
-MissionExtraKeyBase::~MissionExtraKeyBase() { REB_KEEP_VPTR_STORE(); }
+MissionExtraKeyBase::~MissionExtraKeyBase() {  }
 
 int MissionExtraKeyBase::Read(istream* in) {
     if (!this->Mission::ReadImpl(in)) return 0;

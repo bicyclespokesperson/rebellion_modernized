@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include <cstddef>
 #include <cstring>
 
@@ -17,10 +16,9 @@ void FreeBuffer(strstreambuf* self, char* buffer) {
 
 }  // namespace
 
-strstreambuf* REB_THISCALL strstreambuf_ctor(strstreambuf* self) {
+strstreambuf* strstreambuf_ctor(strstreambuf* self) {
     streambuf_ctor(self);
-    self->m_vftable = &strstreambuf::vftable;
-    self->m_dynamic = 1;
+        self->m_dynamic = 1;
     self->m_nextSize = 1;
     self->m_static = 0;
     self->m_allocate = nullptr;
@@ -28,10 +26,9 @@ strstreambuf* REB_THISCALL strstreambuf_ctor(strstreambuf* self) {
     return self;
 }
 
-strstreambuf* REB_THISCALL strstreambuf_ctor_buf(strstreambuf* self, char* buffer, int size, char* start) {
+strstreambuf* strstreambuf_ctor_buf(strstreambuf* self, char* buffer, int size, char* start) {
     streambuf_ctor(self);
-    self->m_vftable = &strstreambuf::vftable;
-    self->m_static = 1;
+        self->m_static = 1;
     self->m_dynamic = 0;
     char* end;
     if (size == 0)
@@ -59,23 +56,22 @@ strstreambuf* REB_THISCALL strstreambuf_ctor_buf(strstreambuf* self, char* buffe
     return self;
 }
 
-void REB_THISCALL strstreambuf_dtor(strstreambuf* self) {
-    self->m_vftable = &strstreambuf::vftable;
-    if (self->m_dynamic != 0 && self->m_base != nullptr) FreeBuffer(self, self->m_base);
+void strstreambuf_dtor(strstreambuf* self) {
+        if (self->m_dynamic != 0 && self->m_base != nullptr) FreeBuffer(self, self->m_base);
     streambuf_dtor(self);
 }
 
-void REB_THISCALL strstreambuf_freeze(streambuf* self, int frozen) {
+void strstreambuf_freeze(streambuf* self, int frozen) {
     auto* buffer = static_cast<strstreambuf*>(self);
     if (buffer->m_static == 0) buffer->m_dynamic = frozen == 0;
 }
 
-char* REB_THISCALL strstreambuf_str(streambuf* self) {
+char* strstreambuf_str(streambuf* self) {
     static_cast<strstreambuf*>(self)->m_dynamic = 0;
     return self->m_base;
 }
 
-int REB_THISCALL strstreambuf_doallocate(strstreambuf* self) {
+int strstreambuf_doallocate(strstreambuf* self) {
     int newSize = self->m_nextSize;
     const int grown = RangeLength(self->m_base, self->m_ebuf) + (self->m_nextSize < 2 ? 1 : self->m_nextSize);
     if (self->m_nextSize <= grown) newSize = grown;
@@ -105,12 +101,12 @@ int REB_THISCALL strstreambuf_doallocate(strstreambuf* self) {
     return 1;
 }
 
-streambuf* REB_THISCALL strstreambuf_setbuf(strstreambuf* self, char*, int size) {
+streambuf* strstreambuf_setbuf(strstreambuf* self, char*, int size) {
     if (size != 0) self->m_nextSize = size;
     return self;
 }
 
-int REB_THISCALL strstreambuf_overflow(strstreambuf* self, int c) {
+int strstreambuf_overflow(strstreambuf* self, int c) {
     if (self->m_epptr <= self->m_pptr) {
         if (self->m_dynamic == 0) return -1;
         if (strstreambuf_doallocate(self) == -1) return -1;
@@ -134,7 +130,7 @@ int REB_THISCALL strstreambuf_overflow(strstreambuf* self, int c) {
     return 1;
 }
 
-int REB_THISCALL strstreambuf_underflow(strstreambuf* self) {
+int strstreambuf_underflow(strstreambuf* self) {
     const unsigned char* get = reinterpret_cast<unsigned char*>(self->m_gptr);
     if (self->m_egptr <= self->m_gptr) {
         if (self->m_egptr < self->m_pptr) {
@@ -150,7 +146,7 @@ int REB_THISCALL strstreambuf_underflow(strstreambuf* self) {
     return *get;
 }
 
-int REB_THISCALL strstreambuf_seekoff(strstreambuf* self, long offset, int dir, int mode) {
+int strstreambuf_seekoff(strstreambuf* self, long offset, int dir, int mode) {
     int result = -1;
     if (mode & iostream_flags::kIn) {
         strstreambuf_underflow(self);
@@ -193,3 +189,13 @@ int REB_THISCALL strstreambuf_seekoff(strstreambuf* self, long offset, int dir, 
     }
     return result;
 }
+
+strstreambuf::strstreambuf() { strstreambuf_ctor(this); }
+strstreambuf::~strstreambuf() { strstreambuf_dtor(this); }
+int strstreambuf::Sync() { return 0; }
+streambuf* strstreambuf::SetBuffer(char* buffer, int size) { return strstreambuf_setbuf(this, buffer, size); }
+int strstreambuf::SeekOffset(long offset, int dir, int mode) { return strstreambuf_seekoff(this, offset, dir, mode); }
+int strstreambuf::Overflow(int c) { return strstreambuf_overflow(this, c); }
+int strstreambuf::Underflow() { return strstreambuf_underflow(this); }
+int strstreambuf::Putback(int c) { return streambuf_pbackfail(this, c); }
+int strstreambuf::Allocate() { return strstreambuf_doallocate(this); }

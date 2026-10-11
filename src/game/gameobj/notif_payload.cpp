@@ -1,10 +1,9 @@
 #include "gameobj/notif_payload.h"
 
-#include "core/vptr_store.h"
 
 NotifPayload::NotifPayload() : LinkNode(), m_value0c(0), m_value10(0), m_value14(0), m_value18(0), m_value1c(0) {}
 
-NotifPayload::~NotifPayload() { REB_KEEP_VPTR_STORE(); }
+NotifPayload::~NotifPayload() {  }
 
 int NotifPayload::ReadFields(istream* in) {
     LinkNode::Read(in);
@@ -28,7 +27,7 @@ int NotifPayload::WriteFields(ostream* out) {
 
 KeyedNotifPayload::KeyedNotifPayload() : NotifPayload(), m_key() {}
 
-KeyedNotifPayload::~KeyedNotifPayload() { REB_KEEP_VPTR_STORE(); }
+KeyedNotifPayload::~KeyedNotifPayload() {  }
 
 int KeyedNotifPayload::ReadKeyed(istream* in) {
     int result = NotifPayload::ReadFields(in);

@@ -1,13 +1,12 @@
 #include "ai/ai_posture_util.h"
 #include "ai/ai_postures.h"
-#include "core/vptr_store.h"
 
 using namespace ai_posture;
 using ai::IsSystemKey;
 
 AiPostureKind5::AiPostureKind5(int view, AiSideController* owner, AiSystemRecord* record) : AiPosture(view, owner, record) {}
 
-AiPostureKind5::~AiPostureKind5() { REB_KEEP_VPTR_STORE(); }
+AiPostureKind5::~AiPostureKind5() {  }
 
 int AiPostureKind5::Virtual03() {
     int result = 0;

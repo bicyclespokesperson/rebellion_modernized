@@ -4,7 +4,6 @@
 #include "ai/ai_task_types.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
 #include "orders/order_base.h"
@@ -55,7 +54,7 @@ AiTask14::AiTask14(int view) : AiTaskBase(14, view), m_resume() {
 
 AiTask14::~AiTask14() {
     m_cursor = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiTask14::Read(istream* in) {

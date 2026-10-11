@@ -2,7 +2,6 @@
 
 #include "core/checked_new.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "ui/cool_app.h"
 #include "ui/cool_window.h"
 #include "ui/resource_dll.h"
@@ -192,7 +191,7 @@ void CoolLabel::ReplaceTextFromStream(HWND hwnd, HDC dc, StrStream* stream) {
 
 RectTree::RectTree() {}
 
-RectTree::~RectTree() { REB_KEEP_VPTR_STORE(); }
+RectTree::~RectTree() {  }
 
 int RectTree::IsLess(AvlNode* a, AvlNode* b) {
     const RectNode* first = static_cast<const RectNode*>(a);

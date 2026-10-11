@@ -1,10 +1,8 @@
-#include "core/reb_abi.h"
 #include "fleet/detector.h"
 
 #include <new>
 
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "data/sd_record_bases.h"
 #include "fleet/unit_data_decl.h"
 #include "fleet/unit_view_flags.h"
@@ -25,7 +23,7 @@ SdRecordExt2* recordOf(Detector* detector) { return static_cast<SdRecordExt2*>(d
 
 Detector::Detector() { m_detectorFlags = 0; }
 
-Detector::~Detector() { REB_KEEP_VPTR_STORE(); }
+Detector::~Detector() {  }
 
 int Detector::GetEventKinds(int unused, EventKindSet* out) {
     const int ready = EnsureEventKinds();

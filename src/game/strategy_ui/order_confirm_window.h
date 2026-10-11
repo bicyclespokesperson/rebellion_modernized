@@ -1,13 +1,13 @@
 #pragma once
 #include <cstdint>
 
+#include "app/player_controller_decl.h"
 #include "core/game_string.h"
 #include "platform/win32.h"
 #include "ui/cool_game_window.h"
 
 class CoolLabel;
 class GalaxyWindow;
-class PlayerMessage;
 class Notice8;
 class TextScrollField;
 

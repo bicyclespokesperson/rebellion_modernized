@@ -11,7 +11,7 @@ constexpr uint32_t kInitialPhaseLevels = 0x4103;
 
 MissionAdrift::MissionAdrift() {}
 
-MissionAdrift::~MissionAdrift() { REB_KEEP_VPTR_STORE(); }
+MissionAdrift::~MissionAdrift() {  }
 
 uint32_t MissionAdrift::GetFamily() { return kFamilyMissionAdrift; }
 

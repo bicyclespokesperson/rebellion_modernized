@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "tactical/tactical_groups.h"
 #include "tactical/tactical_objmgr.h"
 #include "tactical/tactical_registry.h"
@@ -130,7 +129,7 @@ TacticalCapitalShip::TacticalCapitalShip(uint32_t family, uint32_t id, int notAl
     }
 }
 
-TacticalCapitalShip::~TacticalCapitalShip() { REB_KEEP_VPTR_STORE(); }
+TacticalCapitalShip::~TacticalCapitalShip() {  }
 
 double TacticalCapitalShip::GetWeaponRecharge() {
     const float scaled = static_cast<float>(ScaleByHull(m_weaponRecharge));
@@ -148,8 +147,12 @@ double TacticalCapitalShip::GetShieldRecharge() {
 
 double TacticalShipBase::GetTurnRate() {
     if (GetSpeed() == 0.0f) return 1.0f;
+#ifdef REB_NO_TACTICAL_3D
+    const double skill = GetHeadlessSimulator()->CommanderSkillA(m_side);
+#else
     const double skill = GetTacticalGame()->m_abstract != 0 ? GetHeadlessSimulator()->CommanderSkillA(m_side)
                                                              : FUN_005ad750(GetObjectManager(), m_side);
+#endif
     const double turn = skill + m_commanderBonus;
     if (turn < 9.0f) return turn;
     return 9.0f;
@@ -176,7 +179,7 @@ CapitalShipResult* TacticalCapitalShip::BuildResult(CapitalShipResult* out) {
     return result;
 }
 
-void REB_THISCALL TacticalCapitalShipLaunchPoint(TacticalHangar* hangar, TacticalVector* out) {
+void TacticalCapitalShipLaunchPoint(TacticalHangar* hangar, TacticalVector* out) {
     TacticalCapitalShip* ship = static_cast<TacticalCapitalShip*>(hangar);
     const double y = static_cast<double>(ship->m_position.m_y) - ship->m_unk08;
     out->m_x = ship->m_position.m_x;

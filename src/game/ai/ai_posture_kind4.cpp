@@ -1,6 +1,5 @@
 #include "ai/ai_posture_util.h"
 #include "ai/ai_postures.h"
-#include "core/vptr_store.h"
 
 using namespace ai_posture;
 using ai::IsSectorKey;
@@ -9,7 +8,7 @@ using ai::IsSystemKey;
 AiPostureKind4::AiPostureKind4(int view, AiSideController* owner, AiSystemRecord* record)
     : AiPosture(view, owner, record), m_target() {}
 
-AiPostureKind4::~AiPostureKind4() { REB_KEEP_VPTR_STORE(); }
+AiPostureKind4::~AiPostureKind4() {  }
 
 void AiPostureKind4::Read(istream* in) {
     AiPosture::Read(in);

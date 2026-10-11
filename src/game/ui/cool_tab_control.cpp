@@ -1,8 +1,6 @@
-#include "core/reb_abi.h"
 #include "ui/cool_tab_control.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/cool_button.h"
 
@@ -36,7 +34,7 @@ CoolTabControl::CoolTabControl(HINSTANCE instance, int x, int y, int width, int 
 
 CoolTabControl::~CoolTabControl() {
     if (m_background) delete m_background;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 CoolStrobeButton* CoolTabControl::AddTab(CoolStrobeButton* tab, int select, int notify) {
@@ -69,7 +67,7 @@ void CoolTabControl::SelectTab(uint32_t tabId, int notify) {
     if (notify) SendMessageA(m_parent->m_hwnd, WM_COMMAND, TabCommand(tab, m_childId), 0);
 }
 
-LRESULT REB_STDCALL CoolTabControl::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CoolTabControl::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     HWND parentHwnd = m_parent->m_hwnd;
     if (message == WM_ERASEBKGND) return 1;

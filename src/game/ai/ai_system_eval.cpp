@@ -9,7 +9,6 @@
 #include "ai/ai_side_controller.h"
 #include "character/role.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "economy/defense_facility.h"
 #include "economy/manufacturing_facility.h"
 #include "economy/production_facility_types.h"
@@ -68,7 +67,7 @@ AiSystemEval::AiSystemEval(int view, System* system)
 AiSystemEval::~AiSystemEval() {
     m_sector = nullptr;
     m_classes = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiSystemEval::Load(istream* in) {

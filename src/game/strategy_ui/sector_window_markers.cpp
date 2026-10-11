@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include <cstdint>
 #include <new>
 
@@ -70,7 +69,7 @@ int SectorSystemPictureId(int index) {
     }
 }
 
-uint32_t REB_STDCALL SectorMarkerImageId(uint32_t kind, int state, int selected) {
+uint32_t SectorMarkerImageId(uint32_t kind, int state, int selected) {
     uint32_t normal = 0;
     uint32_t picked = 0;
     uint32_t hovered = 0;
@@ -116,7 +115,7 @@ uint32_t REB_STDCALL SectorMarkerImageId(uint32_t kind, int state, int selected)
     }
 }
 
-RECT* REB_STDCALL SectorMarkerLabelRect(RECT* out, ObjectListItem* item) {
+RECT* SectorMarkerLabelRect(RECT* out, ObjectListItem* item) {
     int x = item->m_x;
     int y = item->m_y;
     if (item->m_selectedImage == nullptr) {

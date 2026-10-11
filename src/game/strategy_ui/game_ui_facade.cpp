@@ -100,9 +100,10 @@ void UiRequestRedrawAlt(int value) {
     if (session) session->RequestRedrawAlt(value);
 }
 
-void UiRouteMessage(PlayerMessage* message) {
+void UiRouteMessage(MessageBase* message, int senderSide) {
     GameSession* session = GetGameSession();
-    if (session) session->RouteMessage(message);
+    if (session) session->RouteMessage(message, senderSide);
+    else delete message;
 }
 
 void UiDeliverQueuedMessage(int id) {
@@ -343,39 +344,39 @@ void UiAddManagerNotice(void* notice) {
 }
 
 unsigned UiRaisePauseTo(unsigned tick) {
-    if (g_gameStepDriver) return g_gameStepDriver->RaisePauseTo(tick);
+    if (GameStepDriver* driver = GetGameStepDriver()) return driver->RaisePauseTo(tick);
     return tick;
 }
 
 int UiBeginPause() {
-    if (g_gameStepDriver) return g_gameStepDriver->BeginPause();
+    if (GameStepDriver* driver = GetGameStepDriver()) return driver->BeginPause();
     return 0;
 }
 
 void UiClearHold() {
-    if (g_gameStepDriver) g_gameStepDriver->ClearHold();
+    if (GameStepDriver* driver = GetGameStepDriver()) driver->ClearHold();
 }
 
 int UiEndPause() {
     int result = 0;
-    if (g_gameStepDriver) result = g_gameStepDriver->EndPause();
+    if (GameStepDriver* driver = GetGameStepDriver()) result = driver->EndPause();
     return result;
 }
 
 int UiIsPauseTick() {
     int result = 1;
-    if (g_gameStepDriver) result = g_gameStepDriver->IsPauseTick();
+    if (GameStepDriver* driver = GetGameStepDriver()) result = driver->IsPauseTick();
     return result;
 }
 
 int UiGetHold() {
     int result = 1;
-    if (g_gameStepDriver) result = g_gameStepDriver->m_hold;
+    if (GameStepDriver* driver = GetGameStepDriver()) result = driver->m_hold;
     return result;
 }
 
 void UiSetSetupDone() {
-    if (g_gameStepDriver) g_gameStepDriver->m_setupDone = 1;
+    if (GameStepDriver* driver = GetGameStepDriver()) driver->m_setupDone = 1;
 }
 
 void UiBuildAvailableOrders(int player, ObjectKeyValueSet* selection, EventKindSet* commands) {

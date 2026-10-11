@@ -1,6 +1,5 @@
 #include "ai/ai_planner_util.h"
 #include "ai/ai_planners.h"
-#include "core/vptr_store.h"
 #include "gameobj/object_lookup.h"
 
 using namespace ai_planner;
@@ -13,7 +12,7 @@ AiRecruitPlanner::AiRecruitPlanner(int view, AiSideController* owner, AiCharacte
     m_missionKey = ObjectKey::Make(0x55, 0x16);
 }
 
-AiRecruitPlanner::~AiRecruitPlanner() { REB_KEEP_VPTR_STORE(); }
+AiRecruitPlanner::~AiRecruitPlanner() {  }
 
 int AiRecruitPlanner::Virtual06() { return SumLeaderValue(this, 6); }
 

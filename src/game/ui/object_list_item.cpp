@@ -1,6 +1,5 @@
 #include "ui/object_list_item.h"
 
-#include "core/vptr_store.h"
 
 ObjectListItem::ObjectListItem(uint32_t id, const ObjectKey* key) : CoolListItem(id) {
     m_key = *key;
@@ -14,7 +13,7 @@ ObjectListItem::ObjectListItem(const ObjectKey* key) : CoolListItem(key->m_value
     m_visible = 1;
 }
 
-ObjectListItem::~ObjectListItem() { REB_KEEP_VPTR_STORE(); }
+ObjectListItem::~ObjectListItem() {  }
 
 void ObjectListItem::Read(istream*) {}
 

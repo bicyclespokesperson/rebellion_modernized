@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "character/character_mgr.h"
 #include "gameobj/object_queries.h"
 #include "events/object_timers.h"
@@ -16,27 +15,27 @@
 using events::fireOnTimerOwner;
 using events::timerStatOfOwner;
 
-FamilyRange* REB_STDCALL GetSideFamilyRange(FamilyRange* out) {
+FamilyRange* GetSideFamilyRange(FamilyRange* out) {
     *out = FamilyRange(0xf3, 0xf4);
     return out;
 }
 
-FamilyRange* REB_STDCALL GetProcFacilFamilyRange(FamilyRange* out) {
+FamilyRange* GetProcFacilFamilyRange(FamilyRange* out) {
     *out = FamilyRange(0x28, 0x30);
     return out;
 }
 
-FamilyRange* REB_STDCALL GetAnyFamilyRange(FamilyRange* out) {
+FamilyRange* GetAnyFamilyRange(FamilyRange* out) {
     *out = FamilyRange(0x1, 0xff);
     return out;
 }
 
-FamilyRange* REB_STDCALL GetFamily14Range(FamilyRange* out) {
+FamilyRange* GetFamily14Range(FamilyRange* out) {
     *out = FamilyRange(0x14, 0x20);
     return out;
 }
 
-FamilyRange* REB_STDCALL GetCharacterFamilyRange(FamilyRange* out) {
+FamilyRange* GetCharacterFamilyRange(FamilyRange* out) {
     *out = FamilyRange(0x30, 0x3c);
     return out;
 }
@@ -46,7 +45,7 @@ SideScrapTimer::SideScrapTimer() : TimerEvent() {}
 
 SideScrapTimer::SideScrapTimer(const SideScrapTimer& other) : TimerEvent(other) {}
 
-SideScrapTimer::~SideScrapTimer() { REB_KEEP_VPTR_STORE(); }
+SideScrapTimer::~SideScrapTimer() {  }
 
 SideScrapTimer* SideScrapTimer::Clone() { return NewOrNull<SideScrapTimer>(*this); }
 
@@ -64,7 +63,7 @@ SideResearchTimer::SideResearchTimer() : TimerEvent() {}
 
 SideResearchTimer::SideResearchTimer(const SideResearchTimer& other) : TimerEvent(other) {}
 
-SideResearchTimer::~SideResearchTimer() { REB_KEEP_VPTR_STORE(); }
+SideResearchTimer::~SideResearchTimer() {  }
 
 SideResearchTimer* SideResearchTimer::Clone() { return NewOrNull<SideResearchTimer>(*this); }
 
@@ -82,7 +81,7 @@ ProcFacilTimer::ProcFacilTimer() : TimerEvent() {}
 
 ProcFacilTimer::ProcFacilTimer(const ProcFacilTimer& other) : TimerEvent(other) {}
 
-ProcFacilTimer::~ProcFacilTimer() { REB_KEEP_VPTR_STORE(); }
+ProcFacilTimer::~ProcFacilTimer() {  }
 
 ProcFacilTimer* ProcFacilTimer::Clone() { return NewOrNull<ProcFacilTimer>(*this); }
 
@@ -100,7 +99,7 @@ HyperdriveTimer::HyperdriveTimer() : TimerEvent() {}
 
 HyperdriveTimer::HyperdriveTimer(const HyperdriveTimer& other) : TimerEvent(other) {}
 
-HyperdriveTimer::~HyperdriveTimer() { REB_KEEP_VPTR_STORE(); }
+HyperdriveTimer::~HyperdriveTimer() {  }
 
 HyperdriveTimer* HyperdriveTimer::Clone() { return NewOrNull<HyperdriveTimer>(*this); }
 
@@ -118,7 +117,7 @@ FleetSlot138Timer::FleetSlot138Timer() : TimerEvent() {}
 
 FleetSlot138Timer::FleetSlot138Timer(const FleetSlot138Timer& other) : TimerEvent(other) {}
 
-FleetSlot138Timer::~FleetSlot138Timer() { REB_KEEP_VPTR_STORE(); }
+FleetSlot138Timer::~FleetSlot138Timer() {  }
 
 FleetSlot138Timer* FleetSlot138Timer::Clone() { return NewOrNull<FleetSlot138Timer>(*this); }
 
@@ -136,7 +135,7 @@ CharacterInjuryTimer::CharacterInjuryTimer() : TimerEvent() {}
 
 CharacterInjuryTimer::CharacterInjuryTimer(const CharacterInjuryTimer& other) : TimerEvent(other) {}
 
-CharacterInjuryTimer::~CharacterInjuryTimer() { REB_KEEP_VPTR_STORE(); }
+CharacterInjuryTimer::~CharacterInjuryTimer() {  }
 
 CharacterInjuryTimer* CharacterInjuryTimer::Clone() { return NewOrNull<CharacterInjuryTimer>(*this); }
 
@@ -154,7 +153,7 @@ CharacterTimer389::CharacterTimer389() : TimerEvent() {}
 
 CharacterTimer389::CharacterTimer389(const CharacterTimer389& other) : TimerEvent(other) {}
 
-CharacterTimer389::~CharacterTimer389() { REB_KEEP_VPTR_STORE(); }
+CharacterTimer389::~CharacterTimer389() {  }
 
 CharacterTimer389* CharacterTimer389::Clone() { return NewOrNull<CharacterTimer389>(*this); }
 
@@ -176,7 +175,7 @@ CharacterEscapeTimer::CharacterEscapeTimer() : TimerEvent() {}
 
 CharacterEscapeTimer::CharacterEscapeTimer(const CharacterEscapeTimer& other) : TimerEvent(other) {}
 
-CharacterEscapeTimer::~CharacterEscapeTimer() { REB_KEEP_VPTR_STORE(); }
+CharacterEscapeTimer::~CharacterEscapeTimer() {  }
 
 CharacterEscapeTimer* CharacterEscapeTimer::Clone() { return NewOrNull<CharacterEscapeTimer>(*this); }
 

@@ -1,8 +1,6 @@
-#include "core/reb_abi.h"
 #include "ui/bitmap_status_bar.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 
 namespace {
@@ -27,7 +25,7 @@ BitmapStatusBar::BitmapStatusBar(int x, int y, int width, int height, CoolWindow
 }
 
 BitmapStatusBar::~BitmapStatusBar() {
-    REB_KEEP_VPTR_STORE();
+
     if (m_picture) delete m_picture;
     if (m_canvas) delete m_canvas;
 }
@@ -57,7 +55,7 @@ void BitmapStatusBar::SetPicture(DibBitmap* image) {
     ReleaseDC(m_hwnd, dc);
 }
 
-LRESULT REB_STDCALL BitmapStatusBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT BitmapStatusBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     switch (message) {
     case WM_ERASEBKGND:

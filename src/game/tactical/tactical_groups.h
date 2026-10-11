@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -112,7 +111,7 @@ REB_DECLARE_GROUP_ORDER(GroupOrderMode11);
 #undef REB_DECLARE_GROUP_ORDER
 
 // The order of mode 6 (0x84 bytes, constructor 0x5d0820) is not reconstructed.
-GroupOrder* REB_THISCALL FUN_005d0820(void* memory, ShipGroup* group);
+GroupOrder* FUN_005d0820(void* memory, ShipGroup* group);
 
 // ---- groups -------------------------------------------------------------------------------------------------------
 
@@ -208,8 +207,8 @@ public:
 inline ShipGroup* ShipGroupOf(IdNode* node) { return static_cast<ShipGroup*>(static_cast<TacticalUnit*>(node)); }
 
 // Gives a new group a handle for its side and registers it (0x5afde0 a fighter group, 0x5afe10 a capital-ship group).
-void REB_STDCALL RegisterFighterGroup(ShipGroup* group);
-void REB_STDCALL RegisterCapitalShipGroup(ShipGroup* group);
+void RegisterFighterGroup(ShipGroup* group);
+void RegisterCapitalShipGroup(ShipGroup* group);
 
 // Removes a unit from its group (a null group is ignored); 0x5caed0.
-void REB_STDCALL RemoveMemberFromGroup(ShipGroup* group, int handle);
+void RemoveMemberFromGroup(ShipGroup* group, int handle);

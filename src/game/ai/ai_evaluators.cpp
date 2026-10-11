@@ -4,7 +4,6 @@
 #include "ai/ai_records.h"
 #include "ai/ai_side_controller.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "fleet/fleet_iterator.h"
 #include "gameobj/child_iterator.h"
 #include "gameobj/object_lookup.h"
@@ -362,7 +361,7 @@ void AiPlanEvaluator::Finish() {
 
 AiEvaluatorPlan1::AiEvaluatorPlan1(int view, AiSideController* owner) : AiPlanEvaluator(view, owner) {}
 
-AiEvaluatorPlan1::~AiEvaluatorPlan1() { REB_KEEP_VPTR_STORE(); }
+AiEvaluatorPlan1::~AiEvaluatorPlan1() {  }
 
 int AiEvaluatorPlan1::GetKind() { return 1; }
 
@@ -377,7 +376,7 @@ void AiEvaluatorPlan1::Prepare() {
 
 AiEvaluatorPlan2::AiEvaluatorPlan2(int view, AiSideController* owner) : AiPlanEvaluator(view, owner) {}
 
-AiEvaluatorPlan2::~AiEvaluatorPlan2() { REB_KEEP_VPTR_STORE(); }
+AiEvaluatorPlan2::~AiEvaluatorPlan2() {  }
 
 int AiEvaluatorPlan2::GetKind() { return 2; }
 
@@ -393,7 +392,7 @@ void AiEvaluatorPlan2::Prepare() {
 
 AiEvaluatorPlan3::AiEvaluatorPlan3(int view, AiSideController* owner) : AiPlanEvaluator(view, owner) {}
 
-AiEvaluatorPlan3::~AiEvaluatorPlan3() { REB_KEEP_VPTR_STORE(); }
+AiEvaluatorPlan3::~AiEvaluatorPlan3() {  }
 
 int AiEvaluatorPlan3::GetKind() { return 3; }
 
@@ -423,7 +422,7 @@ void AiEvaluatorPlan3::Prepare() {
 
 AiEvaluatorPlan4::AiEvaluatorPlan4(int view, AiSideController* owner) : AiPlanEvaluator(view, owner) {}
 
-AiEvaluatorPlan4::~AiEvaluatorPlan4() { REB_KEEP_VPTR_STORE(); }
+AiEvaluatorPlan4::~AiEvaluatorPlan4() {  }
 
 int AiEvaluatorPlan4::GetKind() { return 4; }
 
@@ -442,7 +441,7 @@ void AiEvaluatorPlan4::Prepare() {
 
 AiEvaluatorPlan5::AiEvaluatorPlan5(int view, AiSideController* owner) : AiPlanEvaluator(view, owner) {}
 
-AiEvaluatorPlan5::~AiEvaluatorPlan5() { REB_KEEP_VPTR_STORE(); }
+AiEvaluatorPlan5::~AiEvaluatorPlan5() {  }
 
 int AiEvaluatorPlan5::GetKind() { return 5; }
 
@@ -468,7 +467,7 @@ void AiEvaluatorPlan5::Prepare() {
 
 AiEvaluatorPlan6::AiEvaluatorPlan6(int view, AiSideController* owner) : AiPlanEvaluator(view, owner) {}
 
-AiEvaluatorPlan6::~AiEvaluatorPlan6() { REB_KEEP_VPTR_STORE(); }
+AiEvaluatorPlan6::~AiEvaluatorPlan6() {  }
 
 int AiEvaluatorPlan6::GetKind() { return 6; }
 
@@ -507,7 +506,7 @@ void AiEvaluatorPlan6::Prepare() {
 
 AiEvaluatorPlan7::AiEvaluatorPlan7(int view, AiSideController* owner) : AiPlanEvaluator(view, owner) {}
 
-AiEvaluatorPlan7::~AiEvaluatorPlan7() { REB_KEEP_VPTR_STORE(); }
+AiEvaluatorPlan7::~AiEvaluatorPlan7() {  }
 
 int AiEvaluatorPlan7::GetKind() { return 7; }
 

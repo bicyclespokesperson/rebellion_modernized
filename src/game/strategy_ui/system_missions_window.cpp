@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/system_missions_window.h"
 
 #include <new>
@@ -9,7 +8,6 @@
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/stream_io.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "data/int_pair_node.h"
 #include "galaxy/system.h"
@@ -138,7 +136,7 @@ SystemMissionsWindow::SystemMissionsWindow(HINSTANCE instance, int x, int y, Coo
 }
 
 SystemMissionsWindow::~SystemMissionsWindow() {
-    REB_KEEP_VPTR_STORE();
+
     delete m_closeButton;
     delete m_sideButton;
     delete m_sectorButton;
@@ -281,7 +279,7 @@ void SystemMissionsWindow::OnCreate1() {
 
 // ---- Messages -------------------------------------------------------------------------------------------------
 
-LRESULT REB_STDCALL SystemMissionsWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT SystemMissionsWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message != WM_LBUTTONDOWN && message != WM_RBUTTONDOWN) {
         if (message != kRedrawHeaderMessage) return CustomDialogBox::WindowProc(message, wParam, lParam);
         InvalidateRect(m_hwnd, &m_titleRect, 0);
@@ -892,12 +890,12 @@ int DominantMissionSide(GameObjNotifier* system, int viewSide) {
 }
 
 // Key getters that the linker folded across classes (the Role and list-node ones among them): copy the key at +0x6c / +0x1c.
-ObjectKey* REB_THISCALL ObjectKeyAtOffset6c(const void* object, ObjectKey* out) {
+ObjectKey* ObjectKeyAtOffset6c(const void* object, ObjectKey* out) {
     out->m_value = *reinterpret_cast<const uint32_t*>(static_cast<const char*>(object) + 0x6c);
     return out;
 }
 
-ObjectKey* REB_THISCALL ObjectKeyAtOffset1c(const void* object, ObjectKey* out) {
+ObjectKey* ObjectKeyAtOffset1c(const void* object, ObjectKey* out) {
     out->m_value = *reinterpret_cast<const uint32_t*>(static_cast<const char*>(object) + 0x1c);
     return out;
 }

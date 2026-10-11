@@ -20,7 +20,7 @@ int ControlSideIndex(uint32_t controlSide) {
 
 MissionIncite::MissionIncite() {}
 
-MissionIncite::~MissionIncite() { REB_KEEP_VPTR_STORE(); }
+MissionIncite::~MissionIncite() {  }
 
 REB_MISSION_SHARED_PERSISTENCE(MissionIncite)
 

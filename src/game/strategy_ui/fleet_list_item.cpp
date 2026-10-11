@@ -1,10 +1,9 @@
 #include "strategy_ui/fleet_list_item.h"
 
-#include "core/vptr_store.h"
 
 FleetListItem::FleetListItem(const ObjectKey* key) : CoolListItem(key->m_value & 0xffffff), m_flags(0) { m_key = *key; }
 
-FleetListItem::~FleetListItem() { REB_KEEP_VPTR_STORE(); }
+FleetListItem::~FleetListItem() {  }
 
 CoolListItem* FleetListItem::Next() {
     FleetListItem* next = static_cast<FleetListItem*>(m_next);

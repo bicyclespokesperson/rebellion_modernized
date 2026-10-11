@@ -2,7 +2,6 @@
 
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "gameobj/object_key.h"
 
@@ -20,7 +19,7 @@ uint32_t makeKey(uint32_t family, uint32_t id) { return (family << 24) | (id & k
 
 SeedTableEntry::SeedTableEntry() : m_key(0) {}
 
-SeedTableEntry::~SeedTableEntry() { REB_KEEP_VPTR_STORE(); }
+SeedTableEntry::~SeedTableEntry() {  }
 
 void* CreateSeedTableEntry() { return NewOrNull<SeedTableEntry>(); }
 
@@ -62,7 +61,7 @@ int SeedTableEntry::ParseText(istream* in) {
 SeedFamilyTableEntry::SeedFamilyTableEntry() : m_field24(0) {}
 
 SeedFamilyTableEntry::~SeedFamilyTableEntry() {
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void* CreateSeedFamilyTableEntry() { return NewOrNull<SeedFamilyTableEntry>(); }
@@ -117,7 +116,7 @@ int SeedFamilyTableEntry::ParseText(istream* in) {
 
 IntTableEntry::IntTableEntry() : m_value(0) {}
 
-IntTableEntry::~IntTableEntry() { REB_KEEP_VPTR_STORE(); }
+IntTableEntry::~IntTableEntry() {  }
 
 void* CreateIntTableEntry() { return NewOrNull<IntTableEntry>(); }
 

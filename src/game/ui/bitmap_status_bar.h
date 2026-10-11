@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "platform/win32.h"
@@ -22,7 +21,7 @@ public:
 
     // WM_PAINT draws background, bar, ticks and picture into a memory DC and blits it; the palette messages
     // realize g_palette; WM_ERASEBKGND is claimed; buttons get the null brush.
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x4ad210
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x4ad210
 
     // Takes ownership of `image` and copies it into the picture (sizing the window to it on first use); an image that
     // is not loaded removes the picture.

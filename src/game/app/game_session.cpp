@@ -1,11 +1,13 @@
-#include "core/reb_abi.h"
 #include "app/game_session.h"
 
 #include <new>
 
 #include "ai/ai_player.h"
 #include "core/checked_new.h"
+#include "events/game_step_driver.h"
+#include "gameobj/notif_payload.h"
 #include "multiplayer/remote_player.h"
+#include "orders/order_base.h"
 #include "strategy_ui/advisor_droid.h"
 #include "strategy_ui/game_ui_facade.h"
 
@@ -34,41 +36,34 @@ HumanPlayer* newHuman(int side) {
 
 // ---- the singleton ------------------------------------------------------------------------------------------
 
-GameSession* GetGameSession() { return g_gameSession; }
+GameSession* GetGameSession() {
+    GameStepDriver* driver = GetGameStepDriver();
+    return driver ? driver->Session() : nullptr;
+}
 
 void DestroyGameSession() {
-    GameSession* session = g_gameSession;
-    g_gameSession = nullptr;
-    delete session;
+    if (GameStepDriver* driver = GetGameStepDriver()) driver->DestroySession();
 }
 
 void CreateGameSession(int opponentType, int humanSide) {
-    DestroyGameSession();
-    g_gameSession = NewOrNull<GameSession>(opponentType, humanSide);
-    if (g_gameSession && g_gameSession->m_valid == 0) DestroyGameSession();
+    if (GameStepDriver* driver = GetGameStepDriver()) driver->CreateSession(opponentType, humanSide);
 }
 
 int CreateEmptyGameSession() {
-    DestroyGameSession();
-    g_gameSession = NewOrNull<GameSession>();
-    if (!g_gameSession) return 0;
-    if (g_gameSession->m_valid == 0) {
-        DestroyGameSession();
-        return 0;
-    }
-    return 1;
+    GameStepDriver* driver = GetGameStepDriver();
+    return driver ? driver->CreateEmptySession() : 0;
 }
 
 // ---- construction and persistence ---------------------------------------------------------------------------
 
-GameSession::GameSession() : m_viewReady(0), m_nextId(1), m_activeIndex(0), m_opponentType(0), m_valid(1) {
+GameSession::GameSession() : m_viewReady(0), m_unk04(0), m_nextId(1), m_activeIndex(0), m_opponentType(0), m_valid(1) {
     m_human = nullptr;
     m_controllers[0] = nullptr;
     m_controllers[1] = nullptr;
 }
 
 GameSession::GameSession(int opponentType, int humanSide)
-    : m_viewReady(0), m_nextId(1), m_activeIndex(0), m_opponentType(opponentType), m_valid(1) {
+    : m_viewReady(0), m_unk04(0), m_nextId(1), m_activeIndex(0), m_opponentType(opponentType), m_valid(1) {
     if (humanSide == 1) {
         HumanPlayer* human = newHuman(1);
         m_human = human;
@@ -98,6 +93,7 @@ int GameSession::Read(istream* in) {
     ReadValue32(in, &m_activeIndex);
     ReadValue32(in, &m_nextId);
     m_messages.Clear();
+    m_messageSides.clear();
     int kind;
     ReadValue32(in, &kind);
     int result = 0;
@@ -217,16 +213,19 @@ int GameSession::HaveSameSyncValue() { return m_controllers[0]->m_unk4c == m_con
 
 int GameSession::NextId() { return m_nextId++; }
 
-void GameSession::RouteMessage(PlayerMessage* message) {
+void GameSession::RouteMessage(MessageBase* message, int senderSide) {
     if (!message) return;
-    if (message->m_side == 1) {
-        if (m_controllers[1]->Virtual08(message)) {
-            m_controllers[0]->Virtual07(message);
+    auto* sidedMessage = dynamic_cast<SidedMessage*>(message);
+    const int side = sidedMessage ? sidedMessage->m_side : senderSide;
+    auto* playerMessage = static_cast<PlayerMessage*>(message);
+    if (side == 1) {
+        if (m_controllers[1]->Virtual08(playerMessage)) {
+            m_controllers[0]->Virtual07(playerMessage);
             return;
         }
-    } else if (message->m_side == 2) {
-        if (m_controllers[0]->Virtual08(message)) {
-            m_controllers[1]->Virtual07(message);
+    } else if (side == 2) {
+        if (m_controllers[0]->Virtual08(playerMessage)) {
+            m_controllers[1]->Virtual07(playerMessage);
             return;
         }
     } else {
@@ -234,25 +233,32 @@ void GameSession::RouteMessage(PlayerMessage* message) {
         return;
     }
     m_messages.Adopt(message);
+    m_messageSides[message->m_id] = side;
 }
 
-void GameSession::RouteNotice(PlayerNotice* notice) {
+void GameSession::RouteNotice(NotifPayload* notice) {
     if (!notice) return;
-    if (notice->m_side == 1)
+    if (notice->m_value18 == 1)
         m_controllers[0]->Virtual20(notice);
-    else if (notice->m_side == 2)
+    else if (notice->m_value18 == 2)
         m_controllers[1]->Virtual20(notice);
     else
         delete notice;
 }
 
 void GameSession::DeliverQueuedMessage(int id) {
-    auto* message = static_cast<PlayerMessage*>(m_messages.DetachById(id));
+    auto* message = static_cast<MessageBase*>(m_messages.DetachById(id));
     if (!message) return;
-    if (message->m_side == 1)
-        m_controllers[0]->Virtual07(message);
+    const auto sideEntry = m_messageSides.find(id);
+    const int side = sideEntry != m_messageSides.end() ? sideEntry->second : 0;
+    if (sideEntry != m_messageSides.end()) m_messageSides.erase(sideEntry);
+    auto* playerMessage = static_cast<PlayerMessage*>(message);
+    if (side == 1)
+        m_controllers[0]->Virtual07(playerMessage);
+    else if (side == 2)
+        m_controllers[1]->Virtual07(playerMessage);
     else
-        m_controllers[1]->Virtual07(message);
+        delete message;
 }
 
 AvlNode* GameSession::GetFirstMessage() { return m_messages.First(); }

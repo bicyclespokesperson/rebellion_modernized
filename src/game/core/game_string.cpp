@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "core/game_string.h"
 #include "core/icf_stubs.h"
 
@@ -82,7 +81,7 @@ int LoadStringResource(const ResourceStringId* resource, char** out) {
     *out = nullptr;
     g_stringResourceBuffer[0] = '\0';
     if (g_loadStringCallback) {
-        using LoadStringCallback = void(REB_CDECL*)(const ResourceStringId* resource, int bufferSize, char* buffer);
+        using LoadStringCallback = void(*)(const ResourceStringId* resource, int bufferSize, char* buffer);
         reinterpret_cast<LoadStringCallback>(g_loadStringCallback)(resource, sizeof(g_stringResourceBuffer),
                                                                    g_stringResourceBuffer);
     }

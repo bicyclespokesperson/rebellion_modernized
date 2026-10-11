@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "core/checked_new.h"
 #include "ai/ai_common.h"
 #include "data/gnprtb.h"
@@ -46,8 +45,8 @@ constexpr uint32_t kFamilyMissionsBegin = 0x40;
 constexpr uint32_t kFamilyMissionsMid = 0x50;
 constexpr uint32_t kFamilyMissionsEnd = 0x80;
 
-using MemberCheck = int(REB_CDECL*)(int side, GameObj* object, GameObj** out, StatusCode* status);
-using TargetCheck = int(REB_CDECL*)(MissionCheckArgs* args, StatusCode* status, int* code);
+using MemberCheck = int(*)(int side, GameObj* object, GameObj** out, StatusCode* status);
+using TargetCheck = int(*)(MissionCheckArgs* args, StatusCode* status, int* code);
 
 bool statusOk(const StatusCode* status) { return status->m_second == static_cast<uint32_t>(kStatusOk); }
 

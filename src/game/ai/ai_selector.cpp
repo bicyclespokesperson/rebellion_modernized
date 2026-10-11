@@ -1,7 +1,6 @@
 #include "ai/ai_selector.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 
 namespace {
 
@@ -17,7 +16,7 @@ AiRankedSelector::AiRankedSelector() : IdSortedLinkList() {}
 
 AiRankedSelector::~AiRankedSelector() {
     Reset();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiRankedSelector::Read(istream* in) {

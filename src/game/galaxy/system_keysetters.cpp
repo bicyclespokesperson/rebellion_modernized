@@ -1,5 +1,4 @@
 #include "fleet/fleet.h"
-#include "core/reb_abi.h"
 #include <new>
 
 #include "character/character.h"
@@ -108,7 +107,7 @@ int System::Validate() {
     return ok;
 }
 
-int REB_STDCALL ReapplySystemCharacterViews(GameObj* self, NotifyContext* ctx) {
+int ReapplySystemCharacterViews(GameObj* self, NotifyContext* ctx) {
     ObjectKey ownKey;
     self->GetKey(&ownKey);
     if (GameObjNotifier* master = GetMasterInFamilies_01_ff(&ownKey)) {

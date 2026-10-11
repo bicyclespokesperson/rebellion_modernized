@@ -3,7 +3,6 @@
 #include <new>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "ui/message_template.h"
 #include "character/character.h"
 #include "core/game_string.h"
@@ -38,7 +37,7 @@ Notice8::Notice8(int owner, MessageBase* subject) : UiNotice(owner) {
     BuildText();
 }
 
-Notice8::~Notice8() { REB_KEEP_VPTR_STORE(); }
+Notice8::~Notice8() {  }
 
 UiNotice* Notice8::Virtual10() { return NewOrNull<Notice8>(); }
 
@@ -84,7 +83,7 @@ Notice1::Notice1(const LinkNode* payloads, int owner, Notice2* vote) : UiNotice(
 Notice1::~Notice1() {
     notifyKeys(m_owner, m_set78);
     notifyKeys(m_owner, m_set80);
-    REB_KEEP_VPTR_STORE();
+
 }
 
 UiNotice* Notice1::Virtual10() { return NewOrNull<Notice1>(); }
@@ -173,7 +172,7 @@ Notice2::Notice2(const ObjectKey* key, int owner) : UiNotice(owner) {
     m_unk1c = FillText();
 }
 
-Notice2::~Notice2() { REB_KEEP_VPTR_STORE(); }
+Notice2::~Notice2() {  }
 
 UiNotice* Notice2::Virtual10() { return NewOrNull<Notice2>(); }
 
@@ -225,7 +224,7 @@ Notice15::Notice15(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
 Notice15::~Notice15() {
     notifyKeys(m_owner, m_set88);
     notifyKeys(m_owner, m_set80);
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int Notice15::GetClass() { return (m_owner == 1 ? m_f6c != 1 : m_f6c != 2) ? 3 : 7; }

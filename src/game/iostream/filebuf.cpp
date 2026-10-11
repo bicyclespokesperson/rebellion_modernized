@@ -1,15 +1,14 @@
-#include "core/reb_abi.h"
 #include <cstring>
 
 #include "iostream/iostream.h"
 
 // The game CRT's low-level file I/O (declared here: the SDK header turns _sopen into an inline wrapper).
 extern "C" {
-int REB_CDECL _close(int fd);
-int REB_CDECL _read(int fd, void* buffer, unsigned count);
-int REB_CDECL _write(int fd, const void* buffer, unsigned count);
-long REB_CDECL _lseek(int fd, long offset, int origin);
-int REB_CDECL _sopen(const char* name, int flags, int share, ...);
+int _close(int fd);
+int _read(int fd, void* buffer, unsigned count);
+int _write(int fd, const void* buffer, unsigned count);
+long _lseek(int fd, long offset, int origin);
+int _sopen(const char* name, int flags, int share, ...);
 }
 
 #ifndef REB_STANDALONE  // the shared flags also define REB_HYBRID in the standalone build
@@ -86,28 +85,27 @@ unsigned RangeLength(const char* begin, const char* end) { return begin < end ? 
 
 }  // namespace
 
-filebuf* REB_THISCALL filebuf_ctor(filebuf* self) {
+filebuf* filebuf_ctor(filebuf* self) {
     streambuf_ctor(self);
-    self->m_vftable = &filebuf::vftable;
-    self->m_open = 0;
+        self->m_open = 0;
     self->m_fd = -1;
     return self;
 }
 
-void REB_THISCALL filebuf_dtor(filebuf* self) {
-    self->m_vftable = &filebuf::vftable;
-    iostream_access::LockBuffer(self);
+void filebuf_dtor(filebuf* self) {
+        iostream_access::LockBuffer(self);
     if (self->m_open == 0)
         filebuf_sync(self);
     else
         filebuf_close(self);
+    iostream_access::UnlockBuffer(self);
     streambuf_dtor(self);
 }
 
-filebuf* REB_THISCALL filebuf_close(filebuf* self) {
+filebuf* filebuf_close(filebuf* self) {
     if (self->m_fd != -1) {
         iostream_access::LockBuffer(self);
-        const int synced = self->m_vftable->m_sync(self);
+        const int synced = self->Sync();
         const int closed = _close(self->m_fd);
         if (closed != -1 && synced != -1) {
             self->m_fd = -1;
@@ -119,7 +117,7 @@ filebuf* REB_THISCALL filebuf_close(filebuf* self) {
     return nullptr;
 }
 
-int REB_THISCALL filebuf_overflow(filebuf* self, int c) {
+int filebuf_overflow(filebuf* self, int c) {
     if (streambuf_allocate(self) == -1) return -1;
     if (filebuf_sync(self) == -1) return -1;
     if (self->m_unbuffered == 0) {
@@ -137,7 +135,7 @@ int REB_THISCALL filebuf_overflow(filebuf* self, int c) {
     return 1;
 }
 
-int REB_THISCALL filebuf_underflow(filebuf* self) {
+int filebuf_underflow(filebuf* self) {
     const char* get = self->m_gptr;
     if (RangeLength(self->m_gptr, self->m_egptr) == 0) {
         int single = 0;
@@ -158,7 +156,7 @@ int REB_THISCALL filebuf_underflow(filebuf* self) {
     return static_cast<unsigned char>(*get);
 }
 
-int REB_THISCALL filebuf_seekoff(filebuf* self, long offset, int dir, int) {
+int filebuf_seekoff(filebuf* self, long offset, int dir, int) {
     if (dir != iostream_flags::kSeekBeg && dir != iostream_flags::kSeekCur && dir != iostream_flags::kSeekEnd) return -1;
     if (filebuf_sync(self) != -1) {
         const int position = _lseek(self->m_fd, offset, dir);
@@ -167,7 +165,7 @@ int REB_THISCALL filebuf_seekoff(filebuf* self, long offset, int dir, int) {
     return -1;
 }
 
-int REB_THISCALL filebuf_sync(filebuf* self) {
+int filebuf_sync(filebuf* self) {
     if (self->m_fd == -1) return -1;
     if (self->m_unbuffered == 0) {
         const int pending = static_cast<int>(RangeLength(self->m_pbase, self->m_pptr));
@@ -204,7 +202,7 @@ int REB_THISCALL filebuf_sync(filebuf* self) {
     return 0;
 }
 
-streambuf* REB_THISCALL filebuf_setbuf(filebuf* self, char* buffer, int size) {
+streambuf* filebuf_setbuf(filebuf* self, char* buffer, int size) {
     if (self->m_fd != -1 && self->m_ebuf != nullptr) return nullptr;
     if (buffer == nullptr || size < 1) {
         self->m_unbuffered = 1;
@@ -216,7 +214,7 @@ streambuf* REB_THISCALL filebuf_setbuf(filebuf* self, char* buffer, int size) {
     return self;
 }
 
-filebuf* REB_THISCALL filebuf_open(filebuf* self, const char* name, int mode, int protection) {
+filebuf* filebuf_open(filebuf* self, const char* name, int mode, int protection) {
     if (self->m_fd != -1) return nullptr;
     int flags = (mode & kOpenBinary) != 0 ? kOBinary : kOText;
     if ((mode & kOpenNoCreate) == 0) flags |= kOCreate;
@@ -249,12 +247,20 @@ filebuf* REB_THISCALL filebuf_open(filebuf* self, const char* name, int mode, in
         else
             streambuf_setb(self, buffer, buffer + kDefaultBufferSize, 1);
     }
-    if ((mode & iostream_flags::kAte) != 0 && self->m_vftable->m_seekoff(self, 0, iostream_flags::kSeekEnd, mode) == -1) {
+    if ((mode & iostream_flags::kAte) != 0 && self->SeekOffset(0, iostream_flags::kSeekEnd, mode) == -1) {
         filebuf_close(self);
         if (-1 < self->m_lockCount) return nullptr;
-        mtx_unlock(self->m_lock);
+        mtx_unlock(&self->m_lock);
         return nullptr;
     }
     iostream_access::UnlockBuffer(self);
     return self;
 }
+
+filebuf::filebuf() { filebuf_ctor(this); }
+filebuf::~filebuf() { filebuf_dtor(this); }
+int filebuf::Sync() { return filebuf_sync(this); }
+streambuf* filebuf::SetBuffer(char* buffer, int size) { return filebuf_setbuf(this, buffer, size); }
+int filebuf::SeekOffset(long offset, int dir, int mode) { return filebuf_seekoff(this, offset, dir, mode); }
+int filebuf::Overflow(int c) { return filebuf_overflow(this, c); }
+int filebuf::Underflow() { return filebuf_underflow(this); }

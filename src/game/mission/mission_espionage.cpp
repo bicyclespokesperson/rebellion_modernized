@@ -32,7 +32,7 @@ int OpposingSideIndex(uint32_t controlSide) {
 
 MissionEspionage::MissionEspionage() {}
 
-MissionEspionage::~MissionEspionage() { REB_KEEP_VPTR_STORE(); }
+MissionEspionage::~MissionEspionage() {  }
 
 uint32_t MissionEspionage::GetFamily() { return kFamilyMissionEspionage; }
 

@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -21,7 +20,7 @@ public:
     virtual ~PopupMenuWindow();  // 0x442370 (scalar deleting destructor 0x442350)
 
     virtual void Hide() override;                           // slot 2, 0x442b80: Show(0)
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x442d10
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x442d10
     virtual void ShowAndTrack(int command) override;        // slot 11, 0x442b70: CoolWindow::Show
     virtual void PostCloseRequest() override;               // slot 12, 0x442cf0
     virtual int HandleMouse(MenuItem* item, LONG x, LONG y, int message) override;  // slot 22, 0x4424c0
@@ -61,8 +60,6 @@ int CleanupMenuTree(MenuItem* item);          // 0x442c90
 LinkNode* GetSubItemsHead(MenuItem* item);    // 0x442cd0
 BOOL RemoveMenuHook();                        // 0x442c60
 LRESULT CALLBACK MenuMouseHook(int code, WPARAM wParam, LPARAM lParam);  // 0x442b90
-
-void StaticInitMenuList();  // 0x4422a0
 
 extern MenuItemList g_menuRoot;          // 0x6b28e0
 extern PopupMenuWindow* g_menuWindow;    // 0x6b28f4 the open menu, or null

@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "platform/win32.h"
@@ -18,7 +17,7 @@ public:
                  uint32_t kind);  // 0x452090
     virtual ~AdvisorPanel();  // 0x452190 (scalar deleting destructor 0x452170)
 
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x452a70
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x452a70
     virtual void OnCreate1() override;               // slot 14, 0x4522f0
     virtual void DrawOverlay(HDC dc) override;       // slot 17, 0x452240
     virtual void OnCommand(int a, int b, int c) override;  // slot 18, 0x452a50

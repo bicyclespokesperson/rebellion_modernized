@@ -2,7 +2,6 @@
 
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_database.h"
@@ -39,7 +38,7 @@ GameObjRoot::GameObjRoot() : IdNode(), m_parent(nullptr), m_entry(nullptr), m_fl
     SetFlag31(1);
 }
 
-GameObjRoot::~GameObjRoot() { REB_KEEP_VPTR_STORE(); }
+GameObjRoot::~GameObjRoot() {  }
 
 int GameObjRoot::GetFlag31() const { return static_cast<int>(m_flags >> kFlag31Shift); }
 
@@ -135,7 +134,7 @@ GameObjNotifier::~GameObjNotifier() {
         delete m_children;
         m_children = nullptr;
     }
-    REB_KEEP_VPTR_STORE();
+
 }
 
 uint32_t GameObjNotifier::GetRecordId() {

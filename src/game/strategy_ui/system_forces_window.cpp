@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/system_forces_window.h"
 
 #include <new>
@@ -9,7 +8,6 @@
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/stream_io.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "economy/defense_facility.h"
 #include "fleet/fight_squad.h"
@@ -118,6 +116,8 @@ SystemForcesWindow::SystemForcesWindow(HINSTANCE instance, int x, int y, int wid
     m_stringSlot = 2;
     m_bitmapSlot = 7;
     m_galaxy = static_cast<GalaxyWindow*>(parent);
+    m_tabs = nullptr;
+    m_items = nullptr;
     if (system) {
         ObjectKey key;
         system->GetKey(&key);
@@ -139,7 +139,7 @@ SystemForcesWindow::SystemForcesWindow(HINSTANCE instance, int x, int y, int wid
 }
 
 SystemForcesWindow::~SystemForcesWindow() {
-    REB_KEEP_VPTR_STORE();
+
     if (m_tabs) delete m_tabs;
     DeleteBitmap(m_headerActive);
     DeleteBitmap(m_headerInactive);
@@ -252,7 +252,7 @@ void SystemForcesWindow::OnCreate1() {
 
 // ---- Messages -------------------------------------------------------------------------------------------------
 
-LRESULT REB_STDCALL SystemForcesWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT SystemForcesWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message < 0x202) {
         if (message == WM_LBUTTONDOWN) {
             SendMessageA(m_galaxy->m_hwnd, kRedrawHeaderMessage, reinterpret_cast<WPARAM>(m_hwnd), 0);

@@ -1,7 +1,5 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/panel_drag_button.h"
 
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/cool_window.h"
 
@@ -54,9 +52,9 @@ PanelDragButton::PanelDragButton(HINSTANCE instance, int x, int y, int width, in
     m_limits.bottom = limitBottom;
 }
 
-PanelDragButton::~PanelDragButton() { REB_KEEP_VPTR_STORE(); }
+PanelDragButton::~PanelDragButton() {  }
 
-LRESULT REB_STDCALL PanelDragButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT PanelDragButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_MOUSEMOVE:
             return OnMouseMove(wParam, lParam);

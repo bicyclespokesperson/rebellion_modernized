@@ -3,7 +3,6 @@
 #include "ai/ai_side_controller.h"
 #include "ai/ai_system_record.h"
 #include "ai/ai_task_types.h"
-#include "core/vptr_store.h"
 #include "orders/order_base.h"
 
 using ai::KeyInFamilies;
@@ -24,7 +23,7 @@ AiTask8::AiTask8(int view) : AiStagedTask(8, view), m_selector() {
     m_recordCursor = 0;
 }
 
-AiTask8::~AiTask8() { REB_KEEP_VPTR_STORE(); }
+AiTask8::~AiTask8() {  }
 
 void AiTask8::Read(istream* in) {
     AiTaskBase::Read(in);
@@ -175,7 +174,7 @@ AiTask9::AiTask9(int view) : AiStagedTask(9, view), m_selector() {
     m_recordCursor = 0;
 }
 
-AiTask9::~AiTask9() { REB_KEEP_VPTR_STORE(); }
+AiTask9::~AiTask9() {  }
 
 void AiTask9::Read(istream* in) {
     AiTaskBase::Read(in);

@@ -3,7 +3,6 @@
 #include "ai/ai_order_util.h"
 #include "ai/ai_task_types.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "events/game_clock_hooks.h"
 
 // ---- AiMissionHistoryEntry ----------------------------------------------------------------------------------------------
@@ -14,7 +13,7 @@ AiMissionHistoryEntry::AiMissionHistoryEntry() : AvlNode(), m_time(), m_key() {
     m_x20 = 0;
 }
 
-AiMissionHistoryEntry::~AiMissionHistoryEntry() { REB_KEEP_VPTR_STORE(); }
+AiMissionHistoryEntry::~AiMissionHistoryEntry() {  }
 
 void AiMissionHistoryEntry::Read(istream* in) {
     ReadValue32(in, &m_id);
@@ -56,7 +55,7 @@ AiMissionHistory::AiMissionHistory() : AvlTree() {}
 
 AiMissionHistory::~AiMissionHistory() {
     Clear();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int AiMissionHistory::IsLess(AvlNode* a, AvlNode* b) {
@@ -115,7 +114,7 @@ AiTaskManager::~AiTaskManager() {
     m_current = nullptr;
     m_cursor = nullptr;
     m_last = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiTaskManager::Load(istream* in, AiSideController* owner) {
@@ -255,7 +254,7 @@ AiTaskBase* AiTaskManager::PickBest() {
 
 AiNoticeQueue::AiNoticeQueue() : IdAvlTree() { m_x0c = 1; }
 
-AiNoticeQueue::~AiNoticeQueue() { REB_KEEP_VPTR_STORE(); }
+AiNoticeQueue::~AiNoticeQueue() {  }
 
 void AiNoticeQueue::Load(istream* in) {
     Clear();
@@ -274,13 +273,13 @@ void AiNoticeQueue::Save(ostream* out) {
         static_cast<AiNoticeGroup*>(static_cast<IdNode*>(node))->Save(out);
 }
 
-void AiNoticeQueue::Add(AiNotice* notice) {
+void AiNoticeQueue::Add(NotifPayload* notice) {
     if (!notice) return;
-    if (notice->m_groupId == 0) {
+    if (notice->m_value0c == 0) {
         delete notice;
         return;
     }
-    IdNode* node = FindById(notice->m_groupId);
+    IdNode* node = FindById(notice->m_value0c);
     if (node)
         static_cast<AiNoticeGroup*>(node)->Add(notice);
     else
@@ -304,7 +303,7 @@ AiNoticeGroup* AiNoticeQueue::DetachFinished() {
     return group;
 }
 
-void AiNoticeQueue::NewGroup(AiNotice* notice) {
+void AiNoticeQueue::NewGroup(NotifPayload* notice) {
     AiNoticeGroup* group = NewOrNull<AiNoticeGroup>();
     if (group) {
         group->Add(notice);

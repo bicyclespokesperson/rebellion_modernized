@@ -1,7 +1,6 @@
 #include "gameobj/game_hooks.h"
 
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "gameobj/object_queries.h"
 #include "rules/rules_mgr.h"
 
@@ -88,7 +87,7 @@ NotifyContext::NotifyContext(const NotifyContext& other)
       m_reserved14(other.m_reserved14),
       m_reserved18(other.m_reserved18) {}
 
-NotifyContext::~NotifyContext() { REB_KEEP_VPTR_STORE(); }
+NotifyContext::~NotifyContext() {  }
 
 NotifyContext& NotifyContext::operator=(const NotifyContext& other) {
     if (this != &other) {

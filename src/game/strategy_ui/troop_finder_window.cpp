@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/troop_finder_window.h"
 
 #include <new>
@@ -6,7 +5,6 @@
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "fleet/capship.h"
 #include "fleet/fleet_iterator.h"
 #include "fleet/troop_reg.h"
@@ -128,7 +126,7 @@ TroopFinderWindow::~TroopFinderWindow() {
         if (brush) DeleteObject(brush);
         brush = nullptr;
     }
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void TroopFinderWindow::DrawOverlay(HDC dc) { m_filterLabel->Draw(dc); }
@@ -327,7 +325,7 @@ void TroopFinderWindow::OnCommand(int, int command, int) {
     }
 }
 
-LRESULT REB_STDCALL TroopFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT TroopFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     LRESULT result = 0;
     if (message < 0x11) {
         if (message == WM_CLOSE) {

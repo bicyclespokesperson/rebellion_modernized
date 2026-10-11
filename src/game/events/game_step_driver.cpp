@@ -1,10 +1,10 @@
 #include "events/game_step_driver.h"
 #include "core/icf_stubs.h"
+#include "core/checked_new.h"
 
 #include "app/app_control_cmds.h"
 #include "app/game_session.h"
 #include "app/rebapp_globals.h"
-#include "core/vptr_store.h"
 #include "events/game_clock_hooks.h"
 #include "events/game_manager.h"
 #include "events/net_messages.h"
@@ -44,13 +44,41 @@ enum SetupStage { kSetupGame = 1, kSetupSession = 2, kSetupWaitForUser = 3 };
 
 GameStepDriver::GameStepDriver() { InitFields(); }
 
-GameStepDriver::GameStepDriver(int a, int b) {
-    InitFields();
-    UiCreateGameSession(a, b);
+void GameStepDriver::InitializeSession(int opponentType, int humanSide) { CreateSession(opponentType, humanSide); }
+
+GameManager* GameStepDriver::Manager() const noexcept { return m_manager.get(); }
+
+GameSession* GameStepDriver::Session() const noexcept { return m_session.get(); }
+
+void GameStepDriver::CreateManager() {
+    DestroyManager();
+    m_manager.reset(NewOrNull<GameManager>());
+    if (!m_manager || !m_manager->m_ok) DestroyManager();
 }
 
+void GameStepDriver::DestroyManager() { m_manager.reset(); }
+
+void GameStepDriver::CreateSession(int opponentType, int humanSide) {
+    DestroySession();
+    m_session.reset(NewOrNull<GameSession>(opponentType, humanSide));
+    if (m_session && m_session->m_valid == 0) DestroySession();
+}
+
+int GameStepDriver::CreateEmptySession() {
+    DestroySession();
+    m_session.reset(NewOrNull<GameSession>());
+    if (!m_session) return 0;
+    if (m_session->m_valid == 0) {
+        DestroySession();
+        return 0;
+    }
+    return 1;
+}
+
+void GameStepDriver::DestroySession() { m_session.reset(); }
+
 GameStepDriver::~GameStepDriver() {
-    REB_KEEP_VPTR_STORE();
+
     ReleaseResources();
 }
 
@@ -72,8 +100,8 @@ int GameStepDriver::ReleaseResources() {
         operator delete(m_dataLocation);
         m_dataLocation = nullptr;
     }
-    DestroyGameSession();
-    DestroyGameManager();
+    m_session.reset();
+    m_manager.reset();
     return 1;
 }
 
@@ -88,9 +116,9 @@ int GameStepDriver::Load(istream* in) {
         for (int i = 0; i < 7; ++i) ReadValue32(in, fields + i);
         ok = CheckPositionMarker(in);
         if (ok) {
-            CreateGameManager();
-            ok = GameManagerExists();
-            if (ok) ok = GetGameManager()->Read(in);
+            CreateManager();
+            ok = m_manager != nullptr;
+            if (ok) ok = m_manager->Read(in);
             if (ok) ok = CheckPositionMarker(in);
             if (ok) ok = UiReadSession(in);
             if (ok) ok = CheckPositionMarker(in);
@@ -104,9 +132,9 @@ int GameStepDriver::Save(ostream* out) {
     const int* fields = &m_ok;
     for (int i = 0; i < 7; ++i) WriteValue32(out, fields + i);
     WritePositionMarker(out);
-    int ok = GameManagerExists();
+    int ok = m_manager != nullptr;
     if (ok) {
-        ok = GetGameManager()->Write(out);
+        ok = m_manager->Write(out);
         if (ok) {
             WritePositionMarker(out);
             ok = UiWriteSession(out);
@@ -119,15 +147,15 @@ int GameStepDriver::Save(ostream* out) {
 void GameStepDriver::BeginNewGame(GameSettings* settings) {
     RegisterStrategicFactoriesOnce();
     m_hold = 1;
-    CreateGameManager();
-    if (GameManagerExists()) GetGameManager()->BeginNewGame(settings);
+    CreateManager();
+    if (m_manager) m_manager->BeginNewGame(settings);
 }
 
 int GameStepDriver::StepSetup(int* status) {
     *status = 1;
     switch (m_setupStage) {
         case kSetupGame:
-            if (GetGameManager()->StepSetup(status)) m_setupStage = kSetupSession;
+            if (m_manager->StepSetup(status)) m_setupStage = kSetupSession;
             break;
         case kSetupSession:
             if (UiAdvanceTurn(status)) {
@@ -161,13 +189,13 @@ int GameStepDriver::Step(uint32_t* done) {
             if (UiProcessAllMessages()) ++m_phase;
             break;
         case kPhaseIdle:
-            if (IdlePhase()) ++m_phase;
+            if (RunIdlePhase()) ++m_phase;
             break;
         case kPhaseScheduler:
-            if (SchedulerPhase()) ++m_phase;
+            if (RunSchedulerPhase()) ++m_phase;
             break;
         case kPhaseEndOfStep:
-            if (EndOfStepPhase()) ++m_phase;
+            if (RunEndOfStepPhase()) ++m_phase;
             break;
         case kPhaseSyncC:
             if (UiResetAllPlayerFlags()) ++m_phase;
@@ -192,7 +220,7 @@ int GameStepDriver::Step(uint32_t* done) {
             }
             break;
         case kPhaseSnapshot:
-            if (SnapshotPhase()) ++m_phase;
+            if (CaptureSnapshotPhase()) ++m_phase;
             break;
         case kPhaseFinish:
             if (FinishPhase(&battlePending)) m_phase = 0;
@@ -212,13 +240,13 @@ int GetGameTickCount() {
 }
 
 int GameStepDriver::GetRootKey(ObjectKey* out) {
-    if (!GameManagerExists()) return 0;
-    return GetGameManager()->GetRootKey(out);
+    if (!m_manager) return 0;
+    return m_manager->GetRootKey(out);
 }
 
 int GameStepDriver::QueryBattle(int side, uint32_t* a, uint32_t* b, int* c, uint32_t* d) {
-    if (!GameManagerExists()) return 0;
-    return GetGameManager()->QueryRootBattle(side, a, b, c, d);
+    if (!m_manager) return 0;
+    return m_manager->QueryRootBattle(side, a, b, c, d);
 }
 
 int StartPendingGameBattle() {
@@ -246,14 +274,14 @@ uint32_t GameStepDriver::RaisePauseTo(uint32_t tick) {
 
 int GameStepDriver::BeginPause() {
     if (m_pauseTick == 0) {
-        m_pauseTick = GetGameTickCount();
+        m_pauseTick = m_manager ? m_manager->m_tickCount : 0;
         UiSetSyncTargets(m_pauseTick);
     }
     return m_pauseTick;
 }
 
 int GameStepDriver::EndPause() {
-    const int atPauseTick = m_pauseTick == GetGameTickCount();
+    const int atPauseTick = m_pauseTick == (m_manager ? m_manager->m_tickCount : 0);
     if (atPauseTick) {
         m_pauseTick = 0;
         AppPlayClickSound();
@@ -261,7 +289,7 @@ int GameStepDriver::EndPause() {
     return atPauseTick;
 }
 
-int GameStepDriver::IsPauseTick() { return GetGameTickCount() == m_pauseTick; }
+int GameStepDriver::IsPauseTick() { return (m_manager ? m_manager->m_tickCount : 0) == m_pauseTick; }
 
 void GameStepDriver::ClearHold() {
     m_hold = 0;
@@ -271,7 +299,7 @@ void GameStepDriver::ClearHold() {
 int GameStepDriver::AdvanceClock() {
     const int waited = AppHasWaitedLongEnough();
     int battlePending = 0;
-    if (GameManagerExists()) battlePending = GetGameManager()->HasPendingBattle();
+    if (m_manager) battlePending = m_manager->HasPendingBattle();
     if (waited) {
         if (battlePending) {
             UiResumePendingRequest();
@@ -279,7 +307,7 @@ int GameStepDriver::AdvanceClock() {
         }
         if (m_hold == 0) {
             if (AppHasWaitedLongEnough()) AppResetWaitTimer();
-            if (GameManagerExists()) GetGameManager()->AdvanceTick();
+            if (m_manager) m_manager->AdvanceTick();
             return 1;
         }
     }
@@ -288,37 +316,38 @@ int GameStepDriver::AdvanceClock() {
     return 0;
 }
 
-int GameStepDriver::PausePhase() { return UiSyncAllPlayers(GetGameTickCount()); }
+int GameStepDriver::RunIdlePhase() { return m_manager ? ReturnOne() : 1; }
 
-int IdlePhase() {
-    int result = 1;
-    if (GameManagerExists()) result = ReturnOne();
-    return result;
-}
+int GameStepDriver::RunSchedulerPhase() { return m_manager ? m_manager->RunScheduler() : 1; }
+
+int GameStepDriver::RunEndOfStepPhase() { return m_manager ? m_manager->EndOfStep() : 1; }
+
+int GameStepDriver::CaptureSnapshotPhase() { return m_manager ? m_manager->CaptureSnapshot() : 1; }
+
+int GameStepDriver::PausePhase() { return UiSyncAllPlayers(m_manager ? m_manager->m_tickCount : 0); }
+
+int IdlePhase() { return GetGameManager() ? ReturnOne() : 1; }
 
 int SchedulerPhase() {
-    int result = 1;
-    if (GameManagerExists()) result = GetGameManager()->RunScheduler();
-    return result;
+    GameManager* manager = GetGameManager();
+    return manager ? manager->RunScheduler() : 1;
 }
 
 int EndOfStepPhase() {
-    int result = 1;
-    if (GameManagerExists()) result = GetGameManager()->EndOfStep();
-    return result;
+    GameManager* manager = GetGameManager();
+    return manager ? manager->EndOfStep() : 1;
 }
 
 int SnapshotPhase() {
-    int result = 1;
-    if (GameManagerExists()) result = GetGameManager()->CaptureSnapshot();
-    return result;
+    GameManager* manager = GetGameManager();
+    return manager ? manager->CaptureSnapshot() : 1;
 }
 
 int GameStepDriver::FinishPhase(int* battlePending) {
     UiRefreshAllPlayers();
-    if (GameManagerExists()) {
-        if (GetGameManager()->m_dayEnded != 0) UiComputeAllAdvisorChoices();
-        *battlePending = GetGameManager()->GetRootField70();
+    if (m_manager) {
+        if (m_manager->m_dayEnded != 0) UiComputeAllAdvisorChoices();
+        *battlePending = m_manager->GetRootField70();
         if (*battlePending == 0) UiResumePendingRequest();
     }
     return 1;

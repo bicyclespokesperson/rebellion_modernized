@@ -1,9 +1,7 @@
-#include "core/reb_abi.h"
 #include "ai/ai_ranked_list.h"
 
 #include "ai/ai_session_random.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 
 namespace {
 
@@ -25,7 +23,7 @@ AiRankedItem::AiRankedItem(AiRankedItem* other) : LinkNode(), m_key() {
     m_rank = other->m_rank;
 }
 
-AiRankedItem::~AiRankedItem() { REB_KEEP_VPTR_STORE(); }
+AiRankedItem::~AiRankedItem() {  }
 
 void AiRankedItem::Read(istream* in) {
     m_key.Read(in);
@@ -54,7 +52,7 @@ AiRankedList::AiRankedList(int descending) : SortedLinkList(), IdLinkNode(), m_d
 
 AiRankedList::~AiRankedList() {
     SortedLinkList::Clear();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiRankedList::Clear() { SortedLinkList::Clear(); }
@@ -90,9 +88,9 @@ void AiRankedList::Write(ostream* out) {
     for (AiRankedItem* item = First(); item; item = static_cast<AiRankedItem*>(item->m_next)) item->Write(out);
 }
 
-void REB_THISCALL AiRankedListRead(IdLinkNode* base, istream* in) { static_cast<AiRankedList*>(base)->AiRankedList::Read(in); }
+void AiRankedListRead(IdLinkNode* base, istream* in) { static_cast<AiRankedList*>(base)->AiRankedList::Read(in); }
 
-void REB_THISCALL AiRankedListWrite(IdLinkNode* base, ostream* out) {
+void AiRankedListWrite(IdLinkNode* base, ostream* out) {
     static_cast<AiRankedList*>(base)->AiRankedList::Write(out);
 }
 

@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "tactical/comm2.h"
 #include "core/icf_stubs.h"
 
@@ -20,7 +19,7 @@ constexpr char kPlayerQuitTrace[] = "2Comm.cpp line 394 CM_PLAYER_QUIT_SESSION\n
 
 }  // namespace
 
-int REB_CDECL CommInit(uint32_t guid0, uint32_t guid1, uint32_t guid2, uint32_t guid3, StringMap* settings, HWND window,
+int CommInit(uint32_t guid0, uint32_t guid1, uint32_t guid2, uint32_t guid3, StringMap* settings, HWND window,
                      int maxPlayers, int connect, int unused9, int unused10, int unused11, int unused12) {
     int result = kNoConnection;
     DestroyCommMgr();
@@ -56,20 +55,20 @@ int CommGetLocalIndex() { return GetCommMgr()->GetLocalIndex(); }
 
 int CommGetPlayerCount() { return GetCommMgr()->m_playerCount; }
 
-void REB_CDECL CommClearCategory(int category) {
+void CommClearCategory(int category) {
     CommTrace(kClearCategoryCalled);
     GetCommMgr()->ClearCategory(static_cast<char>(category));
     CommTrace(kClearCategoryReturned);
 }
 
-uint32_t REB_CDECL CommSendMessage(const void* data, uint32_t size, int category, int reliable) {
+uint32_t CommSendMessage(const void* data, uint32_t size, int category, int reliable) {
     uint32_t result = 0;
     CommMgr* comm = GetCommMgr();
     if (CommIsConnected() != 0) result = comm->QueueMessage(data, size, category, 1);
     return result;
 }
 
-CommBuffer* REB_CDECL CommTakeMessage(int category) {
+CommBuffer* CommTakeMessage(int category) {
     CommBuffer* result = nullptr;
     CommMgr* comm = GetCommMgr();
     if (CommIsConnected() != 0) result = comm->TakeMessage(static_cast<char>(category));
@@ -90,7 +89,7 @@ int CommFlushAll() {
     return result;
 }
 
-void REB_CDECL CommSetResendInterval(int milliseconds) { GetCommMgr()->m_resendInterval = milliseconds; }
+void CommSetResendInterval(int milliseconds) { GetCommMgr()->m_resendInterval = milliseconds; }
 
 int CommGetLastLatency() {
     CommMgr* comm = GetCommMgr();
@@ -105,14 +104,14 @@ ServiceProviderList* CommEnumerateServiceProviders() {
     return result;
 }
 
-int REB_CDECL CommHostNewSession(const char* sessionName) {
+int CommHostNewSession(const char* sessionName) {
     int result = kNoConnection;
     CommMgr* comm = GetCommMgr();
     if (comm) result = comm->HostNewSession(sessionName);
     return result;
 }
 
-SessionList* REB_CDECL CommGetSessionList(uint32_t timeoutMs, int* status) {
+SessionList* CommGetSessionList(uint32_t timeoutMs, int* status) {
     SessionList* result = nullptr;
     *status = kNoConnection;
     CommMgr* comm = GetCommMgr();
@@ -120,21 +119,21 @@ SessionList* REB_CDECL CommGetSessionList(uint32_t timeoutMs, int* status) {
     return result;
 }
 
-int REB_CDECL CommJoinSession(SessionInfo* session) {
+int CommJoinSession(SessionInfo* session) {
     int result = kNoConnection;
     CommMgr* comm = GetCommMgr();
     if (comm) result = comm->JoinSession(session);
     return result;
 }
 
-int REB_CDECL CommOpenProvider(ServiceProviderInfo* provider) {
+int CommOpenProvider(ServiceProviderInfo* provider) {
     int result = kNoConnection;
     CommMgr* comm = GetCommMgr();
     if (comm) result = comm->OpenProvider(provider);
     return result;
 }
 
-void REB_CDECL CommSetPlayerName(String name) {
+void CommSetPlayerName(String name) {
     CommMgr* comm = GetCommMgr();
     if (comm) comm->SetPlayerName(name);
 }
@@ -150,7 +149,7 @@ void CommSyncState() {
     }
 }
 
-void REB_CDECL CommTrace(const char* text) {
+void CommTrace(const char* text) {
     if (CommMgr* comm = GetCommMgr()) IgnoreOneArgument(comm, reinterpret_cast<uintptr_t>(text));
 }
 
@@ -164,16 +163,16 @@ void CommSendPlayerQuit() {
     operator delete(buffer);
 }
 
-void REB_CDECL CommSetNotifyWindow(HWND window) {
+void CommSetNotifyWindow(HWND window) {
     CommMgr* comm = GetCommMgr();
     if (comm) comm->m_notifyWindow = window;
 }
 
-void REB_CDECL CommSetSessionFlags(int flags) {
+void CommSetSessionFlags(int flags) {
     if (GetCommMgr()) g_commSessionFlags = flags;
 }
 
-void* REB_THISCALL CommCloseSessionToNewPlayers(void* self) {
+void* CommCloseSessionToNewPlayers(void* self) {
     CommMgr* comm = GetCommMgr();
     if (comm) return reinterpret_cast<void*>(static_cast<intptr_t>(comm->CloseSessionToNewPlayers()));
     return self;

@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/human_player.h"
 
 #include <new>
@@ -10,7 +9,6 @@
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/stream_io.h"
-#include "core/vptr_store.h"
 #include "mission/mission.h"
 #include "events/net_messages.h"
 #include "character/role.h"
@@ -18,6 +16,7 @@
 #include "events/game_clock_hooks.h"
 #include "galaxy/system.h"
 #include "gameobj/game_obj.h"
+#include "gameobj/notif_payload.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/status_code.h"
 #include "orders/order_base.h"
@@ -28,12 +27,12 @@
 
 // ---- Parts of the player controller (0x488460-0x48aa90) and of the advisor droid (0x4392b0-0x43a2d0) that this class
 // calls; they belong to other modules.
-void REB_THISCALL FUN_0048aa90(PlayerController* player, PlayerMessage* message);
-void REB_THISCALL FUN_00488b50(PlayerDispatch* dispatch, void* message);
-void REB_THISCALL FUN_00488b90(PlayerDispatch* dispatch);
-void REB_THISCALL FUN_00488d20(PlayerDispatch* dispatch, const ObjectKey* key, int flag);
-void REB_THISCALL FUN_0048a340(PlayerDispatch* dispatch, PlayerMessage* message);
-void REB_THISCALL FUN_0048a3b0(PlayerDispatch* dispatch, PlayerMessage* message);
+void FUN_0048aa90(PlayerController* player, PlayerMessage* message);
+void FUN_00488b50(PlayerDispatch* dispatch, void* message);
+void FUN_00488b90(PlayerDispatch* dispatch);
+void FUN_00488d20(PlayerDispatch* dispatch, const ObjectKey* key, int flag);
+void FUN_0048a340(PlayerDispatch* dispatch, PlayerMessage* message);
+void FUN_0048a3b0(PlayerDispatch* dispatch, PlayerMessage* message);
 extern PersistentInt g_humanUiFlags;  // 0x6b28b0
 
 namespace {
@@ -98,7 +97,7 @@ HumanPlayer::HumanPlayer(int side) : PlayerController(side) {
 HumanPlayer::~HumanPlayer() {
     delete m_advisor;
     Dispatch()->PlayerDispatch::~PlayerDispatch();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void HumanPlayer::Read(istream* in) {
@@ -171,10 +170,10 @@ void HumanPlayer::Virtual14() {
     m_advisor->SpeakIfIdle();
 }
 
-void HumanPlayer::Virtual20(PlayerNotice* notice) {
+void HumanPlayer::Virtual20(NotifPayload* notice) {
     if (!notice) return;
-    reinterpret_cast<AiNotice*>(notice)->Virtual06(this);
-    m_alertList.Add(reinterpret_cast<AiNotice*>(notice));
+    notice->Dispatch(this);
+    m_alertList.Add(notice);
 }
 
 void HumanPlayer::Virtual17(int id, ObjectKey* key) {

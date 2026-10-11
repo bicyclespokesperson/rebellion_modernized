@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -31,7 +30,7 @@ public:
     virtual void OnMessage(int message, intptr_t a, intptr_t b);  // slot 7, 0x4c5020
     virtual void Virtual08(int kind, intptr_t a, intptr_t b) = 0;
     virtual void Virtual09(int kind, intptr_t a, intptr_t b, intptr_t c) {}             // 0x48acb0 (shared no-op)
-    virtual UiNotice* Virtual10() = 0;                // slot 10: a new empty notice of the same class (UiHandler::CreateRecord)
+    virtual UiNotice* Virtual10() = 0;                // slot 10: a new empty notice of the same class
     virtual int Virtual11() { return 0; }             // 0x6158b0 (shared)
     virtual int IsStale();                            // slot 12, 0x4c4fe0: created more than 300 ticks ago
     virtual void Virtual13() {}                       // 0x619730 (shared no-op)
@@ -117,5 +116,5 @@ public:
 // The id of the advice line the advisor says for `adviceId`: one random pick of the RCDATA table (resource module 9).
 uint16_t AdvisorPickAdviceLine(uint32_t adviceId);  // 0x4c4990
 // Plays `adviceId` as a sound effect of the advisor module and returns a copy of the request in `result`.
-SoundRequest* REB_CDECL AdvisorPlayAdvice(SoundRequest* result, uint32_t adviceId);  // 0x4c4a20
-uint16_t REB_STDCALL AdvisorRecordTypeResource(GameObj* object);  // 0x4c5000
+SoundRequest* AdvisorPlayAdvice(SoundRequest* result, uint32_t adviceId);  // 0x4c4a20
+uint16_t AdvisorRecordTypeResource(GameObj* object);  // 0x4c5000

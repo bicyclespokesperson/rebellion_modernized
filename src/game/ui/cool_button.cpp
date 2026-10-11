@@ -1,9 +1,7 @@
-#include "core/reb_abi.h"
 #include "ui/cool_button.h"
 
 #include "core/checked_new.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/cool_button_parts.h"
 #include "ui/resource_dll.h"
@@ -118,7 +116,7 @@ CoolStrobeButton::~CoolStrobeButton() {
     DeleteBitmap(m_buffer);
     if (m_repeatTimer) delete m_repeatTimer;
     m_repeatTimer = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void CoolStrobeButton::Show(int command) {
@@ -457,7 +455,7 @@ havePicture:
     m_state &= ~kButtonNeverDrawn;
 }
 
-LRESULT REB_STDCALL CoolStrobeButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CoolStrobeButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
     case WM_PAINT: {
         PAINTSTRUCT paint;
@@ -553,10 +551,10 @@ CoolFrameButton::CoolFrameButton(HINSTANCE instance, int x, int y, int width, in
 
 CoolFrameButton::~CoolFrameButton() {
     m_normal = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
-LRESULT REB_STDCALL CoolFrameButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CoolFrameButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_CREATE) {
         m_normal = m_currentFrame ? static_cast<StrobeFrame*>(m_currentFrame)->m_bitmap : nullptr;
         return CoolStrobeButton::WindowProc(WM_CREATE, wParam, lParam);
@@ -609,7 +607,7 @@ CoolStrobeTimer::CoolStrobeTimer(void (*callback)()) : CoolTimer(0x42, TIME_PERI
 
 CoolStrobeTimer::~CoolStrobeTimer() {
     Pause();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void CoolStrobeTimer::OnTick() {
@@ -626,7 +624,7 @@ IndexedRectNode::IndexedRectNode() {
     m_index = 0;
 }
 
-IndexedRectNode::~IndexedRectNode() { REB_KEEP_VPTR_STORE(); }
+IndexedRectNode::~IndexedRectNode() {  }
 
 // ---- CoolCycleButton ------------------------------------------------------------------------------------------
 
@@ -659,10 +657,10 @@ CoolCycleButton::~CoolCycleButton() {
     DeleteBitmap(m_image3);
     DeleteBitmap(m_image4);
     DeleteBitmap(m_buffer2);
-    REB_KEEP_VPTR_STORE();
+
 }
 
-LRESULT REB_STDCALL CoolCycleButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CoolCycleButton::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_LBUTTONDOWN) {
         DibBitmap* saved = m_normal;
         const uint32_t position = m_position & 3;

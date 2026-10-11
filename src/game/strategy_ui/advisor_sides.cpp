@@ -1,6 +1,5 @@
 #include "economy/manu_mgr.h"
 #include "orders/mission_orders.h"
-#include "core/reb_abi.h"
 #include "strategy_ui/advisor_sides.h"
 
 #include <new>
@@ -144,6 +143,6 @@ void advisor_sides::RefusedUnits(AdvisorBase* advisor, OrderBase* order, IntPair
     fallback(advisor);
 }
 
-ObjectKey* REB_THISCALL ManagerGetLocationKey(GameObjNotifier* manager, ObjectKey* out) {
+ObjectKey* ManagerGetLocationKey(GameObjNotifier* manager, ObjectKey* out) {
     return new (out) ObjectKey(static_cast<ManuMgr*>(manager)->m_targetKey);
 }

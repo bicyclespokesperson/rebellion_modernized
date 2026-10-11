@@ -17,7 +17,7 @@ constexpr uint32_t kDestroyedState = 0x8;
 
 MissionAssassination::MissionAssassination() {}
 
-MissionAssassination::~MissionAssassination() { REB_KEEP_VPTR_STORE(); }
+MissionAssassination::~MissionAssassination() {  }
 
 REB_MISSION_SHARED_PERSISTENCE(MissionAssassination)
 

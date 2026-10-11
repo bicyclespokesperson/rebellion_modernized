@@ -1,10 +1,8 @@
-#include "core/reb_abi.h"
 #include "economy/facility.h"
 
 #include <new>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "data/sd_record_bases.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/object_family.h"
@@ -29,7 +27,7 @@ SdRecordExt2* recordOf(Facility* facility) { return static_cast<SdRecordExt2*>(f
 
 Facility::Facility() {}
 
-Facility::~Facility() { REB_KEEP_VPTR_STORE(); }
+Facility::~Facility() {  }
 
 int Facility::GetEventKinds(int unused, EventKindSet* out) {
     const int result = BuildEventKinds();
@@ -50,7 +48,7 @@ GameObjData* Facility::CreateData() {
 
 FacilityData::FacilityData() {}
 
-FacilityData::~FacilityData() { REB_KEEP_VPTR_STORE(); }
+FacilityData::~FacilityData() {  }
 
 int Facility::OnControlKindChanged(uint32_t oldKind, uint32_t newKind, NotifyContext* ctx) {
     return UnitObjBase::OnControlKindChanged(oldKind, newKind, ctx);
@@ -106,6 +104,6 @@ FacilityIterator::FacilityIterator(GameObjNotifier* parent, uint32_t stateFilter
 FacilityIterator::FacilityIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kFacilityFamilies, stateFilter) {}
 
-FacilityIterator::~FacilityIterator() { REB_KEEP_VPTR_STORE(); }
+FacilityIterator::~FacilityIterator() {  }
 EventKindSet g_facilityEventKinds{};
 int g_facilityEventKindsReady{};

@@ -3,7 +3,6 @@
 #include "ai/ai_side_controller.h"
 #include "ai/ai_task_types.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "economy/manufacturing_facility.h"
 #include "events/game_clock_hooks.h"
 #include "economy/defense_facility.h"
@@ -81,7 +80,7 @@ AiTask13::~AiTask13() {
         delete m_evaluator;
         m_evaluator = nullptr;
     }
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiTask13::Read(istream* in) {

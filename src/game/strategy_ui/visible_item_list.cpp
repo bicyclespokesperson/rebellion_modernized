@@ -1,9 +1,8 @@
 #include "strategy_ui/visible_item_list.h"
 
-#include "core/vptr_store.h"
 #include "ui/object_list_item.h"
 
-VisibleItemList::~VisibleItemList() { REB_KEEP_VPTR_STORE(); }
+VisibleItemList::~VisibleItemList() {  }
 
 CoolListItem* VisibleItemList::First() {
     ObjectListItem* head = static_cast<ObjectListItem*>(m_head);

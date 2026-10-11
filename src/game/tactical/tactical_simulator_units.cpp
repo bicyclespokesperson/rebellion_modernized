@@ -1,4 +1,3 @@
-#include "core/vptr_store.h"
 #include "core/reb_x87.h"
 #include "tactical/tactical_game.h"
 #include "tactical/tactical_groups.h"
@@ -153,9 +152,9 @@ void HeadlessSimulator::AssignCharacterHandle(TacticalUnit* unit) {
 
 // ---- construction ---------------------------------------------------------------------------------------------------
 
-SimulatorSideA::~SimulatorSideA() { REB_KEEP_VPTR_STORE(); }
+SimulatorSideA::~SimulatorSideA() {  }
 
-SimulatorSideB::~SimulatorSideB() { REB_KEEP_VPTR_STORE(); }
+SimulatorSideB::~SimulatorSideB() {  }
 
 HeadlessSimulator::HeadlessSimulator() {
     m_elapsed = 0;

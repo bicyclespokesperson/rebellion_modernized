@@ -1,8 +1,6 @@
-#include "core/reb_abi.h"
 #include "character/special_forces.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "data/sd_records.h"
 #include "economy/manu_mgr_leaves.h"
 #include "gameobj/object_family.h"
@@ -33,7 +31,7 @@ constexpr int kDestroyedReasonSpecial = 9;
 
 SpecialForces::SpecialForces() {}
 
-SpecialForces::~SpecialForces() { REB_KEEP_VPTR_STORE(); }
+SpecialForces::~SpecialForces() {  }
 
 uint32_t SpecialForces::GetFamily() { return kSpecialForcesFamily; }
 
@@ -154,6 +152,6 @@ SpecialForceIterator::SpecialForceIterator(GameObjNotifier* parent, uint32_t sta
 SpecialForceIterator::SpecialForceIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &family::kSpecialForces, stateFilter) {}
 
-SpecialForceIterator::~SpecialForceIterator() { REB_KEEP_VPTR_STORE(); }
+SpecialForceIterator::~SpecialForceIterator() {  }
 EventKindSet g_specialForcesEventKinds{};
 int g_specialForcesEventKindsReady{};

@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/menu_window.h"
 
 #include <cstddef>
@@ -6,7 +5,6 @@
 
 #include "core/checked_new.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/cool_label.h"
 #include "ui/cool_window.h"
@@ -42,7 +40,7 @@ OwningIdList::OwningIdList() {}
 
 OwningIdList::~OwningIdList() {
     Reset();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int OwningIdList::IsLessById(LinkNode* a, LinkNode* b) {
@@ -51,7 +49,7 @@ int OwningIdList::IsLessById(LinkNode* a, LinkNode* b) {
 
 MenuItemList::MenuItemList() {}
 
-MenuItemList::~MenuItemList() { REB_KEEP_VPTR_STORE(); }
+MenuItemList::~MenuItemList() {  }
 
 // ---- MenuCommand -----------------------------------------------------------------------------------------------
 
@@ -95,7 +93,7 @@ MenuItemBase::~MenuItemBase() {
     if (m_checkOverlay) delete m_checkOverlay;
     if (m_checkPicture) delete m_checkPicture;
     if (m_label) delete m_label;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int MenuItemBase::Virtual03() { return 0; }
@@ -294,7 +292,7 @@ MenuItem::MenuItem(uint32_t command, uint32_t flags, HMODULE module, const Resou
     m_command.m_flags = flags;
 }
 
-MenuItem::~MenuItem() { REB_KEEP_VPTR_STORE(); }
+MenuItem::~MenuItem() {  }
 
 int MenuItem::Virtual03() { return m_command.m_flags & 8; }
 
@@ -333,7 +331,7 @@ MenuWindowBase::~MenuWindowBase() {
         KillTimer(m_hwnd, m_timer);
         m_timer = 0;
     }
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int MenuWindowBase::HandleMouse(MenuItem*, LONG, LONG, int) { return 0; }
@@ -403,7 +401,7 @@ void MenuWindowBase::AttachSubMenu(HMODULE resources, uint32_t itemId, MenuWindo
     }
 }
 
-LRESULT REB_STDCALL MenuWindowBase::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT MenuWindowBase::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     const POINT mouse = {static_cast<LONG>(lParam & 0xffff), static_cast<LONG>(static_cast<uint32_t>(lParam) >> 16)};
     const uint32_t parentId = m_parentMenu ? m_parentMenu->m_childId : m_childId;

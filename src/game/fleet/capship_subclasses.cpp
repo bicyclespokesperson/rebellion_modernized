@@ -1,6 +1,5 @@
 #include "fleet/capship_subclasses.h"
 
-#include "core/vptr_store.h"
 
 namespace {
 const FamilyRange kCapitalShipFamilies(0x14, 0x18);
@@ -13,7 +12,7 @@ int applyAllOnSideView(CapShip* ship, NotifyContext* ctx) {
 
 CapitalShip::CapitalShip() {}
 
-CapitalShip::~CapitalShip() { REB_KEEP_VPTR_STORE(); }
+CapitalShip::~CapitalShip() {  }
 
 int CapitalShip::CreateViews(int controlKind, NotifyContext* ctx) { return CapShip::CreateViews(controlKind, ctx); }
 
@@ -29,7 +28,7 @@ int CapitalShip::ApplyAll(NotifyContext* ctx) { return applyAllOnSideView(this, 
 
 DeathStar::DeathStar() {}
 
-DeathStar::~DeathStar() { REB_KEEP_VPTR_STORE(); }
+DeathStar::~DeathStar() {  }
 
 int DeathStar::CreateViews(int controlKind, NotifyContext* ctx) { return CapShip::CreateViews(controlKind, ctx); }
 
@@ -50,7 +49,7 @@ GameObjNotifier* CreateDeathStar() { return new DeathStar(); }
 CapitalShipIterator::CapitalShipIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kCapitalShipFamilies, stateFilter) {}
 
-CapitalShipIterator::~CapitalShipIterator() { REB_KEEP_VPTR_STORE(); }
+CapitalShipIterator::~CapitalShipIterator() {  }
 
 DeathStarIterator::DeathStarIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kDeathStarFamilies, stateFilter) {}
@@ -58,4 +57,4 @@ DeathStarIterator::DeathStarIterator(GameObjNotifier* parent, uint32_t stateFilt
 DeathStarIterator::DeathStarIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kDeathStarFamilies, stateFilter) {}
 
-DeathStarIterator::~DeathStarIterator() { REB_KEEP_VPTR_STORE(); }
+DeathStarIterator::~DeathStarIterator() {  }

@@ -1,9 +1,10 @@
 #include "audio/sound_source.h"
 
+#include <new>
+
 #include "audio/sound_manager.h"
 #include "audio/stream_access.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 
 using namespace stream_access;
 
@@ -89,8 +90,8 @@ SoundSource::SoundSource(const char* fileName, long seekPosition, int mode, Soun
 SoundSource::~SoundSource() {
     m_buffers.Clear();
     if (m_stream) {
-        if (IsOpen(m_stream)) fstreambase_close(m_stream);
-        if (m_stream) DeleteStream(m_stream);
+        if (IsOpen(m_stream)) fstreambase_close(m_stream->In());
+        delete m_stream;
     }
     SoundSource::Reset();
 }
@@ -106,24 +107,23 @@ void SoundSource::Reset() {
 
 void SoundSource::LoadFromFile(const char* fileName, long seekPosition, int mode, SoundRequest* request) {
     if (!fileName) return;
-    istream* stream = nullptr;
-    if (void* memory = ::operator new(sizeof(ifstream)))
-        stream = reinterpret_cast<istream*>(ifstream_ctor_open(static_cast<ifstream*>(memory), fileName, kBinaryInputMode, g_filebufOpenprot, 1));
+    auto* stream = new (std::nothrow) ifstream();
+    if (stream) ifstream_ctor_open(stream, fileName, kBinaryInputMode, g_filebufOpenprot, 1);
     if (!stream) return;
     AttachFile(stream, seekPosition, mode, request);
-    if (m_stream == nullptr) DeleteStream(stream);
+    if (m_stream == nullptr) delete stream;
 }
 
-void SoundSource::AttachFile(istream* stream, long seekPosition, int mode, SoundRequest* request) {
+void SoundSource::AttachFile(ifstream* stream, long seekPosition, int mode, SoundRequest* request) {
     Reset();
     m_key = request->SourceKey();
     if (IsOpen(stream)) {
-        if (seekPosition) istream_seekg_pos(stream, seekPosition);
-        m_streamPosition = istream_tellg(stream);
+        if (seekPosition) istream_seekg_pos(stream->In(), seekPosition);
+        m_streamPosition = istream_tellg(stream->In());
         m_stream = stream;
-        m_wave.ParseStream(stream);
-        m_wave.FindDataChunk(m_stream, m_streamPosition);
-        request->m_handle = static_cast<int>(CreateFileBuffer(m_stream, &mode));
+        m_wave.ParseStream(stream->In());
+        m_wave.FindDataChunk(stream->In(), m_streamPosition);
+        request->m_handle = static_cast<int>(CreateFileBuffer(stream->In(), &mode));
     }
 }
 
@@ -149,7 +149,7 @@ uint32_t SoundSource::CreateFileBuffer(istream* stream, int* mode) {
         m_streamPosition = 0;
         return buffer->m_key;
     }
-    buffer->SetStream(m_stream, m_streamPosition + static_cast<long>(m_wave.m_dataOffset) + kStreamHeaderBytes);
+    buffer->SetStream(m_stream->In(), m_streamPosition + static_cast<long>(m_wave.m_dataOffset) + kStreamHeaderBytes);
     return buffer->m_key;
 }
 

@@ -1,9 +1,7 @@
 // VideoWindow: a child window that plays an AVI file through an MCI "avivideo" device. The game ships no .avi
 // files (its movies are Smacker), so this path is dead in practice.
-#include "core/reb_abi.h"
 #include <cstring>
 
-#include "core/vptr_store.h"
 #include "video/video_manager.h"
 
 extern const char *g_aviDeviceType;  // "avivideo"
@@ -52,9 +50,9 @@ VideoWindow::VideoWindow(const char* path, HINSTANCE instance, int x, int y, int
     m_autoStart = autoStart;
 }
 
-VideoWindow::~VideoWindow() { REB_KEEP_VPTR_STORE(); }
+VideoWindow::~VideoWindow() {  }
 
-LRESULT REB_STDCALL VideoWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT VideoWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND window = m_hwnd;
     LRESULT result = 0;
     // BUG(original): the MCI_REALIZE calls below pass the address of this function's own wParam/lParam slots as

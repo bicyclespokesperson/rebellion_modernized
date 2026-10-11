@@ -1,10 +1,8 @@
-#include "core/reb_abi.h"
 #include "gameobj/object_type_db.h"
 
 #include "ai/ai_common.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "data/seed_list.h"
 #include "economy/side.h"
@@ -24,7 +22,7 @@ IdAvlTree* RecordsOf(void* entry) { return &static_cast<SeedListFile*>(entry)->m
 
 AvlNode* NextNode(AvlNode* node) { return node->m_successor; }
 
-SdRecord* AsRecord(AvlNode* node) { return static_cast<SdRecord*>(static_cast<DatRecord*>(static_cast<IdNode*>(node))); }
+DatRecord* AsRecord(AvlNode* node) { return static_cast<DatRecord*>(static_cast<IdNode*>(node)); }
 
 const ResourceStringId* NameResource(const DatRecord* record) {
     return reinterpret_cast<const ResourceStringId*>(&record->m_small);
@@ -45,7 +43,7 @@ ObjectTypeDb::~ObjectTypeDb() {
         delete m_families;
         m_families = nullptr;
     }
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int ObjectTypeDb::BuildFamilies() {
@@ -53,9 +51,9 @@ int ObjectTypeDb::BuildFamilies() {
         delete m_families;
         m_families = nullptr;
     }
-    void* memory = ::operator new(sizeof(FamilyTable));
-    m_families = memory ? reinterpret_cast<FamilyTable*>(new (memory) SeedListFileTree()) : nullptr;
-    return m_families ? m_families->m_ok : 0;
+    void* memory = ::operator new(sizeof(SeedListFileTree));
+    m_families = memory ? new (memory) SeedListFileTree() : nullptr;
+    return m_families ? m_families->m_ready : 0;
 }
 
 int ObjectTypeDb::LoadFamilies() {
@@ -108,7 +106,7 @@ int ObjectTypeDb::ForEachFamily(Crc32* crc) {
 
 DatRecord* ObjectTypeDb::FindRecord(const SeedKey* key) {
     DatRecord* record = nullptr;
-    if (void* entry = reinterpret_cast<SeedListFileTree*>(m_families)->SeedListFileTree::FindByFamily(key->m_key >> 24)) {
+    if (SeedListFile* entry = m_families->FindByFamily(key->m_key >> 24)) {
         record = AsRecord(RecordsOf(entry)->FindById(key->m_key & 0xffffff));
     }
     return record;
@@ -116,7 +114,7 @@ DatRecord* ObjectTypeDb::FindRecord(const SeedKey* key) {
 
 DatRecord* ObjectTypeDb::FirstRecordOfFamily(uint32_t family) {
     DatRecord* record = nullptr;
-    if (void* entry = reinterpret_cast<SeedListFileTree*>(m_families)->SeedListFileTree::FindByFamily(family)) record = AsRecord(RecordsOf(entry)->First());
+    if (SeedListFile* entry = m_families->FindByFamily(family)) record = AsRecord(RecordsOf(entry)->First());
     return record;
 }
 
@@ -144,24 +142,26 @@ int ObjectTypeDb::CollectRecords(int view, uint32_t kind, int level, int whenBel
     int ok = m_families != nullptr;
     for (AvlNode* entry = ok ? m_families->First() : nullptr; entry && ok; entry = NextNode(entry)) {
         for (AvlNode* node = RecordsOf(entry)->First(); node && ok; node = NextNode(node)) {
-            SdRecord* record = AsRecord(node);
+            DatRecord* record = AsRecord(node);
             IntPair range;
             GetRecordKindRange(record, &range);
             const bool kindMatches = kind >= range.m_first && kind < range.m_second;
-            if (!(kindMatches && static_cast<SdRecord*>(record)->SdRecord::GetField48() && Available(record, view))) continue;
+            if (!kindMatches) continue;
+            SdRecord* levelRecord = dynamic_cast<SdRecord*>(record);
+            if (!levelRecord || !levelRecord->GetField48() || !Available(levelRecord, view)) continue;
 
-            const int recordLevel = static_cast<int>(record->m_field50);
+            const int recordLevel = static_cast<int>(levelRecord->m_field50);
             if (*maxLevel < recordLevel) *maxLevel = recordLevel;
             int wanted = whenBelow;
             if (level <= recordLevel) wanted = recordLevel == level ? whenEqual : whenAbove;
             if (!wanted) continue;
 
-            void* memory = ::operator new(sizeof(RecordNameNode));
-            void* nameNode = memory ? new (memory) RecordNameNode() : nullptr;
+            ObjectNameNode* nameNode = NewOrNull<ObjectNameNode>();
             ok = nameNode != nullptr;
             if (nameNode) {
-                ok = static_cast<RecordNameNode*>(nameNode)->RecordNameNode::SetFromRecord(record);
-                if (!ok || !(ok = static_cast<ObjectRefList*>(out)->Add(reinterpret_cast<ObjectRefNode*>(nameNode)))) delete static_cast<IdNode*>(nameNode);
+                ok = nameNode->Load(record);
+                if (ok) ok = out->AddWithId(nameNode) != 0;
+                if (!ok) delete nameNode;
             }
         }
     }
@@ -204,7 +204,12 @@ int ObjectTypeDb::FindNextLevel(int view, int kind, int level, int* found, int* 
             *found = record != nullptr;
             if (*found) {
                 *foundLevel = candidate;
-                *extraValue = static_cast<int>(static_cast<SdRecord*>(record)->m_field54);
+                SdRecord* levelRecord = dynamic_cast<SdRecord*>(record);
+                if (!levelRecord) {
+                    ok = 0;
+                    break;
+                }
+                *extraValue = static_cast<int>(levelRecord->m_field54);
             }
         }
     }
@@ -267,7 +272,7 @@ void DestroyObjectTypeDb() {
     }
 }
 
-IntPair* REB_THISCALL GetRecordKindRange(DatRecord* record, IntPair* out) {
+IntPair* GetRecordKindRange(DatRecord* record, IntPair* out) {
     *out = IntPair(record->m_first, record->m_second);
     return out;
 }

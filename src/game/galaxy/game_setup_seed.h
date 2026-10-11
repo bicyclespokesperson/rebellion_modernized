@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "gameobj/game_hooks.h"
@@ -18,9 +17,9 @@ int ApplyLoyaltyRuleToSector(GameObjNotifier* sector, const LoyaltyRule* rule, N
 // command's id (0 if it had none and was deleted again).
 uint32_t ApplyLoyaltyRuleToSystem(System* system, const LoyaltyRule* rule, NotifyContext* ctx);  // 0x518be0
 // The sector master that follows `sector` (0x518ff0).
-GameObjNotifier* REB_THISCALL GetNextSectorMaster(GameObjNotifier* sector);  // 0x518ff0
+GameObjNotifier* GetNextSectorMaster(GameObjNotifier* sector);  // 0x518ff0
 // The system master that follows `system` (0x51a5d0).
-GameObjNotifier* REB_THISCALL NextSystemMaster(GameObjNotifier* system);
+GameObjNotifier* NextSystemMaster(GameObjNotifier* system);
 
 // Setup stage number accessors (the global at 0x6b2bb4; stage 0x1a marks setup complete).
 int GetSetupStage();            // 0x51c000

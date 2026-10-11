@@ -1,7 +1,6 @@
 #include "galaxy/system_type90.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "economy/production_facility_types.h"
 #include "galaxy/system_rules_1e.h"
 #include "gameobj/game_hooks.h"
@@ -24,7 +23,7 @@ void MakeAllViewsContext(NotifyContext* context) {
 
 SystemType90::SystemType90() {}
 
-SystemType90::~SystemType90() { REB_KEEP_VPTR_STORE(); }
+SystemType90::~SystemType90() {  }
 
 uint32_t SystemType90::GetFamily() { return kFamilySystemType90; }
 
@@ -156,4 +155,4 @@ int UpdateSystemType90Children(GameObj* parent, NotifyContext* ctx) { return par
 SystemType90Iterator::SystemType90Iterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kType90Families, stateFilter) {}
 
-SystemType90Iterator::~SystemType90Iterator() { REB_KEEP_VPTR_STORE(); }
+SystemType90Iterator::~SystemType90Iterator() {  }

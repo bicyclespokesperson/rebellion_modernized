@@ -1,7 +1,5 @@
-#include "core/reb_abi.h"
 #include <new>
 
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "economy/manu_mgr.h"
 #include "economy/manufacturing_facility.h"
@@ -13,7 +11,6 @@ extern const char *g_emptyText;            // 0x6b120c
 extern int g_manuMgrEventKindsReady;        // 0x6b9008
 extern ObjectKeyValueSet g_manuMgrEmptyQueue;  // 0x6b9010
 extern EventKindSet g_manuMgrEventKinds;    // 0x6b9018
-extern uint8_t g_manuMgrEmptyQueueGuard;    // 0x6b9020
 
 namespace {
 
@@ -48,7 +45,7 @@ ManuMgr::ManuMgr()
     m_seedKey.m_value = 0;
 }
 
-ManuMgr::~ManuMgr() { REB_KEEP_VPTR_STORE(); }
+ManuMgr::~ManuMgr() {  }
 
 GameObjData* ManuMgr::CreateData() {
     void* memory = operator new(sizeof(ManuMgrData));
@@ -58,7 +55,7 @@ GameObjData* ManuMgr::CreateData() {
 
 // ---- names ---------------------------------------------------------------------------------------------------
 
-void REB_THISCALL AppendManuMgrName(ObjectBase* base, String* out, int kind) {
+void AppendManuMgrName(ObjectBase* base, String* out, int kind) {
     ManuMgr* self = static_cast<ManuMgr*>(static_cast<GameObj*>(base));
     if (kind == kWriteNameSeedRecord) {
         ObjectKey key;
@@ -224,9 +221,8 @@ ManuMgrIterator::ManuMgrIterator(GameObjNotifier* parent)
 ManuMgrIterator::ManuMgrIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &family::kManufacturingManagers, stateFilter) {}
 
-ManuMgrIterator::~ManuMgrIterator() { REB_KEEP_VPTR_STORE(); }
+ManuMgrIterator::~ManuMgrIterator() {  }
 EventKindSet g_manuMgrEventKinds{};
 ObjectKeyValueSet g_manuMgrEmptyQueue{};
 ObjectTypeDb * g_objectTypeDb{};
 int g_manuMgrEventKindsReady{};
-uint8_t g_manuMgrEmptyQueueGuard{};

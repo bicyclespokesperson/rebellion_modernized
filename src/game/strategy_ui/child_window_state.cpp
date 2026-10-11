@@ -1,5 +1,4 @@
 #include "core/stream_io.h"
-#include "core/vptr_store.h"
 #include "strategy_ui/galaxy_window.h"
 #include "ui/cool_game_window.h"
 
@@ -26,7 +25,7 @@ ChildWindowState::ChildWindowState(CoolWindow* window) {
     m_valid = 1;
 }
 
-ChildWindowState::~ChildWindowState() { REB_KEEP_VPTR_STORE(); }
+ChildWindowState::~ChildWindowState() {  }
 
 void ChildWindowState::Write(ostream* out) {
     WriteValue32(out, &m_type);

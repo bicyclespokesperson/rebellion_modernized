@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include <cstdint>
 #include <new>
 
@@ -81,7 +80,7 @@ bool InPanelArea(POINT point) {
 
 // ---- Messages ----------------------------------------------------------------------------------------------
 
-LRESULT REB_STDCALL SystemWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT SystemWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     HWND galaxyWindow = m_galaxy->m_hwnd;
     const int pointX = static_cast<int>(lParam & 0xffff);

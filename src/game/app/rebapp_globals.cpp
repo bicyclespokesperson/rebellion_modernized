@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "app/rebapp_globals.h"
 
 #include <new>
@@ -9,12 +8,10 @@
 #include "app/battle_flow.h"
 #include "app/rebellion_application.h"
 #include "audio/music.h"
+#include "port/native/audio_context.h"
 #include "core/iostream_lib.h"
 #include "core/registry.h"
 #include "ui/cool_app.h"
-
-// Sound module internals reached through the app helpers.
-extern int g_musicVolume;
 
 namespace {
 
@@ -211,7 +208,7 @@ void AppSetUnknown138(int value) {
     if (g_app) App()->m_unknown138 = value;
 }
 
-void AppPlayMovie(int movieId, const String* caption, void(REB_CDECL* callback)(uint32_t, uint32_t, int)) {
+void AppPlayMovie(int movieId, const String* caption, void(* callback)(uint32_t, uint32_t, int)) {
     if (g_app) App()->PlayMovie(movieId, caption, callback);
 }
 
@@ -255,7 +252,10 @@ void AppSetMusicVolume(int volume) { SetMusicVolume(volume); }
 
 void AppSetMusicSwitch(int enabled) { SetMusicSwitch(enabled); }
 
-int AppGetMusicVolume() { return g_musicVolume; }
+int AppGetMusicVolume() {
+    const reb::native::AudioContext* audio = reb::native::CurrentAudioContext();
+    return audio ? audio->musicVolume : 0;
+}
 
 void AppDestroyTacticalWindow() {
     if (g_app) App()->DestroyTacticalWindow();

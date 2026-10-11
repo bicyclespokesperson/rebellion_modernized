@@ -1,6 +1,5 @@
 #include "ai/ai_planner_util.h"
 #include "ai/ai_planners.h"
-#include "core/vptr_store.h"
 #include "fleet/fleet_iterator.h"
 #include "gameobj/object_lookup.h"
 
@@ -16,7 +15,7 @@ AiDsSabotagePlanner::AiDsSabotagePlanner(int view, AiSideController* owner, AiCh
     m_missionKey = ObjectKey::Make(0x6a, 0x41);
 }
 
-AiDsSabotagePlanner::~AiDsSabotagePlanner() { REB_KEEP_VPTR_STORE(); }
+AiDsSabotagePlanner::~AiDsSabotagePlanner() {  }
 
 int AiDsSabotagePlanner::Virtual06() {
     int sum = 0;

@@ -1,6 +1,5 @@
 #pragma once
-// The concrete UiNotice classes (0x48aac0-0x49c6a0): one per kind of player notice, the "UI handlers" that
-// UiRecordTree (strategy_ui/ui_handler_table.cpp) keeps one prototype of per kind. A notice is built by the
+// The concrete UiNotice classes (0x48aac0-0x49c6a0): one per kind of player notice. A notice is built by the
 // controller of a side from the notification payloads that describe an event (the constructor taking the payload
 // list hands each payload to the notice through slots 5-9, see NotifPayload::DispatchToSink); the notice keeps the
 // resulting texts, pictures and sounds for the message index and the advisor. Names are numbered by GetKind().

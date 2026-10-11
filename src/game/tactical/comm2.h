@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/game_string.h"
@@ -19,7 +18,7 @@ struct CommGuid {
 // Starts the communication layer: keeps `settings` as the network test settings and either initialises the CommMgr for
 // `window` with the application GUID and `maxPlayers` (`connect` set), or calls the (stub) alternative transport.
 // Returns 0x11 without a CommMgr.
-int REB_CDECL CommInit(uint32_t guid0, uint32_t guid1, uint32_t guid2, uint32_t guid3, StringMap* settings, HWND window,
+int CommInit(uint32_t guid0, uint32_t guid1, uint32_t guid2, uint32_t guid3, StringMap* settings, HWND window,
                      int maxPlayers, int connect, int unused9, int unused10, int unused11, int unused12);  // 0x596fa0
 
 void CommShutdown();                                    // 0x597030
@@ -28,25 +27,25 @@ int CommCleanUp();                                      // 0x597050
 int CommIsConnected();                                  // 0x597060
 int CommGetLocalIndex();                                // 0x597080
 int CommGetPlayerCount();                               // 0x597090
-void REB_CDECL CommClearCategory(int category);           // 0x5970a0
-uint32_t REB_CDECL CommSendMessage(const void* data, uint32_t size, int category, int reliable);  // 0x5970d0 (0 without a connection)
-CommBuffer* REB_CDECL CommTakeMessage(int category);      // 0x597110 (null without a connection)
+void CommClearCategory(int category);           // 0x5970a0
+uint32_t CommSendMessage(const void* data, uint32_t size, int category, int reliable);  // 0x5970d0 (0 without a connection)
+CommBuffer* CommTakeMessage(int category);      // 0x597110 (null without a connection)
 int CommAllPacketsAcknowledged();                       // 0x597140 (1 without a connection)
 int CommFlushAll();                                     // 0x597170 (1 without a connection)
-void REB_CDECL CommSetResendInterval(int milliseconds);   // 0x597190
+void CommSetResendInterval(int milliseconds);   // 0x597190
 int CommGetLastLatency();                               // 0x5971a0
 ServiceProviderList* CommEnumerateServiceProviders();   // 0x5971c0 (null without a CommMgr)
-int REB_CDECL CommHostNewSession(const char* sessionName);  // 0x5971e0 (0x11 without a CommMgr)
-SessionList* REB_CDECL CommGetSessionList(uint32_t timeoutMs, int* status);  // 0x597210 (null without a CommMgr)
-int REB_CDECL CommJoinSession(SessionInfo* session);      // 0x597240 (0x11 without a CommMgr)
-int REB_CDECL CommOpenProvider(ServiceProviderInfo* provider);  // 0x597270 (0x11 without a CommMgr)
-void REB_CDECL CommSetPlayerName(String name);            // 0x5972a0
+int CommHostNewSession(const char* sessionName);  // 0x5971e0 (0x11 without a CommMgr)
+SessionList* CommGetSessionList(uint32_t timeoutMs, int* status);  // 0x597210 (null without a CommMgr)
+int CommJoinSession(SessionInfo* session);      // 0x597240 (0x11 without a CommMgr)
+int CommOpenProvider(ServiceProviderInfo* provider);  // 0x597270 (0x11 without a CommMgr)
+void CommSetPlayerName(String name);            // 0x5972a0
 void CommSyncState();                                   // 0x597310
-void REB_CDECL CommTrace(const char* text);               // 0x597340
+void CommTrace(const char* text);               // 0x597340
 void CommSendPlayerQuit();                              // 0x597360
-void REB_CDECL CommSetNotifyWindow(HWND window);          // 0x597400
-void REB_CDECL CommSetSessionFlags(int flags);            // 0x597420
-void* REB_THISCALL CommCloseSessionToNewPlayers(void* self);  // 0x597440 (returns the argument when there is no CommMgr)
+void CommSetNotifyWindow(HWND window);          // 0x597400
+void CommSetSessionFlags(int flags);            // 0x597420
+void* CommCloseSessionToNewPlayers(void* self);  // 0x597440 (returns the argument when there is no CommMgr)
 int CommQueryLobbyConnection();                         // 0x597460
 int CommLaunchedFromLobby();                            // 0x597480
 int CommLobbyIsHost();                                  // 0x5974a0

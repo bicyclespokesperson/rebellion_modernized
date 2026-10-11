@@ -2,7 +2,6 @@
 
 #include <cstring>
 
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 
 namespace {
@@ -173,10 +172,11 @@ Sprite::Sprite(DibBitmap* bitmap) {
     m_depth = 0;
     m_unk28 = 0;
     m_bitmap = bitmap;
+    m_remapTable = nullptr;
     m_drawMode = kSpriteKeyed;
 }
 
-Sprite::~Sprite() { REB_KEEP_VPTR_STORE(); }
+Sprite::~Sprite() {  }
 
 DibBitmap* Sprite::GetBitmap() { return m_bitmap; }
 

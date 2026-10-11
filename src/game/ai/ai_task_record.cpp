@@ -3,7 +3,6 @@
 #include "ai/ai_side_controller.h"
 #include "character/role.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "fleet/troop_reg.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
@@ -80,7 +79,7 @@ AiTaskRecord::AiTaskRecord(int view, AiSideController* owner) : IdNode(), m_ship
 
 AiTaskRecord::~AiTaskRecord() {
     m_owner = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiTaskRecord::Read(istream* in) {

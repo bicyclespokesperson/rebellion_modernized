@@ -6,7 +6,6 @@
 #include "character/character.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "events/player_notice_util.h"
 #include "events/ui_notifs_ext.h"
 #include "fleet/fleet_iterator.h"
@@ -43,7 +42,7 @@ Notice16::Notice16(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice16::~Notice16() { REB_KEEP_VPTR_STORE(); }
+Notice16::~Notice16() {  }
 
 UiNotice* Notice16::Virtual10() { return NewOrNull<Notice16>(); }
 
@@ -98,7 +97,7 @@ Notice14::Notice14(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice14::~Notice14() { REB_KEEP_VPTR_STORE(); }
+Notice14::~Notice14() {  }
 
 UiNotice* Notice14::Virtual10() { return NewOrNull<Notice14>(); }
 
@@ -216,7 +215,7 @@ Notice13::Notice13(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice13::~Notice13() { REB_KEEP_VPTR_STORE(); }
+Notice13::~Notice13() {  }
 
 UiNotice* Notice13::Virtual10() { return NewOrNull<Notice13>(); }
 
@@ -328,7 +327,7 @@ Notice12::Notice12(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice12::~Notice12() { REB_KEEP_VPTR_STORE(); }
+Notice12::~Notice12() {  }
 
 int Notice12::GetKind() { return 12; }
 
@@ -392,7 +391,7 @@ Notice11::Notice11(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice11::~Notice11() { REB_KEEP_VPTR_STORE(); }
+Notice11::~Notice11() {  }
 
 int Notice11::GetKind() { return 11; }
 
@@ -458,7 +457,7 @@ Notice10::Notice10(const char* text, int owner, int showFirst) : UiTextNotice(ow
     }
 }
 
-Notice10::~Notice10() { REB_KEEP_VPTR_STORE(); }
+Notice10::~Notice10() {  }
 
 int Notice10::GetKind() { return 10; }
 
@@ -481,7 +480,7 @@ Notice9::Notice9(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice9::~Notice9() { REB_KEEP_VPTR_STORE(); }
+Notice9::~Notice9() {  }
 
 int Notice9::GetKind() { return 9; }
 
@@ -554,7 +553,7 @@ Notice3::Notice3(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice3::~Notice3() { REB_KEEP_VPTR_STORE(); }
+Notice3::~Notice3() {  }
 
 UiNotice* Notice3::Virtual10() { return NewOrNull<Notice3>(); }
 
@@ -618,7 +617,7 @@ Notice4::Notice4(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice4::~Notice4() { REB_KEEP_VPTR_STORE(); }
+Notice4::~Notice4() {  }
 
 UiNotice* Notice4::Virtual10() { return NewOrNull<Notice4>(); }
 
@@ -684,7 +683,7 @@ Notice5::Notice5(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice5::~Notice5() { REB_KEEP_VPTR_STORE(); }
+Notice5::~Notice5() {  }
 
 int Notice5::GetKind() { return 5; }
 
@@ -731,7 +730,7 @@ Notice6::Notice6(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice6::~Notice6() { REB_KEEP_VPTR_STORE(); }
+Notice6::~Notice6() {  }
 
 UiNotice* Notice6::Virtual10() { return NewOrNull<Notice6>(); }
 

@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/object_status_window.h"
 
 #include <cstdint>
@@ -10,7 +9,6 @@
 #include "core/checked_new.h"
 #include "core/iostream_lib.h"
 #include "core/strstream_io.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
@@ -119,7 +117,7 @@ ObjectStatusWindow::ObjectStatusWindow(HINSTANCE instance, GalaxyWindow* parent,
 }
 
 ObjectStatusWindow::~ObjectStatusWindow() {
-    REB_KEEP_VPTR_STORE();
+
     if (m_unknown120) {
         m_unknown120->~DibBitmap();
         operator delete(m_unknown120);
@@ -130,7 +128,7 @@ ObjectStatusWindow::~ObjectStatusWindow() {
     }
 }
 
-LRESULT REB_STDCALL ObjectStatusWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT ObjectStatusWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_CREATE) {
         WPARAM self = reinterpret_cast<WPARAM>(m_hwnd);
         PostMessageA(GetGalaxyWindow()->m_hwnd, kGalaxyActivateChild, self, 0);
@@ -471,7 +469,7 @@ void ObjectStatusWindow::AddCombatValueRow(int row, CoolListItemList* labels, Co
 
 // ---- Layout of the rows -------------------------------------------------------------------------------------
 
-int REB_STDCALL LayoutStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values) {
+int LayoutStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values) {
     int total = 0;
     CoolLabel left(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
     CoolLabel right(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
@@ -507,7 +505,7 @@ int REB_STDCALL LayoutStatusLabels(HDC dc, CoolListItemList* labels, CoolListIte
     return total;
 }
 
-void REB_STDCALL DrawStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values) {
+void DrawStatusLabels(HDC dc, CoolListItemList* labels, CoolListItemList* values) {
     CoolLabel left(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
     CoolLabel right(static_cast<const char*>(nullptr), 0, 0, 0, 0, 0u, 0u);
     SetRowLabelStyle(&left);
@@ -530,7 +528,7 @@ void REB_STDCALL DrawStatusLabels(HDC dc, CoolListItemList* labels, CoolListItem
 
 StatusTallyNode::StatusTallyNode() : m_total(0), m_count(0) {}
 
-StatusTallyNode::~StatusTallyNode() { REB_KEEP_VPTR_STORE(); }
+StatusTallyNode::~StatusTallyNode() {  }
 
 void ObjectStatusWindow::TallyUnitsByType(IdAvlTree* tally, GameObjNotifier* first, const FamilyRange* range) {
     tally->Clear();

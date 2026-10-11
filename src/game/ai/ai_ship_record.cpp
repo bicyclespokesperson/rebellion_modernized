@@ -6,7 +6,6 @@
 #include "ai/ai_side_controller.h"
 #include "character/role.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "fleet/capship.h"
 #include "fleet/fight_squad.h"
 #include "fleet/troop_reg.h"
@@ -58,7 +57,7 @@ AiShipRecord::~AiShipRecord() {
     m_fleets = nullptr;
     m_classes = nullptr;
     m_owner = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiShipRecord::ReadRecord(istream* in, AiFleetEvalSet* fleets, AiClassTable* classes, AiSideController* owner) {

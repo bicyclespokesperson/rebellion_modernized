@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "events/game_manager_state.h"
 
 #include <cstring>
@@ -7,7 +6,6 @@
 #include "core/checked_new.h"
 #include "core/iostream_lib.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "events/events_decl.h"
 
 
@@ -72,14 +70,6 @@ int WriteLegacyBlocks(ostream* out) {
     return 1;
 }
 
-void LegacyBlockAConstruct() { g_legacyBlockA.Reset(); }
-
-
-void LegacyBlockBConstruct() {
-    for (LegacyBlockB& block : g_legacyBlockB) new (&block) LegacyBlockB();
-}
-
-
 // ---- legacy text slots ------------------------------------------------------------------------------------------
 
 void ResetLegacyTexts() {
@@ -103,9 +93,6 @@ void WriteLegacyTexts(ostream* out) {
     for (int i = 0; i < g_legacyTextCount; ++i, ++text) text->Write(out);
 }
 
-void LegacyTextsConstruct() {
-    for (String& text : g_legacyTexts) new (&text) String();
-}
 
 
 LegacyTextTable::LegacyTextTable() {
@@ -115,7 +102,7 @@ LegacyTextTable::LegacyTextTable() {
 
 LegacyTextTable::~LegacyTextTable() {
     Reset();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int LegacyTextTable::ReadFrom(istream* in) {
@@ -164,7 +151,7 @@ PostedEventQueue::PostedEventQueue() : NodeQueue(), m_flag(1) {}
 
 PostedEventQueue::~PostedEventQueue() {
     NodeQueue::Clear();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int PostedEventQueue::Read(istream* in) {
@@ -176,11 +163,11 @@ int PostedEventQueue::Read(istream* in) {
     for (int i = 0; ok && i < count; ++i) {
         int kind;
         ReadValue32(in, &kind);
-        LinkNode* node = static_cast<LinkNode*>(CreateKeyedObject(kind));
-        ok = node != nullptr;
+        NotifPayload* payload = static_cast<NotifPayload*>(CreateKeyedObject(kind));
+        ok = payload != nullptr;
         if (ok) {
-            node->Read(in);
-            Enqueue(node);
+            payload->Read(in);
+            Enqueue(payload);
         }
     }
     return ok;
@@ -191,9 +178,10 @@ int PostedEventQueue::Write(ostream* out) {
     int count = m_count;
     WriteValue32(out, &count);
     for (LinkNode* node = m_head; node; node = node->m_next) {
-        int kind = static_cast<PostedEvent*>(node)->GetFactoryKey();
+        NotifPayload* payload = static_cast<NotifPayload*>(node);
+        int kind = payload->GetKind();
         WriteValue32(out, &kind);
-        node->Write(out);
+        payload->Write(out);
     }
     return 1;
 }
@@ -204,7 +192,7 @@ TickTable::TickTable() : AvlTree(), m_ready(1) {}
 
 TickTable::~TickTable() {
     AvlTree::Clear();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int TickTable::IsLess(AvlNode* a, AvlNode* b) {

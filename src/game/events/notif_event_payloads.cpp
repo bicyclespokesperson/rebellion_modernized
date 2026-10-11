@@ -1,18 +1,17 @@
 #include "events/notif_event_payloads.h"
 
-#include "core/vptr_store.h"
 
 // ---- KeyPairPayload ---------------------------------------------------------------------------------------
 
 KeyPairPayload::KeyPairPayload() : KeyedNotifPayload(), m_keyA(), m_keyB() {}
 
-KeyPairPayload::~KeyPairPayload() { REB_KEEP_VPTR_STORE(); }
+KeyPairPayload::~KeyPairPayload() {  }
 
 // ---- IntPairPayload ---------------------------------------------------------------------------------------
 
 IntPairPayload::IntPairPayload() : KeyedNotifPayload(), m_valueA(0), m_valueB(0) {}
 
-IntPairPayload::~IntPairPayload() { REB_KEEP_VPTR_STORE(); }
+IntPairPayload::~IntPairPayload() {  }
 
 int IntPairPayload::ReadPayload(istream* in) {
     int result = ReadKeyed(in);
@@ -36,7 +35,7 @@ int IntPairPayload::WritePayload(ostream* out) {
 
 IntQuadPayload::IntQuadPayload() : KeyedNotifPayload(), m_valueA(0), m_valueB(0), m_valueC(0), m_valueD(0) {}
 
-IntQuadPayload::~IntQuadPayload() { REB_KEEP_VPTR_STORE(); }
+IntQuadPayload::~IntQuadPayload() {  }
 
 int IntQuadPayload::ReadPayload(istream* in) {
     int result = ReadKeyed(in);
@@ -64,7 +63,7 @@ int IntQuadPayload::WritePayload(ostream* out) {
 
 StringPairPayload::StringPairPayload() : KeyedNotifPayload(), m_textA(), m_textB() {}
 
-StringPairPayload::~StringPairPayload() { REB_KEEP_VPTR_STORE(); }
+StringPairPayload::~StringPairPayload() {  }
 
 int StringPairPayload::ReadPayload(istream* in) {
     int result = ReadKeyed(in);
@@ -91,7 +90,7 @@ NullableKeyPairPayload::NullableKeyPairPayload() : KeyedNotifPayload() {
     m_keyB.m_value = 0;
 }
 
-NullableKeyPairPayload::~NullableKeyPairPayload() { REB_KEEP_VPTR_STORE(); }
+NullableKeyPairPayload::~NullableKeyPairPayload() {  }
 
 int NullableKeyPairPayload::ReadPayload(istream* in) {
     int result = ReadKeyed(in);

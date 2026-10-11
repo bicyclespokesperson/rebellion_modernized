@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/utility_classes.h"
@@ -37,7 +36,7 @@ public:
                 GameObjNotifier* system);  // 0x4a2630
     virtual ~FleetWindow();  // 0x4a2820 (scalar deleting destructor 0x4a2800)
 
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4a29c0
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4a29c0
     virtual int OnRightButtonUp(int x, int y, CoolWindow* sender) override;  // slot 7, 0x4a2c40
     virtual void SaveState(ostream* out) override;                  // slot 9, 0x4a7300
     virtual void LoadState(istream* in) override;                   // slot 10, 0x4a7290
@@ -107,6 +106,6 @@ public:
 
 // What `object` (a fleet or a capital ship) carries and its state, as the bits the fleet rows show: 1 fighters, 2 troops,
 // 4 personnel, 8 enroute, 0x10 has orders, 0x20 not completed, 0x40 cannot move (0x4a66a0).
-uint32_t REB_STDCALL FleetContents(GameObjNotifier* object);
+uint32_t FleetContents(GameObjNotifier* object);
 // Draws the icons for the bits of `contents` on `target`: low (when `compact`) or high row of the picture (0x4a67a0).
-void REB_STDCALL DrawFleetContentIcons(DibBitmap* target, int side, uint32_t contents, int compact);
+void DrawFleetContentIcons(DibBitmap* target, int side, uint32_t contents, int compact);

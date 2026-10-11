@@ -1,7 +1,6 @@
 #include "orders/mission_orders.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "events/person_events.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/object_queries.h"
@@ -59,7 +58,7 @@ uint32_t controlSideOf(const GameObjNotifier* object) { return object->ControlSi
 
 Order242::Order242() : OrderBase() {}
 
-Order242::~Order242() { REB_KEEP_VPTR_STORE(); }
+Order242::~Order242() {  }
 
 Command* Order242::CreateCommand() {
     void* memory = ::operator new(sizeof(RoleActivityCommand));
@@ -72,7 +71,7 @@ Order242* CreateOrder242() { return NewOrNull<Order242>(); }
 
 MissionOrder::MissionOrder() : OrderBase(), m_unk44(0), m_unk48(0) { m_missionKey.m_value = 0; }
 
-MissionOrder::~MissionOrder() { REB_KEEP_VPTR_STORE(); }
+MissionOrder::~MissionOrder() {  }
 
 int MissionOrder::Read(istream* in) {
     int ok = OrderBase::Read(in);
@@ -255,7 +254,7 @@ int MissionOrder::CheckDestination(StatusCode* status) {
 
 MissionOrder240::MissionOrder240() : MissionOrder() {}
 
-MissionOrder240::~MissionOrder240() { REB_KEEP_VPTR_STORE(); }
+MissionOrder240::~MissionOrder240() {  }
 
 int MissionOrder240::CollectCandidatesA(ObjectKeyValueSet* out) {
     out->Clear();
@@ -283,7 +282,7 @@ int MissionOrder240::CollectCandidatesB(ObjectKeyValueSet* out) {
 
 MissionOrder241::MissionOrder241() : MissionOrder() {}
 
-MissionOrder241::~MissionOrder241() { REB_KEEP_VPTR_STORE(); }
+MissionOrder241::~MissionOrder241() {  }
 
 MissionOrder240* CreateMissionOrder240() { return NewOrNull<MissionOrder240>(); }
 

@@ -1,7 +1,6 @@
 #include "ai/ai_posture_util.h"
 #include "ai/ai_postures.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 
 using namespace ai_posture;
 using ai::IsSystemKey;
@@ -18,7 +17,7 @@ void RememberSystem(ObjectKeySet* set, const ObjectKey& key) {
 AiPostureKind2::AiPostureKind2(int view, AiSideController* owner, AiSystemRecord* record)
     : AiPosture(view, owner, record), m_chosen() {}
 
-AiPostureKind2::~AiPostureKind2() { REB_KEEP_VPTR_STORE(); }
+AiPostureKind2::~AiPostureKind2() {  }
 
 void AiPostureKind2::Read(istream* in) {
     AiPosture::Read(in);

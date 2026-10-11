@@ -6,7 +6,6 @@
 #include "ai/ai_task_types.h"
 #include "ai/ai_task_util.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "fleet/troop_reg.h"
 #include "galaxy/system.h"
 #include "gameobj/object_lookup.h"
@@ -175,7 +174,7 @@ AiTask6::AiTask6(int view)
     m_x24 = 0x16;
 }
 
-AiTask6::~AiTask6() { REB_KEEP_VPTR_STORE(); }
+AiTask6::~AiTask6() {  }
 
 FamilyFields AiTask6::Fields() {
     return {m_owner, m_view, m_x24, &m_selector, &m_targets, &m_dropped, &m_system, &m_manager, &m_classKey, &m_count, &m_cap, &m_limit};

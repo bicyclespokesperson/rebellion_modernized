@@ -6,7 +6,6 @@
 #include "ai/ai_task_types.h"
 #include "ai/ai_task_util.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "economy/manu_mgr.h"
 #include "fleet/fight_squad.h"
 #include "galaxy/system.h"
@@ -45,7 +44,7 @@ AiTask10::AiTask10(int view)
     m_x24 = 8;
 }
 
-AiTask10::~AiTask10() { REB_KEEP_VPTR_STORE(); }
+AiTask10::~AiTask10() {  }
 
 FamilyFields AiTask10::Fields() {
     return {m_owner, m_view, m_x24, &m_selector, &m_targets, &m_dropped, &m_system, &m_manager, &m_classKey, &m_count, &m_cap, &m_limit};

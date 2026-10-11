@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "events/ui_notifs_ext.h"
 
 #include <new>
@@ -6,12 +5,11 @@
 #include "app/player_controller_decl.h"
 #include "character/role.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
 #include "mission/mission.h"
 
-ObjectKey* REB_THISCALL GetObjectKey(GameObjNotifier* object, ObjectKey* out);  // 0x4025b0
+ObjectKey* GetObjectKey(GameObjNotifier* object, ObjectKey* out);  // 0x4025b0
 
 namespace {
 
@@ -23,7 +21,7 @@ bool inFamilyRange(const ObjectKey& key, uint32_t first, uint32_t last) { return
 
 UiNotif200::UiNotif200() : IntPairPayload(), m_missionKey() { m_leadsMission = 0; }
 
-UiNotif200::~UiNotif200() { REB_KEEP_VPTR_STORE(); }
+UiNotif200::~UiNotif200() {  }
 
 void UiNotif200::Read(istream* in) {
     ReadPayload(in);
@@ -54,7 +52,7 @@ void* CreateUiNotif200() { return NewOrNull<UiNotif200>(); }
 
 UiNotif1e0::UiNotif1e0() : IntPairPayload(), m_shipKey(), m_grandparentKey(), m_systemKey(), m_locationKey() {}
 
-UiNotif1e0::~UiNotif1e0() { REB_KEEP_VPTR_STORE(); }
+UiNotif1e0::~UiNotif1e0() {  }
 
 int UiNotif1e0::GetKind() { return 0x1e0; }
 

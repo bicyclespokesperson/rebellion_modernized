@@ -5,7 +5,6 @@
 #include "ai/ai_records.h"
 #include "ai/ai_side_controller.h"
 #include "ai/ai_system_record.h"
-#include "core/vptr_store.h"
 #include "gameobj/object_lookup.h"
 #include "mission/mission.h"
 #include "orders/mission_orders.h"
@@ -101,7 +100,7 @@ AiMissionPlanner::AiMissionPlanner(int view, AiSideController* owner, AiCharacte
 AiMissionPlanner::~AiMissionPlanner() {
     m_characters = nullptr;
     m_owner = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiMissionPlanner::Read(istream* in) {
@@ -404,7 +403,7 @@ int AiMissionPlanner::IsReachable(const ObjectKey* character) {
 AiFreePlanner::AiFreePlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters)
     : AiMissionPlanner(view, owner, characters) {}
 
-AiFreePlanner::~AiFreePlanner() { REB_KEEP_VPTR_STORE(); }
+AiFreePlanner::~AiFreePlanner() {  }
 
 void AiFreePlanner::Read(istream* in) { AiMissionPlanner::Read(in); }
 
@@ -568,7 +567,7 @@ OrderBase* AiFreePlanner::MoveTeams() {
 AiSystemPlanner::AiSystemPlanner(int view, AiSideController* owner, AiCharacterRecordSet* characters)
     : AiMissionPlanner(view, owner, characters), m_sectorKey() {}
 
-AiSystemPlanner::~AiSystemPlanner() { REB_KEEP_VPTR_STORE(); }
+AiSystemPlanner::~AiSystemPlanner() {  }
 
 void AiSystemPlanner::Read(istream* in) {
     AiMissionPlanner::Read(in);

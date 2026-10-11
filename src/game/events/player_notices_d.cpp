@@ -3,7 +3,6 @@
 #include <new>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "ui/message_template.h"
 #include "character/character.h"
 #include "character/role.h"
@@ -38,7 +37,7 @@ Notice25::Notice25(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice25::~Notice25() { REB_KEEP_VPTR_STORE(); }
+Notice25::~Notice25() {  }
 
 int Notice25::GetKind() { return 25; }
 
@@ -241,7 +240,7 @@ Notice24::Notice24(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice24::~Notice24() { REB_KEEP_VPTR_STORE(); }
+Notice24::~Notice24() {  }
 
 int Notice24::GetKind() { return 24; }
 

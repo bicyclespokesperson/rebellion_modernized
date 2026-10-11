@@ -11,9 +11,9 @@ public:
     virtual ~AiNoticeQueue();
     void Load(istream* in);
     void Save(ostream* out);
-    void Add(AiNotice* notice);
+    void Add(NotifPayload* notice);
     AiNoticeGroup* DetachFinished();
-    void NewGroup(AiNotice* notice);
+    void NewGroup(NotifPayload* notice);
 
     int m_x0c;
 };

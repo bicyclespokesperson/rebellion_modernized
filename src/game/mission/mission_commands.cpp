@@ -1,5 +1,4 @@
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "events/event_helpers.h"
 #include "gameobj/object_queries.h"
 #include "mission/mission.h"
@@ -49,7 +48,7 @@ MissionOrderCommand::MissionOrderCommand(const MissionOrderCommand& other)
       m_team(other.m_team),
       m_characters(other.m_characters) {}
 
-MissionOrderCommand::~MissionOrderCommand() { REB_KEEP_VPTR_STORE(); }
+MissionOrderCommand::~MissionOrderCommand() {  }
 
 Command* MissionOrderCommand::Clone() { return NewOrNull<MissionOrderCommand>(*this); }
 
@@ -126,7 +125,7 @@ MissionActivityCommand::MissionActivityCommand() : Command() {}
 
 MissionActivityCommand::MissionActivityCommand(const MissionActivityCommand& other) : Command(other) {}
 
-MissionActivityCommand::~MissionActivityCommand() { REB_KEEP_VPTR_STORE(); }
+MissionActivityCommand::~MissionActivityCommand() {  }
 
 Command* MissionActivityCommand::Clone() { return NewOrNull<MissionActivityCommand>(*this); }
 

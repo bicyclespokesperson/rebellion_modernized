@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "character/character_data.h"
@@ -323,7 +322,7 @@ int GetCharacterMemberMask();  // 0x4ed260
 // Static initializer pieces of the event-kind set (see Character::InitStatics).
 
 // The AppendCharacterName free function (secondary vtable slot, takes the ObjectBase subobject).
-void REB_THISCALL AppendCharacterName(ObjectBase* base, String* out, int kind);  // 0x4ed060
+void AppendCharacterName(ObjectBase* base, String* out, int kind);  // 0x4ed060
 
 // Iterator over the children of a game object in the character families 0x30-0x3b (vtable 0x65ce5c).
 class CharacterIterator : public ChildIterator {

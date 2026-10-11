@@ -1,12 +1,11 @@
-#include "core/reb_abi.h"
 #include "audio/sound_buffer.h"
 
 #include <cstring>
 
 #include "audio/interlocked_import.h"
 #include "audio/sound_manager.h"
+#include "port/native/audio_context.h"
 #include "audio/stream_access.h"
-#include "core/vptr_store.h"
 
 using namespace stream_access;
 
@@ -33,6 +32,11 @@ constexpr int kNotificationCount = 2;
 constexpr int kEventCount = 3;
 constexpr int kStopEvent = 2;
 constexpr uint32_t kHalfBufferShift = 1;
+
+struct RefillBusyReset {
+    LONG* busy;
+    ~RefillBusyReset() { InterlockedExchange(busy, 0); }
+};
 
 }  // namespace
 
@@ -144,6 +148,7 @@ SoundBuffer::SoundBuffer(uint32_t sourceKey, WAVEFORMATEX* format, uint32_t buff
     m_key = 0;
     m_sourceKey = sourceKey;
     m_mode = mode;
+    m_size = 0;
     m_remaining = dataLength;
     m_totalLength = dataLength;
     m_writePosition = 0;
@@ -167,7 +172,7 @@ SoundBuffer::SoundBuffer(uint32_t sourceKey, WAVEFORMATEX* format, uint32_t buff
     if (m_mode == kBufferStatic) {
         m_lockFlags = 1;
         m_description.dwFlags |= kStaticFlag;
-        // BUG(original): m_size has not been set yet, so this copies uninitialised memory.
+        // The original relied on zero-filled allocation here, before assigning the DirectSound buffer size.
         m_remaining = *reinterpret_cast<volatile uint32_t*>(&m_size);
     }
     m_volumeSet = 0;
@@ -190,8 +195,6 @@ SoundBuffer::SoundBuffer(uint32_t sourceKey, WAVEFORMATEX* format, uint32_t buff
 }
 
 SoundBuffer::SoundBuffer(const SoundBuffer& original) : m_timer(nullptr, nullptr) {
-    // BUG(original): m_totalLength is never initialised for a duplicate; a looping duplicate restarts with whatever the
-    // heap block held.
     m_key = 0;
     m_writePosition = 0;
     m_loopStart = 0;
@@ -205,6 +208,7 @@ SoundBuffer::SoundBuffer(const SoundBuffer& original) : m_timer(nullptr, nullptr
     m_lockFlags = original.m_lockFlags;
     m_mode = original.m_mode;
     m_size = original.m_size;
+    m_totalLength = 0;  // Duplicates retain the original allocator's zero default.
     m_description = original.m_description;
     m_wrapped = 0;
     m_sourceKey = original.m_sourceKey;
@@ -431,7 +435,7 @@ void SoundBuffer::StopRefillThread() {
     }
 }
 
-void REB_CDECL SoundBuffer::RefillThread(SoundBuffer* buffer) {
+void SoundBuffer::RefillThread(SoundBuffer* buffer) {
     if (!buffer) return;
     if (buffer->m_failed != 0) {
         PostSoundEvent(kSoundBufferFinishedMessage, buffer->m_sourceKey, buffer->m_key);
@@ -446,7 +450,8 @@ void REB_CDECL SoundBuffer::RefillThread(SoundBuffer* buffer) {
         }
         if (signalled == WAIT_OBJECT_0 + kStopEvent) ExitThread(0);
         if (InterlockedExchange(&buffer->m_refillBusy, 1) != 0) continue;
-        REB_TRY {
+        {
+            RefillBusyReset reset{&buffer->m_refillBusy};
             if (signalled <= WAIT_OBJECT_0 + 1) {
                 if (buffer->m_mode == kBufferStreamed && buffer->m_wrapped != 0) {
                     buffer->m_wrapped = 0;
@@ -456,13 +461,7 @@ void REB_CDECL SoundBuffer::RefillThread(SoundBuffer* buffer) {
                     buffer->Refill(buffer->m_stream, buffer->m_loopStart);
                 }
             }
-        } REB_FINALLY {
-            if (REB_ABNORMAL_TERMINATION()) {
-                InterlockedExchange(&buffer->m_refillBusy, 0);
-                ExitThread(99);
-            }
         }
-        InterlockedExchange(&buffer->m_refillBusy, 0);
     }
 }
 
@@ -482,4 +481,7 @@ void DispatchSoundEvent(uint32_t message, uint32_t first, uint32_t second) {
     SoundManager::HandleBufferEvent(message, first, second);
 }
 
-uint32_t GetDefaultVolume() { return static_cast<uint32_t>(g_soundVolume); }
+uint32_t GetDefaultVolume() {
+    const reb::native::AudioContext* context = reb::native::CurrentAudioContext();
+    return context ? static_cast<uint32_t>(context->soundVolume) : 0;
+}

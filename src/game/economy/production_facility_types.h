@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "economy/production_facility.h"
@@ -12,10 +11,10 @@
 
 // Bodies of slots 5-7 and 9 that the wrappers above call (thiscall, `this` passed through; identical code for both
 // classes, so these serve them both).
-int REB_THISCALL ProductionFacilityReadBody(ProductionFacility* self, istream* in);       // 0x52d480 (-> ReadImpl)
-int REB_THISCALL ProductionFacilityWriteBody(ProductionFacility* self, ostream* out);     // 0x52d490 (-> WriteImpl)
-int REB_THISCALL ProductionFacilityApplyAllBody(ProductionFacility* self, NotifyContext* ctx);  // 0x52d4a0 (-> ApplyAllImpl)
-int REB_THISCALL ProductionFacilityChecksumBody(ProductionFacility* self, Crc32* crc);    // 0x52d4b0 (-> ChecksumImpl)
+int ProductionFacilityReadBody(ProductionFacility* self, istream* in);       // 0x52d480 (-> ReadImpl)
+int ProductionFacilityWriteBody(ProductionFacility* self, ostream* out);     // 0x52d490 (-> WriteImpl)
+int ProductionFacilityApplyAllBody(ProductionFacility* self, NotifyContext* ctx);  // 0x52d4a0 (-> ApplyAllImpl)
+int ProductionFacilityChecksumBody(ProductionFacility* self, Crc32* crc);    // 0x52d4b0 (-> ChecksumImpl)
 
 // Family 0x2d (VT 0x6606a0, secondary ObjectBase VT 0x66069c, 0x70 bytes).
 class ProductionFacilityType2D : public ProductionFacility {

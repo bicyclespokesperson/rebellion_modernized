@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "core/reb_x87.h"
 #include "strategy_ui/sector_window.h"
 
@@ -10,7 +9,6 @@
 #include "audio/sound_manager.h"
 #include "core/checked_new.h"
 #include "core/stream_io.h"
-#include "core/vptr_store.h"
 #include "galaxy/sector.h"
 #include "galaxy/system.h"
 #include "gameobj/game_obj.h"
@@ -72,6 +70,7 @@ SectorWindow::SectorWindow(HINSTANCE instance, int x, int y, int width, int heig
     m_sideButton = nullptr;
     m_unknown154 = nullptr;
     m_dragging = 0;
+    m_inputBlocked = 0;
     m_sector = sector;
     m_dragImage = nullptr;
     m_dragLayer = nullptr;
@@ -83,7 +82,7 @@ SectorWindow::SectorWindow(HINSTANCE instance, int x, int y, int width, int heig
 }
 
 SectorWindow::~SectorWindow() {
-    REB_KEEP_VPTR_STORE();
+
     delete m_sideButton;
     delete m_closeButton;
     DeleteBitmap(m_unknown154);
@@ -260,7 +259,7 @@ void SectorWindow::OnCreate1() {
 
 // ---- Messages ----------------------------------------------------------------------------------------------
 
-LRESULT REB_STDCALL SectorWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT SectorWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     HWND galaxyWindow = m_galaxy->m_hwnd;
     if (message < 0x10) {

@@ -1,7 +1,6 @@
 #include "character/character_mgr.h"
 #include "character/character.h"
 #include "character/role.h"
-#include "core/vptr_store.h"
 #include "data/random.h"
 #include "fleet/capship.h"
 #include "fleet/detector.h"
@@ -55,7 +54,7 @@ EncounterContext::EncounterContext()
       m_unitCount(0),
       m_betrayerKey() {}
 
-EncounterContext::~EncounterContext() { REB_KEEP_VPTR_STORE(); }
+EncounterContext::~EncounterContext() {  }
 
 // ---- walkers over the units -----------------------------------------------------------------------------------------------
 

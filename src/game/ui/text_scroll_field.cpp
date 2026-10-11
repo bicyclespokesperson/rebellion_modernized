@@ -1,12 +1,10 @@
-#include "core/reb_abi.h"
 #include "ui/text_scroll_field.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/resource_dll.h"
 
-extern "C" int REB_CDECL _isprint(int c);
+extern "C" int _isprint(int c);
 
 extern const char *g_spaceString;    // 0x6a7f40 " " (shared literal)
 extern const char *g_newlineString;  // 0x6a8170 "\n" (shared literal)
@@ -32,7 +30,7 @@ int NextTabStop(int x, int tabWidth) { return x + 1 + (tabWidth - (x + 1) % tabW
 
 TextLineStart::TextLineStart(int charIndex) : IdLinkNode(), m_charIndex(charIndex) {}
 
-TextLineStart::~TextLineStart() { REB_KEEP_VPTR_STORE(); }
+TextLineStart::~TextLineStart() {  }
 
 // ---- TextScrollField ---------------------------------------------------------------------------------------
 
@@ -70,7 +68,7 @@ TextScrollField::~TextScrollField() {
         if (m_savedFont) SelectObject(m_dc, m_savedFont);
         DeleteDC(m_dc);
     }
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void TextScrollField::NormalizeRect(RECT* rect) {
@@ -665,7 +663,7 @@ void TextScrollField::RestoreCaret(HWND hwnd) {
     ShowCaret(hwnd);
 }
 
-LRESULT REB_STDCALL TextScrollField::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT TextScrollField::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     switch (message) {
     case WM_CREATE: {

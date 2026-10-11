@@ -26,7 +26,7 @@ TacticalDeathStar::TacticalDeathStar(uint32_t family, uint32_t id, int notComple
     m_fired = 0;
 }
 
-TacticalDeathStar::~TacticalDeathStar() { REB_KEEP_VPTR_STORE(); }
+TacticalDeathStar::~TacticalDeathStar() {  }
 
 int TacticalDeathStar::IsOperational() {
     if (m_hasFacility != 0) return 0;
@@ -67,9 +67,11 @@ void TacticalDeathStar::ResetCharge(int) { m_charge = 0; }
 void TacticalDeathStar::Charge(float milliseconds) {
     if (!(m_hull > 0.0f) || m_hasFacility != 0) return;
     const float step = static_cast<float>((static_cast<double>(milliseconds) * 0.33333334f) * 0.001f);
+#ifndef REB_NO_TACTICAL_3D
     if (m_charge < 100.0f && !(static_cast<double>(step) + m_charge < 100.0f)) {
         if (GetObjectManager()->m_playerSide == 1) FUN_005ba980(FUN_005ba8b0(), 0x113, 1);
     }
+#endif
     const double charge = static_cast<double>(step) + m_charge;
     m_charge = static_cast<float>(charge < 100.0f ? charge : 100.0f);
 }

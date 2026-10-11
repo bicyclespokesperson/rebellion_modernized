@@ -1,8 +1,8 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
+#include "data/seed_list.h"
 #include "data/seed_key.h"
 #include "gameobj/game_obj_root.h"
 #include "gameobj/object_key.h"
@@ -14,23 +14,15 @@
 // here.
 //
 // Layout of the pieces this module touches (all defined by the data-table module):
-//   FamilyTable   IdAvlTree of family entries (0x58ec40), m_ok at +0xc
+//   SeedListFileTree   IdAvlTree of loaded seed-list files (0x58ec40), m_ready at +0xc
 //   family entry  0x3c bytes: +0x1c ok flag, +0x20 loader object, +0x28/+0x2c family range, +0x30 IdAvlTree of records
-//   record        an SdRecord: kind range (m_first/m_second), name resource id (m_small), per-view availability
-//                 (m_field40/44), level (m_field50), extra value (m_field54)
+//   record        a DatRecord: kind range (m_first/m_second), name resource id (m_small); records used for level
+//                 queries are actual SdRecord-derived objects with per-view availability and level fields
 
 class DatRecord;
 class String;
 class Crc32;
 class ObjectRefList;
-
-// The table of family entries (0x58ec40, data-table module): an IdAvlTree keyed by family-entry id.
-class FamilyTable : public IdAvlTree {
-public:
-    virtual ~FamilyTable();
-
-    int m_ok;  // +0x0c
-};
 
 class ObjectTypeDb {
 public:
@@ -65,7 +57,7 @@ public:
     void DescribeKey(const SeedKey* key, String* out);
 
     int m_ok;                // +0x04
-    FamilyTable* m_families;  // +0x08
+    SeedListFileTree* m_families;  // +0x08
 };
 
 extern ObjectTypeDb* g_objectTypeDb;  // 0x6bb7a4
@@ -95,4 +87,4 @@ void DescribeDataKey(const SeedKey* key, String* out);        // 0x51ccc0
 int ForEachDataFamily(Crc32* crc);                             // 0x51cce0
 
 // The kind range of a record (copies record+0x24).
-IntPair* REB_THISCALL GetRecordKindRange(DatRecord* record, IntPair* out);
+IntPair* GetRecordKindRange(DatRecord* record, IntPair* out);

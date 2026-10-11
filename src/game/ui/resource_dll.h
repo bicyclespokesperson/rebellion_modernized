@@ -42,5 +42,9 @@ public:
 
 HFONT CoolGetFont(int slot);  // 0x6002b0: g_fontTable.GetFont(slot)
 
-extern ResourceDllList g_resourceDlls;  // 0x6be4c8
-extern FontTable g_fontTable;           // 0x6be4f8
+struct UiResources {
+    ResourceDllList libraries;
+    FontTable fonts{"Arial"};
+};
+
+UiResources* CurrentUiResources();

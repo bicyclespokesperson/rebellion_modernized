@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/fleet_window.h"
 
 #include <new>
@@ -11,7 +10,6 @@
 #include "core/iostream_lib.h"
 #include "core/stream_io.h"
 #include "core/strstream_io.h"
-#include "core/vptr_store.h"
 #include "fleet/capship.h"
 #include "fleet/fight_squad.h"
 #include "fleet/fleet.h"
@@ -178,7 +176,7 @@ FleetWindow::FleetWindow(HINSTANCE instance, int x, int y, CoolWindow* parent, u
 }
 
 FleetWindow::~FleetWindow() {
-    REB_KEEP_VPTR_STORE();
+
     delete m_ownTabs;
     delete m_otherTabs;
     delete m_fleetList;
@@ -380,7 +378,7 @@ void FleetWindow::OnCreate1() {
 
 // ---- Messages -------------------------------------------------------------------------------------------------
 
-LRESULT REB_STDCALL FleetWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT FleetWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     if (message < 8) {
         if (message == WM_SETFOCUS) {
@@ -1236,7 +1234,7 @@ void FleetWindow::UpdateShipList() {
         ostream_operator_ls_char(stream.Out(), 0);
         DrawTextA(dc, strstreambuf_str(StreambufOf(&stream)), -1, &area, DT_SINGLELINE);
         strstreambuf_freeze(StreambufOf(&stream), 0);
-        istream_seekg_pos(reinterpret_cast<istream*>(stream.m_bytes), 0);
+        istream_seekg_pos(stream.In(), 0);
         ostream_seekp_pos(stream.Out(), 0);
         ostream_operator_ls_long(stream.Out(), m_capacityTotal);
         ostream_operator_ls_char(stream.Out(), 0);
@@ -1402,7 +1400,7 @@ void FleetWindow::AddShipRow(GameObjNotifier* object) {
     }
 }
 
-uint32_t REB_STDCALL FleetContents(GameObjNotifier* object) {
+uint32_t FleetContents(GameObjNotifier* object) {
     FightSquadIterator squadrons(object, 3);
     TroopRegIterator regiments(object, 3);
     RoleIterator roles(object, 3);
@@ -1417,7 +1415,7 @@ uint32_t REB_STDCALL FleetContents(GameObjNotifier* object) {
     return contents;
 }
 
-void REB_STDCALL DrawFleetContentIcons(DibBitmap* target, int side, uint32_t contents, int compact) {
+void DrawFleetContentIcons(DibBitmap* target, int side, uint32_t contents, int compact) {
     HMODULE art = CoolAppGetResourceModule(kBitmapSlot);
     const int y = (compact != 0 ? 10 : 0) + 0x17;
     const int skin = SkinOffset(side);
@@ -1439,7 +1437,5 @@ void REB_STDCALL DrawFleetContentIcons(DibBitmap* target, int side, uint32_t con
     }
 }
 
-FontTable g_fontTable = FontTable("Arial");
 POINT g_fleetRowLines[12] = {{2, 6}, {5, 6}, {2, 6}, {2, 50}, {2, 0}, {2, 50}, {2, 0}, {2, 6}, {2, 6}, {5, 6}, {2, 6}, {6, 6}};
 RECT g_fleetInfoRect = {100, 42, 225, 91};
-ResourceDllList g_resourceDlls{};

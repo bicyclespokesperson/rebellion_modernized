@@ -4,7 +4,6 @@
 #include "ai/ai_common.h"
 #include "ai/ai_galaxy_analysis.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "economy/defense_facility.h"
 #include "economy/manu_mgr.h"
 #include "economy/manufacturing_facility.h"
@@ -85,7 +84,7 @@ AiSystemScan::AiSystemScan(System* system) : ObjectKeyNode(KeyOfObject(system)),
 AiSystemScan::~AiSystemScan() {
     m_sector = nullptr;
     m_classes = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiSystemScan::Load(istream* in) {
@@ -317,7 +316,7 @@ AiSectorScan::AiSectorScan(int view) : ObjectKeyNode(), m_flagsA(0), m_flagsB(0)
 AiSectorScan::~AiSectorScan() {
     m_analysis = nullptr;
     for (AiSystemScan*& system : m_systems) system = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiSectorScan::Attach(Sector* sector, AiSystemScanSet* systems) {
@@ -514,7 +513,7 @@ AiSectorScanSet::AiSectorScanSet() : ObjectKeySet(), m_view(0), m_cursor(nullptr
 AiSectorScanSet::~AiSectorScanSet() {
     m_cursorObject = nullptr;
     m_cursor = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 AiSectorScan* AiSectorScanSet::FindScan(ObjectKey key) { return static_cast<AiSectorScan*>(Find(&key)); }
@@ -615,7 +614,7 @@ AiSystemScanSet::~AiSystemScanSet() {
     m_cursorObject = nullptr;
     m_cursor = nullptr;
     m_classes = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 AiSystemScan* AiSystemScanSet::FindScan(ObjectKey key) { return static_cast<AiSystemScan*>(Find(&key)); }

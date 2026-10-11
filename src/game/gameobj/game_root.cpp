@@ -2,7 +2,6 @@
 #include "core/icf_stubs.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "data/probability_table.h"
 #include "mission/mission_forwarders.h"
 #include "gameobj/object_database.h"
@@ -87,7 +86,7 @@ GameRoot::GameRoot()
 }
 
 GameRoot::~GameRoot() {
-    REB_KEEP_VPTR_STORE();
+
     if ((m_flags & kViewSideMask) == 0) {
         deleteView(this, 1);
         deleteView(this, 2);
@@ -96,7 +95,6 @@ GameRoot::~GameRoot() {
         DestroyRandomGenerator();
         DestroyObjectDatabase();
         DestroyUnresolvedKeySet();
-        g_gameRoot = nullptr;
         SetSetupStage(1);
         m_master_f2000003 = nullptr;
         m_master_20000005 = nullptr;
@@ -169,7 +167,6 @@ int GameRoot::StepSetup(int* status) {
         case kStageCreateDatabase:
             CreateObjectDatabase();
             CreateUnresolvedKeySet();
-            g_gameRoot = this;
             break;
         case kStageCheckDatabaseEarly:
         case kStageCheckDatabaseLate:
@@ -242,15 +239,17 @@ int GameRoot::LoadGame(istream* in, GameRoot** out) {
     CreateTableRegistry();
     CreateObjectDatabase();
     int ok = LoadUnresolvedKeySet(in);
-    g_gameRoot = nullptr;
+    GameRoot* root = nullptr;
     for (int view = 0; view < kSideViews; ++view) {
         if (GameRoot* created = NewOrNull<GameRoot>()) {
-            if (view == 0) g_gameRoot = created;
+            if (view == 0) {
+                root = created;
+                *out = root;
+            }
             created->Read(in);
             ok = created->ReadTree(in);
         }
     }
-    GameRoot* root = g_gameRoot;
     *out = root;
     int result = allOf(root != nullptr, ok);
     if (root) {

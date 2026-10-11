@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "app/saved_game_info_decl.h"
@@ -10,9 +9,11 @@
 #include "platform/win32.h"
 #include "ui/cool_app.h"
 
-class AppCommand;
-class StrategicWindow;
-class TacticalWindow;
+class GalaxyWindow;
+class DirectDrawHost;
+namespace reb::native {
+class GameContext;
+}
 
 // What the front-end state machine (RebellionApplication::SetState) is showing. The values are the original
 // state numbers; 6 and 15 are accepted but reset to 0 immediately.
@@ -61,11 +62,15 @@ enum AppMessage : uint32_t {
 // the screens (front-end, strategic, tactical). WinMain builds it and runs its message loop.
 class RebellionApplication : public CoolApp {
 public:
-    RebellionApplication(HINSTANCE instance, uint32_t commandLineFlags, const String* commandLine);  // 0x413000
+    DirectDrawHost& m_display;
+    reb::native::GameContext& m_context;
+
+    RebellionApplication(HINSTANCE instance, uint32_t commandLineFlags, const String* commandLine, DirectDrawHost& display,
+                         reb::native::GameContext& context, UiResources& resources);  // 0x413000
     virtual ~RebellionApplication();  // 0x413440 (scalar deleting destructor 0x413420)
 
     // Slot 5: the window procedure.
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x4138a0
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x4138a0
 
     // The main loop: creates and shows the window, then pumps messages and steps the game while the queue is empty.
     // Returns WM_QUIT's wParam. `unused` is always 1.
@@ -76,7 +81,7 @@ public:
     // Leaves the current state and enters `state` (an AppState).
     void SetState(int state);  // 0x414330
     // Plays the movie `movieId` (0x65..0x6d) in the movie window; `a`/`b` go to the movie window.
-    void PlayMovie(int movieId, const String* caption, void(REB_CDECL* callback)(uint32_t, uint32_t, int));  // 0x4146e0
+    void PlayMovie(int movieId, const String* caption, void(* callback)(uint32_t, uint32_t, int));  // 0x4146e0
     void BeginMovieState();   // 0x414830
     void DoMainChildWindow(int previousState);  // 0x414a80: front-end, lobby or options window for the current state
     void ShowStrategicWindow(int unused);       // 0x414eb0
@@ -131,7 +136,7 @@ public:
     void FillWindowBlack();
 
     PersistentInt m_activationFlags;  // +0xb4 bit 0x10000000: the application is deactivated
-    CoolWindow* m_strategicWindow;    // +0xb8
+    GalaxyWindow* m_strategicWindow;  // +0xb8
     CoolWindow* m_tacticalWindow;     // +0xbc
     CoolWindow* m_activeWindow;       // +0xc0 the screen that has the focus (one of the others or the front-end)
     CoolWindow* m_overlayWindow;      // +0xc4 movie window or confirmation dialog
@@ -169,6 +174,6 @@ public:
 // ---- Application-level helpers (0x401000-0x401c70): they act on g_app, doing nothing without one -----------------
 
 
-int REB_STDCALL WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int showCommand);  // 0x4165b0
+int RunApplication(reb::native::GameContext& context, HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int showCommand);  // 0x4165b0
 void ChangeToInstalledLocation();   // 0x416820
 int InstalledLocationHasBigData();  // 0x416950

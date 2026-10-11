@@ -1,10 +1,10 @@
-#include "core/reb_abi.h"
 #include "tactical/tactical_game.h"
 #include "audio/sound_manager.h"
 
 #include <new>
 
 #include "app/rebapp_globals.h"
+#include "app/battle_flow.h"
 #include "core/checked_new.h"
 #include "tactical/tactical_externals.h"
 #include "tactical/tactical_objmgr.h"
@@ -22,10 +22,12 @@ struct SpriteIdEntry {
     int m_value;
 };
 
+#ifndef REB_NO_TACTICAL_3D
 constexpr float kMillisecondsPerSecond = 1000.0f;
 constexpr float kInitialCameraDistance = 150.0f;
-constexpr float kSimulatorStep = 1.0f;
 constexpr int kForcedSystemField44 = 0x1b;
+#endif
+constexpr float kSimulatorStep = 1.0f;
 
 #include "tactical/tactical_game_tables.inc"
 
@@ -41,16 +43,6 @@ void insertTypeMapEntry(TypeMapTree* tree, const TypeMapEntry& entry) {
 }
 
 void copyOutcome(BattleOutcome* to, const BattleOutcome* from) { *to = *from; }
-
-int destroysSimulatorIfAny() {
-    HeadlessSimulator* simulator = g_headlessSimulator;
-    if (simulator) {
-        simulator->~HeadlessSimulator();
-        operator delete(simulator);
-    }
-    g_headlessSimulator = nullptr;
-    return 1;
-}
 
 }  // namespace
 
@@ -75,23 +67,33 @@ int TypeMapTree::IsLess(AvlNode* a, AvlNode* b) {
 // ---- singletons -----------------------------------------------------------------------------------------------
 
 TacticalGame* GetTacticalGame() {
-    if (!g_tacticalGame) g_tacticalGame = NewOrNull<TacticalGame>();
-    return g_tacticalGame;
+    BattleFlow* flow = GetBattleFlow();
+    return flow ? flow->GetOrCreateTacticalGame() : nullptr;
 }
 
 void DestroyTacticalGame() {
-    if (!g_tacticalGame) return;
-    g_tacticalGame->ShutDownBattle();
-    if (g_tacticalGame) delete g_tacticalGame;
-    g_tacticalGame = nullptr;
+    if (BattleFlow* flow = GetBattleFlow()) flow->DestroyOwnedTacticalGame();
 }
 
 HeadlessSimulator* GetHeadlessSimulator() {
-    if (!g_headlessSimulator) {
-        void* memory = ::operator new(sizeof(HeadlessSimulator));
-        g_headlessSimulator = memory ? new (memory) HeadlessSimulator() : nullptr;
-    }
-    return g_headlessSimulator;
+    TacticalGame* game = GetTacticalGame();
+    return game ? game->GetOrCreateSimulator() : nullptr;
+}
+
+HeadlessSimulator* TacticalGame::Simulator() { return m_simulator.get(); }
+
+HeadlessSimulator* TacticalGame::GetOrCreateSimulator() {
+    if (!m_simulator) m_simulator.reset(NewOrNull<HeadlessSimulator>());
+    return m_simulator.get();
+}
+
+void TacticalGame::DestroySimulator() { m_simulator.reset(); }
+
+TacticalRegistry* TacticalGame::Registry() { return m_registry.get(); }
+
+TacticalRegistry* TacticalGame::GetOrCreateRegistry() {
+    if (!m_registry) m_registry.reset(NewOrNull<TacticalRegistry>());
+    return m_registry.get();
 }
 
 // ---- construction -----------------------------------------------------------------------------------------------
@@ -115,12 +117,13 @@ TacticalGame::TacticalGame() {
 TacticalGame::~TacticalGame() {
     ++m_busy;
     if (m_busy < 0) m_busy = 0;
+#ifndef REB_NO_TACTICAL_3D
     if (m_unk08) delete m_unk08;
+#endif
     m_unk08 = nullptr;
     ShutDownBattle();
     DestroyTacticalSoundManager();
-    if (g_tacticalRegistry) delete g_tacticalRegistry;
-    g_tacticalRegistry = nullptr;
+    m_registry.reset();
 }
 
 uint16_t TacticalGame::LookupTypeSprite(int16_t key) {
@@ -134,6 +137,11 @@ uint16_t TacticalGame::LookupTypeSprite(int16_t key) {
 // ---- battle set-up and tear-down ----------------------------------------------------------------------------------
 
 void TacticalGame::BeginBattle(int appState) {
+#ifdef REB_NO_TACTICAL_3D
+    (void)appState;
+    GetHeadlessSimulator()->FormBattleGroups(0);
+    m_busy = 0;
+#else
     if (m_abstract) {
         GetHeadlessSimulator()->FormBattleGroups(0);
         m_busy = 0;
@@ -142,12 +150,13 @@ void TacticalGame::BeginBattle(int appState) {
     AppSetState(appState);
     GetObjectManager()->SetPlayerSide(GetObjectManager()->m_playerSide);
     m_busy = 0;
+#endif
 }
 
 int TacticalGame::ShutDownBattle() {
     ++m_busy;
     if (m_busy < 0) m_busy = 0;
-    destroysSimulatorIfAny();
+    DestroySimulator();
     DestroyObjectManager();
     DestroyTacticalHub();
     DestroyTurnSync();
@@ -165,20 +174,34 @@ uint32_t TacticalGame::FindShipTypeIndex(uint32_t typeBits) {
     return 0;
 }
 
-int TacticalGame::GetPlayerSide() { return GetObjectManager()->m_playerSide; }
-
-void TacticalGame::CallClientSlot1() {
-    FUN_0059ed70();
-    g_tacticalClient->Virtual01();
+int TacticalGame::GetPlayerSide() {
+#ifdef REB_NO_TACTICAL_3D
+    return 0;
+#else
+    return GetObjectManager()->m_playerSide;
+#endif
 }
 
-int REB_THISCALL TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name, float sideAValue,
+void TacticalGame::CallClientSlot1() {
+#ifdef REB_NO_TACTICAL_3D
+    return;
+#else
+    FUN_0059ed70();
+    g_tacticalClient->Virtual01();
+#endif
+}
+
+int TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name, float sideAValue,
                               float sideBValue, int sideAC, int sideBC, GameTime timeA, GameTime timeB,
                               int battleKindNotAlliance, int systemFlag8, int controlIsEmpire, int controlIsAlliance,
                               int abstractFlag) {
-    destroysSimulatorIfAny();
+    self->DestroySimulator();
     DestroyObjectManager();
+#ifdef REB_NO_TACTICAL_3D
+    abstractFlag = 1;
+#endif
     self->m_abstract = abstractFlag;
+#ifndef REB_NO_TACTICAL_3D
     if (abstractFlag == 0) {
         FUN_005be0f0();
         GetObjectManager()->m_playerSide = humanIsNotAlliance;
@@ -193,7 +216,9 @@ int REB_THISCALL TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAllia
         GetObjectManager()->m_battleKindNotAlliance = battleKindNotAlliance;
         GetObjectManager()->SetControlFlags(controlIsEmpire, controlIsAlliance);
         GetObjectManager()->m_cameraDistance = kInitialCameraDistance;
-    } else {
+    } else
+#endif
+    {
         GetHeadlessSimulator()->SetSideValue(0, sideAValue);
         GetHeadlessSimulator()->SetSideValue(1, sideBValue);
         GetHeadlessSimulator()->SetSideFlag(0, sideAC);
@@ -207,12 +232,16 @@ int REB_THISCALL TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAllia
     return 1;
 }
 
-int REB_THISCALL TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name, float sideAValue,
+int TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name, float sideAValue,
                                    float sideBValue, int sideAC, int sideBC, int battleKindNotAlliance,
                                    int systemFlag8, int controlIsEmpire, int controlIsAlliance, int abstractFlag) {
-    destroysSimulatorIfAny();
+    self->DestroySimulator();
     DestroyObjectManager();
+#ifdef REB_NO_TACTICAL_3D
+    abstractFlag = 1;
+#endif
     self->m_abstract = abstractFlag;
+#ifndef REB_NO_TACTICAL_3D
     if (abstractFlag == 0) {
         FUN_005bf320();
         GetObjectManager()->m_playerSide = humanIsNotAlliance;
@@ -224,7 +253,9 @@ int REB_THISCALL TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNot
         GetObjectManager()->SetSideFlag(1, sideBC);
         GetObjectManager()->SetControlFlags(controlIsEmpire, controlIsAlliance);
         GetObjectManager()->m_battleKindNotAlliance = battleKindNotAlliance;
-    } else {
+    } else
+#endif
+    {
         GetHeadlessSimulator()->SetSideValue(0, sideAValue);
         GetHeadlessSimulator()->SetSideValue(1, sideBValue);
         GetHeadlessSimulator()->SetSideFlag(0, sideAC);
@@ -255,10 +286,16 @@ void TacticalGame::CopyHubPlayerFlags4(uint32_t* out) { FUN_005a0c20(FUN_0059ed7
 void TacticalGame::PostHubPair(int a, int b) { FUN_005a0b50(FUN_0059ed70(), a, b); }
 
 int TacticalGame::ResetBattleView() {
+#ifdef REB_NO_TACTICAL_3D
+    FUN_005c1020(0);
+    m_busy = 0;
+    return 1;
+#else
     GetObjectManager()->ResetView();
     FUN_005c1020(0);
     m_busy = 0;
     return 1;
+#endif
 }
 
 int TacticalGame::HubIsRunning() { return FUN_0059f6e0(FUN_0059ed70()); }
@@ -272,6 +309,9 @@ int TacticalGame::Update(float unused) {
         copyOutcome(&m_outcome, &GetHeadlessSimulator()->m_outcome);
         return 1;
     }
+#ifdef REB_NO_TACTICAL_3D
+    return 0;
+#else
     if (AppIsSaveLoadPending() == 1) {
         if (GetObjectManager()->m_pauseCount == 0) {
             GetObjectManager()->Virtual03();
@@ -306,18 +346,32 @@ int TacticalGame::Update(float unused) {
     copyOutcome(&m_outcome, &GetObjectManager()->m_outcome);
     ShutDownBattle();
     return 1;
+#endif
 }
 
 int TacticalGame::Advance(float milliseconds) {
+#ifdef REB_NO_TACTICAL_3D
+    (void)milliseconds;
+    return 0;
+#else
     if (m_busy != 0) return 0;
     m_busy = 1;
     GetObjectManager()->Step(milliseconds);
     --m_busy;
     if (m_busy < 0) m_busy = 0;
     return GetObjectManager()->m_finished != 0;
+#endif
 }
 
-void TacticalGame::ForwardToObjectManager(int a, int b, int c) { GetObjectManager()->ForwardEvent(a, b, c); }
+void TacticalGame::ForwardToObjectManager(int a, int b, int c) {
+#ifdef REB_NO_TACTICAL_3D
+    (void)a;
+    (void)b;
+    (void)c;
+#else
+    GetObjectManager()->ForwardEvent(a, b, c);
+#endif
+}
 
 void TacticalGame::GetOutcome(BattleOutcome* out) { *out = m_outcome; }
 
@@ -326,12 +380,19 @@ int TacticalGame::AddDeathStar(int family, int id, int notCompleted, int hasFaci
     if (m_abstract) {
         return GetHeadlessSimulator()->AddDeathStar(family, id, notCompleted, hasFacility, hull, hullNow, hangarFree);
     }
+#ifdef REB_NO_TACTICAL_3D
+    return 0;
+#else
     return GetObjectManager()->AddDeathStar(family, id, notCompleted, hasFacility, hull, hullNow, hangarFree);
+#endif
 }
 
 // ---- teardown of the 3D battle's sound manager and turn-sync object (neither exists in an auto-resolved battle) ---------
 
 void DestroyTacticalSoundManager() {
+#ifdef REB_NO_TACTICAL_3D
+    return;
+#else
     if (g_tacticalSoundManager == nullptr) return;
     for (TacticalSoundNode* sound = g_tacticalSoundManager->FirstSound(); sound != nullptr;
          sound = g_tacticalSoundManager->FirstSound()) {
@@ -340,13 +401,18 @@ void DestroyTacticalSoundManager() {
     SoundManager::Shutdown(0);
     delete g_tacticalSoundManager;
     g_tacticalSoundManager = nullptr;
+#endif
 }
 
 void DestroyTurnSync() {
+#ifdef REB_NO_TACTICAL_3D
+    return;
+#else
     TacticalTurnSync* sync = g_tacticalTurnSync;
     if (sync != nullptr) {
         FUN_005bbe20(sync);
         ::operator delete(sync);
     }
     g_tacticalTurnSync = nullptr;
+#endif
 }

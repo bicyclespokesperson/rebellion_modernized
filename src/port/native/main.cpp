@@ -11,7 +11,7 @@
 #include "app/rebellion_application.h"
 #include "platform/win32.h"
 #include "port/native/first_run.h"
-#include "port/native/game_initialization.h"
+#include "port/native/game_context.h"
 #include "port/native/native_clock.h"
 #include "port/native/startup_assets.h"
 
@@ -54,12 +54,12 @@ int main(int argc, char** argv) {
         reb::native::StartupAssets startupAssets(reb::native::StartupAssetPath());
         if (!reb::native::CheckInstallation()) return 1;
         minwin_wiring::Install();
-        reb::native::GameInitialization initialization;
-        initialization.Start();
+        reb::native::GameContext context;
+        context.Start();
         std::string commandLine = CommandLineFrom(argc, argv);
         HINSTANCE instance = reinterpret_cast<HINSTANCE>(GetModuleHandleA(nullptr));
-        int result = WinMain(instance, nullptr, commandLine.data(), 10 /* SW_SHOWDEFAULT */);
-        initialization.Shutdown();
+        int result = RunApplication(context, instance, nullptr, commandLine.data(), 10 /* SW_SHOWDEFAULT */);
+        context.Shutdown();
         return result;
     } catch (const std::exception& error) {
         std::cerr << "Native startup failed: " << error.what() << '\n';

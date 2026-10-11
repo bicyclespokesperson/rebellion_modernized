@@ -65,7 +65,7 @@ int CheckThreeSets(MissionCheckArgs* check, StatusCode* status, int* out, ThreeS
 
 MissionRecruit::MissionRecruit() {}
 
-MissionRecruit::~MissionRecruit() { REB_KEEP_VPTR_STORE(); }
+MissionRecruit::~MissionRecruit() {  }
 
 int MissionRecruit::Read(istream* in) {
     if (!this->Mission::ReadImpl(in)) return 0;

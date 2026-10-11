@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "galaxy/role_container.h"
 
 #include <new>
@@ -6,7 +5,6 @@
 #include "character/character.h"
 #include "character/role.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/object_family.h"
 #include "orders/order_checks.h"
@@ -42,7 +40,7 @@ bool coversOnlyRoleFamilies(const FamilyRange* range) {
 
 RoleContainer::RoleContainer() : GameObj() {}
 
-RoleContainer::~RoleContainer() { REB_KEEP_VPTR_STORE(); }
+RoleContainer::~RoleContainer() {  }
 
 uint32_t RoleContainer::GetFamily() { return kContainerFamily; }
 

@@ -1,9 +1,9 @@
-#include "core/reb_abi.h"
 #include "app/battle_flow.h"
 
 #include <new>
 
 #include "app/rebapp_globals.h"
+#include "core/checked_new.h"
 #include "core/file_util.h"
 #include "core/iostream_lib.h"
 #include "events/game_clock_hooks.h"
@@ -81,35 +81,61 @@ int GetBattleStateName(int state, String* out) {
 
 // ---- game step driver lifetime ---------------------------------------------------------------------------------------------
 
-int CreateGameStepDriver() {
-    void* memory = AllocateChecked(sizeof(GameStepDriver));
-    g_gameStepDriver = memory ? new (memory) GameStepDriver() : nullptr;
+GameStepDriver* BattleFlow::StepDriver() const noexcept { return m_stepDriver.get(); }
+
+TacticalGame* BattleFlow::TacticalGameInstance() const noexcept { return m_tacticalGame.get(); }
+
+TacticalGame* BattleFlow::GetOrCreateTacticalGame() {
+    if (!m_tacticalGame) m_tacticalGame.reset(NewOrNull<TacticalGame>());
+    return m_tacticalGame.get();
+}
+
+void BattleFlow::DestroyOwnedTacticalGame() {
+    if (!m_tacticalGame) return;
+    m_tacticalGame->ShutDownBattle();
+    m_tacticalGame.reset();
+}
+
+int BattleFlow::CreateStepDriver() {
+    m_stepDriver.reset(NewOrNull<GameStepDriver>());
     int ok = 0;
-    if (g_gameStepDriver && g_gameStepDriver->m_ok != 0) {
-        ok = g_gameStepDriver->m_ok;
+    if (m_stepDriver && m_stepDriver->m_ok != 0) {
+        ok = m_stepDriver->m_ok;
         buildInstalledPath();
     }
     return ok;
 }
 
-int REB_STDCALL CreateGameStepDriverFor(GameSettings* settings, int a, int b) {
-    void* memory = AllocateChecked(sizeof(GameStepDriver));
-    g_gameStepDriver = memory ? new (memory) GameStepDriver(a, b) : nullptr;
+int BattleFlow::CreateStepDriverFor(GameSettings* settings, int a, int b) {
+    m_stepDriver.reset(NewOrNull<GameStepDriver>());
+    if (m_stepDriver) m_stepDriver->InitializeSession(a, b);
     int ok = 0;
-    if (g_gameStepDriver && g_gameStepDriver->m_ok != 0) {
-        ok = g_gameStepDriver->m_ok;
+    if (m_stepDriver && m_stepDriver->m_ok != 0) {
+        ok = m_stepDriver->m_ok;
         buildInstalledPath();
-        g_gameStepDriver->BeginNewGame(settings);
+        m_stepDriver->BeginNewGame(settings);
     }
     return ok;
+}
+
+int BattleFlow::DestroyStepDriver() {
+    m_stepDriver.reset();
+    return 1;
+}
+
+int CreateGameStepDriver() {
+    BattleFlow* flow = GetBattleFlow();
+    return flow ? flow->CreateStepDriver() : 0;
+}
+
+int CreateGameStepDriverFor(GameSettings* settings, int a, int b) {
+    BattleFlow* flow = GetBattleFlow();
+    return flow ? flow->CreateStepDriverFor(settings, a, b) : 0;
 }
 
 int DestroyGameStepDriver() {
-    if (g_gameStepDriver) {
-        delete g_gameStepDriver;
-        g_gameStepDriver = nullptr;
-    }
-    return 1;
+    BattleFlow* flow = GetBattleFlow();
+    return flow ? flow->DestroyStepDriver() : 1;
 }
 
 void* AllocateChecked(unsigned size) { return ::operator new(size); }
@@ -128,7 +154,7 @@ void BattleFlow::Step(int* stepped) {
     const bool tacticalState = m_state >= 0x14 && m_state <= 0x17;
     int runnable = strategicState || tacticalState;
     if (!runnable) return;
-    if (strategicState) runnable = g_gameStepDriver != nullptr;
+    if (strategicState) runnable = m_stepDriver.get() != nullptr;
     if (!runnable) return;
 
     ObjectKey rootKey;
@@ -140,32 +166,32 @@ void BattleFlow::Step(int* stepped) {
 
     switch (previousState) {
         case kFlowInit:
-            if (g_gameStepDriver->StepSetup(&status)) {
+            if (m_stepDriver.get()->StepSetup(&status)) {
                 AppForwardToStrategicWindow();
                 m_state = kFlowStrategic;
             }
             break;
         case kFlowStrategic:
-            if (g_gameStepDriver->Step(reinterpret_cast<uint32_t*>(stepped))) m_state = kFlowAllBattleStart;
+            if (m_stepDriver.get()->Step(reinterpret_cast<uint32_t*>(stepped))) m_state = kFlowAllBattleStart;
             break;
         case kFlowAllBattleStart:
-            g_gameStepDriver->m_hold = 1;
+            m_stepDriver.get()->m_hold = 1;
             m_state = kFlowBattleStart;
             break;
         case kFlowBattleStart:
-            status = StartPendingGameBattle();
+            status = m_stepDriver->Manager() ? m_stepDriver->Manager()->StartPendingBattle() : 0;
             if (status != 0) {
-                status = g_gameStepDriver->GetRootKey(&rootKey);
+                status = m_stepDriver.get()->GetRootKey(&rootKey);
                 if (status != 0) m_state = rootKey.IsSet() ? kFlowBattleChooseType : kFlowAllBattleFinish;
             }
             break;
         case kFlowBattleChooseType:
-            status = g_gameStepDriver->GetRootKey(&rootKey);
+            status = m_stepDriver.get()->GetRootKey(&rootKey);
             if (status != 0) UiBeginVoteAll(GameHookTickCount(), &rootKey);
             m_state = kFlowBattleWaitForType;
             break;
         case kFlowBattleWaitForType:
-            g_gameStepDriver->Step(reinterpret_cast<uint32_t*>(stepped));
+            m_stepDriver.get()->Step(reinterpret_cast<uint32_t*>(stepped));
             UiExchangeVotesTimed(&allVoted, &unanimous, &m_voteTimeA, &m_voteTimeB);
 #ifdef REB_NO_TACTICAL_3D
             unanimous = 1;  // no 3D engine: a "tactical" vote (2) is resolved like auto-resolve (1)
@@ -173,9 +199,9 @@ void BattleFlow::Step(int* stepped) {
             if (allVoted != 0) m_state = (unanimous != 0) + kFlowConvertToTactical;
             break;
         case kFlowConvertToTactical: {
-            if (g_gameStepDriver) {
+            if (m_stepDriver.get()) {
                 BattleSetup setup;
-                setup.m_driver = g_gameStepDriver;
+                setup.m_driver = m_stepDriver.get();
                 setup.m_abstract = 0;
                 setup.m_timeA = m_voteTimeA;
                 setup.m_timeB = m_voteTimeB;
@@ -188,20 +214,20 @@ void BattleFlow::Step(int* stepped) {
                 OpenOutputFile(file.get(), saveName.m_text);
                 if (GetFileError() == 0) {
                     HCURSOR previousCursor = showWaitCursor();
-                    SaveStrategic(reinterpret_cast<ostream*>(file.get()));
+                    SaveStrategic(file.get()->Out());
                     SetCursor(previousCursor);
                 }
                 CloseFileStream(file.get());
             }
-            DestroyGameStepDriver();
+            DestroyStepDriver();
             TacticalStart();
             m_state = kFlowTactical;
             break;
         }
         case kFlowConvertToAbstract:
-            if (g_gameStepDriver) {
+            if (m_stepDriver.get()) {
                 BattleSetup setup;
-                setup.m_driver = g_gameStepDriver;
+                setup.m_driver = m_stepDriver.get();
                 setup.m_abstract = 1;
                 setup.m_timeA = m_voteTimeA;
                 setup.m_timeB = m_voteTimeB;
@@ -211,35 +237,35 @@ void BattleFlow::Step(int* stepped) {
             m_state = kFlowTacticalAbstract;
             break;
         case kFlowBattleFinish:
-            status = RunGameFollowUps();
+            status = m_stepDriver->Manager() ? m_stepDriver->Manager()->RunFollowUps() : 0;
             m_state = kFlowBattleChooseDone;
             break;
         case kFlowBattleChooseDone:
-            status = g_gameStepDriver->GetRootKey(&rootKey);
+            status = m_stepDriver.get()->GetRootKey(&rootKey);
             if (status != 0) UiResetVoteAll(GameHookTickCount(), &rootKey);
             m_state = kFlowBattleWaitForDone;
             break;
         case kFlowBattleWaitForDone:
-            g_gameStepDriver->Step(reinterpret_cast<uint32_t*>(stepped));
+            m_stepDriver.get()->Step(reinterpret_cast<uint32_t*>(stepped));
             UiExchangeVotes(&allConfirmed);
             if (allConfirmed != 0) m_state = kFlowBattleStart;
             break;
         case kFlowAllBattleFinish:
-            g_gameStepDriver->ClearHold();
+            m_stepDriver.get()->ClearHold();
             UiResumePendingRequest();
             m_state = kFlowStrategic;
             break;
         case kFlowTactical:
-            if (GetTacticalGame()->Update(g_tacticalFrameMilliseconds)) m_state = kFlowTacticalToStrategic;
+            if (GetOrCreateTacticalGame()->Update(g_tacticalFrameMilliseconds)) m_state = kFlowTacticalToStrategic;
             break;
         case kFlowTacticalAbstract:
-            if (GetTacticalGame()->Update(g_tacticalFrameMilliseconds)) m_state = kFlowAbstractToStrategic;
+            if (GetOrCreateTacticalGame()->Update(g_tacticalFrameMilliseconds)) m_state = kFlowAbstractToStrategic;
             break;
         case kFlowTacticalToStrategic: {
             int inconclusiveLive = 0;
-            void* memory = AllocateChecked(sizeof(GameStepDriver));
-            g_gameStepDriver = memory ? new (memory) GameStepDriver() : nullptr;
-            if (g_gameStepDriver && g_gameStepDriver->m_ok != 0) {
+            DestroyStepDriver();
+            m_stepDriver.reset(NewOrNull<GameStepDriver>());
+            if (m_stepDriver && m_stepDriver->m_ok != 0) {
                 String path;
                 BuildSaveDirectory(&path);
             }
@@ -249,27 +275,27 @@ void BattleFlow::Step(int* stepped) {
                 BuildPreBattleSavePath(&saveName);
                 DeleteGameFile(saveName.m_text);
             }
-            if (g_gameStepDriver) {
+            if (m_stepDriver.get()) {
                 BattleResults results;
-                results.m_driver = g_gameStepDriver;
+                results.m_driver = m_stepDriver.get();
                 results.m_abstract = 0;
                 results.Apply(&inconclusiveLive);
             }
-            DestroyTacticalGame();
-            if (g_gameStepDriver) RunSchedulerUntilIdle();
+            DestroyOwnedTacticalGame();
+            if (m_stepDriver && m_stepDriver->Manager()) m_stepDriver->Manager()->RunUntilIdle();
             m_state = 9 - (inconclusiveLive != 0);
             break;
         }
         case kFlowAbstractToStrategic: {
             int inconclusive = 0;
-            if (g_gameStepDriver) {
+            if (m_stepDriver.get()) {
                 BattleResults results;
-                results.m_driver = g_gameStepDriver;
+                results.m_driver = m_stepDriver.get();
                 results.m_abstract = 1;
                 results.Apply(&inconclusive);
             }
-            DestroyTacticalGame();
-            if (g_gameStepDriver) RunSchedulerUntilIdle();
+            DestroyOwnedTacticalGame();
+            if (m_stepDriver && m_stepDriver->Manager()) m_stepDriver->Manager()->RunUntilIdle();
             m_state = kFlowBattleFinish;
             break;
         }

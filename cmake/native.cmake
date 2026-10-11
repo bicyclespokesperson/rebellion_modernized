@@ -11,7 +11,7 @@ set(REB_NATIVE_SANITIZE "" CACHE STRING "address;undefined: sanitizers for the g
 set(REB_STARTUP_ASSET_PACK "${CMAKE_BINARY_DIR}/startup-assets.bin" CACHE FILEPATH "Locally extracted startup asset pack")
 
 set(REB_NATIVE_FLAGS
-  -fms-extensions -fcheck-new -fwrapv -fno-strict-aliasing -fsigned-char
+  -fms-extensions -fwrapv -fno-strict-aliasing -fsigned-char
   -ffp-contract=off -fno-fast-math -fno-omit-frame-pointer -fPIE
   -Wno-microsoft-anon-tag -Wno-ignored-attributes -Wno-deprecated-declarations -Wno-invalid-offsetof
   -Wno-writable-strings -Wno-c++11-narrowing -Wno-microsoft-enum-value -Wno-microsoft-cast
@@ -21,36 +21,19 @@ if(REB_NATIVE_SANITIZE)
   list(APPEND REB_NATIVE_FLAGS -fsanitize=${REB_SAN_LIST} -fsanitize-recover=all -fno-sanitize=function)
   set(REB_NATIVE_LINK_FLAGS -fsanitize=${REB_SAN_LIST})
 
-  # These translation units still cross opaque legacy class boundaries whose native type definitions are stand-ins.
-  # UBSan's vptr instrumentation asks for RTTI that those external class definitions do not provide. Keep the rest of
-  # undefined-behavior instrumentation enabled and track replacing these stand-ins with owning native types separately.
-  set(REB_OPAQUE_VPTR_SOURCES
-    src/game/app/app_save_load.cpp
-    src/game/app/game_session.cpp
-    src/game/app/rebellion_application.cpp
-    src/game/events/game_manager.cpp
-    src/game/events/game_manager_state.cpp
-    src/game/events/player_dispatch.cpp
-    src/game/gameobj/object_type_db.cpp
-    src/game/multiplayer/comm_mgr.cpp
-    src/game/multiplayer/remote_player.cpp
-    src/game/strategy_ui/ui_handler_table.cpp
-    src/game/tactical/tactical_game.cpp
-    src/game/tactical/tactical_objmgr.cpp)
-  set_source_files_properties(${REB_OPAQUE_VPTR_SOURCES} PROPERTIES COMPILE_OPTIONS "-fno-sanitize=vptr")
 endif()
 
-# The game's own versions of C library functions whose behaviour is game behaviour (src/game/crt) must not collide with libc's.
-set(REB_NATIVE_RENAMES -include ${CMAKE_SOURCE_DIR}/src/port/native/crt/native_prelude.h)
+# Host runtime declarations for remaining platform compatibility calls.
+set(REB_NATIVE_RUNTIME -include ${CMAKE_SOURCE_DIR}/src/port/native/crt/native_runtime.h)
 set(REB_NATIVE_DEFS REB_STANDALONE=1 REB_MINWIN=1 REB_NATIVE=1 REB_NO_TACTICAL_3D=1)
 
 add_library(reb_game OBJECT ${REB_GAME_SOURCES})
 target_include_directories(reb_game PRIVATE src/game src src/port/native/crt)
-target_compile_options(reb_game PRIVATE ${REB_NATIVE_FLAGS} ${REB_NATIVE_RENAMES})
+target_compile_options(reb_game PRIVATE ${REB_NATIVE_FLAGS} ${REB_NATIVE_RUNTIME})
 target_compile_definitions(reb_game PRIVATE ${REB_NATIVE_DEFS})
 add_library(reb_tactical_stubs OBJECT src/game/tactical/tactical_3d_absent.cpp)
 target_include_directories(reb_tactical_stubs PRIVATE src/game src src/port/native/crt)
-target_compile_options(reb_tactical_stubs PRIVATE ${REB_NATIVE_FLAGS} ${REB_NATIVE_RENAMES})
+target_compile_options(reb_tactical_stubs PRIVATE ${REB_NATIVE_FLAGS} ${REB_NATIVE_RUNTIME})
 target_compile_definitions(reb_tactical_stubs PRIVATE ${REB_NATIVE_DEFS})
 
 # ---- third-party: SDL3 and FreeType, static, from the pinned sources (tools/fetch_deps.sh) -------------------------------
@@ -119,3 +102,22 @@ add_executable(rebellion
 set_target_properties(rebellion PROPERTIES LINKER_LANGUAGE CXX)
 target_link_libraries(rebellion PRIVATE freetype SDL3-static ${REB_PLATFORM_LIBS} ${REB_NATIVE_LINK_FLAGS})
 reb_native_platform_package(rebellion)
+
+include(CTest)
+if(BUILD_TESTING)
+  add_executable(reb_stream_tests
+    tests/stream_io_tests.cpp
+    tests/stream_io_test_support.cpp
+    src/game/iostream/filebuf.cpp
+    src/game/iostream/ios.cpp
+    src/game/iostream/istream.cpp
+    src/game/iostream/ostream.cpp
+    src/game/iostream/stream_ctors.cpp
+    src/game/iostream/streambuf.cpp
+    src/game/iostream/strstreambuf.cpp)
+  target_include_directories(reb_stream_tests PRIVATE src/game src src/port/native/crt)
+  target_compile_options(reb_stream_tests PRIVATE ${REB_NATIVE_FLAGS} ${REB_NATIVE_RUNTIME})
+  target_compile_definitions(reb_stream_tests PRIVATE ${REB_NATIVE_DEFS})
+  target_link_libraries(reb_stream_tests PRIVATE ${REB_PLATFORM_LIBS} ${REB_NATIVE_LINK_FLAGS})
+  add_test(NAME native_stream_io COMMAND reb_stream_tests)
+endif()

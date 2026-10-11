@@ -28,7 +28,6 @@
 
 #include "port/sim_harness.h"
 
-int RebHeapProbeMode();
 
 namespace {
 
@@ -89,24 +88,6 @@ bool ReadOptions(SimOptions* options) {
     return n != 0 && n < sizeof buffer && ParseOptions(buffer, options);
 }
 
-// Where the heap puts things, for checking that REB_HEAP_PROBE took effect; kept out of the compared log.
-void LogHeapSample(const char* when) {
-    char path[MAX_PATH];
-    if (!GetEnvironmentVariableA("REB_LOG", path, sizeof path - 8)) return;
-    strcat(path, ".heap");
-    HANDLE file = CreateFileA(path, FILE_APPEND_DATA, FILE_SHARE_READ, nullptr, OPEN_ALWAYS, FILE_ATTRIBUTE_NORMAL, nullptr);
-    if (file == INVALID_HANDLE_VALUE) return;
-    void* first = operator new(32);
-    void* second = operator new(32);
-    char line[200];
-    const int n = snprintf(line, sizeof line, "%s: mode %d, driver %p, new %p then %p\n", when, RebHeapProbeMode(), static_cast<void*>(g_gameStepDriver), first, second);
-    DWORD written;
-    WriteFile(file, line, static_cast<DWORD>(n), &written, nullptr);
-    CloseHandle(file);
-    operator delete(second);
-    operator delete(first);
-}
-
 int Finish(int code, const char* message) {
     Log("%s", message);
     if (g_log != INVALID_HANDLE_VALUE) {
@@ -122,7 +103,7 @@ bool LoadGame(RebellionApplication* app, const char* path, SavedGameInfo* info) 
     ScopedIfstream file;
     OpenInputFile(file.get(), path);
     if (GetFileError() != 0) return false;
-    istream* in = reinterpret_cast<istream*>(file.get());
+    istream* in = file.get()->In();
     info->Read(in);
     app->m_unknown130 = info->m_unknown10;
     app->m_side = info->m_side;
@@ -142,7 +123,7 @@ bool LoadGame(RebellionApplication* app, const char* path, SavedGameInfo* info) 
     if (flow->m_ok == 0 || flow->m_state != 2) return false;
     if (CreateGameStepDriver() == 0) return false;
     CheckPositionMarker(in);
-    const int loaded = g_gameStepDriver->Load(in);
+    const int loaded = GetGameStepDriver()->Load(in);
     const int readState = iostream_access::State(file.get());
     flow->m_ok = 1;
     CloseFileStream(file.get());
@@ -161,8 +142,8 @@ bool SaveGame(RebellionApplication* app, const SavedGameInfo& source, const char
     info.SetName(source.GetName());
     info.m_side = app->m_side;
     info.m_unknown24 = app->m_autosaveTick;
-    info.Write(reinterpret_cast<ostream*>(file.get()));
-    AppSaveGame(file.get());
+    info.Write(file.get()->Out());
+    AppSaveGame(file.get()->Out());
     const int writeState = iostream_access::State(file.get());
     CloseFileStream(file.get());
     return writeState == 0 && iostream_access::State(file.get()) == 0;
@@ -171,7 +152,7 @@ bool SaveGame(RebellionApplication* app, const SavedGameInfo& source, const char
 const char* ValidateReferences() {
     BattleFlow* flow = GetBattleFlow();
     if (!flow || flow->m_state != kFlowStrategic) return "battle flow";
-    if (!g_gameStepDriver || !g_gameStepDriver->m_ok) return "game step driver";
+    if (!GetGameStepDriver() || !GetGameStepDriver()->m_ok) return "game step driver";
     if (!GetGameManager()) return "game manager";
     GameSession* session = GetGameSession();
     if (!session || !session->m_valid) return "game session";
@@ -208,7 +189,7 @@ void AnswerHumanVotes(const BattleFlow* flow) {
 }
 
 bool FrameSettled(const BattleFlow* flow) {
-    return flow->m_state == kFlowStrategic && g_gameStepDriver && g_gameStepDriver->m_phase == 0;
+    return flow->m_state == kFlowStrategic && GetGameStepDriver() && GetGameStepDriver()->m_phase == 0;
 }
 
 // Runs frames until the game's tick counter reaches `target` and the frame phases of that tick are done.
@@ -217,12 +198,12 @@ bool RunToTick(RebellionApplication* app, uint32_t target, StepStats* stats) {
     uint32_t frames = 0;
     for (;;) {
         BattleFlow* flow = GetBattleFlow();
-        if (!flow || !g_gameStepDriver) return false;
+        if (!flow || !GetGameStepDriver()) return false;
         const uint32_t tick = static_cast<uint32_t>(GetGameTickCount());
         if (tick >= target && FrameSettled(flow)) break;
         if (++frames > kFrameLimit) {
-            Log("stall: tick %u state %d phase %d hold %d pause %d", tick, flow->m_state, g_gameStepDriver->m_phase,
-                g_gameStepDriver->m_hold, g_gameStepDriver->m_pauseTick);
+            Log("stall: tick %u state %d phase %d hold %d pause %d", tick, flow->m_state, GetGameStepDriver()->m_phase,
+                GetGameStepDriver()->m_hold, GetGameStepDriver()->m_pauseTick);
             return false;
         }
         app->m_waitElapsed = 1;
@@ -263,10 +244,9 @@ int RebSimRun(RebellionApplication* app) {
         return Finish(6, "REB_SIM: reference validation failed");
     }
     const uint32_t startTick = static_cast<uint32_t>(GetGameTickCount());
-    LogHeapSample("loaded");
     Log("loaded %s: tick %u side %d type %d pause %d", options.load, startTick, app->m_side, app->m_gameType,
-        g_gameStepDriver->m_pauseTick);
-    g_gameStepDriver->m_pauseTick = 0;  // a loaded game starts paused; the player's un-pause click is not simulated
+        GetGameStepDriver()->m_pauseTick);
+    GetGameStepDriver()->m_pauseTick = 0;  // a loaded game starts paused; the player's un-pause click is not simulated
 
     StepStats stats;
     const uint32_t endTick = startTick + options.ticks;
@@ -289,7 +269,6 @@ int RebSimRun(RebellionApplication* app) {
         if (tick >= endTick) break;
         next = tick + options.every;
     }
-    LogHeapSample("done");
     Log("done: %llu frames, max %u frames per tick", static_cast<unsigned long long>(stats.frames), stats.maxFramesPerTick);
     for (int state = 0; state < 0x18; ++state)
         if (state != 2 && stats.stateEntries[state]) Log("flow state %d entered %u times", state, stats.stateEntries[state]);

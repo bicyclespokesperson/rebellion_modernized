@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/manufacture_order_window.h"
 
 #include <cstdlib>
@@ -12,7 +11,6 @@
 #include "core/game_string.h"
 #include "core/iostream_lib.h"
 #include "core/strstream_io.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "economy/side.h"
 #include "gameobj/object_lookup.h"
@@ -166,7 +164,7 @@ ManufactureOrderWindow::ManufactureOrderWindow(HINSTANCE instance, int x, int y,
 }
 
 ManufactureOrderWindow::~ManufactureOrderWindow() {
-    REB_KEEP_VPTR_STORE();
+
     for (CoolListItem* item = m_choices.First(); item; item = item->Next()) {
         if (item->m_userPointer) operator delete(reinterpret_cast<void*>(item->m_userPointer));
     }
@@ -294,7 +292,7 @@ void ManufactureOrderWindow::OnCreate3() {
     RefreshTotals();
 }
 
-LRESULT REB_STDCALL ManufactureOrderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT ManufactureOrderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == kQuantityEntered) {
         if (wParam == m_quantityField->m_childId) {
             SendOrder();

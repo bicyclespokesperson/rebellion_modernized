@@ -1,6 +1,5 @@
 #include "ui/message_list_item.h"
 
-#include "core/vptr_store.h"
 #include "ui/message_record_decl.h"
 
 MessageListItem::MessageListItem(MessageRecord* record) : CoolListItem(record->m_id) {
@@ -9,7 +8,7 @@ MessageListItem::MessageListItem(MessageRecord* record) : CoolListItem(record->m
     m_visible = 1;
 }
 
-MessageListItem::~MessageListItem() { REB_KEEP_VPTR_STORE(); }
+MessageListItem::~MessageListItem() {  }
 
 void MessageListItem::Read(istream*) {}
 
@@ -29,7 +28,7 @@ CoolListItem* MessageListItem::Previous() {
 
 MessageItemList::MessageItemList(int sortMode) : CoolListItemList(sortMode) {}
 
-MessageItemList::~MessageItemList() { REB_KEEP_VPTR_STORE(); }
+MessageItemList::~MessageItemList() {  }
 
 CoolListItem* MessageItemList::First() {
     MessageListItem* first = static_cast<MessageListItem*>(m_head);

@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "platform/win32.h"
@@ -19,7 +18,7 @@ public:
     virtual ~CoolTabControl();                    // 0x60d690 (scalar deleting destructor 0x60d670)
 
     // WM_PAINT draws the background, WM_ERASEBKGND is claimed, WM_COMMAND from a tab selects it.
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60d860
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // 0x60d860
 
     // Adopts `tab` as a child (re-parenting its window if needed). Null if it is already a tab of this control.
     // The first tab is always selected; later ones only when `select` is set.

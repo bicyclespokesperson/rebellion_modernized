@@ -1,6 +1,6 @@
-#include "core/reb_abi.h"
 #include <cstddef>
 #include <new>
+#include <memory>
 
 #include "app/app_strings.h"
 #include "app/battle_flow.h"
@@ -47,20 +47,32 @@ constexpr int kQuitDialogText = 0x1202;
 constexpr int kQuitDialogX = 500;
 constexpr int kQuitDialogY = 0x50;
 
+#ifndef REB_NO_TACTICAL_3D
 constexpr size_t kTacticalWindowSize = 0x114;
+#endif
+
+struct WindowStorageDeleter {
+    void operator()(void* storage) const noexcept { ::operator delete(storage); }
+};
 
 template <class Window, class Construct>
-CoolWindow* ConstructWindow(Construct construct) {
-    void* memory = ::operator new(sizeof(Window));
-    return memory ? static_cast<CoolWindow*>(construct(memory)) : nullptr;
+Window* ConstructWindow(Construct construct) {
+    std::unique_ptr<void, WindowStorageDeleter> storage(::operator new(sizeof(Window), std::nothrow));
+    if (!storage) return nullptr;
+    Window* window = static_cast<Window*>(construct(storage.get()));
+    storage.release();
+    return window;
 }
 
+#ifndef REB_NO_TACTICAL_3D
 // The 3D tactical window class is not reconstructed (out of scope), so its size stays the original's.
 template <class Construct>
 CoolWindow* ConstructOpaqueWindow(size_t size, Construct construct) {
     void* memory = ::operator new(size);
     return memory ? static_cast<CoolWindow*>(construct(memory)) : nullptr;
 }
+
+#endif
 
 void ShowCursorCounter(bool visible) {
     int count = ShowCursor(visible);
@@ -199,7 +211,7 @@ void RebellionApplication::SetState(int state) {
             CommShutdown();
             DestroyBattleFlow();
             SoundManager::Shutdown(0);
-            g_directDrawHost->ReleaseAll();
+            m_display.ReleaseAll();
             PostQuitMessage(0);
             return;
         case kStateVictoryMovieEmpire:
@@ -221,7 +233,7 @@ void RebellionApplication::SetState(int state) {
     }
 }
 
-void RebellionApplication::PlayMovie(int movieId, const String* caption, void(REB_CDECL* callback)(uint32_t, uint32_t, int)) {
+void RebellionApplication::PlayMovie(int movieId, const String* caption, void(* callback)(uint32_t, uint32_t, int)) {
     if (m_activeWindow) m_activeWindow->Hide();
     ReleaseOverlayWindow();
     FillWindowBlack();
@@ -255,16 +267,14 @@ void RebellionApplication::BeginMovieState() {
         CoolRegisterResourceDll(dllLocation, g_textstraDllName, kTextStraSlot);
         DeleteHeapString(dllLocation);
         CreateBattleFlow();
-        GameSetup setup;
-        new (&setup) GameSettings();
-        setup.m_unknown08 = m_param10;
-        setup.m_unknown04 = m_param8;
-        setup.m_unknown10 = m_paramF0;
-        setup.m_networkMode = m_networkMode;
+        GameSettings setup;
+        setup.m_field08 = m_param10;
+        setup.m_field04 = m_param8;
+        setup.m_field10 = m_paramF0;
+        setup.m_field0c = m_networkMode;
         g_isNetworkGame = m_networkMode == kNetworkModeConnected;
         AppStartGame(&setup, m_gameType, m_side);
         PlayMovie((m_side != 1) + kMovieNewGameEmpire, nullptr, nullptr);
-        reinterpret_cast<GameSettings*>(&setup)->GameSettings::~GameSettings();
         return;
     }
     case kStateVictoryMovieEmpire:
@@ -396,6 +406,7 @@ void RebellionApplication::DestroyStrategicWindow() {
 
 
 void RebellionApplication::ShowTacticalWindow() {
+#ifndef REB_NO_TACTICAL_3D
     ReleaseOverlayWindow();
     DetachActiveWindow();
     FillWindowBlack();
@@ -406,7 +417,7 @@ void RebellionApplication::ShowTacticalWindow() {
         int height = m_screenHeight;
         if (m_side != 0) {
             m_tacticalWindow = ConstructOpaqueWindow(kTacticalWindowSize,  [&](void* memory) {
-                return FUN_0059a8d0(memory, m_instance, x, y, width, height, this, g_directDrawHost);
+                return FUN_0059a8d0(memory, m_instance, x, y, width, height, this, &m_display);
             });
         }
         if (m_tacticalWindow) ShowNewWindow(m_tacticalWindow);
@@ -418,6 +429,7 @@ void RebellionApplication::ShowTacticalWindow() {
         ReleaseDC(m_hwnd, dc);
     }
     m_activeWindow = m_tacticalWindow;
+#endif
 }
 
 void RebellionApplication::DestroyTacticalWindow() {
@@ -445,5 +457,4 @@ void RebellionApplication::ForwardToStrategicWindow() {
 GalaxyWindow * g_galaxyWindow{};
 HWND g_previousCapture{};
 MainMenuWindow * g_mainMenuWindow{};
-TacticalGame * g_tacticalGame{};
 const char * g_coolDragListClassName{};

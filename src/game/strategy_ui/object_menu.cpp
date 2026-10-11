@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/object_menu.h"
 
 #include <cstdint>
@@ -7,7 +6,6 @@
 
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "ui/cool_app.h"
 #include "ui/game_window_object.h"
 
@@ -265,7 +263,7 @@ PopupMenuWindow::PopupMenuWindow(HINSTANCE resources, int x, int y, int width, i
     m_owner = owner;
 }
 
-PopupMenuWindow::~PopupMenuWindow() { REB_KEEP_VPTR_STORE(); }
+PopupMenuWindow::~PopupMenuWindow() {  }
 
 void PopupMenuWindow::Hide() { Show(0); }
 
@@ -279,7 +277,7 @@ void PopupMenuWindow::PostCloseRequest() {
     Hide();
 }
 
-LRESULT REB_STDCALL PopupMenuWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT PopupMenuWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message != kCloseChildMessage) return MenuWindowBase::WindowProc(message, wParam, lParam);
     if (m_hwnd == reinterpret_cast<HWND>(wParam)) {
         PostMessageA(m_parent->m_hwnd, kDialogClickedMessage, 0, 0);

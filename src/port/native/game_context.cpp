@@ -1,6 +1,10 @@
-#include "port/native/game_initialization.h"
+#include "port/native/game_context.h"
+
+#include <utility>
+#include "port/native/audio_context.h"
 
 #include "app/app_control_cmds.h"
+#include "app/rebellion_application.h"
 #include "app/battle_flow.h"
 #include "app/app_externals.h"
 #include "app/rebapp_globals.h"
@@ -20,15 +24,11 @@ extern float g_tacticalFacadeScaleSquared;
 extern float g_tacticalGameScaleSquared;
 extern float g_tacticalSideScaleSquared;
 
-void StaticInitUnknown6b145c();
-void StaticInitUnknown6b1464();
-void StaticInitRectAWidth();
-void StaticInitRectBWidth();
 namespace reb::native {
 
-GameInitialization::GameInitialization() = default;
+GameContext::GameContext() = default;
 
-void GameInitialization::Start() {
+void GameContext::Start() {
     if (started_) return;
     started_ = true;
 
@@ -44,11 +44,8 @@ void GameInitialization::Start() {
     InitFlowScaleA();
     InitFlowScaleB();
     InitFlowRangeSpan();
-    LobbyStaticInit();
-    StaticInitUnknown6b145c();
-    StaticInitUnknown6b1464();
-    StaticInitRectAWidth();
-    StaticInitRectBWidth();
+    ComputeRectAWidth();
+    ComputeRectBWidth();
     g_legacyBlockA.Reset();
 
     // Register the two table factories; this replaces the old final count store.
@@ -66,30 +63,39 @@ void GameInitialization::Start() {
     RegisterAnimationStep13();
 
     // This host depends on platform wiring and must be created after Install().
+    audio_ = std::make_unique<AudioContext>();
+    uiResources_ = std::make_unique<UiResources>();
     directDrawHost_ = std::make_unique<DirectDrawHost>(GetDllLocation(), 1);
-    g_directDrawHost = directDrawHost_.get();
 }
 
-GameInitialization::~GameInitialization() { Shutdown(); }
+GameContext::~GameContext() { Shutdown(); }
 
-void GameInitialization::Shutdown() noexcept {
+void GameContext::Shutdown() noexcept {
     if (!started_) return;
 
-    // Drain native-backed objects while the lazy minwin resource module map and
-    // DirectSound device are still alive. Their typed destructors then see
-    // empty, closed state when the process runtime tears globals down.
-    g_smackSound.Stop(1);
-    SoundManager::Shutdown(1);
-    g_soundSources.Clear();
-    g_soundCatalog.Clear();
-    g_soundEventQueue.Clear();
-    g_cdAudio.Close();
-    g_fontTable.Clear();
-    g_resourceDlls.Clear();
+    ReleaseApplication();
 
-    g_directDrawHost = nullptr;
+    audio_.reset();
+    uiResources_.reset();
+
     directDrawHost_.reset();
     started_ = false;
 }
+
+RebellionApplication& GameContext::CreateApplication(HINSTANCE instance, uint32_t flags, const String& commandLine) {
+    application_ = std::make_unique<RebellionApplication>(instance, flags, &commandLine, *directDrawHost_, *this, *uiResources_);
+    return *application_;
+}
+
+void GameContext::ReleaseApplication() noexcept {
+    if (audio_) audio_->Shutdown();
+    application_.reset();
+}
+
+AudioContext& GameContext::GetAudioContext() noexcept { return *audio_; }
+
+BattleFlow* GameContext::GetBattleFlow() const noexcept { return battleFlow_.get(); }
+
+void GameContext::SetBattleFlow(std::unique_ptr<BattleFlow> battleFlow) noexcept { battleFlow_ = std::move(battleFlow); }
 
 }  // namespace reb::native

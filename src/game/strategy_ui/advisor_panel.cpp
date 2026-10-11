@@ -1,11 +1,9 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/advisor_panel.h"
 
 #include <cstdint>
 #include <new>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
 #include "ui/cool_app.h"
@@ -76,7 +74,7 @@ AdvisorPanel::AdvisorPanel(HINSTANCE instance, int x, int y, int width, int heig
 }
 
 AdvisorPanel::~AdvisorPanel() {
-    REB_KEEP_VPTR_STORE();
+
     delete m_closeButton;
     DeleteBitmap(m_layer);
     if (m_remapTable) ::operator delete(m_remapTable);
@@ -114,7 +112,7 @@ void AdvisorPanel::OnCommand(int a, int b, int c) {
     if (static_cast<int16_t>(a) == static_cast<int16_t>(kCloseId)) PostCloseRequest();
 }
 
-LRESULT REB_STDCALL AdvisorPanel::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT AdvisorPanel::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_LBUTTONUP) InvalidateRect(m_hwnd, nullptr, FALSE);
     return CoolGameWindow::WindowProc(message, wParam, lParam);
 }

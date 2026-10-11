@@ -1,6 +1,4 @@
-#include "core/reb_abi.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "events/event_helpers.h"
 #include "gameobj/object_queries.h"
 #include "mission/mission.h"
@@ -22,12 +20,12 @@ TrackedStat* managerStatB(GameObj* manager) { return &static_cast<MissionMgr*>(m
 
 // ---- shared slot 10 --------------------------------------------------------------------------------------------------
 
-FamilyRange* REB_STDCALL GetMissionFamilyRange(FamilyRange* out) {
+FamilyRange* GetMissionFamilyRange(FamilyRange* out) {
     *out = kMissionFamilies;
     return out;
 }
 
-FamilyRange* REB_STDCALL GetMissionMgrFamilyRange(FamilyRange* out) {
+FamilyRange* GetMissionMgrFamilyRange(FamilyRange* out) {
     *out = kMissionMgrFamilies;
     return out;
 }
@@ -38,7 +36,7 @@ MissionStatATimer::MissionStatATimer() : TimerEvent() {}
 
 MissionStatATimer::MissionStatATimer(const MissionStatATimer& other) : TimerEvent(other) {}
 
-MissionStatATimer::~MissionStatATimer() { REB_KEEP_VPTR_STORE(); }
+MissionStatATimer::~MissionStatATimer() {  }
 
 MissionStatATimer* MissionStatATimer::Clone() { return NewOrNull<MissionStatATimer>(*this); }
 
@@ -60,7 +58,7 @@ MissionStatBTimer::MissionStatBTimer() : TimerEvent() {}
 
 MissionStatBTimer::MissionStatBTimer(const MissionStatBTimer& other) : TimerEvent(other) {}
 
-MissionStatBTimer::~MissionStatBTimer() { REB_KEEP_VPTR_STORE(); }
+MissionStatBTimer::~MissionStatBTimer() {  }
 
 MissionStatBTimer* MissionStatBTimer::Clone() { return NewOrNull<MissionStatBTimer>(*this); }
 
@@ -82,7 +80,7 @@ MissionMgrStatATimer::MissionMgrStatATimer() : TimerEvent() {}
 
 MissionMgrStatATimer::MissionMgrStatATimer(const MissionMgrStatATimer& other) : TimerEvent(other) {}
 
-MissionMgrStatATimer::~MissionMgrStatATimer() { REB_KEEP_VPTR_STORE(); }
+MissionMgrStatATimer::~MissionMgrStatATimer() {  }
 
 MissionMgrStatATimer* MissionMgrStatATimer::Clone() { return NewOrNull<MissionMgrStatATimer>(*this); }
 
@@ -104,7 +102,7 @@ MissionMgrStatBTimer::MissionMgrStatBTimer() : TimerEvent() {}
 
 MissionMgrStatBTimer::MissionMgrStatBTimer(const MissionMgrStatBTimer& other) : TimerEvent(other) {}
 
-MissionMgrStatBTimer::~MissionMgrStatBTimer() { REB_KEEP_VPTR_STORE(); }
+MissionMgrStatBTimer::~MissionMgrStatBTimer() {  }
 
 MissionMgrStatBTimer* MissionMgrStatBTimer::Clone() { return NewOrNull<MissionMgrStatBTimer>(*this); }
 

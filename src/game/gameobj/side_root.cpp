@@ -1,7 +1,6 @@
 #include "gameobj/side_root.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gameobj/object_family.h"
 
 namespace {
@@ -13,7 +12,7 @@ SideRoot::SideRoot() : GameObj() {
     SetFlag31(GetFlag31());
 }
 
-SideRoot::~SideRoot() { REB_KEEP_VPTR_STORE(); }
+SideRoot::~SideRoot() {  }
 
 uint32_t SideRoot::GetFamily() { return family::kSideRoot; }
 

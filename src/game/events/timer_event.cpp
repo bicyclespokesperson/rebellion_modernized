@@ -1,7 +1,6 @@
 #include "events/timer_event.h"
 
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "data/random.h"
 #include "gameobj/object_queries.h"
 
@@ -18,7 +17,7 @@ TimerEvent::TimerEvent() : TimedEvent(), m_spec() {}
 
 TimerEvent::TimerEvent(const TimerEvent& other) : TimedEvent(other), m_spec(other.m_spec) {}
 
-TimerEvent::~TimerEvent() { REB_KEEP_VPTR_STORE(); }
+TimerEvent::~TimerEvent() {  }
 
 void TimerEvent::Read(istream* in) { ReadTimer(in); }
 

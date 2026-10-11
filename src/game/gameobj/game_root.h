@@ -150,7 +150,6 @@ public:
 };
 
 // The single game root (0x6b2bb0), null before setup stage 6 and after the root is destroyed.
-extern GameRoot* g_gameRoot;
 
 // The factory registered for family 0xf1 (0x513970).
 GameObjNotifier* CreateGameRoot();

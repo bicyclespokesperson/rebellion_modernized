@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "gameobj/object_key.h"
@@ -38,7 +37,7 @@ public:
                  uint32_t childId, GameObjNotifier* sector);  // 0x4591d0
     virtual ~SectorWindow();  // 0x4592e0 (scalar deleting destructor 0x4592c0)
 
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4593e0
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4593e0
     virtual void SaveState(ostream* out) override;   // slot 9, 0x45d2b0
     virtual void LoadState(istream* in) override;    // slot 10, 0x45d360
     virtual void OnCreate1() override;               // slot 14, 0x459e30
@@ -72,7 +71,7 @@ public:
     void UpdateMissionMarker(GameObjNotifier* system, GameObjNotifier* unused);        // 0x45d090
     void SetMarkerState(ObjectListItem* marker, int side, int count);                  // 0x45d140
 
-    uint32_t m_inputBlocked;            // +0x140 BUG(original): not initialised by the constructor; cleared by WM_PAINT
+    uint32_t m_inputBlocked;            // +0x140 cleared by WM_PAINT; initially zero
     GameObjNotifier* m_sector;          // +0x144
     int m_dragging;                     // +0x148
     int m_dragStartX;                   // +0x14c -1000 while no drag is prepared
@@ -96,6 +95,6 @@ public:
 // The picture (GOKRES id) of a system of the given kind (1-26), 0 for none (0x45c970).
 int SectorSystemPictureId(int index);
 // The picture id of a marker row of kind `kind` (SectorMarkerKind), for the side in control and the highlight (0x45ca80).
-uint32_t REB_STDCALL SectorMarkerImageId(uint32_t kind, int state, int selected);
+uint32_t SectorMarkerImageId(uint32_t kind, int state, int selected);
 // The rectangle of the caption below a system icon (0x45c1f0); returns `out`.
-RECT* REB_STDCALL SectorMarkerLabelRect(RECT* out, ObjectListItem* item);
+RECT* SectorMarkerLabelRect(RECT* out, ObjectListItem* item);

@@ -1,10 +1,8 @@
-#include "core/reb_abi.h"
 #include "ui/cool_drag_list.h"
 
 #include <cstring>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 
 namespace {
@@ -36,7 +34,7 @@ POINTS PointsFromLParam(LPARAM lParam) {
 
 CoolListItemList::CoolListItemList(int sortMode) : m_sortMode(0) { m_sortMode.m_value = sortMode; }
 
-CoolListItemList::~CoolListItemList() { REB_KEEP_VPTR_STORE(); }
+CoolListItemList::~CoolListItemList() {  }
 
 int CoolListItemList::IsLess(LinkNode* a, LinkNode* b) {
     const uint32_t mode = static_cast<uint32_t>(m_sortMode.m_value);
@@ -113,7 +111,7 @@ CoolDragList::~CoolDragList() {
     if (m_background) delete m_background;
     if (m_selectionImage) delete m_selectionImage;
     if (m_dragImage) delete m_dragImage;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void CoolDragList::SetItemList(CoolListItemList* items) {
@@ -939,7 +937,7 @@ LRESULT CancelDrag(CoolDragList* list, HWND hwnd) {
 
 }  // namespace
 
-LRESULT REB_STDCALL CoolDragList::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CoolDragList::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     switch (message) {
         case WM_CREATE:

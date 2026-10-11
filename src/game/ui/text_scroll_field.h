@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -45,7 +44,7 @@ public:
                     DibBitmap* backdrop, int editable);  // 0x41ecf0
     virtual ~TextScrollField();  // 0x41eed0 (scalar deleting destructor 0x41eeb0, thunk 0x420bc0)
 
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x41efe0
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x41efe0
 
     virtual int PageUp() override;                     // 0x420a10
     virtual int PageDown() override;                   // 0x420a50

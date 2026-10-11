@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "core/reb_x87.h"
 #include <new>
 
@@ -48,7 +47,11 @@ void TacticalShipBase::GetGroupPosition(TacticalVector* out) {
     TacticalVector* scratch = reinterpret_cast<TacticalVector*>(buffer);
     const TacticalVector* position;
     if (m_groupHandle == 0) {
+#ifdef REB_NO_TACTICAL_3D
+        position = &m_position;
+#else
         position = FUN_005a7490(GetObjectManager(), scratch, m_side);
+#endif
     } else {
         TacticalRegistry* registry = GetTacticalRegistry();
         ShipGroup* group = ShipGroupOf(m_unitKind == 1 ? registry->FindCapitalShipGroup(m_groupHandle)
@@ -131,7 +134,7 @@ uint32_t TacticalFighter::SquadsMax() {
     return count < 1 ? 1 : count;
 }
 
-void REB_CDECL TacticalFighterStatusEvent(TacticalEvent* event) {
+void TacticalFighterStatusEvent(TacticalEvent* event) {
     if (event == nullptr) return;
     FightSquadResult* record = reinterpret_cast<FightSquadResult*>(reinterpret_cast<char*>(event->m_args) + 8);
     if (record == nullptr) return;

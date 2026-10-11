@@ -3,7 +3,6 @@
 #include <new>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "ui/message_template.h"
 #include "economy/manu_mgr.h"
 #include "economy/manufacturing_facility.h"
@@ -28,7 +27,7 @@ Notice44::Notice44(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice44::~Notice44() { REB_KEEP_VPTR_STORE(); }
+Notice44::~Notice44() {  }
 
 int Notice44::GetKind() { return 44; }
 
@@ -88,7 +87,7 @@ Notice45::Notice45(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice45::~Notice45() { REB_KEEP_VPTR_STORE(); }
+Notice45::~Notice45() {  }
 
 int Notice45::GetKind() { return 45; }
 
@@ -121,7 +120,7 @@ Notice43::Notice43(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice43::~Notice43() { REB_KEEP_VPTR_STORE(); }
+Notice43::~Notice43() {  }
 
 int Notice43::GetKind() { return 43; }
 
@@ -188,7 +187,7 @@ Notice42::Notice42(int owner, const IdNode* record) : UiTextNotice(owner) {
     ExpandMessageTemplate(&m_text1, secondText, nullptr, nullptr, nullptr, nullptr);
 }
 
-Notice42::~Notice42() { REB_KEEP_VPTR_STORE(); }
+Notice42::~Notice42() {  }
 
 int Notice42::GetKind() { return 42; }
 
@@ -209,7 +208,7 @@ Notice41::Notice41(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice41::~Notice41() { REB_KEEP_VPTR_STORE(); }
+Notice41::~Notice41() {  }
 
 int Notice41::GetKind() { return 41; }
 
@@ -252,7 +251,7 @@ Notice34::Notice34(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice34::~Notice34() { REB_KEEP_VPTR_STORE(); }
+Notice34::~Notice34() {  }
 
 int Notice34::GetKind() { return 34; }
 
@@ -322,7 +321,7 @@ Notice33::Notice33(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice33::~Notice33() { REB_KEEP_VPTR_STORE(); }
+Notice33::~Notice33() {  }
 
 int Notice33::GetKind() { return 33; }
 

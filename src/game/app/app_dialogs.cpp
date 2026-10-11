@@ -2,7 +2,6 @@
 
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 
 namespace {
 
@@ -57,7 +56,7 @@ AppDialog::AppDialog(HINSTANCE instance, int x, int y, int width, int height, Co
 
 AppDialog::~AppDialog() {
     g_appDialogMessage = 0;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AppDialog::OnCreate1() { FocusAndRemember(); }
@@ -108,7 +107,7 @@ AppNoticeDialog::AppNoticeDialog(HINSTANCE instance, int x, int y, int width, in
     m_buttonTooltipId = buttonTooltipId;
 }
 
-AppNoticeDialog::~AppNoticeDialog() { REB_KEEP_VPTR_STORE(); }
+AppNoticeDialog::~AppNoticeDialog() {  }
 
 void AppNoticeDialog::OnCreate3() {
     AddButton(0xb0, 0x86, kButtonBitmapId, kButtonPressedBitmapId, kAcknowledgeButtonId, m_buttonTooltipId, 0, 0, 0, 0,
@@ -132,7 +131,7 @@ AppWaitDialog::AppWaitDialog(HINSTANCE instance, int x, int y, int width, int he
     : AppDialog(instance, x, y, width, height, parent, stringSlot, bitmapSlot, backgroundId, childId, style, flags,
                 message, headlineId, detailId) {}
 
-AppWaitDialog::~AppWaitDialog() { REB_KEEP_VPTR_STORE(); }
+AppWaitDialog::~AppWaitDialog() {  }
 
 void AppWaitDialog::OnCreate3() {}
 

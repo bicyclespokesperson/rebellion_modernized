@@ -5,7 +5,6 @@
 #include "ai/ai_session_random.h"
 #include "ai/ai_side_controller.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "galaxy/sector.h"
 #include "galaxy/system.h"
 #include "gameobj/game_obj.h"
@@ -63,7 +62,7 @@ AiSectorEval::AiSectorEval(int view) : ObjectKeyNode(), m_flags24(0), m_flags28(
 AiSectorEval::~AiSectorEval() {
     m_owner = nullptr;
     for (AiSystemEval*& system : m_systems) system = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiSectorEval::Attach(Sector* sector, AiSystemEvalSet* systems) {
@@ -294,7 +293,7 @@ void AiSectorEval::SetSystem(uint16_t index, const ObjectKey* key, AiSystemEvalS
 void AiSectorEval::Accumulate(const int* p, const int* f28, const int* f30, const int* f2c)
 {
   uint32_t uVar1;
-  
+
   if ((*f30 & 1) == 0) {
     if ((*f30 & 4) == 0) {
       m_flags2c.m_value |= 0x10;

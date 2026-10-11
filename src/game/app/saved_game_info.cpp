@@ -1,7 +1,6 @@
 #include "app/saved_game_info_decl.h"
 
 #include "core/stream_io.h"
-#include "core/vptr_store.h"
 
 SavedGameInfo::SavedGameInfo() : m_name() {
     m_name.Clear();
@@ -26,7 +25,7 @@ SavedGameInfo::SavedGameInfo(const SavedGameInfo& other) : m_name() {
     m_unknown24 = other.m_unknown24;
 }
 
-SavedGameInfo::~SavedGameInfo() { REB_KEEP_VPTR_STORE(); }
+SavedGameInfo::~SavedGameInfo() {  }
 
 SavedGameInfo& SavedGameInfo::operator=(const SavedGameInfo& other) {
     if (this != &other) {

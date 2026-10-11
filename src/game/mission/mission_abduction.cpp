@@ -16,7 +16,7 @@ constexpr int kTaskSucceeded = 3;
 
 MissionAbduction::MissionAbduction() {}
 
-MissionAbduction::~MissionAbduction() { REB_KEEP_VPTR_STORE(); }
+MissionAbduction::~MissionAbduction() {  }
 
 REB_MISSION_SHARED_PERSISTENCE(MissionAbduction)
 

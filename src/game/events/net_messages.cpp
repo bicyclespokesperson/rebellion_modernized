@@ -1,7 +1,6 @@
 #include "events/net_messages.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "events/event_helpers.h"
 #include "economy/side.h"
 #include "events/game_clock_hooks.h"
@@ -16,7 +15,7 @@ NetMsg1::NetMsg1() : SidedMessage(), m_syncPoint(0), m_checksums() {}
 
 NetMsg1::NetMsg1(int syncPoint) : SidedMessage(), m_syncPoint(syncPoint), m_checksums() {}
 
-NetMsg1::~NetMsg1() { REB_KEEP_VPTR_STORE(); }
+NetMsg1::~NetMsg1() {  }
 
 int NetMsg1::Read(istream* in) {
     int result = SidedMessage::Read(in);
@@ -47,7 +46,7 @@ void* CreateNetMsg1() { return NewOrNull<NetMsg1>(); }
 
 NetMsg2::NetMsg2() : SidedMessage(), m_syncPoint(0) {}
 
-NetMsg2::~NetMsg2() { REB_KEEP_VPTR_STORE(); }
+NetMsg2::~NetMsg2() {  }
 
 int NetMsg2::Read(istream* in) {
     int result = SidedMessage::Read(in);
@@ -73,7 +72,7 @@ void* CreateNetMsg2() { return NewOrNull<NetMsg2>(); }
 
 NetMsg280::NetMsg280() : SidedMessage() {}
 
-NetMsg280::~NetMsg280() { REB_KEEP_VPTR_STORE(); }
+NetMsg280::~NetMsg280() {  }
 
 int NetMsg280::Read(istream* in) {
     int result = SidedMessage::Read(in);
@@ -105,7 +104,7 @@ void* CreateNetMsg280() { return NewOrNull<NetMsg280>(); }
 
 NetMsg4::NetMsg4() : MessageBase(), m_voteId(0), m_voteState(0), m_voteKey() { m_voteTime.m_value = 0; }
 
-NetMsg4::~NetMsg4() { REB_KEEP_VPTR_STORE(); }
+NetMsg4::~NetMsg4() {  }
 
 int NetMsg4::Read(istream* in) {
     int result = MessageBase::Read(in);
@@ -131,7 +130,7 @@ void* CreateNetMsg4() { return NewOrNull<NetMsg4>(); }
 
 NetMsg5::NetMsg5() : SidedMessage(), m_value(0) {}
 
-NetMsg5::~NetMsg5() { REB_KEEP_VPTR_STORE(); }
+NetMsg5::~NetMsg5() {  }
 
 int NetMsg5::Read(istream* in) {
     int result = SidedMessage::Read(in);
@@ -154,7 +153,7 @@ void* CreateNetMsg5() { return NewOrNull<NetMsg5>(); }
 
 NetMsg13::NetMsg13() : MessageBase() {}
 
-NetMsg13::~NetMsg13() { REB_KEEP_VPTR_STORE(); }
+NetMsg13::~NetMsg13() {  }
 
 int NetMsg13::Read(istream* in) { return MessageBase::Read(in); }
 
@@ -166,7 +165,7 @@ void* CreateNetMsg13() { return NewOrNull<NetMsg13>(); }
 
 NetMsg15::NetMsg15() : MessageBase(), m_valueA(0), m_valueB(0), m_valueC(0) {}
 
-NetMsg15::~NetMsg15() { REB_KEEP_VPTR_STORE(); }
+NetMsg15::~NetMsg15() {  }
 
 int NetMsg15::Read(istream* in) {
     int result = MessageBase::Read(in);

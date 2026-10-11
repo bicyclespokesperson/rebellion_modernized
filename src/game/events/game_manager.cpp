@@ -1,9 +1,9 @@
 #include "events/game_manager.h"
+#include "events/game_step_driver.h"
 
 #include <new>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "events/game_manager_state.h"
 #include "data/probability_table.h"
 #include "data/table_registration.h"
@@ -43,23 +43,21 @@ Crc32* GameStateSnapshot::CopyTableCrc(Crc32* out) {
 GameManager::GameManager() { InitState(); }
 
 GameManager::~GameManager() {
-    REB_KEEP_VPTR_STORE();
+
     ReleaseMembers();
 }
 
-GameManager* GetGameManager() { return g_gameManager; }
+GameManager* GetGameManager() {
+    GameStepDriver* driver = GetGameStepDriver();
+    return driver ? driver->Manager() : nullptr;
+}
 
 void CreateGameManager() {
-    DestroyGameManager();
-    g_gameManager = NewOrNull<GameManager>();
-    if (!g_gameManager || !g_gameManager->m_ok) DestroyGameManager();
+    if (GameStepDriver* driver = GetGameStepDriver()) driver->CreateManager();
 }
 
 void DestroyGameManager() {
-    if (g_gameManager) {
-        delete g_gameManager;
-        g_gameManager = nullptr;
-    }
+    if (GameStepDriver* driver = GetGameStepDriver()) driver->DestroyManager();
 }
 
 int GameManager::InitState() {
@@ -330,9 +328,9 @@ void GameManager::ScheduleEvent(EventBase* event) {
     if (event && m_events) m_events->Add(event);
 }
 
-int GameManager::DispatchPostedEvent(PostedEvent* event) {
+int GameManager::DispatchPostedEvent(NotifPayload* event) {
     if (event) {
-        switch (event->GetKind()) {
+        switch (event->Virtual04()) {
             case 1:
                 return HandleKind1(event);
             case 2:
@@ -563,9 +561,9 @@ int GameManager::CaptureSnapshot() {
 
 int GameManager::NoteDispatch(void* item) { return 1; }
 
-int GameManager::HandleKind1(PostedEvent* event) {
-    if (event->GetKind() == 1) {
-        event->m_result = 0;
+int GameManager::HandleKind1(NotifPayload* event) {
+    if (event->Virtual04() == 1) {
+        event->m_value0c = 0;
         return PostToFirstQueue(event);
     }
     return 0;
@@ -573,51 +571,51 @@ int GameManager::HandleKind1(PostedEvent* event) {
 
 namespace {
 
-SeedKey makeTickKey(PostedEvent* event, int kind, int second) {
+SeedKey makeTickKey(NotifPayload* event, int kind, int second) {
     SeedKey key;
     key.m_key = kind;
     key.m_second = second;
-    key.m_third = event->m_field18;
-    key.m_fourth = event->m_field10;
-    key.m_fifth = event->m_field14;
+    key.m_third = event->m_value18;
+    key.m_fourth = event->m_value10;
+    key.m_fifth = event->m_value14;
     return key;
 }
 
 }  // namespace
 
-int GameManager::HandleKind2(PostedEvent* event) {
-    if (event->GetKind() != 2) return 0;
-    const int kind = event->GetKind();
-    SeedKey key = makeTickKey(event, kind, event->GetFactoryKey());
+int GameManager::HandleKind2(NotifPayload* event) {
+    if (event->Virtual04() != 2) return 0;
+    const int kind = event->Virtual04();
+    SeedKey key = makeTickKey(event, kind, event->GetKind());
     int value;
     int ok = ResolveTickValue(&key, &value);
     if (ok) {
-        event->m_result = value;
+        event->m_value0c = value;
         ok = PostToFirstQueue(event);
     }
     return ok;
 }
 
-int GameManager::HandleKind3(PostedEvent* event) {
-    if (event->GetKind() != 3) return 0;
-    const int kind = event->GetKind();
-    SeedKey key = makeTickKey(event, kind, event->GetFactoryKey());
+int GameManager::HandleKind3(NotifPayload* event) {
+    if (event->Virtual04() != 3) return 0;
+    const int kind = event->Virtual04();
+    SeedKey key = makeTickKey(event, kind, event->GetKind());
     int value;
     int ok = ResolveTickValue(&key, &value);
     if (ok) {
-        event->m_result = value;
+        event->m_value0c = value;
         ok = PostToFirstQueue(event);
     }
     return ok;
 }
 
-int GameManager::HandleKind4(PostedEvent* event) {
-    if (event->GetKind() != 4) return 0;
-    SeedKey key = makeTickKey(event, event->GetKind(), 0);
+int GameManager::HandleKind4(NotifPayload* event) {
+    if (event->Virtual04() != 4) return 0;
+    SeedKey key = makeTickKey(event, event->Virtual04(), 0);
     int value;
     int ok = ResolveTickValue(&key, &value);
     if (ok) {
-        event->m_result = value;
+        event->m_value0c = value;
         ok = PostToFirstQueue(event);
     }
     return ok;
@@ -642,18 +640,18 @@ int GameManager::ResolveTickValue(SeedKey* key, int* out) {
 }
 
 int GameManager::PostTickValue(int a, int b, int c) {
-    PostedEvent* event = static_cast<PostedEvent*>(CreateKeyedObject(2));
+    NotifPayload* event = static_cast<NotifPayload*>(CreateKeyedObject(2));
     int ok = 0;
     if (event) {
-        event->m_field18 = a;
-        event->m_result = b;
-        event->m_field14 = c;
+        event->m_value18 = a;
+        event->m_value0c = b;
+        event->m_value14 = c;
         const ObjectKey key = ObjectKey::Make(a == 1 ? kAllianceTickKey >> 24 : kEmpireTickKey >> 24,
                                               a == 1 ? kAllianceTickKey & 0xffffff : kEmpireTickKey & 0xffffff);
-        new (&event->m_key20) ObjectKey(key);
+        static_cast<KeyedNotifPayload*>(event)->m_key = key;
         ok = m_secondQueue != nullptr;
         if (ok) {
-            event->Prepare();
+            event->Virtual05();
             m_secondQueue->Enqueue(event);
             NoteDispatch(event);
         }
@@ -661,12 +659,12 @@ int GameManager::PostTickValue(int a, int b, int c) {
     return ok;
 }
 
-int GameManager::PostToFirstQueue(PostedEvent* event) {
+int GameManager::PostToFirstQueue(NotifPayload* event) {
     int ok = 0;
     if (event) {
         ok = m_firstQueue != nullptr;
         if (ok) {
-            event->Prepare();
+            event->Virtual05();
             m_firstQueue->Enqueue(event);
             NoteDispatch(event);
         }

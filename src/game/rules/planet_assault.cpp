@@ -2,7 +2,6 @@
 
 #include "ai/ai_common.h"
 #include "character/character.h"
-#include "core/vptr_store.h"
 #include "data/random.h"
 #include "economy/defense_facility.h"
 #include "economy/facility.h"
@@ -38,11 +37,11 @@ int commanderLeadership(GameObjNotifier* commander) {
 // ---- visitors and walker ----------------------------------------------------------------------------------------
 
 TroopVisitor::TroopVisitor(AssaultWalker* walker) : m_walker(walker) {}
-TroopVisitor::~TroopVisitor() { REB_KEEP_VPTR_STORE(); }
+TroopVisitor::~TroopVisitor() {  }
 
 AssaultWalker::AssaultWalker() : m_unused4(1), m_system(nullptr), m_attackerSide(0), m_attackersAtStart(0),
                                  m_defendersAtStart(0), m_attackersLeft(0), m_defendersLeft(0), m_rounds(0) {}
-AssaultWalker::~AssaultWalker() { REB_KEEP_VPTR_STORE(); }
+AssaultWalker::~AssaultWalker() {  }
 
 int AssaultWalker::ForEachAttackerTroop(TroopVisitor* visitor, NotifyContext* ctx) {
     int ok = 1;
@@ -89,7 +88,7 @@ int AssaultWalker::ForEachDefenderTroop(TroopVisitor* visitor, NotifyContext* ct
 }
 
 TroopCounter::TroopCounter(AssaultWalker* walker) : TroopVisitor(walker), m_count(0) {}
-TroopCounter::~TroopCounter() { REB_KEEP_VPTR_STORE(); }
+TroopCounter::~TroopCounter() {  }
 
 int TroopCounter::Visit(GameObj*, GameObj*, GameObj*, uint32_t* stop, NotifyContext*) {
     ++m_count;
@@ -98,7 +97,7 @@ int TroopCounter::Visit(GameObj*, GameObj*, GameObj*, uint32_t* stop, NotifyCont
 }
 
 TroopPicker::TroopPicker(AssaultWalker* walker) : TroopVisitor(walker), m_index(0), m_target(0), m_picked(nullptr) {}
-TroopPicker::~TroopPicker() { REB_KEEP_VPTR_STORE(); }
+TroopPicker::~TroopPicker() {  }
 
 int TroopPicker::Visit(GameObj* troop, GameObj*, GameObj*, uint32_t* stop, NotifyContext*) {
     *stop = 0;
@@ -115,7 +114,7 @@ int TroopPicker::Visit(GameObj* troop, GameObj*, GameObj*, uint32_t* stop, Notif
 }
 
 TroopReparenter::TroopReparenter(AssaultWalker* walker) : TroopVisitor(walker), m_index(0), m_target(0) {}
-TroopReparenter::~TroopReparenter() { REB_KEEP_VPTR_STORE(); }
+TroopReparenter::~TroopReparenter() {  }
 
 int TroopReparenter::Visit(GameObj* troop, GameObj*, GameObj*, uint32_t* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -131,7 +130,7 @@ int TroopReparenter::Visit(GameObj* troop, GameObj*, GameObj*, uint32_t* stop, N
 }
 
 AssaultCombat::AssaultCombat(AssaultWalker* walker) : TroopVisitor(walker) {}
-AssaultCombat::~AssaultCombat() { REB_KEEP_VPTR_STORE(); }
+AssaultCombat::~AssaultCombat() {  }
 
 int AssaultCombat::Visit(GameObj* troop, GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -187,7 +186,7 @@ int AssaultCombat::Visit(GameObj* troop, GameObj* ship, GameObj* fleet, uint32_t
 // ---- the resolver -----------------------------------------------------------------------------------------------
 
 AssaultResolver::AssaultResolver() : m_unused4(1), m_walker() {}
-AssaultResolver::~AssaultResolver() { REB_KEEP_VPTR_STORE(); }
+AssaultResolver::~AssaultResolver() {  }
 
 int AssaultResolver::Run(GameObjNotifier* system, ActivityRequest*, NotifyContext* ctx) {
     int consistent = 1;

@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "ui/cool_window.h"
 
 #include <cstring>
@@ -6,7 +5,6 @@
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/strstream_io.h"
-#include "core/vptr_store.h"
 #include "ui/cool_app.h"
 #include "ui/resource_dll.h"
 
@@ -65,11 +63,11 @@ CoolWindow* GetCoolWindow(HWND hwnd) {
 
 HwndNode::HwndNode(HWND hwnd) : m_hwnd(hwnd), m_window(nullptr) {}
 
-HwndNode::~HwndNode() { REB_KEEP_VPTR_STORE(); }
+HwndNode::~HwndNode() {  }
 
 HwndTree::HwndTree() {}
 
-HwndTree::~HwndTree() { REB_KEEP_VPTR_STORE(); }
+HwndTree::~HwndTree() {  }
 
 // Linker-folded with IdAvlTree::IsLess (0x5f5560), which compares the dword at +0x18.
 int HwndTree::IsLess(AvlNode* a, AvlNode* b) {
@@ -101,12 +99,12 @@ PopupEntry::PopupEntry(HwndNode* node) : m_node(node) {}
 
 PopupEntry::~PopupEntry() {
     if (m_node) delete m_node;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 ChildWindowTree::ChildWindowTree() {}
 
-ChildWindowTree::~ChildWindowTree() { REB_KEEP_VPTR_STORE(); }
+ChildWindowTree::~ChildWindowTree() {  }
 
 int ChildWindowTree::IsLess(AvlNode* a, AvlNode* b) {
     return static_cast<CoolWindow*>(a)->m_childId < static_cast<CoolWindow*>(b)->m_childId;
@@ -134,7 +132,7 @@ CoolWindow* ChildWindowTree::FindByHwnd(HWND hwnd) {
 
 IdAvlTreeElement::IdAvlTreeElement() {}
 
-IdAvlTreeElement::~IdAvlTreeElement() { REB_KEEP_VPTR_STORE(); }
+IdAvlTreeElement::~IdAvlTreeElement() {  }
 
 // ---- CoolWindow: construction and destruction ---------------------------------------------------------------
 
@@ -202,7 +200,7 @@ CoolWindow::~CoolWindow() {
     }
     if (g_captureStack && g_captureStack->m_hwnd != GetCapture()) SetCapture(g_captureStack->m_hwnd);
     EndPopup();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 // ---- CoolWindow: window class and creation -------------------------------------------------------------------
@@ -311,7 +309,7 @@ void CoolWindow::SetTooltipText(const char* text) {
 
 // ---- CoolWindow: default message handling ---------------------------------------------------------------------
 
-LRESULT REB_STDCALL CoolWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CoolWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_SHOWWINDOW) {
         if (wParam) {
             for (AvlNode* node = m_linkedWindows.First(); node; node = node->m_successor)
@@ -592,7 +590,7 @@ int CoolWindow::BeginPopup() {
     return true;
 }
 
-PopupEntry* REB_STDCALL FindPopupEntry(HWND hwnd) {
+PopupEntry* FindPopupEntry(HWND hwnd) {
     PopupEntry* entry = static_cast<PopupEntry*>(g_popupStack.m_top);
     if (!entry) return nullptr;
     while (!entry->m_node || entry->m_node->m_hwnd != hwnd) {
@@ -665,13 +663,13 @@ int ReleaseAllCaptures() {
     return hadCaptures;
 }
 
-HWND REB_STDCALL SetCaptureWindow(HWND hwnd) { return SetCapture(hwnd); }
+HWND SetCaptureWindow(HWND hwnd) { return SetCapture(hwnd); }
 
 // ---- Drawing helpers and palette -----------------------------------------------------------------------------------
 
 void LoadResourceString(UINT id, LPSTR buffer, int size) { LoadStringA(g_stringModule, id, buffer, size); }
 
-void REB_STDCALL DrawShadowedText(HDC dc, LPCSTR text, LPRECT rect, COLORREF color, COLORREF shadow, UINT format,
+void DrawShadowedText(HDC dc, LPCSTR text, LPRECT rect, COLORREF color, COLORREF shadow, UINT format,
                                 int offset, int length) {
     RECT shadowRect;
     shadowRect.left = rect->left + offset;
@@ -685,7 +683,7 @@ void REB_STDCALL DrawShadowedText(HDC dc, LPCSTR text, LPRECT rect, COLORREF col
     DrawTextA(dc, text, length, rect, format);
 }
 
-UINT REB_STDCALL SetIdentityPalette(HDC dc, HPALETTE palette) {
+UINT SetIdentityPalette(HDC dc, HPALETTE palette) {
     struct {
         WORD version;
         WORD entryCount;
@@ -744,7 +742,7 @@ UINT CoolWindow::RealizeCurrentPalette() {
     return realized;
 }
 
-void REB_STDCALL ReleasePalette(HDC dc) {
+void ReleasePalette(HDC dc) {
     if (g_savedPalette) {
         SelectPalette(dc, g_savedPalette, FALSE);
         RealizePalette(dc);
@@ -759,13 +757,17 @@ void REB_STDCALL ReleasePalette(HDC dc) {
 // ---- Resource DLL slots -----------------------------------------------------------------------------------------
 
 HMODULE FindResourceModule(uint32_t slot) {
-    ResourceDll* dll = static_cast<ResourceDll*>(g_resourceDlls.FindById(slot));
+    auto* resources = CurrentUiResources();
+    if (!resources) return nullptr;
+    ResourceDll* dll = static_cast<ResourceDll*>(resources->libraries.FindById(slot));
     return dll ? dll->m_module : nullptr;
 }
 
 uint32_t FindSlotOfModule(HMODULE module) {
+    auto* resources = CurrentUiResources();
+    if (!resources) return 0;
     uint32_t slot = 0;
-    for (ResourceDll* dll = static_cast<ResourceDll*>(g_resourceDlls.m_head); dll && slot == 0;
+    for (ResourceDll* dll = static_cast<ResourceDll*>(resources->libraries.m_head); dll && slot == 0;
          dll = static_cast<ResourceDll*>(dll->m_next)) {
         if (module == dll->m_module) slot = dll->m_id;
     }
@@ -773,6 +775,8 @@ uint32_t FindSlotOfModule(HMODULE module) {
 }
 
 HMODULE LoadResourceModule(const char* basePath, const char* fileName, uint32_t slot) {
+    auto* resources = CurrentUiResources();
+    if (!resources) return nullptr;
     HMODULE module = FindResourceModule(slot);
     if (module) return module;
 
@@ -791,7 +795,7 @@ HMODULE LoadResourceModule(const char* basePath, const char* fileName, uint32_t 
     }
     if (dll) {
         dll->m_id = slot;
-        g_resourceDlls.AddWithId(dll);
+        resources->libraries.AddWithId(dll);
         module = dll->m_module;
     }
     strstream_dtor(path.Ios());

@@ -1,11 +1,9 @@
-#include "core/reb_abi.h"
 #include "ui/custom_dialog_box.h"
 #include "orders/order_base.h"
 
 #include "app/rebapp_globals.h"
 #include "app/rebellion_application.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/status_code.h"
@@ -49,7 +47,7 @@ ObjectKeyIdNode::ObjectKeyIdNode(const ObjectKey* key, uint32_t id) {
     if (id) AddId(id);
 }
 
-ObjectKeyIdNode::~ObjectKeyIdNode() { REB_KEEP_VPTR_STORE(); }
+ObjectKeyIdNode::~ObjectKeyIdNode() {  }
 
 void ObjectKeyIdNode::AddId(uint32_t id) {
     if (m_ids.FindById(id)) return;
@@ -60,7 +58,7 @@ void ObjectKeyIdNode::AddId(uint32_t id) {
 
 ObjectKeyIdSet::ObjectKeyIdSet() {}
 
-ObjectKeyIdSet::~ObjectKeyIdSet() { REB_KEEP_VPTR_STORE(); }
+ObjectKeyIdSet::~ObjectKeyIdSet() {  }
 
 void ObjectKeyIdSet::Add(ObjectKeyIdNode* node, uint32_t id) {
     if (!node) return;
@@ -108,13 +106,13 @@ CustomDialogBox::CustomDialogBox(HINSTANCE instance, int x, int y, int width, in
 }
 
 CustomDialogBox::~CustomDialogBox() {
-    REB_KEEP_VPTR_STORE();
+
     if (m_renameField) delete m_renameField;
     if (m_renameTarget) delete m_renameTarget;
     if (m_titleLabel) delete m_titleLabel;
 }
 
-LRESULT REB_STDCALL CustomDialogBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CustomDialogBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
     case WM_PAINT:
         return CoolGameWindow::WindowProc(message, wParam, lParam);

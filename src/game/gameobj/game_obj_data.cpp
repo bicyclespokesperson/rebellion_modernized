@@ -2,11 +2,10 @@
 
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 
 GameObjData::GameObjData() : m_field04(0), m_lockCount(0), m_key(), m_stat() {}
 
-GameObjData::~GameObjData() { REB_KEEP_VPTR_STORE(); }
+GameObjData::~GameObjData() {  }
 
 int GameObjData::Read(istream* in) {
     ReadValue32(in, &m_field04);
@@ -38,7 +37,7 @@ SystemData::SystemData()
     : GameObjData(), m_word48(), m_word54(), m_word60(0), m_word64(0), m_word68(), m_word74(0), m_word78(0),
       m_word7c(0), m_flags80(0) {}
 
-SystemData::~SystemData() { REB_KEEP_VPTR_STORE(); }
+SystemData::~SystemData() {  }
 
 namespace {
 

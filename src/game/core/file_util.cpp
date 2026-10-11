@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "core/file_util.h"
 
 #include "platform/win32.h"
@@ -12,7 +11,7 @@ extern char g_resourceString[256];
 extern int g_filebufOpenprot;
 
 #pragma clang diagnostic ignored "-Winconsistent-dllimport"
-extern "C" char* REB_CDECL strncpy(char* destination, const char* source, size_t count);
+extern "C" char* strncpy(char* destination, const char* source, size_t count);
 
 
 namespace {
@@ -21,13 +20,10 @@ constexpr int kOpenBinaryInput = 0xa1;
 constexpr int kOpenBinaryOutput = 0x82;
 constexpr int kInvalidDescriptor = -1;
 
-// A stream derived from ios (virtual base): vbtable[1] is the offset of the ios part, whose streambuf pointer
-// (+4) is the filebuf holding the file descriptor (+0x4c).
-int FilebufDescriptor(void* fstream) {
-    char* object = static_cast<char*>(fstream);
-    const int* vbtable = *reinterpret_cast<int**>(object);
-    const ::ios* stream = reinterpret_cast<const ::ios*>(object + vbtable[1]);
-    return static_cast<const ::filebuf*>(stream->m_bp)->m_fd;
+template <typename Stream>
+int FilebufDescriptor(Stream* stream) {
+    const auto* buffer = static_cast<const filebuf*>(iostream_access::IosOf(stream)->m_bp);
+    return buffer ? buffer->m_fd : kInvalidDescriptor;
 }
 
 }  // namespace
@@ -77,7 +73,8 @@ void OpenOutputFile(ofstream* stream, const char* fileName) {
     }
 }
 
-void CloseFileStream(void* fstream) { fstreambase_close(fstream); }
+void CloseFileStream(ifstream* stream) { fstreambase_close(stream->In()); }
+void CloseFileStream(ofstream* stream) { fstreambase_close(stream->Out()); }
 
 int DeleteGameFile(const char* fileName) {
     int deleted = 0;

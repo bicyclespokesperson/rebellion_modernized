@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "tactical/tactical_units.h"
 
 #include <new>
@@ -217,7 +216,7 @@ void TacticalSpecialForceTree::Write(ostream* out) { writeRecords<TacticalSpecia
 
 void TacticalSpecialForceTree::Checksum(Crc32* crc) { checksumRecords<TacticalSpecialForceUnit>(this, crc); }
 
-void REB_CDECL TacticalCharacterStatusEvent(TacticalEvent* event) {
+void TacticalCharacterStatusEvent(TacticalEvent* event) {
     if (event == nullptr) return;
     int* args = event->m_args + 2;
     TacticalCharacterUnit* character = FUN_005a9430(GetObjectManager(), args[0]);
@@ -234,6 +233,6 @@ int TacticalCharacterUnit::Virtual01() { return 7; }
 
 IdNode* TacticalCharacterTree::FirstItem() { return static_cast<IdNode*>(First()); }
 
-TurnSyncChannelA::~TurnSyncChannelA() { REB_KEEP_VPTR_STORE(); }
+TurnSyncChannelA::~TurnSyncChannelA() {  }
 
-TurnSyncChannelB::~TurnSyncChannelB() { REB_KEEP_VPTR_STORE(); }
+TurnSyncChannelB::~TurnSyncChannelB() {  }

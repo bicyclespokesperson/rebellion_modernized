@@ -17,7 +17,7 @@ constexpr int kStatusCategoryOrder = 0x40;
 
 MissionDSSabotage::MissionDSSabotage() {}
 
-MissionDSSabotage::~MissionDSSabotage() { REB_KEEP_VPTR_STORE(); }
+MissionDSSabotage::~MissionDSSabotage() {  }
 
 REB_MISSION_SHARED_PERSISTENCE(MissionDSSabotage)
 

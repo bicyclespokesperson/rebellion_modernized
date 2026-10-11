@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 // The move, rename, scrap and ready-for-delete orders (0x53c040-0x53e0a0).
 //
 // Move (0x201) and Confirmed Move (0x202) are "group" orders over the move base 0x53c040: they own a list of
@@ -125,4 +124,4 @@ void* CreateScrapOrder();           // 0x53dd20, kind 0x200
 void* CreateReadyForDeleteOrder();  // 0x53de60, kind 0x205
 
 // Moves the characters of `team` that are at the same location (the first one's) into `out`; the others stay.
-int REB_STDCALL TakeCharactersAtOneLocation(ObjectKeyValueSet* team, ObjectKeyValueSet* out, StatusCode* status);  // 0x53cbc0
+int TakeCharactersAtOneLocation(ObjectKeyValueSet* team, ObjectKeyValueSet* out, StatusCode* status);  // 0x53cbc0

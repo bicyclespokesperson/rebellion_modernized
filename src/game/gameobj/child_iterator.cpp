@@ -1,6 +1,5 @@
 #include "gameobj/child_iterator.h"
 
-#include "core/vptr_store.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_family.h"
 
@@ -14,7 +13,7 @@ ChildIterator::ChildIterator(GameObjNotifier* parent, uint32_t side, const Famil
     m_stateFilter = stateFilter;
 }
 
-ChildIterator::~ChildIterator() { REB_KEEP_VPTR_STORE(); }
+ChildIterator::~ChildIterator() {  }
 
 ChildIterator* ChildIterator::Advance() {
     bool atEnd;
@@ -70,4 +69,4 @@ int ChildIterator::Accepts() {
 UnitIterator::UnitIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &family::kUnits, stateFilter) {}
 
-UnitIterator::~UnitIterator() { REB_KEEP_VPTR_STORE(); }
+UnitIterator::~UnitIterator() {  }

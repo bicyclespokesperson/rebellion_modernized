@@ -5,7 +5,6 @@
 #include "core/checked_new.h"
 #include "core/file_util.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 
 // The directory callback that locates the game data on the CD (0x4fd320).
@@ -46,7 +45,7 @@ constexpr TableFileSpec kTableFiles[] = {
 
 TableBase::TableBase() : m_version(1) {}
 
-TableBase::~TableBase() { REB_KEEP_VPTR_STORE(); }
+TableBase::~TableBase() {  }
 
 int TableBase::ReadVersion(istream* in) {
     ReadValue32(in, &m_version);
@@ -67,7 +66,7 @@ int TableBase::ChecksumVersion(Crc32* crc) {
 
 Table::Table() { m_name[0] = '\0'; }
 
-Table::~Table() { REB_KEEP_VPTR_STORE(); }
+Table::~Table() {  }
 
 void Table::Add(TableEntry* entry) {
     if (entry) m_entries.AddWithId(entry);
@@ -186,7 +185,7 @@ int TableBase::Open(uint16_t firstId, uint16_t secondId, const char* directory) 
         strstreambuf_freeze(iostream_access::BufferOf(prefixedName.get()), 0);
     }
     strstreambuf_freeze(iostream_access::BufferOf(plainName.get()), 0);
-    if (file.FileDescriptor() != -1) Read(reinterpret_cast<istream*>(file.get()));
+    if (file.FileDescriptor() != -1) Read(file.get()->In());
     CloseFileStream(file.get());
     return 1;
 }
@@ -195,7 +194,7 @@ int TableBase::Open(uint16_t firstId, uint16_t secondId, const char* directory) 
 
 TableFile::TableFile() { m_version = m_table.m_version; }
 
-TableFile::~TableFile() { REB_KEEP_VPTR_STORE(); }
+TableFile::~TableFile() {  }
 
 int TableFile::Load(uint16_t firstId, uint16_t secondId, const char* directory) {
     return m_table.Open(firstId, secondId, directory);
@@ -203,14 +202,14 @@ int TableFile::Load(uint16_t firstId, uint16_t secondId, const char* directory) 
 
 TableFileList::TableFileList() : m_ready(1) {}
 
-TableFileList::~TableFileList() { REB_KEEP_VPTR_STORE(); }
+TableFileList::~TableFileList() {  }
 
 // ---- GDataTables -------------------------------------------------------------------------------------------
 
 GDataTables::GDataTables() : m_tables(nullptr) { m_ready = CreateTableList(); }
 
 GDataTables::~GDataTables() {
-    REB_KEEP_VPTR_STORE();
+
     DeleteTableList();
 }
 

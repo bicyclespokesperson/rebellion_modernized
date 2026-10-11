@@ -80,7 +80,7 @@ int ResolveMasterInFamilies_f9_fa(const ObjectKey* key, GameObjNotifier** out, c
 
 // ---- the game root's cached master objects (0x506e10-0x506f40) ----
 //
-// The game root (g_gameRoot, family 0xf1) keeps pointers to a few master objects; these read them, null-guarded
+// The GameManager-owned game root (family 0xf1) keeps pointers to a few master objects; these read them, null-guarded
 // against a missing game root. The jmp stubs 0x506ef0-0x506f40 forward to these.
 GameObjNotifier* GetGameRootObjectCached();            // 0x506e10, the game root itself
 GameObjNotifier* GetGameRootMember_b0();               // 0x506e20

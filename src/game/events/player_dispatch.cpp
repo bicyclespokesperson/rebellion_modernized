@@ -97,9 +97,9 @@ void PlayerDispatch::Update() {
             if ((value & 4) != 0) *flags &= ~4u;
         } else if (m_unk40 != 0) {
             if (UiIsGalaxyViewShown()) {
-                UiRecord* record = static_cast<UiRecord*>(m_trees[1].First());
-                if (record && record->GetKind() == 2) {
-                    UiOpenType6Window(reinterpret_cast<LPARAM>(record));
+                UiNotice* notice = static_cast<UiNotice*>(m_trees[1].First());
+                if (notice && notice->GetKind() == 2) {
+                    UiOpenType6Window(reinterpret_cast<LPARAM>(notice));
                     m_unk40 = 0;
                     *flags &= ~kFlagReportWaiting;
                     return;
@@ -108,9 +108,9 @@ void PlayerDispatch::Update() {
         }
     } else if (m_unk40 != 0) {
         if (UiIsGalaxyViewShown()) {
-            UiRecord* record = static_cast<UiRecord*>(m_trees[1].First());
-            if (record && record->GetKind() == 1) {
-                UiOpenType8Window(reinterpret_cast<LPARAM>(record));
+            UiNotice* notice = static_cast<UiNotice*>(m_trees[1].First());
+            if (notice && notice->GetKind() == 1) {
+                UiOpenType8Window(reinterpret_cast<LPARAM>(notice));
                 m_unk40 = 0;
                 *flags &= ~kFlagDialogWaiting;
                 return;

@@ -8,8 +8,8 @@
 
 class SoundRequest;
 
-// A loaded sound (a WAVE resource, or a file the game streams) with the DirectSound buffers playing it. Sources live
-// in g_soundSources keyed by (module index << 16) + resource id.
+// A loaded sound (a WAVE resource, or a file the game streams) with the DirectSound buffers playing it. AudioContext
+// stores sources keyed by (module index << 16) + resource id.
 class SoundSource : public KeyedSoundNode {
 public:
     // From an in-memory WAVE image (a locked resource) that is loaded whole into a static buffer.
@@ -20,7 +20,7 @@ public:
     virtual void Reset();
 
     void LoadFromFile(const char* fileName, long seekPosition, int mode, SoundRequest* request);
-    void AttachFile(istream* stream, long seekPosition, int mode, SoundRequest* request);
+    void AttachFile(ifstream* stream, long seekPosition, int mode, SoundRequest* request);
     void LoadFromMemory(const void* waveImage, int mode, SoundRequest* request);
     // Both return the key of the first buffer (0 if none could be made) and store it in request->m_handle.
     uint32_t CreateFileBuffer(istream* stream, int* mode);
@@ -36,12 +36,12 @@ public:
     int IsAnyPlaying();
     int ReleaseUser(int bufferKey);
 
-    int m_users;              // +0x1c buffers currently playing or paused
+    int m_users{};              // +0x1c buffers currently playing or paused
     WaveInfo m_wave;          // +0x20
     SoundBufferList m_buffers;  // +0x40 keyed by SoundBuffer::m_key
-    istream* m_stream;        // +0x4c the file a streamed source reads, if still open
-    long m_streamPosition;    // +0x50 where the WAVE image starts in that file
-    int m_keepLoaded;         // +0x54 survives SoundManager::ReleaseAll(0)
+    ifstream* m_stream{};     // owns the file stream borrowed by streamed buffers
+    long m_streamPosition{};  // +0x50 where the WAVE image starts in that file
+    int m_keepLoaded{};       // +0x54 survives SoundManager::ReleaseAll(0)
 };
 
 // Tree of all loaded SoundSources.

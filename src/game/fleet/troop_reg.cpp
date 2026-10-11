@@ -1,10 +1,8 @@
-#include "core/reb_abi.h"
 #include "fleet/troop_reg.h"
 
 #include <new>
 
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "data/random.h"
 #include "events/event_post.h"
 #include "fleet/unit_view_flags.h"
@@ -39,7 +37,7 @@ TroopReg::TroopReg() {
     m_withdrawPercent = kFullWithdrawPercent;
 }
 
-TroopReg::~TroopReg() { REB_KEEP_VPTR_STORE(); }
+TroopReg::~TroopReg() {  }
 
 int TroopReg::Read(istream* in) { return ReadState(in); }
 
@@ -240,6 +238,6 @@ TroopRegIterator::TroopRegIterator(GameObjNotifier* parent, uint32_t stateFilter
 TroopRegIterator::TroopRegIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kTroopFamilies, stateFilter) {}
 
-TroopRegIterator::~TroopRegIterator() { REB_KEEP_VPTR_STORE(); }
+TroopRegIterator::~TroopRegIterator() {  }
 EventKindSet g_troopRegEventKinds{};
 int g_troopRegEventKindsReady{};

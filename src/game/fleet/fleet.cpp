@@ -2,7 +2,6 @@
 
 #include <cstdint>
 
-#include "core/vptr_store.h"
 #include "fleet/capship.h"
 #include "fleet/fight_squad.h"
 #include "gameobj/child_iterator.h"
@@ -80,7 +79,7 @@ T* asPointer(intptr_t value) {
 
 Fleet::Fleet() : GameObj(), m_fleetFlags(0) {}
 
-Fleet::~Fleet() { REB_KEEP_VPTR_STORE(); }
+Fleet::~Fleet() {  }
 
 Fleet* CreateFleet() { return new Fleet(); }
 

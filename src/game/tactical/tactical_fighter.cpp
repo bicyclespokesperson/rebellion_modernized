@@ -108,7 +108,7 @@ TacticalFighter::TacticalFighter(uint32_t family, uint32_t id, int notAlliance, 
     }
 }
 
-TacticalFighter::~TacticalFighter() { REB_KEEP_VPTR_STORE(); }
+TacticalFighter::~TacticalFighter() {  }
 
 double TacticalFighter::GetWeaponRecharge() {
     const double value = (static_cast<double>(m_hull) * 3.751f) / 8.0f;
@@ -128,8 +128,12 @@ double TacticalFighter::GetSpeed() {
         for (UnitRefNode* node = m_unk360.FirstNode(); node; node = node->Next()) {
             tractored = static_cast<float>(node->Value()->TractorPower() + tractored);
         }
+#ifdef REB_NO_TACTICAL_3D
+        const double skill = GetHeadlessSimulator()->CommanderSkillB(m_side);
+#else
         const double skill = GetTacticalGame()->m_abstract != 0 ? GetHeadlessSimulator()->CommanderSkillB(m_side)
                                                                  : FUN_005ad7e0(GetObjectManager(), m_side);
+#endif
         const double base = skill + m_speed;
         const double speed = base - ((base * 0.25f) * static_cast<double>(m_speedCH) + tractored);
         if (speed > 0.0f) return speed;
@@ -139,11 +143,15 @@ double TacticalFighter::GetSpeed() {
 
 double TacticalFighter::GetTurnRate() {
     if (GetSpeed() == 0.0f) return 1.0f;
+#ifdef REB_NO_TACTICAL_3D
+    GetHeadlessSimulator()->CommanderSkillB(m_side);
+#else
     if (GetTacticalGame()->m_abstract == 1) {
         GetHeadlessSimulator()->CommanderSkillB(m_side);
     } else {
         FUN_005ad7e0(GetObjectManager(), m_side);
     }
+#endif
     const double turn = static_cast<double>(m_commanderBonus) - -1.0f;
     if (turn < 9.0f) return turn;
     return 9.0f;
@@ -174,11 +182,11 @@ FightSquadResult* TacticalFighter::BuildResult(FightSquadResult* out) {
 // The same code as the capital ship's slot 50 (0x5b00c0), shared by the linker.
 void TacticalFighter::Virtual50() { FUN_005ba980(FUN_005ba8b0(), 1, 1); }
 
-HeadlessSimulator * g_headlessSimulator{};
+#ifndef REB_NO_TACTICAL_3D
 TacticalClient * g_tacticalClient{};
 TacticalHub * g_tacticalHub{};
 TacticalObjectManager * g_tacticalObjectManager{};
-TacticalRegistry * g_tacticalRegistry{};
 TacticalSoundManager * g_tacticalSoundManager{};
 TacticalTurnSync * g_tacticalTurnSync{};
+#endif
 float g_shipMinTurnStep{};

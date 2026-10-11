@@ -1,11 +1,9 @@
-#include "core/reb_abi.h"
 #include <new>
 
 #include "app/player_controller_decl.h"
 #include "ai/ai_advisor_tasks.h"
 #include "app/rebapp_globals.h"
 #include "core/stream_io.h"
-#include "core/vptr_store.h"
 #include "events/game_clock_hooks.h"
 #include "orders/order_base.h"
 #include "strategy_ui/advisor_decl.h"
@@ -83,7 +81,7 @@ AdvisorBase::~AdvisorBase() {
         ::operator delete(m_cueCooldown);
         m_cueCooldown = nullptr;
     }
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AdvisorBase::Read(istream* in, HumanPlayer* player) {
@@ -312,7 +310,7 @@ int AdvisorBase::IsTaskReady(int command) {
     return 0;
 }
 
-void REB_STDCALL AdvisorToggleUiFlag(int command) {  // 0x439e80
+void AdvisorToggleUiFlag(int command) {  // 0x439e80
     if (command == 0x119) return;
     if (command == 0x11b) {
         g_humanUiFlags.m_value ^= 0x1000;

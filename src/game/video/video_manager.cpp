@@ -2,7 +2,6 @@
 #include "video/video_manager.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "ui/cool_environment.h"
 
 extern VideoManager* g_videoManager;
@@ -25,7 +24,7 @@ VideoManager::VideoManager(CoolWindow* parentWindow) {
 }
 
 VideoManager::~VideoManager() {
-    REB_KEEP_VPTR_STORE();
+
     Stop();
     g_videoManager = nullptr;
     g_videoParentWindow = nullptr;

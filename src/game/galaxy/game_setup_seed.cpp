@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "galaxy/game_setup_seed.h"
 
 #include <new>
@@ -92,11 +91,11 @@ uint32_t ApplyLoyaltyRuleToSystem(System* system, const LoyaltyRule* rule, Notif
     return result;
 }
 
-GameObjNotifier* REB_THISCALL GetNextSectorMaster(GameObjNotifier* sector) {
+GameObjNotifier* GetNextSectorMaster(GameObjNotifier* sector) {
     return static_cast<GameObj*>(sector)->FindNextSibling(&kSectorFamilies, 1);
 }
 
-GameObjNotifier* REB_THISCALL NextSystemMaster(GameObjNotifier* system) {
+GameObjNotifier* NextSystemMaster(GameObjNotifier* system) {
     return static_cast<GameObj*>(system)->FindNextSibling(&kSystemFamilies, 1);
 }
 

@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include "character/character.h"
 
 // MajorCharacter (0x594520, VT 0x66b608, secondary 0x66b600, 0xb0 bytes) is the base of the story's major characters:
@@ -93,13 +92,13 @@ public:
 
 // First-level forwarders shared by Character38 and the major characters: they call the Character bodies of the
 // persistence slots and of CreateViews (all thiscall).
-int REB_THISCALL CharacterLeafRead(Character* self, istream* in);            // 0x56f2c0
-int REB_THISCALL CharacterLeafWrite(Character* self, ostream* out);          // 0x56f2d0
-int REB_THISCALL CharacterLeafApplyAll(Character* self, NotifyContext* ctx);  // 0x56f2e0
-int REB_THISCALL CharacterLeafChecksum(Character* self, Crc32* crc);         // 0x56f2f0
-int REB_THISCALL CharacterLeafCreateViews(Character* self, int controlKind, NotifyContext* ctx);  // 0x56f2a0
+int CharacterLeafRead(Character* self, istream* in);            // 0x56f2c0
+int CharacterLeafWrite(Character* self, ostream* out);          // 0x56f2d0
+int CharacterLeafApplyAll(Character* self, NotifyContext* ctx);  // 0x56f2e0
+int CharacterLeafChecksum(Character* self, Crc32* crc);         // 0x56f2f0
+int CharacterLeafCreateViews(Character* self, int controlKind, NotifyContext* ctx);  // 0x56f2a0
 // Second level, owned by MajorChar30's range and used by Character38's slots as well: forward to the above.
-int REB_THISCALL MajorLeafRead(Character* self, istream* in);            // 0x56ef50
-int REB_THISCALL MajorLeafWrite(Character* self, ostream* out);          // 0x56ef60
-int REB_THISCALL MajorLeafApplyAll(Character* self, NotifyContext* ctx);  // 0x56ef70
-int REB_THISCALL MajorLeafChecksum(Character* self, Crc32* crc);         // 0x56ef80
+int MajorLeafRead(Character* self, istream* in);            // 0x56ef50
+int MajorLeafWrite(Character* self, ostream* out);          // 0x56ef60
+int MajorLeafApplyAll(Character* self, NotifyContext* ctx);  // 0x56ef70
+int MajorLeafChecksum(Character* self, Crc32* crc);         // 0x56ef80

@@ -1,10 +1,8 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/advisor_notices.h"
 
 #include <new>
 
 #include "audio/sound_manager.h"
-#include "core/vptr_store.h"
 #include "events/game_clock_hooks.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/notif_payload.h"
@@ -56,7 +54,7 @@ UiNotice::UiNotice(int owner) : IdNode(), m_flags(0) {
     m_flags.m_value |= kNoticeFlagUi;
 }
 
-UiNotice::~UiNotice() { REB_KEEP_VPTR_STORE(); }
+UiNotice::~UiNotice() {  }
 
 void UiNotice::Read(istream* in) {
     ReadValue32(in, &m_unk1c);
@@ -100,7 +98,7 @@ UiTextNotice::UiTextNotice() : UiNotice() { m_target.m_value = 0; }
 
 UiTextNotice::UiTextNotice(int owner) : UiNotice(owner) { m_target.m_value = 0; }
 
-UiTextNotice::~UiTextNotice() { REB_KEEP_VPTR_STORE(); }
+UiTextNotice::~UiTextNotice() {  }
 
 void UiTextNotice::Read(istream* in) {
     UiNotice::Read(in);
@@ -135,7 +133,7 @@ UiKeyNotice::UiKeyNotice() : UiNotice() {}
 
 UiKeyNotice::UiKeyNotice(int owner) : UiNotice(owner) {}
 
-UiKeyNotice::~UiKeyNotice() { REB_KEEP_VPTR_STORE(); }
+UiKeyNotice::~UiKeyNotice() {  }
 
 void UiKeyNotice::Read(istream* in) {
     UiNotice::Read(in);
@@ -164,7 +162,7 @@ DroidScript::DroidScript() : IdNode() {
 
 DroidScript::~DroidScript() {
     if (m_entries) ::operator delete(m_entries);
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void DroidScript::Read(istream* in) {
@@ -223,7 +221,7 @@ uint16_t AdvisorPickAdviceLine(uint32_t adviceId) {
     return line;
 }
 
-SoundRequest* REB_CDECL AdvisorPlayAdvice(SoundRequest* result, uint32_t adviceId) {
+SoundRequest* AdvisorPlayAdvice(SoundRequest* result, uint32_t adviceId) {
     SoundRequest request(0, 0, 0, 0, 0, 0);
     request.m_kind = 1;
     request.m_soundId = adviceId & 0xffff;
@@ -232,7 +230,7 @@ SoundRequest* REB_CDECL AdvisorPlayAdvice(SoundRequest* result, uint32_t adviceI
     return new (result) SoundRequest(request);
 }
 
-uint16_t REB_STDCALL AdvisorRecordTypeResource(GameObj* object) {
+uint16_t AdvisorRecordTypeResource(GameObj* object) {
     if (!object) return 0;
     return static_cast<uint16_t>((object->GetRecordTypeBits() & kRecordTypeMask) + kRecordTypeResourceBase);
 }

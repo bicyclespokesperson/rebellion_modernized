@@ -20,7 +20,7 @@ int ControlSideIndex(uint32_t controlSide) {
 
 MissionSubdue::MissionSubdue() {}
 
-MissionSubdue::~MissionSubdue() { REB_KEEP_VPTR_STORE(); }
+MissionSubdue::~MissionSubdue() {  }
 
 REB_MISSION_SHARED_PERSISTENCE(MissionSubdue)
 

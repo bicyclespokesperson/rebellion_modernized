@@ -2,14 +2,13 @@
 
 #include <cstdint>
 
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/sprite.h"
 #include "ui/sprite_stage.h"
 
 AnimationStepQueue::AnimationStepQueue() {}
 
-AnimationStepQueue::~AnimationStepQueue() { REB_KEEP_VPTR_STORE(); }
+AnimationStepQueue::~AnimationStepQueue() {  }
 
 namespace {
 
@@ -39,7 +38,7 @@ SpriteAnimator::~SpriteAnimator() {
         delete m_current;
         m_current = nullptr;
     }
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void SpriteAnimator::SetOrigin(int x, int y) {

@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/message_index_window.h"
 
 #include <new>
@@ -7,7 +6,6 @@
 #include "core/checked_new.h"
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/advisor_notices.h"
 #include "strategy_ui/encyclopedia_window.h"
@@ -138,7 +136,7 @@ MessageIndexWindow::~MessageIndexWindow() {
     if (m_list) delete m_list;
     if (m_text) delete m_text;
     UiSetHumanDispatchFlag(0);
-    REB_KEEP_VPTR_STORE();
+
 }
 
 // ---- OnCreate1 ------------------------------------------------------------------------------------------------
@@ -398,7 +396,7 @@ void MessageIndexWindow::OnCreate1() {
 
 // ---- Messages -------------------------------------------------------------------------------------------------
 
-LRESULT REB_STDCALL MessageIndexWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT MessageIndexWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message == WM_SETFOCUS) {
         SetFocus(m_list->m_hwnd);
     } else {

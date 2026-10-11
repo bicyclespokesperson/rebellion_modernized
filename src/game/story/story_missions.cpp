@@ -1,11 +1,9 @@
-#include "core/reb_abi.h"
 #include "character/character_mgr.h"
 #include "story/story_missions.h"
 
 #include "ai/ai_common.h"
 #include "character/character.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "data/random.h"
 #include "galaxy/mission_decl.h"
 #include "gameobj/object_family.h"
@@ -28,9 +26,9 @@ extern EventKindSet g_missionBountyEventKinds;  // 0x6bbad8
 
 GameObjNotifier* GetGameRootMember_c0();
 GameObjNotifier* GetMaster_32000242();
-int REB_CDECL ComputePalaceMissionValue(int espionage, int combat, int* out);
-int REB_CDECL ComputeDagobahBonusA(int force, int* out);
-int REB_CDECL ComputeDagobahBonusB(int force, int days, int* out);
+int ComputePalaceMissionValue(int espionage, int combat, int* out);
+int ComputeDagobahBonusA(int force, int* out);
+int ComputeDagobahBonusB(int force, int days, int* out);
 
 namespace {
 
@@ -219,23 +217,23 @@ intptr_t keyAsArgument(ObjectKey* key) { return reinterpret_cast<intptr_t>(asRef
 
 // ---- shared second-level forwarders of the story missions -----------------------------------------------------------
 
-int REB_THISCALL MissionStoryReadForward(Mission* self, istream* in) { return self->Mission::ReadImpl(in); }
+int MissionStoryReadForward(Mission* self, istream* in) { return self->Mission::ReadImpl(in); }
 
-int REB_THISCALL MissionStoryWriteForward(Mission* self, ostream* out) {
+int MissionStoryWriteForward(Mission* self, ostream* out) {
     return self->Mission::WriteImpl(out);
 }
 
-int REB_THISCALL MissionStoryApplyAllForward(Mission* self, NotifyContext* ctx) {
+int MissionStoryApplyAllForward(Mission* self, NotifyContext* ctx) {
     return self->Mission::ApplyAllImpl(ctx);
 }
 
-int REB_THISCALL MissionStoryChecksumForward(Mission* self, Crc32* crc) { return self->Mission::ChecksumImpl(crc); }
+int MissionStoryChecksumForward(Mission* self, Crc32* crc) { return self->Mission::ChecksumImpl(crc); }
 
 // ---- MissionPickup ----------------------------------------------------------------------------------------------
 
 MissionPickup::MissionPickup() {}
 
-MissionPickup::~MissionPickup() { REB_KEEP_VPTR_STORE(); }
+MissionPickup::~MissionPickup() {  }
 
 uint32_t MissionPickup::GetFamily() { return kFamilyPickup; }
 
@@ -331,7 +329,7 @@ int MissionPickup::BuildEventKinds() {
 
 MissionPalace::MissionPalace() {}
 
-MissionPalace::~MissionPalace() { REB_KEEP_VPTR_STORE(); }
+MissionPalace::~MissionPalace() {  }
 
 uint32_t MissionPalace::GetFamily() { return kFamilyPalace; }
 
@@ -452,7 +450,7 @@ int MissionPalace::BuildEventKinds() {
 
 MissionVacation::MissionVacation() {}
 
-MissionVacation::~MissionVacation() { REB_KEEP_VPTR_STORE(); }
+MissionVacation::~MissionVacation() {  }
 
 uint32_t MissionVacation::GetFamily() { return kFamilyVacation; }
 
@@ -528,7 +526,7 @@ int MissionVacation::BuildEventKinds() {
 
 DagobahMission::DagobahMission() : m_firstTrainingDay(0) {}
 
-DagobahMission::~DagobahMission() { REB_KEEP_VPTR_STORE(); }
+DagobahMission::~DagobahMission() {  }
 
 uint32_t DagobahMission::GetFamily() { return kFamilyDagobah; }
 
@@ -683,7 +681,7 @@ int DagobahMission::BuildEventKinds() {
 
 MissionBounty::MissionBounty() {}
 
-MissionBounty::~MissionBounty() { REB_KEEP_VPTR_STORE(); }
+MissionBounty::~MissionBounty() {  }
 
 uint32_t MissionBounty::GetFamily() { return kFamilyBounty; }
 

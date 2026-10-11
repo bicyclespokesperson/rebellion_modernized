@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include "mission/mission_bases.h"
 #include "mission/mission_leaf.h"
 #include "story/story_characters.h"
@@ -180,7 +179,7 @@ public:
 
 // The second-level forwarders of the slots 5-7 and 9 that the story missions' first-level forwarders call: they run the
 // rule-base bodies on the same object.
-int REB_THISCALL MissionStoryReadForward(Mission* self, istream* in);          // 0x56da40
-int REB_THISCALL MissionStoryWriteForward(Mission* self, ostream* out);        // 0x56da50
-int REB_THISCALL MissionStoryApplyAllForward(Mission* self, NotifyContext* ctx);  // 0x56da60
-int REB_THISCALL MissionStoryChecksumForward(Mission* self, Crc32* crc);       // 0x56da70
+int MissionStoryReadForward(Mission* self, istream* in);          // 0x56da40
+int MissionStoryWriteForward(Mission* self, ostream* out);        // 0x56da50
+int MissionStoryApplyAllForward(Mission* self, NotifyContext* ctx);  // 0x56da60
+int MissionStoryChecksumForward(Mission* self, Crc32* crc);       // 0x56da70

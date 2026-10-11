@@ -1,6 +1,5 @@
 #include "orders/route_capacity.h"
 
-#include "core/vptr_store.h"
 #include "gameobj/child_iterator.h"
 
 namespace {
@@ -46,7 +45,7 @@ CapacitySlot::CapacitySlot(const CapacitySlot& other)
       m_status(other.m_status),
       m_limitStatus(other.m_limitStatus) {}
 
-CapacitySlot::~CapacitySlot() { REB_KEEP_VPTR_STORE(); }
+CapacitySlot::~CapacitySlot() {  }
 
 int CapacitySlot::MarkOverCapacity() {
     m_status = StatusCode(kStatusCategory, kStatusOverCapacity);
@@ -130,7 +129,7 @@ int CapacitySlot::Commit(CapacitySlot* capacity, const UnitCount& count, int con
 
 CapacityScratch::CapacityScratch() = default;
 
-CapacityScratch::~CapacityScratch() { REB_KEEP_VPTR_STORE(); }
+CapacityScratch::~CapacityScratch() {  }
 
 // ---- UnitCount ------------------------------------------------------------------------------------------------
 
@@ -138,7 +137,7 @@ UnitCount::UnitCount() : m_counted(0), m_amount(0) {}
 
 UnitCount::UnitCount(const UnitCount& other) : m_counted(other.m_counted), m_amount(other.m_amount) {}
 
-UnitCount::~UnitCount() { REB_KEEP_VPTR_STORE(); }
+UnitCount::~UnitCount() {  }
 
 int UnitCount::Reset() {
     m_counted = 0;
@@ -156,7 +155,7 @@ CapacitySlotArray::CapacitySlotArray(const CapacitySlotArray& other) {
     for (int i = 0; i < kCapacityBuckets; ++i) m_slots[i] = other.m_slots[i];
 }
 
-CapacitySlotArray::~CapacitySlotArray() { REB_KEEP_VPTR_STORE(); }
+CapacitySlotArray::~CapacitySlotArray() {  }
 
 CapacitySlotArray& CapacitySlotArray::operator=(const CapacitySlotArray& other) {
     for (int i = 0; i < kCapacityBuckets; ++i) m_slots[i] = other.m_slots[i];
@@ -170,7 +169,7 @@ int CapacitySlotArray::MarkAllOverCapacity() {
 
 UnitCountArray::UnitCountArray() = default;
 
-UnitCountArray::~UnitCountArray() { REB_KEEP_VPTR_STORE(); }
+UnitCountArray::~UnitCountArray() {  }
 
 int UnitCountArray::ResetAll() {
     for (UnitCount& count : m_counts) count.Reset();
@@ -186,11 +185,11 @@ int UnitCountArray::AllNonNegative() const {
 
 CapacityTable::CapacityTable() = default;
 
-CapacityTable::~CapacityTable() { REB_KEEP_VPTR_STORE(); }
+CapacityTable::~CapacityTable() {  }
 
 UnitCountTable::UnitCountTable() = default;
 
-UnitCountTable::~UnitCountTable() { REB_KEEP_VPTR_STORE(); }
+UnitCountTable::~UnitCountTable() {  }
 
 int UnitCountTable::ResetAll() {
     if (m_own.ResetAll()) return m_carried.ResetAll();
@@ -258,7 +257,7 @@ int UnitCountTable::AddFamily(uint32_t family, int delta, StatusCode* status) {
 
 CapacityLeg::CapacityLeg() : ObjectKeyNode(), m_flag(1), m_parentKey(), m_table() {}
 
-CapacityLeg::~CapacityLeg() { REB_KEEP_VPTR_STORE(); }
+CapacityLeg::~CapacityLeg() {  }
 
 int CapacityLeg::MarkAllIncomingOverCapacity() { return m_table.m_incoming.MarkAllOverCapacity(); }
 

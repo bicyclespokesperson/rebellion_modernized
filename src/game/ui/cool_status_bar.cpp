@@ -1,7 +1,5 @@
-#include "core/reb_abi.h"
 #include "ui/cool_status_bar.h"
 
-#include "core/vptr_store.h"
 
 namespace {
 
@@ -44,7 +42,7 @@ CoolwinStatusBar::~CoolwinStatusBar() {
     if (m_barBrush) DeleteObject(m_barBrush);
     if (m_backgroundBrush) DeleteObject(m_backgroundBrush);
     if (m_tickPen) DeleteObject(m_tickPen);
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void CoolwinStatusBar::SetBarColor(COLORREF color) {
@@ -84,7 +82,7 @@ void CoolwinStatusBar::SetPosition(uint32_t position) {
     if (m_hwnd) InvalidateRect(m_hwnd, nullptr, FALSE);
 }
 
-LRESULT REB_STDCALL CoolwinStatusBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CoolwinStatusBar::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     if (message != WM_PAINT) return DefWindowProcA(m_hwnd, message, wParam, lParam);
 
     PAINTSTRUCT paint;

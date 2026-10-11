@@ -1,7 +1,6 @@
 #include "core/string_map.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 
 namespace {
 
@@ -13,13 +12,13 @@ void Advance(StringCursor* cursor) { ++*cursor; }
 
 StringMapNode::StringMapNode(const String& key, int value) : LinkNode(), m_key(key.m_text), m_value(value) {}
 
-StringMapNode::~StringMapNode() { REB_KEEP_VPTR_STORE(); }
+StringMapNode::~StringMapNode() {  }
 
 StringMap::StringMap() : SortedLinkList() {}
 
 StringMap::StringMap(const StringMap& other) : SortedLinkList() { *this = other; }
 
-StringMap::~StringMap() { REB_KEEP_VPTR_STORE(); }
+StringMap::~StringMap() {  }
 
 int StringMap::IsLess(LinkNode*, LinkNode*) { return 1; }
 

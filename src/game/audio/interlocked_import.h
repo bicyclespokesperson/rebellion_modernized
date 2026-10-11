@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include "platform/win32.h"
 
 // The original calls kernel32's InterlockedExchange through its import table; the SDK headers would replace the call
@@ -7,4 +6,4 @@
 #ifdef InterlockedExchange
 #undef InterlockedExchange
 #endif
-extern "C" REB_DLLIMPORT LONG REB_STDCALL InterlockedExchange(LONG volatile* target, LONG value);
+extern "C" LONG InterlockedExchange(LONG volatile* target, LONG value);

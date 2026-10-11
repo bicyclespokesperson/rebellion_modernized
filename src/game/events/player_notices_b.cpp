@@ -3,7 +3,6 @@
 #include <new>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "ui/message_template.h"
 #include "character/character.h"
 #include "character/role.h"
@@ -39,7 +38,7 @@ Notice40::Notice40(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice40::~Notice40() { REB_KEEP_VPTR_STORE(); }
+Notice40::~Notice40() {  }
 
 int Notice40::GetKind() { return 40; }
 
@@ -128,7 +127,7 @@ Notice39::Notice39(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice39::~Notice39() { REB_KEEP_VPTR_STORE(); }
+Notice39::~Notice39() {  }
 
 int Notice39::GetKind() { return 39; }
 
@@ -206,7 +205,7 @@ Notice38::Notice38(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice38::~Notice38() { REB_KEEP_VPTR_STORE(); }
+Notice38::~Notice38() {  }
 
 int Notice38::GetKind() { return 38; }
 
@@ -243,7 +242,7 @@ Notice37::Notice37(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice37::~Notice37() { REB_KEEP_VPTR_STORE(); }
+Notice37::~Notice37() {  }
 
 int Notice37::GetKind() { return 37; }
 
@@ -296,7 +295,7 @@ Notice35::Notice35(const LinkNode* payloads, int owner) : UiKeyNotice(owner) {
     Virtual14(payloads);
 }
 
-Notice35::~Notice35() { REB_KEEP_VPTR_STORE(); }
+Notice35::~Notice35() {  }
 
 int Notice35::GetKind() { return 35; }
 
@@ -347,7 +346,7 @@ Notice36::Notice36(const LinkNode* payloads, int owner) : UiTextNotice(owner), m
     Virtual16(payloads);
 }
 
-Notice36::~Notice36() { REB_KEEP_VPTR_STORE(); }
+Notice36::~Notice36() {  }
 
 int Notice36::GetKind() { return 36; }
 

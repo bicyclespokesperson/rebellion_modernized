@@ -3,7 +3,6 @@
 #include <new>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "ui/message_template.h"
 #include "core/game_string.h"
 #include "events/player_notice_util.h"
@@ -49,7 +48,7 @@ Notice23::Notice23(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
 
 Notice23::~Notice23() {
     notifyKeys(m_owner, m_keys);
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int Notice23::GetKind() { return m_kind; }
@@ -121,7 +120,7 @@ Notice22::Notice22(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
 Notice22::~Notice22() {
     notifyKeys(m_owner, m_keys);
     delete m_order;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 UiNotice* Notice22::Virtual10() { return NewOrNull<Notice22>(); }

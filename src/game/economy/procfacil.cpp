@@ -3,7 +3,6 @@
 #include "core/checked_new.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "events/event_post.h"
 #include "fleet/unit_view_flags.h"
 #include "gameobj/game_hooks.h"
@@ -73,7 +72,7 @@ const char* stateName(int state) {
 
 ProcFacil::ProcFacil() : m_state(kStateIdle), m_etc(0), m_procFlags(0) {}
 
-ProcFacil::~ProcFacil() { REB_KEEP_VPTR_STORE(); }
+ProcFacil::~ProcFacil() {  }
 
 // ---- virtuals ------------------------------------------------------------------------------------------------
 
@@ -85,7 +84,7 @@ GameObjData* ProcFacil::CreateData() {
 
 ProcFacilData::ProcFacilData() : m_duration(0), m_cycleCount(0) {}
 
-ProcFacilData::~ProcFacilData() { REB_KEEP_VPTR_STORE(); }
+ProcFacilData::~ProcFacilData() {  }
 
 int ProcFacilData::Read(istream* in) {
     int result = UnitObjData::Read(in);
@@ -441,6 +440,6 @@ ProcFacilIterator::ProcFacilIterator(GameObjNotifier* parent, uint32_t stateFilt
 ProcFacilIterator::ProcFacilIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kProcFacilFamilies, stateFilter) {}
 
-ProcFacilIterator::~ProcFacilIterator() { REB_KEEP_VPTR_STORE(); }
+ProcFacilIterator::~ProcFacilIterator() {  }
 
 int g_procFacilNotifyLog{};

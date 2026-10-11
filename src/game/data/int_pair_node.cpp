@@ -2,7 +2,6 @@
 
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 
 IntPairNode::IntPairNode() : m_value(0) {}
 
@@ -10,7 +9,7 @@ IntPairNode::IntPairNode(const ObjectKey& key, const int& value) : ObjectKeyNode
 
 IntPairNode::IntPairNode(const IntPairNode& other) : ObjectKeyNode(other), m_value(other.m_value) {}
 
-IntPairNode::~IntPairNode() { REB_KEEP_VPTR_STORE(); }
+IntPairNode::~IntPairNode() {  }
 
 ObjectKeyNode* IntPairNode::Clone() { return NewOrNull<IntPairNode>(*this); }
 

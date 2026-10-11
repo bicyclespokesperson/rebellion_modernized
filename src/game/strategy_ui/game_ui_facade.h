@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 
+#include "app/player_controller_decl.h"
 #include "core/containers.h"
 #include "core/stream_io.h"
 #include "gameobj/object_key.h"
@@ -8,8 +9,6 @@
 
 class CoolWindow;
 struct GameTime;
-class PlayerMessage;
-class PlayerNotice;
 class ObjectKeyValueSet;
 class EventKindSet;
 class GameObjNotifier;
@@ -39,7 +38,7 @@ void UiHumanSetVote(int choice, int timed, PlayerMessage* reply);  // 0x41ce60
 void UiHumanConfirmVote(PlayerMessage* reply);               // 0x41ce80
 void UiRequestRedraw(int value);                             // 0x41cea0
 void UiRequestRedrawAlt(int value);                          // 0x41cec0
-void UiRouteMessage(PlayerMessage* message);                 // 0x41cee0
+void UiRouteMessage(MessageBase* message, int senderSide);   // 0x41cee0
 void UiDeliverQueuedMessage(int id);                         // 0x41cf00
 int UiAdvancePhase();                                        // 0x41cf20
 int UiProcessAllMessages();                                  // 0x41cf40 1 without a session
@@ -81,7 +80,7 @@ void UiHumanBeginHold();                                     // 0x41d3f0
 void UiHumanEndHold();                                       // 0x41d410
 void UiSendNotificationToSide(int side, intptr_t argument);       // 0x41dc80
 
-// ---- Game step driver (g_gameStepDriver, null outside a game) -------------------------------------------------
+// ---- Game step driver (null outside a game) ------------------------------------------------------------------
 void UiAddManagerNotice(void* notice);                       // 0x41db80
 unsigned UiRaisePauseTo(unsigned tick);                      // 0x41dba0 returns `tick` without a driver
 int UiBeginPause();                                          // 0x41dbc0

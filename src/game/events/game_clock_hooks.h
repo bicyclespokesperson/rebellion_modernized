@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 // The game manager's side of the object model's hook table (0x4fcd90-0x4fd280). The installer (0x4fcde0) fills the
 // callbacks declared in gameobj/game_hooks.h with the wrappers below; each one forwards to the game manager (0x6b2fcc)
 // and does nothing, or returns its default, while there is none. The remaining wrappers are plain accessors that
@@ -17,9 +16,9 @@ extern int (*g_gameHook2ADC)(HookArg);
 extern int (*g_gameHook2AE4)(HookArg);
 
 // 4-byte float values the game manager's clients keep (0x4fcd90, 0x4fcdb0, 0x4fcdd0).
-void REB_THISCALL AssignGameTime(GameTime* self, const GameTime* other);  // 0x4fcd90
-void REB_THISCALL ReadGameTime(GameTime* self, istream* in);              // 0x4fcdb0
-void REB_THISCALL ClearGameTime(GameTime* self);                          // 0x4fcdd0
+void AssignGameTime(GameTime* self, const GameTime* other);  // 0x4fcd90
+void ReadGameTime(GameTime* self, istream* in);              // 0x4fcdb0
+void ClearGameTime(GameTime* self);                          // 0x4fcdd0
 
 void InstallGameManagerHooks();  // 0x4fcde0
 

@@ -1,9 +1,7 @@
-#include "core/reb_abi.h"
 #include "character/character38.h"
 
 #include "character/major_character.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "data/gnprtb.h"
 
 
@@ -21,7 +19,7 @@ constexpr int kStatusNotSupported = 0x17;
 
 Character38::Character38() {}
 
-Character38::~Character38() { REB_KEEP_VPTR_STORE(); }
+Character38::~Character38() {  }
 
 uint32_t Character38::GetFamily() { return kFamilyCharacter38; }
 

@@ -5,6 +5,7 @@
 #include "core/containers.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
+#include "gameobj/notif_payload.h"
 #include "gameobj/object_key.h"
 
 // The base classes of the AI player's task machinery (0x4e4d40-0x4e60c0, with the small node classes they build on at
@@ -15,19 +16,6 @@ class AiSideController;
 class AiSystemRecord;
 class OrderBase;
 class PlayerController;
-
-// A note the AI player has been sent (the objects CreateKeyedObject builds; a PlayerNotice of the player module). The AI keeps
-// them in AiNoticeQueue, grouped by m_groupId.
-class AiNotice : public LinkNode {
-public:
-    virtual int GetKind() = 0;       // 3
-    virtual void Virtual04() = 0;    // 4
-    virtual void Virtual05() = 0;    // 5
-    virtual void Virtual06(PlayerController* player) = 0;    // 6: called with the AI player when it takes the note
-    virtual void Virtual07(int value) = 0;  // 7: called with 0 when a note that belongs to a group is taken
-
-    int m_groupId;  // +0x0c
-};
 
 // ---- AiTaskNode / AiTaskBase ------------------------------------------------------------------------------------------
 
@@ -76,7 +64,7 @@ public:
 
     void Load(istream* in);                   // 0x4e4e20
     void Save(ostream* out);                  // 0x4e4eb0
-    void Add(AiNotice* notice);               // 0x4e4f20: takes the group's id from the first note; kind 2 marks it finished
+    void Add(NotifPayload* notice);             // 0x4e4f20: takes the group's id from the first note; kind 2 marks it finished
 
     int m_finished;  // +0x28 set when a note of kind 2 was added
 };

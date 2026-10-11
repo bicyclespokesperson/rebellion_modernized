@@ -3,7 +3,6 @@
 
 #include <new>
 
-#include "core/vptr_store.h"
 #include "tactical/tactical_facade.h"
 #include "tactical/tactical_registry.h"
 #include "tactical/tactical_ship.h"

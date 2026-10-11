@@ -1,9 +1,7 @@
-#include "core/reb_abi.h"
 #include "ui/cool_selection_box.h"
 
 #include "core/checked_new.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/cool_app.h"
 #include "ui/cool_button.h"
@@ -115,7 +113,7 @@ CoolSelectionBox::~CoolSelectionBox() {
     if (m_borderPen) DeleteObject(m_borderPen);
     if (m_image) delete m_image;
     if (m_dropDownTile) delete m_dropDownTile;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void CoolSelectionBox::PressButton() { PostMessageA(m_hwnd, WM_COMMAND, kButtonId, 0); }
@@ -203,7 +201,7 @@ int CoolSelectionBox::HandleKeyUp(WPARAM key, LPARAM) {
     return 1;
 }
 
-LRESULT REB_STDCALL CoolSelectionBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CoolSelectionBox::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_CREATE: {
             HINSTANCE instance = m_instance;
@@ -320,7 +318,7 @@ CoolSelectionDropDown::CoolSelectionDropDown(HINSTANCE instance, CoolSelectionBo
 
 CoolSelectionDropDown::~CoolSelectionDropDown() {
     if (m_list) delete m_list;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void CoolSelectionDropDown::SyncSelection() {
@@ -373,7 +371,7 @@ void CoolSelectionDropDown::BuildBackground() {
     ReleaseDC(hwnd, dc);
 }
 
-LRESULT REB_STDCALL CoolSelectionDropDown::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CoolSelectionDropDown::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_CREATE: {
             HWND hwnd = m_hwnd;

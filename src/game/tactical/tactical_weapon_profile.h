@@ -3,7 +3,6 @@
 
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 
 // How well one weapon kind hurts a target class (visual-resources module, 0x5d2360-0x5d2570; 0x14 bytes): a damage factor
 // and one accuracy factor per target class. A weapon arc owns one profile per weapon kind; the kinds differ only in the

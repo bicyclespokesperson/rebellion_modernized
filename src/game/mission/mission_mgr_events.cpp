@@ -1,5 +1,4 @@
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "events/event_helpers.h"
 #include "gameobj/object_queries.h"
 #include "mission/mission_events.h"
@@ -19,7 +18,7 @@ MissionMgrEvent30c::MissionMgrEvent30c() : SourceEvent() {}
 
 MissionMgrEvent30c::MissionMgrEvent30c(const MissionMgrEvent30c& other) : SourceEvent(other) {}
 
-MissionMgrEvent30c::~MissionMgrEvent30c() { REB_KEEP_VPTR_STORE(); }
+MissionMgrEvent30c::~MissionMgrEvent30c() {  }
 
 MissionMgrEvent30c* MissionMgrEvent30c::Clone() { return NewOrNull<MissionMgrEvent30c>(*this); }
 
@@ -41,7 +40,7 @@ MissionMgrEvent30d::MissionMgrEvent30d() : SourceEvent() {}
 
 MissionMgrEvent30d::MissionMgrEvent30d(const MissionMgrEvent30d& other) : SourceEvent(other) {}
 
-MissionMgrEvent30d::~MissionMgrEvent30d() { REB_KEEP_VPTR_STORE(); }
+MissionMgrEvent30d::~MissionMgrEvent30d() {  }
 
 MissionMgrEvent30d* MissionMgrEvent30d::Clone() { return NewOrNull<MissionMgrEvent30d>(*this); }
 

@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "gameobj/object_key.h"
@@ -49,7 +48,7 @@ public:
 
 // The row id a mission kind gets in the mission combo box (the kinds of the records at +0x2c); an unknown kind gets
 // the next number of a counter (0x6a8794).
-int REB_STDCALL MissionKindItemId(DatRecord* record);  // 0x46cab0
+int MissionKindItemId(DatRecord* record);  // 0x46cab0
 // Copies of the order's team (0x46c850) and of its selected characters (0x46c880).
-ObjectKeyValueSet* REB_THISCALL MissionOrderCopyTeam(MissionOrder240* order, ObjectKeyValueSet* out);
-ObjectKeyValueSet* REB_THISCALL MissionOrderCopyCharacters(MissionOrder240* order, ObjectKeyValueSet* out);
+ObjectKeyValueSet* MissionOrderCopyTeam(MissionOrder240* order, ObjectKeyValueSet* out);
+ObjectKeyValueSet* MissionOrderCopyCharacters(MissionOrder240* order, ObjectKeyValueSet* out);

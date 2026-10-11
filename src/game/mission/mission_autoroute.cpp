@@ -10,7 +10,7 @@ constexpr uint32_t kFamilyMissionAutoroute = 0x43;
 
 MissionAutoroute::MissionAutoroute() {}
 
-MissionAutoroute::~MissionAutoroute() { REB_KEEP_VPTR_STORE(); }
+MissionAutoroute::~MissionAutoroute() {  }
 
 uint32_t MissionAutoroute::GetFamily() { return kFamilyMissionAutoroute; }
 

@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "audio/cd_audio.h"
@@ -48,7 +47,7 @@ public:
     SoundRequest(const SoundRequest& other);                                                           // 0x610b70
     virtual ~SoundRequest();                                                                           // 0x404070 (shared)
 
-    // Key of the SoundSource in g_soundSources.
+    // Key of the SoundSource in the active AudioContext.
     uint32_t SourceKey() const {
         return ((static_cast<uint32_t>(m_moduleIndex) & 0xffff) << 16) + (static_cast<uint32_t>(m_soundId) & 0xffff);
     }
@@ -63,24 +62,9 @@ public:
     uint32_t m_bit6 : 1;
 };
 
-typedef void(REB_CDECL* SoundEventCallback)(uint32_t message, uint32_t first, uint32_t second);
+typedef void(* SoundEventCallback)(uint32_t message, uint32_t first, uint32_t second);
 
-extern HWND g_soundWindow;                  // 0x6be664
-extern IDirectSound* g_directSound;         // 0x6be668
-extern IDirectSoundBuffer* g_primaryBuffer;  // 0x6be66c
-extern IDirectSound3DListener* g_listener;  // 0x6be670 (only ever released)
-extern int g_soundUseCount;                 // 0x6be678 Initialize calls minus Shutdown calls
-extern int g_soundVolume;                   // 0x6be67c
-extern SoundEventCallback g_soundEventCallback;  // 0x6be680
-extern WAVEFORMATEX g_primaryFormat;        // 0x6be5e0
-extern SoundSourceList g_soundSources;      // 0x6be5d0
-extern SoundCatalogList g_soundCatalog;     // 0x6be650
-extern CdAudio g_cdAudio;                   // 0x6be638
-extern SmackSound g_smackSound;             // 0x6be608
-extern NodeQueue g_soundEventQueue;         // 0x6be5f8
-
-// The game's sound system: one DirectSound device, a tree of loaded sounds and a thread that delivers buffer-finished
-// notifications to a game callback. Everything is static; callers pass a SoundRequest.
+// The game's SoundManager API operates on the active application's AudioContext; callers pass a SoundRequest.
 class SoundManager {
 public:
     // Each screen initialises with its window and shuts down again; the device lives while the use count is positive.
@@ -126,7 +110,7 @@ public:
     static int CreateResourceSource(SoundRequest* request, HMODULE module, SoundSource** source);  // 0x611890
     static int CreateFileSource(SoundRequest* request, const char* fileName, long seekPosition, SoundSource** source);  // 0x611960
 
-    static void REB_CDECL EventThreadProc();                                       // 0x6119f0
+    static DWORD WINAPI EventThreadProc(void*);                          // 0x6119f0
     static int QueueEvent(uint32_t message, uint32_t first, uint32_t second);    // 0x611b00
     static int StartEventThread();                                               // 0x611bf0
     static void StopEventThread();                                               // 0x611cb0

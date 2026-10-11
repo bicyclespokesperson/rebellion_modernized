@@ -1,7 +1,6 @@
 #include "ui/cool_scroll_bars.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 
 namespace {
@@ -70,7 +69,7 @@ CoolVerticalScrollBar::CoolVerticalScrollBar(HINSTANCE instance, int x, int y, i
     : CoolScrollBar(instance, x, y, width, height, parent, owner, artSlot, artId, total, first, last,
                     buttonFlags) {}
 
-CoolVerticalScrollBar::~CoolVerticalScrollBar() { REB_KEEP_VPTR_STORE(); }
+CoolVerticalScrollBar::~CoolVerticalScrollBar() {  }
 
 void CoolVerticalScrollBar::OnCommand(WPARAM command) {
     if (!m_owner) return;
@@ -266,7 +265,7 @@ CoolHorizontalScrollBar::CoolHorizontalScrollBar(HINSTANCE instance, int x, int 
     : CoolScrollBar(instance, x, y, width, height, parent, owner, artSlot, artId, total, first, last,
                     buttonFlags) {}
 
-CoolHorizontalScrollBar::~CoolHorizontalScrollBar() { REB_KEEP_VPTR_STORE(); }
+CoolHorizontalScrollBar::~CoolHorizontalScrollBar() {  }
 
 void CoolHorizontalScrollBar::OnCommand(WPARAM command) {
     if (!m_owner) return;

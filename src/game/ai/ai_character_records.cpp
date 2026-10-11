@@ -1,11 +1,9 @@
-#include "core/reb_abi.h"
 #include "ai/ai_character_records.h"
 
 #include "ai/ai_common.h"
 #include "ai/ai_side_controller.h"
 #include "character/character.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_family.h"
 #include "gameobj/object_lookup.h"
@@ -44,16 +42,16 @@ int ValueOfMissionKey(uint32_t key) {
 
 }  // namespace
 
-ObjectKey* REB_THISCALL GetAiRecordKey(DatRecord* record, ObjectKey* out) {
+ObjectKey* GetAiRecordKey(DatRecord* record, ObjectKey* out) {
     const uint32_t id = record->m_id;
     const uint32_t family = record->m_third;
     out->m_value = (id & 0xffffff) | (family << 24);
     return out;
 }
 
-ObjectKey* REB_THISCALL GetObjectKey(GameObjNotifier* object, ObjectKey* out) { return object->GetKey(out); }
+ObjectKey* GetObjectKey(GameObjNotifier* object, ObjectKey* out) { return object->GetKey(out); }
 
-ObjectKey* REB_THISCALL GetObjectRecordKey(GameObjNotifier* object, ObjectKey* out) {
+ObjectKey* GetObjectRecordKey(GameObjNotifier* object, ObjectKey* out) {
     if (!object->m_record) {
         out->m_value = 0;
         return out;
@@ -72,7 +70,7 @@ int IsStoryKeyOf6(uint32_t key) {
            key == 0x35000281;
 }
 
-int REB_STDCALL IsStoryKeyOf2(uint32_t key) { return key == 0x32000242 || key == 0x35000281; }
+int IsStoryKeyOf2(uint32_t key) { return key == 0x32000242 || key == 0x35000281; }
 
 // ---- AiCharacterRecord ----------------------------------------------------------------------------------------------
 
@@ -133,7 +131,7 @@ AiCharacterRecord::AiCharacterRecord(GameObjNotifier* character, int side, AiSid
 
 AiCharacterRecord::~AiCharacterRecord() {
     m_owner = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 ObjectKey* AiCharacterRecord::GetRecordKey(ObjectKey* out) {
@@ -280,7 +278,7 @@ AiCharacterRecordSet::AiCharacterRecordSet()
 AiCharacterRecordSet::~AiCharacterRecordSet() {
     m_cursor = nullptr;
     m_owner = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiCharacterRecordSet::Load(istream* in) {

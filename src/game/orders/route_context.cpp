@@ -1,7 +1,6 @@
 #include "orders/route_context.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "economy/manu_mgr.h"
 #include "fleet/capship.h"
 #include "fleet/fleet_iterator.h"
@@ -46,7 +45,7 @@ GameObj* asObject(GameObjNotifier* object) { return static_cast<GameObj*>(object
 RouteContext::RouteContext()
     : ObjectKeySet(), m_flag(1), m_status(kStatusCategory, kStatusRefused), m_side(0), m_arg(0), m_kind(0), m_filter(0) {}
 
-RouteContext::~RouteContext() { REB_KEEP_VPTR_STORE(); }
+RouteContext::~RouteContext() {  }
 
 int RouteContext::Init(int side, int arg, int kind, const int* filter) {
     m_side = side;

@@ -1,6 +1,5 @@
 #include "ui/cool_timer.h"
 
-#include "core/vptr_store.h"
 
 int BeginTimerPeriod(UINT milliseconds) {
     if (g_timerPeriodActive == 1) return 0;
@@ -45,7 +44,7 @@ CoolTimer::CoolTimer(UINT delay, UINT type, UINT resolution) {
 CoolTimer::~CoolTimer() {
     Stop();
     DeleteCriticalSection(&m_lock);
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void CoolTimer::Pause() { m_pauseCount = m_pauseCount + 1; }

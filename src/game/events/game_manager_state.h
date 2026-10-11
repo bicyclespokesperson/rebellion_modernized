@@ -39,12 +39,6 @@ extern LegacyBlockB g_legacyBlockB[3];  // 0x6bb7a8
 int ReadLegacyBlocks(istream* in);    // 0x568560
 int WriteLegacyBlocks(ostream* out);  // 0x5685a0
 
-// Static initializers of the blocks (table entries 0x6a60ec / 0x6a60f0).
-void LegacyBlockAStaticInit();          // 0x5685e0
-void LegacyBlockAConstruct();           // 0x5685f0
-void LegacyBlockBStaticInit();          // 0x568630
-void LegacyBlockBConstruct();           // 0x568640
-
 // ---- legacy text slots --------------------------------------------------------------------------------------
 // Ten strings with a count and one more int; saved as count, int, then the first `count` strings.
 
@@ -55,8 +49,6 @@ extern int g_legacyTextExtra;      // 0x6bb8fc
 void ResetLegacyTexts();            // 0x568a00
 void ReadLegacyTexts(istream* in);  // 0x568a30
 void WriteLegacyTexts(ostream* out);  // 0x568a80
-void LegacyTextsStaticInit();       // 0x568ad0 (table entry 0x6a60f4)
-void LegacyTextsConstruct();        // 0x568ae0
 
 // A table of `m_count` text slots of `m_width` bytes each, as old saves carry it (VT 0x663988). It is only ever read:
 // the slots are allocated and emptied, then the saved bytes replace them when the save has any.
@@ -79,7 +71,7 @@ public:
 };
 
 // ---- posted-event queues ------------------------------------------------------------------------------------
-// The two key-value queues at GameManager +0xb4/+0xb8: a FIFO of PostedEvents (events_decl.h) saved as a flag, a count
+// The two key-value queues at GameManager +0xb4/+0xb8: a FIFO of notification payloads saved as a flag, a count
 // and, per node, its factory key followed by its own data.
 class PostedEventQueue : public NodeQueue {
 public:

@@ -1,14 +1,13 @@
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "fleet/unit_data_decl.h"
 
 DetectorData::DetectorData() {}
 
-DetectorData::~DetectorData() { REB_KEEP_VPTR_STORE(); }
+DetectorData::~DetectorData() {  }
 
 CombatUnitData::CombatUnitData() {}
 
-CombatUnitData::~CombatUnitData() { REB_KEEP_VPTR_STORE(); }
+CombatUnitData::~CombatUnitData() {  }
 
 int CombatUnitData::Read(istream* in) {
     int result = UnitObjData::Read(in);

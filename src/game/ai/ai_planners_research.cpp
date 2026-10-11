@@ -1,6 +1,5 @@
 #include "ai/ai_planner_util.h"
 #include "ai/ai_planners.h"
-#include "core/vptr_store.h"
 
 using namespace ai_planner;
 
@@ -11,7 +10,7 @@ AiResearchPlanner1::AiResearchPlanner1(int view, AiSideController* owner, AiChar
     m_missionKey = ObjectKey::Make(0x53, 0x20);
 }
 
-AiResearchPlanner1::~AiResearchPlanner1() { REB_KEEP_VPTR_STORE(); }
+AiResearchPlanner1::~AiResearchPlanner1() {  }
 
 int AiResearchPlanner1::Virtual06() { return SumLeaderValue(this, 2); }
 
@@ -30,7 +29,7 @@ AiResearchPlanner2::AiResearchPlanner2(int view, AiSideController* owner, AiChar
     m_missionKey = ObjectKey::Make(0x53, 0x22);
 }
 
-AiResearchPlanner2::~AiResearchPlanner2() { REB_KEEP_VPTR_STORE(); }
+AiResearchPlanner2::~AiResearchPlanner2() {  }
 
 int AiResearchPlanner2::Virtual06() { return SumLeaderValue(this, 3); }
 
@@ -49,7 +48,7 @@ AiResearchPlanner3::AiResearchPlanner3(int view, AiSideController* owner, AiChar
     m_missionKey = ObjectKey::Make(0x53, 0x21);
 }
 
-AiResearchPlanner3::~AiResearchPlanner3() { REB_KEEP_VPTR_STORE(); }
+AiResearchPlanner3::~AiResearchPlanner3() {  }
 
 int AiResearchPlanner3::Virtual06() { return SumLeaderValue(this, 4); }
 
@@ -68,7 +67,7 @@ AiSubduePlanner::AiSubduePlanner(int view, AiSideController* owner, AiCharacterR
     m_missionKey = ObjectKey::Make(0x57, 0x80);
 }
 
-AiSubduePlanner::~AiSubduePlanner() { REB_KEEP_VPTR_STORE(); }
+AiSubduePlanner::~AiSubduePlanner() {  }
 
 int AiSubduePlanner::Virtual06() { return SumLeaderValue(this, 6); }
 

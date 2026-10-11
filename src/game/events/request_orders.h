@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 // The player-request classes (0x580530-0x582a00): the order leaves and one message that carry the player's requests
 // to the game. Each order builds the command (events/command_classes2.h, events/command_classes.h) that carries it out.
 //
@@ -202,8 +201,8 @@ public:
 };
 
 // The fleet checks of Order234 / FleetCommandOrder (stdcall: request, the order's team, status).
-int REB_STDCALL CheckFleetsCanInvade(ActivityRequest* request, ObjectKeyValueSet* team, StatusCode* status);   // 0x581ae0
-int REB_STDCALL CheckFleetsCanBeUsed(ActivityRequest* request, ObjectKeyValueSet* team, StatusCode* status);   // 0x582440
+int CheckFleetsCanInvade(ActivityRequest* request, ObjectKeyValueSet* team, StatusCode* status);   // 0x581ae0
+int CheckFleetsCanBeUsed(ActivityRequest* request, ObjectKeyValueSet* team, StatusCode* status);   // 0x582440
 
 // Factories registered in the order factory table (0x51f4b0).
 void* CreateOrder250();   // 0x580580

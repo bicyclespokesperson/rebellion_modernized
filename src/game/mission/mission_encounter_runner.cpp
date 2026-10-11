@@ -1,7 +1,6 @@
 #include "character/character_mgr.h"
 #include "character/character.h"
 #include "character/role.h"
-#include "core/vptr_store.h"
 #include "data/random.h"
 #include "economy/defense_facility.h"
 #include "fleet/capship.h"
@@ -40,7 +39,7 @@ ObjectKeyNode* nextNode(ObjectKeyNode* node) { return static_cast<ObjectKeyNode*
 EncounterRunner::EncounterRunner()
     : m_unk04(1), m_context(), m_secondPass(1), m_unk48(0), m_unk4c(0), m_setA(), m_setB(), m_setC(), m_setD() {}
 
-EncounterRunner::~EncounterRunner() { REB_KEEP_VPTR_STORE(); }
+EncounterRunner::~EncounterRunner() {  }
 
 // ---- the run ---------------------------------------------------------------------------------------------------------------
 

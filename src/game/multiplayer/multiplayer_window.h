@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 // MultiPlayerWindow (0x40d7a0-0x4119e0, VT 0x658788, 0x194 bytes): the multiplayer lobby, shown from the front end's
 // "Play Head to Head" console (application states 3, 0xe...) and, for games started from a DirectPlay lobby, directly on
 // its last page. It walks the player through four pages (m_page, the id of the page's overlay bitmap):
@@ -71,7 +70,7 @@ public:
                       int side, int galaxySize);  // 0x40d7a0
     virtual ~MultiPlayerWindow();  // 0x40d980 (scalar deleting destructor 0x40d960)
 
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x40ec60
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x40ec60
     // Starts the DirectPlay layer for this window and chooses the first page.
     virtual void OnCreate1() override;                    // slot 14, 0x40db20
     virtual void OnCreate2() override;                    // slot 15, 0x40dc30: the texts of the four pages
@@ -167,8 +166,7 @@ extern uint32_t g_lobbySlotPollTime;  // 0x6b1248 timeGetTime() of the last slot
 // Free helpers of the lobby, in this module's address range.
 int ParseLobbyText(const String* text, String* out, int stringGroup);  // 0x40ffd0: expands the \x17 escape codes
 MessageBase* ReceiveLobbyMessage();                                    // 0x410790
-String* REB_THISCALL GetMessageText(TextMessage* message, String* out);  // 0x411710: a copy of the text of a chat message
-void LobbyStaticInit();                                                // 0x40ec40: static initializer
+String* GetMessageText(TextMessage* message, String* out);  // 0x411710: a copy of the text of a chat message
 int IsSlotAssigned(int slot);                                          // 0x411410
 uint32_t GetSlotSaveId(int slot);                                      // 0x411450
 void SetLobbyFlags(uint32_t flags);                                    // 0x411490

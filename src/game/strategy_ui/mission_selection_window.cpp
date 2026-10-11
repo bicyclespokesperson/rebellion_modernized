@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/mission_selection_window.h"
 
 #include <new>
@@ -8,7 +7,6 @@
 #include "core/checked_new.h"
 #include "core/containers.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "economy/facility_misc.h"
 #include "galaxy/system.h"
@@ -176,7 +174,7 @@ MissionSelectionWindow::~MissionSelectionWindow() {
     }
     if (m_selectedList) delete m_selectedList;
     if (m_order) delete m_order;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 // ---- OnCreate1 ------------------------------------------------------------------------------------------------
@@ -427,11 +425,11 @@ void MissionSelectionWindow::OnCreate1() {
 
 // ---- Commands -------------------------------------------------------------------------------------------------
 
-ObjectKeyValueSet* REB_THISCALL MissionOrderCopyTeam(MissionOrder240* order, ObjectKeyValueSet* out) {
+ObjectKeyValueSet* MissionOrderCopyTeam(MissionOrder240* order, ObjectKeyValueSet* out) {
     return new (out) ObjectKeyValueSet(*order->GetTeam());
 }
 
-ObjectKeyValueSet* REB_THISCALL MissionOrderCopyCharacters(MissionOrder240* order, ObjectKeyValueSet* out) {
+ObjectKeyValueSet* MissionOrderCopyCharacters(MissionOrder240* order, ObjectKeyValueSet* out) {
     return new (out) ObjectKeyValueSet(order->m_characters);
 }
 
@@ -596,7 +594,7 @@ void MissionSelectionWindow::OnCommand(int a, int b, int c) {
     }
 }
 
-int REB_STDCALL MissionKindItemId(DatRecord* record) {
+int MissionKindItemId(DatRecord* record) {
     switch (record->m_third) {
     case 0x51:
         return 7;

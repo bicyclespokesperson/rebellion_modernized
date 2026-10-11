@@ -1,8 +1,6 @@
-#include "core/reb_abi.h"
 #include "story/story_characters.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "events/event_post.h"
 #include "gameobj/object_family.h"
 #include "mission/mission_rules.h"
@@ -30,7 +28,7 @@ constexpr int kEventLukeFinalBattleReady = 0x313;
 
 }  // namespace
 
-int REB_THISCALL StoryCharacterCreateViews(Character* self, int controlKind, NotifyContext* ctx) {
+int StoryCharacterCreateViews(Character* self, int controlKind, NotifyContext* ctx) {
     return CharacterLeafCreateViews(self, controlKind, ctx);
 }
 
@@ -38,7 +36,7 @@ int REB_THISCALL StoryCharacterCreateViews(Character* self, int controlKind, Not
 
 StoryCharacter::StoryCharacter() : m_storyFlags(0) {}
 
-StoryCharacter::~StoryCharacter() { REB_KEEP_VPTR_STORE(); }
+StoryCharacter::~StoryCharacter() {  }
 
 int StoryCharacter::ReadBody(istream* in) {
     const int result = CharacterLeafRead(this, in);
@@ -62,7 +60,7 @@ int StoryCharacter::ChecksumBody(Crc32* crc) {
 
 Luke::Luke() {}
 
-Luke::~Luke() { REB_KEEP_VPTR_STORE(); }
+Luke::~Luke() {  }
 
 uint32_t Luke::GetFamily() { return kFamilyLuke; }
 
@@ -202,7 +200,7 @@ int Luke::BuildEventKinds() {
 
 Leia::Leia() {}
 
-Leia::~Leia() { REB_KEEP_VPTR_STORE(); }
+Leia::~Leia() {  }
 
 uint32_t Leia::GetFamily() { return kFamilyLeia; }
 
@@ -271,7 +269,7 @@ int Leia::BuildEventKinds() {
 
 Han::Han() {}
 
-Han::~Han() { REB_KEEP_VPTR_STORE(); }
+Han::~Han() {  }
 
 uint32_t Han::GetFamily() { return kFamilyHan; }
 
@@ -382,7 +380,7 @@ MinorCharacterIterator::MinorCharacterIterator(GameObjNotifier* parent, uint32_t
 MinorCharacterIterator::MinorCharacterIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kMinorCharacters, stateFilter) {}
 
-MinorCharacterIterator::~MinorCharacterIterator() { REB_KEEP_VPTR_STORE(); }
+MinorCharacterIterator::~MinorCharacterIterator() {  }
 EventKindSet g_hanEventKinds{};
 EventKindSet g_leiaEventKinds{};
 EventKindSet g_lukeEventKinds{};

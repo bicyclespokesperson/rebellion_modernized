@@ -6,7 +6,6 @@
 #include "ai/ai_common.h"
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gameobj/game_obj.h"
 #include "gameobj/object_lookup.h"
 #include "gfx/dib_bitmap.h"
@@ -128,6 +127,7 @@ ReportWindow::ReportWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t ch
     m_currentPage = 0;
     m_previousButton = nullptr;
     m_nextButton = nullptr;
+    m_closeButton = nullptr;
     m_listKind = 0;
     m_nextItemId = 1;
     m_gokres = FindResourceModule(kGokresSlot);
@@ -139,7 +139,7 @@ ReportWindow::ReportWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t ch
 }
 
 ReportWindow::~ReportWindow() {
-    REB_KEEP_VPTR_STORE();
+
     delete m_list;
     if (m_items) {
         m_items->Clear();

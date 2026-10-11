@@ -1,10 +1,8 @@
-#include "core/reb_abi.h"
 #include <new>
 
 #include "character/character.h"
 #include "character/special_forces.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "economy/manu_mgr.h"
 #include "gameobj/object_queries.h"
@@ -49,7 +47,7 @@ EventKindNode::EventKindNode() : m_value(1), m_unknown(0) {}
 EventKindNode::EventKindNode(const EventKindNode& other)
     : IntKeyNode(other), m_value(other.m_value), m_unknown(other.m_unknown) {}
 
-EventKindNode::~EventKindNode() { REB_KEEP_VPTR_STORE(); }
+EventKindNode::~EventKindNode() {  }
 
 CloneableNode* EventKindNode::Clone() {
     void* memory = ::operator new(sizeof(EventKindNode));
@@ -78,7 +76,7 @@ int EventKindNode::Write(ostream* out) {
 
 ManuMgrData::ManuMgrData() {}
 
-ManuMgrData::~ManuMgrData() { REB_KEEP_VPTR_STORE(); }
+ManuMgrData::~ManuMgrData() {  }
 
 int ManuMgrData::Read(istream* in) {
     const int result = GameObjData::Read(in);
@@ -102,7 +100,7 @@ int ManuMgrData::Checksum(Crc32* crc) {
 
 MissionPhaseLevels::MissionPhaseLevels() : m_levels(0) {}
 
-MissionPhaseLevels::~MissionPhaseLevels() { REB_KEEP_VPTR_STORE(); }
+MissionPhaseLevels::~MissionPhaseLevels() {  }
 
 MissionPhaseLevels& MissionPhaseLevels::operator=(const MissionPhaseLevels& other) {
     if (this != &other) m_levels = other.m_levels;
@@ -131,7 +129,7 @@ int MissionPhaseLevels::Checksum(Crc32* crc) {
 
 MissionData::MissionData() : m_unk18(1), m_unk1c(0) {}
 
-MissionData::~MissionData() { REB_KEEP_VPTR_STORE(); }
+MissionData::~MissionData() {  }
 
 int MissionData::Read(istream* in) {
     int result = GameObjData::Read(in);
@@ -199,7 +197,7 @@ MissionCheckArgs::MissionCheckArgs(int a04, int a08, int a0c, int controlSide, D
       m_target(target),
       m_objective(objective) {}
 
-MissionCheckArgs::~MissionCheckArgs() { REB_KEEP_VPTR_STORE(); }
+MissionCheckArgs::~MissionCheckArgs() {  }
 
 // ---- person resolution ------------------------------------------------------------------------------------
 
@@ -263,7 +261,7 @@ int SplitPersonRecord(ObjectKey* key, DatRecord** person, DatRecord** specialFor
 
 // ---- member summaries -------------------------------------------------------------------------------------
 
-int REB_CDECL AddPersonToMemberSummary(GameObj* person, int a, int b, MissionMemberSummary* summary, StatusCode* status) {
+int AddPersonToMemberSummary(GameObj* person, int a, int b, MissionMemberSummary* summary, StatusCode* status) {
     int result = 1;
     *status = StatusCode(kStatusCategory, kStatusOk);
     const uint32_t control = person->m_flags & kSideControlBits;
@@ -301,7 +299,7 @@ int addKeysToSummary(ObjectKeyValueSet* set, int a, MissionMemberSummary* summar
 
 }  // namespace
 
-int REB_CDECL FillMemberSummaryForMission(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, ObjectKeyValueSet* captured,
+int FillMemberSummaryForMission(ObjectKeyValueSet* team, ObjectKeyValueSet* decoys, ObjectKeyValueSet* captured,
                                         MissionMemberSummary* summary, StatusCode* status) {
     summary->CopyAllButFirst(MissionMemberSummary{});
     *status = StatusCode(kStatusCategory, kStatusOk);
@@ -330,7 +328,7 @@ int REB_CDECL FillMemberSummaryForMission(ObjectKeyValueSet* team, ObjectKeyValu
     return ok;
 }
 
-int REB_CDECL CheckSummaryAgainstRecord(DatRecord* record, MissionMemberSummary* summary, StatusCode* status) {
+int CheckSummaryAgainstRecord(DatRecord* record, MissionMemberSummary* summary, StatusCode* status) {
     auto* mission = static_cast<MissionSD*>(record);
     *status = StatusCode(kStatusCategory, kStatusOk);
     if (summary->m_specialForceMissionBits != (mission->m_specialForceEligibility & summary->m_specialForceMissionBits) ||

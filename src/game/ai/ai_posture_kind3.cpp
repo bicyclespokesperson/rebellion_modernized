@@ -1,12 +1,11 @@
 #include "ai/ai_posture_util.h"
 #include "ai/ai_postures.h"
-#include "core/vptr_store.h"
 
 using namespace ai_posture;
 
 AiPostureKind3::AiPostureKind3(int view, AiSideController* owner, AiSystemRecord* record) : AiPosture(view, owner, record) {}
 
-AiPostureKind3::~AiPostureKind3() { REB_KEEP_VPTR_STORE(); }
+AiPostureKind3::~AiPostureKind3() {  }
 
 void AiPostureKind3::GetPlannerRequest(int* createKind, int* createSubtype, int* releaseKind, int* releaseSubtype) {
     DefaultPlannerRequest(createKind, createSubtype, releaseKind, releaseSubtype);

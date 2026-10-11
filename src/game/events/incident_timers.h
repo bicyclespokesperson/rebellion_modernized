@@ -1,13 +1,12 @@
 #pragma once
-#include "core/reb_abi.h"
 // Recurring timers 0x383-0x390 that drive system incidents (uprisings, informants, loyalty shifts) and the two side stat timers.
 #include <cstdint>
 
 #include "events/timer_event.h"
 
 // Slot 10 of the timers: the family range the target lies in (shared by the timers of the same family).
-FamilyRange* REB_STDCALL GetSystemFamilyRange(FamilyRange* out);  // 0x566320: {0x90, 0x98}
-FamilyRange* REB_STDCALL GetFamilyF9Range(FamilyRange* out);      // 0x566670: {0xf9, 0xfa}
+FamilyRange* GetSystemFamilyRange(FamilyRange* out);  // 0x566320: {0x90, 0x98}
+FamilyRange* GetFamilyF9Range(FamilyRange* out);      // 0x566670: {0xf9, 0xfa}
 
 // timer 0x383 on a system: ends its uprising (System::EndUprising) when stat 0 is unchanged
 class UprisingEndTimer : public TimerEvent {

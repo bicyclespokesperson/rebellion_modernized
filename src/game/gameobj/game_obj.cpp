@@ -1,16 +1,12 @@
-#include "core/reb_abi.h"
 #include "gameobj/game_obj.h"
 
 #include <new>
 
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "data/gnprtb.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_family.h"
 
-extern uint32_t g_gameObjStaticInitFlags;  // 0x6b2968, bit 0: g_emptyName constructed
-extern String g_emptyName;                 // 0x6b2ac8
 extern const char *g_emptyText;           // 0x6b120c
 
 namespace {
@@ -59,7 +55,7 @@ GameObj::GameObj()
 }
 
 GameObj::~GameObj() {
-    REB_KEEP_VPTR_STORE();
+
     if (m_name) {
         delete m_name;
         m_name = nullptr;
@@ -113,7 +109,7 @@ void GameObj::WriteName(String* out, int kind) {
 }
 
 // The secondary vtable slot is entered with `this` pointing at the ObjectBase subobject.
-void REB_THISCALL AppendGameObjName(ObjectBase* base, String* out, int kind) {
+void AppendGameObjName(ObjectBase* base, String* out, int kind) {
     static_cast<GameObj*>(base)->GameObj::WriteName(out, kind);
 }
 
@@ -131,13 +127,10 @@ String* GameObj::GetNameCopy(String* out) {
 }
 
 String* GameObj::GetName() {
-    if ((g_gameObjStaticInitFlags & 1) == 0) {
-        g_gameObjStaticInitFlags |= 1;
-        g_emptyName = g_emptyText;
-    }
+    static String emptyName;
     if (m_name) return m_name;
     if (m_record) return &static_cast<DatRecord*>(m_record)->m_name;
-    return &g_emptyName;
+    return &emptyName;
 }
 
 int GameObj::IsUnderSideRoot() {
@@ -283,6 +276,3 @@ uint32_t GameObj::MatchesStateFilter(uint32_t mode) {
 }
 
 GameObjData* GameObj::CreateData() { return new GameObjData(); }
-
-String g_emptyName{};
-uint32_t g_gameObjStaticInitFlags{};

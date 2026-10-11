@@ -1,5 +1,4 @@
 #include "mission/mission.h"
-#include "core/reb_abi.h"
 #include "ai/ai_members.h"
 
 #include <new>
@@ -12,7 +11,6 @@
 #include "ai/ai_side_controller.h"
 #include "ai/ai_system_record.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "ai/ai_session_random.h"
 #include "economy/side.h"
@@ -52,7 +50,7 @@ AiClassTable::AiClassTable()
     : AvlTree(), m_maxShipTier(0), m_maxTroopTier(0), m_maxFacilityTier(0), m_majorCharacters(0), m_capitalTier(0),
       m_troopTier(0), m_facilityTier(0), m_bestDefense(0), m_x28(0), m_x2c(0), m_x30(0), m_x34(0), m_x38(0), m_x3c(0) {}
 
-AiClassTable::~AiClassTable() { REB_KEEP_VPTR_STORE(); }
+AiClassTable::~AiClassTable() {  }
 
 int AiClassTable::IsLess(AvlNode* a, AvlNode* b) {
     if (!a || !b) return 0;
@@ -282,7 +280,7 @@ AiTaskRecordSet::AiTaskRecordSet() : IdAvlTree(), m_view(0), m_owner(nullptr) {}
 
 AiTaskRecordSet::~AiTaskRecordSet() {
     m_owner = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiTaskRecordSet::Load(istream* in) {
@@ -326,7 +324,7 @@ uint32_t AiTaskRecordSet::DeleteFirstUnassigned() {
 
 AiAgentSet::AiAgentSet() : IdAvlTree(), m_view(0) {}
 
-AiAgentSet::~AiAgentSet() { REB_KEEP_VPTR_STORE(); }
+AiAgentSet::~AiAgentSet() {  }
 
 void AiAgentSet::Load(istream* in) {
     ReadValue32(in, &m_view);
@@ -403,7 +401,7 @@ AiSystemRecordSet::AiSystemRecordSet() : IdAvlTree(), m_view(0), m_owner(nullptr
 
 AiSystemRecordSet::~AiSystemRecordSet() {
     m_owner = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiSystemRecordSet::Load(istream* in) {
@@ -481,7 +479,7 @@ uint32_t AiSystemRecordSet::DeleteFirstIdle() {
 
 AiPlannerSet::AiPlannerSet() : IdAvlTree(), m_view(0) {}
 
-AiPlannerSet::~AiPlannerSet() { REB_KEEP_VPTR_STORE(); }
+AiPlannerSet::~AiPlannerSet() {  }
 
 void AiPlannerSet::Load(istream* in) {
     ReadValue32(in, &m_view);
@@ -626,7 +624,7 @@ AiFleetEvalSet::AiFleetEvalSet() : ObjectKeySet(), m_view(0), m_owner(nullptr), 
 AiFleetEvalSet::~AiFleetEvalSet() {
     m_ships = nullptr;
     m_owner = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 AiFleetEval* AiFleetEvalSet::FindEval(ObjectKey key) { return static_cast<AiFleetEval*>(Find(&key)); }
@@ -717,7 +715,7 @@ AiShipRecordSet::~AiShipRecordSet() {
     m_fleets = nullptr;
     m_classes = nullptr;
     m_owner = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiShipRecordSet::Load(istream* in) {
@@ -838,7 +836,7 @@ AiSectorEvalSet::AiSectorEvalSet() : ObjectKeySet(), m_view(0), m_cursor(nullptr
 AiSectorEvalSet::~AiSectorEvalSet() {
     m_cursorObject = nullptr;
     m_cursor = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 AiSectorEval* AiSectorEvalSet::FindEval(ObjectKey key) { return static_cast<AiSectorEval*>(Find(&key)); }
@@ -943,7 +941,7 @@ AiSystemEvalSet::~AiSystemEvalSet() {
     m_cursorObject = nullptr;
     m_cursor = nullptr;
     m_classes = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiSystemEvalSet::Load(istream* in) {
@@ -1048,6 +1046,6 @@ void AiSystemEvalSet::ReadOne(istream* in) {
     }
 }
 
-ObjectKey* REB_THISCALL GetObjectNameNodeKey(ObjectNameNode* node, ObjectKey* out) {
+ObjectKey* GetObjectNameNodeKey(ObjectNameNode* node, ObjectKey* out) {
     return new (out) ObjectKey(*reinterpret_cast<const ObjectKey*>(&node->m_key));
 }

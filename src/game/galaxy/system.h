@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "fleet/fight_squad.h"
@@ -394,7 +393,7 @@ public:
 
 // Re-sends the commanding characters of the system's master (and the stale ones of the side's view) to the view (a
 // plain stdcall function in the original).
-int REB_STDCALL ReapplySystemCharacterViews(GameObj* object, NotifyContext* ctx);  // 0x50eea0
+int ReapplySystemCharacterViews(GameObj* object, NotifyContext* ctx);  // 0x50eea0
 
 // Iterator over the systems (families 0x90-0x97) under a parent, vtable 0x65e928 (only the destructor is virtual).
 class SystemIterator : public ChildIterator {

@@ -8,7 +8,6 @@
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
 #include "core/stream_io.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "economy/manu_mgr.h"
 #include "gameobj/game_obj.h"
@@ -97,7 +96,7 @@ SystemWindow::SystemWindow(HINSTANCE instance, int x, int y, int width, int heig
 }
 
 SystemWindow::~SystemWindow() {
-    REB_KEEP_VPTR_STORE();
+
     delete m_closeButton;
     delete m_sideButton;
     delete m_sectorButton;

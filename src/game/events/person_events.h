@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 // The concrete command and event classes in 0x540c40-0x541d60 (VT 0x661af0-0x661bd8): one Command and five events that
 // the character/mission code raises when a person is removed, resigns or is locked in a mission. Each leaf class
 // forwards Read/Write/Checksum to its base class (the original shares those forwarders between many classes), has
@@ -119,8 +118,8 @@ public:
 
 // The Read (0x541180) and Checksum (0x541700) slots that every SourceEvent leaf class below shares with the other leaf
 // classes of the family (0x564d50, the Write slot, belongs to the command classes).
-void REB_THISCALL SourceEventRead(SourceEvent* event, istream* in);
-void REB_THISCALL SourceEventChecksum(SourceEvent* event, Crc32* crc);
+void SourceEventRead(SourceEvent* event, istream* in);
+void SourceEventChecksum(SourceEvent* event, Crc32* crc);
 
 void* CreateRoleActivityCommand();   // 0x540d30
 void* CreateRoleStateEvent();        // 0x541110

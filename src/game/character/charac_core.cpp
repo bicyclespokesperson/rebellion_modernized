@@ -1,8 +1,6 @@
-#include "core/reb_abi.h"
 #include <new>
 
 #include "character/character.h"
-#include "core/vptr_store.h"
 #include "data/gnprtb.h"
 #include "data/sd_records.h"
 #include "gameobj/object_family.h"
@@ -12,7 +10,7 @@ extern int g_characterEventKindsBuilt;       // 0x6b2938
 extern EventKindSet g_characterEventKinds;   // 0x6b2940
 
 // The kind-name formatter shared with GameObj (0x4f6030).
-void REB_THISCALL AppendGameObjName(ObjectBase* base, String* out, int kind);
+void AppendGameObjName(ObjectBase* base, String* out, int kind);
 
 namespace {
 
@@ -77,10 +75,10 @@ Character::Character()
       m_commandingKey(),
       m_flagsAc(0) {}
 
-Character::~Character() { REB_KEEP_VPTR_STORE(); }
+Character::~Character() {  }
 
 // The secondary vtable slot is entered with `this` pointing at the ObjectBase subobject.
-void REB_THISCALL AppendCharacterName(ObjectBase* base, String* out, int kind) {
+void AppendCharacterName(ObjectBase* base, String* out, int kind) {
     if (kind != kNameKindForceTitle) {
         AppendGameObjName(base, out, kind);
         return;
@@ -330,7 +328,7 @@ CharacterIterator::CharacterIterator(GameObjNotifier* parent, uint32_t stateFilt
 CharacterIterator::CharacterIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &family::kCharacters, stateFilter) {}
 
-CharacterIterator::~CharacterIterator() { REB_KEEP_VPTR_STORE(); }
+CharacterIterator::~CharacterIterator() {  }
 EventKindSet g_characterEventKinds{};
 int g_characterEventKindsBuilt{};
 int g_gnprtb1C00{};

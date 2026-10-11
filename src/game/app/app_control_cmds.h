@@ -21,7 +21,7 @@ public:
     // Copies the values into the global slot table. Always returns 0.
     int Apply();
 
-    uint32_t m_unk20;  // +0x20, never initialised or serialised
+    uint32_t m_unk20;  // +0x20, zeroed but not serialised
     int m_values[6];   // +0x24
 };
 
@@ -90,7 +90,5 @@ MessageBase* CreateMpChatMsg();
 MessageBase* CreateMpPlayerInfoMsg();
 
 // Static initialisers: a width computed from a constant rectangle {left, top, right, bottom} in .rdata.
-void StaticInitRectAWidth();
 void ComputeRectAWidth();
-void StaticInitRectBWidth();
 void ComputeRectBWidth();

@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "ai/ai_posture.h"
@@ -96,5 +95,5 @@ public:
     int m_xe4;                     // +0xe4
 };
 
-int REB_STDCALL PlannerClassOf(AiMissionPlanner* planner);   // 0x4794b0
-int REB_STDCALL AgentClassOf(AiAgentTargeted* agent);       // 0x479520
+int PlannerClassOf(AiMissionPlanner* planner);   // 0x4794b0
+int AgentClassOf(AiAgentTargeted* agent);       // 0x479520

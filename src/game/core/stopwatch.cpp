@@ -1,6 +1,5 @@
 #include "core/stopwatch.h"
 
-#include "core/vptr_store.h"
 
 Stopwatch::Stopwatch() {
     LARGE_INTEGER frequency;
@@ -13,7 +12,7 @@ Stopwatch::Stopwatch() {
     Reset();
 }
 
-Stopwatch::~Stopwatch() { REB_KEEP_VPTR_STORE(); }
+Stopwatch::~Stopwatch() {  }
 
 void Stopwatch::Reset() {
     if (m_secondsPerTick != 0.0f) {

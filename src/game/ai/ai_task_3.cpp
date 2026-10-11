@@ -4,7 +4,6 @@
 #include "ai/ai_task_types.h"
 #include "ai/ai_task_util.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "economy/defense_facility.h"
 #include "economy/manufacturing_facility.h"
 #include "economy/production_facility_types.h"
@@ -39,7 +38,7 @@ AiTask3::AiTask3(int view) : AiFacilityTaskBase(3, view) {
     m_x24 = 9;
 }
 
-AiTask3::~AiTask3() { REB_KEEP_VPTR_STORE(); }
+AiTask3::~AiTask3() {  }
 
 OrderBase* AiTask3::Step() {
     if (m_flags.Get() != 1) {

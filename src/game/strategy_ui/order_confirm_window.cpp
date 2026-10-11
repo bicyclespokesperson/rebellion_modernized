@@ -1,7 +1,6 @@
 #include "strategy_ui/order_confirm_window.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "events/player_notices.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
@@ -50,7 +49,7 @@ OrderConfirmWindow::OrderConfirmWindow(HINSTANCE instance, GalaxyWindow* parent,
 }
 
 OrderConfirmWindow::~OrderConfirmWindow() {
-    REB_KEEP_VPTR_STORE();
+
     if (m_titleLabel) {
         m_titleLabel->~CoolLabel();
         operator delete(m_titleLabel);

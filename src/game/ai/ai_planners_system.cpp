@@ -1,6 +1,5 @@
 #include "ai/ai_planner_util.h"
 #include "ai/ai_planners.h"
-#include "core/vptr_store.h"
 
 using namespace ai_planner;
 
@@ -18,7 +17,7 @@ AiSabotagePlanner::AiSabotagePlanner(int view, AiSideController* owner, AiCharac
     m_missionKey = ObjectKey::Make(0x69, 0x12);
 }
 
-AiSabotagePlanner::~AiSabotagePlanner() { REB_KEEP_VPTR_STORE(); }
+AiSabotagePlanner::~AiSabotagePlanner() {  }
 
 int AiSabotagePlanner::Virtual06() {
     int sum = 0;
@@ -47,7 +46,7 @@ AiMission54Planner::AiMission54Planner(int view, AiSideController* owner, AiChar
     m_missionKey = ObjectKey::Make(0x54, 0x15);
 }
 
-AiMission54Planner::~AiMission54Planner() { REB_KEEP_VPTR_STORE(); }
+AiMission54Planner::~AiMission54Planner() {  }
 
 int AiMission54Planner::Virtual06() { return SumLeaderValue(this, 1); }
 
@@ -79,7 +78,7 @@ AiEspionagePlanner::AiEspionagePlanner(int view, AiSideController* owner, AiChar
     m_missionKey = ObjectKey::Make(0x52, 0x13);
 }
 
-AiEspionagePlanner::~AiEspionagePlanner() { REB_KEEP_VPTR_STORE(); }
+AiEspionagePlanner::~AiEspionagePlanner() {  }
 
 int AiEspionagePlanner::Virtual06() { return SumLeaderValue(this, 1); }
 
@@ -122,7 +121,7 @@ AiAbductionPlanner::AiAbductionPlanner(int view, AiSideController* owner, AiChar
     }
 }
 
-AiAbductionPlanner::~AiAbductionPlanner() { REB_KEEP_VPTR_STORE(); }
+AiAbductionPlanner::~AiAbductionPlanner() {  }
 
 void AiAbductionPlanner::Read(istream* in) {
     AiSystemPlanner::Read(in);

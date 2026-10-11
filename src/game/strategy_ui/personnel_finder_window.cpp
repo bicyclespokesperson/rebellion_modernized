@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "strategy_ui/personnel_finder_window.h"
 
 #include <new>
@@ -7,7 +6,6 @@
 #include "character/special_forces.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "fleet/capship.h"
 #include "fleet/fleet_iterator.h"
@@ -123,7 +121,7 @@ PersonnelFinderWindow::~PersonnelFinderWindow() {
     }
     for (HBRUSH brush : m_brushes)
         if (brush) DeleteObject(brush);
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void PersonnelFinderWindow::OnCreate1() {
@@ -422,7 +420,7 @@ void PersonnelFinderWindow::OnCommand(int, int command, int) {
     }
 }
 
-LRESULT REB_STDCALL PersonnelFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT PersonnelFinderWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     LRESULT result = 0;
     if (message < 0x11) {
         if (message == WM_CLOSE) {

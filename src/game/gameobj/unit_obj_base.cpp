@@ -1,6 +1,5 @@
 #include "gameobj/unit_obj_base.h"
 
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 
 namespace {
@@ -15,7 +14,7 @@ constexpr int kStatusNoSuchOrder = 1;
 
 UnitObjData::UnitObjData() {}
 
-UnitObjData::~UnitObjData() { REB_KEEP_VPTR_STORE(); }
+UnitObjData::~UnitObjData() {  }
 
 int UnitObjData::Read(istream* in) { return GameObjData::Read(in); }
 
@@ -27,7 +26,7 @@ int UnitObjData::Checksum(Crc32* crc) { return GameObjData::Checksum(crc); }
 
 UnitObjBase::UnitObjBase() {}
 
-UnitObjBase::~UnitObjBase() { REB_KEEP_VPTR_STORE(); }
+UnitObjBase::~UnitObjBase() {  }
 
 int UnitObjBase::GetEventKinds(int unused, EventKindSet* out) {
     EventKindSet kinds;

@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "ai/ai_ranked_list.h"
@@ -25,5 +24,5 @@ public:
     ObjectKey* PickBest(ObjectKey* out);  // 0x4357b0
 
     // 1 if the key is in the list; adds the entry's rank to *total.
-    static int REB_STDCALL AddRankOf(const ObjectKey* key, int* total, AiRankedList* list);  // 0x435980
+    static int AddRankOf(const ObjectKey* key, int* total, AiRankedList* list);  // 0x435980
 };

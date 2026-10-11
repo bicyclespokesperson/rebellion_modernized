@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "gameobj/object_key.h"
@@ -26,7 +25,7 @@ public:
                          GameObjNotifier* system);  // 0x49f130
     virtual ~SystemMissionsWindow();  // 0x49f340 (scalar deleting destructor 0x49f320)
 
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x49f4b0
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x49f4b0
     virtual void SaveState(ostream* out) override;                  // slot 9, 0x4a0b00
     virtual void LoadState(istream* in) override;                   // slot 10, 0x4a0b90
     virtual void OnCreate1() override;                              // slot 14, 0x49f540

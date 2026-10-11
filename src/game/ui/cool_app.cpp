@@ -1,18 +1,16 @@
-#include "core/reb_abi.h"
 #include "ui/cool_app.h"
 
 #include <cstring>
 #include <string.h>
 
-#include "core/vptr_store.h"
 #include "ui/cool_timer.h"
 #include "ui/resource_dll.h"
 
 CoolApp::CoolApp(HINSTANCE instance, const char* className, uint32_t style, int x, int y, int width, int height,
                  const char* windowName, HBRUSH background, HICON icon, HCURSOR cursor, HMENU menu,
-                 uint32_t unknown58, uint32_t flags)
+                 uint32_t unknown58, uint32_t flags, UiResources& resources)
     : CoolWindow(instance, className, style, x, y, width, height, nullptr, windowName, background, icon, cursor, menu,
-                 unknown58, flags) {
+                 unknown58, flags), m_resources(resources) {
     BeginTimerPeriod(10);
     m_unknown9c = 0;
     m_appName = static_cast<char*>(operator new(std::strlen(className) + 1));
@@ -31,7 +29,7 @@ CoolApp::~CoolApp() {
     if (m_appName) operator delete(m_appName);
     g_app = nullptr;
     EndTimerPeriod();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void CoolApp::SetScreenSize(int width, int height) {
@@ -56,13 +54,15 @@ int CoolApp::FilterMessage(MSG* message) {
     return 1;
 }
 
-HMODULE REB_STDCALL CoolGetResourceModule(uint32_t slot) { return FindResourceModule(slot); }
+HMODULE CoolGetResourceModule(uint32_t slot) { return FindResourceModule(slot); }
 
-HMODULE REB_STDCALL CoolRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot) {
+HMODULE CoolRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot) {
     return LoadResourceModule(basePath, fileName, slot);
 }
 
-void REB_STDCALL CoolUnloadResourceSlot(uint32_t slot) { g_resourceDlls.UnloadSlot(slot); }
+void CoolUnloadResourceSlot(uint32_t slot) {
+    if (auto* resources = CurrentUiResources()) resources->libraries.UnloadSlot(slot);
+}
 
 HMODULE CoolAppGetResourceModule(uint32_t slot) {
     HMODULE module = nullptr;

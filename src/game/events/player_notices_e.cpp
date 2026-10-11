@@ -1,10 +1,8 @@
-#include "core/reb_abi.h"
 #include "events/player_notices.h"
 
 #include <new>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "ui/message_template.h"
 #include "character/character.h"
 #include "character/role.h"
@@ -18,7 +16,7 @@
 #include "story/story_characters.h"
 #include "strategy_ui/game_ui_facade.h"
 
-ObjectKey* REB_THISCALL GetObjectRecordKey(GameObjNotifier* object, ObjectKey* out);  // 0x402d80
+ObjectKey* GetObjectRecordKey(GameObjNotifier* object, ObjectKey* out);  // 0x402d80
 
 namespace {
 
@@ -43,7 +41,7 @@ Notice21::Notice21(const LinkNode* payloads, int owner) : UiKeyNotice(owner) {
     Virtual14(payloads);
 }
 
-Notice21::~Notice21() { REB_KEEP_VPTR_STORE(); }
+Notice21::~Notice21() {  }
 
 int Notice21::GetKind() { return 21; }
 
@@ -125,7 +123,7 @@ Notice20::Notice20(const LinkNode* payloads, int owner) : UiTextNotice(owner) {
     Virtual16(payloads);
 }
 
-Notice20::~Notice20() { REB_KEEP_VPTR_STORE(); }
+Notice20::~Notice20() {  }
 
 int Notice20::GetKind() { return 20; }
 

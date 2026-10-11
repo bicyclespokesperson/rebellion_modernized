@@ -6,7 +6,6 @@
 #include "ai/ai_side_controller.h"
 #include "ai/ai_system_record.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gameobj/factory_registries.h"
 
 using ai::KeyInFamilies;
@@ -25,7 +24,7 @@ AiTaskNode::AiTaskNode(int id) : IdNode(), m_flags(0) {
     m_flags.m_value = 0;
 }
 
-AiTaskNode::~AiTaskNode() { REB_KEEP_VPTR_STORE(); }
+AiTaskNode::~AiTaskNode() {  }
 
 void AiTaskNode::Read(istream* in) {
     ReadId(in);
@@ -47,7 +46,7 @@ AiTaskBase::AiTaskBase(int id, int view) : AiTaskNode(id), m_flags28(0) {
 
 AiTaskBase::~AiTaskBase() {
     m_owner = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiTaskBase::Read(istream* in) {
@@ -72,7 +71,7 @@ void AiTaskBase::Write(ostream* out) {
 
 AiNoticeGroup::AiNoticeGroup() : SortedLinkList(), IdNode(), m_finished(0) {}
 
-AiNoticeGroup::~AiNoticeGroup() { REB_KEEP_VPTR_STORE(); }
+AiNoticeGroup::~AiNoticeGroup() {  }
 
 int AiNoticeGroup::IsLess(LinkNode*, LinkNode*) { return 0; }
 
@@ -85,7 +84,7 @@ void AiNoticeGroup::Load(istream* in) {
     for (; count != 0; --count) {
         int kind;
         ReadValue32(in, &kind);
-        AiNotice* notice = static_cast<AiNotice*>(CreateKeyedObject(kind));
+        NotifPayload* notice = static_cast<NotifPayload*>(CreateKeyedObject(kind));
         if (notice) {
             notice->Read(in);
             Add(notice);
@@ -99,15 +98,15 @@ void AiNoticeGroup::Save(ostream* out) {
     WriteValue32(out, &count);
     WriteValue32(out, &m_finished);
     for (LinkNode* node = m_head; node; node = node->m_next) {
-        int kind = static_cast<AiNotice*>(node)->GetKind();
+        int kind = static_cast<NotifPayload*>(node)->GetKind();
         WriteValue32(out, &kind);
         node->Write(out);
     }
 }
 
-void AiNoticeGroup::Add(AiNotice* notice) {
+void AiNoticeGroup::Add(NotifPayload* notice) {
     if (!notice) return;
-    if (m_head == nullptr && m_id == 0) SetId(notice->m_groupId);
+    if (m_head == nullptr && m_id == 0) SetId(notice->m_value0c);
     if (notice->GetKind() == 2) m_finished = 1;
     Insert(notice);
 }
@@ -121,7 +120,7 @@ AiTaskObject::AiTaskObject(const ObjectKey& key, int first, int second) : IdNode
     m_second = second;
 }
 
-AiTaskObject::~AiTaskObject() { REB_KEEP_VPTR_STORE(); }
+AiTaskObject::~AiTaskObject() {  }
 
 void AiTaskObject::Read(istream* in) {
     ReadId(in);
@@ -139,7 +138,7 @@ void AiTaskObject::Write(ostream* out) {
 
 AiTaskObjectSet::AiTaskObjectSet() : IdAvlTree() {}
 
-AiTaskObjectSet::~AiTaskObjectSet() { REB_KEEP_VPTR_STORE(); }
+AiTaskObjectSet::~AiTaskObjectSet() {  }
 
 void AiTaskObjectSet::Load(istream* in) {
     Clear();
@@ -180,7 +179,7 @@ AiTaskEvaluator::AiTaskEvaluator(int view, AiSideController* owner) : m_flags(0)
 
 AiTaskEvaluator::~AiTaskEvaluator() {
     m_owner = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiTaskEvaluator::Read(istream* in) {

@@ -1,13 +1,12 @@
 #include "character/character_data.h"
 
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 
 // ---- RoleData ---------------------------------------------------------------------------------------------
 
 RoleData::RoleData() {}
 
-RoleData::~RoleData() { REB_KEEP_VPTR_STORE(); }
+RoleData::~RoleData() {  }
 
 int RoleData::Read(istream* in) { return UnitObjData::Read(in); }
 
@@ -20,7 +19,7 @@ int RoleData::Checksum(Crc32* crc) { return UnitObjData::Checksum(crc); }
 CharacterData::CharacterData()
     : RoleData(), m_healingStat(), m_forceDiscoveryStat(), m_escapeStat(), m_holderKey(), m_field34(0) {}
 
-CharacterData::~CharacterData() { REB_KEEP_VPTR_STORE(); }
+CharacterData::~CharacterData() {  }
 
 int CharacterData::Read(istream* in) {
     int result = 0;

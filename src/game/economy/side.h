@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -316,7 +315,7 @@ int SideNumberFromKey(const ObjectKey* key);
 // "AD LC MC ..." style listing of the victory condition bits into *out (0x530a50, cdecl); always 1.
 int FormatVictoryConditions(uint32_t conditions, String* out);
 // The secondary vtable's WriteName for the Side (0x52d920; `base` is the ObjectBase subobject).
-void REB_THISCALL AppendSideName(ObjectBase* base, String* out, int kind);
+void AppendSideName(ObjectBase* base, String* out, int kind);
 // Helpers of the process facilities that live in this range (0x52e740, 0x52e8b0, 0x530650).
-GameObjNotifier* REB_THISCALL FindNextUnit(GameObjNotifier* unit);
-int REB_STDCALL MarkFacilityWaiting(ProductionFacility* facility, NotifyContext* ctx);
+GameObjNotifier* FindNextUnit(GameObjNotifier* unit);
+int MarkFacilityWaiting(ProductionFacility* facility, NotifyContext* ctx);

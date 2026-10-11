@@ -5,7 +5,6 @@
 #include "ai/ai_task_types.h"
 #include "ai/ai_task_util.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "fleet/fight_squad.h"
 #include "galaxy/system.h"
 #include "gameobj/object_lookup.h"
@@ -106,7 +105,7 @@ AiTask7::AiTask7(int view) : AiFacilityTaskBase(7, view) {
     m_x24 = 0x11;
 }
 
-AiTask7::~AiTask7() { REB_KEEP_VPTR_STORE(); }
+AiTask7::~AiTask7() {  }
 
 OrderBase* AiTask7::Step() {
     if (m_flags.Get() != 1) {

@@ -2,7 +2,6 @@
 
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 
 namespace {
 
@@ -17,7 +16,7 @@ void ParseShortField(istream* in, strstream* token, int* endOfLine, void* value)
 
 BasicSD::BasicSD() {}
 
-BasicSD::~BasicSD() { REB_KEEP_VPTR_STORE(); }
+BasicSD::~BasicSD() {  }
 
 void* CreateBasicSD() { return NewOrNull<BasicSD>(); }
 
@@ -45,7 +44,7 @@ int BasicSD::ParseFields(istream* in, int* endOfLine) {
 
 TroopSD::TroopSD() : m_bombardmentDefense(0), m_attackStrength(0), m_defenseStrength(0) {}
 
-TroopSD::~TroopSD() { REB_KEEP_VPTR_STORE(); }
+TroopSD::~TroopSD() {  }
 
 void* CreateTroopSD() { return NewOrNull<TroopSD>(); }
 
@@ -86,7 +85,7 @@ int TroopSD::ParseFields(istream* in, int* endOfLine) {
 
 SystemSD::SystemSD() : m_sectorId(0), m_pictureId(0), m_field48(0), m_xPosition(0), m_yPosition(0), m_field50(0) {}
 
-SystemSD::~SystemSD() { REB_KEEP_VPTR_STORE(); }
+SystemSD::~SystemSD() {  }
 
 void* CreateSystemSD() { return NewOrNull<SystemSD>(); }
 
@@ -139,7 +138,7 @@ int SystemSD::ParseFields(istream* in, int* endOfLine) {
 
 SpecialForceSD::SpecialForceSD() : m_missionId(0) {}
 
-SpecialForceSD::~SpecialForceSD() { REB_KEEP_VPTR_STORE(); }
+SpecialForceSD::~SpecialForceSD() {  }
 
 void* CreateSpecialForceSD() { return NewOrNull<SpecialForceSD>(); }
 
@@ -172,7 +171,7 @@ int SpecialForceSD::ParseFields(istream* in, int* endOfLine) {
 
 SectorSD::SectorSD() : m_group(0), m_galaxySize(0), m_xPosition(0), m_yPosition(0) {}
 
-SectorSD::~SectorSD() { REB_KEEP_VPTR_STORE(); }
+SectorSD::~SectorSD() {  }
 
 void* CreateSectorSD() { return NewOrNull<SectorSD>(); }
 
@@ -217,7 +216,7 @@ int SectorSD::ParseFields(istream* in, int* endOfLine) {
 
 ProductionFacilitySD::ProductionFacilitySD() : m_processingRate(0) {}
 
-ProductionFacilitySD::~ProductionFacilitySD() { REB_KEEP_VPTR_STORE(); }
+ProductionFacilitySD::~ProductionFacilitySD() {  }
 
 void* CreateProductionFacilitySD() { return NewOrNull<ProductionFacilitySD>(); }
 
@@ -250,7 +249,7 @@ int ProductionFacilitySD::ParseFields(istream* in, int* endOfLine) {
 
 MissionSD::MissionSD() : m_isAlliance(0), m_isEmpire(0), m_specialForceEligibility(0), m_targetFlags(0), m_timerMinDays(0), m_timerSpreadDays(0), m_repeats(0), m_hidden(0), m_detectionPhases(0), m_canResign(0), m_field68(0), m_containerLossEnds(0), m_field70(0), m_needsPopulatedContainer(0), m_targetLossEnds(0), m_ownSideTarget(0), m_otherSideTarget(0), m_opponentTarget(0), m_revoltingTarget(0), m_calmTarget(0), m_prisonerTarget(0), m_freeTarget(0) {}
 
-MissionSD::~MissionSD() { REB_KEEP_VPTR_STORE(); }
+MissionSD::~MissionSD() {  }
 
 void* CreateMissionSD() { return NewOrNull<MissionSD>(); }
 
@@ -367,7 +366,7 @@ int MissionSD::ParseFields(istream* in, int* endOfLine) {
 
 MinorCharacterSD::MinorCharacterSD() {}
 
-MinorCharacterSD::~MinorCharacterSD() { REB_KEEP_VPTR_STORE(); }
+MinorCharacterSD::~MinorCharacterSD() {  }
 
 void* CreateMinorCharacterSD() { return NewOrNull<MinorCharacterSD>(); }
 
@@ -397,7 +396,7 @@ int MinorCharacterSD::ParseFields(istream* in, int* endOfLine) {
 
 ManufacturingFacilitySD::ManufacturingFacilitySD() : m_processingRate(0) {}
 
-ManufacturingFacilitySD::~ManufacturingFacilitySD() { REB_KEEP_VPTR_STORE(); }
+ManufacturingFacilitySD::~ManufacturingFacilitySD() {  }
 
 void* CreateManufacturingFacilitySD() { return NewOrNull<ManufacturingFacilitySD>(); }
 
@@ -430,7 +429,7 @@ int ManufacturingFacilitySD::ParseFields(istream* in, int* endOfLine) {
 
 MajorCharacterSD::MajorCharacterSD() {}
 
-MajorCharacterSD::~MajorCharacterSD() { REB_KEEP_VPTR_STORE(); }
+MajorCharacterSD::~MajorCharacterSD() {  }
 
 void* CreateMajorCharacterSD() { return NewOrNull<MajorCharacterSD>(); }
 
@@ -460,7 +459,7 @@ int MajorCharacterSD::ParseFields(istream* in, int* endOfLine) {
 
 FighterSD::FighterSD() : m_torpedoes(0), m_torpedoRange(0), m_squadronSize(0), m_bombardmentDefense(0) {}
 
-FighterSD::~FighterSD() { REB_KEEP_VPTR_STORE(); }
+FighterSD::~FighterSD() {  }
 
 void* CreateFighterSD() { return NewOrNull<FighterSD>(); }
 
@@ -505,7 +504,7 @@ int FighterSD::ParseFields(istream* in, int* endOfLine) {
 
 DefenseFacilitySD::DefenseFacilitySD() : m_attackStrength(0), m_shieldStrength(0) {}
 
-DefenseFacilitySD::~DefenseFacilitySD() { REB_KEEP_VPTR_STORE(); }
+DefenseFacilitySD::~DefenseFacilitySD() {  }
 
 void* CreateDefenseFacilitySD() { return NewOrNull<DefenseFacilitySD>(); }
 
@@ -542,7 +541,7 @@ int DefenseFacilitySD::ParseFields(istream* in, int* endOfLine) {
 
 CapitalShipSD::CapitalShipSD() : m_hull(0), m_tractorBeamPower(0), m_tractorBeamRange(0), m_gravityWellProjector(0), m_interdictionStrength(0), m_bombardmentModifier(0), m_damageControl(0), m_weaponRechargeRate(0), m_shieldRechargeRate(0), m_fighterCapacity(0), m_troopCapacity(0), m_field51(0) {}
 
-CapitalShipSD::~CapitalShipSD() { REB_KEEP_VPTR_STORE(); }
+CapitalShipSD::~CapitalShipSD() {  }
 
 void* CreateCapitalShipSD() { return NewOrNull<CapitalShipSD>(); }
 
@@ -619,7 +618,7 @@ int CapitalShipSD::ParseFields(istream* in, int* endOfLine) {
 
 AllFacilitySD::AllFacilitySD() {}
 
-AllFacilitySD::~AllFacilitySD() { REB_KEEP_VPTR_STORE(); }
+AllFacilitySD::~AllFacilitySD() {  }
 
 void* CreateAllFacilitySD() { return NewOrNull<AllFacilitySD>(); }
 

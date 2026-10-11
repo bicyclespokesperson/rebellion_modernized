@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "mission/mission_rules.h"
 #include "data/random.h"
 #include "mission/mission_sabotage.h"
@@ -19,7 +18,7 @@ constexpr int kStatusCategoryOrder = 0x40;
 
 MissionSabotage::MissionSabotage() {}
 
-MissionSabotage::~MissionSabotage() { REB_KEEP_VPTR_STORE(); }
+MissionSabotage::~MissionSabotage() {  }
 
 REB_MISSION_SHARED_PERSISTENCE(MissionSabotage)
 
@@ -88,7 +87,7 @@ int MissionSabotage::Virtual159(GameObj* person, int roll, int* out, NotifyConte
     return ok;
 }
 
-int REB_THISCALL MissionDestroyOriginOnSuccess(Mission* mission, NotifyContext* ctx) {
+int MissionDestroyOriginOnSuccess(Mission* mission, NotifyContext* ctx) {
     int ok = 1;
     if (mission->m_taskStatus == 0) ok = mission->SetTaskStatus(2, ctx) != 0;
     if (mission->m_taskStatus == kTaskSucceeded) {

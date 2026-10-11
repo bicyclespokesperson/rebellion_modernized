@@ -26,19 +26,19 @@ environment: `REB_MINWIN_SCALE`, `REB_MINWIN_TRACE`, `REB_MSG_TRACE=<file>`, `SD
 The script extracts the [versioned startup text pack](design/startup_assets.md) from the local installation, then
 configures and builds the native target with Clang/C++23. `--objects-only` skips asset extraction. CMake itself can
 compile without an installation; runtime smoke requires assets. The native target uses normal exception support and
-RTTI, with a transitional zero-filling allocator pending the A1 initialization audit.
+RTTI, with the host C++ allocator and typed startup/service ownership.
 
 ## What is where
 
 | Piece | Where | Notes |
 |---|---|---|
 | kernel32 on POSIX | `src/port/native/kernel32_posix.cpp` | events, semaphores, threads (pthreads; `TerminateThread` is `pthread_cancel`), critical sections (a recursive pthread mutex behind `LockSemaphore`), QPC/`GetTickCount` (`CLOCK_MONOTONIC`), `FindFirstFileA` with wildcards, `_lopen/_lread/_lclose`, `DeleteFileA`, `GetDriveTypeA` (always fixed: the CD check passes with the install directory), `GetComputerNameA`. `timeGetTime/timeSetEvent` are in `main.cpp` (the window manager's pump-driven timers). |
-| MSVC CRT names | `src/port/native/crt_posix.cpp`, `crt/` | `_sopen/_read/_write/_lseek/_close/_setmode/_chdir/_mkdir/_chdrive`, `_stricmp/_strnicmp`, `<io.h>`/`<direct.h>` shims. All paths go through `mw::res::ResolvePath` (backslashes, drive letters, any case). There is no text mode: every file the game opens is opened binary, so no CRLF translation is needed. `fopen` is redirected to `reb_fopen` by the prelude. |
-| the game's own `rand/srand/qsort/atoi/atol` | `src/game/crt`, renamed `reb_*` by `native_prelude.h` | their results are game behaviour (the `rand` sequence, the qsort order, 32-bit wrap-around of `atol`) |
-| iostream library | `src/game/iostream` (layouts now computed, not constants), `src/port/native/iostream_tables.cpp` | the library's vftables/vbtables, which the Windows builds copy from the EXE, are written out here |
+| MSVC CRT names | `src/port/native/crt_posix.cpp`, `crt/` | `_sopen/_read/_write/_lseek/_close/_setmode/_chdir/_mkdir/_chdrive`, `_stricmp/_strnicmp`, `<io.h>`/`<direct.h>` shims. All paths go through `mw::res::ResolvePath` (backslashes, drive letters, any case). There is no text mode: every file the game opens is opened binary, so no CRLF translation is needed. Game installation paths use the explicit `OpenGameFile` adapter. |
+| standard CRT | host C++ runtime | reconstructed standard-library replacements and global name redirects are retired; game seed generation remains an explicit game primitive |
+| iostream library | `src/game/iostream` | streams own typed `ios`, input/output views and virtual `streambuf` implementations; native vtable/vbtable shims are retired |
 | program globals | typed definitions in `src/game` | no byte storage, assembler aliases or symbol metadata generation |
-| initialization | `src/port/native/game_initialization.cpp` | named dependencies and scoped platform teardown; no EXE initializer replay |
-| entry | `src/port/native/main.cpp` | asset owner, `minwin_wiring::Install()`, scoped initialization, `WinMain` and exception boundary |
+| initialization | `src/port/native/game_context.cpp` | named dependencies and scoped platform teardown; no EXE initializer replay |
+| entry | `src/port/native/main.cpp` | asset owner, `minwin_wiring::Install()`, scoped context, `RunApplication` and exception boundary |
 | tactical 3D | `src/port/native/tactical_absent.cpp` | the virtuals of `TacticalObjectManager` that are declared but never reconstructed; battles are auto-resolved |
 | config | `src/port/minwin_impl/config` | on POSIX the derived `*Location` registry values are `C:` + install dir, so the game's "drop the drive letter, chdir" code works |
 
@@ -59,7 +59,7 @@ The classes that mirror the original layout by size and padding were the main so
 * storage for embedded objects declared by their 32-bit size (`CoolFrameButton::m_frames`, `HumanPlayer::m_alertList`, `SpriteAnimator::m_steps`,
   `CoolGameWindow::m_overlays`, `SeedFamilyTableEntry::m_items`, and `ObjectTypeDb`'s stack name lists): now members of their actual host-native types;
 * raw offsets into such objects (`m_frames + 8`, `ios + 0x2c`, `ios + 0x30`, filebuf `+0x4c`);
-* the iostream layouts (`ios` offset inside the stream classes, the critical-section size);
+* the iostream wrapper layouts and critical-section storage (typed composition and native `CRITICAL_SECTION` members);
 * 32-bit pointer differences and `int` parameters carrying pointers (`strstreambuf_doallocate`, `Mission::CheckMemberDefault`);
 * an array cookie of 4 bytes before 8-aligned elements (`MissionMgr` type table, `AnimationStep` frame lists);
 * a `LARGE_INTEGER*` punned over two `uint32_t` fields (`Stopwatch`);
@@ -84,8 +84,7 @@ random draws, executed events and a checksum of all game objects after every eve
 A native run is deterministic run to run (ASLR does not matter: no pointer-ordered container influences the saves), and independent of the
 virtual clock's step.
 
-**Sanitizers** (`REB_SANITIZE=1`: ASan + UBSan with recovery, `-fno-sanitize=function` because the game stores function pointers under other types and the
-iostream tables cast slots): clean (0 reports) on the three simulations above (7,000 ticks, 5 min) and on these scenarios: smoke, load_game, ui_tour,
+**Sanitizers** (`REB_SANITIZE=1`: ASan + UBSan with recovery, `-fno-sanitize=function` because reconstructed game code stores function pointers under other types): clean (0 reports) on the three simulations above (7,000 ticks, 5 min) and on these scenarios: smoke, load_game, ui_tour,
 new_game_rebel, new_game_empire, space_battle_autoresolve, encyclopedia, fleet_window, battle_window, object_menu, mission_dialog, manufacture_explore,
 game_controls, system_forces, save_game_slot. The saves of the sanitized and the plain build are identical. Everything the sanitizers reported on the way, with its fix:
 
@@ -102,7 +101,7 @@ game_controls, system_forces, save_game_slot. The saves of the sanitized and the
 | object layouts described twice (`PlayerNotice` stub vs the real `PostedEvent`/`AiNotice`; `TrainingOrderCheck`/`StoryOrderCheck` vs `MissionCheckArgs`) | notice routing, Jedi training and story mission checks | game, 64-bit: **changed simulation results** (notices never reached the AI; a mission completed too early) | derive from the real base; field copies |
 | fake leading virtual slots (`ForeignSlots`) | `System::FindManufacturingManagerBySlot123` and two siblings | game, ABI: Itanium vtables differ | call the declared virtual |
 | ICF-folded cross-class accessors (`GameObj::GetDepartureKey` on a `Command`, `ObjectRefNode::GetKey` on a payload) | orders, UI notifications | game, 64-bit | named field |
-| LP64 size of `CRITICAL_SECTION`, iostream `ios` offsets | `iostream.h`, `ios.cpp` | game, 64-bit | computed |
+| LP64 iostream wrapper layout and critical-section alignment | `iostream.h`, `ios.cpp` | typed composition with host-native `CRITICAL_SECTION` members |
 | alignment of globals (16 for arrays of 16+ bytes; the compiler emits aligned SSE stores) | generated data | port | `alignas` |
 | a Win32 handle used after `CloseHandle` (the mixer signals a closed notification event) | `kernel32_posix.cpp` | port (the game does it on Windows too) | live-object registry |
 | a window destroyed by its own procedure, then read | `minwin::CallProc` | port | read before the call |

@@ -1,11 +1,9 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/game_string.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "tactical/tactical_lists.h"
 #include "tactical/tactical_math.h"
 #include "tactical/tactical_moving_object.h"
@@ -28,7 +26,7 @@ class TacticalShipBase;
 class TacticalShipFacetA {
 public:
     TacticalShipFacetA() : m_fA_04(0), m_fA_08(0) {}
-    virtual ~TacticalShipFacetA() { REB_KEEP_VPTR_STORE(); }
+    virtual ~TacticalShipFacetA() {  }
     int m_fA_04;  // +0x04
     int m_fA_08;  // +0x08
 };
@@ -36,14 +34,14 @@ public:
 class TacticalShipFacetB {
 public:
     TacticalShipFacetB() : m_fB_04(0) {}
-    virtual ~TacticalShipFacetB() { REB_KEEP_VPTR_STORE(); }
+    virtual ~TacticalShipFacetB() {  }
     int m_fB_04;  // +0x04
 };
 
 class TacticalShipFacetC {
 public:
     TacticalShipFacetC() : m_fC_04(0) {}
-    virtual ~TacticalShipFacetC() { REB_KEEP_VPTR_STORE(); }
+    virtual ~TacticalShipFacetC() {  }
     virtual void Write(ostream* out);  // 0x5a0750
     virtual void Read(istream* in);    // 0x5a0770
     int m_fC_04;                       // +0x04
@@ -52,7 +50,7 @@ public:
 class TacticalShipFacetD {
 public:
     TacticalShipFacetD() : m_fD_04(0), m_fD_08(0) {}
-    virtual ~TacticalShipFacetD() { REB_KEEP_VPTR_STORE(); }
+    virtual ~TacticalShipFacetD() {  }
     int m_fD_04;  // +0x04
     int m_fD_08;  // +0x08
 };
@@ -372,7 +370,7 @@ public:
 };
 
 // 0x5b0b80: the capital ship launch point, entered with the hangar subobject as `this` (the original vtable slot).
-void REB_THISCALL TacticalCapitalShipLaunchPoint(TacticalHangar* hangar, TacticalVector* out);
+void TacticalCapitalShipLaunchPoint(TacticalHangar* hangar, TacticalVector* out);
 
 class TacticalFighter : public TacticalShipBase {
 public:
@@ -413,45 +411,45 @@ public:
 };
 
 // Event handlers of the 3D battle (cdecl; registered in the object manager's event table).
-void REB_CDECL TacticalShipStatusEvent(TacticalEvent* event);           // 0x5b01d0 a ship's synchronised state
-void REB_CDECL TacticalShipCarrierWaitEvent(TacticalEvent* event);      // 0x5b1e10
-void REB_CDECL TacticalShipJumpEvent(TacticalEvent* event);             // 0x5b1e40
-void REB_CDECL TacticalShipImpactEventB(TacticalEvent* event);          // 0x5b1ea0
-void REB_CDECL TacticalShipImpactEventC(TacticalEvent* event);          // 0x5b1f60
-void REB_CDECL TacticalShipImpactEventD(TacticalEvent* event);          // 0x5b2080
-void REB_CDECL TacticalShipTractorStatusEvent(TacticalEvent* event);    // 0x5b2340
-void REB_CDECL TacticalShipStartTractorEvent(TacticalEvent* event);     // 0x5b2630
-void REB_CDECL TacticalShipStopTractorEvent(TacticalEvent* event);      // 0x5b26a0
-void REB_CDECL TacticalShipWithdrawEvent(TacticalEvent* event);         // 0x5b26d0
-void REB_CDECL TacticalShipJumpAbortEvent(TacticalEvent* event);        // 0x5b2720
-void REB_CDECL TacticalShipAddDelayEvent(TacticalEvent* event);         // 0x5b27b0
-void REB_CDECL TacticalShipClearArcEvent(TacticalEvent* event);         // 0x5b27e0
-void REB_CDECL TacticalShipAddTractorJamEvent(TacticalEvent* event);    // 0x5b2810
-void REB_CDECL TacticalShipHitSpeedEvent(TacticalEvent* event);         // 0x5b2840
-void REB_CDECL TacticalShipHitTractorEvent(TacticalEvent* event);       // 0x5b2870
-void REB_CDECL TacticalShipHitWeaponEvent(TacticalEvent* event);        // 0x5b28a0
-void REB_CDECL TacticalShipHitShieldEvent(TacticalEvent* event);        // 0x5b28d0
-void REB_CDECL TacticalShipHitHyperdriveEvent(TacticalEvent* event);    // 0x5b2900
-void REB_CDECL TacticalShipRepairSpeedEvent(TacticalEvent* event);      // 0x5b2930
-void REB_CDECL TacticalShipRepairTractorEvent(TacticalEvent* event);    // 0x5b2960
-void REB_CDECL TacticalShipRepairWeaponEvent(TacticalEvent* event);     // 0x5b2990
-void REB_CDECL TacticalShipRepairShieldEvent(TacticalEvent* event);     // 0x5b29c0
-void REB_CDECL TacticalShipRepairHyperdriveEvent(TacticalEvent* event); // 0x5b29f0
-void REB_CDECL TacticalShipHitEvent54(TacticalEvent* event);            // 0x5b2a20
-void REB_CDECL TacticalShipHitEvent55(TacticalEvent* event);            // 0x5b2a70
-void REB_CDECL TacticalShipHitEvent56(TacticalEvent* event);            // 0x5b2ac0
-void REB_CDECL TacticalShipHitEvent53(TacticalEvent* event);            // 0x5b2b10
-void REB_CDECL TacticalShipCollisionEvent(TacticalEvent* event);        // 0x5b2b60
-void REB_CDECL TacticalShipImpactEventE(TacticalEvent* event);          // 0x5b2c70
-void REB_CDECL TacticalFighterStatusEvent(TacticalEvent* event);        // 0x5ba120
-void REB_CDECL TacticalCarrierLaunchEvent(TacticalEvent* event);        // 0x5b8b10
-void REB_CDECL TacticalCarrierLaunchedEvent(TacticalEvent* event);      // 0x5b8bd0
-void REB_CDECL TacticalDeathStarImpactEvent(TacticalEvent* event);      // 0x5ba520
-void REB_CDECL TacticalDeathStarStatusEvent(TacticalEvent* event);      // 0x5ba5b0
-void REB_CDECL TacticalDeathStarFiredEvent(TacticalEvent* event);       // 0x5ba5e0
+void TacticalShipStatusEvent(TacticalEvent* event);           // 0x5b01d0 a ship's synchronised state
+void TacticalShipCarrierWaitEvent(TacticalEvent* event);      // 0x5b1e10
+void TacticalShipJumpEvent(TacticalEvent* event);             // 0x5b1e40
+void TacticalShipImpactEventB(TacticalEvent* event);          // 0x5b1ea0
+void TacticalShipImpactEventC(TacticalEvent* event);          // 0x5b1f60
+void TacticalShipImpactEventD(TacticalEvent* event);          // 0x5b2080
+void TacticalShipTractorStatusEvent(TacticalEvent* event);    // 0x5b2340
+void TacticalShipStartTractorEvent(TacticalEvent* event);     // 0x5b2630
+void TacticalShipStopTractorEvent(TacticalEvent* event);      // 0x5b26a0
+void TacticalShipWithdrawEvent(TacticalEvent* event);         // 0x5b26d0
+void TacticalShipJumpAbortEvent(TacticalEvent* event);        // 0x5b2720
+void TacticalShipAddDelayEvent(TacticalEvent* event);         // 0x5b27b0
+void TacticalShipClearArcEvent(TacticalEvent* event);         // 0x5b27e0
+void TacticalShipAddTractorJamEvent(TacticalEvent* event);    // 0x5b2810
+void TacticalShipHitSpeedEvent(TacticalEvent* event);         // 0x5b2840
+void TacticalShipHitTractorEvent(TacticalEvent* event);       // 0x5b2870
+void TacticalShipHitWeaponEvent(TacticalEvent* event);        // 0x5b28a0
+void TacticalShipHitShieldEvent(TacticalEvent* event);        // 0x5b28d0
+void TacticalShipHitHyperdriveEvent(TacticalEvent* event);    // 0x5b2900
+void TacticalShipRepairSpeedEvent(TacticalEvent* event);      // 0x5b2930
+void TacticalShipRepairTractorEvent(TacticalEvent* event);    // 0x5b2960
+void TacticalShipRepairWeaponEvent(TacticalEvent* event);     // 0x5b2990
+void TacticalShipRepairShieldEvent(TacticalEvent* event);     // 0x5b29c0
+void TacticalShipRepairHyperdriveEvent(TacticalEvent* event); // 0x5b29f0
+void TacticalShipHitEvent54(TacticalEvent* event);            // 0x5b2a20
+void TacticalShipHitEvent55(TacticalEvent* event);            // 0x5b2a70
+void TacticalShipHitEvent56(TacticalEvent* event);            // 0x5b2ac0
+void TacticalShipHitEvent53(TacticalEvent* event);            // 0x5b2b10
+void TacticalShipCollisionEvent(TacticalEvent* event);        // 0x5b2b60
+void TacticalShipImpactEventE(TacticalEvent* event);          // 0x5b2c70
+void TacticalFighterStatusEvent(TacticalEvent* event);        // 0x5ba120
+void TacticalCarrierLaunchEvent(TacticalEvent* event);        // 0x5b8b10
+void TacticalCarrierLaunchedEvent(TacticalEvent* event);      // 0x5b8bd0
+void TacticalDeathStarImpactEvent(TacticalEvent* event);      // 0x5ba520
+void TacticalDeathStarStatusEvent(TacticalEvent* event);      // 0x5ba5b0
+void TacticalDeathStarFiredEvent(TacticalEvent* event);       // 0x5ba5e0
 
 // 0x5b8ce0: whether the unit with this handle is a ship in state 3.
-int REB_STDCALL TacticalShipIsInState3(int handle);
+int TacticalShipIsInState3(int handle);
 
 // The Death Star (0x5ba3a0-0x5ba8b0, 0x7c bytes): a unit that is not a ship: TacticalUnit at +0, its carrier interface at
 // +0x1c. Built by the simulator / object manager when the battle has one (HeadlessSimulator::AddDeathStar).

@@ -4,17 +4,15 @@
 
 #include "app/app_control_cmds.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "events/game_clock_hooks.h"
 #include "events/net_messages.h"
+#include "gameobj/notif_payload.h"
 #include "multiplayer/comm_mgr.h"
 #include "multiplayer/message_codec.h"
 #include "orders/order_base.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "tactical/comm2.h"
 
-// The shared empty function the release build left where a debug assertion failed (0x619730).
-void FUN_00619730();
 
 namespace {
 
@@ -43,7 +41,7 @@ RemotePlayer::RemotePlayer(int side) : PlayerController(side), m_history() {
     m_unknown54 = 0;
 }
 
-RemotePlayer::~RemotePlayer() { REB_KEEP_VPTR_STORE(); }
+RemotePlayer::~RemotePlayer() {  }
 
 void RemotePlayer::Read(istream* in) {
     PlayerController::Read(in);
@@ -78,8 +76,10 @@ void RemotePlayer::Virtual07(PlayerMessage* message) {
 }
 
 int RemotePlayer::Virtual08(PlayerMessage* message) {
-    if (reinterpret_cast<SidedMessage*>(message)->m_unk24 == 1) {
-        SendToPeer(AsMessage(message));
+    MessageBase* base = AsMessage(message);
+    auto* sided = dynamic_cast<SidedMessage*>(base);
+    if (!sided || sided->m_unk24 == 1) {
+        SendToPeer(base);
         return 0;
     }
     return 1;
@@ -203,7 +203,7 @@ void RemotePlayer::Virtual19(int id, ObjectKey* key) {
     m_voteId = id;
 }
 
-void RemotePlayer::Virtual20(PlayerNotice* notice) {
+void RemotePlayer::Virtual20(NotifPayload* notice) {
     if (notice) delete notice;
 }
 
@@ -238,16 +238,15 @@ void RemotePlayer::Virtual94(int side) {
 }
 
 void RemotePlayer::RouteMessage(MessageBase* message) {
-    if (message) UiRouteMessage(reinterpret_cast<PlayerMessage*>(message));
+    if (message) UiRouteMessage(message, m_side);
 }
 
 void RemotePlayer::SendAck(MessageBase* message) {
-    void* memory = ::operator new(sizeof(NetMsg2));
-    if (!memory) FUN_00619730();
-    NetMsg2* ack = memory ? new (memory) NetMsg2() : nullptr;
+    auto* ack = new (std::nothrow) NetMsg2();
     if (!ack) return;
     ack->m_syncPoint = static_cast<int>(message->m_id);
-    ack->m_side = reinterpret_cast<SidedMessage*>(message)->m_side;
+    auto* sided = dynamic_cast<SidedMessage*>(message);
+    ack->m_side = sided ? sided->m_side : 3 - m_side;
     SendToPeer(ack);
     delete ack;
 }
@@ -263,9 +262,7 @@ void RemotePlayer::SendToPeer(MessageBase* message) {
 }
 
 void RemotePlayer::SendVote(int id, ObjectKey* key, int state, GameTime* time) {
-    void* memory = ::operator new(sizeof(NetMsg4));
-    if (!memory) FUN_00619730();
-    NetMsg4* vote = memory ? new (memory) NetMsg4() : nullptr;
+    auto* vote = new (std::nothrow) NetMsg4();
     if (!vote) return;
     vote->m_voteState = state;
     vote->m_voteId = id;

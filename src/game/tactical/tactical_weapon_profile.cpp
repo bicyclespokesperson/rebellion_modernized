@@ -15,16 +15,16 @@ WeaponProfile::WeaponProfile() {
     m_f10 = 1.0f;
 }
 
-WeaponProfile::~WeaponProfile() { REB_KEEP_VPTR_STORE(); }
+WeaponProfile::~WeaponProfile() {  }
 
 WeaponProfileA::WeaponProfileA() { m_f08 = kHalf; }
 
-WeaponProfileA::~WeaponProfileA() { REB_KEEP_VPTR_STORE(); }
+WeaponProfileA::~WeaponProfileA() {  }
 
 WeaponProfileB::WeaponProfileB() { m_f0c = kCapitalFactorB; }
 
-WeaponProfileB::~WeaponProfileB() { REB_KEEP_VPTR_STORE(); }
+WeaponProfileB::~WeaponProfileB() {  }
 
 WeaponProfileC::WeaponProfileC() { m_f08 = kHalf; }
 
-WeaponProfileC::~WeaponProfileC() { REB_KEEP_VPTR_STORE(); }
+WeaponProfileC::~WeaponProfileC() {  }

@@ -3,7 +3,6 @@
 #include "core/checked_new.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 
 namespace {
 constexpr FamilyRange kCharacterRange(0x30, 0x38);
@@ -12,7 +11,7 @@ constexpr FamilyRange kCharacterRange(0x30, 0x38);
 CharacterRangeIterator::CharacterRangeIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &kCharacterRange, stateFilter) {}
 
-CharacterRangeIterator::~CharacterRangeIterator() { REB_KEEP_VPTR_STORE(); }
+CharacterRangeIterator::~CharacterRangeIterator() {  }
 
 ObjectKeyPairNode::ObjectKeyPairNode() : ObjectKeyNode(), m_second() {}
 
@@ -21,7 +20,7 @@ ObjectKeyPairNode::ObjectKeyPairNode(const ObjectKey& first, const ObjectKey& se
 
 ObjectKeyPairNode::ObjectKeyPairNode(const ObjectKeyPairNode& other) : ObjectKeyNode(other), m_second(other.m_second) {}
 
-ObjectKeyPairNode::~ObjectKeyPairNode() { REB_KEEP_VPTR_STORE(); }
+ObjectKeyPairNode::~ObjectKeyPairNode() {  }
 
 ObjectKeyNode* ObjectKeyPairNode::Clone() { return NewOrNull<ObjectKeyPairNode>(*this); }
 

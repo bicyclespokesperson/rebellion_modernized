@@ -17,7 +17,7 @@ Event301::Event301() : SourceEvent() {}
 
 Event301::Event301(const Event301& other) : SourceEvent(other) {}
 
-Event301::~Event301() { REB_KEEP_VPTR_STORE(); }
+Event301::~Event301() {  }
 
 Event301* Event301::Clone() { return NewOrNull<Event301>(*this); }
 
@@ -41,7 +41,7 @@ Event31d::Event31d() : SourceEvent() {}
 
 Event31d::Event31d(const Event31d& other) : SourceEvent(other) {}
 
-Event31d::~Event31d() { REB_KEEP_VPTR_STORE(); }
+Event31d::~Event31d() {  }
 
 Event31d* Event31d::Clone() { return NewOrNull<Event31d>(*this); }
 
@@ -65,7 +65,7 @@ Event300::Event300() : SourceEvent() {}
 
 Event300::Event300(const Event300& other) : SourceEvent(other) {}
 
-Event300::~Event300() { REB_KEEP_VPTR_STORE(); }
+Event300::~Event300() {  }
 
 Event300* Event300::Clone() { return NewOrNull<Event300>(*this); }
 
@@ -89,7 +89,7 @@ Event308::Event308() : SourceEvent() {}
 
 Event308::Event308(const Event308& other) : SourceEvent(other) {}
 
-Event308::~Event308() { REB_KEEP_VPTR_STORE(); }
+Event308::~Event308() {  }
 
 Event308* Event308::Clone() { return NewOrNull<Event308>(*this); }
 
@@ -113,7 +113,7 @@ Event306::Event306() : SourceEvent() {}
 
 Event306::Event306(const Event306& other) : SourceEvent(other) {}
 
-Event306::~Event306() { REB_KEEP_VPTR_STORE(); }
+Event306::~Event306() {  }
 
 Event306* Event306::Clone() { return NewOrNull<Event306>(*this); }
 
@@ -137,7 +137,7 @@ Event316::Event316() : SourceEvent() {}
 
 Event316::Event316(const Event316& other) : SourceEvent(other) {}
 
-Event316::~Event316() { REB_KEEP_VPTR_STORE(); }
+Event316::~Event316() {  }
 
 Event316* Event316::Clone() { return NewOrNull<Event316>(*this); }
 
@@ -161,7 +161,7 @@ Event307::Event307() : SourceEvent() {}
 
 Event307::Event307(const Event307& other) : SourceEvent(other) {}
 
-Event307::~Event307() { REB_KEEP_VPTR_STORE(); }
+Event307::~Event307() {  }
 
 Event307* Event307::Clone() { return NewOrNull<Event307>(*this); }
 
@@ -185,7 +185,7 @@ Event302::Event302() : SourceEvent() {}
 
 Event302::Event302(const Event302& other) : SourceEvent(other) {}
 
-Event302::~Event302() { REB_KEEP_VPTR_STORE(); }
+Event302::~Event302() {  }
 
 Event302* Event302::Clone() { return NewOrNull<Event302>(*this); }
 
@@ -209,7 +209,7 @@ Event318::Event318() : SourceEvent() {}
 
 Event318::Event318(const Event318& other) : SourceEvent(other) {}
 
-Event318::~Event318() { REB_KEEP_VPTR_STORE(); }
+Event318::~Event318() {  }
 
 Event318* Event318::Clone() { return NewOrNull<Event318>(*this); }
 
@@ -233,7 +233,7 @@ Event315::Event315() : SourceEvent() {}
 
 Event315::Event315(const Event315& other) : SourceEvent(other) {}
 
-Event315::~Event315() { REB_KEEP_VPTR_STORE(); }
+Event315::~Event315() {  }
 
 Event315* Event315::Clone() { return NewOrNull<Event315>(*this); }
 
@@ -257,7 +257,7 @@ Event30a::Event30a() : SourceEvent() {}
 
 Event30a::Event30a(const Event30a& other) : SourceEvent(other) {}
 
-Event30a::~Event30a() { REB_KEEP_VPTR_STORE(); }
+Event30a::~Event30a() {  }
 
 Event30a* Event30a::Clone() { return NewOrNull<Event30a>(*this); }
 
@@ -281,7 +281,7 @@ Event320::Event320() : TwoKeyEvent() {}
 
 Event320::Event320(const Event320& other) : TwoKeyEvent(other) {}
 
-Event320::~Event320() { REB_KEEP_VPTR_STORE(); }
+Event320::~Event320() {  }
 
 Event320* Event320::Clone() { return NewOrNull<Event320>(*this); }
 
@@ -305,7 +305,7 @@ Event313::Event313() : SourceEvent() {}
 
 Event313::Event313(const Event313& other) : SourceEvent(other) {}
 
-Event313::~Event313() { REB_KEEP_VPTR_STORE(); }
+Event313::~Event313() {  }
 
 Event313* Event313::Clone() { return NewOrNull<Event313>(*this); }
 
@@ -330,7 +330,7 @@ Event31a::Event31a() : SourceEvent() {}
 
 Event31a::Event31a(const Event31a& other) : SourceEvent(other) {}
 
-Event31a::~Event31a() { REB_KEEP_VPTR_STORE(); }
+Event31a::~Event31a() {  }
 
 Event31a* Event31a::Clone() { return NewOrNull<Event31a>(*this); }
 
@@ -354,7 +354,7 @@ Event317::Event317() : SourceEvent() {}
 
 Event317::Event317(const Event317& other) : SourceEvent(other) {}
 
-Event317::~Event317() { REB_KEEP_VPTR_STORE(); }
+Event317::~Event317() {  }
 
 Event317* Event317::Clone() { return NewOrNull<Event317>(*this); }
 

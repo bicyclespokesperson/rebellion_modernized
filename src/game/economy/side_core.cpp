@@ -1,7 +1,5 @@
-#include "core/reb_abi.h"
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "economy/side.h"
 #include "economy/side_decl.h"
@@ -57,7 +55,7 @@ ObjectNameList::ObjectNameList() : IdAvlTree(), m_ok(1) {}
 
 ObjectNameList::~ObjectNameList() {
     IdAvlTree::Clear();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 // ---- construction -------------------------------------------------------------------------------------------
@@ -68,7 +66,7 @@ Side::Side() : GameObj(), m_maintState(), m_mineState(), m_refineryState(), m_st
 
 Side::~Side() {
     FreeState();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 GameObjNotifier* CreateSide() { return new Side(); }
@@ -349,7 +347,7 @@ int Side::RefineryStateMatches() {
     return stateMatchesSum(this, GetFirstMasterInFamilies_2d_2e(), FamilyRange(0x2d, 0x2e), m_refineryState);
 }
 
-GameObjNotifier* REB_THISCALL FindNextUnit(GameObjNotifier* unit) {
+GameObjNotifier* FindNextUnit(GameObjNotifier* unit) {
     const FamilyRange units(0x10, 0x40);
     return static_cast<GameObj*>(unit)->FindNextSibling(&units, 1);
 }
@@ -482,7 +480,7 @@ constexpr int kArticleAResource = 0x4da2;
 // The standalone's own vtables reach the free function through the override; the hybrid's original vtables point at it directly.
 void Side::WriteName(String* out, int kind) { AppendSideName(this, out, kind); }
 
-void REB_THISCALL AppendSideName(ObjectBase* base, String* out, int kind) {
+void AppendSideName(ObjectBase* base, String* out, int kind) {
     const int baseResource = nameResourceFor(kind);
     if (baseResource == 0) return;
     const uint32_t flags = static_cast<GameObj*>(base)->m_flags;

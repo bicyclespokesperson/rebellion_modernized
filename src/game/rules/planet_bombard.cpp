@@ -2,7 +2,6 @@
 
 #include "ai/ai_common.h"
 #include "character/character.h"
-#include "core/vptr_store.h"
 #include "data/random.h"
 #include "economy/defense_facility.h"
 #include "economy/facility.h"
@@ -52,13 +51,13 @@ int commanderLeadership(GameObjNotifier* commander) {
 // ---- visitors ----------------------------------------------------------------------------------------------------
 
 ShipVisitor::ShipVisitor(BombardWalker* walker) : m_walker(walker) {}
-ShipVisitor::~ShipVisitor() { REB_KEEP_VPTR_STORE(); }
+ShipVisitor::~ShipVisitor() {  }
 
 DefenderVisitor::DefenderVisitor(BombardWalker* walker) : m_walker(walker) {}
-DefenderVisitor::~DefenderVisitor() { REB_KEEP_VPTR_STORE(); }
+DefenderVisitor::~DefenderVisitor() {  }
 
 ShipCounter::ShipCounter(BombardWalker* walker) : ShipVisitor(walker), m_count(0) {}
-ShipCounter::~ShipCounter() { REB_KEEP_VPTR_STORE(); }
+ShipCounter::~ShipCounter() {  }
 
 int ShipCounter::Visit(GameObj*, GameObj*, uint32_t* stop, NotifyContext*) {
     ++m_count;
@@ -68,7 +67,7 @@ int ShipCounter::Visit(GameObj*, GameObj*, uint32_t* stop, NotifyContext*) {
 
 ShipPicker::ShipPicker(BombardWalker* walker)
     : ShipVisitor(walker), m_index(0), m_target(0), m_ship(nullptr), m_fleet(nullptr) {}
-ShipPicker::~ShipPicker() { REB_KEEP_VPTR_STORE(); }
+ShipPicker::~ShipPicker() {  }
 
 int ShipPicker::Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext*) {
     *stop = 0;
@@ -86,7 +85,7 @@ int ShipPicker::Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyConte
 }
 
 DeathStarFinder::DeathStarFinder(BombardWalker* walker) : ShipVisitor(walker), m_found(0) {}
-DeathStarFinder::~DeathStarFinder() { REB_KEEP_VPTR_STORE(); }
+DeathStarFinder::~DeathStarFinder() {  }
 
 int DeathStarFinder::Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, NotifyContext*) {
     *stop = 0;
@@ -100,7 +99,7 @@ int DeathStarFinder::Visit(GameObj* ship, GameObj* fleet, uint32_t* stop, Notify
 }
 
 ShipDamager::ShipDamager(BombardWalker* walker) : ShipVisitor(walker) {}
-ShipDamager::~ShipDamager() { REB_KEEP_VPTR_STORE(); }
+ShipDamager::~ShipDamager() {  }
 
 int ShipDamager::Visit(GameObj* shipObject, GameObj*, uint32_t* stop, NotifyContext* ctx) {
     *stop = 0;
@@ -131,7 +130,7 @@ int ShipDamager::Visit(GameObj* shipObject, GameObj*, uint32_t* stop, NotifyCont
 }
 
 ShipCleaner::ShipCleaner(BombardWalker* walker) : ShipVisitor(walker) {}
-ShipCleaner::~ShipCleaner() { REB_KEEP_VPTR_STORE(); }
+ShipCleaner::~ShipCleaner() {  }
 
 int ShipCleaner::Visit(GameObj* shipObject, GameObj* fleet, uint32_t* stop, NotifyContext*) {
     *stop = 0;
@@ -145,7 +144,7 @@ int ShipCleaner::Visit(GameObj* shipObject, GameObj* fleet, uint32_t* stop, Noti
 }
 
 DefenderCounter::DefenderCounter(BombardWalker* walker) : DefenderVisitor(walker), m_count(0) {}
-DefenderCounter::~DefenderCounter() { REB_KEEP_VPTR_STORE(); }
+DefenderCounter::~DefenderCounter() {  }
 
 int DefenderCounter::Visit(GameObj*, GameObj*, int, int, uint32_t* stop, NotifyContext*) {
     ++m_count;
@@ -155,7 +154,7 @@ int DefenderCounter::Visit(GameObj*, GameObj*, int, int, uint32_t* stop, NotifyC
 
 DefenderPicker::DefenderPicker(BombardWalker* walker)
     : DefenderVisitor(walker), m_index(0), m_target(0), m_picked{nullptr, nullptr, 0, 0} {}
-DefenderPicker::~DefenderPicker() { REB_KEEP_VPTR_STORE(); }
+DefenderPicker::~DefenderPicker() {  }
 
 int DefenderPicker::Visit(GameObj* facility, GameObj* troop, int energy, int rawMaterial, uint32_t* stop,
                           NotifyContext*) {
@@ -200,7 +199,7 @@ BombardWalker::BombardWalker()
     : m_unused4(1), m_system(nullptr), m_attackerSide(0), m_shipCount(0), m_defenderCount(0), m_collateral(0),
       m_damaged(0), m_planetDestroyed(0), m_shipsGone(0), m_hitDefenses(0), m_hitProduction(0), m_hitResources(0),
       m_collateralAllowed(0), m_deathStar(0) {}
-BombardWalker::~BombardWalker() { REB_KEEP_VPTR_STORE(); }
+BombardWalker::~BombardWalker() {  }
 
 int BombardWalker::ForEachBombardingShip(ShipVisitor* visitor, NotifyContext* ctx) {
     int ok = 1;
@@ -351,7 +350,7 @@ int BombardWalker::PickRandomProcFacility(int* found, DefenderRef* ref) {
 // ---- resolver ----------------------------------------------------------------------------------------------------
 
 BombardResolver::BombardResolver() : m_unused4(1), m_walker() {}
-BombardResolver::~BombardResolver() { REB_KEEP_VPTR_STORE(); }
+BombardResolver::~BombardResolver() {  }
 
 int BombardResolver::Run(GameObjNotifier* system, ActivityRequest* request, NotifyContext* ctx) {
     int consistent = 1;

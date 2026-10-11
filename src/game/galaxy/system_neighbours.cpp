@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include "core/vptr_store.h"
 #include "galaxy/game_setup_seed.h"
 #include "gameobj/game_obj_root.h"
 #include "gameobj/object_family.h"
@@ -31,11 +30,11 @@ int SystemIndex(const GameObjNotifier* system) { return static_cast<int>(system-
 
 SystemNeighbourCursor::SystemNeighbourCursor() : m_begin(nullptr), m_current(nullptr) {}
 
-SystemNeighbourCursor::~SystemNeighbourCursor() { REB_KEEP_VPTR_STORE(); }
+SystemNeighbourCursor::~SystemNeighbourCursor() {  }
 
 SystemNeighbourTable::SystemNeighbourTable() { std::memset(m_entries, 0, sizeof(m_entries)); }
 
-SystemNeighbourTable::~SystemNeighbourTable() { REB_KEEP_VPTR_STORE(); }
+SystemNeighbourTable::~SystemNeighbourTable() {  }
 
 int SystemNeighbourTable::GetNeighbours(const ObjectKey* key, SystemNeighbourCursor* out) {
     out->m_begin = nullptr;

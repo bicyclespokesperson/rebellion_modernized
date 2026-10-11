@@ -1,6 +1,6 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
+#include <memory>
 
 #include "app/player_controller_decl.h"
 #include "core/game_string.h"
@@ -13,6 +13,7 @@ class Character;
 class FightSquad;
 class GameObj;
 class System;
+class TacticalGame;
 
 // The battle flow: the state machine the application steps once per frame (0x40a050, state in the battle-flow object
 // DAT_006b1214 at +8). It drives the game step driver (events/game_step_driver.h) through the strategic game,
@@ -41,8 +42,8 @@ enum BattleFlowState {
     kFlowAbstractToStrategic = 0x17,
 };
 
-// The battle-flow object (0x14 bytes, VT 0x658644, global g_battleFlow 0x6b1214, created by CreateBattleFlow). It
-// owns the application's game session: the frame step, the start of a new game and the save and restore of the whole
+// The battle-flow object (VT 0x658644, created by CreateBattleFlow). It owns the game-step driver and the game's
+// session lifecycle: the frame step, the start of a new game and the save and restore of the whole
 // game (the saved form is the flow's state followed by the strategic game, or, in a 3D battle, the tactical game and
 // the strategic autosave that was written when the battle started).
 class BattleFlow {
@@ -80,14 +81,23 @@ public:
     // The step driver's +0x1c flag while the strategic game runs (state 2); 0 / ignored otherwise.
     int GetAutosaveFlag();               // 0x409390
     void SetAutosaveFlag(int value);     // 0x4093b0
+    GameStepDriver* StepDriver() const noexcept;
+    int CreateStepDriver();
+    int CreateStepDriverFor(GameSettings* settings, int a, int b);
+    int DestroyStepDriver();
+    TacticalGame* TacticalGameInstance() const noexcept;
+    TacticalGame* GetOrCreateTacticalGame();
+    void DestroyOwnedTacticalGame();
 
     int m_ok;              // +0x04
     int m_state;           // +0x08
     GameTime m_voteTimeA;  // +0x0c, filled by the battle-type vote
     GameTime m_voteTimeB;  // +0x10
-};
 
-extern BattleFlow* g_battleFlow;  // 0x6b1214, null before CreateBattleFlow
+private:
+    std::unique_ptr<GameStepDriver> m_stepDriver;
+    std::unique_ptr<TacticalGame> m_tacticalGame;
+};
 
 BattleFlow* GetBattleFlow();  // 0x409270
 // Replaces the battle flow (and drops the tactical game); an object whose m_ok is 0 is dropped again at once.
@@ -107,7 +117,7 @@ int GetBattleStateName(int state, String* out);  // 0x40a700
 
 // ---- Game step driver lifetime ---------------------------------------------------------------------------------
 int CreateGameStepDriver();                                                     // 0x40ac40: m_ok, or 0
-int REB_STDCALL CreateGameStepDriverFor(GameSettings* settings, int a, int b);              // 0x40adb0: m_ok, or 0
+int CreateGameStepDriverFor(GameSettings* settings, int a, int b);              // 0x40adb0: m_ok, or 0
 int DestroyGameStepDriver();                                                    // 0x40af40
 void* AllocateChecked(unsigned size);                                           // 0x40af60
 void InitFlowScaleA();                                                          // 0x40af80

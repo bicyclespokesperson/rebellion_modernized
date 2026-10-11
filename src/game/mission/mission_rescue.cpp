@@ -14,7 +14,7 @@ constexpr int kTaskSucceeded = 3;
 
 MissionRescue::MissionRescue() {}
 
-MissionRescue::~MissionRescue() { REB_KEEP_VPTR_STORE(); }
+MissionRescue::~MissionRescue() {  }
 
 REB_MISSION_SHARED_PERSISTENCE(MissionRescue)
 

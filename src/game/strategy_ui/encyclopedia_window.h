@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "gameobj/object_key.h"
@@ -35,7 +34,7 @@ public:
                        uint32_t childId, const ObjectKey& objectKey, const NullableKey& typeKey);  // 0x45d400
     virtual ~EncyclopediaWindow();  // 0x45d7a0 (scalar deleting destructor 0x45d780)
 
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x45d8f0
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x45d8f0
     virtual void PostCloseRequest() override;            // slot 12, 0x460070: resumes the game first
     virtual void OnCreate1() override;                   // slot 14, 0x45ddc0: builds the backgrounds and children
     virtual void DrawOverlay(HDC dc) override;           // slot 17, 0x45f090

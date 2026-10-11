@@ -8,7 +8,6 @@
 #include "character/role.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "economy/facility.h"
 #include "events/player_notices.h"
 #include "fleet/capship.h"
@@ -182,7 +181,7 @@ VoteWindow::VoteWindow(HINSTANCE instance, GalaxyWindow* parent, uint32_t childI
 }
 
 VoteWindow::~VoteWindow() {
-    REB_KEEP_VPTR_STORE();
+
     if (m_list) delete m_list;
     if (m_items) {
         m_items->Clear();

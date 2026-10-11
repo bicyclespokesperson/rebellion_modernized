@@ -1,10 +1,9 @@
 #include "orders/order_list.h"
 
-#include "core/vptr_store.h"
 
 MessageTree::MessageTree() : IdAvlTree() { m_unk0c = 1; }
 
-MessageTree::~MessageTree() { REB_KEEP_VPTR_STORE(); }
+MessageTree::~MessageTree() {  }
 
 void MessageTree::Read(istream* in) {
     uint32_t count;

@@ -1,9 +1,7 @@
-#include "core/reb_abi.h"
 #include <new>
 
 #include "character/character_data.h"
 #include "character/role.h"
-#include "core/vptr_store.h"
 #include "data/probability_table.h"
 #include "gameobj/object_family.h"
 
@@ -45,7 +43,7 @@ Role::Role()
     m_missionSeedKey.m_value = 0;
 }
 
-Role::~Role() { REB_KEEP_VPTR_STORE(); }
+Role::~Role() {  }
 
 GameObjData* Role::CreateData() {
     void* memory = operator new(sizeof(RoleData));
@@ -361,6 +359,6 @@ RoleIterator::RoleIterator(GameObjNotifier* parent, uint32_t stateFilter)
 RoleIterator::RoleIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kRoleFamilies, stateFilter) {}
 
-RoleIterator::~RoleIterator() { REB_KEEP_VPTR_STORE(); }
+RoleIterator::~RoleIterator() {  }
 EventKindSet g_roleEventKinds{};
 int g_roleEventKindsBuilt{};

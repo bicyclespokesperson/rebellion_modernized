@@ -1,10 +1,8 @@
-#include "core/reb_abi.h"
 #include "orders/move_orders.h"
 
 #include <new>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "galaxy/system.h"
 #include "gameobj/object_database.h"
 #include "gameobj/object_family.h"
@@ -73,7 +71,7 @@ MoveOrderBase::MoveOrderBase() : OrderBase() {
 }
 
 MoveOrderBase::~MoveOrderBase() {
-    REB_KEEP_VPTR_STORE();
+
     DestroyLists();
 }
 
@@ -269,7 +267,7 @@ int MoveOrderBase::BuildMoveOrder(ObjectKeyValueSet* team, ObjectMoveOrder** out
     return built;
 }
 
-int REB_STDCALL TakeCharactersAtOneLocation(ObjectKeyValueSet* team, ObjectKeyValueSet* out, StatusCode* status) {
+int TakeCharactersAtOneLocation(ObjectKeyValueSet* team, ObjectKeyValueSet* out, StatusCode* status) {
     int result = 1;
     out->Clear();
     setOk(status);
@@ -318,20 +316,20 @@ int REB_STDCALL TakeCharactersAtOneLocation(ObjectKeyValueSet* team, ObjectKeyVa
 // ---- MoveOrder, ConfirmedMoveOrder ----------------------------------------------------------------------------
 
 MoveOrder::MoveOrder() : MoveOrderBase() {}
-MoveOrder::~MoveOrder() { REB_KEEP_VPTR_STORE(); }
+MoveOrder::~MoveOrder() {  }
 int MoveOrder::Write(ostream* out) { return OrderBase::Write(out); }
 int MoveOrder::GetKind() { return 0x201; }
 void* CreateMoveOrder() { return NewOrNull<MoveOrder>(); }
 
 ConfirmedMoveOrder::ConfirmedMoveOrder() : MoveOrderBase() {}
-ConfirmedMoveOrder::~ConfirmedMoveOrder() { REB_KEEP_VPTR_STORE(); }
+ConfirmedMoveOrder::~ConfirmedMoveOrder() {  }
 int ConfirmedMoveOrder::GetKind() { return 0x202; }
 void* CreateConfirmedMoveOrder() { return NewOrNull<ConfirmedMoveOrder>(); }
 
 // ---- ObjectMoveOrder ------------------------------------------------------------------------------------------
 
 ObjectMoveOrder::ObjectMoveOrder() : OrderBase() {}
-ObjectMoveOrder::~ObjectMoveOrder() { REB_KEEP_VPTR_STORE(); }
+ObjectMoveOrder::~ObjectMoveOrder() {  }
 int ObjectMoveOrder::Read(istream* in) { return OrderBase::Read(in); }
 int ObjectMoveOrder::Write(ostream* out) { return OrderBase::Write(out); }
 int ObjectMoveOrder::GetKind() { return 0x204; }
@@ -454,7 +452,7 @@ done:
 // ---- RenameOrder ----------------------------------------------------------------------------------------------
 
 RenameOrder::RenameOrder() : TextMessage() {}
-RenameOrder::~RenameOrder() { REB_KEEP_VPTR_STORE(); }
+RenameOrder::~RenameOrder() {  }
 int RenameOrder::Read(istream* in) { return TextMessage::Read(in); }
 int RenameOrder::Write(ostream* out) { return TextMessage::Write(out); }
 int RenameOrder::GetKind() { return 0x203; }
@@ -496,7 +494,7 @@ int RenameOrder::CheckDestination(StatusCode* status) {
 // ---- ScrapOrder, ReadyForDeleteOrder --------------------------------------------------------------------------
 
 ScrapOrder::ScrapOrder() : OrderBase() {}
-ScrapOrder::~ScrapOrder() { REB_KEEP_VPTR_STORE(); }
+ScrapOrder::~ScrapOrder() {  }
 void* CreateScrapOrder() { return NewOrNull<ScrapOrder>(); }
 
 Command* ScrapOrder::CreateCommand() {
@@ -505,7 +503,7 @@ Command* ScrapOrder::CreateCommand() {
 }
 
 ReadyForDeleteOrder::ReadyForDeleteOrder() : OrderBase() {}
-ReadyForDeleteOrder::~ReadyForDeleteOrder() { REB_KEEP_VPTR_STORE(); }
+ReadyForDeleteOrder::~ReadyForDeleteOrder() {  }
 int ReadyForDeleteOrder::GetKind() { return 0x205; }
 void* CreateReadyForDeleteOrder() { return NewOrNull<ReadyForDeleteOrder>(); }
 
@@ -518,7 +516,7 @@ Command* ReadyForDeleteOrder::CreateCommand() {
 
 ObjectKeyIntSet::ObjectKeyIntSet() : ObjectKeySet() {}
 ObjectKeyIntSet::ObjectKeyIntSet(const ObjectKeyIntSet& other) : ObjectKeySet(other) {}
-ObjectKeyIntSet::~ObjectKeyIntSet() { REB_KEEP_VPTR_STORE(); }
+ObjectKeyIntSet::~ObjectKeyIntSet() {  }
 ObjectKeyNode* ObjectKeyIntSet::NewNode() { return NewOrNull<IntPairNode>(); }
 
 int ObjectKeyIntSet::AddPair(const ObjectKey& key, const int& value) {

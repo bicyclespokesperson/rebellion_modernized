@@ -1,8 +1,6 @@
-#include "core/reb_abi.h"
 #include "character/major_character.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "story/story_characters.h"
 
 
@@ -53,7 +51,7 @@ int checkOrder(int ready, EventKindSet& kinds, int orderKind, StatusCode* out) {
 
 MajorCharacter::MajorCharacter() {}
 
-MajorCharacter::~MajorCharacter() { REB_KEEP_VPTR_STORE(); }
+MajorCharacter::~MajorCharacter() {  }
 
 int MajorCharacter::GetEventKinds(int unused, EventKindSet* out) {
     return copyKinds(BuildEventKinds(), g_majorCharacterEventKinds, out);
@@ -93,31 +91,31 @@ int MajorCharacter::InitEventKinds(int unused, EventKindSet* out) {
 
 // ---- forwarders -----------------------------------------------------------------------------------------------
 
-int REB_THISCALL CharacterLeafRead(Character* self, istream* in) { return self->Character::Read(in); }
+int CharacterLeafRead(Character* self, istream* in) { return self->Character::Read(in); }
 
-int REB_THISCALL CharacterLeafWrite(Character* self, ostream* out) { return self->Character::Write(out); }
+int CharacterLeafWrite(Character* self, ostream* out) { return self->Character::Write(out); }
 
-int REB_THISCALL CharacterLeafApplyAll(Character* self, NotifyContext* ctx) { return self->Character::ApplyAll(ctx); }
+int CharacterLeafApplyAll(Character* self, NotifyContext* ctx) { return self->Character::ApplyAll(ctx); }
 
-int REB_THISCALL CharacterLeafChecksum(Character* self, Crc32* crc) { return self->Character::Checksum(crc); }
+int CharacterLeafChecksum(Character* self, Crc32* crc) { return self->Character::Checksum(crc); }
 
-int REB_THISCALL CharacterLeafCreateViews(Character* self, int controlKind, NotifyContext* ctx) {
+int CharacterLeafCreateViews(Character* self, int controlKind, NotifyContext* ctx) {
     return self->CreateViewsImpl(controlKind, ctx);
 }
 
-int REB_THISCALL MajorLeafRead(Character* self, istream* in) { return CharacterLeafRead(self, in); }
+int MajorLeafRead(Character* self, istream* in) { return CharacterLeafRead(self, in); }
 
-int REB_THISCALL MajorLeafWrite(Character* self, ostream* out) { return CharacterLeafWrite(self, out); }
+int MajorLeafWrite(Character* self, ostream* out) { return CharacterLeafWrite(self, out); }
 
-int REB_THISCALL MajorLeafApplyAll(Character* self, NotifyContext* ctx) { return CharacterLeafApplyAll(self, ctx); }
+int MajorLeafApplyAll(Character* self, NotifyContext* ctx) { return CharacterLeafApplyAll(self, ctx); }
 
-int REB_THISCALL MajorLeafChecksum(Character* self, Crc32* crc) { return CharacterLeafChecksum(self, crc); }
+int MajorLeafChecksum(Character* self, Crc32* crc) { return CharacterLeafChecksum(self, crc); }
 
 // ---- MajorChar30 ---------------------------------------------------------------------------------------------
 
 MajorChar30::MajorChar30() {}
 
-MajorChar30::~MajorChar30() { REB_KEEP_VPTR_STORE(); }
+MajorChar30::~MajorChar30() {  }
 
 uint32_t MajorChar30::GetFamily() { return kFamilyMajorChar30; }
 
@@ -159,7 +157,7 @@ int MajorChar30::BuildEventKinds() {
 
 MajorChar34::MajorChar34() {}
 
-MajorChar34::~MajorChar34() { REB_KEEP_VPTR_STORE(); }
+MajorChar34::~MajorChar34() {  }
 
 uint32_t MajorChar34::GetFamily() { return kFamilyMajorChar34; }
 
@@ -204,7 +202,7 @@ int MajorChar34::BuildEventKinds() {
 
 MajorChar35::MajorChar35() {}
 
-MajorChar35::~MajorChar35() { REB_KEEP_VPTR_STORE(); }
+MajorChar35::~MajorChar35() {  }
 
 uint32_t MajorChar35::GetFamily() { return kFamilyMajorChar35; }
 

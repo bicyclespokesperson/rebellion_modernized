@@ -1,8 +1,6 @@
-#include "core/reb_abi.h"
 #include "economy/production_facility_types.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gameobj/object_family.h"
 #include "mission/mission_rules.h"
 
@@ -33,19 +31,19 @@ int applyAll(ProductionFacility* facility, NotifyContext* ctx) {
 
 }  // namespace
 
-int REB_THISCALL ProductionFacilityReadBody(ProductionFacility* self, istream* in) { return self->ReadImpl(in); }
+int ProductionFacilityReadBody(ProductionFacility* self, istream* in) { return self->ReadImpl(in); }
 
-int REB_THISCALL ProductionFacilityWriteBody(ProductionFacility* self, ostream* out) { return self->WriteImpl(out); }
+int ProductionFacilityWriteBody(ProductionFacility* self, ostream* out) { return self->WriteImpl(out); }
 
-int REB_THISCALL ProductionFacilityApplyAllBody(ProductionFacility* self, NotifyContext* ctx) { return self->ApplyAllImpl(ctx); }
+int ProductionFacilityApplyAllBody(ProductionFacility* self, NotifyContext* ctx) { return self->ApplyAllImpl(ctx); }
 
-int REB_THISCALL ProductionFacilityChecksumBody(ProductionFacility* self, Crc32* crc) { return self->ChecksumImpl(crc); }
+int ProductionFacilityChecksumBody(ProductionFacility* self, Crc32* crc) { return self->ChecksumImpl(crc); }
 
 // ---- family 0x2d ---------------------------------------------------------------------------------------------
 
 ProductionFacilityType2D::ProductionFacilityType2D() {}
 
-ProductionFacilityType2D::~ProductionFacilityType2D() { REB_KEEP_VPTR_STORE(); }
+ProductionFacilityType2D::~ProductionFacilityType2D() {  }
 
 int ProductionFacilityType2D::Read(istream* in) { return ProductionFacilityReadBody(this, in); }
 
@@ -89,13 +87,13 @@ ProductionFacilityType2DIterator::ProductionFacilityType2DIterator(GameObjNotifi
 ProductionFacilityType2DIterator::ProductionFacilityType2DIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kType2DFamilies, stateFilter) {}
 
-ProductionFacilityType2DIterator::~ProductionFacilityType2DIterator() { REB_KEEP_VPTR_STORE(); }
+ProductionFacilityType2DIterator::~ProductionFacilityType2DIterator() {  }
 
 // ---- family 0x2c ---------------------------------------------------------------------------------------------
 
 ProductionFacilityType2C::ProductionFacilityType2C() {}
 
-ProductionFacilityType2C::~ProductionFacilityType2C() { REB_KEEP_VPTR_STORE(); }
+ProductionFacilityType2C::~ProductionFacilityType2C() {  }
 
 int ProductionFacilityType2C::Read(istream* in) { return ProductionFacilityReadBody(this, in); }
 
@@ -143,4 +141,4 @@ ProductionFacilityType2CIterator::ProductionFacilityType2CIterator(GameObjNotifi
 ProductionFacilityType2CIterator::ProductionFacilityType2CIterator(GameObjNotifier* parent, uint32_t stateFilter, uint32_t side)
     : ChildIterator(parent, side, &kType2CFamilies, stateFilter) {}
 
-ProductionFacilityType2CIterator::~ProductionFacilityType2CIterator() { REB_KEEP_VPTR_STORE(); }
+ProductionFacilityType2CIterator::~ProductionFacilityType2CIterator() {  }

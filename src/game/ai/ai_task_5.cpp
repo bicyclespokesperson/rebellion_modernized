@@ -4,7 +4,6 @@
 #include "ai/ai_task_family.h"
 #include "ai/ai_task_util.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "economy/defense_facility.h"
 #include "economy/manufacturing_facility.h"
 #include "economy/production_facility_types.h"
@@ -49,7 +48,7 @@ AiTask5::AiTask5(int view) : AiStagedTask(5, view), m_key58(), m_system(), m_man
     m_dropped.Clear();
 }
 
-AiTask5::~AiTask5() { REB_KEEP_VPTR_STORE(); }
+AiTask5::~AiTask5() {  }
 
 FamilyFields AiTask5::Fields() {
     return {m_owner, m_view, m_x24, &m_selector, &m_targets, &m_dropped, &m_system, &m_manager, &m_classKey, &m_x48, &m_x4c, &m_x44};

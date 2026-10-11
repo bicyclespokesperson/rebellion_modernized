@@ -26,7 +26,7 @@ public:
     virtual void Virtual10() override;                     // 10: 0x485cf0 (deletes the first finished group of notes)
     virtual void Virtual17(int id, ObjectKey* key) override;   // 0x485d50
     virtual void Virtual19(int id, ObjectKey* key) override;   // 0x485db0
-    virtual void Virtual20(PlayerNotice* notice) override;     // 0x485d10
+    virtual void Virtual20(NotifPayload* notice) override;     // 0x485d10
     virtual void Virtual21() override;                         // 0x485de0 (counts a turn of the order budget)
 
     virtual void Virtual25(intptr_t value) override;   // 0x485e60: NoteValueA (a pointer to the maintenance pair in the original)

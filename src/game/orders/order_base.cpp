@@ -3,7 +3,6 @@
 #include <new>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_database.h"
 #include "orders/order_checks.h"
@@ -42,7 +41,7 @@ ActivityRequest::ActivityRequest(const ActivityRequest& other)
 
 MessageBase::MessageBase() : IdNode() { m_unk1c = 1; }
 
-MessageBase::~MessageBase() { REB_KEEP_VPTR_STORE(); }
+MessageBase::~MessageBase() {  }
 
 int MessageBase::Read(istream* in) {
     // BUG(original): the id is read into the argument slot that held the stream pointer, so a failed read leaves
@@ -69,7 +68,7 @@ SidedMessage::SidedMessage() : MessageBase() {
     m_unk24 = 1;
 }
 
-SidedMessage::~SidedMessage() { REB_KEEP_VPTR_STORE(); }
+SidedMessage::~SidedMessage() {  }
 
 int SidedMessage::Read(istream* in) {
     int result = MessageBase::Read(in);
@@ -130,7 +129,7 @@ OrderBase::OrderBase() : SidedMessage(), m_team(), m_target() {
 }
 
 OrderBase::~OrderBase() {
-    REB_KEEP_VPTR_STORE();
+
     if (m_commands) {
         delete m_commands;
         m_commands = nullptr;
@@ -268,7 +267,7 @@ int OrderBase::CheckDestination(StatusCode* status) {
 
 TextMessage::TextMessage() : OrderBase(), m_text() {}
 
-TextMessage::~TextMessage() { REB_KEEP_VPTR_STORE(); }
+TextMessage::~TextMessage() {  }
 
 int TextMessage::Read(istream* in) {
     int result = OrderBase::Read(in);

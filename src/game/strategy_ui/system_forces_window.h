@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "gameobj/object_key.h"
@@ -23,7 +22,7 @@ public:
                        GameObjNotifier* system);  // 0x4a7790
     virtual ~SystemForcesWindow();  // 0x4a78f0 (scalar deleting destructor 0x4a78d0)
 
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4a86d0
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4a86d0
     virtual void SaveState(ostream* out) override;                  // slot 9, 0x4aa6d0
     virtual void LoadState(istream* in) override;                   // slot 10, 0x4aa760
     virtual void OnCreate1() override;                              // slot 14, 0x4a8790
@@ -54,9 +53,9 @@ public:
     uint8_t m_unk150[8];             // +0x150
     int m_tab;                       // +0x158 the shown tab, 0 before the first
     HMODULE m_gokres;                // +0x15c GOKRES.DLL (resource slot 10)
-    CoolTabControl* m_tabs;          // +0x160 child id 100 (BUG(original): not initialised)
+    CoolTabControl* m_tabs;          // +0x160 child id 100
     CoolDragList* m_list;            // +0x164 child id 0xcb
-    CoolListItemList* m_items;       // +0x168 (BUG(original): not initialised)
+    CoolListItemList* m_items;       // +0x168
     CoolLabel* m_tabLabel;           // +0x16c owned, the name of the shown tab
     CoolLabel* m_infoLabel;          // +0x170 owned, "troops required" on the troop tab
     DibBitmap* m_rowOverlay;         // +0x174 owned, drawn over the selected pictures

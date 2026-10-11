@@ -5,7 +5,6 @@
 #include "ai/ai_records.h"
 #include "ai/ai_side_controller.h"
 #include "ai/ai_system_record.h"
-#include "core/vptr_store.h"
 
 using ai::IsSectorKey;
 using ai::IsSystemKey;
@@ -63,7 +62,7 @@ AiCharacterRecord* CurrentCharacter(AiAgentBase* agent) {
 AiAgentKind6::AiAgentKind6(int view, AiSideController* owner, AiCharacterRecordSet* characters)
     : AiAgentSimple(view, owner, characters) {}
 
-AiAgentKind6::~AiAgentKind6() { REB_KEEP_VPTR_STORE(); }
+AiAgentKind6::~AiAgentKind6() {  }
 
 int AiAgentKind6::GetCountSlot() { return 1; }
 
@@ -139,7 +138,7 @@ ObjectKey* AiAgentKind6::ChooseTarget(ObjectKey* out) {
 AiAgentKind1::AiAgentKind1(int view, AiSideController* owner, AiCharacterRecordSet* characters)
     : AiAgentSimple(view, owner, characters) {}
 
-AiAgentKind1::~AiAgentKind1() { REB_KEEP_VPTR_STORE(); }
+AiAgentKind1::~AiAgentKind1() {  }
 
 int AiAgentKind1::GetCountSlot() { return 0; }
 
@@ -234,7 +233,7 @@ AiAgentKind5::AiAgentKind5(int view, AiSideController* owner, AiCharacterRecordS
     m_x50 = 0x2000000;
 }
 
-AiAgentKind5::~AiAgentKind5() { REB_KEEP_VPTR_STORE(); }
+AiAgentKind5::~AiAgentKind5() {  }
 
 int AiAgentKind5::GetOrderKind() { return 0x261; }
 
@@ -243,7 +242,7 @@ AiAgentKind3::AiAgentKind3(int view, AiSideController* owner, AiCharacterRecordS
     m_x50 = 0x1000000;
 }
 
-AiAgentKind3::~AiAgentKind3() { REB_KEEP_VPTR_STORE(); }
+AiAgentKind3::~AiAgentKind3() {  }
 
 int AiAgentKind3::GetOrderKind() { return 0x262; }
 
@@ -252,7 +251,7 @@ AiAgentKind4::AiAgentKind4(int view, AiSideController* owner, AiCharacterRecordS
     m_x50 = 0x4000000;
 }
 
-AiAgentKind4::~AiAgentKind4() { REB_KEEP_VPTR_STORE(); }
+AiAgentKind4::~AiAgentKind4() {  }
 
 int AiAgentKind4::GetOrderKind() { return 0x263; }
 

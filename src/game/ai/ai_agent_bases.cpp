@@ -5,7 +5,6 @@
 #include "ai/ai_side_controller.h"
 #include "ai/ai_system_record.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gameobj/game_obj.h"
 #include "orders/order_base.h"
 
@@ -79,7 +78,7 @@ AiAgentBase::AiAgentBase(int view, AiSideController* owner, AiCharacterRecordSet
 AiAgentBase::~AiAgentBase() {
     m_characters = nullptr;
     m_owner = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AiAgentBase::Read(istream* in) {
@@ -158,7 +157,7 @@ AiAgentSimple::AiAgentSimple(int view, AiSideController* owner, AiCharacterRecor
     m_x48 = 0;
 }
 
-AiAgentSimple::~AiAgentSimple() { REB_KEEP_VPTR_STORE(); }
+AiAgentSimple::~AiAgentSimple() {  }
 
 void AiAgentSimple::Read(istream* in) {
     AiAgentBase::Read(in);
@@ -240,7 +239,7 @@ AiAgentTargeted::AiAgentTargeted(int view, AiSideController* owner, AiCharacterR
     m_x50 = 0;
 }
 
-AiAgentTargeted::~AiAgentTargeted() { REB_KEEP_VPTR_STORE(); }
+AiAgentTargeted::~AiAgentTargeted() {  }
 
 void AiAgentTargeted::Read(istream* in) {
     AiAgentBase::Read(in);

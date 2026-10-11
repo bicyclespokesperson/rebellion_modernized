@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "platform/win32.h"
@@ -24,7 +23,7 @@ public:
                     int limitTop, int limitRight, int limitBottom, uint32_t flags);  // 0x452ab0
     virtual ~PanelDragButton();  // 0x452b60 (scalar deleting destructor 0x452b40)
 
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x452b70
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x452b70
 
     uint32_t m_flags;          // +0x114 PanelDragButtonFlags
     int m_dragging;            // +0x118 the outline is being dragged (the mouse is captured)

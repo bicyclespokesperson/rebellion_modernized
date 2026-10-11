@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "ai/ai_selector.h"
@@ -79,8 +78,8 @@ public:
     int HasEscort();                                    // 0x4b16d0
     int CanUseFleet(AiFleetEval* fleet, AiSystemEval* system);              // 0x4ae240
     int CanOrderFleet(AiFleetEval* fleet, AiSystemEval* system, int* orderKind);  // 0x4ae320
-    static int REB_STDCALL CanTakeSystem(AiFleetEval* fleet, AiSystemEval* system);  // 0x4ae150
-    static int REB_STDCALL CanSupportSystem(AiFleetEval* fleet, AiSystemEval* system);  // 0x4ae440
+    static int CanTakeSystem(AiFleetEval* fleet, AiSystemEval* system);  // 0x4ae150
+    static int CanSupportSystem(AiFleetEval* fleet, AiSystemEval* system);  // 0x4ae440
 
     int m_view;                    // +0x04
     int m_state;                   // +0x08

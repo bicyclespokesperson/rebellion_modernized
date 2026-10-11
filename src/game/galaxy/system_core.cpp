@@ -1,4 +1,3 @@
-#include "core/vptr_store.h"
 #include "fleet/detector.h"
 #include "galaxy/system.h"
 #include "galaxy/system_rules_1e.h"
@@ -84,7 +83,7 @@ System::System()
     SetFlag31(GetFlag31() != 0);
 }
 
-System::~System() { REB_KEEP_VPTR_STORE(); }
+System::~System() {  }
 
 // ---- event kinds and order checks -----------------------------------------------------------------------
 

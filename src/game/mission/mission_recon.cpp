@@ -14,7 +14,7 @@ constexpr int kSystemViewEventMode = 8;
 
 MissionRecon::MissionRecon() {}
 
-MissionRecon::~MissionRecon() { REB_KEEP_VPTR_STORE(); }
+MissionRecon::~MissionRecon() {  }
 
 REB_MISSION_SHARED_PERSISTENCE(MissionRecon)
 

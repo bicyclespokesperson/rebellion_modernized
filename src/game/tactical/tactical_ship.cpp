@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "core/reb_x87.h"
 #include "tactical/tactical_groups.h"
 #include "tactical/tactical_objmgr.h"
@@ -95,7 +94,7 @@ TacticalShipBase::TacticalShipBase() {
     m_unk410 = 0;
 }
 
-TacticalShipBase::~TacticalShipBase() { REB_KEEP_VPTR_STORE(); }
+TacticalShipBase::~TacticalShipBase() {  }
 
 TacticalHangar::TacticalHangar() {
     m_unk24 = 0;
@@ -112,7 +111,7 @@ TacticalHangar::TacticalHangar() {
 }
 
 TacticalHangar::~TacticalHangar() {
-    REB_KEEP_VPTR_STORE();
+
     delete m_docked;
     m_docked = nullptr;
     delete m_launched;
@@ -149,11 +148,13 @@ int TacticalHangar::Launch(TacticalShipBase* fighter) {
     m_docked->AddUnit(fighter);
     fighter->m_carrierHandle = m_ownerHandle;
     fighter->SetState1();
+#ifndef REB_NO_TACTICAL_3D
     if (m_launchTime == 0.0f && GetTacticalGame()->m_abstract == 0) {
         const float time = static_cast<float>(GetObjectManager()->m_clock);
         const float roll = static_cast<float>(static_cast<uint32_t>(FUN_005a8a70(GetObjectManager(), 0, 8)));
         m_launchTime = static_cast<float>(GetLaunchInterval() + roll + time);
     }
+#endif
     return 1;
 }
 
@@ -280,12 +281,14 @@ void TacticalShipBase::ApplyCriticalHit(int kind) {
             break;
         case 2:
             m_tractorCH = m_tractorCH + 1 < 4 ? m_tractorCH + 1 : 4;
+#ifndef REB_NO_TACTICAL_3D
             if (GetTacticalGame()->m_abstract == 0 && m_channelB.m_data == nullptr && m_tractorTarget != 0 &&
                 TractorPower() == 0.0f) {
                 const int unit = m_id;
                 GetObjectManager()->PostEvent(0x29, unit, m_tractorTarget, 1);
                 m_unk3ac = 1;
             }
+#endif
             break;
         case 3:
             m_speedCH = m_speedCH + 1 < 4 ? m_speedCH + 1 : 4;
@@ -441,8 +444,12 @@ double TacticalShipBase::GetSpeed() {
         for (UnitRefNode* node = m_unk360.FirstNode(); node; node = node->Next()) {
             tractored = static_cast<float>(node->Value()->TractorPower() + tractored);
         }
+#ifdef REB_NO_TACTICAL_3D
+        const double skill = GetHeadlessSimulator()->CommanderSkillA(m_side);
+#else
         const double skill = GetTacticalGame()->m_abstract != 0 ? GetHeadlessSimulator()->CommanderSkillA(m_side)
                                                                  : FUN_005ad750(GetObjectManager(), m_side);
+#endif
         const double base = skill + m_speed;
         const double speed = base - ((base * 0.25f) * static_cast<double>(m_speedCH) + tractored);
         if (speed > 0.0f) return speed;
@@ -452,7 +459,7 @@ double TacticalShipBase::GetSpeed() {
 
 // ---- carrier helpers --------------------------------------------------------------------------------------------
 
-int REB_STDCALL TacticalShipIsInState3(int handle) {
+int TacticalShipIsInState3(int handle) {
     TacticalShipBase* ship = GetTacticalRegistry()->FindShip(handle);
     return ship != nullptr && ship->m_state == 3;
 }

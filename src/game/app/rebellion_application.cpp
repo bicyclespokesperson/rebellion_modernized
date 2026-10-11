@@ -29,8 +29,8 @@
 //  Deactivation restores the display mode and minimizes the window (unless -W); reactivation switches DirectDraw
 //  back to 640x480x8 and tells the active screen. Movies and child windows report their end with the custom
 //  messages 0x405 / 0x465 (lParam: movie / window id), which select the next state through SetState.
-#include "core/reb_abi.h"
 #include "app/rebellion_application.h"
+#include "port/native/game_context.h"
 
 #include <direct.h>
 #include <cctype>
@@ -45,11 +45,11 @@
 #include "app/app_strings.h"
 #include "app/rebapp_globals.h"
 #include "core/registry.h"
-#include "core/vptr_store.h"
 #include "events/game_clock_hooks.h"
 #include "gfx/dib_bitmap.h"
 #include "gfx/directdraw_host.h"
 #include "multiplayer/multiplayer_window.h"
+#include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "tactical/comm2.h"
 #include "ui/cool_environment.h"
@@ -132,11 +132,12 @@ HACCEL AcceleratorTableOf(RebellionApplication* app) {
 
 }  // namespace
 
-RebellionApplication::RebellionApplication(HINSTANCE instance, uint32_t commandLineFlags, const String* commandLine)
+RebellionApplication::RebellionApplication(HINSTANCE instance, uint32_t commandLineFlags, const String* commandLine,
+                                           DirectDrawHost& display, reb::native::GameContext& context, UiResources& resources)
     : CoolApp(instance, g_appClassName, WindowStyle(commandLineFlags), 0, 0, WindowWidth(commandLineFlags),
               WindowHeight(commandLineFlags), nullptr, static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH)),
-              LoadIconA(instance, MAKEINTRESOURCEA(0x3e8)), nullptr, nullptr, 0, 0),
-      m_activationFlags(0) {
+              LoadIconA(instance, MAKEINTRESOURCEA(0x3e8)), nullptr, nullptr, 0, 0, resources),
+      m_display(display), m_context(context), m_activationFlags(0) {
     m_param8 = 1;
     m_param10 = 0;
     m_paramF0 = 0;
@@ -203,7 +204,8 @@ RebellionApplication::~RebellionApplication() {
     }
     AppReleaseBattleFlow();
     ShutdownTooltips();
-    REB_KEEP_VPTR_STORE();
+    m_context.SetBattleFlow(nullptr);
+
 }
 
 void RebellionApplication::PumpMessages(MSG* message, int* quit) {
@@ -235,7 +237,7 @@ void RebellionApplication::PollMultiplayerSync(int quit) {
     m_pauseRequested = 1;
     CommCleanUp();
     if (m_state == kStateStrategic) {
-        if (static_cast<StrategicWindow*>(m_strategicWindow)->m_unknownAc != 0) return;
+        if (m_strategicWindow->m_unknownAc != 0) return;
     } else if (m_state == kStateLobbyHost || m_state == kStateLobbyJoin) {
         static_cast<MultiPlayerWindow*>(m_activeWindow)->MultiPlayerWindow::UpdateStartButtons();
     }
@@ -290,7 +292,7 @@ WPARAM RebellionApplication::Run(int showCommand, int unused) {
         stepped = 1;
         AppStepGame(&stepped);
         if (m_activeWindow && m_activeWindow == m_strategicWindow) {
-            static_cast<StrategicWindow*>(m_strategicWindow)->Virtual0B();
+            m_strategicWindow->Virtual0B();
         }
         if (m_networkMode == 7 && m_gameType == 2) PollMultiplayerSync(quit);
         if (stepped) {
@@ -304,8 +306,8 @@ WPARAM RebellionApplication::Run(int showCommand, int unused) {
 LRESULT RebellionApplication::OnCreate() {
     InitCommonControls();
     CreateTooltipControl(kTooltipDelayMs);
-    g_directDrawHost->Initialize(m_hwnd, 1);
-    if (m_commandLineFlags & kAppWindowed) g_directDrawHost->SetNormalMode(0);
+    m_display.Initialize(m_hwnd, 1);
+    if (m_commandLineFlags & kAppWindowed) m_display.SetNormalMode(0);
     const ResourceStringId titleId = {0x1000, g_resourceStringGroup};
     const String title(&titleId);
     SetWindowTitle(title.m_text);
@@ -333,7 +335,7 @@ void RebellionApplication::OnDeactivated() {
     m_activationFlags.m_value |= kDeactivatedBit;
     if (!(m_commandLineFlags & kAppWindowed)) {
         SetFocus(m_hwnd);
-        g_directDrawHost->RestoreDisplayMode();
+        m_display.RestoreDisplayMode();
         ShowWindow(m_hwnd, SW_MINIMIZE);
     }
     if (m_activeWindow) SendMessageA(m_activeWindow->m_hwnd, kMsgDeactivated, 0, 0);
@@ -343,10 +345,10 @@ void RebellionApplication::OnActivated() {
     m_activationFlags.m_value &= ~kDeactivatedBit;
     if (!(m_commandLineFlags & kAppWindowed)) {
         if (m_activeWindow) m_activeWindow->Hide();
-        g_directDrawHost->SetExclusiveMode(0);
-        g_directDrawHost->SetDisplayMode(kScreenWidth, kScreenHeight, 8, 0);
-        g_directDrawHost->SetNormalMode(0);
-        g_directDrawHost->RestoreSurfaces();
+        m_display.SetExclusiveMode(0);
+        m_display.SetDisplayMode(kScreenWidth, kScreenHeight, 8, 0);
+        m_display.SetNormalMode(0);
+        m_display.RestoreSurfaces();
     }
     if (RealizeCurrentPalette()) InvalidateRect(m_hwnd, nullptr, FALSE);
     SetCaptureWindow(nullptr);
@@ -459,13 +461,13 @@ LRESULT RebellionApplication::OnSaveAnswer() {
     }
     if (m_state != kStateStrategic) return 0;
     UiAckSync(UiGetHumanSide());
-    if (static_cast<StrategicWindow*>(m_strategicWindow)->m_unknownAc != 0) return 0;
+    if (m_strategicWindow->m_unknownAc != 0) return 0;
     const bool ready = (!UiAreAllSynced() && UiIsPauseTick()) || UiGetHold();
     if (ready) AppShowAckDialog(0, 0x1206, kDialogX, kDialogY);
     return 0;
 }
 
-LRESULT REB_STDCALL RebellionApplication::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT RebellionApplication::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     switch (message) {
         case WM_CREATE:
             return OnCreate();
@@ -544,11 +546,15 @@ bool RebSimRequested();
 int RebSimRun(RebellionApplication* app);
 #endif
 
-int REB_STDCALL WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int showCommand) {
+int RunApplication(reb::native::GameContext& context, HINSTANCE instance, HINSTANCE previousInstance, LPSTR commandLine, int showCommand) {
     WPARAM exitCode = 0;
-    HANDLE semaphore = CreateSemaphoreA(nullptr, 0, 1, g_appClassName);
+    struct ApplicationSemaphore {
+        HANDLE handle;
+        ~ApplicationSemaphore() { if (handle) CloseHandle(handle); }
+    };
+    ApplicationSemaphore semaphore{CreateSemaphoreA(nullptr, 0, 1, g_appClassName)};
     const DWORD error = GetLastError();
-    if (!semaphore || error == ERROR_ALREADY_EXISTS || error == ERROR_INVALID_HANDLE ||
+    if (!semaphore.handle || error == ERROR_ALREADY_EXISTS || error == ERROR_INVALID_HANDLE ||
         !CheckDisplayRequirements(previousInstance, kScreenWidth, kScreenHeight, 0x100)) {
         return 1;
     }
@@ -585,29 +591,21 @@ int REB_STDCALL WinMain(HINSTANCE instance, HINSTANCE previousInstance, LPSTR co
     if (!dataFound) {
         ShowCdNotFoundError();
         CommCleanUp();
-        CloseHandle(semaphore);
         return 0;
     }
-    void* memory = operator new(sizeof(RebellionApplication));
-    RebellionApplication* app = nullptr;
-    if (memory) {
-        const String line(commandLine);
-        app = new (memory) RebellionApplication(instance, flags, &line);
-    }
-    if (!app) return 2;
+    const String line(commandLine);
+    RebellionApplication* app = &context.CreateApplication(instance, flags, line);
     app->SetScreenSize(kScreenWidth, kScreenHeight);
 #ifdef REB_STANDALONE
     if (RebSimRequested()) {
         const int result = RebSimRun(app);
         DestroyBattleFlow();
-        delete app;
-        CloseHandle(semaphore);
+        context.ReleaseApplication();
         return result;
     }
 #endif
     exitCode = app->Run(showCommand, 1);
-    delete app;
-    CloseHandle(semaphore);
+    context.ReleaseApplication();
     return static_cast<int>(exitCode);
 }
 
@@ -650,6 +648,5 @@ const char *g_displayDriverName = nullptr;
 const char *g_displayTooSmallMessage = nullptr;
 const char *g_noMouseMessage = nullptr;
 const int16_t g_resourceStringGroup = 1;
-DirectDrawHost *g_directDrawHost = nullptr;
 int g_firstActivationPending{};
 int g_stringLoaderInstalled{};

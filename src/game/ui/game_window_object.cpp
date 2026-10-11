@@ -1,10 +1,8 @@
-#include "core/reb_abi.h"
 #include "ui/game_window_object.h"
 
 #include <cstring>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/resource_dll.h"
 
@@ -26,7 +24,7 @@ GameWindowObject::GameWindowObject(HINSTANCE instance, int x, int y, int width, 
 GameWindowObject::~GameWindowObject() {
     if (m_background) delete m_background;
     if (m_source) delete m_source;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void GameWindowObject::SetBackground(DibBitmap* image, int srcX, int srcY) {
@@ -87,7 +85,7 @@ void GameWindowObject::Virtual0C() {}
 
 void GameWindowObject::DrawOverlay(HDC) {}
 
-LRESULT REB_STDCALL GameWindowObject::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT GameWindowObject::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     LRESULT result = 0;
     if (message == WM_PAINT) {

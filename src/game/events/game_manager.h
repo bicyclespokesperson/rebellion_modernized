@@ -1,5 +1,5 @@
 #pragma once
-// The game manager (0x51cd00-0x51ebc0, VT 0x65ecf4, global 0x6b2fcc): the one object that owns the game clock, the
+// The game manager (0x51cd00-0x51ebc0, VT 0x65ecf4): owned by the game-step driver; it owns the game clock, the
 // three scheduler queues, the notification tree, and the game root. Everything that happens on a schedule in the
 // game is an item in one of its queues; the frame step (game_step_driver.h) calls AdvanceTick once per game tick and
 // RunScheduler until nothing is due.
@@ -52,6 +52,7 @@ public:
     void BeginNewGame(GameSettings* settings);  // 0x51d6c0
     // Copies the root's settings (defaults without a root) into *out. Returns 1.
     int GetSettings(GameSettings* out);          // 0x51d780
+    GameRoot* Root() const noexcept { return m_root; }
     // One step of the setup stages; sets *status to 1 and marks setup done when the stages finish.
     int StepSetup(int* status);                 // 0x51d800
     // which 1 or 2: replaces the snapshot of that side. Returns 0 for any other value.
@@ -63,7 +64,7 @@ public:
     void ScheduleCommand(EventBase* event);            // 0x51d8d0, queue +0xac
     void ScheduleEvent(EventBase* event);              // 0x51d8f0, queue +0xb0
     // Routes a posted event by kind (1-4) to the handlers below. Returns 0 for any other kind.
-    int DispatchPostedEvent(PostedEvent* event);       // 0x51d910
+    int DispatchPostedEvent(NotifPayload* event);       // 0x51d910
 
     // Builds the set of order kinds that every object of `team` can be given: each object's own kinds, intersected
     // (the first one's are copied). `side` is stored in the trial orders. *orders receives the kinds; returns whether
@@ -85,13 +86,13 @@ public:
     int ExecuteNotice(SidedMessage* notice);            // 0x51dd20
     int NoteDispatch(void* item);                       // 0x51ebb0, always 1
 
-    int HandleKind1(PostedEvent* event);                // 0x51e670
-    int HandleKind2(PostedEvent* event);                // 0x51e6a0
-    int HandleKind3(PostedEvent* event);                // 0x51e770
-    int HandleKind4(PostedEvent* event);                // 0x51e840
+    int HandleKind1(NotifPayload* event);                // 0x51e670
+    int HandleKind2(NotifPayload* event);                // 0x51e6a0
+    int HandleKind3(NotifPayload* event);                // 0x51e770
+    int HandleKind4(NotifPayload* event);                // 0x51e840
     int ResolveTickValue(SeedKey* key, int* out);       // 0x51e910
     int PostTickValue(int a, int b, int c);             // 0x51e9a0
-    int PostToFirstQueue(PostedEvent* event);           // 0x51eaa0
+    int PostToFirstQueue(NotifPayload* event);           // 0x51eaa0
     int FlushFirstQueue();                              // 0x51eaf0
     int FlushSecondQueue();                             // 0x51eb40
 
@@ -125,10 +126,8 @@ public:
     GameRoot* m_root;                  // +0xc0
 };
 
-extern GameManager* g_gameManager;  // 0x6b2fcc, null until CreateGameManager
-
 GameManager* GetGameManager();  // 0x51ce00
-void CreateGameManager();       // 0x51ce10, replaces the global; destroyed again if construction failed
+void CreateGameManager();       // 0x51ce10, replaces the current driver's manager; clears it on construction failure
 void DestroyGameManager();      // 0x51cea0
 
 // Registers the factories of all three tables once (0x51ebc0).

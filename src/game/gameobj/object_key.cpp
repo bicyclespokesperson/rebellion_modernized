@@ -2,7 +2,6 @@
 
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 
 // ---- ObjectKey ---------------------------------------------------------------------------------------------
 
@@ -57,7 +56,7 @@ ObjectKeyNode::ObjectKeyNode(const ObjectKey& key) : AvlNode(), m_key(key) {}
 
 ObjectKeyNode::ObjectKeyNode(const ObjectKeyNode& other) : AvlNode(), m_key(other.m_key) {}
 
-ObjectKeyNode::~ObjectKeyNode() { REB_KEEP_VPTR_STORE(); }
+ObjectKeyNode::~ObjectKeyNode() {  }
 
 ObjectKeyNode* ObjectKeyNode::Clone() { return NewOrNull<ObjectKeyNode>(*this); }
 
@@ -81,7 +80,7 @@ ObjectKeyValueNode::ObjectKeyValueNode(const ObjectKey& key, int value) : Object
 
 ObjectKeyValueNode::ObjectKeyValueNode(const ObjectKeyValueNode& other) : ObjectKeyNode(other), m_value(other.m_value) {}
 
-ObjectKeyValueNode::~ObjectKeyValueNode() { REB_KEEP_VPTR_STORE(); }
+ObjectKeyValueNode::~ObjectKeyValueNode() {  }
 
 ObjectKeyNode* ObjectKeyValueNode::Clone() { return NewOrNull<ObjectKeyValueNode>(*this); }
 
@@ -117,7 +116,7 @@ ObjectKeySet::ObjectKeySet(const ObjectKeySet& other) : AvlTree() {
 
 ObjectKeySet::~ObjectKeySet() {
     AvlTree::Clear();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int ObjectKeySet::IsLess(AvlNode* a, AvlNode* b) {
@@ -218,7 +217,7 @@ ObjectKeyValueSet::ObjectKeyValueSet() : ObjectKeySet() {}
 
 ObjectKeyValueSet::ObjectKeyValueSet(const ObjectKeyValueSet& other) : ObjectKeySet(other) {}
 
-ObjectKeyValueSet::~ObjectKeyValueSet() { REB_KEEP_VPTR_STORE(); }
+ObjectKeyValueSet::~ObjectKeyValueSet() {  }
 
 ObjectKeyNode* ObjectKeyValueSet::NewNode() { return NewOrNull<ObjectKeyValueNode>(); }
 
@@ -259,7 +258,7 @@ ObjectRefList::ObjectRefList() : IdAvlTree(), m_ok(1) {}
 
 ObjectRefList::~ObjectRefList() {
     IdAvlTree::Clear();
-    REB_KEEP_VPTR_STORE();
+
 }
 
 ObjectRefList& ObjectRefList::operator=(const ObjectRefList& other) {
@@ -332,10 +331,10 @@ ObjectRefNode::ObjectRefNode() : IdNode(), m_flag(1), m_count(0) {
     m_key.m_value = 0;
 }
 
-// The copy constructor does not copy m_flag; new nodes are zero-filled by the game's allocator.
+// The copy constructor clears m_flag instead of copying it.
 ObjectRefNode::ObjectRefNode(const ObjectRefNode& other) : IdNode(), m_flag(0), m_count(other.m_count), m_key(other.m_key) {}
 
-ObjectRefNode::~ObjectRefNode() { REB_KEEP_VPTR_STORE(); }
+ObjectRefNode::~ObjectRefNode() {  }
 
 int ObjectRefNode::Read(istream* in) {
     ReadValue32(in, &m_flag);

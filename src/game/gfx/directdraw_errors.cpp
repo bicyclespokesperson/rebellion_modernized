@@ -1,9 +1,6 @@
 // DirectX error text: maps an HRESULT from DirectDraw to a string resource of cdderr.dll and shows it.
 #include "gfx/directdraw_host.h"
 
-extern IDirectDraw2* g_directDraw2;
-extern int g_ddReportErrors;
-extern HMODULE g_ddErrorModule;
 
 namespace {
 constexpr UINT kCaptionStringId = 0xddff;
@@ -200,19 +197,16 @@ UINT ErrorStringId(HRESULT result) {
 }
 }  // namespace
 
-void ReportDirectDrawError(HRESULT result, HWND parent) {
+void DirectDrawHost::ReportError(HRESULT result, HWND parent) {
     if (result == 0) return;
-    if (g_ddReportErrors != 1) return;
+    if (reportErrors_ != 1) return;
     const UINT stringId = ErrorStringId(result);
-    char caption[0x100];
-    char text[0x100];
-    if (g_directDraw2) g_directDraw2->FlipToGDISurface();
-    if (g_ddErrorModule) {
-        LoadStringA(g_ddErrorModule, kCaptionStringId, caption, kStringBufferSize);
-        LoadStringA(g_ddErrorModule, stringId, text, kStringBufferSize);
+    char caption[0x100]{};
+    char text[0x100]{};
+    if (directDraw2_) directDraw2_->FlipToGDISurface();
+    if (errorModule_) {
+        LoadStringA(errorModule_, kCaptionStringId, caption, kStringBufferSize);
+        LoadStringA(errorModule_, stringId, text, kStringBufferSize);
         MessageBoxExA(parent, text, caption, kMessageBoxFlags, kEnglishUs);
     }
 }
-
-HMODULE g_ddErrorModule{};
-int g_ddReportErrors{};

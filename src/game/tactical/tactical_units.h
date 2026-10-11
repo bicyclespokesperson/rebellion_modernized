@@ -1,12 +1,10 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
 #include "core/game_string.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 
 // The tactical engine's unit records.
 //
@@ -105,7 +103,7 @@ public:
 class TacticalCharacterTree : public IdAvlTree {
 public:
     TacticalCharacterTree() {}
-    virtual ~TacticalCharacterTree() { REB_KEEP_VPTR_STORE(); }  // 0x5bdaa0 (scalar deleting destructor 0x5a8860)
+    virtual ~TacticalCharacterTree() {  }  // 0x5bdaa0 (scalar deleting destructor 0x5a8860)
     virtual IdNode* FirstItem();                                 // 0x5f6590 (shared stub; the special-force tree has an inline copy)
 
     int CountItems();           // 0x5bdf20 (shared with TacticalSpecialForceTree)
@@ -117,7 +115,7 @@ public:
 class TacticalSpecialForceTree : public IdAvlTree {
 public:
     TacticalSpecialForceTree() {}
-    virtual ~TacticalSpecialForceTree() { REB_KEEP_VPTR_STORE(); }  // 0x5bdf10 (scalar deleting destructor 0x5a8880)
+    virtual ~TacticalSpecialForceTree() {  }  // 0x5bdf10 (scalar deleting destructor 0x5a8880)
     virtual IdNode* FirstItem() { return static_cast<IdNode*>(First()); }  // 0x5f6590 (shared stub)
 
     int CountItems() {          // 0x5bdf20 (the code of TacticalCharacterTree::CountItems)
@@ -138,4 +136,4 @@ struct TacticalEvent {
 
 // Event handler of the 3D battle (cdecl; registered in the object manager's event table): a character's ship and
 // injury state. args: 2 character handle, 6 ship handle, 8 / 9 injury flags.
-void REB_CDECL TacticalCharacterStatusEvent(TacticalEvent* event);  // 0x5bdc30
+void TacticalCharacterStatusEvent(TacticalEvent* event);  // 0x5bdc30

@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "tactical/tactical_groups.h"
 
 #include <new>
@@ -213,10 +212,12 @@ void ShipGroup::SetMode(int mode) {
                 m_mode = previousMode;
                 return;
             }
+#ifndef REB_NO_TACTICAL_3D
             if (m_side == GetObjectManager()->m_playerSide) {
                 TacticalHub* hub = FUN_0059ed70();
                 FUN_005a0320(hub, m_id);
             }
+#endif
             m_targetsA.Clear();
             m_formationA.Clear();
             m_order = newOrder<GroupOrderMode2>(this);
@@ -240,6 +241,7 @@ void ShipGroup::SetMode(int mode) {
             m_order = newOrder<GroupOrderMode5>(this);
             return;
         case 6: {
+#ifndef REB_NO_TACTICAL_3D
             if (TacticalUnitKind(this) == kCapitalGroupKind && m_side == 0) {
                 m_targetsA.Clear();
                 m_formationA.Clear();
@@ -249,6 +251,7 @@ void ShipGroup::SetMode(int mode) {
                 *reinterpret_cast<int*>(reinterpret_cast<char*>(side) + kBeginPlayerSideOffset) = 0;
                 return;
             }
+#endif
             m_mode = previousMode;
             return;
         }
@@ -313,27 +316,31 @@ FighterGroup::FighterGroup(int seedHandle) : ShipGroup(seedHandle) {
 
 FighterGroup::~FighterGroup() {}
 
-void REB_STDCALL RemoveMemberFromGroup(ShipGroup* group, int handle) {
+void RemoveMemberFromGroup(ShipGroup* group, int handle) {
     if (group) group->RemoveMember(handle);
 }
 
-void REB_STDCALL RegisterFighterGroup(ShipGroup* group) {
+void RegisterFighterGroup(ShipGroup* group) {
     group->AssignHandle(group->m_side);
     GetTacticalRegistry()->AddFighterGroup(group);
 }
 
-void REB_STDCALL RegisterCapitalShipGroup(ShipGroup* group) {
+void RegisterCapitalShipGroup(ShipGroup* group) {
     group->AssignHandle(group->m_side);
     GetTacticalRegistry()->AddCapitalShipGroup(group);
 }
 
 void DestroyTacticalHub() {
+#ifdef REB_NO_TACTICAL_3D
+    return;
+#else
     TacticalHub* hub = g_tacticalHub;
     if (hub != nullptr) {
         FUN_0059ee10(hub);
         ::operator delete(static_cast<void*>(hub));
     }
     g_tacticalHub = nullptr;
+#endif
 }
 
 int CapitalShipGroup::Virtual01() { return 4; }

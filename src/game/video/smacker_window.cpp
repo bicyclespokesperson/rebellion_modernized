@@ -1,11 +1,9 @@
 // SmackerWindow: a child window that plays a Smacker (.smk) movie from a dedicated thread.
-#include "core/reb_abi.h"
 #include <cmath>
 #include <cstring>
 
 #include "audio/sound_manager.h"
 #include "core/reb_x87.h"
-#include "core/vptr_store.h"
 #include "video/video_manager.h"
 
 // BUG(original): the playback thread procedure is cdecl, not stdcall as CreateThread expects.
@@ -52,7 +50,7 @@ SmackerWindow::SmackerWindow(const char* path, HINSTANCE instance, int x, int y,
 }
 
 SmackerWindow::~SmackerWindow() {
-    REB_KEEP_VPTR_STORE();
+
     StopPlayback();
     if (m_volumeTouched) {
         if (!SoundManager::GetDirectSound()) SoundManager::Initialize(m_hwnd, 1, 0);
@@ -61,7 +59,7 @@ SmackerWindow::~SmackerWindow() {
     }
 }
 
-LRESULT REB_STDCALL SmackerWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT SmackerWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND window = m_hwnd;
     switch (message) {
         case WM_CREATE:

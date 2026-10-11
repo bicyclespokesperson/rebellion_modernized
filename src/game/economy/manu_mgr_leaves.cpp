@@ -1,9 +1,7 @@
-#include "core/reb_abi.h"
 #include "economy/manu_mgr_leaves.h"
 
 #include <new>
 
-#include "core/vptr_store.h"
 #include "gameobj/object_family.h"
 
 
@@ -31,19 +29,19 @@ int applyAllOnSideView(ManuMgr* manager, NotifyContext* ctx) {
 
 // ---- shared bodies and stubs ----------------------------------------------------------------------------------------
 
-int REB_THISCALL ManuMgrReadBody(ManuMgr* self, istream* in) { return self->ManuMgr::Read(in); }
+int ManuMgrReadBody(ManuMgr* self, istream* in) { return self->ManuMgr::Read(in); }
 
-int REB_THISCALL ManuMgrWriteBody(ManuMgr* self, ostream* out) { return self->ManuMgr::Write(out); }
+int ManuMgrWriteBody(ManuMgr* self, ostream* out) { return self->ManuMgr::Write(out); }
 
-int REB_THISCALL ManuMgrApplyAllBody(ManuMgr* self, NotifyContext* ctx) { return self->ManuMgr::ApplyAll(ctx); }
+int ManuMgrApplyAllBody(ManuMgr* self, NotifyContext* ctx) { return self->ManuMgr::ApplyAll(ctx); }
 
-int REB_THISCALL ManuMgrChecksumBody(ManuMgr* self, Crc32* crc) { return self->ManuMgr::Checksum(crc); }
+int ManuMgrChecksumBody(ManuMgr* self, Crc32* crc) { return self->ManuMgr::Checksum(crc); }
 
-int REB_THISCALL CreateViewsStubShared(GameObj* self, int controlKind, NotifyContext* ctx) {
+int CreateViewsStubShared(GameObj* self, int controlKind, NotifyContext* ctx) {
     return self->GameObj::CreateViews(controlKind, ctx);
 }
 
-int REB_THISCALL CreateViewsStubDefense(GameObj* self, int controlKind, NotifyContext* ctx) {
+int CreateViewsStubDefense(GameObj* self, int controlKind, NotifyContext* ctx) {
     return self->GameObj::CreateViews(controlKind, ctx);
 }
 
@@ -51,7 +49,7 @@ int REB_THISCALL CreateViewsStubDefense(GameObj* self, int controlKind, NotifyCo
 
 TrainingFacilManuMgr::TrainingFacilManuMgr() : ManuMgr() { SetFlag31(GetFlag31()); }
 
-TrainingFacilManuMgr::~TrainingFacilManuMgr() { REB_KEEP_VPTR_STORE(); }
+TrainingFacilManuMgr::~TrainingFacilManuMgr() {  }
 
 int TrainingFacilManuMgr::Read(istream* in) { return ManuMgrReadBody(this, in); }
 
@@ -98,7 +96,7 @@ int CountTrainingFacilManuMgrChildren(GameObj* parent, uint32_t side, uint32_t f
 
 ConstructionYardManuMgr::ConstructionYardManuMgr() : ManuMgr() { SetFlag31(GetFlag31()); }
 
-ConstructionYardManuMgr::~ConstructionYardManuMgr() { REB_KEEP_VPTR_STORE(); }
+ConstructionYardManuMgr::~ConstructionYardManuMgr() {  }
 
 int ConstructionYardManuMgr::Read(istream* in) { return ManuMgrReadBody(this, in); }
 
@@ -145,7 +143,7 @@ int CountConstructionYardManuMgrChildren(GameObj* parent, uint32_t side, uint32_
 
 ShipyardManuMgr::ShipyardManuMgr() : ManuMgr() { SetFlag31(GetFlag31()); }
 
-ShipyardManuMgr::~ShipyardManuMgr() { REB_KEEP_VPTR_STORE(); }
+ShipyardManuMgr::~ShipyardManuMgr() {  }
 
 int ShipyardManuMgr::Read(istream* in) { return ManuMgrReadBody(this, in); }
 

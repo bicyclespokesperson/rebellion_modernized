@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "platform/win32.h"
@@ -7,11 +6,15 @@
 
 // The application's main window: the base class of RebellionApplication (0x413000). There is one, g_app; it also
 // receives WM_ACTIVATEAPP, which Windows sends to the first window of the application.
+struct UiResources;
+
 class CoolApp : public CoolWindow {
 public:
+    UiResources& m_resources;
+
     CoolApp(HINSTANCE instance, const char* className, uint32_t style, int x, int y, int width, int height,
             const char* windowName, HBRUSH background, HICON icon, HCURSOR cursor, HMENU menu, uint32_t unknown58,
-            uint32_t flags);  // 0x5fb850: sets g_app, starts the 10 ms timer period
+            uint32_t flags, UiResources& resources);  // 0x5fb850: sets g_app, starts the 10 ms timer period
     virtual ~CoolApp();       // 0x5fb980 (scalar deleting destructor 0x5fb960)
 
     // Slot 9: called by the main loop before TranslateMessage. Turns Return in a standard "edit" control into a
@@ -31,9 +34,9 @@ public:
 };
 
 // Cool's resource-DLL API (stdcall wrappers kept by the application).
-HMODULE REB_STDCALL CoolGetResourceModule(uint32_t slot);                                           // 0x5fba20
-HMODULE REB_STDCALL CoolRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot);  // 0x5fba30
-void REB_STDCALL CoolUnloadResourceSlot(uint32_t slot);                                            // 0x5fba50
+HMODULE CoolGetResourceModule(uint32_t slot);                                           // 0x5fba20
+HMODULE CoolRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot);  // 0x5fba30
+void CoolUnloadResourceSlot(uint32_t slot);                                            // 0x5fba50
 
 HMODULE CoolAppGetResourceModule(uint32_t slot);   // 0x6037f0: 0 without an application
 void CoolAppRegisterResourceDll(const char* basePath, const char* fileName, uint32_t slot);  // 0x603810

@@ -1,6 +1,6 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
+#include <memory>
 
 #include "app/player_controller_decl.h"
 #include "core/containers.h"
@@ -8,7 +8,7 @@
 #include "core/stopwatch.h"
 #include "tactical/tactical_types.h"
 
-// The tactical engine's singleton (DAT_006bc248, 0x6b8 bytes, VT 0x66bae8): created on first use by the facade
+// The tactical engine (0x6b8 bytes, VT 0x66bae8): lazily owned by the current battle flow and created on first use by the facade
 // (tactical_facade.h) when the strategic battle flow hands a battle over (app/battle_flow.h), destroyed again when the
 // results have been read back.
 //
@@ -17,6 +17,7 @@
 
 struct HeadlessSimulator;
 class TacticalHub;
+class TacticalRegistry;
 
 // An object the game deletes through its virtual destructor.
 class OwnedObject {
@@ -94,23 +95,31 @@ public:
     Stopwatch m_clock;              // +0x698 times the 3D frames
     int m_firstFrame;               // +0x6b0, 1 until the first 3D frame has been timed
     int m_unk6b4;                   // +0x6b4
-};
 
-extern TacticalGame* g_tacticalGame;  // 0x6bc248
+    HeadlessSimulator* Simulator();
+    HeadlessSimulator* GetOrCreateSimulator();
+    void DestroySimulator();
+    TacticalRegistry* Registry();
+    TacticalRegistry* GetOrCreateRegistry();
+
+private:
+    std::unique_ptr<HeadlessSimulator> m_simulator;
+    std::unique_ptr<TacticalRegistry> m_registry;
+};
 
 // Sets up the battle (a human-vs-AI game; the variant without vote times is for human-vs-human): both sides' fleet figures
 // and the mode, either in the simulator (abstract) or in the object manager (3D). Free functions so that the facade's
 // by-value copy of the name is made before the singleton is fetched, as in the original.
-int REB_THISCALL TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name,
+int TacticalGameSetupBattle(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name,
                                        float sideAValue, float sideBValue, int sideAC, int sideBC, GameTime timeA,
                                        GameTime timeB, int battleKindNotAlliance, int systemFlag8, int controlIsEmpire,
                                        int controlIsAlliance, int abstractFlag);  // 0x599c90
-int REB_THISCALL TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name,
+int TacticalGameSetupBattleLocal(TacticalGame* self, int humanIsNotAlliance, int systemField44, String name,
                                             float sideAValue, float sideBValue, int sideAC, int sideBC,
                                             int battleKindNotAlliance, int systemFlag8, int controlIsEmpire,
                                             int controlIsAlliance, int abstractFlag);  // 0x59a0b0
 
-// The singleton, created on first use (null if the allocation fails).
+// The battle flow's tactical game, created on first use (null if there is no flow or allocation fails).
 TacticalGame* GetTacticalGame();  // 0x597530
 // Shuts the battle down and deletes the singleton.
 void DestroyTacticalGame();  // 0x5975a0

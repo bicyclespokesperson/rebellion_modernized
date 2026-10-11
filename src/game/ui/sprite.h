@@ -75,7 +75,7 @@ public:
     int m_depth;             // +0x24 drawing order on the stage (SpriteTree)
     int m_unk28;             // +0x28
     DibBitmap* m_bitmap;     // +0x2c not owned
-    uint8_t* m_remapTable;   // +0x30 not initialised by the constructor
+    uint8_t* m_remapTable;   // +0x30 optional remap table, initially null
     uint16_t m_drawMode;     // +0x34 SpriteDrawMode
     uint16_t m_pad36;        // +0x36
 };

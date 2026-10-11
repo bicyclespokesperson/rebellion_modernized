@@ -1,6 +1,5 @@
 #include "ui/bitmap_overlay.h"
 
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 
 BitmapOverlay::BitmapOverlay() : m_bitmap(nullptr), m_x(0), m_y(0) {}
@@ -31,7 +30,7 @@ void BitmapOverlay::GetRect(RECT* rect) {
 
 BitmapOverlayTree::BitmapOverlayTree() {}
 
-BitmapOverlayTree::~BitmapOverlayTree() { REB_KEEP_VPTR_STORE(); }
+BitmapOverlayTree::~BitmapOverlayTree() {  }
 
 int BitmapOverlayTree::IsLess(AvlNode* a, AvlNode* b) {
     if (!a || !b) return 0;

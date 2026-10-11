@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "galaxy/system.h"
@@ -28,6 +27,6 @@ inline int PlayerSide(uint32_t controlSide) { return controlSide == 1 ? 1 : (con
 }  // namespace system_rules
 
 // The key of the object that holds `object` (virtual GetOwnerKey, returned through *out).
-ObjectKey* REB_THISCALL GetOwnerKeyValue(GameObjNotifier* object, ObjectKey* out);  // 0x50c640
+ObjectKey* GetOwnerKeyValue(GameObjNotifier* object, ObjectKey* out);  // 0x50c640
 // UpdateChildren over the system families (0x90-0x98) of `parent`.
 int UpdateSystemFamilyChildren(GameObj* parent, NotifyContext* ctx);  // 0x50c8a0

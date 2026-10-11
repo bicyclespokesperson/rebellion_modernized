@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include <cerrno>
 #include <cstdlib>
 #include <cctype>
@@ -45,7 +44,7 @@ istream* ExtractNumber(istream* in, Convert convert) {
 
 }  // namespace
 
-istream* REB_THISCALL istream_operator_rs_streambuf(istream* in, streambuf* target) {
+istream* istream_operator_rs_streambuf(istream* in, streambuf* target) {
     if (istream_ipfx(in, 0) != 0) {
         ios* stream = IosOf(in);
         int c = streambuf_sbumpc(stream->m_bp);
@@ -54,7 +53,7 @@ istream* REB_THISCALL istream_operator_rs_streambuf(istream* in, streambuf* targ
                 *target->m_pptr++ = static_cast<char>(c);
                 c &= 0xff;
             } else {
-                c = target->m_vftable->m_overflow(target, c);
+                c = target->Overflow(c);
             }
             if (c == -1) stream->m_state |= iostream_flags::kFail;
             c = streambuf_sbumpc(stream->m_bp);
@@ -64,26 +63,26 @@ istream* REB_THISCALL istream_operator_rs_streambuf(istream* in, streambuf* targ
     return in;
 }
 
-istream* REB_THISCALL istream_seekg_pos(istream* in, long position) {
-    SeekWithFailCheck(IosOf(in), [&](streambuf* buffer) { return buffer->m_vftable->m_seekpos(buffer, position, iostream_flags::kIn); });
+istream* istream_seekg_pos(istream* in, long position) {
+    SeekWithFailCheck(IosOf(in), [&](streambuf* buffer) { return buffer->SeekPosition(position, iostream_flags::kIn); });
     return in;
 }
 
-istream* REB_THISCALL istream_seekg_off(istream* in, long offset, int dir) {
-    SeekWithFailCheck(IosOf(in), [&](streambuf* buffer) { return buffer->m_vftable->m_seekoff(buffer, offset, dir, iostream_flags::kIn); });
+istream* istream_seekg_off(istream* in, long offset, int dir) {
+    SeekWithFailCheck(IosOf(in), [&](streambuf* buffer) { return buffer->SeekOffset(offset, dir, iostream_flags::kIn); });
     return in;
 }
 
-long REB_THISCALL istream_tellg(istream* in) {
+long istream_tellg(istream* in) {
     long result = 0;
     SeekWithFailCheck(IosOf(in), [&](streambuf* buffer) {
-        result = buffer->m_vftable->m_seekoff(buffer, 0, iostream_flags::kSeekCur, iostream_flags::kIn);
+        result = buffer->SeekOffset(0, iostream_flags::kSeekCur, iostream_flags::kIn);
         return result;
     });
     return result;
 }
 
-int REB_THISCALL istream_get(istream* in) {
+int istream_get(istream* in) {
     if (istream_ipfx(in, 1) != 0) {
         ios* stream = IosOf(in);
         const int c = streambuf_sbumpc(stream->m_bp);
@@ -97,11 +96,11 @@ int REB_THISCALL istream_get(istream* in) {
     return -1;
 }
 
-istream* REB_THISCALL istream_read(istream* in, void* buffer, int count) {
+istream* istream_read(istream* in, void* buffer, int count) {
     if (istream_ipfx(in, 1) != 0) {
         ios* stream = IosOf(in);
         streambuf* source = stream->m_bp;
-        const unsigned got = static_cast<unsigned>(source->m_vftable->m_xsgetn(source, static_cast<char*>(buffer), count));
+        const unsigned got = static_cast<unsigned>(source->Read(static_cast<char*>(buffer), count));
         in->m_gcount = static_cast<int>(got);
         if (got < static_cast<unsigned>(count)) stream->m_state |= iostream_flags::kFail | iostream_flags::kEof;
         UnlockBufferAndStream(stream);
@@ -109,14 +108,14 @@ istream* REB_THISCALL istream_read(istream* in, void* buffer, int count) {
     return in;
 }
 
-istream* REB_THISCALL istream_operator_rs_long(istream* in, int* value) {
+istream* istream_operator_rs_long(istream* in, int* value) {
     return ExtractNumber(in, [&](ios* stream, const char* digits, int base) {
         *value = static_cast<int>(strtol(digits, nullptr, base));
         if (errno == kRangeError) stream->m_state |= iostream_flags::kFail;
     });
 }
 
-istream* REB_THISCALL istream_operator_rs_ushort(istream* in, unsigned short* value) {
+istream* istream_operator_rs_ushort(istream* in, unsigned short* value) {
     return ExtractNumber(in, [&](ios* stream, const char* digits, int base) {
         const unsigned long converted = strtoul(digits, nullptr, base);
         if ((converted < 0x10000 || 0xffff7fff < converted) && (converted != 0xffffffff || errno != kRangeError)) {
@@ -128,14 +127,14 @@ istream* REB_THISCALL istream_operator_rs_ushort(istream* in, unsigned short* va
     });
 }
 
-istream* REB_THISCALL istream_operator_rs_ulong(istream* in, unsigned int* value) {
+istream* istream_operator_rs_ulong(istream* in, unsigned int* value) {
     return ExtractNumber(in, [&](ios* stream, const char* digits, int base) {
         *value = static_cast<unsigned int>(strtoul(digits, nullptr, base));
         if (*value == 0xffffffffu && errno == kRangeError) stream->m_state |= iostream_flags::kFail;
     });
 }
 
-istream* REB_THISCALL istream_getline(istream* in, char* buffer, int limit, int delimiter) {
+istream* istream_getline(istream* in, char* buffer, int limit, int delimiter) {
     unsigned length = 0;
     if (istream_ipfx(in, 1) != 0) {
         ios* stream = IosOf(in);
@@ -169,7 +168,7 @@ istream* REB_THISCALL istream_getline(istream* in, char* buffer, int limit, int 
     return in;
 }
 
-istream* REB_THISCALL istream_operator_rs_short(istream* in, short* value) {
+istream* istream_operator_rs_short(istream* in, short* value) {
     return ExtractNumber(in, [&](ios* stream, const char* digits, int base) {
         const long converted = strtol(digits, nullptr, base);
         if (converted < 0x8000) {
@@ -185,7 +184,7 @@ istream* REB_THISCALL istream_operator_rs_short(istream* in, short* value) {
     });
 }
 
-int REB_THISCALL istream_ipfx(istream* in, int need) {
+int istream_ipfx(istream* in, int need) {
     ios* stream = IosOf(in);
     iostream_access::Lock(stream);
     if (need != 0) in->m_gcount = 0;
@@ -218,7 +217,7 @@ int REB_THISCALL istream_ipfx(istream* in, int need) {
     return 1;
 }
 
-istream* REB_THISCALL istream_operator_rs_charptr(istream* in, char* value) {
+istream* istream_operator_rs_charptr(istream* in, char* value) {
     if (istream_ipfx(in, 0) != 0) {
         ios* stream = IosOf(in);
         const int width = stream->m_width;
@@ -256,7 +255,7 @@ istream* REB_THISCALL istream_operator_rs_charptr(istream* in, char* value) {
     return in;
 }
 
-void REB_THISCALL istream_eatwhite(istream* in) {
+void istream_eatwhite(istream* in) {
     ios* stream = IosOf(in);
     iostream_access::LockBuffer(stream->m_bp);
     int c = streambuf_sgetc(stream->m_bp);
@@ -271,7 +270,7 @@ void REB_THISCALL istream_eatwhite(istream* in) {
     iostream_access::UnlockBuffer(stream->m_bp);
 }
 
-int REB_THISCALL istream_getint(istream* in, char* buffer) {
+int istream_getint(istream* in, char* buffer) {
     int length = 0;
     int digits = 0;
     int signEnd = 1;
@@ -327,7 +326,7 @@ int REB_THISCALL istream_getint(istream* in, char* buffer) {
                     *--source->m_gptr = ch;
                     pushed = ch;
                 } else {
-                    pushed = source->m_vftable->m_pbackfail(source, ch);
+                    pushed = source->Putback(ch);
                 }
                 if (pushed == -1) {
                     stream->m_state |= iostream_flags::kBad;

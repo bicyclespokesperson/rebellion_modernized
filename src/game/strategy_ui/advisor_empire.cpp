@@ -1,5 +1,4 @@
 #include "economy/side.h"
-#include "core/reb_abi.h"
 #include <new>
 
 #include "app/rebapp_globals.h"
@@ -7,7 +6,6 @@
 #include "core/file_util.h"
 #include "core/game_string.h"
 #include "core/iostream_lib.h"
-#include "core/vptr_store.h"
 #include "events/game_clock_hooks.h"
 #include "gameobj/object_lookup.h"
 #include "orders/order_base.h"
@@ -19,7 +17,6 @@
 
 
 extern IdAvlTree g_empireChoices;      // 0x6b2918 the list the display-mode switches show
-extern uint32_t g_empireChoicesGuard;  // 0x6b2924
 extern const char *g_invalidCommandText;  // 0x6a8838 "Processing Invalid Command"
 
 using namespace advisor_sides;
@@ -90,7 +87,7 @@ EmpireAdvisor::EmpireAdvisor(int side, HumanPlayer* player) : AdvisorBase(side, 
 
 EmpireAdvisor::~EmpireAdvisor() {
     ::operator delete(m_cueDue);
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void EmpireAdvisor::Read(istream* in, HumanPlayer* player) { AdvisorBase::Read(in, player); }
@@ -195,7 +192,7 @@ int EmpireAdvisor::LoadCueScripts() {
     strstreambuf_freeze(iostream_access::BufferOf(name.get()), 0);
     const int error = GetFileError();
     if (error == 0) {
-        m_cueTree.Load(reinterpret_cast<istream*>(file.get()));
+        m_cueTree.Load(file.get()->In());
         CloseFileStream(file.get());
     }
     return error == 0;
@@ -565,4 +562,3 @@ int EmpireAdvisor::PickMoodCue() {
 }
 IdAvlTree g_empireChoices{};
 const char *g_invalidCommandText = nullptr;
-uint32_t g_empireChoicesGuard{};

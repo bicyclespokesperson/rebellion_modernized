@@ -12,7 +12,7 @@ SystemEvent303::SystemEvent303() : SourceEvent() {}
 
 SystemEvent303::SystemEvent303(const SystemEvent303& other) : SourceEvent(other) {}
 
-SystemEvent303::~SystemEvent303() { REB_KEEP_VPTR_STORE(); }
+SystemEvent303::~SystemEvent303() {  }
 
 SystemEvent303* SystemEvent303::Clone() { return NewOrNull<SystemEvent303>(*this); }
 
@@ -36,7 +36,7 @@ SystemEvent304::SystemEvent304() : SourceEvent() {}
 
 SystemEvent304::SystemEvent304(const SystemEvent304& other) : SourceEvent(other) {}
 
-SystemEvent304::~SystemEvent304() { REB_KEEP_VPTR_STORE(); }
+SystemEvent304::~SystemEvent304() {  }
 
 SystemEvent304* SystemEvent304::Clone() { return NewOrNull<SystemEvent304>(*this); }
 
@@ -60,7 +60,7 @@ SystemEvent305::SystemEvent305() : SourceEvent() {}
 
 SystemEvent305::SystemEvent305(const SystemEvent305& other) : SourceEvent(other) {}
 
-SystemEvent305::~SystemEvent305() { REB_KEEP_VPTR_STORE(); }
+SystemEvent305::~SystemEvent305() {  }
 
 SystemEvent305* SystemEvent305::Clone() { return NewOrNull<SystemEvent305>(*this); }
 
@@ -84,7 +84,7 @@ SystemEvent309::SystemEvent309() : SourceEvent() {}
 
 SystemEvent309::SystemEvent309(const SystemEvent309& other) : SourceEvent(other) {}
 
-SystemEvent309::~SystemEvent309() { REB_KEEP_VPTR_STORE(); }
+SystemEvent309::~SystemEvent309() {  }
 
 SystemEvent309* SystemEvent309::Clone() { return NewOrNull<SystemEvent309>(*this); }
 
@@ -108,7 +108,7 @@ SystemEvent310::SystemEvent310() : SourceEvent() {}
 
 SystemEvent310::SystemEvent310(const SystemEvent310& other) : SourceEvent(other) {}
 
-SystemEvent310::~SystemEvent310() { REB_KEEP_VPTR_STORE(); }
+SystemEvent310::~SystemEvent310() {  }
 
 SystemEvent310* SystemEvent310::Clone() { return NewOrNull<SystemEvent310>(*this); }
 
@@ -132,7 +132,7 @@ SystemEvent30f::SystemEvent30f() : SourceEvent() {}
 
 SystemEvent30f::SystemEvent30f(const SystemEvent30f& other) : SourceEvent(other) {}
 
-SystemEvent30f::~SystemEvent30f() { REB_KEEP_VPTR_STORE(); }
+SystemEvent30f::~SystemEvent30f() {  }
 
 SystemEvent30f* SystemEvent30f::Clone() { return NewOrNull<SystemEvent30f>(*this); }
 
@@ -156,7 +156,7 @@ SystemEvent31b::SystemEvent31b() : SourceEvent() {}
 
 SystemEvent31b::SystemEvent31b(const SystemEvent31b& other) : SourceEvent(other) {}
 
-SystemEvent31b::~SystemEvent31b() { REB_KEEP_VPTR_STORE(); }
+SystemEvent31b::~SystemEvent31b() {  }
 
 SystemEvent31b* SystemEvent31b::Clone() { return NewOrNull<SystemEvent31b>(*this); }
 
@@ -184,7 +184,7 @@ SystemEvent311::SystemEvent311() : SourceEvent() {}
 
 SystemEvent311::SystemEvent311(const SystemEvent311& other) : SourceEvent(other) {}
 
-SystemEvent311::~SystemEvent311() { REB_KEEP_VPTR_STORE(); }
+SystemEvent311::~SystemEvent311() {  }
 
 SystemEvent311* SystemEvent311::Clone() { return NewOrNull<SystemEvent311>(*this); }
 
@@ -208,7 +208,7 @@ SystemEvent319::SystemEvent319() : SourceEvent() {}
 
 SystemEvent319::SystemEvent319(const SystemEvent319& other) : SourceEvent(other) {}
 
-SystemEvent319::~SystemEvent319() { REB_KEEP_VPTR_STORE(); }
+SystemEvent319::~SystemEvent319() {  }
 
 SystemEvent319* SystemEvent319::Clone() { return NewOrNull<SystemEvent319>(*this); }
 

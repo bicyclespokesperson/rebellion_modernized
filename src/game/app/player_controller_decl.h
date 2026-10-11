@@ -23,8 +23,7 @@
 
 class PlayerController;
 class HumanPlayer;
-class PlayerMessage;
-class PlayerNotice;
+using PlayerMessage = IdNode;
 
 // A String (vptr, buffer pointer, flag: three words on a 32-bit target) passed by value through the argument words of a virtual
 // call; the callee destroys it. The words are pointer-sized so that the String fits on a 64-bit target too.
@@ -32,7 +31,7 @@ struct StringWords {
     intptr_t m_words[3];
 };
 class String;
-class UiNotice;
+class NotifPayload;
 class MessageBase;
 
 // A 4-byte time value (0x4fcd90 assigns, 0x4fcdd0 / 0x42dbe0 zero it; 0x461c4000 = 10000.0f is stored in it).
@@ -44,24 +43,6 @@ enum PlayerKind {
     kPlayerHuman = 1,
     kPlayerRemote = 2,
     kPlayerAi = 3,
-};
-
-// A queued player message (the order/request objects sent between the two sides). Node of a PlayerMessageTree,
-// keyed by its id. Its virtuals are not needed by GameSession (except the destructor).
-class PlayerMessage : public IdNode {
-public:
-    int m_unk1c;   // +0x1c
-    int m_side;    // +0x20 the side that sent it (1 or 2)
-};
-
-// Notification routed to the controller of its side; only the side and the destructor are used by GameSession.
-class PlayerNotice : public LinkNode {
-public:
-    virtual ~PlayerNotice();
-    int m_unk0c;  // +0x0c
-    int m_unk10;  // +0x10
-    int m_unk14;  // +0x14
-    int m_side;   // +0x18
 };
 
 // Messages that have been sent but not yet delivered (the order module's MessageTree, VT 0x661030).
@@ -164,7 +145,7 @@ public:
     virtual void Virtual17(int id, ObjectKey* key) {}
     virtual void Virtual18(int id, ObjectKey* key, int state, GameTime* time) {}
     virtual void Virtual19(int id, ObjectKey* key) {}
-    virtual void Virtual20(PlayerNotice* notice) {}
+    virtual void Virtual20(NotifPayload* notice) {}
     virtual void Virtual21() {}
     virtual void Virtual22(int a, int b) {}
     virtual void Virtual23(int value) {}

@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include "character/major_character.h"
 #include "gameobj/child_iterator.h"
 
@@ -137,7 +136,7 @@ public:
 };
 
 // Slot 37 of the major characters and of Character38's neighbours: forwards to the Character body (0x56f950).
-int REB_THISCALL StoryCharacterCreateViews(Character* self, int controlKind, NotifyContext* ctx);  // 0x56f950
+int StoryCharacterCreateViews(Character* self, int controlKind, NotifyContext* ctx);  // 0x56f950
 
 // Han's mission hyperdrive modifier while he is on a bounty hunter's errand (0x5725a0: a GNPRTB value).
 int GetHanHyperdriveModifier();  // 0x5725a0

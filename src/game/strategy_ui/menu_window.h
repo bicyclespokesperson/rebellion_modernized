@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -118,7 +117,7 @@ public:
     MenuWindowBase(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent, uint32_t entryId,
                    DibBitmap* backdrop);  // 0x4aa960
     virtual ~MenuWindowBase();            // 0x4aaa50 (scalar deleting destructor 0x4aaa30)
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4aab50
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x4aab50
     virtual void OnCreate1() override;  // slot 14, 0x4ab2b0
     // A mouse message went to the menu item `item` (null: to the menu itself) at (x, y); nothing here.
     virtual int HandleMouse(MenuItem* item, LONG x, LONG y, int message);  // slot 22, 0x4ab540

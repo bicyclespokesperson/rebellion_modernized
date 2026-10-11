@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "data/dat_record.h"
 
 #include <cstring>
@@ -6,7 +5,6 @@
 
 #include "core/utility_classes.h"
 #include "iostream/iostream.h"
-#include "core/vptr_store.h"
 
 extern int g_recordFactoryCount;
 extern RecordFactoryEntry g_recordFactories[];
@@ -34,7 +32,7 @@ void appendWithArticle(String* out, const String& name) {
 
 DatRecord::DatRecord() : m_hasData(0), m_first(0), m_second(0), m_third(0), m_small(0), m_small2(0), m_name("<not set>") {}
 
-DatRecord::~DatRecord() { REB_KEEP_VPTR_STORE(); }
+DatRecord::~DatRecord() {  }
 
 void DatRecord::WriteName(String* out, int kind) {
     switch (kind) {
@@ -55,7 +53,7 @@ void DatRecord::WriteName(String* out, int kind) {
 }
 
 // The vtable slot at +0x1c is entered with `this` pointing at the ObjectBase subobject.
-void REB_THISCALL AppendRecordName(ObjectBase* source, String* out, int kind) {
+void AppendRecordName(ObjectBase* source, String* out, int kind) {
     static_cast<DatRecord*>(source)->DatRecord::WriteName(out, kind);
 }
 
@@ -133,7 +131,7 @@ int DatRecord::ParseFields(istream* in, int* endOfLine) {
 
 SdRecord::SdRecord() : m_field40(0), m_field44(0), m_field48(0), m_field4c(0), m_field50(0), m_field54(0) {}
 
-SdRecord::~SdRecord() { REB_KEEP_VPTR_STORE(); }
+SdRecord::~SdRecord() {  }
 
 uint32_t SdRecord::GetField48() const { return m_field48; }
 
@@ -218,7 +216,7 @@ strstream* ReadCsvField(istream* in, strstream* token, int* endOfLine) {
     iostream_access::Lock(tokenIos);
     const int lockCount = tokenIos->m_lockCount;
     tokenIos->m_state = 0;
-    if (lockCount < 0) mtx_unlock(tokenIos->m_lock);
+    if (lockCount < 0) mtx_unlock(&tokenIos->m_lock);
     ostream_seekp_pos(iostream_access::AsOstream(token), 0);
     istream_seekg_pos(iostream_access::AsIstream(token), 0);
 

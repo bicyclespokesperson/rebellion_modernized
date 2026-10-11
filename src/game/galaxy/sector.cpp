@@ -1,13 +1,12 @@
 #include "galaxy/sector.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "data/sd_records.h"
 #include "gameobj/object_family.h"
 
 Sector::Sector() : GameObj() { SetFlag31(GetFlag31()); }
 
-Sector::~Sector() { REB_KEEP_VPTR_STORE(); }
+Sector::~Sector() {  }
 
 uint32_t Sector::GetFamily() { return family::kSector; }
 
@@ -57,4 +56,4 @@ void Sector::GetPosition(uint32_t* out) {
 SectorIterator::SectorIterator(GameObjNotifier* parent, uint32_t stateFilter)
     : ChildIterator(parent, &family::kSectors, stateFilter) {}
 
-SectorIterator::~SectorIterator() { REB_KEEP_VPTR_STORE(); }
+SectorIterator::~SectorIterator() {  }

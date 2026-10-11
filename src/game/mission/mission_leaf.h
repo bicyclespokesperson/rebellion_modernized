@@ -1,10 +1,8 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "character/role.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "galaxy/mission_decl.h"
 #include "galaxy/system.h"
 #include "gameobj/object_family.h"
@@ -66,8 +64,8 @@ inline int CheckOrderAgainstKinds(BuildFn build, EventKindSet* kinds, int orderK
 
 // Slot 160 body shared by Subdue, Rescue, Recruit, Pickup, Jedi Training and Incite (0x576700): a mission that is
 // still in TaskStatus 0 starts (TaskStatus 2).
-int REB_THISCALL MissionStartIfIdle(Mission* mission, NotifyContext* ctx);
+int MissionStartIfIdle(Mission* mission, NotifyContext* ctx);
 
 // Slot 160 body shared by Sabotage and DS Sabotage (0x5746e0): start when idle; once the task has succeeded the object the
 // mission started from is destroyed (reason 6).
-int REB_THISCALL MissionDestroyOriginOnSuccess(Mission* mission, NotifyContext* ctx);
+int MissionDestroyOriginOnSuccess(Mission* mission, NotifyContext* ctx);

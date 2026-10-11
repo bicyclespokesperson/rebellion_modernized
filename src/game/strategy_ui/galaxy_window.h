@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "core/containers.h"
@@ -106,7 +105,7 @@ public:
                  int restoring);  // 0x421c70
     virtual ~GalaxyWindow();      // 0x422270 (scalar deleting destructor 0x422250)
 
-    virtual LRESULT REB_STDCALL WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x422ce0
+    virtual LRESULT WindowProc(UINT message, WPARAM wParam, LPARAM lParam) override;  // slot 5, 0x422ce0
     // Issues command `a` with no selection (game_ui_facade 0x41cdf0).
     virtual void Virtual08(int a, int b, int c) override;  // slot 8, 0x4414a0
     // Advances the droid animations (the idle slot).
@@ -176,7 +175,7 @@ public:
     // ---- strategy_window_ext (0x440ea0-0x441a60) ----
     HWND LastChildWindow();                             // 0x440f20: the bottom of the z-order
     CoolWindow* FindChildByHwnd(HWND hwnd);             // 0x440f50
-    static void REB_STDCALL SaveChildWindow(ostream* out, CoolWindow* window);  // 0x4410a0
+    static void SaveChildWindow(ostream* out, CoolWindow* window);  // 0x4410a0
     CoolWindow* LoadChildWindow(istream* in);           // 0x441120
     // Creates the child window `state` describes (sector/system/fleet... windows).
     CoolWindow* OpenChildWindow(istream* in, ChildWindowState* state);  // 0x441190

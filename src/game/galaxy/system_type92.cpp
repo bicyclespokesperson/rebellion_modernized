@@ -1,7 +1,6 @@
 #include "galaxy/system_type92.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "economy/production_facility_types.h"
 #include "galaxy/system_rules_1e.h"
 #include "gameobj/game_hooks.h"
@@ -19,7 +18,7 @@ constexpr int kStartingLoyalty = 100;
 
 SystemType92::SystemType92() {}
 
-SystemType92::~SystemType92() { REB_KEEP_VPTR_STORE(); }
+SystemType92::~SystemType92() {  }
 
 uint32_t SystemType92::GetFamily() { return kFamilySystemType92; }
 

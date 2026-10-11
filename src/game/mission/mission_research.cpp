@@ -77,7 +77,7 @@ MissionResearch::MissionResearch() {
     m_rdOrders = 0;
 }
 
-MissionResearch::~MissionResearch() { REB_KEEP_VPTR_STORE(); }
+MissionResearch::~MissionResearch() {  }
 
 int MissionResearch::Read(istream* in) {
     const int result = this->Mission::ReadImpl(in);

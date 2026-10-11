@@ -2,7 +2,6 @@
 
 #include "ai/ai_common.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "economy/side.h"
 #include "fleet/fleet.h"
 #include "gameobj/game_obj.h"
@@ -65,7 +64,7 @@ AdvisorTaskBase::AdvisorTaskBase(int id, int view) : AiTaskNode(id) {
 
 AdvisorTaskBase::~AdvisorTaskBase() {
     m_analysis = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AdvisorTaskBase::Read(istream* in) {
@@ -99,7 +98,7 @@ AdvisorTask20::AdvisorTask20(int view) : AdvisorTaskBase(0x14, view), m_selector
     m_state = 0;
 }
 
-AdvisorTask20::~AdvisorTask20() { REB_KEEP_VPTR_STORE(); }
+AdvisorTask20::~AdvisorTask20() {  }
 
 void AdvisorTask20::Read(istream* in) {
     AdvisorTaskBase::Read(in);
@@ -250,7 +249,7 @@ AdvisorTask21::AdvisorTask21(int view) : AdvisorTaskBase(0x15, view), m_selector
     m_state = 0;
 }
 
-AdvisorTask21::~AdvisorTask21() { REB_KEEP_VPTR_STORE(); }
+AdvisorTask21::~AdvisorTask21() {  }
 
 void AdvisorTask21::Read(istream* in) {
     AdvisorTaskBase::Read(in);
@@ -447,7 +446,7 @@ AdvisorTask23::AdvisorTask23(int view) : AdvisorTaskBase(0x17, view), m_selector
 
 AdvisorTask23::~AdvisorTask23() {
     m_advisor = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AdvisorTask23::Read(istream* in) {
@@ -691,7 +690,7 @@ AdvisorTaskManager::~AdvisorTaskManager() {
     m_current = nullptr;
     m_cursor = nullptr;
     m_last = nullptr;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 void AdvisorTaskManager::Save(ostream* out) {
@@ -806,7 +805,7 @@ AdvisorTaskBase* AdvisorTaskManager::PickBest() {
 
 AdvisorEntryTree::AdvisorEntryTree() : IdAvlTree() {}
 
-AdvisorEntryTree::~AdvisorEntryTree() { REB_KEEP_VPTR_STORE(); }
+AdvisorEntryTree::~AdvisorEntryTree() {  }
 
 void AdvisorEntryTree::Save(ostream* out) {
     uint32_t count = static_cast<uint16_t>(Count());

@@ -45,7 +45,7 @@ public:
     int m_textOffsetY;           // +0x34
     int m_fontSlot;              // +0x38 0: the list's font
     PersistentInt m_state;       // +0x3c CoolListItemState
-    RECT m_rect;                 // +0x40 not initialised by the constructor
+    RECT m_rect;                 // +0x40 list-space item bounds, initially empty
     UINT m_textFormat;           // +0x50 DrawText format, 0: the list's
     // +0x54 also a sort key of the drag list. A row that owns an object keeps the pointer in the same slot; the pointer
     // view is pointer-sized, the value view stays 32 bits wide.

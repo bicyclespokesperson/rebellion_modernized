@@ -1,14 +1,12 @@
 // MultiPlayerWindow, part 1: construction, the window procedure, the command handler and the creation of the pages'
 // texts and controls. The pages and the network handling are in multiplayer_window_pages.cpp and
 // multiplayer_lobby.cpp.
-#include "core/reb_abi.h"
 #include "multiplayer/multiplayer_window.h"
 
 #include "app/app_control_cmds.h"
 #include "app/rebapp_globals.h"
 #include "core/checked_new.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "multiplayer/comm_mgr.h"
 #include "tactical/comm2.h"
@@ -110,7 +108,6 @@ void DrawSetupPage(MultiPlayerWindow* window) {
 
 // ---- construction -----------------------------------------------------------------------------------------------
 
-void LobbyStaticInit() { g_lobbyProviderItemWidth = 0x15f; }  // 0x40ec40
 
 MultiPlayerWindow::MultiPlayerWindow(HINSTANCE instance, int x, int y, int width, int height, CoolWindow* parent,
                                      uint32_t stringSlot, uint32_t bitmapSlot, uint32_t backgroundId, uint32_t childId,
@@ -171,12 +168,12 @@ MultiPlayerWindow::~MultiPlayerWindow() {
     }
     delete m_selectedProvider;
     delete m_selectedSession;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 // ---- window procedure and commands ------------------------------------------------------------------------------
 
-LRESULT REB_STDCALL MultiPlayerWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT MultiPlayerWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     LRESULT result = 0;
     if (m_ready == 1) {
         ProcessNetwork();
@@ -390,4 +387,4 @@ void MultiPlayerWindow::OnCreate2() {
 const RECT g_rectProviderList = {144, 125, 500, 222};
 const RECT g_rectSideAClick = {178, 205, 286, 231};
 const RECT g_rectSideBClick = {354, 205, 462, 231};
-uint32_t g_lobbyProviderItemWidth{};
+uint32_t g_lobbyProviderItemWidth{0x15f};

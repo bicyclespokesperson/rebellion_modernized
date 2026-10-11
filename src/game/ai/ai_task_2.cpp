@@ -4,7 +4,6 @@
 #include "ai/ai_task_types.h"
 #include "ai/ai_task_util.h"
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "economy/manufacturing_facility.h"
 #include "galaxy/system.h"
 #include "gameobj/object_lookup.h"
@@ -40,7 +39,7 @@ AiTask2::AiTask2(int view)
     m_x24 = 3;
 }
 
-AiTask2::~AiTask2() { REB_KEEP_VPTR_STORE(); }
+AiTask2::~AiTask2() {  }
 
 FamilyFields AiTask2::Fields() {
     return {m_owner, m_view, m_x24, &m_selector, &m_targets, &m_dropped, &m_system, &m_manager, &m_classKey, &m_count, &m_cap, &m_limit};

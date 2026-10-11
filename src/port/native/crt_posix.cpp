@@ -15,7 +15,7 @@
 
 #include <string>
 
-#include "core/reb_abi.h"
+#include "core/runtime_environment.h"
 #include <time.h>
 
 #include "port/minwin_impl/res/path.h"
@@ -56,20 +56,16 @@ int _chdir(const char* path) { return chdir(mw::res::ResolvePath(path).c_str());
 int _mkdir(const char* path) { return mkdir(mw::res::ResolvePath(path).c_str(), 0755); }
 int _chdrive(int) { return 0; }
 
-long reb_time(long* result) {
-    const long value = native_clock::Deterministic() ? 946728000L : static_cast<long>(time(nullptr));
-    if (result) *result = value;
-    return value;
-}
-
-FILE* reb_fopen(const char* name, const char* mode) { return fopen(mw::res::ResolvePath(name).c_str(), mode); }
-
 int _isprint(int c) { return isprint(c); }
 int _isspace(int c) { return isspace(c); }
 int _ispunct(int c) { return ispunct(c); }
 
 }  // extern "C"
 
-int icf_return_zero() { return 0; }  // 0x6158b0, also strstreambuf::sync and _matherr
+int64_t GameSeedSeconds() {
+    return native_clock::Deterministic() ? 946728000 : static_cast<int64_t>(time(nullptr));
+}
 
-void FUN_00619730() {}  // 0x619730 icf_empty_function: the linker folded every empty no-argument function into it
+FILE* OpenGameFile(const char* name, const char* mode) {
+    return fopen(mw::res::ResolvePath(name).c_str(), mode);
+}

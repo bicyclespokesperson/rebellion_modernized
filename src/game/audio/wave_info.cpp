@@ -3,7 +3,6 @@
 #include <cstring>
 
 #include "audio/stream_access.h"
-#include "core/vptr_store.h"
 
 using namespace stream_access;
 
@@ -35,7 +34,7 @@ struct TagBuffer {
 
 WaveInfo::WaveInfo() { Reset(); }
 
-WaveInfo::~WaveInfo() { REB_KEEP_VPTR_STORE(); }
+WaveInfo::~WaveInfo() {  }
 
 void WaveInfo::Reset() {
     m_format.wFormatTag = 0;

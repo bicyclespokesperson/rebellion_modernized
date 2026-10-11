@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include "mission/mission.h"
 
 class MissionCheckArgs;
@@ -49,8 +48,8 @@ public:
     int ApplyAllBody(NotifyContext* ctx);              // 0x592c70
 
     // The pair of callbacks GetCheckFunctions reports: locate the person's location object, and the target check.
-    static int REB_CDECL CheckMember(int side, GameObj* person, GameObj** out, StatusCode* status);  // 0x592aa0
-    static int REB_CDECL CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);          // 0x592600
+    static int CheckMember(int side, GameObj* person, GameObj** out, StatusCode* status);  // 0x592aa0
+    static int CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);          // 0x592600
     static int InitEventKinds(int unused, EventKindSet* out);                                      // 0x593300
     static int BuildEventKinds();  // 0x5932d0
 };
@@ -66,7 +65,7 @@ public:
 
     static int BuildEventKinds();  // 0x586ad0
     static int InitEventKinds(int unused, EventKindSet* out);  // 0x586b00
-    static int REB_CDECL CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x5868c0
+    static int CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x5868c0
     int GetObjectiveSystem(GameObj** out);  // 0x586720
 };
 
@@ -81,7 +80,7 @@ public:
 
     static int BuildEventKinds();  // 0x587060
     static int InitEventKinds(int unused, EventKindSet* out);  // 0x587090
-    static int REB_CDECL CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x586e20
+    static int CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x586e20
     int GetObjectiveCharacter(GameObj** out);  // 0x586c80
 };
 
@@ -96,7 +95,7 @@ public:
 
     static int BuildEventKinds();  // 0x593690
     static int InitEventKinds(int unused, EventKindSet* out);  // 0x5936c0
-    static int REB_CDECL CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x593500
+    static int CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x593500
 };
 
 class MissionStoryBase : public MissionRuleBase {
@@ -111,7 +110,7 @@ public:
 
     static int BuildEventKinds();  // 0x594480
     static int InitEventKinds(int unused, EventKindSet* out);  // 0x5944b0
-    static int REB_CDECL CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x594320
+    static int CheckTarget(MissionCheckArgs* args, StatusCode* status, int* code);  // 0x594320
 };
 
 // Iterator over the mission families 0x50-0x60 of a parent (VT 0x66a550, ctor 0x586b70, destructor 0x586c10, deleting 0x586bf0).

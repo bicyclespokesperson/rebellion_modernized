@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "video/movie_window.h"
 
 #include <cstring>
@@ -7,7 +6,6 @@
 #include "core/checked_new.h"
 #include "core/iostream_lib.h"
 #include "core/registry.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 #include "ui/cool_app.h"
 #include "ui/text_scroll_field.h"
@@ -17,7 +15,7 @@ extern const char *g_registryKeyPath;  // 0x6a81fc
 extern const char *g_musicVolumeName;  // 0x6a8584
 extern const char *g_tooBigLocationName;  // 0x6a7c74
 
-void REB_THISCALL FUN_0059b100(CoolWindow* window, LPARAM drawItem);  // WM_DRAWITEM of the movie window's text field art
+void FUN_0059b100(CoolWindow* window, LPARAM drawItem);  // WM_DRAWITEM of the movie window's text field art
 
 extern const char *g_movieFile000;  // 0x6a8460
 extern const char *g_movieFile001;  // 0x6a8698
@@ -99,7 +97,7 @@ char* BuildMoviePath(MovieWindow* window) {
 }
 }  // namespace
 
-MovieWindow::MovieWindow(int movieId, void (REB_CDECL* callback)(uint32_t, uint32_t, int), HINSTANCE instance, int x, int y,
+MovieWindow::MovieWindow(int movieId, void (* callback)(uint32_t, uint32_t, int), HINSTANCE instance, int x, int y,
                          int width, int height, CoolWindow* parent, const String* caption)
     : CoolWindow(instance, "MOVIE_WINDOW", WS_CHILD, x, y, width, height, parent, nullptr,
                  static_cast<HBRUSH>(GetStockObject(kBlackBrush)), nullptr, nullptr, nullptr, 0, 0) {
@@ -114,7 +112,7 @@ MovieWindow::MovieWindow(int movieId, void (REB_CDECL* callback)(uint32_t, uint3
 }
 
 MovieWindow::~MovieWindow() {
-    REB_KEEP_VPTR_STORE();
+
     if (m_path) ::operator delete(m_path);
     StopMovie();
     if (m_captionBackdrop) {
@@ -206,7 +204,7 @@ void MovieWindow::OnCreate() {
     SetMovieVolume(-volume);
 }
 
-LRESULT REB_STDCALL MovieWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT MovieWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND window = m_hwnd;
     LRESULT result = 0;
     UINT notify = 0;

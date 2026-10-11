@@ -13,6 +13,7 @@
 #include "core/registry.h"
 #include "events/game_clock_hooks.h"
 #include "strategy_ui/game_options_window.h"
+#include "strategy_ui/galaxy_window.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "tactical/comm2.h"
 #include "ui/cool_app.h"
@@ -34,7 +35,7 @@ constexpr int kSpeedAckText = 0x1206;
 
 HCURSOR ShowWaitCursor() { return SetCursor(LoadCursorA(nullptr, MAKEINTRESOURCEA(0x7f02))); }
 
-void ClearStreamState(void* stream) {
+void ClearStreamState(strstream* stream) {
     ios* state = iostream_access::IosOf(stream);
     iostream_access::Lock(state);
     state->m_state = 0;
@@ -80,8 +81,8 @@ void DestroyAllScreensForLoad(RebellionApplication* app) {
 // ---- Window state saved with the game ------------------------------------------------------------------------
 
 int RebellionApplication::SaveStrategicState(void* stream) {
-    StrategicWindow* window = static_cast<StrategicWindow*>(m_strategicWindow);
-    if (window) window->Virtual0F(stream);
+    GalaxyWindow* window = m_strategicWindow;
+    if (window) window->SaveState(static_cast<ostream*>(stream));
     return window != nullptr;
 }
 
@@ -91,26 +92,36 @@ int RebellionApplication::LoadStrategicState(void* stream) {
     m_pauseRequested = 0;
     m_peersReady = 0;
     SetState(kStateStrategic);
-    StrategicWindow* window = static_cast<StrategicWindow*>(m_strategicWindow);
+    GalaxyWindow* window = m_strategicWindow;
     if (window) {
-        window->Virtual10(stream);
+        window->LoadState(static_cast<istream*>(stream));
         UiAckSync(m_side);
     }
     return window != nullptr;
 }
 
 int RebellionApplication::SaveTacticalState(void* stream) {
+#ifdef REB_NO_TACTICAL_3D
+    (void)stream;
+    return 0;
+#else
     TacticalWindow* window = static_cast<TacticalWindow*>(m_tacticalWindow);
     if (window) FUN_0059cb60(window, stream);
     return window != nullptr;
+#endif
 }
 
 int RebellionApplication::LoadTacticalState(void* stream) {
     DestroyAllScreensForLoad(this);
     SetState(kStateTactical);
+#ifdef REB_NO_TACTICAL_3D
+    (void)stream;
+    return 0;
+#else
     TacticalWindow* window = static_cast<TacticalWindow*>(m_tacticalWindow);
     if (window) FUN_0059cb80(window, stream);
     return window != nullptr;
+#endif
 }
 
 // ---- Save file names and headers --------------------------------------------------------------------------------
@@ -145,7 +156,7 @@ SavedGameInfo RebellionApplication::ReadSaveHeader(int slot, int isNetworkGame) 
     String fileName = MakeSaveFileName(slot, isNetworkGame);
     ScopedIfstream file;
     OpenInputFile(file.get(), fileName.m_text);
-    if (GetFileError() == 0) info.Read(reinterpret_cast<istream*>(file.get()));
+    if (GetFileError() == 0) info.Read(file.get()->In());
     CloseFileStream(file.get());
     return SavedGameInfo(info);
 }
@@ -175,7 +186,7 @@ int RebellionApplication::LoadPendingGame() {
     if (GetFileError() == 0) {
         HCURSOR previousCursor = ShowWaitCursor();
         SavedGameInfo info;
-        info.Read(reinterpret_cast<istream*>(file.get()));
+        info.Read(file.get()->In());
         m_unknown130 = info.m_unknown10;
         m_side = info.m_side;
         m_unknown134 = info.m_unknown14;
@@ -220,7 +231,7 @@ int RebellionApplication::SavePendingGame() {
         info.SetName(name);
         info.m_side = m_side;
         info.m_unknown24 = m_autosaveTick;
-        info.Write(reinterpret_cast<ostream*>(file.get()));
+        info.Write(file.get()->Out());
         AppSaveGame(file.get());
         saved = 1;
         SetCursor(previousCursor);
@@ -251,16 +262,16 @@ int RebellionApplication::IsSessionActive() {
 
 void RebellionApplication::SendSaveCommand(int a, int b, String name, int d) {
     void* commandMemory = operator new(sizeof(MpPlayerInfoMsg));
-    AppCommand* command = commandMemory ? reinterpret_cast<AppCommand*>(new (commandMemory) MpPlayerInfoMsg()) : nullptr;
+    MpPlayerInfoMsg* command = commandMemory ? new (commandMemory) MpPlayerInfoMsg() : nullptr;
     if (!command) return;
-    command->m_unknown24 = b;
-    command->m_unknown20 = a;
-    command->SetName(name);
-    command->m_unknown34 = d;
+    command->m_playerId = b;
+    command->m_action = a;
+    command->m_playerName.Assign(name);
+    command->m_extra = d;
     void* executorMemory = operator new(sizeof(MessageCodec));
     CommandExecutor* executor = executorMemory ? static_cast<CommandExecutor*>(new (executorMemory) MessageCodec()) : nullptr;
     if (!executor) return;
-    static_cast<MessageCodec*>(executor)->MessageCodec::Serialize(reinterpret_cast<MessageBase*>(command));
+    static_cast<MessageCodec*>(executor)->MessageCodec::Serialize(command);
     if (executor->m_valid) {
         CommSendMessage(executor->m_buffer, executor->m_size, 4, 1);
         CommFlushAll();
@@ -268,8 +279,6 @@ void RebellionApplication::SendSaveCommand(int a, int b, String name, int d) {
     delete executor;
     delete command;
 }
-
-void AppCommand::SetName(String name) { m_name.Assign(name); }
 
 // ---- Pause, speed and notices ----------------------------------------------------------------------------------
 
@@ -291,7 +300,7 @@ void RebellionApplication::OnDialogEndedEnableSpeed() {
     if (m_gameType == 2) {
         if (m_state != kStateStrategic) return;
         UiAckSync(UiGetHumanSide());
-        if (static_cast<StrategicWindow*>(m_strategicWindow)->m_unknownAc != 0) return;
+        if (m_strategicWindow->m_unknownAc != 0) return;
         if ((UiAreAllSynced() == 0 && UiIsPauseTick() != 0) || UiGetHold() != 0)
             AppShowAckDialog(0, kSpeedAckText, 500, 0x50);
     } else if (m_gameType == 1) {
@@ -312,7 +321,9 @@ BOOL RebellionApplication::ShowHelp() {
     // BUG(original): the heap copy of the location is never freed.
     if (dllLocation) ostream_operator_ls_cstr(ostream_operator_ls_cstr(out, dllLocation), kBackslash);
     ostream_operator_ls_char(ostream_operator_ls_cstr(out, kHelpFile), 0);
-    return WinHelpA(m_hwnd, strstreambuf_str(iostream_access::BufferOf(path.get())), HELP_FINDER, 0);
+    const BOOL shown = WinHelpA(m_hwnd, strstreambuf_str(iostream_access::BufferOf(path.get())), HELP_FINDER, 0);
+    strstreambuf_freeze(iostream_access::BufferOf(path.get()), 0);
+    return shown;
 }
 
 void RebellionApplication::SetVolume(int volume) {
@@ -369,41 +380,16 @@ StringMap* RebellionApplication::CopyNetworkSettings(StringMap* out) {
 
 // ---- Static initialisers (constants no other function reads) ----------------------------------------------------
 
-extern uint32_t g_unknown6b145c;
-extern uint32_t g_unknown6b1464;
 
-void StaticInitUnknown6b145c() { g_unknown6b145c = 0x41100000; }
-
-void StaticInitUnknown6b1464() { g_unknown6b1464 = 0x15f; }
-
-BattleFlow * g_battleFlow{};
-CdAudio g_cdAudio{};
-CommLobbyHandle * g_commLobbyHandle{};
 CommMgr * g_commMgr{};
 CoolApp * g_app{};
 GUID g_commSessionGuid{};
 GUID g_lobbySessionGuid{};
-GameStepDriver * g_gameStepDriver{};
-HWND g_soundWindow{};
-IDirectDraw * g_directDraw{};
-IDirectDraw2 * g_directDraw2{};
-IDirectSound * g_directSound{};
-IDirectSound3DListener * g_listener{};
-IDirectSoundBuffer * g_primaryBuffer{};
 LobbyConnection g_lobbyConnection{};
-NodeQueue g_soundEventQueue{};
-PersistentInt g_musicFlags = PersistentInt(0);
 ServiceProviderList g_serviceProviderList{};
 SessionList g_sessionList{};
-SmackSound g_smackSound{};
-SoundCatalogList g_soundCatalog{};
-SoundEventCallback g_soundEventCallback{};
-SoundRequest g_musicRequest = SoundRequest(1, 0, 0, 0, 0, 0);
-SoundSourceList g_soundSources{};
-String g_musicDirectory{};
 StringMap g_commSettings{};
 UINT g_timerPeriod = 10;
-WAVEFORMATEX g_primaryFormat{};
 char g_classNameBuffer[256]{};
 const GUID * g_commProviderGuid{};
 const char * g_autosaveName{};
@@ -413,11 +399,8 @@ const char *g_localMachineRootName = nullptr;
 const char *g_musicFileNames[16]{};
 int g_commEnumerating{};
 int g_commSessionFlags{};
-int g_musicSwitchOn = 1;
-int g_soundUseCount{};
-int g_soundVolume{};
 int g_timerPeriodActive{};
 uint32_t g_commMaxPlayers = 16;
 uint32_t g_commPacketCounter{};
-uint32_t g_unknown6b145c{};
-uint32_t g_unknown6b1464{};
+uint32_t g_unknown6b145c{0x41100000};
+uint32_t g_unknown6b1464{0x15f};

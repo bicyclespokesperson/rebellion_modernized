@@ -3,7 +3,6 @@
 #include "ai/ai_task_types.h"
 
 #include "core/game_string.h"
-#include "core/vptr_store.h"
 #include "events/game_clock_hooks.h"
 #include "gameobj/status_code.h"
 #include "orders/order_base.h"
@@ -41,7 +40,7 @@ AiPlayer::AiPlayer(int side) : PlayerController(side), m_notices(), m_tasks(), m
     m_ordersPerBudget = 0;
 }
 
-AiPlayer::~AiPlayer() { REB_KEEP_VPTR_STORE(); }
+AiPlayer::~AiPlayer() {  }
 
 void AiPlayer::Read(istream* in) {
     uint32_t currentId = 0;
@@ -162,12 +161,11 @@ void AiPlayer::Virtual19(int id, ObjectKey* key) {
     ClearGameTime(&m_voteTime);
 }
 
-void AiPlayer::Virtual20(PlayerNotice* notice) {
-    AiNotice* note = reinterpret_cast<AiNotice*>(notice);
-    if (!note) return;
-    note->Virtual06(this);
-    if (note->m_groupId != 0) note->Virtual07(0);
-    m_notices.Add(note);
+void AiPlayer::Virtual20(NotifPayload* notice) {
+    if (!notice) return;
+    notice->Dispatch(this);
+    if (notice->m_value0c != 0) notice->DispatchToSink(nullptr);
+    m_notices.Add(notice);
 }
 
 void AiPlayer::Virtual21() {

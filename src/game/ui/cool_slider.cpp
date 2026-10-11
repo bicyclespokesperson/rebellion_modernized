@@ -1,8 +1,6 @@
-#include "core/reb_abi.h"
 #include "ui/cool_slider.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 
 namespace {
@@ -71,7 +69,7 @@ CoolSlider::~CoolSlider() {
     if (m_track) delete m_track;
     if (m_knob) delete m_knob;
     if (m_buffer) delete m_buffer;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 int CoolSlider::IsCursorOverTrack() {
@@ -142,7 +140,7 @@ void CoolSlider::Draw(HDC dc) {
     }
 }
 
-LRESULT REB_STDCALL CoolSlider::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
+LRESULT CoolSlider::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
     HWND hwnd = m_hwnd;
     if (message < WM_PAINT + 1 && message != WM_PAINT) {
         if (message != WM_CREATE) return CoolWindow::WindowProc(message, wParam, lParam);

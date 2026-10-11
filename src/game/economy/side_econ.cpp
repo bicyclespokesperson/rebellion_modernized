@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "core/checked_new.h"
 #include "data/dat_record.h"
 #include "economy/manu_mgr.h"
@@ -52,7 +51,7 @@ void subtractPair(IntPair* from, const IntPair& other) {
 
 // ---- facility helpers ---------------------------------------------------------------------------------------
 
-int REB_STDCALL MarkFacilityWaiting(ProductionFacility* facility, NotifyContext* ctx) {
+int MarkFacilityWaiting(ProductionFacility* facility, NotifyContext* ctx) {
     int result = 1;
     if ((facility->m_procFlags & kProcFacilWaitingFlag) == 0) result = facility->SetPointPresent(1, ctx);
     return result;

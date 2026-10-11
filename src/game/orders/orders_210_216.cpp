@@ -3,7 +3,6 @@
 #include <cstddef>
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "data/dat_record.h"
 #include "data/game_math.h"
 #include "economy/manu_mgr.h"
@@ -84,7 +83,7 @@ bool isCapitalShip(GameObjNotifier* object) { return inFamilies(object->GetFamil
 
 DestinationOrder::DestinationOrder() : OrderBase() {}
 
-DestinationOrder::~DestinationOrder() { REB_KEEP_VPTR_STORE(); }
+DestinationOrder::~DestinationOrder() {  }
 
 int DestinationOrder::GetKind() { return 0x214; }
 
@@ -199,7 +198,7 @@ int DestinationOrder::CheckDestination(StatusCode* status) {
 
 RenameOrder215::RenameOrder215() : TextMessage() {}
 
-RenameOrder215::~RenameOrder215() { REB_KEEP_VPTR_STORE(); }
+RenameOrder215::~RenameOrder215() {  }
 
 int RenameOrder215::GetKind() { return 0x215; }
 
@@ -240,7 +239,7 @@ ManufactureOrderBase::ManufactureOrderBase() : OrderBase() {
     m_count = 0;
 }
 
-ManufactureOrderBase::~ManufactureOrderBase() { REB_KEEP_VPTR_STORE(); }
+ManufactureOrderBase::~ManufactureOrderBase() {  }
 
 int ManufactureOrderBase::Read(istream* in) {
     int result = OrderBase::Read(in);
@@ -460,17 +459,17 @@ int ManufactureOrderBase::CheckDestination(StatusCode* status) {
 // ---- ManufactureOrder210/211/212 --------------------------------------------------------------------------------
 
 ManufactureOrder210::ManufactureOrder210() : ManufactureOrderBase() {}
-ManufactureOrder210::~ManufactureOrder210() { REB_KEEP_VPTR_STORE(); }
+ManufactureOrder210::~ManufactureOrder210() {  }
 int ManufactureOrder210::GetKind() { return 0x210; }
 void* CreateManufactureOrder210() { return NewOrNull<ManufactureOrder210>(); }
 
 ManufactureOrder211::ManufactureOrder211() : ManufactureOrderBase() {}
-ManufactureOrder211::~ManufactureOrder211() { REB_KEEP_VPTR_STORE(); }
+ManufactureOrder211::~ManufactureOrder211() {  }
 int ManufactureOrder211::GetKind() { return 0x211; }
 void* CreateManufactureOrder211() { return NewOrNull<ManufactureOrder211>(); }
 
 ManufactureOrder212::ManufactureOrder212() : ManufactureOrderBase() {}
-ManufactureOrder212::~ManufactureOrder212() { REB_KEEP_VPTR_STORE(); }
+ManufactureOrder212::~ManufactureOrder212() {  }
 int ManufactureOrder212::GetKind() { return 0x212; }
 void* CreateManufactureOrder212() { return NewOrNull<ManufactureOrder212>(); }
 
@@ -478,7 +477,7 @@ void* CreateManufactureOrder212() { return NewOrNull<ManufactureOrder212>(); }
 
 Order213::Order213() : OrderBase() {}
 
-Order213::~Order213() { REB_KEEP_VPTR_STORE(); }
+Order213::~Order213() {  }
 
 int Order213::GetKind() { return 0x213; }
 
@@ -493,7 +492,7 @@ void* CreateOrder213() { return NewOrNull<Order213>(); }
 
 Order216::Order216() : OrderBase() {}
 
-Order216::~Order216() { REB_KEEP_VPTR_STORE(); }
+Order216::~Order216() {  }
 
 int Order216::GetKind() { return 0x216; }
 

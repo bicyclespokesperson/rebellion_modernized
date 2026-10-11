@@ -1,6 +1,5 @@
 #include "ai/ai_planner_util.h"
 #include "ai/ai_planners.h"
-#include "core/vptr_store.h"
 
 using namespace ai_planner;
 using ai::IsSectorKey;
@@ -35,7 +34,7 @@ AiRescuePlanner::AiRescuePlanner(int view, AiSideController* owner, AiCharacterR
     m_missionKey = ObjectKey::Make(0x61, 0x11);
 }
 
-AiRescuePlanner::~AiRescuePlanner() { REB_KEEP_VPTR_STORE(); }
+AiRescuePlanner::~AiRescuePlanner() {  }
 
 int AiRescuePlanner::Virtual06() { return SumLeaderValue(this, 5); }
 
@@ -54,7 +53,7 @@ AiMission62Planner::AiMission62Planner(int view, AiSideController* owner, AiChar
     m_missionKey = ObjectKey::Make(0x62, 0x17);
 }
 
-AiMission62Planner::~AiMission62Planner() { REB_KEEP_VPTR_STORE(); }
+AiMission62Planner::~AiMission62Planner() {  }
 
 int AiMission62Planner::Virtual06() { return SumLeaderValue(this, 5); }
 
@@ -73,7 +72,7 @@ AiDiplomacyPlanner::AiDiplomacyPlanner(int view, AiSideController* owner, AiChar
     m_missionKey = ObjectKey::Make(0x51, 0x10);
 }
 
-AiDiplomacyPlanner::~AiDiplomacyPlanner() { REB_KEEP_VPTR_STORE(); }
+AiDiplomacyPlanner::~AiDiplomacyPlanner() {  }
 
 int AiDiplomacyPlanner::Virtual06() { return SumLeaderValue(this, 0); }
 
@@ -190,7 +189,7 @@ AiMission54State5Planner::AiMission54State5Planner(int view, AiSideController* o
     m_missionKey = ObjectKey::Make(0x54, 0x15);
 }
 
-AiMission54State5Planner::~AiMission54State5Planner() { REB_KEEP_VPTR_STORE(); }
+AiMission54State5Planner::~AiMission54State5Planner() {  }
 
 void AiMission54State5Planner::Read(istream* in) {
     AiFreePlanner::Read(in);
@@ -280,7 +279,7 @@ AiEspionageState6Planner::AiEspionageState6Planner(int view, AiSideController* o
     m_missionKey = ObjectKey::Make(0x52, 0x13);
 }
 
-AiEspionageState6Planner::~AiEspionageState6Planner() { REB_KEEP_VPTR_STORE(); }
+AiEspionageState6Planner::~AiEspionageState6Planner() {  }
 
 void AiEspionageState6Planner::Read(istream* in) {
     AiFreePlanner::Read(in);

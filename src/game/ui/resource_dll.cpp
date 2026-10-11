@@ -1,8 +1,8 @@
 #include "ui/resource_dll.h"
+#include "ui/cool_app.h"
 
 #include <cstring>
 
-#include "core/vptr_store.h"
 
 ResourceDll::ResourceDll(const char* libraryName) {
     m_module = LoadLibraryA(libraryName);
@@ -11,12 +11,12 @@ ResourceDll::ResourceDll(const char* libraryName) {
 
 ResourceDll::~ResourceDll() {
     if (m_module) FreeLibrary(m_module);
-    REB_KEEP_VPTR_STORE();
+
 }
 
 ResourceDllList::ResourceDllList() {}
 
-ResourceDllList::~ResourceDllList() { REB_KEEP_VPTR_STORE(); }
+ResourceDllList::~ResourceDllList() {  }
 
 void ResourceDllList::UnloadSlot(uint32_t slot) {
     for (IdLinkNode* node = DetachById(slot); node; node = DetachById(slot)) delete node;
@@ -102,4 +102,9 @@ void FontTable::CreateSlotFont(int slot) {
     m_fonts[slot] = CreateFontIndirectA(&font);
 }
 
-HFONT CoolGetFont(int slot) { return g_fontTable.GetFont(slot); }
+UiResources* CurrentUiResources() { return g_app ? &g_app->m_resources : nullptr; }
+
+HFONT CoolGetFont(int slot) {
+    auto* resources = CurrentUiResources();
+    return resources ? resources->fonts.GetFont(slot) : nullptr;
+}

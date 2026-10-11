@@ -2,6 +2,7 @@
 
 #include "gameobj/game_obj.h"
 #include "gameobj/game_root.h"
+#include "events/game_manager.h"
 
 namespace {
 
@@ -9,6 +10,11 @@ constexpr uint32_t kDestroyedFlag = 0x8;
 constexpr int kStatusCategory = 1;
 constexpr int kStatusOk = -1;
 constexpr int kStatusUnknownObject = 0x12;
+
+GameRoot* currentGameRoot() {
+    GameManager* manager = GetGameManager();
+    return manager ? manager->Root() : nullptr;
+}
 
 bool InFamilyRange(uint32_t family, uint32_t first, uint32_t last) { return family >= first && family < last; }
 
@@ -210,7 +216,8 @@ int ResolveMasterInFamilies_f9_fa(const ObjectKey* key, GameObjNotifier** out, c
 namespace {
 
 GameObjNotifier* ReadCached(GameObjNotifier* GameRoot::*member) {
-    return g_gameRoot ? g_gameRoot->*member : nullptr;
+    GameRoot* root = currentGameRoot();
+    return root ? root->*member : nullptr;
 }
 
 GameObjNotifier* GetMasterWithKey(uint32_t family, uint32_t id) {
@@ -220,7 +227,7 @@ GameObjNotifier* GetMasterWithKey(uint32_t family, uint32_t id) {
 
 }  // namespace
 
-GameObjNotifier* GetGameRootObjectCached() { return g_gameRoot; }
+GameObjNotifier* GetGameRootObjectCached() { return currentGameRoot(); }
 
 GameObjNotifier* GetGameRootMember_b0() { return ReadCached(&GameRoot::m_master_f2000003); }
 
@@ -231,8 +238,9 @@ GameObjNotifier* GetGameRootMember_bc() { return ReadCached(&GameRoot::m_master_
 GameObjNotifier* GetGameRootMember_c0() { return ReadCached(&GameRoot::m_master_fa000008); }
 
 GameObjNotifier* GetGameRootSideMember(int side) {
-    if (side < 1 || side > 2 || !g_gameRoot) return nullptr;
-    return side == 1 ? g_gameRoot->m_master_f300000f : g_gameRoot->m_master_f3000010;
+    GameRoot* root = currentGameRoot();
+    if (side < 1 || side > 2 || !root) return nullptr;
+    return side == 1 ? root->m_master_f300000f : root->m_master_f3000010;
 }
 
 GameObjNotifier* GetGameRootSideMemberThunk(int side) { return GetGameRootSideMember(side); }

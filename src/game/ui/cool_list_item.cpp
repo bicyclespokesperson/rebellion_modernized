@@ -1,7 +1,6 @@
 #include "ui/cool_list_item.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
 #include "gfx/dib_bitmap.h"
 
 namespace {
@@ -34,6 +33,7 @@ CoolListItem::CoolListItem(uint32_t id) : LinkNode(), m_text(), m_state(0) {
     m_textOffsetX = 0;
     m_textOffsetY = 0;
     m_textFormat = 0;
+    m_rect = {};
     m_fontSlot = 0;
     m_userPointer = 0;
     m_ownColors = 0;
@@ -69,7 +69,7 @@ CoolListItem::CoolListItem(const CoolListItem& other) : LinkNode(), m_text(), m_
 CoolListItem::~CoolListItem() {
     if (m_image) delete m_image;
     if (m_selectedImage) delete m_selectedImage;
-    REB_KEEP_VPTR_STORE();
+
 }
 
 // Both getters are shared with other classes' identical one-line virtuals.
