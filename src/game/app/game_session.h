@@ -21,7 +21,7 @@ class GameSession
 {
 public:
   GameSession(); // 0x435b90
-  GameSession(int opponentType, int humanSide); // 0x435bc0: humanSide 1 or 2, opponentType 1 = AI else remote
+  GameSession(int opponentType, int humanSide); // 0x435bc0: humanSide 0 = two AIs, 1 or 2 = human side
   ~GameSession();
 
   int Read(istream* in); // returns 0 if a controller kind could not be created
@@ -64,6 +64,9 @@ public:
 
   int GetHumanSide();
   int IsOpponentAI();
+  bool SwitchHumanSide();
+  // Selects controllers for a headless match after setup or load, preserving their queued base state.
+  bool UseAiControllers(int sideOneKind, int sideTwoKind);
 
   // Forwarders to the human controller (no-ops, or 0, when there is none).
   void HumanCommand(int command, void* a, void* b, const void* c);

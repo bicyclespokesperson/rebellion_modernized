@@ -251,10 +251,7 @@ public:
   int SetBlockadeAndBattlePendingManagementRequired(int on, NotifyContext* ctx); // 0x50ac10
   int ApplyLoyalty(NotifyContext* ctx); // 0x50f390
   int ApplyEnergy(NotifyContext* ctx); // 0x50f410
-  int ApplyEnergyAllocated(NotifyContext* ctx)
-  {
-    return reinterpret_cast<FightSquad*>(this)->FightSquad::ApplySquadSizeDamage(ctx);
-  } // 0x5037f0, folded with an unrelated class's function
+  int ApplyEnergyAllocated(NotifyContext* ctx);
   int ApplyRawMaterial(NotifyContext* ctx); // 0x50f490
   int ApplyRawMaterialAllocated(NotifyContext* ctx); // 0x50f510
   int ApplySmugglingPercent(NotifyContext* ctx); // 0x50f590

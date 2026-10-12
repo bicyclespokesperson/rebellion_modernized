@@ -4,6 +4,7 @@
 
 #include "character/character_mgr.h"
 #include "data/dat_record.h"
+#include "data/int_pair_node.h"
 #include "economy/manu_mgr.h"
 #include "events/event_helpers.h"
 #include "events/event_post.h"
@@ -28,28 +29,6 @@ using events::kStatusOk;
 using events::kStatusRefused;
 using events::succeeded;
 using events::succeedWithoutChecks;
-
-namespace
-{
-
-// An entry of a manufacture command's item set: the destination key at +0x18 and the item key at +0x1c.
-struct ObjectKeyNodeView
-{
-  explicit ObjectKeyNodeView(AvlNode* node) : m_node(static_cast<ObjectKeyPairNode*>(node))
-  {
-  }
-  ObjectKey* destination() const
-  {
-    return &m_node->m_key;
-  }
-  ObjectKey* unit() const
-  {
-    return &m_node->m_second;
-  }
-  ObjectKeyPairNode* m_node;
-};
-
-} // namespace
 
 MoveCommand::MoveCommand() : Command()
 {
@@ -799,18 +778,19 @@ int ManufactureCommand::CheckValid(StatusCode* status)
         for (auto position = m_items.Entries().begin();
              position != m_items.Entries().end() && (ok && succeeded(*status)); ++position)
         {
-          auto* node = (*position).get();
+          auto* node = static_cast<IntPairNode*>((*position).get());
           CapacityScratch slot;
-          ObjectKeyNodeView item(node);
+          ObjectKey unit;
+          unit.m_value = static_cast<uint32_t>(node->m_value);
           if (ok)
           {
             if (succeeded(*status))
-              ok = route.CheckFamilyArrival(item.unit(), item.destination(), status, &slot);
+              ok = route.CheckFamilyArrival(&unit, &node->m_key, status, &slot);
             if (ok && succeeded(*status))
             {
-              if (item.unit()->m_value != previous.m_value)
+              if (unit.m_value != previous.m_value)
               {
-                previous = *item.unit();
+                previous = unit;
                 count = 0;
                 if (previous.Family() >= 0x10 && previous.Family() < 0x40)
                 {

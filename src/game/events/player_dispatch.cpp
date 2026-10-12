@@ -593,7 +593,7 @@ int PlayerDispatch::ClassifyNotifications(const AiNoticeGroup* payloads)
     if (kind != 0)
       return kind;
     KeyedNotifPayload* keyed = static_cast<KeyedNotifPayload*>(node.get());
-    IntPairPayload* ints = static_cast<IntPairPayload*>(keyed);
+    IntPairPayload* ints = dynamic_cast<IntPairPayload*>(keyed);
     switch (keyed->GetKind())
     {
       case 0x100:

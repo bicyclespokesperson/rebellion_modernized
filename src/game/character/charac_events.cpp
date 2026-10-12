@@ -36,7 +36,7 @@ int Character::OnParentChanged(GameObjNotifier* oldParent, GameObjNotifier* newP
 int Character::OnCreatedChanged(int newValue, NotifyContext* ctx)
 {
   int result = Role::OnCreatedChanged(newValue, ctx);
-  MajorCharacterSD* record = nullptr;
+  SdRecordExt25* record = nullptr;
   if (result)
   {
     record = GetCharacterRecord();

@@ -338,9 +338,9 @@ int PostPayloadKeysB(uint32_t kind,
     result = CreatePayload(kind, object, ctx, &payload);
     if (result != 0 && payload != nullptr)
     {
-      auto* keys = static_cast<KeyPairPayload*>(payload);
-      keys->m_keyA = *keyA;
-      keys->m_keyB = *keyB;
+      auto* keys = static_cast<NullableKeyPairPayload*>(payload);
+      keys->m_keyA.m_value = keyA->m_value;
+      keys->m_keyB.m_value = keyB->m_value;
       CallGameHook2AD4(reinterpret_cast<HookArg>(payload));
     }
   }

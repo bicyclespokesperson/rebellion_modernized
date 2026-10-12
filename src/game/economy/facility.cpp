@@ -4,6 +4,7 @@
 
 #include "core/checked_new.h"
 #include "data/sd_record_bases.h"
+#include "data/sd_records.h"
 #include "gameobj/game_obj_iterator.h"
 #include "gameobj/object_family.h"
 
@@ -21,9 +22,9 @@ constexpr uint32_t kLocked = 0x4000;
 constexpr uint32_t kAlwaysFilter = 4;
 constexpr FamilyRange kFacilityFamilies(0x20, 0x30);
 
-SdRecordExt2* recordOf(Facility* facility)
+SdRecordExt1* recordOf(Facility* facility)
 {
-  return static_cast<SdRecordExt2*>(facility->m_record);
+  return static_cast<SdRecordExt1*>(facility->m_record);
 }
 } // namespace
 
@@ -79,7 +80,13 @@ uint32_t Facility::GetRecordField58()
 
 uint32_t Facility::GetRecordField5c()
 {
-  return m_record ? recordOf(this)->m_field5c : 0;
+  if (const auto* record = dynamic_cast<ProductionFacilitySD*>(m_record))
+    return record->m_processingRate;
+  if (const auto* record = dynamic_cast<ManufacturingFacilitySD*>(m_record))
+    return record->m_processingRate;
+  if (const auto* record = dynamic_cast<DefenseFacilitySD*>(m_record))
+    return record->m_attackStrength;
+  return 0;
 }
 
 int Facility::ApplyAllImpl(NotifyContext* ctx)

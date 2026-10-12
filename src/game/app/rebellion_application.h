@@ -95,6 +95,8 @@ public:
   void DoMainChildWindow(int previousState); // 0x414a80: front-end, lobby or options window for the current state
   void ShowStrategicWindow(int unused); // 0x414eb0
   void DestroyStrategicWindow(); // 0x4150d0
+  void RequestSwitchSides();
+  void ProcessDeveloperActions();
   void ShowTacticalWindow(); // 0x415120
   void DestroyTacticalWindow(); // 0x415300
   void DestroyAllWindows(); // 0x415350 (0x415345 is a data-table entry pointing at padding)
@@ -178,6 +180,7 @@ public:
   int m_mismatchOptions; // +0x154 registry "MismatchOpts"
   int m_unknown158; // +0x158
   int m_unknown15c; // +0x15c
+  bool m_switchSidesRequested{};
 };
 
 // ---- Application-level helpers (0x401000-0x401c70): they act on g_app, doing nothing without one -----------------

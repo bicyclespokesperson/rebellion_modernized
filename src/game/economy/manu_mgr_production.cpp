@@ -1,4 +1,5 @@
 #include "data/game_math.h"
+#include "data/int_pair_node.h"
 #include "data/sd_record_bases.h"
 #include "economy/manu_mgr.h"
 #include "economy/manufacturing_facility.h"
@@ -43,7 +44,7 @@ int facilityRecordWord(GameObjNotifier* facility)
 {
   if (!facility->m_record)
     return 0;
-  return static_cast<int>(static_cast<SdRecordExt2*>(facility->m_record)->m_field5c);
+  return static_cast<int>(static_cast<Facility*>(facility)->GetRecordField5c());
 }
 
 bool isInService(GameObjNotifier* facility)
@@ -66,13 +67,18 @@ ObjectKey objectRecordKey(GameObjNotifier* object)
 ObjectKey nodeKey(AvlNode* node)
 {
   ObjectKey key;
-  static_cast<ObjectKeyValueNode*>(node)->GetKey(&key);
+  static_cast<ObjectKeyNode*>(node)->GetKey(&key);
   return key;
 }
 
-ObjectKey* nodeValueAsKey(AvlNode* node)
+ObjectKey nodeValueAsKey(AvlNode* node)
 {
-  return reinterpret_cast<ObjectKey*>(&static_cast<ObjectKeyValueNode*>(node)->m_value);
+  ObjectKey key;
+  if (const auto* item = dynamic_cast<IntPairNode*>(node))
+    key.m_value = static_cast<uint32_t>(item->m_value);
+  else if (const auto* item = dynamic_cast<ObjectKeyValueNode*>(node))
+    key.m_value = static_cast<uint32_t>(item->m_value);
+  return key;
 }
 
 } // namespace
@@ -620,8 +626,9 @@ int ManuMgr::CreateProducts(ObjectKeySet* products, int unused, NotifyContext* c
     result = 0;
     if (location)
     {
+      ObjectKey product = nodeValueAsKey(node);
       GameObj* child =
-        location->CreateChild(nodeValueAsKey(node), (m_flags >> kControlSideShift) & kControlSideMask, ctx, 1, 0);
+        location->CreateChild(&product, (m_flags >> kControlSideShift) & kControlSideMask, ctx, 1, 0);
       result = 0;
       if (child)
       {
@@ -660,7 +667,8 @@ int ManuMgr::ReparentQueue(ObjectKeySet* products, const ObjectKey* target, Noti
     {
       auto current = position++;
       auto* node = (*current).get();
-      GameObj* object = static_cast<GameObj*>(GetMasterInFamilies_01_ff(nodeValueAsKey(node)));
+      ObjectKey product = nodeValueAsKey(node);
+      GameObj* object = static_cast<GameObj*>(GetMasterInFamilies_01_ff(&product));
       result = 0;
       if (object)
       {

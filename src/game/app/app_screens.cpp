@@ -5,9 +5,12 @@
 #include "app/app_externals.h"
 #include "app/app_strings.h"
 #include "app/battle_flow.h"
+#include "app/game_session.h"
 #include "app/rebapp_globals.h"
 #include "app/rebellion_application.h"
 #include "audio/sound_manager.h"
+#include "events/game_step_driver.h"
+#include "events/game_clock_hooks.h"
 #include "gameobj/game_settings.h"
 #include "gfx/dib_bitmap.h"
 #include "gfx/directdraw_host.h"
@@ -16,9 +19,11 @@
 #include "strategy_ui/game_options_window.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "strategy_ui/main_menu_window.h"
+#include "strategy_ui/object_menu.h"
 #include "tactical/comm2.h"
 #include "tactical/tactical_game.h"
 #include "ui/game_window_object.h"
+#include "ui/custom_dialog_box.h"
 #include "video/movie_window.h"
 
 namespace
@@ -479,6 +484,43 @@ void RebellionApplication::DestroyStrategicWindow()
   if (destroyed && m_strategicWindow)
     delete m_strategicWindow;
   m_strategicWindow = nullptr;
+}
+
+void RebellionApplication::RequestSwitchSides()
+{
+  if (m_state == kStateStrategic && m_gameType == 1)
+    m_switchSidesRequested = true;
+}
+
+void RebellionApplication::ProcessDeveloperActions()
+{
+  if (!m_switchSidesRequested)
+    return;
+  if (m_state != kStateStrategic || m_gameType != 1)
+  {
+    m_switchSidesRequested = false;
+    return;
+  }
+  GameStepDriver* driver = GetGameStepDriver();
+  BattleFlow* flow = GetBattleFlow();
+  if (!flow || flow->m_state != kFlowStrategic)
+    return;
+  if (!driver || driver->m_setupStage != 0 || (driver->m_phase != 0 && driver->m_phase != 2))
+    return;
+  if (!m_strategicWindow || m_strategicWindow->m_inModalLoop ||
+      m_strategicWindow->m_mouseMode != 1 || !g_popupStack.empty())
+    return;
+  GameSession* session = driver->Session();
+  m_switchSidesRequested = false;
+  if (!session || !session->SwitchHumanSide())
+    return;
+  DismissMenu();
+  DestroyStrategicWindow();
+  m_side = session->GetHumanSide();
+  ShowStrategicWindow(0);
+  m_strategicWindow->InitializeGameDisplay();
+  m_strategicWindow->SetDateAndSpeed(GameHookDay(), session->m_human->m_speed, 1);
+  session->HumanRequestUpdate();
 }
 
 void RebellionApplication::ShowTacticalWindow()

@@ -45,6 +45,7 @@ enum GalaxyCommand : uint32_t
   kGalaxyMaintenance = 0x14e,
   kGalaxyHelp = 0x154,
   kGalaxyCancelTargeting = 0x15e,
+  kGalaxyDevSwitchSides = 0xf001,
 };
 
 // Custom messages of the galaxy view.
@@ -246,6 +247,7 @@ public:
   void UpdateSystemMarker(const ObjectKey* key, GameObjNotifier* object, int redraw); // 0x42b330
   void RedrawSectorMarkers(GameObjNotifier* sector); // 0x42cde0
   void ShowSpeedMenu(int x, int y); // 0x42d190
+  void ShowDeveloperMenu();
   // Shows day `day` (0: unchanged) and speed `speed` (redrawn if changed or `force`).
   void SetDateAndSpeed(int day, int speed, int force); // 0x42d230
   void EnableControls(); // 0x42d4d0

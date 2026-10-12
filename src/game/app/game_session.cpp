@@ -1,8 +1,10 @@
 #include "app/game_session.h"
 
 #include <new>
+#include <memory>
 
 #include "ai/ai_player.h"
+#include "ai/ai_controller_factory.h"
 #include "core/checked_new.h"
 #include "core/iostream_lib.h"
 #include "events/game_step_driver.h"
@@ -16,15 +18,11 @@ namespace
 {
 
 constexpr int kRemoteKind = 2;
-constexpr int kAiKind = 3;
 
 PlayerController* newOpponent(int opponentType, int side)
 {
   if (opponentType == 1)
-  {
-    void* memory = ::operator new(sizeof(AiPlayer));
-    return memory ? new (memory) AiPlayer(side) : nullptr;
-  }
+    return CreateAiController(kPlayerAi, side);
   void* memory = ::operator new(sizeof(RemotePlayer));
   return memory ? new (memory) RemotePlayer(side) : nullptr;
 }
@@ -33,6 +31,17 @@ HumanPlayer* newHuman(int side)
 {
   void* memory = ::operator new(sizeof(HumanPlayer));
   return memory ? new (memory) HumanPlayer(side) : nullptr;
+}
+
+bool CopyControllerState(PlayerController& source, PlayerController& destination)
+{
+  ScopedStrstream state;
+  source.PlayerController::Write(state.get()->Out());
+  if ((state.get()->Ios()->m_state & iostream_flags::kFail) != 0)
+    return false;
+  istream_seekg_pos(state.get()->In(), 0);
+  destination.PlayerController::Read(state.get()->In());
+  return (state.get()->Ios()->m_state & iostream_flags::kFail) == 0;
 }
 
 } // namespace
@@ -80,7 +89,13 @@ GameSession::GameSession(int opponentType, int humanSide)
   m_opponentType(opponentType),
   m_valid(1)
 {
-  if (humanSide == 1)
+  if (humanSide == 0 && opponentType == 1)
+  {
+    m_human = nullptr;
+    m_controllers[0] = CreateAiController(kPlayerAi, 1);
+    m_controllers[1] = CreateAiController(kPlayerAi, 2);
+  }
+  else if (humanSide == 1)
   {
     HumanPlayer* human = newHuman(1);
     m_human = human;
@@ -103,6 +118,76 @@ GameSession::~GameSession()
   m_controllers[0] = nullptr;
   delete m_controllers[1];
   m_controllers[1] = nullptr;
+}
+
+bool GameSession::SwitchHumanSide()
+{
+  if (!m_human || m_opponentType != 1)
+    return false;
+  const int oldIndex = m_human->m_side - 1;
+  const int newIndex = 1 - oldIndex;
+  if (m_controllers[newIndex]->GetKind() != kPlayerAi)
+    return false;
+
+  auto human = std::make_unique<HumanPlayer>(newIndex + 1);
+  auto ai = std::make_unique<AiPlayer>(oldIndex + 1);
+  constexpr int kMaxStartupSteps = 100000;
+  int steps = 0;
+  while (!ai->Virtual04())
+    if (++steps == kMaxStartupSteps)
+      return false;
+  steps = 0;
+  while (!human->m_advisor->StepStartup())
+    if (++steps == kMaxStartupSteps)
+      return false;
+  if (!CopyControllerState(*m_controllers[oldIndex], *ai) ||
+      !CopyControllerState(*m_controllers[newIndex], *human))
+    return false;
+  human->m_speed = m_human->m_speed;
+  human->m_pausedSpeed = m_human->m_pausedSpeed;
+
+  delete m_controllers[oldIndex];
+  delete m_controllers[newIndex];
+  m_controllers[oldIndex] = ai.release();
+  m_human = human.release();
+  m_controllers[newIndex] = m_human;
+  return true;
+}
+
+bool GameSession::UseAiControllers(int sideOneKind, int sideTwoKind)
+{
+  const int kinds[2] = {sideOneKind, sideTwoKind};
+  std::unique_ptr<PlayerController> replacements[2];
+  for (int index = 0; index < 2; ++index)
+  {
+    PlayerController* current = m_controllers[index];
+    if (!current || !AiControllerName(kinds[index]))
+      return false;
+    if (current->GetKind() == kinds[index])
+      continue;
+    if (current->GetKind() != kPlayerHuman && !AiControllerName(current->GetKind()))
+      return false;
+    replacements[index].reset(CreateAiController(kinds[index], index + 1));
+    if (!replacements[index])
+      return false;
+    constexpr int kMaxStartupSteps = 100000;
+    int steps = 0;
+    while (!replacements[index]->Virtual04())
+      if (++steps == kMaxStartupSteps)
+        return false;
+    if (!CopyControllerState(*current, *replacements[index]))
+      return false;
+  }
+  for (int index = 0; index < 2; ++index)
+  {
+    if (!replacements[index])
+      continue;
+    delete m_controllers[index];
+    m_controllers[index] = replacements[index].release();
+  }
+  m_human = nullptr;
+  m_opponentType = 1;
+  return true;
 }
 
 int GameSession::Read(istream* in)
@@ -171,13 +256,10 @@ int GameSession::CreateController(int kind, int slot)
     m_controllers[slot] = remote;
     return 1;
   }
-  if (kind == kAiKind)
+  if (AiControllerName(kind))
   {
-    AiPlayer* ai = nullptr;
-    if (void* memory = ::operator new(sizeof(AiPlayer)))
-      ai = new (memory) AiPlayer();
-    m_controllers[slot] = ai;
-    return 1;
+    m_controllers[slot] = CreateAiController(kind, 0);
+    return m_controllers[slot] != nullptr;
   }
   return 0;
 }
@@ -447,12 +529,15 @@ int GameSession::GetHumanSide()
 
 int GameSession::IsOpponentAI()
 {
+  if (!m_human)
+    return m_controllers[0] && m_controllers[1] && AiControllerName(m_controllers[0]->GetKind()) &&
+           AiControllerName(m_controllers[1]->GetKind());
   int kind = 0;
   if (m_controllers[0] == m_human)
     kind = m_controllers[1]->GetKind();
   else if (m_controllers[1] == m_human)
     kind = m_controllers[0]->GetKind();
-  return kind == kPlayerAi;
+  return AiControllerName(kind) != nullptr;
 }
 
 // ---- forwarders to the human controller ---------------------------------------------------------------------

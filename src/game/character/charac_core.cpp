@@ -121,9 +121,9 @@ int Character::SetRecord(DatRecord* record)
   return familyMatches;
 }
 
-MajorCharacterSD* Character::GetCharacterRecord() const
+SdRecordExt25* Character::GetCharacterRecord() const
 {
-  return static_cast<MajorCharacterSD*>(m_record);
+  return static_cast<SdRecordExt25*>(m_record);
 }
 
 GameObjData* Character::CreateData()
@@ -135,31 +135,31 @@ GameObjData* Character::CreateData()
 
 int Character::RecordCanBeAdmiral()
 {
-  MajorCharacterSD* record = GetCharacterRecord();
+  SdRecordExt25* record = GetCharacterRecord();
   return record ? record->m_moreFields[4] : 0;
 }
 
 int Character::RecordCanBeCommander()
 {
-  MajorCharacterSD* record = GetCharacterRecord();
+  SdRecordExt25* record = GetCharacterRecord();
   return record ? record->m_moreFields[5] : 0;
 }
 
 int Character::RecordCanBeGeneral()
 {
-  MajorCharacterSD* record = GetCharacterRecord();
+  SdRecordExt25* record = GetCharacterRecord();
   return record ? record->m_moreFields[6] : 0;
 }
 
 int Character::RecordIsJediTrainer()
 {
-  MajorCharacterSD* record = GetCharacterRecord();
+  SdRecordExt25* record = GetCharacterRecord();
   return record ? record->m_moreFields[8] : 0;
 }
 
 int Character::RecordIsUnableToBetray()
 {
-  MajorCharacterSD* record = GetCharacterRecord();
+  SdRecordExt25* record = GetCharacterRecord();
   return record ? record->m_moreFields[7] : 0;
 }
 
@@ -195,7 +195,7 @@ int Character::CanTrainForce(int* out)
 
 int Character::GetRecordSide()
 {
-  const MajorCharacterSD* record = GetCharacterRecord();
+  const SdRecordExt25* record = GetCharacterRecord();
   int side = 0;
   if (record)
   {

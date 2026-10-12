@@ -146,7 +146,7 @@ int Character::UpdateForceExperience(NotifyContext* ctx)
   int value = m_forceExperience;
   if (value == 0 && (m_flagsAc & kForcePotentialFlag) && (m_flagsAc & kForceAwareFlag))
   {
-    MajorCharacterSD* record = GetCharacterRecord();
+    SdRecordExt25* record = GetCharacterRecord();
     if (!record)
       return 0;
     const int base = record->m_moreFields[2];

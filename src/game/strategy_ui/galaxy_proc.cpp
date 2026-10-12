@@ -272,10 +272,27 @@ LRESULT GalaxyWindow::OnPaint()
   return 0;
 }
 
+void GalaxyWindow::ShowDeveloperMenu()
+{
+  if (AppGetGameType() != 1 || !g_popupStack.empty())
+    return;
+  DismissMenu();
+  g_menuRoot.Clear();
+  auto* item = new MenuItem(kGalaxyDevSwitchSides, 0, nullptr, nullptr, 0, 0, 180, 20,
+                            0, 0, 0, 0, kGalaxyDevSwitchSides, this, 1, 0);
+  item->m_label->SetText("Switch sides");
+  HDC dc = GetDC(m_hwnd);
+  item->m_label->Measure(dc);
+  ReleaseDC(m_hwnd, dc);
+  item->SetColors(0x2ffffff, 0x2000000, 0x2808080);
+  g_menuRoot.AddWithId(item);
+  ShowMenu(230, 100, CoolAppGetResourceModule(7), this, this, GetBackground());
+}
+
 LRESULT GalaxyWindow::OnKeyDown(WPARAM key, LPARAM lParam)
 {
   bool popupOpen = false;
-  if (key >= kKeyF1 && key <= kKeyF7)
+  if (key == '3' || (key >= kKeyF1 && key <= kKeyF7))
   {
     for (const auto& ownedNode : m_children.Entries())
     {
@@ -293,6 +310,11 @@ LRESULT GalaxyWindow::OnKeyDown(WPARAM key, LPARAM lParam)
     return 0;
   switch (key)
   {
+    case '3':
+      if ((static_cast<uintptr_t>(lParam) & (1u << 30)) == 0 && !InputBlocked() &&
+          m_mouseMode == kMouseModeNormal && !m_inModalLoop && GetKeyState(VK_SHIFT) >= 0)
+        ShowDeveloperMenu();
+      return 0;
     case VK_TAB:
       return 0;
     case VK_F1:

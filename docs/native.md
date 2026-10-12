@@ -30,6 +30,12 @@ asynchronous type, so the cancel acts at the next cancellation point (`nanosleep
 
 ## Playing on a desktop (window, audio, pacing, first run)
 
+The hidden developer menu opens with **3** on the strategic screen. **Switch sides** exchanges human/AI control in a
+single-player game and rebuilds the faction UI. Existing orders continue; open panels and controller planning state reset.
+For its integration check, set `REB_SWITCH_SIDES_SMOKE=1` when running `tools/modern_smoke.py`. Each process exercises the
+menu click, deferred switching, both factions, queued-order preservation and speed/pause preservation before advancing and
+saving; the second process loads that save and repeats the check.
+
 For an asset-dependent list regression check without desktop input, prefix a `tools/modern_smoke.py` invocation with
 `REB_UI_SMOKE=1`. After loading the save, each process checks fleet-row collapse/expansion, layout, rendered pixels,
 hit testing, keyboard navigation, selection and sorting. It uses the configured installation's STRATEGY.DLL resources

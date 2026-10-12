@@ -29,7 +29,7 @@
 
 class Crc32;
 class EventKindSet;
-class MajorCharacterSD;
+class SdRecordExt25;
 
 class Character : public Role
 {
@@ -303,7 +303,7 @@ public:
     return static_cast<Character*>(ViewAs(view));
   }
   // The SD record (MJCHARSD/MNCHARSD share one layout) or null.
-  MajorCharacterSD* GetCharacterRecord() const;
+  SdRecordExt25* GetCharacterRecord() const;
   // Record flags: whether the character may take the Admiral / Commander / General command (0 without a record).
   int RecordCanBeAdmiral(); // 0x4ed1c0, record +0xa8
   int RecordCanBeCommander(); // 0x4ed1e0, record +0xac

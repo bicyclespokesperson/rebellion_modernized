@@ -404,6 +404,8 @@ bool AppSaveGame(ostream* stream)
 
 void AppStepGame(int* stepped)
 {
+  if (g_app)
+    App()->ProcessDeveloperActions();
   BattleFlow* battleFlow = GetBattleFlow();
   *stepped = 1;
   if (battleFlow)

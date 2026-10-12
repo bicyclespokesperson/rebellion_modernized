@@ -15,6 +15,8 @@
 #include "character/character.h"
 #include "economy/defense_facility.h"
 #include "events/player_notices.h"
+#include "events/game_step_driver.h"
+#include "events/net_messages.h"
 #include "gameobj/game_root.h"
 #include "gameobj/object_lookup.h"
 #include "gameobj/object_queries.h"
@@ -24,6 +26,7 @@
 #include "strategy_ui/battle_window.h"
 #include "strategy_ui/fleet_list_item.h"
 #include "strategy_ui/galaxy_window.h"
+#include "strategy_ui/object_menu.h"
 #include "strategy_ui/object_status_window.h"
 #include "strategy_ui/report_window.h"
 #include "ui/cool_button.h"
@@ -523,6 +526,76 @@ void CheckReportMainPage(RebellionApplication& app)
   }
 }
 } // namespace
+
+void RunNativeSwitchSidesSmoke(RebellionApplication& app)
+{
+  auto require = [](bool condition, const char* check)
+  {
+    if (!condition)
+      throw std::runtime_error(std::string("Native switch sides smoke: ") + check);
+  };
+  GameStepDriver* driver = GetGameStepDriver();
+  GameSession* session = GetGameSession();
+  require(driver && session && session->m_human, "loaded session");
+  const int originalState = app.m_state;
+  const int originalPhase = driver->m_phase;
+  const int originalPause = driver->m_pauseTick;
+  const int originalTick = GetGameTickCount();
+  const int originalSpeed = session->m_human->m_speed;
+  const int originalViewReady = session->m_viewReady;
+  app.m_state = kStateStrategic;
+  app.ShowStrategicWindow(0);
+  app.m_strategicWindow->InitializeGameDisplay();
+  for (int attempt = 0; attempt != 3; ++attempt)
+  {
+    const int previousSide = session->GetHumanSide();
+    constexpr uint32_t kQueuedTestId = 0x7ffffff0;
+    for (int index = 0; index != 2; ++index)
+    {
+      require(!session->m_controllers[index]->m_pending.FindById(kQueuedTestId), "test order ID available");
+      auto* order = new NetMsg280;
+      order->m_id = kQueuedTestId;
+      order->m_side = index + 1;
+      order->m_value = 60;
+      session->m_controllers[index]->m_pending.Adopt(order);
+    }
+    const unsigned syncIds[] = {session->m_controllers[0]->m_syncId, session->m_controllers[1]->m_syncId};
+    const size_t pendingCounts[] = {session->m_controllers[0]->m_pending.Count(),
+                                    session->m_controllers[1]->m_pending.Count()};
+    app.m_strategicWindow->WindowProc(WM_KEYDOWN, '3', 0);
+    require(g_menuWindow != nullptr, "3 opens menu");
+    auto* item = static_cast<MenuItem*>(g_menuWindow->m_items.FindById(kGalaxyDevSwitchSides));
+    require(item && std::string(item->m_label->GetText()) == "Switch sides", "first menu option");
+    require(item->m_area.bottom > item->m_area.top, "menu item has height");
+    g_menuWindow->HandleMouse(item, item->m_area.left + 1, item->m_area.top + 1, WM_LBUTTONUP);
+    driver->m_phase = 8;
+    app.ProcessDeveloperActions();
+    require(session->GetHumanSide() == previousSide, "deferred during AI phase");
+    driver->m_phase = attempt % 2 == 0 ? 0 : 2;
+    app.ProcessDeveloperActions();
+    require(session->GetHumanSide() == 3 - previousSide, "control changes sides");
+    require(app.m_side == session->GetHumanSide() && app.m_strategicWindow->m_side == app.m_side,
+            "application and rebuilt view use new faction");
+    require(session->m_human == session->m_controllers[app.m_side - 1] &&
+            session->m_controllers[2 - app.m_side]->GetKind() == kPlayerAi, "fixed controller slots");
+    require(session->m_human->m_speed == originalSpeed && driver->m_pauseTick == originalPause &&
+            GetGameTickCount() == originalTick, "speed, pause and tick preserved");
+    require(app.m_strategicWindow->m_speed == originalSpeed, "speed immediately displayed");
+    for (int index = 0; index != 2; ++index)
+    {
+      require(session->m_controllers[index]->m_syncId == syncIds[index] &&
+              session->m_controllers[index]->m_pending.Count() == pendingCounts[index], "sync and orders preserved");
+      std::unique_ptr<MessageBase> order(session->m_controllers[index]->m_pending.Detach(kQueuedTestId));
+      require(order && order->GetKind() == 0x280, "queued order survives replacement");
+      auto* speedOrder = static_cast<NetMsg280*>(order.get());
+      require(speedOrder->m_side == index + 1 && speedOrder->m_value == 60, "queued order retains side and payload");
+    }
+  }
+  driver->m_phase = originalPhase;
+  app.DestroyStrategicWindow();
+  session->m_viewReady = originalViewReady;
+  app.m_state = originalState;
+}
 
 void RunNativeUiSmoke(RebellionApplication& app)
 {

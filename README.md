@@ -94,3 +94,8 @@ tools/run_native.sh tests/scenarios/smoke.txt
 ```
 
 Native run and simulation tools are documented in [native_linux.md](docs/native_linux.md).
+Headless AI-vs-AI matches and the controller extension point are documented in [ai_matches.md](docs/ai_matches.md).
+
+During a single-player strategic game, press **3** to open the hidden developer menu. Its first option, **Switch sides**,
+hands your faction to the AI and lets you control the other faction. The switch waits for a safe simulation boundary and
+preserves the current day, speed, pause state and queued orders. Open panels close, and AI/advisor planning starts fresh.

@@ -5,6 +5,7 @@
 #include "ai/ai_common.h"
 #include "app/app_cdcheck_version.h"
 #include "app/game_session.h"
+#include "app/rebellion_application.h"
 #include "core/checked_new.h"
 #include "core/game_string.h"
 #include "core/stream_io.h"
@@ -23,6 +24,7 @@
 #include "strategy_ui/system_window.h"
 #include "ui/cool_game_window.h"
 #include "ui/cool_label.h"
+#include "ui/cool_app.h"
 #include "ui/object_list_item.h"
 
 extern const char* g_newlineString; // 0x6a8170 "\n"
@@ -250,6 +252,12 @@ CoolWindow* GalaxyWindow::OpenChildWindow(istream* in, ChildWindowState* state)
 
 void GalaxyWindow::Virtual08(int command, int unused1, int unused2)
 {
+  if (command == kGalaxyDevSwitchSides)
+  {
+    if (g_app)
+      static_cast<RebellionApplication*>(g_app)->RequestSwitchSides();
+    return;
+  }
   ObjectKey none;
   ObjectKeyValueSet selection;
   UiHumanCommand(command, &selection, &none, nullptr);

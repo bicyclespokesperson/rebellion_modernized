@@ -39,6 +39,26 @@ int System::ApplyLoyalty(NotifyContext* ctx)
   return result;
 }
 
+int System::ApplyEnergyAllocated(NotifyContext* ctx)
+{
+  int result = IsSideView();
+  if (result)
+  {
+    System* master = ViewAsSystem(kMasterView);
+    if (MatchesSideMask(ctx->m_flag08))
+    {
+      const int oldValue = m_energyAllocated;
+      if (oldValue != master->m_energyAllocated)
+      {
+        m_energyAllocated = master->m_energyAllocated;
+        if (wantsNotification(this, ctx))
+          result = OnEnergyAllocatedNotified(oldValue, m_energyAllocated, ctx);
+      }
+    }
+  }
+  return result;
+}
+
 int System::ApplyEnergy(NotifyContext* ctx)
 {
   int result = IsSideView();
