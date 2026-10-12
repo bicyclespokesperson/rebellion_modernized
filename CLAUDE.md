@@ -1,17 +1,1 @@
-# Repository guidance
-
-The modernization roadmap in `docs/design/modernization_aggressive.md` is authoritative for current work. Older reconstruction instructions and workflow notes elsewhere in this file's former version describe the historical hybrid phase and are not active requirements.
-
-## Current build and validation
-
-- The native build is the default. Use Clang with C++23 through the top-level CMake project.
-- Keep platform-specific behavior in the native platform layer; shared game code should use the host-native types and ordinary C++ lifetimes.
-- Validate on the agent's host platform: configure/build the native target and run the available smoke check. Access to other platforms is never a prerequisite.
-- Do not require original-binary symbol naming, hybrid builds, difftest captures, or no-STL/no-exceptions constraints for current modernization work.
-- Do not format files unless the task asks for formatting. Do not commit unless the task asks for a commit.
-
-## Historical material
-
-The decompilation references in `docs/ARCHITECTURE.md`, `docs/code_map.md`, `docs/library_code.md`, and `docs/agent_brief.md` can still explain the original game and earlier reconstruction decisions. Their old hybrid build, symbol naming, calling-convention, capture, and difftest procedures are historical context only. Follow the modernization roadmap and the current build instructions above when those sources conflict.
-
-Use branches named `JS/<topic>`. Never commit licensed game files, extracted asset packs, or raw Ghidra output.
+@./AGENTS.md
