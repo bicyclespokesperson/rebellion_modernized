@@ -2,7 +2,7 @@
 #include "port/minwin/gdi32.h"
 #include "port/minwin/user32.h"
 
-#include <string.h>
+#include <cstring>
 
 #include <vector>
 
@@ -96,6 +96,209 @@ TEST(device_caps_describe_a_palette_device) {
     HDC info = CreateICA("DISPLAY", nullptr, nullptr, nullptr);
     CHECK_EQ(GetDeviceCaps(info, HORZRES), 640);
     DeleteDC(info);
+}
+
+TEST(screen_resize_preserves_pixels_and_exposes_wider_canvas) {
+    minwin_gdi::DeviceScreen(1);
+    ClearScreen();
+    minwin_gdi::Screen().bits[479 * 640 + 639] = 47;
+    CHECK(minwin_gdi::SetScreenSize(853, 480));
+    const minwin_gdi::ScreenSurface wide = minwin_gdi::Screen();
+    CHECK_EQ(wide.width, 853);
+    CHECK_EQ(wide.pitch, 853);
+    CHECK_EQ(ScreenPixel(639, 479), 47);
+    CHECK_EQ(ScreenPixel(852, 479), 0);
+    RECT visible = {850, 470, 853, 480};
+    HDC dc = ScreenDc(visible);
+    CHECK_EQ(GetDeviceCaps(dc, HORZRES), 853);
+    HBRUSH brush = CreateSolidBrush(RGB(255, 255, 255));
+    CHECK(FillRect(dc, &visible, brush));
+    CHECK_EQ(ScreenPixel(852, 479), 255);
+    CHECK_EQ(minwin_gdi::DeviceScreen(2).width, 1706);
+    DeleteObject(brush);
+    minwin_gdi::DestroyWindowDc(dc);
+    CHECK(minwin_gdi::SetScreenSize(640, 480));
+    CHECK_EQ(ScreenPixel(639, 479), 47);
+    CHECK_EQ(minwin_gdi::Screen().pitch, 640);
+    minwin_gdi::DeviceScreen(1);
+}
+
+TEST(device_bitmap_import_preserves_unedited_detail) {
+    for (int scale : {3, 4}) {
+        minwin_gdi::DeviceScreen(scale);
+        Quad256 table{};
+        uint8_t* bits = nullptr;
+        HBITMAP bitmap = MakeDib(4, 2, table, &bits);
+        CHECK(bitmap != nullptr);
+        memset(bits, 7, 8);
+        std::vector<uint8_t> detail(4 * 2 * scale * scale, 7);
+        detail[0] = 1;
+        CHECK(minwin_gdi::SetDeviceBitmapPixels(bitmap, scale, detail) != 0);
+        detail[scale] = 9;
+        CHECK(minwin_gdi::SetDeviceBitmapPixels(bitmap, scale, detail, 1, 0, 1, 1) != 0);
+        minwin_gdi::DeviceBitmapPixels copied;
+        CHECK(minwin_gdi::CopyDeviceBitmapPixels(bitmap, copied));
+        CHECK_EQ(copied.scale, scale);
+        CHECK_EQ(copied.bits[0], 1);
+        CHECK_EQ(copied.bits[scale], 9);
+        CHECK_EQ(copied.bits[2 * scale], 7);
+        const uint64_t beforeScaleChange = copied.revision;
+        minwin_gdi::DeviceScreen(1);
+        CHECK_EQ(minwin_gdi::DeviceBitmapRevision(bitmap), beforeScaleChange);
+        minwin_gdi::DeviceScreen(scale);
+        CHECK(minwin_gdi::CopyDeviceBitmapPixels(bitmap, copied));
+        CHECK_EQ(copied.bits[0], 1);
+        CHECK_EQ(copied.bits[scale], 9);
+        minwin_gdi::DeviceScreen(1);
+        bits[4 + 1] = 10;
+        minwin_gdi::DeviceScreen(scale);
+        CHECK(minwin_gdi::DeviceBitmapRevision(bitmap) > beforeScaleChange);
+        CHECK(minwin_gdi::CopyDeviceBitmapPixels(bitmap, copied));
+        CHECK_EQ(copied.bits[scale], 10);
+        minwin_gdi::InvalidateDeviceBitmap(bitmap);
+        CHECK(minwin_gdi::CopyDeviceBitmapPixels(bitmap, copied));
+        CHECK_EQ(copied.bits[0], 7);
+        DeleteObject(bitmap);
+    }
+    minwin_gdi::DeviceScreen(1);
+}
+
+TEST(device_dib_blit_maps_source_palette_at_both_resolutions) {
+    minwin_gdi::DeviceScreen(1);
+    ClearScreen();
+    minwin_gdi::DeviceScreen(4);
+    RECT visible = {0, 0, 640, 480};
+    HDC screen = ScreenDc(visible);
+    SetSystemPaletteUse(screen, SYSPAL_STATIC);
+    Quad256 table{};
+    SetQuad(table.q[1], 0xff0000);
+    SetQuad(table.q[2], 0x0000ff);
+    uint8_t* bits = nullptr;
+    HBITMAP bitmap = MakeDib(2, 1, table, &bits);
+    CHECK(bitmap != nullptr);
+    bits[0] = bits[1] = 1;
+    std::vector<uint8_t> detail(2 * 4 * 4, 1);
+    detail[0] = 2;
+    CHECK(minwin_gdi::SetDeviceBitmapPixels(bitmap, 4, detail) != 0);
+    HDC memory = CreateCompatibleDC(screen);
+    HGDIOBJ oldBitmap = SelectObject(memory, bitmap);
+    CHECK(BitBlt(screen, 0, 0, 2, 1, memory, 0, 0, SRCCOPY));
+    uint32_t palette[256];
+    minwin_gdi::CurrentPalette(palette, nullptr);
+    CHECK_EQ(palette[ScreenPixel(0, 0)], 0xff0000u);
+    const minwin_gdi::ScreenSurface device = minwin_gdi::DeviceScreen(4);
+    CHECK_EQ(palette[device.bits[0]], 0x0000ffu);
+    CHECK_EQ(palette[device.bits[1]], 0xff0000u);
+    SelectObject(memory, oldBitmap);
+    DeleteObject(bitmap);
+    DeleteDC(memory);
+    minwin_gdi::DestroyWindowDc(screen);
+    minwin_gdi::DeviceScreen(1);
+}
+
+TEST(device_screen_scales_clipped_drawing_without_changing_logical_readback) {
+    ClearScreen();
+    minwin_gdi::DeviceScreen(4);
+    RECT visible = {10, 10, 12, 12};
+    HDC screen = ScreenDc(visible);
+    HBRUSH white = CreateSolidBrush(RGB(255, 255, 255));
+    RECT fill = {9, 9, 13, 13};
+    CHECK(FillRect(screen, &fill, white));
+    CHECK_EQ(ScreenPixel(10, 10), 255);
+    CHECK_EQ(ScreenPixel(9, 10), 0);
+    const minwin_gdi::ScreenSurface device = minwin_gdi::DeviceScreen(4);
+    CHECK_EQ(device.width, 2560);
+    CHECK_EQ(device.height, 1920);
+    for (int y = 40; y < 48; ++y)
+        for (int x = 40; x < 48; ++x)
+            CHECK_EQ(device.bits[y * device.pitch + x], 255);
+    CHECK_EQ(device.bits[40 * device.pitch + 39], 0);
+
+    HDC memory = CreateCompatibleDC(screen);
+    HBITMAP bitmap = CreateCompatibleBitmap(screen, 4, 4);
+    HGDIOBJ oldBitmap = SelectObject(memory, bitmap);
+    CHECK(BitBlt(memory, 0, 0, 4, 4, screen, 9, 9, SRCCOPY));
+    RECT all = {0, 0, 640, 480};
+    HDC readback = ScreenDc(all);
+    CHECK(BitBlt(readback, 20, 20, 4, 4, memory, 0, 0, SRCCOPY));
+    CHECK_EQ(ScreenPixel(21, 21), 255);
+    CHECK_EQ(ScreenPixel(20, 20), 0);
+    minwin_gdi::DestroyWindowDc(readback);
+    SelectObject(memory, oldBitmap);
+    DeleteObject(bitmap);
+    DeleteDC(memory);
+    DeleteObject(white);
+    minwin_gdi::DestroyWindowDc(screen);
+    minwin_gdi::DeviceScreen(1);
+}
+
+TEST(device_line_uses_subpixel_geometry_and_xor_restores_it) {
+    ClearScreen();
+    minwin_gdi::DeviceScreen(1);
+    minwin_gdi::DeviceScreen(4);
+    RECT all = {0, 0, 640, 480};
+    HDC dc = ScreenDc(all);
+    HPEN pen = CreatePen(PS_SOLID, 1, RGB(255, 255, 255));
+    HGDIOBJ oldPen = SelectObject(dc, pen);
+    SetROP2(dc, R2_XORPEN);
+    CHECK(MoveToEx(dc, 2, 2, nullptr));
+    CHECK(LineTo(dc, 14, 8));
+    const minwin_gdi::ScreenSurface device = minwin_gdi::DeviceScreen(4);
+    int detailedBlocks = 0, lit = 0;
+    for (int y = 0; y < 12; ++y)
+        for (int x = 0; x < 18; ++x) {
+            const int xx = x * 4, yy = y * 4;
+            const uint8_t a = device.bits[yy * device.pitch + xx];
+            for (int sy = 0; sy < 4; ++sy)
+                for (int sx = 0; sx < 4; ++sx) {
+                    const uint8_t pixel = device.bits[(yy + sy) * device.pitch + xx + sx];
+                    detailedBlocks += pixel != a;
+                    lit += pixel != 0;
+                }
+        }
+    CHECK(lit > 0);
+    CHECK(detailedBlocks > 0);
+    CHECK(MoveToEx(dc, 2, 2, nullptr));
+    CHECK(LineTo(dc, 14, 8));
+    for (int y = 0; y < 48; ++y)
+        for (int x = 0; x < 72; ++x)
+            CHECK_EQ(device.bits[y * device.pitch + x], 0);
+    CHECK_EQ(ScreenPixel(2, 2), 0);
+    RECT shiftedClip = {30, 40, 60, 60};
+    minwin_gdi::WindowDcDesc shiftedDesc = {nullptr, 30, 40, &shiftedClip, 1};
+    HDC shifted = minwin_gdi::CreateWindowDc(shiftedDesc);
+    SelectObject(shifted, pen);
+    CHECK(MoveToEx(shifted, 2, 2, nullptr));
+    CHECK(LineTo(shifted, 14, 8));
+    CHECK_EQ(ScreenPixel(32, 42), 255);
+    CHECK_EQ(device.bits[(42 * 4) * device.pitch + 32 * 4], 255);
+    CHECK_EQ(device.bits[(2 * 4) * device.pitch + 2 * 4], 0);
+    minwin_gdi::DestroyWindowDc(shifted);
+
+    HDC memory = CreateCompatibleDC(dc);
+    HBITMAP bitmap = CreateCompatibleBitmap(dc, 32, 32);
+    HGDIOBJ oldBitmap = SelectObject(memory, bitmap);
+    SelectObject(memory, pen);
+    CHECK(MoveToEx(memory, 2, 2, nullptr));
+    CHECK(LineTo(memory, 14, 8));
+    CHECK(BitBlt(dc, 100, 100, 32, 32, memory, 0, 0, SRCCOPY));
+    int offscreenDetail = 0;
+    for (int y = 100; y < 116; ++y)
+        for (int x = 100; x < 118; ++x) {
+            const int xx = x * 4, yy = y * 4;
+            const uint8_t a = device.bits[yy * device.pitch + xx];
+            for (int sy = 0; sy < 4; ++sy)
+                for (int sx = 0; sx < 4; ++sx)
+                    offscreenDetail += a != device.bits[(yy + sy) * device.pitch + xx + sx];
+        }
+    CHECK(offscreenDetail > 0);
+    SelectObject(memory, oldBitmap);
+    DeleteObject(bitmap);
+    DeleteDC(memory);
+    SelectObject(dc, oldPen);
+    DeleteObject(pen);
+    minwin_gdi::DestroyWindowDc(dc);
+    minwin_gdi::DeviceScreen(1);
 }
 
 TEST(system_palette_static_colours_and_use) {

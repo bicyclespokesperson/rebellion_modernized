@@ -186,7 +186,7 @@ agent's reconstruction replaces it). `filebuf` reads the text-mode flag of a han
 
 **Bugs the standalone build exposed** (all invisible in the hybrid, whose vptr redirect and original data hide them):
 `System::SetRecord` (slot 10, 0x50e1c0, shared with `Character::SetRecord`: sets the object's id from its record) was not overridden,
-so new games gave systems allocator ids 0x500+ and crashed in `SystemNeighbourTable::Build`; `Fleet::Virtual18` (0x40f340) must
+so new games gave systems allocator ids 0x500+ and crashed in `SystemNeighbourTable::Build`; `Fleet::ShouldNumberNameFromRecord` (0x40f340) must
 return 1; `g_coolDragListClassName` is an `.rdata` pointer to a `.data` string that the data image copied unrelocated (the drag list
 window was never created, ui_tour crashed opening the system window). `tools/vtable_gaps.py` skipped every multiple-inheritance vtable
 (`Class::vftable{Base}`, all GameObj classes); it compares them now, which also found the candidates listed below.
@@ -195,7 +195,7 @@ window was never created, ui_tour crashed opening the system window). `tools/vta
 original `MissionPalace::Checksum` forwarder (0x56dee0 -> 0x56da70 -> 0x56aab0), so the Teacher key is *not* part of the
 checksum (Read/Write do include it; `BUG(original)`); the class now overrides `Checksum` with the rule-base sum. The rest are
 behaviourally equal: slot 48 of Facility/CapShip/Fleet/CombatUnit (slot 47 for Fleet) is 0x4f29a0 -> 0x51ebb0 (`return 1`), `HumanPlayer`
-slot 28 is 0x486870 -> 0x5ae1e0 (`ret 4`), slot 133 (0x52d5e0 -> `Fleet::Virtual18`, returns 1) and 137 (0x4f2a70 -> 0x524b10, returns 1) are
+slot 28 is 0x486870 -> 0x5ae1e0 (`ret 4`), slot 133 (0x52d5e0 -> `Fleet::ShouldNumberNameFromRecord`, returns 1) and 137 (0x4f2a70 -> 0x524b10, returns 1) are
 forwarders to such stubs; `DefenseFacility`/`ShipGroup` slots that name `_purecall` are abstract in the original. Left as is, tactical only:
 `CapitalShipFormation`/`FighterFormation` slot 6 return 3/2 in the original, `TacticalSpecialForceUnit` slot 1 returns 8, `GroupOrder*`.
 

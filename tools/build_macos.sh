@@ -11,12 +11,10 @@ if [[ ! -f "$EXE" ]]; then
 fi
 tools/fetch_deps.sh freetype liberation sdl3
 [[ -x "$VENV/bin/python" ]] || uv venv "$VENV"
-uv pip install --python "$VENV/bin/python" pefile capstone unicorn libclang==18.1.1 ninja
-cmake -S . -B "$BUILD_DIR" -G Ninja -DREB_NATIVE=ON -DREB_NATIVE_GEN=OFF \
+uv pip install --python "$VENV/bin/python" pefile pillow ninja
+"$VENV/bin/python" tools/extract_startup_assets.py --exe "$EXE" --out "$BUILD_DIR/startup-assets.bin"
+"$VENV/bin/python" tools/extract_macos_icon.py --exe "$EXE" --out "$BUILD_DIR/Rebellion.icns"
+cmake -S . -B "$BUILD_DIR" -G Ninja -DREB_NATIVE=ON \
   -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_MAKE_PROGRAM="$VENV/bin/ninja"
-cmake --build "$BUILD_DIR" --target reb_native_objects --parallel
-"$VENV/bin/python" tools/gen_native_data.py --build "$BUILD_DIR" --exe "$EXE" --symbols symbols --out "$BUILD_DIR/gen"
-"$VENV/bin/python" tools/gen_native_init.py --build "$BUILD_DIR" --exe "$EXE" --symbols symbols --out "$BUILD_DIR/gen"
-cmake -S . -B "$BUILD_DIR" -DREB_NATIVE_GEN=ON
 cmake --build "$BUILD_DIR" --target rebellion --parallel
 echo "Built $BUILD_DIR/Rebellion.app"

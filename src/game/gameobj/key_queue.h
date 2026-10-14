@@ -1,8 +1,9 @@
 #pragma once
 #include <cstdint>
+#include <deque>
+#include <memory>
 
-#include "core/containers.h"
-#include "core/layout.h"
+#include "core/entry_identity.h"
 #include "core/stream_io.h"
 #include "events/misc_helpers.h"
 #include "gameobj/object_key.h"
@@ -12,58 +13,62 @@
 class Crc32;
 
 // {flag, key, value} entry of a KeyQueue. m_flag is 1 for every entry the game creates.
-class KeyQueueNode : public LinkNode {
+class KeyQueueNode
+{
 public:
-    KeyQueueNode();
-    virtual ~KeyQueueNode();
-    virtual void Read(istream* in) override;
+  KeyQueueNode();
+  ~KeyQueueNode();
+  void Read(istream* in);
 
-    // Calls the virtual Write (a no-op in LinkNode), then writes flag, key and value.
-    void WriteFields(ostream* out);
-    void Checksum(Crc32* crc);
-    ObjectKey* GetKey(ObjectKey* out) const;  // 0x52fd10
+  // Writes flag, key and value using the legacy field encoding.
+  void WriteFields(ostream* out);
+  void Checksum(Crc32* crc);
+  ObjectKey* GetKey(ObjectKey* out) const; // 0x52fd10
 
-    int m_flag;       // +0x0c
-    ObjectKey m_key;  // +0x10
-    int m_value;      // +0x14
+  int m_flag; // +0x0c
+  ObjectKey m_key; // +0x10
+  int m_value; // +0x14
 };
 
 // FIFO of KeyQueueNodes. m_ok is saved with the queue; the persistence functions return 0 if an entry cannot be built.
-class KeyQueue : public NodeQueue {
+class KeyQueue
+{
 public:
-    KeyQueue();
-    virtual ~KeyQueue();
+  KeyQueue();
+  ~KeyQueue();
+  KeyQueue(const KeyQueue&) = delete;
+  KeyQueue& operator=(const KeyQueue&) = delete;
 
-    // Number of queued entries with the same key and value as `probe`.
-    int CountMatching(KeyQueueNode* probe);
-    int Read(istream* in);
-    int Write(ostream* out);
-    int Checksum(Crc32* crc);
-    LinkNode* Head() const;
-    int Add(LinkNode* node);
+  // Number of queued entries with the same key and value as `probe`.
+  int CountMatching(KeyQueueNode* probe);
+  int Read(istream* in);
+  int Write(ostream* out);
+  int Checksum(Crc32* crc);
+  void Clear();
+  KeyQueueNode* Dequeue();
+  int Add(std::unique_ptr<KeyQueueNode> node);
+  const auto& Entries() const
+  {
+    return m_entries;
+  }
 
-    int m_ok;  // +0x10
+  int m_ok;
+
+private:
+  std::deque<std::unique_ptr<KeyQueueNode>> m_entries;
 };
 
 // ObjectKeySet whose entries carry a second key.
-class ObjectKeyPairSet : public ObjectKeySet {
+class ObjectKeyPairSet : public ObjectKeySet
+{
 public:
-    ObjectKeyPairSet();
-    explicit ObjectKeyPairSet(const ObjectKeyPairSet& other);
-    virtual ~ObjectKeyPairSet();
-    virtual ObjectKeyNode* NewNode() override;
-    virtual void Read(istream* in) override;
-    virtual void Write(ostream* out) override;
-    virtual int Checksum(Crc32* crc) override;
+  ObjectKeyPairSet();
+  explicit ObjectKeyPairSet(const ObjectKeyPairSet& other);
+  ~ObjectKeyPairSet() override;
+  ObjectKeyNode* NewNode() override;
+  void Read(istream* in) override;
+  void Write(ostream* out) override;
+  int Checksum(Crc32* crc) override;
 
-    int AddPair(const ObjectKey* key, const ObjectKey* second);
+  int AddPair(const ObjectKey* key, const ObjectKey* second);
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(KeyQueueNode, 0x18);
-REB_ASSERT_OFFSET(KeyQueueNode, m_key, 0x10);
-REB_ASSERT_SIZE(KeyQueue, 0x14);
-REB_ASSERT_OFFSET(KeyQueue, m_ok, 0x10);
-REB_ASSERT_SIZE(ObjectKeyPairSet, 0x08);
-#pragma clang diagnostic pop

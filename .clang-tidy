@@ -1,0 +1,33 @@
+Checks: >-
+  -*,
+  modernize-use-nullptr,
+  modernize-use-override,
+  modernize-use-equals-default,
+  modernize-redundant-void-arg,
+  modernize-concat-nested-namespaces,
+  modernize-deprecated-headers,
+  modernize-deprecated-ios-base-aliases,
+  modernize-loop-convert,
+  modernize-raw-string-literal,
+  modernize-return-braced-init-list,
+  modernize-shrink-to-fit,
+  modernize-type-traits,
+  modernize-unary-static-assert,
+  modernize-use-auto,
+  modernize-use-bool-literals,
+  modernize-use-equals-delete,
+  modernize-use-noexcept,
+  modernize-use-starts-ends-with,
+  modernize-use-transparent-functors,
+  modernize-use-using,
+  bugprone-use-after-move,
+  bugprone-dangling-handle,
+  bugprone-sizeof-expression,
+  bugprone-suspicious-memset-usage,
+  performance-inefficient-string-concatenation
+HeaderFilterRegex: '(^|/)src/(game|port)/'
+WarningsAsErrors: ''
+FormatStyle: none
+CheckOptions:
+  modernize-loop-convert.MinConfidence: safe
+  modernize-use-using.IgnoreExternC: true

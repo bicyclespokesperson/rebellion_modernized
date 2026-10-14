@@ -4,24 +4,25 @@
 //
 // There is no text mode here: the game opens everything in binary mode (src/game/core/file_util.cpp, sound_source.cpp), so
 // the CRLF translation of the MSVC CRT is never needed.
-#include <ctype.h>
-#include <errno.h>
+#include <cctype>
+#include <cerrno>
 #include <fcntl.h>
-#include <stdarg.h>
-#include <stdio.h>
-#include <string.h>
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
 #include <sys/stat.h>
 #include <unistd.h>
 
 #include <string>
 
-#include "core/reb_abi.h"
-#include <time.h>
+#include "core/runtime_environment.h"
+#include <ctime>
 
 #include "port/minwin_impl/res/path.h"
 #include "port/native/native_clock.h"
 
-namespace {
+namespace
+{
 
 constexpr int kMsvcAppend = 0x8;
 constexpr int kMsvcCreate = 0x100;
@@ -29,47 +30,84 @@ constexpr int kMsvcTruncate = 0x200;
 constexpr int kMsvcExclusive = 0x400;
 constexpr int kAccessMask = 3;
 
-int PosixOpenFlags(int msvcFlags) {
-    int flags = msvcFlags & kAccessMask;
-    if (msvcFlags & kMsvcAppend) flags |= O_APPEND;
-    if (msvcFlags & kMsvcCreate) flags |= O_CREAT;
-    if (msvcFlags & kMsvcTruncate) flags |= O_TRUNC;
-    if (msvcFlags & kMsvcExclusive) flags |= O_EXCL;
-    return flags | O_CLOEXEC;
+int PosixOpenFlags(int msvcFlags)
+{
+  int flags = msvcFlags & kAccessMask;
+  if (msvcFlags & kMsvcAppend)
+    flags |= O_APPEND;
+  if (msvcFlags & kMsvcCreate)
+    flags |= O_CREAT;
+  if (msvcFlags & kMsvcTruncate)
+    flags |= O_TRUNC;
+  if (msvcFlags & kMsvcExclusive)
+    flags |= O_EXCL;
+  return flags | O_CLOEXEC;
 }
 
-}  // namespace
+} // namespace
 
 extern "C" {
 
-int _sopen(const char* name, int flags, int, ...) {
-    return open(mw::res::ResolvePath(name).c_str(), PosixOpenFlags(flags), 0644);
+int _sopen(const char* name, int flags, int, ...)
+{
+  return open(mw::res::ResolvePath(name).c_str(), PosixOpenFlags(flags), 0644);
 }
 
-int _close(int fd) { return close(fd); }
-int _read(int fd, void* buffer, unsigned count) { return static_cast<int>(read(fd, buffer, count)); }
-int _write(int fd, const void* buffer, unsigned count) { return static_cast<int>(write(fd, buffer, count)); }
-long _lseek(int fd, long offset, int origin) { return static_cast<long>(lseek(fd, offset, origin)); }
-int _setmode(int, int) { return 0x8000; }
-
-int _chdir(const char* path) { return chdir(mw::res::ResolvePath(path).c_str()); }
-int _mkdir(const char* path) { return mkdir(mw::res::ResolvePath(path).c_str(), 0755); }
-int _chdrive(int) { return 0; }
-
-long reb_time(long* result) {
-    const long value = native_clock::Deterministic() ? 946728000L : static_cast<long>(time(nullptr));
-    if (result) *result = value;
-    return value;
+int _close(int fd)
+{
+  return close(fd);
+}
+int _read(int fd, void* buffer, unsigned count)
+{
+  return static_cast<int>(read(fd, buffer, count));
+}
+int _write(int fd, const void* buffer, unsigned count)
+{
+  return static_cast<int>(write(fd, buffer, count));
+}
+long _lseek(int fd, long offset, int origin)
+{
+  return static_cast<long>(lseek(fd, offset, origin));
+}
+int _setmode(int, int)
+{
+  return 0x8000;
 }
 
-FILE* reb_fopen(const char* name, const char* mode) { return fopen(mw::res::ResolvePath(name).c_str(), mode); }
+int _chdir(const char* path)
+{
+  return chdir(mw::res::ResolvePath(path).c_str());
+}
+int _mkdir(const char* path)
+{
+  return mkdir(mw::res::ResolvePath(path).c_str(), 0755);
+}
+int _chdrive(int)
+{
+  return 0;
+}
 
-int _isprint(int c) { return isprint(c); }
-int _isspace(int c) { return isspace(c); }
-int _ispunct(int c) { return ispunct(c); }
+int _isprint(int c)
+{
+  return isprint(c);
+}
+int _isspace(int c)
+{
+  return isspace(c);
+}
+int _ispunct(int c)
+{
+  return ispunct(c);
+}
 
-}  // extern "C"
+} // extern "C"
 
-int icf_return_zero() { return 0; }  // 0x6158b0, also strstreambuf::sync and _matherr
+int64_t GameSeedSeconds()
+{
+  return native_clock::Deterministic() ? 946728000 : static_cast<int64_t>(time(nullptr));
+}
 
-void FUN_00619730() {}  // 0x619730 icf_empty_function: the linker folded every empty no-argument function into it
+FILE* OpenGameFile(const char* name, const char* mode)
+{
+  return fopen(mw::res::ResolvePath(name).c_str(), mode);
+}

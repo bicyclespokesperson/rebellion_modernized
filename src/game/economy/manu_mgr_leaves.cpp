@@ -1,24 +1,18 @@
-#include "core/reb_abi.h"
 #include "economy/manu_mgr_leaves.h"
 
 #include <new>
 
-#include "core/vptr_store.h"
 #include "gameobj/object_family.h"
 
-extern "C" int REB_CDECL atexit(void(REB_CDECL* function)(void));
-void DestroyTrainingFacilManuMgrEventKinds();
-void DestroyConstructionYardManuMgrEventKinds();
-void DestroyShipyardManuMgrEventKinds();
+extern EventKindSet g_trainingFacilManuMgrEventKinds; // 0x6bb4d0
+extern int g_trainingFacilManuMgrEventKindsReady; // 0x6bb4d8
+extern EventKindSet g_constructionYardManuMgrEventKinds; // 0x6bb4e8
+extern int g_constructionYardManuMgrEventKindsReady; // 0x6bb4e0
+extern EventKindSet g_shipyardManuMgrEventKinds; // 0x6bb500
+extern int g_shipyardManuMgrEventKindsReady; // 0x6bb4f8
 
-extern EventKindSet g_trainingFacilManuMgrEventKinds;  // 0x6bb4d0
-extern int g_trainingFacilManuMgrEventKindsReady;  // 0x6bb4d8
-extern EventKindSet g_constructionYardManuMgrEventKinds;  // 0x6bb4e8
-extern int g_constructionYardManuMgrEventKindsReady;  // 0x6bb4e0
-extern EventKindSet g_shipyardManuMgrEventKinds;  // 0x6bb500
-extern int g_shipyardManuMgrEventKindsReady;  // 0x6bb4f8
-
-namespace {
+namespace
+{
 constexpr int kStatusCategory = 1;
 constexpr int kStatusOk = -1;
 constexpr int kStatusNotSupported = 0x17;
@@ -27,231 +21,292 @@ constexpr FamilyRange kTrainingFacilManuMgrFamilies(0xa4, 0xa6);
 constexpr FamilyRange kConstructionYardManuMgrFamilies(0xa0, 0xa2);
 constexpr FamilyRange kShipyardManuMgrFamilies(0xa2, 0xa4);
 
-int applyAllOnSideView(ManuMgr* manager, NotifyContext* ctx) {
-    if (manager->IsSideView()) return ManuMgrApplyAllBody(manager, ctx);
-    return 0;
+int applyAllOnSideView(ManuMgr* manager, NotifyContext* ctx)
+{
+  if (manager->IsSideView())
+    return ManuMgrApplyAllBody(manager, ctx);
+  return 0;
 }
-}  // namespace
+} // namespace
 
 // ---- shared bodies and stubs ----------------------------------------------------------------------------------------
 
-int REB_THISCALL ManuMgrReadBody(ManuMgr* self, istream* in) { return self->ManuMgr::Read(in); }
-
-int REB_THISCALL ManuMgrWriteBody(ManuMgr* self, ostream* out) { return self->ManuMgr::Write(out); }
-
-int REB_THISCALL ManuMgrApplyAllBody(ManuMgr* self, NotifyContext* ctx) { return self->ManuMgr::ApplyAll(ctx); }
-
-int REB_THISCALL ManuMgrChecksumBody(ManuMgr* self, Crc32* crc) { return self->ManuMgr::Checksum(crc); }
-
-int REB_THISCALL CreateViewsStubShared(GameObj* self, int controlKind, NotifyContext* ctx) {
-    return self->GameObj::CreateViews(controlKind, ctx);
+int ManuMgrReadBody(ManuMgr* self, istream* in)
+{
+  return self->ManuMgr::Read(in);
 }
 
-int REB_THISCALL CreateViewsStubDefense(GameObj* self, int controlKind, NotifyContext* ctx) {
-    return self->GameObj::CreateViews(controlKind, ctx);
+int ManuMgrWriteBody(ManuMgr* self, ostream* out)
+{
+  return self->ManuMgr::Write(out);
+}
+
+int ManuMgrApplyAllBody(ManuMgr* self, NotifyContext* ctx)
+{
+  return self->ManuMgr::ApplyAll(ctx);
+}
+
+int ManuMgrChecksumBody(ManuMgr* self, Crc32* crc)
+{
+  return self->ManuMgr::Checksum(crc);
+}
+
+int CreateViewsStubShared(GameObj* self, int controlKind, NotifyContext* ctx)
+{
+  return self->GameObj::CreateViews(controlKind, ctx);
+}
+
+int CreateViewsStubDefense(GameObj* self, int controlKind, NotifyContext* ctx)
+{
+  return self->GameObj::CreateViews(controlKind, ctx);
 }
 
 // ---- TrainingFacilManuMgr (family 0xa4) -------------------------------------------------------------------------------------------
 
-TrainingFacilManuMgr::TrainingFacilManuMgr() : ManuMgr() { SetFlag31(GetFlag31()); }
-
-TrainingFacilManuMgr::~TrainingFacilManuMgr() { REB_KEEP_VPTR_STORE(); }
-
-int TrainingFacilManuMgr::Read(istream* in) { return ManuMgrReadBody(this, in); }
-
-int TrainingFacilManuMgr::Write(ostream* out) { return ManuMgrWriteBody(this, out); }
-
-int TrainingFacilManuMgr::Checksum(Crc32* crc) { return ManuMgrChecksumBody(this, crc); }
-
-int TrainingFacilManuMgr::ApplyAll(NotifyContext* ctx) { return applyAllOnSideView(this, ctx); }
-
-int TrainingFacilManuMgr::GetEventKinds(int unused, EventKindSet* out) {
-    const int result = BuildEventKinds();
-    if (result) *out = g_trainingFacilManuMgrEventKinds;
-    return result;
+TrainingFacilManuMgr::TrainingFacilManuMgr() : ManuMgr()
+{
+  SetFlag31(GetFlag31());
 }
 
-int TrainingFacilManuMgr::CheckOrder(int a, int orderKind, StatusCode* out) {
-    *out = StatusCode(kStatusCategory, kStatusNotSupported);
-    const int result = BuildEventKinds();
-    if (result && g_trainingFacilManuMgrEventKinds.Contains(orderKind)) *out = StatusCode(kStatusCategory, kStatusOk);
-    return result;
+TrainingFacilManuMgr::~TrainingFacilManuMgr() = default;
+
+int TrainingFacilManuMgr::Read(istream* in)
+{
+  return ManuMgrReadBody(this, in);
 }
 
-int TrainingFacilManuMgr::CreateViews(int controlKind, NotifyContext* ctx) { return CreateViewsStubShared(this, controlKind, ctx); }
-
-GameObj* TrainingFacilManuMgr::CreateViewObject() { return new TrainingFacilManuMgr(); }
-
-int TrainingFacilManuMgr::BuildEventKinds() {
-    if (g_trainingFacilManuMgrEventKindsReady != 0) return 1;
-    g_trainingFacilManuMgrEventKindsReady = 1;
-    const int result = ManuMgr::InitEventKinds(0, &g_trainingFacilManuMgrEventKinds) &&
-           g_trainingFacilManuMgrEventKinds.Add(0x212, kDefaultEventKindValue);
-    g_trainingFacilManuMgrEventKindsReady = 1;
-    return result;
+int TrainingFacilManuMgr::Write(ostream* out)
+{
+  return ManuMgrWriteBody(this, out);
 }
 
-void TrainingFacilManuMgr::ConstructEventKinds() { new (&g_trainingFacilManuMgrEventKinds) EventKindSet(); }
-
-void TrainingFacilManuMgr::RegisterEventKindsAtExit() { atexit(DestroyTrainingFacilManuMgrEventKinds); }
-
-void TrainingFacilManuMgr::InitStatics() {
-    ConstructEventKinds();
-    RegisterEventKindsAtExit();
+int TrainingFacilManuMgr::Checksum(Crc32* crc)
+{
+  return ManuMgrChecksumBody(this, crc);
 }
 
-GameObjNotifier* CreateTrainingFacilManuMgr() { return new TrainingFacilManuMgr(); }
+int TrainingFacilManuMgr::ApplyAll(NotifyContext* ctx)
+{
+  return applyAllOnSideView(this, ctx);
+}
 
-int CountTrainingFacilManuMgrChildren(GameObj* parent, uint32_t side, uint32_t filter) {
-    return parent->CountChildren(&kTrainingFacilManuMgrFamilies, side, filter);
+int TrainingFacilManuMgr::GetEventKinds(int unused, EventKindSet* out)
+{
+  const int result = BuildEventKinds();
+  if (result)
+    *out = g_trainingFacilManuMgrEventKinds;
+  return result;
+}
+
+int TrainingFacilManuMgr::CheckOrder(int a, int orderKind, StatusCode* out)
+{
+  *out = StatusCode(kStatusCategory, kStatusNotSupported);
+  const int result = BuildEventKinds();
+  if (result && g_trainingFacilManuMgrEventKinds.Contains(orderKind))
+    *out = StatusCode(kStatusCategory, kStatusOk);
+  return result;
+}
+
+int TrainingFacilManuMgr::CreateViews(int controlKind, NotifyContext* ctx)
+{
+  return CreateViewsStubShared(this, controlKind, ctx);
+}
+
+GameObj* TrainingFacilManuMgr::CreateViewObject()
+{
+  return new TrainingFacilManuMgr();
+}
+
+int TrainingFacilManuMgr::BuildEventKinds()
+{
+  if (g_trainingFacilManuMgrEventKindsReady != 0)
+    return 1;
+  g_trainingFacilManuMgrEventKindsReady = 1;
+  const int result = ManuMgr::InitEventKinds(0, &g_trainingFacilManuMgrEventKinds) &&
+                     g_trainingFacilManuMgrEventKinds.Add(0x212, kDefaultEventKindValue);
+  g_trainingFacilManuMgrEventKindsReady = 1;
+  return result;
+}
+
+GameObjNotifier* CreateTrainingFacilManuMgr()
+{
+  return new TrainingFacilManuMgr();
+}
+
+int CountTrainingFacilManuMgrChildren(GameObj* parent, uint32_t side, uint32_t filter)
+{
+  return parent->CountChildren(&kTrainingFacilManuMgrFamilies, side, filter);
 }
 
 // ---- ConstructionYardManuMgr (family 0xa0) -------------------------------------------------------------------------------------------
 
-ConstructionYardManuMgr::ConstructionYardManuMgr() : ManuMgr() { SetFlag31(GetFlag31()); }
-
-ConstructionYardManuMgr::~ConstructionYardManuMgr() { REB_KEEP_VPTR_STORE(); }
-
-int ConstructionYardManuMgr::Read(istream* in) { return ManuMgrReadBody(this, in); }
-
-int ConstructionYardManuMgr::Write(ostream* out) { return ManuMgrWriteBody(this, out); }
-
-int ConstructionYardManuMgr::Checksum(Crc32* crc) { return ManuMgrChecksumBody(this, crc); }
-
-int ConstructionYardManuMgr::ApplyAll(NotifyContext* ctx) { return applyAllOnSideView(this, ctx); }
-
-int ConstructionYardManuMgr::GetEventKinds(int unused, EventKindSet* out) {
-    const int result = BuildEventKinds();
-    if (result) *out = g_constructionYardManuMgrEventKinds;
-    return result;
+ConstructionYardManuMgr::ConstructionYardManuMgr() : ManuMgr()
+{
+  SetFlag31(GetFlag31());
 }
 
-int ConstructionYardManuMgr::CheckOrder(int a, int orderKind, StatusCode* out) {
-    *out = StatusCode(kStatusCategory, kStatusNotSupported);
-    const int result = BuildEventKinds();
-    if (result && g_constructionYardManuMgrEventKinds.Contains(orderKind)) *out = StatusCode(kStatusCategory, kStatusOk);
-    return result;
+ConstructionYardManuMgr::~ConstructionYardManuMgr() = default;
+
+int ConstructionYardManuMgr::Read(istream* in)
+{
+  return ManuMgrReadBody(this, in);
 }
 
-int ConstructionYardManuMgr::CreateViews(int controlKind, NotifyContext* ctx) { return CreateViewsStubShared(this, controlKind, ctx); }
-
-GameObj* ConstructionYardManuMgr::CreateViewObject() { return new ConstructionYardManuMgr(); }
-
-int ConstructionYardManuMgr::BuildEventKinds() {
-    if (g_constructionYardManuMgrEventKindsReady != 0) return 1;
-    g_constructionYardManuMgrEventKindsReady = 1;
-    const int result = ManuMgr::InitEventKinds(0, &g_constructionYardManuMgrEventKinds) &&
-           g_constructionYardManuMgrEventKinds.Add(0x210, kDefaultEventKindValue);
-    g_constructionYardManuMgrEventKindsReady = 1;
-    return result;
+int ConstructionYardManuMgr::Write(ostream* out)
+{
+  return ManuMgrWriteBody(this, out);
 }
 
-void ConstructionYardManuMgr::ConstructEventKinds() { new (&g_constructionYardManuMgrEventKinds) EventKindSet(); }
-
-void ConstructionYardManuMgr::RegisterEventKindsAtExit() { atexit(DestroyConstructionYardManuMgrEventKinds); }
-
-void ConstructionYardManuMgr::InitStatics() {
-    ConstructEventKinds();
-    RegisterEventKindsAtExit();
+int ConstructionYardManuMgr::Checksum(Crc32* crc)
+{
+  return ManuMgrChecksumBody(this, crc);
 }
 
-GameObjNotifier* CreateConstructionYardManuMgr() { return new ConstructionYardManuMgr(); }
+int ConstructionYardManuMgr::ApplyAll(NotifyContext* ctx)
+{
+  return applyAllOnSideView(this, ctx);
+}
 
-int CountConstructionYardManuMgrChildren(GameObj* parent, uint32_t side, uint32_t filter) {
-    return parent->CountChildren(&kConstructionYardManuMgrFamilies, side, filter);
+int ConstructionYardManuMgr::GetEventKinds(int unused, EventKindSet* out)
+{
+  const int result = BuildEventKinds();
+  if (result)
+    *out = g_constructionYardManuMgrEventKinds;
+  return result;
+}
+
+int ConstructionYardManuMgr::CheckOrder(int a, int orderKind, StatusCode* out)
+{
+  *out = StatusCode(kStatusCategory, kStatusNotSupported);
+  const int result = BuildEventKinds();
+  if (result && g_constructionYardManuMgrEventKinds.Contains(orderKind))
+    *out = StatusCode(kStatusCategory, kStatusOk);
+  return result;
+}
+
+int ConstructionYardManuMgr::CreateViews(int controlKind, NotifyContext* ctx)
+{
+  return CreateViewsStubShared(this, controlKind, ctx);
+}
+
+GameObj* ConstructionYardManuMgr::CreateViewObject()
+{
+  return new ConstructionYardManuMgr();
+}
+
+int ConstructionYardManuMgr::BuildEventKinds()
+{
+  if (g_constructionYardManuMgrEventKindsReady != 0)
+    return 1;
+  g_constructionYardManuMgrEventKindsReady = 1;
+  const int result = ManuMgr::InitEventKinds(0, &g_constructionYardManuMgrEventKinds) &&
+                     g_constructionYardManuMgrEventKinds.Add(0x210, kDefaultEventKindValue);
+  g_constructionYardManuMgrEventKindsReady = 1;
+  return result;
+}
+
+GameObjNotifier* CreateConstructionYardManuMgr()
+{
+  return new ConstructionYardManuMgr();
+}
+
+int CountConstructionYardManuMgrChildren(GameObj* parent, uint32_t side, uint32_t filter)
+{
+  return parent->CountChildren(&kConstructionYardManuMgrFamilies, side, filter);
 }
 
 // ---- ShipyardManuMgr (family 0xa2) -------------------------------------------------------------------------------------------
 
-ShipyardManuMgr::ShipyardManuMgr() : ManuMgr() { SetFlag31(GetFlag31()); }
-
-ShipyardManuMgr::~ShipyardManuMgr() { REB_KEEP_VPTR_STORE(); }
-
-int ShipyardManuMgr::Read(istream* in) { return ManuMgrReadBody(this, in); }
-
-int ShipyardManuMgr::Write(ostream* out) { return ManuMgrWriteBody(this, out); }
-
-int ShipyardManuMgr::Checksum(Crc32* crc) { return ManuMgrChecksumBody(this, crc); }
-
-int ShipyardManuMgr::ApplyAll(NotifyContext* ctx) { return applyAllOnSideView(this, ctx); }
-
-int ShipyardManuMgr::GetEventKinds(int unused, EventKindSet* out) {
-    const int result = BuildEventKinds();
-    if (result) *out = g_shipyardManuMgrEventKinds;
-    return result;
+ShipyardManuMgr::ShipyardManuMgr() : ManuMgr()
+{
+  SetFlag31(GetFlag31());
 }
 
-int ShipyardManuMgr::CheckOrder(int a, int orderKind, StatusCode* out) {
-    *out = StatusCode(kStatusCategory, kStatusNotSupported);
-    const int result = BuildEventKinds();
-    if (result && g_shipyardManuMgrEventKinds.Contains(orderKind)) *out = StatusCode(kStatusCategory, kStatusOk);
-    return result;
+ShipyardManuMgr::~ShipyardManuMgr() = default;
+
+int ShipyardManuMgr::Read(istream* in)
+{
+  return ManuMgrReadBody(this, in);
 }
 
-int ShipyardManuMgr::CreateViews(int controlKind, NotifyContext* ctx) { return CreateViewsStubShared(this, controlKind, ctx); }
-
-GameObj* ShipyardManuMgr::CreateViewObject() { return new ShipyardManuMgr(); }
-
-int ShipyardManuMgr::BuildEventKinds() {
-    if (g_shipyardManuMgrEventKindsReady != 0) return 1;
-    g_shipyardManuMgrEventKindsReady = 1;
-    const int result = ManuMgr::InitEventKinds(0, &g_shipyardManuMgrEventKinds) &&
-           g_shipyardManuMgrEventKinds.Add(0x215, kDefaultEventKindValue) &&
-           g_shipyardManuMgrEventKinds.Add(0x211, kDefaultEventKindValue);
-    g_shipyardManuMgrEventKindsReady = 1;
-    return result;
+int ShipyardManuMgr::Write(ostream* out)
+{
+  return ManuMgrWriteBody(this, out);
 }
 
-void ShipyardManuMgr::ConstructEventKinds() { new (&g_shipyardManuMgrEventKinds) EventKindSet(); }
-
-void ShipyardManuMgr::RegisterEventKindsAtExit() { atexit(DestroyShipyardManuMgrEventKinds); }
-
-void ShipyardManuMgr::InitStatics() {
-    ConstructEventKinds();
-    RegisterEventKindsAtExit();
+int ShipyardManuMgr::Checksum(Crc32* crc)
+{
+  return ManuMgrChecksumBody(this, crc);
 }
 
-GameObjNotifier* CreateShipyardManuMgr() { return new ShipyardManuMgr(); }
+int ShipyardManuMgr::ApplyAll(NotifyContext* ctx)
+{
+  return applyAllOnSideView(this, ctx);
+}
 
-int CountShipyardManuMgrChildren(GameObj* parent, uint32_t side, uint32_t filter) {
-    return parent->CountChildren(&kShipyardManuMgrFamilies, side, filter);
+int ShipyardManuMgr::GetEventKinds(int unused, EventKindSet* out)
+{
+  const int result = BuildEventKinds();
+  if (result)
+    *out = g_shipyardManuMgrEventKinds;
+  return result;
+}
+
+int ShipyardManuMgr::CheckOrder(int a, int orderKind, StatusCode* out)
+{
+  *out = StatusCode(kStatusCategory, kStatusNotSupported);
+  const int result = BuildEventKinds();
+  if (result && g_shipyardManuMgrEventKinds.Contains(orderKind))
+    *out = StatusCode(kStatusCategory, kStatusOk);
+  return result;
+}
+
+int ShipyardManuMgr::CreateViews(int controlKind, NotifyContext* ctx)
+{
+  return CreateViewsStubShared(this, controlKind, ctx);
+}
+
+GameObj* ShipyardManuMgr::CreateViewObject()
+{
+  return new ShipyardManuMgr();
+}
+
+int ShipyardManuMgr::BuildEventKinds()
+{
+  if (g_shipyardManuMgrEventKindsReady != 0)
+    return 1;
+  g_shipyardManuMgrEventKindsReady = 1;
+  const int result = ManuMgr::InitEventKinds(0, &g_shipyardManuMgrEventKinds) &&
+                     g_shipyardManuMgrEventKinds.Add(0x215, kDefaultEventKindValue) &&
+                     g_shipyardManuMgrEventKinds.Add(0x211, kDefaultEventKindValue);
+  g_shipyardManuMgrEventKindsReady = 1;
+  return result;
+}
+
+GameObjNotifier* CreateShipyardManuMgr()
+{
+  return new ShipyardManuMgr();
+}
+
+int CountShipyardManuMgrChildren(GameObj* parent, uint32_t side, uint32_t filter)
+{
+  return parent->CountChildren(&kShipyardManuMgrFamilies, side, filter);
 }
 
 // ---- shipyard slots 129 and 132 -------------------------------------------------------------------------------------
 
-int ShipyardManuMgr::OnRemainingGameObjCountChanged(int oldValue, int newValue, NotifyContext* ctx) {
-    return ManuMgr::OnRemainingGameObjCountChanged(oldValue, newValue, ctx);
+int ShipyardManuMgr::OnRemainingGameObjCountChanged(int oldValue, int newValue, NotifyContext* ctx)
+{
+  return ManuMgr::OnRemainingGameObjCountChanged(oldValue, newValue, ctx);
 }
 
-int ShipyardManuMgr::OnSeedKeyChanged(NullableKey* oldKey, NullableKey* newKey, NotifyContext* ctx) {
-    return ManuMgr::OnSeedKeyChanged(oldKey, newKey, ctx);
+int ShipyardManuMgr::OnSeedKeyChanged(NullableKey* oldKey, NullableKey* newKey, NotifyContext* ctx)
+{
+  return ManuMgr::OnSeedKeyChanged(oldKey, newKey, ctx);
 }
-
-// ---- destructors registered with atexit ----------------------------------------------------
-
-extern uint8_t g_trainingFacilManuMgrEventKindsDestroyedGuard;  // 0x6bb4dc
-
-void DestroyTrainingFacilManuMgrEventKinds() {
-    if (!(g_trainingFacilManuMgrEventKindsDestroyedGuard & 0x1)) {
-        g_trainingFacilManuMgrEventKindsDestroyedGuard |= 0x1;
-        g_trainingFacilManuMgrEventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_constructionYardManuMgrEventKindsDestroyedGuard;  // 0x6bb4f0
-
-void DestroyConstructionYardManuMgrEventKinds() {
-    if (!(g_constructionYardManuMgrEventKindsDestroyedGuard & 0x1)) {
-        g_constructionYardManuMgrEventKindsDestroyedGuard |= 0x1;
-        g_constructionYardManuMgrEventKinds.~EventKindSet();
-    }
-}
-
-extern uint8_t g_shipyardManuMgrEventKindsDestroyedGuard;  // 0x6bb4fc
-
-void DestroyShipyardManuMgrEventKinds() {
-    if (!(g_shipyardManuMgrEventKindsDestroyedGuard & 0x1)) {
-        g_shipyardManuMgrEventKindsDestroyedGuard |= 0x1;
-        g_shipyardManuMgrEventKinds.~EventKindSet();
-    }
-}
+EventKindSet g_constructionYardManuMgrEventKinds{};
+EventKindSet g_shipyardManuMgrEventKinds{};
+EventKindSet g_trainingFacilManuMgrEventKinds{};
+int g_constructionYardManuMgrEventKindsReady{};
+int g_shipyardManuMgrEventKindsReady{};
+int g_trainingFacilManuMgrEventKindsReady{};

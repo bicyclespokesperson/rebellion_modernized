@@ -1,9 +1,6 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
-
-#include "core/containers.h"
-#include "core/stream_io.h"
+#include <map>
 
 // Function of the player dispatch module that the advisor droid calls.
-int REB_CDECL LoadAdvisorNotices(int side, IdValueTree* notices);  // 0x48b460
+int LoadAdvisorNotices(int side, std::map<uint32_t, int>* notices); // 0x48b460

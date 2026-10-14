@@ -1,119 +1,155 @@
 #include "gameobj/status_code.h"
 
 #include "core/checked_new.h"
-#include "core/vptr_store.h"
-
-namespace {
-
-// A throwaway node used as the probe of a lookup.
-class KindProbe {
-public:
-    explicit KindProbe(int kind) {
-        m_node = new (storage) EventKindNode();
-        m_node->m_key = kind;
-    }
-    ~KindProbe() { m_node->EventKindNode::~EventKindNode(); }
-    EventKindNode* node() const { return m_node; }
-
-private:
-    alignas(8) char storage[sizeof(EventKindNode)];
-    EventKindNode* m_node;
-};
-
-}  // namespace
+#include "core/iostream_lib.h"
+#include "core/stream_io.h"
 
 // ---- IntPair -----------------------------------------------------------------------------------------------
 
-IntPair::IntPair() : m_first(0), m_second(0) {}
-
-IntPair::IntPair(const IntPair& other) : m_first(other.m_first), m_second(other.m_second) {}
-
-IntPair* IntPair::Set(uint32_t first, uint32_t second) {
-    m_first = first;
-    m_second = second;
-    return this;
+IntPair::IntPair() : m_first(0), m_second(0)
+{
 }
 
-void IntPair::SetSecond(uint32_t second) { m_second = second; }
+IntPair::IntPair(const IntPair& other) = default;
 
-int IntPair::Write(ostream* out) {
-    WriteValue32(out, &m_first);
-    WriteValue32(out, &m_second);
-    return 1;
+IntPair* IntPair::Set(uint32_t first, uint32_t second)
+{
+  m_first = first;
+  m_second = second;
+  return this;
 }
 
-int IntPair::Read(istream* in) {
-    ReadValue32(in, &m_first);
-    ReadValue32(in, &m_second);
-    return 1;
+void IntPair::SetSecond(uint32_t second)
+{
+  m_second = second;
 }
 
-IntPair* IntPair::Add(IntPair* out, const IntPair& other) {
-    out->Set(m_first + other.m_first, m_second + other.m_second);
-    return out;
+int IntPair::Write(ostream* out)
+{
+  WriteValue32(out, &m_first);
+  WriteValue32(out, &m_second);
+  return 1;
 }
 
-int IntPair::Equals(const IntPair& other) { return m_first == other.m_first && m_second == other.m_second ? 1 : 0; }
+int IntPair::Read(istream* in)
+{
+  ReadValue32(in, &m_first);
+  ReadValue32(in, &m_second);
+  return 1;
+}
 
-int IntPair::NotEquals(const IntPair& other) { return Equals(other) == 0; }
+IntPair* IntPair::Add(IntPair* out, const IntPair& other)
+{
+  out->Set(m_first + other.m_first, m_second + other.m_second);
+  return out;
+}
+
+int IntPair::Equals(const IntPair& other)
+{
+  return m_first == other.m_first && m_second == other.m_second ? 1 : 0;
+}
+
+int IntPair::NotEquals(const IntPair& other)
+{
+  return Equals(other) == 0;
+}
 
 // ---- EventKindSet ------------------------------------------------------------------------------------------
 
-EventKindSet::EventKindSet() : IntKeyedSet() {}
+EventKindSet::EventKindSet() = default;
+EventKindSet::~EventKindSet() = default;
+EventKindSet& EventKindSet::operator=(const EventKindSet& other) = default;
 
-EventKindSet::~EventKindSet() { REB_KEEP_VPTR_STORE(); }
-
-EventKindSet& EventKindSet::operator=(const EventKindSet& other) {
-    if (this != &other) IntKeyedSet::operator=(other);
-    return *this;
+void EventKindSet::Clear()
+{
+  m_kinds.clear();
 }
 
-int EventKindSet::Contains(int kind) {
-    KindProbe probe(kind);
-    return AvlSet::Contains(probe.node());
+size_t EventKindSet::Count() const
+{
+  return m_kinds.size();
 }
 
-EventKindNode* EventKindSet::Add(int kind, int value) {
-    EventKindNode* node = nullptr;
-    if (!Contains(kind)) {
-        void* memory = ::operator new(sizeof(EventKindNode));
-        node = memory ? new (memory) EventKindNode() : nullptr;
-        if (node) {
-            node->m_value = value;
-            node->m_key = kind;
-            AddIfAbsent(node);
-        }
-    }
-    return node;
+EventKindSet& EventKindSet::Intersect(const EventKindSet& other)
+{
+  std::erase_if(m_kinds,
+                [&other](const auto& entry)
+                {
+                  return !other.m_kinds.contains(entry.first);
+                });
+  return *this;
 }
 
-EventKindNode* EventKindSet::Find(int kind) {
-    KindProbe probe(kind);
-    return static_cast<EventKindNode*>(AvlSet::Find(probe.node()));
+int EventKindSet::Contains(int kind)
+{
+  return m_kinds.contains(kind);
 }
 
-int EventKindSet::Read(istream* in) {
-    AvlTree::Clear();
-    int ok = 1;
-    int count;
-    ReadValue32(in, &count);
-    for (int i = 0; i < count; ++i) {
-        int kind;
-        ReadValue32(in, &kind);
-        void* memory = ::operator new(sizeof(EventKindNode));
-        EventKindNode* node = memory ? new (memory) EventKindNode() : nullptr;
-        if (node) {
-            node->m_key = kind;
-            AddIfAbsent(node);
-        }
-    }
-    return ok;
+EventKindNode* EventKindSet::Add(int kind, int value)
+{
+  auto [position, inserted] = m_kinds.try_emplace(kind);
+  if (!inserted)
+    return nullptr;
+  position->second.m_key = kind;
+  position->second.m_value = value;
+  return &position->second;
 }
 
-int EventKindSet::Write(ostream* out) {
-    int ok = 1;
-    uint32_t count = static_cast<uint16_t>(Count());
-    WriteValue32(out, &count);
-    for (AvlNode* node = AvlTree::First(); node; node = node->m_successor) static_cast<EventKindNode*>(node)->Write(out);
-    return ok;
+EventKindNode* EventKindSet::Find(int kind)
+{
+  const auto found = m_kinds.find(kind);
+  return found == m_kinds.end() ? nullptr : &found->second;
+}
+
+int EventKindSet::Read(istream* in)
+{
+  Clear();
+  uint32_t count = 0;
+  ReadValue32(in, &count);
+  if (iostream_access::State(in) != 0)
+    return 0;
+  for (uint32_t i = 0; i < count; ++i)
+  {
+    EventKindNode node;
+    node.Read(in);
+    if (iostream_access::State(in) != 0)
+      return 0;
+    m_kinds.try_emplace(node.m_key, node);
+  }
+  return 1;
+}
+
+int EventKindSet::Write(ostream* out)
+{
+  if (!WriteCount32(out, Count()))
+    return 0;
+  for (auto& [kind, node] : m_kinds)
+    node.Write(out);
+  return iostream_access::State(out) == 0;
+}
+
+// ---- EventKindNode ----------------------------------------------------------------------------------------
+
+EventKindNode::EventKindNode() : m_value(1), m_unknown(0)
+{
+}
+
+EventKindNode::EventKindNode(const EventKindNode& other) = default;
+
+EventKindNode::~EventKindNode() = default;
+
+int EventKindNode::Read(istream* in)
+{
+  ReadValue32(in, &m_key);
+  ReadValue32(in, &m_value);
+  ReadValue32(in, &m_unknown);
+  return iostream_access::State(in) == 0;
+}
+
+int EventKindNode::Write(ostream* out)
+{
+  WriteValue32(out, &m_key);
+  WriteValue32(out, &m_value);
+  WriteValue32(out, &m_unknown);
+  return iostream_access::State(out) == 0;
 }

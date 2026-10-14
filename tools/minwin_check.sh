@@ -16,7 +16,7 @@ tools/minwin_layout_gen.py --out build/minwin/layout_expected.fresh.inc > "$log"
 cmp -s build/minwin/layout_expected.fresh.inc src/port/minwin/layout_expected.inc || fail "layout_expected.inc is stale: rerun tools/minwin_layout_gen.py"
 
 tools/minwin_cc.sh -fsyntax-only -DREB_MINWIN=1 -Isrc/game -Isrc src/port/minwin/layout_check.cpp >> "$log" 2>&1 || fail "layout_check.cpp on i686 (see $log)"
-REB_CC=clang++ tools/minwin_cc.sh --target=x86_64-linux-gnu -std=c++20 -fsyntax-only -fms-extensions -Wno-everything -DREB_MINWIN=1 -Isrc/game -Isrc \
+REB_CC=clang++ tools/minwin_cc.sh --target=x86_64-linux-gnu -std=c++23 -fsyntax-only -fms-extensions -Wno-everything -DREB_MINWIN=1 -Isrc/game -Isrc \
   src/port/minwin/layout_check.cpp >> "$log" 2>&1 || fail "layout_check.cpp on x86-64 (see $log)"
 
 tools/minwin_compare.py >> "$log" 2>&1 || fail "signature differences (see $log)"

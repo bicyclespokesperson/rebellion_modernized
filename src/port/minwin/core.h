@@ -44,21 +44,21 @@
 #define EXTERN_C extern "C"
 
 // Scalar types.
-typedef char CHAR;
-typedef unsigned char UCHAR;
-typedef unsigned char BYTE;
-typedef short SHORT;
-typedef unsigned short USHORT;
-typedef unsigned short WORD;
-typedef int INT;
-typedef unsigned int UINT;
-typedef int BOOL;
-typedef float FLOAT;
-typedef char* PCHAR;
-typedef unsigned char* PBYTE;
-typedef int* PINT;
-typedef unsigned int* PUINT;
-typedef void* PVOID;
+using CHAR = char;
+using UCHAR = unsigned char;
+using BYTE = unsigned char;
+using SHORT = short;
+using USHORT = unsigned short;
+using WORD = unsigned short;
+using INT = int;
+using UINT = unsigned int;
+using BOOL = int;
+using FLOAT = float;
+using PCHAR = char*;
+using PBYTE = unsigned char*;
+using PINT = int*;
+using PUINT = unsigned int*;
+using PVOID = void*;
 
 #if MINWIN_TARGET_WINDOWS
 typedef long LONG;
@@ -67,11 +67,11 @@ typedef unsigned long DWORD;
 typedef __int64 LONGLONG;
 typedef unsigned __int64 ULONGLONG;
 #else
-typedef int32_t LONG;
-typedef uint32_t ULONG;
-typedef uint32_t DWORD;
-typedef int64_t LONGLONG;
-typedef uint64_t ULONGLONG;
+using LONG = int32_t;
+using ULONG = uint32_t;
+using DWORD = uint32_t;
+using LONGLONG = int64_t;
+using ULONGLONG = uint64_t;
 #endif
 
 // Pointer-sized integers: the 32-bit Windows spelling is `long`/`unsigned long` (INT_PTR is `int`).
@@ -86,14 +86,14 @@ typedef unsigned int UINT_PTR;
 typedef long LONG_PTR;
 typedef unsigned long ULONG_PTR;
 #else
-typedef intptr_t INT_PTR;
-typedef uintptr_t UINT_PTR;
-typedef intptr_t LONG_PTR;
-typedef uintptr_t ULONG_PTR;
+using INT_PTR = intptr_t;
+using UINT_PTR = uintptr_t;
+using LONG_PTR = intptr_t;
+using ULONG_PTR = uintptr_t;
 #endif
-typedef ULONG_PTR DWORD_PTR;
-typedef ULONG_PTR SIZE_T;
-typedef LONG_PTR SSIZE_T;
+using DWORD_PTR = ULONG_PTR;
+using SIZE_T = ULONG_PTR;
+using SSIZE_T = LONG_PTR;
 
 #ifndef _WIN32
 #define __int64 long long

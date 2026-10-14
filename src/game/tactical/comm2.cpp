@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "tactical/comm2.h"
 #include "core/icf_stubs.h"
 
@@ -9,7 +8,8 @@
 
 // The shared empty function that stands where the debug build traced (it pops one argument).
 
-namespace {
+namespace
+{
 
 constexpr int kNoConnection = 0x11;
 constexpr int kPlayerQuitMessageKind = 4;
@@ -18,186 +18,262 @@ constexpr char kClearCategoryCalled[] = "ClearCategory Called\n";
 constexpr char kClearCategoryReturned[] = "ClearCategory Returned\n";
 constexpr char kPlayerQuitTrace[] = "2Comm.cpp line 394 CM_PLAYER_QUIT_SESSION\n";
 
-}  // namespace
+} // namespace
 
-int REB_CDECL CommInit(uint32_t guid0, uint32_t guid1, uint32_t guid2, uint32_t guid3, StringMap* settings, HWND window,
-                     int maxPlayers, int connect, int unused9, int unused10, int unused11, int unused12) {
-    int result = kNoConnection;
-    DestroyCommMgr();
-    CommMgr* comm = GetCommMgr();
-    g_commSettings = *settings;
-    if (comm) {
-        if (connect != 0) {
-            const uint32_t words[4] = {guid0, guid1, guid2, guid3};
-            GUID application;
-            memcpy(&application, words, sizeof(application));
-            return comm->Init(window, application, maxPlayers);
-        }
-        result = reinterpret_cast<GameWindowObject*>(comm)->GameWindowObject::Virtual0D(unused9, unused10, unused11, reinterpret_cast<intptr_t>(window), unused12);
+int CommInit(uint32_t guid0,
+             uint32_t guid1,
+             uint32_t guid2,
+             uint32_t guid3,
+             StringMap* settings,
+             HWND window,
+             int maxPlayers,
+             int connect,
+             int unused9,
+             int unused10,
+             int unused11,
+             int unused12)
+{
+  int result = kNoConnection;
+  DestroyCommMgr();
+  CommMgr* comm = GetCommMgr();
+  g_commSettings = *settings;
+  if (comm)
+  {
+    if (connect != 0)
+    {
+      const uint32_t words[4] = {guid0, guid1, guid2, guid3};
+      GUID application;
+      memcpy(&application, words, sizeof(application));
+      return comm->Init(window, application, maxPlayers);
     }
-    return result;
+    result = reinterpret_cast<GameWindowObject*>(comm)->GameWindowObject::HandleWindowRequest(
+      unused9, unused10, unused11, reinterpret_cast<intptr_t>(window), unused12);
+  }
+  return result;
 }
 
-void CommShutdown() {
-    CommCleanUp();
-    DestroyCommMgr();
+void CommShutdown()
+{
+  CommCleanUp();
+  DestroyCommMgr();
 }
 
-int CommIsEnumerating() {
-    GetCommMgr();
-    return IsEnumeratingSessions();
+int CommIsEnumerating()
+{
+  GetCommMgr();
+  return IsEnumeratingSessions();
 }
 
-int CommCleanUp() { return GetCommMgr()->CleanUp(); }
-
-int CommIsConnected() { return GetCommMgr()->m_dplay != nullptr; }
-
-int CommGetLocalIndex() { return GetCommMgr()->GetLocalIndex(); }
-
-int CommGetPlayerCount() { return GetCommMgr()->m_playerCount; }
-
-void REB_CDECL CommClearCategory(int category) {
-    CommTrace(kClearCategoryCalled);
-    GetCommMgr()->ClearCategory(static_cast<char>(category));
-    CommTrace(kClearCategoryReturned);
+int CommCleanUp()
+{
+  return GetCommMgr()->CleanUp();
 }
 
-uint32_t REB_CDECL CommSendMessage(const void* data, uint32_t size, int category, int reliable) {
-    uint32_t result = 0;
-    CommMgr* comm = GetCommMgr();
-    if (CommIsConnected() != 0) result = comm->QueueMessage(data, size, category, 1);
-    return result;
+int CommIsConnected()
+{
+  return GetCommMgr()->m_dplay != nullptr;
 }
 
-CommBuffer* REB_CDECL CommTakeMessage(int category) {
-    CommBuffer* result = nullptr;
-    CommMgr* comm = GetCommMgr();
-    if (CommIsConnected() != 0) result = comm->TakeMessage(static_cast<char>(category));
-    return result;
+int CommGetLocalIndex()
+{
+  return GetCommMgr()->GetLocalIndex();
 }
 
-int CommAllPacketsAcknowledged() {
-    bool acknowledged = true;
-    CommMgr* comm = GetCommMgr();
-    if (comm && comm->m_dplay) acknowledged = comm->ResendUnacked() == kCommWaitingForAcks;
-    return acknowledged;
+int CommGetPlayerCount()
+{
+  return GetCommMgr()->m_playerCount;
 }
 
-int CommFlushAll() {
-    CommMgr* comm = GetCommMgr();
-    int result = 1;
-    if (comm && comm->m_dplay) result = comm->FlushAll();
-    return result;
+void CommClearCategory(int category)
+{
+  CommTrace(kClearCategoryCalled);
+  GetCommMgr()->ClearCategory(static_cast<char>(category));
+  CommTrace(kClearCategoryReturned);
 }
 
-void REB_CDECL CommSetResendInterval(int milliseconds) { GetCommMgr()->m_resendInterval = milliseconds; }
-
-int CommGetLastLatency() {
-    CommMgr* comm = GetCommMgr();
-    if (comm) return comm->GetLastLatency();
-    return 0;
+uint32_t CommSendMessage(const void* data, uint32_t size, int category, int reliable)
+{
+  uint32_t result = 0;
+  CommMgr* comm = GetCommMgr();
+  if (CommIsConnected() != 0)
+    result = comm->QueueMessage(data, size, category, 1);
+  return result;
 }
 
-ServiceProviderList* CommEnumerateServiceProviders() {
-    ServiceProviderList* result = nullptr;
-    CommMgr* comm = GetCommMgr();
-    if (comm) result = comm->EnumerateServiceProviders();
-    return result;
+CommBuffer* CommTakeMessage(int category)
+{
+  CommBuffer* result = nullptr;
+  CommMgr* comm = GetCommMgr();
+  if (CommIsConnected() != 0)
+    result = comm->TakeMessage(static_cast<char>(category));
+  return result;
 }
 
-int REB_CDECL CommHostNewSession(const char* sessionName) {
-    int result = kNoConnection;
-    CommMgr* comm = GetCommMgr();
-    if (comm) result = comm->HostNewSession(sessionName);
-    return result;
+int CommAllPacketsAcknowledged()
+{
+  bool acknowledged = true;
+  CommMgr* comm = GetCommMgr();
+  if (comm && comm->m_dplay)
+    acknowledged = comm->ResendUnacked() == kCommWaitingForAcks;
+  return acknowledged;
 }
 
-SessionList* REB_CDECL CommGetSessionList(uint32_t timeoutMs, int* status) {
-    SessionList* result = nullptr;
-    *status = kNoConnection;
-    CommMgr* comm = GetCommMgr();
-    if (comm) result = comm->GetSessionList(timeoutMs, status);
-    return result;
+int CommFlushAll()
+{
+  CommMgr* comm = GetCommMgr();
+  int result = 1;
+  if (comm && comm->m_dplay)
+    result = comm->FlushAll();
+  return result;
 }
 
-int REB_CDECL CommJoinSession(SessionInfo* session) {
-    int result = kNoConnection;
-    CommMgr* comm = GetCommMgr();
-    if (comm) result = comm->JoinSession(session);
-    return result;
+void CommSetResendInterval(int milliseconds)
+{
+  GetCommMgr()->m_resendInterval = milliseconds;
 }
 
-int REB_CDECL CommOpenProvider(ServiceProviderInfo* provider) {
-    int result = kNoConnection;
-    CommMgr* comm = GetCommMgr();
-    if (comm) result = comm->OpenProvider(provider);
-    return result;
+int CommGetLastLatency()
+{
+  CommMgr* comm = GetCommMgr();
+  if (comm)
+    return comm->GetLastLatency();
+  return 0;
 }
 
-void REB_CDECL CommSetPlayerName(String name) {
-    CommMgr* comm = GetCommMgr();
-    if (comm) comm->SetPlayerName(name);
+ServiceProviderList* CommEnumerateServiceProviders()
+{
+  ServiceProviderList* result = nullptr;
+  CommMgr* comm = GetCommMgr();
+  if (comm)
+    result = comm->EnumerateServiceProviders();
+  return result;
 }
 
-void CommMgr::SetPlayerName(String name) { m_playerName.Assign(name); }
-
-void CommSyncState() {
-    CommMgr* comm = GetCommMgr();
-    if (comm && comm->m_dplay) {
-        comm->RegroupReceived();
-        comm->ResendUnacked();
-        comm->FlushAll();
-    }
+int CommHostNewSession(const char* sessionName)
+{
+  int result = kNoConnection;
+  CommMgr* comm = GetCommMgr();
+  if (comm)
+    result = comm->HostNewSession(sessionName);
+  return result;
 }
 
-void REB_CDECL CommTrace(const char* text) {
-    if (CommMgr* comm = GetCommMgr()) IgnoreOneArgument(comm, reinterpret_cast<uintptr_t>(text));
+SessionList* CommGetSessionList(uint32_t timeoutMs, int* status)
+{
+  SessionList* result = nullptr;
+  *status = kNoConnection;
+  CommMgr* comm = GetCommMgr();
+  if (comm)
+    result = comm->GetSessionList(timeoutMs, status);
+  return result;
 }
 
-void CommSendPlayerQuit() {
-    CommTrace(kPlayerQuitTrace);
-    const int localIndex = CommGetLocalIndex();
-    CommMessage message(kPlayerQuitMessageKind, localIndex, 0, 0, 0);
-    char* buffer = message.Serialize();
-    CommSendMessage(buffer, kPlayerQuitSize, 0, 1);
-    CommFlushAll();
-    operator delete(buffer);
+int CommJoinSession(SessionInfo* session)
+{
+  int result = kNoConnection;
+  CommMgr* comm = GetCommMgr();
+  if (comm)
+    result = comm->JoinSession(session);
+  return result;
 }
 
-void REB_CDECL CommSetNotifyWindow(HWND window) {
-    CommMgr* comm = GetCommMgr();
-    if (comm) comm->m_notifyWindow = window;
+int CommOpenProvider(ServiceProviderInfo* provider)
+{
+  int result = kNoConnection;
+  CommMgr* comm = GetCommMgr();
+  if (comm)
+    result = comm->OpenProvider(provider);
+  return result;
 }
 
-void REB_CDECL CommSetSessionFlags(int flags) {
-    if (GetCommMgr()) g_commSessionFlags = flags;
+void CommSetPlayerName(std::string name)
+{
+  CommMgr* comm = GetCommMgr();
+  if (comm)
+    comm->SetPlayerName(name);
 }
 
-void* REB_THISCALL CommCloseSessionToNewPlayers(void* self) {
-    CommMgr* comm = GetCommMgr();
-    if (comm) return reinterpret_cast<void*>(static_cast<intptr_t>(comm->CloseSessionToNewPlayers()));
-    return self;
+void CommMgr::SetPlayerName(std::string name)
+{
+  (m_playerName = name);
 }
 
-int CommQueryLobbyConnection() {
-    int result = 0;
-    if (GetCommMgr()) result = QueryLobbyConnection();
-    return result;
+void CommSyncState()
+{
+  CommMgr* comm = GetCommMgr();
+  if (comm && comm->m_dplay)
+  {
+    comm->RegroupReceived();
+    comm->ResendUnacked();
+    comm->FlushAll();
+  }
 }
 
-int CommLaunchedFromLobby() {
-    GetCommMgr();
-    int result = 0;
-    if (GetCommMgr()) result = g_lobbyConnection.m_launched;
-    return result;
+void CommTrace(const char* text)
+{
+  if (CommMgr* comm = GetCommMgr())
+    IgnoreOneArgument(comm, reinterpret_cast<uintptr_t>(text));
 }
 
-int CommLobbyIsHost() {
-    int result = 0;
-    if (GetCommMgr()) result = g_lobbyConnection.m_host;
-    return result;
+void CommSendPlayerQuit()
+{
+  CommTrace(kPlayerQuitTrace);
+  const int localIndex = CommGetLocalIndex();
+  CommMessage message(kPlayerQuitMessageKind, localIndex, 0, 0, 0);
+  char* buffer = message.Serialize();
+  CommSendMessage(buffer, kPlayerQuitSize, 0, 1);
+  CommFlushAll();
+  operator delete(buffer);
 }
 
-void CommClearLobbyLaunch() {
-    if (GetCommMgr()) g_lobbyConnection.m_launched = 0;
+void CommSetNotifyWindow(HWND window)
+{
+  CommMgr* comm = GetCommMgr();
+  if (comm)
+    comm->m_notifyWindow = window;
+}
+
+void CommSetSessionFlags(int flags)
+{
+  if (GetCommMgr())
+    g_commSessionFlags = flags;
+}
+
+void* CommCloseSessionToNewPlayers(void* self)
+{
+  CommMgr* comm = GetCommMgr();
+  if (comm)
+    return reinterpret_cast<void*>(static_cast<intptr_t>(comm->CloseSessionToNewPlayers()));
+  return self;
+}
+
+int CommQueryLobbyConnection()
+{
+  int result = 0;
+  if (GetCommMgr())
+    result = QueryLobbyConnection();
+  return result;
+}
+
+int CommLaunchedFromLobby()
+{
+  GetCommMgr();
+  int result = 0;
+  if (GetCommMgr())
+    result = g_lobbyConnection.m_launched;
+  return result;
+}
+
+int CommLobbyIsHost()
+{
+  int result = 0;
+  if (GetCommMgr())
+    result = g_lobbyConnection.m_host;
+  return result;
+}
+
+void CommClearLobbyLaunch()
+{
+  if (GetCommMgr())
+    g_lobbyConnection.m_launched = 0;
 }

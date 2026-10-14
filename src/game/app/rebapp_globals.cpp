@@ -1,4 +1,3 @@
-#include "core/reb_abi.h"
 #include "app/rebapp_globals.h"
 
 #include <new>
@@ -11,309 +10,436 @@
 #include "audio/music.h"
 #include "core/iostream_lib.h"
 #include "core/registry.h"
+#include "port/native/audio_context.h"
 #include "ui/cool_app.h"
 
-// Sound module internals reached through the app helpers.
-extern int g_musicVolume;
-
-namespace {
+namespace
+{
 
 constexpr char kLucasArtsKey[] = "SOFTWARE\\LucasArts Entertainment Company LLC";
 constexpr char kBackslash[] = "\\";
 constexpr char kGameName[] = "Star Wars Rebellion";
 
-RebellionApplication* App() { return static_cast<RebellionApplication*>(g_app); }
+RebellionApplication* App()
+{
+  return static_cast<RebellionApplication*>(g_app);
+}
 
 // Builds "SOFTWARE\LucasArts Entertainment Company LLC\Star Wars Rebellion" in a strstream and reads `valueName`
 // from that key.
-char* ReadGameRegistryValue(const char* valueName) {
-    ScopedStrstream key;
-    ostream* out = iostream_access::AsOstream(key.get());
-    ostream_operator_ls_char(
-        ostream_operator_ls_cstr(ostream_operator_ls_cstr(ostream_operator_ls_cstr(out, kLucasArtsKey), kBackslash),
-                                 kGameName),
-        0);
-    streambuf* buffer = iostream_access::BufferOf(key.get());
-    char* value = reinterpret_cast<char*>(ReadRegistryValue(strstreambuf_str(buffer), valueName));
-    strstreambuf_freeze(iostream_access::BufferOf(key.get()), 0);
-    ios* state = iostream_access::IosOf(key.get());
-    iostream_access::Lock(state);
-    state->m_state = 0;
-    iostream_access::Unlock(state);
-    return value;
+char* ReadGameRegistryValue(const char* valueName)
+{
+  ScopedStrstream key;
+  ostream* out = iostream_access::AsOstream(key.get());
+  ostream_operator_ls_char(
+    ostream_operator_ls_cstr(ostream_operator_ls_cstr(ostream_operator_ls_cstr(out, kLucasArtsKey), kBackslash),
+                             kGameName),
+    0);
+  streambuf* buffer = iostream_access::BufferOf(key.get());
+  char* value = reinterpret_cast<char*>(ReadRegistryValue(strstreambuf_str(buffer), valueName));
+  strstreambuf_freeze(iostream_access::BufferOf(key.get()), 0);
+  ios* state = iostream_access::IosOf(key.get());
+  iostream_access::Lock(state);
+  state->m_state = 0;
+  iostream_access::Unlock(state);
+  return value;
 }
 
-}  // namespace
+} // namespace
 
-char* GetDllLocation() { return ReadGameRegistryValue(g_dllLocationName); }
-
-char* GetDataLocation() { return ReadGameRegistryValue(g_dataLocationName); }
-
-char* GetTooBigLocation() { return ReadGameRegistryValue(g_tooBigLocationName); }
-
-char* GetInstalledLocation() { return ReadGameRegistryValue(g_installedLocationName); }
-
-StringMap* GetNetworkSettings(StringMap* out) {
-    if (g_app) return App()->CopyNetworkSettings(out);
-    new (out) StringMap();
-    return out;
+char* GetDllLocation()
+{
+  return ReadGameRegistryValue(g_dllLocationName);
 }
 
-void AppForwardToStrategicWindow() {
-    if (g_app) App()->ForwardToStrategicWindow();
+char* GetDataLocation()
+{
+  return ReadGameRegistryValue(g_dataLocationName);
 }
 
-void AppSetState(int state) {
-    if (g_app) App()->SetState(state);
+char* GetTooBigLocation()
+{
+  return ReadGameRegistryValue(g_tooBigLocationName);
 }
 
-int AppGetSide() {
-    int side = 0;
-    if (g_app) side = App()->m_side;
-    return side;
+char* GetInstalledLocation()
+{
+  return ReadGameRegistryValue(g_installedLocationName);
 }
 
-int AppGetGameType() {
-    if (g_app) return App()->m_gameType;
-    return 0;
+StringMap GetNetworkSettings()
+{
+  if (g_app)
+    return App()->CopyNetworkSettings();
+  return {};
 }
 
-void AppSetGameParams(int side, int gameType, int param8, int param10, int connectionKind, int networkMode) {
-    if (g_app) App()->SetGameParams(side, gameType, param8, param10, connectionKind, networkMode);
+void AppForwardToStrategicWindow()
+{
+  if (g_app)
+    App()->ForwardToStrategicWindow();
 }
 
-int AppHasWaitedLongEnough() {
-    int waited = 0;
-    if (g_app) waited = App()->HasWaitedLongEnough();
-    return waited;
+void AppSetState(int state)
+{
+  if (g_app)
+    App()->SetState(state);
 }
 
-void AppResetWaitTimer() {
-    if (g_app) {
-        App()->m_waitElapsed = 0;
-        App()->m_waitTimer.Reset();
-    }
+int AppGetSide()
+{
+  int side = 0;
+  if (g_app)
+    side = App()->m_side;
+  return side;
 }
 
-void AppShowQuestionDialog(int message, int textA, int textB, int x, int y) {
-    if (g_app) ShowAppDialog(message, g_app, textA, textB, x, y);
+int AppGetGameType()
+{
+  if (g_app)
+    return App()->m_gameType;
+  return 0;
 }
 
-void AppShowNoticeDialog(int message, int a, int textA, int textB, int x, int y) {
-    if (g_app) ShowAppNoticeDialog(message, g_app, a, textA, textB, x, y);
+void AppSetGameParams(int side, int gameType, int param8, int param10, int connectionKind, int networkMode)
+{
+  if (g_app)
+    App()->SetGameParams(side, gameType, param8, param10, connectionKind, networkMode);
 }
 
-void AppPostDialogResult(int accepted, CoolWindow* app) {
-    if (app || (app = g_app)) {
-        PostMessageA(app->m_hwnd, kMsgActivated, 0, 0);
-        PostMessageA(app->m_hwnd, kMsgChildDone, 0xd, 0);
-        PostMessageA(app->m_hwnd, kMsgDialogEnded - (accepted != 0), g_appDialogMessage, 0);
-    }
+int AppHasWaitedLongEnough()
+{
+  int waited = 0;
+  if (g_app)
+    waited = App()->HasWaitedLongEnough();
+  return waited;
 }
 
-void AppShowAckDialog(int a, int textA, int x, int y) {
-    if (g_app) ShowAppWaitDialog(g_app, a, textA, x, y);
+void AppResetWaitTimer()
+{
+  if (g_app)
+  {
+    App()->m_waitElapsed = 0;
+    App()->m_waitTimer.Reset();
+  }
 }
 
-void AppEnableSpeedAfterDialog() {
-    if (g_app) App()->OnDialogEndedEnableSpeed();
+void AppShowQuestionDialog(int message, int textA, int textB, int x, int y)
+{
+  if (g_app)
+    ShowAppDialog(message, g_app, textA, textB, x, y);
 }
 
-int AppSaveStrategicState(void* stream) {
-    int saved = 0;
-    if (g_app) saved = App()->SaveStrategicState(stream);
-    return saved;
+void AppShowNoticeDialog(int message, int a, int textA, int textB, int x, int y)
+{
+  if (g_app)
+    ShowAppNoticeDialog(message, g_app, a, textA, textB, x, y);
 }
 
-int AppLoadStrategicState(void* stream) {
-    int loaded = 0;
-    if (g_app) loaded = App()->LoadStrategicState(stream);
-    return loaded;
+void AppPostDialogResult(int accepted, CoolWindow* app)
+{
+  if (app || (app = g_app))
+  {
+    PostMessageA(app->m_hwnd, kMsgActivated, 0, 0);
+    PostMessageA(app->m_hwnd, kMsgChildDone, 0xd, 0);
+    PostMessageA(app->m_hwnd, kMsgDialogEnded - (accepted != 0), g_appDialogMessage, 0);
+  }
 }
 
-int AppSaveTacticalState(void* stream) {
-    int saved = 0;
-    if (g_app) saved = App()->SaveTacticalState(stream);
-    return saved;
+void AppShowAckDialog(int a, int textA, int x, int y)
+{
+  if (g_app)
+    ShowAppWaitDialog(g_app, a, textA, x, y);
 }
 
-int AppLoadTacticalState(void* stream) {
-    int loaded = 0;
-    if (g_app) loaded = App()->LoadTacticalState(stream);
-    return loaded;
+void AppEnableSpeedAfterDialog()
+{
+  if (g_app)
+    App()->OnDialogEndedEnableSpeed();
 }
 
-void AppOpenOptions() {
-    if (g_app) App()->SetState(kStateOptionsMenu);
+int AppSaveStrategicState(void* stream)
+{
+  int saved = 0;
+  if (g_app)
+    saved = App()->SaveStrategicState(stream);
+  return saved;
 }
 
-void AppProcessSaveLoad() {
-    if (g_app) App()->ProcessPendingSaveLoad();
+int AppLoadStrategicState(void* stream)
+{
+  int loaded = 0;
+  if (g_app)
+    loaded = App()->LoadStrategicState(stream);
+  return loaded;
 }
 
-int AppIsSaveLoadPending() {
-    int pending = 0;
-    if (g_app) pending = App()->IsSessionActive();
-    return pending;
+int AppSaveTacticalState(void* stream)
+{
+  int saved = 0;
+  if (g_app)
+    saved = App()->SaveTacticalState(stream);
+  return saved;
 }
 
-void AppRequestSave(int slot, String name) {
-    if (g_app) {
-        App()->m_pendingSaveSlot = slot;
-        App()->m_pendingSaveName.Assign(name);
-    }
+int AppLoadTacticalState(void* stream)
+{
+  int loaded = 0;
+  if (g_app)
+    loaded = App()->LoadTacticalState(stream);
+  return loaded;
 }
 
-void AppRequestLoad(int slot) {
-    if (g_app) App()->m_pendingLoadSlot = slot;
+void AppOpenOptions()
+{
+  if (g_app)
+    App()->SetState(kStateOptionsMenu);
 }
 
-void AppSendSaveCommand(int a, int b, String name, int d) {
-    if (g_app) App()->SendSaveCommand(a, b, name, d);
+void AppProcessSaveLoad()
+{
+  if (g_app)
+    App()->ProcessPendingSaveLoad();
 }
 
-void AppSetAutosaveTick(int tick) {
-    if (g_app) App()->m_autosaveTick = tick;
+int AppIsSaveLoadPending()
+{
+  int pending = 0;
+  if (g_app)
+    pending = App()->IsSessionActive();
+  return pending;
 }
 
-SavedGameInfo AppReadSaveHeader(int slot, int isNetworkGame) {
-    SavedGameInfo info;
-    if (g_app) {
-        info = App()->ReadSaveHeader(slot, isNetworkGame);
-    }
-    return SavedGameInfo(info);
+void AppRequestSave(int slot, std::string name)
+{
+  if (g_app)
+  {
+    App()->m_pendingSaveSlot = slot;
+    App()->m_pendingSaveName = std::move(name);
+  }
 }
 
-int AppGetSavedGameType(int slot, int isNetworkGame) {
-    if (g_app) return App()->GetSavedGameType(slot, isNetworkGame);
-    return isNetworkGame;
+void AppRequestLoad(int slot)
+{
+  if (g_app)
+    App()->m_pendingLoadSlot = slot;
 }
 
-void AppPromptPause() {
-    if (g_app) App()->PromptForPause();
+void AppSendSaveCommand(int a, int b, std::string name, int d)
+{
+  if (g_app)
+    App()->SendSaveCommand(a, b, name, d);
 }
 
-void AppShowResumeNotice() {
-    if (g_app) App()->ShowResumeNotice();
+void AppSetAutosaveTick(int tick)
+{
+  if (g_app)
+    App()->m_autosaveTick = tick;
 }
 
-void AppPlayClickSound() {
-    if (g_app) App()->PlayClickSound();
+SavedGameInfo AppReadSaveHeader(int slot, int isNetworkGame)
+{
+  SavedGameInfo info;
+  if (g_app)
+  {
+    info = App()->ReadSaveHeader(slot, isNetworkGame);
+  }
+  return SavedGameInfo(info);
 }
 
-int AppGetUnknown138() {
-    int value = 0;
-    if (g_app) value = App()->m_unknown138;
-    return value;
+int AppGetSavedGameType(int slot, int isNetworkGame)
+{
+  if (g_app)
+    return App()->GetSavedGameType(slot, isNetworkGame);
+  return isNetworkGame;
 }
 
-void AppSetUnknown138(int value) {
-    if (g_app) App()->m_unknown138 = value;
+void AppPromptPause()
+{
+  if (g_app)
+    App()->PromptForPause();
 }
 
-void AppPlayMovie(int movieId, const String* caption, void(REB_CDECL* callback)(uint32_t, uint32_t, int)) {
-    if (g_app) App()->PlayMovie(movieId, caption, callback);
+void AppShowResumeNotice()
+{
+  if (g_app)
+    App()->ShowResumeNotice();
 }
 
-int AppShowHelp() {
-    int shown = 0;
-    if (g_app) shown = App()->ShowHelp();
-    return shown;
+void AppPlayClickSound()
+{
+  if (g_app)
+    App()->PlayClickSound();
 }
 
-uint32_t AppGetDisplayOptions() {
-    uint32_t options = 0x100;
-    if (g_app) options = App()->m_displayOptions;
-    return options;
+int AppGetUnknown138()
+{
+  int value = 0;
+  if (g_app)
+    value = App()->m_unknown138;
+  return value;
 }
 
-uint32_t AppGetDisplayOptions2() {
-    uint32_t options = 0x13110000;
-    if (g_app) options = App()->m_displayOptions2;
-    return options;
+void AppSetUnknown138(int value)
+{
+  if (g_app)
+    App()->m_unknown138 = value;
 }
 
-void AppSetDisplayOptions(uint32_t options) {
-    if (g_app) App()->SetDisplayOptions(options);
+void AppPlayMovie(int movieId, const std::string* caption, void (*callback)(uint32_t, uint32_t, int))
+{
+  if (g_app)
+    App()->PlayMovie(movieId, caption, callback);
 }
 
-void AppSetDisplayOptions2(uint32_t options) {
-    if (g_app) App()->m_displayOptions2 = options;
+int AppShowHelp()
+{
+  int shown = 0;
+  if (g_app)
+    shown = App()->ShowHelp();
+  return shown;
 }
 
-void AppSetVolume(int volume) {
-    if (g_app) App()->SetVolume(volume);
+uint32_t AppGetDisplayOptions()
+{
+  uint32_t options = 0x100;
+  if (g_app)
+    options = App()->m_displayOptions;
+  return options;
 }
 
-int AppGetVolume() {
-    int volume = 0;
-    if (g_app) volume = App()->m_volume;
-    return volume;
+uint32_t AppGetDisplayOptions2()
+{
+  uint32_t options = 0x13110000;
+  if (g_app)
+    options = App()->m_displayOptions2;
+  return options;
 }
 
-void AppSetMusicVolume(int volume) { SetMusicVolume(volume); }
-
-void AppSetMusicSwitch(int enabled) { SetMusicSwitch(enabled); }
-
-int AppGetMusicVolume() { return g_musicVolume; }
-
-void AppDestroyTacticalWindow() {
-    if (g_app) App()->DestroyTacticalWindow();
+void AppSetDisplayOptions(uint32_t options)
+{
+  if (g_app)
+    App()->SetDisplayOptions(options);
 }
 
-uint32_t AppGetCommandLineFlags() {
-    uint32_t flags = 0;
-    if (g_app) flags = App()->m_commandLineFlags;
-    return flags;
+void AppSetDisplayOptions2(uint32_t options)
+{
+  if (g_app)
+    App()->m_displayOptions2 = options;
 }
 
-int AppGetNetworkMode() {
-    int mode = 0;
-    if (g_app) mode = App()->m_networkMode;
-    return mode;
+void AppSetVolume(int volume)
+{
+  if (g_app)
+    App()->SetVolume(volume);
 }
 
-void AppRestoreGame(void* stream) {
-    BattleFlow* battleFlow = GetBattleFlow();
-    if (battleFlow) battleFlow->Restore(static_cast<istream*>(stream));
+int AppGetVolume()
+{
+  int volume = 0;
+  if (g_app)
+    volume = App()->m_volume;
+  return volume;
 }
 
-void AppStartGame(void* setup, int gameType, int side) {
-    BattleFlow* battleFlow = GetBattleFlow();
-    if (battleFlow) battleFlow->StartGame(static_cast<GameSettings*>(setup), gameType, side);
+void AppSetMusicVolume(int volume)
+{
+  SetMusicVolume(volume);
 }
 
-void AppSaveGame(void* stream) {
-    BattleFlow* battleFlow = GetBattleFlow();
-    if (battleFlow) battleFlow->Save(static_cast<ostream*>(stream));
+void AppSetMusicSwitch(int enabled)
+{
+  SetMusicSwitch(enabled);
 }
 
-void AppStepGame(int* stepped) {
-    BattleFlow* battleFlow = GetBattleFlow();
-    *stepped = 1;
-    if (battleFlow) battleFlow->Step(stepped);
+int AppGetMusicVolume()
+{
+  const reb::native::AudioContext* audio = reb::native::CurrentAudioContext();
+  return audio ? audio->musicVolume : 0;
 }
 
-void AppReleaseBattleFlow() {
-    BattleFlow* battleFlow = GetBattleFlow();
-    if (battleFlow) battleFlow->DeletePreBattleSave();
+void AppDestroyTacticalWindow()
+{
+  if (g_app)
+    App()->DestroyTacticalWindow();
 }
 
-int AppGetBattleFlowState() {
-    int state = 0;
-    BattleFlow* battleFlow = GetBattleFlow();
-    if (battleFlow) state = battleFlow->m_state;
-    return state;
+uint32_t AppGetCommandLineFlags()
+{
+  uint32_t flags = 0;
+  if (g_app)
+    flags = App()->m_commandLineFlags;
+  return flags;
 }
 
-int AppIsGameRunning() {
-    int running = 0;
-    BattleFlow* battleFlow = GetBattleFlow();
-    if (battleFlow) running = battleFlow->GetAutosaveFlag();
-    return running;
+int AppGetNetworkMode()
+{
+  int mode = 0;
+  if (g_app)
+    mode = App()->m_networkMode;
+  return mode;
 }
 
-void AppSetAutosaveFlag(int value) {
-    BattleFlow* battleFlow = GetBattleFlow();
-    if (battleFlow) battleFlow->SetAutosaveFlag(value);
+bool AppRestoreGame(istream* stream)
+{
+  BattleFlow* battleFlow = GetBattleFlow();
+  if (!battleFlow)
+    return false;
+  battleFlow->Restore(stream);
+  return battleFlow->m_ok != 0 && iostream_access::State(stream) == 0;
+}
+
+void AppStartGame(void* setup, int gameType, int side)
+{
+  BattleFlow* battleFlow = GetBattleFlow();
+  if (battleFlow)
+    battleFlow->StartGame(static_cast<GameSettings*>(setup), gameType, side);
+}
+
+bool AppSaveGame(ostream* stream)
+{
+  BattleFlow* battleFlow = GetBattleFlow();
+  return battleFlow && battleFlow->Save(stream) != 0;
+}
+
+void AppStepGame(int* stepped)
+{
+  if (g_app)
+    App()->ProcessDeveloperActions();
+  BattleFlow* battleFlow = GetBattleFlow();
+  *stepped = 1;
+  if (battleFlow)
+    battleFlow->Step(stepped);
+}
+
+void AppReleaseBattleFlow()
+{
+  BattleFlow* battleFlow = GetBattleFlow();
+  if (battleFlow)
+    battleFlow->DeletePreBattleSave();
+}
+
+int AppGetBattleFlowState()
+{
+  int state = 0;
+  BattleFlow* battleFlow = GetBattleFlow();
+  if (battleFlow)
+    state = battleFlow->m_state;
+  return state;
+}
+
+int AppIsGameRunning()
+{
+  int running = 0;
+  BattleFlow* battleFlow = GetBattleFlow();
+  if (battleFlow)
+    running = battleFlow->GetAutosaveFlag();
+  return running;
+}
+
+void AppSetAutosaveFlag(int value)
+{
+  BattleFlow* battleFlow = GetBattleFlow();
+  if (battleFlow)
+    battleFlow->SetAutosaveFlag(value);
 }

@@ -11,10 +11,22 @@ using StrStream = strstream;
 using OStrStream = ostrstream;
 using IStrStream = istrstream;
 
-// The virtual-base ios part of any strstream-derived stream, found through the first vbtable slot.
-inline char* IosPartOf(void* stream) { return reinterpret_cast<char*>(iostream_access::IosOf(stream)); }
+// Typed access to the ios and streambuf members owned by the stream object.
+template <typename T>
+inline ios* IosPartOf(T* stream)
+{
+  return iostream_access::IosOf(stream);
+}
 
-inline streambuf* StreambufOf(void* stream) { return iostream_access::BufferOf(stream); }
+template <typename T>
+inline streambuf* StreambufOf(T* stream)
+{
+  return iostream_access::BufferOf(stream);
+}
 
 // Inline ios::clear() as the original compiled it: the state word (+8) is zeroed under the ios lock.
-inline void ClearIosState(void* stream) { iostream_access::Clear(iostream_access::IosOf(stream), 0); }
+template <typename T>
+inline void ClearIosState(T* stream)
+{
+  iostream_access::Clear(iostream_access::IosOf(stream), 0);
+}

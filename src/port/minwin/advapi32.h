@@ -4,15 +4,18 @@
 #pragma once
 #include "port/minwin/base.h"
 
-typedef LONG LSTATUS;
-typedef ACCESS_MASK REGSAM;
+using LSTATUS = LONG;
+using REGSAM = ACCESS_MASK;
 
 extern "C" {
 MINWIN_IMPORT BOOL REB_STDCALL GetUserNameA(LPSTR lpBuffer, LPDWORD pcbBuffer);
 MINWIN_IMPORT LSTATUS REB_STDCALL RegCloseKey(HKEY hKey);
-MINWIN_IMPORT LSTATUS REB_STDCALL RegOpenKeyExA(HKEY hKey, LPCSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult);
-MINWIN_IMPORT LSTATUS REB_STDCALL RegQueryValueExA(HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData);
-MINWIN_IMPORT LSTATUS REB_STDCALL RegSetValueExA(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, const BYTE *lpData, DWORD cbData);
+MINWIN_IMPORT LSTATUS REB_STDCALL
+RegOpenKeyExA(HKEY hKey, LPCSTR lpSubKey, DWORD ulOptions, REGSAM samDesired, PHKEY phkResult);
+MINWIN_IMPORT LSTATUS REB_STDCALL
+RegQueryValueExA(HKEY hKey, LPCSTR lpValueName, LPDWORD lpReserved, LPDWORD lpType, LPBYTE lpData, LPDWORD lpcbData);
+MINWIN_IMPORT LSTATUS REB_STDCALL
+RegSetValueExA(HKEY hKey, LPCSTR lpValueName, DWORD Reserved, DWORD dwType, const BYTE* lpData, DWORD cbData);
 }
 
 #define HKEY_LOCAL_MACHINE ((HKEY)(ULONG_PTR)((LONG)0x80000002))

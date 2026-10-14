@@ -5,7 +5,8 @@
 #pragma once
 #include <stdint.h>
 
-namespace native_clock {
+namespace native_clock
+{
 
 bool Deterministic();
 uint64_t AdvanceCounterNs();
@@ -13,4 +14,4 @@ uint32_t VirtualTickMs();
 uint32_t RealTickMs();
 bool NoTimers();
 
-}  // namespace native_clock
+} // namespace native_clock

@@ -40,12 +40,12 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
 
 ## Events part 3 (UI notification handlers, player notices)
 - The scalar deleting destructors of the 95 `UiNotif*`, 6 `NetMsg*` and 44 `Notice*` classes are compiler-generated and not
-  hooked; `UiTextNotice::Virtual16` (0x4974f0) hosts the address that `UiKeyNotice::Virtual14` shares (ICF).
+  hooked; `UiTextNotice::DispatchPayloads` (0x4974f0) hosts the address that `UiKeyNotice::DispatchPayloads` shares (ICF).
 - `AdvisorRecordTypeResource` (0x4c5000) is `__stdcall` (it ends in `ret 4`); declared cdecl in the first version, which broke
   every original caller (found by `difftest --integration` on `Notice22`).
 - `PlayerDispatch` is created in place by `HumanPlayer` (storage at +0x6c). `GameSession`/`HumanPlayer` still pass `PlayerMessage*` where the real parameter is a
   `MessageBase*` or `UiNotice*` (the stand-in `PlayerMessage` should be dropped).
-- Mission families 0x56, 0x57, 0x58, 0x63 and 0x6a of `Notice22::Virtual05` (event 0x1f0) were reconstructed by reading only:
+- Mission families 0x56, 0x57, 0x58, 0x63 and 0x6a of `Notice22::OnPayload` (event 0x1f0) were reconstructed by reading only:
   no mission of those families exists in any scenario's game state, so no synthetic payload reached them.
 - `Notice8` (the order confirmation dialog), `Notice10` (chat) and `Notice42` (character notice) are created only by the
   human player's UI paths; they were checked with synthetic calls (`--entry`), not by a scenario capture.
@@ -69,7 +69,7 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   reconstructions are `PickLeaders`/`PickMembers` (void) behind the virtual overrides; `AiDsSabotagePlanner::ChooseTarget`
   resets the target before testing it, so its keep-target branch is dead; `AiRescuePlanner::ChooseTarget` tests `(flags | 0x20) == 0`
   (never true) where the free 0x62 planner tests `(flags & 0x60) == 0`, so a rescue target is never kept; `ObjectRefNode`'s copy
-  constructor leaves `m_flag` uninitialised.
+  constructor deliberately resets `m_flag` to zero rather than copying it (now explicit in source).
 - Planner functions that no scenario reached (read only): sabotage 0x69, DS sabotage 0x6a, recruit 0x55, incite 0x56,
   research/subdue 0x53/0x57 steps, `AiAbductionPlanner::Read/Write`.
 - Classes that sit outside the module's ranges because the module needs them: `AiTaskNode` and `AiTaskObject`
@@ -81,8 +81,8 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   `AiSystemRecord::CheckShortfall` drops the order `ReleaseSurplus` builds; `AiTaskRecord::Step` and `AiSystemRecord::Step`
   reuse the incoming `done` slot as a flag that starts non-zero.
 - `PlayerController` virtual slots 59-61, 74-79 and 92 got their real signatures in `app/player_controller_decl.h` (the AI's
-  overrides need them). `AiPlayer::Virtual25/83` still pass pointers through `int` parameters, and `Virtual87` destroys the
-  by-value `String` argument through a pointer to its first word; both rely on 32-bit stack layout.
+  overrides need them). The maintenance-update and object-movement callbacks historically passed pointers through `int`
+  parameters; their current signatures use native pointer-sized types. `NotifyShipChanged` takes an object key.
 - Not reached by any scenario (verified by reading only): `AiTaskRecord::Release/ReleaseShips/IsFinished/Write/
   ReinforceBySize`, `AiSystemRecord::Reset/RemovePlanner/Write/PlannerClassOf/AgentClassOf`, `AiTaskEvaluator::ChooseSector/
   ClearRecordFlags/Write`, `AiMissionHistory::*`, `AiNoticeQueue::Save`, `AiAgentBase::Write`. Every `Read` function is a
@@ -131,7 +131,7 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   sites, because the game's LCG `rand` and its `qsort` order are behaviour.
 - The iostream model (`iostream/iostream.h`) has `streambuf*` and `long` fields at 32-bit offsets and reads 32-bit vbtable offsets; it needs a
   portable replacement (or a small byte-stream class with the same save format) before an LP64 build.
-- Byte-offset reads that stay on purpose: `GameRoot::InitializeAllObjects` (word after an `AllFacility`), `Notice41::Virtual08` and
+- Byte-offset reads that stay on purpose: `GameRoot::InitializeAllObjects` (word after an `AllFacility`), `Notice41::OnObjectAndValuePayload` and
   `HumanPlayer::SpeakOrderAdvice` (byte `0xb0` after a `Character`; both read past the 0xb0-byte object, the original does too),
   `AreaOf` in `menu_window.cpp` (a null item's rectangle at 0x60: a crash outside Windows), the ICF-folded cross-class accessors
   `SetDword30`/`ObjectKeyAtOffset6c`/`ObjectKeyAtOffset1c`, and the 3D tactical code.
@@ -147,5 +147,5 @@ Cleanup and loose ends reported by module agents. Remove an item when it is done
   there, so a difftest of it fails on EAX (nothing reads the byte: `DibBitmap::BuildRemapTable` compares three bytes).
 - The atexit thunk of `g_soundEventQueue` (`DestroySoundEventQueue`, 0x611120) ends in a tail call, so the original leaves the
   destructor's EAX; ours leaves the guard mask. atexit ignores it; entry-poke difftests report the EAX difference.
-- The tactical stubs' parameters are placeholder `int`s sized by the original's `ret n` (`ShipGroup::Virtual27(int a)`): type them
+- The tactical stubs' parameters are placeholder `int`s sized by the original's `ret n` (`ShipGroup::Unreconstructed3DGroupSlot27(int a)`): type them
   when a 3D class is reconstructed or ported.

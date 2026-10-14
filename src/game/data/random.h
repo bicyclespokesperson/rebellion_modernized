@@ -6,13 +6,15 @@
 // pick a seed when none is given.
 class RandomGenerator;
 
-extern RandomGenerator* g_gameRandom;  // 0x6b9054, null outside a running game
+extern RandomGenerator* g_gameRandom; // 0x6b9054, null outside a running game
 
 void SetGameRandom(RandomGenerator* generator);
 // Uniform value in [0, max] for max >= 0, in [max, 0] for max < 0; 0 without a generator.
 int GameRandom(int max);
-// low + GameRandom(high - low)
+// Inclusive range; reversed bounds are normalized.
 int GameRandomRange(int low, int high);
+// Uniform value in [0, limit), or 0 without a gameplay generator.
+int GameplayRandomNext(int limit);
 // GameRandom(99)
 int RollPercent();
 // 1 if RollPercent() < percent.

@@ -1,8 +1,7 @@
 #pragma once
 #include <cstdint>
 
-#include "core/containers.h"
-#include "core/layout.h"
+#include "core/entry_identity.h"
 #include "core/stream_io.h"
 
 class Crc32;
@@ -13,29 +12,23 @@ class Crc32;
 //
 // Write/Read/Checksum below are pure virtual with bodies that the concrete entries call first; ParseHeader is the
 // text-format counterpart of the common part.
-class TableEntry : public IdNode {
+class TableEntry : public IdNode
+{
 public:
-    TableEntry();
-    virtual ~TableEntry();
-    virtual int Write(ostream* out) = 0;
-    virtual int Read(istream* in) = 0;
-    virtual int ParseText(istream* in) = 0;
-    virtual int Checksum(Crc32* crc) = 0;
+  TableEntry();
+  ~TableEntry() override;
+  virtual int Write(ostream* out) = 0;
+  virtual int Read(istream* in) = 0;
+  virtual int ParseText(istream* in) = 0;
+  virtual int Checksum(Crc32* crc) = 0;
+  virtual int FirstValue() const = 0;
 
-    // Reads the next text field into +0x20; false if the stream has failed, the field is empty or reading it
-    // failed. (The entry's id is not part of the text form.)
-    int ParseHeader(istream* in, int* endOfLine);
+  // Reads the next text field into +0x20; false if the stream has failed, the field is empty or reading it
+  // failed. (The entry's id is not part of the text form.)
+  int ParseHeader(istream* in, int* endOfLine);
 
-    int m_field1c;  // +0x1c, 1 after construction
-    int m_field20;  // +0x20
-};
-
-// The entries of the parameter tables that carry values: the first value follows the base at +0x24 (GNPRTB entries hold
-// 8 difficulty values from there, SDPRTB entries 8 x 2 per side, the other tables a key or a count). Overlay for the
-// callers that only read the first value; the concrete entry classes derive from TableEntry directly.
-class TableEntryWithValue : public TableEntry {
-public:
-    int m_firstValue;  // +0x24
+  int m_field1c; // +0x1c, 1 after construction
+  int m_field20; // +0x20
 };
 
 // The registry of entry classes by name (at most 9; names are truncated to 39 characters). Registering a name that
@@ -45,11 +38,3 @@ public:
 void* CreateTableEntryByClassName(const char* className);
 int RegisterTableEntryClass(const char* className, void* (*factory)());
 int IsTableEntryClassRegistered(const char* className);
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(TableEntry, 0x24);
-REB_ASSERT_OFFSET(TableEntry, m_field1c, 0x1c);
-REB_ASSERT_OFFSET(TableEntry, m_field20, 0x20);
-REB_ASSERT_OFFSET(TableEntryWithValue, m_firstValue, 0x24);
-#pragma clang diagnostic pop

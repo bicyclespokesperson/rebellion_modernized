@@ -7,10 +7,11 @@
 #pragma once
 #include <stdint.h>
 
-namespace msgtrace {
+namespace msgtrace
+{
 
 bool Enabled();
 void Log(const char* windowClass, uintptr_t window, unsigned message, uintptr_t wParam, intptr_t lParam, int depth);
 void Note(const char* text);
 
-}  // namespace msgtrace
+} // namespace msgtrace

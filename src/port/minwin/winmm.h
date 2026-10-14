@@ -5,70 +5,81 @@
 #include "port/minwin/base.h"
 
 struct HDRVR__;
-typedef UINT MMRESULT;
-typedef struct HDRVR__ *HDRVR;
-typedef DWORD MCIERROR;
-typedef UINT MCIDEVICEID;
-struct tagMCI_GENERIC_PARMS {
-    DWORD_PTR dwCallback;
+using MMRESULT = UINT;
+using HDRVR = struct HDRVR__*;
+using MCIERROR = DWORD;
+using MCIDEVICEID = UINT;
+struct tagMCI_GENERIC_PARMS
+{
+  DWORD_PTR dwCallback;
 };
-typedef struct tagMCI_GENERIC_PARMS MCI_GENERIC_PARMS;
-struct tagMCI_OPEN_PARMSA {
-    DWORD_PTR dwCallback;
-    MCIDEVICEID wDeviceID;
-    LPCSTR lpstrDeviceType;
-    LPCSTR lpstrElementName;
-    LPCSTR lpstrAlias;
+using MCI_GENERIC_PARMS = struct tagMCI_GENERIC_PARMS;
+struct tagMCI_OPEN_PARMSA
+{
+  DWORD_PTR dwCallback;
+  MCIDEVICEID wDeviceID;
+  LPCSTR lpstrDeviceType;
+  LPCSTR lpstrElementName;
+  LPCSTR lpstrAlias;
 };
-typedef struct tagMCI_OPEN_PARMSA MCI_OPEN_PARMSA;
-typedef MCI_OPEN_PARMSA MCI_OPEN_PARMS;
-struct tagMCI_PLAY_PARMS {
-    DWORD_PTR dwCallback;
-    DWORD dwFrom;
-    DWORD dwTo;
+using MCI_OPEN_PARMSA = struct tagMCI_OPEN_PARMSA;
+using MCI_OPEN_PARMS = MCI_OPEN_PARMSA;
+struct tagMCI_PLAY_PARMS
+{
+  DWORD_PTR dwCallback;
+  DWORD dwFrom;
+  DWORD dwTo;
 };
-typedef struct tagMCI_PLAY_PARMS MCI_PLAY_PARMS;
-struct tagMCI_STATUS_PARMS {
-    DWORD_PTR dwCallback;
-    DWORD_PTR dwReturn;
-    DWORD dwItem;
-    DWORD dwTrack;
+using MCI_PLAY_PARMS = struct tagMCI_PLAY_PARMS;
+struct tagMCI_STATUS_PARMS
+{
+  DWORD_PTR dwCallback;
+  DWORD_PTR dwReturn;
+  DWORD dwItem;
+  DWORD dwTrack;
 };
-typedef struct tagMCI_STATUS_PARMS MCI_STATUS_PARMS;
-struct tagMCI_SET_PARMS {
-    DWORD_PTR dwCallback;
-    DWORD dwTimeFormat;
-    DWORD dwAudio;
+using MCI_STATUS_PARMS = struct tagMCI_STATUS_PARMS;
+struct tagMCI_SET_PARMS
+{
+  DWORD_PTR dwCallback;
+  DWORD dwTimeFormat;
+  DWORD dwAudio;
 };
-typedef struct tagMCI_SET_PARMS MCI_SET_PARMS;
-typedef void REB_STDCALL TIMECALLBACK(UINT, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR);
-typedef TIMECALLBACK *LPTIMECALLBACK;
+using MCI_SET_PARMS = struct tagMCI_SET_PARMS;
+using TIMECALLBACK = void REB_STDCALL (UINT, UINT, DWORD_PTR, DWORD_PTR, DWORD_PTR);
+using LPTIMECALLBACK = TIMECALLBACK*;
 #pragma pack(push, 1)
-struct tWAVEFORMATEX {
-    WORD wFormatTag;
-    WORD nChannels;
-    DWORD nSamplesPerSec;
-    DWORD nAvgBytesPerSec;
-    WORD nBlockAlign;
-    WORD wBitsPerSample;
-    WORD cbSize;
+struct tWAVEFORMATEX
+{
+  WORD wFormatTag;
+  WORD nChannels;
+  DWORD nSamplesPerSec;
+  DWORD nAvgBytesPerSec;
+  WORD nBlockAlign;
+  WORD wBitsPerSample;
+  WORD cbSize;
 };
 #pragma pack(pop)
-typedef struct tWAVEFORMATEX WAVEFORMATEX;
-typedef struct tWAVEFORMATEX *LPWAVEFORMATEX;
-typedef const WAVEFORMATEX *LPCWAVEFORMATEX;
-struct timecaps_tag {
-    UINT wPeriodMin;
-    UINT wPeriodMax;
+using WAVEFORMATEX = struct tWAVEFORMATEX;
+using LPWAVEFORMATEX = struct tWAVEFORMATEX*;
+using LPCWAVEFORMATEX = const WAVEFORMATEX*;
+struct timecaps_tag
+{
+  UINT wPeriodMin;
+  UINT wPeriodMax;
 };
-typedef struct timecaps_tag TIMECAPS;
-typedef struct timecaps_tag *LPTIMECAPS;
+using TIMECAPS = struct timecaps_tag;
+using LPTIMECAPS = struct timecaps_tag*;
 
 extern "C" {
-MINWIN_IMPORT MCIERROR REB_STDCALL mciSendCommandA(MCIDEVICEID mciId, UINT uMsg, DWORD_PTR dwParam1, DWORD_PTR dwParam2);
+MINWIN_IMPORT MCIERROR REB_STDCALL mciSendCommandA(MCIDEVICEID mciId,
+                                                   UINT uMsg,
+                                                   DWORD_PTR dwParam1,
+                                                   DWORD_PTR dwParam2);
 MINWIN_IMPORT MCIDEVICEID REB_STDCALL mciGetDeviceIDA(LPCSTR pszDevice);
 MINWIN_IMPORT HDRVR REB_STDCALL OpenDriver(LPCWSTR szDriverName, LPCWSTR szSectionName, LPARAM lParam2);
-MINWIN_IMPORT MMRESULT REB_STDCALL timeSetEvent(UINT uDelay, UINT uResolution, LPTIMECALLBACK fptc, DWORD_PTR dwUser, UINT fuEvent);
+MINWIN_IMPORT MMRESULT REB_STDCALL
+timeSetEvent(UINT uDelay, UINT uResolution, LPTIMECALLBACK fptc, DWORD_PTR dwUser, UINT fuEvent);
 MINWIN_IMPORT MMRESULT REB_STDCALL timeKillEvent(UINT uTimerID);
 MINWIN_IMPORT DWORD REB_STDCALL timeGetTime(void);
 MINWIN_IMPORT MMRESULT REB_STDCALL timeGetDevCaps(LPTIMECAPS ptc, UINT cbtc);

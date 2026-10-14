@@ -12,228 +12,242 @@
 
 // Plain record with only the common DatRecord fields, for the small tables FLEETSD, UNIQUESD, ABODESD, BASICSD and
 // MANMGRSD (families 0x08-0x0f, 0x98-0xaf and 0xf0-0xfe).
-class BasicSD : public DatRecord {
+class BasicSD : public DatRecord
+{
 public:
-    BasicSD();
-    virtual ~BasicSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+  BasicSD();
+  ~BasicSD() override;
+  int Write(ostream* out) override;
+  int Read(istream* in) override;
+  int Checksum(Crc32* crc) override;
+  int ParseFields(istream* in, int* endOfLine) override;
 };
 
 // TROOPSD.DAT (families 0x10-0x13). SdRecordExt2's fields are the uprising defense (+0x58) and the detection
 // (+0x5c) of the troops.
-class TroopSD : public SdRecordExt2 {
+class TroopSD : public SdRecordExt2
+{
 public:
-    TroopSD();
-    virtual ~TroopSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+  TroopSD();
+  ~TroopSD() override;
+  int Write(ostream* out) override;
+  int Read(istream* in) override;
+  int Checksum(Crc32* crc) override;
+  int ParseFields(istream* in, int* endOfLine) override;
 
-    int32_t m_bombardmentDefense;  // +0x60
-    int32_t m_attackStrength;  // +0x64
-    int32_t m_defenseStrength;  // +0x68
+  int32_t m_bombardmentDefense; // +0x60
+  int32_t m_attackStrength; // +0x64
+  int32_t m_defenseStrength; // +0x68
 };
 
 // SYSTEMSD.DAT (families 0x90-0x97).
-class SystemSD : public DatRecord {
+class SystemSD : public DatRecord
+{
 public:
-    SystemSD();
-    virtual ~SystemSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+  SystemSD();
+  ~SystemSD() override;
+  int Write(ostream* out) override;
+  int Read(istream* in) override;
+  int Checksum(Crc32* crc) override;
+  int ParseFields(istream* in, int* endOfLine) override;
 
-    uint32_t m_sectorId;  // +0x40
-    int32_t m_pictureId;  // +0x44
-    int32_t m_field48;  // +0x48
-    int16_t m_xPosition;  // +0x4c
-    int16_t m_yPosition;  // +0x4e
-    int32_t m_field50;  // +0x50
+  uint32_t m_sectorId; // +0x40
+  int32_t m_pictureId; // +0x44
+  int32_t m_field48; // +0x48
+  int16_t m_xPosition; // +0x4c
+  int16_t m_yPosition; // +0x4e
+  int32_t m_field50; // +0x50
 };
 
 // SPECFCSD.DAT (families 0x3c-0x3f). SdRecordExt16's fields are the base and variance of the eight skills,
 // from diplomacy to loyalty.
-class SpecialForceSD : public SdRecordExt16 {
+class SpecialForceSD : public SdRecordExt16
+{
 public:
-    SpecialForceSD();
-    virtual ~SpecialForceSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+  SpecialForceSD();
+  ~SpecialForceSD() override;
+  int Write(ostream* out) override;
+  int Read(istream* in) override;
+  int Checksum(Crc32* crc) override;
+  int ParseFields(istream* in, int* endOfLine) override;
 
-    uint32_t m_missionId;  // +0x98  // bitmask of the missions the force can perform
+  uint32_t m_missionId; // +0x98  // bitmask of the missions the force can perform
 };
 
 // SECTORSD.DAT (families 0x80-0x8f).
-class SectorSD : public DatRecord {
+class SectorSD : public DatRecord
+{
 public:
-    SectorSD();
-    virtual ~SectorSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+  SectorSD();
+  ~SectorSD() override;
+  int Write(ostream* out) override;
+  int Read(istream* in) override;
+  int Checksum(Crc32* crc) override;
+  int ParseFields(istream* in, int* endOfLine) override;
 
-    int32_t m_group;  // +0x40
-    int32_t m_galaxySize;  // +0x44
-    int16_t m_xPosition;  // +0x48
-    int16_t m_yPosition;  // +0x4a
+  int32_t m_group; // +0x40
+  int32_t m_galaxySize; // +0x44
+  int16_t m_xPosition; // +0x48
+  int16_t m_yPosition; // +0x4a
 };
 
 // PROFACSD.DAT (families 0x2c-0x2f). Same layout as ManufacturingFacilitySD. SdRecordExt1's field is the
 // bombardment defense (+0x58).
-class ProductionFacilitySD : public SdRecordExt1 {
+class ProductionFacilitySD : public SdRecordExt1
+{
 public:
-    ProductionFacilitySD();
-    virtual ~ProductionFacilitySD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+  ProductionFacilitySD();
+  ~ProductionFacilitySD() override;
+  int Write(ostream* out) override;
+  int Read(istream* in) override;
+  int Checksum(Crc32* crc) override;
+  int ParseFields(istream* in, int* endOfLine) override;
 
-    int32_t m_processingRate;  // +0x5c
+  int32_t m_processingRate; // +0x5c
 };
 
 // MISSNSD.DAT (families 0x40-0x7f). Unlike the other SD records its first six numbers are not an SdRecord's:
 // +0x40/+0x44 are the sides that can run the mission.
-class MissionSD : public DatRecord {
+class MissionSD : public DatRecord
+{
 public:
-    MissionSD();
-    virtual ~MissionSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+  MissionSD();
+  ~MissionSD() override;
+  int Write(ostream* out) override;
+  int Read(istream* in) override;
+  int Checksum(Crc32* crc) override;
+  int ParseFields(istream* in, int* endOfLine) override;
 
-    int32_t m_isAlliance;  // +0x40
-    int32_t m_isEmpire;  // +0x44
-    uint32_t m_specialForceEligibility;  // +0x48  // bitmask of SpecialForceSD::m_missionId
-    uint32_t m_targetFlags;  // +0x4c  // 0x10000 if enemy systems can be targeted
-    int32_t m_timerMinDays;  // +0x50
-    int32_t m_timerSpreadDays;  // +0x54
-    int32_t m_repeats;  // +0x58
-    int32_t m_hidden;  // +0x5c
-    int32_t m_detectionPhases;  // +0x60
-    int32_t m_canResign;  // +0x64
-    int32_t m_field68;  // +0x68
-    int32_t m_containerLossEnds;  // +0x6c
-    int32_t m_field70;  // +0x70
-    int32_t m_needsPopulatedContainer;  // +0x74
-    int32_t m_targetLossEnds;  // +0x78
-    int32_t m_ownSideTarget;  // +0x7c
-    int32_t m_otherSideTarget;  // +0x80
-    int32_t m_opponentTarget;  // +0x84
-    int32_t m_revoltingTarget;  // +0x88
-    int32_t m_calmTarget;  // +0x8c
-    int32_t m_prisonerTarget;  // +0x90
-    int32_t m_freeTarget;  // +0x94
+  int32_t m_isAlliance; // +0x40
+  int32_t m_isEmpire; // +0x44
+  uint32_t m_specialForceEligibility; // +0x48  // bitmask of SpecialForceSD::m_missionId
+  uint32_t m_targetFlags; // +0x4c  // 0x10000 if enemy systems can be targeted
+  int32_t m_timerMinDays; // +0x50
+  int32_t m_timerSpreadDays; // +0x54
+  int32_t m_repeats; // +0x58
+  int32_t m_hidden; // +0x5c
+  int32_t m_detectionPhases; // +0x60
+  int32_t m_canResign; // +0x64
+  int32_t m_field68; // +0x68
+  int32_t m_containerLossEnds; // +0x6c
+  int32_t m_field70; // +0x70
+  int32_t m_needsPopulatedContainer; // +0x74
+  int32_t m_targetLossEnds; // +0x78
+  int32_t m_ownSideTarget; // +0x7c
+  int32_t m_otherSideTarget; // +0x80
+  int32_t m_opponentTarget; // +0x84
+  int32_t m_revoltingTarget; // +0x88
+  int32_t m_calmTarget; // +0x8c
+  int32_t m_prisonerTarget; // +0x90
+  int32_t m_freeTarget; // +0x94
 };
 
 // MNCHARSD.DAT (families 0x38-0x3b). Same layout as MajorCharacterSD, which has no fields of its own
 // either: SdRecordExt16's fields are the skills, SdRecordExt25's the Jedi attributes and abilities.
-class MinorCharacterSD : public SdRecordExt25 {
+class MinorCharacterSD : public SdRecordExt25
+{
 public:
-    MinorCharacterSD();
-    virtual ~MinorCharacterSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+  MinorCharacterSD();
+  ~MinorCharacterSD() override;
+  int Write(ostream* out) override;
+  int Read(istream* in) override;
+  int Checksum(Crc32* crc) override;
+  int ParseFields(istream* in, int* endOfLine) override;
 };
 
 // MANFACSD.DAT (families 0x28-0x2b). SdRecordExt1's field is the bombardment defense (+0x58).
-class ManufacturingFacilitySD : public SdRecordExt1 {
+class ManufacturingFacilitySD : public SdRecordExt1
+{
 public:
-    ManufacturingFacilitySD();
-    virtual ~ManufacturingFacilitySD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+  ManufacturingFacilitySD();
+  ~ManufacturingFacilitySD() override;
+  int Write(ostream* out) override;
+  int Read(istream* in) override;
+  int Checksum(Crc32* crc) override;
+  int ParseFields(istream* in, int* endOfLine) override;
 
-    int32_t m_processingRate;  // +0x5c
+  int32_t m_processingRate; // +0x5c
 };
 
 // MJCHARSD.DAT (families 0x30-0x37).
-class MajorCharacterSD : public SdRecordExt25 {
+class MajorCharacterSD : public SdRecordExt25
+{
 public:
-    MajorCharacterSD();
-    virtual ~MajorCharacterSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+  MajorCharacterSD();
+  ~MajorCharacterSD() override;
+  int Write(ostream* out) override;
+  int Read(istream* in) override;
+  int Checksum(Crc32* crc) override;
+  int ParseFields(istream* in, int* endOfLine) override;
 };
 
 // FIGHTSD.DAT (families 0x1c-0x1f).
-class FighterSD : public SdRecordGrid {
+class FighterSD : public SdRecordGrid
+{
 public:
-    FighterSD();
-    virtual ~FighterSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+  FighterSD();
+  ~FighterSD() override;
+  int Write(ostream* out) override;
+  int Read(istream* in) override;
+  int Checksum(Crc32* crc) override;
+  int ParseFields(istream* in, int* endOfLine) override;
 
-    int32_t m_torpedoes;  // +0xc0
-    int32_t m_torpedoRange;  // +0xc4
-    int32_t m_squadronSize;  // +0xc8
-    int32_t m_bombardmentDefense;  // +0xcc
+  int32_t m_torpedoes; // +0xc0
+  int32_t m_torpedoRange; // +0xc4
+  int32_t m_squadronSize; // +0xc8
+  int32_t m_bombardmentDefense; // +0xcc
 };
 
 // DEFFACSD.DAT (families 0x22-0x27). SdRecordExt1's field is the bombardment defense (+0x58).
-class DefenseFacilitySD : public SdRecordExt1 {
+class DefenseFacilitySD : public SdRecordExt1
+{
 public:
-    DefenseFacilitySD();
-    virtual ~DefenseFacilitySD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+  DefenseFacilitySD();
+  ~DefenseFacilitySD() override;
+  int Write(ostream* out) override;
+  int Read(istream* in) override;
+  int Checksum(Crc32* crc) override;
+  int ParseFields(istream* in, int* endOfLine) override;
 
-    int32_t m_attackStrength;  // +0x5c
-    int32_t m_shieldStrength;  // +0x60
+  int32_t m_attackStrength; // +0x5c
+  int32_t m_shieldStrength; // +0x60
 };
 
 // CAPSHPSD.DAT (families 0x14-0x1b).
-class CapitalShipSD : public SdRecordGrid {
+class CapitalShipSD : public SdRecordGrid
+{
 public:
-    CapitalShipSD();
-    virtual ~CapitalShipSD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+  CapitalShipSD();
+  ~CapitalShipSD() override;
+  int Write(ostream* out) override;
+  int Read(istream* in) override;
+  int Checksum(Crc32* crc) override;
+  int ParseFields(istream* in, int* endOfLine) override;
 
-    int32_t m_hull;  // +0xc0
-    int32_t m_tractorBeamPower;  // +0xc4
-    int32_t m_tractorBeamRange;  // +0xc8
-    int32_t m_gravityWellProjector;  // +0xcc
-    int32_t m_interdictionStrength;  // +0xd0
-    int32_t m_bombardmentModifier;  // +0xd4
-    int32_t m_damageControl;  // +0xd8
-    int32_t m_weaponRechargeRate;  // +0xdc
-    int32_t m_shieldRechargeRate;  // +0xe0
-    int32_t m_fighterCapacity;  // +0xe4
-    int32_t m_troopCapacity;  // +0xe8
-    int32_t m_field51;  // +0xec
+  int32_t m_hull; // +0xc0
+  int32_t m_tractorBeamPower; // +0xc4
+  int32_t m_tractorBeamRange; // +0xc8
+  int32_t m_gravityWellProjector; // +0xcc
+  int32_t m_interdictionStrength; // +0xd0
+  int32_t m_bombardmentModifier; // +0xd4
+  int32_t m_damageControl; // +0xd8
+  int32_t m_weaponRechargeRate; // +0xdc
+  int32_t m_shieldRechargeRate; // +0xe0
+  int32_t m_fighterCapacity; // +0xe4
+  int32_t m_troopCapacity; // +0xe8
+  int32_t m_field51; // +0xec
 };
 
 // ALLFACSD.DAT (families 0x20-0x21).
-class AllFacilitySD : public SdRecordExt1 {
+class AllFacilitySD : public SdRecordExt1
+{
 public:
-    AllFacilitySD();
-    virtual ~AllFacilitySD();
-    virtual int Write(ostream* out) override;
-    virtual int Read(istream* in) override;
-    virtual int Checksum(Crc32* crc) override;
-    virtual int ParseFields(istream* in, int* endOfLine) override;
+  AllFacilitySD();
+  ~AllFacilitySD() override;
+  int Write(ostream* out) override;
+  int Read(istream* in) override;
+  int Checksum(Crc32* crc) override;
+  int ParseFields(istream* in, int* endOfLine) override;
 };
 
 // Factories of the record factory registry.
@@ -251,31 +265,3 @@ void* CreateFighterSD();
 void* CreateDefenseFacilitySD();
 void* CreateCapitalShipSD();
 void* CreateAllFacilitySD();
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(BasicSD, 0x40);
-REB_ASSERT_SIZE(TroopSD, 0x6c);
-REB_ASSERT_OFFSET(TroopSD, m_bombardmentDefense, 0x60);
-REB_ASSERT_SIZE(SystemSD, 0x54);
-REB_ASSERT_OFFSET(SystemSD, m_sectorId, 0x40);
-REB_ASSERT_SIZE(SpecialForceSD, 0x9c);
-REB_ASSERT_OFFSET(SpecialForceSD, m_missionId, 0x98);
-REB_ASSERT_SIZE(SectorSD, 0x4c);
-REB_ASSERT_OFFSET(SectorSD, m_group, 0x40);
-REB_ASSERT_SIZE(ProductionFacilitySD, 0x60);
-REB_ASSERT_OFFSET(ProductionFacilitySD, m_processingRate, 0x5c);
-REB_ASSERT_SIZE(MissionSD, 0x98);
-REB_ASSERT_OFFSET(MissionSD, m_isAlliance, 0x40);
-REB_ASSERT_SIZE(MinorCharacterSD, 0xbc);
-REB_ASSERT_SIZE(ManufacturingFacilitySD, 0x60);
-REB_ASSERT_OFFSET(ManufacturingFacilitySD, m_processingRate, 0x5c);
-REB_ASSERT_SIZE(MajorCharacterSD, 0xbc);
-REB_ASSERT_SIZE(FighterSD, 0xd0);
-REB_ASSERT_OFFSET(FighterSD, m_torpedoes, 0xc0);
-REB_ASSERT_SIZE(DefenseFacilitySD, 0x64);
-REB_ASSERT_OFFSET(DefenseFacilitySD, m_attackStrength, 0x5c);
-REB_ASSERT_SIZE(CapitalShipSD, 0xf0);
-REB_ASSERT_OFFSET(CapitalShipSD, m_hull, 0xc0);
-REB_ASSERT_SIZE(AllFacilitySD, 0x5c);
-#pragma clang diagnostic pop

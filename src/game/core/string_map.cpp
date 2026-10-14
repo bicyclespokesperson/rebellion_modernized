@@ -1,150 +1,162 @@
 #include "core/string_map.h"
 
-#include "core/checked_new.h"
-#include "core/vptr_store.h"
+#include <charconv>
+#include <string_view>
+#include <system_error>
 
-namespace {
+namespace
+{
 
-bool HasMore(StringCursor* cursor) { return cursor->HasMore() != 0; }
-int Current(StringCursor* cursor) { return cursor->Current(); }
-void Advance(StringCursor* cursor) { ++*cursor; }
-
-}  // namespace
-
-StringMapNode::StringMapNode(const String& key, int value) : LinkNode(), m_key(key.m_text), m_value(value) {}
-
-StringMapNode::~StringMapNode() { REB_KEEP_VPTR_STORE(); }
-
-StringMap::StringMap() : SortedLinkList() {}
-
-StringMap::StringMap(const StringMap& other) : SortedLinkList() { *this = other; }
-
-StringMap::~StringMap() { REB_KEEP_VPTR_STORE(); }
-
-int StringMap::IsLess(LinkNode*, LinkNode*) { return 1; }
-
-StringMap& StringMap::operator=(const StringMap& other) {
-    if (&other != this) {
-        Clear();
-        for (LinkNode* node = other.m_head; node; node = node->m_next) {
-            const StringMapNode* entry = static_cast<const StringMapNode*>(node);
-            Add(&entry->m_key, entry->m_value);
-        }
-    }
-    return *this;
+bool IsSeparator(char character)
+{
+  return character == ' ' || character == '-';
 }
 
-int StringMap::Add(const String* key, int value) {
-    StringMapNode* node = NewOrNull<StringMapNode>(*key, value);
-    // BUG(original): a failed allocation inserts a null node.
-    Insert(node);
-    return 1;
+std::string_view TextOf(const std::string* text)
+{
+  return text ? std::string_view(text->c_str()) : std::string_view{};
 }
 
-int StringMap::Set(const String* key, int value) {
-    for (LinkNode* node = m_head; node; node = node->m_next) {
-        StringMapNode* entry = static_cast<StringMapNode*>(node);
-        if (entry->m_key.Compare(*key) == 0) {
-            entry->m_value = value;
-            return 1;
-        }
-    }
-    return Add(key, value);
+std::string_view NextWord(std::string_view text, size_t* position)
+{
+  while (*position < text.size() && IsSeparator(text[*position]))
+    ++*position;
+  const size_t start = *position;
+  while (*position < text.size() && !IsSeparator(text[*position]))
+    ++*position;
+  return text.substr(start, *position - start);
 }
 
-int StringMap::Find(const String* key, int* value) {
-    for (LinkNode* node = m_head; node; node = node->m_next) {
-        StringMapNode* entry = static_cast<StringMapNode*>(node);
-        if (entry->m_key.Compare(*key) == 0) {
-            *value = entry->m_value;
-            return 1;
-        }
+bool ReadNumber(std::string_view text, size_t* position, int* value)
+{
+  while (*position < text.size() && IsSeparator(text[*position]))
+    ++*position;
+  const size_t start = *position;
+  while (*position < text.size() && text[*position] >= '0' && text[*position] <= '9')
+    ++*position;
+  if (start == *position)
+    return false;
+  if (*position < text.size() && !IsSeparator(text[*position]))
+    return false;
+
+  int parsed = 0;
+  const auto result = std::from_chars(text.data() + start, text.data() + *position, parsed);
+  if (result.ec != std::errc{} || result.ptr != text.data() + *position)
+    return false;
+  *value = parsed;
+  return true;
+}
+
+} // namespace
+
+int StringMap::Add(const std::string* key, int value)
+{
+  entries_.insert(entries_.begin(), {std::string(TextOf(key)), value});
+  return 1;
+}
+
+int StringMap::Set(const std::string* key, int value)
+{
+  const std::string_view name = TextOf(key);
+  for (Entry& entry : entries_)
+  {
+    if (entry.key == name)
+    {
+      entry.value = value;
+      return 1;
     }
+  }
+  return Add(key, value);
+}
+
+int StringMap::Find(const std::string* key, int* value) const
+{
+  if (!value)
     return 0;
-}
-
-int StringMap::FindFloat(const String* key, float* value) {
-    uint32_t found;
-    if (!FindInText(key, reinterpret_cast<int*>(&found))) return 0;
-    *value = static_cast<float>(found);
-    return 1;
-}
-
-int StringMap::FindInText(const String* text, int* value) {
-    StringCursor cursorObject(*text);
-    StringCursor* cursor = &cursorObject;
-    while (HasMore(cursor)) {
-        SkipSeparators(cursor);
-        if (HasMore(cursor)) {
-            String word;
-            ReadWord(cursor, &word);
-            for (LinkNode* node = m_head; node; node = node->m_next) {
-                StringMapNode* entry = static_cast<StringMapNode*>(node);
-                if (entry->m_key.Compare(word) == 0) {
-                    *value = entry->m_value;
-                    return 1;
-                }
-            }
-        }
-        Advance(cursor);
+  const std::string_view name = TextOf(key);
+  for (const Entry& entry : entries_)
+  {
+    if (entry.key == name)
+    {
+      *value = entry.value;
+      return 1;
     }
-    return Find(text, value);
+  }
+  return 0;
 }
 
-void StringMap::LoadValues(const String* text) {
-    StringCursor cursorObject(*text);
-    StringCursor* cursor = &cursorObject;
-    while (HasMore(cursor)) {
-        SkipSeparators(cursor);
-        if (HasMore(cursor)) {
-            String word;
-            ReadWord(cursor, &word);
-            int existing = 0;
-            if (Find(&word, &existing) == 1) {
-                int value = 0;
-                ReadNumber(cursor, &value);
-                Set(&word, value);
-            }
-        }
-        SkipSeparators(cursor);
-    }
-}
-
-int StringMap::SkipSeparators(StringCursor* cursor) {
-    if (!HasMore(cursor)) return 0;
-    do {
-        if (Current(cursor) != ' ' && Current(cursor) != '-') return 1;
-        Advance(cursor);
-    } while (HasMore(cursor));
+int StringMap::FindFloat(const std::string* key, float* value) const
+{
+  if (!value)
     return 0;
-}
-
-int StringMap::AtWordCharacter(StringCursor* cursor) {
-    if (HasMore(cursor) && Current(cursor) != '-' && Current(cursor) != ' ') return 1;
+  int found = 0;
+  if (!FindInText(key, &found))
     return 0;
+  *value = static_cast<float>(found);
+  return 1;
 }
 
-void StringMap::ReadWord(StringCursor* cursor, String* word) {
-    word->Clear();
-    SkipSeparators(cursor);
-    while (HasMore(cursor) && AtWordCharacter(cursor)) {
-        char c = static_cast<char>(Current(cursor));
-        word->AppendChar(c);
-        Advance(cursor);
+int StringMap::FindInText(const std::string* text, int* value) const
+{
+  if (!value)
+    return 0;
+  const std::string_view input = TextOf(text);
+  size_t position = 0;
+  while (position < input.size())
+  {
+    const std::string_view word = NextWord(input, &position);
+    if (word.empty())
+      break;
+    for (const Entry& entry : entries_)
+    {
+      if (entry.key == word)
+      {
+        *value = entry.value;
+        return 1;
+      }
     }
+  }
+  return Find(text, value);
 }
 
-int StringMap::ReadNumber(StringCursor* cursor, int* value) {
-    int found = 0;
-    int number = 0;
-    SkipSeparators(cursor);
-    while (HasMore(cursor)) {
-        const int c = Current(cursor);
-        if (c < '0' || c > '9') break;
-        found = 1;
-        number = c - '0' + number * 10;
-        Advance(cursor);
+void StringMap::LoadValues(const std::string* text)
+{
+  const std::string_view input = TextOf(text);
+  size_t position = 0;
+  while (position < input.size())
+  {
+    const std::string_view name = NextWord(input, &position);
+    if (name.empty())
+      break;
+
+    bool known = false;
+    for (const Entry& entry : entries_)
+    {
+      if (entry.key == name)
+      {
+        known = true;
+        break;
+      }
     }
-    if (found) *value = number;
-    return found;
+    if (!known)
+      continue;
+
+    int parsed = 0;
+    if (ReadNumber(input, &position, &parsed))
+    {
+      for (Entry& entry : entries_)
+      {
+        if (entry.key == name)
+        {
+          entry.value = parsed;
+          break;
+        }
+      }
+    }
+  }
+}
+
+void StringMap::Clear()
+{
+  entries_.clear();
 }

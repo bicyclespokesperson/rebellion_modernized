@@ -125,8 +125,10 @@ sim goldens byte-identical). The counts are the measured ones; the plan's number
 | Untyped `DAT_` globals | 50 (43 handler singletons, 6 guard bytes, 1 string) | 50, renamed in `symbols.csv` | |
 | x87 / asm / calling conventions | 5 files, ~800 keyword uses | `core/reb_x87.h` (`reb_pow`, `reb_acos`, `reb_sin/cos/sqrt`, `reb_scaled_log10/pow`, `reb_ftol`) with the i386 asm unchanged and a libm `#else`; `crt/x87_math.cpp` and `crt/floor.cpp` are `#if i386`; `__try` is `REB_TRY/REB_FINALLY`; 265 files use `REB_THISCALL/REB_STDCALL/REB_CDECL` (`core/reb_abi.h`, empty off i386) | `crt/rand.cpp`, `qsort.cpp`, `atoi.cpp` define libc names; native builds must rename them (the `rand` sequence and the `qsort` order are game behaviour) |
 
-`int` parameters that carried pointers became `intptr_t` (the same type on i686): the notice slots (`OnMessage`, `Virtual05-09`), `GameObj::Virtual29/31/47/48/55`,
-`NotifyUnit*/NotifyOwner*` (formerly `Virtual49-53`, renamed in `symbols.csv`), the game hooks (`HookArg`), `PlayerController::Virtual25/76/92`,
+`int` parameters that carried pointers became `intptr_t` (the same type on i686): the notice payload handlers,
+`GameObj::CheckIncomingUnitOrder`, `CheckOutgoingUnitOrder`, `InitializeNewObject`, `InitializeAfterSetup`, and `PrepareForDestroyedRelease`,
+`NotifyUnit*/NotifyOwner*` (slots 49-53, named in `symbols.csv`), the game hooks (`HookArg`),
+`PlayerController::UpdateMaintenanceAndAdvisorState`, `OnObjectAndSystemChanged`, and `OnObjectCombatChanged`,
 `UiSendNotificationToSide`, `SpriteAnimator::Start/SetStart`, `CoolListItem::m_userData` (now a union with `m_userPointer`), the mission and
 manufacturing manager entry points that took keys and contexts as ints, and a few more.
 

@@ -1,7 +1,6 @@
 #pragma once
 #include <cstdint>
 
-#include "core/layout.h"
 #include "core/stream_io.h"
 
 #include "gameobj/status_code.h"
@@ -50,30 +49,24 @@ int QueryRuleValueB(GameObj* unit, StatusCode* status, int* out);
 
 // The "who gets told" settings every setter receives (the `context` argument of the validated setters): per-view
 // notify switches plus two reserved ints. GetViewFlag/SetViewFlag take the object's ViewSide (1 or 2).
-class NotifyContext {
+class NotifyContext
+{
 public:
-    NotifyContext();
-    NotifyContext(const NotifyContext& other);
-    virtual ~NotifyContext();
+  NotifyContext();
+  NotifyContext(const NotifyContext& other);
+  virtual ~NotifyContext();
 
-    NotifyContext& operator=(const NotifyContext& other);
-    int Read(istream* in);
-    int Write(ostream* out);
-    int Checksum(class Crc32* crc);
-    int GetViewFlag(int view) const;
-    void SetViewFlag(int view, int value);
+  NotifyContext& operator=(const NotifyContext& other);
+  int Read(istream* in);
+  int Write(ostream* out);
+  int Checksum(class Crc32* crc);
+  int GetViewFlag(int view) const;
+  void SetViewFlag(int view, int value);
 
-    int m_flag04;      // +0x04
-    int m_flag08;      // +0x08
-    int m_notifyView1;  // +0x0c
-    int m_notifyView2;  // +0x10
-    int m_reserved14;  // +0x14
-    int m_reserved18;  // +0x18
+  int m_flag04; // +0x04
+  int m_flag08; // +0x08
+  int m_notifyView1; // +0x0c
+  int m_notifyView2; // +0x10
+  int m_reserved14; // +0x14
+  int m_reserved18; // +0x18
 };
-
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winvalid-offsetof"
-REB_ASSERT_SIZE(NotifyContext, 0x1c);
-REB_ASSERT_OFFSET(NotifyContext, m_notifyView1, 0x0c);
-REB_ASSERT_OFFSET(NotifyContext, m_reserved18, 0x18);
-#pragma clang diagnostic pop

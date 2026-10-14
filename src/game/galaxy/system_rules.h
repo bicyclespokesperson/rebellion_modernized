@@ -1,5 +1,4 @@
 #pragma once
-#include "core/reb_abi.h"
 #include <cstdint>
 
 #include "galaxy/system.h"
@@ -8,7 +7,8 @@
 
 // Helpers shared by the System rules sources (system_rules*.cpp).
 
-namespace system_rules {
+namespace system_rules
+{
 
 // Facility families that the rules iterate over by their sub-ranges.
 constexpr FamilyRange kFacilities20To22(0x20, 0x22);
@@ -23,11 +23,14 @@ constexpr uint32_t kStateExisting = 3;
 constexpr uint32_t kStateAny = 4;
 
 // 1 for the Alliance, 2 for the Empire, 0 for neither (the side numbering of the unit-count helpers).
-inline int PlayerSide(uint32_t controlSide) { return controlSide == 1 ? 1 : (controlSide == 2 ? 2 : 0); }
+inline int PlayerSide(uint32_t controlSide)
+{
+  return controlSide == 1 ? 1 : (controlSide == 2 ? 2 : 0);
+}
 
-}  // namespace system_rules
+} // namespace system_rules
 
 // The key of the object that holds `object` (virtual GetOwnerKey, returned through *out).
-ObjectKey* REB_THISCALL GetOwnerKeyValue(GameObjNotifier* object, ObjectKey* out);  // 0x50c640
+ObjectKey* GetOwnerKeyValue(GameObjNotifier* object, ObjectKey* out); // 0x50c640
 // UpdateChildren over the system families (0x90-0x98) of `parent`.
-int UpdateSystemFamilyChildren(GameObj* parent, NotifyContext* ctx);  // 0x50c8a0
+int UpdateSystemFamilyChildren(GameObj* parent, NotifyContext* ctx); // 0x50c8a0

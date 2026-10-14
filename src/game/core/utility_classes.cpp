@@ -1,143 +1,243 @@
-#include "core/reb_abi.h"
 #include "core/utility_classes.h"
-#include "core/vptr_store.h"
 
-// The game CRT's 32-bit time() (0x61b120). Not <ctime>: UCRT's time() is an inline wrapper over _time64.
-extern "C" long REB_CDECL time(long* result);
+#include "core/runtime_environment.h"
+
+#include <algorithm>
+#include <random>
+
+#include "iostream/iostream.h"
 
 extern uint32_t g_crcTable[256];
 extern int g_crcTableReady;
 
-// The game's statically linked C runtime (the UCRT headers would declare these as DLL imports).
-extern "C" {
-int REB_CDECL rand(void);
-void REB_CDECL srand(unsigned int seed);
-}
-
 // ---- ObjectBase --------------------------------------------------------------------------------------------
 
-ObjectBase::ObjectBase() {}
+ObjectBase::ObjectBase() = default;
 
-ObjectBase::~ObjectBase() { REB_KEEP_VPTR_STORE(); }
+ObjectBase::~ObjectBase() = default;
 
 // ---- PersistentInt -----------------------------------------------------------------------------------------
 
-PersistentInt::PersistentInt(int value) : m_value(value) {}
+PersistentInt::PersistentInt(int value) : m_value(value)
+{
+}
 
-int PersistentInt::Get() const { return m_value; }
+int PersistentInt::Get() const
+{
+  return m_value;
+}
 
-void PersistentInt::WriteBytes(ostream* out) { StreamWrite32(out, this); }
+void PersistentInt::WriteBytes(ostream* out)
+{
+  StreamWrite32(out, this);
+}
 
-void PersistentInt::Read(istream* in) { StreamRead32(in, this); }
+void PersistentInt::Read(istream* in)
+{
+  StreamRead32(in, this);
+}
 
-void PersistentInt::Write(ostream* out) { WriteBytes(out); }
+void PersistentInt::Write(ostream* out)
+{
+  WriteBytes(out);
+}
 
-void ReadPersistentInt(istream* in, PersistentInt* value) { value->Read(in); }
+void ReadPersistentInt(istream* in, PersistentInt* value)
+{
+  value->Read(in);
+}
 
-void WritePersistentInt(ostream* out, PersistentInt* value) { value->WriteBytes(out); }
+void WritePersistentInt(ostream* out, PersistentInt* value)
+{
+  value->WriteBytes(out);
+}
 
-void ReadValuePersistentInt(istream* in, PersistentInt* value) { ReadPersistentInt(in, value); }
+void ReadValuePersistentInt(istream* in, PersistentInt* value)
+{
+  ReadPersistentInt(in, value);
+}
 
-void WriteValuePersistentInt(ostream* out, PersistentInt* value) { WritePersistentInt(out, value); }
+void WriteValuePersistentInt(ostream* out, PersistentInt* value)
+{
+  WritePersistentInt(out, value);
+}
 
 // ---- RandomGenerator ---------------------------------------------------------------------------------------
 
-RandomGenerator::RandomGenerator() : m_seed(-1) {}
-
-RandomGenerator::RandomGenerator(int seed) { m_seed = Seed(seed); }
-
-RandomGenerator::~RandomGenerator() { REB_KEEP_VPTR_STORE(); }
-
-int RandomGenerator::Seed(int seed) {
-    m_seed = -1;
-    if (seed < 1 || seed > 0x7ffffffe) seed = GenerateSeed();
-    m_seed = seed;
-    for (int round = 0; round < 16; ++round) m_seed = Step(m_seed);
-    return seed;
+RandomGenerator::RandomGenerator() : m_seed(-1)
+{
 }
 
-int RandomGenerator::Next(int limit) {
-    if (limit <= 1) return 0;
-    if (m_seed == -1) m_seed = Seed(-1);
-    const int state = Step(m_seed);
-    m_seed = state;
-    return state / (0x7ffffffe / limit);
+RandomGenerator::RandomGenerator(int seed)
+{
+  Seed(seed);
 }
 
-int RandomGenerator::GenerateSeed() {
-    srand(static_cast<unsigned>(time(nullptr)));
-    int seed;
-    do {
-        const int a = rand();
-        const int b = rand();
-        const int c = rand();
-        const int d = rand();
-        seed = a * b + c * d;
-    } while (seed > 0x7ffffffe);
-    return seed;
+RandomGenerator::~RandomGenerator() = default;
+
+int RandomGenerator::Seed(int seed)
+{
+  m_seed = -1;
+  if (seed < 1 || seed > 0x7ffffffe)
+    seed = GenerateSeed();
+  m_seed = seed;
+  for (int round = 0; round < 16; ++round)
+    m_seed = Step(m_seed);
+  return seed;
 }
 
-int RandomGenerator::Step(int state) {
-    constexpr uint32_t kMultiplier = 0xa18e;
-    constexpr int kQuotient = 0xcad4;
-    constexpr int kModulus = 0x7fffffff;
-    int next = static_cast<int>(static_cast<uint32_t>(state) * kMultiplier -
-                                static_cast<uint32_t>(state / kQuotient) * static_cast<uint32_t>(kModulus));
-    if (next < 0) next += kModulus;
-    return next;
+int RandomGenerator::Next(int limit)
+{
+  if (limit <= 1)
+    return 0;
+  return std::uniform_int_distribution<int>(0, limit - 1)(*this);
 }
 
-void RandomGenerator::Read(istream* in) { ReadValue32(in, &m_seed); }
+int RandomGenerator::Between(int low, int high)
+{
+  if (low > high)
+    std::swap(low, high);
+  if (low == high)
+    return low;
+  return std::uniform_int_distribution<int>(low, high)(*this);
+}
 
-void RandomGenerator::Write(ostream* out) { WriteValue32(out, &m_seed); }
+RandomGenerator::result_type RandomGenerator::operator()()
+{
+  if (m_seed == -1)
+    Seed(-1);
+  const int state = Step(m_seed);
+  m_seed = state;
+  return static_cast<result_type>(state);
+}
+
+int RandomGenerator::GenerateSeed()
+{
+  auto state = static_cast<uint32_t>(GameSeedSeconds());
+  const auto draw = [&state]()
+  {
+    state = state * 214013u + 2531011u;
+    return static_cast<int>((state >> 16) & 0x7fff);
+  };
+  int seed;
+  do
+  {
+    const int a = draw();
+    const int b = draw();
+    const int c = draw();
+    const int d = draw();
+    seed = a * b + c * d;
+  } while (seed < 1 || seed > 0x7ffffffe);
+  return seed;
+}
+
+int RandomGenerator::Step(int state)
+{
+  if (state < 1 || state > static_cast<int>(max()))
+    return 0;
+  constexpr uint64_t kModulus = 0x7fffffff;
+  constexpr uint64_t kMultiplier = 0xa18e;
+  return static_cast<int>((static_cast<uint64_t>(state) * kMultiplier) % kModulus);
+}
+
+void RandomGenerator::Read(istream* in)
+{
+  int seed = 0;
+  ReadValue32(in, &seed);
+  if ((iostream_access::IosOf(in)->m_state & iostream_flags::kFail) != 0)
+    return;
+  if (seed != -1 && (seed < 1 || seed > static_cast<int>(max())))
+  {
+    iostream_access::IosOf(in)->m_state |= iostream_flags::kFail;
+    return;
+  }
+  m_seed = seed;
+}
+
+void RandomGenerator::Write(ostream* out)
+{
+  WriteValue32(out, &m_seed);
+}
 
 // ---- Crc32 -------------------------------------------------------------------------------------------------
 
-Crc32::Crc32() { Reset(); }
-
-Crc32::Crc32(const Crc32& other) : m_state(other.m_state) {}
-
-Crc32::~Crc32() { REB_KEEP_VPTR_STORE(); }
-
-Crc32& Crc32::operator=(const Crc32& other) {
-    m_state = other.m_state;
-    return *this;
+Crc32::Crc32()
+{
+  Reset();
 }
 
-void Crc32::Reset() { m_state = 0xffffffff; }
+Crc32::Crc32(const Crc32& other) = default;
 
-uint32_t Crc32::Value() const { return ~m_state; }
+Crc32::~Crc32() = default;
 
-__attribute__((noinline)) void BuildCrcTable() {
-    for (uint32_t index = 0; index < 256; ++index) {
-        uint32_t value = index << 24;
-        for (int bit = 0; bit < 8; ++bit) value = (value & 0x80000000) ? (value * 2) ^ 0x04c11db7 : value << 1;
-        g_crcTable[index] = value;
-    }
-    g_crcTableReady = 1;
+Crc32& Crc32::operator=(const Crc32& other) = default;
+
+void Crc32::Reset()
+{
+  m_state = 0xffffffff;
 }
 
-void Crc32::Update(const uint8_t* data, int count) {
-    if (!g_crcTableReady) BuildCrcTable();
-    for (; count != 0; --count) m_state = g_crcTable[*data++ ^ (m_state >> 24)] ^ (m_state << 8);
+uint32_t Crc32::Value() const
+{
+  return ~m_state;
 }
 
-void Crc32::AddByte(uint8_t value) { Update(&value, 1); }
-
-void Crc32::AddInt(int value) { Update(reinterpret_cast<const uint8_t*>(&value), 4); }
-
-void Crc32::AddShort(int16_t value) { Update(reinterpret_cast<const uint8_t*>(&value), 2); }
-
-int Crc32::LoadState(istream* in) {
-    StreamRead32(in, &m_state);
-    return 1;
+__attribute__((noinline)) void BuildCrcTable()
+{
+  for (uint32_t index = 0; index < 256; ++index)
+  {
+    uint32_t value = index << 24;
+    for (int bit = 0; bit < 8; ++bit)
+      value = (value & 0x80000000) ? (value * 2) ^ 0x04c11db7 : value << 1;
+    g_crcTable[index] = value;
+  }
+  g_crcTableReady = 1;
 }
 
-int Crc32::SaveState(ostream* out) {
-    StreamWrite32(out, &m_state);
-    return 1;
+void Crc32::Update(const uint8_t* data, int count)
+{
+  if (!g_crcTableReady)
+    BuildCrcTable();
+  for (; count != 0; --count)
+    m_state = g_crcTable[*data++ ^ (m_state >> 24)] ^ (m_state << 8);
 }
 
-void Crc32::Read(istream* in) { LoadState(in); }
+void Crc32::AddByte(uint8_t value)
+{
+  Update(&value, 1);
+}
 
-void Crc32::Write(ostream* out) { SaveState(out); }
+void Crc32::AddInt(int value)
+{
+  Update(reinterpret_cast<const uint8_t*>(&value), 4);
+}
+
+void Crc32::AddShort(int16_t value)
+{
+  Update(reinterpret_cast<const uint8_t*>(&value), 2);
+}
+
+int Crc32::LoadState(istream* in)
+{
+  StreamRead32(in, &m_state);
+  return 1;
+}
+
+int Crc32::SaveState(ostream* out)
+{
+  StreamWrite32(out, &m_state);
+  return 1;
+}
+
+void Crc32::Read(istream* in)
+{
+  LoadState(in);
+}
+
+void Crc32::Write(ostream* out)
+{
+  SaveState(out);
+}
+
+int g_crcTableReady{};
+uint32_t g_crcTable[256]{};

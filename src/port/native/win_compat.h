@@ -11,7 +11,15 @@
 #define OPEN_ALWAYS 4u
 #define FILE_ATTRIBUTE_NORMAL 0x80u
 
-DWORD GetEnvironmentVariableA(LPCSTR name, LPSTR buffer, DWORD size);
-HANDLE CreateFileA(LPCSTR path, DWORD access, DWORD share, void* security, DWORD disposition, DWORD attributes, HANDLE template_);
-BOOL WriteFile(HANDLE file, const void* data, DWORD bytes, DWORD* written, void* overlapped);
-[[noreturn]] void ExitProcess(UINT code);
+extern "C" {
+DWORD REB_STDCALL GetEnvironmentVariableA(LPCSTR name, LPSTR buffer, DWORD size);
+HANDLE REB_STDCALL CreateFileA(LPCSTR path,
+                               DWORD access,
+                               DWORD share,
+                               void* security,
+                               DWORD disposition,
+                               DWORD attributes,
+                               HANDLE template_);
+BOOL REB_STDCALL WriteFile(HANDLE file, const void* data, DWORD bytes, DWORD* written, void* overlapped);
+[[noreturn]] void REB_STDCALL ExitProcess(UINT code);
+}

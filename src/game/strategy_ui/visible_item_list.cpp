@@ -1,17 +1,23 @@
 #include "strategy_ui/visible_item_list.h"
 
-#include "core/vptr_store.h"
 #include "ui/object_list_item.h"
 
-VisibleItemList::~VisibleItemList() { REB_KEEP_VPTR_STORE(); }
+VisibleItemList::~VisibleItemList() = default;
 
-CoolListItem* VisibleItemList::First() {
-    ObjectListItem* head = static_cast<ObjectListItem*>(m_head);
-    if (head && !head->m_visible) return head->Next();
-    return head;
+CoolListItem* VisibleItemList::First()
+{
+  for (const auto& ownedItem : Entries())
+  {
+    auto* item = static_cast<ObjectListItem*>(ownedItem.get());
+    if (item->m_visible)
+      return item;
+  }
+  return nullptr;
 }
 
-void ClearAllRows(CoolListItemList* list) {
-    for (LinkNode* row = list->m_head; row; row = row->m_next) static_cast<ObjectListItem*>(row)->m_visible = 1;
-    list->Clear();
+void ClearAllRows(CoolListItemList* list)
+{
+  for (const auto& ownedRow : list->Entries())
+    static_cast<ObjectListItem*>(ownedRow.get())->m_visible = 1;
+  list->Clear();
 }

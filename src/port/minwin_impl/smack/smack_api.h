@@ -9,10 +9,11 @@
 
 #include <stdint.h>
 
-namespace mwsmk {
+namespace mwsmk
+{
 
 // The clock SmackWait compares against, in milliseconds. The default is a monotonic system clock; tests install their own.
-double SystemClockMs();  // monotonic milliseconds (smack_clock.cpp)
+double SystemClockMs(); // monotonic milliseconds (smack_clock.cpp)
 using ClockFunction = double (*)();
 void SetClock(ClockFunction clock);
 
@@ -21,7 +22,7 @@ using GetDcFunction = HDC (*)(HWND);
 using ReleaseDcFunction = int (*)(HWND, HDC);
 void SetDeviceContextProvider(GetDcFunction get, ReleaseDcFunction release);
 
-}  // namespace mwsmk
+} // namespace mwsmk
 
 extern "C" {
 // Not used by the game: the decoded audio of the current frame (RAD's SmackGetTrackData), for tests.

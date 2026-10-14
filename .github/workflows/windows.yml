@@ -1,0 +1,31 @@
+# Compile the native Windows backend and resource-free tests with clang-cl and the Windows SDK.
+# This validates compilation only; licensed game data and runtime smoke checks remain local developer work.
+name: windows
+on: [push, pull_request]
+
+jobs:
+  native:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+      - uses: astral-sh/setup-uv@v5
+      - name: Dependencies
+        shell: bash
+        run: bash tools/fetch_deps.sh freetype liberation sdl3
+      - name: Configure
+        run: >-
+          cmake -S . -B build/native -G Ninja
+          -DCMAKE_C_COMPILER=clang-cl -DCMAKE_CXX_COMPILER=clang-cl
+          -DCMAKE_BUILD_TYPE=RelWithDebInfo -DREB_NATIVE=ON
+      - name: Build native objects and resource-free tests
+        run: >-
+          cmake --build build/native --target
+          reb_native_objects reb_stream_tests reb_settings_tests reb_string_tests reb_math_tests
+          reb_container_tests reb_random_tests reb_save_transaction_tests reb_rle8_tests
+          reb_hd_asset_format_tests reb_presentation_scale_tests reb_presentation_integration_tests
+          reb_gdi_render_tests reb_text_render_tests reb_dib_hd_tests
+      - name: Unit tests
+        run: ctest --test-dir build/native --output-on-failure

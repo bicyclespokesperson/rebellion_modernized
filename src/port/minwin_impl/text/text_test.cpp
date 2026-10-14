@@ -2,8 +2,8 @@
 #include "port/minwin/gdi32.h"
 #include "port/minwin/user32.h"
 
-#include <stdlib.h>
-#include <string.h>
+#include <cstdlib>
+#include <cstring>
 
 #include "../config/config.h"
 #include "../gdi_api.h"
@@ -107,7 +107,7 @@ TEST(textout_renders_into_the_dib_with_the_text_colour) {
     SetTextColor(dc, RGB(200, 200, 200));
     SetBkMode(dc, TRANSPARENT);
     CHECK(TextOutA(dc, 2, 3, "Hi", 2));
-    const unsigned char* p = static_cast<const unsigned char*>(bits);
+    const auto* p = static_cast<const unsigned char*>(bits);
     int text = 0, background = 0, other = 0;
     for (int i = 0; i < 100 * 30; ++i) (p[i] == 200 ? text : p[i] == 77 ? background : other)++;
     CHECK(text > 20);
@@ -124,6 +124,137 @@ TEST(textout_renders_into_the_dib_with_the_text_colour) {
     DeleteObject(font);
     DeleteObject(bm);
     DeleteDC(dc);
+}
+
+TEST(offscreen_text_keeps_device_detail_and_raw_dib_writes_invalidate_it) {
+    if (!FontAvailable()) return;
+    struct {
+        BITMAPINFOHEADER header;
+        RGBQUAD colors[256];
+    } info = {};
+    info.header.biSize = sizeof(BITMAPINFOHEADER);
+    info.header.biWidth = 80;
+    info.header.biHeight = -30;
+    info.header.biPlanes = 1;
+    info.header.biBitCount = 8;
+    info.header.biClrUsed = 256;
+    for (int i = 0; i < 256; ++i)
+        info.colors[i].rgbRed = info.colors[i].rgbGreen = info.colors[i].rgbBlue = static_cast<BYTE>(i);
+
+    minwin_gdi::DeviceScreen(2);
+    HDC memory = CreateCompatibleDC(nullptr);
+    void* bits = nullptr;
+    HBITMAP bitmap = CreateDIBSection(memory, reinterpret_cast<BITMAPINFO*>(&info), DIB_RGB_COLORS, &bits, nullptr, 0);
+    HGDIOBJ oldBitmap = SelectObject(memory, bitmap);
+    HFONT font = GameFont(16, 400);
+    HGDIOBJ oldFont = SelectObject(memory, font);
+    memset(bits, 255, 80 * 30);
+    SetTextColor(memory, RGB(0, 0, 0));
+    SetBkMode(memory, TRANSPARENT);
+    SIZE before, after;
+    CHECK(GetTextExtentPoint32A(memory, "Hi", 2, &before));
+    CHECK(TextOutA(memory, 2, 2, "Hi", 2));
+    CHECK(GetTextExtentPoint32A(memory, "Hi", 2, &after));
+    CHECK_EQ(before.cx, after.cx);
+    CHECK_EQ(before.cy, after.cy);
+
+    RECT visible = {0, 0, 640, 480};
+    minwin_gdi::WindowDcDesc desc = {nullptr, 0, 0, &visible, 1};
+    HDC screenDc = minwin_gdi::CreateWindowDc(desc);
+    CHECK(BitBlt(screenDc, 0, 0, 80, 30, memory, 0, 0, SRCCOPY));
+    const minwin_gdi::ScreenSurface device = minwin_gdi::DeviceScreen(2);
+    int detailedBlocks = 0;
+    for (int y = 0; y < 30; ++y)
+        for (int x = 0; x < 80; ++x) {
+            const int xx = x * 2, yy = y * 2;
+            const uint8_t a = device.bits[yy * device.pitch + xx];
+            detailedBlocks += a != device.bits[yy * device.pitch + xx + 1] ||
+                              a != device.bits[(yy + 1) * device.pitch + xx] ||
+                              a != device.bits[(yy + 1) * device.pitch + xx + 1];
+        }
+    CHECK(detailedBlocks > 0);
+
+    minwin_gdi::DeviceBitmapPixels imported;
+    CHECK(minwin_gdi::CopyDeviceBitmapPixels(bitmap, imported));
+    CHECK_EQ(imported.scale, 2);
+    CHECK_EQ(imported.bits.size(), static_cast<size_t>(80 * 30 * 4));
+    static_cast<uint8_t*>(bits)[25 * 80 + 70] = 0;
+    for (int sy = 0; sy < 2; ++sy)
+        for (int sx = 0; sx < 2; ++sx)
+            imported.bits[(25 * 2 + sy) * 80 * 2 + 70 * 2 + sx] = 0;
+    CHECK(minwin_gdi::SetDeviceBitmapPixels(bitmap, 2, imported.bits, 70, 25, 1, 1) != 0);
+    CHECK(BitBlt(screenDc, 0, 0, 80, 30, memory, 0, 0, SRCCOPY));
+    CHECK_EQ(device.bits[(25 * 2) * device.pitch + 70 * 2], 0);
+    int preservedTextBlocks = 0;
+    for (int y = 0; y < 24; ++y)
+        for (int x = 0; x < 60; ++x) {
+            const int xx = x * 2, yy = y * 2;
+            const uint8_t a = device.bits[yy * device.pitch + xx];
+            preservedTextBlocks += a != device.bits[yy * device.pitch + xx + 1] ||
+                                   a != device.bits[(yy + 1) * device.pitch + xx] ||
+                                   a != device.bits[(yy + 1) * device.pitch + xx + 1];
+        }
+    CHECK(preservedTextBlocks > 0);
+
+    minwin_gdi::DeviceScreen(4);
+    CHECK(BitBlt(screenDc, 0, 0, 80, 30, memory, 0, 0, SRCCOPY));
+    const minwin_gdi::ScreenSurface device4 = minwin_gdi::DeviceScreen(4);
+    int detailedBlocks4 = 0;
+    for (int y = 0; y < 30; ++y)
+        for (int x = 0; x < 80; ++x) {
+            const int xx = x * 4, yy = y * 4;
+            const uint8_t a = device4.bits[yy * device4.pitch + xx];
+            for (int sy = 0; sy < 4; ++sy)
+                for (int sx = 0; sx < 4; ++sx)
+                    detailedBlocks4 += a != device4.bits[(yy + sy) * device4.pitch + xx + sx];
+        }
+    CHECK(detailedBlocks4 > 0);
+    for (int y = 0; y < 30 * 4; ++y)
+        for (int x = 79 * 4; x < 80 * 4; ++x)
+            CHECK_EQ(device4.bits[y * device4.pitch + x], 255);
+
+    minwin_gdi::DeviceScreen(2);
+    CHECK(BitBlt(screenDc, 0, 0, 80, 30, memory, 0, 0, SRCCOPY));
+    const minwin_gdi::ScreenSurface device2Again = minwin_gdi::DeviceScreen(2);
+    int detailedBlocks2Again = 0;
+    for (int y = 0; y < 30; ++y)
+        for (int x = 0; x < 80; ++x) {
+            const int xx = x * 2, yy = y * 2;
+            const uint8_t a = device2Again.bits[yy * device2Again.pitch + xx];
+            detailedBlocks2Again += a != device2Again.bits[yy * device2Again.pitch + xx + 1] ||
+                                    a != device2Again.bits[(yy + 1) * device2Again.pitch + xx] ||
+                                    a != device2Again.bits[(yy + 1) * device2Again.pitch + xx + 1];
+        }
+    CHECK(detailedBlocks2Again > 0);
+    for (int y = 0; y < 30 * 2; ++y)
+        for (int x = 79 * 2; x < 80 * 2; ++x)
+            CHECK_EQ(device2Again.bits[y * device2Again.pitch + x], 255);
+
+    memset(bits, 255, 80 * 30);
+    CHECK(BitBlt(screenDc, 0, 0, 80, 30, memory, 0, 0, SRCCOPY));
+    const minwin_gdi::ScreenSurface device2Cleared = minwin_gdi::DeviceScreen(2);
+    for (int y = 0; y < 60; ++y)
+        for (int x = 0; x < 160; ++x)
+            CHECK_EQ(device2Cleared.bits[y * device2Cleared.pitch + x], 255);
+
+    HBRUSH black = CreateSolidBrush(RGB(0, 0, 0));
+    RECT small = {70, 25, 71, 26};
+    CHECK(FillRect(memory, &small, black));
+    CHECK(BitBlt(screenDc, 0, 0, 80, 30, memory, 0, 0, SRCCOPY));
+    CHECK_EQ(device2Cleared.bits[(25 * 2) * device2Cleared.pitch + 70 * 2], 0);
+    for (int y = 0; y < 60; ++y)
+        for (int x = 0; x < 160; ++x)
+            if (x < 70 * 2 || x >= 71 * 2 || y < 25 * 2 || y >= 26 * 2)
+                CHECK_EQ(device2Cleared.bits[y * device2Cleared.pitch + x], 255);
+    DeleteObject(black);
+
+    minwin_gdi::DestroyWindowDc(screenDc);
+    SelectObject(memory, oldFont);
+    SelectObject(memory, oldBitmap);
+    DeleteObject(font);
+    DeleteObject(bitmap);
+    DeleteDC(memory);
+    minwin_gdi::DeviceScreen(1);
 }
 
 TEST(drawtext_flag_semantics) {

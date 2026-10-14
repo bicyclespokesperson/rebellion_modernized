@@ -4,7 +4,8 @@
 #pragma once
 #include <string>
 
-namespace mw::res {
+namespace mw::res
+{
 
 // "C:\Games\Rebellion\GData\FOO.DAT" -> a native path. On POSIX: '\' becomes '/', a leading drive letter is dropped, and each
 // component that does not exist as written is matched case-insensitively against its directory. Components that do not exist
@@ -16,4 +17,4 @@ bool FileExists(const std::string& nativePath);
 // Joins two path pieces with a single separator.
 std::string JoinPath(const std::string& dir, const std::string& name);
 
-}  // namespace mw::res
+} // namespace mw::res

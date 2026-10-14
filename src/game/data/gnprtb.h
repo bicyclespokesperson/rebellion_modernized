@@ -6,48 +6,48 @@
 // globals declared below. Parameter ids are those of the file (see refs/open-rebellion for the documented
 // ones); the globals are named after them. Meanings inferred from the callers are noted where known.
 
-extern int g_gnprtbDifficulty;  // 0x6b904c, index (0-7) of the difficulty column to read
-extern int g_gnprtbDefault;     // 0x6b9050, GNPRTB 1
+extern int g_gnprtbDifficulty; // 0x6b904c, index (0-7) of the difficulty column to read
+extern int g_gnprtbDefault; // 0x6b9050, GNPRTB 1
 
-extern int g_gnprtbA00;  // 0x6b9088, Force potential threshold (HasForcePotentialA00)
-extern int g_gnprtbA01;  // 0x6b9068
-extern int g_gnprtbA02;  // 0x6b9064
-extern int g_gnprtbA03;  // 0x6b9084, injury recovery per tick (2563)
-extern int g_gnprtbA04;  // 0x6b905c, injury recovery per tick (2564)
-extern int g_gnprtbA05;  // 0x6b9080, injury roll: least chance (2565)
-extern int g_gnprtbA06;  // 0x6b908c, injury roll: base duration (2566)
-extern int g_gnprtbA07;  // 0x6b90d8, injury roll: spread (2567)
-extern int g_gnprtbA08;  // 0x6b90a8
-extern int g_gnprtbA09;  // 0x6b90a4
-extern int g_gnprtbA0A;  // 0x6b9098
-extern int g_gnprtbA0B;  // 0x6b90d0
-extern int g_gnprtbA0C;  // 0x6b90d4
-extern int g_gnprtbA0D;  // 0x6b90b8
-extern int g_gnprtbA0E;  // 0x6b9070
-extern int g_gnprtbA0F;  // 0x6b9090
-extern int g_gnprtbA10;  // 0x6b90cc
-extern int g_gnprtbA11;  // 0x6b90c8
-extern int g_gnprtbA12;  // 0x6b9060
-extern int g_gnprtbA13;  // 0x6b90bc, Force potential threshold (HasForcePotentialA13)
-extern int g_gnprtbA14;  // 0x6b9058, Force potential threshold (HasForcePotentialA14)
-extern int g_gnprtbA15;  // 0x6b90dc, Force potential threshold (HasForcePotentialA15)
-extern int g_gnprtbA16;  // 0x6b907c
-extern int g_gnprtbA17;  // 0x6b90c0
-extern int g_gnprtbA18;  // 0x6b90ac
-extern int g_gnprtbA19;  // 0x6b9074
-extern int g_gnprtbA20;  // 0x6b90c4
-extern int g_gnprtbA21;  // 0x6b909c
+extern int g_gnprtbA00; // 0x6b9088, Force potential threshold (HasForcePotentialA00)
+extern int g_gnprtbA01; // 0x6b9068
+extern int g_gnprtbA02; // 0x6b9064
+extern int g_gnprtbA03; // 0x6b9084, injury recovery per tick (2563)
+extern int g_gnprtbA04; // 0x6b905c, injury recovery per tick (2564)
+extern int g_gnprtbA05; // 0x6b9080, injury roll: least chance (2565)
+extern int g_gnprtbA06; // 0x6b908c, injury roll: base duration (2566)
+extern int g_gnprtbA07; // 0x6b90d8, injury roll: spread (2567)
+extern int g_gnprtbA08; // 0x6b90a8
+extern int g_gnprtbA09; // 0x6b90a4
+extern int g_gnprtbA0A; // 0x6b9098
+extern int g_gnprtbA0B; // 0x6b90d0
+extern int g_gnprtbA0C; // 0x6b90d4
+extern int g_gnprtbA0D; // 0x6b90b8
+extern int g_gnprtbA0E; // 0x6b9070
+extern int g_gnprtbA0F; // 0x6b9090
+extern int g_gnprtbA10; // 0x6b90cc
+extern int g_gnprtbA11; // 0x6b90c8
+extern int g_gnprtbA12; // 0x6b9060
+extern int g_gnprtbA13; // 0x6b90bc, Force potential threshold (HasForcePotentialA13)
+extern int g_gnprtbA14; // 0x6b9058, Force potential threshold (HasForcePotentialA14)
+extern int g_gnprtbA15; // 0x6b90dc, Force potential threshold (HasForcePotentialA15)
+extern int g_gnprtbA16; // 0x6b907c
+extern int g_gnprtbA17; // 0x6b90c0
+extern int g_gnprtbA18; // 0x6b90ac
+extern int g_gnprtbA19; // 0x6b9074
+extern int g_gnprtbA20; // 0x6b90c4
+extern int g_gnprtbA21; // 0x6b909c
 
-extern int g_sdprtbA00Side1;  // 0x6b9094
-extern int g_sdprtbA00Side2;  // 0x6b9078
-extern int g_sdprtbA01Side1;  // 0x6b90a0
-extern int g_sdprtbA01Side2;  // 0x6b90b0
-extern int g_sdprtbA02Side1;  // 0x6b90b4
-extern int g_sdprtbA02Side2;  // 0x6b906c
+extern int g_sdprtbA00Side1; // 0x6b9094
+extern int g_sdprtbA00Side2; // 0x6b9078
+extern int g_sdprtbA01Side1; // 0x6b90a0
+extern int g_sdprtbA01Side2; // 0x6b90b0
+extern int g_sdprtbA02Side1; // 0x6b90b4
+extern int g_sdprtbA02Side2; // 0x6b906c
 
-extern int g_gnprtb1C00;  // 0x6bb50c
-extern int g_gnprtb1C01;  // 0x6bb510
-extern int g_gnprtb1C02;  // 0x6bb508
+extern int g_gnprtb1C00; // 0x6bb50c
+extern int g_gnprtb1C01; // 0x6bb510
+extern int g_gnprtb1C02; // 0x6bb508
 
 // Selects the difficulty column (called first by the game-start sequence 0x513f70). Returns 1.
 int SetGnprtbDifficulty(int difficultyIndex);

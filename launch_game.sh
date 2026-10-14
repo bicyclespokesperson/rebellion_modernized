@@ -9,6 +9,60 @@ fail() {
   exit 1
 }
 
+config_value() {
+  awk -v KEY="$1" '
+    function trim(VALUE) { sub(/^[ \t\r]+/, "", VALUE); sub(/[ \t\r]+$/, "", VALUE); return VALUE }
+    {
+      LINE = trim($0)
+      if (LINE == "" || LINE ~ /^[#;]/) next
+      if (LINE ~ /^\[/) {
+        sub(/^\[/, "", LINE); sub(/\].*$/, "", LINE)
+        REGISTRY = tolower(trim(LINE)) == "registry"
+        next
+      }
+      EQ = index(LINE, "=")
+      if (!REGISTRY && EQ && tolower(trim(substr(LINE, 1, EQ - 1))) == KEY) {
+        print trim(substr(LINE, EQ + 1))
+        FOUND = 1
+        exit
+      }
+    }
+    END { if (!FOUND) exit 1 }
+  ' "$CONFIG"
+}
+
+prepare_hd_pack() {
+  HD_PACK="$ROOT/work/hd/gameplay-pack"
+  [[ -z "${REB_HD_ASSET_DIR+x}" ]] || return 0
+  if config_value hd_asset_dir > /dev/null; then
+    return 0
+  fi
+  if [[ ! -d "$HD_PACK" ]]; then
+    INSTALL_DIR="$(config_value install_dir || true)"
+    [[ -n "$INSTALL_DIR" ]] || return 0
+    STRATEGY_MODULE=""
+    for MODULE in "$INSTALL_DIR"/[Ss][Tt][Rr][Aa][Tt][Ee][Gg][Yy].[Dd][Ll][Ll]; do
+      if [[ -f "$MODULE" ]]; then
+        STRATEGY_MODULE="$MODULE"
+        break
+      fi
+    done
+    [[ -n "$STRATEGY_MODULE" ]] || return 0
+    if ! command -v uv > /dev/null 2>&1; then
+      printf 'HD pack not generated: install uv, then relaunch to enable HD artwork.\n' >&2
+      return 0
+    fi
+    printf 'Generating HD artwork from %s\n' "$STRATEGY_MODULE"
+    if ! uv run "$ROOT/tools/build_hd_pack.py" --recipe "$ROOT/tools/hd_gameplay_recipe.json" \
+        --module "$STRATEGY_MODULE" --out "$HD_PACK"; then
+      rm -rf "$HD_PACK"
+      printf 'HD pack generation failed; launching with original artwork. Generation will retry next launch.\n' >&2
+      return 0
+    fi
+  fi
+  export REB_HD_ASSET_DIR="$HD_PACK"
+}
+
 if [[ $# -ne 0 ]]; then
   printf 'Usage: %s (no arguments)\nSet REBELLION_CONFIG to use a custom config.ini.\n' "$0" >&2
   exit 2
@@ -66,6 +120,10 @@ fi
   $CONFIG
 Create a plain text file containing install_dir=/absolute/path/to/Star Wars - Rebellion."
 export REBELLION_CONFIG="$CONFIG"
+prepare_hd_pack
 printf 'Launching Rebellion\nConfig: %s\n' "$CONFIG"
+if [[ -n "${REB_HD_ASSET_DIR:-}" ]]; then
+  printf 'HD asset fallback: %s\n' "$REB_HD_ASSET_DIR"
+fi
 # The game checks install_dir, resource files and SaveGame before starting.
 exec "$EXECUTABLE"

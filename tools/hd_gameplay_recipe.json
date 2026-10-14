@@ -1,0 +1,347 @@
+{
+  "module": "orig_game_files/Star Wars - Rebellion/STRATEGY.DLL",
+  "out": "work/hd/gameplay-pack",
+  "scale": 4,
+  "assets": [
+    {
+      "id": 900,
+      "method": "lanczos",
+      "key": 252
+    },
+    {
+      "id": 901,
+      "method": "lanczos",
+      "key": 252
+    },
+    {
+      "id": 902,
+      "method": "lanczos",
+      "key": "none"
+    },
+    {
+      "id": 903,
+      "method": "lanczos",
+      "key": "none"
+    },
+    {
+      "id": 10001,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10002,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10003,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10004,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10005,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10006,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10007,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10008,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10009,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10010,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10011,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10012,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10013,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10014,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10015,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10016,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10017,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10018,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10019,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10020,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10021,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10022,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10023,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10024,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10025,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10026,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10027,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10028,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10030,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10031,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10032,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10033,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10034,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10035,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10036,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10037,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10038,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10040,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10041,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10042,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10043,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10044,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10045,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10046,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10047,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10048,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10050,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10051,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10052,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10053,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10054,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10055,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10056,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10057,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10058,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10060,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10061,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10062,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10063,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10064,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10065,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10066,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10067,
+      "method": "scale2x",
+      "key": "first"
+    },
+    {
+      "id": 10068,
+      "method": "scale2x",
+      "key": "first"
+    }
+  ]
+}

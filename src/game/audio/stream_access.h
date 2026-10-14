@@ -4,36 +4,34 @@
 #include "core/stream_io.h"
 #include "iostream/iostream.h"
 
-// Statically linked iostream entry points the sound code uses beyond core/stream_io.h, plus direct access to the
-// few ios fields it reads. The classes derive from ios through a virtual base: the first word of a stream object
-// is its vbtable and vbtable[1] is the offset of the ios part, whose streambuf pointer (+4) leads to the filebuf
-// (file descriptor at +0x4c); the ios state bits are at +8 (bit 0 = eofbit); istream keeps its last read count at +8.
+// Statically linked stream entry points used by the audio system.
 
-namespace stream_access {
+namespace stream_access
+{
 
 constexpr int kSeekBegin = 0;
 constexpr int kSeekCurrent = 1;
 
-inline char* IosPart(void* stream) {
-    const int32_t* vbtable = *static_cast<int32_t**>(stream);
-    return static_cast<char*>(stream) + vbtable[1];
+template <typename Stream>
+inline bool IsOpen(Stream* stream)
+{
+  return static_cast<const filebuf*>(iostream_access::IosOf(stream)->m_bp)->m_fd != -1;
 }
 
-inline bool IsOpen(void* stream) {
-    const ios* base = reinterpret_cast<const ios*>(IosPart(stream));
-    return static_cast<const filebuf*>(base->m_bp)->m_fd != -1;
+template <typename Stream>
+inline bool AtEof(Stream* stream)
+{
+  return (iostream_access::IosOf(stream)->m_state & iostream_flags::kEof) != 0;
 }
 
-inline bool AtEof(void* stream) { return (reinterpret_cast<const ios*>(IosPart(stream))->m_state & iostream_flags::kEof) != 0; }
-
-inline uint32_t LastReadCount(istream* in) { return static_cast<uint32_t>(in->m_gcount); }
-
-// Calls the virtual deleting destructor of the ios part (slot 0), which frees the whole stream object.
-inline void DeleteStream(void* stream) {
-    ios* base = iostream_access::IosOf(stream);
-    base->m_vftable->m_scalarDeletingDtor(base, 1);
+inline uint32_t LastReadCount(istream* in)
+{
+  return static_cast<uint32_t>(in->m_gcount);
 }
 
-inline void Read(istream* in, void* buffer, uint32_t count) { istream_read(in, buffer, static_cast<int>(count)); }
+inline void Read(istream* in, void* buffer, uint32_t count)
+{
+  istream_read(in, buffer, static_cast<int>(count));
+}
 
-}  // namespace stream_access
+} // namespace stream_access

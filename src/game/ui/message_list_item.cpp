@@ -1,38 +1,37 @@
 #include "ui/message_list_item.h"
 
-#include "core/vptr_store.h"
 #include "ui/message_record_decl.h"
 
-MessageListItem::MessageListItem(MessageRecord* record) : CoolListItem(record->m_id) {
-    m_record = record;
-    m_text = record->m_text0.m_text;
-    m_visible = 1;
+MessageListItem::MessageListItem(MessageRecord* record) : CoolListItem(record->m_id)
+{
+  m_record = record;
+  m_text = record->MessageText0().c_str();
+  m_visible = 1;
 }
 
-MessageListItem::~MessageListItem() { REB_KEEP_VPTR_STORE(); }
+MessageListItem::~MessageListItem() = default;
 
-void MessageListItem::Read(istream*) {}
-
-void MessageListItem::Write(ostream*) {}
-
-CoolListItem* MessageListItem::Next() {
-    MessageListItem* next = static_cast<MessageListItem*>(m_next);
-    if (next && !next->m_visible) return next->Next();
-    return next;
+void MessageListItem::Read(istream*)
+{
 }
 
-CoolListItem* MessageListItem::Previous() {
-    MessageListItem* previous = static_cast<MessageListItem*>(m_prev);
-    if (previous && !previous->m_visible) return previous->Previous();
-    return previous;
+void MessageListItem::Write(ostream*)
+{
 }
 
-MessageItemList::MessageItemList(int sortMode) : CoolListItemList(sortMode) {}
+MessageItemList::MessageItemList(int sortMode) : CoolListItemList(sortMode)
+{
+}
 
-MessageItemList::~MessageItemList() { REB_KEEP_VPTR_STORE(); }
+MessageItemList::~MessageItemList() = default;
 
-CoolListItem* MessageItemList::First() {
-    MessageListItem* first = static_cast<MessageListItem*>(m_head);
-    if (first && !first->m_visible) return first->Next();
-    return first;
+CoolListItem* MessageItemList::First()
+{
+  for (const auto& entry : Entries())
+  {
+    auto* item = static_cast<MessageListItem*>(entry.get());
+    if (item->m_visible)
+      return item;
+  }
+  return nullptr;
 }

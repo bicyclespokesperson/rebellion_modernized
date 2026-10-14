@@ -6,27 +6,27 @@
 #include "port/minwin/winmm.h"
 
 struct IAVIFile;
-struct _AVIFILEINFOA {
-    DWORD dwMaxBytesPerSec;
-    DWORD dwFlags;
-    DWORD dwCaps;
-    DWORD dwStreams;
-    DWORD dwSuggestedBufferSize;
-    DWORD dwWidth;
-    DWORD dwHeight;
-    DWORD dwScale;
-    DWORD dwRate;
-    DWORD dwLength;
-    DWORD dwEditCount;
-    char szFileType[64];
+struct _AVIFILEINFOA
+{
+  DWORD dwMaxBytesPerSec;
+  DWORD dwFlags;
+  DWORD dwCaps;
+  DWORD dwStreams;
+  DWORD dwSuggestedBufferSize;
+  DWORD dwWidth;
+  DWORD dwHeight;
+  DWORD dwScale;
+  DWORD dwRate;
+  DWORD dwLength;
+  DWORD dwEditCount;
+  char szFileType[64];
 };
-typedef struct _AVIFILEINFOA AVIFILEINFOA;
-typedef struct _AVIFILEINFOA *LPAVIFILEINFOA;
-typedef IAVIFile *PAVIFILE;
+using AVIFILEINFOA = struct _AVIFILEINFOA;
+using LPAVIFILEINFOA = struct _AVIFILEINFOA*;
+using PAVIFILE = IAVIFile*;
 
 extern "C" {
 MINWIN_IMPORT ULONG REB_STDCALL AVIFileRelease(PAVIFILE pfile);
-MINWIN_IMPORT HRESULT REB_STDCALL AVIFileOpenA(PAVIFILE *ppfile, LPCSTR szFile, UINT uMode, LPCLSID lpHandler);
+MINWIN_IMPORT HRESULT REB_STDCALL AVIFileOpenA(PAVIFILE* ppfile, LPCSTR szFile, UINT uMode, LPCLSID lpHandler);
 MINWIN_IMPORT HRESULT REB_STDCALL AVIFileInfoA(PAVIFILE pfile, LPAVIFILEINFOA pfi, LONG lSize);
 }
-

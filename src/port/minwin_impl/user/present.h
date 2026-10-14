@@ -1,18 +1,22 @@
-// How the finished 640x480 frame reaches the screen: the SDL window and renderer, integer scaling, fullscreen, the mapping of
-// window coordinates back to game pixels, the scale the game's own cursors are drawn at, and the idle pacing of the main loop.
-// Settings: config keys window_scale and fullscreen (src/port/minwin_impl/config/config.h), environment REB_MINWIN_SCALE,
-// REB_MINWIN_PACING_US (docs/native.md).
+// Presents device-resolution frames while retaining the game's 640x480 logical coordinates.
+// Owns display fitting, fullscreen, mouse mapping, cursor scaling, screenshots, and idle pacing.
 #pragma once
 #include <SDL3/SDL.h>
 
 #include <stdint.h>
 
-namespace minwin::present {
+namespace minwin::present
+{
 
-bool Create();                                  // window, renderer, frame texture; false (with SDL_GetError set) on failure
+bool Create(); // window, renderer, frame texture; false (with SDL_GetError set) on failure
 void Destroy();
 SDL_Window* Window();
-void Present(const uint32_t* xrgbPixels);       // the 640x480 frame; letterboxed at an integer scale
+void Present(const uint32_t* xrgbPixels, int width, int height); // device-resolution frame; letterboxed to output
+int RenderScale(); // integer device-pixel scale for the GDI screen surface, capped at 4
+int GameplayWidth(); // logical width for the current drawable aspect at height 480
+void LogicalCanvasChanged(); // refresh fitting and cursor scale after the active canvas changes
+bool CaptureScreenshot(const char* path); // saves the last rendered output as a BMP
+bool RequestScreenshot(); // saves the next rendered frame to REB_SCREENSHOT_PATH or a unique user-data path
 
 // Window coordinates (SDL mouse events) -> game pixels, floor-rounded and clamped to the screen.
 void MapMouse(float windowX, float windowY, int* x, int* y);
@@ -32,4 +36,4 @@ void SyncMouseCapture(bool captured);
 // Called when the main loop found nothing to do: sleeps so the loop does not spin a core. No-op with REB_DETERMINISTIC=1.
 void PaceIdleLoop();
 
-}  // namespace minwin::present
+} // namespace minwin::present

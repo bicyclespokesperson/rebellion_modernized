@@ -1,10 +1,11 @@
 #pragma once
 #include <new>
+#include <utility>
 
-// The game's operator new returns null on failure (it never throws) and callers skip construction in that
-// case; `new T` would not check.
+// Callers that can recover from allocation failure receive nullptr. Constructor
+// failures still propagate, and the new expression releases its allocation.
 template <class T, class... Args>
-T* NewOrNull(Args&&... args) {
-    void* memory = ::operator new(sizeof(T));
-    return memory ? new (memory) T(static_cast<Args&&>(args)...) : nullptr;
+T* NewOrNull(Args&&... args)
+{
+  return new (std::nothrow) T(std::forward<Args>(args)...);
 }

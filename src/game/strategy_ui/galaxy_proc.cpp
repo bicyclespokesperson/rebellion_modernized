@@ -1,4 +1,4 @@
-#include "core/reb_abi.h"
+#include <algorithm>
 #include <cstdint>
 #include <new>
 
@@ -11,6 +11,7 @@
 #include "gameobj/object_key.h"
 #include "gfx/dib_bitmap.h"
 #include "strategy_ui/galaxy_window.h"
+#include "strategy_ui/developer_menu.h"
 #include "strategy_ui/game_ui_facade.h"
 #include "strategy_ui/object_menu.h"
 #include "strategy_ui/panel_drag_button.h"
@@ -27,10 +28,19 @@
 #include "ui/sprite_stage.h"
 
 // The Galactic Information Display menu (0x451130, window_type6_and_panel).
-CoolGameWindow* REB_THISCALL FUN_00451130(void* memory, HINSTANCE instance, int x, int y, int width, int height,
-                                        int side, CoolWindow* parent, uint32_t childId, DibBitmap* background);
+CoolGameWindow* FUN_00451130(void* memory,
+                             HINSTANCE instance,
+                             int x,
+                             int y,
+                             int width,
+                             int height,
+                             int side,
+                             CoolWindow* parent,
+                             uint32_t childId,
+                             DibBitmap* background);
 
-namespace {
+namespace
+{
 
 constexpr uint32_t kTextSlot = 2;
 constexpr uint32_t kSpriteSlot = 7;
@@ -44,30 +54,47 @@ constexpr uint32_t kStringGroup = 2;
 constexpr uint32_t kHoverRightMargin = 0x3c;
 constexpr uint32_t kTickCountReady = 2;
 
-int LowWord(LPARAM value) { return static_cast<int>(static_cast<uint32_t>(value) & 0xffff); }
-int HighWord(LPARAM value) { return static_cast<int>(static_cast<uint32_t>(value) >> 16); }
+int LowWord(LPARAM value)
+{
+  return static_cast<int>(static_cast<uint32_t>(value) & 0xffff);
+}
+int HighWord(LPARAM value)
+{
+  return static_cast<int>(static_cast<uint32_t>(value) >> 16);
+}
 
-ResourceStringId StringId(uint16_t id) { return ResourceStringId{static_cast<int16_t>(id), kStringGroup}; }
+ResourceStringId StringId(uint16_t id)
+{
+  return ResourceStringId{static_cast<int16_t>(id), kStringGroup};
+}
 
-HWND SendToBottom() { return HWND_BOTTOM; }
+HWND SendToBottom()
+{
+  return HWND_BOTTOM;
+}
 
-bool InputBlocked() { return static_cast<uint32_t>(GameHookTickCount()) < kTickCountReady; }
+bool InputBlocked()
+{
+  return static_cast<uint32_t>(GameHookTickCount()) < kTickCountReady;
+}
 
-struct TopBarLayout {
-    COLORREF m_color;
-    int m_dateX;
-    int m_dateY;
-    POINT m_counters[3];
-    RECT m_counterTips[3];
-    RECT m_dateTip;
+struct TopBarLayout
+{
+  COLORREF m_color;
+  int m_dateX;
+  int m_dateY;
+  POINT m_counters[3];
+  RECT m_counterTips[3];
+  RECT m_dateTip;
 };
 
-constexpr TopBarLayout kAllianceBar = {0x20000ff,
-                                       0x68,
-                                       0x12,
-                                       {{0x109, 0x10}, {0x168, 0x10}, {0x1c9, 0x10}},
-                                       {{0xf0, 0x10, 0x14a, 0x21}, {0x14f, 0x10, 0x1a9, 0x21}, {0x1ae, 0x10, 0x208, 0x21}},
-                                       {0x67, 0x15, 0xb9, 0x21}};
+constexpr TopBarLayout kAllianceBar = {
+  0x20000ff,
+  0x68,
+  0x12,
+  {{0x109, 0x10}, {0x168, 0x10}, {0x1c9, 0x10}},
+  {{0xf0, 0x10, 0x14a, 0x21}, {0x14f, 0x10, 0x1a9, 0x21}, {0x1ae, 0x10, 0x208, 0x21}},
+  {0x67, 0x15, 0xb9, 0x21}};
 
 constexpr TopBarLayout kEmpireBar = {0x200ff00,
                                      500,
@@ -81,259 +108,484 @@ constexpr uint16_t kCounterTips[3] = {0x1510, 0x1511, 0x1512};
 constexpr uint16_t kDateTip = 0x1513;
 constexpr uint32_t kDateTipCommand = 0x14f;
 
-}  // namespace
+} // namespace
 
-LRESULT REB_STDCALL GalaxyWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam) {
-    switch (message) {
-        case WM_PAINT:
-            return OnPaint();
-        case WM_CREATE:
-            return OnCreate();
-        case WM_KEYDOWN:
-            return OnKeyDown(wParam, lParam);
-        case WM_SHOWWINDOW:
-            return OnShowWindow(wParam, lParam);
-        case WM_MOUSEMOVE:
-            return OnMouseMove(wParam, lParam);
-        case WM_COMMAND:
-            return OnCommandMessage(wParam, lParam);
-        case kGalaxyMovieDone:
-            return OnMovieDone();
-        case WM_LBUTTONUP:
-            return OnLeftButtonUp(wParam, lParam);
-        case WM_LBUTTONDBLCLK:
-            return OnLeftDoubleClick(wParam, lParam);
-        case WM_RBUTTONUP:
-            return OnRightButtonUp(wParam, lParam);
-        case kGalaxyCloseChild:
-            OnCloseChild(wParam);
-            return 0;
-        case kGalaxyClosePopups:
-            return DismissMenu();
-        case kGalaxyActivateChild:
-            OnActivateChild(wParam);
-            return 0;
-        case kGalaxyOpenModal:
-        case kGalaxyPlayMovie:
-            return OnModalRequest(message, wParam, lParam);
-        case kGalaxyAccelerator:
-            OnAccelerator(wParam);
-            break;
-        default:
-            break;
-    }
-    return GameWindowObject::WindowProc(message, wParam, lParam);
+LRESULT GalaxyWindow::WindowProc(UINT message, WPARAM wParam, LPARAM lParam)
+{
+  switch (message)
+  {
+    case WM_SIZE:
+      ResizeCanvas(LOWORD(lParam), HIWORD(lParam));
+      return 0;
+    case WM_PAINT:
+      return OnPaint();
+    case WM_CREATE:
+      return OnCreate();
+    case WM_KEYDOWN:
+      return OnKeyDown(wParam, lParam);
+    case WM_SHOWWINDOW:
+      return OnShowWindow(wParam, lParam);
+    case WM_MOUSEMOVE:
+      return OnMouseMove(wParam, lParam);
+    case WM_COMMAND:
+      return OnCommandMessage(wParam, lParam);
+    case kGalaxyMovieDone:
+      return OnMovieDone();
+    case WM_LBUTTONUP:
+      return OnLeftButtonUp(wParam, lParam);
+    case WM_LBUTTONDBLCLK:
+      return OnLeftDoubleClick(wParam, lParam);
+    case WM_RBUTTONUP:
+      return OnRightButtonUp(wParam, lParam);
+    case kGalaxyCloseChild:
+      OnCloseChild(wParam);
+      return 0;
+    case kGalaxyClosePopups:
+      return DismissMenu();
+    case kGalaxyActivateChild:
+      OnActivateChild(wParam);
+      return 0;
+    case kGalaxyOpenModal:
+    case kGalaxyPlayMovie:
+      return OnModalRequest(message, wParam, lParam);
+    case kGalaxyAccelerator:
+      OnAccelerator(wParam);
+      break;
+    default:
+      break;
+  }
+  return GameWindowObject::WindowProc(message, wParam, lParam);
 }
 
-LRESULT GalaxyWindow::OnCreate() {
-    HMODULE spriteModule = CoolAppGetResourceModule(kSpriteSlot);
-    HMODULE textModule = CoolAppGetResourceModule(kTextSlot);
-    SetMessageTemplateSource(0xbb9, 0xbb8, textModule);
-    HWND parentHwnd = m_parent->m_hwnd;
-    AppSetVolume(AppGetVolume());
-    SoundManager::Initialize(parentHwnd, 1, 0);
+void GalaxyWindow::ResizeCanvas(int width, int height)
+{
+  if (width <= 0 || height <= 0 || (width == m_canvasLayoutWidth && height == m_clientHeight))
+    return;
+  const int oldOffset = m_canvasLayoutWidth > 640 ? (m_canvasLayoutWidth - 640) / 2 : 0;
+  m_clientWidth = width;
+  m_clientHeight = height;
+  m_width = width;
+  m_height = height;
+  m_canvasLayoutWidth = width;
+  if (!m_created)
+    return;
+
+  const int newOffset = MapOffsetX();
+  const int offsetDelta = newOffset - oldOffset;
+  if (m_side == 1)
+    SetRect(&m_panelArea, 0x37, 0x28, width - 0x64, 0x186);
+  else
+    SetRect(&m_panelArea, 0x78, 0x28, width - 0x28, 0x18b);
+
+  for (int i = 0; i < 7; ++i)
+  {
+    CoolStrobeButton* button = m_consoleButtons[i];
+    if (!button || i == 6)
+      continue;
+    button->m_x += offsetDelta;
+    SetWindowPos(button->m_hwnd, nullptr, button->m_x, button->m_y, 0, 0,
+                 SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOSIZE);
+  }
+  for (auto button : m_messageButtons)
+  {
+    if (!button)
+      continue;
+    button->m_x = m_side == 1 ? 3 : width - 640 + 0x263;
+    SetWindowPos(button->m_hwnd, nullptr, button->m_x, button->m_y, 0, 0,
+                 SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOSIZE);
+  }
+  if (m_gidLegendIcon)
+  {
+    m_gidLegendIcon->m_x += offsetDelta;
+    m_gidLegendIcon->m_limits = m_panelArea;
+    SetWindowPos(m_gidLegendIcon->m_hwnd, nullptr, m_gidLegendIcon->m_x, m_gidLegendIcon->m_y, 0, 0,
+                 SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOSIZE);
+  }
+
+  const int slotLeft = m_side == 1 ? width - 0x60 : 0x15;
+  const int slotRight = m_side == 1 ? width - 0x22 : 0x4b;
+  for (MinimizedWindowSlot& slot : m_minimized)
+  {
+    slot.m_area.left = slotLeft;
+    slot.m_area.right = slotRight;
+  }
+  m_dateLabel.MoveTo(m_dateLabel.m_rect.left + offsetDelta, m_dateLabel.m_rect.top);
+  for (CoolLabel& label : m_resourceLabels)
+    label.MoveTo(label.m_rect.left + offsetDelta, label.m_rect.top);
+  m_latencyLabel.MoveTo(m_latencyLabel.m_rect.left + offsetDelta, m_latencyLabel.m_rect.top);
+  m_legendX += offsetDelta;
+  const TopBarLayout& bar = m_side == 1 ? kAllianceBar : kEmpireBar;
+  RECT dateTip;
+  SetRect(&dateTip, bar.m_dateTip.left + newOffset, bar.m_dateTip.top, bar.m_dateTip.right + newOffset,
+          bar.m_dateTip.bottom);
+  const ResourceStringId dateTipText = StringId(kDateTip);
+  RemoveRectTool(kDateTipCommand);
+  AddRectToolFromString(dateTip, kDateTipCommand, &dateTipText);
+  for (int i = 0; i < 3; ++i)
+  {
+    const RECT& tip = bar.m_counterTips[i];
+    RECT counterTip;
+    SetRect(&counterTip, tip.left + newOffset, tip.top, tip.right + newOffset, tip.bottom);
+    const ResourceStringId counterTipText = StringId(kCounterTips[i]);
+    RemoveRectTool(kCounterCommands[i]);
+    AddRectToolFromString(counterTip, kCounterCommands[i], &counterTipText);
+  }
+  if (m_gidLegend)
+  {
+    m_gidLegend->m_x += offsetDelta;
+    SetWindowPos(m_gidLegend->m_hwnd, nullptr, m_gidLegend->m_x, m_gidLegend->m_y, 0, 0,
+                 SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOSIZE);
+    m_legendX = m_gidLegend->m_x;
+  }
+
+  if (m_droidStage)
+  {
+    m_droidStage->m_x = m_side == 1 ? 0x21d + std::max(0, width - 640) : 0;
+    m_droidStage->m_rect.left = m_droidStage->m_x;
+    m_droidStage->m_rect.right = m_droidStage->m_x + m_droidStage->m_buffers[m_droidStage->m_front]->Width();
+  }
+  if (m_droidStage2)
+  {
+    const int classicX = m_side == 1 ? 0x13c : 0x12e;
+    m_droidStage2->m_x = classicX + newOffset;
+    m_droidStage2->m_rect.left = m_droidStage2->m_x;
+    m_droidStage2->m_rect.right = m_droidStage2->m_x + m_droidStage2->m_buffers[m_droidStage2->m_front]->Width();
+  }
+
+  for (const auto& ownedNode : m_children.Entries())
+  {
+    auto* child = static_cast<CoolWindow*>(ownedNode.get());
+    auto* gameWindow = dynamic_cast<CoolGameWindow*>(child);
+    if (gameWindow && child != m_gidLegend && child != m_gidMenu)
+    {
+      child->m_x = std::clamp(child->m_x + offsetDelta, m_panelArea.left,
+                              std::max(m_panelArea.left, m_panelArea.right - child->m_clientWidth));
+      child->m_y = std::clamp(child->m_y, m_panelArea.top,
+                              std::max(m_panelArea.top, m_panelArea.bottom - child->m_clientHeight));
+      SetWindowPos(child->m_hwnd, nullptr, child->m_x, child->m_y, 0, 0,
+                   SWP_NOZORDER | SWP_NOACTIVATE | SWP_NOSIZE);
+      gameWindow->SetDragLimits(m_panelArea, nullptr);
+    }
+  }
+
+  m_sectorItems.Clear();
+  m_hoveredSector = nullptr;
+  m_sectorLabel.SetText("");
+  BuildSectorItems(CoolAppGetResourceModule(kSpriteSlot));
+  const int previousMode = m_displayMode;
+  const std::set<uint32_t> selected = m_selectedIds;
+  if (previousMode == 0x80)
     BuildBackground(0);
-    m_childId = (m_side != 1 ? 1 : 0) + 7;
-    if (GetBackground()) {
-        HDC screen = GetDC(m_hwnd);
-        SetIdentityPalette(screen, GetBackground()->CreatePaletteFromColorTable());
-        m_offscreenDc = CreateCompatibleDC(screen);
-        void* memory = ::operator new(sizeof(DibBitmap));
-        m_offscreen = memory ? new (memory) DibBitmap(m_clientWidth, m_clientHeight, GetBackground(), screen) : nullptr;
-        ReleaseDC(m_hwnd, screen);
-    }
-    const TopBarLayout& bar = m_side == 1 ? kAllianceBar : kEmpireBar;
-    m_dateLabel.MoveTo(bar.m_dateX, bar.m_dateY);
-    CoolLabel* counters[3] = {&m_resourceLabels[0], &m_resourceLabels[1], &m_resourceLabels[2]};
-    for (CoolLabel* counter : counters) counter->m_width = 0x3f;
-    for (CoolLabel* counter : counters) counter->m_height = 0x11;
-    for (int i = 0; i < 3; ++i) counters[i]->MoveTo(bar.m_counters[i].x, bar.m_counters[i].y);
-    RECT counterTips[3];
-    RECT dateTip;
-    static constexpr int kTipRectOrder[3] = {1, 0, 2};
-    for (int i : kTipRectOrder) {
-        const RECT& tip = bar.m_counterTips[i];
-        SetRect(&counterTips[i], tip.left, tip.top, tip.right, tip.bottom);
-    }
-    SetRect(&dateTip, bar.m_dateTip.left, bar.m_dateTip.top, bar.m_dateTip.right, bar.m_dateTip.bottom);
+  else
+  {
+    m_displayMode = 0x80;
+    SetDisplayMode(previousMode, &selected, true);
+    m_selectedIds = selected;
+  }
 
-    m_dateLabel.SetColor(bar.m_color, nullptr);
-    m_dateLabel.m_width = 0x3c;
-    m_dateLabel.m_drawFlags = 1;
-    m_dateLabel.m_layoutFlags = kLabelFixedWidth;
-    m_dateLabel.SetFont(10);
-    const ResourceStringId dateTipText = StringId(kDateTip);
-    AddRectToolFromString(dateTip, kDateTipCommand, &dateTipText);
-    for (int i = 0; i < 3; ++i) {
-        counters[i]->SetFont(8);
-        counters[i]->m_layoutFlags = kLabelFixedWidth | kLabelFixedHeight;
-        counters[i]->m_drawFlags = 0x26;
-        counters[i]->SetColor(bar.m_color, nullptr);
-        const ResourceStringId tipText = StringId(kCounterTips[i]);
-        AddRectToolFromString(counterTips[i], kCounterCommands[i], &tipText);
-    }
-    CreateConsoleButtons(spriteModule);
-    DisableControls();
-    CreateConsoleButtonWindows(textModule);
-    LoadGidIcons(spriteModule);
-    CreateDroidAnimations();
-    m_normalCursor = g_defaultCursor ? g_defaultCursor : LoadCursorA(nullptr, MAKEINTRESOURCEA(0x7f00));
-    m_targetCursor = LoadCursorA(m_instance, MAKEINTRESOURCEA(0x3ea));
-    if (AppGetCommandLineFlags() & 0x100) {
-        m_latencyLabel.m_width = 500;
-        m_latencyLabel.m_height = 10;
-        m_latencyLabel.MoveTo(0x46, 0);
-        m_latencyLabel.SetFont(4);
-        m_latencyLabel.m_layoutFlags = kLabelFixedWidth | kLabelFixedHeight;
-        m_latencyLabel.m_drawFlags = 0x25;
-        m_latencyLabel.SetColor(bar.m_color, nullptr);
-    }
-    InitMusic();
-    if (m_restoring == 0) {
-        StartMusic();
-        m_restoring = 0;
-    }
-    m_created = 1;
-    UiSetSetupDone();
-    return 0;
+  const auto refreshButtonBackdrop = [this](CoolStrobeButton* button)
+  {
+    if (!button)
+      return;
+    button->m_backdrop = GetBackground();
+    button->m_backdropX = button->m_x;
+    button->m_backdropY = button->m_y;
+    if (auto* dragButton = dynamic_cast<PanelDragButton*>(button))
+      dragButton->m_backdropCopy = GetBackground();
+    InvalidateRect(button->m_hwnd, nullptr, FALSE);
+  };
+  for (CoolStrobeButton* button : m_consoleButtons)
+    refreshButtonBackdrop(button);
+  for (CoolFrameButton* button : m_messageButtons)
+    refreshButtonBackdrop(button);
+  refreshButtonBackdrop(m_gidLegendIcon);
+
+  if (m_offscreenDc)
+    DeleteDC(m_offscreenDc);
+  if (m_offscreen)
+  {
+    m_offscreen->~DibBitmap();
+    ::operator delete(m_offscreen);
+    m_offscreen = nullptr;
+  }
+  HDC screen = GetDC(m_hwnd);
+  m_offscreenDc = CreateCompatibleDC(screen);
+  void* memory = ::operator new(sizeof(DibBitmap));
+  m_offscreen = memory ? new (memory) DibBitmap(m_clientWidth, m_clientHeight, GetBackground(), screen) : nullptr;
+  ReleaseDC(m_hwnd, screen);
+  InvalidateRect(m_hwnd, nullptr, FALSE);
 }
 
-LRESULT GalaxyWindow::OnPaint() {
-    PAINTSTRUCT paint;
-    HDC paintDc = BeginPaint(m_hwnd, &paint);
-    HGDIOBJ previousBitmap = SelectObject(m_offscreenDc, m_offscreen->DibSectionHandle());
-    HPALETTE previousPalette = SelectPalette(m_offscreenDc, g_palette, FALSE);
-    SelectPalette(paintDc, g_palette, FALSE);
-    Draw(m_offscreenDc);
-    m_dateLabel.Draw(m_offscreenDc);
-    for (CoolLabel& counter : m_resourceLabels) counter.Draw(m_offscreenDc);
-    m_latencyLabel.Draw(m_offscreenDc);
-    if (m_droidStage) m_droidStage->Draw(m_offscreen);
-    if (m_droidStage2) m_droidStage2->Draw(m_offscreen);
-    for (MinimizedWindowSlot& slot : m_minimized) {
-        if (slot.m_childId == 0 || !slot.m_icon) continue;
-        slot.m_icon->DrawToDc(m_offscreenDc, '@', SRCCOPY, slot.m_area.left, slot.m_area.top, 0, 0, 0, 0);
-    }
-    const RECT& dirty = paint.rcPaint;
-    BitBlt(paintDc, dirty.left, dirty.top, dirty.right - dirty.left, dirty.bottom - dirty.top, m_offscreenDc,
-           dirty.left, dirty.top, SRCCOPY);
-    if (m_hoveredSector) {
-        m_sectorLabel.MoveTo(m_hoveredSector->m_x, m_hoveredSector->m_y);
-        m_sectorLabel.SetText(m_hoveredSector->m_text.m_text);
-        m_sectorLabel.Measure(paintDc);
-        m_sectorLabel.Draw(paintDc);
-    }
-    SelectPalette(m_offscreenDc, previousPalette, FALSE);
-    SelectObject(m_offscreenDc, previousBitmap);
-    EndPaint(m_hwnd, &paint);
-    return 0;
-}
+LRESULT GalaxyWindow::OnCreate()
+{
+  HMODULE spriteModule = CoolAppGetResourceModule(kSpriteSlot);
+  HMODULE textModule = CoolAppGetResourceModule(kTextSlot);
+  SetMessageTemplateSource(0xbb9, 0xbb8, textModule);
+  HWND parentHwnd = m_parent->m_hwnd;
+  AppSetVolume(AppGetVolume());
+  SoundManager::Initialize(parentHwnd, 1, 0);
+  BuildBackground(0);
+  m_childId = (m_side != 1 ? 1 : 0) + 7;
+  if (GetBackground())
+  {
+    HDC screen = GetDC(m_hwnd);
+    SetIdentityPalette(screen, GetBackground()->CreatePaletteFromColorTable());
+    m_offscreenDc = CreateCompatibleDC(screen);
+    void* memory = ::operator new(sizeof(DibBitmap));
+    m_offscreen = memory ? new (memory) DibBitmap(m_clientWidth, m_clientHeight, GetBackground(), screen) : nullptr;
+    ReleaseDC(m_hwnd, screen);
+  }
+  const TopBarLayout& bar = m_side == 1 ? kAllianceBar : kEmpireBar;
+  const int mapOffsetX = MapOffsetX();
+  m_dateLabel.MoveTo(bar.m_dateX + mapOffsetX, bar.m_dateY);
+  CoolLabel* counters[3] = {&m_resourceLabels[0], &m_resourceLabels[1], &m_resourceLabels[2]};
+  for (CoolLabel* counter : counters)
+    counter->m_width = 0x3f;
+  for (CoolLabel* counter : counters)
+    counter->m_height = 0x11;
+  for (int i = 0; i < 3; ++i)
+    counters[i]->MoveTo(bar.m_counters[i].x + mapOffsetX, bar.m_counters[i].y);
+  RECT counterTips[3];
+  RECT dateTip;
+  static constexpr int kTipRectOrder[3] = {1, 0, 2};
+  for (int i : kTipRectOrder)
+  {
+    const RECT& tip = bar.m_counterTips[i];
+    SetRect(&counterTips[i], tip.left + mapOffsetX, tip.top, tip.right + mapOffsetX, tip.bottom);
+  }
+  SetRect(&dateTip, bar.m_dateTip.left + mapOffsetX, bar.m_dateTip.top, bar.m_dateTip.right + mapOffsetX,
+          bar.m_dateTip.bottom);
 
-LRESULT GalaxyWindow::OnKeyDown(WPARAM key, LPARAM lParam) {
-    bool popupOpen = false;
-    if (key >= kKeyF1 && key <= kKeyF7) {
-        for (AvlNode* node = m_children.First(); node; node = node->m_successor) {
-            if (static_cast<CoolGameWindow*>(node)->m_flags & kGameWindowPopup) {
-                popupOpen = true;
-                break;
-            }
-        }
-    }
-    if (popupOpen) return 0;
-    if (GetKeyState(VK_CONTROL) < 0) return 0;
-    switch (key) {
-        case VK_TAB:
-            return 0;
-        case VK_F1:
-            PostMessageA(m_hwnd, WM_COMMAND, kGalaxyGameControls, 0);
-            return 0;
-        case VK_F2:
-            OpenSystemFinder();
-            return 0;
-        case VK_F3:
-            OpenFleetFinder();
-            return 0;
-        case VK_F4:
-            OpenTroopFinder();
-            return 0;
-        case VK_F5:
-            OpenPersonnelFinder();
-            return 0;
-        case VK_F6:
-            OpenMessageIndex(1, 0x79);
-            return 0;
-        case VK_F7: {
-            ObjectKey object;
-            NullableKey type;
-            type.m_value = 0;
-            OpenEncyclopedia(&object, &type);
-            return 0;
-        }
-        default:
-            break;
-    }
-    return GameWindowObject::WindowProc(WM_KEYDOWN, key, lParam);
-}
-
-LRESULT GalaxyWindow::OnShowWindow(WPARAM shown, LPARAM lParam) {
-    if (shown == 0) {
-        if (m_tickTimer) m_tickTimer->m_suspended = 1;
-        if (m_droidStage) m_droidStage->Disable();
-        if (m_droidStage2) m_droidStage2->Disable();
-    } else {
-        if (m_tickTimer) {
-            m_tickTimer->m_suspended = 0;
-            m_tickTimer->OnTick();
-        }
-        if (m_droidStage) m_droidStage->Enable();
-        if (m_droidStage2) m_droidStage2->Enable();
-        if (m_mouseMode & kMouseModeRestoring) m_mouseMode = kMouseModeNormal;
-    }
-    return GameWindowObject::WindowProc(WM_SHOWWINDOW, shown, lParam);
-}
-
-LRESULT GalaxyWindow::OnMouseMove(WPARAM keys, LPARAM position) {
-    POINT cursor = {LowWord(position), HighWord(position)};
-    if (m_mouseMode != kMouseModeNormal && !(keys & MK_SHIFT)) {
-        SetCursor(m_currentCursor);
-        return 0;
-    }
-    for (CoolListItem* node = m_sectorItems.First(); node; node = node->Next()) {
-        ObjectListItem* item = static_cast<ObjectListItem*>(node);
-        RECT area = item->m_rect;
-        const BOOL inside = PtInRect(&area, cursor);
-        if (item->m_state.m_value & 1) {
-            if (!inside) {
-                area.right += kHoverRightMargin;
-                InvalidateRect(m_hwnd, &area, FALSE);
-                item->m_state.m_value &= ~1u;
-                m_hoveredSector = nullptr;
-                continue;
-            }
-        } else if (!inside) {
-            continue;
-        }
-        if (m_hoveredSector != item) {
-            area.right += kHoverRightMargin;
-            InvalidateRect(m_hwnd, &area, FALSE);
-            item->m_state.m_value |= 1;
-            m_hoveredSector = item;
-            break;
-        }
-    }
-    SetCursor(m_normalCursor);
-    return 0;
-}
-
-LRESULT GalaxyWindow::OnMovieDone() {
-    if (!m_pendingMovie) return 0;
-    HWND parentHwnd = m_parent->m_hwnd;
-    UiFinishSync(reinterpret_cast<PlayerMessage*>(m_pendingMovie));
-    m_pendingMovie = 0;
-    AppSetVolume(AppGetVolume());
-    SoundManager::Initialize(parentHwnd, 1, 0);
-    InitMusic();
-    m_musicPending = 1;
+  m_dateLabel.SetColor(bar.m_color, nullptr);
+  m_dateLabel.m_width = 0x3c;
+  m_dateLabel.m_drawFlags = 1;
+  m_dateLabel.m_layoutFlags = kLabelFixedWidth;
+  m_dateLabel.SetFont(10);
+  const ResourceStringId dateTipText = StringId(kDateTip);
+  AddRectToolFromString(dateTip, kDateTipCommand, &dateTipText);
+  for (int i = 0; i < 3; ++i)
+  {
+    counters[i]->SetFont(8);
+    counters[i]->m_layoutFlags = kLabelFixedWidth | kLabelFixedHeight;
+    counters[i]->m_drawFlags = 0x26;
+    counters[i]->SetColor(bar.m_color, nullptr);
+    const ResourceStringId tipText = StringId(kCounterTips[i]);
+    AddRectToolFromString(counterTips[i], kCounterCommands[i], &tipText);
+  }
+  CreateConsoleButtons(spriteModule);
+  DisableControls();
+  CreateConsoleButtonWindows(textModule);
+  LoadGidIcons(spriteModule);
+  CreateDroidAnimations();
+  m_normalCursor = g_defaultCursor ? g_defaultCursor : LoadCursorA(nullptr, MAKEINTRESOURCEA(0x7f00));
+  m_targetCursor = LoadCursorA(m_instance, MAKEINTRESOURCEA(0x3ea));
+  if (AppGetCommandLineFlags() & 0x100)
+  {
+    m_latencyLabel.m_width = 500;
+    m_latencyLabel.m_height = 10;
+    m_latencyLabel.MoveTo(0x46 + mapOffsetX, 0);
+    m_latencyLabel.SetFont(4);
+    m_latencyLabel.m_layoutFlags = kLabelFixedWidth | kLabelFixedHeight;
+    m_latencyLabel.m_drawFlags = 0x25;
+    m_latencyLabel.SetColor(bar.m_color, nullptr);
+  }
+  InitMusic();
+  if (m_restoring == 0)
+  {
     StartMusic();
+    m_restoring = 0;
+  }
+  m_created = 1;
+  UiSetSetupDone();
+  return 0;
+}
+
+LRESULT GalaxyWindow::OnPaint()
+{
+  PAINTSTRUCT paint;
+  HDC paintDc = BeginPaint(m_hwnd, &paint);
+  HGDIOBJ previousBitmap = SelectObject(m_offscreenDc, m_offscreen->DibSectionHandle());
+  HPALETTE previousPalette = SelectPalette(m_offscreenDc, g_palette, FALSE);
+  SelectPalette(paintDc, g_palette, FALSE);
+  Draw(m_offscreenDc);
+  m_dateLabel.Draw(m_offscreenDc);
+  for (CoolLabel& counter : m_resourceLabels)
+    counter.Draw(m_offscreenDc);
+  m_latencyLabel.Draw(m_offscreenDc);
+  if (m_droidStage)
+    m_droidStage->Draw(m_offscreen);
+  if (m_droidStage2)
+    m_droidStage2->Draw(m_offscreen);
+  for (MinimizedWindowSlot& slot : m_minimized)
+  {
+    if (slot.m_childId == 0 || !slot.m_icon)
+      continue;
+    slot.m_icon->DrawToDc(m_offscreenDc, '@', SRCCOPY, slot.m_area.left, slot.m_area.top, 0, 0, 0, 0);
+  }
+  const RECT& dirty = paint.rcPaint;
+  BitBlt(paintDc, dirty.left, dirty.top, dirty.right - dirty.left, dirty.bottom - dirty.top, m_offscreenDc, dirty.left,
+         dirty.top, SRCCOPY);
+  if (m_hoveredSector)
+  {
+    m_sectorLabel.MoveTo(m_hoveredSector->m_x, m_hoveredSector->m_y);
+    m_sectorLabel.SetText(m_hoveredSector->m_text.c_str());
+    m_sectorLabel.Measure(paintDc);
+    m_sectorLabel.Draw(paintDc);
+  }
+  SelectPalette(m_offscreenDc, previousPalette, FALSE);
+  SelectObject(m_offscreenDc, previousBitmap);
+  EndPaint(m_hwnd, &paint);
+  return 0;
+}
+
+void GalaxyWindow::ShowDeveloperMenu()
+{
+  if (AppGetGameType() != 1)
+    return;
+  ShowAiDeveloperMenu(this, 230, 100, 7, true);
+}
+
+LRESULT GalaxyWindow::OnKeyDown(WPARAM key, LPARAM lParam)
+{
+  bool popupOpen = false;
+  if (key == 'D' || (key >= kKeyF1 && key <= kKeyF7))
+  {
+    for (const auto& ownedNode : m_children.Entries())
+    {
+      auto* node = ownedNode.get();
+      if (static_cast<CoolGameWindow*>(node)->m_flags & kGameWindowPopup)
+      {
+        popupOpen = true;
+        break;
+      }
+    }
+  }
+  if (popupOpen)
     return 0;
+  if (GetKeyState(VK_CONTROL) < 0)
+    return 0;
+  switch (key)
+  {
+    case 'D':
+      if ((static_cast<uintptr_t>(lParam) & (1u << 30)) == 0 && !InputBlocked() &&
+          m_mouseMode == kMouseModeNormal && !m_inModalLoop && GetKeyState(VK_SHIFT) >= 0)
+        ShowDeveloperMenu();
+      return 0;
+    case VK_TAB:
+      return 0;
+    case VK_F1:
+      PostMessageA(m_hwnd, WM_COMMAND, kGalaxyGameControls, 0);
+      return 0;
+    case VK_F2:
+      OpenSystemFinder();
+      return 0;
+    case VK_F3:
+      OpenFleetFinder();
+      return 0;
+    case VK_F4:
+      OpenTroopFinder();
+      return 0;
+    case VK_F5:
+      OpenPersonnelFinder();
+      return 0;
+    case VK_F6:
+      OpenMessageIndex(1, 0x79);
+      return 0;
+    case VK_F7:
+    {
+      ObjectKey object;
+      NullableKey type;
+      type.m_value = 0;
+      OpenEncyclopedia(&object, &type);
+      return 0;
+    }
+    default:
+      break;
+  }
+  return GameWindowObject::WindowProc(WM_KEYDOWN, key, lParam);
+}
+
+LRESULT GalaxyWindow::OnShowWindow(WPARAM shown, LPARAM lParam)
+{
+  if (shown == 0)
+  {
+    if (m_tickTimer)
+      m_tickTimer->m_suspended = 1;
+    if (m_droidStage)
+      m_droidStage->Disable();
+    if (m_droidStage2)
+      m_droidStage2->Disable();
+  }
+  else
+  {
+    if (m_tickTimer)
+    {
+      m_tickTimer->m_suspended = 0;
+      m_tickTimer->OnTick();
+    }
+    if (m_droidStage)
+      m_droidStage->Enable();
+    if (m_droidStage2)
+      m_droidStage2->Enable();
+    if (m_mouseMode & kMouseModeRestoring)
+      m_mouseMode = kMouseModeNormal;
+  }
+  return GameWindowObject::WindowProc(WM_SHOWWINDOW, shown, lParam);
+}
+
+LRESULT GalaxyWindow::OnMouseMove(WPARAM keys, LPARAM position)
+{
+  POINT cursor = {LowWord(position), HighWord(position)};
+  if (m_mouseMode != kMouseModeNormal && !(keys & MK_SHIFT))
+  {
+    SetCursor(m_currentCursor);
+    return 0;
+  }
+  for (const auto& ownedNode : m_sectorItems.Entries())
+  {
+    auto* node = static_cast<CoolListItem*>(ownedNode.get());
+    auto* item = static_cast<ObjectListItem*>(node);
+    RECT area = item->m_rect;
+    const BOOL inside = PtInRect(&area, cursor);
+    if (item->m_state.m_value & 1)
+    {
+      if (!inside)
+      {
+        area.right += kHoverRightMargin;
+        InvalidateRect(m_hwnd, &area, FALSE);
+        item->m_state.m_value &= ~1u;
+        m_hoveredSector = nullptr;
+        continue;
+      }
+    }
+    else if (!inside)
+    {
+      continue;
+    }
+    if (m_hoveredSector != item)
+    {
+      area.right += kHoverRightMargin;
+      InvalidateRect(m_hwnd, &area, FALSE);
+      item->m_state.m_value |= 1;
+      m_hoveredSector = item;
+      break;
+    }
+  }
+  SetCursor(m_normalCursor);
+  return 0;
+}
+
+LRESULT GalaxyWindow::OnMovieDone()
+{
+  if (!m_pendingMovie)
+    return 0;
+  HWND parentHwnd = m_parent->m_hwnd;
+  UiFinishSync(reinterpret_cast<PlayerMessage*>(m_pendingMovie));
+  m_pendingMovie = 0;
+  AppSetVolume(AppGetVolume());
+  SoundManager::Initialize(parentHwnd, 1, 0);
+  InitMusic();
+  m_musicPending = 1;
+  StartMusic();
+  return 0;
 }

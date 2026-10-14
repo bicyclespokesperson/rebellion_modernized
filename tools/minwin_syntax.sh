@@ -10,7 +10,7 @@ out="$ROOT/build/minwin/syntax_$mode"
 rm -rf "$out"; mkdir -p "$out"
 case "$mode" in
   i686) driver="clang-cl --target=i686-pc-windows-msvc -fms-compatibility-version=19.40 /imsvc/opt/xwin/crt/include /imsvc/opt/xwin/sdk/include/ucrt /imsvc/opt/xwin/sdk/include/um /imsvc/opt/xwin/sdk/include/shared /Zs /Zc:sizedDealloc- /GR- /EHs-c- /arch:IA32 /clang:-fcheck-new -Wno-microsoft-cast -D_ACRTIMP= -D_CRTIMP= -D_DCRTIMP= -DREB_HYBRID=1 -DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_NO_CRT_STDIO_INLINE -D_CRT_SECURE_NO_WARNINGS -DREB_STANDALONE=1 -Datoi=reb_atoi -Datol=reb_atol" ;;
-  lp64) driver="clang++ --target=x86_64-linux-gnu -std=c++20 -fsyntax-only -fms-extensions -fno-exceptions -fno-rtti -fcheck-new -fwrapv -fno-strict-aliasing -fsigned-char -ffp-contract=off -Wno-everything -DREB_STANDALONE=1" ;;
+  lp64) driver="clang++ --target=x86_64-linux-gnu -std=c++23 -fsyntax-only -fms-extensions -fno-exceptions -fno-rtti -fcheck-new -fwrapv -fno-strict-aliasing -fsigned-char -ffp-contract=off -Wno-everything -DREB_STANDALONE=1" ;;
   *) echo "usage: $0 i686|lp64" >&2; exit 2 ;;
 esac
 cat > "$out/one.sh" <<EOF

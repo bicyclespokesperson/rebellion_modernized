@@ -5,36 +5,20 @@
 // module's header provides it.
 #include <cstdint>
 
-#include "core/containers.h"
-#include "core/layout.h"
+#include "core/entry_identity.h"
 #include "core/stream_io.h"
 #include "core/utility_classes.h"
 #include "data/seed_key.h"
 #include "events/event_queue.h"
+#include "gameobj/notif_payload.h"
 #include "gameobj/object_key.h"
 
 class Crc32;
 class GameRoot;
 class SidedMessage;
 
-class PostedEventQueue;  // game_manager_state.h
-class TickTable;         // game_manager_state.h
-
-// An object created from the keyed factory table (0x51f730): the notification handed to the scheduler hooks. Only the
-// slots and fields the game manager touches are declared. Slot 4 answers the kind (1-4).
-class PostedEvent : public LinkNode {
-public:
-    virtual int GetFactoryKey();  // 3: the key of the keyed factory that builds this class (+0xc)
-    virtual int GetKind();        // 4: 1-4, picks the handler (+0x10)
-    virtual void Prepare();       // 5: +0x14, run before the event is queued
-
-    int m_result;     // +0x0c
-    int m_field10;    // +0x10
-    int m_field14;    // +0x14
-    int m_field18;    // +0x18
-    int m_unk1c;      // +0x1c
-    ObjectKey m_key20;  // +0x20
-};
+class PostedEventQueue; // game_manager_state.h
+class TickTable; // game_manager_state.h
 
 // Battle / follow-up code run on the game root (0x516710-0x518460).
 int PublishVictoryState();

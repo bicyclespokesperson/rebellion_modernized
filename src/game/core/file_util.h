@@ -4,11 +4,12 @@
 #include "core/stream_io.h"
 
 // Error code of the last file/resource helper call below (g_fileError).
-enum FileError : int {
-    kFileOk = 0,
-    kFileNoName = 1,
-    kFileOpenFailed = 2,
-    kFileResourceMissing = 4,
+enum FileError : int
+{
+  kFileOk = 0,
+  kFileNoName = 1,
+  kFileOpenFailed = 2,
+  kFileResourceMissing = 4,
 };
 
 // Module whose resources LoadRcdataString reads (the game's own module if `module` is null); clears the error.
@@ -23,7 +24,8 @@ char* LoadRcdataString(unsigned id);
 // if there is no name and kFileOpenFailed if the open failed.
 void OpenInputFile(ifstream* stream, const char* fileName);
 void OpenOutputFile(ofstream* stream, const char* fileName);
-void CloseFileStream(void* fstream);
+void CloseFileStream(ifstream* stream);
+void CloseFileStream(ofstream* stream);
 
 // DeleteFile on the name; 0 if there is no name.
 int DeleteGameFile(const char* fileName);

@@ -1,100 +1,135 @@
 #include "ui/resource_dll.h"
+#include "ui/cool_app.h"
 
 #include <cstring>
 
-#include "core/vptr_store.h"
-
-ResourceDll::ResourceDll(const char* libraryName) {
-    m_module = LoadLibraryA(libraryName);
-    if (!m_module) GetLastError();
+ResourceDll::ResourceDll(const char* libraryName)
+{
+  m_module = LoadLibraryA(libraryName);
+  if (!m_module)
+    GetLastError();
 }
 
-ResourceDll::~ResourceDll() {
-    if (m_module) FreeLibrary(m_module);
-    REB_KEEP_VPTR_STORE();
+ResourceDll::~ResourceDll()
+{
+  if (m_module)
+    FreeLibrary(m_module);
 }
 
-ResourceDllList::ResourceDllList() {}
+ResourceDllList::~ResourceDllList() = default;
 
-ResourceDllList::~ResourceDllList() { REB_KEEP_VPTR_STORE(); }
-
-void ResourceDllList::UnloadSlot(uint32_t slot) {
-    for (IdLinkNode* node = DetachById(slot); node; node = DetachById(slot)) delete node;
+ResourceDll* ResourceDllList::FindById(uint32_t slot) const
+{
+  return m_libraries.FindById(slot);
 }
 
-FontTable::FontTable(const char* faceName) {
-    std::memset(m_faceName, 0, sizeof(m_faceName));
-    std::memcpy(m_faceName, faceName, std::strlen(faceName) + 1);
-    std::memset(m_fonts, 0, sizeof(m_fonts));
+uint32_t ResourceDllList::AddWithId(ResourceDll* library)
+{
+  return m_libraries.AddWithId(library);
 }
 
-FontTable::~FontTable() {
-    for (HFONT font : m_fonts) {
-        if (font) DeleteObject(font);
-    }
+void ResourceDllList::UnloadSlot(uint32_t slot)
+{
+  delete m_libraries.DetachById(slot);
 }
 
-HFONT FontTable::GetFont(uint32_t slot) {
-    if (slot >= kFontSlotCount) return nullptr;
-    if (!m_fonts[slot]) CreateSlotFont(static_cast<int>(slot));
-    return m_fonts[slot];
+FontTable::FontTable(const char* faceName)
+{
+  std::memset(m_faceName, 0, sizeof(m_faceName));
+  std::memcpy(m_faceName, faceName, std::strlen(faceName) + 1);
+  std::memset(m_fonts, 0, sizeof(m_fonts));
 }
 
-void FontTable::CreateSlotFont(int slot) {
-    LOGFONTA font;
-    std::memset(&font, 0, sizeof(font));
-    font.lfQuality = PROOF_QUALITY;
-    // BUG(original): the face name is copied without a bound (LF_FACESIZE is 32, m_faceName holds 100).
-    std::memcpy(font.lfFaceName, m_faceName, std::strlen(m_faceName) + 1);
-    switch (slot) {
-        case 1:
-        case 5:
-            font.lfHeight = 16;
-            font.lfWeight = FW_BOLD;
-            break;
-        case 2:
-            font.lfHeight = 14;
-            font.lfWeight = FW_BOLD;
-            break;
-        case 3:
-            font.lfHeight = 8;
-            font.lfWeight = FW_NORMAL;
-            break;
-        case 6:
-            font.lfHeight = 18;
-            font.lfWeight = FW_NORMAL;
-            break;
-        case 7:
-            font.lfHeight = 18;
-            font.lfWeight = FW_BOLD;
-            break;
-        case 8:
-        case 9:
-            font.lfHeight = 12;
-            font.lfWeight = FW_NORMAL;
-            break;
-        case 10:
-            font.lfHeight = 14;
-            font.lfWeight = FW_NORMAL;
-            break;
-        case 11:
-            font.lfHeight = 24;
-            font.lfWeight = FW_NORMAL;
-            break;
-        case 12:
-            font.lfHeight = 30;
-            font.lfWeight = FW_NORMAL;
-            break;
-        case 13:
-            font.lfHeight = 12;
-            font.lfWeight = FW_BLACK;
-            break;
-        default:
-            font.lfHeight = 16;
-            font.lfWeight = FW_NORMAL;
-            break;
-    }
-    m_fonts[slot] = CreateFontIndirectA(&font);
+FontTable::~FontTable()
+{
+  Clear();
 }
 
-HFONT CoolGetFont(int slot) { return g_fontTable.GetFont(slot); }
+void FontTable::Clear()
+{
+  for (HFONT& font : m_fonts)
+  {
+    if (font)
+      DeleteObject(font);
+    font = nullptr;
+  }
+}
+
+HFONT FontTable::GetFont(uint32_t slot)
+{
+  if (slot >= kFontSlotCount)
+    return nullptr;
+  if (!m_fonts[slot])
+    CreateSlotFont(static_cast<int>(slot));
+  return m_fonts[slot];
+}
+
+void FontTable::CreateSlotFont(int slot)
+{
+  LOGFONTA font;
+  std::memset(&font, 0, sizeof(font));
+  font.lfQuality = PROOF_QUALITY;
+  std::strncpy(font.lfFaceName, m_faceName, sizeof(font.lfFaceName) - 1);
+  font.lfFaceName[sizeof(font.lfFaceName) - 1] = '\0';
+  switch (slot)
+  {
+    case 1:
+    case 5:
+      font.lfHeight = 16;
+      font.lfWeight = FW_BOLD;
+      break;
+    case 2:
+      font.lfHeight = 14;
+      font.lfWeight = FW_BOLD;
+      break;
+    case 3:
+      font.lfHeight = 8;
+      font.lfWeight = FW_NORMAL;
+      break;
+    case 6:
+      font.lfHeight = 18;
+      font.lfWeight = FW_NORMAL;
+      break;
+    case 7:
+      font.lfHeight = 18;
+      font.lfWeight = FW_BOLD;
+      break;
+    case 8:
+    case 9:
+      font.lfHeight = 12;
+      font.lfWeight = FW_NORMAL;
+      break;
+    case 10:
+      font.lfHeight = 14;
+      font.lfWeight = FW_NORMAL;
+      break;
+    case 11:
+      font.lfHeight = 24;
+      font.lfWeight = FW_NORMAL;
+      break;
+    case 12:
+      font.lfHeight = 30;
+      font.lfWeight = FW_NORMAL;
+      break;
+    case 13:
+      font.lfHeight = 12;
+      font.lfWeight = FW_BLACK;
+      break;
+    default:
+      font.lfHeight = 16;
+      font.lfWeight = FW_NORMAL;
+      break;
+  }
+  m_fonts[slot] = CreateFontIndirectA(&font);
+}
+
+UiResources* CurrentUiResources()
+{
+  return g_app ? &g_app->m_resources : nullptr;
+}
+
+HFONT CoolGetFont(int slot)
+{
+  auto* resources = CurrentUiResources();
+  return resources ? resources->fonts.GetFont(slot) : nullptr;
+}

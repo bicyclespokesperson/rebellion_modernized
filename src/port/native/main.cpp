@@ -1,21 +1,22 @@
-// Process entry of the native executable: what WinMainCRTStartup does for the Windows build. The C runtime is initialised by
-// the host; this runs the original's static initializers (generated from REBEXE.EXE: tools/gen_native_init.py), connects the
-// platform components, and calls the game's WinMain with a synthetic instance handle and the command line.
-#include <locale.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+// The host initializes the C runtime. Program startup, assets and platform services have explicit native lifetimes.
+#include <exception>
+#include <iostream>
+#include <clocale>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 
 #include <string>
 
 #include "app/rebellion_application.h"
 #include "platform/win32.h"
 #include "port/native/first_run.h"
+#include "port/native/game_context.h"
 #include "port/native/native_clock.h"
+#include "port/native/startup_assets.h"
 
-void RebRunStaticInitializers();
-
-namespace minwin_wiring {
+namespace minwin_wiring
+{
 void Install();
 }
 
@@ -24,36 +25,62 @@ extern "C" {
 DWORD MinwinTimeGetTime(void);
 UINT MinwinTimeSetEvent(UINT delay, UINT resolution, LPTIMECALLBACK callback, DWORD_PTR user, UINT flags);
 
-DWORD timeGetTime(void) {
-    if (native_clock::Deterministic()) return native_clock::VirtualTickMs();
-    return MinwinTimeGetTime();
+DWORD timeGetTime(void)
+{
+  if (native_clock::Deterministic())
+    return native_clock::VirtualTickMs();
+  return MinwinTimeGetTime();
 }
 
-UINT timeSetEvent(UINT delay, UINT resolution, LPTIMECALLBACK callback, DWORD_PTR user, UINT flags) {
-    if (native_clock::NoTimers()) return 1;
-    return MinwinTimeSetEvent(delay, resolution, callback, user, flags);
+UINT timeSetEvent(UINT delay, UINT resolution, LPTIMECALLBACK callback, DWORD_PTR user, UINT flags)
+{
+  if (native_clock::NoTimers())
+    return 1;
+  return MinwinTimeSetEvent(delay, resolution, callback, user, flags);
 }
 }
 
-namespace {
+namespace
+{
 
-std::string CommandLineFrom(int argc, char** argv) {
-    std::string line;
-    for (int i = 1; i < argc; ++i) {
-        if (i > 1) line += ' ';
-        line += argv[i];
-    }
-    return line;
+std::string CommandLineFrom(int argc, char** argv)
+{
+  std::string line;
+  for (int i = 1; i < argc; ++i)
+  {
+    if (i > 1)
+      line += ' ';
+    line += argv[i];
+  }
+  return line;
 }
 
-}  // namespace
+} // namespace
 
-int main(int argc, char** argv) {
-    setvbuf(stdout, nullptr, _IOLBF, 0);
-    if (!reb::native::CheckInstallation()) return 1;
+int main(int argc, char** argv)
+{
+  setvbuf(stdout, nullptr, _IOLBF, 0);
+  try
+  {
+    reb::native::StartupAssets startupAssets(reb::native::StartupAssetPath());
+    if (!reb::native::CheckInstallation())
+      return 1;
     minwin_wiring::Install();
-    RebRunStaticInitializers();
+    reb::native::GameContext context;
+    context.Start();
     std::string commandLine = CommandLineFrom(argc, argv);
-    HINSTANCE instance = reinterpret_cast<HINSTANCE>(GetModuleHandleA(nullptr));
-    return WinMain(instance, nullptr, commandLine.data(), 10 /* SW_SHOWDEFAULT */);
+    auto instance = reinterpret_cast<HINSTANCE>(GetModuleHandleA(nullptr));
+    int result = RunApplication(context, instance, nullptr, commandLine.data(), 10 /* SW_SHOWDEFAULT */);
+    context.Shutdown();
+    return result;
+  }
+  catch (const std::exception& error)
+  {
+    std::cerr << "Native startup failed: " << error.what() << '\n';
+  }
+  catch (...)
+  {
+    std::cerr << "Native startup failed with an unknown exception\n";
+  }
+  return 1;
 }

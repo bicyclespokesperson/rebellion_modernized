@@ -22,7 +22,7 @@ FIELD = re.compile(r"^\s*(\d+)(?::(\d+)-(\d+))?\s*\|( +)(.*)$")
 SIZE = re.compile(r"\[sizeof=(\d+), (?:dsize=\d+, )?align=(\d+)")
 CLANG_FLAGS = ("--target=i686-pc-windows-msvc /imsvc/opt/xwin/crt/include /imsvc/opt/xwin/sdk/include/ucrt "
                "/imsvc/opt/xwin/sdk/include/um /imsvc/opt/xwin/sdk/include/shared -Isrc/game -Isrc /GR- /Zs "
-               "-DREB_HYBRID=1 -DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_NO_CRT_STDIO_INLINE /std:c++20 "
+               "-DREB_HYBRID=1 -DWIN32_LEAN_AND_MEAN -DNOMINMAX -D_NO_CRT_STDIO_INLINE /std:c++23 "
                "-Xclang -fdump-record-layouts -Xclang -fdump-record-layouts-canonical")
 
 

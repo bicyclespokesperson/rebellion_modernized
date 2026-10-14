@@ -5,10 +5,16 @@
 //   data_dir       where MDATA\ lives when it is not in install_dir (the CD, the "TooBig" location); defaults to install_dir
 //   font_path      full path of arial.ttf; when empty the text module searches the system and then falls back to Liberation Sans
 //   window_scale   integer scale of the 640x480 window, 1-8; 0 or absent: the largest that fits the display
-//   fullscreen     1: start fullscreen (letterboxed at an integer scale); Alt+Enter toggles while playing (default 0)
+//   render_scale   GDI device-pixel scale, 1-4; 0 or absent: automatically fit the output
+//   upscale_filter sharp (default), nearest (fractional nearest), or integer (legacy integer scaling)
+//   fullscreen     1: start fullscreen; Alt+Enter toggles while playing (default 0)
+//   widescreen     1 (default): expand the gameplay map to fit the display; 0: classic 640x480
+//   hd_asset_dir   optional indexed HD pack directory, relative to this config file or absolute
 //   renderer       SDL render driver name ("software", "opengl", ...; default: SDL's choice, software when that fails)
 //   vsync          1: synchronise presentation with the display (default 0)
 //   audio_buffer   device buffer in sample frames (default 1024 at 44.1 kHz)
+//   alliance_ai    AI personality for Alliance games (default classic)
+//   empire_ai      AI personality for Empire games (default classic)
 // The `[registry]` section holds the values the game reads and writes under
 //   HKLM\SOFTWARE\LucasArts Entertainment Company LLC\Star Wars Rebellion
 // (DataLocation, DllLocation, InstalledLocation, TooBigLocation, EncyLocation, MismatchOpts, DisplayOpts, Volume, MusicVolume,
@@ -25,45 +31,60 @@
 #include <string>
 #include <vector>
 
-namespace mw::config {
+namespace mw::config
+{
 
 constexpr const char* kRegistrySubKey = "SOFTWARE\\LucasArts Entertainment Company LLC\\Star Wars Rebellion";
 
-enum class ValueType : uint32_t { None = 0, String = 1, Dword = 4 };
-
-struct RegistryValue {
-    ValueType type = ValueType::None;
-    std::string text;
-    uint32_t dword = 0;
+enum class ValueType : uint32_t
+{
+  None = 0,
+  String = 1,
+  Dword = 4
 };
 
-class Config {
+struct RegistryValue
+{
+  ValueType type = ValueType::None;
+  std::string text;
+  uint32_t dword = 0;
+};
+
+class Config
+{
 public:
-    static std::string DefaultPath();
+  static std::string DefaultPath();
 
-    bool Load(const std::string& path);
-    bool Save(const std::string& path) const;
-    void Parse(const std::string& text);
-    std::string Serialize() const;
+  bool Load(const std::string& path);
+  bool Save(const std::string& path) const;
+  void Parse(const std::string& text);
+  std::string Serialize() const;
 
-    std::string Get(const std::string& key, const std::string& fallback = std::string()) const;
-    void Set(const std::string& key, const std::string& value);
+  std::string Get(const std::string& key, const std::string& fallback = std::string()) const;
+  void Set(const std::string& key, const std::string& value);
 
-    std::string InstallDir() const { return Get("install_dir"); }
-    std::string DataDir() const;
-    std::string FontPath() const { return Get("font_path"); }
-    int WindowScale() const;  // 0: automatic
+  std::string InstallDir() const
+  {
+    return Get("install_dir");
+  }
+  std::string DataDir() const;
+  std::string FontPath() const
+  {
+    return Get("font_path");
+  }
+  int WindowScale() const; // 0: automatic
 
-    bool GetRegistryValue(const std::string& name, RegistryValue* out) const;
-    void SetRegistryValue(const std::string& name, const RegistryValue& value);
+  bool GetRegistryValue(const std::string& name, RegistryValue* out) const;
+  void SetRegistryValue(const std::string& name, const RegistryValue& value);
 
 private:
-    struct Entry {
-        std::string key;
-        std::string value;
-    };
-    std::vector<Entry> m_settings;
-    std::vector<Entry> m_registry;
+  struct Entry
+  {
+    std::string key;
+    std::string value;
+  };
+  std::vector<Entry> m_settings;
+  std::vector<Entry> m_registry;
 };
 
 // The process-wide configuration, loaded from DefaultPath() on first use. SetGlobalPath() replaces it (tests, --config).
@@ -73,4 +94,4 @@ const std::string& GlobalPath();
 
 bool EqualsNoCase(const std::string& a, const std::string& b);
 
-}  // namespace mw::config
+} // namespace mw::config

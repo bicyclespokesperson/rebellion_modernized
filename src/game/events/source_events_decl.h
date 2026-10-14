@@ -6,7 +6,6 @@
 #include "gameobj/game_hooks.h"
 #include "gameobj/object_key.h"
 
-
 int ApplyEvent301(ObjectKey*, ObjectKey*, ObjectKey*, int, NotifyContext*);
 int ApplyEvent31d(ObjectKey*, ObjectKey*, ObjectKey*, int, NotifyContext*);
 int ApplyEvent300(ObjectKey*, ObjectKey*, ObjectKey*, int, NotifyContext*);

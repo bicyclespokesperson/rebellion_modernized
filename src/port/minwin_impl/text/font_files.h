@@ -14,12 +14,14 @@
 #include <string>
 #include <vector>
 
-namespace mwtext {
+namespace mwtext
+{
 
-struct FontFiles {
-    std::string regular;  // empty: no font found at all
-    std::string bold;     // empty: synthesise
-    std::string source;   // "config", "system Arial" or "Liberation Sans" (for the log)
+struct FontFiles
+{
+  std::string regular; // empty: no font found at all
+  std::string bold; // empty: synthesise
+  std::string source; // "config", "system Arial" or "Liberation Sans" (for the log)
 };
 
 // Extra directories searched (after the config path, before the system directories). Used by tests and by the port's startup
@@ -31,4 +33,4 @@ FontFiles FindArial();
 // Recursive, case-insensitive search for a file name in a directory tree (depth-limited); empty when not found.
 std::string FindFileNoCase(const std::string& directory, const std::string& fileName, int maxDepth = 5);
 
-}  // namespace mwtext
+} // namespace mwtext

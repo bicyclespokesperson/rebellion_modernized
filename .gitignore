@@ -8,10 +8,12 @@ tools/ghidra/
 tools/.venv/
 refs/
 build/
+/compile_commands.json
 logs/
 work/
 extracted/
 __pycache__/
+.cache
 symbols/*.lock
 .claude/worktrees/
 /third_party/
