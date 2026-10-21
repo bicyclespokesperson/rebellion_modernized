@@ -17,11 +17,13 @@ root for editor tooling.
 | saves, game data | `install_dir` of the config file (the player's own game directory, `SaveGame/` inside it) on both: nothing OS-specific | | |
 | system font directories (Arial search) | `~/.fonts`, `~/.local/share/fonts`, `$XDG_DATA_HOME/fonts`, `/usr/share/fonts`, `/usr/local/share/fonts` | `/System/Library/Fonts/Supplemental` (has Arial), `/Library/Fonts`, `~/Library/Fonts` | `SystemFontDirs` |
 | bundled fallback fonts (Liberation Sans) | `<executable dir>/fonts` | `Rebellion.app/Contents/Resources/fonts` | `BundledFontDir`, `reb_native_platform_package` |
-| thread id / name / priority | `gettid`, `pthread_setname_np(thread, name)`; priority is not raised | `pthread_threadid_np`, `pthread_setname_np(name)`; priority is not raised | `CurrentThreadId`, `SetCurrentThreadName`, `RaiseCurrentThreadPriority` |
-| link libraries | `pthread dl m`; SDL3 finds X11/Wayland/ALSA/Pulse | `pthread m`; SDL3 links Cocoa/Metal/CoreAudio frameworks itself | `REB_PLATFORM_LIBS` |
+| link libraries | `Threads::Threads dl m`; SDL3 finds X11/Wayland/ALSA/Pulse | `Threads::Threads m`; SDL3 links Cocoa/Metal/CoreAudio frameworks itself | `REB_PLATFORM_LIBS` |
 | deployment target | n/a | 11.0 for arm64 and x86-64 (set before `project()`) | top-level `CMakeLists.txt` |
 | packaging | plain binary `build/native/rebellion` | `Rebellion.app` (Info.plist from `packaging/macos`, Liberation fonts, the game's icon converted to `Rebellion.icns` or `REB_BUNDLE_ICON`, ad-hoc `codesign`) | `reb_native_platform_package` |
 | cross builds | `--arch arm64`: clang-19 + Ubuntu cross libc/libstdc++, SDL3 with only its dummy drivers (`REB_SDL_HEADLESS`) | none (macOS is built on a Mac or a macOS runner) | `cmake/toolchain-linux-aarch64.cmake` |
+
+Thread creation, synchronization and UI thread ownership checks use the C++ standard library on all platforms.
+The port does not request thread priority boosts; CMake supplies the host threading requirements through `Threads::Threads`.
 
 Windows uses `%APPDATA%\Rebellion\config.ini`, the Windows SDK and the MSVC-compatible CRT, and builds with `clang-cl`.
 
@@ -45,7 +47,7 @@ case-insensitive default of APFS works; case-sensitive volumes fall back to a di
 
 | Piece | Where | Notes |
 |---|---|---|
-| kernel32 on POSIX | `src/port/native/kernel32_posix.cpp` | only what has no standard-library form: `CloseHandle` for the descriptor handles of `win_compat.cpp`, `GetCurrentThreadId`, QPC (`CLOCK_MONOTONIC`) and a constant `GetLastError`. Threads, events and locks are `std::thread` / `std::mutex` / `std::condition_variable` in the callers; `port/native/thread_sync.h` has the event group and the timed join the audio threads use. `GetTickCount` is `native_clock::TickMs()`. `timeGetTime/timeSetEvent` are in `main.cpp` (the window manager's pump-driven timers). |
+| kernel32 on POSIX | `src/port/native/kernel32_posix.cpp` | only what has no standard-library form: `CloseHandle` for the descriptor handles of `win_compat.cpp`, QPC (`CLOCK_MONOTONIC`) and a constant `GetLastError`. Threads, events and locks are `std::thread` / `std::mutex` / `std::condition_variable` in the callers; `port/native/thread_sync.h` has the event group and the timed join the audio threads use. `GetTickCount` is `native_clock::TickMs()`. `timeGetTime/timeSetEvent` are in `main.cpp` (the window manager's pump-driven timers). |
 | MSVC CRT names | `src/port/native/crt_posix.cpp`, `crt_windows.cpp`, `crt/` | `_sopen/_read/_write/_lseek/_close/_setmode/_chdir/_mkdir/_chdrive`, `_stricmp/_strnicmp`, `<io.h>`/`<direct.h>` shims. All paths go through `mw::res::ResolvePath` (backslashes, drive letters, any case). There is no text mode: every file the game opens is opened binary. Game installation paths use the explicit `OpenGameFile` adapter. |
 | iostream library | `src/game/iostream` | streams own typed `ios`, input/output views and virtual `streambuf` implementations |
 | program globals | typed definitions in `src/game` | |

@@ -636,7 +636,7 @@ void CoolWindow::CreateTooltipControl(LPARAM delayMs)
   if (g_tooltipWindow) {
     reb::compat::SendMessageA(g_tooltipWindow, TTM_ACTIVATE, 1, 0);
     reb::compat::SendMessageA(g_tooltipWindow, TTM_SETDELAYTIME, 0, delayMs);
-    g_tooltipHook = reb::compat::SetWindowsHookExA(WH_GETMESSAGE, TooltipHookProc, nullptr, GetCurrentThreadId());
+    g_tooltipHook = reb::compat::SetWindowsHookExA(WH_GETMESSAGE, TooltipHookProc, nullptr);
   }
 }
 
@@ -787,7 +787,7 @@ LRESULT CALLBACK MouseHookProc(int code, WPARAM wParam, LPARAM lParam)
 int CoolWindow::BeginPopup()
 {
   if (g_popupStack.empty()) {
-    g_mouseHook = reb::compat::SetWindowsHookExA(WH_MOUSE, MouseHookProc, m_instance, GetCurrentThreadId());
+    g_mouseHook = reb::compat::SetWindowsHookExA(WH_MOUSE, MouseHookProc, m_instance);
   }
   auto* node = NewOrNull<HwndNode>(m_hwnd);
   if (!node) {

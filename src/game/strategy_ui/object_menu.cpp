@@ -373,7 +373,7 @@ int PopupMenuWindow::HandleMouse(MenuItem* item, LONG x, LONG y, int message)
 bool PopupMenuWindow::InstallMouseHook()
 {
   if (RemoveMenuHook()) {
-    g_menuHook = reb::compat::SetWindowsHookExA(WH_MOUSE, MenuMouseHook, m_instance, GetCurrentThreadId());
+    g_menuHook = reb::compat::SetWindowsHookExA(WH_MOUSE, MenuMouseHook, m_instance);
   }
   return g_menuHook != nullptr;
 }

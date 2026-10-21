@@ -221,7 +221,7 @@ struct CrossThreadRequest {
   CrossThreadRequest* next;
 };
 
-const DWORD g_ownerThread = GetCurrentThreadId();
+const std::thread::id g_ownerThread = std::this_thread::get_id();
 std::mutex g_requestLock;
 CrossThreadRequest* g_requests = nullptr;
 
@@ -229,7 +229,7 @@ CrossThreadRequest* g_requests = nullptr;
 
 bool IsOwnerThread()
 {
-  return GetCurrentThreadId() == g_ownerThread;
+  return std::this_thread::get_id() == g_ownerThread;
 }
 
 void ProcessCrossThreadRequests()
@@ -730,7 +730,7 @@ BOOL REB_STDCALL reb::compat::KillTimer(HWND hwnd, UINT_PTR id)
 // ---- hooks
 // --------------------------------------------------------------------------------------------------------------
 
-HHOOK REB_STDCALL reb::compat::SetWindowsHookExA(int type, HOOKPROC proc, HINSTANCE module, DWORD thread)
+HHOOK REB_STDCALL reb::compat::SetWindowsHookExA(int type, HOOKPROC proc, HINSTANCE module)
 {
   if (type < 0 || type >= 16 || !proc) {
     return nullptr;
@@ -739,7 +739,6 @@ HHOOK REB_STDCALL reb::compat::SetWindowsHookExA(int type, HOOKPROC proc, HINSTA
   h->type = type;
   h->proc = proc;
   h->module = module;
-  h->thread = thread;
   h->next = g_hooks[type];
   g_hooks[type] = h;
   return reinterpret_cast<HHOOK>(h);

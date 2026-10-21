@@ -1,7 +1,6 @@
 #if !defined(_WIN32)
 #include <cstdarg>
 #include <fcntl.h>
-#include <pthread.h>
 #include <unistd.h>
 
 #include "platform/win32.h"

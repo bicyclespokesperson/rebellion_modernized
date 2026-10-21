@@ -3,7 +3,6 @@
 
 #include "audio/sound_manager.h"
 #include "core/reb_x87.h"
-#include "port/native/platform.h"
 #include "video/video_manager.h"
 
 namespace
@@ -253,7 +252,6 @@ int SmackerWindow::AdvanceFrame()
 
 void SmackerWindow::PlaybackThreadProc(SmackerWindow* window)
 {
-  reb::platform::RaiseCurrentThreadPriority();
   while (!window->m_stopRequested.load(std::memory_order_acquire) && window->AdvanceFrame() == 0) {
   }
 }

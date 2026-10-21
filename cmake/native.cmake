@@ -159,6 +159,10 @@ target_include_directories(reb_space_battle_port PRIVATE src/game src ${SDL3_SRC
 target_compile_options(reb_space_battle_port PRIVATE ${REB_NATIVE_FLAGS})
 target_compile_definitions(reb_space_battle_port PRIVATE REB_MINWIN=1 REB_NATIVE=1)
 
+foreach(target reb_game reb_minwin_impl reb_native_port reb_native_main reb_space_battle_port)
+  target_link_libraries(${target} PRIVATE Threads::Threads)
+endforeach()
+
 add_custom_target(reb_native_objects DEPENDS reb_game reb_minwin_impl reb_native_port
   reb_space_battle_port reb_native_main)
 add_executable(rebellion
@@ -255,7 +259,7 @@ if(BUILD_TESTING)
   add_executable(reb_thread_sync_tests tests/native/thread_sync_tests.cpp)
   target_include_directories(reb_thread_sync_tests PRIVATE src)
   target_compile_options(reb_thread_sync_tests PRIVATE ${REB_NATIVE_FLAGS})
-  target_link_libraries(reb_thread_sync_tests PRIVATE ${REB_NATIVE_LINK_FLAGS})
+  target_link_libraries(reb_thread_sync_tests PRIVATE Threads::Threads ${REB_NATIVE_LINK_FLAGS})
   add_test(NAME native_thread_sync COMMAND reb_thread_sync_tests)
   add_executable(reb_math_tests tests/native/game_math_test.cpp src/game/data/game_math.cpp)
   target_include_directories(reb_math_tests PRIVATE src/game)

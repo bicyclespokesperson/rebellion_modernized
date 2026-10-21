@@ -280,7 +280,6 @@ struct Hook {
   int type;
   HOOKPROC proc;
   HINSTANCE module;
-  DWORD thread;
   Hook* next; // next older hook of the same type
   bool dead;
 };

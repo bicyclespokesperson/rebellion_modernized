@@ -7,7 +7,6 @@
 #include "audio/sound_manager.h"
 #include "audio/stream_access.h"
 #include "port/native/audio_context.h"
-#include "port/native/platform.h"
 
 using namespace stream_access;
 
@@ -544,7 +543,6 @@ void SoundBuffer::StopRefillThread()
 
 void SoundBuffer::RefillThread(SoundBuffer* buffer, std::shared_ptr<reb::EventSet> events)
 {
-  reb::platform::RaiseCurrentThreadPriority();
   if (!buffer) {
     return;
   }

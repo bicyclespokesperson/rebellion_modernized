@@ -1,9 +1,7 @@
 // Linux half of src/port/native/platform.h.
 #include "port/native/platform.h"
 
-#include <pthread.h>
 #include <stdlib.h>
-#include <sys/syscall.h>
 #include <unistd.h>
 
 namespace reb::platform
@@ -55,19 +53,6 @@ std::string BundledFontDir()
   }
   std::string path(buffer, static_cast<size_t>(length));
   return path.substr(0, path.find_last_of('/')) + "/fonts";
-}
-
-uint32_t CurrentThreadId()
-{
-  return static_cast<uint32_t>(syscall(SYS_gettid));
-}
-
-// The audio and video threads ask for a slightly higher priority; the Unix ports never raised it (it needs privileges).
-void RaiseCurrentThreadPriority() {}
-
-void SetCurrentThreadName(const char* name)
-{
-  pthread_setname_np(pthread_self(), name);
 }
 
 FileTimestamps StatTimestamps(const struct stat& info)

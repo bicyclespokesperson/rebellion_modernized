@@ -72,38 +72,4 @@ std::string BundledFontDir()
   return separator == std::string::npos ? std::string{} : path.substr(0, separator) + "\\fonts";
 }
 
-uint32_t CurrentThreadId()
-{
-  return GetCurrentThreadId();
-}
-
-// The audio and video threads run slightly above normal priority, as the original did.
-void RaiseCurrentThreadPriority()
-{
-  SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_ABOVE_NORMAL);
-}
-
-void SetCurrentThreadName(const char* name)
-{
-  using SetThreadDescriptionFunction = HRESULT(WINAPI*)(HANDLE, PCWSTR);
-  const HMODULE kernel = GetModuleHandleW(L"kernel32.dll");
-  if (!kernel || !name) {
-    return;
-  }
-  const auto setThreadDescription
-      = reinterpret_cast<SetThreadDescriptionFunction>(GetProcAddress(kernel, "SetThreadDescription"));
-  if (!setThreadDescription) {
-    return;
-  }
-
-  const int length = MultiByteToWideChar(CP_UTF8, 0, name, -1, nullptr, 0);
-  if (length <= 0) {
-    return;
-  }
-  std::wstring wide(static_cast<size_t>(length), L'\0');
-  if (MultiByteToWideChar(CP_UTF8, 0, name, -1, wide.data(), length) > 0) {
-    setThreadDescription(GetCurrentThread(), wide.c_str());
-  }
-}
-
 } // namespace reb::platform

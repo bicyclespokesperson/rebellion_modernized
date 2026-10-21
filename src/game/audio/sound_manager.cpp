@@ -6,7 +6,6 @@
 
 #include "core/checked_new.h"
 #include "port/native/audio_context.h"
-#include "port/native/platform.h"
 #include "ui/cool_window.h"
 
 namespace
@@ -566,7 +565,6 @@ int SoundManager::CreateFileSource(SoundRequest* request, const char* fileName, 
 
 void SoundManager::EventThreadProc()
 {
-  reb::platform::RaiseCurrentThreadPriority();
   if (!Audio().soundThreadReady) {
     return;
   }

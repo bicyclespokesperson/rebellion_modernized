@@ -7,7 +7,6 @@
 
 #include "port/minwin/minwin.h"
 #include "port/native/native_clock.h"
-#include "port/native/platform.h"
 
 namespace
 {
@@ -31,11 +30,6 @@ BOOL REB_STDCALL CloseHandle(HANDLE handle)
     return close(static_cast<int>(reinterpret_cast<uintptr_t>(handle)) - 1) == 0;
   }
   return FALSE;
-}
-
-DWORD REB_STDCALL GetCurrentThreadId(void)
-{
-  return reb::platform::CurrentThreadId();
 }
 
 BOOL REB_STDCALL QueryPerformanceFrequency(LARGE_INTEGER* frequency)

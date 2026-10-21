@@ -13,13 +13,16 @@ endif()
 
 set(REB_PLATFORM_SOURCE ${CMAKE_CURRENT_LIST_DIR}/../src/port/native/platform_${REB_PLATFORM_NAME}.cpp)
 
+set(THREADS_PREFER_PTHREAD_FLAG TRUE)
+find_package(Threads REQUIRED)
+
 # Libraries the executable needs beyond SDL3 and FreeType (SDL3-static brings its own frameworks / system libraries).
 if(WIN32)
-  set(REB_PLATFORM_LIBS ws2_32)
+  set(REB_PLATFORM_LIBS Threads::Threads ws2_32)
 elseif(APPLE)
-  set(REB_PLATFORM_LIBS pthread m)
+  set(REB_PLATFORM_LIBS Threads::Threads m)
 else()
-  set(REB_PLATFORM_LIBS pthread dl m)
+  set(REB_PLATFORM_LIBS Threads::Threads dl m)
 endif()
 
 # Optional Linux-only SDL3 configuration: REB_SDL_HEADLESS builds only the dummy/offscreen video and dummy audio drivers, so a

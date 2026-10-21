@@ -1,9 +1,9 @@
 // macOS half of src/port/native/platform.h.
 #include "port/native/platform.h"
 
+#include <cstdint>
 #include <cstdlib>
 #include <mach-o/dyld.h>
-#include <pthread.h>
 
 namespace reb::platform
 {
@@ -36,21 +36,6 @@ std::string BundledFontDir()
   std::string path(buffer);
   const std::string macosDir = path.substr(0, path.find_last_of('/'));
   return macosDir + "/../Resources/fonts";
-}
-
-uint32_t CurrentThreadId()
-{
-  uint64_t id = 0;
-  pthread_threadid_np(nullptr, &id);
-  return static_cast<uint32_t>(id);
-}
-
-// The audio and video threads ask for a slightly higher priority; the Unix ports never raised it (it needs privileges).
-void RaiseCurrentThreadPriority() {}
-
-void SetCurrentThreadName(const char* name)
-{
-  pthread_setname_np(name);
 }
 
 FileTimestamps StatTimestamps(const struct stat& info)

@@ -168,7 +168,7 @@ HWND REB_STDCALL SetParent(HWND hWndChild, HWND hWndNewParent);
 int REB_STDCALL GetClassNameA(HWND hWnd, LPSTR lpClassName, int nMaxCount);
 HWND REB_STDCALL GetTopWindow(HWND hWnd);
 HWND REB_STDCALL GetWindow(HWND hWnd, UINT uCmd);
-HHOOK REB_STDCALL SetWindowsHookExA(int idHook, HOOKPROC lpfn, HINSTANCE hmod, DWORD dwThreadId);
+HHOOK REB_STDCALL SetWindowsHookExA(int idHook, HOOKPROC lpfn, HINSTANCE hmod);
 BOOL REB_STDCALL UnhookWindowsHookEx(HHOOK hhk);
 LRESULT REB_STDCALL CallNextHookEx(HHOOK hhk, int nCode, WPARAM wParam, LPARAM lParam);
 HBITMAP REB_STDCALL LoadBitmapA(HINSTANCE hInstance, LPCSTR lpBitmapName);

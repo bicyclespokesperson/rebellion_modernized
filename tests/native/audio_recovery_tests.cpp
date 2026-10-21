@@ -41,7 +41,7 @@ int main()
   const Uint64 pausedAt = g_lastCallback.load();
   SDL_Delay(3100);
   minwin_audio::ServiceDevice();
-  Require(g_stream != nullptr && g_thread == nullptr);
+  Require(g_stream != nullptr && !PacingWorker().joinable());
   WaitForCallback(pausedAt);
 
   SDL_DestroyAudioStream(g_stream);
@@ -50,12 +50,12 @@ int main()
   SDL_SetHint(SDL_HINT_AUDIO_DRIVER, "unavailable-test-driver");
   g_lastDeviceCheck = 0;
   minwin_audio::ServiceDevice();
-  Require(g_stream == nullptr && g_thread != nullptr);
+  Require(g_stream == nullptr && PacingWorker().joinable());
 
   SDL_SetHint(SDL_HINT_AUDIO_DRIVER, "dummy");
   g_lastDeviceCheck = 0;
   minwin_audio::ServiceDevice();
-  Require(g_stream != nullptr && g_thread == nullptr);
+  Require(g_stream != nullptr && !PacingWorker().joinable());
   WaitForCallback(g_lastCallback.load());
   SDL_DestroyAudioStream(g_stream);
   g_stream = nullptr;

@@ -918,8 +918,8 @@ LRESULT CALLBACK UiMouseHook(int code, WPARAM wParam, LPARAM lParam)
 
 void UiInstallInputHooks()
 {
-  g_uiKeyboardHook = reb::compat::SetWindowsHookExA(WH_KEYBOARD, UiKeyboardHook, nullptr, 0);
-  g_uiMouseHook = reb::compat::SetWindowsHookExA(WH_MOUSE, UiMouseHook, nullptr, 0);
+  g_uiKeyboardHook = reb::compat::SetWindowsHookExA(WH_KEYBOARD, UiKeyboardHook, nullptr);
+  g_uiMouseHook = reb::compat::SetWindowsHookExA(WH_MOUSE, UiMouseHook, nullptr);
   g_uiGameInputStarted = 0;
   g_uiInputActive = 1;
   if (GalaxyWindow* galaxy = GetGalaxyWindow()) {

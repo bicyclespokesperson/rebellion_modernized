@@ -2,7 +2,6 @@
 // Windows, Linux and macOS. One implementation per OS, selected by cmake/native_platform.cmake.
 // The full list of OS differences is in docs/native.md.
 #pragma once
-#include <stdint.h>
 #if !defined(_WIN32)
 #include <sys/stat.h>
 #endif
@@ -26,15 +25,6 @@ std::vector<std::string> SystemFontDirs();
 // Directory next to the executable that holds the Liberation Sans fallback fonts shipped with the build:
 //   Windows/Linux  <executable dir>/fonts        macOS  Rebellion.app/Contents/Resources/fonts
 std::string BundledFontDir();
-
-// Operating-system identifier of the calling thread (kernel32 GetCurrentThreadId).
-uint32_t CurrentThreadId();
-
-// Runs the calling (audio or video) thread slightly above normal priority where the OS allows it.
-void RaiseCurrentThreadPriority();
-
-// Names the calling thread for debuggers and profilers (the two OSes take different pthread_setname_np forms).
-void SetCurrentThreadName(const char* name);
 
 #if !defined(_WIN32)
 struct FileTimestamps {

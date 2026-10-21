@@ -13,7 +13,6 @@ BOOL REB_STDCALL CloseHandle(HANDLE hObject);
 DWORD REB_STDCALL GetLastError(void);
 BOOL REB_STDCALL QueryPerformanceCounter(LARGE_INTEGER* lpPerformanceCount);
 BOOL REB_STDCALL QueryPerformanceFrequency(LARGE_INTEGER* lpFrequency);
-DWORD REB_STDCALL GetCurrentThreadId(void);
 }
 
 namespace reb::compat

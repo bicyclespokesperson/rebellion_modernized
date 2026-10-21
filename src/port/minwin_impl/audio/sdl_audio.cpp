@@ -14,6 +14,7 @@
 #include <atomic>
 
 #include <exception>
+#include <thread>
 #include <vector>
 
 #include "port/minwin_impl/config/config.h"
@@ -27,12 +28,17 @@ constexpr int kOutputRate = 44100;
 constexpr int kBlockFrames = 1024;
 
 SDL_AudioStream* g_stream = nullptr;
-SDL_Thread* g_thread = nullptr;
 FILE* g_capture = nullptr;
 bool g_started = false;
-std::atomic<bool> g_stopPacing = false;
 std::atomic<Uint64> g_lastCallback = 0;
 Uint64 g_lastDeviceCheck = 0;
+
+std::jthread& PacingWorker()
+{
+  // Constructed after the mixer so the worker stops before the mixer is destroyed.
+  static std::jthread worker;
+  return worker;
+}
 
 [[noreturn]] void AbortCallbackException(const char* callback)
 {
@@ -76,13 +82,13 @@ void SDLCALL StreamCallback(void*, SDL_AudioStream* stream, int additionalBytes,
   }
 }
 
-int SDLCALL PacingThread(void*)
+void PacingThread(std::stop_token stop)
 {
   try {
     std::vector<int16_t> block;
     Uint64 start = SDL_GetTicksNS();
     Uint64 rendered = 0;
-    while (!g_stopPacing.load(std::memory_order_relaxed)) {
+    while (!stop.stop_requested()) {
       const Uint64 due = rendered * 1000000000ull / kOutputRate;
       const Uint64 now = SDL_GetTicksNS() - start;
       if (now < due) {
@@ -99,7 +105,6 @@ int SDLCALL PacingThread(void*)
         fflush(g_capture);
       }
     }
-    return 0;
   } catch (...) {
     AbortCallbackException("SDL audio pacing thread");
   }
@@ -158,7 +163,7 @@ void StartBackend()
   if (!g_capture && OpenDeviceStream()) {
     return;
   }
-  g_thread = SDL_CreateThread(PacingThread, "audio-pacing", nullptr);
+  PacingWorker() = std::jthread(PacingThread);
 }
 
 } // namespace
@@ -190,17 +195,15 @@ void ServiceDevice()
     SDL_DestroyAudioStream(g_stream);
     g_stream = nullptr;
   }
-  if (g_thread) {
-    g_stopPacing.store(true, std::memory_order_relaxed);
-    SDL_WaitThread(g_thread, nullptr);
-    g_thread = nullptr;
+  if (PacingWorker().joinable()) {
+    PacingWorker().request_stop();
+    PacingWorker().join();
   }
   if (OpenDeviceStream()) {
     fprintf(stderr, "minwin: audio output recovered\n");
     return;
   }
-  g_stopPacing.store(false, std::memory_order_relaxed);
-  g_thread = SDL_CreateThread(PacingThread, "audio-pacing", nullptr);
+  PacingWorker() = std::jthread(PacingThread);
 }
 
 } // namespace minwin_audio
